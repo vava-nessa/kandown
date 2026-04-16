@@ -1,0 +1,87 @@
+import type { SVGProps } from 'react';
+
+type IconProps = SVGProps<SVGSVGElement> & { size?: number };
+
+const defaults: SVGProps<SVGSVGElement> = {
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.5,
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
+};
+
+export const Icon = {
+  Plus: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  ),
+  X: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <path d="M18 6 6 18M6 6l12 12" />
+    </svg>
+  ),
+  Search: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.35-4.35" />
+    </svg>
+  ),
+  Refresh: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <path d="M21 12a9 9 0 0 1-15 6.5L3 16m0 0v5m0-5h5M3 12a9 9 0 0 1 15-6.5L21 8m0 0V3m0 5h-5" />
+    </svg>
+  ),
+  Trash: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14" />
+    </svg>
+  ),
+  ChevronDown: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  ),
+  Command: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z" />
+    </svg>
+  ),
+  LayoutBoard: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <rect x="3" y="3" width="7" height="18" rx="1" />
+      <rect x="14" y="3" width="7" height="12" rx="1" />
+    </svg>
+  ),
+  LayoutList: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+    </svg>
+  ),
+  Density: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <path d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  ),
+  Folder: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
+    </svg>
+  ),
+  Check: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  ),
+  Circle: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <circle cx="12" cy="12" r="9" />
+    </svg>
+  ),
+  Arrow: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <path d="M5 12h14M12 5l7 7-7 7" />
+    </svg>
+  ),
+};
