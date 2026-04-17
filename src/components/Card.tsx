@@ -74,6 +74,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
   const openDrawer = useStore(s => s.openDrawer);
   const deleteTask = useStore(s => s.deleteTask);
   const fields = useStore(s => s.config.fields);
+  const orphanTaskIds = useStore(s => s.orphanTaskIds);
   const [deleteArmed, setDeleteArmed] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const isMountedRef = useRef(true);
@@ -178,13 +179,23 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
         <span className="font-mono text-[11.5px] tracking-wide text-fg-muted">
           {task.id.toUpperCase()}
         </span>
-        {fields.priority && task.priority && (
-          <span
-            title={task.priority}
-            className="inline-block w-1.5 h-1.5 rounded-full"
-            style={{ backgroundColor: priorityColors[task.priority] }}
-          />
-        )}
+        <div className="flex items-center gap-1.5">
+          {orphanTaskIds.includes(task.id) && (
+            <span
+              className="text-[12px]"
+              title="This task file exists but is not listed on the board — it may have been edited manually"
+            >
+              ⚠️
+            </span>
+          )}
+          {fields.priority && task.priority && (
+            <span
+              title={task.priority}
+              className="inline-block w-1.5 h-1.5 rounded-full"
+              style={{ backgroundColor: priorityColors[task.priority] }}
+            />
+          )}
+        </div>
       </div>
 
       <div

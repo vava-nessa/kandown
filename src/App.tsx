@@ -27,6 +27,7 @@ import { Drawer } from './components/Drawer';
 import { CommandPalette } from './components/CommandPalette';
 import { SettingsPage } from './components/SettingsPage';
 import { Toaster } from './components/Toaster';
+import { ConflictModal } from './components/ConflictModal';
 import LiquidEther from './components/LiquidEther';
 import { useStore } from './lib/store';
 
@@ -138,6 +139,7 @@ export function App() {
       <Drawer />
       <CommandPalette />
       <Toaster />
+      <ConflictModal />
     </div>
   );
 }

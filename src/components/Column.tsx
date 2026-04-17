@@ -33,6 +33,7 @@ import {
 } from '@tabler/icons-react';
 import { Card } from './Card';
 import { Icon } from './Icons';
+import { KbdButton } from './KbdButton';
 import { useStore } from '../lib/store';
 import type { Column as ColumnType, BoardTask, Density, SearchMatch, ColumnColor } from '../lib/types';
 
@@ -322,17 +323,21 @@ export function Column({
         </div>
         <AnimatePresence>
           {isColHovered && (
-            <motion.button
+            <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.15 }}
-              onClick={() => createTask(column.name)}
-              className="w-full flex items-center gap-1.5 py-1.5 px-2 text-[12.5px] text-fg-muted hover:text-fg hover:bg-bg-3 rounded-[4px] transition-colors mt-1"
+              className="mt-1 overflow-hidden"
             >
-              <Icon.Plus size={12} />
-              Add task
-            </motion.button>
+              <KbdButton
+                variant="ghost"
+                icon="Plus"
+                label="Add task"
+                onClick={() => createTask(column.name)}
+                className="w-full justify-start px-2 py-1.5 h-auto text-[12.5px]"
+              />
+            </motion.div>
           )}
         </AnimatePresence>
       </div>

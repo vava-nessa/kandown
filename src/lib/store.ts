@@ -8,6 +8,11 @@
  * actions instead of writing markdown directly, because these actions handle
  * optimistic updates, rollback, config theme application, and cache refreshes.
  *
+ * 📖 The file watcher (watcher.ts) runs a 500ms polling loop that detects
+ * external changes to board.md, kandown.json, and tasks/*.md. When a change is
+ * detected, the watcher fires an event which this store handles — either silently
+ * reloading or showing a conflict modal if the user is actively editing.
+ *
  * @functions
  *  → defaultBoardTemplate — creates a minimal board when none exists
  *  → nextTaskId — finds the next zero-padded task id
@@ -18,6 +23,7 @@
  * @see src/lib/filesystem.ts
  * @see src/lib/parser.ts
  * @see src/lib/theme.ts
+ * @see src/lib/watcher.ts
  */
 
 import { create } from 'zustand';
@@ -42,11 +48,27 @@ import {
 import { parseBoard, extractSubtasks, injectSubtasks, searchTaskContent } from './parser';
 import { serializeBoard } from './serializer';
 import { applyProjectTheme } from './theme';
+import { fileWatcher } from './watcher';
+import type { ConflictType } from './watcher';
 
 interface Toast {
   id: number;
   message: string;
   type: 'success' | 'error' | 'info';
+}
+
+interface DrawerSnapshot {
+  frontmatter: TaskFrontmatter;
+  subtasks: Subtask[];
+  body: string;
+  savedAt: number;
+}
+
+export interface ConflictState {
+  taskId: string;
+  type: ConflictType;
+  local: DrawerSnapshot;
+  remote: { frontmatter: TaskFrontmatter; body: string; subtasks: Subtask[] };
 }
 
 interface State {
@@ -77,6 +99,12 @@ interface State {
 
   // Toasts
   toasts: Toast[];
+
+  // File watcher support
+  drawerBaseVersion: DrawerSnapshot | null;
+  conflictState: ConflictState | null;
+  showConflictModal: boolean;
+  orphanTaskIds: string[];
 
   // Actions
   openFolder: () => Promise<void>;
@@ -109,6 +137,9 @@ interface State {
 
   toast: (message: string, type?: Toast['type']) => void;
   dismissToast: (id: number) => void;
+  resolveConflict: (resolution: 'reload' | 'overwrite' | 'cancel') => Promise<void>;
+  dismissOrphan: (taskId: string) => void;
+  setupWatcher: () => void;
 }
 
 function defaultBoardTemplate(): string {
@@ -172,6 +203,11 @@ export const useStore = create<State>((set, get) => ({
   recentProjects: [],
   toasts: [],
 
+  drawerBaseVersion: null,
+  conflictState: null,
+  showConflictModal: false,
+  orphanTaskIds: [],
+
   openFolder: async () => {
     const result = await pickProjectDirectory();
     if (!result) return;
@@ -190,6 +226,7 @@ export const useStore = create<State>((set, get) => ({
     await get().reloadBoard();
     const recent = await listRecentProjects();
     set({ recentProjects: recent });
+    void get().setupWatcher();
   },
 
   openRecentProject: async (project) => {
@@ -206,6 +243,7 @@ export const useStore = create<State>((set, get) => ({
     await saveRecentProject({ ...project, lastOpened: Date.now() });
     await get().loadConfig();
     await get().reloadBoard();
+    void get().setupWatcher();
   },
 
   loadConfig: async () => {
@@ -379,16 +417,25 @@ export const useStore = create<State>((set, get) => ({
     try {
       const { frontmatter, body } = await fsReadTaskFile(tasksDirHandle, taskId);
       const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
+      const snapshot: DrawerSnapshot = {
+        frontmatter,
+        subtasks,
+        body: bodyWithoutSubtasks,
+        savedAt: Date.now(),
+      };
       set({
         drawerTaskId: taskId,
         drawerData: { frontmatter, subtasks, body: bodyWithoutSubtasks },
+        drawerBaseVersion: snapshot,
+        conflictState: null,
+        showConflictModal: false,
       });
     } catch (e) {
       get().toast('Failed to open: ' + (e as Error).message, 'error');
     }
   },
 
-  closeDrawer: () => set({ drawerTaskId: null, drawerData: null }),
+  closeDrawer: () => set({ drawerTaskId: null, drawerData: null, drawerBaseVersion: null, conflictState: null, showConflictModal: false }),
 
   updateDrawerData: (updater) => {
     const { drawerData } = get();
@@ -536,6 +583,92 @@ export const useStore = create<State>((set, get) => ({
     }, 2500);
   },
   dismissToast: (id) => set(state => ({ toasts: state.toasts.filter(t => t.id !== id) })),
+
+  resolveConflict: async (resolution) => {
+    const { conflictState, drawerData, tasksDirHandle, drawerTaskId, drawerBaseVersion } = get();
+    if (!conflictState || !tasksDirHandle || !drawerTaskId) return;
+
+    if (resolution === 'reload') {
+      const { frontmatter, body } = await fsReadTaskFile(tasksDirHandle, drawerTaskId);
+      const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
+      set({
+        drawerData: { frontmatter, subtasks, body: bodyWithoutSubtasks },
+        drawerBaseVersion: { frontmatter, subtasks, body: bodyWithoutSubtasks, savedAt: Date.now() },
+        conflictState: null,
+        showConflictModal: false,
+      });
+      get().toast('Reloaded from disk');
+    } else if (resolution === 'overwrite') {
+      if (drawerData && drawerTaskId && drawerBaseVersion) {
+        const fullBody = injectSubtasks(drawerData.body, drawerData.subtasks);
+        const fm = { ...drawerData.frontmatter, id: drawerTaskId };
+        await fsWriteTaskFile(tasksDirHandle, drawerTaskId, fm, fullBody);
+        set({
+          drawerBaseVersion: { ...drawerData, savedAt: Date.now() },
+          conflictState: null,
+          showConflictModal: false,
+        });
+        get().toast('Overwritten remote changes');
+      }
+    } else {
+      set({ conflictState: null, showConflictModal: false });
+    }
+  },
+
+  dismissOrphan: (taskId) => set(state => ({ orphanTaskIds: state.orphanTaskIds.filter(id => id !== taskId) })),
+
+  // ── File watcher setup (called after project open) ─────────────────────────
+
+  setupWatcher: () => {
+    const { dirHandle, tasksDirHandle } = get();
+    if (!dirHandle || !tasksDirHandle) return;
+
+    fileWatcher.stop();
+    fileWatcher.start(dirHandle, tasksDirHandle);
+
+    fileWatcher.on('boardChanged', () => {
+      get().reloadBoard();
+    });
+
+    fileWatcher.on('configChanged', () => {
+      get().loadConfig();
+      get().toast('Settings updated externally', 'info');
+    });
+
+    fileWatcher.on('taskChanged', async (taskId) => {
+      const { drawerTaskId, drawerBaseVersion, tasksDirHandle: tdh } = get();
+      if (drawerTaskId === taskId && drawerBaseVersion && tdh) {
+        const { frontmatter, body } = await fsReadTaskFile(tdh, taskId);
+        const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
+        const base = drawerBaseVersion;
+        const fmChanged = JSON.stringify(base.frontmatter) !== JSON.stringify(frontmatter);
+        const bodyChanged = base.body !== bodyWithoutSubtasks;
+        const subsChanged = JSON.stringify(base.subtasks) !== JSON.stringify(subtasks);
+
+        if (!fmChanged && !bodyChanged && !subsChanged) return;
+
+        let type: ConflictType = 'none';
+        if (fmChanged && (bodyChanged || subsChanged)) type = 'full';
+        else if (fmChanged) type = 'metadata-only';
+        else if (bodyChanged || subsChanged) type = 'body-only';
+
+        set({
+          conflictState: { taskId, type, local: base, remote: { frontmatter, body: bodyWithoutSubtasks, subtasks } },
+          showConflictModal: type === 'full',
+        });
+      } else {
+        get().reloadBoard();
+      }
+    });
+
+    fileWatcher.on('newTaskDetected', (taskId) => {
+      get().toast(`New task file detected: ${taskId}`, 'info');
+    });
+
+    fileWatcher.on('orphanTasksDetected', (taskIds) => {
+      set(state => ({ orphanTaskIds: [...new Set([...state.orphanTaskIds, ...taskIds])] }));
+    });
+  },
 }));
 
 // Hydrate recent projects on load

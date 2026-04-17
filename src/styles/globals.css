@@ -123,7 +123,7 @@
   }
 
   .kbd {
-    @apply inline-block px-1.5 py-0 text-[11px] font-mono text-fg-muted bg-bg-2 border border-border rounded-[3px];
+    @apply inline-block px-1.5 py-0 text-[13px] font-mono text-fg-muted bg-bg-2 border border-border rounded-[3px];
   }
 
   .field-input {

@@ -40,6 +40,7 @@ declare global {
     removeEntry(name: string): Promise<void>;
     queryPermission(opts?: { mode?: 'read' | 'readwrite' }): Promise<'granted' | 'prompt' | 'denied'>;
     requestPermission(opts?: { mode?: 'read' | 'readwrite' }): Promise<'granted' | 'prompt' | 'denied'>;
+    values(): AsyncIterableIterator<FileSystemHandle>;
   }
   interface FileSystemFileHandle {
     getFile(): Promise<File>;

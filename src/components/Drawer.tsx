@@ -24,6 +24,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Icon } from './Icons';
+import { KbdButton } from './KbdButton';
 import { SubtaskItem } from './SubtaskItem';
 import { useStore } from '../lib/store';
 import type { Priority, OwnerType } from '../lib/types';
@@ -231,9 +232,12 @@ export function Drawer() {
                     </span>
                   )}
                 </div>
-                <button onClick={closeDrawer} className="btn-icon" title="Close (Esc)">
-                  <Icon.X />
-                </button>
+                <KbdButton
+                  variant="icon"
+                  icon="X"
+                  onClick={closeDrawer}
+                  title="Close (Esc)"
+                />
               </div>
 
             {/* Body */}
@@ -333,6 +337,39 @@ export function Drawer() {
 
                 <div className="h-px bg-border -mx-5" />
 
+                {/* Description + Report (2 columns) */}
+                <div className="grid grid-cols-[7fr_3fr] gap-4 -mx-5 px-5">
+                  {/* Description (left) */}
+                  <div>
+                    <div className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted mb-2">
+                      Description
+                    </div>
+                    <textarea
+                      ref={bodyRef}
+                      value={drawerData.body}
+                      onChange={e =>
+                        updateDrawerData(d => ({ ...d, body: e.target.value }))
+                      }
+                      placeholder="Write some context, links, decisions..."
+                      className="w-full min-h-[180px] bg-bg-2 border border-border rounded-[6px] px-3 py-2.5 text-fg text-[14px] leading-relaxed font-sans outline-none focus:border-border-focus focus:bg-bg-3 transition-colors resize-none placeholder:text-fg-faint"
+                    />
+                  </div>
+
+                  {/* Report (right) */}
+                  <div>
+                    <div className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted mb-2">
+                      Report
+                    </div>
+                    <div className="min-h-[180px] text-fg text-[14px] leading-relaxed font-sans whitespace-pre-wrap overflow-y-auto">
+                      {drawerData.frontmatter.report || (
+                        <span className="text-fg-faint italic">AI output will appear here...</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="h-px bg-border -mx-5" />
+
                 {/* Subtasks */}
                 <div>
                   <div className="flex items-center gap-2 mb-2">
@@ -378,30 +415,12 @@ export function Drawer() {
                       ))}
                     </AnimatePresence>
                   </div>
-                  <button
+                  <KbdButton
+                    variant="ghost"
+                    icon="Plus"
+                    label="Add subtask"
                     onClick={addSubtask}
-                    className="flex items-center gap-2 px-1.5 py-1 mt-1 text-fg-muted hover:text-fg text-[13px] rounded-[4px] hover:bg-bg-2 transition-colors"
-                  >
-                    <Icon.Plus size={12} />
-                    Add subtask
-                  </button>
-                </div>
-
-                <div className="h-px bg-border -mx-5" />
-
-                {/* Description */}
-                <div>
-                  <div className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted mb-2">
-                    Description
-                  </div>
-                  <textarea
-                    ref={bodyRef}
-                    value={drawerData.body}
-                    onChange={e =>
-                      updateDrawerData(d => ({ ...d, body: e.target.value }))
-                    }
-                    placeholder="Write some context, links, decisions..."
-                    className="w-full min-h-[180px] bg-bg-2 border border-border rounded-[6px] px-3 py-2.5 text-fg text-[14px] leading-relaxed font-sans outline-none focus:border-border-focus focus:bg-bg-3 transition-colors resize-none placeholder:text-fg-faint"
+                    className="mt-1"
                   />
                 </div>
               </div>
@@ -409,20 +428,26 @@ export function Drawer() {
 
             {/* Footer */}
             <div className="flex items-center justify-between gap-2 px-5 py-3 border-t border-border rounded-b-2xl">
-              <button onClick={handleDelete} className="btn-danger">
-                <Icon.Trash size={12} />
-                Delete
-                <span className="kbd ml-1">⌘⌫</span>
-              </button>
+              <KbdButton
+                variant="danger"
+                icon="Trash"
+                label="Delete"
+                shortcut="⌘⌫"
+                onClick={handleDelete}
+              />
               <div className="flex items-center gap-2">
-                <button onClick={closeDrawer} className="btn-secondary">
-                  Cancel
-                  <span className="kbd ml-1">Esc</span>
-                </button>
-                <button onClick={saveDrawer} className="btn-primary">
-                  Save & Close
-                  <span className="kbd ml-1" style={{ color: 'rgba(0,0,0,0.5)', background: 'rgba(0,0,0,0.1)', borderColor: 'rgba(0,0,0,0.15)' }}>⌘S</span>
-                </button>
+                <KbdButton
+                  variant="secondary"
+                  label="Cancel"
+                  shortcut="Esc"
+                  onClick={closeDrawer}
+                />
+                <KbdButton
+                  variant="primary"
+                  label="Save & Close"
+                  shortcut="⌘S"
+                  onClick={saveDrawer}
+                />
               </div>
             </div>
             </div>

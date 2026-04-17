@@ -32,10 +32,12 @@
   },
   "dependencies": {
     "@tabler/icons-react": "3.41.1",
+    "i18next": "26.0.5",
     "ink": "7.0.1",
     "motion": "^12.38.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-i18next": "17.0.4",
     "three": "^0.171.0",
     "zustand": "^5.0.0"
   },

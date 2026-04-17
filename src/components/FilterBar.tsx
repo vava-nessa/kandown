@@ -43,21 +43,21 @@ export function FilterBar() {
 
   return (
     <div className="flex items-center gap-2 px-5 min-h-[42px] border-b border-border bg-bg">
-      <div className="flex items-center gap-1.5 px-2.5 h-7 bg-bg-2 border border-border rounded-[6px] min-w-[220px] focus-within:border-border-focus focus-within:bg-bg-3 transition-colors">
-        <Icon.Search size={12} className="text-fg-muted flex-shrink-0" />
+      <div className="flex items-center gap-2.5 px-3 h-11 bg-bg-2 border border-border rounded-[10px] min-w-[280px] focus-within:border-border-focus focus-within:bg-bg-3 transition-colors">
+        <Icon.Search size={18} className="text-fg-muted flex-shrink-0" />
         <input
           type="text"
           placeholder="Search tasks..."
           value={filters.search}
           onChange={e => setFilter('search', e.target.value)}
-          className="bg-transparent border-none outline-none text-fg text-[13px] w-full placeholder:text-fg-muted"
+          className="bg-transparent border-none outline-none text-fg text-[14.5px] w-full placeholder:text-fg-muted"
         />
         {filters.search && (
           <button
             onClick={() => setFilter('search', '')}
             className="text-fg-muted hover:text-fg"
           >
-            <Icon.X size={12} />
+            <Icon.X size={18} />
           </button>
         )}
       </div>

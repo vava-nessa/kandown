@@ -22,7 +22,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import {
   IconAdjustmentsHorizontal,
-  IconArrowLeft,
   IconChevronRight,
   IconLayoutBoard,
   IconPalette,
@@ -32,7 +31,9 @@ import {
   IconTags,
   type TablerIcon,
 } from '@tabler/icons-react';
+import { KbdButton } from './KbdButton';
 import { useStore } from '../lib/store';
+import { fileWatcher } from '../lib/watcher';
 import { BACKGROUND_OPTIONS, FONT_OPTIONS, SKIN_OPTIONS } from '../lib/theme';
 import type { KandownConfig } from '../lib/types';
 
@@ -293,11 +294,21 @@ export function SettingsPage() {
   const updateConfig = useStore(s => s.updateConfig);
   const setCurrentPage = useStore(s => s.setCurrentPage);
   const dirHandle = useStore(s => s.dirHandle);
+  const loadConfig = useStore(s => s.loadConfig);
+  const toast = useStore(s => s.toast);
 
   const [activeSectionId, setActiveSectionId] = useState<SettingsSectionId>('appearance');
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [activeHelpKey, setActiveHelpKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    const off = fileWatcher.on('configChanged', () => {
+      void loadConfig();
+      toast('Settings updated externally — reloaded', 'info');
+    });
+    return off;
+  }, [loadConfig, toast]);
 
   useEffect(() => {
     // 📖 Search waits for typing to pause so filtering does not reshuffle the
@@ -347,14 +358,15 @@ export function SettingsPage() {
     <div className="flex min-h-0 flex-1 overflow-hidden">
       <aside className="flex w-[292px] flex-none flex-col border-r border-border bg-bg/75">
         <div className="border-b border-border px-4 py-3">
-          <button
+          <KbdButton
+            variant="ghost"
+            icon="ArrowLeft"
+            label="Board"
             onClick={() => setCurrentPage('board')}
-            className="mb-3 inline-flex items-center gap-1.5 rounded-[6px] px-1 py-1 text-[12.5px] text-fg-muted transition-colors hover:bg-bg-2 hover:text-fg"
             title="Back to board"
-          >
-            <IconArrowLeft size={14} stroke={1.8} />
-            Board
-          </button>
+            className="mb-3 h-7 px-1.5 text-[12.5px]"
+            iconSize={14}
+          />
           <div className="flex items-center gap-2">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-[7px] border border-border bg-bg-2 text-fg">
               <IconSettings size={17} stroke={1.8} />

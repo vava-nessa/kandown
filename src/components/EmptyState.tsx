@@ -16,6 +16,7 @@
 
 import { motion } from 'motion/react';
 import { useStore } from '../lib/store';
+import { KbdButton } from './KbdButton';
 import { supportsFileSystemAccess } from '../lib/filesystem';
 
 const LogoSvg = ({ className }: { className?: string }) => (
@@ -88,17 +89,20 @@ export function EmptyState() {
         Select a folder containing <code className="font-mono text-[12.5px] px-1.5 py-0.5 bg-bg-2 border border-border rounded-[3px]">board.md</code>{' '}
         and a <code className="font-mono text-[12.5px] px-1.5 py-0.5 bg-bg-2 border border-border rounded-[3px]">tasks/</code> sub-directory.
       </motion.div>
-      <motion.button
+      <motion.div
         initial={{ opacity: 0, y: 4 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15 }}
-        whileHover={{ y: -1 }}
-        whileTap={{ scale: 0.97 }}
-        onClick={openFolder}
-        className="btn-primary"
       >
-        Select folder
-      </motion.button>
+        <KbdButton
+          variant="primary"
+          label="Select folder"
+          onClick={openFolder}
+          className="h-10 px-6 text-[16px]"
+          iconSize={20}
+          icon="Folder"
+        />
+      </motion.div>
 
       {recentProjects.length > 0 && (
         <motion.div

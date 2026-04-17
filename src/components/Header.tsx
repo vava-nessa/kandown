@@ -19,6 +19,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Icon } from './Icons';
+import { KbdButton } from './KbdButton';
 import { useStore } from '../lib/store';
 import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
 
@@ -156,73 +157,77 @@ export function Header() {
             </div>
 
             {/* View mode toggle */}
-            <div className="flex items-center bg-bg-2 border border-border rounded-[6px] p-0.5">
+            <div className="flex items-center bg-bg-2 border border-border rounded-[10px] p-0.5 h-11">
               <button
                 onClick={() => setViewMode('board')}
-                className={`w-6 h-6 inline-flex items-center justify-center rounded-[4px] transition-all ${
+                className={`w-10 h-10 inline-flex items-center justify-center rounded-[8px] transition-all ${
                   viewMode === 'board'
                     ? 'bg-bg-3 text-fg'
                     : 'text-fg-muted hover:text-fg'
                 }`}
                 title="Board view (⌘1)"
               >
-                <Icon.LayoutBoard size={12} />
+                <Icon.LayoutBoard size={20} />
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`w-6 h-6 inline-flex items-center justify-center rounded-[4px] transition-all ${
+                className={`w-10 h-10 inline-flex items-center justify-center rounded-[8px] transition-all ${
                   viewMode === 'list'
                     ? 'bg-bg-3 text-fg'
                     : 'text-fg-muted hover:text-fg'
                 }`}
                 title="List view (⌘2)"
               >
-                <Icon.LayoutList size={12} />
+                <Icon.LayoutList size={20} />
               </button>
             </div>
 
             {/* Density toggle */}
-            <button
+            <KbdButton
+              variant="icon"
+              icon="Density"
               onClick={() => setDensity(density === 'compact' ? 'comfortable' : 'compact')}
-              className="btn-icon"
               title={`Density: ${density}`}
-            >
-              <Icon.Density size={12} />
-            </button>
+            />
 
             {/* Settings */}
-            <button
+            <KbdButton
+              variant="icon"
+              icon="Settings"
               onClick={() => setCurrentPage('settings')}
-              className="btn-icon"
               title="Settings"
-            >
-              <Icon.Settings size={12} />
-            </button>
+            />
 
-            <button
+            <KbdButton
+              variant="secondary"
+              icon="Search"
+              label="Search"
+              shortcut="⌘K"
               onClick={() => setCommandOpen(true)}
-              className="btn-secondary"
               title="Command palette (⌘K)"
-            >
-              <Icon.Search size={12} />
-              Search
-              <span className="kbd ml-1">⌘K</span>
-            </button>
+            />
 
-            <button onClick={reloadBoard} className="btn-icon" title="Reload (R)">
-              <Icon.Refresh size={12} />
-            </button>
+            <KbdButton
+              variant="icon"
+              icon="Refresh"
+              onClick={reloadBoard}
+              title="Reload (R)"
+            />
 
-            <button onClick={() => createTask()} className="btn-primary">
-              <Icon.Plus size={12} />
-              New task
-              <span className="kbd ml-1" style={{ color: 'rgba(0,0,0,0.5)', background: 'rgba(0,0,0,0.1)', borderColor: 'rgba(0,0,0,0.15)' }}>N</span>
-            </button>
+            <KbdButton
+              variant="primary"
+              icon="Plus"
+              label="New task"
+              shortcut="N"
+              onClick={() => createTask()}
+            />
           </>
         ) : (
-          <button onClick={openFolder} className="btn-primary">
-            Open folder
-          </button>
+          <KbdButton
+            variant="primary"
+            label="Open folder"
+            onClick={openFolder}
+          />
         )}
       </div>
     </header>

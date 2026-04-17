@@ -227,22 +227,77 @@ tools: filesystem, cli, websearch, browser, mcp__github, mcp__filesystem
 
 ### Completing a Task (AI Agent)
 
-After finishing a task, you **must** do both:
+When an AI agent works on a task, it must keep the kanban and task files in sync throughout the work. Do **not** wait until the end — update in real-time.
 
-1. **Write a completion report** — Open `tasks/t-xxx.md` and add a `## What was done` section summarizing:
-   - What was implemented/changed/fixed
-   - Files created or modified (list them)
-   - Decisions or trade-offs made
+#### During Work — Real-time Updates
 
-2. **Move the task in kanban** — Update `board.md`:
-   - Move the line to the `Done` column
-   - Update checkbox: `- [x]`
-   - Update progress: `(n/n)` to reflect completed subtasks
+**1. Move task to In Progress immediately**
+When you start working on a task, update `board.md`:
+- Move the line from its current column to `In Progress`
+- Keep the checkbox state (`- [ ]` or `- [x]`)
+
+**2. Update subtask reports as you complete each step**
+For each subtask you finish in `tasks/t-xxx.md`, update the subtask's report field:
+```markdown
+- [x] First step
+  report: Created `src/auth.ts` with JWT validation. Added `/api/auth` route with
+  middleware chain. Used bcrypt for password hashing (cost 12).
+```
+
+**3. Keep board.md progress updated**
+Whenever you complete a subtask, update the progress counter in `board.md`:
+```
+- [ ] **[t-042]** Implement auth (1/5) → [détails](tasks/t-042.md) `#backend`
+```
+becomes:
+```
+- [ ] **[t-042]** Implement auth (2/5) → [détails](tasks/t-042.md) `#backend`
+```
+
+#### After Completion — Final Report
+
+When the task is fully done, do both:
+
+**1. Write the final completion report** — In `tasks/t-xxx.md` frontmatter, set the `report` field:
+```yaml
+---
+id: t-042
+title: Implement auth
+report: |
+  ## Changes
+  - Created `src/auth.ts` with JWT validation (RS256)
+  - Added `/api/auth/login` and `/api/auth/register` endpoints
+  - Added `bcrypt` password hashing (cost 12)
+  - Created `src/middleware/auth.ts` for protected routes
+  
+  ## Files
+  - `src/auth.ts` (new)
+  - `src/middleware/auth.ts` (new)
+  - `src/routes/auth.ts` (new)
+  - `src/routes/index.ts` (modified)
+  
+  ## Decisions
+  - Used RS256 instead of HS256 for better key rotation support
+  - Refresh tokens stored in httpOnly cookies, not localStorage
+---
+```
+
+**2. Move the task to Done** — Update `board.md`:
+- Move the line to the `Done` column
+- Update checkbox: `- [x]`
+- Update progress: `(n/n)` for all completed subtasks
 
 ```
 ## Done
 - [x] **[t-042]** Implement auth (5/5) → [détails](tasks/t-042.md) `#backend` `#p1`
 ```
+
+### Subtask Reports
+
+Each subtask can have a `report` field. When working on AI tasks:
+- **Fill the subtask's `report`** as you complete each step — this documents what you did
+- Subtask reports appear in the UI alongside the task details
+- The final `report` in frontmatter summarizes the entire task outcome
 
 ### 3. (Optional) Suggest Follow-up Tasks
 
