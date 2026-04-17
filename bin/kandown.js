@@ -43,6 +43,7 @@ ${c.bold}Usage:${c.reset}
 
 ${c.bold}Commands:${c.reset}
   ${c.cyan}init${c.reset}        Initialize .kandown/ in the current directory
+  ${c.cyan}settings${c.reset}    Open the settings TUI
   ${c.cyan}update${c.reset}      Update kandown.html to the latest version
   ${c.cyan}help${c.reset}        Show this help
 
@@ -188,6 +189,14 @@ function cmdInit(rawArgs) {
     info('tasks/ already exists (kept)');
   }
 
+  // 📖 Copy kandown.json config file (project preferences for UI, agent, fields)
+  if (!existsSync(join(kandownDir, 'kandown.json'))) {
+    copyFileSync(join(templatesDir, 'kandown.json'), join(kandownDir, 'kandown.json'));
+    success('kandown.json');
+  } else {
+    info('kandown.json already exists (kept)');
+  }
+
   // Copy AGENT_KANDOWN.md to project root (not inside .kandown/)
   const agentKandownSrc = join(templatesDir, 'AGENT_KANDOWN.md');
   const agentKandownDest = join(cwd, 'AGENT_KANDOWN.md');
@@ -246,11 +255,36 @@ function cmdUpdate(rawArgs) {
   success(`Updated ${args.path}/kandown.html`);
 }
 
+// 📖 Launches the fullscreen TUI for a given screen (settings, board, etc.)
+async function cmdTui(screen, rawArgs) {
+  const args = parseArgs(rawArgs);
+  const cwd = process.cwd();
+  const kandownDir = resolve(cwd, args.path);
+
+  if (!existsSync(kandownDir)) {
+    err(`No ${c.bold}${args.path}/${c.reset} directory found.`);
+    log(`  Run ${c.cyan}npx kandown init${c.reset} first.`);
+    process.exit(1);
+  }
+
+  try {
+    const { run } = await import(new URL('./tui.js', import.meta.url).href);
+    await run(screen, kandownDir);
+  } catch (e) {
+    err(`Failed to launch TUI: ${e.message}`);
+    log(`  Make sure the CLI is built: ${c.cyan}pnpm build:cli${c.reset}`);
+    process.exit(1);
+  }
+}
+
 const [cmd, ...rest] = process.argv.slice(2);
 
 switch (cmd) {
   case 'init':
     cmdInit(rest);
+    break;
+  case 'settings':
+    cmdTui('settings', rest);
     break;
   case 'update':
     cmdUpdate(rest);

@@ -1,0 +1,22 @@
+{
+  "ui": {
+    "language": "en",
+    "theme": "auto"
+  },
+  "agent": {
+    "suggestFollowUp": true,
+    "maxSuggestions": 2
+  },
+  "board": {
+    "taskPrefix": "task",
+    "defaultPriority": "P3",
+    "defaultOwnerType": "human"
+  },
+  "fields": {
+    "priority": false,
+    "assignee": false,
+    "tags": false,
+    "dueDate": false,
+    "ownerType": false
+  }
+}

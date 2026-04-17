@@ -17,6 +17,7 @@ This file contains the complete documentation for Kandown's file-based Kanban sy
 
 ```
 .kandown/
+├── kandown.json      # Project configuration (preferences, enabled fields)
 ├── kandown.html       # Single-file React app (no deps, no server)
 ├── board.md          # Task index + state (git-diff friendly, <1k tokens)
 ├── tasks/            # Per-task markdown files
@@ -27,6 +28,60 @@ This file contains the complete documentation for Kandown's file-based Kanban sy
 ├── README.md         # User-facing kandown usage guide
 └── AGENT_KANDOWN.md  # This file — full system documentation for AI agents
 ```
+
+---
+
+## Configuration — `kandown.json`
+
+Project-level settings that control UI behavior, agent behavior, and which fields are active.
+
+```json
+{
+  "ui": {
+    "language": "en",
+    "theme": "auto"
+  },
+  "agent": {
+    "suggestFollowUp": false,
+    "maxSuggestions": 3
+  },
+  "board": {
+    "taskPrefix": "t",
+    "defaultPriority": "P3",
+    "defaultOwnerType": "human"
+  },
+  "fields": {
+    "priority": false,
+    "assignee": false,
+    "tags": false,
+    "dueDate": false,
+    "ownerType": false
+  }
+}
+```
+
+### Settings Reference
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `ui.language` | `string` | `"en"` | UI language (`en`, `fr`, `es`, `de`, `pt`, `ja`, `zh`, etc.) |
+| `ui.theme` | `string` | `"auto"` | Theme: `"auto"` (system), `"light"`, or `"dark"` |
+| `agent.suggestFollowUp` | `boolean` | `false` | AI agent proposes follow-up tasks after completing a task |
+| `agent.maxSuggestions` | `number` | `3` | Max follow-up suggestions (1–5) |
+| `board.taskPrefix` | `string` | `"t"` | ID prefix for tasks → `t-001`, `task-001`, `feat-001`, etc. |
+| `board.defaultPriority` | `string` | `"P3"` | Default priority for new tasks (P1–P4) |
+| `board.defaultOwnerType` | `string` | `"human"` | Default owner type: `"human"` or `"ai"` |
+| `fields.priority` | `boolean` | `false` | Enable priority field on tasks |
+| `fields.assignee` | `boolean` | `false` | Enable assignee field on tasks |
+| `fields.tags` | `boolean` | `false` | Enable tags field on tasks |
+| `fields.dueDate` | `boolean` | `false` | Enable due date field on tasks |
+| `fields.ownerType` | `boolean` | `false` | Enable human/ai owner type field on tasks |
+
+### Agent Behavior
+
+- If a field is **disabled**, AI agents should **not** add it when creating tasks (no priority tag, no assignee, etc.)
+- If `suggestFollowUp` is **disabled** (default), skip the follow-up suggestion step after task completion
+- `taskPrefix` determines the ID format: prefix + `-` + zero-padded number (e.g., `task-001`, `bug-042`)
 
 ---
 
@@ -180,6 +235,28 @@ After finishing a task, you **must** do both:
 ## Done
 - [x] **[t-042]** Implement auth (5/5) → [détails](tasks/t-042.md) `#backend` `#p1`
 ```
+
+### 3. (Optional) Suggest Follow-up Tasks
+
+> ⚙️ This behavior is controlled by `suggestFollowUp` in `.kandown/kandown.json`. Skip this step if disabled or if no config file exists.
+
+After completing your report, if you identified improvements, related work, or logical next steps during execution, **propose up to 3 follow-up tasks** to the user.
+
+**Format your suggestions like this:**
+
+> **Next steps I'd suggest:**
+> 1. 🟢 **[P2]** Add input validation to the parser — edge cases found during implementation
+> 2. 🟡 **[P3]** Refactor store selectors — current approach won't scale past 200 tasks
+> 3. 🔴 **[P4]** Add CLI `kandown status` command — nice to have for quick board overview
+
+**Rules:**
+- Maximum **3** suggestions (pick the most impactful)
+- Each must include: priority, title, and a **1-line reason**
+- Use 🟢 for recommended, 🟡 for moderate value, 🔴 for nice-to-have
+- Suggestions must be **contextual** — based on what you actually saw in the code during this task, not generic advice
+- **Wait for user confirmation** before creating any task — never auto-create
+- User can reply with numbers to approve (e.g., "1 and 3"), or dismiss all
+- Only applies to **AI agent tasks** (`ownerType: ai`)
 
 ### Creating Follow-up Tasks
 
