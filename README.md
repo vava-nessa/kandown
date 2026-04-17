@@ -1,12 +1,28 @@
+<p align="center">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" width="96" height="96" aria-label="Kandown logo">
+    <path fill="currentColor" d="m57.6 64.6 0.1-0.1v-31.3c-0.1-3.5-2.7-5.6-5.7-5.6h-16.3v59.6c0.2-1.3 0.9-2.6 1.7-3.2l20.2-19.4z"/>
+    <path fill="currentColor" d="m87.6 43.8c-3.4 0.1-7.1 1.3-9.9 3.7l-38.5 38.7c-2.1 2.1-3.4 4.8-3.5 7.5v26.7l77.5-76.4v-0.2h-25.6z"/>
+    <path fill="currentColor" d="m108.1 96.4-6 5-22.4-20.8-14.6 14.2 21.1 21.4-5 4.1c-0.6 0.5-0.3 0.9 0.2 0.9h27.6c0.4 0 0.7-0.4 0.7-0.6v-24.8c0-0.7-1.1-0.3-1.6 0.3v0.3z"/>
+  </svg>
+</p>
+
 # Kandown
 
-A file-based Kanban engine backed by plain markdown. Zero backend, zero database, AI-agent friendly.
+A file-based Kanban engine backed by plain markdown. Zero backend, zero database, no account, AI-agent friendly.
+
+Kandown installs a self-contained web app into a project folder. The app reads and writes local markdown files through the browser File System Access API, so your board stays in your repo, remains git-diffable, and can be edited by humans or AI agents without a hosted service.
 
 ## Why
 
-Most kanban tools trap your data in their cloud. `kandown` is the opposite: everything lives as markdown in your repo, diff-able with git, readable in any text editor, and parseable by AI agents.
+Most kanban tools trap your data in their cloud. Kandown does the opposite: all state lives in `.kandown/` as markdown and JSON.
 
-The architecture splits index from details: `board.md` is a lightweight index (under 1k tokens even with 100+ tasks), and each task has its own file in `tasks/`. This means AI agents read a cheap index first and only fetch full task details on demand, instead of ingesting your entire backlog.
+The core architecture splits the board index from task details:
+
+- `board.md` is the lightweight index: columns, task ids, titles, progress, and small metadata.
+- `tasks/<id>.md` stores the full task context: frontmatter, subtasks, notes, and completion reports.
+- `kandown.json` stores project preferences such as theme mode, skin, font, agent behavior, and enabled fields.
+
+That split matters for AI tools. Agents can read `board.md` first, identify the task they need, and only open the specific task file when deeper context is required. The result is less context noise, faster task triage, and fewer accidental edits outside the relevant task.
 
 ## Install & Use
 
@@ -17,73 +33,116 @@ cd my-project
 npx kandown init
 ```
 
-This creates a `.kandown/` directory with:
+This creates:
 
-```
+```text
 .kandown/
-├── kandown.html       # the engine (single file, no deps)
-├── board.md          # task index and state
+├── kandown.html      # single-file web app, built from dist/index.html
+├── board.md          # task index and board state
 ├── kandown.json      # project preferences and appearance
 ├── tasks/            # per-task markdown files
-├── AGENT.md          # conventions for AI agents
-└── README.md
+├── AGENT.md          # short AI-agent rules
+└── README.md         # user-facing project-local guide
 ```
 
-It also appends a reference to `AGENTS.md` / `CLAUDE.md` (or creates one) so your AI tools know where to look.
+It also copies `AGENT_KANDOWN.md` to the project root and adds a reference to `AGENTS.md` / `CLAUDE.md` when possible, so AI tools know how to work with the board.
 
-To use the board: Open `.kandown/kandown.html` in Chrome, Edge, Brave, or Opera. Select the `.kandown/` folder when prompted. You're done!
+To use the board:
 
-Appearance settings live in `.kandown/kandown.json`, so every project can keep its own theme mode, skin, and font. `ui.theme` defaults to `"auto"` and follows the operating system unless you choose `"light"` or `"dark"` in Settings.
+1. Open `.kandown/kandown.html` in Chrome, Edge, Brave, or Opera.
+2. Select the project folder when prompted.
+3. Grant read/write permission.
+
+Firefox and Safari do not currently support the required File System Access API.
 
 ## Features
 
-- **File-over-app**: Plain markdown on disk, git-diffable, editable without the app.
-- **AI-agent optimized**: Lightweight index separate from full task details, owner type tracking.
-- **Owner type filtering**: Filter board by human tasks vs AI tasks.
-- **Modern UI & UX**:
-  - Drag & drop between columns with smooth spring physics.
-  - Subtasks with live animated progress bars.
-  - Command palette (⌘K) with fuzzy task search and quick actions.
-  - **Content search**: Search bar and ⌘K search through task content (subtasks, description, tags) with highlighted preview snippets on matching cards.
-  - Board & list views (⌘1 / ⌘2).
-  - Density toggle (compact/comfortable).
-  - Project-level appearance settings with auto/light/dark mode, built-in color skins, and local font presets.
-  - Glassmorphism on drawer and palette, subtle grid + noise overlay, priority edge indicator.
-  - Layout animations using Motion, stagger entrance of columns.
-- **Robust Architecture**:
-  - Multi-projects remembered via IndexedDB (up to 10 recent projects).
-  - Optimistic UI with automatic rollback on write failures.
-  - Built with React 19, Motion 12, Tailwind 3, Vite 6, Zustand 5.
-- **Zero install**, zero backend, zero account.
+- **File-over-app**: Markdown and JSON are the source of truth.
+- **Zero backend**: No server, database, login, or sync vendor.
+- **AI-agent optimized**: Cheap board index plus detail files on demand.
+- **Board and list views**: Toggle with `⌘1` / `⌘2`.
+- **Drag and drop**: Move cards between columns with optimistic file writes.
+- **Task drawer**: Edit title, metadata, subtasks, and body content.
+- **Content search**: Search titles, ids, task body, subtasks, tags, assignee, and priority with highlighted previews.
+- **Command palette**: `⌘K` / `Ctrl+K` for task search and quick actions.
+- **Owner type filtering**: Separate human tasks from AI-agent tasks.
+- **Appearance system**: Project-level `auto` / `light` / `dark`, built-in skins, and local font presets.
+- **Recent projects**: Stored in IndexedDB so local handles can be reopened quickly.
+- **Single-file publish artifact**: Vite bundles the web UI into `dist/index.html`.
 
 ## Keyboard Shortcuts
 
 | Key | Action |
 |---|---|
-| `⌘K` | Command palette |
-| `⌘1` / `⌘2` | Board / list view |
+| `⌘K` / `Ctrl+K` | Open command palette |
+| `⌘1` / `Ctrl+1` | Board view |
+| `⌘2` / `Ctrl+2` | List view |
 | `N` | New task |
-| `R` | Reload |
-| `/` | Focus search |
-| `Esc` | Close drawer |
-| `⌘S` | Save current task |
+| `R` | Reload files from disk |
+| `/` | Focus task search |
+| `Esc` | Close drawer or command palette |
+| `⌘S` / `Ctrl+S` | Save current task in the drawer |
 
 ## CLI
 
 ```bash
-npx kandown init              # create .kandown/ here
+npx kandown init
 npx kandown init --path docs/tasks
-npx kandown init --no-agents  # skip AGENTS.md integration
-npx kandown update            # update kandown.html to latest version
+npx kandown init --no-agents
+npx kandown init --force
+npx kandown update
+npx kandown settings
 ```
 
-## Browser Support
+### Commands
 
-Requires the File System Access API. Supported in Chrome, Edge, Brave, and Opera. Firefox and Safari don't support it yet.
+| Command | Purpose |
+|---|---|
+| `init` | Create `.kandown/`, copy templates, copy the built web app, and install agent docs. |
+| `update` | Replace an installed `kandown.html` with the current package build. |
+| `settings` | Open the Ink-based terminal settings editor for `kandown.json`. |
+| `help` | Print CLI help. |
 
-## Format
+## Project Architecture
 
-### board.md
+```text
+kandown/
+├── bin/
+│   ├── kandown.js        # npm CLI entrypoint
+│   └── tui.js            # generated TUI bundle from tsup
+├── src/
+│   ├── App.tsx           # web app shell and global shortcuts
+│   ├── main.tsx          # React/Vite browser entrypoint
+│   ├── cli/              # Ink terminal UI source
+│   ├── components/       # React UI components
+│   ├── hooks/            # small React hooks
+│   ├── lib/              # domain model, parser, serializer, store, theme, filesystem
+│   ├── logo.svg          # source logo asset
+│   └── styles/           # Tailwind layers and shadcn-compatible CSS tokens
+├── templates/            # files copied by `kandown init`
+├── dist/index.html       # generated single-file web app
+├── tailwind.config.js
+├── vite.config.ts
+├── tsup.config.ts
+└── package.json
+```
+
+## Runtime Flow
+
+1. `main.tsx` mounts `App`.
+2. `App` renders the header and either `EmptyState`, `Board`, `ListView`, or `SettingsPage`.
+3. The user selects a folder with the File System Access API.
+4. `filesystem.ts` resolves or creates `.kandown/`, `board.md`, `tasks/`, and `kandown.json`.
+5. `store.ts` loads config, applies appearance tokens, parses `board.md`, and keeps recent project handles in IndexedDB.
+6. `parser.ts` converts markdown into typed board/task data.
+7. React components render the board/list/drawer.
+8. Mutations go back through store actions, then through `serializer.ts` and `filesystem.ts`.
+
+## Data Model
+
+### `board.md`
+
+`board.md` is the fast index. It should stay small even when the project has many tasks.
 
 ```markdown
 ---
@@ -95,10 +154,26 @@ columns: [Backlog, Todo, In Progress, Done]
 
 ## Todo
 
-- [ ] **[t-001]** Short title (2/4) → [details](tasks/t-001.md) `#backend` `#p1` `@chacha`
+- [ ] **[t-001]** Short title (2/4) → [détails](tasks/t-001.md) `#backend` `#p1` `@chacha`
 ```
 
-### tasks/t-xxx.md
+Task-line metadata:
+
+| Element | Meaning |
+|---|---|
+| `- [ ]` / `- [x]` | Completion checkbox |
+| `**[t-001]**` | Task id |
+| `Short title` | Board title |
+| `(2/4)` | Subtask progress |
+| `tasks/t-001.md` | Detail file |
+| `` `#backend` `` | Tag |
+| `` `#p1` `` | Priority |
+| `` `@chacha` `` | Assignee |
+| `` `human` `` / `` `ai` `` | Owner type |
+
+### `tasks/<id>.md`
+
+Task files store rich context.
 
 ```markdown
 ---
@@ -109,13 +184,14 @@ priority: P1
 tags: [backend, security]
 assignee: chacha
 created: 2026-04-10
+ownerType: human
 ---
 
 # Task title
 
 ## Context
 
-Background, links, decisions.
+Why this task exists.
 
 ## Subtasks
 
@@ -124,56 +200,258 @@ Background, links, decisions.
 
 ## Notes
 
-Additional information.
+Extra details.
 ```
+
+### `kandown.json`
+
+Project-level preferences:
+
+```json
+{
+  "ui": {
+    "language": "en",
+    "theme": "auto",
+    "skin": "kandown",
+    "font": "inter"
+  },
+  "agent": {
+    "suggestFollowUp": false,
+    "maxSuggestions": 3
+  },
+  "board": {
+    "taskPrefix": "t",
+    "defaultPriority": "P3",
+    "defaultOwnerType": "human"
+  },
+  "fields": {
+    "priority": false,
+    "assignee": false,
+    "tags": false,
+    "dueDate": false,
+    "ownerType": false
+  }
+}
+```
+
+## Appearance Architecture
+
+Kandown uses shadcn-compatible CSS variables without depending on shadcn components. The app keeps its own source components, while Tailwind aliases point at token variables.
+
+Important pieces:
+
+- `src/lib/theme.ts` defines skin ids, font ids, token maps, validators, and `applyProjectTheme`.
+- `tailwind.config.js` maps `background`, `foreground`, `card`, `primary`, `secondary`, `muted`, `accent`, `destructive`, plus legacy aliases like `bg`, `fg`, and `border`.
+- `src/styles/globals.css` provides default CSS variables and shared component classes.
+- `src/components/SettingsPage.tsx` exposes mode, skin, and font controls per project.
+
+Supported theme modes:
+
+| Value | Behavior |
+|---|---|
+| `auto` | Follow `prefers-color-scheme`. |
+| `light` | Force light tokens. |
+| `dark` | Force dark tokens. |
+
+Built-in skins:
+
+| Skin | Intent |
+|---|---|
+| `kandown` | Crisp neutral default, close to the original UI. |
+| `graphite` | Soft gray surfaces. |
+| `sage` | Calm green-gray planning palette. |
+| `cobalt` | Cool blue accent, restrained surfaces. |
+| `rose` | Warm ink with a restrained rose accent. |
+
+Built-in fonts:
+
+| Font | Stack |
+|---|---|
+| `inter` | Inter-first sans stack. |
+| `system` | Native platform sans stack. |
+| `serif` | Editorial serif stack. |
+| `mono` | Monospace stack. |
+| `rounded` | Rounded system stack. |
+
+## Web Modules
+
+### App Shell
+
+| File | Role |
+|---|---|
+| `src/main.tsx` | Mounts React and global CSS. |
+| `src/App.tsx` | Composes the web UI and owns global keyboard shortcuts. |
+
+### Components
+
+| File | Main exports | Description |
+|---|---|---|
+| `Board.tsx` | `Board` | Horizontal kanban view, filtering, drag state, search-match forwarding. |
+| `Column.tsx` | `Column` | One kanban column, drop target, create-task button, empty state. |
+| `Card.tsx` | `Card` | Task card with progress, metadata, drag handlers, and search previews. |
+| `ListView.tsx` | `ListView` | Dense table-like view sharing the same filters/search cache as board view. |
+| `Drawer.tsx` | `Drawer` | Task detail editor for title, frontmatter metadata, subtasks, and body content. |
+| `SubtaskItem.tsx` | `SubtaskItem` | Editable markdown checklist row. |
+| `FilterBar.tsx` | `FilterBar` | Search input, owner filter, active chips, clear action. |
+| `CommandPalette.tsx` | `CommandPalette` | Quick actions, task lookup, content search, keyboard navigation. |
+| `SettingsPage.tsx` | `SettingsPage` | Full-page project settings, including appearance controls. |
+| `Header.tsx` | `Header` | Project switcher, view controls, settings link, reload, new task. |
+| `EmptyState.tsx` | `EmptyState` | First-run folder picker and recent projects. |
+| `Toaster.tsx` | `Toaster` | Animated notification stack. |
+| `Icons.tsx` | `Icon` | Local SVG icon set. |
+
+### Store And Domain Logic
+
+| File | Main exports | Description |
+|---|---|---|
+| `src/lib/types.ts` | `DEFAULT_CONFIG`, domain types | Shared TypeScript contracts for board, tasks, config, filters, search, and appearance. |
+| `src/lib/store.ts` | `useStore` | Zustand state machine for project loading, board mutations, drawer editing, search cache, config, and toasts. |
+| `src/lib/filesystem.ts` | File and IndexedDB helpers | Browser File System Access API and recent-project persistence. |
+| `src/lib/parser.ts` | Markdown parsers/search | Parses board/task markdown, extracts/reinjects subtasks, and searches cached task content. |
+| `src/lib/serializer.ts` | Markdown writers | Serializes board and task data back to markdown. |
+| `src/lib/theme.ts` | Theme engine | Applies project-level light/dark tokens, skins, and font stacks. |
+| `src/hooks/useAnimatedNumber.ts` | `useAnimatedNumber` | Spring-animated numeric display for task counts. |
+
+## Important Functions
+
+### `src/lib/store.ts`
+
+| Function/action | Description |
+|---|---|
+| `openFolder` | Prompts for a project folder, resolves `.kandown`, saves recent project, loads config and board. |
+| `openRecentProject` | Reopens an IndexedDB-stored project handle after permission verification. |
+| `loadConfig` | Reads `kandown.json`, merges defaults, applies theme tokens. |
+| `updateConfig` | Optimistically updates config, applies appearance immediately, writes `kandown.json`. |
+| `reloadBoard` | Reads and parses `board.md`, then eagerly loads task content for small boards. |
+| `moveTask` | Optimistically moves a task between columns and writes `board.md`, rolling back on failure. |
+| `reorderInColumn` | Reorders tasks within one column and writes `board.md`. |
+| `createTask` | Creates a board entry and matching task detail file. |
+| `deleteTask` | Removes task from board, deletes detail file, clears cached content/search matches. |
+| `openDrawer` | Reads one task detail file and prepares editable drawer state. |
+| `saveDrawer` | Writes full task detail content and closes the drawer. |
+| `saveDrawerMetadata` | Autosaves task detail content and syncs board index metadata/progress. |
+| `setFilter` | Updates filters and lazily loads task contents for search queries. |
+| `loadTaskContents` | Reads task files into the content-search cache. |
+| `computeSearchMatches` | Produces per-task search matches for board/list previews. |
+| `toast` | Adds transient UI messages. |
+
+### `src/lib/parser.ts`
+
+| Function | Description |
+|---|---|
+| `parseSimpleYaml` | Parses Kandown's limited frontmatter format. |
+| `parseBoard` | Converts `board.md` into columns and board task metadata. |
+| `parseTaskFile` | Splits a task markdown file into frontmatter and body. |
+| `extractSubtasks` | Pulls markdown checklist lines out of a subtask section. |
+| `injectSubtasks` | Writes edited subtasks back into a task body. |
+| `searchTaskContent` | Searches title, subtasks, body, tags, assignee, and priority with contextual snippets. |
+
+### `src/lib/filesystem.ts`
+
+| Function | Description |
+|---|---|
+| `supportsFileSystemAccess` | Detects required browser API support. |
+| `pickProjectDirectory` | Prompts for a project folder and opens or creates `.kandown`. |
+| `getKandownHandle` | Resolves `.kandown` from a remembered project directory handle. |
+| `ensureTasksDir` | Ensures `.kandown/tasks` exists. |
+| `readConfigFile` / `writeConfigFile` | Load and save `kandown.json`. |
+| `readBoardFile` / `writeBoardFile` | Load and save `board.md`. |
+| `readTaskFile` / `writeTaskFile` / `deleteTaskFile` | Manage per-task markdown files. |
+| `saveRecentProject` / `listRecentProjects` / `removeRecentProject` | Manage recent project handles in IndexedDB. |
+| `verifyPermission` | Requests read/write permission for a stored handle. |
+
+### `src/lib/theme.ts`
+
+| Function | Description |
+|---|---|
+| `normalizeThemeMode` | Validates persisted theme mode. |
+| `normalizeSkinId` | Validates persisted skin id. |
+| `normalizeFontId` | Validates persisted font id. |
+| `applyProjectTheme` | Applies resolved light/dark class, dataset metadata, font stack, and CSS variables. |
+
+## CLI Architecture
+
+The npm CLI lives in `bin/kandown.js`.
+
+| Function | Description |
+|---|---|
+| `help` | Prints usage and commands. |
+| `copyRecursive` | Copies template directories into `.kandown`. |
+| `findAgentsFile` | Detects existing AI-agent instruction files. |
+| `appendAgentReference` | Adds a Kandown task-management section to an existing agent file. |
+| `createAgentsFileIfMissing` | Creates `AGENTS.md` when no agent instructions exist. |
+| `parseArgs` | Parses `init` flags. |
+| `cmdInit` | Installs `.kandown`, templates, config, web app, and agent docs. |
+| `cmdUpdate` | Updates `kandown.html` from `dist/index.html`. |
+| `main` | Dispatches CLI commands. |
+
+The terminal UI source lives under `src/cli/` and is bundled into `bin/tui.js` by `tsup`.
+
+| File | Description |
+|---|---|
+| `src/cli/tui.tsx` | Ink entrypoint for the terminal UI. |
+| `src/cli/app.tsx` | TUI app shell. |
+| `src/cli/lib/config.ts` | Node-side `kandown.json` reader/writer. |
+| `src/cli/screens/settings.tsx` | Terminal settings editor. |
 
 ## Development
 
-If you'd like to work on Kandown itself, here's how the repository is structured:
-
-```text
-kandown/
-├── bin/kandown.js          # CLI for `npx kandown init`
-├── src/
-│   ├── components/         # React components (Card, Drawer, CommandPalette, etc.)
-│   ├── lib/                # Parser, serializer, filesystem, Zustand store
-│   ├── hooks/
-│   ├── styles/globals.css
-│   ├── App.tsx
-│   └── main.tsx
-├── templates/              # board.md, AGENT.md, README.md, tasks/t-001.md
-├── dist/index.html         # Pre-built artifact
-├── package.json
-└── ...
-```
-
-### Local Setup
-
 ```bash
-# Install dependencies
 pnpm install
-
-# Start development server with hot reload
 pnpm dev
-
-# Build the project (regenerates dist/index.html)
 pnpm build
 ```
 
-### Publishing
+### Scripts
+
+| Script | Description |
+|---|---|
+| `pnpm dev` | Start Vite for local web UI development. |
+| `pnpm build` | Typecheck, build the single-file web app, and build the CLI TUI. |
+| `pnpm build:cli` | Build `src/cli/tui.tsx` into `bin/tui.js`. |
+| `pnpm preview` | Preview the Vite production build. |
+| `pnpm typecheck` | Run TypeScript without emitting files. |
+
+### Build Output
+
+`pnpm build` regenerates:
+
+- `dist/index.html`: the single-file app copied into installed projects as `kandown.html`.
+- `bin/tui.js`: bundled Ink TUI used by `kandown settings`.
+
+Always build before publishing. The published package is intentionally small and includes only `dist/`, `bin/`, `templates/`, `README.md`, and `LICENSE`.
+
+## Browser Support
+
+Kandown requires the File System Access API. Supported browsers:
+
+- Chrome
+- Edge
+- Brave
+- Opera
+
+Unsupported:
+
+- Firefox
+- Safari
+
+## Design Constraints
+
+- The app must remain local-first and backend-free.
+- Markdown stays the canonical data format.
+- `board.md` must remain lightweight enough for AI agents to read first.
+- Task details belong in `tasks/<id>.md`.
+- UI state that is project-specific belongs in `kandown.json`.
+- Browser-only convenience state, such as recent handles, can live in IndexedDB.
+- The installed web app should remain a single file.
+
+## Publishing
 
 ```bash
-# 1. IMPORTANT: Always build before publishing to generate the latest single-file app
 pnpm build
-
-# 2. Login to npm
 npm login
-
-# 3. Publish
 npm publish --access public
 ```
-
-*Note: The `.npmignore` ensures that only `dist/`, `bin/`, `templates/`, `README.md`, and `LICENSE` are published to the registry, keeping the package clean and small.*
 
 ## License
 
