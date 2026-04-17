@@ -23,6 +23,8 @@ export interface KandownConfig {
   ui: {
     language: string;
     theme: 'auto' | 'light' | 'dark';
+    skin: 'kandown' | 'graphite' | 'sage' | 'cobalt' | 'rose';
+    font: 'inter' | 'system' | 'serif' | 'mono' | 'rounded';
   };
   agent: {
     suggestFollowUp: boolean;
@@ -44,7 +46,7 @@ export interface KandownConfig {
 
 // 📖 Fallback values when keys are missing from kandown.json
 const DEFAULT_CONFIG: KandownConfig = {
-  ui: { language: 'en', theme: 'auto' },
+  ui: { language: 'en', theme: 'auto', skin: 'kandown', font: 'inter' },
   agent: { suggestFollowUp: false, maxSuggestions: 3 },
   board: { taskPrefix: 't', defaultPriority: 'P3', defaultOwnerType: 'human' },
   fields: {

@@ -39,7 +39,9 @@ Project-level settings that control UI behavior, agent behavior, and which field
 {
   "ui": {
     "language": "en",
-    "theme": "auto"
+    "theme": "auto",
+    "skin": "kandown",
+    "font": "inter"
   },
   "agent": {
     "suggestFollowUp": false,
@@ -66,6 +68,8 @@ Project-level settings that control UI behavior, agent behavior, and which field
 |-----|------|---------|-------------|
 | `ui.language` | `string` | `"en"` | UI language (`en`, `fr`, `es`, `de`, `pt`, `ja`, `zh`, etc.) |
 | `ui.theme` | `string` | `"auto"` | Theme: `"auto"` (system), `"light"`, or `"dark"` |
+| `ui.skin` | `string` | `"kandown"` | Project color skin: `"kandown"`, `"graphite"`, `"sage"`, `"cobalt"`, or `"rose"` |
+| `ui.font` | `string` | `"inter"` | Project UI font: `"inter"`, `"system"`, `"serif"`, `"mono"`, or `"rounded"` |
 | `agent.suggestFollowUp` | `boolean` | `false` | AI agent proposes follow-up tasks after completing a task |
 | `agent.maxSuggestions` | `number` | `3` | Max follow-up suggestions (1–5) |
 | `board.taskPrefix` | `string` | `"t"` | ID prefix for tasks → `t-001`, `task-001`, `feat-001`, etc. |

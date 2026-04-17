@@ -2,13 +2,14 @@ import { useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { Column } from './Column';
 import { useStore } from '../lib/store';
-import type { BoardTask } from '../lib/types';
+import type { BoardTask, SearchMatch } from '../lib/types';
 
 export function Board() {
   const columns = useStore(s => s.columns);
   const density = useStore(s => s.density);
   const filters = useStore(s => s.filters);
   const moveTask = useStore(s => s.moveTask);
+  const searchMatches = useStore(s => s.searchMatches);
 
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [draggedFromCol, setDraggedFromCol] = useState<string | null>(null);
@@ -18,7 +19,9 @@ export function Board() {
       const filtered = col.tasks.filter((t: BoardTask) => {
         if (filters.search) {
           const q = filters.search.toLowerCase();
-          if (!t.title.toLowerCase().includes(q) && !t.id.toLowerCase().includes(q)) return false;
+          const titleOrId = t.title.toLowerCase().includes(q) || t.id.toLowerCase().includes(q);
+          const hasContentMatch = searchMatches.has(t.id);
+          if (!titleOrId && !hasContentMatch) return false;
         }
         if (filters.priority && t.priority !== filters.priority) return false;
         if (filters.tag && !(t.tags || []).includes(filters.tag)) return false;
@@ -28,14 +31,14 @@ export function Board() {
       });
       return { column: col, filtered };
     });
-  }, [columns, filters]);
+  }, [columns, filters, searchMatches]);
 
   const handleCardDragStart = (taskId: string, fromCol: string) => {
     setDraggedTaskId(taskId);
     setDraggedFromCol(fromCol);
   };
 
-  const handleCardDragEnd = () => {
+  const handleDragEnd = () => {
     setDraggedTaskId(null);
     setDraggedFromCol(null);
   };
@@ -70,11 +73,12 @@ export function Board() {
           <Column
             column={column}
             filteredTasks={filtered}
+            searchMatches={filters.search ? searchMatches : new Map()}
             density={density}
             draggedTaskId={draggedTaskId}
             draggedFromCol={draggedFromCol}
             onCardDragStart={handleCardDragStart}
-            onCardDragEnd={handleCardDragEnd}
+            onCardDragEnd={handleDragEnd}
             onDrop={handleDrop}
           />
         </motion.div>

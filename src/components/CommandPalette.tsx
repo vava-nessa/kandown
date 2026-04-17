@@ -2,13 +2,42 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Icon } from './Icons';
 import { useStore } from '../lib/store';
+import type { SearchMatch } from '../lib/types';
 
 interface CommandItem {
   id: string;
   label: string;
   hint?: string;
+  preview?: SearchMatch[];
   category: 'task' | 'action' | 'view';
   onSelect: () => void;
+}
+
+const sectionLabels: Record<string, string> = {
+  title: 'Title',
+  subtasks: 'Subtask',
+  context: 'Context',
+  notes: 'Notes',
+  whatWasDone: 'What was done',
+  tags: 'Tags',
+  assignee: 'Assignee',
+  priority: 'Priority',
+};
+
+function HighlightedText({ text, keyword }: { text: string; keyword: string }) {
+  if (!keyword) return <>{text}</>;
+  const parts = text.split(new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === keyword.toLowerCase() ? (
+          <mark key={i} className="bg-yellow-200/60 text-fg rounded px-0.5 font-semibold">{part}</mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
 }
 
 export function CommandPalette() {
@@ -21,11 +50,24 @@ export function CommandPalette() {
   const setViewMode = useStore(s => s.setViewMode);
   const setDensity = useStore(s => s.setDensity);
   const clearFilters = useStore(s => s.clearFilters);
+  const taskContents = useStore(s => s.taskContents);
+  const loadTaskContents = useStore(s => s.loadTaskContents);
 
   const [query, setQuery] = useState('');
   const [selectedIdx, setSelectedIdx] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+
+  // Load all task contents when command palette opens with a query
+  useEffect(() => {
+    if (commandOpen && query.length > 0) {
+      const allIds = columns.flatMap(col => col.tasks.map(t => t.id));
+      const missingIds = allIds.filter(id => !taskContents.has(id));
+      if (missingIds.length > 0) {
+        loadTaskContents(missingIds);
+      }
+    }
+  }, [commandOpen, query, columns, taskContents, loadTaskContents]);
 
   // Build command list
   const allCommands = useMemo<CommandItem[]>(() => {
@@ -115,6 +157,23 @@ export function CommandPalette() {
 
     return [...actionCommands, ...viewCommands, ...taskCommands];
   }, [columns, setCommandOpen, openDrawer, createTask, reloadBoard, clearFilters, setViewMode, setDensity]);
+
+  // Compute search matches for tasks
+  const searchMatchesMap = useMemo(() => {
+    if (!query.trim()) return new Map<string, SearchMatch[]>();
+    const q = query.toLowerCase();
+    const matches = new Map<string, SearchMatch[]>();
+    for (const cmd of allCommands) {
+      if (cmd.category !== 'task') continue;
+      const taskId = cmd.id.replace('task:', '');
+      const content = taskContents.get(taskId);
+      if (!content) continue;
+      const { searchTaskContent } = require('../lib/parser');
+      const found = searchTaskContent(content, q);
+      if (found.length > 0) matches.set(taskId, found);
+    }
+    return matches;
+  }, [query, allCommands, taskContents]);
 
   // Fuzzy-ish filter
   const filtered = useMemo(() => {
@@ -223,23 +282,40 @@ export function CommandPalette() {
                     {grouped[cat].map(cmd => {
                       const absoluteIdx = filtered.indexOf(cmd);
                       const isSelected = absoluteIdx === selectedIdx;
+                      const matches = cat === 'task' ? searchMatchesMap.get(cmd.id.replace('task:', '')) : undefined;
                       return (
-                        <button
-                          key={cmd.id}
-                          data-idx={absoluteIdx}
-                          onClick={cmd.onSelect}
-                          onMouseEnter={() => setSelectedIdx(absoluteIdx)}
-                          className={`w-full flex items-center justify-between px-3 py-1.5 text-[13.5px] text-left transition-colors ${
-                            isSelected ? 'bg-bg-3 text-fg' : 'text-fg-dim'
-                          }`}
-                        >
-                          <span className="truncate">{cmd.label}</span>
-                          {cmd.hint && (
-                            <span className="text-[12px] text-fg-muted ml-2 flex-shrink-0">
-                              {cmd.hint}
-                            </span>
+                        <div key={cmd.id}>
+                          <button
+                            data-idx={absoluteIdx}
+                            onClick={cmd.onSelect}
+                            onMouseEnter={() => setSelectedIdx(absoluteIdx)}
+                            className={`w-full flex items-center justify-between px-3 py-1.5 text-[13.5px] text-left transition-colors ${
+                              isSelected ? 'bg-bg-3 text-fg' : 'text-fg-dim'
+                            }`}
+                          >
+                            <span className="truncate">{cmd.label}</span>
+                            {cmd.hint && (
+                              <span className="text-[12px] text-fg-muted ml-2 flex-shrink-0">
+                                {cmd.hint}
+                              </span>
+                            )}
+                          </button>
+                          {/* Search preview */}
+                          {isSelected && matches && matches.length > 0 && (
+                            <div className="px-3 pb-2">
+                              <div className="flex flex-col gap-1 bg-bg rounded border border-border p-2">
+                                {matches.slice(0, 2).map((match, i) => (
+                                  <div key={i} className="text-[12px] text-fg-dim">
+                                    <span className="text-[10.5px] font-medium text-fg-muted uppercase tracking-wide mr-1.5">
+                                      {sectionLabels[match.section] || match.section}
+                                    </span>
+                                    <HighlightedText text={match.snippet} keyword={match.keyword} />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           )}
-                        </button>
+                        </div>
                       );
                     })}
                   </div>

@@ -12,7 +12,7 @@ import { Box, Text, useInput, useApp } from "ink";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join } from "path";
 var DEFAULT_CONFIG = {
-  ui: { language: "en", theme: "auto" },
+  ui: { language: "en", theme: "auto", skin: "kandown", font: "inter" },
   agent: { suggestFollowUp: false, maxSuggestions: 3 },
   board: { taskPrefix: "t", defaultPriority: "P3", defaultOwnerType: "human" },
   fields: {
@@ -69,16 +69,30 @@ var SETTINGS = [
   {
     key: "ui.language",
     label: "Language",
-    section: "UI",
+    section: "Appearance",
     type: "select",
     options: ["en", "fr", "es", "de", "pt", "ja", "zh", "ko", "it", "nl", "ru"]
   },
   {
     key: "ui.theme",
-    label: "Theme",
-    section: "UI",
+    label: "Mode",
+    section: "Appearance",
     type: "select",
     options: ["auto", "light", "dark"]
+  },
+  {
+    key: "ui.skin",
+    label: "Skin",
+    section: "Appearance",
+    type: "select",
+    options: ["kandown", "graphite", "sage", "cobalt", "rose"]
+  },
+  {
+    key: "ui.font",
+    label: "Font",
+    section: "Appearance",
+    type: "select",
+    options: ["inter", "system", "serif", "mono", "rounded"]
   },
   // Agent
   {
@@ -125,11 +139,11 @@ var SETTINGS = [
   { key: "fields.dueDate", label: "Due date", section: "Fields", type: "toggle" },
   { key: "fields.ownerType", label: "Owner type", section: "Fields", type: "toggle" }
 ];
-var SECTIONS = ["UI", "Agent", "Board", "Fields"];
+var SECTIONS = ["Appearance", "Agent", "Board", "Fields"];
 var LABEL_WIDTH = 30;
 var VALUE_WIDTH = 20;
 var SECTION_ICONS = {
-  UI: "\u{1F3A8}",
+  Appearance: "\u{1F3A8}",
   Agent: "\u{1F916}",
   Board: "\u{1F4CB}",
   Fields: "\u{1F4DD}"

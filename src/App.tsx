@@ -6,7 +6,7 @@ import { ListView } from './components/ListView';
 import { EmptyState } from './components/EmptyState';
 import { Drawer } from './components/Drawer';
 import { CommandPalette } from './components/CommandPalette';
-import { Settings } from './components/Settings';
+import { SettingsPage } from './components/SettingsPage';
 import { Toaster } from './components/Toaster';
 import { useStore } from './lib/store';
 
@@ -21,6 +21,7 @@ export function App() {
   const reloadBoard = useStore(s => s.reloadBoard);
   const recentProjects = useStore(s => s.recentProjects);
   const openRecentProject = useStore(s => s.openRecentProject);
+  const currentPage = useStore(s => s.currentPage);
 
   // Handle URL hydration on mount
   useEffect(() => {
@@ -86,7 +87,9 @@ export function App() {
   return (
     <div className="flex flex-col h-screen">
       <Header />
-      {dirHandle ? (
+      {currentPage === 'settings' ? (
+        <SettingsPage />
+      ) : dirHandle ? (
         <>
           <FilterBar />
           {viewMode === 'board' ? <Board /> : <ListView />}
@@ -96,7 +99,6 @@ export function App() {
       )}
       <Drawer />
       <CommandPalette />
-      <Settings />
       <Toaster />
     </div>
   );

@@ -1,4 +1,37 @@
-import type { ParsedBoard, ParsedTask, Subtask, BoardTask, Column, Priority, TaskFrontmatter, OwnerType } from './types';
+/**
+ * @file Markdown parser utilities
+ * @description Parses Kandown board/task markdown into typed structures, extracts
+ * editable subtasks, reinjects them on save, and performs lightweight cached
+ * task-content search for the web UI.
+ *
+ * 📖 These helpers keep the markdown files as the source of truth while giving
+ * React components compact, typed data that is cheap to render and search.
+ *
+ * @functions
+ *  → parseSimpleYaml — parses the limited frontmatter shape used by Kandown
+ *  → parseBoard — parses board.md columns and task index rows
+ *  → parseTaskFile — parses a task markdown file and frontmatter
+ *  → extractSubtasks — separates editable subtasks from task body content
+ *  → injectSubtasks — writes edited subtasks back into the task body
+ *  → searchTaskContent — returns contextual matches for cached task content
+ *
+ * @exports parseSimpleYaml, parseBoard, parseTaskFile, extractSubtasks, injectSubtasks, searchTaskContent
+ * @see src/lib/types.ts
+ */
+
+import type {
+  ParsedBoard,
+  ParsedTask,
+  Subtask,
+  BoardTask,
+  Column,
+  Priority,
+  TaskFrontmatter,
+  OwnerType,
+  SearchMatch,
+  SearchMatchSection,
+  TaskContent,
+} from './types';
 
 export function parseSimpleYaml(yaml: string): Record<string, unknown> {
   const obj: Record<string, unknown> = {};
@@ -191,4 +224,31 @@ export function injectSubtasks(body: string, subtasks: Subtask[]): string {
     '\n' +
     (after.length ? '\n' + after.join('\n') : '')
   );
+}
+
+export function searchTaskContent(content: TaskContent, query: string): SearchMatch[] {
+  const keyword = query.trim().toLowerCase();
+  if (!keyword) return [];
+
+  const matches: SearchMatch[] = [];
+  const addMatch = (section: SearchMatchSection, value: unknown) => {
+    if (typeof value !== 'string') return;
+    const normalized = value.toLowerCase();
+    const index = normalized.indexOf(keyword);
+    if (index === -1) return;
+    const start = Math.max(0, index - 32);
+    const end = Math.min(value.length, index + keyword.length + 32);
+    const prefix = start > 0 ? '...' : '';
+    const suffix = end < value.length ? '...' : '';
+    matches.push({ section, keyword, snippet: `${prefix}${value.slice(start, end)}${suffix}` });
+  };
+
+  addMatch('title', content.frontmatter.title);
+  addMatch('assignee', content.frontmatter.assignee);
+  addMatch('priority', content.frontmatter.priority);
+  addMatch('tags', Array.isArray(content.frontmatter.tags) ? content.frontmatter.tags.join(' ') : '');
+  for (const subtask of content.subtasks) addMatch('subtasks', subtask.text);
+  addMatch('context', content.body);
+
+  return matches;
 }

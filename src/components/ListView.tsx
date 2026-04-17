@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../lib/store';
-import type { BoardTask } from '../lib/types';
+import type { BoardTask, SearchMatch } from '../lib/types';
 
 const priorityColors: Record<string, string> = {
   P1: '#e5484d',
@@ -10,10 +10,38 @@ const priorityColors: Record<string, string> = {
   P4: '#6e6e6e',
 };
 
+const sectionLabels: Record<string, string> = {
+  title: 'Title',
+  subtasks: 'Subtask',
+  context: 'Context',
+  notes: 'Notes',
+  whatWasDone: 'What was done',
+  tags: 'Tags',
+  assignee: 'Assignee',
+  priority: 'Priority',
+};
+
+function HighlightedText({ text, keyword }: { text: string; keyword: string }) {
+  if (!keyword) return <>{text}</>;
+  const parts = text.split(new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === keyword.toLowerCase() ? (
+          <mark key={i} className="bg-yellow-200/60 text-fg rounded px-0.5 font-semibold">{part}</mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
+
 export function ListView() {
   const columns = useStore(s => s.columns);
   const filters = useStore(s => s.filters);
   const openDrawer = useStore(s => s.openDrawer);
+  const searchMatches = useStore(s => s.searchMatches);
 
   const rows = useMemo(() => {
     const result: Array<{ task: BoardTask; column: string }> = [];
@@ -21,7 +49,9 @@ export function ListView() {
       for (const t of col.tasks) {
         if (filters.search) {
           const q = filters.search.toLowerCase();
-          if (!t.title.toLowerCase().includes(q) && !t.id.toLowerCase().includes(q)) continue;
+          const titleOrId = t.title.toLowerCase().includes(q) || t.id.toLowerCase().includes(q);
+          const hasContentMatch = searchMatches.has(t.id);
+          if (!titleOrId && !hasContentMatch) continue;
         }
         if (filters.priority && t.priority !== filters.priority) continue;
         if (filters.tag && !(t.tags || []).includes(filters.tag)) continue;
@@ -31,7 +61,7 @@ export function ListView() {
       }
     }
     return result;
-  }, [columns, filters]);
+  }, [columns, filters, searchMatches]);
 
   return (
     <motion.div
@@ -53,46 +83,71 @@ export function ListView() {
         </div>
 
         <AnimatePresence>
-          {rows.map(({ task, column }, i) => (
-            <motion.button
-              key={task.id}
-              layout
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ delay: Math.min(i * 0.012, 0.2), duration: 0.2 }}
-              onClick={() => openDrawer(task.id)}
-              className="w-full grid grid-cols-[80px_40px_1fr_140px_120px_120px_80px] gap-3 px-6 py-2.5 text-[13.5px] border-b border-border hover:bg-bg-1 transition-colors text-left items-center"
-            >
-              <span className="font-mono text-[11.5px] text-fg-muted">{task.id.toUpperCase()}</span>
-              <span className="flex items-center gap-1.5">
-                {task.priority && (
-                  <span
-                    className="w-1.5 h-1.5 rounded-full"
-                    style={{ backgroundColor: priorityColors[task.priority] }}
-                    title={task.priority}
-                  />
-                )}
-              </span>
-              <span className={`truncate ${task.checked ? 'line-through text-fg-muted' : 'text-fg'}`}>
-                {task.title}
-              </span>
-              <span className="text-fg-dim text-[12.5px]">{column}</span>
-              <span className="flex flex-wrap gap-1">
-                {task.tags.slice(0, 2).map(tag => (
-                  <span key={tag} className="text-[11.5px] px-1.5 py-0.5 rounded-[3px] bg-bg-2 border border-border text-fg-dim">
-                    {tag}
+          {rows.map(({ task, column }, i) => {
+            const matches = filters.search ? (searchMatches.get(task.id) || []) : [];
+            const showPreview = matches.length > 0;
+            return (
+              <div key={task.id}>
+                <motion.button
+                  layout
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ delay: Math.min(i * 0.012, 0.2), duration: 0.2 }}
+                  onClick={() => openDrawer(task.id)}
+                  className="w-full grid grid-cols-[80px_40px_1fr_140px_120px_120px_80px] gap-3 px-6 py-2.5 text-[13.5px] border-b border-border hover:bg-bg-1 transition-colors text-left items-center"
+                >
+                  <span className="font-mono text-[11.5px] text-fg-muted">{task.id.toUpperCase()}</span>
+                  <span className="flex items-center gap-1.5">
+                    {task.priority && (
+                      <span
+                        className="w-1.5 h-1.5 rounded-full"
+                        style={{ backgroundColor: priorityColors[task.priority] }}
+                        title={task.priority}
+                      />
+                    )}
                   </span>
-                ))}
-              </span>
-              <span className="text-[12.5px] text-fg-dim">
-                {task.assignee ? `@${task.assignee}` : ''}
-              </span>
-              <span className="text-[12px] font-mono text-fg-muted tabular-nums">
-                {task.progress ? `${task.progress.done}/${task.progress.total}` : ''}
-              </span>
-            </motion.button>
-          ))}
+                  <span className={`truncate ${task.checked ? 'line-through text-fg-muted' : 'text-fg'}`}>
+                    {task.title}
+                  </span>
+                  <span className="text-fg-dim text-[12.5px]">{column}</span>
+                  <span className="flex flex-wrap gap-1">
+                    {task.tags.slice(0, 2).map(tag => (
+                      <span key={tag} className="text-[11.5px] px-1.5 py-0.5 rounded-[3px] bg-bg-2 border border-border text-fg-dim">
+                        {tag}
+                      </span>
+                    ))}
+                  </span>
+                  <span className="text-[12.5px] text-fg-dim">
+                    {task.assignee ? `@${task.assignee}` : ''}
+                  </span>
+                  <span className="text-[12px] font-mono text-fg-muted tabular-nums">
+                    {task.progress ? `${task.progress.done}/${task.progress.total}` : ''}
+                  </span>
+                </motion.button>
+                {/* Search preview */}
+                {showPreview && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="px-6 pb-2 grid grid-cols-[80px_40px_1fr_140px_120px_120px_80px] gap-3"
+                  >
+                    <div className="col-start-3 flex flex-col gap-1">
+                      {matches.slice(0, 2).map((match: SearchMatch, idx: number) => (
+                        <div key={idx} className="text-[12px] text-fg-dim bg-bg rounded px-2 py-1 border border-border">
+                          <span className="text-[10.5px] font-medium text-fg-muted uppercase tracking-wide mr-1.5">
+                            {sectionLabels[match.section] || match.section}
+                          </span>
+                          <HighlightedText text={match.snippet} keyword={match.keyword} />
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            );
+          })}
         </AnimatePresence>
 
         {rows.length === 0 && (

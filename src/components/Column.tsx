@@ -3,11 +3,12 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Card } from './Card';
 import { Icon } from './Icons';
 import { useStore } from '../lib/store';
-import type { Column as ColumnType, BoardTask, Density } from '../lib/types';
+import type { Column as ColumnType, BoardTask, Density, SearchMatch } from '../lib/types';
 
 interface ColumnProps {
   column: ColumnType;
   filteredTasks: BoardTask[];
+  searchMatches: Map<string, SearchMatch[]>;
   density: Density;
   draggedTaskId: string | null;
   draggedFromCol: string | null;
@@ -19,6 +20,7 @@ interface ColumnProps {
 export function Column({
   column,
   filteredTasks,
+  searchMatches,
   density,
   draggedTaskId,
   draggedFromCol,
@@ -103,6 +105,7 @@ export function Column({
                 <Card
                   key={task.id}
                   task={task}
+                  searchMatches={searchMatches.get(task.id) || []}
                   density={density}
                   columnName={column.name}
                   onDragStart={() => onCardDragStart(task.id, column.name)}

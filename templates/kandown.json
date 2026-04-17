@@ -1,7 +1,9 @@
 {
   "ui": {
     "language": "en",
-    "theme": "auto"
+    "theme": "auto",
+    "skin": "kandown",
+    "font": "inter"
   },
   "agent": {
     "suggestFollowUp": false,

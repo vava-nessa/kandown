@@ -6,8 +6,8 @@ export default {
     extend: {
       fontFamily: {
         sans: [
+          'var(--font-sans)',
           'Inter var',
-          'Inter',
           '-apple-system',
           'BlinkMacSystemFont',
           'Segoe UI',
@@ -23,23 +23,53 @@ export default {
         ],
       },
       colors: {
+        background: 'hsl(var(--background) / <alpha-value>)',
+        foreground: 'hsl(var(--foreground) / <alpha-value>)',
+        card: {
+          DEFAULT: 'hsl(var(--card) / <alpha-value>)',
+          foreground: 'hsl(var(--card-foreground) / <alpha-value>)',
+        },
+        popover: {
+          DEFAULT: 'hsl(var(--popover) / <alpha-value>)',
+          foreground: 'hsl(var(--popover-foreground) / <alpha-value>)',
+        },
+        primary: {
+          DEFAULT: 'hsl(var(--primary) / <alpha-value>)',
+          foreground: 'hsl(var(--primary-foreground) / <alpha-value>)',
+        },
+        secondary: {
+          DEFAULT: 'hsl(var(--secondary) / <alpha-value>)',
+          foreground: 'hsl(var(--secondary-foreground) / <alpha-value>)',
+        },
+        muted: {
+          DEFAULT: 'hsl(var(--muted) / <alpha-value>)',
+          foreground: 'hsl(var(--muted-foreground) / <alpha-value>)',
+        },
+        accent: {
+          DEFAULT: 'hsl(var(--accent) / <alpha-value>)',
+          foreground: 'hsl(var(--accent-foreground) / <alpha-value>)',
+        },
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive) / <alpha-value>)',
+          foreground: 'hsl(var(--destructive-foreground) / <alpha-value>)',
+        },
         bg: {
-          DEFAULT: '#0a0a0a',
-          1: '#111111',
-          2: '#161616',
-          3: '#1c1c1c',
-          hover: '#1f1f1f',
+          DEFAULT: 'hsl(var(--background) / <alpha-value>)',
+          1: 'hsl(var(--card) / <alpha-value>)',
+          2: 'hsl(var(--secondary) / <alpha-value>)',
+          3: 'hsl(var(--accent) / <alpha-value>)',
+          hover: 'hsl(var(--accent) / <alpha-value>)',
         },
         border: {
-          DEFAULT: '#1f1f1f',
-          strong: '#2a2a2a',
-          focus: '#3a3a3a',
+          DEFAULT: 'hsl(var(--border) / <alpha-value>)',
+          strong: 'hsl(var(--border-strong) / <alpha-value>)',
+          focus: 'hsl(var(--border-focus) / <alpha-value>)',
         },
         fg: {
-          DEFAULT: '#ededed',
-          dim: '#a1a1a1',
-          muted: '#6e6e6e',
-          faint: '#4a4a4a',
+          DEFAULT: 'hsl(var(--foreground) / <alpha-value>)',
+          dim: 'hsl(var(--muted-foreground) / <alpha-value>)',
+          muted: 'hsl(var(--muted-foreground) / <alpha-value>)',
+          faint: 'hsl(var(--muted-foreground) / 0.55)',
         },
         priority: {
           urgent: '#e5484d',
@@ -47,9 +77,9 @@ export default {
           medium: '#3e63dd',
           low: '#6e6e6e',
         },
-        success: '#30a46c',
-        danger: '#e5484d',
-        warning: '#e9a23b',
+        success: 'hsl(var(--success) / <alpha-value>)',
+        danger: 'hsl(var(--destructive) / <alpha-value>)',
+        warning: 'hsl(var(--warning) / <alpha-value>)',
       },
       borderRadius: {
         DEFAULT: '6px',

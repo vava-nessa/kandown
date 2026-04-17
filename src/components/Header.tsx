@@ -29,7 +29,7 @@ export function Header() {
   const setViewMode = useStore(s => s.setViewMode);
   const density = useStore(s => s.density);
   const setDensity = useStore(s => s.setDensity);
-  const setSettingsOpen = useStore(s => s.setSettingsOpen);
+  const setCurrentPage = useStore(s => s.setCurrentPage);
   const recentProjects = useStore(s => s.recentProjects);
   const openRecentProject = useStore(s => s.openRecentProject);
 
@@ -174,7 +174,7 @@ export function Header() {
 
             {/* Settings */}
             <button
-              onClick={() => setSettingsOpen(true)}
+              onClick={() => setCurrentPage('settings')}
               className="btn-icon"
               title="Settings"
             >

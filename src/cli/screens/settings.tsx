@@ -49,16 +49,30 @@ const SETTINGS: SettingDef[] = [
   {
     key: 'ui.language',
     label: 'Language',
-    section: 'UI',
+    section: 'Appearance',
     type: 'select',
     options: ['en', 'fr', 'es', 'de', 'pt', 'ja', 'zh', 'ko', 'it', 'nl', 'ru'],
   },
   {
     key: 'ui.theme',
-    label: 'Theme',
-    section: 'UI',
+    label: 'Mode',
+    section: 'Appearance',
     type: 'select',
     options: ['auto', 'light', 'dark'],
+  },
+  {
+    key: 'ui.skin',
+    label: 'Skin',
+    section: 'Appearance',
+    type: 'select',
+    options: ['kandown', 'graphite', 'sage', 'cobalt', 'rose'],
+  },
+  {
+    key: 'ui.font',
+    label: 'Font',
+    section: 'Appearance',
+    type: 'select',
+    options: ['inter', 'system', 'serif', 'mono', 'rounded'],
   },
 
   // Agent
@@ -110,7 +124,7 @@ const SETTINGS: SettingDef[] = [
 ];
 
 // 📖 Ordered sections for rendering — determines visual grouping
-const SECTIONS = ['UI', 'Agent', 'Board', 'Fields'];
+const SECTIONS = ['Appearance', 'Agent', 'Board', 'Fields'];
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -119,7 +133,7 @@ const VALUE_WIDTH = 20;
 
 // 📖 Section header icons for visual appeal
 const SECTION_ICONS: Record<string, string> = {
-  UI: '🎨',
+  Appearance: '🎨',
   Agent: '🤖',
   Board: '📋',
   Fields: '📝',

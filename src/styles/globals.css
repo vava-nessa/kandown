@@ -6,11 +6,38 @@
   :root {
     font-feature-settings: 'cv11', 'ss01', 'ss03';
     color-scheme: dark;
+    --font-sans: 'Inter var', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --background: 0 0% 4%;
+    --foreground: 0 0% 93%;
+    --card: 0 0% 9%;
+    --card-foreground: 0 0% 93%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 93%;
+    --primary: 0 0% 93%;
+    --primary-foreground: 0 0% 4%;
+    --secondary: 0 0% 13%;
+    --secondary-foreground: 0 0% 93%;
+    --muted: 0 0% 11%;
+    --muted-foreground: 0 0% 43%;
+    --accent: 0 0% 16%;
+    --accent-foreground: 0 0% 93%;
+    --destructive: 358 74% 59%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 12%;
+    --border-strong: 0 0% 16%;
+    --border-focus: 0 0% 23%;
+    --input: 0 0% 16%;
+    --ring: 0 0% 64%;
+    --success: 151 55% 42%;
+    --warning: 38 82% 57%;
+    --grid: 0 0% 100% / 0.035;
+    --glass: 0 0% 9% / 0.74;
+    --glass-border: 0 0% 16% / 0.82;
   }
 
   @supports (font-variation-settings: normal) {
     :root {
-      font-family: 'Inter var', sans-serif;
+      font-family: var(--font-sans);
     }
   }
 
@@ -22,8 +49,8 @@
 
   body {
     overflow: hidden;
-    background: #0a0a0a;
-    color: #ededed;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
     -webkit-font-smoothing: antialiased;
     font-size: 18px;
   }
@@ -31,7 +58,7 @@
   /* Subtle grid pattern background on board */
   .board-bg {
     background-image:
-      radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.025) 1px, transparent 0);
+      radial-gradient(circle at 1px 1px, hsl(var(--grid)) 1px, transparent 0);
     background-size: 24px 24px;
   }
 
@@ -55,20 +82,20 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: #2a2a2a;
+    background: hsl(var(--border-strong));
     border-radius: 4px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #3a3a3a;
+    background: hsl(var(--border-focus));
   }
 }
 
 @layer components {
   .glass {
-    background: rgba(22, 22, 22, 0.7);
+    background: hsl(var(--glass));
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(42, 42, 42, 0.8);
+    border: 1px solid hsl(var(--glass-border));
   }
 
   .btn-base {
@@ -76,7 +103,7 @@
   }
 
   .btn-primary {
-    @apply btn-base bg-fg text-bg border border-fg hover:bg-[#ddd] hover:border-[#ddd];
+    @apply btn-base bg-primary text-primary-foreground border border-primary hover:bg-primary/90 hover:border-primary/90;
   }
 
   .btn-secondary {

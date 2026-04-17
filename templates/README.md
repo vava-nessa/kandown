@@ -19,9 +19,14 @@ The app remembers the last 10 projects you've opened — no need to re-select th
 │   ├── t-001.md      ← full task details
 │   └── ...
 ├── kandown.html       ← the engine (single file, no dependencies)
+├── kandown.json      ← project preferences, appearance, and optional fields
 ├── AGENT.md          ← AI coding agent conventions
 └── README.md         ← this file
 ```
+
+## Settings
+
+Open Settings from the app header to tune this project. Appearance settings are stored in `kandown.json`: theme mode (`auto`, `light`, `dark`), color skin, and font preset are all project-specific.
 
 ## Editing without the app
 

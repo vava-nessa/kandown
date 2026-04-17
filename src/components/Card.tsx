@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import type { BoardTask, Density } from '../lib/types';
+import type { BoardTask, Density, SearchMatch } from '../lib/types';
 import { useStore } from '../lib/store';
 
 const priorityColors: Record<string, string> = {
@@ -9,15 +9,43 @@ const priorityColors: Record<string, string> = {
   P4: '#6e6e6e',
 };
 
+const sectionLabels: Record<string, string> = {
+  title: 'Title',
+  subtasks: 'Subtask',
+  context: 'Context',
+  notes: 'Notes',
+  whatWasDone: 'What was done',
+  tags: 'Tags',
+  assignee: 'Assignee',
+  priority: 'Priority',
+};
+
+function HighlightedText({ text, keyword }: { text: string; keyword: string }) {
+  if (!keyword) return <>{text}</>;
+  const parts = text.split(new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === keyword.toLowerCase() ? (
+          <mark key={i} className="bg-yellow-200/60 text-fg rounded px-0.5 font-semibold">{part}</mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
+
 interface CardProps {
   task: BoardTask;
+  searchMatches?: SearchMatch[];
   density: Density;
   onDragStart?: (e: React.DragEvent) => void;
   onDragEnd?: (e: React.DragEvent) => void;
   columnName: string;
 }
 
-export function Card({ task, density, onDragStart, onDragEnd, columnName }: CardProps) {
+export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd, columnName }: CardProps) {
   const openDrawer = useStore(s => s.openDrawer);
 
   const isCompact = density === 'compact';
@@ -30,13 +58,12 @@ export function Card({ task, density, onDragStart, onDragEnd, columnName }: Card
       : 0;
   const isComplete = task.progress && task.progress.done === task.progress.total;
 
-  // Motion types its DragEvent handlers for gesture drags, but with the HTML
-  // `draggable` attribute the underlying browser drag events are used instead.
-  // We bypass Motion's typing for these specific props.
   const dragHandlers = {
     onDragStart,
     onDragEnd,
   } as unknown as Record<string, unknown>;
+
+  const showPreview = searchMatches.length > 0 && !isCompact;
 
   return (
     <motion.div
@@ -89,8 +116,22 @@ export function Card({ task, density, onDragStart, onDragEnd, columnName }: Card
         {task.title}
       </div>
 
+      {/* Search preview */}
+      {showPreview && (
+        <div className="mt-2 space-y-1">
+          {searchMatches.slice(0, 2).map((match, i) => (
+            <div key={i} className="text-[12px] text-fg-dim bg-bg rounded px-2 py-1 border border-border">
+              <span className="text-[10.5px] font-medium text-fg-muted uppercase tracking-wide mr-1.5">
+                {sectionLabels[match.section] || match.section}
+              </span>
+              <HighlightedText text={match.snippet} keyword={match.keyword} />
+            </div>
+          ))}
+        </div>
+      )}
+
       {!isCompact && task.progress && task.progress.total > 0 && (
-        <div className="mt-2 flex items-center gap-2">
+        <div className={`mt-2 flex items-center gap-2 ${showPreview ? '' : ''}`}>
           <div className="flex-1 h-[3px] bg-bg rounded-full overflow-hidden">
             <motion.div
               className="h-full rounded-full"

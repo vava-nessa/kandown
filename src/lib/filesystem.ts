@@ -1,6 +1,8 @@
-import type { TaskFrontmatter } from './types';
+import type { KandownConfig, TaskFrontmatter } from './types';
+import { DEFAULT_CONFIG } from './types';
 import { serializeTaskFile } from './serializer';
 import { parseTaskFile } from './parser';
+import { normalizeFontId, normalizeSkinId, normalizeThemeMode } from './theme';
 
 declare global {
   interface Window {
@@ -97,25 +99,30 @@ columns: [Backlog, Todo, In Progress, Done]
 
 /* ═════════════ Config (kandown.json) ═════════════ */
 
-export async function readConfigFile(kandownHandle: FileSystemDirectoryHandle): Promise<import('./types').KandownConfig | null> {
+export async function readConfigFile(kandownHandle: FileSystemDirectoryHandle): Promise<KandownConfig | null> {
   try {
     const h = await kandownHandle.getFileHandle('kandown.json');
     const file = await h.getFile();
     const text = await file.text();
-    const raw = JSON.parse(text);
-    const defaults = (await import('./types')).DEFAULT_CONFIG;
+    const raw = JSON.parse(text) as Partial<KandownConfig>;
+    const ui = { ...DEFAULT_CONFIG.ui, ...raw.ui };
     return {
-      ui: { ...defaults.ui, ...raw.ui },
-      agent: { ...defaults.agent, ...raw.agent },
-      board: { ...defaults.board, ...raw.board },
-      fields: { ...defaults.fields, ...raw.fields },
+      ui: {
+        ...ui,
+        theme: normalizeThemeMode(ui.theme),
+        skin: normalizeSkinId(ui.skin),
+        font: normalizeFontId(ui.font),
+      },
+      agent: { ...DEFAULT_CONFIG.agent, ...raw.agent },
+      board: { ...DEFAULT_CONFIG.board, ...raw.board },
+      fields: { ...DEFAULT_CONFIG.fields, ...raw.fields },
     };
   } catch {
     return null;
   }
 }
 
-export async function writeConfigFile(kandownHandle: FileSystemDirectoryHandle, config: import('./types').KandownConfig): Promise<void> {
+export async function writeConfigFile(kandownHandle: FileSystemDirectoryHandle, config: KandownConfig): Promise<void> {
   const h = await kandownHandle.getFileHandle('kandown.json', { create: true });
   const w = await h.createWritable();
   await w.write(JSON.stringify(config, null, 2) + '\n');

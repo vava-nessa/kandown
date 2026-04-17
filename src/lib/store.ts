@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Column, Filters, BoardTask, Density, ViewMode, Subtask, TaskFrontmatter, KandownConfig } from './types';
+import type { Column, Filters, BoardTask, Density, ViewMode, Subtask, TaskFrontmatter, KandownConfig, TaskContent, SearchMatch } from './types';
 import { DEFAULT_CONFIG } from './types';
 import {
   pickProjectDirectory,
@@ -17,8 +17,9 @@ import {
   verifyPermission,
   type RecentProject,
 } from './filesystem';
-import { parseBoard, extractSubtasks, injectSubtasks } from './parser';
+import { parseBoard, extractSubtasks, injectSubtasks, searchTaskContent } from './parser';
 import { serializeBoard } from './serializer';
+import { applyProjectTheme } from './theme';
 
 interface Toast {
   id: number;
@@ -33,6 +34,10 @@ interface State {
   boardTitle: string;
   columns: Column[];
 
+  // Content search cache (loaded lazily when >10 tasks, eagerly otherwise)
+  taskContents: Map<string, TaskContent>;
+  searchMatches: Map<string, SearchMatch[]>;
+
   // UI state
   viewMode: ViewMode;
   density: Density;
@@ -40,7 +45,7 @@ interface State {
   commandOpen: boolean;
   drawerTaskId: string | null;
   drawerData: { frontmatter: TaskFrontmatter; subtasks: Subtask[]; body: string } | null;
-  settingsOpen: boolean;
+  currentPage: 'board' | 'settings';
 
   // Project config
   config: KandownConfig;
@@ -75,7 +80,10 @@ interface State {
   clearFilters: () => void;
 
   setCommandOpen: (open: boolean) => void;
-  setSettingsOpen: (open: boolean) => void;
+  setCurrentPage: (page: 'board' | 'settings') => void;
+
+  loadTaskContents: (taskIds: string[]) => Promise<void>;
+  computeSearchMatches: (query: string) => void;
 
   toast: (message: string, type?: Toast['type']) => void;
   dismissToast: (id: number) => void;
@@ -113,14 +121,8 @@ function nextTaskId(columns: Column[]): string {
   return 't-' + String(maxN + 1).padStart(3, '0');
 }
 
-function applyTheme(theme: 'auto' | 'light' | 'dark') {
-  const root = document.documentElement;
-  if (theme === 'auto') {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    root.classList.toggle('dark', prefersDark);
-  } else {
-    root.classList.toggle('dark', theme === 'dark');
-  }
+function applyConfigTheme(config: KandownConfig): void {
+  applyProjectTheme(config.ui.theme, config.ui.skin, config.ui.font);
 }
 
 let toastIdCounter = 0;
@@ -132,13 +134,16 @@ export const useStore = create<State>((set, get) => ({
   boardTitle: 'Project Kanban',
   columns: [],
 
+  taskContents: new Map(),
+  searchMatches: new Map(),
+
   viewMode: (localStorage.getItem('kandown:view') as ViewMode) || 'board',
   density: (localStorage.getItem('kandown:density') as Density) || 'comfortable',
   filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null },
   commandOpen: false,
   drawerTaskId: null,
   drawerData: null,
-  settingsOpen: false,
+  currentPage: 'board',
 
   config: DEFAULT_CONFIG,
 
@@ -188,10 +193,14 @@ export const useStore = create<State>((set, get) => ({
       const config = await readConfigFile(dirHandle);
       if (config) {
         set({ config });
-        applyTheme(config.ui.theme);
+        applyConfigTheme(config);
+      } else {
+        set({ config: DEFAULT_CONFIG });
+        applyConfigTheme(DEFAULT_CONFIG);
       }
     } catch (e) {
-      // ignore - use defaults
+      set({ config: DEFAULT_CONFIG });
+      applyConfigTheme(DEFAULT_CONFIG);
     }
   },
 
@@ -200,16 +209,16 @@ export const useStore = create<State>((set, get) => ({
     if (!dirHandle) return;
     const newConfig = updater(config);
     set({ config: newConfig });
+    applyConfigTheme(newConfig);
     try {
       await writeConfigFile(dirHandle, newConfig);
-      applyTheme(newConfig.ui.theme);
     } catch (e) {
       get().toast('Failed to save config: ' + (e as Error).message, 'error');
     }
   },
 
   reloadBoard: async () => {
-    const { dirHandle } = get();
+    const { dirHandle, tasksDirHandle } = get();
     if (!dirHandle) return;
     try {
       let text = await readBoardFile(dirHandle);
@@ -219,6 +228,13 @@ export const useStore = create<State>((set, get) => ({
       }
       const parsed = parseBoard(text);
       set({ boardTitle: parsed.title, columns: parsed.columns });
+
+      // Load all task contents eagerly if <= 10 tasks total
+      const totalTasks = parsed.columns.reduce((acc, col) => acc + col.tasks.length, 0);
+      if (tasksDirHandle && totalTasks <= 10) {
+        const ids = parsed.columns.flatMap(col => col.tasks.map(t => t.id));
+        await get().loadTaskContents(ids);
+      }
     } catch (e) {
       get().toast('Failed to load board: ' + (e as Error).message, 'error');
     }
@@ -313,10 +329,18 @@ export const useStore = create<State>((set, get) => ({
   },
 
   deleteTask: async (taskId) => {
-    const { columns, dirHandle, tasksDirHandle, boardTitle } = get();
+    const { columns, dirHandle, tasksDirHandle, boardTitle, taskContents } = get();
     if (!dirHandle || !tasksDirHandle) return;
     const newColumns = columns.map(c => ({ ...c, tasks: c.tasks.filter(t => t.id !== taskId) }));
     set({ columns: newColumns });
+
+    // Remove from content cache
+    const newContents = new Map(taskContents);
+    newContents.delete(taskId);
+    const newMatches = new Map(get().searchMatches);
+    newMatches.delete(taskId);
+    set({ taskContents: newContents, searchMatches: newMatches });
+
     try {
       await fsDeleteTaskFile(tasksDirHandle, taskId);
       await writeBoardFile(dirHandle, serializeBoard(boardTitle, newColumns));
@@ -351,7 +375,7 @@ export const useStore = create<State>((set, get) => ({
   },
 
   saveDrawer: async () => {
-    const { drawerTaskId, drawerData, tasksDirHandle } = get();
+    const { drawerTaskId, drawerData, tasksDirHandle, taskContents } = get();
     if (!drawerTaskId || !drawerData || !tasksDirHandle) return;
 
     const fullBody = injectSubtasks(drawerData.body, drawerData.subtasks);
@@ -360,13 +384,22 @@ export const useStore = create<State>((set, get) => ({
       await fsWriteTaskFile(tasksDirHandle, drawerTaskId, fm, fullBody);
       get().toast('Saved');
       set({ drawerTaskId: null, drawerData: null });
+
+      // Update content cache
+      const newContents = new Map(taskContents);
+      newContents.set(drawerTaskId, {
+        frontmatter: fm,
+        subtasks: drawerData.subtasks,
+        body: drawerData.body,
+      });
+      set({ taskContents: newContents });
     } catch (e) {
       get().toast('Failed to save: ' + (e as Error).message, 'error');
     }
   },
 
   saveDrawerMetadata: async () => {
-    const { drawerTaskId, drawerData, tasksDirHandle, columns, dirHandle, boardTitle } = get();
+    const { drawerTaskId, drawerData, tasksDirHandle, columns, dirHandle, boardTitle, taskContents } = get();
     if (!drawerTaskId || !drawerData || !tasksDirHandle || !dirHandle) return;
 
     const fullBody = injectSubtasks(drawerData.body, drawerData.subtasks);
@@ -394,6 +427,15 @@ export const useStore = create<State>((set, get) => ({
       })) as Column[];
       set({ columns: newColumns });
       await writeBoardFile(dirHandle, serializeBoard(boardTitle, newColumns));
+
+      // Update content cache
+      const newContents = new Map(taskContents);
+      newContents.set(drawerTaskId, {
+        frontmatter: fm,
+        subtasks: drawerData.subtasks,
+        body: drawerData.body,
+      });
+      set({ taskContents: newContents });
     } catch (e) {
       get().toast('Failed to save: ' + (e as Error).message, 'error');
     }
@@ -409,12 +451,60 @@ export const useStore = create<State>((set, get) => ({
   },
   setFilter: (key, value) => {
     set(state => ({ filters: { ...state.filters, [key]: value } }));
+    if (key === 'search') {
+      const { columns, tasksDirHandle, taskContents } = get();
+      const query = value as string;
+      const allIds = columns.flatMap(col => col.tasks.map(t => t.id));
+      // Load contents for all tasks if not already loaded (lazy mode for >10 tasks)
+      if (tasksDirHandle) {
+        const missingIds = allIds.filter(id => !taskContents.has(id));
+        if (missingIds.length > 0) {
+          get().loadTaskContents(missingIds).then(() => {
+            get().computeSearchMatches(query);
+          });
+        } else {
+          get().computeSearchMatches(query);
+        }
+      }
+    }
   },
   clearFilters: () =>
-    set({ filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null } }),
+    set({ filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null }, searchMatches: new Map() }),
 
   setCommandOpen: (open) => set({ commandOpen: open }),
-  setSettingsOpen: (open) => set({ settingsOpen: open }),
+  setCurrentPage: (page) => set({ currentPage: page }),
+
+  loadTaskContents: async (taskIds: string[]) => {
+    const { tasksDirHandle } = get();
+    if (!tasksDirHandle) return;
+    const newContents = new Map(get().taskContents);
+    await Promise.all(taskIds.map(async (id) => {
+      if (newContents.has(id)) return;
+      try {
+        const { frontmatter, body } = await fsReadTaskFile(tasksDirHandle, id);
+        const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
+        newContents.set(id, { frontmatter, subtasks, body: bodyWithoutSubtasks });
+      } catch {
+        // ignore errors for individual tasks
+      }
+    }));
+    set({ taskContents: newContents });
+  },
+
+  computeSearchMatches: (query: string) => {
+    if (!query.trim()) {
+      set({ searchMatches: new Map() });
+      return;
+    }
+    const { taskContents } = get();
+    const matches = new Map<string, SearchMatch[]>();
+    const q = query.toLowerCase();
+    for (const [id, content] of taskContents) {
+      const found = searchTaskContent(content, q);
+      if (found.length > 0) matches.set(id, found);
+    }
+    set({ searchMatches: matches });
+  },
 
   toast: (message, type = 'success') => {
     const id = ++toastIdCounter;
@@ -429,4 +519,10 @@ export const useStore = create<State>((set, get) => ({
 // Hydrate recent projects on load
 listRecentProjects().then(items => {
   useStore.setState({ recentProjects: items });
+});
+
+applyConfigTheme(DEFAULT_CONFIG);
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  applyConfigTheme(useStore.getState().config);
 });

@@ -53,8 +53,25 @@ export interface ParsedTask {
   body: string;
 }
 
+export type SearchMatchSection = 'title' | 'subtasks' | 'context' | 'notes' | 'whatWasDone' | 'tags' | 'assignee' | 'priority';
+
+export interface SearchMatch {
+  section: SearchMatchSection;
+  snippet: string;
+  keyword: string;
+}
+
+export interface TaskContent {
+  frontmatter: TaskFrontmatter;
+  subtasks: Subtask[];
+  body: string;
+}
+
 export type Density = 'compact' | 'comfortable';
 export type ViewMode = 'board' | 'list';
+export type ThemeMode = 'auto' | 'light' | 'dark';
+export type SkinId = 'kandown' | 'graphite' | 'sage' | 'cobalt' | 'rose';
+export type FontId = 'inter' | 'system' | 'serif' | 'mono' | 'rounded';
 
 export interface Filters {
   search: string;
@@ -67,7 +84,9 @@ export interface Filters {
 export interface KandownConfig {
   ui: {
     language: string;
-    theme: 'auto' | 'light' | 'dark';
+    theme: ThemeMode;
+    skin: SkinId;
+    font: FontId;
   };
   agent: {
     suggestFollowUp: boolean;
@@ -88,7 +107,7 @@ export interface KandownConfig {
 }
 
 export const DEFAULT_CONFIG: KandownConfig = {
-  ui: { language: 'en', theme: 'auto' },
+  ui: { language: 'en', theme: 'auto', skin: 'kandown', font: 'inter' },
   agent: { suggestFollowUp: false, maxSuggestions: 3 },
   board: { taskPrefix: 't', defaultPriority: 'P3', defaultOwnerType: 'human' },
   fields: {

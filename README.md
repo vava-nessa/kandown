@@ -23,6 +23,7 @@ This creates a `.kandown/` directory with:
 .kandown/
 ├── kandown.html       # the engine (single file, no deps)
 ├── board.md          # task index and state
+├── kandown.json      # project preferences and appearance
 ├── tasks/            # per-task markdown files
 ├── AGENT.md          # conventions for AI agents
 └── README.md
@@ -31,6 +32,8 @@ This creates a `.kandown/` directory with:
 It also appends a reference to `AGENTS.md` / `CLAUDE.md` (or creates one) so your AI tools know where to look.
 
 To use the board: Open `.kandown/kandown.html` in Chrome, Edge, Brave, or Opera. Select the `.kandown/` folder when prompted. You're done!
+
+Appearance settings live in `.kandown/kandown.json`, so every project can keep its own theme mode, skin, and font. `ui.theme` defaults to `"auto"` and follows the operating system unless you choose `"light"` or `"dark"` in Settings.
 
 ## Features
 
@@ -41,8 +44,10 @@ To use the board: Open `.kandown/kandown.html` in Chrome, Edge, Brave, or Opera.
   - Drag & drop between columns with smooth spring physics.
   - Subtasks with live animated progress bars.
   - Command palette (⌘K) with fuzzy task search and quick actions.
+  - **Content search**: Search bar and ⌘K search through task content (subtasks, description, tags) with highlighted preview snippets on matching cards.
   - Board & list views (⌘1 / ⌘2).
   - Density toggle (compact/comfortable).
+  - Project-level appearance settings with auto/light/dark mode, built-in color skins, and local font presets.
   - Glassmorphism on drawer and palette, subtle grid + noise overlay, priority edge indicator.
   - Layout animations using Motion, stagger entrance of columns.
 - **Robust Architecture**:
