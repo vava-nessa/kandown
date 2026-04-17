@@ -214,5 +214,34 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Configurações atualizadas externamente — recarregadas"
+  },
+  "languageNames": {
+    "en": "Inglês",
+    "fr": "Francês",
+    "zh": "Chinês",
+    "es": "Espanhol",
+    "pt": "Português",
+    "hi": "Hindi",
+    "de": "Alemão",
+    "it": "Italiano",
+    "ja": "Japonês",
+    "ko": "Coreano",
+    "ru": "Russo",
+    "ar": "Árabe",
+    "nl": "Holandês",
+    "pl": "Polonês",
+    "tr": "Turco",
+    "vi": "Vietnamita",
+    "th": "Tailandês",
+    "id": "Indonésio",
+    "cs": "Tcheco",
+    "sv": "Sueco",
+    "da": "Dinamarquês",
+    "fi": "Finlandês",
+    "no": "Norueguês",
+    "hu": "Húngaro",
+    "el": "Grego",
+    "he": "Hebraico",
+    "uk": "Ucraniano"
   }
 }

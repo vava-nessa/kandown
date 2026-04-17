@@ -214,5 +214,34 @@
   },
   "toast": {
     "settingsUpdatedExternally": "सेटिंग्स बाहरी रूप से अपडेट की गईं — पुनः लोड की गईं"
+  },
+  "languageNames": {
+    "en": "English",
+    "fr": "French",
+    "zh": "Chinese",
+    "es": "Spanish",
+    "pt": "Portuguese",
+    "hi": "हिन्दी",
+    "de": "German",
+    "it": "Italian",
+    "ja": "Japanese",
+    "ko": "Korean",
+    "ru": "Russian",
+    "ar": "Arabic",
+    "nl": "Dutch",
+    "pl": "Polish",
+    "tr": "Turkish",
+    "vi": "Vietnamese",
+    "th": "Thai",
+    "id": "Indonesian",
+    "cs": "Czech",
+    "sv": "Swedish",
+    "da": "Danish",
+    "fi": "Finnish",
+    "no": "Norwegian",
+    "hu": "Hungarian",
+    "el": "Greek",
+    "he": "Hebrew",
+    "uk": "Ukrainian"
   }
 }

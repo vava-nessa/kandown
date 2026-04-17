@@ -214,5 +214,19 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Ustawienia zaktualizowane zewnętrznie — przeładowano"
+  },
+  "languageNames": {
+    "en": "Angielski",
+    "fr": "Francuski",
+    "zh": "Chiński",
+    "es": "Hiszpański",
+    "pt": "Portugalski",
+    "hi": "Hindi",
+    "de": "Niemiecki",
+    "it": "Włoski",
+    "nl": "Holenderski",
+    "pl": "Polski",
+    "uk": "Ukraiński",
+    "ro": "Rumuński"
   }
 }

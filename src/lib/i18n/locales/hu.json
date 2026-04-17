@@ -214,5 +214,34 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Beállítások külsőleg frissítve — újratöltve"
+  },
+  "languageNames": {
+    "en": "Angol",
+    "fr": "Francia",
+    "zh": "Kínai",
+    "es": "Spanyol",
+    "pt": "Portugál",
+    "hi": "Hindi",
+    "de": "Német",
+    "it": "Olasz",
+    "ja": "Japán",
+    "ko": "Koreai",
+    "ru": "Orosz",
+    "ar": "Arab",
+    "nl": "Holland",
+    "pl": "Lengyel",
+    "tr": "Török",
+    "vi": "Vietnámi",
+    "th": "Thai",
+    "id": "Indonéz",
+    "cs": "Cseh",
+    "sv": "Svéd",
+    "da": "Dán",
+    "fi": "Finn",
+    "no": "Norvég",
+    "hu": "Magyar",
+    "el": "Görög",
+    "he": "Héber",
+    "uk": "Ukrán"
   }
 }

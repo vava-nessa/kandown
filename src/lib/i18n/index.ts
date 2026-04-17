@@ -43,11 +43,22 @@ import lt from './locales/lt.json';
 import lv from './locales/lv.json';
 import sl from './locales/sl.json';
 import et from './locales/et.json';
+import ar from './locales/ar.json';
+import bn from './locales/bn.json';
+import ru from './locales/ru.json';
+import ja from './locales/ja.json';
+import ko from './locales/ko.json';
+import tr from './locales/tr.json';
+import vi from './locales/vi.json';
+import id from './locales/id.json';
+import ur from './locales/ur.json';
+import fa from './locales/fa.json';
 
 export const SUPPORTED_LANGUAGES = [
   'en', 'fr', 'zh', 'es', 'pt', 'hi', 'de', 'it',
   'nl', 'pl', 'uk', 'ro', 'sv', 'cs', 'el', 'hu',
   'fi', 'da', 'no', 'sk', 'bg', 'sr', 'hr', 'lt', 'lv', 'sl', 'et',
+  'ar', 'bn', 'ru', 'ja', 'ko', 'tr', 'vi', 'id', 'ur', 'fa',
 ] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
@@ -79,6 +90,16 @@ export const LANGUAGE_LABELS: Record<SupportedLanguage, string> = {
   lv: 'Latviešu',
   sl: 'Slovenščina',
   et: 'Eesti',
+  ar: 'العربية',
+  bn: 'বাংলা',
+  ru: 'Русский',
+  ja: '日本語',
+  ko: '한국어',
+  tr: 'Türkçe',
+  vi: 'Tiếng Việt',
+  id: 'Bahasa Indonesia',
+  ur: 'اردو',
+  fa: 'فارسی',
 };
 
 const resources = {
@@ -109,6 +130,16 @@ const resources = {
   lv: { translation: lv },
   sl: { translation: sl },
   et: { translation: et },
+  ar: { translation: ar },
+  bn: { translation: bn },
+  ru: { translation: ru },
+  ja: { translation: ja },
+  ko: { translation: ko },
+  tr: { translation: tr },
+  vi: { translation: vi },
+  id: { translation: id },
+  ur: { translation: ur },
+  fa: { translation: fa },
 };
 
 export function initI18n(language: SupportedLanguage = 'en') {

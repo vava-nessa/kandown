@@ -214,5 +214,19 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Instellingen extern bijgewerkt — herladen"
+  },
+  "languageNames": {
+    "en": "Engels",
+    "fr": "Frans",
+    "zh": "Chinees",
+    "es": "Spaans",
+    "pt": "Portugees",
+    "hi": "Hindi",
+    "de": "Duits",
+    "it": "Italiaans",
+    "nl": "Nederlands",
+    "pl": "Pools",
+    "uk": "Oekraïens",
+    "ro": "Roemeens"
   }
 }

@@ -15,10 +15,10 @@ columns: [Backlog, Todo, In Progress, Review, Done]
 
 ## Todo
 
-- [ ] **[t-007]** Ajout multilangue i18n. (0/6) → [détails](tasks/t-007.md)
 
 ## In Progress
 
+- [ ] **[t-007]** Ajout multilangue i18n. (0/6) → [détails](tasks/t-007.md)
 
 ## Review
 
