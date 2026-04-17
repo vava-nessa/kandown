@@ -214,5 +214,34 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Nastavení bylo externě aktualizováno — obnoveno"
+  },
+  "languageNames": {
+    "en": "Angličtina",
+    "fr": "Francouzština",
+    "zh": "Čínština",
+    "es": "Španělština",
+    "pt": "Portugalština",
+    "hi": "Hindština",
+    "de": "Němčina",
+    "it": "Italština",
+    "ja": "Japonština",
+    "ko": "Korejština",
+    "ru": "Ruština",
+    "ar": "Arabština",
+    "nl": "Nizozemština",
+    "pl": "Polština",
+    "tr": "Turečtina",
+    "vi": "Vietnamština",
+    "th": "Thajština",
+    "id": "Indonéština",
+    "cs": "Čeština",
+    "sv": "Švédština",
+    "da": "Dánština",
+    "fi": "Finština",
+    "no": "Norština",
+    "hu": "Maďarština",
+    "el": "Řečtina",
+    "he": "Hebrejština",
+    "uk": "Ukrajinština"
   }
 }

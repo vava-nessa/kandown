@@ -92,7 +92,6 @@ const ORDERED_LANGUAGES = LANGUAGE_ORDER
     code,
     flag: LANGUAGE_FLAG_EMOJI[code] ?? '🌐',
     nameEn: LANGUAGE_LABELS[code as typeof SUPPORTED_LANGUAGES[number]] ?? code,
-    nativeName: LANGUAGE_LABELS[code as typeof SUPPORTED_LANGUAGES[number]] ?? code,
   }));
 
 function LanguageDropdown({
@@ -115,7 +114,6 @@ function LanguageDropdown({
   const filtered = ORDERED_LANGUAGES.filter(
     lang =>
       lang.nameEn.toLowerCase().includes(search.toLowerCase()) ||
-      lang.nativeName.toLowerCase().includes(search.toLowerCase()) ||
       lang.code.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -159,15 +157,15 @@ function LanguageDropdown({
   }, [highlightedIndex, isOpen]);
 
   const displayLabel = selected
-    ? `${selected.flag} ${selected.nameEn} — ${selected.nativeName}`
-    : `${LANGUAGE_FLAG_EMOJI['en']} ${LANGUAGE_LABELS['en']}`;
+    ? `${selected.flag} ${selected.nameEn} — ${t(`languageNames.${selected.code}`)}`
+    : `${LANGUAGE_FLAG_EMOJI['en']} ${LANGUAGE_LABELS['en']} — ${t('languageNames.en')}`;
 
   return (
     <div className="relative" ref={containerRef}>
       <button
         type="button"
         onClick={isOpen ? close : open}
-        className="flex h-8 w-full items-center justify-between gap-2 truncate rounded-[7px] border border-border bg-bg-2 px-2.5 text-[13.5px] text-fg outline-none transition-colors hover:bg-bg-3 focus:border-border-focus md:w-[168px]"
+        className="flex h-8 w-full items-center justify-between gap-2 truncate rounded-[7px] border border-border bg-bg-2 px-2.5 text-[13.5px] text-fg outline-none transition-colors hover:bg-bg-3 focus:border-border-focus md:w-[240px]"
       >
         <span className="truncate">{displayLabel}</span>
         <span className={`shrink-0 text-[10px] transition-transform ${isOpen ? 'rotate-180' : ''}`}>▾</span>
@@ -176,7 +174,7 @@ function LanguageDropdown({
       {isOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={close} />
-          <div className="absolute right-0 top-full z-50 mt-1.5 w-[260px] rounded-xl border border-border bg-bg shadow-xl">
+          <div className="absolute right-0 top-full z-50 mt-1.5 w-[320px] rounded-xl border border-border bg-bg shadow-xl">
             <div className="flex items-center gap-2 border-b border-border px-3 py-2">
               <IconSearch className="shrink-0 text-fg-muted" size={14} />
               <input
@@ -204,7 +202,7 @@ function LanguageDropdown({
                     <span className="shrink-0 text-base">{lang.flag}</span>
                     <span className="truncate">{lang.nameEn}</span>
                     <span className="shrink-0 text-fg-muted">—</span>
-                    <span className="truncate text-fg-muted">{lang.nativeName}</span>
+                    <span className="truncate text-fg-muted">{t(`languageNames.${lang.code}`)}</span>
                     {lang.code === value && (
                       <span className="ml-auto shrink-0 text-fg-muted">✓</span>
                     )}
@@ -212,8 +210,8 @@ function LanguageDropdown({
                 </li>
               ))}
             </ul>
-            <div className="border-t border-border px-3 py-1.5 text-[10.5px] text-fg-faint">
-              ↑↓ navigate · Enter select · Esc close
+            <div className="border-t border-border px-3 py-1.5 text-center text-[10.5px] text-fg-faint">
+              ↑↓ {t('settings.navigate')} · Enter {t('settings.select')} · Esc {t('common.close')}
             </div>
           </div>
         </>
@@ -624,19 +622,11 @@ export function SettingsPage() {
                   {normalizedQuery ? t('settings.searchResults') : activeSection.kicker}
                 </p>
                 <h2 className="text-[22px] font-semibold tracking-tight text-fg">
-                  {normalizedQuery ? ` "${query.trim()}" ` : activeSection.label}
+                  {normalizedQuery ? `"${query.trim()}"` : activeSection.label}
                 </h2>
                 <p className="mt-1 max-w-[560px] text-[13.5px] leading-relaxed text-fg-muted">
                   {normalizedQuery
                     ? `${visibleSettings.length} ${t('settings.matchingOptions')}`
-                    : activeSection.description}
-                </p>
-                <h2 className="text-[22px] font-semibold tracking-tight text-fg">
-                  {normalizedQuery ? `“${query.trim()}”` : activeSection.label}
-                </h2>
-                <p className="mt-1 max-w-[560px] text-[13.5px] leading-relaxed text-fg-muted">
-                  {normalizedQuery
-                    ? `${visibleSettings.length} matching option${visibleSettings.length === 1 ? '' : 's'} across project settings.`
                     : activeSection.description}
                 </p>
               </div>

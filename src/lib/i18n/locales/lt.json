@@ -214,5 +214,34 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Nustatymai buvo atnaujinti iš išorės — perkrauta"
+  },
+  "languageNames": {
+    "en": "Anglų",
+    "fi": "Suomių",
+    "da": "Danų",
+    "no": "Norvegų",
+    "sk": "Slovakų",
+    "bg": "Bulgarų",
+    "sr": "Serbų",
+    "hr": "Kroatų",
+    "lt": "Lietuvių",
+    "lv": "Latvių",
+    "et": "Estų",
+    "sl": "Slovėnų",
+    "hu": "Vengų",
+    "cs": "Čekų",
+    "pl": "Lenkų",
+    "ro": "Rumunų",
+    "de": "Vokiečių",
+    "fr": "Prancūzų",
+    "es": "Ispanų",
+    "pt": "Portugalų",
+    "it": "Italų",
+    "nl": "Olandų",
+    "sv": "Švedų",
+    "ja": "Japonų",
+    "ko": "Korėjiečių",
+    "zh": "Kinų",
+    "ar": "Arabų"
   }
 }

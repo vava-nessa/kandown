@@ -214,5 +214,34 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Iestatījumi atjaunināti ārēji — pārlādēti"
+  },
+  "languageNames": {
+    "en": "Angļu",
+    "fi": "Somu",
+    "da": "Dāņu",
+    "no": "Norvēģu",
+    "sk": "Slovāku",
+    "bg": "Bulgāru",
+    "sr": "Serbu",
+    "hr": "Horvātu",
+    "lt": "Lietuviešu",
+    "lv": "Latviešu",
+    "et": "Igauņu",
+    "sl": "Slovēņu",
+    "hu": "Ungāru",
+    "cs": "Čehu",
+    "pl": "Poļu",
+    "ro": "Rumāņu",
+    "de": "Vācu",
+    "fr": "Franču",
+    "es": "Spāņu",
+    "pt": "Portugāļu",
+    "it": "Itāļu",
+    "nl": "Nīderlandiešu",
+    "sv": "Zviedru",
+    "ja": "Japāņu",
+    "ko": "Korejiešu",
+    "zh": "Ķīniešu",
+    "ar": "Arābu"
   }
 }

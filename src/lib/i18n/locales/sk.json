@@ -214,5 +214,34 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Nastavenia boli externe aktualizované — znovu načítané"
+  },
+  "languageNames": {
+    "en": "Angličtina",
+    "fi": "Fínčina",
+    "da": "Dánčina",
+    "no": "Nórčina",
+    "sk": "Slovenčina",
+    "bg": "Bulharčina",
+    "sr": "Srbčina",
+    "hr": "Chorvátčina",
+    "lt": "Litovčina",
+    "lv": "Lotyština",
+    "et": "Estónčina",
+    "sl": "Slovinčina",
+    "hu": "Maďarčina",
+    "cs": "Čeština",
+    "pl": "Poľština",
+    "ro": "Rumunčina",
+    "de": "Nemčina",
+    "fr": "Francúzština",
+    "es": "Španielčina",
+    "pt": "Portugalčina",
+    "it": "Taliančina",
+    "nl": "Holandčina",
+    "sv": "Švédčina",
+    "ja": "Japončina",
+    "ko": "Kórejčina",
+    "zh": "Čínština",
+    "ar": "Arabčina"
   }
 }

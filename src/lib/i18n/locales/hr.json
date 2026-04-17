@@ -144,7 +144,7 @@
     "background": "Pozadina",
     "backgroundDesc": "Odaberite ravnu površinu ili animiranu tekuću pozadinu.",
     "font": "Font",
-    "fontDesc": "Lokalni font sustava, bez mrežnog zahtjeva.",
+    "fontDesc": "Lokalni font sustava, bez mrežne zahtjeva.",
     "suggestFollowUp": "Predloži nastavne zadatke",
     "suggestFollowUpDesc": "Zatražite od agenata da predlože sljedeće zadatke nakon završetka jednog.",
     "maxSuggestions": "Maks. prijedloga",
@@ -214,5 +214,34 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Postavke su ažurirane izvana — osvježeno"
+  },
+  "languageNames": {
+    "en": "Engleski",
+    "fi": "Finski",
+    "da": "Danski",
+    "no": "Norveški",
+    "sk": "Slovački",
+    "bg": "Bugarski",
+    "sr": "Srpski",
+    "hr": "Hrvatski",
+    "lt": "Litvanski",
+    "lv": "Latvijski",
+    "et": "Estonski",
+    "sl": "Slovenski",
+    "hu": "Mađarski",
+    "cs": "Češki",
+    "pl": "Poljski",
+    "ro": "Rumunjski",
+    "de": "Njemački",
+    "fr": "Francuski",
+    "es": "Španjolski",
+    "pt": "Portugalski",
+    "it": "Talijanski",
+    "nl": "Nizozemski",
+    "sv": "Švedski",
+    "ja": "Japanski",
+    "ko": "Korejski",
+    "zh": "Kineski",
+    "ar": "Arapski"
   }
 }

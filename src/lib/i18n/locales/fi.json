@@ -214,5 +214,34 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Asetukset päivitettiin ulkoisesti — ladattu uudelleen"
+  },
+  "languageNames": {
+    "en": "Englanti",
+    "fi": "Suomi",
+    "da": "Tanska",
+    "no": "Norja",
+    "sk": "Slovakia",
+    "bg": "Bulgaria",
+    "sr": "Serbia",
+    "hr": "Kroatia",
+    "lt": "Lietuva",
+    "lv": "Latvia",
+    "et": "Viro",
+    "sl": "Slovenia",
+    "hu": "Unkari",
+    "cs": "Tšekki",
+    "pl": "Puola",
+    "ro": "Romania",
+    "de": "Saksa",
+    "fr": "Ranska",
+    "es": "Espanja",
+    "pt": "Portugali",
+    "it": "Italia",
+    "nl": "Hollanti",
+    "sv": "Ruotsi",
+    "ja": "Japani",
+    "ko": "Korea",
+    "zh": "Kiina",
+    "ar": "Arabia"
   }
 }

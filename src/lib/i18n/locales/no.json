@@ -97,7 +97,7 @@
     "expand": "Vis"
   },
   "commandPalette": {
-    "placeholder": "Skriv en kommando eller søk...",
+    "placeholder": "Skriv en kommando eller søg...",
     "actions": "Handlinger",
     "view": "Vis",
     "tasks": "Oppgaver",
@@ -214,5 +214,34 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Innstillinger oppdatert eksternt — lastet inn på nytt"
+  },
+  "languageNames": {
+    "en": "Engelsk",
+    "fi": "Finsk",
+    "da": "Dansk",
+    "no": "Norsk",
+    "sk": "Slovakisk",
+    "bg": "Bulgarsk",
+    "sr": "Serbisk",
+    "hr": "Kroatisk",
+    "lt": "Litauisk",
+    "lv": "Lettisk",
+    "et": "Estisk",
+    "sl": "Slovensk",
+    "hu": "Ungarsk",
+    "cs": "Tsjekkisk",
+    "pl": "Polsk",
+    "ro": "Rumensk",
+    "de": "Tysk",
+    "fr": "Fransk",
+    "es": "Spansk",
+    "pt": "Portugisisk",
+    "it": "Italiensk",
+    "nl": "Nederlandsk",
+    "sv": "Svensk",
+    "ja": "Japansk",
+    "ko": "Koreansk",
+    "zh": "Kinesisk",
+    "ar": "Arabisk"
   }
 }
