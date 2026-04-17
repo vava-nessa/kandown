@@ -6,6 +6,7 @@ import { ListView } from './components/ListView';
 import { EmptyState } from './components/EmptyState';
 import { Drawer } from './components/Drawer';
 import { CommandPalette } from './components/CommandPalette';
+import { Settings } from './components/Settings';
 import { Toaster } from './components/Toaster';
 import { useStore } from './lib/store';
 
@@ -18,8 +19,21 @@ export function App() {
   const setCommandOpen = useStore(s => s.setCommandOpen);
   const createTask = useStore(s => s.createTask);
   const reloadBoard = useStore(s => s.reloadBoard);
+  const recentProjects = useStore(s => s.recentProjects);
+  const openRecentProject = useStore(s => s.openRecentProject);
+  const setDirHandle = useStore(s => s.setDirHandle as any);
 
-  // Global keyboard shortcuts
+  // Handle URL hydration on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const projectSlug = params.get('p');
+    if (projectSlug && dirHandle === null) {
+      const match = recentProjects.find(p => p.name === projectSlug);
+      if (match) {
+        openRecentProject(match);
+      }
+    }
+  }, []);
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const active = document.activeElement;
@@ -83,6 +97,7 @@ export function App() {
       )}
       <Drawer />
       <CommandPalette />
+      <Settings />
       <Toaster />
     </div>
   );

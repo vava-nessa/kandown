@@ -23,9 +23,9 @@ export function EmptyState() {
   if (!supportsFileSystemAccess()) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-4 px-10 text-center">
-        <div className="text-[20px] font-semibold tracking-tight text-fg">Unsupported browser</div>
-        <div className="text-[13px] text-fg-dim max-w-[440px] leading-relaxed">
-          This engine requires the <code className="font-mono text-[11.5px] px-1.5 py-0.5 bg-bg-2 border border-border rounded-[3px]">File System Access API</code>.
+        <div className="text-[22px] font-semibold tracking-tight text-fg">Unsupported browser</div>
+        <div className="text-[14px] text-fg-dim max-w-[440px] leading-relaxed">
+          This engine requires the <code className="font-mono text-[12.5px] px-1.5 py-0.5 bg-bg-2 border border-border rounded-[3px]">File System Access API</code>.
           Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.
         </div>
       </div>
@@ -51,7 +51,7 @@ export function EmptyState() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05 }}
-        className="text-[24px] font-semibold tracking-tight text-fg"
+        className="text-[26px] font-semibold tracking-tight text-fg"
       >
         kandown
       </motion.div>
@@ -59,7 +59,7 @@ export function EmptyState() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="text-[13.5px] text-fg-dim max-w-[480px] leading-relaxed"
+        className="text-[14.5px] text-fg-dim max-w-[480px] leading-relaxed"
       >
         AI Markdown Kanban Manager
       </motion.div>
@@ -67,10 +67,10 @@ export function EmptyState() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="text-[13.5px] text-fg-dim max-w-[480px] leading-relaxed"
+        className="text-[14.5px] text-fg-dim max-w-[480px] leading-relaxed"
       >
-        Select a folder containing <code className="font-mono text-[11.5px] px-1.5 py-0.5 bg-bg-2 border border-border rounded-[3px]">board.md</code>{' '}
-        and a <code className="font-mono text-[11.5px] px-1.5 py-0.5 bg-bg-2 border border-border rounded-[3px]">tasks/</code> sub-directory.
+        Select a folder containing <code className="font-mono text-[12.5px] px-1.5 py-0.5 bg-bg-2 border border-border rounded-[3px]">board.md</code>{' '}
+        and a <code className="font-mono text-[12.5px] px-1.5 py-0.5 bg-bg-2 border border-border rounded-[3px]">tasks/</code> sub-directory.
       </motion.div>
       <motion.button
         initial={{ opacity: 0, y: 4 }}
@@ -91,7 +91,7 @@ export function EmptyState() {
           transition={{ delay: 0.25 }}
           className="mt-4 flex flex-col items-center gap-2"
         >
-          <div className="text-[10.5px] font-semibold uppercase tracking-wider text-fg-faint">
+          <div className="text-[11.5px] font-semibold uppercase tracking-wider text-fg-faint">
             Recent
           </div>
           <div className="flex flex-col gap-1 min-w-[220px]">
@@ -99,7 +99,7 @@ export function EmptyState() {
               <button
                 key={p.id}
                 onClick={() => openRecentProject(p)}
-                className="px-3 py-1.5 text-[12.5px] text-fg-dim hover:text-fg hover:bg-bg-2 rounded-[6px] transition-colors"
+                className="px-3 py-1.5 text-[13.5px] text-fg-dim hover:text-fg hover:bg-bg-2 rounded-[6px] transition-colors"
               >
                 {p.name}
               </button>

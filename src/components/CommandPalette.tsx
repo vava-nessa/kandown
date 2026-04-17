@@ -202,7 +202,7 @@ export function CommandPalette() {
                 onChange={e => setQuery(e.target.value)}
                 onKeyDown={onKeyDown}
                 placeholder="Type a command or search..."
-                className="flex-1 bg-transparent border-none outline-none text-fg text-[13.5px] placeholder:text-fg-muted"
+                className="flex-1 bg-transparent border-none outline-none text-fg text-[14.5px] placeholder:text-fg-muted"
               />
               <span className="kbd">esc</span>
             </div>
@@ -210,14 +210,14 @@ export function CommandPalette() {
             {/* Results */}
             <div ref={listRef} className="max-h-[420px] overflow-y-auto py-1.5">
               {filtered.length === 0 && (
-                <div className="px-4 py-6 text-center text-[12px] text-fg-muted">
+                <div className="px-4 py-6 text-center text-[13px] text-fg-muted">
                   No results
                 </div>
               )}
               {(['action', 'view', 'task'] as const).map(cat =>
                 grouped[cat].length > 0 ? (
                   <div key={cat} className="py-1">
-                    <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-fg-faint">
+                    <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-fg-faint">
                       {labels[cat]}
                     </div>
                     {grouped[cat].map(cmd => {
@@ -229,13 +229,13 @@ export function CommandPalette() {
                           data-idx={absoluteIdx}
                           onClick={cmd.onSelect}
                           onMouseEnter={() => setSelectedIdx(absoluteIdx)}
-                          className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] text-left transition-colors ${
+                          className={`w-full flex items-center justify-between px-3 py-1.5 text-[13.5px] text-left transition-colors ${
                             isSelected ? 'bg-bg-3 text-fg' : 'text-fg-dim'
                           }`}
                         >
                           <span className="truncate">{cmd.label}</span>
                           {cmd.hint && (
-                            <span className="text-[11px] text-fg-muted ml-2 flex-shrink-0">
+                            <span className="text-[12px] text-fg-muted ml-2 flex-shrink-0">
                               {cmd.hint}
                             </span>
                           )}
@@ -248,7 +248,7 @@ export function CommandPalette() {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center gap-3 px-4 h-8 border-t border-border text-[11px] text-fg-muted">
+            <div className="flex items-center gap-3 px-4 h-8 border-t border-border text-[12px] text-fg-muted">
               <span className="flex items-center gap-1.5">
                 <span className="kbd">↑↓</span> navigate
               </span>

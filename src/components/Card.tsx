@@ -69,7 +69,7 @@ export function Card({ task, density, onDragStart, onDragEnd, columnName }: Card
       )}
 
       <div className="flex items-center justify-between mb-1.5">
-        <span className="font-mono text-[10.5px] tracking-wide text-fg-muted">
+        <span className="font-mono text-[11.5px] tracking-wide text-fg-muted">
           {task.id.toUpperCase()}
         </span>
         {task.priority && (
@@ -82,7 +82,7 @@ export function Card({ task, density, onDragStart, onDragEnd, columnName }: Card
       </div>
 
       <div
-        className={`text-[13px] leading-snug font-normal ${
+        className={`text-[14px] leading-snug font-normal ${
           task.checked ? 'line-through text-fg-muted' : 'text-fg'
         } ${isCompact ? 'line-clamp-1' : 'line-clamp-2'}`}
       >
@@ -100,7 +100,7 @@ export function Card({ task, density, onDragStart, onDragEnd, columnName }: Card
               transition={{ type: 'spring', stiffness: 160, damping: 22 }}
             />
           </div>
-          <span className="font-mono text-[10.5px] text-fg-muted tabular-nums">
+          <span className="font-mono text-[11.5px] text-fg-muted tabular-nums">
             {task.progress.done}/{task.progress.total}
           </span>
         </div>
@@ -111,18 +111,18 @@ export function Card({ task, density, onDragStart, onDragEnd, columnName }: Card
           {visibleTags.map(tag => (
             <span
               key={tag}
-              className="inline-flex items-center h-[18px] px-1.5 text-[10.5px] rounded-[3px] text-fg-dim bg-bg border border-border"
+              className="inline-flex items-center h-[18px] px-1.5 text-[11.5px] rounded-[3px] text-fg-dim bg-bg border border-border"
             >
               {tag}
             </span>
           ))}
           {extraTags > 0 && (
-            <span className="inline-flex items-center h-[18px] px-1.5 text-[10.5px] rounded-[3px] text-fg-muted bg-bg border border-border">
+            <span className="inline-flex items-center h-[18px] px-1.5 text-[11.5px] rounded-[3px] text-fg-muted bg-bg border border-border">
               +{extraTags}
             </span>
           )}
           {task.assignee && (
-            <span className="inline-flex items-center h-[18px] px-1.5 text-[10.5px] rounded-[3px] text-fg bg-bg-3 border border-border-strong">
+            <span className="inline-flex items-center h-[18px] px-1.5 text-[11.5px] rounded-[3px] text-fg bg-bg-3 border border-border-strong">
               <span className="w-1 h-1 rounded-full bg-success mr-1" />
               {task.assignee}
             </span>

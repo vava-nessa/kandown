@@ -62,7 +62,7 @@ export function SubtaskItem({
           }
         }}
         placeholder="Subtask..."
-        className={`flex-1 bg-transparent border-none outline-none text-[12.5px] ${
+        className={`flex-1 bg-transparent border-none outline-none text-[13.5px] ${
           subtask.done ? 'text-fg-muted line-through' : 'text-fg'
         }`}
       />

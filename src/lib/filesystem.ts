@@ -95,6 +95,33 @@ columns: [Backlog, Todo, In Progress, Done]
   }
 }
 
+/* ═════════════ Config (kandown.json) ═════════════ */
+
+export async function readConfigFile(kandownHandle: FileSystemDirectoryHandle): Promise<import('./types').KandownConfig | null> {
+  try {
+    const h = await kandownHandle.getFileHandle('kandown.json');
+    const file = await h.getFile();
+    const text = await file.text();
+    const raw = JSON.parse(text);
+    const defaults = (await import('./types')).DEFAULT_CONFIG;
+    return {
+      ui: { ...defaults.ui, ...raw.ui },
+      agent: { ...defaults.agent, ...raw.agent },
+      board: { ...defaults.board, ...raw.board },
+      fields: { ...defaults.fields, ...raw.fields },
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function writeConfigFile(kandownHandle: FileSystemDirectoryHandle, config: import('./types').KandownConfig): Promise<void> {
+  const h = await kandownHandle.getFileHandle('kandown.json', { create: true });
+  const w = await h.createWritable();
+  await w.write(JSON.stringify(config, null, 2) + '\n');
+  await w.close();
+}
+
 export async function ensureTasksDir(dirHandle: FileSystemDirectoryHandle): Promise<FileSystemDirectoryHandle> {
   return await dirHandle.getDirectoryHandle('tasks', { create: true });
 }

@@ -19,6 +19,7 @@ const LogoSvg = ({ className }: { className?: string }) => (
 
 export function Header() {
   const dirHandle = useStore(s => s.dirHandle);
+  const projectName = useStore(s => s.projectName);
   const columns = useStore(s => s.columns);
   const openFolder = useStore(s => s.openFolder);
   const reloadBoard = useStore(s => s.reloadBoard);
@@ -28,6 +29,7 @@ export function Header() {
   const setViewMode = useStore(s => s.setViewMode);
   const density = useStore(s => s.density);
   const setDensity = useStore(s => s.setDensity);
+  const setSettingsOpen = useStore(s => s.setSettingsOpen);
   const recentProjects = useStore(s => s.recentProjects);
   const openRecentProject = useStore(s => s.openRecentProject);
 
@@ -52,8 +54,13 @@ export function Header() {
     <header className="flex items-center justify-between px-5 h-14 border-b border-border bg-bg relative z-10">
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          <LogoSvg className="w-[36px] h-[36px] dark:text-white text-black" />
-          <span className="text-[14px] font-semibold tracking-tight">kandown</span>
+          <button
+            onClick={() => window.history.pushState({}, '', window.location.pathname)}
+            className="flex items-center gap-2 cursor-pointer"
+          >
+            <LogoSvg className="w-[36px] h-[36px] dark:text-white text-black" />
+            <span className="text-[15px] font-semibold tracking-tight">kandown</span>
+          </button>
         </div>
 
         {dirHandle && (
@@ -62,7 +69,7 @@ export function Header() {
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen(o => !o)}
-                className="flex items-center gap-1.5 px-2 py-1 text-[13px] text-fg-dim hover:text-fg hover:bg-bg-2 rounded-[6px] transition-colors"
+                className="flex items-center gap-1.5 px-2 py-1 text-[14px] text-fg-dim hover:text-fg hover:bg-bg-2 rounded-[6px] transition-colors"
               >
                 <Icon.Folder size={12} className="text-fg-muted" />
                 <span>{dirHandle.name}</span>
@@ -80,7 +87,7 @@ export function Header() {
                     <div className="py-1.5">
                       {recentProjects.length > 0 && (
                         <>
-                          <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-fg-faint">
+                          <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-fg-faint">
                             Recent projects
                           </div>
                           {recentProjects.map(p => (
@@ -90,7 +97,7 @@ export function Header() {
                                 setMenuOpen(false);
                                 openRecentProject(p);
                               }}
-                              className="w-full flex items-center gap-2 px-3 py-1.5 text-[12.5px] text-left hover:bg-bg-3 transition-colors"
+                              className="w-full flex items-center gap-2 px-3 py-1.5 text-[13.5px] text-left hover:bg-bg-3 transition-colors"
                             >
                               <Icon.Folder size={12} className="text-fg-muted" />
                               <span className="truncate">{p.name}</span>
@@ -107,7 +114,7 @@ export function Header() {
                           setMenuOpen(false);
                           openFolder();
                         }}
-                        className="w-full flex items-center gap-2 px-3 py-1.5 text-[12.5px] text-left hover:bg-bg-3 transition-colors"
+                        className="w-full flex items-center gap-2 px-3 py-1.5 text-[13.5px] text-left hover:bg-bg-3 transition-colors"
                       >
                         <Icon.Plus size={12} className="text-fg-muted" />
                         <span>Open folder...</span>
@@ -124,7 +131,7 @@ export function Header() {
       <div className="flex items-center gap-1.5">
         {dirHandle ? (
           <>
-            <div className="flex items-center gap-2 mr-2 text-[12px] text-fg-muted">
+            <div className="flex items-center gap-2 mr-2 text-[13px] text-fg-muted">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-success" />
               <motion.span className="tabular-nums">{displayCount}</motion.span>
               <span>tasks</span>
@@ -163,6 +170,15 @@ export function Header() {
               title={`Density: ${density}`}
             >
               <Icon.Density size={12} />
+            </button>
+
+            {/* Settings */}
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className="btn-icon"
+              title="Settings"
+            >
+              <Icon.Settings size={12} />
             </button>
 
             <button

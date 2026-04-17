@@ -1,11 +1,14 @@
 import { create } from 'zustand';
-import type { Column, Filters, BoardTask, Density, ViewMode, Subtask, TaskFrontmatter } from './types';
+import type { Column, Filters, BoardTask, Density, ViewMode, Subtask, TaskFrontmatter, KandownConfig } from './types';
+import { DEFAULT_CONFIG } from './types';
 import {
   pickProjectDirectory,
   getKandownHandle,
   ensureTasksDir,
   readBoardFile,
   writeBoardFile,
+  readConfigFile,
+  writeConfigFile,
   readTaskFile as fsReadTaskFile,
   writeTaskFile as fsWriteTaskFile,
   deleteTaskFile as fsDeleteTaskFile,
@@ -25,6 +28,7 @@ interface Toast {
 
 interface State {
   dirHandle: FileSystemDirectoryHandle | null;
+  projectName: string | null;
   tasksDirHandle: FileSystemDirectoryHandle | null;
   boardTitle: string;
   columns: Column[];
@@ -36,6 +40,10 @@ interface State {
   commandOpen: boolean;
   drawerTaskId: string | null;
   drawerData: { frontmatter: TaskFrontmatter; subtasks: Subtask[]; body: string } | null;
+  settingsOpen: boolean;
+
+  // Project config
+  config: KandownConfig;
 
   // Recent projects
   recentProjects: RecentProject[];
@@ -47,6 +55,8 @@ interface State {
   openFolder: () => Promise<void>;
   openRecentProject: (project: RecentProject) => Promise<void>;
   reloadBoard: () => Promise<void>;
+  loadConfig: () => Promise<void>;
+  updateConfig: (updater: (config: KandownConfig) => KandownConfig) => Promise<void>;
 
   moveTask: (taskId: string, fromCol: string, toCol: string, toIndex?: number) => Promise<void>;
   reorderInColumn: (colName: string, fromIndex: number, toIndex: number) => Promise<void>;
@@ -57,6 +67,7 @@ interface State {
   closeDrawer: () => void;
   updateDrawerData: (updater: (data: NonNullable<State['drawerData']>) => NonNullable<State['drawerData']>) => void;
   saveDrawer: () => Promise<void>;
+  saveDrawerMetadata: () => Promise<void>;
 
   setViewMode: (mode: ViewMode) => void;
   setDensity: (density: Density) => void;
@@ -64,6 +75,7 @@ interface State {
   clearFilters: () => void;
 
   setCommandOpen: (open: boolean) => void;
+  setSettingsOpen: (open: boolean) => void;
 
   toast: (message: string, type?: Toast['type']) => void;
   dismissToast: (id: number) => void;
@@ -101,10 +113,21 @@ function nextTaskId(columns: Column[]): string {
   return 't-' + String(maxN + 1).padStart(3, '0');
 }
 
+function applyTheme(theme: 'auto' | 'light' | 'dark') {
+  const root = document.documentElement;
+  if (theme === 'auto') {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    root.classList.toggle('dark', prefersDark);
+  } else {
+    root.classList.toggle('dark', theme === 'dark');
+  }
+}
+
 let toastIdCounter = 0;
 
 export const useStore = create<State>((set, get) => ({
   dirHandle: null,
+  projectName: null,
   tasksDirHandle: null,
   boardTitle: 'Project Kanban',
   columns: [],
@@ -115,6 +138,9 @@ export const useStore = create<State>((set, get) => ({
   commandOpen: false,
   drawerTaskId: null,
   drawerData: null,
+  settingsOpen: false,
+
+  config: DEFAULT_CONFIG,
 
   recentProjects: [],
   toasts: [],
@@ -124,13 +150,16 @@ export const useStore = create<State>((set, get) => ({
     if (!result) return;
     const { projectHandle, kandownHandle } = result;
     const tasksDir = await ensureTasksDir(kandownHandle);
-    set({ dirHandle: kandownHandle, tasksDirHandle: tasksDir });
+    const projectName = projectHandle.name;
+    set({ dirHandle: kandownHandle, tasksDirHandle: tasksDir, projectName });
+    window.history.pushState({}, '', `?p=${encodeURIComponent(projectName)}`);
     await saveRecentProject({
       id: projectHandle.name,
       name: projectHandle.name,
       handle: projectHandle,
       lastOpened: Date.now(),
     });
+    await get().loadConfig();
     await get().reloadBoard();
     const recent = await listRecentProjects();
     set({ recentProjects: recent });
@@ -144,9 +173,39 @@ export const useStore = create<State>((set, get) => ({
     }
     const kandownHandle = await getKandownHandle(project.handle);
     const tasksDir = await ensureTasksDir(kandownHandle);
-    set({ dirHandle: kandownHandle, tasksDirHandle: tasksDir });
+    const projectName = project.handle.name;
+    set({ dirHandle: kandownHandle, tasksDirHandle: tasksDir, projectName });
+    window.history.pushState({}, '', `?p=${encodeURIComponent(projectName)}`);
     await saveRecentProject({ ...project, lastOpened: Date.now() });
+    await get().loadConfig();
     await get().reloadBoard();
+  },
+
+  loadConfig: async () => {
+    const { dirHandle } = get();
+    if (!dirHandle) return;
+    try {
+      const config = await readConfigFile(dirHandle);
+      if (config) {
+        set({ config });
+        applyTheme(config.ui.theme);
+      }
+    } catch (e) {
+      // ignore - use defaults
+    }
+  },
+
+  updateConfig: async (updater) => {
+    const { dirHandle, config } = get();
+    if (!dirHandle) return;
+    const newConfig = updater(config);
+    set({ config: newConfig });
+    try {
+      await writeConfigFile(dirHandle, newConfig);
+      applyTheme(newConfig.ui.theme);
+    } catch (e) {
+      get().toast('Failed to save config: ' + (e as Error).message, 'error');
+    }
   },
 
   reloadBoard: async () => {
@@ -292,6 +351,21 @@ export const useStore = create<State>((set, get) => ({
   },
 
   saveDrawer: async () => {
+    const { drawerTaskId, drawerData, tasksDirHandle } = get();
+    if (!drawerTaskId || !drawerData || !tasksDirHandle) return;
+
+    const fullBody = injectSubtasks(drawerData.body, drawerData.subtasks);
+    const fm = { ...drawerData.frontmatter, id: drawerTaskId };
+    try {
+      await fsWriteTaskFile(tasksDirHandle, drawerTaskId, fm, fullBody);
+      get().toast('Saved');
+      set({ drawerTaskId: null, drawerData: null });
+    } catch (e) {
+      get().toast('Failed to save: ' + (e as Error).message, 'error');
+    }
+  },
+
+  saveDrawerMetadata: async () => {
     const { drawerTaskId, drawerData, tasksDirHandle, columns, dirHandle, boardTitle } = get();
     if (!drawerTaskId || !drawerData || !tasksDirHandle || !dirHandle) return;
 
@@ -320,8 +394,6 @@ export const useStore = create<State>((set, get) => ({
       })) as Column[];
       set({ columns: newColumns });
       await writeBoardFile(dirHandle, serializeBoard(boardTitle, newColumns));
-      get().toast('Saved');
-      set({ drawerTaskId: null, drawerData: null });
     } catch (e) {
       get().toast('Failed to save: ' + (e as Error).message, 'error');
     }
@@ -342,6 +414,7 @@ export const useStore = create<State>((set, get) => ({
     set({ filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null } }),
 
   setCommandOpen: (open) => set({ commandOpen: open }),
+  setSettingsOpen: (open) => set({ settingsOpen: open }),
 
   toast: (message, type = 'success') => {
     const id = ++toastIdCounter;

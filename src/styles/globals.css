@@ -25,6 +25,7 @@
     background: #0a0a0a;
     color: #ededed;
     -webkit-font-smoothing: antialiased;
+    font-size: 18px;
   }
 
   /* Subtle grid pattern background on board */
@@ -71,7 +72,7 @@
   }
 
   .btn-base {
-    @apply inline-flex items-center gap-1.5 h-7 px-2.5 text-xs font-medium rounded-[6px] transition-all duration-150 ease-out whitespace-nowrap;
+    @apply inline-flex items-center gap-1.5 h-7 px-2.5 text-[13px] font-medium rounded-[6px] transition-all duration-150 ease-out whitespace-nowrap;
   }
 
   .btn-primary {
@@ -95,11 +96,11 @@
   }
 
   .kbd {
-    @apply inline-block px-1.5 py-0 text-[10px] font-mono text-fg-muted bg-bg-2 border border-border rounded-[3px];
+    @apply inline-block px-1.5 py-0 text-[11px] font-mono text-fg-muted bg-bg-2 border border-border rounded-[3px];
   }
 
   .field-input {
-    @apply bg-transparent border border-transparent text-fg px-2 py-1 rounded-[4px] text-[12.5px] outline-none transition-all duration-150 ease-out hover:bg-bg-2 focus:bg-bg-2 focus:border-border-strong;
+    @apply bg-transparent border border-transparent text-fg px-2 py-1 rounded-[4px] text-[13.5px] outline-none transition-all duration-150 ease-out hover:bg-bg-2 focus:bg-bg-2 focus:border-border-strong;
   }
 }
 

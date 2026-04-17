@@ -63,3 +63,39 @@ export interface Filters {
   assignee: string | null;
   ownerType: OwnerType | null;
 }
+
+export interface KandownConfig {
+  ui: {
+    language: string;
+    theme: 'auto' | 'light' | 'dark';
+  };
+  agent: {
+    suggestFollowUp: boolean;
+    maxSuggestions: number;
+  };
+  board: {
+    taskPrefix: string;
+    defaultPriority: string;
+    defaultOwnerType: 'human' | 'ai';
+  };
+  fields: {
+    priority: boolean;
+    assignee: boolean;
+    tags: boolean;
+    dueDate: boolean;
+    ownerType: boolean;
+  };
+}
+
+export const DEFAULT_CONFIG: KandownConfig = {
+  ui: { language: 'en', theme: 'auto' },
+  agent: { suggestFollowUp: false, maxSuggestions: 3 },
+  board: { taskPrefix: 't', defaultPriority: 'P3', defaultOwnerType: 'human' },
+  fields: {
+    priority: false,
+    assignee: false,
+    tags: false,
+    dueDate: false,
+    ownerType: false,
+  },
+};

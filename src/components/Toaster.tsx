@@ -14,7 +14,7 @@ export function Toaster() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-            className={`glass px-3.5 py-2 rounded-[6px] text-[12px] font-medium shadow-[0_8px_32px_rgba(0,0,0,0.6)] pointer-events-auto ${
+            className={`glass px-3.5 py-2 rounded-[6px] text-[13px] font-medium shadow-[0_8px_32px_rgba(0,0,0,0.6)] pointer-events-auto ${
               t.type === 'error'
                 ? 'text-danger border-danger/30'
                 : t.type === 'info'

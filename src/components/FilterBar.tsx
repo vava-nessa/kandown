@@ -30,7 +30,7 @@ export function FilterBar() {
           placeholder="Search tasks..."
           value={filters.search}
           onChange={e => setFilter('search', e.target.value)}
-          className="bg-transparent border-none outline-none text-fg text-[12px] w-full placeholder:text-fg-muted"
+          className="bg-transparent border-none outline-none text-fg text-[13px] w-full placeholder:text-fg-muted"
         />
         {filters.search && (
           <button
@@ -52,7 +52,7 @@ export function FilterBar() {
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.15 }}
               onClick={() => setFilter(chip.type as never, null as never)}
-              className="inline-flex items-center gap-1.5 h-6 px-2 text-[11px] text-fg bg-bg-3 border border-border-strong rounded-[4px] hover:bg-bg-hover transition-colors"
+              className="inline-flex items-center gap-1.5 h-6 px-2 text-[12px] text-fg bg-bg-3 border border-border-strong rounded-[4px] hover:bg-bg-hover transition-colors"
             >
               {chip.label}
               <Icon.X size={10} className="text-fg-muted" />
@@ -65,7 +65,7 @@ export function FilterBar() {
             <button
               key={opt.value}
               onClick={() => setFilter('ownerType', opt.value)}
-              className={`h-full px-2 text-[11px] transition-colors ${filters.ownerType === opt.value ? 'bg-bg-hover text-fg' : 'text-fg-muted hover:text-fg'}`}
+              className={`h-full px-2 text-[12px] transition-colors ${filters.ownerType === opt.value ? 'bg-bg-hover text-fg' : 'text-fg-muted hover:text-fg'}`}
             >
               {opt.label}
             </button>
@@ -76,7 +76,7 @@ export function FilterBar() {
       {hasFilters && (
         <button
           onClick={clearFilters}
-          className="ml-auto text-[11px] text-fg-muted hover:text-fg transition-colors"
+          className="ml-auto text-[12px] text-fg-muted hover:text-fg transition-colors"
         >
           Clear all
         </button>

@@ -5,7 +5,7 @@
   },
   "agent": {
     "suggestFollowUp": true,
-    "maxSuggestions": 2
+    "maxSuggestions": 3
   },
   "board": {
     "taskPrefix": "task",

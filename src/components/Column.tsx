@@ -70,8 +70,8 @@ export function Column({
     >
       <div className="flex items-center justify-between px-3.5 pt-3 pb-2">
         <div className="flex items-center gap-2">
-          <span className="text-[12.5px] font-semibold tracking-tight text-fg">{column.name}</span>
-          <span className="text-[11px] text-fg-muted tabular-nums">
+          <span className="text-[13.5px] font-semibold tracking-tight text-fg">{column.name}</span>
+          <span className="text-[12px] text-fg-muted tabular-nums">
             {filteredTasks.length}
             {isFiltered && <span className="text-fg-faint">/{column.tasks.length}</span>}
           </span>
@@ -94,7 +94,7 @@ export function Column({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="py-6 px-2 text-center text-[11.5px] text-fg-faint"
+                className="py-6 px-2 text-center text-[12.5px] text-fg-faint"
               >
                 {isFiltered ? 'No matches' : 'No tasks'}
               </motion.div>

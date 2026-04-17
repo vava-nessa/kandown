@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Icon } from './Icons';
 import { SubtaskItem } from './SubtaskItem';
@@ -11,14 +11,29 @@ export function Drawer() {
   const columns = useStore(s => s.columns);
   const closeDrawer = useStore(s => s.closeDrawer);
   const saveDrawer = useStore(s => s.saveDrawer);
+  const saveDrawerMetadata = useStore(s => s.saveDrawerMetadata);
   const deleteTask = useStore(s => s.deleteTask);
   const updateDrawerData = useStore(s => s.updateDrawerData);
 
   const [focusedSubtaskIdx, setFocusedSubtaskIdx] = useState<number | null>(null);
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isOpen = !!drawerTaskId && !!drawerData;
+
+  const triggerAutoSave = useCallback(() => {
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      saveDrawerMetadata();
+    }, 600);
+  }, [saveDrawerMetadata]);
+
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, []);
 
   // Get current column for status display
   const currentCol = drawerTaskId
@@ -76,6 +91,7 @@ export function Drawer() {
       ...d,
       frontmatter: { ...d.frontmatter, [key]: value },
     }));
+    triggerAutoSave();
   };
 
   const toggleSubtask = (i: number) => {
@@ -83,6 +99,7 @@ export function Drawer() {
       ...d,
       subtasks: d.subtasks.map((s, idx) => (idx === i ? { ...s, done: !s.done } : s)),
     }));
+    triggerAutoSave();
   };
 
   const changeSubtask = (i: number, text: string) => {
@@ -90,6 +107,7 @@ export function Drawer() {
       ...d,
       subtasks: d.subtasks.map((s, idx) => (idx === i ? { ...s, text } : s)),
     }));
+    triggerAutoSave();
   };
 
   const removeSubtask = (i: number) => {
@@ -98,6 +116,7 @@ export function Drawer() {
       subtasks: d.subtasks.filter((_, idx) => idx !== i),
     }));
     setFocusedSubtaskIdx(Math.max(0, i - 1));
+    triggerAutoSave();
   };
 
   const addSubtask = () => {
@@ -106,6 +125,7 @@ export function Drawer() {
       subtasks: [...d.subtasks, { done: false, text: '' }],
     }));
     setFocusedSubtaskIdx(drawerData.subtasks.length);
+    triggerAutoSave();
   };
 
   const insertSubtaskAfter = (i: number) => {
@@ -118,6 +138,7 @@ export function Drawer() {
       ],
     }));
     setFocusedSubtaskIdx(i + 1);
+    triggerAutoSave();
   };
 
   const handleDelete = async () => {
@@ -153,14 +174,14 @@ export function Drawer() {
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3 border-b border-border">
               <div className="flex items-center gap-2.5">
-                <span className="font-mono text-[11.5px] text-fg-muted px-1.5 py-0.5 bg-bg-2 border border-border rounded-[4px]">
+                <span className="font-mono text-[12.5px] text-fg-muted px-1.5 py-0.5 bg-bg-2 border border-border rounded-[4px]">
                   {drawerTaskId?.toUpperCase()}
                 </span>
                 {currentCol && (
-                  <span className="text-[11.5px] text-fg-dim">· {currentCol}</span>
+                  <span className="text-[12.5px] text-fg-dim">· {currentCol}</span>
                 )}
                 {total > 0 && (
-                  <span className="text-[11px] text-fg-muted tabular-nums">
+                  <span className="text-[12px] text-fg-muted tabular-nums">
                     {done}/{total} done
                   </span>
                 )}
@@ -180,7 +201,7 @@ export function Drawer() {
                   onChange={e => updateField('title', e.target.value)}
                   placeholder="Task title"
                   rows={1}
-                  className="w-full bg-transparent border-none outline-none text-fg text-[20px] font-semibold tracking-tight leading-tight resize-none placeholder:text-fg-faint"
+                  className="w-full bg-transparent border-none outline-none text-fg text-[22px] font-semibold tracking-tight leading-tight resize-none placeholder:text-fg-faint"
                 />
 
                 {/* Metadata grid */}
@@ -257,11 +278,11 @@ export function Drawer() {
                 {/* Subtasks */}
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
+                    <span className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted">
                       Subtasks
                     </span>
                     {total > 0 && (
-                      <span className="text-[11px] text-fg-faint tabular-nums">
+                      <span className="text-[12px] text-fg-faint tabular-nums">
                         {done}/{total}
                       </span>
                     )}
@@ -299,7 +320,7 @@ export function Drawer() {
                   </div>
                   <button
                     onClick={addSubtask}
-                    className="flex items-center gap-2 px-1.5 py-1 mt-1 text-fg-muted hover:text-fg text-[12px] rounded-[4px] hover:bg-bg-2 transition-colors"
+                    className="flex items-center gap-2 px-1.5 py-1 mt-1 text-fg-muted hover:text-fg text-[13px] rounded-[4px] hover:bg-bg-2 transition-colors"
                   >
                     <Icon.Plus size={12} />
                     Add subtask
@@ -310,7 +331,7 @@ export function Drawer() {
 
                 {/* Description */}
                 <div>
-                  <div className="text-[11px] font-semibold uppercase tracking-wider text-fg-muted mb-2">
+                  <div className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted mb-2">
                     Description
                   </div>
                   <textarea
@@ -320,7 +341,7 @@ export function Drawer() {
                       updateDrawerData(d => ({ ...d, body: e.target.value }))
                     }
                     placeholder="Write some context, links, decisions..."
-                    className="w-full min-h-[180px] bg-bg-2 border border-border rounded-[6px] px-3 py-2.5 text-fg text-[13px] leading-relaxed font-sans outline-none focus:border-border-focus focus:bg-bg-3 transition-colors resize-none placeholder:text-fg-faint"
+                    className="w-full min-h-[180px] bg-bg-2 border border-border rounded-[6px] px-3 py-2.5 text-fg text-[14px] leading-relaxed font-sans outline-none focus:border-border-focus focus:bg-bg-3 transition-colors resize-none placeholder:text-fg-faint"
                   />
                 </div>
               </div>
@@ -337,7 +358,7 @@ export function Drawer() {
                   Cancel
                 </button>
                 <button onClick={saveDrawer} className="btn-primary">
-                  Save
+                  Save & Close
                   <span className="kbd ml-1" style={{ color: 'rgba(0,0,0,0.5)', background: 'rgba(0,0,0,0.1)', borderColor: 'rgba(0,0,0,0.15)' }}>⌘S</span>
                 </button>
               </div>
@@ -351,7 +372,7 @@ export function Drawer() {
 
 function FieldRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-[110px_1fr] items-center gap-3 text-[12.5px]">
+    <div className="grid grid-cols-[110px_1fr] items-center gap-3 text-[13.5px]">
       <span className="text-fg-muted">{label}</span>
       <div>{children}</div>
     </div>
