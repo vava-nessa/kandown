@@ -36,6 +36,7 @@ import { KbdButton } from './KbdButton';
 import { useStore } from '../lib/store';
 import { fileWatcher } from '../lib/watcher';
 import { BACKGROUND_OPTIONS, FONT_OPTIONS, SKIN_OPTIONS } from '../lib/theme';
+import { SUPPORTED_LANGUAGES, LANGUAGE_LABELS } from '../lib/i18n';
 import type { KandownConfig } from '../lib/types';
 
 type SettingType = 'toggle' | 'select' | 'number' | 'text' | 'skin';
@@ -106,7 +107,7 @@ const getSETTINGS = (t: ReturnType<typeof useTranslation>['t']): SettingDef[] =>
     section: 'appearance',
     type: 'select',
     description: t('settings.languageDesc'),
-    options: ['en', 'fr', 'zh', 'es', 'pt', 'hi', 'de', 'it'].map(value => ({ value, label: value })),
+    options: SUPPORTED_LANGUAGES.map(value => ({ value, label: LANGUAGE_LABELS[value] })),
     keywords: ['locale', 'translation'],
   },
   {
