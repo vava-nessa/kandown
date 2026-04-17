@@ -21,19 +21,18 @@ export function App() {
   const reloadBoard = useStore(s => s.reloadBoard);
   const recentProjects = useStore(s => s.recentProjects);
   const openRecentProject = useStore(s => s.openRecentProject);
-  const setDirHandle = useStore(s => s.setDirHandle as any);
 
   // Handle URL hydration on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const projectSlug = params.get('p');
-    if (projectSlug && dirHandle === null) {
+    if (projectSlug && !dirHandle) {
       const match = recentProjects.find(p => p.name === projectSlug);
       if (match) {
         openRecentProject(match);
       }
     }
-  }, []);
+  }, [recentProjects, dirHandle, openRecentProject]);
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const active = document.activeElement;
