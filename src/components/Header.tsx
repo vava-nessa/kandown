@@ -18,6 +18,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
 import { KbdButton } from './KbdButton';
 import { useStore } from '../lib/store';
@@ -37,6 +38,7 @@ const LogoSvg = ({ className }: { className?: string }) => (
 );
 
 export function Header() {
+  const { t } = useTranslation();
   const dirHandle = useStore(s => s.dirHandle);
   const projectName = useStore(s => s.projectName);
   const columns = useStore(s => s.columns);
@@ -78,7 +80,7 @@ export function Header() {
             className="flex items-center gap-2 cursor-pointer"
           >
             <LogoSvg className="w-[36px] h-[36px] dark:text-white text-black" />
-            <span className="text-[15px] font-semibold tracking-tight">kandown</span>
+            <span className="text-[15px] font-semibold tracking-tight">{t('app.name')}</span>
           </button>
         </div>
 
@@ -107,7 +109,7 @@ export function Header() {
                       {recentProjects.length > 0 && (
                         <>
                           <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-fg-faint">
-                            Recent projects
+                            {t('header.recentProjects')}
                           </div>
                           {recentProjects.map(p => (
                             <button
@@ -136,7 +138,7 @@ export function Header() {
                         className="w-full flex items-center gap-2 px-3 py-1.5 text-[13.5px] text-left hover:bg-bg-3 transition-colors"
                       >
                         <Icon.Plus size={12} className="text-fg-muted" />
-                        <span>Open folder...</span>
+                        <span>{t('header.openFolder...')}</span>
                       </button>
                     </div>
                   </motion.div>
@@ -153,7 +155,7 @@ export function Header() {
             <div className="flex items-center gap-2 mr-2 text-[13px] text-fg-muted">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-success" />
               <motion.span className="tabular-nums">{displayCount}</motion.span>
-              <span>tasks</span>
+              <span>{t('header.tasks')}</span>
             </div>
 
             {/* View mode toggle */}
@@ -165,7 +167,7 @@ export function Header() {
                     ? 'bg-bg-3 text-fg'
                     : 'text-fg-muted hover:text-fg'
                 }`}
-                title="Board view (⌘1)"
+                title={t('common.board')}
               >
                 <Icon.LayoutBoard size={20} />
               </button>
@@ -176,7 +178,7 @@ export function Header() {
                     ? 'bg-bg-3 text-fg'
                     : 'text-fg-muted hover:text-fg'
                 }`}
-                title="List view (⌘2)"
+                title={t('common.list')}
               >
                 <Icon.LayoutList size={20} />
               </button>
@@ -195,13 +197,13 @@ export function Header() {
               variant="icon"
               icon="Settings"
               onClick={() => setCurrentPage('settings')}
-              title="Settings"
+              title={t('common.settings')}
             />
 
             <KbdButton
               variant="secondary"
               icon="Search"
-              label="Search"
+              label={t('common.search')}
               shortcut="⌘K"
               onClick={() => setCommandOpen(true)}
               title="Command palette (⌘K)"
@@ -211,13 +213,13 @@ export function Header() {
               variant="icon"
               icon="Refresh"
               onClick={reloadBoard}
-              title="Reload (R)"
+              title={`${t('common.reload')} (R)`}
             />
 
             <KbdButton
               variant="primary"
               icon="Plus"
-              label="New task"
+              label={t('common.newTask')}
               shortcut="N"
               onClick={() => createTask()}
             />
@@ -225,7 +227,7 @@ export function Header() {
         ) : (
           <KbdButton
             variant="primary"
-            label="Open folder"
+            label={t('common.openFolder')}
             onClick={openFolder}
           />
         )}

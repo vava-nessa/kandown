@@ -15,6 +15,7 @@
  */
 
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../lib/store';
 import { KbdButton } from './KbdButton';
 import { supportsFileSystemAccess } from '../lib/filesystem';
@@ -33,6 +34,7 @@ const LogoSvg = ({ className }: { className?: string }) => (
 );
 
 export function EmptyState() {
+  const { t } = useTranslation();
   const openFolder = useStore(s => s.openFolder);
   const recentProjects = useStore(s => s.recentProjects);
   const openRecentProject = useStore(s => s.openRecentProject);
@@ -40,11 +42,8 @@ export function EmptyState() {
   if (!supportsFileSystemAccess()) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-4 px-10 text-center">
-        <div className="text-[22px] font-semibold tracking-tight text-fg">Unsupported browser</div>
-        <div className="text-[14px] text-fg-dim max-w-[440px] leading-relaxed">
-          This engine requires the <code className="font-mono text-[12.5px] px-1.5 py-0.5 bg-bg-2 border border-border rounded-[3px]">File System Access API</code>.
-          Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.
-        </div>
+        <div className="text-[22px] font-semibold tracking-tight text-fg">{t('emptyState.unsupportedBrowser')}</div>
+        <div className="text-[14px] text-fg-dim max-w-[440px] leading-relaxed" dangerouslySetInnerHTML={{ __html: t('emptyState.unsupportedBrowserDesc') }} />
       </div>
     );
   }
@@ -70,7 +69,7 @@ export function EmptyState() {
         transition={{ delay: 0.05 }}
         className="text-[26px] font-semibold tracking-tight text-fg"
       >
-        kandown
+        {t('app.name')}
       </motion.div>
       <motion.div
         initial={{ opacity: 0, y: 8 }}
@@ -78,17 +77,15 @@ export function EmptyState() {
         transition={{ delay: 0.1 }}
         className="text-[14.5px] text-fg-dim max-w-[480px] leading-relaxed"
       >
-        AI Markdown Kanban Manager
+        {t('app.tagline')}
       </motion.div>
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
         className="text-[14.5px] text-fg-dim max-w-[480px] leading-relaxed"
-      >
-        Select a folder containing <code className="font-mono text-[12.5px] px-1.5 py-0.5 bg-bg-2 border border-border rounded-[3px]">board.md</code>{' '}
-        and a <code className="font-mono text-[12.5px] px-1.5 py-0.5 bg-bg-2 border border-border rounded-[3px]">tasks/</code> sub-directory.
-      </motion.div>
+        dangerouslySetInnerHTML={{ __html: t('emptyState.selectFolderDesc') }}
+      />
       <motion.div
         initial={{ opacity: 0, y: 4 }}
         animate={{ opacity: 1, y: 0 }}
@@ -96,7 +93,7 @@ export function EmptyState() {
       >
         <KbdButton
           variant="primary"
-          label="Select folder"
+          label={t('common.selectFolder')}
           onClick={openFolder}
           className="h-10 px-6 text-[16px]"
           iconSize={20}
@@ -112,7 +109,7 @@ export function EmptyState() {
           className="mt-4 flex flex-col items-center gap-2"
         >
           <div className="text-[11.5px] font-semibold uppercase tracking-wider text-fg-faint">
-            Recent
+            {t('common.recent')}
           </div>
           <div className="flex flex-col gap-1 min-w-[220px]">
             {recentProjects.slice(0, 5).map(p => (

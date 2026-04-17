@@ -17,6 +17,7 @@
 
 import { motion, AnimatePresence } from 'motion/react';
 import { useRef, useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
 import type { Subtask } from '../lib/types';
 
@@ -43,6 +44,7 @@ export function SubtaskItem({
   onDescriptionChange,
   onReportChange,
 }: SubtaskItemProps) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const descRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -140,14 +142,14 @@ export function SubtaskItem({
               onRemove(index);
             }
           }}
-          placeholder="Subtask..."
+          placeholder={t('subtask.placeholder')}
           className={`flex-1 bg-transparent border-none outline-none text-[13.5px] ${
             subtask.done ? 'text-fg-muted line-through' : 'text-fg'
           }`}
         />
         <button
           onClick={() => setExpanded(v => !v)}
-          title={expanded ? 'Collapse' : 'Expand'}
+          title={expanded ? t('subtask.collapse') : t('subtask.expand')}
           className={`opacity-0 group-hover:opacity-100 px-1 py-0.5 rounded-[3px] transition-all ${
             hasDetail ? 'text-accent' : 'text-fg-muted'
           } hover:bg-bg-3`}
@@ -178,14 +180,14 @@ export function SubtaskItem({
           >
             <div className="flex flex-col gap-1">
               <label className="text-[11px] font-medium text-fg-muted uppercase tracking-wide">
-                Description
+                {t('subtask.description')}
               </label>
               <textarea
                 ref={descRef}
                 value={subtask.description ?? ''}
                 onChange={e => onDescriptionChange(index, e.target.value)}
                 onFocus={handleDescriptionFocus}
-                placeholder="Add context, links, or notes for this step..."
+                placeholder={t('subtask.descriptionPlaceholder')}
                 rows={4}
                 className="w-full bg-bg-2 border border-border rounded-[4px] px-2 py-1.5 text-[13px] text-fg placeholder:text-fg-faint resize-none outline-none focus:border-border-focus transition-colors"
               />
@@ -200,17 +202,17 @@ export function SubtaskItem({
                   className="flex flex-col gap-1"
                 >
                   <label className="text-[11px] font-medium text-fg-muted uppercase tracking-wide">
-                    Report
+                    {t('subtask.report')}
                     {subtask.done && (
                       <span className="ml-1 text-fg-faint normal-case font-normal tracking-normal">
-                        — AI fills this after completing
+                        {t('subtask.aiFillsThis')}
                       </span>
                     )}
                   </label>
                   <textarea
                     value={subtask.report ?? ''}
                     onChange={e => onReportChange(index, e.target.value)}
-                    placeholder="What was done, decisions made, trade-offs..."
+                    placeholder={t('subtask.reportPlaceholder')}
                     rows={3}
                     className="w-full bg-bg-2 border border-border rounded-[4px] px-2 py-1.5 text-[13px] text-fg placeholder:text-fg-faint resize-none outline-none focus:border-border-focus transition-colors"
                   />

@@ -18,6 +18,7 @@
 
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
 import { useStore } from '../lib/store';
 import type { SearchMatch } from '../lib/types';
@@ -30,17 +31,6 @@ interface CommandItem {
   category: 'task' | 'action' | 'view';
   onSelect: () => void;
 }
-
-const sectionLabels: Record<string, string> = {
-  title: 'Title',
-  subtasks: 'Subtask',
-  context: 'Context',
-  notes: 'Notes',
-  whatWasDone: 'What was done',
-  tags: 'Tags',
-  assignee: 'Assignee',
-  priority: 'Priority',
-};
 
 function HighlightedText({ text, keyword }: { text: string; keyword: string }) {
   if (!keyword) return <>{text}</>;
@@ -59,6 +49,7 @@ function HighlightedText({ text, keyword }: { text: string; keyword: string }) {
 }
 
 export function CommandPalette() {
+  const { t } = useTranslation();
   const commandOpen = useStore(s => s.commandOpen);
   const setCommandOpen = useStore(s => s.setCommandOpen);
   const columns = useStore(s => s.columns);
@@ -105,8 +96,8 @@ export function CommandPalette() {
     const actionCommands: CommandItem[] = [
       {
         id: 'action:new',
-        label: 'New task',
-        hint: 'Create a new task',
+        label: t('commandPalette.newTask'),
+        hint: t('commandPalette.createNew'),
         category: 'action',
         onSelect: () => {
           setCommandOpen(false);
@@ -115,8 +106,8 @@ export function CommandPalette() {
       },
       {
         id: 'action:reload',
-        label: 'Reload board',
-        hint: 'Re-read files from disk',
+        label: t('commandPalette.reloadBoard'),
+        hint: t('commandPalette.readFromDisk'),
         category: 'action',
         onSelect: () => {
           setCommandOpen(false);
@@ -125,7 +116,7 @@ export function CommandPalette() {
       },
       {
         id: 'action:clear',
-        label: 'Clear filters',
+        label: t('commandPalette.clearFilters'),
         category: 'action',
         onSelect: () => {
           setCommandOpen(false);
@@ -137,7 +128,7 @@ export function CommandPalette() {
     const viewCommands: CommandItem[] = [
       {
         id: 'view:board',
-        label: 'Board view',
+        label: t('commandPalette.boardView'),
         category: 'view',
         onSelect: () => {
           setCommandOpen(false);
@@ -146,7 +137,7 @@ export function CommandPalette() {
       },
       {
         id: 'view:list',
-        label: 'List view',
+        label: t('commandPalette.listView'),
         category: 'view',
         onSelect: () => {
           setCommandOpen(false);
@@ -155,7 +146,7 @@ export function CommandPalette() {
       },
       {
         id: 'view:compact',
-        label: 'Compact density',
+        label: t('commandPalette.compactDensity'),
         category: 'view',
         onSelect: () => {
           setCommandOpen(false);
@@ -164,7 +155,7 @@ export function CommandPalette() {
       },
       {
         id: 'view:comfortable',
-        label: 'Comfortable density',
+        label: t('commandPalette.comfortableDensity'),
         category: 'view',
         onSelect: () => {
           setCommandOpen(false);
@@ -245,9 +236,9 @@ export function CommandPalette() {
   }, [filtered]);
 
   const labels: Record<string, string> = {
-    action: 'Actions',
-    view: 'View',
-    task: 'Tasks',
+    action: t('commandPalette.actions'),
+    view: t('commandPalette.view'),
+    task: t('commandPalette.tasks'),
   };
 
   return (
@@ -278,7 +269,7 @@ export function CommandPalette() {
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 onKeyDown={onKeyDown}
-                placeholder="Type a command or search..."
+                placeholder={t('commandPalette.placeholder')}
                 className="flex-1 bg-transparent border-none outline-none text-fg text-[14.5px] placeholder:text-fg-muted"
               />
               <span className="kbd">esc</span>
@@ -288,7 +279,7 @@ export function CommandPalette() {
             <div ref={listRef} className="max-h-[420px] overflow-y-auto py-1.5">
               {filtered.length === 0 && (
                 <div className="px-4 py-6 text-center text-[13px] text-fg-muted">
-                  No results
+                  {t('common.noResults')}
                 </div>
               )}
               {(['action', 'view', 'task'] as const).map(cat =>
@@ -324,9 +315,9 @@ export function CommandPalette() {
                               <div className="flex flex-col gap-1 bg-bg rounded border border-border p-2">
                                 {matches.slice(0, 2).map((match, i) => (
                                   <div key={i} className="text-[12px] text-fg-dim">
-                                    <span className="text-[10.5px] font-medium text-fg-muted uppercase tracking-wide mr-1.5">
-                                      {sectionLabels[match.section] || match.section}
-                                    </span>
+<span className="text-[10.5px] font-medium text-fg-muted uppercase tracking-wide mr-1.5">
+                                        {t(`sectionLabels.${match.section}`) || match.section}
+                                      </span>
                                     <HighlightedText text={match.snippet} keyword={match.keyword} />
                                   </div>
                                 ))}
@@ -344,10 +335,10 @@ export function CommandPalette() {
             {/* Footer */}
             <div className="flex items-center gap-3 px-4 h-8 border-t border-border text-[12px] text-fg-muted">
               <span className="flex items-center gap-1.5">
-                <span className="kbd">↑↓</span> navigate
+                <span className="kbd">↑↓</span> {t('commandPalette.navigate')}
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="kbd">↵</span> select
+                <span className="kbd">↵</span> {t('commandPalette.select')}
               </span>
             </div>
           </motion.div>

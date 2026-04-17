@@ -17,11 +17,13 @@
  */
 
 import { AnimatePresence, motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
 import { useStore } from '../lib/store';
 import type { ConflictState } from '../lib/store';
 
 export function ConflictModal() {
+  const { t } = useTranslation();
   const conflictState = useStore(s => s.conflictState);
   const showConflictModal = useStore(s => s.showConflictModal);
   const resolveConflict = useStore(s => s.resolveConflict);
@@ -54,28 +56,26 @@ export function ConflictModal() {
                   </svg>
                 </span>
                 <div>
-                  <h2 className="text-[16px] font-semibold text-fg">Conflict Detected</h2>
+                  <h2 className="text-[16px] font-semibold text-fg">{t('conflict.detected')}</h2>
                   <p className="text-[12.5px] text-fg-muted">
-                    This task was modified externally while you were editing.
+                    {t('conflict.detectedDesc')}
                   </p>
                 </div>
               </div>
 
               {/* Body */}
               <div className="px-5 py-4 space-y-3">
-                <p className="text-[13.5px] text-fg">
-                  Task <code className="bg-bg-2 border border-border px-1.5 py-0.5 rounded font-mono text-[12px]">{conflictState.taskId.toUpperCase()}</code> has conflicting changes. Choose how to resolve:
-                </p>
+                <p className="text-[13.5px] text-fg" dangerouslySetInnerHTML={{ __html: t('conflict.conflictingChanges', { taskId: conflictState.taskId.toUpperCase() }) }} />
 
                 <div className="grid grid-cols-2 gap-3">
                   <ConflictVersion
-                    label="Your version (local)"
+                    label={t('conflict.yourVersion')}
                     frontmatter={conflictState.local.frontmatter}
                     body={conflictState.local.body}
                     subtasks={conflictState.local.subtasks}
                   />
                   <ConflictVersion
-                    label="Disk version (remote)"
+                    label={t('conflict.diskVersion')}
                     frontmatter={conflictState.remote.frontmatter}
                     body={conflictState.remote.body}
                     subtasks={conflictState.remote.subtasks}
@@ -89,19 +89,19 @@ export function ConflictModal() {
                   onClick={() => resolveConflict('cancel')}
                   className="h-9 rounded-lg border border-border bg-bg px-3.5 text-[13.5px] font-medium text-fg transition-colors hover:bg-bg-2"
                 >
-                  Cancel
+                  {t('conflict.cancel')}
                 </button>
                 <button
                   onClick={() => resolveConflict('reload')}
                   className="h-9 rounded-lg border border-border bg-bg px-3.5 text-[13.5px] font-medium text-fg transition-colors hover:bg-bg-2"
                 >
-                  Reload from disk
+                  {t('conflict.reloadFromDisk')}
                 </button>
                 <button
                   onClick={() => resolveConflict('overwrite')}
                   className="h-9 rounded-lg bg-primary px-3.5 text-[13.5px] font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                 >
-                  Keep my version
+                  {t('conflict.keepMyVersion')}
                 </button>
               </div>
             </div>
@@ -123,6 +123,7 @@ function ConflictVersion({
   body: string;
   subtasks: ConflictState['local']['subtasks'];
 }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-lg border border-border bg-bg-1 overflow-hidden">
       <div className="bg-bg-2 border-b border-border px-3 py-2">
@@ -130,35 +131,35 @@ function ConflictVersion({
       </div>
       <div className="p-3 space-y-2 text-[12.5px]">
         <div>
-          <span className="text-fg-muted">Title:</span>{' '}
-          <span className="font-medium text-fg">{(frontmatter.title as string) || '(none)'}</span>
+          <span className="text-fg-muted">{t('conflict.title')}:</span>{' '}
+          <span className="font-medium text-fg">{(frontmatter.title as string) || t('conflict.none')}</span>
         </div>
         {frontmatter.priority && (
           <div>
-            <span className="text-fg-muted">Priority:</span>{' '}
+            <span className="text-fg-muted">{t('conflict.priority')}:</span>{' '}
             <span className="font-medium text-fg">{frontmatter.priority}</span>
           </div>
         )}
         {frontmatter.assignee && (
           <div>
-            <span className="text-fg-muted">Assignee:</span>{' '}
+            <span className="text-fg-muted">{t('drawer.assignee')}:</span>{' '}
             <span className="font-medium text-fg">{frontmatter.assignee}</span>
           </div>
         )}
         {Array.isArray(frontmatter.tags) && frontmatter.tags.length > 0 && (
           <div>
-            <span className="text-fg-muted">Tags:</span>{' '}
+            <span className="text-fg-muted">{t('conflict.tags') || 'Tags'}:</span>{' '}
             <span className="font-medium text-fg">{frontmatter.tags.join(', ')}</span>
           </div>
         )}
         <div>
-          <span className="text-fg-muted">Body:</span>{' '}
+          <span className="text-fg-muted">{t('conflict.body')}:</span>{' '}
           <span className="text-fg line-clamp-2">{body.slice(0, 60)}{body.length > 60 ? '...' : ''}</span>
         </div>
         <div>
-          <span className="text-fg-muted">Subtasks:</span>{' '}
+          <span className="text-fg-muted">{t('conflict.subtasks')}:</span>{' '}
           <span className="font-medium text-fg">
-            {subtasks.filter(s => s.done).length}/{subtasks.length} done
+            {subtasks.filter(s => s.done).length}/{subtasks.length} {t('drawer.doneSubtasks')}
           </span>
         </div>
       </div>

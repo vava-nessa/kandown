@@ -23,6 +23,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { IconTrash, IconTrashX } from '@tabler/icons-react';
 import type { BoardTask, Density, SearchMatch } from '../lib/types';
 import { useStore } from '../lib/store';
@@ -32,17 +33,6 @@ const priorityColors: Record<string, string> = {
   P2: '#e9a23b',
   P3: '#3e63dd',
   P4: '#6e6e6e',
-};
-
-const sectionLabels: Record<string, string> = {
-  title: 'Title',
-  subtasks: 'Subtask',
-  context: 'Context',
-  notes: 'Notes',
-  whatWasDone: 'What was done',
-  tags: 'Tags',
-  assignee: 'Assignee',
-  priority: 'Priority',
 };
 
 function HighlightedText({ text, keyword }: { text: string; keyword: string }) {
@@ -71,6 +61,7 @@ interface CardProps {
 }
 
 export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd, columnName }: CardProps) {
+  const { t } = useTranslation();
   const openDrawer = useStore(s => s.openDrawer);
   const deleteTask = useStore(s => s.deleteTask);
   const fields = useStore(s => s.config.fields);
@@ -105,8 +96,6 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
   useEffect(() => {
     if (!deleteArmed) return;
 
-    // 📖 Confirmation is intentionally short-lived so a card cannot stay armed
-    // after the user's attention has moved elsewhere on the board.
     const timer = window.setTimeout(() => setDeleteArmed(false), 2400);
     return () => window.clearTimeout(timer);
   }, [deleteArmed]);
@@ -152,8 +141,8 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       <button
         type="button"
         draggable={false}
-        aria-label={deleteArmed ? `Confirm delete ${task.id.toUpperCase()}` : `Delete ${task.id.toUpperCase()}`}
-        title={deleteArmed ? 'Click again to delete' : 'Delete task'}
+        aria-label={deleteArmed ? t('card.confirmDelete') : t('card.delete')}
+        title={deleteArmed ? t('card.confirmDelete') : t('card.delete')}
         disabled={isDeleting}
         onClick={handleDeleteClick}
         onPointerDown={e => e.stopPropagation()}
@@ -183,7 +172,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
           {orphanTaskIds.includes(task.id) && (
             <span
               className="text-[12px]"
-              title="This task file exists but is not listed on the board — it may have been edited manually"
+              title={t('card.orphanWarning')}
             >
               ⚠️
             </span>
@@ -212,7 +201,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
           {searchMatches.slice(0, 2).map((match, i) => (
             <div key={i} className="text-[12px] text-fg-dim bg-bg rounded px-2 py-1 border border-border">
               <span className="text-[10.5px] font-medium text-fg-muted uppercase tracking-wide mr-1.5">
-                {sectionLabels[match.section] || match.section}
+                {t(`sectionLabels.${match.section}`) || match.section}
               </span>
               <HighlightedText text={match.snippet} keyword={match.keyword} />
             </div>

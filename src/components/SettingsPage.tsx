@@ -20,6 +20,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import {
   IconAdjustmentsHorizontal,
   IconChevronRight,
@@ -67,33 +68,33 @@ interface SettingDef {
   parentKey?: string;
 }
 
-const SECTIONS: SettingsSection[] = [
+const SECTIONS = (t: ReturnType<typeof useTranslation>['t']): SettingsSection[] => [
   {
     id: 'appearance',
-    label: 'Appearance',
+    label: t('settings.appearance'),
     kicker: 'Interface',
-    description: 'Theme, skin, background, font, and language.',
+    description: t('settings.appearanceDesc') || 'Theme, skin, background, font, and language.',
     icon: IconPalette,
   },
   {
     id: 'agent',
-    label: 'Agent',
+    label: t('settings.agent'),
     kicker: 'Automation',
-    description: 'Follow-up behavior for AI-assisted task work.',
+    description: t('settings.agentDesc') || 'Follow-up behavior for AI-assisted task work.',
     icon: IconRobot,
   },
   {
     id: 'board',
-    label: 'Board',
+    label: t('settings.board'),
     kicker: 'Identifiers',
-    description: 'Task id behavior and board-level defaults.',
+    description: t('settings.boardDesc') || 'Task id behavior and board-level defaults.',
     icon: IconLayoutBoard,
   },
   {
     id: 'fields',
-    label: 'Fields',
+    label: t('settings.fields'),
     kicker: 'Metadata',
-    description: 'Optional fields shown on tasks and board cards.',
+    description: t('settings.fieldsDesc') || 'Optional fields shown on tasks and board cards.',
     icon: IconTags,
   },
 ];
@@ -290,6 +291,7 @@ function isSettingVisible(setting: SettingDef, config: KandownConfig): boolean {
 }
 
 export function SettingsPage() {
+  const { t } = useTranslation();
   const config = useStore(s => s.config);
   const updateConfig = useStore(s => s.updateConfig);
   const setCurrentPage = useStore(s => s.setCurrentPage);
@@ -305,10 +307,10 @@ export function SettingsPage() {
   useEffect(() => {
     const off = fileWatcher.on('configChanged', () => {
       void loadConfig();
-      toast('Settings updated externally — reloaded', 'info');
+      toast(t('toast.settingsUpdatedExternally'), 'info');
     });
     return off;
-  }, [loadConfig, toast]);
+  }, [loadConfig, toast, t]);
 
   useEffect(() => {
     // 📖 Search waits for typing to pause so filtering does not reshuffle the
@@ -318,18 +320,18 @@ export function SettingsPage() {
   }, [query]);
 
   const normalizedQuery = debouncedQuery.trim().toLowerCase();
-  const activeSection = SECTIONS.find(section => section.id === activeSectionId) ?? SECTIONS[0];
+  const activeSection = SECTIONS(t).find(section => section.id === activeSectionId) ?? SECTIONS(t)[0];
   const helpSetting =
     SETTINGS.find(setting => setting.key === activeHelpKey) ??
     SETTINGS.find(setting => setting.section === activeSectionId) ??
     SETTINGS[0];
 
   const sectionCounts = useMemo(() => {
-    return SECTIONS.reduce<Record<SettingsSectionId, number>>((acc, section) => {
+    return SECTIONS(t).reduce<Record<SettingsSectionId, number>>((acc, section) => {
       acc[section.id] = SETTINGS.filter(setting => setting.section === section.id && isSettingVisible(setting, config)).length;
       return acc;
     }, { appearance: 0, agent: 0, board: 0, fields: 0 });
-  }, [config]);
+  }, [config, t]);
 
   const visibleSettings = useMemo(() => {
     if (!normalizedQuery) {
@@ -349,7 +351,7 @@ export function SettingsPage() {
   if (!dirHandle) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <p className="text-fg-muted">No project open</p>
+        <p className="text-fg-muted">{t('settings.noProjectOpen')}</p>
       </div>
     );
   }
@@ -361,9 +363,9 @@ export function SettingsPage() {
           <KbdButton
             variant="ghost"
             icon="ArrowLeft"
-            label="Board"
+            label={t('settings.backToBoard')}
             onClick={() => setCurrentPage('board')}
-            title="Back to board"
+            title={t('settings.backToBoard')}
             className="mb-3 h-7 px-1.5 text-[12.5px]"
             iconSize={14}
           />
@@ -389,7 +391,7 @@ export function SettingsPage() {
             <input
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="Search any option"
+              placeholder={t('settings.searchPlaceholder')}
               className="h-8 w-full rounded-[7px] border border-border bg-bg-2 pl-8 pr-8 text-[13.5px] text-fg outline-none transition-colors placeholder:text-fg-faint focus:border-border-focus focus:bg-bg-3"
             />
             {query && (
@@ -406,10 +408,10 @@ export function SettingsPage() {
 
         <nav className="flex-1 overflow-y-auto px-2 py-3">
           <div className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-fg-faint">
-            Pages
+            {t('settings.pages')}
           </div>
           <div className="flex flex-col gap-1">
-            {SECTIONS.map(section => {
+            {SECTIONS(t).map(section => {
               const SectionIcon = section.icon;
               const active = !normalizedQuery && activeSectionId === section.id;
 
@@ -525,14 +527,15 @@ interface SearchResultsProps {
 }
 
 function SearchResults({ settings, activeSectionId, onSelect }: SearchResultsProps) {
+  const { t } = useTranslation();
   return (
     <div className="mt-5">
       <div className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-fg-faint">
-        Matches
+        {t('settings.matches')}
       </div>
       <div className="flex flex-col gap-1">
         {settings.slice(0, 12).map(setting => {
-          const section = SECTIONS.find(item => item.id === setting.section);
+          const section = SECTIONS(t).find(item => item.id === setting.section);
           const active = setting.section === activeSectionId;
 
           return (
@@ -566,6 +569,7 @@ interface SettingRowProps {
 }
 
 function SettingRow({ setting, value, showSection, isLast, onChange, onHelp, nested }: SettingRowProps) {
+  const { t } = useTranslation();
   const handleToggle = () => {
     if (setting.type === 'toggle') {
       onChange(!value);
@@ -666,7 +670,8 @@ function SettingRow({ setting, value, showSection, isLast, onChange, onHelp, nes
 }
 
 function SettingHelp({ setting, value }: { setting: SettingDef; value: unknown }) {
-  const section = SECTIONS.find(item => item.id === setting.section);
+  const { t } = useTranslation();
+  const section = SECTIONS(t).find(item => item.id === setting.section);
   const SectionIcon = section?.icon ?? IconSettings;
   const currentValue = stringifySettingValue(value) || 'empty';
   const options = setting.options?.map(option => option.label).join(', ');
@@ -683,24 +688,24 @@ function SettingHelp({ setting, value }: { setting: SettingDef; value: unknown }
       <p className="mt-3 text-[14px] leading-relaxed text-fg-muted">{setting.description}</p>
       <div className="mt-5 space-y-2 border-t border-border pt-4">
         <div className="flex items-center justify-between gap-3 text-[12.5px]">
-          <span className="text-fg-muted">Current value</span>
+          <span className="text-fg-muted">{t('settings.currentValue')}</span>
           <span className="rounded-[5px] bg-bg-2 px-2 py-1 font-mono text-fg">{currentValue}</span>
         </div>
         <div className="flex items-start justify-between gap-3 text-[12.5px]">
-          <span className="text-fg-muted">Config key</span>
+          <span className="text-fg-muted">{t('settings.configKey')}</span>
           <span className="max-w-[210px] break-all rounded-[5px] bg-bg-2 px-2 py-1 font-mono text-right text-fg">
             {setting.key}
           </span>
         </div>
         {options && (
           <div className="flex items-start justify-between gap-3 text-[12.5px]">
-            <span className="text-fg-muted">Choices</span>
+            <span className="text-fg-muted">{t('settings.choices')}</span>
             <span className="max-w-[210px] text-right leading-relaxed text-fg-dim">{options}</span>
           </div>
         )}
       </div>
       <p className="mt-5 text-[12.5px] leading-relaxed text-fg-faint">
-        Hover or tab through another option to update this help panel.
+        {t('settings.hoverForHelp')}
       </p>
     </div>
   );

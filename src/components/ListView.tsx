@@ -17,6 +17,7 @@
 
 import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../lib/store';
 import type { BoardTask, SearchMatch } from '../lib/types';
 
@@ -25,17 +26,6 @@ const priorityColors: Record<string, string> = {
   P2: '#e9a23b',
   P3: '#3e63dd',
   P4: '#6e6e6e',
-};
-
-const sectionLabels: Record<string, string> = {
-  title: 'Title',
-  subtasks: 'Subtask',
-  context: 'Context',
-  notes: 'Notes',
-  whatWasDone: 'What was done',
-  tags: 'Tags',
-  assignee: 'Assignee',
-  priority: 'Priority',
 };
 
 function HighlightedText({ text, keyword }: { text: string; keyword: string }) {
@@ -55,6 +45,7 @@ function HighlightedText({ text, keyword }: { text: string; keyword: string }) {
 }
 
 export function ListView() {
+  const { t } = useTranslation();
   const columns = useStore(s => s.columns);
   const filters = useStore(s => s.filters);
   const openDrawer = useStore(s => s.openDrawer);
@@ -104,13 +95,13 @@ export function ListView() {
       <div className="max-w-[1200px] mx-auto">
         {/* Header row */}
         <div className="grid grid-cols-[80px_40px_1fr_140px_120px_120px_80px] gap-3 px-6 py-2 text-[11.5px] font-semibold uppercase tracking-wider text-fg-faint border-b border-border sticky top-0 bg-bg z-10">
-          <div>ID</div>
+          <div>{t('listView.id')}</div>
           <div></div>
-          <div>Title</div>
-          <div>Status</div>
-          <div>Tags</div>
-          <div>Assignee</div>
-          <div>Progress</div>
+          <div>{t('listView.title')}</div>
+          <div>{t('listView.status')}</div>
+          <div>{t('listView.tags')}</div>
+          <div>{t('listView.assignee')}</div>
+          <div>{t('listView.progress')}</div>
         </div>
 
         <AnimatePresence>
@@ -176,7 +167,7 @@ export function ListView() {
                       {matches.slice(0, 2).map((match: SearchMatch, idx: number) => (
                         <div key={idx} className="text-[12px] text-fg-dim bg-bg rounded px-2 py-1 border border-border">
                           <span className="text-[10.5px] font-medium text-fg-muted uppercase tracking-wide mr-1.5">
-                            {sectionLabels[match.section] || match.section}
+                            {t(`sectionLabels.${match.section}`) || match.section}
                           </span>
                           <HighlightedText text={match.snippet} keyword={match.keyword} />
                         </div>
@@ -190,7 +181,7 @@ export function ListView() {
         </AnimatePresence>
 
         {rows.length === 0 && (
-          <div className="py-20 text-center text-[13.5px] text-fg-muted">No matching tasks</div>
+          <div className="py-20 text-center text-[13.5px] text-fg-muted">{t('listView.noMatchingTasks')}</div>
         )}
       </div>
     </motion.div>

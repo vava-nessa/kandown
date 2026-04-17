@@ -7,6 +7,7 @@ columns: [Backlog, Todo, In Progress, Review, Done]
 
 ## Backlog
 
+- [ ] **[t-009]** Bug subtask tracker → [détails](tasks/t-009.md)
 
 ## Todo
 

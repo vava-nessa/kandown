@@ -22,6 +22,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import {
   IconCircleCheck,
   IconClipboardList,
@@ -139,7 +140,7 @@ function ColumnColorMenu({ columnName, currentColor, onSelect }: ColumnColorMenu
           setOpen(v => !v);
         }}
         className="w-5 h-5 inline-flex items-center justify-center text-fg-muted hover:bg-bg-3 hover:text-fg rounded-[4px] transition-colors"
-        title="Column color"
+        title={t('column.columnColor')}
       >
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="opacity-60">
           <circle cx="3" cy="2" r="1.2" fill="currentColor" />
@@ -160,7 +161,7 @@ function ColumnColorMenu({ columnName, currentColor, onSelect }: ColumnColorMenu
             className="absolute right-0 top-full mt-1 bg-bg-2 border border-border rounded-[6px] shadow-lg p-1.5 z-50 min-w-[152px]"
             style={{ transformOrigin: 'top right' }}
           >
-            <div className="text-[11px] text-fg-muted px-1.5 pb-1.5 font-medium">Color</div>
+            <div className="text-[11px] text-fg-muted px-1.5 pb-1.5 font-medium">{t('column.color')}</div>
             <div className="grid grid-cols-5 gap-1">
               {COLOR_SWATCHES.map(({ key, label, color }) => (
                 <button
@@ -214,6 +215,7 @@ export function Column({
   onCardDragEnd,
   onDrop,
 }: ColumnProps) {
+  const { t } = useTranslation();
   const [isOver, setIsOver] = useState(false);
   const [isColHovered, setIsColHovered] = useState(false);
   const createTask = useStore(s => s.createTask);
@@ -298,7 +300,7 @@ export function Column({
           <button
             onClick={() => createTask(column.name)}
             className="w-5 h-5 inline-flex items-center justify-center text-fg-muted hover:bg-bg-3 hover:text-fg rounded-[4px] transition-colors"
-            title="Add task"
+            title={t('column.addTask')}
           >
             <Icon.Plus size={12} />
           </button>
@@ -333,7 +335,7 @@ export function Column({
               <KbdButton
                 variant="ghost"
                 icon="Plus"
-                label="Add task"
+                label={t('column.addTask')}
                 onClick={() => createTask(column.name)}
                 className="w-full justify-start px-2 py-1.5 h-auto text-[12.5px]"
               />

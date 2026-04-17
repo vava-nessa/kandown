@@ -23,6 +23,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
 import { KbdButton } from './KbdButton';
 import { SubtaskItem } from './SubtaskItem';
@@ -30,6 +31,7 @@ import { useStore } from '../lib/store';
 import type { Priority, OwnerType } from '../lib/types';
 
 export function Drawer() {
+  const { t } = useTranslation();
   const drawerTaskId = useStore(s => s.drawerTaskId);
   const drawerData = useStore(s => s.drawerData);
   const columns = useStore(s => s.columns);
@@ -49,10 +51,10 @@ export function Drawer() {
 
   const handleDelete = useCallback(async () => {
     if (!drawerTaskId) return;
-    if (!confirm(`Delete ${drawerTaskId.toUpperCase()}?`)) return;
+    if (!confirm(`${t('common.delete')} ${drawerTaskId.toUpperCase()}?`)) return;
     await deleteTask(drawerTaskId);
     closeDrawer();
-  }, [closeDrawer, deleteTask, drawerTaskId]);
+  }, [closeDrawer, deleteTask, drawerTaskId, t]);
 
   const triggerAutoSave = useCallback(() => {
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
@@ -228,7 +230,7 @@ export function Drawer() {
                   )}
                   {total > 0 && (
                     <span className="text-[12px] text-fg-muted tabular-nums">
-                      {done}/{total} done
+                      {done}/{total} {t('drawer.doneSubtasks')}
                     </span>
                   )}
                 </div>
@@ -236,7 +238,7 @@ export function Drawer() {
                   variant="icon"
                   icon="X"
                   onClick={closeDrawer}
-                  title="Close (Esc)"
+                  title={t('drawer.close')}
                 />
               </div>
 
@@ -248,7 +250,7 @@ export function Drawer() {
                   ref={titleInputRef}
                   value={(drawerData.frontmatter.title as string) || ''}
                   onChange={e => updateField('title', e.target.value)}
-                  placeholder="Task title"
+                  placeholder={t('drawer.taskTitle')}
                   rows={1}
                   className="w-full bg-transparent border-none outline-none text-fg text-[22px] font-semibold tracking-tight leading-tight resize-none placeholder:text-fg-faint"
                 />
@@ -256,33 +258,33 @@ export function Drawer() {
                 {(fields.priority || fields.assignee || fields.tags || fields.dueDate || fields.ownerType || fields.tools) && (
                   <div className="flex flex-col gap-0.5">
                     {fields.priority && (
-                      <FieldRow label="Priority">
+                      <FieldRow label={t('drawer.priority')}>
                         <select
                           value={(drawerData.frontmatter.priority as string) || ''}
                           onChange={e => updateField('priority', e.target.value as Priority)}
                           className="field-input w-full"
                         >
-                          <option value="">No priority</option>
-                          <option value="P1">Urgent · P1</option>
-                          <option value="P2">High · P2</option>
-                          <option value="P3">Medium · P3</option>
-                          <option value="P4">Low · P4</option>
+                          <option value="">{t('drawer.noPriority')}</option>
+                          <option value="P1">{t('drawer.urgentP1')}</option>
+                          <option value="P2">{t('drawer.highP2')}</option>
+                          <option value="P3">{t('drawer.mediumP3')}</option>
+                          <option value="P4">{t('drawer.lowP4')}</option>
                         </select>
                       </FieldRow>
                     )}
                     {fields.assignee && (
-                      <FieldRow label="Assignee">
+                      <FieldRow label={t('drawer.assignee')}>
                         <input
                           type="text"
                           value={(drawerData.frontmatter.assignee as string) || ''}
                           onChange={e => updateField('assignee', e.target.value.replace(/^@/, ''))}
-                          placeholder="username"
+                          placeholder={t('drawer.assigneePlaceholder')}
                           className="field-input w-full"
                         />
                       </FieldRow>
                     )}
                     {fields.tags && (
-                      <FieldRow label="Tags">
+                      <FieldRow label={t('drawer.tags')}>
                         <input
                           type="text"
                           value={tagsValue}
@@ -293,13 +295,13 @@ export function Drawer() {
                               .filter(Boolean);
                             updateField('tags', arr);
                           }}
-                          placeholder="backend, security, api"
+                          placeholder={t('drawer.tagsPlaceholder')}
                           className="field-input w-full"
                         />
                       </FieldRow>
                     )}
                     {fields.dueDate && (
-                      <FieldRow label="Due date">
+                      <FieldRow label={t('drawer.dueDate')}>
                         <input
                           type="date"
                           value={(drawerData.frontmatter.due as string) || ''}
@@ -309,25 +311,25 @@ export function Drawer() {
                       </FieldRow>
                     )}
                     {fields.ownerType && (
-                      <FieldRow label="Owner">
+                      <FieldRow label={t('drawer.owner')}>
                         <select
                           value={(drawerData.frontmatter.ownerType as OwnerType) || ''}
                           onChange={e => updateField('ownerType', e.target.value as OwnerType)}
                           className="field-input w-full"
                         >
-                          <option value="">Unset</option>
-                          <option value="human">👤 Human</option>
-                          <option value="ai">🤖 AI</option>
+                          <option value="">{t('drawer.unset')}</option>
+                          <option value="human">{t('drawer.human')}</option>
+                          <option value="ai">{t('drawer.ai')}</option>
                         </select>
                       </FieldRow>
                     )}
                     {fields.tools && (
-                      <FieldRow label="Tools">
+                      <FieldRow label={t('drawer.tools')}>
                         <input
                           type="text"
                           value={(drawerData.frontmatter.tools as string) || ''}
                           onChange={e => updateField('tools', e.target.value)}
-                          placeholder="filesystem, cli, websearch, browser..."
+                          placeholder={t('drawer.toolsPlaceholder')}
                           className="field-input w-full"
                         />
                       </FieldRow>
@@ -342,7 +344,7 @@ export function Drawer() {
                   {/* Description (left) */}
                   <div>
                     <div className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted mb-2">
-                      Description
+                      {t('drawer.description')}
                     </div>
                     <textarea
                       ref={bodyRef}
@@ -350,7 +352,7 @@ export function Drawer() {
                       onChange={e =>
                         updateDrawerData(d => ({ ...d, body: e.target.value }))
                       }
-                      placeholder="Write some context, links, decisions..."
+                      placeholder={t('drawer.descriptionPlaceholder')}
                       className="w-full min-h-[180px] bg-bg-2 border border-border rounded-[6px] px-3 py-2.5 text-fg text-[14px] leading-relaxed font-sans outline-none focus:border-border-focus focus:bg-bg-3 transition-colors resize-none placeholder:text-fg-faint"
                     />
                   </div>
@@ -358,11 +360,11 @@ export function Drawer() {
                   {/* Report (right) */}
                   <div>
                     <div className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted mb-2">
-                      Report
+                      {t('drawer.report')}
                     </div>
                     <div className="min-h-[180px] text-fg text-[14px] leading-relaxed font-sans whitespace-pre-wrap overflow-y-auto">
                       {drawerData.frontmatter.report || (
-                        <span className="text-fg-faint italic">AI output will appear here...</span>
+                        <span className="text-fg-faint italic">{t('drawer.reportPlaceholder')}</span>
                       )}
                     </div>
                   </div>
@@ -374,7 +376,7 @@ export function Drawer() {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted">
-                      Subtasks
+                      {t('drawer.subtasks')}
                     </span>
                     {total > 0 && (
                       <span className="text-[12px] text-fg-faint tabular-nums">
@@ -418,7 +420,7 @@ export function Drawer() {
                   <KbdButton
                     variant="ghost"
                     icon="Plus"
-                    label="Add subtask"
+                    label={t('drawer.addSubtask')}
                     onClick={addSubtask}
                     className="mt-1"
                   />
@@ -431,20 +433,20 @@ export function Drawer() {
               <KbdButton
                 variant="danger"
                 icon="Trash"
-                label="Delete"
+                label={t('drawer.deleteTask')}
                 shortcut="⌘⌫"
                 onClick={handleDelete}
               />
               <div className="flex items-center gap-2">
                 <KbdButton
                   variant="secondary"
-                  label="Cancel"
+                  label={t('drawer.cancel')}
                   shortcut="Esc"
                   onClick={closeDrawer}
                 />
                 <KbdButton
                   variant="primary"
-                  label="Save & Close"
+                  label={t('drawer.saveClose')}
                   shortcut="⌘S"
                   onClick={saveDrawer}
                 />

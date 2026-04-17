@@ -30,6 +30,8 @@ import { Toaster } from './components/Toaster';
 import { ConflictModal } from './components/ConflictModal';
 import LiquidEther from './components/LiquidEther';
 import { useStore } from './lib/store';
+import { changeLanguage, SUPPORTED_LANGUAGES, type SupportedLanguage } from './lib/i18n';
+import i18n from './lib/i18n';
 
 export function App() {
   const dirHandle = useStore(s => s.dirHandle);
@@ -44,6 +46,14 @@ export function App() {
   const openRecentProject = useStore(s => s.openRecentProject);
   const currentPage = useStore(s => s.currentPage);
   const config = useStore(s => s.config);
+
+  // Sync language from config to i18n
+  useEffect(() => {
+    const lang = config.ui.language;
+    if (lang && SUPPORTED_LANGUAGES.includes(lang as SupportedLanguage) && i18n.language !== lang) {
+      void changeLanguage(lang as SupportedLanguage);
+    }
+  }, [config.ui.language]);
 
   // Handle URL hydration on mount
   useEffect(() => {

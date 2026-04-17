@@ -18,11 +18,13 @@
  */
 
 import { AnimatePresence, motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
 import { useStore } from '../lib/store';
 import type { Priority, OwnerType } from '../lib/types';
 
 export function FilterBar() {
+  const { t } = useTranslation();
   const filters = useStore(s => s.filters);
   const setFilter = useStore(s => s.setFilter);
   const clearFilters = useStore(s => s.clearFilters);
@@ -34,9 +36,9 @@ export function FilterBar() {
   if (fields.assignee && filters.assignee) chips.push({ type: 'assignee', label: '@' + filters.assignee, value: filters.assignee });
 
   const ownerOptions: Array<{ label: string; value: OwnerType }> = [
-    { label: '👤 All', value: '' },
-    { label: '👤 Human', value: 'human' },
-    { label: '🤖 AI', value: 'ai' },
+    { label: t('filterBar.ownerAll'), value: '' },
+    { label: t('filterBar.ownerHuman'), value: 'human' },
+    { label: t('filterBar.ownerAI'), value: 'ai' },
   ];
 
   const hasFilters = chips.length > 0 || filters.search || (fields.ownerType && filters.ownerType);
@@ -47,7 +49,7 @@ export function FilterBar() {
         <Icon.Search size={18} className="text-fg-muted flex-shrink-0" />
         <input
           type="text"
-          placeholder="Search tasks..."
+          placeholder={t('filterBar.searchPlaceholder')}
           value={filters.search}
           onChange={e => setFilter('search', e.target.value)}
           className="bg-transparent border-none outline-none text-fg text-[14.5px] w-full placeholder:text-fg-muted"
@@ -100,7 +102,7 @@ export function FilterBar() {
           onClick={clearFilters}
           className="ml-auto text-[12px] text-fg-muted hover:text-fg transition-colors"
         >
-          Clear all
+          {t('filterBar.clearAll')}
         </button>
       )}
     </div>
