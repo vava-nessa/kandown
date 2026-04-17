@@ -125,9 +125,13 @@
   "settings": {
     "noProjectOpen": "No project open",
     "appearance": "Appearance",
+    "appearanceDesc": "Theme, skin, background, font, and language.",
     "agent": "Agent",
+    "agentDesc": "Follow-up behavior for AI-assisted task work.",
     "board": "Board",
+    "boardDesc": "Task id behavior and board-level defaults.",
     "fields": "Fields",
+    "fieldsDesc": "Optional fields shown on tasks and board cards.",
     "language": "Language",
     "mode": "Mode",
     "auto": "Auto",
@@ -158,7 +162,8 @@
     "choices": "Choices",
     "hoverForHelp": "Hover or tab through another option to update this help panel.",
     "pages": "Pages",
-    "backToBoard": "Back to board"
+    "backToBoard": "Back to board",
+    "matches": "Matches"
   },
   "conflict": {
     "detected": "Conflict Detected",

@@ -125,9 +125,13 @@
   "settings": {
     "noProjectOpen": "未打开项目",
     "appearance": "外观",
+    "appearanceDesc": "主题、皮肤、背景、字体和语言。",
     "agent": "代理",
+    "agentDesc": "AI辅助任务工作的后续行为。",
     "board": "看板",
+    "boardDesc": "任务ID行为和看板级默认值。",
     "fields": "字段",
+    "fieldsDesc": "显示在任务和看板卡上的可选字段。",
     "language": "语言",
     "mode": "模式",
     "auto": "自动",
@@ -158,7 +162,8 @@
     "choices": "选项",
     "hoverForHelp": "悬停或切换到其他选项以更新此帮助面板。",
     "pages": "页面",
-    "backToBoard": "返回看板"
+    "backToBoard": "返回看板",
+    "matches": "匹配"
   },
   "conflict": {
     "detected": "检测到冲突",

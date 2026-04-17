@@ -125,9 +125,13 @@
   "settings": {
     "noProjectOpen": "Aucun projet ouvert",
     "appearance": "Apparence",
+    "appearanceDesc": "Thème, skin, arrière-plan, police et langue.",
     "agent": "Agent",
+    "agentDesc": "Comportement de suivi pour le travail de tâches assisté par IA.",
     "board": "Tableau",
+    "boardDesc": "Comportement de l'identifiant de tâche et paramètres par défaut du tableau.",
     "fields": "Champs",
+    "fieldsDesc": "Champs optionnels affichés sur les tâches et les cartes du tableau.",
     "language": "Langue",
     "mode": "Mode",
     "auto": "Auto",
@@ -158,7 +162,8 @@
     "choices": "Choix",
     "hoverForHelp": "Survolez ou tabulez sur une autre option pour mettre à jour ce panneau d'aide.",
     "pages": "Pages",
-    "backToBoard": "Retour au tableau"
+    "backToBoard": "Retour au tableau",
+    "matches": "Correspondances"
   },
   "conflict": {
     "detected": "Conflit détecté",

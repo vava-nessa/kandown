@@ -19,20 +19,35 @@ import { initReactI18next } from 'react-i18next';
 import en from './locales/en.json';
 import fr from './locales/fr.json';
 import zh from './locales/zh.json';
+import es from './locales/es.json';
+import pt from './locales/pt.json';
+import hi from './locales/hi.json';
+import de from './locales/de.json';
+import it from './locales/it.json';
 
-export const SUPPORTED_LANGUAGES = ['en', 'fr', 'zh'] as const;
+export const SUPPORTED_LANGUAGES = ['en', 'fr', 'zh', 'es', 'pt', 'hi', 'de', 'it'] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 export const LANGUAGE_LABELS: Record<SupportedLanguage, string> = {
   en: 'English',
   fr: 'Français',
   zh: '中文',
+  es: 'Español',
+  pt: 'Português',
+  hi: 'हिन्दी',
+  de: 'Deutsch',
+  it: 'Italiano',
 };
 
 const resources = {
   en: { translation: en },
   fr: { translation: fr },
   zh: { translation: zh },
+  es: { translation: es },
+  pt: { translation: pt },
+  hi: { translation: hi },
+  de: { translation: de },
+  it: { translation: it },
 };
 
 export function initI18n(language: SupportedLanguage = 'en') {

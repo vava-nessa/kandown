@@ -8,6 +8,10 @@ columns: [Backlog, Todo, In Progress, Review, Done]
 ## Backlog
 
 - [ ] **[t-009]** Bug subtask tracker → [détails](tasks/t-009.md)
+- [ ] **[t-010]** Markdown Editor → [détails](tasks/t-010.md)
+- [ ] **[t-011]** New task direct focus to replace title + empty description → [détails](tasks/t-011.md)
+- [ ] **[t-012]** Fix warnings → [détails](tasks/t-012.md)
+- [ ] **[t-013]** Fix reports → [détails](tasks/t-013.md)
 
 ## Todo
 
@@ -15,12 +19,9 @@ columns: [Backlog, Todo, In Progress, Review, Done]
 
 ## In Progress
 
-- [ ] **[t-005]** Bonjour les amis, testing (1/3) → [détails](tasks/t-005.md)
 
 ## Review
 
-- [ ] **[t-002]** New task → [détails](tasks/t-002.md)
-- [ ] **[t-003]** New task (0/1) → [détails](tasks/t-003.md)
 
 ## Done
 

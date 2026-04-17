@@ -118,6 +118,7 @@ interface ColumnColorMenuProps {
 }
 
 function ColumnColorMenu({ columnName, currentColor, onSelect }: ColumnColorMenuProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
