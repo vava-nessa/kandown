@@ -4,6 +4,19 @@ import { Icon } from './Icons';
 import { useStore } from '../lib/store';
 import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
 
+const LogoSvg = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 150 150"
+    className={className}
+    fill="currentColor"
+  >
+    <path d="m57.6 64.6 0.1-0.1v-31.3c-0.1-3.5-2.7-5.6-5.7-5.6h-16.3v59.6c0.2-1.3 0.9-2.6 1.7-3.2l20.2-19.4z"/>
+    <path d="m87.6 43.8c-3.4 0.1-7.1 1.3-9.9 3.7l-38.5 38.7c-2.1 2.1-3.4 4.8-3.5 7.5v26.7l77.5-76.4v-0.2h-25.6z"/>
+    <path d="m108.1 96.4-6 5-22.4-20.8-14.6 14.2 21.1 21.4-5 4.1c-0.6 0.5-0.3 0.9 0.2 0.9h27.6c0.4 0 0.7-0.4 0.7-0.6v-24.8c0-0.7-1.1-0.3-1.6 0.3v0.3z"/>
+  </svg>
+);
+
 export function Header() {
   const dirHandle = useStore(s => s.dirHandle);
   const columns = useStore(s => s.columns);
@@ -36,13 +49,11 @@ export function Header() {
   }, [menuOpen]);
 
   return (
-    <header className="flex items-center justify-between px-5 h-12 border-b border-border bg-bg relative z-10">
+    <header className="flex items-center justify-between px-5 h-14 border-b border-border bg-bg relative z-10">
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          <div className="w-[18px] h-[18px] rounded-[4px] bg-gradient-to-br from-white to-[#888] text-bg text-[10px] font-extrabold flex items-center justify-center">
-            K
-          </div>
-          <span className="text-[13px] font-semibold tracking-tight">Kanban</span>
+          <LogoSvg className="w-[36px] h-[36px] dark:text-white text-black" />
+          <span className="text-[14px] font-semibold tracking-tight">kandown</span>
         </div>
 
         {dirHandle && (
