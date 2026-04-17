@@ -38,6 +38,63 @@ export async function pickDirectory(): Promise<FileSystemDirectoryHandle | null>
   }
 }
 
+export async function pickProjectDirectory(): Promise<{ projectHandle: FileSystemDirectoryHandle; kandownHandle: FileSystemDirectoryHandle } | null> {
+  const projectHandle = await pickDirectory();
+  if (!projectHandle) return null;
+
+  try {
+    const kandownHandle = await projectHandle.getDirectoryHandle('.kandown', { create: false });
+    return { projectHandle, kandownHandle };
+  } catch {
+    // .kandown doesn't exist - create it
+    const kandownHandle = await projectHandle.getDirectoryHandle('.kandown', { create: true });
+    await ensureTasksDir(kandownHandle);
+    const defaultBoard = `---
+kanban: v1
+columns: [Backlog, Todo, In Progress, Done]
+---
+
+# Project Kanban
+
+## Backlog
+
+## Todo
+
+## In Progress
+
+## Done
+`;
+    await writeBoardFile(kandownHandle, defaultBoard);
+    return { projectHandle, kandownHandle };
+  }
+}
+
+export async function getKandownHandle(projectHandle: FileSystemDirectoryHandle): Promise<FileSystemDirectoryHandle> {
+  try {
+    return await projectHandle.getDirectoryHandle('.kandown', { create: false });
+  } catch {
+    const kandownHandle = await projectHandle.getDirectoryHandle('.kandown', { create: true });
+    await ensureTasksDir(kandownHandle);
+    const defaultBoard = `---
+kanban: v1
+columns: [Backlog, Todo, In Progress, Done]
+---
+
+# Project Kanban
+
+## Backlog
+
+## Todo
+
+## In Progress
+
+## Done
+`;
+    await writeBoardFile(kandownHandle, defaultBoard);
+    return kandownHandle;
+  }
+}
+
 export async function ensureTasksDir(dirHandle: FileSystemDirectoryHandle): Promise<FileSystemDirectoryHandle> {
   return await dirHandle.getDirectoryHandle('tasks', { create: true });
 }

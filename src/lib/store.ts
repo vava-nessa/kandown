@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import type { Column, Filters, BoardTask, Density, ViewMode, Subtask, TaskFrontmatter } from './types';
 import {
-  pickDirectory,
+  pickProjectDirectory,
+  getKandownHandle,
   ensureTasksDir,
   readBoardFile,
   writeBoardFile,
@@ -119,14 +120,15 @@ export const useStore = create<State>((set, get) => ({
   toasts: [],
 
   openFolder: async () => {
-    const handle = await pickDirectory();
-    if (!handle) return;
-    const tasksDir = await ensureTasksDir(handle);
-    set({ dirHandle: handle, tasksDirHandle: tasksDir });
+    const result = await pickProjectDirectory();
+    if (!result) return;
+    const { projectHandle, kandownHandle } = result;
+    const tasksDir = await ensureTasksDir(kandownHandle);
+    set({ dirHandle: kandownHandle, tasksDirHandle: tasksDir });
     await saveRecentProject({
-      id: handle.name,
-      name: handle.name,
-      handle,
+      id: projectHandle.name,
+      name: projectHandle.name,
+      handle: projectHandle,
       lastOpened: Date.now(),
     });
     await get().reloadBoard();
@@ -140,8 +142,9 @@ export const useStore = create<State>((set, get) => ({
       get().toast('Permission denied', 'error');
       return;
     }
-    const tasksDir = await ensureTasksDir(project.handle);
-    set({ dirHandle: project.handle, tasksDirHandle: tasksDir });
+    const kandownHandle = await getKandownHandle(project.handle);
+    const tasksDir = await ensureTasksDir(kandownHandle);
+    set({ dirHandle: kandownHandle, tasksDirHandle: tasksDir });
     await saveRecentProject({ ...project, lastOpened: Date.now() });
     await get().reloadBoard();
   },
