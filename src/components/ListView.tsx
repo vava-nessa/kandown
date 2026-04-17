@@ -26,6 +26,7 @@ export function ListView() {
         if (filters.priority && t.priority !== filters.priority) continue;
         if (filters.tag && !(t.tags || []).includes(filters.tag)) continue;
         if (filters.assignee && t.assignee !== filters.assignee) continue;
+        if (filters.ownerType && t.ownerType !== filters.ownerType) continue;
         result.push({ task: t, column: col.name });
       }
     }

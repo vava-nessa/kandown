@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Icon } from './Icons';
 import { SubtaskItem } from './SubtaskItem';
 import { useStore } from '../lib/store';
-import type { Priority } from '../lib/types';
+import type { Priority, OwnerType } from '../lib/types';
 
 export function Drawer() {
   const drawerTaskId = useStore(s => s.drawerTaskId);
@@ -227,6 +227,26 @@ export function Drawer() {
                       type="date"
                       value={(drawerData.frontmatter.due as string) || ''}
                       onChange={e => updateField('due', e.target.value)}
+                      className="field-input w-full"
+                    />
+                  </FieldRow>
+                  <FieldRow label="Owner">
+                    <select
+                      value={(drawerData.frontmatter.ownerType as OwnerType) || ''}
+                      onChange={e => updateField('ownerType', e.target.value as OwnerType)}
+                      className="field-input w-full"
+                    >
+                      <option value="">Unset</option>
+                      <option value="human">👤 Human</option>
+                      <option value="ai">🤖 AI</option>
+                    </select>
+                  </FieldRow>
+                  <FieldRow label="Tools">
+                    <input
+                      type="text"
+                      value={(drawerData.frontmatter.tools as string) || ''}
+                      onChange={e => updateField('tools', e.target.value)}
+                      placeholder="filesystem, cli, websearch, browser..."
                       className="field-input w-full"
                     />
                   </FieldRow>

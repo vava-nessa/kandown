@@ -1,5 +1,7 @@
 export type Priority = 'P1' | 'P2' | 'P3' | 'P4' | '';
 
+export type OwnerType = 'human' | 'ai' | '';
+
 export interface Subtask {
   done: boolean;
   text: string;
@@ -17,6 +19,7 @@ export interface BoardTask {
   tags: string[];
   assignee: string | null;
   priority: Priority | null;
+  ownerType: OwnerType;
   progress: TaskProgress | null;
 }
 
@@ -40,6 +43,8 @@ export interface TaskFrontmatter {
   assignee?: string;
   created?: string;
   due?: string;
+  ownerType?: OwnerType;
+  tools?: string;
   [k: string]: unknown;
 }
 
@@ -56,4 +61,5 @@ export interface Filters {
   priority: Priority | null;
   tag: string | null;
   assignee: string | null;
+  ownerType: OwnerType | null;
 }

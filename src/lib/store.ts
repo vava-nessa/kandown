@@ -110,7 +110,7 @@ export const useStore = create<State>((set, get) => ({
 
   viewMode: (localStorage.getItem('kanban:view') as ViewMode) || 'board',
   density: (localStorage.getItem('kanban:density') as Density) || 'comfortable',
-  filters: { search: '', priority: null, tag: null, assignee: null },
+  filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null },
   commandOpen: false,
   drawerTaskId: null,
   drawerData: null,
@@ -219,6 +219,7 @@ export const useStore = create<State>((set, get) => ({
       tags: [],
       assignee: null,
       priority: null,
+      ownerType: '',
       progress: null,
     };
     const newColumns = columns.map(c =>
@@ -234,6 +235,8 @@ export const useStore = create<State>((set, get) => ({
         tags: [],
         assignee: '',
         created: new Date().toISOString().slice(0, 10),
+        ownerType: '',
+        tools: '',
       };
       const body = `# New task\n\n## Context\n\n\n## Subtasks\n\n`;
       await fsWriteTaskFile(tasksDirHandle, id, fm, body);
@@ -306,11 +309,12 @@ export const useStore = create<State>((set, get) => ({
                 priority: (fm.priority as BoardTask['priority']) || null,
                 assignee: (fm.assignee as string) || null,
                 tags: (fm.tags as string[]) || [],
+                ownerType: ((fm.ownerType as BoardTask['ownerType']) || '') as BoardTask['ownerType'],
                 progress: total > 0 ? { done, total } : null,
               }
             : t
         ),
-      }));
+      })) as Column[];
       set({ columns: newColumns });
       await writeBoardFile(dirHandle, serializeBoard(boardTitle, newColumns));
       get().toast('Saved');
@@ -332,7 +336,7 @@ export const useStore = create<State>((set, get) => ({
     set(state => ({ filters: { ...state.filters, [key]: value } }));
   },
   clearFilters: () =>
-    set({ filters: { search: '', priority: null, tag: null, assignee: null } }),
+    set({ filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null } }),
 
   setCommandOpen: (open) => set({ commandOpen: open }),
 

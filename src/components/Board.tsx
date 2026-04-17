@@ -23,6 +23,7 @@ export function Board() {
         if (filters.priority && t.priority !== filters.priority) return false;
         if (filters.tag && !(t.tags || []).includes(filters.tag)) return false;
         if (filters.assignee && t.assignee !== filters.assignee) return false;
+        if (filters.ownerType && t.ownerType !== filters.ownerType) return false;
         return true;
       });
       return { column: col, filtered };

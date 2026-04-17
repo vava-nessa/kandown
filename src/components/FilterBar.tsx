@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { Icon } from './Icons';
 import { useStore } from '../lib/store';
-import type { Priority } from '../lib/types';
+import type { Priority, OwnerType } from '../lib/types';
 
 export function FilterBar() {
   const filters = useStore(s => s.filters);
@@ -12,6 +12,12 @@ export function FilterBar() {
   if (filters.priority) chips.push({ type: 'priority', label: filters.priority, value: filters.priority });
   if (filters.tag) chips.push({ type: 'tag', label: '#' + filters.tag, value: filters.tag });
   if (filters.assignee) chips.push({ type: 'assignee', label: '@' + filters.assignee, value: filters.assignee });
+
+  const ownerOptions: Array<{ label: string; value: OwnerType }> = [
+    { label: '👤 All', value: '' },
+    { label: '👤 Human', value: 'human' },
+    { label: '🤖 AI', value: 'ai' },
+  ];
 
   const hasFilters = chips.length > 0 || filters.search;
 
@@ -53,6 +59,18 @@ export function FilterBar() {
             </motion.button>
           ))}
         </AnimatePresence>
+
+        <div className="flex items-center h-6 border border-border-strong rounded-[4px] overflow-hidden">
+          {ownerOptions.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setFilter('ownerType', opt.value)}
+              className={`h-full px-2 text-[11px] transition-colors ${filters.ownerType === opt.value ? 'bg-bg-hover text-fg' : 'text-fg-muted hover:text-fg'}`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {hasFilters && (

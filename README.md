@@ -35,7 +35,8 @@ To use the board: Open `.kanban/kanban.html` in Chrome, Edge, Brave, or Opera. S
 ## Features
 
 - **File-over-app**: Plain markdown on disk, git-diffable, editable without the app.
-- **AI-agent optimized**: Lightweight index separate from full task details.
+- **AI-agent optimized**: Lightweight index separate from full task details, owner type tracking.
+- **Owner type filtering**: Filter board by human tasks vs AI tasks.
 - **Modern UI & UX**:
   - Drag & drop between columns with smooth spring physics.
   - Subtasks with live animated progress bars.
@@ -145,20 +146,20 @@ kandown/
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Start development server with hot reload
-npm run dev
+pnpm dev
 
 # Build the project (regenerates dist/index.html)
-npm run build
+pnpm build
 ```
 
 ### Publishing
 
 ```bash
 # 1. IMPORTANT: Always build before publishing to generate the latest single-file app
-npm run build
+pnpm build
 
 # 2. Login to npm
 npm login

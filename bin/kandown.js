@@ -91,9 +91,12 @@ function appendAgentReference(cwd, agentsFile, kanbanPath) {
 ${marker}
 ## Task management
 
-This project uses a file-based kanban. See \`${kanbanPath}/AGENT.md\` for conventions.
+**IMPORTANT:** Before touching any task files, you MUST read \`AGENT_KANDOWN.md\`.
 
-**Key rule:** Start by reading \`${kanbanPath}/board.md\` for the task index. Only open \`${kanbanPath}/tasks/t-xxx.md\` when you need full details about a specific task. This keeps your context lean.
+This project uses a file-based kanban:
+- **Start with \`${kanbanPath}/board.md\`** — task index (always lean)
+- **Only open \`${kanbanPath}/tasks/t-xxx.md\`** when you need full details on a specific task
+- **Completion workflow:** Move task to Done in \`board.md\` + write \`## What was done\` in the task file
 `;
 
   writeFileSync(filePath, existing + ref, 'utf8');
@@ -109,9 +112,12 @@ function createAgentsFileIfMissing(cwd, kanbanPath) {
 <!-- kandown:agent-ref -->
 ## Task management
 
-This project uses a file-based kanban. See \`${kanbanPath}/AGENT.md\` for conventions.
+**IMPORTANT:** Before touching any task files, you MUST read \`AGENT_KANDOWN.md\`.
 
-**Key rule:** Start by reading \`${kanbanPath}/board.md\` for the task index. Only open \`${kanbanPath}/tasks/t-xxx.md\` when you need full details about a specific task. This keeps your context lean.
+This project uses a file-based kanban:
+- **Start with \`${kanbanPath}/board.md\`** — task index (always lean)
+- **Only open \`${kanbanPath}/tasks/t-xxx.md\`** when you need full details on a specific task
+- **Completion workflow:** Move task to Done in \`board.md\` + write \`## What was done\` in the task file
 `;
   writeFileSync(agentsPath, content, 'utf8');
   return true;
@@ -180,6 +186,16 @@ function cmdInit(rawArgs) {
     success('tasks/ (with welcome example)');
   } else {
     info('tasks/ already exists (kept)');
+  }
+
+  // Copy AGENT_KANDOWN.md to project root (not inside .kanban/)
+  const agentKandownSrc = join(templatesDir, 'AGENT_KANDOWN.md');
+  const agentKandownDest = join(cwd, 'AGENT_KANDOWN.md');
+  if (!existsSync(agentKandownDest)) {
+    copyFileSync(agentKandownSrc, agentKandownDest);
+    success('AGENT_KANDOWN.md (at project root)');
+  } else {
+    info('AGENT_KANDOWN.md already exists at project root (kept)');
   }
 
   // Integrate with AGENTS.md / CLAUDE.md
