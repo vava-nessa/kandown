@@ -6,6 +6,8 @@
  * 📖 The board receives normalized columns from the store. It only decides what
  * should be visible for the current filters; actual markdown writes happen in
  * `moveTask` inside the store.
+ * 📖 Metadata filters are ignored when their project field is disabled, so
+ * hidden controls cannot leave invisible filtering behind.
  *
  * @functions
  *  → Board — animated board surface with draggable columns/cards
@@ -27,6 +29,7 @@ export function Board() {
   const filters = useStore(s => s.filters);
   const moveTask = useStore(s => s.moveTask);
   const searchMatches = useStore(s => s.searchMatches);
+  const config = useStore(s => s.config);
 
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [draggedFromCol, setDraggedFromCol] = useState<string | null>(null);
@@ -40,15 +43,15 @@ export function Board() {
           const hasContentMatch = searchMatches.has(t.id);
           if (!titleOrId && !hasContentMatch) return false;
         }
-        if (filters.priority && t.priority !== filters.priority) return false;
-        if (filters.tag && !(t.tags || []).includes(filters.tag)) return false;
-        if (filters.assignee && t.assignee !== filters.assignee) return false;
-        if (filters.ownerType && t.ownerType !== filters.ownerType) return false;
+        if (config.fields.priority && filters.priority && t.priority !== filters.priority) return false;
+        if (config.fields.tags && filters.tag && !(t.tags || []).includes(filters.tag)) return false;
+        if (config.fields.assignee && filters.assignee && t.assignee !== filters.assignee) return false;
+        if (config.fields.ownerType && filters.ownerType && t.ownerType !== filters.ownerType) return false;
         return true;
       });
       return { column: col, filtered };
     });
-  }, [columns, filters, searchMatches]);
+  }, [columns, config.fields, filters, searchMatches]);
 
   const handleCardDragStart = (taskId: string, fromCol: string) => {
     setDraggedTaskId(taskId);
@@ -73,9 +76,9 @@ export function Board() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.25 }}
-      className="flex-1 flex gap-2.5 p-4 pb-5 overflow-x-auto overflow-y-hidden board-bg relative"
+      className={`flex-1 flex gap-2.5 p-4 pb-5 overflow-x-auto overflow-y-hidden relative ${config.ui.background === 'solid' ? 'board-bg' : ''}`}
     >
-      <div className="noise-overlay" />
+      {config.ui.background === 'solid' && <div className="noise-overlay" />}
       {filteredColumns.map(({ column, filtered }, i) => (
         <motion.div
           key={column.name}

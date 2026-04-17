@@ -9,6 +9,8 @@
  * 📖 Destructive keyboard deletion uses Cmd/Ctrl+Backspace instead of a naked
  * Delete key so normal text editing inside title, description, and subtask
  * fields remains predictable.
+ * 📖 Optional metadata rows read `config.fields`; disabled fields stay hidden
+ * even when old task files still contain matching frontmatter values.
  *
  * @functions
  *  → Drawer — task editor panel with keyboard shortcuts and autosave
@@ -35,6 +37,7 @@ export function Drawer() {
   const saveDrawerMetadata = useStore(s => s.saveDrawerMetadata);
   const deleteTask = useStore(s => s.deleteTask);
   const updateDrawerData = useStore(s => s.updateDrawerData);
+  const fields = useStore(s => s.config.fields);
 
   const [focusedSubtaskIdx, setFocusedSubtaskIdx] = useState<number | null>(null);
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
@@ -201,36 +204,37 @@ export function Drawer() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0 }}
             onClick={closeDrawer}
-            className="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-[100]"
+            className="fixed inset-0 bg-black/50 backdrop-blur-[4px] z-[100]"
           />
-          <motion.aside
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', stiffness: 380, damping: 40, mass: 0.9 }}
-            className="fixed top-0 right-0 bottom-0 w-[640px] max-w-[92vw] z-[101] flex flex-col glass"
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0 }}
+            className="fixed inset-0 z-[101] flex items-center justify-center p-[10vh] pointer-events-none"
           >
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3 border-b border-border">
-              <div className="flex items-center gap-2.5">
-                <span className="font-mono text-[12.5px] text-fg-muted px-1.5 py-0.5 bg-bg-2 border border-border rounded-[4px]">
-                  {drawerTaskId?.toUpperCase()}
-                </span>
-                {currentCol && (
-                  <span className="text-[12.5px] text-fg-dim">· {currentCol}</span>
-                )}
-                {total > 0 && (
-                  <span className="text-[12px] text-fg-muted tabular-nums">
-                    {done}/{total} done
+            <div className="w-[80vw] max-w-[1200px] h-[80vh] pointer-events-auto flex flex-col glass rounded-2xl shadow-2xl">
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-3 border-b border-border rounded-t-2xl">
+                <div className="flex items-center gap-2.5">
+                  <span className="font-mono text-[12.5px] text-fg-muted px-1.5 py-0.5 bg-bg-2 border border-border rounded-[4px]">
+                    {drawerTaskId?.toUpperCase()}
                   </span>
-                )}
+                  {currentCol && (
+                    <span className="text-[12.5px] text-fg-dim">· {currentCol}</span>
+                  )}
+                  {total > 0 && (
+                    <span className="text-[12px] text-fg-muted tabular-nums">
+                      {done}/{total} done
+                    </span>
+                  )}
+                </div>
+                <button onClick={closeDrawer} className="btn-icon" title="Close (Esc)">
+                  <Icon.X />
+                </button>
               </div>
-              <button onClick={closeDrawer} className="btn-icon" title="Close (Esc)">
-                <Icon.X />
-              </button>
-            </div>
 
             {/* Body */}
             <div className="flex-1 overflow-y-auto px-5 py-5">
@@ -245,74 +249,87 @@ export function Drawer() {
                   className="w-full bg-transparent border-none outline-none text-fg text-[22px] font-semibold tracking-tight leading-tight resize-none placeholder:text-fg-faint"
                 />
 
-                {/* Metadata grid */}
-                <div className="flex flex-col gap-0.5">
-                  <FieldRow label="Priority">
-                    <select
-                      value={(drawerData.frontmatter.priority as string) || ''}
-                      onChange={e => updateField('priority', e.target.value as Priority)}
-                      className="field-input w-full"
-                    >
-                      <option value="">No priority</option>
-                      <option value="P1">Urgent · P1</option>
-                      <option value="P2">High · P2</option>
-                      <option value="P3">Medium · P3</option>
-                      <option value="P4">Low · P4</option>
-                    </select>
-                  </FieldRow>
-                  <FieldRow label="Assignee">
-                    <input
-                      type="text"
-                      value={(drawerData.frontmatter.assignee as string) || ''}
-                      onChange={e => updateField('assignee', e.target.value.replace(/^@/, ''))}
-                      placeholder="username"
-                      className="field-input w-full"
-                    />
-                  </FieldRow>
-                  <FieldRow label="Tags">
-                    <input
-                      type="text"
-                      value={tagsValue}
-                      onChange={e => {
-                        const arr = e.target.value
-                          .split(',')
-                          .map(s => s.trim().replace(/^#/, ''))
-                          .filter(Boolean);
-                        updateField('tags', arr);
-                      }}
-                      placeholder="backend, security, api"
-                      className="field-input w-full"
-                    />
-                  </FieldRow>
-                  <FieldRow label="Due date">
-                    <input
-                      type="date"
-                      value={(drawerData.frontmatter.due as string) || ''}
-                      onChange={e => updateField('due', e.target.value)}
-                      className="field-input w-full"
-                    />
-                  </FieldRow>
-                  <FieldRow label="Owner">
-                    <select
-                      value={(drawerData.frontmatter.ownerType as OwnerType) || ''}
-                      onChange={e => updateField('ownerType', e.target.value as OwnerType)}
-                      className="field-input w-full"
-                    >
-                      <option value="">Unset</option>
-                      <option value="human">👤 Human</option>
-                      <option value="ai">🤖 AI</option>
-                    </select>
-                  </FieldRow>
-                  <FieldRow label="Tools">
-                    <input
-                      type="text"
-                      value={(drawerData.frontmatter.tools as string) || ''}
-                      onChange={e => updateField('tools', e.target.value)}
-                      placeholder="filesystem, cli, websearch, browser..."
-                      className="field-input w-full"
-                    />
-                  </FieldRow>
-                </div>
+                {(fields.priority || fields.assignee || fields.tags || fields.dueDate || fields.ownerType || fields.tools) && (
+                  <div className="flex flex-col gap-0.5">
+                    {fields.priority && (
+                      <FieldRow label="Priority">
+                        <select
+                          value={(drawerData.frontmatter.priority as string) || ''}
+                          onChange={e => updateField('priority', e.target.value as Priority)}
+                          className="field-input w-full"
+                        >
+                          <option value="">No priority</option>
+                          <option value="P1">Urgent · P1</option>
+                          <option value="P2">High · P2</option>
+                          <option value="P3">Medium · P3</option>
+                          <option value="P4">Low · P4</option>
+                        </select>
+                      </FieldRow>
+                    )}
+                    {fields.assignee && (
+                      <FieldRow label="Assignee">
+                        <input
+                          type="text"
+                          value={(drawerData.frontmatter.assignee as string) || ''}
+                          onChange={e => updateField('assignee', e.target.value.replace(/^@/, ''))}
+                          placeholder="username"
+                          className="field-input w-full"
+                        />
+                      </FieldRow>
+                    )}
+                    {fields.tags && (
+                      <FieldRow label="Tags">
+                        <input
+                          type="text"
+                          value={tagsValue}
+                          onChange={e => {
+                            const arr = e.target.value
+                              .split(',')
+                              .map(s => s.trim().replace(/^#/, ''))
+                              .filter(Boolean);
+                            updateField('tags', arr);
+                          }}
+                          placeholder="backend, security, api"
+                          className="field-input w-full"
+                        />
+                      </FieldRow>
+                    )}
+                    {fields.dueDate && (
+                      <FieldRow label="Due date">
+                        <input
+                          type="date"
+                          value={(drawerData.frontmatter.due as string) || ''}
+                          onChange={e => updateField('due', e.target.value)}
+                          className="field-input w-full"
+                        />
+                      </FieldRow>
+                    )}
+                    {fields.ownerType && (
+                      <FieldRow label="Owner">
+                        <select
+                          value={(drawerData.frontmatter.ownerType as OwnerType) || ''}
+                          onChange={e => updateField('ownerType', e.target.value as OwnerType)}
+                          className="field-input w-full"
+                        >
+                          <option value="">Unset</option>
+                          <option value="human">👤 Human</option>
+                          <option value="ai">🤖 AI</option>
+                        </select>
+                      </FieldRow>
+                    )}
+                    {fields.tools && (
+                      <FieldRow label="Tools">
+                        <input
+                          type="text"
+                          value={(drawerData.frontmatter.tools as string) || ''}
+                          onChange={e => updateField('tools', e.target.value)}
+                          placeholder="filesystem, cli, websearch, browser..."
+                          className="field-input w-full"
+                        />
+                      </FieldRow>
+                    )}
+                  </div>
+                )}
 
                 <div className="h-px bg-border -mx-5" />
 
@@ -391,7 +408,7 @@ export function Drawer() {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between gap-2 px-5 py-3 border-t border-border">
+            <div className="flex items-center justify-between gap-2 px-5 py-3 border-t border-border rounded-b-2xl">
               <button onClick={handleDelete} className="btn-danger">
                 <Icon.Trash size={12} />
                 Delete
@@ -408,7 +425,8 @@ export function Drawer() {
                 </button>
               </div>
             </div>
-          </motion.aside>
+            </div>
+          </motion.div>
         </>
       )}
     </AnimatePresence>

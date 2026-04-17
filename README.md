@@ -1,9 +1,5 @@
 <p align="center">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" width="96" height="96" aria-label="Kandown logo">
-    <path fill="currentColor" d="m57.6 64.6 0.1-0.1v-31.3c-0.1-3.5-2.7-5.6-5.7-5.6h-16.3v59.6c0.2-1.3 0.9-2.6 1.7-3.2l20.2-19.4z"/>
-    <path fill="currentColor" d="m87.6 43.8c-3.4 0.1-7.1 1.3-9.9 3.7l-38.5 38.7c-2.1 2.1-3.4 4.8-3.5 7.5v26.7l77.5-76.4v-0.2h-25.6z"/>
-    <path fill="currentColor" d="m108.1 96.4-6 5-22.4-20.8-14.6 14.2 21.1 21.4-5 4.1c-0.6 0.5-0.3 0.9 0.2 0.9h27.6c0.4 0 0.7-0.4 0.7-0.6v-24.8c0-0.7-1.1-0.3-1.6 0.3v0.3z"/>
-  </svg>
+  <img src="logo.svg" width="128" height="128" alt="Kandown logo">
 </p>
 
 # Kandown
@@ -62,13 +58,15 @@ Firefox and Safari do not currently support the required File System Access API.
 - **AI-agent optimized**: Cheap board index plus detail files on demand.
 - **Board and list views**: Toggle with `⌘1` / `⌘2`.
 - **Column status icons**: Board columns use Tabler icons beside titles so states like Backlog, In Progress, Review, and Done are easier to scan.
+- **Column color accents**: Columns can use expanded translucent background colors, including black variants.
 - **Drag and drop**: Move cards between columns with optimistic file writes.
 - **Guarded card deletion**: Hover a card and click the trash icon twice to delete a task without opening the drawer.
-- **Task drawer**: Edit title, metadata, subtasks, and body content.
+- **Task drawer**: Edit title, enabled metadata fields, subtasks, and body content.
 - **Content search**: Search titles, ids, task body, subtasks, tags, assignee, and priority with highlighted previews.
 - **Command palette**: `⌘K` / `Ctrl+K` for task search and quick actions.
 - **Owner type filtering**: Separate human tasks from AI-agent tasks.
-- **Appearance system**: Project-level `auto` / `light` / `dark`, built-in skins, and local font presets.
+- **Dense settings**: Sidebar search, compact setting controls, and hover help explain project options.
+- **Appearance system**: Project-level `auto` / `light` / `dark`, backgrounds, built-in skins, and local font presets.
 - **Recent projects**: Stored in IndexedDB so local handles can be reopened quickly.
 - **Single-file publish artifact**: Vite bundles the web UI into `dist/index.html`.
 
@@ -232,10 +230,13 @@ Project-level preferences:
     "assignee": false,
     "tags": false,
     "dueDate": false,
-    "ownerType": false
+    "ownerType": false,
+    "tools": false
   }
 }
 ```
+
+Disabled fields are hidden from the task drawer, cards, list view, and metadata filters. `board.defaultPriority` only applies when `fields.priority` is enabled, and `board.defaultOwnerType` only applies when `fields.ownerType` is enabled.
 
 ## Appearance Architecture
 
@@ -293,11 +294,11 @@ Built-in fonts:
 | `Column.tsx` | `Column` | One kanban column, Tabler status icon, drop target, create-task button, empty state. |
 | `Card.tsx` | `Card` | Task card with progress, metadata, guarded hover deletion, drag handlers, and search previews. |
 | `ListView.tsx` | `ListView` | Dense table-like view sharing the same filters/search cache as board view. |
-| `Drawer.tsx` | `Drawer` | Task detail editor for title, frontmatter metadata, subtasks, and body content. |
+| `Drawer.tsx` | `Drawer` | Task detail editor for title, enabled frontmatter metadata, subtasks, and body content. |
 | `SubtaskItem.tsx` | `SubtaskItem` | Editable markdown checklist row. |
 | `FilterBar.tsx` | `FilterBar` | Search input, owner filter, active chips, clear action. |
 | `CommandPalette.tsx` | `CommandPalette` | Quick actions, task lookup, content search, keyboard navigation. |
-| `SettingsPage.tsx` | `SettingsPage` | Full-page project settings, including appearance controls. |
+| `SettingsPage.tsx` | `SettingsPage` | Dense project settings with sidebar search, compact controls, and contextual hover help. |
 | `Header.tsx` | `Header` | Project switcher, view controls, settings link, reload, new task. |
 | `EmptyState.tsx` | `EmptyState` | First-run folder picker and recent projects. |
 | `Toaster.tsx` | `Toaster` | Animated notification stack. |

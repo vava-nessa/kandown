@@ -103,14 +103,14 @@ const SETTINGS: SettingDef[] = [
   {
     key: 'board.defaultPriority',
     label: 'Default priority',
-    section: 'Board',
+    section: 'Fields',
     type: 'select',
     options: ['P1', 'P2', 'P3', 'P4'],
   },
   {
     key: 'board.defaultOwnerType',
     label: 'Default owner',
-    section: 'Board',
+    section: 'Fields',
     type: 'select',
     options: ['human', 'ai'],
   },
@@ -121,6 +121,7 @@ const SETTINGS: SettingDef[] = [
   { key: 'fields.tags', label: 'Tags', section: 'Fields', type: 'toggle' },
   { key: 'fields.dueDate', label: 'Due date', section: 'Fields', type: 'toggle' },
   { key: 'fields.ownerType', label: 'Owner type', section: 'Fields', type: 'toggle' },
+  { key: 'fields.tools', label: 'Tools', section: 'Fields', type: 'toggle' },
 ];
 
 // 📖 Ordered sections for rendering — determines visual grouping

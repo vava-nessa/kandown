@@ -60,6 +60,7 @@ export interface TaskFrontmatter {
   due?: string;
   ownerType?: OwnerType;
   tools?: string;
+  report?: string;
   [k: string]: unknown;
 }
 
@@ -97,7 +98,29 @@ export interface Filters {
   ownerType: OwnerType | null;
 }
 
-export type ColumnColor = 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'violet' | 'pink' | 'gray';
+export type ColumnColor =
+  | 'red'
+  | 'orange'
+  | 'amber'
+  | 'yellow'
+  | 'lime'
+  | 'green'
+  | 'emerald'
+  | 'teal'
+  | 'cyan'
+  | 'sky'
+  | 'blue'
+  | 'indigo'
+  | 'violet'
+  | 'purple'
+  | 'fuchsia'
+  | 'pink'
+  | 'rose'
+  | 'slate'
+  | 'gray'
+  | 'zinc'
+  | 'black'
+  | 'blackTransparent';
 
 export interface KandownConfig {
   ui: {
@@ -123,6 +146,7 @@ export interface KandownConfig {
     tags: boolean;
     dueDate: boolean;
     ownerType: boolean;
+    tools: boolean;
   };
 }
 
@@ -147,5 +171,6 @@ export const DEFAULT_CONFIG: KandownConfig = {
     tags: false,
     dueDate: false,
     ownerType: false,
+    tools: false,
   },
 };

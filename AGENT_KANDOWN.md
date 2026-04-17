@@ -57,7 +57,8 @@ Project-level settings that control UI behavior, agent behavior, and which field
     "assignee": false,
     "tags": false,
     "dueDate": false,
-    "ownerType": false
+    "ownerType": false,
+    "tools": false
   }
 }
 ```
@@ -80,10 +81,13 @@ Project-level settings that control UI behavior, agent behavior, and which field
 | `fields.tags` | `boolean` | `false` | Enable tags field on tasks |
 | `fields.dueDate` | `boolean` | `false` | Enable due date field on tasks |
 | `fields.ownerType` | `boolean` | `false` | Enable human/ai owner type field on tasks |
+| `fields.tools` | `boolean` | `false` | Enable tool-hint field on tasks |
 
 ### Agent Behavior
 
-- If a field is **disabled**, AI agents should **not** add it when creating tasks (no priority tag, no assignee, etc.)
+- If a field is **disabled**, AI agents should **not** add it when creating tasks (no priority tag, no assignee, no tools, etc.)
+- `board.defaultPriority` only applies when `fields.priority` is enabled
+- `board.defaultOwnerType` only applies when `fields.ownerType` is enabled
 - If `suggestFollowUp` is **disabled** (default), skip the follow-up suggestion step after task completion
 - `taskPrefix` determines the ID format: prefix + `-` + zero-padded number (e.g., `task-001`, `bug-042`)
 

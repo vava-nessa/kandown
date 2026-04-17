@@ -20,7 +20,8 @@ var DEFAULT_CONFIG = {
     assignee: false,
     tags: false,
     dueDate: false,
-    ownerType: false
+    ownerType: false,
+    tools: false
   }
 };
 function loadConfig(kandownDir) {
@@ -121,14 +122,14 @@ var SETTINGS = [
   {
     key: "board.defaultPriority",
     label: "Default priority",
-    section: "Board",
+    section: "Fields",
     type: "select",
     options: ["P1", "P2", "P3", "P4"]
   },
   {
     key: "board.defaultOwnerType",
     label: "Default owner",
-    section: "Board",
+    section: "Fields",
     type: "select",
     options: ["human", "ai"]
   },
@@ -137,7 +138,8 @@ var SETTINGS = [
   { key: "fields.assignee", label: "Assignee", section: "Fields", type: "toggle" },
   { key: "fields.tags", label: "Tags", section: "Fields", type: "toggle" },
   { key: "fields.dueDate", label: "Due date", section: "Fields", type: "toggle" },
-  { key: "fields.ownerType", label: "Owner type", section: "Fields", type: "toggle" }
+  { key: "fields.ownerType", label: "Owner type", section: "Fields", type: "toggle" },
+  { key: "fields.tools", label: "Tools", section: "Fields", type: "toggle" }
 ];
 var SECTIONS = ["Appearance", "Agent", "Board", "Fields"];
 var LABEL_WIDTH = 30;

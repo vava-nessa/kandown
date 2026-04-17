@@ -308,7 +308,7 @@ export const useStore = create<State>((set, get) => ({
   },
 
   createTask: async (colName) => {
-    const { columns, dirHandle, tasksDirHandle, boardTitle } = get();
+    const { columns, dirHandle, tasksDirHandle, boardTitle, config } = get();
     if (!dirHandle || !tasksDirHandle || !columns.length) return null;
     const targetColName = colName || columns[0].name;
     const id = nextTaskId(columns);
@@ -318,8 +318,8 @@ export const useStore = create<State>((set, get) => ({
       checked: false,
       tags: [],
       assignee: null,
-      priority: null,
-      ownerType: '',
+      priority: config.fields.priority ? (config.board.defaultPriority as BoardTask['priority']) : null,
+      ownerType: config.fields.ownerType ? config.board.defaultOwnerType : '',
       progress: null,
     };
     const newColumns = columns.map(c =>
@@ -331,11 +331,11 @@ export const useStore = create<State>((set, get) => ({
         id,
         title: 'New task',
         status: targetColName,
-        priority: '',
+        priority: config.fields.priority ? config.board.defaultPriority : '',
         tags: [],
         assignee: '',
         created: new Date().toISOString().slice(0, 10),
-        ownerType: '',
+        ownerType: config.fields.ownerType ? config.board.defaultOwnerType : '',
         tools: '',
       };
       const body = `# New task\n\n## Context\n\n\n## Subtasks\n\n`;

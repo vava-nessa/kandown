@@ -41,6 +41,7 @@ export interface KandownConfig {
     tags: boolean;
     dueDate: boolean;
     ownerType: boolean;
+    tools: boolean;
   };
 }
 
@@ -55,6 +56,7 @@ const DEFAULT_CONFIG: KandownConfig = {
     tags: false,
     dueDate: false,
     ownerType: false,
+    tools: false,
   },
 };
 

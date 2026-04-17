@@ -5,6 +5,8 @@
  *
  * 📖 Text search is routed through the store so it can trigger lazy task-content
  * loading and preview matching across both board and list views.
+ * 📖 Metadata filter chips only appear when their corresponding project field
+ * is enabled, preventing hidden fields from leaving invisible active filters.
  *
  * @functions
  *  → FilterBar — search input, owner filter, chips, and clear action
@@ -24,11 +26,12 @@ export function FilterBar() {
   const filters = useStore(s => s.filters);
   const setFilter = useStore(s => s.setFilter);
   const clearFilters = useStore(s => s.clearFilters);
+  const fields = useStore(s => s.config.fields);
 
   const chips: Array<{ type: keyof typeof filters; label: string; value: string }> = [];
-  if (filters.priority) chips.push({ type: 'priority', label: filters.priority, value: filters.priority });
-  if (filters.tag) chips.push({ type: 'tag', label: '#' + filters.tag, value: filters.tag });
-  if (filters.assignee) chips.push({ type: 'assignee', label: '@' + filters.assignee, value: filters.assignee });
+  if (fields.priority && filters.priority) chips.push({ type: 'priority', label: filters.priority, value: filters.priority });
+  if (fields.tags && filters.tag) chips.push({ type: 'tag', label: '#' + filters.tag, value: filters.tag });
+  if (fields.assignee && filters.assignee) chips.push({ type: 'assignee', label: '@' + filters.assignee, value: filters.assignee });
 
   const ownerOptions: Array<{ label: string; value: OwnerType }> = [
     { label: '👤 All', value: '' },
@@ -36,7 +39,7 @@ export function FilterBar() {
     { label: '🤖 AI', value: 'ai' },
   ];
 
-  const hasFilters = chips.length > 0 || filters.search;
+  const hasFilters = chips.length > 0 || filters.search || (fields.ownerType && filters.ownerType);
 
   return (
     <div className="flex items-center gap-2 px-5 min-h-[42px] border-b border-border bg-bg">
@@ -77,17 +80,19 @@ export function FilterBar() {
           ))}
         </AnimatePresence>
 
-        <div className="flex items-center h-6 border border-border-strong rounded-[4px] overflow-hidden">
-          {ownerOptions.map(opt => (
-            <button
-              key={opt.value}
-              onClick={() => setFilter('ownerType', opt.value)}
-              className={`h-full px-2 text-[12px] transition-colors ${filters.ownerType === opt.value ? 'bg-bg-hover text-fg' : 'text-fg-muted hover:text-fg'}`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
+        {fields.ownerType && (
+          <div className="flex items-center h-6 border border-border-strong rounded-[4px] overflow-hidden">
+            {ownerOptions.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setFilter('ownerType', opt.value)}
+                className={`h-full px-2 text-[12px] transition-colors ${filters.ownerType === opt.value ? 'bg-bg-hover text-fg' : 'text-fg-muted hover:text-fg'}`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {hasFilters && (

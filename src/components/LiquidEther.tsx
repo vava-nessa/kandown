@@ -194,6 +194,7 @@ export default function LiquidEther({
       private _onTouchMove = this.onDocumentTouchMove.bind(this);
       private _onTouchEnd = this.onTouchEnd.bind(this);
       private _onDocumentLeave = this.onDocumentLeave.bind(this);
+      private _onDragOver = this.onDragOver.bind(this);
       init(container: HTMLElement) {
         this.container = container;
         this.docTarget = container.ownerDocument || null;
@@ -205,6 +206,7 @@ export default function LiquidEther({
         this.listenerTarget.addEventListener('touchmove', this._onTouchMove, { passive: true });
         this.listenerTarget.addEventListener('touchend', this._onTouchEnd);
         this.docTarget?.addEventListener('mouseleave', this._onDocumentLeave);
+        this.docTarget?.addEventListener('dragover', this._onDragOver);
       }
       dispose() {
         if (this.listenerTarget) {
@@ -215,6 +217,7 @@ export default function LiquidEther({
         }
         if (this.docTarget) {
           this.docTarget.removeEventListener('mouseleave', this._onDocumentLeave);
+          this.docTarget.removeEventListener('dragover', this._onDragOver);
         }
         this.listenerTarget = null;
         this.docTarget = null;
@@ -281,6 +284,12 @@ export default function LiquidEther({
       }
       onTouchEnd() { this.isHoverInside = false; }
       onDocumentLeave() { this.isHoverInside = false; }
+      onDragOver(event: DragEvent) {
+        if (!this.updateHoverState(event.clientX, event.clientY)) return;
+        if (this.onInteract) this.onInteract();
+        this.setCoords(event.clientX, event.clientY);
+        this.hasUserControl = true;
+      }
       update() {
         if (this.takeoverActive) {
           const t = (performance.now() - this.takeoverStartTime) / (this.takeoverDuration * 1000);

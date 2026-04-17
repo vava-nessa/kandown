@@ -18,7 +18,7 @@
  * @see src/lib/types.ts
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import {
   IconAdjustmentsHorizontal,
@@ -63,6 +63,7 @@ interface SettingDef {
   max?: number;
   placeholder?: string;
   keywords?: string[];
+  parentKey?: string;
 }
 
 const SECTIONS: SettingsSection[] = [
@@ -83,8 +84,8 @@ const SECTIONS: SettingsSection[] = [
   {
     id: 'board',
     label: 'Board',
-    kicker: 'Defaults',
-    description: 'Task ids, default priority, and owner defaults.',
+    kicker: 'Identifiers',
+    description: 'Task id behavior and board-level defaults.',
     icon: IconLayoutBoard,
   },
   {
@@ -176,20 +177,22 @@ const SETTINGS: SettingDef[] = [
   {
     key: 'board.defaultPriority',
     label: 'Default priority',
-    section: 'board',
+    section: 'fields',
     type: 'select',
-    description: 'Initial priority value for newly created tasks.',
+    description: 'Initial priority for new tasks when the Priority field is enabled.',
     options: ['P1', 'P2', 'P3', 'P4'].map(value => ({ value, label: value })),
-    keywords: ['p1', 'p2', 'p3', 'p4'],
+    keywords: ['p1', 'p2', 'p3', 'p4', 'priority default'],
+    parentKey: 'fields.priority',
   },
   {
     key: 'board.defaultOwnerType',
     label: 'Default owner',
-    section: 'board',
+    section: 'fields',
     type: 'select',
-    description: 'Default owner type for new task frontmatter.',
+    description: 'Initial owner for new tasks when the Owner field is enabled.',
     options: ['human', 'ai'].map(value => ({ value, label: value })),
-    keywords: ['human', 'ai', 'owner'],
+    keywords: ['human', 'ai', 'owner default'],
+    parentKey: 'fields.ownerType',
   },
   {
     key: 'fields.priority',
@@ -230,6 +233,14 @@ const SETTINGS: SettingDef[] = [
     type: 'toggle',
     description: 'Enable human/AI ownership metadata on tasks.',
     keywords: ['human', 'ai', 'agent'],
+  },
+  {
+    key: 'fields.tools',
+    label: 'Tools',
+    section: 'fields',
+    type: 'toggle',
+    description: 'Enable free-form tool hints for AI-agent tasks.',
+    keywords: ['filesystem', 'cli', 'websearch', 'browser', 'mcp'],
   },
 ];
 
@@ -272,6 +283,11 @@ function getSettingSearchText(setting: SettingDef, value: unknown): string {
   ].join(' ').toLowerCase();
 }
 
+function isSettingVisible(setting: SettingDef, config: KandownConfig): boolean {
+  if (!setting.parentKey) return true;
+  return Boolean(getConfigValue(config, setting.parentKey));
+}
+
 export function SettingsPage() {
   const config = useStore(s => s.config);
   const updateConfig = useStore(s => s.updateConfig);
@@ -280,23 +296,37 @@ export function SettingsPage() {
 
   const [activeSectionId, setActiveSectionId] = useState<SettingsSectionId>('appearance');
   const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [activeHelpKey, setActiveHelpKey] = useState<string | null>(null);
 
-  const normalizedQuery = query.trim().toLowerCase();
+  useEffect(() => {
+    // 📖 Search waits for typing to pause so filtering does not reshuffle the
+    // settings list on every keystroke.
+    const timer = window.setTimeout(() => setDebouncedQuery(query), 300);
+    return () => window.clearTimeout(timer);
+  }, [query]);
+
+  const normalizedQuery = debouncedQuery.trim().toLowerCase();
   const activeSection = SECTIONS.find(section => section.id === activeSectionId) ?? SECTIONS[0];
+  const helpSetting =
+    SETTINGS.find(setting => setting.key === activeHelpKey) ??
+    SETTINGS.find(setting => setting.section === activeSectionId) ??
+    SETTINGS[0];
 
   const sectionCounts = useMemo(() => {
     return SECTIONS.reduce<Record<SettingsSectionId, number>>((acc, section) => {
-      acc[section.id] = SETTINGS.filter(setting => setting.section === section.id).length;
+      acc[section.id] = SETTINGS.filter(setting => setting.section === section.id && isSettingVisible(setting, config)).length;
       return acc;
     }, { appearance: 0, agent: 0, board: 0, fields: 0 });
-  }, []);
+  }, [config]);
 
   const visibleSettings = useMemo(() => {
     if (!normalizedQuery) {
-      return SETTINGS.filter(setting => setting.section === activeSectionId);
+      return SETTINGS.filter(setting => setting.section === activeSectionId && isSettingVisible(setting, config));
     }
 
     return SETTINGS.filter(setting =>
+      isSettingVisible(setting, config) &&
       getSettingSearchText(setting, getConfigValue(config, setting.key)).includes(normalizedQuery)
     );
   }, [activeSectionId, config, normalizedQuery]);
@@ -413,7 +443,7 @@ export function SettingsPage() {
       </aside>
 
       <main className="min-w-0 flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-[860px] px-6 py-6">
+        <div className="px-6 py-6">
           <motion.div
             key={normalizedQuery ? `search-${normalizedQuery}` : activeSection.id}
             initial={{ opacity: 0, y: 8 }}
@@ -440,24 +470,34 @@ export function SettingsPage() {
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-[8px] border border-border bg-bg-1">
-              {visibleSettings.length === 0 ? (
-                <div className="px-4 py-10 text-center">
-                  <p className="text-[14px] font-medium text-fg">No option found</p>
-                  <p className="mt-1 text-[13px] text-fg-muted">Try another search term.</p>
+            <div className="grid gap-6 xl:grid-cols-[minmax(360px,50%)_minmax(280px,1fr)]">
+              <div className="overflow-hidden rounded-[8px] border border-border bg-bg-1">
+                {visibleSettings.length === 0 ? (
+                  <div className="px-4 py-10 text-center">
+                    <p className="text-[14px] font-medium text-fg">No option found</p>
+                    <p className="mt-1 text-[13px] text-fg-muted">Try another search term.</p>
+                  </div>
+                ) : (
+                  visibleSettings.map((setting, index) => (
+                    <SettingRow
+                      key={setting.key}
+                      setting={setting}
+                      value={getConfigValue(config, setting.key)}
+                      showSection={!!normalizedQuery}
+                      isLast={index === visibleSettings.length - 1}
+                      onChange={(newValue) => handleChange(setting, newValue)}
+                      onHelp={() => setActiveHelpKey(setting.key)}
+                      nested={Boolean(setting.parentKey)}
+                    />
+                  ))
+                )}
+              </div>
+
+              <aside className="hidden min-h-[420px] items-center justify-center xl:flex">
+                <div className="sticky top-6 w-full max-w-[360px] rounded-[8px] border border-border bg-bg-1 px-5 py-5">
+                  <SettingHelp setting={helpSetting} value={getConfigValue(config, helpSetting.key)} />
                 </div>
-              ) : (
-                visibleSettings.map((setting, index) => (
-                  <SettingRow
-                    key={setting.key}
-                    setting={setting}
-                    value={getConfigValue(config, setting.key)}
-                    showSection={!!normalizedQuery}
-                    isLast={index === visibleSettings.length - 1}
-                    onChange={(newValue) => handleChange(setting, newValue)}
-                  />
-                ))
-              )}
+              </aside>
             </div>
           </motion.div>
         </div>
@@ -509,9 +549,11 @@ interface SettingRowProps {
   showSection: boolean;
   isLast: boolean;
   onChange: (value: unknown) => void;
+  onHelp: () => void;
+  nested: boolean;
 }
 
-function SettingRow({ setting, value, showSection, isLast, onChange }: SettingRowProps) {
+function SettingRow({ setting, value, showSection, isLast, onChange, onHelp, nested }: SettingRowProps) {
   const handleToggle = () => {
     if (setting.type === 'toggle') {
       onChange(!value);
@@ -526,9 +568,13 @@ function SettingRow({ setting, value, showSection, isLast, onChange }: SettingRo
   };
 
   return (
-    <div className={`grid gap-3 px-4 py-3 transition-colors hover:bg-bg-2 md:grid-cols-[minmax(0,1fr)_minmax(180px,260px)] md:items-center ${
+    <div
+      onMouseEnter={onHelp}
+      onFocus={onHelp}
+      className={`grid gap-3 px-4 py-3 transition-colors hover:bg-bg-2 focus-within:bg-bg-2 md:grid-cols-[minmax(0,1fr)_minmax(128px,190px)] md:items-center ${
       isLast ? '' : 'border-b border-border'
-    }`}>
+    } ${nested ? 'bg-bg/35 pl-8' : ''}`}
+    >
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[14px] font-medium text-fg">{setting.label}</span>
@@ -566,7 +612,7 @@ function SettingRow({ setting, value, showSection, isLast, onChange }: SettingRo
           <select
             value={String(value)}
             onChange={e => onChange(e.target.value)}
-            className="h-8 w-full rounded-[7px] border border-border bg-bg-2 px-2.5 text-[13.5px] text-fg outline-none transition-colors focus:border-border-focus focus:bg-bg-3 md:w-[220px]"
+            className="h-8 w-full rounded-[7px] border border-border bg-bg-2 px-2.5 text-[13.5px] text-fg outline-none transition-colors focus:border-border-focus focus:bg-bg-3 md:w-[168px]"
           >
             {setting.options.map(opt => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -579,7 +625,7 @@ function SettingRow({ setting, value, showSection, isLast, onChange }: SettingRo
             value={String(value ?? '')}
             onChange={e => onChange(e.target.value.trim())}
             placeholder={setting.placeholder}
-            className="h-8 w-full rounded-[7px] border border-border bg-bg-2 px-2.5 text-[13.5px] text-fg outline-none transition-colors placeholder:text-fg-faint focus:border-border-focus focus:bg-bg-3 md:w-[220px]"
+            className="h-8 w-full rounded-[7px] border border-border bg-bg-2 px-2.5 text-[13.5px] text-fg outline-none transition-colors placeholder:text-fg-faint focus:border-border-focus focus:bg-bg-3 md:w-[168px]"
           />
         )}
 
@@ -607,9 +653,50 @@ function SettingRow({ setting, value, showSection, isLast, onChange }: SettingRo
   );
 }
 
+function SettingHelp({ setting, value }: { setting: SettingDef; value: unknown }) {
+  const section = SECTIONS.find(item => item.id === setting.section);
+  const SectionIcon = section?.icon ?? IconSettings;
+  const currentValue = stringifySettingValue(value) || 'empty';
+  const options = setting.options?.map(option => option.label).join(', ');
+
+  return (
+    <div className="flex min-h-[280px] flex-col justify-center">
+      <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-[8px] border border-border bg-bg-2 text-fg">
+        <SectionIcon size={19} stroke={1.8} />
+      </div>
+      <p className="mb-1 text-[12px] font-semibold uppercase tracking-wider text-fg-muted">
+        {section?.label ?? setting.section}
+      </p>
+      <h3 className="text-[18px] font-semibold tracking-tight text-fg">{setting.label}</h3>
+      <p className="mt-3 text-[14px] leading-relaxed text-fg-muted">{setting.description}</p>
+      <div className="mt-5 space-y-2 border-t border-border pt-4">
+        <div className="flex items-center justify-between gap-3 text-[12.5px]">
+          <span className="text-fg-muted">Current value</span>
+          <span className="rounded-[5px] bg-bg-2 px-2 py-1 font-mono text-fg">{currentValue}</span>
+        </div>
+        <div className="flex items-start justify-between gap-3 text-[12.5px]">
+          <span className="text-fg-muted">Config key</span>
+          <span className="max-w-[210px] break-all rounded-[5px] bg-bg-2 px-2 py-1 font-mono text-right text-fg">
+            {setting.key}
+          </span>
+        </div>
+        {options && (
+          <div className="flex items-start justify-between gap-3 text-[12.5px]">
+            <span className="text-fg-muted">Choices</span>
+            <span className="max-w-[210px] text-right leading-relaxed text-fg-dim">{options}</span>
+          </div>
+        )}
+      </div>
+      <p className="mt-5 text-[12.5px] leading-relaxed text-fg-faint">
+        Hover or tab through another option to update this help panel.
+      </p>
+    </div>
+  );
+}
+
 function SkinPicker({ value, onChange }: { value: string; onChange: (value: unknown) => void }) {
   return (
-    <div className="grid w-full grid-cols-1 gap-1.5 sm:grid-cols-2 md:w-[260px]">
+    <div className="grid w-full grid-cols-1 gap-1.5 md:w-[190px]">
       {SKIN_OPTIONS.map(skin => {
         const active = skin.id === value;
         const swatches = [

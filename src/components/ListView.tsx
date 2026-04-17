@@ -59,6 +59,7 @@ export function ListView() {
   const filters = useStore(s => s.filters);
   const openDrawer = useStore(s => s.openDrawer);
   const searchMatches = useStore(s => s.searchMatches);
+  const fields = useStore(s => s.config.fields);
 
   const rows = useMemo(() => {
     const result: Array<{ task: BoardTask; column: string }> = [];
@@ -70,15 +71,28 @@ export function ListView() {
           const hasContentMatch = searchMatches.has(t.id);
           if (!titleOrId && !hasContentMatch) continue;
         }
-        if (filters.priority && t.priority !== filters.priority) continue;
-        if (filters.tag && !(t.tags || []).includes(filters.tag)) continue;
-        if (filters.assignee && t.assignee !== filters.assignee) continue;
-        if (filters.ownerType && t.ownerType !== filters.ownerType) continue;
+        if (fields.priority && filters.priority && t.priority !== filters.priority) continue;
+        if (fields.tags && filters.tag && !(t.tags || []).includes(filters.tag)) continue;
+        if (fields.assignee && filters.assignee && t.assignee !== filters.assignee) continue;
+        if (fields.ownerType && filters.ownerType && t.ownerType !== filters.ownerType) continue;
         result.push({ task: t, column: col.name });
       }
     }
     return result;
-  }, [columns, filters, searchMatches]);
+  }, [columns, fields, filters, searchMatches]);
+
+  const listGridClass = [
+    '80px',
+    fields.priority ? '40px' : null,
+    '1fr',
+    '140px',
+    fields.tags ? '120px' : null,
+    fields.assignee ? '120px' : null,
+    '80px',
+  ].filter(Boolean).join('_');
+  const listGridStyle = {
+    gridTemplateColumns: listGridClass.replaceAll('_', ' '),
+  };
 
   return (
     <motion.div
@@ -112,32 +126,39 @@ export function ListView() {
                   exit={{ opacity: 0 }}
                   transition={{ delay: Math.min(i * 0.012, 0.2), duration: 0.2 }}
                   onClick={() => openDrawer(task.id)}
-                  className="w-full grid grid-cols-[80px_40px_1fr_140px_120px_120px_80px] gap-3 px-6 py-2.5 text-[13.5px] border-b border-border hover:bg-bg-1 transition-colors text-left items-center"
+                  className="w-full grid gap-3 px-6 py-2.5 text-[13.5px] border-b border-border hover:bg-bg-1 transition-colors text-left items-center"
+                  style={listGridStyle}
                 >
                   <span className="font-mono text-[11.5px] text-fg-muted">{task.id.toUpperCase()}</span>
-                  <span className="flex items-center gap-1.5">
-                    {task.priority && (
-                      <span
-                        className="w-1.5 h-1.5 rounded-full"
-                        style={{ backgroundColor: priorityColors[task.priority] }}
-                        title={task.priority}
-                      />
-                    )}
-                  </span>
+                  {fields.priority && (
+                    <span className="flex items-center gap-1.5">
+                      {task.priority && (
+                        <span
+                          className="w-1.5 h-1.5 rounded-full"
+                          style={{ backgroundColor: priorityColors[task.priority] }}
+                          title={task.priority}
+                        />
+                      )}
+                    </span>
+                  )}
                   <span className={`truncate ${task.checked ? 'line-through text-fg-muted' : 'text-fg'}`}>
                     {task.title}
                   </span>
                   <span className="text-fg-dim text-[12.5px]">{column}</span>
-                  <span className="flex flex-wrap gap-1">
-                    {task.tags.slice(0, 2).map(tag => (
-                      <span key={tag} className="text-[11.5px] px-1.5 py-0.5 rounded-[3px] bg-bg-2 border border-border text-fg-dim">
-                        {tag}
-                      </span>
-                    ))}
-                  </span>
-                  <span className="text-[12.5px] text-fg-dim">
-                    {task.assignee ? `@${task.assignee}` : ''}
-                  </span>
+                  {fields.tags && (
+                    <span className="flex flex-wrap gap-1">
+                      {task.tags.slice(0, 2).map(tag => (
+                        <span key={tag} className="text-[11.5px] px-1.5 py-0.5 rounded-[3px] bg-bg-2 border border-border text-fg-dim">
+                          {tag}
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                  {fields.assignee && (
+                    <span className="text-[12.5px] text-fg-dim">
+                      {task.assignee ? `@${task.assignee}` : ''}
+                    </span>
+                  )}
                   <span className="text-[12px] font-mono text-fg-muted tabular-nums">
                     {task.progress ? `${task.progress.done}/${task.progress.total}` : ''}
                   </span>
@@ -148,9 +169,10 @@ export function ListView() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="px-6 pb-2 grid grid-cols-[80px_40px_1fr_140px_120px_120px_80px] gap-3"
+                    className="px-6 pb-2 grid gap-3"
+                    style={listGridStyle}
                   >
-                    <div className="col-start-3 flex flex-col gap-1">
+                    <div className={`${fields.priority ? 'col-start-3' : 'col-start-2'} flex flex-col gap-1`}>
                       {matches.slice(0, 2).map((match: SearchMatch, idx: number) => (
                         <div key={idx} className="text-[12px] text-fg-dim bg-bg rounded px-2 py-1 border border-border">
                           <span className="text-[10.5px] font-medium text-fg-muted uppercase tracking-wide mr-1.5">

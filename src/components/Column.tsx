@@ -62,23 +62,51 @@ function getColumnIcon(columnName: string): TablerIcon {
 const COLUMN_COLOR_MAP: Record<ColumnColor, string> = {
   red: 'rgba(239,68,68,0.12)',
   orange: 'rgba(249,115,22,0.12)',
+  amber: 'rgba(245,158,11,0.12)',
   yellow: 'rgba(234,179,8,0.12)',
+  lime: 'rgba(132,204,22,0.12)',
   green: 'rgba(34,197,94,0.12)',
+  emerald: 'rgba(16,185,129,0.12)',
+  teal: 'rgba(20,184,166,0.12)',
+  cyan: 'rgba(6,182,212,0.12)',
+  sky: 'rgba(14,165,233,0.12)',
   blue: 'rgba(59,130,246,0.12)',
+  indigo: 'rgba(99,102,241,0.12)',
   violet: 'rgba(139,92,246,0.12)',
+  purple: 'rgba(168,85,247,0.12)',
+  fuchsia: 'rgba(217,70,239,0.12)',
   pink: 'rgba(236,72,153,0.12)',
+  rose: 'rgba(244,63,94,0.12)',
+  slate: 'rgba(100,116,139,0.12)',
   gray: 'rgba(156,163,175,0.12)',
+  zinc: 'rgba(113,113,122,0.12)',
+  black: 'rgba(0,0,0,0.34)',
+  blackTransparent: 'rgba(0,0,0,0.16)',
 };
 
 const COLOR_SWATCHES: { key: ColumnColor; label: string; color: string }[] = [
   { key: 'red', label: 'Red', color: 'rgba(239,68,68,0.9)' },
   { key: 'orange', label: 'Orange', color: 'rgba(249,115,22,0.9)' },
+  { key: 'amber', label: 'Amber', color: 'rgba(245,158,11,0.9)' },
   { key: 'yellow', label: 'Yellow', color: 'rgba(234,179,8,0.9)' },
+  { key: 'lime', label: 'Lime', color: 'rgba(132,204,22,0.9)' },
   { key: 'green', label: 'Green', color: 'rgba(34,197,94,0.9)' },
+  { key: 'emerald', label: 'Emerald', color: 'rgba(16,185,129,0.9)' },
+  { key: 'teal', label: 'Teal', color: 'rgba(20,184,166,0.9)' },
+  { key: 'cyan', label: 'Cyan', color: 'rgba(6,182,212,0.9)' },
+  { key: 'sky', label: 'Sky', color: 'rgba(14,165,233,0.9)' },
   { key: 'blue', label: 'Blue', color: 'rgba(59,130,246,0.9)' },
+  { key: 'indigo', label: 'Indigo', color: 'rgba(99,102,241,0.9)' },
   { key: 'violet', label: 'Violet', color: 'rgba(139,92,246,0.9)' },
+  { key: 'purple', label: 'Purple', color: 'rgba(168,85,247,0.9)' },
+  { key: 'fuchsia', label: 'Fuchsia', color: 'rgba(217,70,239,0.9)' },
   { key: 'pink', label: 'Pink', color: 'rgba(236,72,153,0.9)' },
+  { key: 'rose', label: 'Rose', color: 'rgba(244,63,94,0.9)' },
+  { key: 'slate', label: 'Slate', color: 'rgba(100,116,139,0.9)' },
   { key: 'gray', label: 'Gray', color: 'rgba(156,163,175,0.9)' },
+  { key: 'zinc', label: 'Zinc', color: 'rgba(113,113,122,0.9)' },
+  { key: 'black', label: 'Black', color: 'rgba(0,0,0,0.9)' },
+  { key: 'blackTransparent', label: 'Black 50%', color: 'rgba(0,0,0,0.5)' },
 ];
 
 interface ColumnColorMenuProps {
@@ -128,11 +156,11 @@ function ColumnColorMenu({ columnName, currentColor, onSelect }: ColumnColorMenu
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.12 }}
-            className="absolute right-0 top-full mt-1 bg-bg-2 border border-border rounded-[6px] shadow-lg p-1.5 z-50 min-w-[120px]"
+            className="absolute right-0 top-full mt-1 bg-bg-2 border border-border rounded-[6px] shadow-lg p-1.5 z-50 min-w-[152px]"
             style={{ transformOrigin: 'top right' }}
           >
             <div className="text-[11px] text-fg-muted px-1.5 pb-1.5 font-medium">Color</div>
-            <div className="grid grid-cols-4 gap-1">
+            <div className="grid grid-cols-5 gap-1">
               {COLOR_SWATCHES.map(({ key, label, color }) => (
                 <button
                   key={key}
@@ -243,7 +271,7 @@ export function Column({
       onMouseEnter={() => setIsColHovered(true)}
       onMouseLeave={() => setIsColHovered(false)}
       data-column={column.name}
-      className="flex flex-col flex-none w-[304px] rounded-[10px] transition-colors duration-150"
+      className="flex flex-col flex-none w-[304px] min-h-[400px] rounded-[10px] transition-colors duration-150"
       style={{ backgroundColor: isOver ? 'rgba(255,255,255,0.03)' : colBg }}
     >
       <div className="flex items-center justify-between px-3.5 pt-3 pb-2">

@@ -27,6 +27,7 @@ import { Drawer } from './components/Drawer';
 import { CommandPalette } from './components/CommandPalette';
 import { SettingsPage } from './components/SettingsPage';
 import { Toaster } from './components/Toaster';
+import LiquidEther from './components/LiquidEther';
 import { useStore } from './lib/store';
 
 export function App() {
@@ -41,6 +42,7 @@ export function App() {
   const recentProjects = useStore(s => s.recentProjects);
   const openRecentProject = useStore(s => s.openRecentProject);
   const currentPage = useStore(s => s.currentPage);
+  const config = useStore(s => s.config);
 
   // Handle URL hydration on mount
   useEffect(() => {
@@ -109,10 +111,27 @@ export function App() {
       {currentPage === 'settings' ? (
         <SettingsPage />
       ) : dirHandle ? (
-        <>
-          <FilterBar />
-          {viewMode === 'board' ? <Board /> : <ListView />}
-        </>
+        <div className="flex-1 relative overflow-hidden">
+          {config.ui.background === 'liquid-ether' && (
+            <LiquidEther
+              className="z-0"
+              mouseForce={12}
+              cursorSize={45}
+              isViscous
+              viscous={30}
+              colors={['#28098f', '#351131', '#2c1818']}
+              autoDemo
+              autoSpeed={0.3}
+              autoIntensity={0.9}
+              isBounce={false}
+              resolution={0.5}
+            />
+          )}
+          <div className={`relative ${config.ui.background === 'liquid-ether' ? 'z-10' : ''}`}>
+            <FilterBar />
+            {viewMode === 'board' ? <Board /> : <ListView />}
+          </div>
+        </div>
       ) : (
         <EmptyState />
       )}

@@ -19,6 +19,7 @@
     "assignee": false,
     "tags": false,
     "dueDate": false,
-    "ownerType": false
+    "ownerType": false,
+    "tools": false
   }
 }
