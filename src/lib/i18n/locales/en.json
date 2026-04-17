@@ -181,7 +181,11 @@
     "pages": "Pages",
     "backToBoard": "Back to board",
     "matches": "Matches",
-    "settingsTitle": "Settings"
+    "settingsTitle": "Settings",
+    "kickerInterface": "Interface",
+    "kickerAutomation": "Automation",
+    "kickerIdentifiers": "Identifiers",
+    "kickerMetadata": "Metadata"
   },
   "conflict": {
     "detected": "Conflict Detected",

@@ -181,7 +181,11 @@
     "pages": "Pagine",
     "backToBoard": "Torna alla lavagna",
     "matches": "Corrispondenze",
-    "settingsTitle": "Impostazioni"
+    "settingsTitle": "Impostazioni",
+    "kickerInterface": "Interfaccia",
+    "kickerAutomation": "Automazione",
+    "kickerIdentifiers": "Identificatori",
+    "kickerMetadata": "Metadati"
   },
   "conflict": {
     "detected": "Conflitto rilevato",

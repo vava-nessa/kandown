@@ -181,7 +181,11 @@
     "pages": "页面",
     "backToBoard": "返回看板",
     "matches": "匹配",
-    "settingsTitle": "设置"
+    "settingsTitle": "设置",
+    "kickerInterface": "界面",
+    "kickerAutomation": "自动化",
+    "kickerIdentifiers": "标识符",
+    "kickerMetadata": "元数据"
   },
   "conflict": {
     "detected": "检测到冲突",

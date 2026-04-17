@@ -181,7 +181,11 @@
     "pages": "Seiten",
     "backToBoard": "Zurück zum Board",
     "matches": "Treffer",
-    "settingsTitle": "Einstellungen"
+    "settingsTitle": "Einstellungen",
+    "kickerInterface": "Oberfläche",
+    "kickerAutomation": "Automatisierung",
+    "kickerIdentifiers": "Bezeichner",
+    "kickerMetadata": "Metadaten"
   },
   "conflict": {
     "detected": "Konflikt erkannt",

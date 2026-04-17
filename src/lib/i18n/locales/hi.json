@@ -181,7 +181,11 @@
     "pages": "पृष्ठ",
     "backToBoard": "बोर्ड पर वापस जाएं",
     "matches": "मिलान",
-    "settingsTitle": "सेटिंग्स"
+    "settingsTitle": "सेटिंग्स",
+    "kickerInterface": "इंटरफ़ेस",
+    "kickerAutomation": "स्वचालन",
+    "kickerIdentifiers": "पहचानकर्ता",
+    "kickerMetadata": "मेटाडेटा"
   },
   "conflict": {
     "detected": "विरोधाभास का पता चला",
