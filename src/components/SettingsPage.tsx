@@ -246,153 +246,6 @@ const getSETTINGS = (t: ReturnType<typeof useTranslation>['t']): SettingDef[] =>
   },
 ];
 
-const SETTINGS: SettingDef[] = [
-  {
-    key: 'ui.language',
-    label: 'Language',
-    section: 'appearance',
-    type: 'select',
-    description: 'UI language stored in this project config.',
-    options: ['en', 'fr', 'zh', 'es', 'pt', 'hi', 'de', 'it'].map(value => ({ value, label: value })),
-    keywords: ['locale', 'translation'],
-  },
-  {
-    key: 'ui.theme',
-    label: 'Mode',
-    section: 'appearance',
-    type: 'select',
-    description: 'Auto follows your system light or dark preference.',
-    options: [
-      { value: 'auto', label: 'Auto' },
-      { value: 'light', label: 'Light' },
-      { value: 'dark', label: 'Dark' },
-    ],
-    keywords: ['dark', 'light', 'auto'],
-  },
-  {
-    key: 'ui.skin',
-    label: 'Skin',
-    section: 'appearance',
-    type: 'skin',
-    description: 'Color tokens are stored per project in kandown.json.',
-    options: SKIN_OPTIONS.map(skin => ({ value: skin.id, label: skin.label })),
-    keywords: ['color', 'theme', 'palette'],
-  },
-  {
-    key: 'ui.background',
-    label: 'Background',
-    section: 'appearance',
-    type: 'select',
-    description: 'Choose a flat surface or animated liquid background.',
-    options: BACKGROUND_OPTIONS.map(background => ({ value: background.id, label: background.label })),
-    keywords: ['liquid', 'solid', 'animation'],
-  },
-  {
-    key: 'ui.font',
-    label: 'Font',
-    section: 'appearance',
-    type: 'select',
-    description: 'Local system font stack, with no network request.',
-    options: FONT_OPTIONS.map(font => ({ value: font.id, label: font.label })),
-    keywords: ['typography', 'text'],
-  },
-  {
-    key: 'agent.suggestFollowUp',
-    label: 'Suggest follow-up tasks',
-    section: 'agent',
-    type: 'toggle',
-    description: 'Ask agents to propose next tasks after finishing one.',
-    keywords: ['ai', 'suggestions', 'automation'],
-  },
-  {
-    key: 'agent.maxSuggestions',
-    label: 'Max suggestions',
-    section: 'agent',
-    type: 'number',
-    description: 'Caps the number of follow-up tasks an agent may propose.',
-    min: 1,
-    max: 5,
-    keywords: ['limit', 'follow-up'],
-  },
-  {
-    key: 'board.taskPrefix',
-    label: 'Task prefix',
-    section: 'board',
-    type: 'text',
-    description: 'Prefix for new task ids, such as t-001 or bug-001.',
-    placeholder: 't',
-    keywords: ['id', 'identifier', 'task id'],
-  },
-  {
-    key: 'board.defaultPriority',
-    label: 'Default priority',
-    section: 'fields',
-    type: 'select',
-    description: 'Initial priority for new tasks when the Priority field is enabled.',
-    options: ['P1', 'P2', 'P3', 'P4'].map(value => ({ value, label: value })),
-    keywords: ['p1', 'p2', 'p3', 'p4', 'priority default'],
-    parentKey: 'fields.priority',
-  },
-  {
-    key: 'board.defaultOwnerType',
-    label: 'Default owner',
-    section: 'fields',
-    type: 'select',
-    description: 'Initial owner for new tasks when the Owner field is enabled.',
-    options: ['human', 'ai'].map(value => ({ value, label: value })),
-    keywords: ['human', 'ai', 'owner default'],
-    parentKey: 'fields.ownerType',
-  },
-  {
-    key: 'fields.priority',
-    label: 'Priority',
-    section: 'fields',
-    type: 'toggle',
-    description: 'Enable priority metadata on tasks.',
-    keywords: ['p1', 'p2', 'importance'],
-  },
-  {
-    key: 'fields.assignee',
-    label: 'Assignee',
-    section: 'fields',
-    type: 'toggle',
-    description: 'Enable assignee metadata on tasks.',
-    keywords: ['owner', 'person', 'user'],
-  },
-  {
-    key: 'fields.tags',
-    label: 'Tags',
-    section: 'fields',
-    type: 'toggle',
-    description: 'Enable tag metadata on tasks.',
-    keywords: ['labels', 'categories'],
-  },
-  {
-    key: 'fields.dueDate',
-    label: 'Due date',
-    section: 'fields',
-    type: 'toggle',
-    description: 'Enable due date metadata on tasks.',
-    keywords: ['deadline', 'date'],
-  },
-  {
-    key: 'fields.ownerType',
-    label: 'Owner type',
-    section: 'fields',
-    type: 'toggle',
-    description: 'Enable human/AI ownership metadata on tasks.',
-    keywords: ['human', 'ai', 'agent'],
-  },
-  {
-    key: 'fields.tools',
-    label: 'Tools',
-    section: 'fields',
-    type: 'toggle',
-    description: 'Enable free-form tool hints for AI-agent tasks.',
-    keywords: ['filesystem', 'cli', 'websearch', 'browser', 'mcp'],
-  },
-];
-
 function getConfigValue(config: KandownConfig, path: string): unknown {
   const parts = path.split('.');
   let current: unknown = config;
@@ -467,29 +320,30 @@ export function SettingsPage() {
   }, [query]);
 
   const normalizedQuery = debouncedQuery.trim().toLowerCase();
+  const settings = getSETTINGS(t);
   const activeSection = SECTIONS(t).find(section => section.id === activeSectionId) ?? SECTIONS(t)[0];
   const helpSetting =
-    SETTINGS.find(setting => setting.key === activeHelpKey) ??
-    SETTINGS.find(setting => setting.section === activeSectionId) ??
-    SETTINGS[0];
+    settings.find(setting => setting.key === activeHelpKey) ??
+    settings.find(setting => setting.section === activeSectionId) ??
+    settings[0];
 
   const sectionCounts = useMemo(() => {
     return SECTIONS(t).reduce<Record<SettingsSectionId, number>>((acc, section) => {
-      acc[section.id] = SETTINGS.filter(setting => setting.section === section.id && isSettingVisible(setting, config)).length;
+      acc[section.id] = settings.filter(setting => setting.section === section.id && isSettingVisible(setting, config)).length;
       return acc;
     }, { appearance: 0, agent: 0, board: 0, fields: 0 });
-  }, [config, t]);
+  }, [config, t, settings]);
 
   const visibleSettings = useMemo(() => {
     if (!normalizedQuery) {
-      return SETTINGS.filter(setting => setting.section === activeSectionId && isSettingVisible(setting, config));
+      return settings.filter(setting => setting.section === activeSectionId && isSettingVisible(setting, config));
     }
 
-    return SETTINGS.filter(setting =>
+    return settings.filter(setting =>
       isSettingVisible(setting, config) &&
       getSettingSearchText(setting, getConfigValue(config, setting.key)).includes(normalizedQuery)
     );
-  }, [activeSectionId, config, normalizedQuery]);
+  }, [activeSectionId, config, normalizedQuery, settings]);
 
   const handleChange = (setting: SettingDef, newValue: unknown) => {
     updateConfig(currentConfig => setConfigValue(currentConfig, setting.key, newValue));
@@ -521,7 +375,7 @@ export function SettingsPage() {
               <IconSettings size={17} stroke={1.8} />
             </span>
             <div className="min-w-0">
-              <h1 className="truncate text-[17px] font-semibold tracking-tight text-fg">Settings</h1>
+              <h1 className="truncate text-[17px] font-semibold tracking-tight text-fg">{t('settings.settingsTitle')}</h1>
               <p className="truncate text-[12.5px] text-fg-muted">{dirHandle.name}</p>
             </div>
           </div>
@@ -613,8 +467,16 @@ export function SettingsPage() {
           >
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
-                <p className="mb-1 text-[12px] font-semibold uppercase tracking-wider text-fg-muted">
-                  {normalizedQuery ? 'Search results' : activeSection.kicker}
+<p className="mb-1 text-[12px] font-semibold uppercase tracking-wider text-fg-muted">
+                  {normalizedQuery ? t('settings.searchResults') : activeSection.kicker}
+                </p>
+                <h2 className="text-[22px] font-semibold tracking-tight text-fg">
+                  {normalizedQuery ? ` "${query.trim()}" ` : activeSection.label}
+                </h2>
+                <p className="mt-1 max-w-[560px] text-[13.5px] leading-relaxed text-fg-muted">
+                  {normalizedQuery
+                    ? `${visibleSettings.length} ${t('settings.matchingOptions')}`
+                    : activeSection.description}
                 </p>
                 <h2 className="text-[22px] font-semibold tracking-tight text-fg">
                   {normalizedQuery ? `“${query.trim()}”` : activeSection.label}
@@ -635,8 +497,8 @@ export function SettingsPage() {
               <div className="overflow-hidden rounded-[8px] border border-border bg-bg-1">
                 {visibleSettings.length === 0 ? (
                   <div className="px-4 py-10 text-center">
-                    <p className="text-[14px] font-medium text-fg">No option found</p>
-                    <p className="mt-1 text-[13px] text-fg-muted">Try another search term.</p>
+                    <p className="text-[14px] font-medium text-fg">{t('settings.noOptionFound')}</p>
+                    <p className="mt-1 text-[13px] text-fg-muted">{t('settings.tryAnotherSearch')}</p>
                   </div>
                 ) : (
                   visibleSettings.map((setting, index) => (
