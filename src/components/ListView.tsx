@@ -1,3 +1,20 @@
+/**
+ * @file List view
+ * @description Renders tasks in a dense table-like view with metadata columns,
+ * active filters, content-search previews, and drawer navigation.
+ *
+ * 📖 List view uses the same store filters and search-match cache as board view,
+ * so switching views does not lose search context.
+ *
+ * @functions
+ *  → HighlightedText — highlights matched text in search preview rows
+ *  → ListView — animated list/table representation of all filtered tasks
+ *
+ * @exports ListView
+ * @see src/components/Board.tsx
+ * @see src/lib/store.ts
+ */
+
 import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../lib/store';

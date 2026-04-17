@@ -1,3 +1,20 @@
+/**
+ * @file Markdown serializer utilities
+ * @description Converts in-memory board columns and task frontmatter/body data
+ * back into Kandown's plain markdown file formats.
+ *
+ * 📖 Serialization is intentionally conservative: board.md remains a compact
+ * index, while task files keep full detail content in per-task markdown.
+ *
+ * @functions
+ *  → serializeBoard — writes board.md from title and columns
+ *  → serializeTaskFile — writes task frontmatter and body markdown
+ *
+ * @exports serializeBoard, serializeTaskFile
+ * @see src/lib/parser.ts
+ * @see src/lib/types.ts
+ */
+
 import type { Column, TaskFrontmatter } from './types';
 
 export function serializeBoard(title: string, columns: Column[]): string {

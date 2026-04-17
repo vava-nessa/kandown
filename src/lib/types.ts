@@ -1,3 +1,16 @@
+/**
+ * @file Shared domain types
+ * @description Defines the board, task, config, filter, search, and appearance
+ * types used by the Kandown web UI and persistence layer.
+ *
+ * 📖 Keep cross-module contracts here so parser, serializer, store, and React
+ * components agree on the same markdown-backed domain model.
+ *
+ * @exports Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, Filters, KandownConfig, DEFAULT_CONFIG
+ * @see src/lib/parser.ts
+ * @see src/lib/store.ts
+ */
+
 export type Priority = 'P1' | 'P2' | 'P3' | 'P4' | '';
 
 export type OwnerType = 'human' | 'ai' | '';

@@ -1,3 +1,18 @@
+/**
+ * @file Toast notifications
+ * @description Renders transient success, info, and error messages emitted by
+ * store actions such as saving, creating, deleting, and permission failures.
+ *
+ * 📖 Toast lifecycle is owned by the store; this component only animates the
+ * current queue and applies the correct visual treatment.
+ *
+ * @functions
+ *  → Toaster — fixed notification stack
+ *
+ * @exports Toaster
+ * @see src/lib/store.ts
+ */
+
 import { AnimatePresence, motion } from 'motion/react';
 import { useStore } from '../lib/store';
 

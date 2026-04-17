@@ -1,3 +1,19 @@
+/**
+ * @file Subtask row editor
+ * @description Editable row for one markdown checklist item inside the task
+ * drawer, with toggle, text edit, enter-to-add, and empty-backspace removal.
+ *
+ * 📖 Subtasks remain plain markdown checklist lines. This component only handles
+ * the editing interaction; serialization is handled later by parser utilities.
+ *
+ * @functions
+ *  → SubtaskItem — animated editable checklist row
+ *
+ * @exports SubtaskItem
+ * @see src/components/Drawer.tsx
+ * @see src/lib/parser.ts
+ */
+
 import { motion } from 'motion/react';
 import { useRef, useEffect } from 'react';
 import { Icon } from './Icons';

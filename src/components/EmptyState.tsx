@@ -1,3 +1,19 @@
+/**
+ * @file Empty project state
+ * @description Renders the first-run project picker, unsupported-browser copy,
+ * and recent project shortcuts before a `.kandown` folder is open.
+ *
+ * 📖 This is the only web surface that directly checks File System Access API
+ * support, because no project can be opened without that browser capability.
+ *
+ * @functions
+ *  → LogoSvg — inline Kandown mark for the empty state
+ *  → EmptyState — project selection and recent project launcher
+ *
+ * @exports EmptyState
+ * @see src/lib/filesystem.ts
+ */
+
 import { motion } from 'motion/react';
 import { useStore } from '../lib/store';
 import { supportsFileSystemAccess } from '../lib/filesystem';

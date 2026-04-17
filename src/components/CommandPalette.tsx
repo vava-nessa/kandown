@@ -1,3 +1,21 @@
+/**
+ * @file Command palette
+ * @description Provides global quick actions, view switching, task lookup, and
+ * content-aware task search with highlighted snippets.
+ *
+ * 📖 The palette lazily loads task file content only when needed, so small
+ * boards feel instant and large boards avoid reading every markdown file until
+ * the user searches.
+ *
+ * @functions
+ *  → HighlightedText — highlights matched text in task search previews
+ *  → CommandPalette — modal command/search interface opened by Cmd/Ctrl+K
+ *
+ * @exports CommandPalette
+ * @see src/lib/store.ts
+ * @see src/lib/parser.ts
+ */
+
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Icon } from './Icons';

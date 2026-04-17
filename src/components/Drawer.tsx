@@ -1,3 +1,21 @@
+/**
+ * @file Task drawer editor
+ * @description Full-height task detail editor for title, metadata, subtasks,
+ * description body, save/close, autosave metadata, and deletion.
+ *
+ * 📖 The drawer edits the parsed task detail file and syncs lightweight board
+ * metadata back into `board.md`, keeping the index cheap while preserving rich
+ * task context in `tasks/<id>.md`.
+ *
+ * @functions
+ *  → Drawer — task editor panel with keyboard shortcuts and autosave
+ *  → FieldRow — aligned metadata row used by the drawer form
+ *
+ * @exports Drawer
+ * @see src/lib/store.ts
+ * @see src/components/SubtaskItem.tsx
+ */
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Icon } from './Icons';

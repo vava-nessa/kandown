@@ -1,4 +1,26 @@
 #!/usr/bin/env node
+/**
+ * @file Kandown CLI entrypoint
+ * @description Implements `kandown init`, `kandown update`, and `kandown settings`
+ * for installing the single-file web app, templates, agent instructions, and
+ * project-level configuration into a repository.
+ *
+ * 📖 The CLI is intentionally dependency-light: it copies built artifacts and
+ * markdown templates, then wires agent docs into the host project when possible.
+ *
+ * @functions
+ *  → help — prints CLI usage
+ *  → copyRecursive — copies template directories
+ *  → findAgentsFile — finds existing AI-agent instruction files
+ *  → appendAgentReference — injects a Kandown task-management reference
+ *  → createAgentsFileIfMissing — creates AGENTS.md when none exists
+ *  → parseArgs — parses init flags
+ *  → cmdInit — installs `.kandown`
+ *  → cmdUpdate — refreshes installed kandown.html
+ *  → main — dispatches CLI commands
+ *
+ * @exports none
+ */
 /* eslint-disable no-console */
 
 import { fileURLToPath } from 'node:url';

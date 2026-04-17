@@ -1,3 +1,20 @@
+/**
+ * @file Board column component
+ * @description Renders a single kanban column, accepts dropped cards, shows the
+ * filtered task count, and creates new tasks directly in the column.
+ *
+ * 📖 Drag state is owned by `Board`; this component only translates browser
+ * drag/drop events into the column-level callbacks that eventually update
+ * `board.md`.
+ *
+ * @functions
+ *  → Column — animated kanban column with task cards and empty state
+ *
+ * @exports Column
+ * @see src/components/Board.tsx
+ * @see src/components/Card.tsx
+ */
+
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Card } from './Card';

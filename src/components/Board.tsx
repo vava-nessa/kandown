@@ -1,3 +1,20 @@
+/**
+ * @file Board view
+ * @description Renders the horizontal kanban board, filters tasks per column,
+ * wires drag-and-drop state, and forwards content-search matches to cards.
+ *
+ * 📖 The board receives normalized columns from the store. It only decides what
+ * should be visible for the current filters; actual markdown writes happen in
+ * `moveTask` inside the store.
+ *
+ * @functions
+ *  → Board — animated board surface with draggable columns/cards
+ *
+ * @exports Board
+ * @see src/components/Column.tsx
+ * @see src/lib/store.ts
+ */
+
 import { useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { Column } from './Column';

@@ -1,3 +1,28 @@
+/**
+ * @file Browser file-system adapter
+ * @description Wraps the File System Access API, `.kandown` discovery/creation,
+ * board/task reads and writes, project config persistence, and recent-project
+ * IndexedDB storage.
+ *
+ * 📖 All browser file handles pass through this module. UI and store code should
+ * call these helpers instead of touching File System Access APIs directly.
+ *
+ * @functions
+ *  → supportsFileSystemAccess — detects compatible Chromium browsers
+ *  → pickDirectory — prompts for a writable project directory
+ *  → pickProjectDirectory — opens or creates `.kandown`
+ *  → getKandownHandle — resolves `.kandown` from a remembered project handle
+ *  → readConfigFile / writeConfigFile — load and persist kandown.json
+ *  → readBoardFile / writeBoardFile — load and persist board.md
+ *  → readTaskFile / writeTaskFile / deleteTaskFile — task detail file helpers
+ *  → saveRecentProject / listRecentProjects / removeRecentProject — IndexedDB recent projects
+ *  → verifyPermission — requests persisted read/write access
+ *
+ * @exports supportsFileSystemAccess, pickDirectory, pickProjectDirectory, getKandownHandle, ensureTasksDir, readBoardFile, writeBoardFile, readConfigFile, writeConfigFile, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission
+ * @see src/lib/store.ts
+ * @see src/lib/parser.ts
+ */
+
 import type { KandownConfig, TaskFrontmatter } from './types';
 import { DEFAULT_CONFIG } from './types';
 import { serializeTaskFile } from './serializer';

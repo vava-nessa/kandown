@@ -1,3 +1,16 @@
+/**
+ * @file Inline SVG icon set
+ * @description Centralizes small stroke icons used by the Kandown web UI.
+ *
+ * 📖 Icons are local React components instead of an external dependency so the
+ * published single-file app stays compact and fully self-contained.
+ *
+ * @functions
+ *  → Icon.* — named SVG icon components with shared stroke defaults
+ *
+ * @exports Icon
+ */
+
 import type { SVGProps } from 'react';
 
 type IconProps = SVGProps<SVGSVGElement> & { size?: number };

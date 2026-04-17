@@ -1,3 +1,21 @@
+/**
+ * @file App header
+ * @description Top navigation bar for project switching, task counts, view mode,
+ * density, settings, command palette, reload, and task creation.
+ *
+ * 📖 The header is intentionally thin: it reads state from the store, delegates
+ * commands to store actions, and lets the board/list/drawer handle the actual
+ * task presentation.
+ *
+ * @functions
+ *  → LogoSvg — inline Kandown mark used in the header
+ *  → Header — primary app toolbar and recent-project menu
+ *
+ * @exports Header
+ * @see src/lib/store.ts
+ * @see src/hooks/useAnimatedNumber.ts
+ */
+
 import { useState, useRef, useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Icon } from './Icons';

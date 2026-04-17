@@ -1,3 +1,20 @@
+/**
+ * @file Task card component
+ * @description Displays one board task with priority, progress, tags, assignee,
+ * drag handlers, and optional highlighted search-preview snippets.
+ *
+ * 📖 Cards are intentionally view-only. Clicking opens the drawer through the
+ * store, while mutations such as moving, editing, and deleting stay centralized.
+ *
+ * @functions
+ *  → HighlightedText — highlights a matched keyword inside preview text
+ *  → Card — animated task card used by the board columns
+ *
+ * @exports Card
+ * @see src/components/Column.tsx
+ * @see src/components/Drawer.tsx
+ */
+
 import { motion } from 'motion/react';
 import type { BoardTask, Density, SearchMatch } from '../lib/types';
 import { useStore } from '../lib/store';

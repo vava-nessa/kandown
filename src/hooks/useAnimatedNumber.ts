@@ -1,3 +1,17 @@
+/**
+ * @file Animated number hook
+ * @description Converts a numeric target into a spring-animated Motion value
+ * that renders as a rounded string, used for stable task counters.
+ *
+ * 📖 This keeps small numeric UI updates feeling alive without introducing
+ * layout shifts or manual requestAnimationFrame bookkeeping.
+ *
+ * @functions
+ *  → useAnimatedNumber — returns a spring-smoothed display value
+ *
+ * @exports useAnimatedNumber
+ */
+
 import { useSpring, useTransform, type MotionValue } from 'motion/react';
 import { useEffect } from 'react';
 

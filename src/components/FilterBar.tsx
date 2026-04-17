@@ -1,3 +1,20 @@
+/**
+ * @file Board filter bar
+ * @description Renders global task filters for text search, owner type, and
+ * active filter chips that can be cleared individually.
+ *
+ * 📖 Text search is routed through the store so it can trigger lazy task-content
+ * loading and preview matching across both board and list views.
+ *
+ * @functions
+ *  → FilterBar — search input, owner filter, chips, and clear action
+ *
+ * @exports FilterBar
+ * @see src/lib/store.ts
+ * @see src/components/Board.tsx
+ * @see src/components/ListView.tsx
+ */
+
 import { AnimatePresence, motion } from 'motion/react';
 import { Icon } from './Icons';
 import { useStore } from '../lib/store';

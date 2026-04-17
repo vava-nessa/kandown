@@ -1,3 +1,22 @@
+/**
+ * @file Web application shell
+ * @description Composes the Kandown web UI, hydrates recent projects from the
+ * URL, and owns global keyboard shortcuts for board navigation, creation,
+ * reload, search focus, and command palette access.
+ *
+ * 📖 This component does not read markdown files directly. It delegates all
+ * project state, persistence, and file-system behavior to the Zustand store so
+ * the visual shell stays small and predictable.
+ *
+ * @functions
+ *  → App — root React component for the browser UI
+ *
+ * @exports App
+ * @see src/lib/store.ts
+ * @see src/components/Header.tsx
+ * @see src/components/SettingsPage.tsx
+ */
+
 import { useEffect } from 'react';
 import { Header } from './components/Header';
 import { FilterBar } from './components/FilterBar';

@@ -1,3 +1,25 @@
+/**
+ * @file Kandown Zustand store
+ * @description Central state container for project handles, parsed board data,
+ * config, filters, task drawer editing, content-search cache, recent projects,
+ * and toast notifications.
+ *
+ * 📖 This is the behavioral core of the web UI. Components should call store
+ * actions instead of writing markdown directly, because these actions handle
+ * optimistic updates, rollback, config theme application, and cache refreshes.
+ *
+ * @functions
+ *  → defaultBoardTemplate — creates a minimal board when none exists
+ *  → nextTaskId — finds the next zero-padded task id
+ *  → applyConfigTheme — applies persisted project appearance settings
+ *  → useStore — Zustand store with file, board, config, search, and UI actions
+ *
+ * @exports useStore
+ * @see src/lib/filesystem.ts
+ * @see src/lib/parser.ts
+ * @see src/lib/theme.ts
+ */
+
 import { create } from 'zustand';
 import type { Column, Filters, BoardTask, Density, ViewMode, Subtask, TaskFrontmatter, KandownConfig, TaskContent, SearchMatch } from './types';
 import { DEFAULT_CONFIG } from './types';
