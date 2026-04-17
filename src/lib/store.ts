@@ -108,8 +108,8 @@ export const useStore = create<State>((set, get) => ({
   boardTitle: 'Project Kanban',
   columns: [],
 
-  viewMode: (localStorage.getItem('kanban:view') as ViewMode) || 'board',
-  density: (localStorage.getItem('kanban:density') as Density) || 'comfortable',
+  viewMode: (localStorage.getItem('kandown:view') as ViewMode) || 'board',
+  density: (localStorage.getItem('kandown:density') as Density) || 'comfortable',
   filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null },
   commandOpen: false,
   drawerTaskId: null,
@@ -325,11 +325,11 @@ export const useStore = create<State>((set, get) => ({
   },
 
   setViewMode: (mode) => {
-    localStorage.setItem('kanban:view', mode);
+    localStorage.setItem('kandown:view', mode);
     set({ viewMode: mode });
   },
   setDensity: (density) => {
-    localStorage.setItem('kanban:density', density);
+    localStorage.setItem('kandown:density', density);
     set({ density });
   },
   setFilter: (key, value) => {

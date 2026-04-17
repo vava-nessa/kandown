@@ -6,25 +6,25 @@ This file contains the complete documentation for Kandown's file-based Kanban sy
 
 ## Overview
 
-**Kandown** is a file-based Kanban engine backed by plain markdown. Everything lives in `.kanban/`:
+**Kandown** is a file-based Kanban engine backed by plain markdown. Everything lives in `.kandown/`:
 - `board.md` — lightweight task index (always start here)
 - `tasks/` — per-task detail files
-- `kanban.html` — the visual UI app
+- `kandown.html` — the visual UI app
 
 ---
 
 ## File Architecture
 
 ```
-.kanban/
-├── kanban.html       # Single-file React app (no deps, no server)
+.kandown/
+├── kandown.html       # Single-file React app (no deps, no server)
 ├── board.md          # Task index + state (git-diff friendly, <1k tokens)
 ├── tasks/            # Per-task markdown files
 │   ├── t-001.md
 │   ├── t-002.md
 │   └── ...
 ├── AGENT.md          # Quick reference
-├── README.md         # User-facing kanban usage guide
+├── README.md         # User-facing kandown usage guide
 └── AGENT_KANDOWN.md  # This file — full system documentation for AI agents
 ```
 
@@ -247,7 +247,7 @@ This is for the UI only — the markdown format remains the source of truth.
 |------|---------|--------------|
 | `board.md` | Task index + state | **Always first** |
 | `tasks/t-xxx.md` | Full task details | Only when needed |
-| `.kanban/AGENT.md` | Quick reference | When you need a reminder |
+| `.kandown/AGENT.md` | Quick reference | When you need a reminder |
 
 ---
 

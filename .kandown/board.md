@@ -3,11 +3,11 @@ kanban: v1
 columns: [Backlog, Todo, In Progress, Review, Done]
 ---
 
-# Kandown Kanban
+# Kandown
 
 ## Backlog
 
-- [ ] **[t-001]** Welcome to your kanban (2/4) → [détails](tasks/t-001.md) `#example` `#p3` `human`
+- [ ] **[t-001]** Welcome to your kandown (2/4) → [détails](tasks/t-001.md) `#example` `#p3` `human`
 - [ ] **[t-003]** New task → [détails](tasks/t-003.md) `human`
 - [ ] **[t-004]** Set up CI/CD for kandown → [détails](tasks/t-004.md) `#devops` `#p2` `ai`
 - [ ] **[t-005]** Add keyboard shortcuts documentation → [détails](tasks/t-005.md) `#docs` `#p3` `human`

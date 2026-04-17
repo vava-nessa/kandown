@@ -42,8 +42,8 @@ ${c.bold}Usage:${c.reset}
   npx kandown <command>
 
 ${c.bold}Commands:${c.reset}
-  ${c.cyan}init${c.reset}        Initialize .kanban/ in the current directory
-  ${c.cyan}update${c.reset}      Update kanban.html to the latest version
+  ${c.cyan}init${c.reset}        Initialize .kandown/ in the current directory
+  ${c.cyan}update${c.reset}      Update kandown.html to the latest version
   ${c.cyan}help${c.reset}        Show this help
 
 ${c.bold}Examples:${c.reset}
@@ -76,13 +76,13 @@ function findAgentsFile(cwd) {
   return null;
 }
 
-function appendAgentReference(cwd, agentsFile, kanbanPath) {
+function appendAgentReference(cwd, agentsFile, kandownPath) {
   const filePath = join(cwd, agentsFile);
   const marker = '<!-- kandown:agent-ref -->';
   const existing = readFileSync(filePath, 'utf8');
 
   if (existing.includes(marker)) {
-    info(`${agentsFile} already references the kanban (skipped)`);
+    info(`${agentsFile} already references the kandown (skipped)`);
     return false;
   }
 
@@ -94,8 +94,8 @@ ${marker}
 **IMPORTANT:** Before touching any task files, you MUST read \`AGENT_KANDOWN.md\`.
 
 This project uses a file-based kanban:
-- **Start with \`${kanbanPath}/board.md\`** — task index (always lean)
-- **Only open \`${kanbanPath}/tasks/t-xxx.md\`** when you need full details on a specific task
+- **Start with \`${kandownPath}/board.md\`** — task index (always lean)
+- **Only open \`${kandownPath}/tasks/t-xxx.md\`** when you need full details on a specific task
 - **Completion workflow:** Move task to Done in \`board.md\` + write \`## What was done\` in the task file
 `;
 
@@ -103,7 +103,7 @@ This project uses a file-based kanban:
   return true;
 }
 
-function createAgentsFileIfMissing(cwd, kanbanPath) {
+function createAgentsFileIfMissing(cwd, kandownPath) {
   const agentsPath = join(cwd, 'AGENTS.md');
   if (existsSync(agentsPath)) return false;
 
@@ -114,9 +114,9 @@ function createAgentsFileIfMissing(cwd, kanbanPath) {
 
 **IMPORTANT:** Before touching any task files, you MUST read \`AGENT_KANDOWN.md\`.
 
-This project uses a file-based kanban:
-- **Start with \`${kanbanPath}/board.md\`** — task index (always lean)
-- **Only open \`${kanbanPath}/tasks/t-xxx.md\`** when you need full details on a specific task
+This project uses a file-based kandown:
+- **Start with \`${kandownPath}/board.md\`** — task index (always lean)
+- **Only open \`${kandownPath}/tasks/t-xxx.md\`** when you need full details on a specific task
 - **Completion workflow:** Move task to Done in \`board.md\` + write \`## What was done\` in the task file
 `;
   writeFileSync(agentsPath, content, 'utf8');
@@ -124,7 +124,7 @@ This project uses a file-based kanban:
 }
 
 function parseArgs(argv) {
-  const args = { path: '.kanban', noAgents: false, force: false };
+  const args = { path: '.kandown', noAgents: false, force: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--path' || a === '-p') args.path = argv[++i];
@@ -137,50 +137,50 @@ function parseArgs(argv) {
 function cmdInit(rawArgs) {
   const args = parseArgs(rawArgs);
   const cwd = process.cwd();
-  const kanbanDir = resolve(cwd, args.path);
-  const kanbanPath = args.path;
+  const kandownDir = resolve(cwd, args.path);
+  const kandownPath = args.path;
 
   log('');
-  info(`Installing kandown in ${c.bold}${kanbanPath}/${c.reset}`);
+  info(`Installing kandown in ${c.bold}${kandownPath}/${c.reset}`);
   log('');
 
-  if (existsSync(kanbanDir) && !args.force) {
-    err(`Directory ${c.bold}${kanbanPath}/${c.reset} already exists.`);
+  if (existsSync(kandownDir) && !args.force) {
+    err(`Directory ${c.bold}${kandownPath}/${c.reset} already exists.`);
     log(`  Use ${c.cyan}--force${c.reset} to overwrite or ${c.cyan}--path <dir>${c.reset} for another location.`);
     process.exit(1);
   }
 
-  mkdirSync(kanbanDir, { recursive: true });
+  mkdirSync(kandownDir, { recursive: true });
 
-  // Copy kanban.html from dist
+  // Copy kandown.html from dist
   const htmlSrc = join(PKG_ROOT, 'dist', 'index.html');
-  const htmlDest = join(kanbanDir, 'kanban.html');
+  const htmlDest = join(kandownDir, 'kandown.html');
   if (!existsSync(htmlSrc)) {
     err(`Missing build output at ${htmlSrc}. Did you run 'npm run build'?`);
     process.exit(1);
   }
   copyFileSync(htmlSrc, htmlDest);
-  success('kanban.html');
+  success('kandown.html');
 
   // Copy templates
   const templatesDir = join(PKG_ROOT, 'templates');
-  if (!existsSync(join(kanbanDir, 'board.md'))) {
-    copyFileSync(join(templatesDir, 'board.md'), join(kanbanDir, 'board.md'));
+  if (!existsSync(join(kandownDir, 'board.md'))) {
+    copyFileSync(join(templatesDir, 'board.md'), join(kandownDir, 'board.md'));
     success('board.md');
   } else {
     warn('board.md already exists (kept)');
   }
-  if (!existsSync(join(kanbanDir, 'AGENT.md'))) {
-    copyFileSync(join(templatesDir, 'AGENT.md'), join(kanbanDir, 'AGENT.md'));
+  if (!existsSync(join(kandownDir, 'AGENT.md'))) {
+    copyFileSync(join(templatesDir, 'AGENT.md'), join(kandownDir, 'AGENT.md'));
     success('AGENT.md');
   }
-  if (!existsSync(join(kanbanDir, 'README.md'))) {
-    copyFileSync(join(templatesDir, 'README.md'), join(kanbanDir, 'README.md'));
+  if (!existsSync(join(kandownDir, 'README.md'))) {
+    copyFileSync(join(templatesDir, 'README.md'), join(kandownDir, 'README.md'));
     success('README.md');
   }
 
   const tasksSrc = join(templatesDir, 'tasks');
-  const tasksDest = join(kanbanDir, 'tasks');
+  const tasksDest = join(kandownDir, 'tasks');
   if (!existsSync(tasksDest)) {
     copyRecursive(tasksSrc, tasksDest);
     success('tasks/ (with welcome example)');
@@ -188,7 +188,7 @@ function cmdInit(rawArgs) {
     info('tasks/ already exists (kept)');
   }
 
-  // Copy AGENT_KANDOWN.md to project root (not inside .kanban/)
+  // Copy AGENT_KANDOWN.md to project root (not inside .kandown/)
   const agentKandownSrc = join(templatesDir, 'AGENT_KANDOWN.md');
   const agentKandownDest = join(cwd, 'AGENT_KANDOWN.md');
   if (!existsSync(agentKandownDest)) {
@@ -203,11 +203,11 @@ function cmdInit(rawArgs) {
     log('');
     const existingAgents = findAgentsFile(cwd);
     if (existingAgents) {
-      const added = appendAgentReference(cwd, existingAgents, kanbanPath);
-      if (added) success(`Appended kanban reference to ${c.bold}${existingAgents}${c.reset}`);
+      const added = appendAgentReference(cwd, existingAgents, kandownPath);
+      if (added) success(`Appended kandown reference to ${c.bold}${existingAgents}${c.reset}`);
     } else {
-      const created = createAgentsFileIfMissing(cwd, kanbanPath);
-      if (created) success(`Created ${c.bold}AGENTS.md${c.reset} with kanban reference`);
+      const created = createAgentsFileIfMissing(cwd, kandownPath);
+      if (created) success(`Created ${c.bold}AGENTS.md${c.reset} with kandown reference`);
     }
   }
 
@@ -215,24 +215,24 @@ function cmdInit(rawArgs) {
   log(`${c.green}${c.bold}Done.${c.reset}`);
   log('');
   log(`  ${c.dim}Next steps:${c.reset}`);
-  log(`  ${c.cyan}1.${c.reset} Open ${c.bold}${kanbanPath}/kanban.html${c.reset} in Chrome/Edge/Brave`);
-  log(`  ${c.cyan}2.${c.reset} Select the ${c.bold}${kanbanPath}/${c.reset} folder when prompted`);
+  log(`  ${c.cyan}1.${c.reset} Open ${c.bold}${kandownPath}/kandown.html${c.reset} in Chrome/Edge/Brave`);
+  log(`  ${c.cyan}2.${c.reset} Select the ${c.bold}${kandownPath}/${c.reset} folder when prompted`);
   log(`  ${c.cyan}3.${c.reset} Start creating tasks. Press ${c.cyan}⌘K${c.reset} for the command palette`);
   log('');
-  log(`  ${c.dim}macOS:${c.reset}   open ${kanbanPath}/kanban.html`);
-  log(`  ${c.dim}Linux:${c.reset}   xdg-open ${kanbanPath}/kanban.html`);
-  log(`  ${c.dim}Windows:${c.reset} start ${kanbanPath}/kanban.html`);
+  log(`  ${c.dim}macOS:${c.reset}   open ${kandownPath}/kandown.html`);
+  log(`  ${c.dim}Linux:${c.reset}   xdg-open ${kandownPath}/kandown.html`);
+  log(`  ${c.dim}Windows:${c.reset} start ${kandownPath}/kandown.html`);
   log('');
 }
 
 function cmdUpdate(rawArgs) {
   const args = parseArgs(rawArgs);
   const cwd = process.cwd();
-  const kanbanDir = resolve(cwd, args.path);
-  const htmlDest = join(kanbanDir, 'kanban.html');
+  const kandownDir = resolve(cwd, args.path);
+  const htmlDest = join(kandownDir, 'kandown.html');
 
   if (!existsSync(htmlDest)) {
-    err(`No kanban.html found at ${c.bold}${htmlDest}${c.reset}`);
+    err(`No kandown.html found at ${c.bold}${htmlDest}${c.reset}`);
     log(`  Run ${c.cyan}npx kandown init${c.reset} first.`);
     process.exit(1);
   }
@@ -243,7 +243,7 @@ function cmdUpdate(rawArgs) {
     process.exit(1);
   }
   copyFileSync(htmlSrc, htmlDest);
-  success(`Updated ${args.path}/kanban.html`);
+  success(`Updated ${args.path}/kandown.html`);
 }
 
 const [cmd, ...rest] = process.argv.slice(2);

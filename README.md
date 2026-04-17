@@ -17,11 +17,11 @@ cd my-project
 npx kandown init
 ```
 
-This creates a `.kanban/` directory with:
+This creates a `.kandown/` directory with:
 
 ```
-.kanban/
-├── kanban.html       # the engine (single file, no deps)
+.kandown/
+├── kandown.html       # the engine (single file, no deps)
 ├── board.md          # task index and state
 ├── tasks/            # per-task markdown files
 ├── AGENT.md          # conventions for AI agents
@@ -30,7 +30,7 @@ This creates a `.kanban/` directory with:
 
 It also appends a reference to `AGENTS.md` / `CLAUDE.md` (or creates one) so your AI tools know where to look.
 
-To use the board: Open `.kanban/kanban.html` in Chrome, Edge, Brave, or Opera. Select the `.kanban/` folder when prompted. You're done!
+To use the board: Open `.kandown/kandown.html` in Chrome, Edge, Brave, or Opera. Select the `.kandown/` folder when prompted. You're done!
 
 ## Features
 
@@ -66,10 +66,10 @@ To use the board: Open `.kanban/kanban.html` in Chrome, Edge, Brave, or Opera. S
 ## CLI
 
 ```bash
-npx kandown init              # create .kanban/ here
+npx kandown init              # create .kandown/ here
 npx kandown init --path docs/tasks
 npx kandown init --no-agents  # skip AGENTS.md integration
-npx kandown update            # update kanban.html to latest version
+npx kandown update            # update kandown.html to latest version
 ```
 
 ## Browser Support

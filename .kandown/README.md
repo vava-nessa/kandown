@@ -1,11 +1,11 @@
-# .kanban/
+# .kandown/
 
-File-based kanban for this project. Zero install, zero backend, plain markdown on disk.
+File-based kandown for this project. Zero install, zero backend, plain markdown on disk.
 
 ## Usage
 
-1. Open `kanban.html` in Chrome, Edge, Brave or Opera (File System Access API required)
-2. Click **Select folder** and pick this `.kanban/` directory, then grant read/write permission
+1. Open `kandown.html` in Chrome, Edge, Brave or Opera (File System Access API required)
+2. Click **Select folder** and pick this `.kandown/` directory, then grant read/write permission
 3. That's it
 
 The app remembers the last 10 projects you've opened — no need to re-select the folder each time.
@@ -13,12 +13,12 @@ The app remembers the last 10 projects you've opened — no need to re-select th
 ## Structure
 
 ```
-.kanban/
+.kandown/
 ├── board.md          ← source of truth for state and index
 ├── tasks/
 │   ├── t-001.md      ← full task details
 │   └── ...
-├── kanban.html       ← the engine (single file, no dependencies)
+├── kandown.html       ← the engine (single file, no dependencies)
 ├── AGENT.md          ← AI coding agent conventions
 └── README.md         ← this file
 ```

@@ -1,6 +1,6 @@
 # Kanban conventions for AI agents
 
-This project uses a file-based kanban located in `.kanban/`. Read this file before touching any task files.
+This project uses a file-based kandown located in `.kandown/`. Read this file before touching any task files.
 
 ## The golden rule
 
