@@ -15,7 +15,7 @@
  * @see src/styles/globals.css
  */
 
-import type { FontId, SkinId, ThemeMode } from './types';
+import type { BackgroundId, FontId, SkinId, ThemeMode } from './types';
 
 type TokenName =
   | 'background'
@@ -61,6 +61,12 @@ export interface FontOption {
   stack: string;
 }
 
+export interface BackgroundOption {
+  id: BackgroundId;
+  label: string;
+  description: string;
+}
+
 export const FONT_OPTIONS: FontOption[] = [
   {
     id: 'inter',
@@ -86,6 +92,19 @@ export const FONT_OPTIONS: FontOption[] = [
     id: 'rounded',
     label: 'Rounded',
     stack: "'SF Pro Rounded', ui-rounded, 'Nunito Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+  },
+];
+
+export const BACKGROUND_OPTIONS: BackgroundOption[] = [
+  {
+    id: 'solid',
+    label: 'Solid',
+    description: 'Flat background color from the skin.',
+  },
+  {
+    id: 'liquid-ether',
+    label: 'Liquid Ether',
+    description: 'Animated fluid simulation with velocity-based colors.',
   },
 ];
 
@@ -385,6 +404,10 @@ export function normalizeFontId(value: unknown): FontId {
   return FONT_OPTIONS.some(font => font.id === value) ? (value as FontId) : 'inter';
 }
 
+export function normalizeBackgroundId(value: unknown): BackgroundId {
+  return BACKGROUND_OPTIONS.some(bg => bg.id === value) ? (value as BackgroundId) : 'solid';
+}
+
 function resolveMode(theme: ThemeMode): 'light' | 'dark' {
   if (theme === 'auto') {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -392,7 +415,7 @@ function resolveMode(theme: ThemeMode): 'light' | 'dark' {
   return theme;
 }
 
-export function applyProjectTheme(theme: ThemeMode, skinId: SkinId, fontId: FontId): void {
+export function applyProjectTheme(theme: ThemeMode, skinId: SkinId, fontId: FontId, backgroundId: BackgroundId = 'solid'): void {
   const root = document.documentElement;
   const resolvedMode = resolveMode(theme);
   const skin = SKIN_OPTIONS.find(item => item.id === skinId) ?? SKIN_OPTIONS[0];
@@ -404,6 +427,7 @@ export function applyProjectTheme(theme: ThemeMode, skinId: SkinId, fontId: Font
   root.dataset.resolvedTheme = resolvedMode;
   root.dataset.skin = skin.id;
   root.dataset.font = font.id;
+  root.dataset.background = backgroundId;
   root.style.setProperty('--font-sans', font.stack);
   root.style.setProperty('color-scheme', resolvedMode);
 

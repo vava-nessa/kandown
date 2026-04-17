@@ -144,7 +144,7 @@ function nextTaskId(columns: Column[]): string {
 }
 
 function applyConfigTheme(config: KandownConfig): void {
-  applyProjectTheme(config.ui.theme, config.ui.skin, config.ui.font);
+  applyProjectTheme(config.ui.theme, config.ui.skin, config.ui.font, config.ui.background);
 }
 
 let toastIdCounter = 0;

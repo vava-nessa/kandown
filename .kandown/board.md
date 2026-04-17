@@ -16,12 +16,13 @@ columns: [Backlog, Todo, In Progress, Review, Done]
 
 ## In Progress
 
-- [ ] **[t-000]** New task → [détails](tasks/t-000.md)
-- [ ] **[t-002]** New task → [détails](tasks/t-002.md)
-- [ ] **[t-003]** New task → [détails](tasks/t-003.md)
 
 ## Review
 
+- [ ] **[t-006]** New task → [détails](tasks/t-006.md)
+- [ ] **[t-002]** New task → [détails](tasks/t-002.md)
+- [ ] **[t-000]** New task → [détails](tasks/t-000.md)
+- [ ] **[t-003]** New task → [détails](tasks/t-003.md)
 
 ## Done
 

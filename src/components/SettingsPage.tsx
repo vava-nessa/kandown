@@ -1,54 +1,115 @@
 /**
  * @file Settings page for the web app
- * @description Full-page view with all configurable settings from kandown.json.
- * Replaces the old modal popup with a dedicated route-like page.
+ * @description Dense settings workspace with an iOS-style sidebar, global
+ * option search, section navigation, and compact controls for kandown.json.
+ *
+ * 📖 Settings are described as searchable metadata first, then rendered through
+ * a small set of controls. This keeps the left search menu and the right
+ * detail pane in sync without duplicating labels, descriptions, or config keys.
  *
  * @functions
- *  → SettingsPage — main page component
- *  → SettingRow — individual setting control
- *  → SkinPicker — visual color-skin selector with light/dark swatches
+ *  → SettingsPage — main settings workspace with sidebar search/navigation
+ *  → SettingRow — compact setting row with the correct control
+ *  → SkinPicker — dense color-skin selector with light/dark swatches
+ *  → SearchResults — searchable option list shown from the sidebar query
  *
  * @exports SettingsPage
  * @see src/lib/theme.ts
+ * @see src/lib/types.ts
  */
 
+import { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
+import {
+  IconAdjustmentsHorizontal,
+  IconArrowLeft,
+  IconChevronRight,
+  IconLayoutBoard,
+  IconPalette,
+  IconRobot,
+  IconSearch,
+  IconSettings,
+  IconTags,
+  type TablerIcon,
+} from '@tabler/icons-react';
 import { useStore } from '../lib/store';
-import { FONT_OPTIONS, SKIN_OPTIONS } from '../lib/theme';
-import { Icon } from './Icons';
+import { BACKGROUND_OPTIONS, FONT_OPTIONS, SKIN_OPTIONS } from '../lib/theme';
+import type { KandownConfig } from '../lib/types';
 
-type SettingType = 'toggle' | 'select' | 'number';
+type SettingType = 'toggle' | 'select' | 'number' | 'text' | 'skin';
+type SettingsSectionId = 'appearance' | 'agent' | 'board' | 'fields';
 
 interface SettingOption {
   value: string;
   label: string;
 }
 
+interface SettingsSection {
+  id: SettingsSectionId;
+  label: string;
+  kicker: string;
+  description: string;
+  icon: TablerIcon;
+}
+
 interface SettingDef {
   key: string;
   label: string;
-  section: string;
+  section: SettingsSectionId;
   type: SettingType;
-  description?: string;
+  description: string;
   options?: SettingOption[];
   min?: number;
   max?: number;
-  allowCustom?: boolean;
+  placeholder?: string;
+  keywords?: string[];
 }
 
+const SECTIONS: SettingsSection[] = [
+  {
+    id: 'appearance',
+    label: 'Appearance',
+    kicker: 'Interface',
+    description: 'Theme, skin, background, font, and language.',
+    icon: IconPalette,
+  },
+  {
+    id: 'agent',
+    label: 'Agent',
+    kicker: 'Automation',
+    description: 'Follow-up behavior for AI-assisted task work.',
+    icon: IconRobot,
+  },
+  {
+    id: 'board',
+    label: 'Board',
+    kicker: 'Defaults',
+    description: 'Task ids, default priority, and owner defaults.',
+    icon: IconLayoutBoard,
+  },
+  {
+    id: 'fields',
+    label: 'Fields',
+    kicker: 'Metadata',
+    description: 'Optional fields shown on tasks and board cards.',
+    icon: IconTags,
+  },
+];
+
 const SETTINGS: SettingDef[] = [
-  // UI
   {
     key: 'ui.language',
     label: 'Language',
-    section: 'Appearance',
+    section: 'appearance',
     type: 'select',
+    description: 'UI language stored in this project config.',
     options: ['en', 'fr', 'es', 'de', 'pt', 'ja', 'zh', 'ko', 'it', 'nl', 'ru'].map(value => ({ value, label: value })),
+    keywords: ['locale', 'translation'],
   },
   {
     key: 'ui.theme',
     label: 'Mode',
-    section: 'Appearance',
+    section: 'appearance',
     type: 'select',
     description: 'Auto follows your system light or dark preference.',
     options: [
@@ -56,48 +117,123 @@ const SETTINGS: SettingDef[] = [
       { value: 'light', label: 'Light' },
       { value: 'dark', label: 'Dark' },
     ],
+    keywords: ['dark', 'light', 'auto'],
   },
   {
     key: 'ui.skin',
     label: 'Skin',
-    section: 'Appearance',
-    type: 'select',
+    section: 'appearance',
+    type: 'skin',
     description: 'Color tokens are stored per project in kandown.json.',
     options: SKIN_OPTIONS.map(skin => ({ value: skin.id, label: skin.label })),
+    keywords: ['color', 'theme', 'palette'],
+  },
+  {
+    key: 'ui.background',
+    label: 'Background',
+    section: 'appearance',
+    type: 'select',
+    description: 'Choose a flat surface or animated liquid background.',
+    options: BACKGROUND_OPTIONS.map(background => ({ value: background.id, label: background.label })),
+    keywords: ['liquid', 'solid', 'animation'],
   },
   {
     key: 'ui.font',
     label: 'Font',
-    section: 'Appearance',
+    section: 'appearance',
     type: 'select',
-    description: 'Uses local system font stacks, no network request.',
+    description: 'Local system font stack, with no network request.',
     options: FONT_OPTIONS.map(font => ({ value: font.id, label: font.label })),
+    keywords: ['typography', 'text'],
   },
-  // Agent
-  { key: 'agent.suggestFollowUp', label: 'Suggest follow-up tasks', section: 'Agent', type: 'toggle' },
-  { key: 'agent.maxSuggestions', label: 'Max suggestions', section: 'Agent', type: 'number', min: 1, max: 5 },
-  // Board
-  { key: 'board.taskPrefix', label: 'Task prefix', section: 'Board', type: 'select', options: ['t', 'task', 'kandown', 'feat', 'bug', 'fix', 'custom'].map(value => ({ value, label: value })), allowCustom: true },
-  { key: 'board.defaultPriority', label: 'Default priority', section: 'Board', type: 'select', options: ['P1', 'P2', 'P3', 'P4'].map(value => ({ value, label: value })) },
-  { key: 'board.defaultOwnerType', label: 'Default owner', section: 'Board', type: 'select', options: ['human', 'ai'].map(value => ({ value, label: value })) },
-  // Fields
-  { key: 'fields.priority', label: 'Priority', section: 'Fields', type: 'toggle' },
-  { key: 'fields.assignee', label: 'Assignee', section: 'Fields', type: 'toggle' },
-  { key: 'fields.tags', label: 'Tags', section: 'Fields', type: 'toggle' },
-  { key: 'fields.dueDate', label: 'Due date', section: 'Fields', type: 'toggle' },
-  { key: 'fields.ownerType', label: 'Owner type', section: 'Fields', type: 'toggle' },
+  {
+    key: 'agent.suggestFollowUp',
+    label: 'Suggest follow-up tasks',
+    section: 'agent',
+    type: 'toggle',
+    description: 'Ask agents to propose next tasks after finishing one.',
+    keywords: ['ai', 'suggestions', 'automation'],
+  },
+  {
+    key: 'agent.maxSuggestions',
+    label: 'Max suggestions',
+    section: 'agent',
+    type: 'number',
+    description: 'Caps the number of follow-up tasks an agent may propose.',
+    min: 1,
+    max: 5,
+    keywords: ['limit', 'follow-up'],
+  },
+  {
+    key: 'board.taskPrefix',
+    label: 'Task prefix',
+    section: 'board',
+    type: 'text',
+    description: 'Prefix for new task ids, such as t-001 or bug-001.',
+    placeholder: 't',
+    keywords: ['id', 'identifier', 'task id'],
+  },
+  {
+    key: 'board.defaultPriority',
+    label: 'Default priority',
+    section: 'board',
+    type: 'select',
+    description: 'Initial priority value for newly created tasks.',
+    options: ['P1', 'P2', 'P3', 'P4'].map(value => ({ value, label: value })),
+    keywords: ['p1', 'p2', 'p3', 'p4'],
+  },
+  {
+    key: 'board.defaultOwnerType',
+    label: 'Default owner',
+    section: 'board',
+    type: 'select',
+    description: 'Default owner type for new task frontmatter.',
+    options: ['human', 'ai'].map(value => ({ value, label: value })),
+    keywords: ['human', 'ai', 'owner'],
+  },
+  {
+    key: 'fields.priority',
+    label: 'Priority',
+    section: 'fields',
+    type: 'toggle',
+    description: 'Enable priority metadata on tasks.',
+    keywords: ['p1', 'p2', 'importance'],
+  },
+  {
+    key: 'fields.assignee',
+    label: 'Assignee',
+    section: 'fields',
+    type: 'toggle',
+    description: 'Enable assignee metadata on tasks.',
+    keywords: ['owner', 'person', 'user'],
+  },
+  {
+    key: 'fields.tags',
+    label: 'Tags',
+    section: 'fields',
+    type: 'toggle',
+    description: 'Enable tag metadata on tasks.',
+    keywords: ['labels', 'categories'],
+  },
+  {
+    key: 'fields.dueDate',
+    label: 'Due date',
+    section: 'fields',
+    type: 'toggle',
+    description: 'Enable due date metadata on tasks.',
+    keywords: ['deadline', 'date'],
+  },
+  {
+    key: 'fields.ownerType',
+    label: 'Owner type',
+    section: 'fields',
+    type: 'toggle',
+    description: 'Enable human/AI ownership metadata on tasks.',
+    keywords: ['human', 'ai', 'agent'],
+  },
 ];
 
-const SECTIONS = ['Appearance', 'Agent', 'Board', 'Fields'];
-
-const SECTION_ICONS: Record<string, string> = {
-  Appearance: '🎨',
-  Agent: '🤖',
-  Board: '📋',
-  Fields: '📝',
-};
-
-function getConfigValue(config: ReturnType<typeof useStore.getState>['config'], path: string): unknown {
+function getConfigValue(config: KandownConfig, path: string): unknown {
   const parts = path.split('.');
   let current: unknown = config;
   for (const part of parts) {
@@ -107,7 +243,7 @@ function getConfigValue(config: ReturnType<typeof useStore.getState>['config'], 
   return current;
 }
 
-function setConfigValue(config: ReturnType<typeof useStore.getState>['config'], path: string, value: unknown): ReturnType<typeof useStore.getState>['config'] {
+function setConfigValue(config: KandownConfig, path: string, value: unknown): KandownConfig {
   const result = structuredClone(config);
   const parts = path.split('.');
   let current = result as unknown as Record<string, unknown>;
@@ -118,74 +254,250 @@ function setConfigValue(config: ReturnType<typeof useStore.getState>['config'], 
   return result;
 }
 
+function stringifySettingValue(value: unknown): string {
+  if (typeof value === 'boolean') return value ? 'on' : 'off';
+  if (value === null || value === undefined) return '';
+  return String(value);
+}
+
+function getSettingSearchText(setting: SettingDef, value: unknown): string {
+  return [
+    setting.label,
+    setting.key,
+    setting.description,
+    setting.section,
+    stringifySettingValue(value),
+    ...(setting.keywords ?? []),
+    ...(setting.options?.flatMap(option => [option.label, option.value]) ?? []),
+  ].join(' ').toLowerCase();
+}
+
 export function SettingsPage() {
   const config = useStore(s => s.config);
   const updateConfig = useStore(s => s.updateConfig);
   const setCurrentPage = useStore(s => s.setCurrentPage);
   const dirHandle = useStore(s => s.dirHandle);
 
+  const [activeSectionId, setActiveSectionId] = useState<SettingsSectionId>('appearance');
+  const [query, setQuery] = useState('');
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const activeSection = SECTIONS.find(section => section.id === activeSectionId) ?? SECTIONS[0];
+
+  const sectionCounts = useMemo(() => {
+    return SECTIONS.reduce<Record<SettingsSectionId, number>>((acc, section) => {
+      acc[section.id] = SETTINGS.filter(setting => setting.section === section.id).length;
+      return acc;
+    }, { appearance: 0, agent: 0, board: 0, fields: 0 });
+  }, []);
+
+  const visibleSettings = useMemo(() => {
+    if (!normalizedQuery) {
+      return SETTINGS.filter(setting => setting.section === activeSectionId);
+    }
+
+    return SETTINGS.filter(setting =>
+      getSettingSearchText(setting, getConfigValue(config, setting.key)).includes(normalizedQuery)
+    );
+  }, [activeSectionId, config, normalizedQuery]);
+
+  const handleChange = (setting: SettingDef, newValue: unknown) => {
+    updateConfig(currentConfig => setConfigValue(currentConfig, setting.key, newValue));
+  };
+
   if (!dirHandle) {
     return (
-      <div className="flex items-center justify-center flex-1">
+      <div className="flex flex-1 items-center justify-center">
         <p className="text-fg-muted">No project open</p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="max-w-[640px] mx-auto px-6 py-8">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
+    <div className="flex min-h-0 flex-1 overflow-hidden">
+      <aside className="flex w-[292px] flex-none flex-col border-r border-border bg-bg/75">
+        <div className="border-b border-border px-4 py-3">
           <button
             onClick={() => setCurrentPage('board')}
-            className="btn-icon"
+            className="mb-3 inline-flex items-center gap-1.5 rounded-[6px] px-1 py-1 text-[12.5px] text-fg-muted transition-colors hover:bg-bg-2 hover:text-fg"
             title="Back to board"
           >
-            <Icon.ArrowLeft size={14} />
+            <IconArrowLeft size={14} stroke={1.8} />
+            Board
           </button>
-          <div>
-            <h1 className="text-[18px] font-semibold">Settings</h1>
-            <p className="text-[13px] text-fg-muted mt-0.5">Configure this project board</p>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-[7px] border border-border bg-bg-2 text-fg">
+              <IconSettings size={17} stroke={1.8} />
+            </span>
+            <div className="min-w-0">
+              <h1 className="truncate text-[17px] font-semibold tracking-tight text-fg">Settings</h1>
+              <p className="truncate text-[12.5px] text-fg-muted">{dirHandle.name}</p>
+            </div>
           </div>
         </div>
 
-        {/* Sections */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2 }}
-          className="flex flex-col gap-8"
-        >
-          {SECTIONS.map(section => {
-            const items = SETTINGS.filter(s => s.section === section);
-            const icon = SECTION_ICONS[section] ?? '•';
+        <div className="border-b border-border px-4 py-3">
+          <label className="relative block">
+            <IconSearch
+              aria-hidden="true"
+              size={14}
+              stroke={1.8}
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-faint"
+            />
+            <input
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Search any option"
+              className="h-8 w-full rounded-[7px] border border-border bg-bg-2 pl-8 pr-8 text-[13.5px] text-fg outline-none transition-colors placeholder:text-fg-faint focus:border-border-focus focus:bg-bg-3"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-[4px] px-1 text-[12px] text-fg-muted hover:bg-bg-3 hover:text-fg"
+              >
+                esc
+              </button>
+            )}
+          </label>
+        </div>
 
-            return (
-              <div key={section} className="glass rounded-[12px] p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-[14px]">{icon}</span>
-                  <span className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted">{section}</span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  {items.map(setting => {
-                    const value = getConfigValue(config, setting.key);
-                    return (
-                      <SettingRow
-                        key={setting.key}
-                        setting={setting}
-                        value={value}
-                        onChange={(newValue) => {
-                          updateConfig(c => setConfigValue(c, setting.key, newValue));
-                        }}
-                      />
-                    );
-                  })}
-                </div>
+        <nav className="flex-1 overflow-y-auto px-2 py-3">
+          <div className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-fg-faint">
+            Pages
+          </div>
+          <div className="flex flex-col gap-1">
+            {SECTIONS.map(section => {
+              const SectionIcon = section.icon;
+              const active = !normalizedQuery && activeSectionId === section.id;
+
+              return (
+                <button
+                  key={section.id}
+                  type="button"
+                  onClick={() => {
+                    setActiveSectionId(section.id);
+                    setQuery('');
+                  }}
+                  className={`flex items-center gap-2 rounded-[7px] px-2.5 py-2 text-left transition-colors ${
+                    active
+                      ? 'bg-bg-3 text-fg'
+                      : 'text-fg-dim hover:bg-bg-2 hover:text-fg'
+                  }`}
+                >
+                  <SectionIcon size={16} stroke={1.8} className="flex-none text-fg-muted" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[13.5px] font-medium">{section.label}</span>
+                    <span className="block truncate text-[11.5px] text-fg-muted">{section.kicker}</span>
+                  </span>
+                  <span className="rounded-full bg-bg px-1.5 py-0.5 text-[11px] text-fg-muted tabular-nums">
+                    {sectionCounts[section.id]}
+                  </span>
+                  <IconChevronRight size={13} stroke={1.8} className="text-fg-faint" />
+                </button>
+              );
+            })}
+          </div>
+
+          {normalizedQuery && (
+            <SearchResults
+              settings={visibleSettings}
+              activeSectionId={activeSectionId}
+              onSelect={(setting) => {
+                setActiveSectionId(setting.section);
+                setQuery('');
+              }}
+            />
+          )}
+        </nav>
+      </aside>
+
+      <main className="min-w-0 flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-[860px] px-6 py-6">
+          <motion.div
+            key={normalizedQuery ? `search-${normalizedQuery}` : activeSection.id}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.16 }}
+          >
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <p className="mb-1 text-[12px] font-semibold uppercase tracking-wider text-fg-muted">
+                  {normalizedQuery ? 'Search results' : activeSection.kicker}
+                </p>
+                <h2 className="text-[22px] font-semibold tracking-tight text-fg">
+                  {normalizedQuery ? `“${query.trim()}”` : activeSection.label}
+                </h2>
+                <p className="mt-1 max-w-[560px] text-[13.5px] leading-relaxed text-fg-muted">
+                  {normalizedQuery
+                    ? `${visibleSettings.length} matching option${visibleSettings.length === 1 ? '' : 's'} across project settings.`
+                    : activeSection.description}
+                </p>
               </div>
-            );
-          })}
-        </motion.div>
+              <div className="hidden items-center gap-1 rounded-[7px] border border-border bg-bg-2 px-2 py-1 text-[12px] text-fg-muted sm:flex">
+                <IconAdjustmentsHorizontal size={13} stroke={1.8} />
+                {visibleSettings.length} options
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-[8px] border border-border bg-bg-1">
+              {visibleSettings.length === 0 ? (
+                <div className="px-4 py-10 text-center">
+                  <p className="text-[14px] font-medium text-fg">No option found</p>
+                  <p className="mt-1 text-[13px] text-fg-muted">Try another search term.</p>
+                </div>
+              ) : (
+                visibleSettings.map((setting, index) => (
+                  <SettingRow
+                    key={setting.key}
+                    setting={setting}
+                    value={getConfigValue(config, setting.key)}
+                    showSection={!!normalizedQuery}
+                    isLast={index === visibleSettings.length - 1}
+                    onChange={(newValue) => handleChange(setting, newValue)}
+                  />
+                ))
+              )}
+            </div>
+          </motion.div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+interface SearchResultsProps {
+  settings: SettingDef[];
+  activeSectionId: SettingsSectionId;
+  onSelect: (setting: SettingDef) => void;
+}
+
+function SearchResults({ settings, activeSectionId, onSelect }: SearchResultsProps) {
+  return (
+    <div className="mt-5">
+      <div className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-fg-faint">
+        Matches
+      </div>
+      <div className="flex flex-col gap-1">
+        {settings.slice(0, 12).map(setting => {
+          const section = SECTIONS.find(item => item.id === setting.section);
+          const active = setting.section === activeSectionId;
+
+          return (
+            <button
+              key={setting.key}
+              type="button"
+              onClick={() => onSelect(setting)}
+              className="rounded-[7px] px-2.5 py-2 text-left text-fg-dim transition-colors hover:bg-bg-2 hover:text-fg"
+            >
+              <span className="block truncate text-[13px] font-medium">{setting.label}</span>
+              <span className="mt-0.5 flex items-center gap-1 text-[11.5px] text-fg-muted">
+                {section?.label ?? setting.section}
+                {active && <span className="text-fg-faint">current</span>}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -194,18 +506,16 @@ export function SettingsPage() {
 interface SettingRowProps {
   setting: SettingDef;
   value: unknown;
+  showSection: boolean;
+  isLast: boolean;
   onChange: (value: unknown) => void;
 }
 
-function SettingRow({ setting, value, onChange }: SettingRowProps) {
+function SettingRow({ setting, value, showSection, isLast, onChange }: SettingRowProps) {
   const handleToggle = () => {
     if (setting.type === 'toggle') {
       onChange(!value);
     }
-  };
-
-  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onChange(e.target.value);
   };
 
   const handleNumberChange = (delta: number) => {
@@ -216,50 +526,77 @@ function SettingRow({ setting, value, onChange }: SettingRowProps) {
   };
 
   return (
-    <div className="flex flex-col gap-3 py-2.5 px-1 rounded-[6px] hover:bg-bg-2 transition-colors sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-      <span className="flex flex-col gap-0.5">
-        <span className="text-[14.5px] text-fg">{setting.label}</span>
-        {setting.description && (
-          <span className="text-[12px] text-fg-muted">{setting.description}</span>
-        )}
-      </span>
-      <div className="w-full flex-shrink-0 sm:w-auto">
+    <div className={`grid gap-3 px-4 py-3 transition-colors hover:bg-bg-2 md:grid-cols-[minmax(0,1fr)_minmax(180px,260px)] md:items-center ${
+      isLast ? '' : 'border-b border-border'
+    }`}>
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[14px] font-medium text-fg">{setting.label}</span>
+          {showSection && (
+            <span className="rounded-full bg-bg-2 px-1.5 py-0.5 text-[11px] text-fg-muted">
+              {SECTIONS.find(section => section.id === setting.section)?.label ?? setting.section}
+            </span>
+          )}
+        </div>
+        <p className="mt-0.5 text-[12.5px] leading-snug text-fg-muted">{setting.description}</p>
+        <p className="mt-1 font-mono text-[11px] text-fg-faint">{setting.key}</p>
+      </div>
+
+      <div className="flex justify-start md:justify-end">
         {setting.type === 'toggle' && (
           <button
+            type="button"
             onClick={handleToggle}
-            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${value ? 'bg-success' : 'bg-bg-3'}`}
+            aria-pressed={Boolean(value)}
+            className={`relative inline-flex h-6 w-10 items-center rounded-full transition-colors ${
+              value ? 'bg-success' : 'bg-bg-3'
+            }`}
           >
-            <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform ${value ? 'translate-x-[18px]' : 'translate-x-1'}`} />
+            <span className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
+              value ? 'translate-x-[21px]' : 'translate-x-1'
+            }`} />
           </button>
         )}
-        {setting.key === 'ui.skin' && (
+
+        {setting.type === 'skin' && (
           <SkinPicker value={String(value)} onChange={onChange} />
         )}
+
         {setting.type === 'select' && setting.options && (
-          setting.key === 'ui.skin' ? null : (
-            <select
-              value={String(value)}
-              onChange={handleSelectChange}
-              className="bg-bg-2 border border-border rounded-[6px] px-2.5 py-1 text-[14.5px] text-fg outline-none focus:border-border-focus"
-            >
-              {setting.options.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          )
+          <select
+            value={String(value)}
+            onChange={e => onChange(e.target.value)}
+            className="h-8 w-full rounded-[7px] border border-border bg-bg-2 px-2.5 text-[13.5px] text-fg outline-none transition-colors focus:border-border-focus focus:bg-bg-3 md:w-[220px]"
+          >
+            {setting.options.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
         )}
+
+        {setting.type === 'text' && (
+          <input
+            value={String(value ?? '')}
+            onChange={e => onChange(e.target.value.trim())}
+            placeholder={setting.placeholder}
+            className="h-8 w-full rounded-[7px] border border-border bg-bg-2 px-2.5 text-[13.5px] text-fg outline-none transition-colors placeholder:text-fg-faint focus:border-border-focus focus:bg-bg-3 md:w-[220px]"
+          />
+        )}
+
         {setting.type === 'number' && (
-          <div className="flex items-center gap-1">
+          <div className="inline-flex h-8 items-center overflow-hidden rounded-[7px] border border-border bg-bg-2">
             <button
+              type="button"
               onClick={() => handleNumberChange(-1)}
-              className="w-6 h-6 flex items-center justify-center rounded-[4px] bg-bg-2 border border-border text-fg hover:bg-bg-3 text-[15px]"
+              className="h-8 w-8 text-[15px] text-fg-muted transition-colors hover:bg-bg-3 hover:text-fg"
             >
-              −
+              -
             </button>
-            <span className="w-8 text-center text-[14.5px] text-fg tabular-nums">{String(value)}</span>
+            <span className="w-9 text-center text-[13.5px] text-fg tabular-nums">{String(value)}</span>
             <button
+              type="button"
               onClick={() => handleNumberChange(1)}
-              className="w-6 h-6 flex items-center justify-center rounded-[4px] bg-bg-2 border border-border text-fg hover:bg-bg-3 text-[15px]"
+              className="h-8 w-8 text-[15px] text-fg-muted transition-colors hover:bg-bg-3 hover:text-fg"
             >
               +
             </button>
@@ -272,7 +609,7 @@ function SettingRow({ setting, value, onChange }: SettingRowProps) {
 
 function SkinPicker({ value, onChange }: { value: string; onChange: (value: unknown) => void }) {
   return (
-    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+    <div className="grid w-full grid-cols-1 gap-1.5 sm:grid-cols-2 md:w-[260px]">
       {SKIN_OPTIONS.map(skin => {
         const active = skin.id === value;
         const swatches = [
@@ -287,16 +624,16 @@ function SkinPicker({ value, onChange }: { value: string; onChange: (value: unkn
             key={skin.id}
             type="button"
             onClick={() => onChange(skin.id)}
-            className={`w-full rounded-[6px] border px-2.5 py-2 text-left transition-colors sm:min-w-[136px] ${
+            className={`rounded-[7px] border px-2 py-1.5 text-left transition-colors ${
               active
                 ? 'border-border-focus bg-bg-3 text-fg'
                 : 'border-border bg-bg-2 text-fg-dim hover:border-border-strong hover:text-fg'
             }`}
             title={skin.description}
           >
-            <span className="flex items-center justify-between gap-3">
-              <span className="text-[13px] font-medium">{skin.label}</span>
-              <span className="flex overflow-hidden rounded-[3px] border border-border">
+            <span className="flex items-center justify-between gap-2">
+              <span className="truncate text-[12.5px] font-medium">{skin.label}</span>
+              <span className="flex flex-none overflow-hidden rounded-[3px] border border-border">
                 {swatches.map((color, index) => (
                   <span
                     key={`${skin.id}-${index}`}

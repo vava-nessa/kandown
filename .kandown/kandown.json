@@ -3,11 +3,12 @@
     "language": "en",
     "theme": "dark",
     "skin": "cobalt",
-    "font": "system"
+    "font": "system",
+    "background": "liquid-ether"
   },
   "agent": {
     "suggestFollowUp": true,
-    "maxSuggestions": 3
+    "maxSuggestions": 2
   },
   "board": {
     "taskPrefix": "task",

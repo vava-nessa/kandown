@@ -87,6 +87,7 @@ export type ViewMode = 'board' | 'list';
 export type ThemeMode = 'auto' | 'light' | 'dark';
 export type SkinId = 'kandown' | 'graphite' | 'sage' | 'cobalt' | 'rose';
 export type FontId = 'inter' | 'system' | 'serif' | 'mono' | 'rounded';
+export type BackgroundId = 'solid' | 'liquid-ether';
 
 export interface Filters {
   search: string;
@@ -104,6 +105,7 @@ export interface KandownConfig {
     theme: ThemeMode;
     skin: SkinId;
     font: FontId;
+    background: BackgroundId;
   };
   agent: {
     suggestFollowUp: boolean;
@@ -125,7 +127,7 @@ export interface KandownConfig {
 }
 
 export const DEFAULT_CONFIG: KandownConfig = {
-  ui: { language: 'en', theme: 'auto', skin: 'kandown', font: 'inter' },
+  ui: { language: 'en', theme: 'auto', skin: 'kandown', font: 'inter', background: 'solid' },
   agent: { suggestFollowUp: false, maxSuggestions: 3 },
   board: {
     taskPrefix: 't',
