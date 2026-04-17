@@ -147,6 +147,15 @@
     }
   }
 
+  @keyframes subtask-close-countdown {
+    from {
+      width: 0%;
+    }
+    to {
+      width: 100%;
+    }
+  }
+
   .text-balance {
     text-wrap: balance;
   }

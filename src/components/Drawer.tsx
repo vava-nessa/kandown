@@ -6,6 +6,9 @@
  * 📖 The drawer edits the parsed task detail file and syncs lightweight board
  * metadata back into `board.md`, keeping the index cheap while preserving rich
  * task context in `tasks/<id>.md`.
+ * 📖 Destructive keyboard deletion uses Cmd/Ctrl+Backspace instead of a naked
+ * Delete key so normal text editing inside title, description, and subtask
+ * fields remains predictable.
  *
  * @functions
  *  → Drawer — task editor panel with keyboard shortcuts and autosave
@@ -39,6 +42,13 @@ export function Drawer() {
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isOpen = !!drawerTaskId && !!drawerData;
+
+  const handleDelete = useCallback(async () => {
+    if (!drawerTaskId) return;
+    if (!confirm(`Delete ${drawerTaskId.toUpperCase()}?`)) return;
+    await deleteTask(drawerTaskId);
+    closeDrawer();
+  }, [closeDrawer, deleteTask, drawerTaskId]);
 
   const triggerAutoSave = useCallback(() => {
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
@@ -91,10 +101,14 @@ export function Drawer() {
         e.preventDefault();
         saveDrawer();
       }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Backspace') {
+        e.preventDefault();
+        void handleDelete();
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [isOpen, closeDrawer, saveDrawer]);
+  }, [isOpen, closeDrawer, handleDelete, saveDrawer]);
 
   if (!drawerData) return null;
 
@@ -159,11 +173,20 @@ export function Drawer() {
     triggerAutoSave();
   };
 
-  const handleDelete = async () => {
-    if (!drawerTaskId) return;
-    if (!confirm(`Delete ${drawerTaskId.toUpperCase()}?`)) return;
-    await deleteTask(drawerTaskId);
-    closeDrawer();
+  const handleDescriptionChange = (i: number, description: string) => {
+    updateDrawerData(d => ({
+      ...d,
+      subtasks: d.subtasks.map((s, idx) => (idx === i ? { ...s, description } : s)),
+    }));
+    triggerAutoSave();
+  };
+
+  const handleReportChange = (i: number, report: string) => {
+    updateDrawerData(d => ({
+      ...d,
+      subtasks: d.subtasks.map((s, idx) => (idx === i ? { ...s, report } : s)),
+    }));
+    triggerAutoSave();
   };
 
   const tagsValue = Array.isArray(drawerData.frontmatter.tags)
@@ -332,6 +355,8 @@ export function Drawer() {
                           onChange={changeSubtask}
                           onRemove={removeSubtask}
                           onEnterAtEnd={insertSubtaskAfter}
+                          onDescriptionChange={handleDescriptionChange}
+                          onReportChange={handleReportChange}
                         />
                       ))}
                     </AnimatePresence>
@@ -370,10 +395,12 @@ export function Drawer() {
               <button onClick={handleDelete} className="btn-danger">
                 <Icon.Trash size={12} />
                 Delete
+                <span className="kbd ml-1">⌘⌫</span>
               </button>
               <div className="flex items-center gap-2">
                 <button onClick={closeDrawer} className="btn-secondary">
                   Cancel
+                  <span className="kbd ml-1">Esc</span>
                 </button>
                 <button onClick={saveDrawer} className="btn-primary">
                   Save & Close

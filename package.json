@@ -31,6 +31,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@tabler/icons-react": "3.41.1",
     "ink": "7.0.1",
     "motion": "^12.38.0",
     "react": "^19.0.0",

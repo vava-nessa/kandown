@@ -1,10 +1,14 @@
 /**
  * @file Task card component
  * @description Displays one board task with priority, progress, tags, assignee,
- * drag handlers, and optional highlighted search-preview snippets.
+ * drag handlers, optional highlighted search-preview snippets, and guarded
+ * hover deletion.
  *
  * 📖 Cards are intentionally view-only. Clicking opens the drawer through the
  * store, while mutations such as moving, editing, and deleting stay centralized.
+ * 📖 The hover delete control requires two clicks: first arm, then confirm.
+ * This keeps fast board scanning safe while avoiding a modal confirmation for
+ * every card delete.
  *
  * @functions
  *  → HighlightedText — highlights a matched keyword inside preview text
@@ -15,7 +19,9 @@
  * @see src/components/Drawer.tsx
  */
 
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
+import { IconTrash, IconTrashX } from '@tabler/icons-react';
 import type { BoardTask, Density, SearchMatch } from '../lib/types';
 import { useStore } from '../lib/store';
 
@@ -64,6 +70,10 @@ interface CardProps {
 
 export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd, columnName }: CardProps) {
   const openDrawer = useStore(s => s.openDrawer);
+  const deleteTask = useStore(s => s.deleteTask);
+  const [deleteArmed, setDeleteArmed] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const isMountedRef = useRef(true);
 
   const isCompact = density === 'compact';
   const visibleTags = task.tags.slice(0, isCompact ? 1 : 2);
@@ -82,6 +92,39 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
 
   const showPreview = searchMatches.length > 0 && !isCompact;
 
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!deleteArmed) return;
+
+    // 📖 Confirmation is intentionally short-lived so a card cannot stay armed
+    // after the user's attention has moved elsewhere on the board.
+    const timer = window.setTimeout(() => setDeleteArmed(false), 2400);
+    return () => window.clearTimeout(timer);
+  }, [deleteArmed]);
+
+  const handleDeleteClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (isDeleting) return;
+
+    if (!deleteArmed) {
+      setDeleteArmed(true);
+      return;
+    }
+
+    setIsDeleting(true);
+    await deleteTask(task.id);
+    if (isMountedRef.current) {
+      setIsDeleting(false);
+      setDeleteArmed(false);
+    }
+  };
+
   return (
     <motion.div
       layout
@@ -95,6 +138,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       draggable
       {...dragHandlers}
       onClick={() => openDrawer(task.id)}
+      onMouseLeave={() => setDeleteArmed(false)}
       data-task-id={task.id}
       data-col={columnName}
       className={`group relative cursor-pointer rounded-[6px] border bg-bg-2 p-3 transition-colors hover:border-border-focus hover:bg-bg-3 ${
@@ -104,6 +148,24 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
         borderColor: '#1f1f1f',
       }}
     >
+      <button
+        type="button"
+        draggable={false}
+        aria-label={deleteArmed ? `Confirm delete ${task.id.toUpperCase()}` : `Delete ${task.id.toUpperCase()}`}
+        title={deleteArmed ? 'Click again to delete' : 'Delete task'}
+        disabled={isDeleting}
+        onClick={handleDeleteClick}
+        onPointerDown={e => e.stopPropagation()}
+        onBlur={() => setDeleteArmed(false)}
+        className={`absolute right-2 top-2 z-10 inline-flex h-6 w-6 items-center justify-center rounded-[5px] border transition-all ${
+          deleteArmed
+            ? 'border-red-500 bg-red-500 text-white opacity-100 shadow-sm'
+            : 'border-border bg-bg-2 text-fg-muted opacity-0 hover:border-red-500/60 hover:bg-bg-3 hover:text-red-500 group-hover:opacity-100'
+        } ${isDeleting ? 'pointer-events-none opacity-60' : ''}`}
+      >
+        {deleteArmed ? <IconTrashX size={14} stroke={1.9} /> : <IconTrash size={14} stroke={1.8} />}
+      </button>
+
       {/* Subtle priority edge indicator */}
       {task.priority && (
         <div

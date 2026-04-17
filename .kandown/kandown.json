@@ -1,9 +1,9 @@
 {
   "ui": {
     "language": "en",
-    "theme": "auto",
-    "skin": "sage",
-    "font": "inter"
+    "theme": "dark",
+    "skin": "cobalt",
+    "font": "system"
   },
   "agent": {
     "suggestFollowUp": true,
@@ -12,7 +12,14 @@
   "board": {
     "taskPrefix": "task",
     "defaultPriority": "P3",
-    "defaultOwnerType": "human"
+    "defaultOwnerType": "human",
+    "columnColors": {
+      "backlog": "red",
+      "todo": "blue",
+      "in progress": "orange",
+      "review": "violet",
+      "done": "green"
+    }
   },
   "fields": {
     "priority": false,

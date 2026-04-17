@@ -61,7 +61,9 @@ Firefox and Safari do not currently support the required File System Access API.
 - **Zero backend**: No server, database, login, or sync vendor.
 - **AI-agent optimized**: Cheap board index plus detail files on demand.
 - **Board and list views**: Toggle with `⌘1` / `⌘2`.
+- **Column status icons**: Board columns use Tabler icons beside titles so states like Backlog, In Progress, Review, and Done are easier to scan.
 - **Drag and drop**: Move cards between columns with optimistic file writes.
+- **Guarded card deletion**: Hover a card and click the trash icon twice to delete a task without opening the drawer.
 - **Task drawer**: Edit title, metadata, subtasks, and body content.
 - **Content search**: Search titles, ids, task body, subtasks, tags, assignee, and priority with highlighted previews.
 - **Command palette**: `⌘K` / `Ctrl+K` for task search and quick actions.
@@ -80,8 +82,9 @@ Firefox and Safari do not currently support the required File System Access API.
 | `N` | New task |
 | `R` | Reload files from disk |
 | `/` | Focus task search |
-| `Esc` | Close drawer or command palette |
+| `Esc` | Cancel the drawer or close the command palette |
 | `⌘S` / `Ctrl+S` | Save current task in the drawer |
+| `⌘⌫` / `Ctrl+Backspace` | Delete current task in the drawer after confirmation |
 
 ## CLI
 
@@ -287,8 +290,8 @@ Built-in fonts:
 | File | Main exports | Description |
 |---|---|---|
 | `Board.tsx` | `Board` | Horizontal kanban view, filtering, drag state, search-match forwarding. |
-| `Column.tsx` | `Column` | One kanban column, drop target, create-task button, empty state. |
-| `Card.tsx` | `Card` | Task card with progress, metadata, drag handlers, and search previews. |
+| `Column.tsx` | `Column` | One kanban column, Tabler status icon, drop target, create-task button, empty state. |
+| `Card.tsx` | `Card` | Task card with progress, metadata, guarded hover deletion, drag handlers, and search previews. |
 | `ListView.tsx` | `ListView` | Dense table-like view sharing the same filters/search cache as board view. |
 | `Drawer.tsx` | `Drawer` | Task detail editor for title, frontmatter metadata, subtasks, and body content. |
 | `SubtaskItem.tsx` | `SubtaskItem` | Editable markdown checklist row. |
@@ -298,7 +301,7 @@ Built-in fonts:
 | `Header.tsx` | `Header` | Project switcher, view controls, settings link, reload, new task. |
 | `EmptyState.tsx` | `EmptyState` | First-run folder picker and recent projects. |
 | `Toaster.tsx` | `Toaster` | Animated notification stack. |
-| `Icons.tsx` | `Icon` | Local SVG icon set. |
+| `Icons.tsx` | `Icon` | Local SVG icon set for app chrome; board column status glyphs use `@tabler/icons-react`. |
 
 ### Store And Domain Logic
 

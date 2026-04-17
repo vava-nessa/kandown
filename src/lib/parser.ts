@@ -185,6 +185,16 @@ export function extractSubtasks(body: string): { subtasks: Subtask[]; bodyWithou
       subtasks.push({ done: (m[1]?.toLowerCase() ?? '') === 'x', text });
       continue;
     }
+    const descMatch = line.match(/^\s*\[DESC\]\s*(.*)$/);
+    if (descMatch && subtasks.length > 0) {
+      subtasks[subtasks.length - 1].description = descMatch[1];
+      continue;
+    }
+    const reportMatch = line.match(/^\s*\[REPORT\]\s*(.*)$/);
+    if (reportMatch && subtasks.length > 0) {
+      subtasks[subtasks.length - 1].report = reportMatch[1];
+      continue;
+    }
     kept.push(line);
   }
 
@@ -204,11 +214,18 @@ export function injectSubtasks(body: string, subtasks: Subtask[]): string {
     }
   }
 
-  const subtaskLines = subtasks.map(s => `- [${s.done ? 'x' : ' '}] ${s.text ?? ''}`);
+  const subtaskLines = subtasks.map(s => {
+    const lines: string[] = [];
+    lines.push(`- [${s.done ? 'x' : ' '}] ${s.text ?? ''}`);
+    if (s.description) lines.push(`  [DESC] ${s.description}`);
+    if (s.report) lines.push(`  [REPORT] ${s.report}`);
+    return lines.join('\n');
+  });
+  const combined = subtaskLines.join('\n');
 
   if (subtaskHeaderIdx === -1) {
     const trimmed = body.trimEnd();
-    return trimmed + '\n\n## Subtasks\n\n' + subtaskLines.join('\n') + '\n';
+    return trimmed + '\n\n## Subtasks\n\n' + combined + '\n';
   }
 
   const before = lines.slice(0, subtaskHeaderIdx + 1);
@@ -220,7 +237,7 @@ export function injectSubtasks(body: string, subtasks: Subtask[]): string {
   return (
     before.join('\n') +
     '\n\n' +
-    subtaskLines.join('\n') +
+    combined +
     '\n' +
     (after.length ? '\n' + after.join('\n') : '')
   );

@@ -18,6 +18,8 @@ export type OwnerType = 'human' | 'ai' | '';
 export interface Subtask {
   done: boolean;
   text: string;
+  description?: string;
+  report?: string;
 }
 
 export interface TaskProgress {
@@ -94,6 +96,8 @@ export interface Filters {
   ownerType: OwnerType | null;
 }
 
+export type ColumnColor = 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'violet' | 'pink' | 'gray';
+
 export interface KandownConfig {
   ui: {
     language: string;
@@ -109,6 +113,7 @@ export interface KandownConfig {
     taskPrefix: string;
     defaultPriority: string;
     defaultOwnerType: 'human' | 'ai';
+    columnColors?: Record<string, ColumnColor>;
   };
   fields: {
     priority: boolean;
@@ -122,7 +127,18 @@ export interface KandownConfig {
 export const DEFAULT_CONFIG: KandownConfig = {
   ui: { language: 'en', theme: 'auto', skin: 'kandown', font: 'inter' },
   agent: { suggestFollowUp: false, maxSuggestions: 3 },
-  board: { taskPrefix: 't', defaultPriority: 'P3', defaultOwnerType: 'human' },
+  board: {
+    taskPrefix: 't',
+    defaultPriority: 'P3',
+    defaultOwnerType: 'human',
+    columnColors: {
+      backlog: 'red',
+      todo: 'blue',
+      'in progress': 'orange',
+      review: 'violet',
+      done: 'green',
+    },
+  },
   fields: {
     priority: false,
     assignee: false,
