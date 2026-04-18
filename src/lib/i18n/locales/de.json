@@ -31,7 +31,7 @@
   "emptyState": {
     "unsupportedBrowser": "Nicht unterstützter Browser",
     "unsupportedBrowserDesc": "Diese Engine benötigt die <code>File System Access API</code>. Verwenden Sie Chrome, Edge, Brave oder Opera. Firefox und Safari unterstützen diese noch nicht.",
-    "selectFolderDesc": "Wählen Sie einen Ordner mit <code>board.md</code> und einem <code>tasks/</code>-Unterverzeichnis."
+    "selectFolderDesc": "Select a project folder containing a <code>.kandown/tasks/</code> directory."
   },
   "header": {
     "tasks": "Aufgaben",
@@ -52,8 +52,7 @@
   },
   "card": {
     "delete": "Aufgabe löschen",
-    "confirmDelete": "Erneut klicken zum Löschen",
-    "orphanWarning": "Diese Aufgabendatei existiert, ist aber nicht auf dem Board aufgeführt — sie wurde möglicherweise manuell bearbeitet"
+    "confirmDelete": "Erneut klicken zum Löschen"
   },
   "drawer": {
     "close": "Schließen (Esc)",

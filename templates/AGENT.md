@@ -1,43 +1,25 @@
-# Kanban conventions for AI agents
+# Kandown conventions for AI agents
 
-This project uses a file-based kandown located in `.kandown/`. Read this file before touching any task files.
+This project uses a file-based Kandown board located in `.kandown/`. Read this file before touching task files.
 
-## The golden rule
+## Source of truth
 
-**Always start with `board.md`** — it's the task index. Typically under 1k tokens even with 100+ tasks.
-**Never read the entire `tasks/` directory by default** — it pollutes context for no reason.
+Tasks are the source of truth. There is no board index to maintain.
 
-Only read `tasks/t-xxx.md` when:
-- The user explicitly mentions a specific task ID
-- You need to implement, modify, or discuss a specific task in depth
-- The user asks to find tasks about a topic and you've identified candidates from `board.md`
-
-## File format
-
-### board.md (state + index)
-
-```markdown
----
-kanban: v1
-columns: [Backlog, Todo, In Progress, Review, Done]
----
-
-# Project Kanban
-
-## Todo
-
-- [ ] **[t-001]** Short title → [détails](tasks/t-001.md) `#tag` `#p1` `@user`
+```
+.kandown/
+├── kandown.json      ← project settings and board columns
+├── tasks/
+│   ├── t-001.md      ← task status, metadata, subtasks, notes, report
+│   └── ...
+└── kandown.html      ← local web UI
 ```
 
-Anatomy of a task line:
-- `- [ ]` unchecked / `- [x]` checked (auto-set when moving to/from Done column)
-- `**[t-xxx]**` unique task ID (bold, required)
-- Title after the ID
-- ` (3/5)` optional progress indicator (subtask completion)
-- ` → [détails](tasks/t-xxx.md)` link to details file (recommended)
-- Backtick meta: `` `#tag` `` for tags, `` `#p1`…`#p4` `` for priority, `` `@user` `` for assignee, `` `human` `` or `` `ai` `` for owner type
+Columns are stored in `.kandown/kandown.json` under `board.columns`. A task belongs to a column through its frontmatter `status`.
 
-### tasks/t-xxx.md (full details)
+If a task has no `status`, treat it as `Backlog`.
+
+## Task file format
 
 ```markdown
 ---
@@ -70,70 +52,53 @@ Additional information.
 ```
 
 Frontmatter fields:
-- `ownerType: human` — task is meant for a human to do
-- `ownerType: ai` — task is meant for an AI agent to execute
-- `tools: ...` — free-form list of tools/MCP servers/CLI commands the AI agent should use (e.g. `filesystem, cli, websearch, browser, mcp__github`)
+- `status` — current board column.
+- `order` — optional numeric order inside the column.
+- `ownerType: human` — task is meant for a human.
+- `ownerType: ai` — task is meant for an AI agent.
+- `tools` — free-form tool hints, such as `filesystem, cli, websearch, browser`.
 
-## When you complete a task
+## Working on a task
 
-After finishing a task, you **must** do both of these things:
+1. Open the specific task file the user requested.
+2. Set `status: In Progress` when you start.
+3. Check off subtasks as you complete them.
+4. Add a short report below completed subtasks when useful.
+5. When done, add or update the completion report and set `status: Done`.
 
-### 1. Write a completion report
+Example completion report in frontmatter:
 
-Open `tasks/t-xxx.md` and add a `## What was done` section (or append to it if it already exists). Write a brief summary of:
-- What you implemented, changed, or fixed
-- Any files you created or modified (list them, keep it short)
-- Decisions or trade-offs made
+```yaml
+report: |
+  ## Changes
+  - Created `src/auth.ts` with JWT validation.
+  - Added `/api/auth/login`.
 
-### 2. Move the task in kanban
+  ## Files
+  - `src/auth.ts`
 
-Update `board.md` to reflect the new state:
-- Move the task line to the appropriate column
-- Update the checkbox: `- [x]` when Done, `- [ ]` otherwise
-- Update `(n/n)` progress if subtasks exist
-
+  ## Decisions
+  - Used RS256 for better key rotation support.
 ```
-# Instead of staying in "In Progress" or "Todo":
-## Done
-- [x] **[t-042]** Implement auth (5/5) → [détails](tasks/t-042.md) `#backend` `#p1`
-```
 
-If the task needs review before being marked done, move it to `Review` (or your project's equivalent column).
+## Creating tasks
 
-## If you notice something to refactor or improve
+Create a new `tasks/<id>.md` file. Pick the next available ID by scanning filenames in `.kandown/tasks/`.
 
-While working on any task, if you notice something unrelated that should be fixed, improved, or refactored later:
-
-**Do not fix it inline.** Instead, create a new task:
-
-1. Add a new line in `board.md` under the appropriate column
-2. Create `tasks/t-xxx.md` with a brief description
-3. Note it in the current task's `## What was done` section: `→ Created t-043 for the cleanup noticed`
-
-This keeps the kanban as the single source of truth and avoids scope creep.
+Use the configured task prefix from `.kandown/kandown.json` at `board.taskPrefix`. If no config exists, use `t`.
 
 ## Mutation rules
 
 | Action | Files to edit |
 |---|---|
-| Move task between columns | `board.md` only (move the line + update checkbox) |
-| Change title/priority/tags/assignee | Both `board.md` (inline meta) AND `tasks/t-xxx.md` (frontmatter) |
-| Change ownerType/tools | Both `board.md` (inline `human`/`ai` token) AND `tasks/t-xxx.md` (frontmatter) |
-| Edit description/notes | `tasks/t-xxx.md` only |
-| Toggle subtask | `tasks/t-xxx.md` + update `(n/total)` in `board.md` |
-| Create task | Append line in `board.md` + create `tasks/t-xxx.md` |
-| Delete task | Remove line from `board.md` + delete `tasks/t-xxx.md` |
+| Move task between columns | Task file only: update frontmatter `status` |
+| Reorder task | Task file only: update frontmatter `order` |
+| Change title/priority/tags/assignee | Task file frontmatter only |
+| Change ownerType/tools | Task file frontmatter only |
+| Edit description/notes/subtasks/report | Task file body/frontmatter only |
+| Create task | Create one file in `.kandown/tasks/` |
+| Delete task | Delete its file from `.kandown/tasks/` |
 
-## ID generation
+## Scope control
 
-Task IDs use format `t-NNN` zero-padded (t-001, t-002, ... t-042). Always pick the next available number by scanning `board.md`.
-
-## Owner type quick reference
-
-- `` `human` `` in board.md line = human task
-- `` `ai` `` in board.md line = AI agent task
-
-Example with owner type:
-```
-- [ ] **[t-042]** Implement auth → [détails](tasks/t-042.md) `#backend` `#p1` `ai`
-```
+If you notice unrelated cleanup while working, create a separate task file instead of fixing it inline. Keep the current task focused.

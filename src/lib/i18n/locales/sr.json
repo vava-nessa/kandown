@@ -31,7 +31,7 @@
   "emptyState": {
     "unsupportedBrowser": "Неподржан прегледач",
     "unsupportedBrowserDesc": "Овај систем захтева <code>File System Access API</code>. Користите Chrome, Edge, Brave или Opera. Firefox и Safari тојјош не подржавају.",
-    "selectFolderDesc": "Изаберите фасциклу која садржи <code>board.md</code> и поддиректоријум <code>tasks/</code>."
+    "selectFolderDesc": "Select a project folder containing a <code>.kandown/tasks/</code> directory."
   },
   "header": {
     "tasks": "задаци",
@@ -52,8 +52,7 @@
   },
   "card": {
     "delete": "Обриши задатак",
-    "confirmDelete": "Кликни поново да обришеш",
-    "orphanWarning": "Овај задатак постоји на диску али није на табли — можда је ручно уређиван"
+    "confirmDelete": "Кликни поново да обришеш"
   },
   "drawer": {
     "close": "Затвори (Esc)",

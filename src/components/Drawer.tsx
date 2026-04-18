@@ -3,9 +3,9 @@
  * @description Full-height task detail editor for title, metadata, subtasks,
  * description body, save/close, autosave metadata, and deletion.
  *
- * 📖 The drawer edits the parsed task detail file and syncs lightweight board
- * metadata back into `board.md`, keeping the index cheap while preserving rich
- * task context in `tasks/<id>.md`.
+ * 📖 The drawer edits the parsed task file and writes metadata back into
+ * frontmatter, keeping `tasks/<id>.md` as the single source of truth for board
+ * state and rich task context.
  * 📖 Destructive keyboard deletion uses Cmd/Ctrl+Backspace instead of a naked
  * Delete key so normal text editing inside title, description, and subtask
  * fields remains predictable.

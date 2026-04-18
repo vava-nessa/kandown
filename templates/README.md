@@ -1,32 +1,31 @@
 # .kandown/
 
-File-based kanban for this project. Zero install, zero backend, plain markdown on disk.
+File-based kanban for this project. Zero backend, plain markdown on disk.
 
 ## Usage
 
 1. Open `kandown.html` in Chrome, Edge, Brave or Opera (File System Access API required)
-2. Click **Select folder** and pick this `.kandown/` directory, then grant read/write permission
-3. That's it
+2. Click **Select folder** and pick the project folder, then grant read/write permission
+3. Start editing tasks
 
-The app remembers the last 10 projects you've opened — no need to re-select the folder each time.
+The app remembers the last 10 projects you've opened.
 
 ## Structure
 
 ```
 .kandown/
-├── board.md          ← source of truth for state and index
 ├── tasks/
-│   ├── t-001.md      ← full task details
+│   ├── t-001.md      ← full task details and board status
 │   └── ...
-├── kandown.html       ← the engine (single file, no dependencies)
-├── kandown.json      ← project preferences, appearance, and optional fields
+├── kandown.html      ← the engine (single file, no dependencies)
+├── kandown.json      ← project preferences, columns, appearance, optional fields
 ├── AGENT.md          ← AI coding agent conventions
 └── README.md         ← this file
 ```
 
 ## Settings
 
-Open Settings from the app header to tune this project. Appearance settings are stored in `kandown.json`: theme mode (`auto`, `light`, `dark`), color skin, and font preset are all project-specific.
+Open Settings from the app header to tune this project. Board columns are stored in `kandown.json` at `board.columns`. Each task chooses a column with its frontmatter `status`.
 
 ## Editing without the app
 
@@ -34,7 +33,7 @@ Everything is plain markdown. Edit files directly in your IDE, Obsidian, or vim.
 
 ## For AI agents
 
-See `AGENT.md`. The key convention: agents read `board.md` only for the index, and only fetch `tasks/t-xxx.md` on demand. Keeps AI context clean when there are hundreds of tasks.
+See `AGENT.md`. The key convention: each task file is its own source of truth. Moving a task means editing the task's frontmatter `status`.
 
 ## Keyboard shortcuts
 

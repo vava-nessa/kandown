@@ -12,13 +12,12 @@ Kandown installs a self-contained web app into a project folder. The app reads a
 
 Most kanban tools trap your data in their cloud. Kandown does the opposite: all state lives in `.kandown/` as markdown and JSON.
 
-The core architecture splits the board index from task details:
+The core architecture keeps task state in the task files themselves:
 
-- `board.md` is the lightweight index: columns, task ids, titles, progress, and small metadata.
-- `tasks/<id>.md` stores the full task context: frontmatter, subtasks, notes, and completion reports.
-- `kandown.json` stores project preferences such as theme mode, skin, font, agent behavior, and enabled fields.
+- `tasks/<id>.md` stores the full task context and board state: title, status, order, metadata, subtasks, notes, and completion reports.
+- `kandown.json` stores project preferences such as board columns, theme mode, skin, font, agent behavior, and enabled fields.
 
-That split matters for AI tools. Agents can read `board.md` first, identify the task they need, and only open the specific task file when deeper context is required. The result is less context noise, faster task triage, and fewer accidental edits outside the relevant task.
+That task-first model matters for AI tools. Moving or completing a task means editing one markdown file, not synchronizing an index and a detail file.
 
 ## Install & Use
 
@@ -34,9 +33,8 @@ This creates:
 ```text
 .kandown/
 ├── kandown.html      # single-file web app, built from dist/index.html
-├── board.md          # task index and board state
-├── kandown.json      # project preferences and appearance
-├── tasks/            # per-task markdown files
+├── kandown.json      # project preferences, columns, and appearance
+├── tasks/            # per-task markdown files and board state
 ├── AGENT.md          # short AI-agent rules
 └── README.md         # user-facing project-local guide
 ```
@@ -55,10 +53,11 @@ Firefox and Safari do not currently support the required File System Access API.
 
 - **File-over-app**: Markdown and JSON are the source of truth.
 - **Zero backend**: No server, database, login, or sync vendor.
-- **AI-agent optimized**: Cheap board index plus detail files on demand.
+- **AI-agent optimized**: Task files are the single source of truth.
 - **Board and list views**: Toggle with `⌘1` / `⌘2`.
 - **Column status icons**: Board columns use Tabler icons beside titles so states like Backlog, In Progress, Review, and Done are easier to scan.
 - **Column color accents**: Columns can use expanded translucent background colors, including black variants.
+- **Custom columns**: Add, rename, and delete columns from the board; unknown task statuses appear as temporary columns until added to settings.
 - **Drag and drop**: Move cards between columns with optimistic file writes.
 - **Guarded card deletion**: Hover a card and click the trash icon twice to delete a task without opening the drawer.
 - **Task drawer**: Edit title, enabled metadata fields, subtasks, and body content.
@@ -140,11 +139,11 @@ The board TUI is a full-screen terminal kanban built with [Ink](https://github.c
 | `j` / `k` or `↑` / `↓` | Move between tasks within a column |
 | `Enter` | Open task detail view (scrollable) |
 | `a` | Open agent picker for the focused task |
-| `r` | Reload `board.md` from disk |
+| `r` | Reload task files from disk |
 | `q` / `Esc` | Quit (or go back from detail / picker) |
 
 **Agent picker** (`a` key): shows only agents currently installed in your `PATH`. Selecting one:
-1. Moves the task to **In Progress** in `board.md`.
+1. Sets the task frontmatter `status` to **In Progress**.
 2. Constructs a system prompt from `AGENT_KANDOWN_COMPACT.md` + the task file.
 3. Writes context to `/tmp/kandown-<id>-context.md` for reference.
 4. If inside **tmux**: opens the agent in a new 50%-wide right pane (the TUI stays visible).
@@ -176,7 +175,7 @@ kandown/
 │   │   ├── app.tsx         # TUI screen router (board, settings)
 │   │   ├── lib/
 │   │   │   ├── config.ts   # kandown.json reader/writer
-│   │   │   ├── board-reader.ts  # Node fs board/task reader + moveTaskToColumn
+│   │   │   ├── board-reader.ts  # Node fs task scanner + moveTaskToColumn
 │   │   │   ├── agents.ts   # AI agent registry, detection, prompt builder
 │   │   │   └── launcher.ts # Process spawning (tmux / direct exec)
 │   │   └── screens/
@@ -203,54 +202,24 @@ kandown/
 1. `main.tsx` mounts `App`.
 2. `App` renders the header and either `EmptyState`, `Board`, `ListView`, or `SettingsPage`.
 3. The user selects a folder with the File System Access API.
-4. `filesystem.ts` resolves or creates `.kandown/`, `board.md`, `tasks/`, and `kandown.json`.
-5. `store.ts` loads config, applies appearance tokens, parses `board.md`, and keeps recent project handles in IndexedDB.
-6. `parser.ts` converts markdown into typed board/task data.
+4. `filesystem.ts` resolves or creates `.kandown/`, `tasks/`, and `kandown.json`.
+5. `store.ts` loads config, applies appearance tokens, scans task files, and keeps recent project handles in IndexedDB.
+6. `parser.ts` converts task markdown into typed board/task data.
 7. React components render the board/list/drawer.
 8. Mutations go back through store actions, then through `serializer.ts` and `filesystem.ts`.
 
 ## Data Model
 
-### `board.md`
-
-`board.md` is the fast index. It should stay small even when the project has many tasks.
-
-```markdown
----
-kanban: v1
-columns: [Backlog, Todo, In Progress, Done]
----
-
-# Project Kanban
-
-## Todo
-
-- [ ] **[t-001]** Short title (2/4) → [détails](tasks/t-001.md) `#backend` `#p1` `@chacha`
-```
-
-Task-line metadata:
-
-| Element | Meaning |
-|---|---|
-| `- [ ]` / `- [x]` | Completion checkbox |
-| `**[t-001]**` | Task id |
-| `Short title` | Board title |
-| `(2/4)` | Subtask progress |
-| `tasks/t-001.md` | Detail file |
-| `` `#backend` `` | Tag |
-| `` `#p1` `` | Priority |
-| `` `@chacha` `` | Assignee |
-| `` `human` `` / `` `ai` `` | Owner type |
-
 ### `tasks/<id>.md`
 
-Task files store rich context.
+Task files store rich context and board state.
 
 ```markdown
 ---
 id: t-001
 title: Full task title
 status: Todo
+order: 0
 priority: P1
 tags: [backend, security]
 assignee: chacha
@@ -396,14 +365,15 @@ Built-in fonts:
 | `openRecentProject` | Reopens an IndexedDB-stored project handle after permission verification. |
 | `loadConfig` | Reads `kandown.json`, merges defaults, applies theme tokens. |
 | `updateConfig` | Optimistically updates config, applies appearance immediately, writes `kandown.json`. |
-| `reloadBoard` | Reads and parses `board.md`, then eagerly loads task content for small boards. |
-| `moveTask` | Optimistically moves a task between columns and writes `board.md`, rolling back on failure. |
-| `reorderInColumn` | Reorders tasks within one column and writes `board.md`. |
-| `createTask` | Creates a board entry and matching task detail file. |
-| `deleteTask` | Removes task from board, deletes detail file, clears cached content/search matches. |
+| `reloadBoard` | Scans task files, derives columns from task statuses, and eagerly loads task content for small boards. |
+| `moveTask` | Optimistically moves a task between columns and writes task frontmatter `status` / `order`, rolling back on failure. |
+| `reorderInColumn` | Reorders tasks within one column by writing task frontmatter `order`. |
+| `addColumn` / `renameColumn` / `deleteColumn` | Manage `board.columns` in config and update affected task files. |
+| `createTask` | Creates a task markdown file with initial frontmatter. |
+| `deleteTask` | Deletes the task file and clears cached content/search matches. |
 | `openDrawer` | Reads one task detail file and prepares editable drawer state. |
 | `saveDrawer` | Writes full task detail content and closes the drawer. |
-| `saveDrawerMetadata` | Autosaves task detail content and syncs board index metadata/progress. |
+| `saveDrawerMetadata` | Autosaves task detail content and reloads derived board metadata/progress. |
 | `setFilter` | Updates filters and lazily loads task contents for search queries. |
 | `loadTaskContents` | Reads task files into the content-search cache. |
 | `computeSearchMatches` | Produces per-task search matches for board/list previews. |
@@ -414,8 +384,9 @@ Built-in fonts:
 | Function | Description |
 |---|---|
 | `parseSimpleYaml` | Parses Kandown's limited frontmatter format. |
-| `parseBoard` | Converts `board.md` into columns and board task metadata. |
 | `parseTaskFile` | Splits a task markdown file into frontmatter and body. |
+| `taskToBoardTask` | Converts parsed task frontmatter/body into compact card metadata. |
+| `buildColumnsFromTasks` | Groups parsed task files into configured and temporary columns. |
 | `extractSubtasks` | Pulls markdown checklist lines out of a subtask section. |
 | `injectSubtasks` | Writes edited subtasks back into a task body. |
 | `searchTaskContent` | Searches title, subtasks, body, tags, assignee, and priority with contextual snippets. |
@@ -429,7 +400,7 @@ Built-in fonts:
 | `getKandownHandle` | Resolves `.kandown` from a remembered project directory handle. |
 | `ensureTasksDir` | Ensures `.kandown/tasks` exists. |
 | `readConfigFile` / `writeConfigFile` | Load and save `kandown.json`. |
-| `readBoardFile` / `writeBoardFile` | Load and save `board.md`. |
+| `listTaskIds` | Scans `.kandown/tasks/*.md` and returns task IDs. |
 | `readTaskFile` / `writeTaskFile` / `deleteTaskFile` | Manage per-task markdown files. |
 | `saveRecentProject` / `listRecentProjects` / `removeRecentProject` | Manage recent project handles in IndexedDB. |
 | `verifyPermission` | Requests read/write permission for a stored handle. |
@@ -470,7 +441,7 @@ The terminal UI source lives under `src/cli/` and is bundled into `bin/tui.js` b
 | `src/cli/tui.tsx` | Ink entrypoint — alternate screen buffer, renders the `App` shell. |
 | `src/cli/app.tsx` | TUI screen router (`board`, `settings`). |
 | `src/cli/lib/config.ts` | Node-side `kandown.json` reader/writer with dot-path accessors. |
-| `src/cli/lib/board-reader.ts` | Node fs wrapper around the parser: `readBoard`, `readTask`, `readAgentDoc`, `moveTaskToColumn`. |
+| `src/cli/lib/board-reader.ts` | Node fs wrapper around task scanning: `readBoard`, `readTask`, `readAgentDoc`, `moveTaskToColumn`. |
 | `src/cli/lib/agents.ts` | Agent registry (claude, codex, gemini, goose, aider, opencode), detection via `which`, `buildPrompt`. |
 | `src/cli/lib/launcher.ts` | Process spawning: tmux split-pane or direct exec, auto-moves task to In Progress. |
 | `src/cli/screens/board.tsx` | Interactive kanban board TUI — column navigation, task detail, agent picker integration. |
@@ -582,8 +553,8 @@ Unsupported:
 
 - The app must remain local-first and backend-free.
 - Markdown stays the canonical data format.
-- `board.md` must remain lightweight enough for AI agents to read first.
-- Task details belong in `tasks/<id>.md`.
+- Task files are the canonical source of truth.
+- Board columns belong in `kandown.json`.
 - UI state that is project-specific belongs in `kandown.json`.
 - Browser-only convenience state, such as recent handles, can live in IndexedDB.
 - The installed web app should remain a single file.

@@ -31,7 +31,7 @@
   "emptyState": {
     "unsupportedBrowser": "Webbläsaren stöds inte",
     "unsupportedBrowserDesc": "Den här motorn kräver <code>File System Access API</code>. Använd Chrome, Edge, Brave eller Opera. Firefox och Safari stöds ännu inte.",
-    "selectFolderDesc": "Välj en mapp som innehåller <code>board.md</code> och en <code>tasks/</code>-undermapp."
+    "selectFolderDesc": "Select a project folder containing a <code>.kandown/tasks/</code> directory."
   },
   "header": {
     "tasks": "uppgifter",
@@ -52,8 +52,7 @@
   },
   "card": {
     "delete": "Ta bort uppgift",
-    "confirmDelete": "Klicka igen för att ta bort",
-    "orphanWarning": "Den här uppgiftsfilen finns men listas inte på styret — den kan ha redigerats manuellt"
+    "confirmDelete": "Klicka igen för att ta bort"
   },
   "drawer": {
     "close": "Stäng (Esc)",

@@ -31,7 +31,7 @@
   "emptyState": {
     "unsupportedBrowser": "Nepodporovaný prehliadač",
     "unsupportedBrowserDesc": "Tento engine vyžaduje <code>File System Access API</code>. Použite Chrome, Edge, Brave alebo Opera. Firefox a Safari ho zatiaľ nepodporujú.",
-    "selectFolderDesc": "Vyberte priečinok obsahujúci <code>board.md</code> a podpriečinok <code>tasks/</code>."
+    "selectFolderDesc": "Select a project folder containing a <code>.kandown/tasks/</code> directory."
   },
   "header": {
     "tasks": "úlohy",
@@ -52,8 +52,7 @@
   },
   "card": {
     "delete": "Odstrániť úlohu",
-    "confirmDelete": "Kliknite znova pre odstránenie",
-    "orphanWarning": "Tento súbor úlohy existuje, ale nie je uvedený na tabuli — mohol byť upravený manuálne"
+    "confirmDelete": "Kliknite znova pre odstránenie"
   },
   "drawer": {
     "close": "Zavrieť (Esc)",

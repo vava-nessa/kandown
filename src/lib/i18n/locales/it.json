@@ -31,7 +31,7 @@
   "emptyState": {
     "unsupportedBrowser": "Browser non supportato",
     "unsupportedBrowserDesc": "Questo motore richiede la <code>File System Access API</code>. Usa Chrome, Edge, Brave o Opera. Firefox e Safari non la supportano ancora.",
-    "selectFolderDesc": "Seleziona una cartella contenente <code>board.md</code> e una sottodirectory <code>tasks/</code>."
+    "selectFolderDesc": "Select a project folder containing a <code>.kandown/tasks/</code> directory."
   },
   "header": {
     "tasks": "attività",
@@ -52,8 +52,7 @@
   },
   "card": {
     "delete": "Elimina attività",
-    "confirmDelete": "Clicca di nuovo per eliminare",
-    "orphanWarning": "Questo file di attività esiste ma non è elencato sulla lavagna — potrebbe essere stato modificato manualmente"
+    "confirmDelete": "Clicca di nuovo per eliminare"
   },
   "drawer": {
     "close": "Chiudi (Esc)",

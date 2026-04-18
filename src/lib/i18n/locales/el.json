@@ -31,7 +31,7 @@
   "emptyState": {
     "unsupportedBrowser": "Μη υποστηριζόμενος browser",
     "unsupportedBrowserDesc": "Αυτή η μηχανή απαιτεί το <code>File System Access API</code>. Χρησιμοποιήστε Chrome, Edge, Brave ή Opera. Τα Firefox και Safari δεν το υποστηρίζουν ακόμη.",
-    "selectFolderDesc": "Επιλέξτε έναν φάκελο που περιέχει <code>board.md</code> και έναν υποφάκελο <code>tasks/</code>."
+    "selectFolderDesc": "Select a project folder containing a <code>.kandown/tasks/</code> directory."
   },
   "header": {
     "tasks": "εργασίες",
@@ -52,8 +52,7 @@
   },
   "card": {
     "delete": "Διαγραφή εργασίας",
-    "confirmDelete": "Κάντε ξανά κλικ για διαγραφή",
-    "orphanWarning": "Το αρχείο αυτής της εργασίας υπάρχει αλλά δεν αναφέρεται στον πίνακα — πιθανώς επεξεργάστηκε χειροκίνητα"
+    "confirmDelete": "Κάντε ξανά κλικ για διαγραφή"
   },
   "drawer": {
     "close": "Κλείσιμο (Esc)",

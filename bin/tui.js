@@ -14,7 +14,12 @@ import { join } from "path";
 var DEFAULT_CONFIG = {
   ui: { language: "en", theme: "auto", skin: "kandown", font: "inter" },
   agent: { suggestFollowUp: false, maxSuggestions: 3 },
-  board: { taskPrefix: "t", defaultPriority: "P3", defaultOwnerType: "human" },
+  board: {
+    columns: ["Backlog", "Todo", "In Progress", "Review", "Done"],
+    taskPrefix: "t",
+    defaultPriority: "P3",
+    defaultOwnerType: "human"
+  },
   fields: {
     priority: false,
     assignee: false,
@@ -32,7 +37,11 @@ function loadConfig(kandownDir) {
     const merged = {
       ui: { ...DEFAULT_CONFIG.ui, ...raw.ui },
       agent: { ...DEFAULT_CONFIG.agent, ...raw.agent },
-      board: { ...DEFAULT_CONFIG.board, ...raw.board },
+      board: {
+        ...DEFAULT_CONFIG.board,
+        ...raw.board,
+        columns: Array.isArray(raw.board?.columns) && raw.board.columns.length > 0 ? raw.board.columns.filter((name) => typeof name === "string" && name.trim().length > 0) : DEFAULT_CONFIG.board.columns
+      },
       fields: { ...DEFAULT_CONFIG.fields, ...raw.fields }
     };
     if (raw.agents) merged.agents = raw.agents;
@@ -386,19 +395,35 @@ import { useState as useState3, useEffect as useEffect2, useCallback as useCallb
 import { Box as Box3, Text as Text3, useInput as useInput3, useApp as useApp2 } from "ink";
 
 // src/cli/lib/board-reader.ts
-import { readFileSync as readFileSync2, writeFileSync as writeFileSync2, existsSync as existsSync2 } from "fs";
-import { join as join2, dirname } from "path";
+import { existsSync as existsSync2, readdirSync, readFileSync as readFileSync2, writeFileSync as writeFileSync2 } from "fs";
+import { dirname, join as join2 } from "path";
+
+// src/lib/types.ts
+var DEFAULT_COLUMNS = ["Backlog", "Todo", "In Progress", "Review", "Done"];
 
 // src/lib/parser.ts
 function parseSimpleYaml(yaml) {
   const obj = {};
   if (!yaml || typeof yaml !== "string") return obj;
-  yaml.split("\n").forEach((line) => {
+  const lines = yaml.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i] ?? "";
     const m = line.match(/^([a-zA-Z_][\w-]*)\s*:\s*(.*)$/);
-    if (!m) return;
+    if (!m) continue;
     const key = m[1];
-    if (!key) return;
+    if (!key) continue;
     let val = m[2]?.trim() ?? "";
+    if (val === "|") {
+      const block = [];
+      i++;
+      while (i < lines.length && (/^\s+/.test(lines[i] ?? "") || (lines[i] ?? "") === "")) {
+        block.push((lines[i] ?? "").replace(/^  /, ""));
+        i++;
+      }
+      i--;
+      obj[key] = block.join("\n").trimEnd();
+      continue;
+    }
     if (typeof val !== "string") val = "";
     if (val.startsWith("[") && val.endsWith("]")) {
       const arr = val.slice(1, -1).split(",").map((s) => s && typeof s === "string" ? s.trim().replace(/^["']|["']$/g, "") : "").filter(Boolean);
@@ -406,75 +431,8 @@ function parseSimpleYaml(yaml) {
     } else {
       obj[key] = typeof val === "string" ? val.replace(/^["']|["']$/g, "") : val;
     }
-  });
+  }
   return obj;
-}
-function parseBoard(md) {
-  if (!md || typeof md !== "string") {
-    return { frontmatter: null, title: "Project Kanban", columns: [] };
-  }
-  const lines = md.split("\n");
-  const result = { frontmatter: null, title: "Project Kanban", columns: [] };
-  let i = 0;
-  if (lines[0] && lines[0].trim() === "---") {
-    const fmLines = [];
-    i = 1;
-    while (i < lines.length && lines[i].trim() !== "---") {
-      fmLines.push(lines[i]);
-      i++;
-    }
-    i++;
-    result.frontmatter = parseSimpleYaml(fmLines.join("\n"));
-  }
-  let currentColumn = null;
-  for (; i < lines.length; i++) {
-    const line = lines[i];
-    if (!line) continue;
-    if (/^#\s+/.test(line)) {
-      result.title = line.replace(/^#\s+/, "").trim() || "Project Kanban";
-      continue;
-    }
-    const h2Match = line.match(/^##\s+(.+)$/);
-    if (h2Match) {
-      currentColumn = { name: h2Match[1]?.trim() ?? "Untitled", tasks: [] };
-      result.columns.push(currentColumn);
-      continue;
-    }
-    const taskMatch = line.match(/^-\s+\[([ xX])\]\s+\*\*\[([^\]]+)\]\*\*\s+(.+)$/);
-    if (taskMatch && currentColumn) {
-      const checked = (taskMatch[1]?.toLowerCase() ?? "") === "x";
-      const id = (taskMatch[2]?.trim() ?? "unknown").replace(/^(t-\d+)$/, "$1");
-      const rest = taskMatch[3] ?? "";
-      let title = rest;
-      const arrowIdx = title.indexOf(" \u2192");
-      const backtickIdx = title.indexOf(" `");
-      const parenIdx = title.search(/\s\(\d+\/\d+\)/);
-      let cutAt = -1;
-      [arrowIdx, backtickIdx, parenIdx].forEach((idx) => {
-        if (idx !== -1 && (cutAt === -1 || idx < cutAt)) cutAt = idx;
-      });
-      if (cutAt !== -1) title = title.slice(0, cutAt).trim();
-      const tags = [];
-      let assignee = null;
-      let priority = null;
-      let ownerType = "";
-      const metaRegex = /`([^`]+)`/g;
-      let m;
-      while ((m = metaRegex.exec(rest)) !== null) {
-        const token = m[1];
-        if (!token) continue;
-        if (token.startsWith("@")) assignee = token.slice(1);
-        else if (/^#p\d+$/i.test(token)) priority = token.slice(1).toUpperCase();
-        else if (token.startsWith("#")) tags.push(token.slice(1));
-        else if (/^(human|ai)$/i.test(token)) ownerType = token.toLowerCase();
-      }
-      const progMatch = rest.match(/\((\d+)\/(\d+)\)/);
-      const progress = progMatch ? { done: parseInt(progMatch[1] ?? "0", 10), total: parseInt(progMatch[2] ?? "0", 10) } : null;
-      const task = { id, title, checked, tags, assignee, priority, ownerType, progress };
-      currentColumn.tasks.push(task);
-    }
-  }
-  return result;
 }
 function parseTaskFile(md) {
   if (!md || typeof md !== "string") {
@@ -494,29 +452,178 @@ function parseTaskFile(md) {
   }
   return { frontmatter: { id: "", title: "" }, body: md };
 }
+function normalizeStatus(status) {
+  const value = typeof status === "string" ? status.trim() : "";
+  return value || "Backlog";
+}
+function normalizePriority(priority) {
+  if (typeof priority !== "string") return null;
+  const value = priority.toUpperCase();
+  return /^(P1|P2|P3|P4)$/.test(value) ? value : null;
+}
+function normalizeOwnerType(ownerType) {
+  if (typeof ownerType !== "string") return "";
+  const value = ownerType.toLowerCase();
+  return value === "human" || value === "ai" ? value : "";
+}
+function taskOrder(task) {
+  const value = task.frontmatter.order;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return Number.MAX_SAFE_INTEGER;
+}
+function taskToBoardTask(task) {
+  const { frontmatter, body } = task;
+  const { subtasks } = extractSubtasks(body);
+  const done = subtasks.filter((s) => s.done).length;
+  const total = subtasks.length;
+  const status = normalizeStatus(frontmatter.status);
+  const tags = Array.isArray(frontmatter.tags) ? frontmatter.tags.filter((tag) => typeof tag === "string" && tag.trim().length > 0) : [];
+  return {
+    id: frontmatter.id || "",
+    title: frontmatter.title || frontmatter.id || "Untitled task",
+    checked: /done|termin|closed|complet/i.test(status),
+    tags,
+    assignee: typeof frontmatter.assignee === "string" && frontmatter.assignee ? frontmatter.assignee : null,
+    priority: normalizePriority(frontmatter.priority),
+    ownerType: normalizeOwnerType(frontmatter.ownerType),
+    progress: total > 0 ? { done, total } : null
+  };
+}
+function buildColumnsFromTasks(tasks, configuredColumns = DEFAULT_COLUMNS) {
+  const columnNames = configuredColumns.length > 0 ? configuredColumns : DEFAULT_COLUMNS;
+  const columnsByName = /* @__PURE__ */ new Map();
+  const configured = columnNames.map((name) => ({ name, tasks: [] }));
+  for (const column of configured) columnsByName.set(column.name.toLowerCase(), column);
+  const unknownColumns = [];
+  const sortedTasks = [...tasks].filter((task) => Boolean(task.frontmatter.id)).sort((a, b) => {
+    const byOrder = taskOrder(a) - taskOrder(b);
+    if (byOrder !== 0) return byOrder;
+    return a.frontmatter.id.localeCompare(b.frontmatter.id, void 0, { numeric: true });
+  });
+  for (const task of sortedTasks) {
+    const status = normalizeStatus(task.frontmatter.status);
+    let column = columnsByName.get(status.toLowerCase());
+    if (!column) {
+      column = { name: status, tasks: [] };
+      columnsByName.set(status.toLowerCase(), column);
+      unknownColumns.push(column);
+    }
+    column.tasks.push(taskToBoardTask(task));
+  }
+  return [...unknownColumns, ...configured];
+}
+function extractSubtasks(body) {
+  const subtasks = [];
+  if (!body || typeof body !== "string") return { subtasks, bodyWithoutSubtasks: body ?? "" };
+  const lines = body.split("\n");
+  const kept = [];
+  let inSubtaskSection = false;
+  for (const line of lines) {
+    if (/^#{1,6}\s+(subtasks?|sous[- ]t[âa]ches?|crit[èe]res?)/i.test(line)) {
+      inSubtaskSection = true;
+      kept.push(line);
+      continue;
+    }
+    if (/^#{1,6}\s+/.test(line) && inSubtaskSection) {
+      inSubtaskSection = false;
+      kept.push(line);
+      continue;
+    }
+    const m = line.match(/^\s*-\s+\[([ xX])\]\s+(.+)$/);
+    if (m && inSubtaskSection) {
+      const text = m[2]?.trim() ?? "";
+      subtasks.push({ done: (m[1]?.toLowerCase() ?? "") === "x", text });
+      continue;
+    }
+    const descMatch = line.match(/^\s*\[DESC\]\s*(.*)$/);
+    if (descMatch && subtasks.length > 0) {
+      subtasks[subtasks.length - 1].description = descMatch[1];
+      continue;
+    }
+    const reportMatch = line.match(/^\s*\[REPORT\]\s*(.*)$/);
+    if (reportMatch && subtasks.length > 0) {
+      subtasks[subtasks.length - 1].report = reportMatch[1];
+      continue;
+    }
+    kept.push(line);
+  }
+  return { subtasks, bodyWithoutSubtasks: kept.join("\n") };
+}
+
+// src/lib/serializer.ts
+function serializeTaskFile(frontmatter, body) {
+  const lines = ["---"];
+  if (frontmatter && typeof frontmatter === "object") {
+    for (const [k, v] of Object.entries(frontmatter)) {
+      if (v === null || v === void 0 || v === "") continue;
+      if (Array.isArray(v)) {
+        if (v.length === 0) continue;
+        lines.push(`${k}: [${v.join(", ")}]`);
+      } else if (typeof v === "string" && v.includes("\n")) {
+        lines.push(`${k}: |`);
+        lines.push(...v.split("\n").map((line) => `  ${line}`));
+      } else if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") {
+        lines.push(`${k}: ${v}`);
+      }
+    }
+  }
+  lines.push("---");
+  lines.push("");
+  lines.push((body ?? "").trim());
+  lines.push("");
+  return lines.join("\n");
+}
 
 // src/cli/lib/board-reader.ts
 function getProjectRoot(kandownDir) {
   return dirname(kandownDir);
 }
+function listTaskIds(kandownDir) {
+  const tasksDir = join2(kandownDir, "tasks");
+  if (!existsSync2(tasksDir)) return [];
+  return readdirSync(tasksDir).filter((name) => name.endsWith(".md")).map((name) => name.slice(0, -3)).sort((a, b) => a.localeCompare(b, void 0, { numeric: true }));
+}
 function readBoard(kandownDir) {
-  const boardPath = join2(kandownDir, "board.md");
-  if (!existsSync2(boardPath)) {
-    return { frontmatter: null, title: "Project Kanban", columns: [] };
-  }
-  const content = readFileSync2(boardPath, "utf8");
-  return parseBoard(content);
+  const config = loadConfig(kandownDir);
+  const tasks = listTaskIds(kandownDir).map((id) => {
+    const task = readTask(kandownDir, id);
+    return {
+      ...task,
+      frontmatter: {
+        ...task.frontmatter,
+        id: task.frontmatter.id || id,
+        status: task.frontmatter.status || "Backlog"
+      }
+    };
+  });
+  return {
+    frontmatter: null,
+    title: "Project Kanban",
+    columns: buildColumnsFromTasks(tasks, config.board.columns)
+  };
 }
 function readTask(kandownDir, taskId) {
   const taskPath = join2(kandownDir, "tasks", `${taskId}.md`);
   if (!existsSync2(taskPath)) {
     return {
-      frontmatter: { id: taskId, title: `Task ${taskId}` },
+      frontmatter: { id: taskId, title: `Task ${taskId}`, status: "Backlog" },
       body: ""
     };
   }
   const content = readFileSync2(taskPath, "utf8");
-  return parseTaskFile(content);
+  const parsed = parseTaskFile(content);
+  return {
+    ...parsed,
+    frontmatter: {
+      ...parsed.frontmatter,
+      id: parsed.frontmatter.id || taskId,
+      status: parsed.frontmatter.status || "Backlog"
+    }
+  };
 }
 function readAgentDoc(kandownDir) {
   const root = getProjectRoot(kandownDir);
@@ -533,39 +640,15 @@ function readAgentDoc(kandownDir) {
   return "";
 }
 function moveTaskToColumn(kandownDir, taskId, targetColumn) {
-  const boardPath = join2(kandownDir, "board.md");
-  if (!existsSync2(boardPath)) return false;
-  const original = readFileSync2(boardPath, "utf8");
-  const lines = original.split("\n");
-  const taskPattern = new RegExp(`\\*\\*\\[${escapeRegex(taskId)}\\]\\*\\*`);
-  const taskLineIdx = lines.findIndex((l) => taskPattern.test(l));
-  if (taskLineIdx === -1) return false;
-  const taskLine = lines[taskLineIdx];
-  const colPattern = new RegExp(`^##\\s+${escapeRegex(targetColumn)}\\s*$`, "i");
-  const colHeaderIdx = lines.findIndex((l) => colPattern.test(l));
-  if (colHeaderIdx === -1) return false;
-  let currentColHeaderIdx = -1;
-  for (let i = taskLineIdx - 1; i >= 0; i--) {
-    if (/^##\s+/.test(lines[i] ?? "")) {
-      currentColHeaderIdx = i;
-      break;
-    }
-  }
-  if (currentColHeaderIdx === colHeaderIdx) return true;
-  const newLines = [...lines];
-  newLines.splice(taskLineIdx, 1);
-  const newColHeaderIdx = newLines.findIndex((l) => colPattern.test(l));
-  if (newColHeaderIdx === -1) return false;
-  let insertIdx = newColHeaderIdx + 1;
-  while (insertIdx < newLines.length && !/^##\s+/.test(newLines[insertIdx] ?? "")) {
-    insertIdx++;
-  }
-  newLines.splice(insertIdx, 0, taskLine);
-  writeFileSync2(boardPath, newLines.join("\n"), "utf8");
+  const taskPath = join2(kandownDir, "tasks", `${taskId}.md`);
+  if (!existsSync2(taskPath)) return false;
+  const parsed = readTask(kandownDir, taskId);
+  writeFileSync2(taskPath, serializeTaskFile({
+    ...parsed.frontmatter,
+    id: taskId,
+    status: targetColumn
+  }, parsed.body), "utf8");
   return true;
-}
-function escapeRegex(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 // src/cli/lib/agents.ts
@@ -689,9 +772,9 @@ function buildPrompt(agentDoc, taskContent, taskId, kandownDir) {
     `The kandown directory is at: \`${kandownDir}\``,
     "",
     "Before anything else:",
-    `1. Move task ${taskId} to "In Progress" in \`.kandown/board.md\` (it may already be there \u2014 that's fine)`,
+    `1. Set task ${taskId} frontmatter status to "In Progress" (it may already be there \u2014 that's fine)`,
     "2. Work through each subtask, checking them off and adding reports as you go",
-    '3. When done, write the completion report and move the task to "Done"'
+    '3. When done, write the completion report and set the task status to "Done"'
   ].join("\n");
   return { systemPrompt, taskPrompt };
 }

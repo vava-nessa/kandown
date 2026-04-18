@@ -31,7 +31,7 @@
   "emptyState": {
     "unsupportedBrowser": "Desteklenmeyen tarayıcı",
     "unsupportedBrowserDesc": "Bu motor <code>File System Access API</code> gerektirir. Chrome, Edge, Brave veya Opera kullanın. Firefox ve Safari henüz desteklenmiyor.",
-    "selectFolderDesc": "<code>board.md</code> ve bir <code>tasks/</code> alt dizini içeren bir klasör seçin."
+    "selectFolderDesc": "Select a project folder containing a <code>.kandown/tasks/</code> directory."
   },
   "header": {
     "tasks": "görevler",
@@ -52,8 +52,7 @@
   },
   "card": {
     "delete": "Görevi sil",
-    "confirmDelete": "Silmek için tekrar tıkla",
-    "orphanWarning": "Bu görev dosyası mevcut ama panoda listelenmemiş — manuel olarak düzenlenmiş olabilir"
+    "confirmDelete": "Silmek için tekrar tıkla"
   },
   "drawer": {
     "close": "Kapat (Esc)",

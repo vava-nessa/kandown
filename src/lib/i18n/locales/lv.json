@@ -31,7 +31,7 @@
   "emptyState": {
     "unsupportedBrowser": "Neatbalstīta pārlūkprogramma",
     "unsupportedBrowserDesc": "Šim dzinējam nepieciešams <code>File System Access API</code>. Izmantojiet Chrome, Edge, Brave vai Opera. Firefox un Safari vēl to neatbalsta.",
-    "selectFolderDesc": "Izvēlieties mapi, kurā ir <code>board.md</code> un <code>tasks/</code> apakšmape."
+    "selectFolderDesc": "Select a project folder containing a <code>.kandown/tasks/</code> directory."
   },
   "header": {
     "tasks": "uzdevumi",
@@ -52,8 +52,7 @@
   },
   "card": {
     "delete": "Dzēst uzdevumu",
-    "confirmDelete": "Vēlreiz noklikšķiniet, lai dzēstu",
-    "orphanWarning": "Šis uzdevuma fails pastāv, bet nav sarakstā uz tāfeles — iespējams, ka tas tika rediģēts manuāli"
+    "confirmDelete": "Vēlreiz noklikšķiniet, lai dzēstu"
   },
   "drawer": {
     "close": "Aizvērt (Esc)",

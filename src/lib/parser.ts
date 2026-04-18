@@ -37,12 +37,25 @@ import { DEFAULT_COLUMNS } from './types';
 export function parseSimpleYaml(yaml: string): Record<string, unknown> {
   const obj: Record<string, unknown> = {};
   if (!yaml || typeof yaml !== 'string') return obj;
-  yaml.split('\n').forEach(line => {
+  const lines = yaml.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i] ?? '';
     const m = line.match(/^([a-zA-Z_][\w-]*)\s*:\s*(.*)$/);
-    if (!m) return;
+    if (!m) continue;
     const key = m[1];
-    if (!key) return;
+    if (!key) continue;
     let val: string | string[] = m[2]?.trim() ?? '';
+    if (val === '|') {
+      const block: string[] = [];
+      i++;
+      while (i < lines.length && (/^\s+/.test(lines[i] ?? '') || (lines[i] ?? '') === '')) {
+        block.push((lines[i] ?? '').replace(/^  /, ''));
+        i++;
+      }
+      i--;
+      obj[key] = block.join('\n').trimEnd();
+      continue;
+    }
     if (typeof val !== 'string') val = '';
     if (val.startsWith('[') && val.endsWith(']')) {
       const arr = val
@@ -54,7 +67,7 @@ export function parseSimpleYaml(yaml: string): Record<string, unknown> {
     } else {
       obj[key] = (typeof val === 'string') ? val.replace(/^["']|["']$/g, '') : val;
     }
-  });
+  }
   return obj;
 }
 

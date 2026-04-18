@@ -24,6 +24,9 @@ export function serializeTaskFile(frontmatter: TaskFrontmatter, body: string): s
       if (Array.isArray(v)) {
         if (v.length === 0) continue;
         lines.push(`${k}: [${v.join(', ')}]`);
+      } else if (typeof v === 'string' && v.includes('\n')) {
+        lines.push(`${k}: |`);
+        lines.push(...v.split('\n').map(line => `  ${line}`));
       } else if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
         lines.push(`${k}: ${v}`);
       }

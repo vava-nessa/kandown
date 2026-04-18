@@ -1,8 +1,8 @@
 {
   "ui": {
     "language": "fr",
-    "theme": "dark",
-    "skin": "cobalt",
+    "theme": "light",
+    "skin": "kandown",
     "font": "system",
     "background": "solid"
   },
@@ -22,11 +22,11 @@
     "defaultPriority": "P3",
     "defaultOwnerType": "human",
     "columnColors": {
-      "backlog": "black",
-      "todo": "black",
+      "backlog": "fuchsia",
+      "todo": "cyan",
       "in progress": "emerald",
       "review": "cyan",
-      "done": "black"
+      "done": "pink"
     }
   },
   "fields": {
