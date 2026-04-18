@@ -50,13 +50,6 @@ export function Drawer() {
 
   const isOpen = !!drawerTaskId && !!drawerData;
 
-  const handleDelete = useCallback(async () => {
-    if (!drawerTaskId) return;
-    if (!confirm(`${t('common.delete')} ${drawerTaskId.toUpperCase()}?`)) return;
-    await deleteTask(drawerTaskId);
-    safeCloseDrawer();
-  }, [safeCloseDrawer, deleteTask, drawerTaskId, t]);
-
   const triggerAutoSave = useCallback(() => {
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     autoSaveTimerRef.current = setTimeout(() => {
@@ -92,6 +85,13 @@ export function Drawer() {
     await flushAutoSave();
     closeDrawer();
   }, [flushAutoSave, closeDrawer]);
+
+  const handleDelete = useCallback(async () => {
+    if (!drawerTaskId) return;
+    if (!confirm(`${t('common.delete')} ${drawerTaskId.toUpperCase()}?`)) return;
+    await deleteTask(drawerTaskId);
+    await safeCloseDrawer();
+  }, [safeCloseDrawer, deleteTask, drawerTaskId, t]);
 
   // Get current column for status display
   const currentCol = drawerTaskId

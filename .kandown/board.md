@@ -12,7 +12,7 @@ columns: [Backlog, Todo, In Progress, Review, Done]
 - [ ] **[t-011]** New task direct focus to replace title + empty description → [détails](tasks/t-011.md)
 - [ ] **[t-013]** Fix reports → [détails](tasks/t-013.md)
 - [ ] **[t-014]** Markdown Task editor → [détails](tasks/t-014.md)
-- [ ] **[t-024]** [CLI REFACTOR-1] Local HTTP Server — cmdServe() (0/9) → [détails](tasks/t-024.md)
+- [ ] **[t-024]** [CLI REFACTOR-1] Local HTTP Server — cmdServe() dans bin/kandown.js (0/10) → [détails](tasks/t-024.md)
 - [ ] **[t-025]** [CLI REFACTOR-2] REST API — Endpoints fichiers (0/9) → [détails](tasks/t-025.md)
 - [ ] **[t-026]** [CLI REFACTOR-3] filesystem.ts — Mode serveur fetch() (0/11) → [détails](tasks/t-026.md)
 - [ ] **[t-027]** [CLI REFACTOR-4] store.ts + App.tsx — Auto-load projet (0/5) → [détails](tasks/t-027.md)
