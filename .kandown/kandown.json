@@ -1,7 +1,7 @@
 {
   "ui": {
     "language": "fr",
-    "theme": "light",
+    "theme": "dark",
     "skin": "kandown",
     "font": "system",
     "background": "solid"
@@ -16,7 +16,8 @@
       "Todo",
       "In Progress",
       "Review",
-      "Done"
+      "Done",
+      "archives"
     ],
     "taskPrefix": "task",
     "defaultPriority": "P3",
@@ -40,7 +41,7 @@
   "notifications": {
     "browser": true,
     "sound": true,
-    "soundId": "chime",
+    "soundId": "ping",
     "statusChanges": true,
     "taskEdits": true,
     "subtaskCompletions": true,

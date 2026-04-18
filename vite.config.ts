@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { viteSingleFile } from 'vite-plugin-singlefile';
-import path from 'path';
 
 export default defineConfig({
   plugins: [react(), viteSingleFile()],
@@ -18,12 +17,5 @@ export default defineConfig({
     },
     outDir: 'dist',
     emptyOutDir: true,
-  },
-  resolve: {
-    alias: {
-      '@syncfusion/ej2-richtexteditor/styles/material.css': path.resolve(
-        './node_modules/@syncfusion/ej2-richtexteditor/styles/material.css'
-      ),
-    },
   },
 });

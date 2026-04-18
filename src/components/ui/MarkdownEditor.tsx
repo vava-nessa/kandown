@@ -1,11 +1,11 @@
 /**
  * @file Markdown Editor component
- * @description Wraps Syncfusion RichTextEditor in markdown mode with read/edit toggle.
+ * @description Wraps Wysimark with read/edit toggle behavior.
  * Default state is read mode (markdown preview); clicking switches to edit mode.
  * A manual toggle button allows switching between preview and edit modes.
  *
- * 📖 Uses `RichTextEditorComponent` with `editorMode='Markdown'` for editing,
- * and the `Marked` library to render markdown to HTML for the preview/read mode.
+ * 📖 Uses `@wysimark/react` — a free open-source WYSIWYG editor for Markdown.
+ * Preview mode uses `marked` to render markdown to HTML.
  *
  * @functions
  *  → MarkdownEditor — toggleable markdown editor/preview
@@ -13,13 +13,8 @@
  * @exports MarkdownEditor
  */
 
-import { useState, useCallback, useRef } from 'react';
-import {
-  RichTextEditorComponent,
-  Toolbar,
-  Inject,
-  MarkdownEditor as MarkdownEditorService,
-} from '@syncfusion/ej2-react-richtexteditor';
+import { useState, useCallback } from 'react';
+import { Editable, useEditor } from '@wysimark/react';
 import { marked } from 'marked';
 import { Icon } from '../Icons';
 
@@ -53,10 +48,11 @@ export function MarkdownEditor({
   placeholder,
   minHeight = '120px',
 }: MarkdownEditorProps) {
-  const editorRef = useRef<RichTextEditorComponent>(null);
   const [isEditMode, setIsEditMode] = useState(false);
 
   const isLocked = readOnly || !onChange;
+
+  const editor = useEditor({});
 
   const handleToggle = useCallback(() => {
     if (isLocked) return;
@@ -69,30 +65,13 @@ export function MarkdownEditor({
   }, [isLocked, isEditMode]);
 
   const handleChange = useCallback(
-    (args: { value: string }) => {
+    (markdown: string) => {
       if (onChange) {
-        onChange(args.value);
+        onChange(markdown);
       }
     },
     [onChange]
   );
-
-  const toolbarSettings = {
-    items: [
-      'Bold',
-      'Italic',
-      'StrikeThrough',
-      '|',
-      'Formats',
-      'OrderedList',
-      'UnorderedList',
-      '|',
-      'CreateLink',
-      'Image',
-      'Undo',
-      'Redo',
-    ],
-  };
 
   const renderedHtml = value ? marked.parse(value) : '';
 
@@ -166,17 +145,14 @@ export function MarkdownEditor({
           Preview
         </button>
       </div>
-      <RichTextEditorComponent
-        ref={editorRef}
+      <Editable
+        editor={editor}
         value={value}
-        change={handleChange}
-        editorMode="Markdown"
-        toolbarSettings={toolbarSettings}
-        height={`calc(${minHeight} - 36px)`}
+        onChange={handleChange}
         placeholder={placeholder}
-      >
-        <Inject services={[Toolbar, MarkdownEditorService]} />
-      </RichTextEditorComponent>
+        style={{ minHeight: `calc(${minHeight} - 36px)` }}
+        className="px-3 py-2 text-[14px]"
+      />
     </div>
   );
 }
