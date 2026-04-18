@@ -4,7 +4,7 @@
     "theme": "dark",
     "skin": "cobalt",
     "font": "system",
-    "background": "liquid-ether"
+    "background": "solid"
   },
   "agent": {
     "suggestFollowUp": true,
