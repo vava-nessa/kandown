@@ -87,10 +87,19 @@ Firefox and Safari do not currently support the required File System Access API.
 ## CLI
 
 ```bash
+# Open the interactive board TUI + the web UI in your browser (recommended)
+npx kandown
+
+# Board TUI only (no browser)
+npx kandown board
+
+# Initialize kandown in the current project
 npx kandown init
 npx kandown init --path docs/tasks
 npx kandown init --no-agents
 npx kandown init --force
+
+# Other commands
 npx kandown update
 npx kandown settings
 ```
@@ -99,29 +108,87 @@ npx kandown settings
 
 | Command | Purpose |
 |---|---|
+| *(none)* | Open the board TUI in the terminal **and** `kandown.html` in your default browser simultaneously. |
+| `board` | Open the interactive kanban board TUI only (no browser). |
 | `init` | Create `.kandown/`, copy templates, copy the built web app, and install agent docs. |
 | `update` | Replace an installed `kandown.html` with the current package build. |
 | `settings` | Open the Ink-based terminal settings editor for `kandown.json`. |
 | `help` | Print CLI help. |
+
+### Board TUI
+
+The board TUI is a full-screen terminal kanban built with [Ink](https://github.com/vadimdemedes/ink). It renders the same columns and tasks as the web UI, and lets you launch an AI agent on any task directly from the terminal.
+
+```
+  KANDOWN  tmux  My Project
+  ────────────────────────────────────────────────────────────────
+  Backlog (3)   │ Todo (2)     │ In Progress  │ Review (1) │ Done
+  ──────────────│──────────────│──────────────│────────────│──────
+  ▸ t-009       │ t-016        │ (empty)      │ t-018      │ ...
+    t-010       │ t-007        │              │
+    t-011       │              │
+```
+
+**Navigation:**
+
+| Key | Action |
+|---|---|
+| `h` / `l` or `←` / `→` | Move between columns |
+| `j` / `k` or `↑` / `↓` | Move between tasks within a column |
+| `Enter` | Open task detail view (scrollable) |
+| `a` | Open agent picker for the focused task |
+| `r` | Reload `board.md` from disk |
+| `q` / `Esc` | Quit (or go back from detail / picker) |
+
+**Agent picker** (`a` key): shows only agents currently installed in your `PATH`. Selecting one:
+1. Moves the task to **In Progress** in `board.md`.
+2. Constructs a system prompt from `AGENT_KANDOWN_COMPACT.md` + the task file.
+3. Writes context to `/tmp/kandown-<id>-context.md` for reference.
+4. If inside **tmux**: opens the agent in a new 50%-wide right pane (the TUI stays visible).
+5. If not in tmux: exits the TUI and hands the terminal to the agent.
+
+**Supported agents** (auto-detected via `which`):
+
+| Agent | Binary | Notes |
+|---|---|---|
+| Claude Code | `claude` | Interactive session with initial prompt |
+| OpenAI Codex | `codex` | Interactive session |
+| Gemini CLI | `gemini` | `-p` flag for initial prompt |
+| Goose | `goose` | `run --text` for non-interactive |
+| Aider | `aider` | `--message` for initial prompt |
+| OpenCode | `opencode` | TUI, context written to `/tmp` |
 
 ## Project Architecture
 
 ```text
 kandown/
 ├── bin/
-│   ├── kandown.js        # npm CLI entrypoint
-│   └── tui.js            # generated TUI bundle from tsup
+│   ├── kandown.js          # npm CLI entrypoint (hand-rolled, no deps)
+│   └── tui.js              # generated TUI bundle from tsup
 ├── src/
-│   ├── App.tsx           # web app shell and global shortcuts
-│   ├── main.tsx          # React/Vite browser entrypoint
-│   ├── cli/              # Ink terminal UI source
-│   ├── components/       # React UI components
-│   ├── hooks/            # small React hooks
-│   ├── lib/              # domain model, parser, serializer, store, theme, filesystem
-│   ├── logo.svg          # source logo asset
-│   └── styles/           # Tailwind layers and shadcn-compatible CSS tokens
-├── templates/            # files copied by `kandown init`
-├── dist/index.html       # generated single-file web app
+│   ├── App.tsx             # web app shell and global shortcuts
+│   ├── main.tsx            # React/Vite browser entrypoint
+│   ├── cli/                # Ink terminal UI source
+│   │   ├── tui.tsx         # Ink entrypoint — alternate screen buffer
+│   │   ├── app.tsx         # TUI screen router (board, settings)
+│   │   ├── lib/
+│   │   │   ├── config.ts   # kandown.json reader/writer
+│   │   │   ├── board-reader.ts  # Node fs board/task reader + moveTaskToColumn
+│   │   │   ├── agents.ts   # AI agent registry, detection, prompt builder
+│   │   │   └── launcher.ts # Process spawning (tmux / direct exec)
+│   │   └── screens/
+│   │       ├── board.tsx       # Interactive kanban board TUI
+│   │       ├── agent-picker.tsx # Agent selection overlay
+│   │       └── settings.tsx    # Settings editor TUI
+│   ├── components/         # React UI components (web only)
+│   ├── hooks/              # small React hooks
+│   ├── lib/                # domain model, parser, serializer, store, theme, filesystem
+│   ├── logo.svg
+│   └── styles/             # Tailwind layers and CSS tokens
+├── templates/              # files copied by `kandown init`
+│   ├── AGENT_KANDOWN.md        # full agent instructions (copied to project root)
+│   └── AGENT_KANDOWN_COMPACT.md # condensed version for CLI prompt injection
+├── dist/index.html         # generated single-file web app
 ├── tailwind.config.js
 ├── vite.config.ts
 ├── tsup.config.ts
@@ -380,6 +447,8 @@ The npm CLI lives in `bin/kandown.js`.
 | Function | Description |
 |---|---|
 | `help` | Prints usage and commands. |
+| `openInBrowser` | Opens `kandown.html` non-blocking in the system default browser. |
+| `findKandownDir` | Locates `.kandown/` walking up from cwd. |
 | `copyRecursive` | Copies template directories into `.kandown`. |
 | `findAgentsFile` | Detects existing AI-agent instruction files. |
 | `appendAgentReference` | Adds a Kandown task-management section to an existing agent file. |
@@ -387,41 +456,103 @@ The npm CLI lives in `bin/kandown.js`.
 | `parseArgs` | Parses `init` flags. |
 | `cmdInit` | Installs `.kandown`, templates, config, web app, and agent docs. |
 | `cmdUpdate` | Updates `kandown.html` from `dist/index.html`. |
-| `main` | Dispatches CLI commands. |
+| `cmdTui` | Launches a named TUI screen (`board`, `settings`). |
 
 The terminal UI source lives under `src/cli/` and is bundled into `bin/tui.js` by `tsup`.
 
 | File | Description |
 |---|---|
-| `src/cli/tui.tsx` | Ink entrypoint for the terminal UI. |
-| `src/cli/app.tsx` | TUI app shell. |
-| `src/cli/lib/config.ts` | Node-side `kandown.json` reader/writer. |
-| `src/cli/screens/settings.tsx` | Terminal settings editor. |
+| `src/cli/tui.tsx` | Ink entrypoint — alternate screen buffer, renders the `App` shell. |
+| `src/cli/app.tsx` | TUI screen router (`board`, `settings`). |
+| `src/cli/lib/config.ts` | Node-side `kandown.json` reader/writer with dot-path accessors. |
+| `src/cli/lib/board-reader.ts` | Node fs wrapper around the parser: `readBoard`, `readTask`, `readAgentDoc`, `moveTaskToColumn`. |
+| `src/cli/lib/agents.ts` | Agent registry (claude, codex, gemini, goose, aider, opencode), detection via `which`, `buildPrompt`. |
+| `src/cli/lib/launcher.ts` | Process spawning: tmux split-pane or direct exec, auto-moves task to In Progress. |
+| `src/cli/screens/board.tsx` | Interactive kanban board TUI — column navigation, task detail, agent picker integration. |
+| `src/cli/screens/agent-picker.tsx` | Agent selection overlay component. |
+| `src/cli/screens/settings.tsx` | Terminal settings editor for `kandown.json`. |
 
 ## Development
 
 ```bash
 pnpm install
-pnpm dev
-pnpm build
+pnpm dev        # web UI (Vite dev server)
+pnpm build      # full build: web + CLI
 ```
 
 ### Scripts
 
 | Script | Description |
 |---|---|
-| `pnpm dev` | Start Vite for local web UI development. |
-| `pnpm build` | Typecheck, build the single-file web app, and build the CLI TUI. |
-| `pnpm build:cli` | Build `src/cli/tui.tsx` into `bin/tui.js`. |
+| `pnpm dev` | Start the Vite dev server for the web UI at `localhost:5173`. |
+| `pnpm dev:cli` | Watch-mode build for the CLI TUI — rebuilds `bin/tui.js` on every file change. |
+| `pnpm build` | Full build: typecheck → Vite web app → CLI TUI bundle. |
+| `pnpm build:cli` | Build `src/cli/tui.tsx` into `bin/tui.js` (one-shot). |
 | `pnpm preview` | Preview the Vite production build. |
-| `pnpm typecheck` | Run TypeScript without emitting files. |
+| `pnpm typecheck` | Run TypeScript compiler without emitting files. |
+
+### Developing the Web UI
+
+```bash
+pnpm dev
+# → open http://localhost:5173
+# → select any folder that has a .kandown/ directory when prompted
+```
+
+Hot-reload is fully supported. Changes to `src/` reflect immediately in the browser.
+
+### Developing the CLI / Board TUI
+
+The CLI TUI is built with [Ink](https://github.com/vadimdemedes/ink) (React for terminals) and bundled by `tsup`.
+
+**Recommended dev workflow** — two terminals:
+
+```bash
+# Terminal 1: watch-rebuild on every save
+pnpm dev:cli
+
+# Terminal 2: run the board TUI after each rebuild
+node bin/kandown.js board
+
+# Or run the bare command (opens browser + board):
+node bin/kandown.js
+```
+
+`pnpm dev:cli` watches all files under `src/cli/` and `src/lib/` (shared parsers). After saving a file, re-run `node bin/kandown.js board` in the second terminal to see the updated TUI.
+
+**Testing a specific screen:**
+
+```bash
+# Board TUI (new)
+node bin/kandown.js board
+
+# Settings TUI
+node bin/kandown.js settings
+
+# Init in a temp project to test installation
+mkdir /tmp/test-kandown && cd /tmp/test-kandown
+node /path/to/kandown/bin/kandown.js init
+node /path/to/kandown/bin/kandown.js
+```
+
+**Iterating on the agent picker** — if you don't have any AI agents installed, the picker will show "No agents found". To test the picker UI regardless, temporarily add a dummy agent to the `AGENTS` array in `src/cli/lib/agents.ts` pointing to a binary that exists (e.g. `echo`).
+
+**Testing tmux integration:**
+
+```bash
+# Start a tmux session if you're not in one
+tmux new-session -s dev
+
+# Then run kandown — the agent picker should offer tmux split-pane launch
+node bin/kandown.js board
+```
 
 ### Build Output
 
 `pnpm build` regenerates:
 
-- `dist/index.html`: the single-file app copied into installed projects as `kandown.html`.
-- `bin/tui.js`: bundled Ink TUI used by `kandown settings`.
+- `dist/index.html` — single-file web app, copied into target projects as `kandown.html`.
+- `bin/tui.js` — bundled Ink TUI, used by `kandown board` and `kandown settings`.
 
 Always build before publishing. The published package is intentionally small and includes only `dist/`, `bin/`, `templates/`, `README.md`, and `LICENSE`.
 

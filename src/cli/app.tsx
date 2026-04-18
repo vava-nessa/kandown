@@ -15,6 +15,7 @@
 
 import { Box, Text } from 'ink';
 import { Settings } from './screens/settings.js';
+import { Board } from './screens/board.js';
 
 interface AppProps {
   screen: string;
@@ -25,6 +26,8 @@ export function App({ screen, kandownDir }: AppProps) {
   switch (screen) {
     case 'settings':
       return <Settings kandownDir={kandownDir} />;
+    case 'board':
+      return <Board kandownDir={kandownDir} />;
     default:
       return (
         <Box padding={2}>

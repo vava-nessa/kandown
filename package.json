@@ -25,6 +25,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite",
+    "dev:cli": "tsup --watch",
     "build": "tsc -b && vite build && pnpm build:cli",
     "build:cli": "tsup",
     "preview": "vite preview",

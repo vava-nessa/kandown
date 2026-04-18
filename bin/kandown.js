@@ -34,6 +34,7 @@ import {
   readdirSync,
   statSync,
 } from 'node:fs';
+import { spawnSync, spawn } from 'node:child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -61,15 +62,19 @@ function help() {
 ${c.bold}kandown${c.reset} ${c.dim}· file-based kanban backed by markdown${c.reset}
 
 ${c.bold}Usage:${c.reset}
-  npx kandown <command>
+  npx kandown [command]
 
 ${c.bold}Commands:${c.reset}
+  ${c.cyan}(none)${c.reset}      Open the board TUI + web UI in the browser
+  ${c.cyan}board${c.reset}       Open the interactive kanban board in the terminal
   ${c.cyan}init${c.reset}        Initialize .kandown/ in the current directory
   ${c.cyan}settings${c.reset}    Open the settings TUI
   ${c.cyan}update${c.reset}      Update kandown.html to the latest version
   ${c.cyan}help${c.reset}        Show this help
 
 ${c.bold}Examples:${c.reset}
+  ${c.dim}$${c.reset} npx kandown              ${c.dim}# open board TUI + browser${c.reset}
+  ${c.dim}$${c.reset} npx kandown board        ${c.dim}# board TUI only${c.reset}
   ${c.dim}$${c.reset} npx kandown init
   ${c.dim}$${c.reset} npx kandown init --path docs/kanban
   ${c.dim}$${c.reset} npx kandown init --no-agents
@@ -229,6 +234,14 @@ function cmdInit(rawArgs) {
     info('AGENT_KANDOWN.md already exists at project root (kept)');
   }
 
+  // 📖 Copy the compact agent doc — used by the CLI board launcher for system prompt injection
+  const compactSrc = join(templatesDir, 'AGENT_KANDOWN_COMPACT.md');
+  const compactDest = join(cwd, 'AGENT_KANDOWN_COMPACT.md');
+  if (existsSync(compactSrc) && !existsSync(compactDest)) {
+    copyFileSync(compactSrc, compactDest);
+    success('AGENT_KANDOWN_COMPACT.md (at project root)');
+  }
+
   // Integrate with AGENTS.md / CLAUDE.md
   if (!args.noAgents) {
     log('');
@@ -277,6 +290,34 @@ function cmdUpdate(rawArgs) {
   success(`Updated ${args.path}/kandown.html`);
 }
 
+/**
+ * 📖 Opens a file path in the system default browser/app.
+ * Non-blocking — spawns the opener and returns immediately.
+ * macOS: open, Linux: xdg-open, Windows: start (via cmd.exe).
+ */
+function openInBrowser(filePath) {
+  const opener = process.platform === 'darwin'
+    ? 'open'
+    : process.platform === 'win32'
+      ? 'cmd'
+      : 'xdg-open';
+  const args = process.platform === 'win32' ? ['/c', 'start', '', filePath] : [filePath];
+  spawn(opener, args, { detached: true, stdio: 'ignore' }).unref();
+}
+
+/**
+ * 📖 Finds the kandown directory from cwd. Checks .kandown/ and kandown/.
+ * Returns the resolved absolute path or null if not found.
+ */
+function findKandownDir(cwd) {
+  const candidates = ['.kandown', 'kandown'];
+  for (const dir of candidates) {
+    const p = resolve(cwd, dir);
+    if (existsSync(p)) return p;
+  }
+  return null;
+}
+
 // 📖 Launches the fullscreen TUI for a given screen (settings, board, etc.)
 async function cmdTui(screen, rawArgs) {
   const args = parseArgs(rawArgs);
@@ -305,18 +346,46 @@ switch (cmd) {
   case 'init':
     cmdInit(rest);
     break;
+
+  case 'board':
+    // 📖 kandown board — open the interactive kanban board TUI only
+    cmdTui('board', rest);
+    break;
+
   case 'settings':
     cmdTui('settings', rest);
     break;
+
   case 'update':
     cmdUpdate(rest);
     break;
+
   case 'help':
   case '--help':
   case '-h':
-  case undefined:
     help();
     break;
+
+  case undefined: {
+    // 📖 kandown (no args) — open the board TUI AND the web UI in the browser simultaneously.
+    // The browser opens non-blocking so the TUI can take over the terminal right after.
+    const cwd = process.cwd();
+    const kandownDir = findKandownDir(cwd);
+    if (!kandownDir) {
+      err(`No ${c.bold}.kandown/${c.reset} directory found.`);
+      log(`  Run ${c.cyan}npx kandown init${c.reset} to set up kandown in this project.`);
+      process.exit(1);
+    }
+    const htmlPath = join(kandownDir, 'kandown.html');
+    if (existsSync(htmlPath)) {
+      openInBrowser(htmlPath);
+      info(`Opened ${c.bold}kandown.html${c.reset} in browser`);
+    }
+    // Launch the board TUI (replaces this process / opens in terminal)
+    cmdTui('board', rest);
+    break;
+  }
+
   default:
     err(`Unknown command: ${cmd}`);
     help();

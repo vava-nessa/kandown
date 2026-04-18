@@ -43,6 +43,13 @@ export interface KandownConfig {
     ownerType: boolean;
     tools: boolean;
   };
+  // 📖 Optional agents config — controls which agent is preferred and any per-agent extra args
+  agents?: {
+    /** ID of the preferred agent to pre-select in the agent picker (e.g. 'claude') */
+    preferred?: string;
+    /** Extra CLI args to append per agent ID — e.g. { claude: ['--allowedTools', 'Edit,Write,Bash'] } */
+    extraArgs?: Record<string, string[]>;
+  };
 }
 
 // 📖 Fallback values when keys are missing from kandown.json
@@ -85,12 +92,15 @@ export function loadConfig(kandownDir: string): KandownConfig {
 
   try {
     const raw = JSON.parse(readFileSync(configPath, 'utf8'));
-    return {
+    const merged: KandownConfig = {
       ui: { ...DEFAULT_CONFIG.ui, ...raw.ui },
       agent: { ...DEFAULT_CONFIG.agent, ...raw.agent },
       board: { ...DEFAULT_CONFIG.board, ...raw.board },
       fields: { ...DEFAULT_CONFIG.fields, ...raw.fields },
     };
+    // 📖 agents is optional — only include it if present in the file
+    if (raw.agents) merged.agents = raw.agents;
+    return merged;
   } catch {
     return structuredClone(DEFAULT_CONFIG);
   }

@@ -46,6 +46,7 @@ export function Drawer() {
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isSavingRef = useRef(false);
 
   const isOpen = !!drawerTaskId && !!drawerData;
 
@@ -53,21 +54,44 @@ export function Drawer() {
     if (!drawerTaskId) return;
     if (!confirm(`${t('common.delete')} ${drawerTaskId.toUpperCase()}?`)) return;
     await deleteTask(drawerTaskId);
-    closeDrawer();
-  }, [closeDrawer, deleteTask, drawerTaskId, t]);
+    safeCloseDrawer();
+  }, [safeCloseDrawer, deleteTask, drawerTaskId, t]);
 
   const triggerAutoSave = useCallback(() => {
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     autoSaveTimerRef.current = setTimeout(() => {
-      saveDrawerMetadata();
-    }, 600);
+      if (isSavingRef.current) return;
+      isSavingRef.current = true;
+      saveDrawerMetadata().finally(() => {
+        isSavingRef.current = false;
+      });
+    }, 150);
   }, [saveDrawerMetadata]);
 
-  useEffect(() => {
-    return () => {
-      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-    };
+  const flushAutoSave = useCallback(async () => {
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = null;
+    if (isSavingRef.current) {
+      await new Promise(resolve => {
+        const check = setInterval(() => {
+          if (!isSavingRef.current) {
+            clearInterval(check);
+            resolve(undefined);
+          }
+        }, 20);
+      });
+    }
   }, []);
+
+  const handleClose = useCallback(async () => {
+    await flushAutoSave();
+    await saveDrawer();
+  }, [flushAutoSave, saveDrawer]);
+
+  const safeCloseDrawer = useCallback(async () => {
+    await flushAutoSave();
+    closeDrawer();
+  }, [flushAutoSave, closeDrawer]);
 
   // Get current column for status display
   const currentCol = drawerTaskId
@@ -101,11 +125,11 @@ export function Drawer() {
     if (!isOpen) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !e.defaultPrevented) {
-        closeDrawer();
+        void handleClose();
       }
       if ((e.metaKey || e.ctrlKey) && e.key === 's') {
         e.preventDefault();
-        saveDrawer();
+        void handleClose();
       }
       if ((e.metaKey || e.ctrlKey) && e.key === 'Backspace') {
         e.preventDefault();
@@ -114,7 +138,7 @@ export function Drawer() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [isOpen, closeDrawer, handleDelete, saveDrawer]);
+  }, [isOpen, handleClose, handleDelete]);
 
   if (!drawerData) return null;
 
@@ -208,7 +232,7 @@ export function Drawer() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0 }}
-            onClick={closeDrawer}
+            onClick={handleClose}
             className="fixed inset-0 bg-black/50 backdrop-blur-[4px] z-[100]"
           />
           <motion.div
@@ -237,7 +261,7 @@ export function Drawer() {
                 <KbdButton
                   variant="icon"
                   icon="X"
-                  onClick={closeDrawer}
+                  onClick={handleClose}
                   title={t('drawer.close')}
                 />
               </div>
@@ -442,7 +466,7 @@ export function Drawer() {
                   variant="secondary"
                   label={t('drawer.cancel')}
                   shortcut="Esc"
-                  onClick={closeDrawer}
+                  onClick={handleClose}
                 />
                 <KbdButton
                   variant="primary"

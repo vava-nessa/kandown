@@ -2,7 +2,7 @@
 import { render } from "ink";
 
 // src/cli/app.tsx
-import { Box as Box2, Text as Text2 } from "ink";
+import { Box as Box4, Text as Text4 } from "ink";
 
 // src/cli/screens/settings.tsx
 import { useState, useEffect, useCallback } from "react";
@@ -29,12 +29,14 @@ function loadConfig(kandownDir) {
   if (!existsSync(configPath)) return structuredClone(DEFAULT_CONFIG);
   try {
     const raw = JSON.parse(readFileSync(configPath, "utf8"));
-    return {
+    const merged = {
       ui: { ...DEFAULT_CONFIG.ui, ...raw.ui },
       agent: { ...DEFAULT_CONFIG.agent, ...raw.agent },
       board: { ...DEFAULT_CONFIG.board, ...raw.board },
       fields: { ...DEFAULT_CONFIG.fields, ...raw.fields }
     };
+    if (raw.agents) merged.agents = raw.agents;
+    return merged;
   } catch {
     return structuredClone(DEFAULT_CONFIG);
   }
@@ -379,14 +381,817 @@ function ValueDisplay({ setting, value, focused, editingCustom, customBuffer }) 
   return /* @__PURE__ */ jsx(Text, { children: String(value) });
 }
 
-// src/cli/app.tsx
+// src/cli/screens/board.tsx
+import { useState as useState3, useEffect as useEffect2, useCallback as useCallback2 } from "react";
+import { Box as Box3, Text as Text3, useInput as useInput3, useApp as useApp2 } from "ink";
+
+// src/cli/lib/board-reader.ts
+import { readFileSync as readFileSync2, writeFileSync as writeFileSync2, existsSync as existsSync2 } from "fs";
+import { join as join2, dirname } from "path";
+
+// src/lib/parser.ts
+function parseSimpleYaml(yaml) {
+  const obj = {};
+  if (!yaml || typeof yaml !== "string") return obj;
+  yaml.split("\n").forEach((line) => {
+    const m = line.match(/^([a-zA-Z_][\w-]*)\s*:\s*(.*)$/);
+    if (!m) return;
+    const key = m[1];
+    if (!key) return;
+    let val = m[2]?.trim() ?? "";
+    if (typeof val !== "string") val = "";
+    if (val.startsWith("[") && val.endsWith("]")) {
+      const arr = val.slice(1, -1).split(",").map((s) => s && typeof s === "string" ? s.trim().replace(/^["']|["']$/g, "") : "").filter(Boolean);
+      obj[key] = arr;
+    } else {
+      obj[key] = typeof val === "string" ? val.replace(/^["']|["']$/g, "") : val;
+    }
+  });
+  return obj;
+}
+function parseBoard(md) {
+  if (!md || typeof md !== "string") {
+    return { frontmatter: null, title: "Project Kanban", columns: [] };
+  }
+  const lines = md.split("\n");
+  const result = { frontmatter: null, title: "Project Kanban", columns: [] };
+  let i = 0;
+  if (lines[0] && lines[0].trim() === "---") {
+    const fmLines = [];
+    i = 1;
+    while (i < lines.length && lines[i].trim() !== "---") {
+      fmLines.push(lines[i]);
+      i++;
+    }
+    i++;
+    result.frontmatter = parseSimpleYaml(fmLines.join("\n"));
+  }
+  let currentColumn = null;
+  for (; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line) continue;
+    if (/^#\s+/.test(line)) {
+      result.title = line.replace(/^#\s+/, "").trim() || "Project Kanban";
+      continue;
+    }
+    const h2Match = line.match(/^##\s+(.+)$/);
+    if (h2Match) {
+      currentColumn = { name: h2Match[1]?.trim() ?? "Untitled", tasks: [] };
+      result.columns.push(currentColumn);
+      continue;
+    }
+    const taskMatch = line.match(/^-\s+\[([ xX])\]\s+\*\*\[([^\]]+)\]\*\*\s+(.+)$/);
+    if (taskMatch && currentColumn) {
+      const checked = (taskMatch[1]?.toLowerCase() ?? "") === "x";
+      const id = (taskMatch[2]?.trim() ?? "unknown").replace(/^(t-\d+)$/, "$1");
+      const rest = taskMatch[3] ?? "";
+      let title = rest;
+      const arrowIdx = title.indexOf(" \u2192");
+      const backtickIdx = title.indexOf(" `");
+      const parenIdx = title.search(/\s\(\d+\/\d+\)/);
+      let cutAt = -1;
+      [arrowIdx, backtickIdx, parenIdx].forEach((idx) => {
+        if (idx !== -1 && (cutAt === -1 || idx < cutAt)) cutAt = idx;
+      });
+      if (cutAt !== -1) title = title.slice(0, cutAt).trim();
+      const tags = [];
+      let assignee = null;
+      let priority = null;
+      let ownerType = "";
+      const metaRegex = /`([^`]+)`/g;
+      let m;
+      while ((m = metaRegex.exec(rest)) !== null) {
+        const token = m[1];
+        if (!token) continue;
+        if (token.startsWith("@")) assignee = token.slice(1);
+        else if (/^#p\d+$/i.test(token)) priority = token.slice(1).toUpperCase();
+        else if (token.startsWith("#")) tags.push(token.slice(1));
+        else if (/^(human|ai)$/i.test(token)) ownerType = token.toLowerCase();
+      }
+      const progMatch = rest.match(/\((\d+)\/(\d+)\)/);
+      const progress = progMatch ? { done: parseInt(progMatch[1] ?? "0", 10), total: parseInt(progMatch[2] ?? "0", 10) } : null;
+      const task = { id, title, checked, tags, assignee, priority, ownerType, progress };
+      currentColumn.tasks.push(task);
+    }
+  }
+  return result;
+}
+function parseTaskFile(md) {
+  if (!md || typeof md !== "string") {
+    return { frontmatter: { id: "", title: "" }, body: "" };
+  }
+  const lines = md.split("\n");
+  if (lines[0] && lines[0].trim() === "---") {
+    const fmLines = [];
+    let i = 1;
+    while (i < lines.length && lines[i].trim() !== "---") {
+      fmLines.push(lines[i]);
+      i++;
+    }
+    const body = lines.slice(i + 1).join("\n").trimStart();
+    const fm = parseSimpleYaml(fmLines.join("\n"));
+    return { frontmatter: fm, body };
+  }
+  return { frontmatter: { id: "", title: "" }, body: md };
+}
+
+// src/cli/lib/board-reader.ts
+function getProjectRoot(kandownDir) {
+  return dirname(kandownDir);
+}
+function readBoard(kandownDir) {
+  const boardPath = join2(kandownDir, "board.md");
+  if (!existsSync2(boardPath)) {
+    return { frontmatter: null, title: "Project Kanban", columns: [] };
+  }
+  const content = readFileSync2(boardPath, "utf8");
+  return parseBoard(content);
+}
+function readTask(kandownDir, taskId) {
+  const taskPath = join2(kandownDir, "tasks", `${taskId}.md`);
+  if (!existsSync2(taskPath)) {
+    return {
+      frontmatter: { id: taskId, title: `Task ${taskId}` },
+      body: ""
+    };
+  }
+  const content = readFileSync2(taskPath, "utf8");
+  return parseTaskFile(content);
+}
+function readAgentDoc(kandownDir) {
+  const root = getProjectRoot(kandownDir);
+  const candidates = [
+    join2(root, "AGENT_KANDOWN_COMPACT.md"),
+    join2(root, "AGENT_KANDOWN.md"),
+    join2(kandownDir, "AGENT.md")
+  ];
+  for (const candidate of candidates) {
+    if (existsSync2(candidate)) {
+      return readFileSync2(candidate, "utf8");
+    }
+  }
+  return "";
+}
+function moveTaskToColumn(kandownDir, taskId, targetColumn) {
+  const boardPath = join2(kandownDir, "board.md");
+  if (!existsSync2(boardPath)) return false;
+  const original = readFileSync2(boardPath, "utf8");
+  const lines = original.split("\n");
+  const taskPattern = new RegExp(`\\*\\*\\[${escapeRegex(taskId)}\\]\\*\\*`);
+  const taskLineIdx = lines.findIndex((l) => taskPattern.test(l));
+  if (taskLineIdx === -1) return false;
+  const taskLine = lines[taskLineIdx];
+  const colPattern = new RegExp(`^##\\s+${escapeRegex(targetColumn)}\\s*$`, "i");
+  const colHeaderIdx = lines.findIndex((l) => colPattern.test(l));
+  if (colHeaderIdx === -1) return false;
+  let currentColHeaderIdx = -1;
+  for (let i = taskLineIdx - 1; i >= 0; i--) {
+    if (/^##\s+/.test(lines[i] ?? "")) {
+      currentColHeaderIdx = i;
+      break;
+    }
+  }
+  if (currentColHeaderIdx === colHeaderIdx) return true;
+  const newLines = [...lines];
+  newLines.splice(taskLineIdx, 1);
+  const newColHeaderIdx = newLines.findIndex((l) => colPattern.test(l));
+  if (newColHeaderIdx === -1) return false;
+  let insertIdx = newColHeaderIdx + 1;
+  while (insertIdx < newLines.length && !/^##\s+/.test(newLines[insertIdx] ?? "")) {
+    insertIdx++;
+  }
+  newLines.splice(insertIdx, 0, taskLine);
+  writeFileSync2(boardPath, newLines.join("\n"), "utf8");
+  return true;
+}
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// src/cli/lib/agents.ts
+import { execFileSync } from "child_process";
+var AGENTS = [
+  {
+    id: "claude",
+    name: "Claude Code",
+    bin: "claude",
+    description: "Anthropic Claude (interactive session)",
+    interactive: true,
+    buildCommand: ({ systemPrompt, taskPrompt }) => {
+      const combined = `${systemPrompt}
+
+---
+
+${taskPrompt}`;
+      return ["claude", combined];
+    }
+  },
+  {
+    id: "codex",
+    name: "OpenAI Codex",
+    bin: "codex",
+    description: "OpenAI Codex CLI",
+    interactive: true,
+    buildCommand: ({ systemPrompt, taskPrompt }) => {
+      const combined = `${systemPrompt}
+
+---
+
+${taskPrompt}`;
+      return ["codex", combined];
+    }
+  },
+  {
+    id: "gemini",
+    name: "Gemini CLI",
+    bin: "gemini",
+    description: "Google Gemini CLI",
+    interactive: true,
+    buildCommand: ({ systemPrompt, taskPrompt }) => {
+      const combined = `${systemPrompt}
+
+---
+
+${taskPrompt}`;
+      return ["gemini", "-p", combined];
+    }
+  },
+  {
+    id: "goose",
+    name: "Goose",
+    bin: "goose",
+    description: "Block open-source AI agent",
+    interactive: false,
+    buildCommand: ({ systemPrompt, taskPrompt }) => {
+      const combined = `${systemPrompt}
+
+---
+
+${taskPrompt}`;
+      return ["goose", "run", "--text", combined];
+    }
+  },
+  {
+    id: "aider",
+    name: "Aider",
+    bin: "aider",
+    description: "Git-aware AI pair programmer",
+    interactive: true,
+    buildCommand: ({ systemPrompt, taskPrompt }) => {
+      const combined = `${systemPrompt}
+
+---
+
+${taskPrompt}`;
+      return ["aider", "--message", combined];
+    }
+  },
+  {
+    id: "opencode",
+    name: "OpenCode",
+    bin: "opencode",
+    description: "SST AI coding TUI",
+    interactive: true,
+    buildCommand: ({ taskPrompt }) => {
+      return ["opencode"];
+    }
+  }
+];
+var installCache = /* @__PURE__ */ new Map();
+function isAgentInstalled(bin) {
+  if (installCache.has(bin)) return installCache.get(bin);
+  try {
+    execFileSync("which", [bin], { stdio: "ignore" });
+    installCache.set(bin, true);
+    return true;
+  } catch {
+    installCache.set(bin, false);
+    return false;
+  }
+}
+function detectInstalledAgents() {
+  return AGENTS.filter((agent) => isAgentInstalled(agent.bin));
+}
+function getAgentById(id) {
+  return AGENTS.find((a) => a.id === id);
+}
+function buildPrompt(agentDoc, taskContent, taskId, kandownDir) {
+  const systemPrompt = agentDoc.trim();
+  const taskPrompt = [
+    `## Your Task: ${taskId}`,
+    "",
+    taskContent.trim(),
+    "",
+    "---",
+    "",
+    `**Start working on task ${taskId} now.**`,
+    "",
+    `The kandown directory is at: \`${kandownDir}\``,
+    "",
+    "Before anything else:",
+    `1. Move task ${taskId} to "In Progress" in \`.kandown/board.md\` (it may already be there \u2014 that's fine)`,
+    "2. Work through each subtask, checking them off and adding reports as you go",
+    '3. When done, write the completion report and move the task to "Done"'
+  ].join("\n");
+  return { systemPrompt, taskPrompt };
+}
+
+// src/cli/lib/launcher.ts
+import { execSync, spawn } from "child_process";
+import { writeFileSync as writeFileSync3 } from "fs";
+import { join as join3 } from "path";
+import { tmpdir } from "os";
+function isInTmux() {
+  return !!process.env.TMUX;
+}
+function launchAgent(opts) {
+  const { taskId, agentId, kandownDir, onBeforeExec } = opts;
+  const agentDef = getAgentById(agentId);
+  if (!agentDef) {
+    throw new Error(`Unknown agent: ${agentId}`);
+  }
+  const task = readTask(kandownDir, taskId);
+  const agentDoc = readAgentDoc(kandownDir);
+  const taskFileContent = [
+    `---`,
+    `id: ${task.frontmatter.id}`,
+    `title: ${task.frontmatter.title}`,
+    `status: ${task.frontmatter.status ?? "unknown"}`,
+    `---`,
+    "",
+    task.body.trim()
+  ].join("\n");
+  const { systemPrompt, taskPrompt } = buildPrompt(agentDoc, taskFileContent, taskId, kandownDir);
+  moveTaskToColumn(kandownDir, taskId, "In Progress");
+  const contextFile = join3(tmpdir(), `kandown-${taskId}-context.md`);
+  writeFileSync3(contextFile, `${systemPrompt}
+
+---
+
+${taskPrompt}`, "utf8");
+  const launchOpts = { systemPrompt, taskPrompt, kandownDir, taskId };
+  const [binary, ...args] = agentDef.buildCommand(launchOpts);
+  if (!binary) {
+    throw new Error(`Agent ${agentId} returned an empty command`);
+  }
+  if (isInTmux()) {
+    const shellCmd = buildShellCmd(binary, args);
+    execSync(`tmux split-window -h -p 50 ${shellescape(shellCmd)}`, {
+      stdio: "inherit"
+    });
+  } else {
+    onBeforeExec?.();
+    const child = spawn(binary, args, {
+      stdio: "inherit",
+      env: {
+        ...process.env,
+        // 📖 Expose the context file path so agents that support env vars can use it
+        KANDOWN_CONTEXT_FILE: contextFile,
+        KANDOWN_TASK_ID: taskId,
+        KANDOWN_DIR: kandownDir
+      }
+    });
+    child.on("exit", (code) => {
+      process.exit(code ?? 0);
+    });
+  }
+}
+function buildShellCmd(binary, args) {
+  const parts = [binary, ...args].map(shellescape);
+  return parts.join(" ");
+}
+function shellescape(str) {
+  return `'${str.replace(/'/g, "'\\''")}'`;
+}
+
+// src/cli/screens/agent-picker.tsx
+import { useState as useState2 } from "react";
+import { Box as Box2, Text as Text2, useInput as useInput2 } from "ink";
 import { jsx as jsx2, jsxs as jsxs2 } from "react/jsx-runtime";
+function AgentPicker({ agents, taskId, onSelect, onCancel }) {
+  const [cursor, setCursor] = useState2(0);
+  useInput2((input, key) => {
+    if (key.escape || input === "q") {
+      onCancel();
+      return;
+    }
+    if (key.downArrow || input === "j") {
+      setCursor((c) => Math.min(c + 1, agents.length - 1));
+      return;
+    }
+    if (key.upArrow || input === "k") {
+      setCursor((c) => Math.max(c - 1, 0));
+      return;
+    }
+    if (key.return) {
+      const agent = agents[cursor];
+      if (agent) onSelect(agent.id);
+      return;
+    }
+    const num = parseInt(input, 10);
+    if (!isNaN(num) && num >= 1 && num <= agents.length) {
+      const agent = agents[num - 1];
+      if (agent) onSelect(agent.id);
+    }
+  });
+  const maxNameLen = Math.max(...agents.map((a) => a.name.length));
+  const boxWidth = Math.min(60, Math.max(40, maxNameLen + 30));
+  return /* @__PURE__ */ jsxs2(
+    Box2,
+    {
+      flexDirection: "column",
+      borderStyle: "round",
+      borderColor: "cyan",
+      paddingX: 2,
+      paddingY: 1,
+      width: boxWidth,
+      children: [
+        /* @__PURE__ */ jsxs2(Box2, { marginBottom: 1, children: [
+          /* @__PURE__ */ jsx2(Text2, { bold: true, color: "cyan", children: "SELECT AGENT" }),
+          /* @__PURE__ */ jsxs2(Text2, { color: "gray", children: [
+            "  ",
+            "for ",
+            /* @__PURE__ */ jsx2(Text2, { color: "yellow", children: taskId })
+          ] })
+        ] }),
+        agents.map((agent, idx) => {
+          const isFocused = idx === cursor;
+          const numHint = idx < 9 ? `${idx + 1} ` : "  ";
+          return /* @__PURE__ */ jsxs2(Box2, { children: [
+            /* @__PURE__ */ jsx2(Text2, { color: "gray", dimColor: true, children: numHint }),
+            /* @__PURE__ */ jsxs2(Text2, { color: isFocused ? "black" : void 0, backgroundColor: isFocused ? "cyan" : void 0, children: [
+              isFocused ? "\u203A" : " ",
+              " ",
+              /* @__PURE__ */ jsx2(Text2, { bold: isFocused, children: agent.name }),
+              "  ",
+              /* @__PURE__ */ jsx2(Text2, { dimColor: !isFocused, children: agent.description })
+            ] })
+          ] }, agent.id);
+        }),
+        /* @__PURE__ */ jsx2(Box2, { marginTop: 1, children: /* @__PURE__ */ jsxs2(Text2, { color: "gray", dimColor: true, children: [
+          "\u2191\u2193 or 1\u2013",
+          agents.length,
+          " select  Enter launch  Esc cancel"
+        ] }) })
+      ]
+    }
+  );
+}
+
+// src/cli/screens/board.tsx
+import { jsx as jsx3, jsxs as jsxs3 } from "react/jsx-runtime";
+function truncate(str, maxLen) {
+  if (str.length <= maxLen) return str;
+  return str.slice(0, maxLen - 1) + "\u2026";
+}
+function pad(str, len) {
+  const t = truncate(str, len);
+  return t + " ".repeat(Math.max(0, len - t.length));
+}
+function termWidth() {
+  return process.stdout.columns || 80;
+}
+function calcColWidth(numCols) {
+  const available = termWidth() - (numCols - 1);
+  return Math.max(12, Math.floor(available / numCols));
+}
+var RE_HEADER = /^#{1,3}\s/;
+var RE_SUBTASK = /^\s*-\s+\[([ xX])\]/;
+var RE_DONE_SUBTASK = /^\s*-\s+\[x\]/i;
+function TaskRow({
+  task,
+  focused,
+  colWidth
+}) {
+  const cursor = focused ? "\u25B8" : " ";
+  const check = task.checked ? "\u2713" : "\u25CB";
+  const idStr = task.id;
+  const available = colWidth - 4 - idStr.length - 1;
+  const titleStr = truncate(task.title, Math.max(4, available));
+  return /* @__PURE__ */ jsxs3(Box3, { children: [
+    /* @__PURE__ */ jsxs3(Text3, { color: focused ? "cyan" : void 0, bold: focused, children: [
+      cursor,
+      " "
+    ] }),
+    /* @__PURE__ */ jsxs3(Text3, { color: task.checked ? "green" : focused ? "white" : "gray", children: [
+      check,
+      " "
+    ] }),
+    /* @__PURE__ */ jsx3(Text3, { color: focused ? "cyan" : "yellow", bold: focused, children: idStr }),
+    /* @__PURE__ */ jsxs3(Text3, { color: focused ? "white" : "gray", children: [
+      " ",
+      titleStr
+    ] })
+  ] });
+}
+function KanbanColumn({
+  name,
+  tasks,
+  focusedRow,
+  isFocused,
+  colWidth
+}) {
+  const headerBg = isFocused ? "cyan" : void 0;
+  const headerColor = isFocused ? "black" : "cyan";
+  const countStr = tasks.length > 0 ? ` (${tasks.length})` : "";
+  const headerText = truncate(`${name}${countStr}`, colWidth);
+  return /* @__PURE__ */ jsxs3(Box3, { flexDirection: "column", width: colWidth, marginRight: 1, children: [
+    /* @__PURE__ */ jsx3(Box3, { backgroundColor: headerBg, children: /* @__PURE__ */ jsx3(Text3, { color: headerColor, bold: true, children: pad(headerText, colWidth) }) }),
+    /* @__PURE__ */ jsx3(Text3, { color: isFocused ? "cyan" : "gray", children: "\u2500".repeat(colWidth) }),
+    tasks.length === 0 ? /* @__PURE__ */ jsxs3(Text3, { color: "gray", dimColor: true, children: [
+      " ".repeat(2),
+      "(empty)"
+    ] }) : tasks.map((task, idx) => /* @__PURE__ */ jsx3(
+      TaskRow,
+      {
+        task,
+        focused: isFocused && idx === focusedRow,
+        colWidth
+      },
+      task.id
+    ))
+  ] });
+}
+function BoardHeader({ title, inTmux }) {
+  const tmuxHint = inTmux ? " tmux" : "";
+  return /* @__PURE__ */ jsxs3(Box3, { marginBottom: 1, justifyContent: "space-between", children: [
+    /* @__PURE__ */ jsxs3(Text3, { bold: true, color: "cyan", children: [
+      "  ",
+      "KANDOWN",
+      tmuxHint,
+      "  ",
+      title
+    ] }),
+    /* @__PURE__ */ jsx3(Text3, { color: "gray", dimColor: true, children: "h/l cols  j/k tasks  Enter detail  a agent  r reload  q quit" })
+  ] });
+}
+function StatusBar({ message, task }) {
+  if (message) {
+    return /* @__PURE__ */ jsx3(Box3, { marginTop: 1, children: /* @__PURE__ */ jsx3(Text3, { color: "yellow", children: message }) });
+  }
+  if (!task) return /* @__PURE__ */ jsx3(Box3, { marginTop: 1, children: /* @__PURE__ */ jsx3(Text3, { color: "gray", children: " " }) });
+  return /* @__PURE__ */ jsx3(Box3, { marginTop: 1, children: /* @__PURE__ */ jsxs3(Text3, { color: "gray", children: [
+    task.id,
+    task.progress ? `  (${task.progress.done}/${task.progress.total})` : "",
+    "  ",
+    task.checked ? "\u2713 done" : "\u25CB open"
+  ] }) });
+}
+function TaskDetail({
+  task,
+  taskId,
+  scrollOffset
+}) {
+  const fm = task.frontmatter;
+  const bodyLines = task.body.split("\n");
+  const maxVisible = (process.stdout.rows || 24) - 10;
+  const visibleLines = bodyLines.slice(scrollOffset, scrollOffset + maxVisible);
+  return /* @__PURE__ */ jsxs3(Box3, { flexDirection: "column", paddingX: 2, children: [
+    /* @__PURE__ */ jsxs3(Box3, { marginBottom: 1, children: [
+      /* @__PURE__ */ jsx3(Text3, { bold: true, color: "cyan", children: taskId }),
+      /* @__PURE__ */ jsxs3(Text3, { color: "white", bold: true, children: [
+        "  ",
+        fm.title
+      ] })
+    ] }),
+    /* @__PURE__ */ jsx3(Box3, { marginBottom: 1, children: /* @__PURE__ */ jsxs3(Text3, { color: "gray", children: [
+      "status: ",
+      /* @__PURE__ */ jsx3(Text3, { color: "yellow", children: fm.status ?? "\u2014" }),
+      fm.priority ? `  priority: ${fm.priority}` : "",
+      fm.assignee ? `  assignee: ${fm.assignee}` : "",
+      fm.due ? `  due: ${fm.due}` : ""
+    ] }) }),
+    /* @__PURE__ */ jsx3(Text3, { color: "gray", children: "\u2500".repeat(termWidth() - 4) }),
+    visibleLines.map((line, idx) => {
+      const isHeader = RE_HEADER.test(line);
+      const isSubtask = RE_SUBTASK.test(line);
+      const isDone = RE_DONE_SUBTASK.test(line);
+      return /* @__PURE__ */ jsx3(
+        Text3,
+        {
+          color: isHeader ? "cyan" : isDone ? "green" : isSubtask ? "white" : "gray",
+          bold: isHeader,
+          children: line || " "
+        },
+        scrollOffset + idx
+      );
+    }),
+    bodyLines.length > maxVisible && /* @__PURE__ */ jsxs3(Text3, { color: "gray", dimColor: true, children: [
+      "  ",
+      "\u2191\u2193 scroll  (",
+      scrollOffset + 1,
+      "\u2013",
+      Math.min(scrollOffset + maxVisible, bodyLines.length),
+      "/",
+      bodyLines.length,
+      " lines)"
+    ] })
+  ] });
+}
+function Board({ kandownDir }) {
+  const { exit } = useApp2();
+  const [board, setBoard] = useState3(null);
+  const [colIndex, setColIndex] = useState3(0);
+  const [rowIndex, setRowIndex] = useState3(0);
+  const [mode, setMode] = useState3("browse");
+  const [detailTask, setDetailTask] = useState3(null);
+  const [detailTaskId, setDetailTaskId] = useState3("");
+  const [detailScroll, setDetailScroll] = useState3(0);
+  const [installedAgents, setInstalledAgents] = useState3([]);
+  const [statusMsg, setStatusMsg] = useState3("");
+  const inTmux = isInTmux();
+  useEffect2(() => {
+    const loaded = readBoard(kandownDir);
+    setBoard(loaded);
+    setInstalledAgents(detectInstalledAgents());
+  }, [kandownDir]);
+  const reloadBoard = useCallback2(() => {
+    const loaded = readBoard(kandownDir);
+    setBoard(loaded);
+    setStatusMsg("Board reloaded");
+    setTimeout(() => setStatusMsg(""), 1500);
+  }, [kandownDir]);
+  const getFocusedTask = useCallback2(() => {
+    if (!board) return null;
+    const col = board.columns[colIndex];
+    if (!col || col.tasks.length === 0) return null;
+    return col.tasks[Math.min(rowIndex, col.tasks.length - 1)] ?? null;
+  }, [board, colIndex, rowIndex]);
+  const openDetail = useCallback2((taskId) => {
+    const task = readTask(kandownDir, taskId);
+    setDetailTask(task);
+    setDetailTaskId(taskId);
+    setDetailScroll(0);
+    setMode("detail");
+  }, [kandownDir]);
+  const handleAgentSelect = useCallback2((agentId) => {
+    const task = getFocusedTask();
+    const taskId = mode === "detail" ? detailTaskId : task?.id;
+    if (!taskId) return;
+    setMode("browse");
+    setStatusMsg(`Launching ${agentId} for ${taskId}\u2026`);
+    setTimeout(() => {
+      try {
+        launchAgent({
+          taskId,
+          agentId,
+          kandownDir,
+          onBeforeExec: () => exit()
+        });
+        reloadBoard();
+        setStatusMsg(`${agentId} launched in tmux pane`);
+        setTimeout(() => setStatusMsg(""), 3e3);
+      } catch (err) {
+        setStatusMsg(`Error: ${err instanceof Error ? err.message : String(err)}`);
+        setTimeout(() => setStatusMsg(""), 4e3);
+      }
+    }, 50);
+  }, [mode, detailTaskId, getFocusedTask, kandownDir, exit, reloadBoard]);
+  useInput3((input, key) => {
+    if (mode === "browse") {
+      if (input === "q" || key.escape) {
+        exit();
+        return;
+      }
+      if (input === "r") {
+        reloadBoard();
+        return;
+      }
+      if (input === "l" || key.rightArrow) {
+        const maxCol = (board?.columns.length ?? 1) - 1;
+        setColIndex((c) => Math.min(c + 1, maxCol));
+        setRowIndex(0);
+        return;
+      }
+      if (input === "h" || key.leftArrow) {
+        setColIndex((c) => Math.max(c - 1, 0));
+        setRowIndex(0);
+        return;
+      }
+      if (input === "j" || key.downArrow) {
+        const col = board?.columns[colIndex];
+        const max = Math.max(0, (col?.tasks.length ?? 1) - 1);
+        setRowIndex((r) => Math.min(r + 1, max));
+        return;
+      }
+      if (input === "k" || key.upArrow) {
+        setRowIndex((r) => Math.max(r - 1, 0));
+        return;
+      }
+      if (key.return) {
+        const task = getFocusedTask();
+        if (task) openDetail(task.id);
+        return;
+      }
+      if (input === "a") {
+        if (installedAgents.length === 0) {
+          setStatusMsg("No AI agents found in PATH (install claude, codex, aider, goose\u2026)");
+          setTimeout(() => setStatusMsg(""), 3e3);
+          return;
+        }
+        const task = getFocusedTask();
+        if (!task) return;
+        setMode("agent-picker");
+        return;
+      }
+    }
+    if (mode === "detail") {
+      if (key.escape || input === "q") {
+        setMode("browse");
+        return;
+      }
+      if (input === "j" || key.downArrow) {
+        setDetailScroll((s) => s + 1);
+        return;
+      }
+      if (input === "k" || key.upArrow) {
+        setDetailScroll((s) => Math.max(0, s - 1));
+        return;
+      }
+      if (input === "a") {
+        if (installedAgents.length === 0) {
+          setStatusMsg("No AI agents found in PATH");
+          setTimeout(() => setStatusMsg(""), 3e3);
+          return;
+        }
+        setMode("agent-picker");
+        return;
+      }
+    }
+  });
+  if (!board) {
+    return /* @__PURE__ */ jsx3(Box3, { padding: 2, children: /* @__PURE__ */ jsx3(Text3, { color: "gray", children: "Loading board\u2026" }) });
+  }
+  if (board.columns.length === 0) {
+    return /* @__PURE__ */ jsxs3(Box3, { flexDirection: "column", padding: 2, children: [
+      /* @__PURE__ */ jsxs3(Text3, { color: "red", bold: true, children: [
+        "No board found at ",
+        kandownDir
+      ] }),
+      /* @__PURE__ */ jsxs3(Text3, { color: "gray", children: [
+        "Run ",
+        /* @__PURE__ */ jsx3(Text3, { color: "cyan", children: "kandown init" }),
+        " to set up kandown in this project."
+      ] })
+    ] });
+  }
+  const colWidth = calcColWidth(board.columns.length);
+  const focusedTask = getFocusedTask();
+  if (mode === "agent-picker") {
+    const taskId = detailTaskId || focusedTask?.id || "";
+    return /* @__PURE__ */ jsxs3(Box3, { flexDirection: "column", children: [
+      /* @__PURE__ */ jsx3(BoardHeader, { title: board.title, inTmux }),
+      /* @__PURE__ */ jsx3(
+        AgentPicker,
+        {
+          agents: installedAgents,
+          taskId,
+          onSelect: handleAgentSelect,
+          onCancel: () => setMode(detailTaskId ? "detail" : "browse")
+        }
+      )
+    ] });
+  }
+  if (mode === "detail" && detailTask) {
+    return /* @__PURE__ */ jsxs3(Box3, { flexDirection: "column", children: [
+      /* @__PURE__ */ jsxs3(Box3, { marginBottom: 1, justifyContent: "space-between", children: [
+        /* @__PURE__ */ jsx3(Text3, { color: "gray", children: "Esc back  a launch agent  j/k scroll" }),
+        /* @__PURE__ */ jsxs3(Text3, { color: "gray", dimColor: true, children: [
+          "KANDOWN  ",
+          board.title
+        ] })
+      ] }),
+      /* @__PURE__ */ jsx3(TaskDetail, { task: detailTask, taskId: detailTaskId, scrollOffset: detailScroll }),
+      statusMsg && /* @__PURE__ */ jsx3(Box3, { marginTop: 1, children: /* @__PURE__ */ jsx3(Text3, { color: "yellow", children: statusMsg }) })
+    ] });
+  }
+  return /* @__PURE__ */ jsxs3(Box3, { flexDirection: "column", children: [
+    /* @__PURE__ */ jsx3(BoardHeader, { title: board.title, inTmux }),
+    /* @__PURE__ */ jsx3(Box3, { flexDirection: "row", children: board.columns.map((col, cIdx) => /* @__PURE__ */ jsx3(
+      KanbanColumn,
+      {
+        name: col.name,
+        tasks: col.tasks,
+        focusedRow: cIdx === colIndex ? rowIndex : -1,
+        isFocused: cIdx === colIndex,
+        colWidth
+      },
+      col.name
+    )) }),
+    /* @__PURE__ */ jsx3(StatusBar, { message: statusMsg, task: focusedTask })
+  ] });
+}
+
+// src/cli/app.tsx
+import { jsx as jsx4, jsxs as jsxs4 } from "react/jsx-runtime";
 function App({ screen, kandownDir }) {
   switch (screen) {
     case "settings":
-      return /* @__PURE__ */ jsx2(Settings, { kandownDir });
+      return /* @__PURE__ */ jsx4(Settings, { kandownDir });
+    case "board":
+      return /* @__PURE__ */ jsx4(Board, { kandownDir });
     default:
-      return /* @__PURE__ */ jsx2(Box2, { padding: 2, children: /* @__PURE__ */ jsxs2(Text2, { color: "red", bold: true, children: [
+      return /* @__PURE__ */ jsx4(Box4, { padding: 2, children: /* @__PURE__ */ jsxs4(Text4, { color: "red", bold: true, children: [
         "Unknown screen: ",
         screen
       ] }) });
@@ -394,7 +1199,7 @@ function App({ screen, kandownDir }) {
 }
 
 // src/cli/tui.tsx
-import { jsx as jsx3 } from "react/jsx-runtime";
+import { jsx as jsx5 } from "react/jsx-runtime";
 async function run(screen, kandownDir) {
   if (!process.stdin.isTTY) {
     throw new Error(
@@ -402,7 +1207,7 @@ async function run(screen, kandownDir) {
     );
   }
   process.stdout.write("\x1B[?1049h\x1B[H");
-  const instance = render(/* @__PURE__ */ jsx3(App, { screen, kandownDir }), {
+  const instance = render(/* @__PURE__ */ jsx5(App, { screen, kandownDir }), {
     exitOnCtrlC: true
   });
   try {

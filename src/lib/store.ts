@@ -444,13 +444,35 @@ export const useStore = create<State>((set, get) => ({
   },
 
   saveDrawer: async () => {
-    const { drawerTaskId, drawerData, tasksDirHandle, taskContents } = get();
-    if (!drawerTaskId || !drawerData || !tasksDirHandle) return;
+    const { drawerTaskId, drawerData, tasksDirHandle, columns, dirHandle, boardTitle, taskContents } = get();
+    if (!drawerTaskId || !drawerData || !tasksDirHandle || !dirHandle) return;
 
     const fullBody = injectSubtasks(drawerData.body, drawerData.subtasks);
     const fm = { ...drawerData.frontmatter, id: drawerTaskId };
     try {
       await fsWriteTaskFile(tasksDirHandle, drawerTaskId, fm, fullBody);
+
+      const total = drawerData.subtasks.length;
+      const done = drawerData.subtasks.filter(s => s.done).length;
+      const newColumns = columns.map(c => ({
+        ...c,
+        tasks: c.tasks.map(t =>
+          t.id === drawerTaskId
+            ? {
+                ...t,
+                title: (fm.title as string) || t.title,
+                priority: (fm.priority as BoardTask['priority']) || null,
+                assignee: (fm.assignee as string) || null,
+                tags: (fm.tags as string[]) || [],
+                ownerType: ((fm.ownerType as BoardTask['ownerType']) || '') as BoardTask['ownerType'],
+                progress: total > 0 ? { done, total } : null,
+              }
+            : t
+        ),
+      })) as Column[];
+      set({ columns: newColumns });
+      await writeBoardFile(dirHandle, serializeBoard(boardTitle, newColumns));
+
       get().toast('Saved');
       set({ drawerTaskId: null, drawerData: null });
 
