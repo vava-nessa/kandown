@@ -148,8 +148,6 @@
     "suggestFollowUpDesc": "Küsi agentidelt järgmisi ülesandeid pärast ühe lõpetamist.",
     "maxSuggestions": "Maks. soovitusi",
     "maxSuggestionsDesc": "Piirab agentide poolt pakutavate järelülesannete arvu.",
-    "taskPrefix": "Ülesande prefiks",
-    "taskPrefixDesc": "Prefiks uutele ülesande ID-dele, näiteks t-001 või bug-001.",
     "defaultPriority": "Vaikimisi tähtsus",
     "defaultPriorityDesc": "Algne tähtsus uutele ülesannetele, kui Tähtsuse väli on lubatud.",
     "defaultOwner": "Vaikimisi omanik",

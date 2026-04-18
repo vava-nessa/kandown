@@ -162,14 +162,14 @@ function nextTaskId(columns: Column[]): string {
   let maxN = -1;
   for (const col of columns) {
     for (const t of col.tasks) {
-      const m = t.id.match(/^t-(\d+)$/);
+      const m = t.id.match(/^t(\d+)$/);
       if (m) {
         const n = parseInt(m[1], 10);
         if (n > maxN) maxN = n;
       }
     }
   }
-  return 't-' + String(maxN + 1).padStart(3, '0');
+  return 't' + (maxN + 1);
 }
 
 async function readAllTasks(
@@ -577,7 +577,7 @@ export const useStore = create<State>((set, get) => ({
       const newContents = new Map(taskContents);
       newContents.set(id, { frontmatter: fm, subtasks: [], body });
       set({ taskContents: newContents });
-      get().toast(`Created ${id.toUpperCase()}`);
+      get().toast(`Created ${id.replace(/^t/, '')}`);
       return id;
     } catch (e) {
       get().toast('Failed to create: ' + (e as Error).message, 'error');

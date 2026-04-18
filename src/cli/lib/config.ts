@@ -32,7 +32,6 @@ export interface KandownConfig {
   };
   board: {
     columns: string[];
-    taskPrefix: string;
     defaultPriority: string;
     defaultOwnerType: 'human' | 'ai';
   };
@@ -68,7 +67,6 @@ const DEFAULT_CONFIG: KandownConfig = {
   agent: { suggestFollowUp: false, maxSuggestions: 3 },
   board: {
     columns: ['Backlog', 'Todo', 'In Progress', 'Review', 'Done'],
-    taskPrefix: 't',
     defaultPriority: 'P3',
     defaultOwnerType: 'human',
   },

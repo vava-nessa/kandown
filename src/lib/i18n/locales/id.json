@@ -148,8 +148,6 @@
     "suggestFollowUpDesc": "Minta agen untuk mengusulkan tugas berikutnya setelah menyelesaikan satu.",
     "maxSuggestions": "Maks saran",
     "maxSuggestionsDesc": "Membatasi jumlah tugas lanjutan yang dapat diusulkan oleh agen.",
-    "taskPrefix": "Awalan tugas",
-    "taskPrefixDesc": "Awalan untuk ID tugas baru, seperti t-001 atau bug-001.",
     "defaultPriority": "Prioritas default",
     "defaultPriorityDesc": "Prioritas awal untuk tugas baru saat bidang Prioritas diaktifkan.",
     "defaultOwner": "Pemilik default",

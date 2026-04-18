@@ -148,8 +148,6 @@
     "suggestFollowUpDesc": "Kérd meg az ügynököket, hogy javasoljanak következő feladatokat az egyik befejezése után.",
     "maxSuggestions": "Max javaslatok",
     "maxSuggestionsDesc": "Korlátozza az ügynök által javasolható követő feladatok számát.",
-    "taskPrefix": "Feladat előtag",
-    "taskPrefixDesc": "Előtag az új feladat azonosítókhoz, mint t-001 vagy bug-001.",
     "defaultPriority": "Alapértelmezett prioritás",
     "defaultPriorityDesc": "Kezdeti prioritás az új feladatokhoz, amikor a Prioritás mező engedélyezve van.",
     "defaultOwner": "Alapértelmezett tulajdonos",

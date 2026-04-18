@@ -148,8 +148,6 @@
     "suggestFollowUpDesc": "要求代理在完成一个任务后提出下一个任务。",
     "maxSuggestions": "最大建议数",
     "maxSuggestionsDesc": "限制代理可能提出的后续任务数量。",
-    "taskPrefix": "任务前缀",
-    "taskPrefixDesc": "新任务ID的前缀，例如t-001或bug-001。",
     "defaultPriority": "默认优先级",
     "defaultPriorityDesc": "启用优先级字段时新任务的初始优先级。",
     "defaultOwner": "默认所有者",

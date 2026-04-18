@@ -148,8 +148,6 @@
     "suggestFollowUpDesc": "Ajanlardan birini bitirdikten sonra sonraki görevleri önermelerini isteyin.",
     "maxSuggestions": "Maks öneri",
     "maxSuggestionsDesc": "Bir ajanın önerebileceği takip görevi sayısını sınırlar.",
-    "taskPrefix": "Görev öneki",
-    "taskPrefixDesc": "t-001 veya bug-001 gibi yeni görev kimlikleri için önek.",
     "defaultPriority": "Varsayılan öncelik",
     "defaultPriorityDesc": "Öncelik alanı etkinleştirildiğinde yeni görevler için başlangıç önceliği.",
     "defaultOwner": "Varsayılan sahip",

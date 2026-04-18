@@ -127,9 +127,9 @@ The board TUI is a full-screen terminal kanban built with [Ink](https://github.c
   ────────────────────────────────────────────────────────────────
   Backlog (3)   │ Todo (2)     │ In Progress  │ Review (1) │ Done
   ──────────────│──────────────│──────────────│────────────│──────
-  ▸ t-009       │ t-016        │ (empty)      │ t-018      │ ...
-    t-010       │ t-007        │              │
-    t-011       │              │
+  ▸ t9         │ t16         │ (empty)      │ t18       │ ...
+    t10        │ t7         │              │
+    t11        │              │
 ```
 
 **Navigation:**
@@ -217,7 +217,7 @@ Task files store rich context and board state.
 
 ```markdown
 ---
-id: t-001
+id: t1
 title: Full task title
 status: Todo
 order: 0

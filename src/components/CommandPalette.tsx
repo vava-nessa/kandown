@@ -83,7 +83,8 @@ export function CommandPalette() {
     const taskCommands: CommandItem[] = columns.flatMap(col =>
       col.tasks.map(t => ({
         id: 'task:' + t.id,
-        label: `${t.id.toUpperCase()} — ${t.title}`,
+        label: `${t.id.replace(/^t/, '')} — ${t.title}`,
+        boldPrefix: true,
         hint: col.name,
         category: 'task' as const,
         onSelect: () => {

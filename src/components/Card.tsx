@@ -164,8 +164,8 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       )}
 
       <div className="flex items-center justify-between mb-1.5">
-        <span className="font-mono text-[11.5px] tracking-wide text-fg-muted">
-          {task.id.toUpperCase()}
+        <span className="font-mono text-[13px] font-bold tracking-wide text-fg-muted">
+          {task.id.replace(/^t/, '')}
         </span>
         <div className="flex items-center gap-1.5">
           {fields.priority && task.priority && (

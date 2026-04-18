@@ -16,7 +16,6 @@ var DEFAULT_CONFIG = {
   agent: { suggestFollowUp: false, maxSuggestions: 3 },
   board: {
     columns: ["Backlog", "Todo", "In Progress", "Review", "Done"],
-    taskPrefix: "t",
     defaultPriority: "P3",
     defaultOwnerType: "human"
   },
@@ -133,14 +132,6 @@ var SETTINGS = [
   },
   // Board
   {
-    key: "board.taskPrefix",
-    label: "Task prefix",
-    section: "Board",
-    type: "select",
-    options: ["t", "task", "kandown", "feat", "bug", "fix", "custom"],
-    allowCustom: true
-  },
-  {
     key: "board.defaultPriority",
     label: "Default priority",
     section: "Fields",
@@ -190,15 +181,9 @@ function Settings({ kandownDir }) {
   const [config, setConfig] = useState(null);
   const [focusIndex, setFocusIndex] = useState(0);
   const [savedAt, setSavedAt] = useState(null);
-  const [editingCustom, setEditingCustom] = useState(false);
-  const [customBuffer, setCustomBuffer] = useState("");
   useEffect(() => {
     const loaded = loadConfig(kandownDir);
     setConfig(loaded);
-    const presets = ["t", "task", "kandown", "feat", "bug", "fix"];
-    if (!presets.includes(loaded.board.taskPrefix)) {
-      setCustomBuffer(loaded.board.taskPrefix);
-    }
   }, [kandownDir]);
   const persistConfig = useCallback(
     (newConfig) => {
@@ -215,30 +200,6 @@ function Settings({ kandownDir }) {
   }, [savedAt]);
   useInput((input, key) => {
     if (!config) return;
-    if (editingCustom) {
-      if (key.return) {
-        const prefix = customBuffer.trim() || "t";
-        persistConfig(setConfigValue(config, "board.taskPrefix", prefix));
-        setEditingCustom(false);
-        return;
-      }
-      if (key.escape) {
-        setEditingCustom(false);
-        setCustomBuffer(
-          ["t", "task", "kandown", "feat", "bug", "fix"].includes(config.board.taskPrefix) ? "" : config.board.taskPrefix
-        );
-        return;
-      }
-      if (key.backspace || key.delete) {
-        setCustomBuffer((prev) => prev.slice(0, -1));
-        return;
-      }
-      if (input && /^[a-zA-Z0-9-]$/.test(input)) {
-        setCustomBuffer((prev) => prev + input);
-        return;
-      }
-      return;
-    }
     if (key.escape || input === "q") {
       exit();
       return;
@@ -272,11 +233,6 @@ function Settings({ kandownDir }) {
         return;
       }
       const newValue = options[newIdx];
-      if (newValue === "custom" && setting.allowCustom) {
-        setEditingCustom(true);
-        setCustomBuffer("");
-        return;
-      }
       persistConfig(setConfigValue(config, setting.key, newValue));
       return;
     }
@@ -327,22 +283,17 @@ function Settings({ kandownDir }) {
             {
               setting,
               value,
-              focused,
-              editingCustom: editingCustom && setting.key === "board.taskPrefix",
-              customBuffer
+              focused
             },
             setting.key
           );
         })
       ] }, section);
     }),
-    /* @__PURE__ */ jsx(Box, { marginTop: 1, children: /* @__PURE__ */ jsxs(Text, { dimColor: true, children: [
-      "  ",
-      editingCustom ? "Type prefix \u2192 Enter confirm  Esc cancel" : "\u2191\u2193 navigate   Space toggle   \u2190\u2192 change   Q quit"
-    ] }) })
+    /* @__PURE__ */ jsx(Box, { marginTop: 1, children: /* @__PURE__ */ jsx(Text, { dimColor: true, children: "  \u2191\u2193 navigate   Space toggle   \u2190\u2192 change   Q quit" }) })
   ] });
 }
-function SettingRow({ setting, value, focused, editingCustom, customBuffer }) {
+function SettingRow({ setting, value, focused }) {
   const marker = focused ? "\u203A" : " ";
   const markerColor = focused ? "yellow" : void 0;
   const labelColor = focused ? "white" : "gray";
@@ -353,26 +304,10 @@ function SettingRow({ setting, value, focused, editingCustom, customBuffer }) {
       " "
     ] }),
     /* @__PURE__ */ jsx(Box, { width: LABEL_WIDTH, children: /* @__PURE__ */ jsx(Text, { color: labelColor, bold: focused, children: setting.label }) }),
-    /* @__PURE__ */ jsx(Box, { width: VALUE_WIDTH, justifyContent: "flex-end", children: /* @__PURE__ */ jsx(
-      ValueDisplay,
-      {
-        setting,
-        value,
-        focused,
-        editingCustom,
-        customBuffer
-      }
-    ) })
+    /* @__PURE__ */ jsx(Box, { width: VALUE_WIDTH, justifyContent: "flex-end", children: /* @__PURE__ */ jsx(ValueDisplay, { setting, value, focused }) })
   ] });
 }
-function ValueDisplay({ setting, value, focused, editingCustom, customBuffer }) {
-  if (editingCustom) {
-    return /* @__PURE__ */ jsxs(Box, { children: [
-      /* @__PURE__ */ jsx(Text, { color: "yellow", bold: true, children: customBuffer }),
-      /* @__PURE__ */ jsx(Text, { color: "yellow", bold: true, children: "\u258F" }),
-      /* @__PURE__ */ jsx(Text, { dimColor: true, children: "-001" })
-    ] });
-  }
+function ValueDisplay({ setting, value, focused }) {
   if (setting.type === "toggle") {
     const on = Boolean(value);
     return /* @__PURE__ */ jsx(Text, { color: on ? "green" : "gray", bold: on, children: on ? "\u25CF ON" : "\u25CB OFF" });
@@ -383,20 +318,14 @@ function ValueDisplay({ setting, value, focused, editingCustom, customBuffer }) 
     const atStart = idx <= 0;
     const atEnd = idx >= options.length - 1;
     const displayValue = String(value);
-    const isPrefix = setting.key === "board.taskPrefix";
-    const preview = isPrefix ? `-001` : "";
     if (focused) {
       return /* @__PURE__ */ jsxs(Box, { children: [
         /* @__PURE__ */ jsx(Text, { color: atStart ? "gray" : "cyan", children: "\u25C2 " }),
         /* @__PURE__ */ jsx(Text, { color: "white", bold: true, children: displayValue }),
-        preview && /* @__PURE__ */ jsx(Text, { dimColor: true, children: preview }),
         /* @__PURE__ */ jsx(Text, { color: atEnd ? "gray" : "cyan", children: " \u25B8" })
       ] });
     }
-    return /* @__PURE__ */ jsx(Box, { children: /* @__PURE__ */ jsxs(Text, { dimColor: true, children: [
-      displayValue,
-      preview
-    ] }) });
+    return /* @__PURE__ */ jsx(Text, { dimColor: true, children: displayValue });
   }
   if (setting.type === "number") {
     const num = Number(value);
@@ -1038,7 +967,7 @@ function StatusBar({ message, task }) {
   }
   if (!task) return /* @__PURE__ */ jsx3(Box3, { marginTop: 1, children: /* @__PURE__ */ jsx3(Text3, { color: "gray", children: " " }) });
   return /* @__PURE__ */ jsx3(Box3, { marginTop: 1, children: /* @__PURE__ */ jsxs3(Text3, { color: "gray", children: [
-    task.id,
+    task.id.replace(/^t/, ""),
     task.progress ? `  (${task.progress.done}/${task.progress.total})` : "",
     "  ",
     task.checked ? "\u2713 done" : "\u25CB open"

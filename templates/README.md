@@ -15,7 +15,7 @@ The app remembers the last 10 projects you've opened.
 ```
 .kandown/
 ├── tasks/
-│   ├── t-001.md      ← full task details and board status
+│   ├── t1.md      ← full task details and board status
 │   └── ...
 ├── kandown.html      ← the engine (single file, no dependencies)
 ├── kandown.json      ← project preferences, columns, appearance, optional fields

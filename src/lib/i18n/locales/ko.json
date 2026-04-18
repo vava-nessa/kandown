@@ -148,8 +148,6 @@
     "suggestFollowUpDesc": "에이전트에게 하나를 완료한 후 다음 작업을 제안하도록 요청하세요.",
     "maxSuggestions": "최대 제안 수",
     "maxSuggestionsDesc": "에이전트가 제안할 수 있는 후속 작업 수를 제한합니다.",
-    "taskPrefix": "작업 접두사",
-    "taskPrefixDesc": "t-001 또는 bug-001과 같은 새 작업 ID의 접두사.",
     "defaultPriority": "기본 우선순위",
     "defaultPriorityDesc": "우선순위 필드가 활성화되면 새 작업의 초기 우선순위.",
     "defaultOwner": "기본 소유자",

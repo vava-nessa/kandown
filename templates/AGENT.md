@@ -10,7 +10,7 @@ Tasks are the source of truth. There is no board index to maintain.
 .kandown/
 ├── kandown.json      ← project settings and board columns
 ├── tasks/
-│   ├── t-001.md      ← task status, metadata, subtasks, notes, report
+│   ├── t1.md      ← task status, metadata, subtasks, notes, report
 │   └── ...
 └── kandown.html      ← local web UI
 ```
@@ -23,7 +23,7 @@ If a task has no `status`, treat it as `Backlog`.
 
 ```markdown
 ---
-id: t-001
+id: t1
 title: Full task title
 status: Todo
 priority: P1
@@ -83,9 +83,7 @@ report: |
 
 ## Creating tasks
 
-Create a new `tasks/<id>.md` file. Pick the next available ID by scanning filenames in `.kandown/tasks/`.
-
-Use the configured task prefix from `.kandown/kandown.json` at `board.taskPrefix`. If no config exists, use `t`.
+Create a new `tasks/<id>.md` file. Pick the next available ID by scanning filenames in `.kandown/tasks/`. Task IDs use the format `t<N>` (e.g. `t1`, `t2`, `t45`).
 
 ## Mutation rules
 

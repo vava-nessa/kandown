@@ -327,15 +327,7 @@ const getSETTINGS = (t: ReturnType<typeof useTranslation>['t']): SettingDef[] =>
     max: 5,
     keywords: ['limit', 'follow-up'],
   },
-  {
-    key: 'board.taskPrefix',
-    label: t('settings.taskPrefix'),
-    section: 'board',
-    type: 'text',
-    description: t('settings.taskPrefixDesc'),
-    placeholder: 't',
-    keywords: ['id', 'identifier', 'task id'],
-  },
+  
   {
     key: 'board.columns',
     label: t('settings.columns'),

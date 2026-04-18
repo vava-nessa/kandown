@@ -148,8 +148,6 @@
     "suggestFollowUpDesc": "Bed agenter om at foreslå næste opgaver efter at have færdiggjort én.",
     "maxSuggestions": "Maks forslag",
     "maxSuggestionsDesc": "Begrænser antallet af opfølgningsopgaver en agent kan foreslå.",
-    "taskPrefix": "Opgavepræfiks",
-    "taskPrefixDesc": "Præfiks for nye opgave-ID'er, som t-001 eller bug-001.",
     "defaultPriority": "Standard prioritet",
     "defaultPriorityDesc": "Startprioritet for nye opgaver når Prioritet-feltet er aktiveret.",
     "defaultOwner": "Standard ejer",

@@ -148,8 +148,6 @@
     "suggestFollowUpDesc": "Pyydä agenteja ehdottamaan seuraavia tehtäviä yhden valmistuttua.",
     "maxSuggestions": "Enimmäismäärä ehdotuksia",
     "maxSuggestionsDesc": "Rajoittaa agentin ehdottamien jatkotehtävien määrää.",
-    "taskPrefix": "Tehtäväprefiksi",
-    "taskPrefixDesc": "Prefiksi uusille tehtävä-ID:ille, kuten t-001 tai bug-001.",
     "defaultPriority": "Oletusprioriteetti",
     "defaultPriorityDesc": "Alkuprioriteetti uusille tehtäville, kun Prioriteetti-kenttä on käytössä.",
     "defaultOwner": "Oletusomistaja",

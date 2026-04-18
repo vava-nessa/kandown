@@ -138,7 +138,6 @@ export interface KandownConfig {
   };
   board: {
     columns: string[];
-    taskPrefix: string;
     defaultPriority: string;
     defaultOwnerType: 'human' | 'ai';
     columnColors?: Record<string, ColumnColor>;
@@ -169,7 +168,6 @@ export const DEFAULT_CONFIG: KandownConfig = {
   agent: { suggestFollowUp: false, maxSuggestions: 3 },
   board: {
     columns: DEFAULT_COLUMNS,
-    taskPrefix: 't',
     defaultPriority: 'P3',
     defaultOwnerType: 'human',
     columnColors: {

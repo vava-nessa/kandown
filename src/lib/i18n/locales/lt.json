@@ -148,8 +148,6 @@
     "suggestFollowUpDesc": "Prašyti agentų siūlyti sekančias užduotis užbaigus vieną.",
     "maxSuggestions": "Maks. pasiūlymų",
     "maxSuggestionsDesc": "Riboja agento siūlomų tęstinių užduočių skaičių.",
-    "taskPrefix": "Užduoties prefiksas",
-    "taskPrefixDesc": "Naujų užduočių ID prefiksas, pvz. t-001 arba bug-001.",
     "defaultPriority": "Numatytasis prioritetas",
     "defaultPriorityDesc": "Pradinis prioritetas naujoms užduotims kai prioriteto laukas įjungtas.",
     "defaultOwner": "Numatytasis savininkas",

@@ -120,7 +120,7 @@ export function ListView() {
                   className="w-full grid gap-3 px-6 py-2.5 text-[13.5px] border-b border-border hover:bg-bg-1 transition-colors text-left items-center"
                   style={listGridStyle}
                 >
-                  <span className="font-mono text-[11.5px] text-fg-muted">{task.id.toUpperCase()}</span>
+                  <span className="font-mono text-[13px] font-bold text-fg-muted">{task.id.replace(/^t/, '')}</span>
                   {fields.priority && (
                     <span className="flex items-center gap-1.5">
                       {task.priority && (

@@ -148,8 +148,6 @@
     "suggestFollowUpDesc": "Vraag agents om next taken voor te stellen na het afronden van één.",
     "maxSuggestions": "Max suggesties",
     "maxSuggestionsDesc": "Beperkt het aantal follow-up taken dat een agent kan voorstellen.",
-    "taskPrefix": "Taakprefix",
-    "taskPrefixDesc": "Prefix voor nieuwe taak-IDs, zoals t-001 of bug-001.",
     "defaultPriority": "Standaard prioriteit",
     "defaultPriorityDesc": "Initiële prioriteit voor nieuwe taken wanneer het Prioriteit-veld is ingeschakeld.",
     "defaultOwner": "Standaard eigenaar",

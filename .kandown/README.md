@@ -14,11 +14,11 @@ The app remembers the last 10 projects you've opened — no need to re-select th
 
 ```
 .kandown/
-├── board.md          ← source of truth for state and index
 ├── tasks/
-│   ├── t-001.md      ← full task details
+│   ├── t1.md      ← full task details
 │   └── ...
 ├── kandown.html       ← the engine (single file, no dependencies)
+├── kandown.json      ← project preferences, columns, appearance
 ├── AGENT.md          ← AI coding agent conventions
 └── README.md         ← this file
 ```
@@ -29,7 +29,7 @@ Everything is plain markdown. Edit files directly in your IDE, Obsidian, or vim.
 
 ## For AI agents
 
-See `AGENT.md`. The key convention: agents read `board.md` only for the index, and only fetch `tasks/t-xxx.md` on demand. Keeps AI context clean when there are hundreds of tasks.
+See `AGENT.md`. The key convention: each task file is its own source of truth. Moving a task means editing the task's frontmatter `status`.
 
 ## Keyboard shortcuts
 
@@ -42,3 +42,4 @@ See `AGENT.md`. The key convention: agents read `board.md` only for the index, a
 | `/` | Focus search |
 | `Esc` | Close drawer / palette |
 | `⌘S` | Save current task |
+| `⌘⌫` | Delete task (with confirmation) |

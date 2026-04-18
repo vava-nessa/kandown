@@ -148,8 +148,6 @@
     "suggestFollowUpDesc": "エージェントに1つを完了した後、次のタスクを提案するよう依頼。",
     "maxSuggestions": "最大提案数",
     "maxSuggestionsDesc": "エージェントが提案できるフォローアップタスクの数を制限。",
-    "taskPrefix": "タスクプレフィックス",
-    "taskPrefixDesc": "新しいタスクIDのプレフィックス（t-001やbug-001など）。",
     "defaultPriority": "デフォルト優先度",
     "defaultPriorityDesc": "優先度フィールドが有効な場合的新しいタスクの初期優先度。",
     "defaultOwner": "デフォルト所有者",

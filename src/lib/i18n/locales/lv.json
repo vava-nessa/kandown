@@ -148,8 +148,6 @@
     "suggestFollowUpDesc": "Lūgt aģentiem piedāvāt nākamos uzdevumus pēc viena pabeigšanas.",
     "maxSuggestions": "Maks. ieteikumu",
     "maxSuggestionsDesc": "Ierobežo aģenta piedāvājamo turpmāko uzdevumu skaitu.",
-    "taskPrefix": "Uzdevuma prefikss",
-    "taskPrefixDesc": "Prefikss jauniem uzdevumu ID, piemēram, t-001 vai bug-001.",
     "defaultPriority": "Noklusējuma prioritāte",
     "defaultPriorityDesc": "Sākotnējā prioritāte jauniem uzdevumiem, kad Prioritātes lauks ir iespējots.",
     "defaultOwner": "Noklusējuma īpašnieks",

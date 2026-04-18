@@ -148,8 +148,6 @@
     "suggestFollowUpDesc": "Zatražite od agenata da predlože sljedeće zadatke nakon završetka jednog.",
     "maxSuggestions": "Maks. prijedloga",
     "maxSuggestionsDesc": "Ograničava broj nastavnih zadataka koje agent može predložiti.",
-    "taskPrefix": "Prefiks zadatka",
-    "taskPrefixDesc": "Prefiks za ID-eve novih zadataka, npr. t-001 ili bug-001.",
     "defaultPriority": "Zadani prioritet",
     "defaultPriorityDesc": "Početni prioritet za nove zadatke kada je polje Prioritet omogućeno.",
     "defaultOwner": "Zadani vlasnik",

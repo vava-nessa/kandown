@@ -148,8 +148,6 @@
     "suggestFollowUpDesc": "Požádat agenty, aby navrhli další úkoly po dokončení jednoho.",
     "maxSuggestions": "Max návrhů",
     "maxSuggestionsDesc": "Omezuje počet následných úkolů, které agent může navrhnout.",
-    "taskPrefix": "Prefix úkolu",
-    "taskPrefixDesc": "Prefix pro nová ID úkolů, jako t-001 nebo bug-001.",
     "defaultPriority": "Výchozí priorita",
     "defaultPriorityDesc": "Počáteční priorita pro nové úkoly, když je pole Priority povoleno.",
     "defaultOwner": "Výchozí vlastník",

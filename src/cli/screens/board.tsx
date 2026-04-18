@@ -194,7 +194,7 @@ function StatusBar({ message, task }: { message: string; task: BoardTask | null 
   return (
     <Box marginTop={1}>
       <Text color="gray">
-        {task.id}
+{task.id.replace(/^t/, '')}
         {task.progress ? `  (${task.progress.done}/${task.progress.total})` : ''}
         {'  '}
         {task.checked ? '✓ done' : '○ open'}

@@ -6,8 +6,7 @@
  * 📖 Keyboard controls:
  *  ↑↓ — navigate between settings
  *  ←→ — cycle select/number values
- *  Space/Enter — toggle booleans, confirm custom prefix
- *  Backspace — delete char in custom prefix mode
+ *  Space/Enter — toggle booleans
  *  Esc/Q — exit
  *
  * @functions
@@ -39,8 +38,6 @@ interface SettingDef {
   options?: string[];
   min?: number;
   max?: number;
-  // 📖 When true, selecting the last option triggers custom text input mode
-  allowCustom?: boolean;
 }
 
 // 📖 Flat list of all configurable settings — order matters for navigation
@@ -92,14 +89,6 @@ const SETTINGS: SettingDef[] = [
   },
 
   // Board
-  {
-    key: 'board.taskPrefix',
-    label: 'Task prefix',
-    section: 'Board',
-    type: 'select',
-    options: ['t', 'task', 'kandown', 'feat', 'bug', 'fix', 'custom'],
-    allowCustom: true,
-  },
   {
     key: 'board.defaultPriority',
     label: 'Default priority',
@@ -166,20 +155,11 @@ export function Settings({ kandownDir }: SettingsProps) {
   const [config, setConfig] = useState<KandownConfig | null>(null);
   const [focusIndex, setFocusIndex] = useState(0);
   const [savedAt, setSavedAt] = useState<number | null>(null);
-  // 📖 Custom prefix editing state — activated when user selects "custom" in taskPrefix
-  const [editingCustom, setEditingCustom] = useState(false);
-  const [customBuffer, setCustomBuffer] = useState('');
 
   // 📖 Load config on mount
   useEffect(() => {
     const loaded = loadConfig(kandownDir);
     setConfig(loaded);
-
-    // 📖 If the current prefix isn't in the preset list, we're in custom mode
-    const presets = ['t', 'task', 'kandown', 'feat', 'bug', 'fix'];
-    if (!presets.includes(loaded.board.taskPrefix)) {
-      setCustomBuffer(loaded.board.taskPrefix);
-    }
   }, [kandownDir]);
 
   // 📖 Auto-save: persist config to disk on every change
@@ -203,37 +183,6 @@ export function Settings({ kandownDir }: SettingsProps) {
 
   useInput((input, key) => {
     if (!config) return;
-
-    // 📖 Custom prefix text input mode — captures all keystrokes
-    if (editingCustom) {
-      if (key.return) {
-        // Confirm custom prefix
-        const prefix = customBuffer.trim() || 't';
-        persistConfig(setConfigValue(config, 'board.taskPrefix', prefix));
-        setEditingCustom(false);
-        return;
-      }
-      if (key.escape) {
-        // Cancel custom edit
-        setEditingCustom(false);
-        setCustomBuffer(
-          (['t', 'task', 'kandown', 'feat', 'bug', 'fix'].includes(config.board.taskPrefix)
-            ? ''
-            : config.board.taskPrefix),
-        );
-        return;
-      }
-      if (key.backspace || key.delete) {
-        setCustomBuffer((prev) => prev.slice(0, -1));
-        return;
-      }
-      // 📖 Only allow alphanumeric and hyphens for task prefix slugs
-      if (input && /^[a-zA-Z0-9-]$/.test(input)) {
-        setCustomBuffer((prev) => prev + input);
-        return;
-      }
-      return;
-    }
 
     // 📖 Global shortcuts
     if (key.escape || input === 'q') {
@@ -272,22 +221,12 @@ export function Settings({ kandownDir }: SettingsProps) {
       } else if (key.rightArrow) {
         newIdx = Math.min(options.length - 1, currentIdx + 1);
       } else if (input === ' ' || key.return) {
-        // Space/Enter cycles forward (wraps)
         newIdx = (currentIdx + 1) % options.length;
       } else {
         return;
       }
 
       const newValue = options[newIdx];
-
-      // 📖 "custom" triggers text input mode for taskPrefix
-      if (newValue === 'custom' && setting.allowCustom) {
-        setEditingCustom(true);
-        setCustomBuffer('');
-        return;
-      }
-
-      // 📖 If cycling away from a custom value, and the value isn't in presets
       persistConfig(setConfigValue(config, setting.key, newValue));
       return;
     }
@@ -372,8 +311,6 @@ export function Settings({ kandownDir }: SettingsProps) {
                   setting={setting}
                   value={value}
                   focused={focused}
-                  editingCustom={editingCustom && setting.key === 'board.taskPrefix'}
-                  customBuffer={customBuffer}
                 />
               );
             })}
@@ -384,10 +321,7 @@ export function Settings({ kandownDir }: SettingsProps) {
       {/* Footer — keyboard shortcuts */}
       <Box marginTop={1}>
         <Text dimColor>
-          {'  '}
-          {editingCustom
-            ? 'Type prefix → Enter confirm  Esc cancel'
-            : '↑↓ navigate   Space toggle   ←→ change   Q quit'}
+          {'  ↑↓ navigate   Space toggle   ←→ change   Q quit'}
         </Text>
       </Box>
     </Box>
@@ -400,11 +334,9 @@ interface SettingRowProps {
   setting: SettingDef;
   value: unknown;
   focused: boolean;
-  editingCustom: boolean;
-  customBuffer: string;
 }
 
-function SettingRow({ setting, value, focused, editingCustom, customBuffer }: SettingRowProps) {
+function SettingRow({ setting, value, focused }: SettingRowProps) {
   const marker = focused ? '›' : ' ';
   const markerColor = focused ? 'yellow' : undefined;
   const labelColor = focused ? 'white' : 'gray';
@@ -426,13 +358,7 @@ function SettingRow({ setting, value, focused, editingCustom, customBuffer }: Se
 
       {/* Value */}
       <Box width={VALUE_WIDTH} justifyContent="flex-end">
-        <ValueDisplay
-          setting={setting}
-          value={value}
-          focused={focused}
-          editingCustom={editingCustom}
-          customBuffer={customBuffer}
-        />
+        <ValueDisplay setting={setting} value={value} focused={focused} />
       </Box>
     </Box>
   );
@@ -444,26 +370,9 @@ interface ValueDisplayProps {
   setting: SettingDef;
   value: unknown;
   focused: boolean;
-  editingCustom: boolean;
-  customBuffer: string;
 }
 
-function ValueDisplay({ setting, value, focused, editingCustom, customBuffer }: ValueDisplayProps) {
-  // 📖 Custom prefix text input mode
-  if (editingCustom) {
-    return (
-      <Box>
-        <Text color="yellow" bold>
-          {customBuffer}
-        </Text>
-        <Text color="yellow" bold>
-          ▏
-        </Text>
-        <Text dimColor>-001</Text>
-      </Box>
-    );
-  }
-
+function ValueDisplay({ setting, value, focused }: ValueDisplayProps) {
   // 📖 Boolean toggle — shows filled/empty circle with ON/OFF
   if (setting.type === 'toggle') {
     const on = Boolean(value);
@@ -482,10 +391,6 @@ function ValueDisplay({ setting, value, focused, editingCustom, customBuffer }: 
     const atEnd = idx >= options.length - 1;
     const displayValue = String(value);
 
-    // 📖 Show preview of what the prefix looks like: "t → t-001"
-    const isPrefix = setting.key === 'board.taskPrefix';
-    const preview = isPrefix ? `-001` : '';
-
     if (focused) {
       return (
         <Box>
@@ -493,19 +398,11 @@ function ValueDisplay({ setting, value, focused, editingCustom, customBuffer }: 
           <Text color="white" bold>
             {displayValue}
           </Text>
-          {preview && <Text dimColor>{preview}</Text>}
           <Text color={atEnd ? 'gray' : 'cyan'}> ▸</Text>
         </Box>
       );
     }
-    return (
-      <Box>
-        <Text dimColor>
-          {displayValue}
-          {preview}
-        </Text>
-      </Box>
-    );
+    return <Text dimColor>{displayValue}</Text>;
   }
 
   // 📖 Number — shows value with arrows when focused

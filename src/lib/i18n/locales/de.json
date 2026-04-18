@@ -148,8 +148,6 @@
     "suggestFollowUpDesc": "Agenten bitten, nach dem Beenden einer Aufgabe weitere Aufgaben vorzuschlagen.",
     "maxSuggestions": "Max. Vorschläge",
     "maxSuggestionsDesc": "Begrenzt die Anzahl der Folgeaufgaben, die ein Agent vorschlagen kann.",
-    "taskPrefix": "Aufgabenpräfix",
-    "taskPrefixDesc": "Präfix für neue Aufgaben-IDs, wie t-001 oder bug-001.",
     "defaultPriority": "Standardpriorität",
     "defaultPriorityDesc": "Anfangspriorität für neue Aufgaben, wenn das Prioritätsfeld aktiviert ist.",
     "defaultOwner": "Standardeigentümer",

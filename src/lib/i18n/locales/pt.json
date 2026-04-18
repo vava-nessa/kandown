@@ -148,8 +148,6 @@
     "suggestFollowUpDesc": "Pedir aos agentes que proponham próximas tarefas após terminar uma.",
     "maxSuggestions": "Máx. sugestões",
     "maxSuggestionsDesc": "Limita o número de tarefas de acompanhamento que um agente pode propor.",
-    "taskPrefix": "Prefixo da tarefa",
-    "taskPrefixDesc": "Prefixo para novos IDs de tarefa, como t-001 ou bug-001.",
     "defaultPriority": "Prioridade padrão",
     "defaultPriorityDesc": "Prioridade inicial para novas tarefas quando o campo Prioridade está habilitado.",
     "defaultOwner": "Proprietário padrão",

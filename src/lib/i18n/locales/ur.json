@@ -148,8 +148,6 @@
     "suggestFollowUpDesc": "ایجنٹس سے ایک ختم کرنے کے بعد اگلے ٹاسک تجویز کرنے کو کہیں۔",
     "maxSuggestions": "زیادہ سے زیادہ تجاویز",
     "maxSuggestionsDesc": "ایک ایجنٹ کے تجویز کرنے والے فالو اپ ٹاسک کی تعداد کو محدود کرتا ہے۔",
-    "taskPrefix": "ٹاسک پریفکس",
-    "taskPrefixDesc": "نئے ٹاسک ID کے لیے پریفکس، جیسے t-001 یا bug-001۔",
     "defaultPriority": "ڈیفالٹ ترجیح",
     "defaultPriorityDesc": "جب پریority فیلڈ فعال ہو تو نئے ٹاسک کے لیے ابتدائی ترجیح۔",
     "defaultOwner": "ڈیفالٹ مالک",

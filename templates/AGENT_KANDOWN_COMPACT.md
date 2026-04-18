@@ -37,7 +37,7 @@ Example:
 
 ```yaml
 ---
-id: t-019
+id: t19
 title: My task
 status: Done
 report: |

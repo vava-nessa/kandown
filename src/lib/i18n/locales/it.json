@@ -148,8 +148,6 @@
     "suggestFollowUpDesc": "Chiedi agli agenti di proporre attività successive dopo averne completata una.",
     "maxSuggestions": "Max suggerimenti",
     "maxSuggestionsDesc": "Limita il numero di attività di follow-up che un agente può proporre.",
-    "taskPrefix": "Prefisso attività",
-    "taskPrefixDesc": "Prefisso per nuovi ID attività, come t-001 o bug-001.",
     "defaultPriority": "Priorità predefinita",
     "defaultPriorityDesc": "Priorità iniziale per nuove attività quando il campo Priorità è abilitato.",
     "defaultOwner": "Proprietario predefinito",

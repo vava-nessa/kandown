@@ -99,7 +99,7 @@ The `report:` field supports markdown and is displayed prominently in the UI. Wr
 
 ```markdown
 ---
-id: t-001
+id: t1
 title: Task title
 status: Backlog
 order: 0

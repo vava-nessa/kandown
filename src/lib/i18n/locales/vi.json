@@ -148,8 +148,6 @@
     "suggestFollowUpDesc": "Yêu cầu các đại lý đề xuất công việc tiếp theo sau khi hoàn thành một công việc.",
     "maxSuggestions": "Đề xuất tối đa",
     "maxSuggestionsDesc": "Giới hạn số lượng công việc theo dõi mà một đại lý có thể đề xuất.",
-    "taskPrefix": "Tiền tố công việc",
-    "taskPrefixDesc": "Tiền tố cho ID công việc mới, như t-001 hoặc bug-001.",
     "defaultPriority": "Ưu tiên mặc định",
     "defaultPriorityDesc": "Ưu tiên ban đầu cho công việc mới khi trường Ưu tiên được bật.",
     "defaultOwner": "Chủ sở hữu mặc định",

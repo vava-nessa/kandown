@@ -148,8 +148,6 @@
     "suggestFollowUpDesc": "Be agenter att föreslå nästa uppgifter efter att en är klar.",
     "maxSuggestions": "Max förslag",
     "maxSuggestionsDesc": "Begränsar antalet uppföljningsuppgifter en agent kan föreslå.",
-    "taskPrefix": "Uppgiftsprefix",
-    "taskPrefixDesc": "Prefix för nya uppgifts-ID:n, till exempel t-001 eller bugg-001.",
     "defaultPriority": "Standardprioritet",
     "defaultPriorityDesc": "Initial prioritet för nya uppgifter när prioritetsfältet är aktiverat.",
     "defaultOwner": "Standardägare",

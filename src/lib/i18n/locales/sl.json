@@ -148,8 +148,6 @@
     "suggestFollowUpDesc": "Agente prosite, naj predlagajo naslednje naloge po končanju ene.",
     "maxSuggestions": "Največ predlogov",
     "maxSuggestionsDesc": "Omejuje število nadaljnjih nalog, ki jih agent lahko predlaga.",
-    "taskPrefix": "Predpona naloge",
-    "taskPrefixDesc": "Predpona za nove ID-je nalog, npr. t-001 ali bug-001.",
     "defaultPriority": "Privzeta prioriteta",
     "defaultPriorityDesc": "Začetna prioriteta za nove naloge, ko je polje Prioriteta omogočeno.",
     "defaultOwner": "Privzeti lastnik",
