@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added 11 new languages: Thai (th), Malay (ms), Tamil (ta), Telugu (te), Marathi (mr), Gujarati (gu), Kannada (kn), Malayalam (ml), Sinhala (si), Burmese (my), Khmer (km).
 - Optional task metadata fields now hide across drawer, cards, list view, and filters when disabled; Priority and Owner defaults moved under Fields settings.
 - Added more column background colors, including black and semi-transparent black options.
 - Updated board task cards to use 50% white in light mode and 50% black in dark mode so cards blend into colored columns.

@@ -4,7 +4,7 @@
     "theme": "dark",
     "skin": "cobalt",
     "font": "system",
-    "background": "solid"
+    "background": "liquid-ether"
   },
   "agent": {
     "suggestFollowUp": true,
@@ -18,7 +18,7 @@
       "backlog": "black",
       "todo": "black",
       "in progress": "emerald",
-      "review": "black",
+      "review": "cyan",
       "done": "black"
     }
   },
