@@ -118,4 +118,20 @@ export const Icon = {
       <line x1="19" y1="16" x2="22" y2="16" />
     </svg>
   ),
+  Pencil: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+    </svg>
+  ),
+  Edit: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  ),
+  Eye: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  ),
 };

@@ -2,7 +2,7 @@
  * @file Kandown Zustand store
  * @description Central state container for project handles, task-derived board data,
  * config, filters, task drawer editing, content-search cache, recent projects,
- * and toast notifications.
+ * toast notifications, and watcher-driven browser/audio notifications.
  *
  * 📖 This is the behavioral core of the web UI. Components should call store
  * actions instead of writing markdown directly, because these actions handle
@@ -11,12 +11,14 @@
  * 📖 The file watcher (watcher.ts) runs a 500ms polling loop that detects
  * external changes to kandown.json and tasks/*.md. When a change is
  * detected, the watcher fires an event which this store handles — either silently
- * reloading or showing a conflict modal if the user is actively editing.
+ * reloading, sending configured notifications, or showing a conflict modal if
+ * the user is actively editing.
  *
  * @functions
  *  → nextTaskId — finds the next zero-padded task id
  *  → persistColumnOrder — writes status/order metadata back to task files
  *  → applyConfigTheme — applies persisted project appearance settings
+ *  → syncNotificationSnapshots — seeds task snapshots without notifying
  *  → useStore — Zustand store with file, board, config, search, and UI actions
  *
  * @exports useStore
@@ -47,6 +49,7 @@ import {
 import { buildColumnsFromTasks, extractSubtasks, injectSubtasks, searchTaskContent } from './parser';
 import { applyProjectTheme } from './theme';
 import { fileWatcher } from './watcher';
+import { emitKandownNotification } from './notifications';
 import type { ConflictType } from './watcher';
 
 interface Toast {
@@ -60,6 +63,20 @@ interface DrawerSnapshot {
   subtasks: Subtask[];
   body: string;
   savedAt: number;
+}
+
+interface LoadedTask {
+  id: string;
+  frontmatter: TaskFrontmatter;
+  body: string;
+  subtasks: Subtask[];
+}
+
+interface NotificationTaskSnapshot {
+  title: string;
+  status: string;
+  body: string;
+  subtasks: Subtask[];
 }
 
 export interface ConflictState {
@@ -157,7 +174,7 @@ function nextTaskId(columns: Column[]): string {
 
 async function readAllTasks(
   tasksDirHandle: FileSystemDirectoryHandle,
-): Promise<Array<{ id: string; frontmatter: TaskFrontmatter; body: string; subtasks: Subtask[] }>> {
+): Promise<LoadedTask[]> {
   const ids = await listTaskIds(tasksDirHandle);
   const tasks = await Promise.all(ids.map(async (id) => {
     const { frontmatter, body } = await fsReadTaskFile(tasksDirHandle, id);
@@ -201,7 +218,51 @@ function applyConfigTheme(config: KandownConfig): void {
   applyProjectTheme(config.ui.theme, config.ui.skin, config.ui.font, config.ui.background);
 }
 
+function buildNotificationSnapshot(task: LoadedTask): NotificationTaskSnapshot {
+  return {
+    title: task.frontmatter.title || task.id,
+    status: task.frontmatter.status || 'Backlog',
+    body: task.body,
+    subtasks: task.subtasks,
+  };
+}
+
+function syncNotificationSnapshots(tasks: LoadedTask[]): void {
+  notificationSnapshots.clear();
+  tasks.forEach(task => {
+    notificationSnapshots.set(task.id, buildNotificationSnapshot(task));
+  });
+}
+
+function getCompletedSubtaskCount(previous: Subtask[], current: Subtask[]): number {
+  return current.reduce((count, subtask, index) => {
+    const wasDone = previous[index]?.done ?? false;
+    return count + (subtask.done && !wasDone ? 1 : 0);
+  }, 0);
+}
+
+function didTaskBodyChange(previous: NotificationTaskSnapshot, current: NotificationTaskSnapshot): boolean {
+  const previousSubtaskText = previous.subtasks.map(subtask => ({
+    text: subtask.text,
+    description: subtask.description ?? '',
+    report: subtask.report ?? '',
+  }));
+  const currentSubtaskText = current.subtasks.map(subtask => ({
+    text: subtask.text,
+    description: subtask.description ?? '',
+    report: subtask.report ?? '',
+  }));
+
+  return (
+    previous.title !== current.title ||
+    previous.body !== current.body ||
+    JSON.stringify(previousSubtaskText) !== JSON.stringify(currentSubtaskText)
+  );
+}
+
 let toastIdCounter = 0;
+const notificationSnapshots = new Map<string, NotificationTaskSnapshot>();
+const taskEditTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
 export const useStore = create<State>((set, get) => ({
   dirHandle: null,
@@ -304,6 +365,7 @@ export const useStore = create<State>((set, get) => ({
     if (!tasksDirHandle) return;
     try {
       const tasks = await readAllTasks(tasksDirHandle);
+      syncNotificationSnapshots(tasks);
       const parsedTasks = tasks.map(task => ({
         frontmatter: task.frontmatter,
         body: injectSubtasks(task.body, task.subtasks),
@@ -739,7 +801,77 @@ export const useStore = create<State>((set, get) => ({
     if (!dirHandle || !tasksDirHandle) return;
 
     fileWatcher.stop();
+    taskEditTimers.forEach(timer => clearTimeout(timer));
+    taskEditTimers.clear();
     fileWatcher.start(dirHandle, tasksDirHandle);
+
+    const scheduleTaskEditNotification = (taskId: string, title: string) => {
+      const existing = taskEditTimers.get(taskId);
+      if (existing) clearTimeout(existing);
+
+      const delay = Math.max(2000, get().config.notifications.editDebounceMs);
+      const timer = setTimeout(() => {
+        taskEditTimers.delete(taskId);
+        const latestConfig = get().config;
+        if (!latestConfig.notifications.taskEdits) return;
+        emitKandownNotification({
+          title: 'Task edited',
+          body: `${title} changed on disk.`,
+          config: latestConfig,
+        });
+      }, delay);
+      taskEditTimers.set(taskId, timer);
+    };
+
+    const notifyTaskChange = async (taskId: string) => {
+      const { tasksDirHandle: tdh, config } = get();
+      if (!tdh) return;
+
+      const { frontmatter, body } = await fsReadTaskFile(tdh, taskId);
+      const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
+      const task: LoadedTask = {
+        id: taskId,
+        frontmatter: {
+          ...frontmatter,
+          id: frontmatter.id || taskId,
+          status: frontmatter.status || 'Backlog',
+        },
+        body: bodyWithoutSubtasks,
+        subtasks,
+      };
+      const current = buildNotificationSnapshot(task);
+      const previous = notificationSnapshots.get(taskId);
+
+      if (!previous) {
+        notificationSnapshots.set(taskId, current);
+        return;
+      }
+
+      if (config.notifications.statusChanges && previous.status !== current.status) {
+        emitKandownNotification({
+          title: 'Task status changed',
+          body: `${current.title}: ${previous.status} → ${current.status}`,
+          config,
+        });
+      }
+
+      const completedSubtasks = getCompletedSubtaskCount(previous.subtasks, current.subtasks);
+      if (config.notifications.subtaskCompletions && completedSubtasks > 0) {
+        emitKandownNotification({
+          title: 'Subtask completed',
+          body: completedSubtasks === 1
+            ? `${current.title}: 1 subtask completed.`
+            : `${current.title}: ${completedSubtasks} subtasks completed.`,
+          config,
+        });
+      }
+
+      if (didTaskBodyChange(previous, current)) {
+        scheduleTaskEditNotification(taskId, current.title);
+      }
+
+      notificationSnapshots.set(taskId, current);
+    };
 
     fileWatcher.on('configChanged', () => {
       get().loadConfig();
@@ -748,6 +880,7 @@ export const useStore = create<State>((set, get) => ({
 
     fileWatcher.on('taskChanged', async (taskId) => {
       const { drawerTaskId, drawerBaseVersion, tasksDirHandle: tdh } = get();
+      await notifyTaskChange(taskId);
       if (drawerTaskId === taskId && drawerBaseVersion && tdh) {
         const { frontmatter, body } = await fsReadTaskFile(tdh, taskId);
         const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
@@ -772,7 +905,22 @@ export const useStore = create<State>((set, get) => ({
       }
     });
 
-    fileWatcher.on('newTaskDetected', () => {
+    fileWatcher.on('newTaskDetected', async (taskId) => {
+      const { tasksDirHandle: tdh } = get();
+      if (tdh) {
+        const { frontmatter, body } = await fsReadTaskFile(tdh, taskId);
+        const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
+        notificationSnapshots.set(taskId, buildNotificationSnapshot({
+          id: taskId,
+          frontmatter: {
+            ...frontmatter,
+            id: frontmatter.id || taskId,
+            status: frontmatter.status || 'Backlog',
+          },
+          body: bodyWithoutSubtasks,
+          subtasks,
+        }));
+      }
       get().reloadBoard();
     });
   },

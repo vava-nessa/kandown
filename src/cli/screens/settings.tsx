@@ -122,10 +122,24 @@ const SETTINGS: SettingDef[] = [
   { key: 'fields.dueDate', label: 'Due date', section: 'Fields', type: 'toggle' },
   { key: 'fields.ownerType', label: 'Owner type', section: 'Fields', type: 'toggle' },
   { key: 'fields.tools', label: 'Tools', section: 'Fields', type: 'toggle' },
+
+  // Notifications
+  { key: 'notifications.browser', label: 'Browser notifications', section: 'Notifications', type: 'toggle' },
+  { key: 'notifications.statusChanges', label: 'Status changes', section: 'Notifications', type: 'toggle' },
+  { key: 'notifications.taskEdits', label: 'Task edits', section: 'Notifications', type: 'toggle' },
+  { key: 'notifications.subtaskCompletions', label: 'Subtask completions', section: 'Notifications', type: 'toggle' },
+  { key: 'notifications.sound', label: 'Play sound', section: 'Notifications', type: 'toggle' },
+  {
+    key: 'notifications.soundId',
+    label: 'Sound',
+    section: 'Notifications',
+    type: 'select',
+    options: ['soft', 'chime', 'ping', 'pop'],
+  },
 ];
 
 // 📖 Ordered sections for rendering — determines visual grouping
-const SECTIONS = ['Appearance', 'Agent', 'Board', 'Fields'];
+const SECTIONS = ['Appearance', 'Agent', 'Board', 'Fields', 'Notifications'];
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -138,6 +152,7 @@ const SECTION_ICONS: Record<string, string> = {
   Agent: '🤖',
   Board: '📋',
   Fields: '📝',
+  Notifications: '🔔',
 };
 
 // ─── Component ──────────────────────────────────────────────────────────────

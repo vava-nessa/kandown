@@ -15,7 +15,7 @@ Most kanban tools trap your data in their cloud. Kandown does the opposite: all 
 The core architecture keeps task state in the task files themselves:
 
 - `tasks/<id>.md` stores the full task context and board state: title, status, order, metadata, subtasks, notes, and completion reports.
-- `kandown.json` stores project preferences such as board columns, theme mode, skin, font, agent behavior, and enabled fields.
+- `kandown.json` stores project preferences such as board columns, theme mode, skin, font, agent behavior, notifications, and enabled fields.
 
 That task-first model matters for AI tools. Moving or completing a task means editing one markdown file, not synchronizing an index and a detail file.
 
@@ -33,7 +33,7 @@ This creates:
 ```text
 .kandown/
 ├── kandown.html      # single-file web app, built from dist/index.html
-├── kandown.json      # project preferences, columns, and appearance
+├── kandown.json      # project preferences, columns, notifications, and appearance
 ├── tasks/            # per-task markdown files and board state
 ├── AGENT.md          # short AI-agent rules
 └── README.md         # user-facing project-local guide
@@ -65,6 +65,7 @@ Firefox and Safari do not currently support the required File System Access API.
 - **Command palette**: `⌘K` / `Ctrl+K` for task search and quick actions.
 - **Owner type filtering**: Separate human tasks from AI-agent tasks.
 - **Dense settings**: Sidebar search, compact setting controls, and hover help explain project options.
+- **Configurable notifications**: Chrome permission, status-change alerts, debounced task-edit alerts, subtask-completion alerts, and in-page sound cues.
 - **Appearance system**: Project-level `auto` / `light` / `dark`, backgrounds, built-in skins, and local font presets.
 - **Recent projects**: Stored in IndexedDB so local handles can be reopened quickly.
 - **Single-file publish artifact**: Vite bundles the web UI into `dist/index.html`.
@@ -271,11 +272,22 @@ Project-level preferences:
     "dueDate": false,
     "ownerType": false,
     "tools": false
+  },
+  "notifications": {
+    "browser": false,
+    "sound": false,
+    "soundId": "soft",
+    "statusChanges": true,
+    "taskEdits": true,
+    "subtaskCompletions": true,
+    "editDebounceMs": 2000
   }
 }
 ```
 
 Disabled fields are hidden from the task drawer, cards, list view, and metadata filters. `board.defaultPriority` only applies when `fields.priority` is enabled, and `board.defaultOwnerType` only applies when `fields.ownerType` is enabled.
+
+Notifications are driven by the same file watcher that reloads the board. Status changes fire when task frontmatter `status` changes, task edit notifications fire after `notifications.editDebounceMs` with a minimum 2 second delay, and subtask completion notifications fire when a checklist item flips from open to done. Browser notifications require Chrome permission; sound notifications play inside the open board tab.
 
 ## Appearance Architecture
 
@@ -378,6 +390,15 @@ Built-in fonts:
 | `loadTaskContents` | Reads task files into the content-search cache. |
 | `computeSearchMatches` | Produces per-task search matches for board/list previews. |
 | `toast` | Adds transient UI messages. |
+
+### `src/lib/notifications.ts`
+
+| Function | Description |
+|---|---|
+| `getBrowserNotificationPermission` | Reads browser notification permission and reports unsupported browsers. |
+| `requestBrowserNotificationPermission` | Prompts Chrome-compatible browsers from the Settings page. |
+| `emitKandownNotification` | Dispatches enabled browser notifications and in-page sound cues. |
+| `playNotificationSound` | Plays generated Web Audio cues without external assets. |
 
 ### `src/lib/parser.ts`
 

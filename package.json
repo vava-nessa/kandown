@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@tabler/icons-react": "3.41.1",
+    "@wysimark/react": "3.0.20",
     "i18next": "26.0.5",
     "ink": "7.0.1",
     "motion": "^12.38.0",

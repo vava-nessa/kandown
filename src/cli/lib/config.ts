@@ -3,7 +3,7 @@
  * @description Handles loading, saving, and accessing the kandown project configuration.
  *
  * 📖 The config file lives at `.kandown/kandown.json` and controls UI preferences,
- * agent behavior, board defaults, and which optional fields are enabled.
+ * agent behavior, board defaults, notifications, and which optional fields are enabled.
  *
  * @functions
  *  → findKandownDir — locates the `.kandown/` directory from cwd
@@ -44,6 +44,15 @@ export interface KandownConfig {
     ownerType: boolean;
     tools: boolean;
   };
+  notifications: {
+    browser: boolean;
+    sound: boolean;
+    soundId: 'soft' | 'chime' | 'ping' | 'pop';
+    statusChanges: boolean;
+    taskEdits: boolean;
+    subtaskCompletions: boolean;
+    editDebounceMs: number;
+  };
   // 📖 Optional agents config — controls which agent is preferred and any per-agent extra args
   agents?: {
     /** ID of the preferred agent to pre-select in the agent picker (e.g. 'claude') */
@@ -70,6 +79,15 @@ const DEFAULT_CONFIG: KandownConfig = {
     dueDate: false,
     ownerType: false,
     tools: false,
+  },
+  notifications: {
+    browser: false,
+    sound: false,
+    soundId: 'soft',
+    statusChanges: true,
+    taskEdits: true,
+    subtaskCompletions: true,
+    editDebounceMs: 2000,
   },
 };
 
@@ -109,6 +127,7 @@ export function loadConfig(kandownDir: string): KandownConfig {
           : DEFAULT_CONFIG.board.columns,
       },
       fields: { ...DEFAULT_CONFIG.fields, ...raw.fields },
+      notifications: { ...DEFAULT_CONFIG.notifications, ...raw.notifications },
     };
     // 📖 agents is optional — only include it if present in the file
     if (raw.agents) merged.agents = raw.agents;

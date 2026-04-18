@@ -21,6 +21,7 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { initI18n } from './lib/i18n';
 import './styles/globals.css';
+import '@syncfusion/ej2-richtexteditor/styles/material.css';
 
 initI18n('en');
 

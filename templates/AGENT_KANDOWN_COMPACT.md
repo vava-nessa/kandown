@@ -33,7 +33,7 @@ Example:
 
 ## When You Finish
 
-1. Write the `report:` field in the task frontmatter:
+1. Write the `report:` field in the task frontmatter (markdown supported, displayed in UI report panel):
 
 ```yaml
 ---
@@ -53,6 +53,8 @@ report: |
 
 2. Set frontmatter `status: Done`.
 3. Leave all subtasks checked if the task is complete.
+
+**Subtask reports**: Write per-step reports in the `[REPORT]` section under each subtask in the body, not in separate sections.
 
 ## Rules
 

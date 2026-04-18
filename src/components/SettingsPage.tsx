@@ -23,6 +23,7 @@ import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import {
   IconAdjustmentsHorizontal,
+  IconBell,
   IconChevronRight,
   IconLayoutBoard,
   IconPalette,
@@ -37,10 +38,11 @@ import { useStore } from '../lib/store';
 import { fileWatcher } from '../lib/watcher';
 import { BACKGROUND_OPTIONS, FONT_OPTIONS, SKIN_OPTIONS } from '../lib/theme';
 import { SUPPORTED_LANGUAGES, LANGUAGE_LABELS } from '../lib/i18n';
+import { getBrowserNotificationPermission, requestBrowserNotificationPermission, type BrowserNotificationPermission } from '../lib/notifications';
 import type { KandownConfig } from '../lib/types';
 
-type SettingType = 'toggle' | 'select' | 'number' | 'text' | 'skin' | 'language';
-type SettingsSectionId = 'appearance' | 'agent' | 'board' | 'fields';
+type SettingType = 'toggle' | 'select' | 'number' | 'text' | 'skin' | 'language' | 'permission';
+type SettingsSectionId = 'appearance' | 'agent' | 'board' | 'fields' | 'notifications';
 
 interface SettingOption {
   value: string;
@@ -249,6 +251,13 @@ const SECTIONS = (t: ReturnType<typeof useTranslation>['t']): SettingsSection[] 
     description: t('settings.fieldsDesc'),
     icon: IconTags,
   },
+  {
+    id: 'notifications',
+    label: t('settings.notifications'),
+    kicker: t('settings.kickerSignals'),
+    description: t('settings.notificationsDesc'),
+    icon: IconBell,
+  },
 ];
 
 const getSETTINGS = (t: ReturnType<typeof useTranslation>['t']): SettingDef[] => [
@@ -404,6 +413,69 @@ const getSETTINGS = (t: ReturnType<typeof useTranslation>['t']): SettingDef[] =>
     description: t('settings.toolsDesc'),
     keywords: ['filesystem', 'cli', 'websearch', 'browser', 'mcp'],
   },
+  {
+    key: 'notifications.permission',
+    label: t('settings.notificationPermission'),
+    section: 'notifications',
+    type: 'permission',
+    description: t('settings.notificationPermissionDesc'),
+    keywords: ['chrome', 'browser', 'permission'],
+  },
+  {
+    key: 'notifications.browser',
+    label: t('settings.browserNotifications'),
+    section: 'notifications',
+    type: 'toggle',
+    description: t('settings.browserNotificationsDesc'),
+    keywords: ['chrome', 'desktop', 'system'],
+  },
+  {
+    key: 'notifications.statusChanges',
+    label: t('settings.statusChangeNotifications'),
+    section: 'notifications',
+    type: 'toggle',
+    description: t('settings.statusChangeNotificationsDesc'),
+    keywords: ['status', 'column', 'workflow'],
+  },
+  {
+    key: 'notifications.taskEdits',
+    label: t('settings.taskEditNotifications'),
+    section: 'notifications',
+    type: 'toggle',
+    description: t('settings.taskEditNotificationsDesc'),
+    keywords: ['file', 'ai', 'external edit', 'debounce'],
+  },
+  {
+    key: 'notifications.subtaskCompletions',
+    label: t('settings.subtaskNotifications'),
+    section: 'notifications',
+    type: 'toggle',
+    description: t('settings.subtaskNotificationsDesc'),
+    keywords: ['subtask', 'checklist', 'done'],
+  },
+  {
+    key: 'notifications.sound',
+    label: t('settings.notificationSound'),
+    section: 'notifications',
+    type: 'toggle',
+    description: t('settings.notificationSoundDesc'),
+    keywords: ['audio', 'sound', 'listen'],
+  },
+  {
+    key: 'notifications.soundId',
+    label: t('settings.notificationSoundChoice'),
+    section: 'notifications',
+    type: 'select',
+    description: t('settings.notificationSoundChoiceDesc'),
+    options: [
+      { value: 'soft', label: t('settings.soundSoft') },
+      { value: 'chime', label: t('settings.soundChime') },
+      { value: 'ping', label: t('settings.soundPing') },
+      { value: 'pop', label: t('settings.soundPop') },
+    ],
+    keywords: ['audio', 'tone', 'sound'],
+    parentKey: 'notifications.sound',
+  },
 ];
 
 function getConfigValue(config: KandownConfig, path: string): unknown {
@@ -463,6 +535,7 @@ export function SettingsPage() {
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [activeHelpKey, setActiveHelpKey] = useState<string | null>(null);
+  const [notificationPermission, setNotificationPermission] = useState<BrowserNotificationPermission>(() => getBrowserNotificationPermission());
 
   useEffect(() => {
     const off = fileWatcher.on('configChanged', () => {
@@ -491,7 +564,7 @@ export function SettingsPage() {
     return SECTIONS(t).reduce<Record<SettingsSectionId, number>>((acc, section) => {
       acc[section.id] = settings.filter(setting => setting.section === section.id && isSettingVisible(setting, config)).length;
       return acc;
-    }, { appearance: 0, agent: 0, board: 0, fields: 0 });
+    }, { appearance: 0, agent: 0, board: 0, fields: 0, notifications: 0 });
   }, [config, t, settings]);
 
   const visibleSettings = useMemo(() => {
@@ -506,6 +579,7 @@ export function SettingsPage() {
   }, [activeSectionId, config, normalizedQuery, settings]);
 
   const handleChange = (setting: SettingDef, newValue: unknown) => {
+    if (setting.type === 'permission') return;
     if (setting.key === 'board.columns') {
       const columns = String(newValue)
         .split(',')
@@ -516,6 +590,18 @@ export function SettingsPage() {
       return;
     }
     updateConfig(currentConfig => setConfigValue(currentConfig, setting.key, newValue));
+  };
+
+  const handleRequestNotificationPermission = async () => {
+    const permission = await requestBrowserNotificationPermission();
+    setNotificationPermission(permission);
+    if (permission === 'granted') {
+      toast(t('settings.notificationPermissionGranted'), 'success');
+    } else if (permission === 'denied') {
+      toast(t('settings.notificationPermissionDenied'), 'error');
+    } else if (permission === 'unsupported') {
+      toast(t('settings.notificationPermissionUnsupported'), 'error');
+    }
   };
 
   if (!dirHandle) {
@@ -672,6 +758,8 @@ export function SettingsPage() {
                       onChange={(newValue) => handleChange(setting, newValue)}
                       onHelp={() => setActiveHelpKey(setting.key)}
                       nested={Boolean(setting.parentKey)}
+                      notificationPermission={notificationPermission}
+                      onRequestNotificationPermission={handleRequestNotificationPermission}
                     />
                   ))
                 )}
@@ -736,9 +824,21 @@ interface SettingRowProps {
   onChange: (value: unknown) => void;
   onHelp: () => void;
   nested: boolean;
+  notificationPermission: BrowserNotificationPermission;
+  onRequestNotificationPermission: () => void;
 }
 
-function SettingRow({ setting, value, showSection, isLast, onChange, onHelp, nested }: SettingRowProps) {
+function SettingRow({
+  setting,
+  value,
+  showSection,
+  isLast,
+  onChange,
+  onHelp,
+  nested,
+  notificationPermission,
+  onRequestNotificationPermission,
+}: SettingRowProps) {
   const { t } = useTranslation();
   const handleToggle = () => {
     if (setting.type === 'toggle') {
@@ -837,6 +937,20 @@ function SettingRow({ setting, value, showSection, isLast, onChange, onHelp, nes
               +
             </button>
           </div>
+        )}
+
+        {setting.type === 'permission' && (
+          <button
+            type="button"
+            onClick={onRequestNotificationPermission}
+            disabled={notificationPermission === 'granted' || notificationPermission === 'unsupported'}
+            className="h-8 rounded-[7px] border border-border bg-bg-2 px-2.5 text-[13px] text-fg transition-colors hover:bg-bg-3 disabled:cursor-default disabled:text-fg-muted disabled:hover:bg-bg-2"
+          >
+            {notificationPermission === 'granted' && t('settings.permissionGranted')}
+            {notificationPermission === 'denied' && t('settings.permissionDenied')}
+            {notificationPermission === 'default' && t('settings.permissionAsk')}
+            {notificationPermission === 'unsupported' && t('settings.permissionUnsupported')}
+          </button>
         )}
       </div>
     </div>

@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
+import { MarkdownEditor } from './ui/MarkdownEditor';
 import type { Subtask } from '../lib/types';
 
 interface SubtaskItemProps {
@@ -46,7 +47,6 @@ export function SubtaskItem({
 }: SubtaskItemProps) {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
-  const descRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -93,11 +93,6 @@ export function SubtaskItem({
     isHoveredRef.current = false;
     clearCloseTimer();
     scheduleClose();
-  };
-
-  const handleDescriptionFocus = () => {
-    hasStartedTypingRef.current = true;
-    clearCloseTimer();
   };
 
   const hasDetail = !!(subtask.description || subtask.report);
@@ -182,14 +177,11 @@ export function SubtaskItem({
               <label className="text-[11px] font-medium text-fg-muted uppercase tracking-wide">
                 {t('subtask.description')}
               </label>
-              <textarea
-                ref={descRef}
+              <MarkdownEditor
                 value={subtask.description ?? ''}
-                onChange={e => onDescriptionChange(index, e.target.value)}
-                onFocus={handleDescriptionFocus}
+                onChange={val => onDescriptionChange(index, val)}
                 placeholder={t('subtask.descriptionPlaceholder')}
-                rows={4}
-                className="w-full bg-bg-2 border border-border rounded-[4px] px-2 py-1.5 text-[13px] text-fg placeholder:text-fg-faint resize-none outline-none focus:border-border-focus transition-colors"
+                minHeight="80px"
               />
             </div>
             <AnimatePresence initial={false}>
@@ -209,12 +201,11 @@ export function SubtaskItem({
                       </span>
                     )}
                   </label>
-                  <textarea
+                  <MarkdownEditor
                     value={subtask.report ?? ''}
-                    onChange={e => onReportChange(index, e.target.value)}
+                    onChange={val => onReportChange(index, val)}
                     placeholder={t('subtask.reportPlaceholder')}
-                    rows={3}
-                    className="w-full bg-bg-2 border border-border rounded-[4px] px-2 py-1.5 text-[13px] text-fg placeholder:text-fg-faint resize-none outline-none focus:border-border-focus transition-colors"
+                    minHeight="60px"
                   />
                 </motion.div>
               )}

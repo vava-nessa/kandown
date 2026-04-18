@@ -36,5 +36,14 @@
     "dueDate": false,
     "ownerType": false,
     "tools": false
+  },
+  "notifications": {
+    "browser": true,
+    "sound": true,
+    "soundId": "chime",
+    "statusChanges": true,
+    "taskEdits": true,
+    "subtaskCompletions": true,
+    "editDebounceMs": 2000
   }
 }

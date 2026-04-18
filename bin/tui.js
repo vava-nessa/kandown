@@ -27,6 +27,15 @@ var DEFAULT_CONFIG = {
     dueDate: false,
     ownerType: false,
     tools: false
+  },
+  notifications: {
+    browser: false,
+    sound: false,
+    soundId: "soft",
+    statusChanges: true,
+    taskEdits: true,
+    subtaskCompletions: true,
+    editDebounceMs: 2e3
   }
 };
 function loadConfig(kandownDir) {
@@ -42,7 +51,8 @@ function loadConfig(kandownDir) {
         ...raw.board,
         columns: Array.isArray(raw.board?.columns) && raw.board.columns.length > 0 ? raw.board.columns.filter((name) => typeof name === "string" && name.trim().length > 0) : DEFAULT_CONFIG.board.columns
       },
-      fields: { ...DEFAULT_CONFIG.fields, ...raw.fields }
+      fields: { ...DEFAULT_CONFIG.fields, ...raw.fields },
+      notifications: { ...DEFAULT_CONFIG.notifications, ...raw.notifications }
     };
     if (raw.agents) merged.agents = raw.agents;
     return merged;
@@ -150,16 +160,30 @@ var SETTINGS = [
   { key: "fields.tags", label: "Tags", section: "Fields", type: "toggle" },
   { key: "fields.dueDate", label: "Due date", section: "Fields", type: "toggle" },
   { key: "fields.ownerType", label: "Owner type", section: "Fields", type: "toggle" },
-  { key: "fields.tools", label: "Tools", section: "Fields", type: "toggle" }
+  { key: "fields.tools", label: "Tools", section: "Fields", type: "toggle" },
+  // Notifications
+  { key: "notifications.browser", label: "Browser notifications", section: "Notifications", type: "toggle" },
+  { key: "notifications.statusChanges", label: "Status changes", section: "Notifications", type: "toggle" },
+  { key: "notifications.taskEdits", label: "Task edits", section: "Notifications", type: "toggle" },
+  { key: "notifications.subtaskCompletions", label: "Subtask completions", section: "Notifications", type: "toggle" },
+  { key: "notifications.sound", label: "Play sound", section: "Notifications", type: "toggle" },
+  {
+    key: "notifications.soundId",
+    label: "Sound",
+    section: "Notifications",
+    type: "select",
+    options: ["soft", "chime", "ping", "pop"]
+  }
 ];
-var SECTIONS = ["Appearance", "Agent", "Board", "Fields"];
+var SECTIONS = ["Appearance", "Agent", "Board", "Fields", "Notifications"];
 var LABEL_WIDTH = 30;
 var VALUE_WIDTH = 20;
 var SECTION_ICONS = {
   Appearance: "\u{1F3A8}",
   Agent: "\u{1F916}",
   Board: "\u{1F4CB}",
-  Fields: "\u{1F4DD}"
+  Fields: "\u{1F4DD}",
+  Notifications: "\u{1F514}"
 };
 function Settings({ kandownDir }) {
   const { exit } = useApp();

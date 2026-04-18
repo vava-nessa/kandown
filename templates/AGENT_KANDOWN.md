@@ -141,13 +141,23 @@ status: In Progress
 ### Completing a Task
 
 1. Check off completed subtasks.
-2. Add subtask reports where useful.
-3. Add a completion `report` in frontmatter or a clear report section in the body.
+2. Add subtask reports where useful — write them in the subtask's `[REPORT]` section in the body.
+3. Write a completion `report` in the frontmatter `report` field. This field supports markdown and is displayed in the UI's report panel.
 4. Set:
 
 ```yaml
 status: Done
+report: |
+  ## Changes
+  - Created src/auth.ts with JWT validation
+  - Added /api/auth/login endpoint
+  ## Files
+  - src/auth.ts (new)
+  ## Decisions
+  - Used RS256 for better key rotation support
 ```
+
+📖 **Report field usage**: The `report` field in frontmatter is displayed in the UI and is the canonical place to document what was done. Use markdown formatting (## headings, bullet lists, code blocks) for readability. This field replaces separate report sections in the body — when a `report` frontmatter field exists, the UI displays it in the dedicated report panel.
 
 ## Mutation Rules
 

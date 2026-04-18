@@ -2,7 +2,7 @@
  * @file File watcher for Kandown
  * @description 500ms polling watcher using content hashing (SHA-256).
  * Detects external changes to kandown.json and tasks/*.md. Fires events for
- * silent board reloads and conflict detection.
+ * silent board reloads, notification checks, and conflict detection.
  *
  * 📖 Uses SHA-256 content hashing to avoid parsing on every tick — only
  * triggers a reload event when the file content actually changed.
@@ -32,7 +32,7 @@ export class FileWatcher {
   private configHash: string | null = null;
   private taskHashes: Map<string, string> = new Map();
   private knownTaskIds: Set<string> = new Set();
-  private listeners: Map<string, Set<EventHandler<any>>> = new Map();
+  private listeners: Map<keyof WatcherEvents, Set<unknown>> = new Map();
   private debounceTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
   private debounceDelay = 200;
 
@@ -51,6 +51,7 @@ export class FileWatcher {
     this.configHash = null;
     this.taskHashes.clear();
     this.knownTaskIds.clear();
+    this.listeners.clear();
     this.debounceTimers.forEach(t => clearTimeout(t));
     this.debounceTimers.clear();
   }
@@ -77,7 +78,7 @@ export class FileWatcher {
       this.configHash = await this.hash(configText);
     }
 
-    await this.syncTaskDir();
+    await this.syncTaskDir(false);
   }
 
   private async tick(): Promise<void> {
@@ -106,7 +107,7 @@ export class FileWatcher {
       }
     }
 
-    await this.syncTaskDir();
+    await this.syncTaskDir(true);
   }
 
   private debouncedEmit<K extends keyof WatcherEvents>(event: K, ...args: Parameters<WatcherEvents[K]>): void {
@@ -120,7 +121,7 @@ export class FileWatcher {
     this.debounceTimers.set(key, timer);
   }
 
-  private async syncTaskDir(): Promise<void> {
+  private async syncTaskDir(emitNewTasks: boolean): Promise<void> {
     if (!this.tasksDirHandle) return;
 
     for await (const entry of this.tasksDirHandle.values()) {
@@ -131,7 +132,9 @@ export class FileWatcher {
           const taskText = await readTaskFileText(this.tasksDirHandle, id);
           if (taskText !== null) {
             this.taskHashes.set(id, await this.hash(taskText));
-            this.debouncedEmit('newTaskDetected', id);
+            if (emitNewTasks) {
+              this.debouncedEmit('newTaskDetected', id);
+            }
           }
         }
       }
@@ -148,9 +151,19 @@ export class FileWatcher {
 
   private emit<K extends keyof WatcherEvents>(event: K, ...args: Parameters<WatcherEvents[K]>): void {
     const handlers = this.listeners.get(event);
-    if (handlers) {
-      handlers.forEach(handler => (handler as any)(...args));
-    }
+    handlers?.forEach(handler => {
+      if (event === 'configChanged') {
+        (handler as WatcherEvents['configChanged'])();
+        return;
+      }
+      if (event === 'taskChanged') {
+        const [taskId] = args as Parameters<WatcherEvents['taskChanged']>;
+        (handler as WatcherEvents['taskChanged'])(taskId);
+        return;
+      }
+      const [taskId] = args as Parameters<WatcherEvents['newTaskDetected']>;
+      (handler as WatcherEvents['newTaskDetected'])(taskId);
+    });
   }
 }
 

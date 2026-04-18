@@ -27,6 +27,7 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
 import { KbdButton } from './KbdButton';
 import { SubtaskItem } from './SubtaskItem';
+import { MarkdownEditor } from './ui/MarkdownEditor';
 import { useStore } from '../lib/store';
 import type { Priority, OwnerType } from '../lib/types';
 
@@ -44,7 +45,6 @@ export function Drawer() {
 
   const [focusedSubtaskIdx, setFocusedSubtaskIdx] = useState<number | null>(null);
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
-  const bodyRef = useRef<HTMLTextAreaElement>(null);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isSavingRef = useRef(false);
 
@@ -111,14 +111,6 @@ export function Drawer() {
       titleInputRef.current.style.height = titleInputRef.current.scrollHeight + 'px';
     }
   }, [drawerData?.frontmatter.title]);
-
-  // Auto-resize body
-  useEffect(() => {
-    if (bodyRef.current) {
-      bodyRef.current.style.height = 'auto';
-      bodyRef.current.style.height = Math.max(180, bodyRef.current.scrollHeight) + 'px';
-    }
-  }, [drawerData?.body]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -370,14 +362,13 @@ export function Drawer() {
                     <div className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted mb-2">
                       {t('drawer.description')}
                     </div>
-                    <textarea
-                      ref={bodyRef}
+                    <MarkdownEditor
                       value={drawerData.body}
-                      onChange={e =>
-                        updateDrawerData(d => ({ ...d, body: e.target.value }))
+                      onChange={val =>
+                        updateDrawerData(d => ({ ...d, body: val }))
                       }
                       placeholder={t('drawer.descriptionPlaceholder')}
-                      className="w-full min-h-[180px] bg-bg-2 border border-border rounded-[6px] px-3 py-2.5 text-fg text-[14px] leading-relaxed font-sans outline-none focus:border-border-focus focus:bg-bg-3 transition-colors resize-none placeholder:text-fg-faint"
+                      minHeight="180px"
                     />
                   </div>
 
@@ -386,11 +377,13 @@ export function Drawer() {
                     <div className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted mb-2">
                       {t('drawer.report')}
                     </div>
-                    <div className="min-h-[180px] text-fg text-[14px] leading-relaxed font-sans whitespace-pre-wrap overflow-y-auto">
-                      {drawerData.frontmatter.report || (
-                        <span className="text-fg-faint italic">{t('drawer.reportPlaceholder')}</span>
-                      )}
-                    </div>
+                    <MarkdownEditor
+                      value={drawerData.frontmatter.report as string || ''}
+                      onChange={val => updateField('report', val)}
+                      placeholder={t('drawer.reportPlaceholder')}
+                      readOnly={false}
+                      minHeight="180px"
+                    />
                   </div>
                 </div>
 

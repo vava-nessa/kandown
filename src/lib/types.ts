@@ -6,7 +6,7 @@
  * 📖 Keep cross-module contracts here so parser, serializer, store, and React
  * components agree on the same task-file-backed domain model.
  *
- * @exports Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, Filters, KandownConfig, DEFAULT_COLUMNS, DEFAULT_CONFIG
+ * @exports Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, KandownConfig, DEFAULT_COLUMNS, DEFAULT_CONFIG
  * @see src/lib/parser.ts
  * @see src/lib/store.ts
  */
@@ -90,6 +90,7 @@ export type ThemeMode = 'auto' | 'light' | 'dark';
 export type SkinId = 'kandown' | 'graphite' | 'sage' | 'cobalt' | 'rose';
 export type FontId = 'inter' | 'system' | 'serif' | 'mono' | 'rounded';
 export type BackgroundId = 'solid' | 'liquid-ether';
+export type NotificationSoundId = 'soft' | 'chime' | 'ping' | 'pop';
 
 export interface Filters {
   search: string;
@@ -150,6 +151,15 @@ export interface KandownConfig {
     ownerType: boolean;
     tools: boolean;
   };
+  notifications: {
+    browser: boolean;
+    sound: boolean;
+    soundId: NotificationSoundId;
+    statusChanges: boolean;
+    taskEdits: boolean;
+    subtaskCompletions: boolean;
+    editDebounceMs: number;
+  };
 }
 
 export const DEFAULT_COLUMNS = ['Backlog', 'Todo', 'In Progress', 'Review', 'Done'];
@@ -177,5 +187,14 @@ export const DEFAULT_CONFIG: KandownConfig = {
     dueDate: false,
     ownerType: false,
     tools: false,
+  },
+  notifications: {
+    browser: false,
+    sound: false,
+    soundId: 'soft',
+    statusChanges: true,
+    taskEdits: true,
+    subtaskCompletions: true,
+    editDebounceMs: 2000,
   },
 };

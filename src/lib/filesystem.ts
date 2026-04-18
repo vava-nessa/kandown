@@ -116,6 +116,7 @@ export async function readConfigFile(kandownHandle: FileSystemDirectoryHandle): 
           : DEFAULT_CONFIG.board.columns,
       },
       fields: { ...DEFAULT_CONFIG.fields, ...raw.fields },
+      notifications: { ...DEFAULT_CONFIG.notifications, ...raw.notifications },
     };
   } catch {
     return null;

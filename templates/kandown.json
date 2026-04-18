@@ -22,5 +22,14 @@
     "dueDate": false,
     "ownerType": false,
     "tools": false
+  },
+  "notifications": {
+    "browser": false,
+    "sound": false,
+    "soundId": "soft",
+    "statusChanges": true,
+    "taskEdits": true,
+    "subtaskCompletions": true,
+    "editDebounceMs": 2000
   }
 }
