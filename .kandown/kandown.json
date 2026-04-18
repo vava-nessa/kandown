@@ -1,6 +1,6 @@
 {
   "ui": {
-    "language": "fr",
+    "language": "en",
     "theme": "dark",
     "skin": "kandown",
     "font": "system",
@@ -14,20 +14,20 @@
     "columns": [
       "Backlog",
       "Todo",
-      "In Progress",
+      "Doing",
       "Review",
       "Done",
       "archives"
     ],
-    "taskPrefix": "task",
+    "taskPrefix": "",
     "defaultPriority": "P3",
     "defaultOwnerType": "human",
     "columnColors": {
       "backlog": "fuchsia",
       "todo": "cyan",
-      "in progress": "emerald",
       "review": "cyan",
-      "done": "pink"
+      "done": "pink",
+      "doing": "emerald"
     }
   },
   "fields": {

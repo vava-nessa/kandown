@@ -32,24 +32,50 @@ When you make progress:
 ### Start working on a task
 Update the task frontmatter: `status: In Progress`
 
-### While working
-- Check off each subtask as you finish it
-- Add inline reports: `report: Created X, fixed Y`
-- If you notice something unrelated — create a new task, don't fix inline
+### While working — UPDATE THE TASK FILE AS YOU GO
+
+**This is the most important rule.** Every time you make progress — writing code, making a decision, discovering something — update the task file immediately. Do not wait until the task is done.
+
+For each subtask you complete:
+1. Check it off: `- [ ]` → `- [x]`
+2. Add a `report:` line under it with what changed
+
+Example subtask with report:
+```markdown
+- [x] Set up project structure
+  report: Created src/, dist/, and bin/. Initialized package.json with dependencies.
+- [ ] Add authentication
+```
+
+If there are no subtasks yet, add them as you discover what needs to be done. The task file is your real-time work log — the user should be able to open it and see exactly where things stand.
+
+**Never** wait until the end to update the task. If you finish a session without updating, you're leaving the user in the dark.
 
 ### Complete a task
+
+When the task is done:
+1. Set `status: Done` in the frontmatter
+2. Write a completion `report:` in the frontmatter summarizing:
+   - **Changes**: What was created/modified/deleted
+   - **Decisions**: Why you chose a particular approach
+   - **Files**: List of affected files (especially new ones)
+
 ```yaml
 ---
 status: Done
 report: |
   ## Changes
-  - Created src/auth.ts
-  - Added /api/auth/login
+  - Created src/auth.ts with JWT validation
+  - Added /api/auth/login endpoint
   ## Decisions
-  - Used RS256 for key rotation
+  - Used RS256 for better key rotation support
+  ## Files
+  - src/auth.ts (new)
+  - src/routes.ts (modified)
 ---
 ```
-The `report:` field supports markdown and is displayed in the UI. Write it as a real summary.
+
+The `report:` field supports markdown and is displayed prominently in the UI. Write it as a real summary, not a placeholder.
 
 ---
 
