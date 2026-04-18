@@ -1,171 +1,120 @@
-# Kandown — Agent Task System
+# Kandown — AI Agent Rules
 
-This file contains the complete documentation for Kandown's file-based Kanban system. AI agents must read this file before interacting with task files.
+## The System
 
-## Overview
+Kandown is a file-based Kanban backed by plain markdown. All task state lives in `.kandown/tasks/*.md` — no separate board index, no database.
 
-Kandown is a file-based Kanban engine backed by plain markdown. Everything lives in `.kandown/`:
-
-- `tasks/` — per-task markdown files and the source of truth
-- `kandown.json` — project configuration, board columns, appearance, and enabled fields
-- `kandown.html` — the visual UI app
-
-There is no separate board index. The board is derived by scanning `tasks/*.md`.
-
-## File Architecture
-
-```text
+```
 .kandown/
-├── kandown.json      # Project configuration and board columns
-├── kandown.html      # Single-file React app
-├── tasks/            # Per-task markdown files
-│   ├── t-001.md
-│   ├── t-002.md
-│   └── ...
-├── AGENT.md          # Quick reference
-└── README.md         # User-facing Kandown usage guide
+├── tasks/           # Task files (source of truth)
+├── kandown.json     # Board columns + project settings
+└── kandown.html     # Web UI
 ```
 
-## Configuration
+**Board columns** are configured in `kandown.json` at `board.columns`. Tasks without a `status` go to **Backlog**.
 
-```json
-{
-  "ui": {
-    "language": "en",
-    "theme": "auto",
-    "skin": "kandown",
-    "font": "inter"
-  },
-  "agent": {
-    "suggestFollowUp": false,
-    "maxSuggestions": 3
-  },
-  "board": {
-    "columns": ["Backlog", "Todo", "In Progress", "Review", "Done"],
-    "taskPrefix": "t",
-    "defaultPriority": "P3",
-    "defaultOwnerType": "human"
-  },
-  "fields": {
-    "priority": false,
-    "assignee": false,
-    "tags": false,
-    "dueDate": false,
-    "ownerType": false,
-    "tools": false
-  }
-}
+---
+
+## Critical: Real-Time Task Updates
+
+⚠️ **ALWAYS keep task files up to date as you work.** This is not optional — it lets the user see exactly what you're doing, what was decided, and what's left.
+
+When you make progress:
+1. Check off completed subtasks: `- [ ]` → `- [x]`
+2. Add a `report:` under each done subtask with what changed
+3. Move the task to the appropriate column by updating `status:` in frontmatter
+4. Write a completion `report:` in frontmatter when the task is done
+
+---
+
+## Task Lifecycle
+
+### Start working on a task
+Update the task frontmatter: `status: In Progress`
+
+### While working
+- Check off each subtask as you finish it
+- Add inline reports: `report: Created X, fixed Y`
+- If you notice something unrelated — create a new task, don't fix inline
+
+### Complete a task
+```yaml
+---
+status: Done
+report: |
+  ## Changes
+  - Created src/auth.ts
+  - Added /api/auth/login
+  ## Decisions
+  - Used RS256 for key rotation
+---
 ```
+The `report:` field supports markdown and is displayed in the UI. Write it as a real summary.
 
-### Settings Reference
+---
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `board.columns` | `string[]` | `["Backlog", "Todo", "In Progress", "Review", "Done"]` | Ordered board columns. |
-| `board.taskPrefix` | `string` | `"t"` | ID prefix for tasks. |
-| `board.defaultPriority` | `string` | `"P3"` | Default priority for new tasks when priority is enabled. |
-| `board.defaultOwnerType` | `string` | `"human"` | Default owner type when owner type is enabled. |
-| `fields.*` | `boolean` | `false` | Controls optional metadata shown in the UI. |
+## Mutation Rules
 
-If a task has a `status` that is not listed in `board.columns`, Kandown still displays it as a temporary column at the beginning of the board. The user can add that column to settings from the UI.
+| Action | File to edit |
+|--------|-------------|
+| Move task between columns | Task file: update `status:` in frontmatter |
+| Reorder task | Task file: update `order:` in frontmatter |
+| Change title/priority/tags/assignee | Task file frontmatter |
+| Edit description/notes/subtasks | Task file body only |
+| Create task | Create one new `.kandown/tasks/t-NNN.md` |
+| Delete task | Delete the task file |
+| Create/rename/delete columns | `kandown.json` at `board.columns` |
 
-If a task has no `status`, treat it as `Backlog`.
+**One task file = one source of truth.** Never maintain a separate board index.
 
-## Task Files
+---
+
+## Task File Format
 
 ```markdown
 ---
 id: t-001
-title: Full task title
-status: Todo
+title: Task title
+status: Backlog
 order: 0
 priority: P1
-tags: [backend, security]
+tags: [backend]
 assignee: username
 created: 2026-04-10
-due: 2026-04-25
 ownerType: human
-tools: filesystem, cli, websearch
 ---
 
 # Task title
 
 ## Context
 
-Background, links, decisions, and why this task exists.
+Why this exists, background, links.
 
 ## Subtasks
 
 - [ ] First step
-- [x] Already done step
-  report: What changed for this step.
+- [x] Second step
+  report: What changed.
 
 ## Notes
 
-Additional information, edge cases, gotchas.
+Edge cases, gotchas.
 ```
 
-### Frontmatter Fields
+### Frontmatter fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | string | Unique ID, e.g. `t-001`. |
-| `title` | string | Task title shown on cards. |
-| `status` | string | Current board column. Missing status means `Backlog`. |
-| `order` | number | Optional order inside the column. |
-| `priority` | string | `P1`, `P2`, `P3`, or `P4`. |
-| `tags` | array | Free-form tags. |
-| `assignee` | string | Username or AI agent name. |
-| `created` | string | ISO date. |
-| `due` | string | ISO date. |
-| `ownerType` | string | `human` or `ai`. |
-| `tools` | string | Tool hints for AI-agent tasks. |
-| `report` | string | Completion report, often multiline with `|`. |
+| Field | Description |
+|-------|-------------|
+| `status` | Board column (Backlog, Todo, In Progress, Review, Done) |
+| `order` | Sort order within the column |
+| `priority` | P1–P4 |
+| `tags` | Free-form labels |
+| `assignee` | Username or AI agent name |
+| `ownerType` | `human` or `ai` |
+| `report` | Completion summary (markdown, shown in UI) |
 
-## Task Lifecycle
+---
 
-### Creating a Task
+## Stack
 
-1. Scan `.kandown/tasks/` for existing IDs.
-2. Create the next task file using the configured `board.taskPrefix`.
-3. Set `status` to the desired column, or `Backlog` by default.
-
-### Starting a Task
-
-Set the task frontmatter:
-
-```yaml
-status: In Progress
-```
-
-### Completing a Task
-
-1. Check off completed subtasks.
-2. Add subtask reports where useful.
-3. Add a completion `report` in frontmatter or a clear report section in the body.
-4. Set:
-
-```yaml
-status: Done
-```
-
-## Mutation Rules
-
-| Action | Files to edit |
-|--------|---------------|
-| Move task between columns | Task file only: update frontmatter `status`. |
-| Reorder task | Task file only: update frontmatter `order`. |
-| Change title/priority/tags/assignee | Task file frontmatter only. |
-| Change ownerType/tools | Task file frontmatter only. |
-| Edit description/notes/subtasks/report | Task file only. |
-| Create task | Create one markdown file in `.kandown/tasks/`. |
-| Delete task | Delete its markdown file. |
-| Create/rename/delete columns | Update `board.columns` in `.kandown/kandown.json`; renaming also updates affected task statuses. |
-
-## Follow-up Tasks
-
-If `agent.suggestFollowUp` is enabled and you identify related work, propose up to 3 follow-up tasks to the user. Do not auto-create them without confirmation.
-
-## This Project's Stack
-
-Kandown is built with React, Motion, Tailwind, Vite, Zustand, TypeScript, and a plain Node.js ESM CLI.
+React, Motion, Tailwind, Vite, Zustand, TypeScript, Node.js ESM CLI.

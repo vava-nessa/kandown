@@ -24,12 +24,13 @@
   "author": "",
   "license": "MIT",
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/sync-agent-kandown.js && vite",
     "dev:cli": "tsup --watch",
-    "build": "tsc -b && vite build && pnpm build:cli",
+    "build": "node scripts/sync-agent-kandown.js && tsc -b && vite build && pnpm build:cli",
     "build:cli": "tsup",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "sync:agent": "node scripts/sync-agent-kandown.js"
   },
   "dependencies": {
     "@tabler/icons-react": "3.41.1",
