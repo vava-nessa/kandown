@@ -10,6 +10,7 @@
     "maxSuggestions": 3
   },
   "board": {
+    "columns": ["Backlog", "Todo", "In Progress", "Review", "Done"],
     "taskPrefix": "t",
     "defaultPriority": "P3",
     "defaultOwnerType": "human"

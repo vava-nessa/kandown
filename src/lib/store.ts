@@ -1,6 +1,6 @@
 /**
  * @file Kandown Zustand store
- * @description Central state container for project handles, parsed board data,
+ * @description Central state container for project handles, task-derived board data,
  * config, filters, task drawer editing, content-search cache, recent projects,
  * and toast notifications.
  *
@@ -9,13 +9,13 @@
  * optimistic updates, rollback, config theme application, and cache refreshes.
  *
  * 📖 The file watcher (watcher.ts) runs a 500ms polling loop that detects
- * external changes to board.md, kandown.json, and tasks/*.md. When a change is
+ * external changes to kandown.json and tasks/*.md. When a change is
  * detected, the watcher fires an event which this store handles — either silently
  * reloading or showing a conflict modal if the user is actively editing.
  *
  * @functions
- *  → defaultBoardTemplate — creates a minimal board when none exists
  *  → nextTaskId — finds the next zero-padded task id
+ *  → persistColumnOrder — writes status/order metadata back to task files
  *  → applyConfigTheme — applies persisted project appearance settings
  *  → useStore — Zustand store with file, board, config, search, and UI actions
  *
@@ -33,8 +33,7 @@ import {
   pickProjectDirectory,
   getKandownHandle,
   ensureTasksDir,
-  readBoardFile,
-  writeBoardFile,
+  listTaskIds,
   readConfigFile,
   writeConfigFile,
   readTaskFile as fsReadTaskFile,
@@ -45,8 +44,7 @@ import {
   verifyPermission,
   type RecentProject,
 } from './filesystem';
-import { parseBoard, extractSubtasks, injectSubtasks, searchTaskContent } from './parser';
-import { serializeBoard } from './serializer';
+import { buildColumnsFromTasks, extractSubtasks, injectSubtasks, searchTaskContent } from './parser';
 import { applyProjectTheme } from './theme';
 import { fileWatcher } from './watcher';
 import type { ConflictType } from './watcher';
@@ -104,7 +102,6 @@ interface State {
   drawerBaseVersion: DrawerSnapshot | null;
   conflictState: ConflictState | null;
   showConflictModal: boolean;
-  orphanTaskIds: string[];
 
   // Actions
   openFolder: () => Promise<void>;
@@ -115,6 +112,9 @@ interface State {
 
   moveTask: (taskId: string, fromCol: string, toCol: string, toIndex?: number) => Promise<void>;
   reorderInColumn: (colName: string, fromIndex: number, toIndex: number) => Promise<void>;
+  addColumn: (name: string) => Promise<void>;
+  renameColumn: (oldName: string, newName: string) => Promise<void>;
+  deleteColumn: (name: string) => Promise<void>;
   createTask: (colName?: string) => Promise<string | null>;
   deleteTask: (taskId: string) => Promise<void>;
 
@@ -138,26 +138,7 @@ interface State {
   toast: (message: string, type?: Toast['type']) => void;
   dismissToast: (id: number) => void;
   resolveConflict: (resolution: 'reload' | 'overwrite' | 'cancel') => Promise<void>;
-  dismissOrphan: (taskId: string) => void;
   setupWatcher: () => void;
-}
-
-function defaultBoardTemplate(): string {
-  return `---
-kanban: v1
-columns: [Backlog, Todo, In Progress, Done]
----
-
-# Project Kanban
-
-## Backlog
-
-## Todo
-
-## In Progress
-
-## Done
-`;
 }
 
 function nextTaskId(columns: Column[]): string {
@@ -172,6 +153,48 @@ function nextTaskId(columns: Column[]): string {
     }
   }
   return 't-' + String(maxN + 1).padStart(3, '0');
+}
+
+async function readAllTasks(
+  tasksDirHandle: FileSystemDirectoryHandle,
+): Promise<Array<{ id: string; frontmatter: TaskFrontmatter; body: string; subtasks: Subtask[] }>> {
+  const ids = await listTaskIds(tasksDirHandle);
+  const tasks = await Promise.all(ids.map(async (id) => {
+    const { frontmatter, body } = await fsReadTaskFile(tasksDirHandle, id);
+    const normalizedFrontmatter = {
+      ...frontmatter,
+      id: frontmatter.id || id,
+      status: frontmatter.status || 'Backlog',
+    };
+    const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
+    return { id, frontmatter: normalizedFrontmatter, body: bodyWithoutSubtasks, subtasks };
+  }));
+  return tasks;
+}
+
+async function persistColumnOrder(
+  tasksDirHandle: FileSystemDirectoryHandle,
+  columns: Column[],
+  _columnNames: string[],
+): Promise<void> {
+  const writes: Promise<void>[] = [];
+
+  for (const column of columns) {
+    const status = column.name;
+    column.tasks.forEach((task, index) => {
+      writes.push((async () => {
+        const { frontmatter, body } = await fsReadTaskFile(tasksDirHandle, task.id);
+        await fsWriteTaskFile(tasksDirHandle, task.id, {
+          ...frontmatter,
+          id: task.id,
+          status,
+          order: index,
+        }, body);
+      })());
+    });
+  }
+
+  await Promise.all(writes);
 }
 
 function applyConfigTheme(config: KandownConfig): void {
@@ -206,7 +229,6 @@ export const useStore = create<State>((set, get) => ({
   drawerBaseVersion: null,
   conflictState: null,
   showConflictModal: false,
-  orphanTaskIds: [],
 
   openFolder: async () => {
     const result = await pickProjectDirectory();
@@ -278,31 +300,38 @@ export const useStore = create<State>((set, get) => ({
   },
 
   reloadBoard: async () => {
-    const { dirHandle, tasksDirHandle } = get();
-    if (!dirHandle) return;
+    const { tasksDirHandle, config } = get();
+    if (!tasksDirHandle) return;
     try {
-      let text = await readBoardFile(dirHandle);
-      if (text === null) {
-        text = defaultBoardTemplate();
-        await writeBoardFile(dirHandle, text);
-      }
-      const parsed = parseBoard(text);
-      set({ boardTitle: parsed.title, columns: parsed.columns });
+      const tasks = await readAllTasks(tasksDirHandle);
+      const parsedTasks = tasks.map(task => ({
+        frontmatter: task.frontmatter,
+        body: injectSubtasks(task.body, task.subtasks),
+      }));
+      const columns = buildColumnsFromTasks(parsedTasks, config.board.columns);
+      set({ boardTitle: 'Project Kanban', columns });
 
       // Load all task contents eagerly if <= 10 tasks total
-      const totalTasks = parsed.columns.reduce((acc, col) => acc + col.tasks.length, 0);
-      if (tasksDirHandle && totalTasks <= 10) {
-        const ids = parsed.columns.flatMap(col => col.tasks.map(t => t.id));
-        await get().loadTaskContents(ids);
+      const totalTasks = columns.reduce((acc, col) => acc + col.tasks.length, 0);
+      const nextContents = new Map<string, TaskContent>();
+      if (totalTasks <= 10) {
+        for (const task of tasks) {
+          nextContents.set(task.frontmatter.id, {
+            frontmatter: task.frontmatter,
+            subtasks: task.subtasks,
+            body: task.body,
+          });
+        }
       }
+      set({ taskContents: nextContents, searchMatches: new Map() });
     } catch (e) {
       get().toast('Failed to load board: ' + (e as Error).message, 'error');
     }
   },
 
   moveTask: async (taskId, fromCol, toCol, toIndex) => {
-    const { columns, dirHandle, boardTitle } = get();
-    if (!dirHandle) return;
+    const { columns, tasksDirHandle, config } = get();
+    if (!tasksDirHandle) return;
     const fromColObj = columns.find(c => c.name === fromCol);
     const toColObj = columns.find(c => c.name === toCol);
     if (!fromColObj || !toColObj) return;
@@ -320,7 +349,10 @@ export const useStore = create<State>((set, get) => ({
     // Optimistic
     set({ columns: newColumns });
     try {
-      await writeBoardFile(dirHandle, serializeBoard(boardTitle, newColumns));
+      const affected = fromCol === toCol
+        ? newColumns.filter(c => c.name === toCol)
+        : newColumns.filter(c => c.name === fromCol || c.name === toCol);
+      await persistColumnOrder(tasksDirHandle, affected, config.board.columns);
     } catch (e) {
       get().toast('Failed to save: ' + (e as Error).message, 'error');
       // Rollback
@@ -329,8 +361,8 @@ export const useStore = create<State>((set, get) => ({
   },
 
   reorderInColumn: async (colName, fromIndex, toIndex) => {
-    const { columns, dirHandle, boardTitle } = get();
-    if (!dirHandle) return;
+    const { columns, tasksDirHandle, config } = get();
+    if (!tasksDirHandle) return;
     const newColumns = columns.map(c => ({ ...c, tasks: [...c.tasks] }));
     const col = newColumns.find(c => c.name === colName);
     if (!col) return;
@@ -338,18 +370,119 @@ export const useStore = create<State>((set, get) => ({
     col.tasks.splice(toIndex, 0, task);
     set({ columns: newColumns });
     try {
-      await writeBoardFile(dirHandle, serializeBoard(boardTitle, newColumns));
+      await persistColumnOrder(tasksDirHandle, [col], config.board.columns);
     } catch (e) {
       get().toast('Failed to save: ' + (e as Error).message, 'error');
       set({ columns });
     }
   },
 
+  addColumn: async (name) => {
+    const cleanName = name.trim();
+    if (!cleanName) return;
+    const { config } = get();
+    if (config.board.columns.some(col => col.toLowerCase() === cleanName.toLowerCase())) return;
+    await get().updateConfig(current => ({
+      ...current,
+      board: {
+        ...current.board,
+        columns: [...current.board.columns, cleanName],
+      },
+    }));
+    await get().reloadBoard();
+  },
+
+  renameColumn: async (oldName, newName) => {
+    const cleanName = newName.trim();
+    const { columns, tasksDirHandle, config } = get();
+    if (!tasksDirHandle || !cleanName || cleanName.toLowerCase() === oldName.toLowerCase()) return;
+    if (columns.some(col => col.name.toLowerCase() === cleanName.toLowerCase())) {
+      get().toast('Column already exists', 'error');
+      return;
+    }
+
+    const oldColumns = columns;
+    const renamedColumns = columns.map(col =>
+      col.name === oldName ? { ...col, name: cleanName } : col
+    );
+    set({ columns: renamedColumns });
+
+    try {
+      const targetColumn = oldColumns.find(col => col.name === oldName);
+      if (targetColumn) {
+        await Promise.all(targetColumn.tasks.map(async (task, index) => {
+          const { frontmatter, body } = await fsReadTaskFile(tasksDirHandle, task.id);
+          await fsWriteTaskFile(tasksDirHandle, task.id, {
+            ...frontmatter,
+            id: task.id,
+            status: cleanName,
+            order: index,
+          }, body);
+        }));
+      }
+
+      await get().updateConfig(current => {
+        const nextColumnColors = { ...(current.board.columnColors ?? {}) };
+        const oldColor = nextColumnColors[oldName.toLowerCase()];
+        if (oldColor) {
+          nextColumnColors[cleanName.toLowerCase()] = oldColor;
+          delete nextColumnColors[oldName.toLowerCase()];
+        }
+        const currentColumns = current.board.columns.some(col => col.toLowerCase() === oldName.toLowerCase())
+          ? current.board.columns
+          : [...current.board.columns, oldName];
+        return {
+          ...current,
+          board: {
+            ...current.board,
+            columns: currentColumns.map(col => col.toLowerCase() === oldName.toLowerCase() ? cleanName : col),
+            columnColors: nextColumnColors,
+          },
+        };
+      });
+      await get().reloadBoard();
+    } catch (e) {
+      get().toast('Failed to rename column: ' + (e as Error).message, 'error');
+      set({ columns: oldColumns });
+    }
+  },
+
+  deleteColumn: async (name) => {
+    const { columns, tasksDirHandle } = get();
+    if (!tasksDirHandle) return;
+    const target = columns.find(col => col.name === name);
+    if (!target) return;
+    const oldColumns = columns;
+    set({ columns: columns.filter(col => col.name !== name) });
+
+    try {
+      await Promise.all(target.tasks.map(task => fsDeleteTaskFile(tasksDirHandle, task.id)));
+      await get().updateConfig(current => {
+        const nextColumnColors = { ...(current.board.columnColors ?? {}) };
+        delete nextColumnColors[name.toLowerCase()];
+        return {
+          ...current,
+          board: {
+            ...current.board,
+            columns: current.board.columns.filter(col => col.toLowerCase() !== name.toLowerCase()),
+            columnColors: nextColumnColors,
+          },
+        };
+      });
+      await get().reloadBoard();
+      get().toast('Column deleted');
+    } catch (e) {
+      get().toast('Failed to delete column: ' + (e as Error).message, 'error');
+      set({ columns: oldColumns });
+    }
+  },
+
   createTask: async (colName) => {
-    const { columns, dirHandle, tasksDirHandle, boardTitle, config } = get();
-    if (!dirHandle || !tasksDirHandle || !columns.length) return null;
-    const targetColName = colName || columns[0].name;
+    const { columns, tasksDirHandle, config, taskContents } = get();
+    if (!tasksDirHandle || !columns.length) return null;
+    const targetColName = colName || config.board.columns[0] || columns[0].name;
     const id = nextTaskId(columns);
+    const targetOrder = columns.find(c => c.name === targetColName)?.tasks.length ?? 0;
     const task: BoardTask = {
       id,
       title: 'New task',
@@ -369,6 +502,7 @@ export const useStore = create<State>((set, get) => ({
         id,
         title: 'New task',
         status: targetColName,
+        order: targetOrder,
         priority: config.fields.priority ? config.board.defaultPriority : '',
         tags: [],
         assignee: '',
@@ -378,7 +512,9 @@ export const useStore = create<State>((set, get) => ({
       };
       const body = `# New task\n\n## Context\n\n\n## Subtasks\n\n`;
       await fsWriteTaskFile(tasksDirHandle, id, fm, body);
-      await writeBoardFile(dirHandle, serializeBoard(boardTitle, newColumns));
+      const newContents = new Map(taskContents);
+      newContents.set(id, { frontmatter: fm, subtasks: [], body });
+      set({ taskContents: newContents });
       get().toast(`Created ${id.toUpperCase()}`);
       return id;
     } catch (e) {
@@ -389,8 +525,8 @@ export const useStore = create<State>((set, get) => ({
   },
 
   deleteTask: async (taskId) => {
-    const { columns, dirHandle, tasksDirHandle, boardTitle, taskContents } = get();
-    if (!dirHandle || !tasksDirHandle) return;
+    const { columns, tasksDirHandle, taskContents } = get();
+    if (!tasksDirHandle) return;
     const newColumns = columns.map(c => ({ ...c, tasks: c.tasks.filter(t => t.id !== taskId) }));
     set({ columns: newColumns });
 
@@ -403,7 +539,6 @@ export const useStore = create<State>((set, get) => ({
 
     try {
       await fsDeleteTaskFile(tasksDirHandle, taskId);
-      await writeBoardFile(dirHandle, serializeBoard(boardTitle, newColumns));
       get().toast('Deleted');
     } catch (e) {
       get().toast('Failed to delete: ' + (e as Error).message, 'error');
@@ -444,34 +579,13 @@ export const useStore = create<State>((set, get) => ({
   },
 
   saveDrawer: async () => {
-    const { drawerTaskId, drawerData, tasksDirHandle, columns, dirHandle, boardTitle, taskContents } = get();
-    if (!drawerTaskId || !drawerData || !tasksDirHandle || !dirHandle) return;
+    const { drawerTaskId, drawerData, tasksDirHandle, taskContents } = get();
+    if (!drawerTaskId || !drawerData || !tasksDirHandle) return;
 
     const fullBody = injectSubtasks(drawerData.body, drawerData.subtasks);
     const fm = { ...drawerData.frontmatter, id: drawerTaskId };
     try {
       await fsWriteTaskFile(tasksDirHandle, drawerTaskId, fm, fullBody);
-
-      const total = drawerData.subtasks.length;
-      const done = drawerData.subtasks.filter(s => s.done).length;
-      const newColumns = columns.map(c => ({
-        ...c,
-        tasks: c.tasks.map(t =>
-          t.id === drawerTaskId
-            ? {
-                ...t,
-                title: (fm.title as string) || t.title,
-                priority: (fm.priority as BoardTask['priority']) || null,
-                assignee: (fm.assignee as string) || null,
-                tags: (fm.tags as string[]) || [],
-                ownerType: ((fm.ownerType as BoardTask['ownerType']) || '') as BoardTask['ownerType'],
-                progress: total > 0 ? { done, total } : null,
-              }
-            : t
-        ),
-      })) as Column[];
-      set({ columns: newColumns });
-      await writeBoardFile(dirHandle, serializeBoard(boardTitle, newColumns));
 
       get().toast('Saved');
       set({ drawerTaskId: null, drawerData: null });
@@ -484,40 +598,20 @@ export const useStore = create<State>((set, get) => ({
         body: drawerData.body,
       });
       set({ taskContents: newContents });
+      await get().reloadBoard();
     } catch (e) {
       get().toast('Failed to save: ' + (e as Error).message, 'error');
     }
   },
 
   saveDrawerMetadata: async () => {
-    const { drawerTaskId, drawerData, tasksDirHandle, columns, dirHandle, boardTitle, taskContents } = get();
-    if (!drawerTaskId || !drawerData || !tasksDirHandle || !dirHandle) return;
+    const { drawerTaskId, drawerData, tasksDirHandle, taskContents } = get();
+    if (!drawerTaskId || !drawerData || !tasksDirHandle) return;
 
-    const fullBody = injectSubtasks(drawerData.body, drawerData.subtasks);
-    const fm = { ...drawerData.frontmatter, id: drawerTaskId };
-    try {
+      const fullBody = injectSubtasks(drawerData.body, drawerData.subtasks);
+      const fm = { ...drawerData.frontmatter, id: drawerTaskId };
+      try {
       await fsWriteTaskFile(tasksDirHandle, drawerTaskId, fm, fullBody);
-
-      const total = drawerData.subtasks.length;
-      const done = drawerData.subtasks.filter(s => s.done).length;
-      const newColumns = columns.map(c => ({
-        ...c,
-        tasks: c.tasks.map(t =>
-          t.id === drawerTaskId
-            ? {
-                ...t,
-                title: (fm.title as string) || t.title,
-                priority: (fm.priority as BoardTask['priority']) || null,
-                assignee: (fm.assignee as string) || null,
-                tags: (fm.tags as string[]) || [],
-                ownerType: ((fm.ownerType as BoardTask['ownerType']) || '') as BoardTask['ownerType'],
-                progress: total > 0 ? { done, total } : null,
-              }
-            : t
-        ),
-      })) as Column[];
-      set({ columns: newColumns });
-      await writeBoardFile(dirHandle, serializeBoard(boardTitle, newColumns));
 
       // Update content cache
       const newContents = new Map(taskContents);
@@ -527,6 +621,7 @@ export const useStore = create<State>((set, get) => ({
         body: drawerData.body,
       });
       set({ taskContents: newContents });
+      await get().reloadBoard();
     } catch (e) {
       get().toast('Failed to save: ' + (e as Error).message, 'error');
     }
@@ -637,8 +732,6 @@ export const useStore = create<State>((set, get) => ({
     }
   },
 
-  dismissOrphan: (taskId) => set(state => ({ orphanTaskIds: state.orphanTaskIds.filter(id => id !== taskId) })),
-
   // ── File watcher setup (called after project open) ─────────────────────────
 
   setupWatcher: () => {
@@ -647,10 +740,6 @@ export const useStore = create<State>((set, get) => ({
 
     fileWatcher.stop();
     fileWatcher.start(dirHandle, tasksDirHandle);
-
-    fileWatcher.on('boardChanged', () => {
-      get().reloadBoard();
-    });
 
     fileWatcher.on('configChanged', () => {
       get().loadConfig();
@@ -683,12 +772,8 @@ export const useStore = create<State>((set, get) => ({
       }
     });
 
-    fileWatcher.on('newTaskDetected', (taskId) => {
-      get().toast(`New task file detected: ${taskId}`, 'info');
-    });
-
-    fileWatcher.on('orphanTasksDetected', (taskIds) => {
-      set(state => ({ orphanTaskIds: [...new Set([...state.orphanTaskIds, ...taskIds])] }));
+    fileWatcher.on('newTaskDetected', () => {
+      get().reloadBoard();
     });
   },
 }));

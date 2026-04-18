@@ -1,7 +1,7 @@
 /**
  * @file Browser file-system adapter
  * @description Wraps the File System Access API, `.kandown` discovery/creation,
- * board/task reads and writes, project config persistence, and recent-project
+ * task reads and writes, project config persistence, and recent-project
  * IndexedDB storage.
  *
  * 📖 All browser file handles pass through this module. UI and store code should
@@ -13,12 +13,12 @@
  *  → pickProjectDirectory — opens or creates `.kandown`
  *  → getKandownHandle — resolves `.kandown` from a remembered project handle
  *  → readConfigFile / writeConfigFile — load and persist kandown.json
- *  → readBoardFile / writeBoardFile — load and persist board.md
- *  → readTaskFile / writeTaskFile / deleteTaskFile — task detail file helpers
+ *  → listTaskIds — scans tasks/*.md and returns task ids
+ *  → readTaskFile / writeTaskFile / deleteTaskFile — task file helpers
  *  → saveRecentProject / listRecentProjects / removeRecentProject — IndexedDB recent projects
  *  → verifyPermission — requests persisted read/write access
  *
- * @exports supportsFileSystemAccess, pickDirectory, pickProjectDirectory, getKandownHandle, ensureTasksDir, readBoardFile, writeBoardFile, readConfigFile, writeConfigFile, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission
+ * @exports supportsFileSystemAccess, pickDirectory, pickProjectDirectory, getKandownHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission
  * @see src/lib/store.ts
  * @see src/lib/parser.ts
  */
@@ -77,22 +77,6 @@ export async function pickProjectDirectory(): Promise<{ projectHandle: FileSyste
     // .kandown doesn't exist - create it
     const kandownHandle = await projectHandle.getDirectoryHandle('.kandown', { create: true });
     await ensureTasksDir(kandownHandle);
-    const defaultBoard = `---
-kanban: v1
-columns: [Backlog, Todo, In Progress, Done]
----
-
-# Project Kanban
-
-## Backlog
-
-## Todo
-
-## In Progress
-
-## Done
-`;
-    await writeBoardFile(kandownHandle, defaultBoard);
     return { projectHandle, kandownHandle };
   }
 }
@@ -103,22 +87,6 @@ export async function getKandownHandle(projectHandle: FileSystemDirectoryHandle)
   } catch {
     const kandownHandle = await projectHandle.getDirectoryHandle('.kandown', { create: true });
     await ensureTasksDir(kandownHandle);
-    const defaultBoard = `---
-kanban: v1
-columns: [Backlog, Todo, In Progress, Done]
----
-
-# Project Kanban
-
-## Backlog
-
-## Todo
-
-## In Progress
-
-## Done
-`;
-    await writeBoardFile(kandownHandle, defaultBoard);
     return kandownHandle;
   }
 }
@@ -140,7 +108,13 @@ export async function readConfigFile(kandownHandle: FileSystemDirectoryHandle): 
         font: normalizeFontId(ui.font),
       },
       agent: { ...DEFAULT_CONFIG.agent, ...raw.agent },
-      board: { ...DEFAULT_CONFIG.board, ...raw.board },
+      board: {
+        ...DEFAULT_CONFIG.board,
+        ...raw.board,
+        columns: Array.isArray(raw.board?.columns) && raw.board.columns.length > 0
+          ? raw.board.columns.filter((name): name is string => typeof name === 'string' && name.trim().length > 0)
+          : DEFAULT_CONFIG.board.columns,
+      },
       fields: { ...DEFAULT_CONFIG.fields, ...raw.fields },
     };
   } catch {
@@ -159,21 +133,14 @@ export async function ensureTasksDir(dirHandle: FileSystemDirectoryHandle): Prom
   return await dirHandle.getDirectoryHandle('tasks', { create: true });
 }
 
-export async function readBoardFile(dirHandle: FileSystemDirectoryHandle): Promise<string | null> {
-  try {
-    const h = await dirHandle.getFileHandle('board.md');
-    const file = await h.getFile();
-    return await file.text();
-  } catch {
-    return null;
+export async function listTaskIds(tasksDir: FileSystemDirectoryHandle): Promise<string[]> {
+  const ids: string[] = [];
+  for await (const entry of tasksDir.values()) {
+    if (entry.kind === 'file' && entry.name.endsWith('.md')) {
+      ids.push(entry.name.slice(0, -3));
+    }
   }
-}
-
-export async function writeBoardFile(dirHandle: FileSystemDirectoryHandle, content: string): Promise<void> {
-  const h = await dirHandle.getFileHandle('board.md', { create: true });
-  const w = await h.createWritable();
-  await w.write(content);
-  await w.close();
+  return ids.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 }
 
 export async function readTaskFile(tasksDir: FileSystemDirectoryHandle, id: string) {

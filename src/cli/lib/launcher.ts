@@ -55,7 +55,7 @@ export function isInTmux(): boolean {
  * 📖 Main entry point. Orchestrates the full launch:
  *   1. Reads the task file and agent doc
  *   2. Builds the prompt (system + task instruction)
- *   3. Auto-moves the task to "In Progress" in board.md
+ *   3. Auto-moves the task to "In Progress" in its task frontmatter
  *   4. Writes a context file to /tmp for reference
  *   5. Spawns the agent in tmux split or direct exec
  *
@@ -88,7 +88,6 @@ export function launchAgent(opts: LaunchAgentOpts): void {
   const { systemPrompt, taskPrompt } = buildPrompt(agentDoc, taskFileContent, taskId, kandownDir);
 
   // 📖 Step 4: Auto-move to In Progress before launching.
-  // Idempotent — if already there, moveTaskToColumn returns true with no write.
   moveTaskToColumn(kandownDir, taskId, 'In Progress');
 
   // 📖 Step 5: Write the full context to a temp file so the user/agent can reference it.

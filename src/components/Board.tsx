@@ -19,15 +19,18 @@
 
 import { useState, useMemo } from 'react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { Column } from './Column';
 import { useStore } from '../lib/store';
 import type { BoardTask, SearchMatch } from '../lib/types';
 
 export function Board() {
+  const { t } = useTranslation();
   const columns = useStore(s => s.columns);
   const density = useStore(s => s.density);
   const filters = useStore(s => s.filters);
   const moveTask = useStore(s => s.moveTask);
+  const addColumn = useStore(s => s.addColumn);
   const searchMatches = useStore(s => s.searchMatches);
   const config = useStore(s => s.config);
 
@@ -71,6 +74,12 @@ export function Board() {
     setDraggedFromCol(null);
   };
 
+  const handleCreateColumn = () => {
+    const name = window.prompt(t('column.createPrompt'))?.trim();
+    if (!name) return;
+    void addColumn(name);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -103,6 +112,13 @@ export function Board() {
           />
         </motion.div>
       ))}
+      <button
+        type="button"
+        onClick={handleCreateColumn}
+        className="flex h-[120px] w-[220px] flex-none items-center justify-center rounded-[8px] border border-dashed border-border bg-bg/45 px-4 text-[13px] font-medium text-fg-muted transition-colors hover:border-border-strong hover:bg-bg-2 hover:text-fg"
+      >
+        {t('column.createColumn')}
+      </button>
     </motion.div>
   );
 }

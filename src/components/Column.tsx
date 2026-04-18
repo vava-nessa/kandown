@@ -5,7 +5,7 @@
  *
  * 📖 Drag state is owned by `Board`; this component only translates browser
  * drag/drop events into the column-level callbacks that eventually update
- * `board.md`.
+ * the task files.
  * 📖 Column header icons are mapped from normalized status names so default
  * boards get clear visual landmarks while custom columns still use a stable
  * fallback icon.
@@ -220,8 +220,12 @@ export function Column({
   const [isOver, setIsOver] = useState(false);
   const [isColHovered, setIsColHovered] = useState(false);
   const createTask = useStore(s => s.createTask);
+  const addColumn = useStore(s => s.addColumn);
+  const renameColumn = useStore(s => s.renameColumn);
+  const deleteColumn = useStore(s => s.deleteColumn);
   const updateConfig = useStore(s => s.updateConfig);
   const config = useStore(s => s.config);
+  const isConfiguredColumn = config.board.columns.some(name => name.toLowerCase() === column.name.toLowerCase());
 
   const colColorKey = config.board.columnColors?.[column.name.toLowerCase()] ?? 'gray';
   const colBg = COLUMN_COLOR_MAP[colColorKey] ?? COLUMN_COLOR_MAP.gray;
@@ -263,6 +267,18 @@ export function Column({
   const isFiltered = filteredTasks.length !== column.tasks.length;
   const ColumnIcon = getColumnIcon(column.name);
 
+  const handleRenameColumn = () => {
+    const nextName = window.prompt(t('column.renamePrompt'), column.name)?.trim();
+    if (!nextName || nextName === column.name) return;
+    void renameColumn(column.name, nextName);
+  };
+
+  const handleDeleteColumn = () => {
+    const message = t('column.deleteConfirm', { name: column.name, count: column.tasks.length });
+    if (!window.confirm(message)) return;
+    void deleteColumn(column.name);
+  };
+
   return (
     <motion.div
       layout
@@ -293,11 +309,34 @@ export function Column({
           </span>
         </div>
         <div className="flex items-center gap-0.5">
+          {!isConfiguredColumn && (
+            <button
+              onClick={() => addColumn(column.name)}
+              className="h-5 rounded-[4px] px-1.5 text-[11px] font-medium text-fg-muted transition-colors hover:bg-bg-3 hover:text-fg"
+              title={t('column.addToSettings')}
+            >
+              {t('column.addColumn')}
+            </button>
+          )}
           <ColumnColorMenu
             columnName={column.name.toLowerCase()}
             currentColor={colColorKey}
             onSelect={handleColorChange}
           />
+          <button
+            onClick={handleRenameColumn}
+            className="w-5 h-5 inline-flex items-center justify-center text-fg-muted hover:bg-bg-3 hover:text-fg rounded-[4px] transition-colors"
+            title={t('column.renameColumn')}
+          >
+            <span className="text-[11px] leading-none">✎</span>
+          </button>
+          <button
+            onClick={handleDeleteColumn}
+            className="w-5 h-5 inline-flex items-center justify-center text-fg-muted hover:bg-bg-3 hover:text-red-500 rounded-[4px] transition-colors"
+            title={t('column.deleteColumn')}
+          >
+            <span className="text-[13px] leading-none">×</span>
+          </button>
           <button
             onClick={() => createTask(column.name)}
             className="w-5 h-5 inline-flex items-center justify-center text-fg-muted hover:bg-bg-3 hover:text-fg rounded-[4px] transition-colors"

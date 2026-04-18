@@ -1,29 +1,31 @@
 /**
- * @file Node.js board reader and mutator
- * @description Provides filesystem-based reading and writing of board.md and task files
- * for the CLI. Wraps the browser-agnostic parser with Node fs calls, and adds
- * `moveTaskToColumn` for the CLI launcher to auto-move tasks to "In Progress".
+ * @file Node.js task reader and mutator
+ * @description Provides filesystem-based reading and writing of Kandown task
+ * files for the CLI. The board is derived from tasks/*.md plus the configured
+ * columns in kandown.json; there is no separate board index.
  *
  * 📖 The parser in src/lib/parser.ts works on plain strings with zero browser
- * dependencies — so we just add the fs layer here. Board mutations use direct
- * string manipulation (not re-serializing the whole board) to preserve formatting
- * and avoid any accidental data loss.
+ * dependencies, so the CLI only adds a thin Node fs layer here. Moving a task
+ * updates the task frontmatter status directly, which keeps task files as the
+ * single source of truth.
  *
  * @functions
- *  → readBoard           — reads board.md and returns a ParsedBoard
+ *  → readBoard           — scans tasks/*.md and returns a ParsedBoard-compatible shape
  *  → readTask            — reads a task file by ID and returns a ParsedTask
- *  → readAgentDoc        — returns the contents of AGENT_KANDOWN_COMPACT.md (or AGENT_KANDOWN.md fallback)
- *  → moveTaskToColumn    — moves a task line from its current column to a new one in board.md
+ *  → readAgentDoc        — returns AGENT_KANDOWN_COMPACT.md or fallback instructions
+ *  → moveTaskToColumn    — updates a task frontmatter status
  *  → getProjectRoot      — returns the project root (parent of .kandown/)
  *
  * @exports readBoard, readTask, readAgentDoc, moveTaskToColumn, getProjectRoot
  * @see src/lib/parser.ts — pure string parsers reused here
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { parseBoard, parseTaskFile } from '../../lib/parser.js';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { buildColumnsFromTasks, parseTaskFile } from '../../lib/parser.js';
+import { serializeTaskFile } from '../../lib/serializer.js';
 import type { ParsedBoard, ParsedTask } from '../../lib/types.js';
+import { loadConfig } from './config.js';
 
 /**
  * 📖 Returns the project root directory (one level above .kandown/).
@@ -33,34 +35,62 @@ export function getProjectRoot(kandownDir: string): string {
   return dirname(kandownDir);
 }
 
+function listTaskIds(kandownDir: string): string[] {
+  const tasksDir = join(kandownDir, 'tasks');
+  if (!existsSync(tasksDir)) return [];
+  return readdirSync(tasksDir)
+    .filter(name => name.endsWith('.md'))
+    .map(name => name.slice(0, -3))
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+}
+
 /**
- * 📖 Reads and parses board.md from the kandown directory.
- * Returns an empty board structure if board.md doesn't exist.
+ * 📖 Scans task files and derives board columns from task frontmatter.
+ * Missing task status values are treated as Backlog by the shared parser.
  */
 export function readBoard(kandownDir: string): ParsedBoard {
-  const boardPath = join(kandownDir, 'board.md');
-  if (!existsSync(boardPath)) {
-    return { frontmatter: null, title: 'Project Kanban', columns: [] };
-  }
-  const content = readFileSync(boardPath, 'utf8');
-  return parseBoard(content);
+  const config = loadConfig(kandownDir);
+  const tasks = listTaskIds(kandownDir).map(id => {
+    const task = readTask(kandownDir, id);
+    return {
+      ...task,
+      frontmatter: {
+        ...task.frontmatter,
+        id: task.frontmatter.id || id,
+        status: task.frontmatter.status || 'Backlog',
+      },
+    };
+  });
+
+  return {
+    frontmatter: null,
+    title: 'Project Kanban',
+    columns: buildColumnsFromTasks(tasks, config.board.columns),
+  };
 }
 
 /**
  * 📖 Reads and parses a task file by its ID (e.g. 't-019').
- * Looks for both `tasks/<id>.md` directly.
  * Returns a minimal ParsedTask with just the id if the file doesn't exist.
  */
 export function readTask(kandownDir: string, taskId: string): ParsedTask {
   const taskPath = join(kandownDir, 'tasks', `${taskId}.md`);
   if (!existsSync(taskPath)) {
     return {
-      frontmatter: { id: taskId, title: `Task ${taskId}` },
+      frontmatter: { id: taskId, title: `Task ${taskId}`, status: 'Backlog' },
       body: '',
     };
   }
   const content = readFileSync(taskPath, 'utf8');
-  return parseTaskFile(content);
+  const parsed = parseTaskFile(content);
+  return {
+    ...parsed,
+    frontmatter: {
+      ...parsed.frontmatter,
+      id: parsed.frontmatter.id || taskId,
+      status: parsed.frontmatter.status || 'Backlog',
+    },
+  };
 }
 
 /**
@@ -87,77 +117,22 @@ export function readAgentDoc(kandownDir: string): string {
 }
 
 /**
- * 📖 Moves a task line from its current column section to the target column in board.md.
- *
- * Strategy: pure string manipulation — find the line containing `**[taskId]**`,
- * remove it (and any trailing blank line caused by the removal), then insert it
- * at the end of the target column section (before the next ## header or EOF).
- *
- * This preserves all other formatting, comments, and ordering in the file.
- *
- * @param kandownDir - absolute path to the .kandown/ directory
- * @param taskId     - task ID, e.g. 't-019'
- * @param targetColumn - column name exactly as written in the ## header, e.g. 'In Progress'
- * @returns true if the task was found and moved, false if not found
+ * 📖 Updates the task frontmatter status to move it between board columns.
+ * @returns true when the task file exists and was written, false otherwise.
  */
 export function moveTaskToColumn(
   kandownDir: string,
   taskId: string,
   targetColumn: string,
 ): boolean {
-  const boardPath = join(kandownDir, 'board.md');
-  if (!existsSync(boardPath)) return false;
+  const taskPath = join(kandownDir, 'tasks', `${taskId}.md`);
+  if (!existsSync(taskPath)) return false;
 
-  const original = readFileSync(boardPath, 'utf8');
-  const lines = original.split('\n');
-
-  // 📖 Find the task line index — look for **[taskId]** anywhere on the line
-  const taskPattern = new RegExp(`\\*\\*\\[${escapeRegex(taskId)}\\]\\*\\*`);
-  const taskLineIdx = lines.findIndex(l => taskPattern.test(l));
-  if (taskLineIdx === -1) return false; // task not found
-
-  const taskLine = lines[taskLineIdx]!;
-
-  // 📖 Find the target column header index — ## <columnName>
-  const colPattern = new RegExp(`^##\\s+${escapeRegex(targetColumn)}\\s*$`, 'i');
-  const colHeaderIdx = lines.findIndex(l => colPattern.test(l));
-  if (colHeaderIdx === -1) return false; // column not found
-
-  // 📖 Check if task is already in the target column — find what column it's currently in
-  let currentColHeaderIdx = -1;
-  for (let i = taskLineIdx - 1; i >= 0; i--) {
-    if (/^##\s+/.test(lines[i] ?? '')) {
-      currentColHeaderIdx = i;
-      break;
-    }
-  }
-  if (currentColHeaderIdx === colHeaderIdx) return true; // already in the right column, no-op
-
-  // 📖 Remove the task line from its current position.
-  // Also remove an adjacent blank line if it would leave two consecutive blank lines.
-  const newLines = [...lines];
-  newLines.splice(taskLineIdx, 1);
-
-  // 📖 After removal, re-find the target column header (index may have shifted by 1)
-  const newColHeaderIdx = newLines.findIndex(l => colPattern.test(l));
-  if (newColHeaderIdx === -1) return false;
-
-  // 📖 Find insertion point: the end of the target column section (before next ## or EOF)
-  let insertIdx = newColHeaderIdx + 1;
-  while (insertIdx < newLines.length && !/^##\s+/.test(newLines[insertIdx] ?? '')) {
-    insertIdx++;
-  }
-
-  // 📖 Insert the task line at the end of the target column section.
-  // Ensure there's exactly one blank line before the task if the section isn't empty,
-  // and a blank line after if needed.
-  newLines.splice(insertIdx, 0, taskLine);
-
-  writeFileSync(boardPath, newLines.join('\n'), 'utf8');
+  const parsed = readTask(kandownDir, taskId);
+  writeFileSync(taskPath, serializeTaskFile({
+    ...parsed.frontmatter,
+    id: taskId,
+    status: targetColumn,
+  }, parsed.body), 'utf8');
   return true;
-}
-
-/** 📖 Escapes special regex characters in a string for use in RegExp constructor. */
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }

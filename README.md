@@ -87,8 +87,9 @@ Firefox and Safari do not currently support the required File System Access API.
 ## CLI
 
 ```bash
-# Open the interactive board TUI + the web UI in your browser (recommended)
+# Start the local HTTP web UI + open the interactive board TUI (recommended)
 npx kandown
+npx kandown --port 3000
 
 # Board TUI only (no browser)
 npx kandown board
@@ -108,12 +109,14 @@ npx kandown settings
 
 | Command | Purpose |
 |---|---|
-| *(none)* | Open the board TUI in the terminal **and** `kandown.html` in your default browser simultaneously. |
+| *(none)* | Start a local HTTP server for `.kandown/kandown.html`, open the web UI in your default browser, and launch the board TUI. |
 | `board` | Open the interactive kanban board TUI only (no browser). |
 | `init` | Create `.kandown/`, copy templates, copy the built web app, and install agent docs. |
 | `update` | Replace an installed `kandown.html` with the current package build. |
 | `settings` | Open the Ink-based terminal settings editor for `kandown.json`. |
 | `help` | Print CLI help. |
+
+The bare `kandown` command uses a zero-dependency Node.js HTTP server. It tries `http://localhost:2048` first, then scans through port `2060` if earlier ports are busy. Use `--port <number>` to request a specific port.
 
 ### Board TUI
 
@@ -453,9 +456,11 @@ The npm CLI lives in `bin/kandown.js`.
 | `findAgentsFile` | Detects existing AI-agent instruction files. |
 | `appendAgentReference` | Adds a Kandown task-management section to an existing agent file. |
 | `createAgentsFileIfMissing` | Creates `AGENTS.md` when no agent instructions exist. |
-| `parseArgs` | Parses `init` flags. |
+| `parseArgs` | Parses shared CLI flags such as `--path`, `--force`, and `--port`. |
 | `cmdInit` | Installs `.kandown`, templates, config, web app, and agent docs. |
 | `cmdUpdate` | Updates `kandown.html` from `dist/index.html`. |
+| `createServeServer` | Creates the local HTTP server for the web UI, including placeholder `/api/*` routing. |
+| `cmdServe` | Serves `kandown.html` over localhost, injects `window.__KANDOWN_ROOT__`, opens the browser, and launches the board TUI. |
 | `cmdTui` | Launches a named TUI screen (`board`, `settings`). |
 
 The terminal UI source lives under `src/cli/` and is bundled into `bin/tui.js` by `tsup`.
@@ -514,8 +519,11 @@ pnpm dev:cli
 # Terminal 2: run the board TUI after each rebuild
 node bin/kandown.js board
 
-# Or run the bare command (opens browser + board):
+# Or run the bare command (local web server + browser + board):
 node bin/kandown.js
+
+# Use a fixed local web UI port:
+node bin/kandown.js --port 3000
 ```
 
 `pnpm dev:cli` watches all files under `src/cli/` and `src/lib/` (shared parsers). After saving a file, re-run `node bin/kandown.js board` in the second terminal to see the updated TUI.

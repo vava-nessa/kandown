@@ -328,6 +328,15 @@ const getSETTINGS = (t: ReturnType<typeof useTranslation>['t']): SettingDef[] =>
     keywords: ['id', 'identifier', 'task id'],
   },
   {
+    key: 'board.columns',
+    label: t('settings.columns'),
+    section: 'board',
+    type: 'text',
+    description: t('settings.columnsDesc'),
+    placeholder: 'Backlog, Todo, In Progress, Review, Done',
+    keywords: ['statuses', 'workflow', 'kanban'],
+  },
+  {
     key: 'board.defaultPriority',
     label: t('settings.defaultPriority'),
     section: 'fields',
@@ -497,6 +506,15 @@ export function SettingsPage() {
   }, [activeSectionId, config, normalizedQuery, settings]);
 
   const handleChange = (setting: SettingDef, newValue: unknown) => {
+    if (setting.key === 'board.columns') {
+      const columns = String(newValue)
+        .split(',')
+        .map(value => value.trim())
+        .filter(Boolean);
+      if (columns.length === 0) return;
+      updateConfig(currentConfig => setConfigValue(currentConfig, setting.key, columns));
+      return;
+    }
     updateConfig(currentConfig => setConfigValue(currentConfig, setting.key, newValue));
   };
 

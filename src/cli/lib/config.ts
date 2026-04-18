@@ -31,6 +31,7 @@ export interface KandownConfig {
     maxSuggestions: number;
   };
   board: {
+    columns: string[];
     taskPrefix: string;
     defaultPriority: string;
     defaultOwnerType: 'human' | 'ai';
@@ -56,7 +57,12 @@ export interface KandownConfig {
 const DEFAULT_CONFIG: KandownConfig = {
   ui: { language: 'en', theme: 'auto', skin: 'kandown', font: 'inter' },
   agent: { suggestFollowUp: false, maxSuggestions: 3 },
-  board: { taskPrefix: 't', defaultPriority: 'P3', defaultOwnerType: 'human' },
+  board: {
+    columns: ['Backlog', 'Todo', 'In Progress', 'Review', 'Done'],
+    taskPrefix: 't',
+    defaultPriority: 'P3',
+    defaultOwnerType: 'human',
+  },
   fields: {
     priority: false,
     assignee: false,
@@ -95,7 +101,13 @@ export function loadConfig(kandownDir: string): KandownConfig {
     const merged: KandownConfig = {
       ui: { ...DEFAULT_CONFIG.ui, ...raw.ui },
       agent: { ...DEFAULT_CONFIG.agent, ...raw.agent },
-      board: { ...DEFAULT_CONFIG.board, ...raw.board },
+      board: {
+        ...DEFAULT_CONFIG.board,
+        ...raw.board,
+        columns: Array.isArray(raw.board?.columns) && raw.board.columns.length > 0
+          ? raw.board.columns.filter((name: unknown): name is string => typeof name === 'string' && name.trim().length > 0)
+          : DEFAULT_CONFIG.board.columns,
+      },
       fields: { ...DEFAULT_CONFIG.fields, ...raw.fields },
     };
     // 📖 agents is optional — only include it if present in the file

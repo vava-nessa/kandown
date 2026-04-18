@@ -48,7 +48,15 @@
   "column": {
     "addTask": "Add task",
     "columnColor": "Column color",
-    "color": "Color"
+    "color": "Color",
+    "addColumn": "Add",
+    "addToSettings": "Add this status as a board column",
+    "createColumn": "Add column",
+    "createPrompt": "Column name",
+    "renameColumn": "Rename column",
+    "renamePrompt": "New column name",
+    "deleteColumn": "Delete column",
+    "deleteConfirm": "Delete \"{{name}}\" and its {{count}} tasks?"
   },
   "card": {
     "delete": "Delete task",
@@ -151,6 +159,8 @@
     "maxSuggestionsDesc": "Caps the number of follow-up tasks an agent may propose.",
     "taskPrefix": "Task prefix",
     "taskPrefixDesc": "Prefix for new task ids, such as t-001 or bug-001.",
+    "columns": "Columns",
+    "columnsDesc": "Comma-separated board columns stored in kandown.json.",
     "defaultPriority": "Default priority",
     "defaultPriorityDesc": "Initial priority for new tasks when the Priority field is enabled.",
     "defaultOwner": "Default owner",

@@ -65,7 +65,6 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
   const openDrawer = useStore(s => s.openDrawer);
   const deleteTask = useStore(s => s.deleteTask);
   const fields = useStore(s => s.config.fields);
-  const orphanTaskIds = useStore(s => s.orphanTaskIds);
   const [deleteArmed, setDeleteArmed] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const isMountedRef = useRef(true);
@@ -169,14 +168,6 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
           {task.id.toUpperCase()}
         </span>
         <div className="flex items-center gap-1.5">
-          {orphanTaskIds.includes(task.id) && (
-            <span
-              className="text-[12px]"
-              title={t('card.orphanWarning')}
-            >
-              ⚠️
-            </span>
-          )}
           {fields.priority && task.priority && (
             <span
               title={task.priority}

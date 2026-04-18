@@ -1,26 +1,26 @@
 /**
  * @file Markdown parser utilities
- * @description Parses Kandown board/task markdown into typed structures, extracts
- * editable subtasks, reinjects them on save, and performs lightweight cached
- * task-content search for the web UI.
+ * @description Parses Kandown task markdown into typed structures, builds board
+ * columns from task frontmatter, extracts editable subtasks, reinjects them on
+ * save, and performs lightweight cached task-content search for the web UI.
  *
  * 📖 These helpers keep the markdown files as the source of truth while giving
  * React components compact, typed data that is cheap to render and search.
  *
  * @functions
  *  → parseSimpleYaml — parses the limited frontmatter shape used by Kandown
- *  → parseBoard — parses board.md columns and task index rows
  *  → parseTaskFile — parses a task markdown file and frontmatter
+ *  → taskToBoardTask — converts a parsed task into compact board metadata
+ *  → buildColumnsFromTasks — groups parsed task files by configured columns
  *  → extractSubtasks — separates editable subtasks from task body content
  *  → injectSubtasks — writes edited subtasks back into the task body
  *  → searchTaskContent — returns contextual matches for cached task content
  *
- * @exports parseSimpleYaml, parseBoard, parseTaskFile, extractSubtasks, injectSubtasks, searchTaskContent
+ * @exports parseSimpleYaml, parseTaskFile, taskToBoardTask, buildColumnsFromTasks, extractSubtasks, injectSubtasks, searchTaskContent
  * @see src/lib/types.ts
  */
 
 import type {
-  ParsedBoard,
   ParsedTask,
   Subtask,
   BoardTask,
@@ -32,6 +32,7 @@ import type {
   SearchMatchSection,
   TaskContent,
 } from './types';
+import { DEFAULT_COLUMNS } from './types';
 
 export function parseSimpleYaml(yaml: string): Record<string, unknown> {
   const obj: Record<string, unknown> = {};
@@ -57,88 +58,6 @@ export function parseSimpleYaml(yaml: string): Record<string, unknown> {
   return obj;
 }
 
-export function parseBoard(md: string): ParsedBoard {
-  if (!md || typeof md !== 'string') {
-    return { frontmatter: null, title: 'Project Kanban', columns: [] };
-  }
-  const lines = md.split('\n');
-  const result: ParsedBoard = { frontmatter: null, title: 'Project Kanban', columns: [] };
-  let i = 0;
-
-  if (lines[0] && lines[0].trim() === '---') {
-    const fmLines: string[] = [];
-    i = 1;
-    while (i < lines.length && lines[i].trim() !== '---') {
-      fmLines.push(lines[i]);
-      i++;
-    }
-    i++;
-    result.frontmatter = parseSimpleYaml(fmLines.join('\n'));
-  }
-
-  let currentColumn: Column | null = null;
-
-  for (; i < lines.length; i++) {
-    const line = lines[i];
-    if (!line) continue;
-
-    if (/^#\s+/.test(line)) {
-      result.title = line.replace(/^#\s+/, '').trim() || 'Project Kanban';
-      continue;
-    }
-
-    const h2Match = line.match(/^##\s+(.+)$/);
-    if (h2Match) {
-      currentColumn = { name: (h2Match[1]?.trim() ?? 'Untitled'), tasks: [] };
-      result.columns.push(currentColumn);
-      continue;
-    }
-
-    const taskMatch = line.match(/^-\s+\[([ xX])\]\s+\*\*\[([^\]]+)\]\*\*\s+(.+)$/);
-    if (taskMatch && currentColumn) {
-      const checked = (taskMatch[1]?.toLowerCase() ?? '') === 'x';
-      const id = (taskMatch[2]?.trim() ?? 'unknown').replace(/^(t-\d+)$/, '$1');
-      const rest = taskMatch[3] ?? '';
-      let title = rest;
-
-      const arrowIdx = title.indexOf(' →');
-      const backtickIdx = title.indexOf(' `');
-      const parenIdx = title.search(/\s\(\d+\/\d+\)/);
-      let cutAt = -1;
-      [arrowIdx, backtickIdx, parenIdx].forEach(idx => {
-        if (idx !== -1 && (cutAt === -1 || idx < cutAt)) cutAt = idx;
-      });
-      if (cutAt !== -1) title = title.slice(0, cutAt).trim();
-
-      const tags: string[] = [];
-      let assignee: string | null = null;
-      let priority: Priority | null = null;
-      let ownerType: OwnerType = '';
-
-      const metaRegex = /`([^`]+)`/g;
-      let m: RegExpExecArray | null;
-      while ((m = metaRegex.exec(rest)) !== null) {
-        const token = m[1];
-        if (!token) continue;
-        if (token.startsWith('@')) assignee = token.slice(1);
-        else if (/^#p\d+$/i.test(token)) priority = token.slice(1).toUpperCase() as Priority;
-        else if (token.startsWith('#')) tags.push(token.slice(1));
-        else if (/^(human|ai)$/i.test(token)) ownerType = token.toLowerCase() as OwnerType;
-      }
-
-      const progMatch = rest.match(/\((\d+)\/(\d+)\)/);
-      const progress = progMatch
-        ? { done: parseInt(progMatch[1] ?? '0', 10), total: parseInt(progMatch[2] ?? '0', 10) }
-        : null;
-
-      const task: BoardTask = { id, title, checked, tags, assignee, priority, ownerType, progress };
-      currentColumn.tasks.push(task);
-    }
-  }
-
-  return result;
-}
-
 export function parseTaskFile(md: string): ParsedTask {
   if (!md || typeof md !== 'string') {
     return { frontmatter: { id: '', title: '' } as TaskFrontmatter, body: '' };
@@ -159,6 +78,83 @@ export function parseTaskFile(md: string): ParsedTask {
     return { frontmatter: fm, body };
   }
   return { frontmatter: { id: '', title: '' } as TaskFrontmatter, body: md };
+}
+
+function normalizeStatus(status: unknown): string {
+  const value = typeof status === 'string' ? status.trim() : '';
+  return value || 'Backlog';
+}
+
+function normalizePriority(priority: unknown): Priority | null {
+  if (typeof priority !== 'string') return null;
+  const value = priority.toUpperCase();
+  return /^(P1|P2|P3|P4)$/.test(value) ? value as Priority : null;
+}
+
+function normalizeOwnerType(ownerType: unknown): OwnerType {
+  if (typeof ownerType !== 'string') return '';
+  const value = ownerType.toLowerCase();
+  return value === 'human' || value === 'ai' ? value as OwnerType : '';
+}
+
+function taskOrder(task: ParsedTask): number {
+  const value = task.frontmatter.order;
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return Number.MAX_SAFE_INTEGER;
+}
+
+export function taskToBoardTask(task: ParsedTask): BoardTask {
+  const { frontmatter, body } = task;
+  const { subtasks } = extractSubtasks(body);
+  const done = subtasks.filter(s => s.done).length;
+  const total = subtasks.length;
+  const status = normalizeStatus(frontmatter.status);
+  const tags = Array.isArray(frontmatter.tags)
+    ? frontmatter.tags.filter((tag): tag is string => typeof tag === 'string' && tag.trim().length > 0)
+    : [];
+
+  return {
+    id: frontmatter.id || '',
+    title: frontmatter.title || frontmatter.id || 'Untitled task',
+    checked: /done|termin|closed|complet/i.test(status),
+    tags,
+    assignee: typeof frontmatter.assignee === 'string' && frontmatter.assignee ? frontmatter.assignee : null,
+    priority: normalizePriority(frontmatter.priority),
+    ownerType: normalizeOwnerType(frontmatter.ownerType),
+    progress: total > 0 ? { done, total } : null,
+  };
+}
+
+export function buildColumnsFromTasks(tasks: ParsedTask[], configuredColumns: string[] = DEFAULT_COLUMNS): Column[] {
+  const columnNames = configuredColumns.length > 0 ? configuredColumns : DEFAULT_COLUMNS;
+  const columnsByName = new Map<string, Column>();
+  const configured = columnNames.map(name => ({ name, tasks: [] as BoardTask[] }));
+  for (const column of configured) columnsByName.set(column.name.toLowerCase(), column);
+  const unknownColumns: Column[] = [];
+  const sortedTasks = [...tasks]
+    .filter(task => Boolean(task.frontmatter.id))
+    .sort((a, b) => {
+      const byOrder = taskOrder(a) - taskOrder(b);
+      if (byOrder !== 0) return byOrder;
+      return a.frontmatter.id.localeCompare(b.frontmatter.id, undefined, { numeric: true });
+    });
+
+  for (const task of sortedTasks) {
+    const status = normalizeStatus(task.frontmatter.status);
+    let column = columnsByName.get(status.toLowerCase());
+    if (!column) {
+      column = { name: status, tasks: [] };
+      columnsByName.set(status.toLowerCase(), column);
+      unknownColumns.push(column);
+    }
+    column.tasks.push(taskToBoardTask(task));
+  }
+
+  return [...unknownColumns, ...configured];
 }
 
 export function extractSubtasks(body: string): { subtasks: Subtask[]; bodyWithoutSubtasks: string } {

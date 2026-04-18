@@ -4,9 +4,9 @@
  * types used by the Kandown web UI and persistence layer.
  *
  * 📖 Keep cross-module contracts here so parser, serializer, store, and React
- * components agree on the same markdown-backed domain model.
+ * components agree on the same task-file-backed domain model.
  *
- * @exports Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, Filters, KandownConfig, DEFAULT_CONFIG
+ * @exports Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, Filters, KandownConfig, DEFAULT_COLUMNS, DEFAULT_CONFIG
  * @see src/lib/parser.ts
  * @see src/lib/store.ts
  */
@@ -53,6 +53,7 @@ export interface TaskFrontmatter {
   id: string;
   title: string;
   status?: string;
+  order?: number | string;
   priority?: string;
   tags?: string[];
   assignee?: string;
@@ -135,6 +136,7 @@ export interface KandownConfig {
     maxSuggestions: number;
   };
   board: {
+    columns: string[];
     taskPrefix: string;
     defaultPriority: string;
     defaultOwnerType: 'human' | 'ai';
@@ -150,10 +152,13 @@ export interface KandownConfig {
   };
 }
 
+export const DEFAULT_COLUMNS = ['Backlog', 'Todo', 'In Progress', 'Review', 'Done'];
+
 export const DEFAULT_CONFIG: KandownConfig = {
   ui: { language: 'en', theme: 'auto', skin: 'kandown', font: 'inter', background: 'solid' },
   agent: { suggestFollowUp: false, maxSuggestions: 3 },
   board: {
+    columns: DEFAULT_COLUMNS,
     taskPrefix: 't',
     defaultPriority: 'P3',
     defaultOwnerType: 'human',

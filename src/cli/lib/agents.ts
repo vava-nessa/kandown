@@ -203,9 +203,9 @@ export function buildPrompt(
     `The kandown directory is at: \`${kandownDir}\``,
     '',
     'Before anything else:',
-    `1. Move task ${taskId} to "In Progress" in \`.kandown/board.md\` (it may already be there — that\'s fine)`,
+    `1. Set task ${taskId} frontmatter status to "In Progress" (it may already be there — that\'s fine)`,
     '2. Work through each subtask, checking them off and adding reports as you go',
-    '3. When done, write the completion report and move the task to "Done"',
+    '3. When done, write the completion report and set the task status to "Done"',
   ].join('\n');
 
   return { systemPrompt, taskPrompt };

@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 /**
  * @file Kandown CLI entrypoint
- * @description Implements `kandown init`, `kandown update`, and `kandown settings`
- * for installing the single-file web app, templates, agent instructions, and
- * project-level configuration into a repository.
+ * @description Implements `kandown`, `kandown board`, `kandown init`,
+ * `kandown update`, and `kandown settings` for serving the local web UI,
+ * launching the terminal board, installing templates, and managing project
+ * configuration.
  *
  * 📖 The CLI is intentionally dependency-light: it copies built artifacts and
  * markdown templates, then wires agent docs into the host project when possible.
@@ -14,9 +15,11 @@
  *  → findAgentsFile — finds existing AI-agent instruction files
  *  → appendAgentReference — injects a Kandown task-management reference
  *  → createAgentsFileIfMissing — creates AGENTS.md when none exists
- *  → parseArgs — parses init flags
+ *  → parseArgs — parses shared CLI flags
  *  → cmdInit — installs `.kandown`
  *  → cmdUpdate — refreshes installed kandown.html
+ *  → createServeServer — creates the local zero-dependency HTTP server
+ *  → cmdServe — opens the web UI over localhost and launches the board TUI
  *  → main — dispatches CLI commands
  *
  * @exports none
@@ -24,6 +27,7 @@
 /* eslint-disable no-console */
 
 import { fileURLToPath } from 'node:url';
+import { createServer } from 'node:http';
 import { dirname, join, resolve } from 'node:path';
 import {
   existsSync,
@@ -39,6 +43,9 @@ import { spawnSync, spawn } from 'node:child_process';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const PKG_ROOT = resolve(__dirname, '..');
+// 📖 Default localhost range for the zero-config `kandown` web UI server.
+const DEFAULT_SERVE_PORT = 2048;
+const MAX_SERVE_PORT = 2060;
 
 const c = {
   reset: '\x1b[0m',
@@ -65,15 +72,19 @@ ${c.bold}Usage:${c.reset}
   npx kandown [command]
 
 ${c.bold}Commands:${c.reset}
-  ${c.cyan}(none)${c.reset}      Open the board TUI + web UI in the browser
+  ${c.cyan}(none)${c.reset}      Start local web UI server + open the board TUI
   ${c.cyan}board${c.reset}       Open the interactive kanban board in the terminal
   ${c.cyan}init${c.reset}        Initialize .kandown/ in the current directory
   ${c.cyan}settings${c.reset}    Open the settings TUI
   ${c.cyan}update${c.reset}      Update kandown.html to the latest version
   ${c.cyan}help${c.reset}        Show this help
 
+${c.bold}Options:${c.reset}
+  ${c.cyan}--port <n>${c.reset}  Preferred local HTTP port for ${c.cyan}kandown${c.reset} (default: ${DEFAULT_SERVE_PORT}-${MAX_SERVE_PORT})
+
 ${c.bold}Examples:${c.reset}
-  ${c.dim}$${c.reset} npx kandown              ${c.dim}# open board TUI + browser${c.reset}
+  ${c.dim}$${c.reset} npx kandown              ${c.dim}# local web server + board TUI${c.reset}
+  ${c.dim}$${c.reset} npx kandown --port 3000  ${c.dim}# use a specific web UI port${c.reset}
   ${c.dim}$${c.reset} npx kandown board        ${c.dim}# board TUI only${c.reset}
   ${c.dim}$${c.reset} npx kandown init
   ${c.dim}$${c.reset} npx kandown init --path docs/kanban
@@ -122,9 +133,9 @@ ${marker}
 **IMPORTANT:** Before touching any task files, you MUST read \`AGENT_KANDOWN.md\`.
 
 This project uses a file-based kanban:
-- **Start with \`${kandownPath}/board.md\`** — task index (always lean)
-- **Only open \`${kandownPath}/tasks/t-xxx.md\`** when you need full details on a specific task
-- **Completion workflow:** Move task to Done in \`board.md\` + write \`## What was done\` in the task file
+- **Tasks live in \`${kandownPath}/tasks/t-xxx.md\`** — each task file owns its status
+- **Columns live in \`${kandownPath}/kandown.json\`** under \`board.columns\`
+- **Completion workflow:** set task frontmatter \`status: Done\` + write the completion report
 `;
 
   writeFileSync(filePath, existing + ref, 'utf8');
@@ -143,19 +154,20 @@ function createAgentsFileIfMissing(cwd, kandownPath) {
 **IMPORTANT:** Before touching any task files, you MUST read \`AGENT_KANDOWN.md\`.
 
 This project uses a file-based kandown:
-- **Start with \`${kandownPath}/board.md\`** — task index (always lean)
-- **Only open \`${kandownPath}/tasks/t-xxx.md\`** when you need full details on a specific task
-- **Completion workflow:** Move task to Done in \`board.md\` + write \`## What was done\` in the task file
+- **Tasks live in \`${kandownPath}/tasks/t-xxx.md\`** — each task file owns its status
+- **Columns live in \`${kandownPath}/kandown.json\`** under \`board.columns\`
+- **Completion workflow:** set task frontmatter \`status: Done\` + write the completion report
 `;
   writeFileSync(agentsPath, content, 'utf8');
   return true;
 }
 
 function parseArgs(argv) {
-  const args = { path: '.kandown', noAgents: false, force: false };
+  const args = { path: '.kandown', noAgents: false, force: false, port: null };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--path' || a === '-p') args.path = argv[++i];
+    else if (a === '--port') args.port = argv[++i];
     else if (a === '--no-agents') args.noAgents = true;
     else if (a === '--force' || a === '-f') args.force = true;
   }
@@ -192,12 +204,6 @@ function cmdInit(rawArgs) {
 
   // Copy templates
   const templatesDir = join(PKG_ROOT, 'templates');
-  if (!existsSync(join(kandownDir, 'board.md'))) {
-    copyFileSync(join(templatesDir, 'board.md'), join(kandownDir, 'board.md'));
-    success('board.md');
-  } else {
-    warn('board.md already exists (kept)');
-  }
   if (!existsSync(join(kandownDir, 'AGENT.md'))) {
     copyFileSync(join(templatesDir, 'AGENT.md'), join(kandownDir, 'AGENT.md'));
     success('AGENT.md');
@@ -290,6 +296,155 @@ function cmdUpdate(rawArgs) {
   success(`Updated ${args.path}/kandown.html`);
 }
 
+function parsePort(value) {
+  if (value === null) return null;
+  const port = Number(value);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    err(`Invalid port: ${c.bold}${value}${c.reset}`);
+    log(`  Use ${c.cyan}--port <1-65535>${c.reset}.`);
+    process.exit(1);
+  }
+  return port;
+}
+
+function writeText(res, status, body, headers = {}) {
+  res.writeHead(status, {
+    'Content-Type': 'text/plain; charset=utf-8',
+    ...headers,
+  });
+  res.end(body);
+}
+
+function apiHeaders() {
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+}
+
+function handleCors(res) {
+  res.writeHead(204, apiHeaders());
+  res.end();
+}
+
+function handleApi(req, res) {
+  writeText(res, 501, 'Not Implemented', apiHeaders());
+}
+
+function serveApp(res, kandownDir) {
+  const htmlPath = join(kandownDir, 'kandown.html');
+  if (!existsSync(htmlPath)) {
+    writeText(res, 404, 'kandown.html not found');
+    return;
+  }
+
+  try {
+    const html = readFileSync(htmlPath, 'utf8');
+    const injected = html.replace(
+      '</head>',
+      `<script>window.__KANDOWN_ROOT__ = ${JSON.stringify(kandownDir)};</script>\n</head>`,
+    );
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(injected);
+  } catch (e) {
+    writeText(res, 500, `Failed to serve kandown.html: ${e.message}`);
+  }
+}
+
+/**
+ * 📖 Creates the local HTTP server used by `kandown` with no arguments.
+ * It serves the single-file web app and exposes placeholder API routes for the
+ * follow-up REST task, keeping this refactor limited to server bootstrapping.
+ */
+function createServeServer(kandownDir) {
+  return createServer((req, res) => {
+    const requestUrl = new URL(req.url || '/', 'http://localhost');
+    if (req.method === 'OPTIONS') return handleCors(res);
+    if (requestUrl.pathname === '/') return serveApp(res, kandownDir);
+    if (requestUrl.pathname.startsWith('/api/')) return handleApi(req, res, requestUrl, kandownDir);
+    return writeText(res, 404, 'Not found');
+  });
+}
+
+function listen(server, port) {
+  return new Promise((resolveListen, rejectListen) => {
+    const onError = (e) => {
+      server.off('listening', onListening);
+      rejectListen(e);
+    };
+    const onListening = () => {
+      server.off('error', onError);
+      resolveListen();
+    };
+    server.once('error', onError);
+    server.once('listening', onListening);
+    server.listen(port, '127.0.0.1');
+  });
+}
+
+async function listenOnAvailablePort(kandownDir, preferredPort) {
+  const startPort = preferredPort ?? DEFAULT_SERVE_PORT;
+  const endPort = preferredPort ?? MAX_SERVE_PORT;
+
+  for (let port = startPort; port <= endPort; port++) {
+    const server = createServeServer(kandownDir);
+    try {
+      await listen(server, port);
+      return { server, port };
+    } catch (e) {
+      if (e.code !== 'EADDRINUSE') throw e;
+    }
+  }
+
+  const range = preferredPort === null
+    ? `${DEFAULT_SERVE_PORT}-${MAX_SERVE_PORT}`
+    : String(preferredPort);
+  err(`No free port available in ${c.bold}${range}${c.reset}.`);
+  process.exit(1);
+}
+
+/**
+ * 📖 Starts the local web UI server, opens it in the browser, then hands the
+ * terminal to the board TUI. The server intentionally stays in this process so
+ * the browser can keep talking to localhost while the terminal board is active.
+ */
+async function cmdServe(rawArgs) {
+  const args = parseArgs(rawArgs);
+  const cwd = process.cwd();
+  const hasExplicitPath = rawArgs.includes('--path') || rawArgs.includes('-p');
+  const explicitKandownDir = resolve(cwd, args.path);
+  const kandownDir = hasExplicitPath || existsSync(explicitKandownDir)
+    ? explicitKandownDir
+    : findKandownDir(cwd);
+  if (!kandownDir || !existsSync(kandownDir)) {
+    const missingPath = hasExplicitPath ? args.path : '.kandown/';
+    err(`No ${c.bold}${missingPath}${c.reset} directory found.`);
+    log(`  Run ${c.cyan}npx kandown init${c.reset} to set up kandown in this project.`);
+    process.exit(1);
+  }
+
+  const preferredPort = parsePort(args.port);
+  const { server, port } = await listenOnAvailablePort(kandownDir, preferredPort);
+  const url = `http://localhost:${port}`;
+
+  const shutdown = () => {
+    server.close(() => process.exit(0));
+  };
+  process.once('SIGINT', shutdown);
+  process.once('SIGTERM', shutdown);
+
+  success(`Web UI: ${url}`);
+  info(`Project: ${kandownDir}`);
+  openInBrowser(url);
+  try {
+    const tuiArgs = kandownDir === explicitKandownDir ? rawArgs : ['--path', kandownDir, ...rawArgs];
+    await cmdTui('board', tuiArgs);
+  } finally {
+    server.close();
+  }
+}
+
 /**
  * 📖 Opens a file path in the system default browser/app.
  * Non-blocking — spawns the opener and returns immediately.
@@ -302,7 +457,9 @@ function openInBrowser(filePath) {
       ? 'cmd'
       : 'xdg-open';
   const args = process.platform === 'win32' ? ['/c', 'start', '', filePath] : [filePath];
-  spawn(opener, args, { detached: true, stdio: 'ignore' }).unref();
+  const child = spawn(opener, args, { detached: true, stdio: 'ignore' });
+  child.on('error', (e) => warn(`Could not open browser automatically: ${e.message}`));
+  child.unref();
 }
 
 /**
@@ -349,11 +506,11 @@ switch (cmd) {
 
   case 'board':
     // 📖 kandown board — open the interactive kanban board TUI only
-    cmdTui('board', rest);
+    await cmdTui('board', rest);
     break;
 
   case 'settings':
-    cmdTui('settings', rest);
+    await cmdTui('settings', rest);
     break;
 
   case 'update':
@@ -366,27 +523,16 @@ switch (cmd) {
     help();
     break;
 
-  case undefined: {
-    // 📖 kandown (no args) — open the board TUI AND the web UI in the browser simultaneously.
-    // The browser opens non-blocking so the TUI can take over the terminal right after.
-    const cwd = process.cwd();
-    const kandownDir = findKandownDir(cwd);
-    if (!kandownDir) {
-      err(`No ${c.bold}.kandown/${c.reset} directory found.`);
-      log(`  Run ${c.cyan}npx kandown init${c.reset} to set up kandown in this project.`);
-      process.exit(1);
-    }
-    const htmlPath = join(kandownDir, 'kandown.html');
-    if (existsSync(htmlPath)) {
-      openInBrowser(htmlPath);
-      info(`Opened ${c.bold}kandown.html${c.reset} in browser`);
-    }
-    // Launch the board TUI (replaces this process / opens in terminal)
-    cmdTui('board', rest);
+  case undefined:
+    // 📖 kandown (no args) — serve the web UI over localhost and open the board TUI.
+    await cmdServe(rest);
     break;
-  }
 
   default:
+    if (cmd.startsWith('-')) {
+      await cmdServe([cmd, ...rest]);
+      break;
+    }
     err(`Unknown command: ${cmd}`);
     help();
     process.exit(1);

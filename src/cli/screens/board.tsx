@@ -1,7 +1,8 @@
 /**
  * @file TUI Board Screen
- * @description Interactive kanban board for the Kandown CLI. Renders all columns and
- * tasks from board.md with keyboard navigation, task detail view, and AI agent launch.
+ * @description Interactive kanban board for the Kandown CLI. Renders all columns
+ * and tasks derived from task frontmatter with keyboard navigation, task detail
+ * view, and AI agent launch.
  *
  * 📖 Modes:
  *  - 'browse'       — main board view, navigate columns and tasks
@@ -26,7 +27,7 @@
  *  → Board — main screen component
  *
  * @exports Board
- * @see src/cli/lib/board-reader.ts — reads board.md and task files
+ * @see src/cli/lib/board-reader.ts — scans task files and builds columns
  * @see src/cli/lib/agents.ts       — agent registry and detection
  * @see src/cli/lib/launcher.ts     — process spawning
  * @see src/cli/screens/agent-picker.tsx — agent selection overlay
