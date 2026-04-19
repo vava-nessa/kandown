@@ -40,7 +40,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # 📖 Extract changelog section for this version
+          # 📖 Skip if release already exists (created by bump workflow)
+          if gh release view "$GITHUB_REF_NAME" &>/dev/null; then
+            echo "Release $GITHUB_REF_NAME already exists, skipping."
+            exit 0
+          fi
           VERSION="${GITHUB_REF_NAME#v}"
           NOTES=$(awk "/^## ${VERSION}/,/^## [0-9]/" CHANGELOG.md | head -n -1)
           gh release create "$GITHUB_REF_NAME" \
