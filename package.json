@@ -1,6 +1,6 @@
 {
   "name": "kandown",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "File-based Kanban engine backed by Markdown. Zero backend, AI-agent friendly.",
   "type": "module",
   "bin": {
@@ -40,32 +40,30 @@
     "typecheck": "tsc --noEmit",
     "sync:agent": "node scripts/sync-agent-kandown.js"
   },
-  "dependencies": {
-    "@tabler/icons-react": "3.41.1",
-    "@wysimark/react": "3.0.20",
-    "i18next": "26.0.5",
-    "ink": "7.0.1",
-    "marked": "18.0.2",
-    "motion": "^12.38.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-i18next": "17.0.4",
-    "three": "^0.171.0",
-    "zustand": "^5.0.0"
-  },
   "devDependencies": {
+    "@tabler/icons-react": "3.41.1",
     "@types/node": "25.6.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/three": "0.182.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "@wysimark/react": "3.0.20",
     "autoprefixer": "^10.4.20",
+    "i18next": "26.0.5",
+    "ink": "7.0.1",
+    "marked": "18.0.2",
+    "motion": "^12.38.0",
     "postcss": "^8.5.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-i18next": "17.0.4",
     "tailwindcss": "^3.4.17",
+    "three": "^0.171.0",
     "tsup": "8.5.1",
     "typescript": "^5.7.3",
     "vite": "^6.0.7",
-    "vite-plugin-singlefile": "^2.1.0"
+    "vite-plugin-singlefile": "^2.1.0",
+    "zustand": "^5.0.0"
   },
   "engines": {
     "node": ">=18"

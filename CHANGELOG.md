@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2 — 2026-04-19 — "Zero Deps"
+
+- **Fixed**: `npx kandown init` was hanging because npm had to install 11 runtime dependencies (React, Three.js, Ink, etc.) before running the CLI. All dependencies are now bundled into the CLI binary — the published package has zero runtime deps.
+- Moved all dependencies to devDependencies — the web app and TUI are fully pre-built.
+- Added auto-bump rule to AGENTS.md for critical bug fixes.
+
 ## 0.1.1 — 2026-04-19 — "Release Pipeline"
 
 - Added pre-release warning banner in README.

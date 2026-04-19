@@ -41,7 +41,9 @@ The `AGENT_KANDOWN_COMPACT.md` at the root is auto-generated from the full doc a
 
 ## Version Bump & Release (the "bump" command)
 
-When the user says **"bump"**, follow this exact workflow:
+When the user says **"bump"**, follow this exact workflow.
+
+**Auto-bump rule:** For critical bug fixes or broken functionality (e.g. CLI crash, install failure, broken build), the agent MAY bump a patch version and publish without asking. This applies only to patches that fix something clearly broken — never for features, refactors, or subjective improvements.
 
 ### 1. Determine the version increment
 

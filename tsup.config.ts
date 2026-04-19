@@ -18,11 +18,13 @@ export default defineConfig({
   splitting: false,
   sourcemap: false,
   dts: false,
-  // 📖 Keep runtime deps external — they're in package.json dependencies
-  external: ['react', 'react-dom', 'ink', 'yoga-wasm-web'],
+  // 📖 Bundle everything — the npm package ships with zero runtime deps.
+  noExternal: [/.*/],
   tsconfig: 'tsconfig.cli.json',
   esbuildOptions(options) {
     // 📖 Use automatic JSX transform (react-jsx) — no need to import React
     options.jsx = 'automatic';
+    // 📖 react-devtools-core is an optional peer dep of Ink, never installed at runtime
+    options.external = [...(options.external || []), 'react-devtools-core'];
   },
 });
