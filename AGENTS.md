@@ -53,9 +53,17 @@ When the user says **"bump"**, follow this exact workflow:
   - **major** (0.1.0 → 1.0.0): breaking changes, architecture rewrites
 - If unsure, ask the user: "patch, minor, or major?"
 
+### 1b. Version name
+
+Every release has a short **name** — a 1–3 word label capturing the main change (e.g. "Pre-Alpha", "Content Search", "TUI Agents").
+
+- If the user provides a name, use it as-is.
+- If the user forgot, **suggest one** based on the biggest change in the release and ask for confirmation.
+- The name goes in the changelog heading and the git tag annotation.
+
 ### 2. Update CHANGELOG.md
 
-- Add a new `## <version> — <YYYY-MM-DD>` section at the top (below `# Changelog`).
+- Add a new `## <version> — <YYYY-MM-DD> — "<name>"` section at the top (below `# Changelog`).
 - Summarize all commits since the last release as bullet points, grouped by type:
   - **Added**: new features
   - **Fixed**: bug fixes
@@ -81,11 +89,19 @@ If build fails, fix it before continuing.
 
 ```bash
 git add package.json CHANGELOG.md
-git commit -m "release: v<NEW_VERSION>"
-git tag v<NEW_VERSION>
+# IMPORTANT: The commit message MUST include the full changelog section for this version in the body.
+git commit -m "$(cat <<'EOF'
+release: v<NEW_VERSION> — <NAME>
+
+<paste the full changelog section for this version here, without the ## heading>
+EOF
+)"
+git tag -a v<NEW_VERSION> -m "v<NEW_VERSION> — <NAME>"
 git push origin main
 git push origin v<NEW_VERSION>
 ```
+
+**The changelog MUST be attached to the commit message body.** This is non-negotiable — every release commit must carry its full changelog so `git log` is self-documenting.
 
 The `v*` tag push triggers `.github/workflows/publish.yml` which:
 1. Builds the project
@@ -101,8 +117,10 @@ The `v*` tag push triggers `.github/workflows/publish.yml` which:
 
 ```
 User: bump
-Agent: Looking at 5 commits since v0.1.0... all bug fixes → patch bump to 0.1.1.
-       Updated CHANGELOG.md, bumped package.json, built, committed, tagged v0.1.1, pushed.
+Agent: 5 commits since v0.1.0 — new search feature + fixes → minor bump to 0.2.0.
+       Name suggestion: "Content Search" — OK?
+User: yes
+Agent: Updated CHANGELOG.md, bumped package.json, built, committed, tagged v0.2.0, pushed.
 ```
 
 ---
