@@ -30,6 +30,7 @@ interface CommandItem {
   preview?: SearchMatch[];
   category: 'task' | 'action' | 'view';
   onSelect: () => void;
+  boldPrefix?: boolean;
 }
 
 function HighlightedText({ text, keyword }: { text: string; keyword: string }) {
