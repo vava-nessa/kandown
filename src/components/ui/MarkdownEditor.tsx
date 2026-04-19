@@ -83,7 +83,7 @@ export function MarkdownEditor({
       >
         {value ? (
           <div
-            className="prose prose-sm max-w-none px-3 py-2.5 text-fg text-[14px] leading-relaxed font-sans"
+            className="markdown-content prose prose-sm max-w-none px-3 py-2.5 text-[14px] leading-relaxed font-sans"
             dangerouslySetInnerHTML={{ __html: renderedHtml as string }}
           />
         ) : (
@@ -106,7 +106,7 @@ export function MarkdownEditor({
         {value ? (
           <>
             <div
-              className="prose prose-sm max-w-none px-3 py-2.5 text-fg text-[14px] leading-relaxed font-sans"
+              className="markdown-content prose prose-sm max-w-none px-3 py-2.5 text-[14px] leading-relaxed font-sans"
               dangerouslySetInnerHTML={{ __html: renderedHtml as string }}
             />
             <button
@@ -130,7 +130,7 @@ export function MarkdownEditor({
     );
   }
 
-  return (
+return (
     <div className="border border-border-focus rounded-[6px] overflow-hidden">
       <div className="flex items-center justify-between px-2 py-1 bg-bg-2 border-b border-border">
         <span className="text-[11px] text-fg-muted font-medium uppercase tracking-wide">
@@ -145,14 +145,16 @@ export function MarkdownEditor({
           Preview
         </button>
       </div>
-      <Editable
-        editor={editor}
-        value={value}
-        onChange={handleChange}
-        placeholder={placeholder}
-        style={{ minHeight: `calc(${minHeight} - 36px)` }}
-        className="px-3 py-2 text-[14px]"
-      />
+      <div className="bg-bg">
+        <Editable
+          editor={editor}
+          value={value}
+          onChange={handleChange}
+          placeholder={placeholder}
+          style={{ minHeight: `calc(${minHeight} - 36px)` }}
+          className="px-3 py-2 text-[14px] markdown-content"
+        />
+      </div>
     </div>
   );
 }

@@ -55,6 +55,82 @@
     font-size: 18px;
   }
 
+  /* Inverts markdown preview text/fg so it's readable:
+     dark mode → white text on dark bg, light mode → black text on light bg */
+  .markdown-content,
+  .wysimark-editor-content {
+    color: hsl(var(--foreground)) !important;
+  }
+  .markdown-content :is(h1, h2, h3, h4, h5, h6, p),
+  .wysimark-editor-content :is(h1, h2, h3, h4, h5, h6, p) {
+    color: hsl(var(--foreground)) !important;
+  }
+  .markdown-content a,
+  .wysimark-editor-content a {
+    color: hsl(var(--primary)) !important;
+  }
+  .markdown-content strong,
+  .wysimark-editor-content strong {
+    color: hsl(var(--foreground)) !important;
+  }
+  .markdown-content em,
+  .wysimark-editor-content em {
+    color: hsl(var(--foreground)) !important;
+  }
+  .markdown-content code,
+  .wysimark-editor-content code {
+    color: hsl(var(--foreground)) !important;
+    background: hsl(var(--muted)) !important;
+    border-radius: 3px;
+    padding: 0.1em 0.3em;
+  }
+  .markdown-content pre,
+  .wysimark-editor-content pre {
+    background: hsl(var(--muted)) !important;
+    border-radius: 6px;
+    padding: 0.75em 1em;
+  }
+  .markdown-content pre code,
+  .wysimark-editor-content pre code {
+    background: transparent !important;
+    padding: 0;
+  }
+  .markdown-content ul,
+  .markdown-content ol,
+  .wysimark-editor-content ul,
+  .wysimark-editor-content ol {
+    color: hsl(var(--foreground)) !important;
+  }
+  .markdown-content li::marker,
+  .wysimark-editor-content li::marker {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+  .markdown-content blockquote,
+  .wysimark-editor-content blockquote {
+    border-left: 3px solid hsl(var(--border-focus)) !important;
+    color: hsl(var(--muted-foreground)) !important;
+    padding-left: 1em;
+  }
+  .markdown-content hr,
+  .wysimark-editor-content hr {
+    border-color: hsl(var(--border)) !important;
+  }
+  .markdown-content table,
+  .wysimark-editor-content table {
+    border-color: hsl(var(--border)) !important;
+  }
+  .markdown-content th,
+  .markdown-content td,
+  .wysimark-editor-content th,
+  .wysimark-editor-content td {
+    border-color: hsl(var(--border)) !important;
+    color: hsl(var(--foreground)) !important;
+  }
+  .markdown-content img,
+  .wysimark-editor-content img {
+    border-radius: 6px;
+  }
+
   /* Subtle grid pattern background on board */
   .board-bg {
     background-image:
@@ -91,6 +167,21 @@
 }
 
 @layer components {
+  /* Override prose colors so markdown-content can control them via CSS vars */
+  .prose {
+    --tw-prose-body: hsl(var(--foreground));
+    --tw-prose-headings: hsl(var(--foreground));
+    --tw-prose-links: hsl(var(--primary));
+    --tw-prose-bold: hsl(var(--foreground));
+    --tw-prose-em: hsl(var(--foreground));
+    --tw-prose-code: hsl(var(--foreground));
+    --tw-prose-pre-bg: hsl(var(--muted));
+    --tw-prose-pre-code: hsl(var(--foreground));
+    --tw-prose-quotes: hsl(var(--muted-foreground));
+    --tw-prose-hr: hsl(var(--border));
+    --tw-prose-th-borders: hsl(var(--border));
+    --tw-prose-td-borders: hsl(var(--border));
+  }
   .glass {
     background: hsl(var(--glass));
     backdrop-filter: blur(20px) saturate(180%);

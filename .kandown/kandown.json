@@ -1,8 +1,8 @@
 {
   "ui": {
     "language": "en",
-    "theme": "dark",
-    "skin": "kandown",
+    "theme": "light",
+    "skin": "cobalt",
     "font": "system",
     "background": "solid"
   },
@@ -26,7 +26,7 @@
       "todo": "cyan",
       "review": "cyan",
       "done": "pink",
-      "doing": "emerald"
+      "doing": "amber"
     }
   },
   "fields": {

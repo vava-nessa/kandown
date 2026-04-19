@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.0 — 2026-04-19
 
 - Refactored Kandown to derive boards from `tasks/*.md` task frontmatter instead of a separate board index, with custom columns stored in `kandown.json`, unknown-status columns surfaced in the UI, and multiline task reports preserved on save.
 - Added configurable web notifications for task status changes, debounced task-file edits, completed subtasks, and in-page notification sounds, with matching web and TUI settings.

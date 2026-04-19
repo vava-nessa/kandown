@@ -21,7 +21,15 @@
     "local-first",
     "file-over-app"
   ],
-  "author": "",
+  "author": "Vanessa Depraute (https://github.com/vava-nessa)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vava-nessa/kandown.git"
+  },
+  "homepage": "https://github.com/vava-nessa/kandown#readme",
+  "bugs": {
+    "url": "https://github.com/vava-nessa/kandown/issues"
+  },
   "license": "MIT",
   "scripts": {
     "dev": "node scripts/sync-agent-kandown.js && vite",

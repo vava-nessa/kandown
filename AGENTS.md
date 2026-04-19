@@ -39,6 +39,74 @@ The `AGENT_KANDOWN_COMPACT.md` at the root is auto-generated from the full doc a
 
 ---
 
+## Version Bump & Release (the "bump" command)
+
+When the user says **"bump"**, follow this exact workflow:
+
+### 1. Determine the version increment
+
+- Read the current version from `package.json` → `version` field.
+- Look at commits since the last version tag (`git log $(git describe --tags --abbrev=0 2>/dev/null || echo "HEAD~20")..HEAD --oneline`).
+- Decide the increment:
+  - **patch** (0.1.0 → 0.1.1): bug fixes, typos, small improvements
+  - **minor** (0.1.0 → 0.2.0): new features, new commands, UI additions
+  - **major** (0.1.0 → 1.0.0): breaking changes, architecture rewrites
+- If unsure, ask the user: "patch, minor, or major?"
+
+### 2. Update CHANGELOG.md
+
+- Add a new `## <version> — <YYYY-MM-DD>` section at the top (below `# Changelog`).
+- Summarize all commits since the last release as bullet points, grouped by type:
+  - **Added**: new features
+  - **Fixed**: bug fixes
+  - **Changed**: improvements, refactors
+  - **Removed**: deleted features or code
+- Keep entries concise (one line each). Don't list every file touched — describe what changed for the user.
+
+### 3. Bump package.json version
+
+```bash
+npm version <patch|minor|major> --no-git-tag-version
+```
+
+### 4. Build & verify
+
+```bash
+pnpm build
+```
+
+If build fails, fix it before continuing.
+
+### 5. Commit, tag, and push
+
+```bash
+git add package.json CHANGELOG.md
+git commit -m "release: v<NEW_VERSION>"
+git tag v<NEW_VERSION>
+git push origin main
+git push origin v<NEW_VERSION>
+```
+
+The `v*` tag push triggers `.github/workflows/publish.yml` which:
+1. Builds the project
+2. Publishes to npm (`npm publish --access public`)
+3. Creates a GitHub Release with the changelog section attached
+
+### Prerequisites
+
+- The repo must have an `NPM_TOKEN` secret set in GitHub → Settings → Secrets → Actions.
+- The user must have push access to `main`.
+
+### Example
+
+```
+User: bump
+Agent: Looking at 5 commits since v0.1.0... all bug fixes → patch bump to 0.1.1.
+       Updated CHANGELOG.md, bumped package.json, built, committed, tagged v0.1.1, pushed.
+```
+
+---
+
 ## Architecture Summary
 
 | File | Role | Editable? |

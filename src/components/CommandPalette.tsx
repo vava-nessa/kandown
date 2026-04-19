@@ -22,6 +22,7 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
 import { useStore } from '../lib/store';
 import type { SearchMatch } from '../lib/types';
+import { searchTaskContent } from '../lib/parser';
 
 interface CommandItem {
   id: string;
@@ -179,7 +180,6 @@ export function CommandPalette() {
       const taskId = cmd.id.replace('task:', '');
       const content = taskContents.get(taskId);
       if (!content) continue;
-      const { searchTaskContent } = require('../lib/parser');
       const found = searchTaskContent(content, q);
       if (found.length > 0) matches.set(taskId, found);
     }
@@ -304,7 +304,7 @@ export function CommandPalette() {
                               isSelected ? 'bg-bg-3 text-fg' : 'text-fg-dim'
                             }`}
                           >
-                            <span className="truncate">{cmd.label}</span>
+                            <span className={`truncate ${cmd.boldPrefix ? 'font-bold' : ''}`}>{cmd.label}</span>
                             {cmd.hint && (
                               <span className="text-[12px] text-fg-muted ml-2 flex-shrink-0">
                                 {cmd.hint}
