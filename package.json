@@ -1,10 +1,10 @@
 {
   "name": "kandown",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "File-based Kanban engine backed by Markdown. Zero backend, AI-agent friendly.",
   "type": "module",
   "bin": {
-    "kandown": "./bin/kandown.js"
+    "kandown": "bin/kandown.js"
   },
   "files": [
     "dist",
@@ -24,7 +24,7 @@
   "author": "Vanessa Depraute (https://github.com/vava-nessa)",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vava-nessa/kandown.git"
+    "url": "git+https://github.com/vava-nessa/kandown.git"
   },
   "homepage": "https://github.com/vava-nessa/kandown#readme",
   "bugs": {

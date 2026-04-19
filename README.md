@@ -4,6 +4,8 @@
 
 # Kandown
 
+> **⚠️ This project is not finished yet. V1 coming soon.**
+
 A file-based Kanban engine backed by plain markdown. Zero backend, zero database, no account, AI-agent friendly.
 
 Kandown installs a self-contained web app into a project folder. The app reads and writes local markdown files through the browser File System Access API, so your board stays in your repo, remains git-diffable, and can be edited by humans or AI agents without a hosted service.

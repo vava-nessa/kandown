@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1 — 2026-04-19 — "Release Pipeline"
+
+- Added pre-release warning banner in README.
+- Fixed `package.json` bin path and repository URL normalization (`npm pkg fix`).
+- Added GitHub Actions workflow for automated npm publishing on version tags.
+- Added version name system and changelog-in-commit-body requirement to bump instructions.
+
 ## 0.1.0 — 2026-04-19 — "Pre-Alpha"
 
 First release. File-based Kanban engine backed by plain markdown — zero backend, zero database, no account, AI-agent friendly.
