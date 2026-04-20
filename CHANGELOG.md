@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.4 — 2026-04-20 — "Zero-Step Launch"
+
+- **Changed**: `npx kandown` now auto-inits `.kandown/` if not found — zero manual setup required.
+- **Fixed**: TUI crashed on fresh install with `Cannot find package 'react-devtools-core'`.
+- **Fixed**: TUI crashed with `Dynamic require of "assert" is not supported` in Node.js ESM context — added `signal-exit` as explicit dep and `globalThis.require = createRequire()` shim so bundled CJS shims work in ESM.
+- **Fixed**: `self is not defined` error — added `self`/`window` polyfills and `DEV=false` to prevent Ink from loading react-devtools-core in non-dev environments.
+- Added `signal-exit` to `dependencies` to ensure it's available at runtime.
+
 ## 0.1.3 — 2026-04-20 — "CLI Launch Fix"
 
 - **Fixed**: TUI crashed on fresh install with `Cannot find package 'react-devtools-core'` — promoted `react-devtools-core` from optional peer dep to regular dependency so npm installs it for users.

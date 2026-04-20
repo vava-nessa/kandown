@@ -25,6 +25,16 @@
  * @exports none
  */
 /* eslint-disable no-console */
+// 📖 DEV=false prevents Ink from loading react-devtools-core (CJS-only, breaks ESM).
+// Must be set BEFORE any imports because ESM hoists all import statements.
+process.env.DEV = 'false';
+// 📖 Polyfill browser globals that some bundled modules expect.
+if (typeof globalThis.self === 'undefined') Object.defineProperty(globalThis, 'self', { value: globalThis });
+if (typeof globalThis.window === 'undefined') Object.defineProperty(globalThis, 'window', { value: globalThis });
+// 📖 Make require() available in this ESM module so bundled __require() shims work.
+// tsup's __require checks `typeof require !== "undefined"` — this makes it truthy.
+import { createRequire } from 'node:module';
+globalThis.require = createRequire(import.meta.url);
 
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'node:http';
@@ -174,35 +184,40 @@ function parseArgs(argv) {
   return args;
 }
 
-function cmdInit(rawArgs) {
+/**
+ * @returns {{ kandownDir: string, alreadyExisted: boolean }} — resolves the
+ * kandown directory and auto-inits it if it doesn't exist (no prompt, silent init).
+ */
+function ensureKandownDir(rawArgs) {
   const args = parseArgs(rawArgs);
   const cwd = process.cwd();
+  const explicitPath = rawArgs.includes('--path') || rawArgs.includes('-p');
   const kandownDir = resolve(cwd, args.path);
-  const kandownPath = args.path;
+
+  if (existsSync(kandownDir)) return { kandownDir, alreadyExisted: true };
 
   log('');
-  info(`Installing kandown in ${c.bold}${kandownPath}/${c.reset}`);
-  log('');
+  info(`No .kandown/ found — auto-installing...`);
+  doInit(args, cwd, args.path, kandownDir);
+  return { kandownDir, alreadyExisted: false };
+}
 
-  if (existsSync(kandownDir) && !args.force) {
-    err(`Directory ${c.bold}${kandownPath}/${c.reset} already exists.`);
-    log(`  Use ${c.cyan}--force${c.reset} to overwrite or ${c.cyan}--path <dir>${c.reset} for another location.`);
-    process.exit(1);
-  }
-
+/**
+ * Performs the actual init work. Returns on error (does not exit).
+ * @returns {boolean} true if init succeeded, false otherwise.
+ */
+function doInit(args, cwd, kandownPath, kandownDir) {
   mkdirSync(kandownDir, { recursive: true });
 
-  // Copy kandown.html from dist
   const htmlSrc = join(PKG_ROOT, 'dist', 'index.html');
   const htmlDest = join(kandownDir, 'kandown.html');
   if (!existsSync(htmlSrc)) {
     err(`Missing build output at ${htmlSrc}. Did you run 'npm run build'?`);
-    process.exit(1);
+    return false;
   }
   copyFileSync(htmlSrc, htmlDest);
   success('kandown.html');
 
-  // Copy templates
   const templatesDir = join(PKG_ROOT, 'templates');
   if (!existsSync(join(kandownDir, 'AGENT.md'))) {
     copyFileSync(join(templatesDir, 'AGENT.md'), join(kandownDir, 'AGENT.md'));
@@ -222,7 +237,6 @@ function cmdInit(rawArgs) {
     info('tasks/ already exists (kept)');
   }
 
-  // 📖 Copy kandown.json config file (project preferences for UI, agent, fields)
   if (!existsSync(join(kandownDir, 'kandown.json'))) {
     copyFileSync(join(templatesDir, 'kandown.json'), join(kandownDir, 'kandown.json'));
     success('kandown.json');
@@ -230,7 +244,6 @@ function cmdInit(rawArgs) {
     info('kandown.json already exists (kept)');
   }
 
-  // Copy AGENT_KANDOWN.md to project root (not inside .kandown/)
   const agentKandownSrc = join(templatesDir, 'AGENT_KANDOWN.md');
   const agentKandownDest = join(cwd, 'AGENT_KANDOWN.md');
   if (!existsSync(agentKandownDest)) {
@@ -240,7 +253,6 @@ function cmdInit(rawArgs) {
     info('AGENT_KANDOWN.md already exists at project root (kept)');
   }
 
-  // 📖 Copy the compact agent doc — used by the CLI board launcher for system prompt injection
   const compactSrc = join(templatesDir, 'AGENT_KANDOWN_COMPACT.md');
   const compactDest = join(cwd, 'AGENT_KANDOWN_COMPACT.md');
   if (existsSync(compactSrc) && !existsSync(compactDest)) {
@@ -248,7 +260,6 @@ function cmdInit(rawArgs) {
     success('AGENT_KANDOWN_COMPACT.md (at project root)');
   }
 
-  // Integrate with AGENTS.md / CLAUDE.md
   if (!args.noAgents) {
     log('');
     const existingAgents = findAgentsFile(cwd);
@@ -260,6 +271,27 @@ function cmdInit(rawArgs) {
       if (created) success(`Created ${c.bold}AGENTS.md${c.reset} with kandown reference`);
     }
   }
+
+  return true;
+}
+
+function cmdInit(rawArgs) {
+  const args = parseArgs(rawArgs);
+  const cwd = process.cwd();
+  const kandownPath = args.path;
+  const kandownDir = resolve(cwd, kandownPath);
+
+  log('');
+  info(`Installing kandown in ${c.bold}${kandownPath}/${c.reset}`);
+  log('');
+
+  if (existsSync(kandownDir) && !args.force) {
+    err(`Directory ${c.bold}${kandownPath}/${c.reset} already exists.`);
+    log(`  Use ${c.cyan}--force${c.reset} to overwrite or ${c.cyan}--path <dir>${c.reset} for another location.`);
+    process.exit(1);
+  }
+
+  if (!doInit(args, cwd, kandownPath, kandownDir)) process.exit(1);
 
   log('');
   log(`${c.green}${c.bold}Done.${c.reset}`);
@@ -410,21 +442,9 @@ async function listenOnAvailablePort(kandownDir, preferredPort) {
  * the browser can keep talking to localhost while the terminal board is active.
  */
 async function cmdServe(rawArgs) {
-  const args = parseArgs(rawArgs);
-  const cwd = process.cwd();
-  const hasExplicitPath = rawArgs.includes('--path') || rawArgs.includes('-p');
-  const explicitKandownDir = resolve(cwd, args.path);
-  const kandownDir = hasExplicitPath || existsSync(explicitKandownDir)
-    ? explicitKandownDir
-    : findKandownDir(cwd);
-  if (!kandownDir || !existsSync(kandownDir)) {
-    const missingPath = hasExplicitPath ? args.path : '.kandown/';
-    err(`No ${c.bold}${missingPath}${c.reset} directory found.`);
-    log(`  Run ${c.cyan}npx kandown init${c.reset} to set up kandown in this project.`);
-    process.exit(1);
-  }
+  const { kandownDir } = ensureKandownDir(rawArgs);
 
-  const preferredPort = parsePort(args.port);
+  const preferredPort = parsePort(parseArgs(rawArgs).port);
   const { server, port } = await listenOnAvailablePort(kandownDir, preferredPort);
   const url = `http://localhost:${port}`;
 
@@ -438,8 +458,7 @@ async function cmdServe(rawArgs) {
   info(`Project: ${kandownDir}`);
   openInBrowser(url);
   try {
-    const tuiArgs = kandownDir === explicitKandownDir ? rawArgs : ['--path', kandownDir, ...rawArgs];
-    await cmdTui('board', tuiArgs);
+    await cmdTui('board', rawArgs);
   } finally {
     server.close();
   }
@@ -477,22 +496,13 @@ function findKandownDir(cwd) {
 
 // 📖 Launches the fullscreen TUI for a given screen (settings, board, etc.)
 async function cmdTui(screen, rawArgs) {
-  const args = parseArgs(rawArgs);
-  const cwd = process.cwd();
-  const kandownDir = resolve(cwd, args.path);
-
-  if (!existsSync(kandownDir)) {
-    err(`No ${c.bold}${args.path}/${c.reset} directory found.`);
-    log(`  Run ${c.cyan}npx kandown init${c.reset} first.`);
-    process.exit(1);
-  }
+  const { kandownDir } = ensureKandownDir(rawArgs);
 
   try {
     const { run } = await import(new URL('./tui.js', import.meta.url).href);
     await run(screen, kandownDir);
   } catch (e) {
     err(`Failed to launch TUI: ${e.message}`);
-    log(`  Make sure the CLI is built: ${c.cyan}pnpm build:cli${c.reset}`);
     process.exit(1);
   }
 }
