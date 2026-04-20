@@ -128,6 +128,17 @@ The `v*` tag push triggers `.github/workflows/publish.yml` which:
 2. Publishes to npm (`npm publish --access public`)
 3. Creates a GitHub Release with the changelog section attached
 
+### 6. Verify the publish action
+
+**Always check that the GitHub Actions workflow passes** after pushing the tag:
+
+```bash
+gh run list --limit 3  # check latest run status
+npm view kandown version  # verify it shows the new version
+```
+
+If it fails, fix the issue, push a new commit, delete the old tag (`git tag -d v<X.Y.Z> && git push origin :refs/tags/v<X.Y.Z>`), re-tag, and re-push.
+
 ### Prerequisites
 
 - The repo must have an `NPM_TOKEN` secret set in GitHub → Settings → Secrets → Actions.
