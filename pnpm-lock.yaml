@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      react-devtools-core:
+        specifier: '>=6.1.2'
+        version: 7.0.1
     devDependencies:
       '@tabler/icons-react':
         specifier: 3.41.1
@@ -37,7 +41,7 @@ importers:
         version: 26.0.5(typescript@5.9.3)
       ink:
         specifier: 7.0.1
-        version: 7.0.1(@types/react@19.2.14)(react@19.2.5)
+        version: 7.0.1(@types/react@19.2.14)(react-devtools-core@7.0.1)(react@19.2.5)
       marked:
         specifier: 18.0.2
         version: 18.0.2
@@ -1673,6 +1677,9 @@ packages:
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
+  react-devtools-core@7.0.1:
+    resolution: {integrity: sha512-C3yNvRHaizlpiASzy7b9vbnBGLrhvdhl1CbdU6EnZgxPNbai60szdLtl+VL76UNOt5bOoVTOz5rNWZxgGt+Gsw==}
+
   react-dom@19.2.5:
     resolution: {integrity: sha512-J5bAZz+DXMMwW/wV3xzKke59Af6CHY7G4uYLN1OvBcKEsWOs4pQExj86BBKamxl/Ik5bx9whOrvBlSDfWzgSag==}
     peerDependencies:
@@ -1773,6 +1780,10 @@ packages:
   semver@6.3.1:
     resolution: {integrity: sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==}
     hasBin: true
+
+  shell-quote@1.8.3:
+    resolution: {integrity: sha512-ObmnIF4hXNg1BqhnHmgbDETF8dLPCggZWBjkQfhZpbszZnYur5DUljTcCHii5LC3J5E0yeO/1LIMyH+UvHQgyw==}
+    engines: {node: '>= 0.4'}
 
   signal-exit@3.0.7:
     resolution: {integrity: sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ==}
@@ -2037,6 +2048,18 @@ packages:
   wrap-ansi@10.0.0:
     resolution: {integrity: sha512-SGcvg80f0wUy2/fXES19feHMz8E0JoXv2uNgHOu4Dgi2OrCy1lqwFYEJz1BLbDI0exjPMe/ZdzZ/YpGECBG/aQ==}
     engines: {node: '>=20'}
+
+  ws@7.5.10:
+    resolution: {integrity: sha512-+dbF1tHwZpXcbOJdVOkzLDxZP1ailvSxM6ZweXTegylPny803bFhA+vqBYw4s31NSAk4S2Qz+AKXK9a4wkdjcQ==}
+    engines: {node: '>=8.3.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: ^5.0.2
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
 
   ws@8.20.0:
     resolution: {integrity: sha512-sAt8BhgNbzCtgGbt2OxmpuryO63ZoDk/sqaB/znQm94T4fCEsy/yV+7CdC1kJhOU9lboAEU7R3kquuycDoibVA==}
@@ -3160,7 +3183,7 @@ snapshots:
 
   indent-string@5.0.0: {}
 
-  ink@7.0.1(@types/react@19.2.14)(react@19.2.5):
+  ink@7.0.1(@types/react@19.2.14)(react-devtools-core@7.0.1)(react@19.2.5):
     dependencies:
       '@alcalzone/ansi-tokenize': 0.3.0
       ansi-escapes: 7.3.0
@@ -3190,6 +3213,7 @@ snapshots:
       yoga-layout: 3.2.1
     optionalDependencies:
       '@types/react': 19.2.14
+      react-devtools-core: 7.0.1
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -3694,6 +3718,14 @@ snapshots:
 
   queue-microtask@1.2.3: {}
 
+  react-devtools-core@7.0.1:
+    dependencies:
+      shell-quote: 1.8.3
+      ws: 7.5.10
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   react-dom@19.2.5(react@19.2.5):
     dependencies:
       react: 19.2.5
@@ -3814,6 +3846,8 @@ snapshots:
       compute-scroll-into-view: 1.0.20
 
   semver@6.3.1: {}
+
+  shell-quote@1.8.3: {}
 
   signal-exit@3.0.7: {}
 
@@ -4095,6 +4129,8 @@ snapshots:
       ansi-styles: 6.2.3
       string-width: 8.2.0
       strip-ansi: 7.2.0
+
+  ws@7.5.10: {}
 
   ws@8.20.0: {}
 

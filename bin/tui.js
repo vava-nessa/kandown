@@ -27835,10 +27835,10 @@ var init_wrapper = __esm({
   }
 });
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/devtools-window-polyfill.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/devtools-window-polyfill.js
 var customGlobal;
 var init_devtools_window_polyfill = __esm({
-  "node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/devtools-window-polyfill.js"() {
+  "node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/devtools-window-polyfill.js"() {
     "use strict";
     init_wrapper();
     customGlobal = globalThis;
@@ -27899,12 +27899,12 @@ var init_devtools_window_polyfill = __esm({
   }
 });
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/devtools.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/devtools.js
 var devtools_exports = {};
 import devtools from "react-devtools-core";
 var isDevToolsReachable;
 var init_devtools = __esm({
-  async "node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/devtools.js"() {
+  async "node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/devtools.js"() {
     "use strict";
     init_devtools_window_polyfill();
     init_wrapper();
@@ -28554,11 +28554,11 @@ var require_jsx_runtime = __commonJS({
   }
 });
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/render.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/render.js
 import { Stream } from "stream";
 import process13 from "process";
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/ink.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/ink.js
 var import_react16 = __toESM(require_react(), 1);
 import process12 from "process";
 
@@ -28919,7 +28919,7 @@ function autoBind(self, { include, exclude } = {}) {
   return self;
 }
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/ink.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/ink.js
 var import_signal_exit2 = __toESM(require_signal_exit(), 1);
 
 // node_modules/.pnpm/patch-console@2.0.0/node_modules/patch-console/dist/index.js
@@ -28968,7 +28968,7 @@ var patchConsole = (callback) => {
 };
 var dist_default = patchConsole;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/ink.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/ink.js
 var import_constants2 = __toESM(require_constants(), 1);
 
 // node_modules/.pnpm/yoga-layout@3.2.1/node_modules/yoga-layout/dist/binaries/yoga-wasm-base64-esm.js
@@ -31330,7 +31330,7 @@ var resize = () => {
   }
 };
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/utils.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/utils.js
 var getWindowSize = (stdout) => {
   const { columns, rows } = stdout;
   if (columns && rows) {
@@ -31343,7 +31343,7 @@ var getWindowSize = (stdout) => {
   };
 };
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/reconciler.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/reconciler.js
 var import_react_reconciler = __toESM(require_react_reconciler(), 1);
 var import_constants = __toESM(require_constants(), 1);
 var Scheduler = __toESM(require_scheduler(), 1);
@@ -31359,7 +31359,7 @@ function widestLine(string) {
   return lineWidth;
 }
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/measure-text.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/measure-text.js
 var cache = /* @__PURE__ */ new Map();
 var measureText = (text) => {
   if (text.length === 0) {
@@ -32350,7 +32350,7 @@ function cliTruncate(text, columns, options = {}) {
   throw new Error(`Expected \`options.position\` to be either \`start\`, \`middle\` or \`end\`, got ${position}`);
 }
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/wrap-text.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/wrap-text.js
 var cache2 = {};
 var wrapText = (text, maxWidth, wrapType) => {
   const cacheKey = text + String(maxWidth) + String(wrapType);
@@ -32387,7 +32387,7 @@ var wrapText = (text, maxWidth, wrapType) => {
 };
 var wrap_text_default = wrapText;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/ansi-tokenizer.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/ansi-tokenizer.js
 var bellCharacter = "\x07";
 var escapeCharacter = "\x1B";
 var stringTerminatorCharacter = "\x9C";
@@ -32694,7 +32694,7 @@ var tokenizeAnsi2 = (text) => {
   return tokens;
 };
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/sanitize-ansi.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/sanitize-ansi.js
 var sgrParametersRegex = /^[\d:;]*$/;
 var sanitizeAnsi = (text) => {
   if (!hasAnsiControlCharacters(text)) {
@@ -32714,7 +32714,7 @@ var sanitizeAnsi = (text) => {
 };
 var sanitize_ansi_default = sanitizeAnsi;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/squash-text-nodes.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/squash-text-nodes.js
 var squashTextNodes = (node) => {
   let text = "";
   for (let index = 0; index < node.childNodes.length; index++) {
@@ -32739,7 +32739,7 @@ var squashTextNodes = (node) => {
 };
 var squash_text_nodes_default = squashTextNodes;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/dom.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/dom.js
 var createNode = (nodeName) => {
   const node = {
     nodeName,
@@ -32863,7 +32863,7 @@ var emitLayoutListeners = (rootNode) => {
   }
 };
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/styles.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/styles.js
 var positionEdges = [
   ["top", src_default.EDGE_TOP],
   ["right", src_default.EDGE_RIGHT],
@@ -33150,7 +33150,7 @@ var styles2 = (node, style = {}, currentStyle = style) => {
 };
 var styles_default = styles2;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/reconciler.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/reconciler.js
 if (process4.env["DEV"] === "true") {
   let isDevtoolsInstalled = false;
   try {
@@ -33464,7 +33464,7 @@ function indentString(string, count = 1, options = {}) {
   return string.replace(regex2, indent.repeat(count));
 }
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/get-max-width.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/get-max-width.js
 var getMaxWidth = (yogaNode) => {
   return yogaNode.getComputedWidth() - yogaNode.getComputedPadding(src_default.EDGE_LEFT) - yogaNode.getComputedPadding(src_default.EDGE_RIGHT) - yogaNode.getComputedBorder(src_default.EDGE_LEFT) - yogaNode.getComputedBorder(src_default.EDGE_RIGHT);
 };
@@ -34052,7 +34052,7 @@ var chalk = createChalk();
 var chalkStderr = createChalk({ level: stderrColor ? stderrColor.level : 0 });
 var source_default = chalk;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/colorize.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/colorize.js
 var rgbRegex = /^rgb\(\s?(\d+),\s?(\d+),\s?(\d+)\s?\)$/;
 var ansiRegex2 = /^ansi256\(\s?(\d+)\s?\)$/;
 var isNamedColor = (color) => {
@@ -34094,7 +34094,7 @@ var colorize = (str, color, type) => {
 };
 var colorize_default = colorize;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/render-border.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/render-border.js
 var stylePiece = (segment, fg, bg, dim) => {
   let styled = colorize_default(segment, fg, "foreground");
   styled = colorize_default(styled, bg, "background");
@@ -34165,7 +34165,7 @@ var renderBorder = (x, y, node, output) => {
 };
 var render_border_default = renderBorder;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/render-background.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/render-background.js
 var renderBackground = (x, y, node, output) => {
   if (!node.style.backgroundColor) {
     return;
@@ -34188,7 +34188,7 @@ var renderBackground = (x, y, node, output) => {
 };
 var render_background_default = renderBackground;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/render-node-to-output.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/render-node-to-output.js
 var applyPaddingToText = (node, text) => {
   const yogaNode = node.childNodes[0]?.yogaNode;
   if (yogaNode) {
@@ -34594,7 +34594,7 @@ function tokenize(str, endChar = Number.POSITIVE_INFINITY) {
   return ret;
 }
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/output.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/output.js
 var OutputCaches = class {
   widths = /* @__PURE__ */ new Map();
   blockWidths = /* @__PURE__ */ new Map();
@@ -34782,7 +34782,7 @@ var Output = class {
   }
 };
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/renderer.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/renderer.js
 var renderer = (node, isScreenReaderEnabled) => {
   if (node.yogaNode) {
     if (isScreenReaderEnabled) {
@@ -34838,7 +34838,7 @@ var renderer = (node, isScreenReaderEnabled) => {
 };
 var renderer_default = renderer;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/cursor-helpers.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/cursor-helpers.js
 var showCursorEscape = "\x1B[?25h";
 var hideCursorEscape = "\x1B[?25l";
 var cursorPositionChanged = (a, b) => a?.x !== b?.x || a?.y !== b?.y;
@@ -34913,7 +34913,7 @@ cliCursor.toggle = (force, writableStream) => {
 };
 var cli_cursor_default = cliCursor;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/log-update.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/log-update.js
 var visibleLineCount = (lines, str) => str.endsWith("\n") ? lines.length - 1 : lines.length;
 var createStandard = (stream, { showCursor = false } = {}) => {
   let previousLineCount = 0;
@@ -35143,23 +35143,23 @@ var create2 = (stream, { showCursor = false, incremental = false } = {}) => {
 var logUpdate = { create: create2 };
 var log_update_default = logUpdate;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/write-synchronized.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/write-synchronized.js
 var bsu = "\x1B[?2026h";
 var esu = "\x1B[?2026l";
 function shouldSynchronize(stream, interactive) {
   return "isTTY" in stream && stream.isTTY && (interactive ?? !is_in_ci_default);
 }
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/instances.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/instances.js
 var instances = /* @__PURE__ */ new WeakMap();
 var instances_default = instances;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/App.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/App.js
 var import_react15 = __toESM(require_react(), 1);
 import { EventEmitter as EventEmitter2 } from "events";
 import process11 from "process";
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/input-parser.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/input-parser.js
 var escape = "\x1B";
 var pasteStart = "\x1B[200~";
 var pasteEnd = "\x1B[201~";
@@ -35344,7 +35344,7 @@ var createInputParser = () => {
   };
 };
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/AppContext.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/AppContext.js
 var import_react2 = __toESM(require_react(), 1);
 var defaultValue = {
   exit(_errorOrResult) {
@@ -35356,7 +35356,7 @@ var AppContext = (0, import_react2.createContext)(defaultValue);
 AppContext.displayName = "InternalAppContext";
 var AppContext_default = AppContext;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/StdinContext.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/StdinContext.js
 var import_react3 = __toESM(require_react(), 1);
 import { EventEmitter } from "events";
 import process8 from "process";
@@ -35375,7 +35375,7 @@ var StdinContext = (0, import_react3.createContext)({
 StdinContext.displayName = "InternalStdinContext";
 var StdinContext_default = StdinContext;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/StdoutContext.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/StdoutContext.js
 var import_react4 = __toESM(require_react(), 1);
 import process9 from "process";
 var StdoutContext = (0, import_react4.createContext)({
@@ -35386,7 +35386,7 @@ var StdoutContext = (0, import_react4.createContext)({
 StdoutContext.displayName = "InternalStdoutContext";
 var StdoutContext_default = StdoutContext;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/StderrContext.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/StderrContext.js
 var import_react5 = __toESM(require_react(), 1);
 import process10 from "process";
 var StderrContext = (0, import_react5.createContext)({
@@ -35397,7 +35397,7 @@ var StderrContext = (0, import_react5.createContext)({
 StderrContext.displayName = "InternalStderrContext";
 var StderrContext_default = StderrContext;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/FocusContext.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/FocusContext.js
 var import_react6 = __toESM(require_react(), 1);
 var FocusContext = (0, import_react6.createContext)({
   activeId: void 0,
@@ -35423,7 +35423,7 @@ var FocusContext = (0, import_react6.createContext)({
 FocusContext.displayName = "InternalFocusContext";
 var FocusContext_default = FocusContext;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/AnimationContext.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/AnimationContext.js
 var import_react7 = __toESM(require_react(), 1);
 var animationContext = (0, import_react7.createContext)({
   renderThrottleMs: 0,
@@ -35438,7 +35438,7 @@ var animationContext = (0, import_react7.createContext)({
 animationContext.displayName = "InternalAnimationContext";
 var AnimationContext_default = animationContext;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/CursorContext.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/CursorContext.js
 var import_react8 = __toESM(require_react(), 1);
 var CursorContext = (0, import_react8.createContext)({
   setCursorPosition() {
@@ -35447,10 +35447,10 @@ var CursorContext = (0, import_react8.createContext)({
 CursorContext.displayName = "InternalCursorContext";
 var CursorContext_default = CursorContext;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/ErrorBoundary.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/ErrorBoundary.js
 var import_react14 = __toESM(require_react(), 1);
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/ErrorOverview.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/ErrorOverview.js
 var import_react13 = __toESM(require_react(), 1);
 var import_stack_utils = __toESM(require_stack_utils(), 1);
 import * as fs2 from "fs";
@@ -35488,20 +35488,20 @@ var codeExcerpt = (source, line, options = {}) => {
 };
 var dist_default3 = codeExcerpt;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/Box.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/Box.js
 var import_react11 = __toESM(require_react(), 1);
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/AccessibilityContext.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/AccessibilityContext.js
 var import_react9 = __toESM(require_react(), 1);
 var accessibilityContext = (0, import_react9.createContext)({
   isScreenReaderEnabled: false
 });
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/BackgroundContext.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/BackgroundContext.js
 var import_react10 = __toESM(require_react(), 1);
 var backgroundContext = (0, import_react10.createContext)(void 0);
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/Box.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/Box.js
 var Box = (0, import_react11.forwardRef)(({ children, backgroundColor, "aria-label": ariaLabel, "aria-hidden": ariaHidden, "aria-role": role, "aria-state": ariaState, ...style }, ref) => {
   const { isScreenReaderEnabled } = (0, import_react11.useContext)(accessibilityContext);
   const label = ariaLabel ? import_react11.default.createElement("ink-text", null, ariaLabel) : void 0;
@@ -35529,7 +35529,7 @@ var Box = (0, import_react11.forwardRef)(({ children, backgroundColor, "aria-lab
 Box.displayName = "Box";
 var Box_default = Box;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/Text.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/Text.js
 var import_react12 = __toESM(require_react(), 1);
 function Text({ color, backgroundColor, dimColor = false, bold = false, italic = false, underline = false, strikethrough = false, inverse = false, wrap = "wrap", children, "aria-label": ariaLabel, "aria-hidden": ariaHidden = false }) {
   const { isScreenReaderEnabled } = (0, import_react12.useContext)(accessibilityContext);
@@ -35572,7 +35572,7 @@ function Text({ color, backgroundColor, dimColor = false, bold = false, italic =
   return import_react12.default.createElement("ink-text", { style: { flexGrow: 0, flexShrink: 1, flexDirection: "row", textWrap: wrap }, internal_transform: transform }, childrenOrAriaLabel);
 }
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/ErrorOverview.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/ErrorOverview.js
 var cleanupPath = (path) => {
   return path?.replace(`file://${cwd()}/`, "");
 };
@@ -35681,7 +35681,7 @@ function ErrorOverview({ error }) {
   );
 }
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/ErrorBoundary.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/ErrorBoundary.js
 var ErrorBoundary = class extends import_react14.PureComponent {
   static displayName = "InternalErrorBoundary";
   static getDerivedStateFromError(error) {
@@ -35701,7 +35701,7 @@ var ErrorBoundary = class extends import_react14.PureComponent {
   }
 };
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/App.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/App.js
 var tab = "	";
 var shiftTab = "\x1B[Z";
 var escape2 = "\x1B";
@@ -36143,7 +36143,7 @@ function App({ children, stdin, stdout, stderr, writeToStdout, writeToStderr, ex
 App.displayName = "InternalApp";
 var App_default = App;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/kitty-keyboard.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/kitty-keyboard.js
 var kittyFlags = {
   disambiguateEscapeCodes: 1,
   reportEventTypes: 2,
@@ -36169,7 +36169,7 @@ var kittyModifiers = {
   numLock: 128
 };
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/ink.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/ink.js
 var noop = () => {
 };
 var textEncoder = new TextEncoder();
@@ -36851,7 +36851,7 @@ var Ink = class {
   }
 };
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/render.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/render.js
 var render = (node, options) => {
   const inkOptions = {
     stdout: process13.stdout,
@@ -36902,25 +36902,25 @@ var getInstance = (stdout, createInstance) => {
   return instance;
 };
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/render-to-string.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/render-to-string.js
 var import_constants3 = __toESM(require_constants(), 1);
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/Static.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/Static.js
 var import_react17 = __toESM(require_react(), 1);
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/Transform.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/Transform.js
 var import_react18 = __toESM(require_react(), 1);
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/Newline.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/Newline.js
 var import_react19 = __toESM(require_react(), 1);
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/components/Spacer.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/components/Spacer.js
 var import_react20 = __toESM(require_react(), 1);
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/hooks/use-input.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/hooks/use-input.js
 var import_react22 = __toESM(require_react(), 1);
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/parse-keypress.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/parse-keypress.js
 var textDecoder = new TextDecoder();
 var metaKeyCodeRe = /^(?:\x1b)([a-zA-Z0-9])$/;
 var fnKeyRe = /^(?:\x1b+)(O|N|\[|\[\[)(?:(\d+)(?:;(\d+))?([~^$])|(?:1;)?(\d+)?([a-zA-Z]))/;
@@ -37352,11 +37352,11 @@ var parseKeypress = (s = "") => {
 };
 var parse_keypress_default = parseKeypress;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/hooks/use-stdin.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/hooks/use-stdin.js
 var import_react21 = __toESM(require_react(), 1);
 var useStdinContext = () => (0, import_react21.useContext)(StdinContext_default);
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/hooks/use-input.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/hooks/use-input.js
 var useInput = (inputHandler, options = {}) => {
   const { setRawMode, internal_exitOnCtrlC, internal_eventEmitter } = useStdinContext();
   (0, import_react22.useEffect)(() => {
@@ -37436,39 +37436,39 @@ var useInput = (inputHandler, options = {}) => {
 };
 var use_input_default = useInput;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/hooks/use-paste.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/hooks/use-paste.js
 var import_react23 = __toESM(require_react(), 1);
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/hooks/use-app.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/hooks/use-app.js
 var import_react24 = __toESM(require_react(), 1);
 var useApp = () => (0, import_react24.useContext)(AppContext_default);
 var use_app_default = useApp;
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/hooks/use-stdout.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/hooks/use-stdout.js
 var import_react25 = __toESM(require_react(), 1);
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/hooks/use-stderr.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/hooks/use-stderr.js
 var import_react26 = __toESM(require_react(), 1);
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/hooks/use-focus.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/hooks/use-focus.js
 var import_react27 = __toESM(require_react(), 1);
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/hooks/use-focus-manager.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/hooks/use-focus-manager.js
 var import_react28 = __toESM(require_react(), 1);
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/hooks/use-is-screen-reader-enabled.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/hooks/use-is-screen-reader-enabled.js
 var import_react29 = __toESM(require_react(), 1);
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/hooks/use-cursor.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/hooks/use-cursor.js
 var import_react30 = __toESM(require_react(), 1);
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/hooks/use-animation.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/hooks/use-animation.js
 var import_react31 = __toESM(require_react(), 1);
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/hooks/use-window-size.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/hooks/use-window-size.js
 var import_react32 = __toESM(require_react(), 1);
 
-// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react@19.2.5/node_modules/ink/build/hooks/use-box-metrics.js
+// node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/hooks/use-box-metrics.js
 var import_react33 = __toESM(require_react(), 1);
 
 // src/cli/screens/settings.tsx

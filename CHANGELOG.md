@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3 — 2026-04-20 — "CLI Launch Fix"
+
+- **Fixed**: TUI crashed on fresh install with `Cannot find package 'react-devtools-core'` — promoted `react-devtools-core` from optional peer dep to regular dependency so npm installs it for users.
+
 ## 0.1.2 — 2026-04-19 — "Zero Deps"
 
 - **Fixed**: `npx kandown init` was hanging because npm had to install 11 runtime dependencies (React, Three.js, Ink, etc.) before running the CLI. All dependencies are now bundled into the CLI binary — the published package has zero runtime deps.
