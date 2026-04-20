@@ -54147,7 +54147,7 @@ var SECTION_ICONS = {
   Fields: "\u{1F4DD}",
   Notifications: "\u{1F514}"
 };
-function Settings({ kandownDir }) {
+function Settings({ kandownDir, version }) {
   const { exit } = use_app_default();
   const [config, setConfig] = (0, import_react34.useState)(null);
   const [focusIndex, setFocusIndex] = (0, import_react34.useState)(0);
@@ -54227,12 +54227,23 @@ function Settings({ kandownDir }) {
       /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Box_default, { children: [
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { bold: true, color: "cyan", children: "  \u256D\u2500 " }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { bold: true, color: "white", children: "KANDOWN SETTINGS" }),
+        version && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Text, { dimColor: true, children: [
+          " v",
+          version
+        ] }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { bold: true, color: "cyan", children: " \u2500\u256E" })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Box_default, { children: showSaved && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Text, { color: "green", bold: true, children: [
-        "\u2713 saved",
-        " "
-      ] }) })
+      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Box_default, { children: [
+        version && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Text, { dimColor: true, children: [
+          "v",
+          version,
+          "  "
+        ] }),
+        showSaved && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Text, { color: "green", bold: true, children: [
+          "\u2713 saved",
+          " "
+        ] })
+      ] })
     ] }),
     SECTIONS.map((section) => {
       const items = SETTINGS.filter((s) => s.section === section);
@@ -56915,10 +56926,10 @@ function Board({ kandownDir }) {
 
 // src/cli/app.tsx
 var import_jsx_runtime4 = __toESM(require_jsx_runtime(), 1);
-function App2({ screen, kandownDir }) {
+function App2({ screen, kandownDir, version }) {
   switch (screen) {
     case "settings":
-      return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Settings, { kandownDir });
+      return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Settings, { kandownDir, version });
     case "board":
       return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Board, { kandownDir });
     default:
@@ -56931,14 +56942,14 @@ function App2({ screen, kandownDir }) {
 
 // src/cli/tui.tsx
 var import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
-async function run(screen, kandownDir) {
+async function run(screen, kandownDir, version) {
   if (!process.stdin.isTTY) {
     throw new Error(
       "kandown TUI requires an interactive terminal. Run this command directly in your terminal."
     );
   }
   process.stdout.write("\x1B[?1049h\x1B[H");
-  const instance = render_default(/* @__PURE__ */ (0, import_jsx_runtime5.jsx)(App2, { screen, kandownDir }), {
+  const instance = render_default(/* @__PURE__ */ (0, import_jsx_runtime5.jsx)(App2, { screen, kandownDir, version }), {
     exitOnCtrlC: true
   });
   try {

@@ -1,6 +1,6 @@
 {
   "name": "kandown",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "File-based Kanban engine backed by Markdown. Zero backend, AI-agent friendly.",
   "type": "module",
   "bin": {
@@ -34,7 +34,7 @@
   "scripts": {
     "dev": "node scripts/sync-agent-kandown.js && vite",
     "dev:cli": "tsup --watch",
-    "build": "node scripts/sync-agent-kandown.js && tsc -b && vite build && pnpm build:cli",
+    "build": "node scripts/inject-version.js && node scripts/sync-agent-kandown.js && tsc -b && vite build && pnpm build:cli",
     "build:cli": "tsup",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",

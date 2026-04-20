@@ -39,6 +39,30 @@ The `AGENT_KANDOWN_COMPACT.md` at the root is auto-generated from the full doc a
 
 ---
 
+## Version System
+
+`package.json` → `version` field is the **single source of truth**. Everything else reads from it automatically.
+
+```
+package.json (version field)
+  ├── scripts/inject-version.js  →  src/lib/version.ts  (web app, baked in at build time)
+  └── bin/kandown.js getCurrentVersion()  →  CLI + TUI runtime
+```
+
+### How it works
+
+- **`src/lib/version.ts`** — auto-generated at build time by `scripts/inject-version.js`. Do NOT edit manually. It exports `KANDOWN_VERSION` and `KANDOWN_BUILD_TIME`.
+- **`bin/kandown.js`** — reads `package.json` directly at runtime via `getCurrentVersion()` (no file to maintain).
+- **`src/cli/screens/settings.tsx`** — receives `version` as a prop passed down from `bin/kandown.js` → `tui.tsx` → `App` → `Settings`.
+
+### When bumping
+
+1. Run `npm version <patch|minor|major> --no-git-tag-version` — updates `package.json`.
+2. `pnpm build` runs `scripts/inject-version.js` first, which re-generates `src/lib/version.ts` with the new version.
+3. All consumers (CLI banner, TUI header, web app Settings) get the new version automatically.
+
+---
+
 ## Version Bump & Release (the "bump" command)
 
 When the user says **"bump"**, follow this exact workflow.
@@ -73,13 +97,7 @@ Every release has a short **name** — a 1–3 word label capturing the main cha
   - **Removed**: deleted features or code
 - Keep entries concise (one line each). Don't list every file touched — describe what changed for the user.
 
-### 3. Bump package.json version
-
-```bash
-npm version <patch|minor|major> --no-git-tag-version
-```
-
-### 4. Build & verify
+### 3. Build & verify
 
 ```bash
 pnpm build

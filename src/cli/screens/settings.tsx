@@ -148,9 +148,10 @@ const SECTION_ICONS: Record<string, string> = {
 
 interface SettingsProps {
   kandownDir: string;
+  version?: string;
 }
 
-export function Settings({ kandownDir }: SettingsProps) {
+export function Settings({ kandownDir, version }: SettingsProps) {
   const { exit } = useApp();
   const [config, setConfig] = useState<KandownConfig | null>(null);
   const [focusIndex, setFocusIndex] = useState(0);
@@ -268,11 +269,19 @@ export function Settings({ kandownDir }: SettingsProps) {
           <Text bold color="white">
             KANDOWN SETTINGS
           </Text>
+          {version && (
+            <Text dimColor> v{version}</Text>
+          )}
           <Text bold color="cyan">
             {' ─╮'}
           </Text>
         </Box>
         <Box>
+          {version && (
+            <Text dimColor>
+              v{version}{'  '}
+            </Text>
+          )}
           {showSaved && (
             <Text color="green" bold>
               ✓ saved{' '}

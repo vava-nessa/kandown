@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0 — 2026-04-20 — "Version Display + Auto-Update"
+
+- **Added**: `kandown -v` / `--version` flag — prints the current CLI version.
+- **Added**: Version displayed in CLI help banner, TUI settings header, and web app Settings "About" section.
+- **Added**: Web app Settings now has an "About" section showing current version and a manual update check against the npm registry.
+- **Changed**: CLI auto-update now runs before **every** command (not just `kandown` with no args). If a new version is found, runs `npm install -g kandown` and respawns — no prompt, no ask.
+- **Changed**: `kandown help` shows the current version in the banner.
+- **Added**: Bracket tags (e.g. `[optimization]`) in task titles are now rendered bold next to the task ID on board cards.
+- **Added**: `scripts/inject-version.js` — generates `src/lib/version.ts` at build time from `package.json` version. `package.json` is the single source of truth for version.
+
 ## 0.1.5 — 2026-04-20 — "Live Reload + Auto-Update"
 
 - **Added**: CLI checks for a newer npm version on startup (non-blocking, background check). Warns if the user is outdated.

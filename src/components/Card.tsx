@@ -84,6 +84,11 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
     onDragEnd,
   } as unknown as Record<string, unknown>;
 
+  // 📖 Extract leading bracket tag from title (e.g. "[optimization] Fix X" → tag="[optimization]", rest="Fix X")
+  const tagMatch = task.title.match(/^\[([^\]]+)\]\s*/);
+  const bracketTag = tagMatch ? `[${tagMatch[1]}]` : '';
+  const titleWithoutTag = tagMatch ? task.title.slice(tagMatch[0].length) : task.title;
+
   const showPreview = searchMatches.length > 0 && !isCompact;
 
   useEffect(() => {
@@ -164,9 +169,17 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       )}
 
       <div className="flex items-center justify-between mb-1.5">
-        <span className="font-mono text-[13px] font-bold tracking-wide text-fg-muted">
-          {task.id.replace(/^t/, '')}
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span className="font-mono text-[13px] font-bold tracking-wide text-fg-muted">
+            {task.id.replace(/^t/, '')}
+          </span>
+          {/* 📖 Bracket tag (e.g. [optimization], [CLI REFACTOR-3]) rendered bold next to the task number */}
+          {bracketTag && (
+            <span className="text-[11.5px] font-bold tracking-wide text-fg-muted uppercase">
+              {bracketTag}
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-1.5">
           {fields.priority && task.priority && (
             <span
@@ -183,7 +196,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
           task.checked ? 'line-through text-fg-muted' : 'text-fg'
         } ${isCompact ? 'line-clamp-1' : 'line-clamp-2'}`}
       >
-        {task.title}
+        {titleWithoutTag}
       </div>
 
       {/* Search preview */}

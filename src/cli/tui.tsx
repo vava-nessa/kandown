@@ -21,8 +21,9 @@ import { App } from './app.js';
  * 📖 Launch the fullscreen TUI for a given screen.
  * @param screen — which screen to display ('settings', 'board', etc.)
  * @param kandownDir — absolute path to the .kandown/ directory
+ * @param version — current kandown version string (e.g. '0.1.5')
  */
-export async function run(screen: string, kandownDir: string): Promise<void> {
+export async function run(screen: string, kandownDir: string, version?: string): Promise<void> {
   // 📖 Guard: Ink requires a real TTY with raw mode support
   if (!process.stdin.isTTY) {
     throw new Error(
@@ -33,7 +34,7 @@ export async function run(screen: string, kandownDir: string): Promise<void> {
   // 📖 Enter alternate screen buffer — terminal content is preserved and restored on exit
   process.stdout.write('\x1b[?1049h\x1b[H');
 
-  const instance = render(<App screen={screen} kandownDir={kandownDir} />, {
+  const instance = render(<App screen={screen} kandownDir={kandownDir} version={version} />, {
     exitOnCtrlC: true,
   });
 

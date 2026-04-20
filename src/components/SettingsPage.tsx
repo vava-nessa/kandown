@@ -18,13 +18,14 @@
  * @see src/lib/types.ts
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import {
   IconAdjustmentsHorizontal,
   IconBell,
   IconChevronRight,
+  IconInfoCircle,
   IconLayoutBoard,
   IconPalette,
   IconRobot,
@@ -33,6 +34,7 @@ import {
   IconTags,
   type TablerIcon,
 } from '@tabler/icons-react';
+import { KANDOWN_VERSION } from '../lib/version';
 import { KbdButton } from './KbdButton';
 import { useStore } from '../lib/store';
 import { fileWatcher } from '../lib/watcher';
@@ -42,7 +44,7 @@ import { getBrowserNotificationPermission, requestBrowserNotificationPermission,
 import type { KandownConfig } from '../lib/types';
 
 type SettingType = 'toggle' | 'select' | 'number' | 'text' | 'skin' | 'language' | 'permission';
-type SettingsSectionId = 'appearance' | 'agent' | 'board' | 'fields' | 'notifications';
+type SettingsSectionId = 'appearance' | 'agent' | 'board' | 'fields' | 'notifications' | 'about';
 
 interface SettingOption {
   value: string;
@@ -257,6 +259,13 @@ const SECTIONS = (t: ReturnType<typeof useTranslation>['t']): SettingsSection[] 
     kicker: t('settings.kickerSignals'),
     description: t('settings.notificationsDesc'),
     icon: IconBell,
+  },
+  {
+    id: 'about',
+    label: t('settings.about') ?? 'About',
+    kicker: t('settings.kickerAbout') ?? 'Version & updates',
+    description: t('settings.aboutDesc') ?? 'Kandown version and auto-update status.',
+    icon: IconInfoCircle,
   },
 ];
 
@@ -528,6 +537,29 @@ export function SettingsPage() {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [activeHelpKey, setActiveHelpKey] = useState<string | null>(null);
   const [notificationPermission, setNotificationPermission] = useState<BrowserNotificationPermission>(() => getBrowserNotificationPermission());
+  const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'upToDate' | 'available' | 'error'>('idle');
+  const [latestVersion, setLatestVersion] = useState<string | null>(null);
+
+  // 📖 Check npm for a newer version — auto-check on mount for the about section
+  const checkForUpdate = useCallback(async () => {
+    if (updateStatus === 'checking') return;
+    setUpdateStatus('checking');
+    setLatestVersion(null);
+    try {
+      const res = await fetch(`https://registry.npmjs.org/kandown/latest`);
+      if (!res.ok) throw new Error('Network error');
+      const data = await res.json() as { version: string };
+      const latest = data.version;
+      if (latest === KANDOWN_VERSION) {
+        setUpdateStatus('upToDate');
+      } else {
+        setLatestVersion(latest);
+        setUpdateStatus('available');
+      }
+    } catch {
+      setUpdateStatus('error');
+    }
+  }, [updateStatus]);
 
   useEffect(() => {
     const off = fileWatcher.on('configChanged', () => {
@@ -556,7 +588,7 @@ export function SettingsPage() {
     return SECTIONS(t).reduce<Record<SettingsSectionId, number>>((acc, section) => {
       acc[section.id] = settings.filter(setting => setting.section === section.id && isSettingVisible(setting, config)).length;
       return acc;
-    }, { appearance: 0, agent: 0, board: 0, fields: 0, notifications: 0 });
+    }, { appearance: 0, agent: 0, board: 0, fields: 0, notifications: 0, about: 0 });
   }, [config, t, settings]);
 
   const visibleSettings = useMemo(() => {
@@ -734,7 +766,14 @@ export function SettingsPage() {
 
             <div className="grid gap-6 xl:grid-cols-[minmax(360px,50%)_minmax(280px,1fr)]">
               <div className="overflow-hidden rounded-[8px] border border-border bg-bg-1">
-                {visibleSettings.length === 0 ? (
+                {activeSectionId === 'about' ? (
+                  <AboutVersionCard
+                    currentVersion={KANDOWN_VERSION}
+                    updateStatus={updateStatus}
+                    latestVersion={latestVersion}
+                    onCheckUpdate={checkForUpdate}
+                  />
+                ) : visibleSettings.length === 0 ? (
                   <div className="px-4 py-10 text-center">
                     <p className="text-[14px] font-medium text-fg">{t('settings.noOptionFound')}</p>
                     <p className="mt-1 text-[13px] text-fg-muted">{t('settings.tryAnotherSearch')}</p>
@@ -1030,6 +1069,99 @@ function SkinPicker({ value, onChange }: { value: string; onChange: (value: unkn
           </button>
         );
       })}
+    </div>
+  );
+}
+
+interface AboutVersionCardProps {
+  currentVersion: string;
+  updateStatus: 'idle' | 'checking' | 'upToDate' | 'available' | 'error';
+  latestVersion: string | null;
+  onCheckUpdate: () => void;
+}
+
+function AboutVersionCard({ currentVersion, updateStatus, latestVersion, onCheckUpdate }: AboutVersionCardProps) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex flex-col gap-6 px-5 py-6">
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <span className="text-[13px] font-medium text-fg-muted">Version</span>
+          <span className="rounded-[5px] bg-bg-2 px-2.5 py-1 font-mono text-[13px] font-semibold text-fg">
+            v{currentVersion}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <span className="text-[13px] font-medium text-fg-muted">Status</span>
+          {updateStatus === 'idle' && (
+            <button
+              onClick={onCheckUpdate}
+              className="rounded-[5px] bg-bg-2 px-2.5 py-1 text-[12.5px] text-fg transition-colors hover:bg-bg-3"
+            >
+              {t('settings.checkForUpdates')}
+            </button>
+          )}
+          {updateStatus === 'checking' && (
+            <span className="text-[12.5px] text-fg-muted">{t('settings.checkingForUpdates')}</span>
+          )}
+          {updateStatus === 'upToDate' && (
+            <span className="rounded-[5px] bg-success/10 px-2.5 py-1 text-[12.5px] font-medium text-success">
+              ✓ {t('settings.upToDate')}
+            </span>
+          )}
+          {updateStatus === 'available' && (
+            <div className="flex items-center gap-2">
+              <span className="rounded-[5px] bg-warning/10 px-2.5 py-1 text-[12.5px] font-medium text-warning">
+                v{latestVersion} {t('settings.available')}
+              </span>
+              <button
+                onClick={onCheckUpdate}
+                className="rounded-[5px] bg-bg-2 px-2.5 py-1 text-[12.5px] text-fg transition-colors hover:bg-bg-3"
+              >
+                {t('settings.refresh')}
+              </button>
+            </div>
+          )}
+          {updateStatus === 'error' && (
+            <button
+              onClick={onCheckUpdate}
+              className="rounded-[5px] bg-bg-2 px-2.5 py-1 text-[12.5px] text-fg-muted transition-colors hover:bg-bg-3"
+            >
+              {t('settings.retry')}
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2 rounded-[7px] border border-border bg-bg-2 p-3">
+        <p className="text-[12.5px] text-fg-muted">
+          {t('settings.autoUpdateDescription') ?? 'Kandown auto-updates when you run npx kandown. To force an update, run npm install -g kandown.'}
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <span className="text-[11.5px] font-semibold uppercase tracking-wider text-fg-faint">
+          {t('settings.links') ?? 'Links'}
+        </span>
+        <a
+          href="https://github.com/vava-nessa/kandown"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[13px] text-fg underline underline-offset-2 hover:text-fg-muted"
+        >
+          GitHub
+        </a>
+        <a
+          href="https://www.npmjs.com/package/kandown"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[13px] text-fg underline underline-offset-2 hover:text-fg-muted"
+        >
+          npm
+        </a>
+      </div>
     </div>
   );
 }

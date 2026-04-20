@@ -65,35 +65,42 @@ function getCurrentVersion() {
   } catch { return null; }
 }
 
-// 📖 Check npm for a newer version and warn user if outdated.
+// 📖 Check npm for a newer version and auto-update if outdated.
 // Runs in background — does not block startup. Only activates when running from
 // an installed npm package (not local dev source, where src/ exists).
-async function checkForUpdate() {
+// 📖 Uses npm install -g to self-upgrade, then re-spawns with the same arguments.
+async function checkForUpdate(argv = process.argv) {
   if (existsSync(join(PKG_ROOT, 'src'))) return; // local dev — skip
   const current = getCurrentVersion();
   if (!current) return;
   try {
     const { execSync } = await import('node:child_process');
     const latest = String(execSync('npm view kandown version --json 2>/dev/null', {
-      timeout: 5000, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: 8000, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'],
     })).trim().replace(/^"|"$/g, '');
-    if (latest && latest !== current) {
-      log(`${c.yellow}⚡ New kandown version available: ${latest} (you have ${current})${c.reset}`);
-      log(`  Run ${c.cyan}npm install -g kandown${c.reset} to upgrade`);
-      log('');
+    if (!latest || latest === current) return;
+
+    log(`${c.yellow}⚡ Auto-updating kandown ${c.reset}${c.dim}${current}${c.reset} ${c.yellow}→${c.reset} ${c.green}${latest}${c.reset}…`);
+    try {
+      execSync('npm install -g kandown 2>/dev/null', {
+        timeout: 30000, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'],
+      });
+      const newVersion = String(execSync('npm view kandown version 2>/dev/null', {
+        timeout: 5000, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'],
+      })).trim().replace(/^"|"$/g, '');
+      if (newVersion === latest) {
+        log(`${c.green}✓ Updated to v${newVersion}${c.reset} — restarting…`);
+        const child = spawn(process.argv[0], ['--experimental-vm-modules', ...argv.slice(1)], {
+          detached: true, stdio: 'ignore', env: { ...process.env } });
+        child.unref();
+        process.exit(0);
+      }
+    } catch {
+      log(`${c.yellow}⚠ Auto-update failed — will retry on next run${c.reset}`);
+      log(`  Run ${c.cyan}npm install -g kandown${c.reset} to upgrade manually`);
     }
   } catch { /* offline or npm slow — silently skip */ }
 }
-
-// Start the version check in background (non-blocking)
-checkForUpdate();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const PKG_ROOT = resolve(__dirname, '..');
-// 📖 Default localhost range for the zero-config `kandown` web UI server.
-const DEFAULT_SERVE_PORT = 2048;
-const MAX_SERVE_PORT = 2060;
 
 const c = {
   reset: '\x1b[0m',
@@ -113,8 +120,10 @@ const warn = (msg) => log(`${c.yellow}⚠${c.reset} ${msg}`);
 const err = (msg) => log(`${c.red}✗${c.reset} ${msg}`);
 
 function help() {
+  const v = getCurrentVersion() ?? '?';
   log(`
 ${c.bold}kandown${c.reset} ${c.dim}· file-based kanban backed by markdown${c.reset}
+${c.dim}v${v}${c.reset}
 
 ${c.bold}Usage:${c.reset}
   npx kandown [command]
@@ -178,7 +187,7 @@ function appendAgentReference(cwd, agentsFile, kandownPath) {
 ${marker}
 ## Task management
 
-**IMPORTANT:** Before touching any task files, you MUST read \`AGENT_KANDOWN.md\`.
+**IMPORTANT:** Before touching any task files, you MUST read \`${kandownPath}/AGENT_KANDOWN.md\`.
 
 This project uses a file-based kanban:
 - **Tasks live in \`${kandownPath}/tasks/t-xxx.md\`** — each task file owns its status
@@ -283,19 +292,12 @@ function doInit(args, cwd, kandownPath, kandownDir) {
   }
 
   const agentKandownSrc = join(templatesDir, 'AGENT_KANDOWN.md');
-  const agentKandownDest = join(cwd, 'AGENT_KANDOWN.md');
+  const agentKandownDest = join(kandownDir, 'AGENT_KANDOWN.md');
   if (!existsSync(agentKandownDest)) {
     copyFileSync(agentKandownSrc, agentKandownDest);
-    success('AGENT_KANDOWN.md (at project root)');
+    success('AGENT_KANDOWN.md');
   } else {
-    info('AGENT_KANDOWN.md already exists at project root (kept)');
-  }
-
-  const compactSrc = join(templatesDir, 'AGENT_KANDOWN_COMPACT.md');
-  const compactDest = join(cwd, 'AGENT_KANDOWN_COMPACT.md');
-  if (existsSync(compactSrc) && !existsSync(compactDest)) {
-    copyFileSync(compactSrc, compactDest);
-    success('AGENT_KANDOWN_COMPACT.md (at project root)');
+    info('AGENT_KANDOWN.md already exists (kept)');
   }
 
   if (!args.noAgents) {
@@ -535,10 +537,11 @@ function findKandownDir(cwd) {
 // 📖 Launches the fullscreen TUI for a given screen (settings, board, etc.)
 async function cmdTui(screen, rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
+  const version = getCurrentVersion();
 
   try {
     const { run } = await import(new URL('./tui.js', import.meta.url).href);
-    await run(screen, kandownDir);
+    await run(screen, kandownDir, version);
   } catch (e) {
     err(`Failed to launch TUI: ${e.message}`);
     process.exit(1);
@@ -546,6 +549,17 @@ async function cmdTui(screen, rawArgs) {
 }
 
 const [cmd, ...rest] = process.argv.slice(2);
+
+// 📖 Handle --version / -v before any command logic
+if (cmd === '--version' || cmd === '-v') {
+  const v = getCurrentVersion() ?? 'unknown';
+  log(`kandown v${v}`);
+  process.exit(0);
+}
+
+// 📖 Auto-update check runs before EVERY command (except --version).
+// Uses a short timeout so startup is not noticeably slower.
+await checkForUpdate(rest);
 
 switch (cmd) {
   case 'init':

@@ -20,12 +20,13 @@ import { Board } from './screens/board.js';
 interface AppProps {
   screen: string;
   kandownDir: string;
+  version?: string;
 }
 
-export function App({ screen, kandownDir }: AppProps) {
+export function App({ screen, kandownDir, version }: AppProps) {
   switch (screen) {
     case 'settings':
-      return <Settings kandownDir={kandownDir} />;
+      return <Settings kandownDir={kandownDir} version={version} />;
     case 'board':
       return <Board kandownDir={kandownDir} />;
     default:
