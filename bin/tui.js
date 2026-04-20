@@ -56255,7 +56255,6 @@ function readTask(kandownDir, taskId) {
 function readAgentDoc(kandownDir) {
   const root = getProjectRoot(kandownDir);
   const candidates = [
-    join4(root, "AGENT_KANDOWN_COMPACT.md"),
     join4(root, "AGENT_KANDOWN.md"),
     join4(kandownDir, "AGENT.md")
   ];

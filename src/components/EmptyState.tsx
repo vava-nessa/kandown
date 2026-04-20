@@ -18,7 +18,7 @@ import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../lib/store';
 import { KbdButton } from './KbdButton';
-import { supportsFileSystemAccess } from '../lib/filesystem';
+import { supportsFileSystemAccess, isServerMode } from '../lib/filesystem';
 
 const LogoSvg = ({ className }: { className?: string }) => (
   <svg
@@ -38,6 +38,7 @@ export function EmptyState() {
   const openFolder = useStore(s => s.openFolder);
   const recentProjects = useStore(s => s.recentProjects);
   const openRecentProject = useStore(s => s.openRecentProject);
+  const tryAutoOpenServerProject = useStore(s => s.tryAutoOpenServerProject);
 
   if (!supportsFileSystemAccess()) {
     return (
@@ -47,6 +48,8 @@ export function EmptyState() {
       </div>
     );
   }
+
+  const serverMode = isServerMode();
 
   return (
     <motion.div
@@ -71,35 +74,65 @@ export function EmptyState() {
       >
         {t('app.name')}
       </motion.div>
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="text-[14.5px] text-fg-dim max-w-[480px] leading-relaxed"
-      >
-        {t('app.tagline')}
-      </motion.div>
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="text-[14.5px] text-fg-dim max-w-[480px] leading-relaxed"
-        dangerouslySetInnerHTML={{ __html: t('emptyState.selectFolderDesc') }}
-      />
-      <motion.div
-        initial={{ opacity: 0, y: 4 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15 }}
-      >
-        <KbdButton
-          variant="primary"
-          label={t('common.selectFolder')}
-          onClick={openFolder}
-          className="h-10 px-6 text-[16px]"
-          iconSize={20}
-          icon="Folder"
-        />
-      </motion.div>
+
+      {serverMode ? (
+        <>
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-[14.5px] text-fg-dim max-w-[480px] leading-relaxed"
+          >
+            {t('emptyState.serverModeDesc') ?? 'Kandown is running in server mode. Click below to open your project — the browser will remember your choice for next time.'}
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <KbdButton
+              variant="primary"
+              label={t('emptyState.openThisProject') ?? 'Open this project'}
+              onClick={openFolder}
+              className="h-10 px-6 text-[16px]"
+              iconSize={20}
+              icon="Folder"
+            />
+          </motion.div>
+        </>
+      ) : (
+        <>
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-[14.5px] text-fg-dim max-w-[480px] leading-relaxed"
+          >
+            {t('app.tagline')}
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-[14.5px] text-fg-dim max-w-[480px] leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: t('emptyState.selectFolderDesc') }}
+          />
+          <motion.div
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <KbdButton
+              variant="primary"
+              label={t('common.selectFolder')}
+              onClick={openFolder}
+              className="h-10 px-6 text-[16px]"
+              iconSize={20}
+              icon="Folder"
+            />
+          </motion.div>
+        </>
+      )}
 
       {recentProjects.length > 0 && (
         <motion.div

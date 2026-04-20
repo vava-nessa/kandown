@@ -12,7 +12,7 @@
  * @functions
  *  → readBoard           — scans tasks/*.md and returns a ParsedBoard-compatible shape
  *  → readTask            — reads a task file by ID and returns a ParsedTask
- *  → readAgentDoc        — returns AGENT_KANDOWN_COMPACT.md or fallback instructions
+ *  → readAgentDoc        — returns AGENT_KANDOWN.md or fallback instructions
  *  → moveTaskToColumn    — updates a task frontmatter status
  *  → getProjectRoot      — returns the project root (parent of .kandown/)
  *
@@ -94,17 +94,15 @@ export function readTask(kandownDir: string, taskId: string): ParsedTask {
 }
 
 /**
- * 📖 Returns the full text of the compact agent instructions doc.
+ * 📖 Returns the full text of the agent instructions doc.
  * Priority order:
- *   1. AGENT_KANDOWN_COMPACT.md at project root
- *   2. AGENT_KANDOWN.md at project root (full version fallback)
- *   3. .kandown/AGENT.md (minimal template fallback)
+ *   1. AGENT_KANDOWN.md at project root
+ *   2. .kandown/AGENT.md (minimal template fallback)
  * Returns empty string if none found.
  */
 export function readAgentDoc(kandownDir: string): string {
   const root = getProjectRoot(kandownDir);
   const candidates = [
-    join(root, 'AGENT_KANDOWN_COMPACT.md'),
     join(root, 'AGENT_KANDOWN.md'),
     join(kandownDir, 'AGENT.md'),
   ];

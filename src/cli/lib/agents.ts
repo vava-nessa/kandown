@@ -31,7 +31,7 @@ import { execFileSync } from 'node:child_process';
 
 // 📖 Options passed to buildCommand — everything needed to construct the launch args
 export interface LaunchOpts {
-  /** Full system prompt / agent instructions (AGENT_KANDOWN_COMPACT.md content) */
+  /** Full system prompt / agent instructions (AGENT_KANDOWN.md content) */
   systemPrompt: string;
   /** Task instruction: task file content + directive to start working */
   taskPrompt: string;
@@ -174,11 +174,11 @@ export function getAgentById(id: string): AgentDef | undefined {
 /**
  * 📖 Builds the complete prompt to inject into the agent.
  * Structure:
- *   1. Agent rules (system doc) from AGENT_KANDOWN_COMPACT.md
+ *   1. Agent rules (system doc) from AGENT_KANDOWN.md
  *   2. The full task file content
  *   3. A direct instruction to start working on the task
  *
- * @param agentDoc   - content of AGENT_KANDOWN_COMPACT.md (or fallback)
+ * @param agentDoc   - content of AGENT_KANDOWN.md (or fallback)
  * @param taskContent - full raw content of the task markdown file
  * @param taskId     - task ID for the instruction
  * @param kandownDir - path to .kandown/ for the agent to know where files are
