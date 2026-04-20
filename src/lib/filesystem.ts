@@ -56,6 +56,23 @@ export function supportsFileSystemAccess(): boolean {
   return 'showDirectoryPicker' in window;
 }
 
+/**
+ * 📖 True when the CLI server is serving this page (window.__KANDOWN_ROOT__ is set).
+ * Indicates the app is running in "server mode" — the CLI knows the project path.
+ */
+export function isServerMode(): boolean {
+  return typeof window !== 'undefined' && typeof (window as unknown as { __KANDOWN_ROOT__?: string }).__KANDOWN_ROOT__ === 'string';
+}
+
+/**
+ * 📖 Returns the absolute path to the .kandown/ directory when in server mode,
+ * or null if not in server mode.
+ */
+export function getServerRoot(): string | null {
+  if (!isServerMode()) return null;
+  return (window as unknown as { __KANDOWN_ROOT__: string }).__KANDOWN_ROOT__ ?? null;
+}
+
 export async function pickDirectory(): Promise<FileSystemDirectoryHandle | null> {
   try {
     return await window.showDirectoryPicker({ mode: 'readwrite' });
@@ -196,6 +213,8 @@ export interface RecentProject {
   name: string;
   handle: FileSystemDirectoryHandle;
   lastOpened: number;
+  /** 📖 Absolute path to the .kandown/ directory. Saved when in server mode for auto-open matching. */
+  kandownDir?: string;
 }
 
 function openDB(): Promise<IDBDatabase> {

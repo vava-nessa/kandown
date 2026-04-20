@@ -44,6 +44,8 @@ import {
   saveRecentProject,
   listRecentProjects,
   verifyPermission,
+  isServerMode,
+  getServerRoot,
   type RecentProject,
 } from './filesystem';
 import { buildColumnsFromTasks, extractSubtasks, injectSubtasks, searchTaskContent } from './parser';
@@ -123,6 +125,7 @@ interface State {
   // Actions
   openFolder: () => Promise<void>;
   openRecentProject: (project: RecentProject) => Promise<void>;
+  tryAutoOpenServerProject: () => Promise<void>;
   reloadBoard: () => Promise<void>;
   loadConfig: () => Promise<void>;
   updateConfig: (updater: (config: KandownConfig) => KandownConfig) => Promise<void>;
@@ -299,11 +302,13 @@ export const useStore = create<State>((set, get) => ({
     const projectName = projectHandle.name;
     set({ dirHandle: kandownHandle, tasksDirHandle: tasksDir, projectName });
     window.history.pushState({}, '', `?p=${encodeURIComponent(projectName)}`);
+    const serverRoot = isServerMode() ? getServerRoot() : null;
     await saveRecentProject({
       id: projectHandle.name,
       name: projectHandle.name,
       handle: projectHandle,
       lastOpened: Date.now(),
+      ...(serverRoot ? { kandownDir: serverRoot } : {}),
     });
     await get().loadConfig();
     await get().reloadBoard();
@@ -324,6 +329,27 @@ export const useStore = create<State>((set, get) => ({
     set({ dirHandle: kandownHandle, tasksDirHandle: tasksDir, projectName });
     window.history.pushState({}, '', `?p=${encodeURIComponent(projectName)}`);
     await saveRecentProject({ ...project, lastOpened: Date.now() });
+    await get().loadConfig();
+    await get().reloadBoard();
+    void get().setupWatcher();
+  },
+
+  /** 📖 Called on mount when isServerMode() is true. Finds the matching recent project by its .kandown path and auto-opens it. */
+  tryAutoOpenServerProject: async () => {
+    if (!isServerMode()) return;
+    const serverRoot = getServerRoot();
+    if (!serverRoot) return;
+    const recent = await listRecentProjects();
+    const match = recent.find(p => p.kandownDir === serverRoot);
+    if (!match) return;
+    const ok = await verifyPermission(match.handle, true);
+    if (!ok) return;
+    const kandownHandle = await getKandownHandle(match.handle);
+    const tasksDir = await ensureTasksDir(kandownHandle);
+    const projectName = match.handle.name;
+    set({ dirHandle: kandownHandle, tasksDirHandle: tasksDir, projectName, recentProjects: recent });
+    window.history.pushState({}, '', `?p=${encodeURIComponent(projectName)}`);
+    await saveRecentProject({ ...match, lastOpened: Date.now() });
     await get().loadConfig();
     await get().reloadBoard();
     void get().setupWatcher();

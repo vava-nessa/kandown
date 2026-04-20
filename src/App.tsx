@@ -44,6 +44,7 @@ export function App() {
   const reloadBoard = useStore(s => s.reloadBoard);
   const recentProjects = useStore(s => s.recentProjects);
   const openRecentProject = useStore(s => s.openRecentProject);
+  const tryAutoOpenServerProject = useStore(s => s.tryAutoOpenServerProject);
   const currentPage = useStore(s => s.currentPage);
   const config = useStore(s => s.config);
 
@@ -66,6 +67,12 @@ export function App() {
       }
     }
   }, [recentProjects, dirHandle, openRecentProject]);
+
+  // 📖 When served via `npx kandown`, window.__KANDOWN_ROOT__ is set. Try to auto-open
+  // the matching recent project (if user previously granted access) without showing the picker.
+  useEffect(() => {
+    void tryAutoOpenServerProject();
+  }, [tryAutoOpenServerProject]);
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const active = document.activeElement;
