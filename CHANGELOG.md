@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1 — 2026-04-20 — "Auto-Open Fix"
+
+- **Fixed**: `npx kandown` now auto-opens the correct project in the web UI instead of showing the empty "Select a project" screen. The CLI injects `window.__KANDOWN_ROOT__` and the app tries to match it against previously granted folder permissions on mount.
+
 ## 0.2.0 — 2026-04-20 — "Version Display + Auto-Update"
 
 - **Added**: `kandown -v` / `--version` flag — prints the current CLI version.
