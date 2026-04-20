@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.3 — 2026-04-20 — "EmptyState Server Mode Fix"
+
+- **Fixed**: When served via `npx kandown`, the web app now detects server mode and shows a contextual "Open this project" button instead of the generic select-folder UI. User grants folder access once, browser remembers it for next time.
+
 ## 0.2.2 — 2026-04-20 — "Header Version Badge"
 
 - **Added**: Version badge (`v0.2.2`) displayed in red in the web app header, top-left, next to the logo.
