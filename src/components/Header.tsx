@@ -23,6 +23,7 @@ import { Icon } from './Icons';
 import { KbdButton } from './KbdButton';
 import { useStore } from '../lib/store';
 import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
+import { KANDOWN_VERSION } from '../lib/version';
 
 const LogoSvg = ({ className }: { className?: string }) => (
   <svg
@@ -81,6 +82,7 @@ export function Header() {
           >
             <LogoSvg className="w-[36px] h-[36px] dark:text-white text-black" />
             <span className="text-[15px] font-semibold tracking-tight">{t('app.name')}</span>
+            <span className="text-[11px] font-mono font-bold text-red-500">v{KANDOWN_VERSION}</span>
           </button>
         </div>
 
