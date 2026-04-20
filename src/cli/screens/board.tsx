@@ -36,6 +36,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Box, Text, useInput, useApp } from 'ink';
 import { watch } from 'chokidar';
+import { join } from 'node:path';
 import { readBoard, readTask } from '../lib/board-reader.js';
 import { detectInstalledAgents, type AgentDef } from '../lib/agents.js';
 import { launchAgent, isInTmux } from '../lib/launcher.js';
@@ -83,7 +84,11 @@ const RE_DONE_SUBTASK = /^\s*-\s+\[x\]/i;
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-/** 📖 Single task row in a column. Shows cursor marker, ID, and title. */
+// 📖 Regex to extract a leading bracket tag from task titles (e.g. "[optimization]", "[CLI REFACTOR-3]")
+const RE_BRACKET_TAG = /^\[([^\]]+)\]\s*/;
+
+/** 📖 Single task row in a column. Shows cursor marker, ID, and title.
+ *  If the title starts with a bracketed tag like [optimization], it renders bold on the ID line. */
 function TaskRow({
   task,
   focused,
@@ -95,10 +100,18 @@ function TaskRow({
 }) {
   const cursor = focused ? '▸' : ' ';
   const check = task.checked ? '✓' : '○';
-  // 📖 Layout: "▸ ○ t-019 title…"  — cursor(1) + space(1) + check(1) + space(1) + id + space + title
   const idStr = task.id;
-  const available = colWidth - 4 - idStr.length - 1; // 4 = cursor+space+check+space, 1 = space after id
-  const titleStr = truncate(task.title, Math.max(4, available));
+
+  // 📖 Extract optional bracket prefix (e.g. "[optimization]") from the title
+  const tagMatch = task.title.match(RE_BRACKET_TAG);
+  const tag = tagMatch ? `[${tagMatch[1]}]` : '';
+  const titleWithoutTag = tagMatch ? task.title.slice(tagMatch[0].length) : task.title;
+
+  // 📖 Layout: "▸ ○ t-019 [tag] title…"  — cursor(1)+space(1)+check(1)+space(1) + id + space + tag + space + title
+  const fixedChars = 4 + idStr.length + 1; // cursor+space+check+space + id + trailing space
+  const tagChars = tag ? tag.length + 1 : 0; // tag + space after tag
+  const available = colWidth - fixedChars - tagChars;
+  const titleStr = truncate(titleWithoutTag, Math.max(4, available));
 
   return (
     <Box>
@@ -111,6 +124,11 @@ function TaskRow({
       <Text color={focused ? 'cyan' : 'yellow'} bold={focused}>
         {idStr}
       </Text>
+      {tag && (
+        <Text color={focused ? 'white' : 'magenta'} bold>
+          {' '}{tag}
+        </Text>
+      )}
       <Text color={focused ? 'white' : 'gray'}>{' '}{titleStr}</Text>
     </Box>
   );

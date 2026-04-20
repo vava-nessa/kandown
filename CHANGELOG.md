@@ -1,12 +1,14 @@
 # Changelog
 
-## 0.1.4 — 2026-04-20 — "Zero-Step Launch"
+## 0.1.5 — 2026-04-20 — "Live Reload + Auto-Update"
 
+- **Added**: CLI checks for a newer npm version on startup (non-blocking, background check). Warns if the user is outdated.
+- **Added**: Live file watching in the TUI — board auto-reloads when task files or `kandown.json` change. No need to press `r`.
 - **Changed**: `npx kandown` now auto-inits `.kandown/` if not found — zero manual setup required.
 - **Fixed**: TUI crashed on fresh install with `Cannot find package 'react-devtools-core'`.
-- **Fixed**: TUI crashed with `Dynamic require of "assert" is not supported` in Node.js ESM context — added `signal-exit` as explicit dep and `globalThis.require = createRequire()` shim so bundled CJS shims work in ESM.
-- **Fixed**: `self is not defined` error — added `self`/`window` polyfills and `DEV=false` to prevent Ink from loading react-devtools-core in non-dev environments.
-- Added `signal-exit` to `dependencies` to ensure it's available at runtime.
+- **Fixed**: TUI crashed with `Dynamic require of "assert" is not supported` in Node.js ESM context.
+- **Fixed**: `self is not defined` error — added self/window polyfills and `DEV=false` to prevent Ink from loading react-devtools-core.
+- Added `chokidar` and `signal-exit` as explicit runtime dependencies.
 
 ## 0.1.3 — 2026-04-20 — "CLI Launch Fix"
 

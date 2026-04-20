@@ -57,6 +57,44 @@ const PKG_ROOT = resolve(__dirname, '..');
 const DEFAULT_SERVE_PORT = 2048;
 const MAX_SERVE_PORT = 2060;
 
+// 📖 Get current CLI version from package.json at PKG_ROOT
+function getCurrentVersion() {
+  try {
+    const pkg = JSON.parse(readFileSync(join(PKG_ROOT, 'package.json'), 'utf8'));
+    return pkg.version;
+  } catch { return null; }
+}
+
+// 📖 Check npm for a newer version and warn user if outdated.
+// Runs in background — does not block startup. Only activates when running from
+// an installed npm package (not local dev source, where src/ exists).
+async function checkForUpdate() {
+  if (existsSync(join(PKG_ROOT, 'src'))) return; // local dev — skip
+  const current = getCurrentVersion();
+  if (!current) return;
+  try {
+    const { execSync } = await import('node:child_process');
+    const latest = String(execSync('npm view kandown version --json 2>/dev/null', {
+      timeout: 5000, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'],
+    })).trim().replace(/^"|"$/g, '');
+    if (latest && latest !== current) {
+      log(`${c.yellow}⚡ New kandown version available: ${latest} (you have ${current})${c.reset}`);
+      log(`  Run ${c.cyan}npm install -g kandown${c.reset} to upgrade`);
+      log('');
+    }
+  } catch { /* offline or npm slow — silently skip */ }
+}
+
+// Start the version check in background (non-blocking)
+checkForUpdate();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const PKG_ROOT = resolve(__dirname, '..');
+// 📖 Default localhost range for the zero-config `kandown` web UI server.
+const DEFAULT_SERVE_PORT = 2048;
+const MAX_SERVE_PORT = 2060;
+
 const c = {
   reset: '\x1b[0m',
   bold: '\x1b[1m',
