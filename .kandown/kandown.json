@@ -1,8 +1,8 @@
 {
   "ui": {
     "language": "en",
-    "theme": "light",
-    "skin": "cobalt",
+    "theme": "dark",
+    "skin": "kandown",
     "font": "system",
     "background": "solid"
   },
@@ -40,7 +40,7 @@
   "notifications": {
     "browser": true,
     "sound": true,
-    "soundId": "ping",
+    "soundId": "chime",
     "statusChanges": true,
     "taskEdits": true,
     "subtaskCompletions": true,
