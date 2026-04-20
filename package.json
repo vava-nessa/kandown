@@ -66,6 +66,7 @@
     "zustand": "^5.0.0"
   },
   "dependencies": {
+    "chokidar": "^4.0.0",
     "react-devtools-core": ">=6.1.2",
     "signal-exit": "^3.0.7"
   },

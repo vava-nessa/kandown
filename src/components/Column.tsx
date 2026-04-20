@@ -218,7 +218,6 @@ export function Column({
 }: ColumnProps) {
   const { t } = useTranslation();
   const [isOver, setIsOver] = useState(false);
-  const [isColHovered, setIsColHovered] = useState(false);
   const createTask = useStore(s => s.createTask);
   const addColumn = useStore(s => s.addColumn);
   const renameColumn = useStore(s => s.renameColumn);
@@ -288,10 +287,8 @@ export function Column({
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      onMouseEnter={() => setIsColHovered(true)}
-      onMouseLeave={() => setIsColHovered(false)}
       data-column={column.name}
-      className="flex flex-col flex-none w-[304px] min-h-[400px] rounded-[10px] transition-colors duration-150"
+      className="flex flex-col flex-none w-[304px] h-full rounded-[10px] transition-colors duration-150"
       style={{ backgroundColor: isOver ? 'rgba(255,255,255,0.03)' : colBg }}
     >
       <div className="flex items-center justify-between px-3.5 pt-3 pb-2">
@@ -347,7 +344,10 @@ export function Column({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-2 pb-2.5">
+      <div
+        className="flex-1 min-h-0 px-2 scrollbar-always"
+        style={{ overflowY: 'scroll' }}
+      >
         <div className="flex flex-col gap-1.5">
           <AnimatePresence mode="popLayout">
             {filteredTasks.map(task => (
@@ -363,25 +363,16 @@ export function Column({
             ))}
           </AnimatePresence>
         </div>
-        <AnimatePresence>
-          {isColHovered && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.15 }}
-              className="mt-1 overflow-hidden"
-            >
-              <KbdButton
-                variant="ghost"
-                icon="Plus"
-                label={t('column.addTask')}
-                onClick={() => createTask(column.name)}
-                className="w-full justify-start px-2 py-1.5 h-auto text-[12.5px]"
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+      </div>
+
+      <div className="flex-none px-2 pb-2.5 pt-1">
+        <KbdButton
+          variant="ghost"
+          icon="Plus"
+          label={t('column.addTask')}
+          onClick={() => createTask(column.name)}
+          className="w-full justify-start px-2 py-1.5 h-auto text-[12.5px]"
+        />
       </div>
     </motion.div>
   );

@@ -33,8 +33,9 @@
  * @see src/cli/screens/agent-picker.tsx — agent selection overlay
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Box, Text, useInput, useApp } from 'ink';
+import { watch } from 'chokidar';
 import { readBoard, readTask } from '../lib/board-reader.js';
 import { detectInstalledAgents, type AgentDef } from '../lib/agents.js';
 import { launchAgent, isInTmux } from '../lib/launcher.js';
@@ -292,6 +293,34 @@ export function Board({ kandownDir }: BoardProps) {
     const loaded = readBoard(kandownDir);
     setBoard(loaded);
     setInstalledAgents(detectInstalledAgents());
+  }, [kandownDir]);
+
+  // 📖 Watch task files for live reload — chokidar triggers re-render when files change
+  useEffect(() => {
+    const tasksDir = join(kandownDir, 'tasks');
+    const configPath = join(kandownDir, 'kandown.json');
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const watcher = watch([join(tasksDir, '*.md'), configPath], {
+      persistent: true,
+      ignoreInitial: true,
+      awaitWriteFinish: { stabilityThreshold: 200, pollInterval: 50 },
+    });
+
+    watcher.on('all', (event) => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        const loaded = readBoard(kandownDir);
+        setBoard(loaded);
+        setStatusMsg(`Reloaded (${event})`);
+        setTimeout(() => setStatusMsg(''), 1500);
+      }, 100);
+    });
+
+    return () => {
+      watcher.close();
+      if (debounceTimer) clearTimeout(debounceTimer);
+    };
   }, [kandownDir]);
 
   // 📖 Reload board from disk (press 'r')

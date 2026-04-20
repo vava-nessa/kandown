@@ -85,7 +85,7 @@ export function Board() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.25 }}
-      className={`flex-1 flex gap-2.5 p-4 pb-5 overflow-x-auto overflow-y-hidden relative ${config.ui.background === 'solid' ? 'board-bg' : ''}`}
+      className={`flex-1 min-h-0 flex gap-2.5 p-4 pb-5 overflow-x-auto overflow-y-hidden relative ${config.ui.background === 'solid' ? 'board-bg' : ''}`}
     >
       {config.ui.background === 'solid' && <div className="noise-overlay" />}
       {filteredColumns.map(({ column, filtered }, i) => (
@@ -98,6 +98,7 @@ export function Board() {
             duration: 0.35,
             ease: [0.32, 0.72, 0.35, 1],
           }}
+          className="h-full"
         >
           <Column
             column={column}

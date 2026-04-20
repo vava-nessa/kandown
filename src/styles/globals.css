@@ -164,6 +164,19 @@
   ::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--border-focus));
   }
+
+  /* 📖 Always show scrollbar on scrollable columns — macOS hides them by default */
+  .scrollbar-always::-webkit-scrollbar {
+    width: 6px;
+  }
+  .scrollbar-always::-webkit-scrollbar-track {
+    background: hsl(var(--border) / 0.3);
+    border-radius: 3px;
+  }
+  .scrollbar-always::-webkit-scrollbar-thumb {
+    background: hsl(var(--border-strong));
+    border-radius: 3px;
+  }
 }
 
 @layer components {

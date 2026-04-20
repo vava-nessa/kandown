@@ -138,7 +138,7 @@ export function App() {
               resolution={0.5}
             />
           )}
-          <div className={`relative ${config.ui.background === 'liquid-ether' ? 'z-10' : ''}`}>
+          <div className={`flex flex-col h-full relative ${config.ui.background === 'liquid-ether' ? 'z-10' : ''}`}>
             <FilterBar />
             {viewMode === 'board' ? <Board /> : <ListView />}
           </div>
