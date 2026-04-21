@@ -35,9 +35,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Box, Text, useInput, useApp } from 'ink';
-import { watch } from 'chokidar';
-import { join } from 'node:path';
 import { readBoard, readTask } from '../lib/board-reader.js';
+import { createWatcher, type FileWatcher } from '../lib/file-watcher.js';
 import { detectInstalledAgents, type AgentDef } from '../lib/agents.js';
 import { launchAgent, isInTmux } from '../lib/launcher.js';
 import type { ParsedBoard, BoardTask, ParsedTask } from '../../lib/types.js';
@@ -313,31 +312,38 @@ export function Board({ kandownDir }: BoardProps) {
     setInstalledAgents(detectInstalledAgents());
   }, [kandownDir]);
 
-  // 📖 Watch task files for live reload — chokidar triggers re-render when files change
+  // 📖 Cursor refs — stored in refs so they survive re-renders without causing them
+  const colIndexRef = useRef(0);
+  const rowIndexRef = useRef(0);
+
+  // 📖 Live file watcher — uses content hashing, fires silently (no status flash),
+  // preserves cursor position. Max delay from disk change to board update: 500ms.
   useEffect(() => {
-    const tasksDir = join(kandownDir, 'tasks');
-    const configPath = join(kandownDir, 'kandown.json');
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const watcher = createWatcher();
 
-    const watcher = watch([join(tasksDir, '*.md'), configPath], {
-      persistent: true,
-      ignoreInitial: true,
-      awaitWriteFinish: { stabilityThreshold: 200, pollInterval: 50 },
+    watcher.on('taskChanged', () => {
+      const loaded = readBoard(kandownDir);
+      setBoard(loaded);
+      // Silent — no statusMsg, no flash, cursor position naturally preserved
+      // because setBoard only triggers a re-render, not a state reset
     });
 
-    watcher.on('all', (event) => {
-      if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        const loaded = readBoard(kandownDir);
-        setBoard(loaded);
-        setStatusMsg(`Reloaded (${event})`);
-        setTimeout(() => setStatusMsg(''), 1500);
-      }, 100);
+    watcher.on('newTaskDetected', (taskId) => {
+      const loaded = readBoard(kandownDir);
+      setBoard(loaded);
+      setStatusMsg(`New task: ${taskId}`);
+      setTimeout(() => setStatusMsg(''), 2000);
     });
+
+    watcher.on('configChanged', () => {
+      const loaded = readBoard(kandownDir);
+      setBoard(loaded);
+    });
+
+    watcher.start(kandownDir);
 
     return () => {
-      watcher.close();
-      if (debounceTimer) clearTimeout(debounceTimer);
+      watcher.stop();
     };
   }, [kandownDir]);
 

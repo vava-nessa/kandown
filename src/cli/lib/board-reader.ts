@@ -35,7 +35,7 @@ export function getProjectRoot(kandownDir: string): string {
   return dirname(kandownDir);
 }
 
-function listTaskIds(kandownDir: string): string[] {
+export function listTaskIds(kandownDir: string): string[] {
   const tasksDir = join(kandownDir, 'tasks');
   if (!existsSync(tasksDir)) return [];
   return readdirSync(tasksDir)

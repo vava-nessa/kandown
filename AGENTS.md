@@ -35,8 +35,6 @@ pnpm build        # auto-syncs before building
 
 **Do NOT edit the root `AGENT_KANDOWN.md` directly.** Edit `templates/AGENT_KANDOWN.md` and run `pnpm sync:agent` to propagate changes to the project root.
 
-The `AGENT_KANDOWN_COMPACT.md` at the root is auto-generated from the full doc and used by the CLI board launcher. It is gitignored — do not edit it manually.
-
 ---
 
 ## Version System
@@ -162,7 +160,7 @@ Agent: Updated CHANGELOG.md, bumped package.json, built, committed, tagged v0.2.
 |------|------|-----------|
 | `templates/AGENT_KANDOWN.md` | npm package source + dev source | ✅ YES |
 | `AGENT_KANDOWN.md` (root) | synced copy of templates version | ❌ NO (auto-sync'd) |
-| `AGENT_KANDOWN_COMPACT.md` | CLI prompt injection artifact | ❌ NO (auto-gen'd) |
+
 | `.kandown/AGENT.md` | quick reference inside installed app | ❌ NO (auto-copied) |
 | `AGENTS.md` | this file — project-level agent rules | ✅ YES |
 | `.kandown/tasks/*.md` | individual task files | ✅ YES (as you work) |

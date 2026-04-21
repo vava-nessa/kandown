@@ -20,7 +20,7 @@
  * @see src/components/Card.tsx
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -33,9 +33,11 @@ import {
   type TablerIcon,
 } from '@tabler/icons-react';
 import { Card } from './Card';
+import { CardStack } from './CardStack';
 import { Icon } from './Icons';
 import { KbdButton } from './KbdButton';
 import { useStore } from '../lib/store';
+import { groupTasksByTag } from '../lib/grouping';
 import type { Column as ColumnType, BoardTask, Density, SearchMatch, ColumnColor } from '../lib/types';
 
 const columnIconsByName: Readonly<Record<string, TablerIcon>> = {
@@ -224,7 +226,11 @@ export function Column({
   const deleteColumn = useStore(s => s.deleteColumn);
   const updateConfig = useStore(s => s.updateConfig);
   const config = useStore(s => s.config);
+  const filters = useStore(s => s.filters);
   const isConfiguredColumn = config.board.columns.some(name => name.toLowerCase() === column.name.toLowerCase());
+
+  // 📖 Group tasks by shared [bracket] or #hashtag title tags into collapsible stacks
+  const columnItems = useMemo(() => groupTasksByTag(filteredTasks), [filteredTasks]);
 
   const colColorKey = config.board.columnColors?.[column.name.toLowerCase()] ?? 'gray';
   const colBg = COLUMN_COLOR_MAP[colColorKey] ?? COLUMN_COLOR_MAP.gray;
@@ -350,17 +356,30 @@ export function Column({
       >
         <div className="flex flex-col gap-1.5">
           <AnimatePresence mode="popLayout">
-            {filteredTasks.map(task => (
-              <Card
-                key={task.id}
-                task={task}
-                searchMatches={searchMatches.get(task.id) || []}
-                density={density}
-                columnName={column.name}
-                onDragStart={() => onCardDragStart(task.id, column.name)}
-                onDragEnd={onCardDragEnd}
-              />
-            ))}
+            {columnItems.map(item =>
+              item.type === 'single' ? (
+                <Card
+                  key={item.task.id}
+                  task={item.task}
+                  searchMatches={searchMatches.get(item.task.id) || []}
+                  density={density}
+                  columnName={column.name}
+                  onDragStart={() => onCardDragStart(item.task.id, column.name)}
+                  onDragEnd={onCardDragEnd}
+                />
+              ) : (
+                <CardStack
+                  key={`stack-${item.groupKey}`}
+                  group={item}
+                  searchMatches={searchMatches}
+                  density={density}
+                  columnName={column.name}
+                  onCardDragStart={onCardDragStart}
+                  onCardDragEnd={onCardDragEnd}
+                  defaultExpanded={!!filters.search}
+                />
+              )
+            )}
           </AnimatePresence>
         </div>
       </div>

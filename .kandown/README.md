@@ -1,6 +1,6 @@
 # .kandown/
 
-File-based kandown for this project. Zero install, zero backend, plain markdown on disk.
+File-based kanban for this project. Zero install, zero backend, plain markdown on disk.
 
 ## Usage
 
@@ -18,10 +18,14 @@ The app remembers the last 10 projects you've opened — no need to re-select th
 │   ├── t1.md      ← full task details
 │   └── ...
 ├── kandown.html       ← the engine (single file, no dependencies)
-├── kandown.json      ← project preferences, columns, appearance
+├── kandown.json      ← project preferences, columns, appearance, optional fields
 ├── AGENT.md          ← AI coding agent conventions
 └── README.md         ← this file
 ```
+
+## Settings
+
+Open Settings from the app header to tune this project. Board columns are stored in `kandown.json` at `board.columns`. Each task chooses a column with its frontmatter `status`.
 
 ## Editing without the app
 

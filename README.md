@@ -4,8 +4,6 @@
 
 # Kandown
 
-> **⚠️ This project is not finished yet. V1 coming soon.**
-
 A file-based Kanban engine backed by plain markdown. Zero backend, zero database, no account, AI-agent friendly.
 
 Kandown installs a self-contained web app into a project folder. The app reads and writes local markdown files through the browser File System Access API, so your board stays in your repo, remains git-diffable, and can be edited by humans or AI agents without a hosted service.
@@ -62,14 +60,16 @@ Firefox and Safari do not currently support the required File System Access API.
 - **Custom columns**: Add, rename, and delete columns from the board; unknown task statuses appear as temporary columns until added to settings.
 - **Drag and drop**: Move cards between columns with optimistic file writes.
 - **Guarded card deletion**: Hover a card and click the trash icon twice to delete a task without opening the drawer.
-- **Task drawer**: Edit title, enabled metadata fields, subtasks, and body content.
+- **Task drawer**: Edit title, enabled metadata fields, subtasks, and body content via a WYSIWYG markdown editor (Wysimark).
 - **Content search**: Search titles, ids, task body, subtasks, tags, assignee, and priority with highlighted previews.
 - **Command palette**: `⌘K` / `Ctrl+K` for task search and quick actions.
 - **Owner type filtering**: Separate human tasks from AI-agent tasks.
 - **Dense settings**: Sidebar search, compact setting controls, and hover help explain project options.
 - **Configurable notifications**: Chrome permission, status-change alerts, debounced task-edit alerts, subtask-completion alerts, and in-page sound cues.
-- **Appearance system**: Project-level `auto` / `light` / `dark`, backgrounds, built-in skins, and local font presets.
+- **External-change detection**: Warns when a task file is modified outside the app and offers Reload / Overwrite / Cancel choices via ConflictModal.
+- **Appearance system**: Project-level `auto` / `light` / `dark`, built-in skins, fonts, animated WebGL backgrounds (LiquidEther fluid simulation), and local font presets.
 - **Recent projects**: Stored in IndexedDB so local handles can be reopened quickly.
+- **i18n**: 48 languages supported.
 - **Single-file publish artifact**: Vite bundles the web UI into `dist/index.html`.
 
 ## Keyboard Shortcuts
@@ -147,7 +147,7 @@ The board TUI is a full-screen terminal kanban built with [Ink](https://github.c
 
 **Agent picker** (`a` key): shows only agents currently installed in your `PATH`. Selecting one:
 1. Sets the task frontmatter `status` to **In Progress**.
-2. Constructs a system prompt from `AGENT_KANDOWN_COMPACT.md` + the task file.
+2. Constructs a system prompt from `AGENT_KANDOWN.md` + the task file.
 3. Writes context to `/tmp/kandown-<id>-context.md` for reference.
 4. If inside **tmux**: opens the agent in a new 50%-wide right pane (the TUI stays visible).
 5. If not in tmux: exits the TUI and hands the terminal to the agent.
@@ -192,7 +192,7 @@ kandown/
 │   └── styles/             # Tailwind layers and CSS tokens
 ├── templates/              # files copied by `kandown init`
 │   ├── AGENT_KANDOWN.md        # full agent instructions (copied to project root)
-│   └── AGENT_KANDOWN_COMPACT.md # condensed version for CLI prompt injection
+│   └── AGENT_KANDOWN.md          # agent instructions (single source of truth)
 ├── dist/index.html         # generated single-file web app
 ├── tailwind.config.js
 ├── vite.config.ts
@@ -289,7 +289,7 @@ Project-level preferences:
 
 Disabled fields are hidden from the task drawer, cards, list view, and metadata filters. `board.defaultPriority` only applies when `fields.priority` is enabled, and `board.defaultOwnerType` only applies when `fields.ownerType` is enabled.
 
-Notifications are driven by the same file watcher that reloads the board. Status changes fire when task frontmatter `status` changes, task edit notifications fire after `notifications.editDebounceMs` with a minimum 2 second delay, and subtask completion notifications fire when a checklist item flips from open to done. Browser notifications require Chrome permission; sound notifications play inside the open board tab.
+Notifications are driven by a 500ms polling file watcher that computes SHA-256 hashes of task file content to detect external changes. Status changes fire when task frontmatter `status` changes, task edit notifications fire after `notifications.editDebounceMs` with a minimum 2 second delay, and subtask completion notifications fire when a checklist item flips from open to done. Browser notifications require Chrome permission; sound notifications play inside the open board tab.
 
 ## Appearance Architecture
 
@@ -301,6 +301,7 @@ Important pieces:
 - `tailwind.config.js` maps `background`, `foreground`, `card`, `primary`, `secondary`, `muted`, `accent`, `destructive`, plus legacy aliases like `bg`, `fg`, and `border`.
 - `src/styles/globals.css` provides default CSS variables and shared component classes.
 - `src/components/SettingsPage.tsx` exposes mode, skin, and font controls per project.
+- `src/components/LiquidEther.tsx` provides an animated WebGL fluid simulation background (GPU-accelerated, available as a background option in appearance settings).
 
 Supported theme modes:
 
@@ -348,6 +349,7 @@ Built-in fonts:
 | `Card.tsx` | `Card` | Task card with progress, metadata, guarded hover deletion, drag handlers, and search previews. |
 | `ListView.tsx` | `ListView` | Dense table-like view sharing the same filters/search cache as board view. |
 | `Drawer.tsx` | `Drawer` | Task detail editor for title, enabled frontmatter metadata, subtasks, and body content. |
+| `MarkdownEditor.tsx` | `MarkdownEditor` | WYSIWYG markdown body editor (Wysimark) for task body content. |
 | `SubtaskItem.tsx` | `SubtaskItem` | Editable markdown checklist row. |
 | `FilterBar.tsx` | `FilterBar` | Search input, owner filter, active chips, clear action. |
 | `CommandPalette.tsx` | `CommandPalette` | Quick actions, task lookup, content search, keyboard navigation. |
@@ -356,6 +358,8 @@ Built-in fonts:
 | `EmptyState.tsx` | `EmptyState` | First-run folder picker and recent projects. |
 | `Toaster.tsx` | `Toaster` | Animated notification stack. |
 | `Icons.tsx` | `Icon` | Local SVG icon set for app chrome; board column status glyphs use `@tabler/icons-react`. |
+| `ConflictModal.tsx` | `ConflictModal` | Warns when a task file was modified externally; offers Reload / Overwrite / Cancel. |
+| `LiquidEther.tsx` | `LiquidEther` | WebGL fluid simulation background (animated, GPU-accelerated). |
 
 ### Store And Domain Logic
 
@@ -367,6 +371,8 @@ Built-in fonts:
 | `src/lib/parser.ts` | Markdown parsers/search | Parses board/task markdown, extracts/reinjects subtasks, and searches cached task content. |
 | `src/lib/serializer.ts` | Markdown writers | Serializes board and task data back to markdown. |
 | `src/lib/theme.ts` | Theme engine | Applies project-level light/dark tokens, skins, and font stacks. |
+| `src/lib/i18n/index.ts` | i18n setup | 48-locale translation system with per-project language preference. |
+| `src/lib/watcher.ts` | File watcher | 500ms polling watcher with SHA-256 content hashing to detect external file changes and drive reloads/notifications. |
 | `src/hooks/useAnimatedNumber.ts` | `useAnimatedNumber` | Spring-animated numeric display for task counts. |
 
 ## Important Functions

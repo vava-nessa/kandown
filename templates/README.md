@@ -1,23 +1,23 @@
 # .kandown/
 
-File-based kanban for this project. Zero backend, plain markdown on disk.
+File-based kanban for this project. Zero install, zero backend, plain markdown on disk.
 
 ## Usage
 
 1. Open `kandown.html` in Chrome, Edge, Brave or Opera (File System Access API required)
-2. Click **Select folder** and pick the project folder, then grant read/write permission
-3. Start editing tasks
+2. Click **Select folder** and pick this `.kandown/` directory, then grant read/write permission
+3. That's it
 
-The app remembers the last 10 projects you've opened.
+The app remembers the last 10 projects you've opened — no need to re-select the folder each time.
 
 ## Structure
 
 ```
 .kandown/
 ├── tasks/
-│   ├── t1.md      ← full task details and board status
+│   ├── t1.md      ← full task details
 │   └── ...
-├── kandown.html      ← the engine (single file, no dependencies)
+├── kandown.html       ← the engine (single file, no dependencies)
 ├── kandown.json      ← project preferences, columns, appearance, optional fields
 ├── AGENT.md          ← AI coding agent conventions
 └── README.md         ← this file
@@ -40,9 +40,10 @@ See `AGENT.md`. The key convention: each task file is its own source of truth. M
 | Key | Action |
 |---|---|
 | `⌘K` / `Ctrl+K` | Command palette |
-| `⌘1` / `⌘2` | Board / list view |
+| `⌘1` / `Ctrl+2` | Board / list view |
 | `N` | New task |
 | `R` | Reload |
 | `/` | Focus search |
 | `Esc` | Close drawer / palette |
 | `⌘S` | Save current task |
+| `⌘⌫` | Delete task (with confirmation) |

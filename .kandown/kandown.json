@@ -1,7 +1,7 @@
 {
   "ui": {
     "language": "en",
-    "theme": "dark",
+    "theme": "light",
     "skin": "rose",
     "font": "system",
     "background": "solid"
@@ -14,7 +14,7 @@
     "columns": [
       "Backlog",
       "Todo",
-      "Doing",
+      "Doing 🟢",
       "Review",
       "Done",
       "archives"
@@ -26,7 +26,7 @@
       "todo": "cyan",
       "review": "cyan",
       "done": "pink",
-      "doing": "amber"
+      "doing 🟢": "amber"
     }
   },
   "fields": {

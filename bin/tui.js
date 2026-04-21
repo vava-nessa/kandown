@@ -26207,7 +26207,7 @@ var require_websocket = __commonJS({
     var http = __require("http");
     var net = __require("net");
     var tls = __require("tls");
-    var { randomBytes, createHash } = __require("crypto");
+    var { randomBytes, createHash: createHash2 } = __require("crypto");
     var { Duplex, Readable: Readable2 } = __require("stream");
     var { URL: URL2 } = __require("url");
     var PerMessageDeflate2 = require_permessage_deflate();
@@ -26867,7 +26867,7 @@ var require_websocket = __commonJS({
           abortHandshake(websocket, socket, "Invalid Upgrade header");
           return;
         }
-        const digest = createHash("sha1").update(key + GUID).digest("base64");
+        const digest = createHash2("sha1").update(key + GUID).digest("base64");
         if (res.headers["sec-websocket-accept"] !== digest) {
           abortHandshake(websocket, socket, "Invalid Sec-WebSocket-Accept header");
           return;
@@ -27234,7 +27234,7 @@ var require_websocket_server = __commonJS({
     var EventEmitter4 = __require("events");
     var http = __require("http");
     var { Duplex } = __require("stream");
-    var { createHash } = __require("crypto");
+    var { createHash: createHash2 } = __require("crypto");
     var extension2 = require_extension();
     var PerMessageDeflate2 = require_permessage_deflate();
     var subprotocol2 = require_subprotocol();
@@ -27535,7 +27535,7 @@ var require_websocket_server = __commonJS({
           );
         }
         if (this._state > RUNNING) return abortHandshake(socket, 503);
-        const digest = createHash("sha1").update(key + GUID).digest("base64");
+        const digest = createHash2("sha1").update(key + GUID).digest("base64");
         const headers = [
           "HTTP/1.1 101 Switching Protocols",
           "Upgrade: websocket",
@@ -54328,6 +54328,267 @@ function ValueDisplay({ setting, value, focused }) {
 // src/cli/screens/board.tsx
 var import_react36 = __toESM(require_react(), 1);
 
+// src/cli/lib/board-reader.ts
+import { existsSync as existsSync3, readdirSync, readFileSync as readFileSync3, writeFileSync as writeFileSync2 } from "fs";
+import { dirname, join as join2 } from "path";
+
+// src/lib/types.ts
+var DEFAULT_COLUMNS = ["Backlog", "Todo", "In Progress", "Review", "Done"];
+
+// src/lib/parser.ts
+function parseSimpleYaml(yaml) {
+  const obj = {};
+  if (!yaml || typeof yaml !== "string") return obj;
+  const lines = yaml.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i] ?? "";
+    const m = line.match(/^([a-zA-Z_][\w-]*)\s*:\s*(.*)$/);
+    if (!m) continue;
+    const key = m[1];
+    if (!key) continue;
+    let val = m[2]?.trim() ?? "";
+    if (val === "|") {
+      const block = [];
+      i++;
+      while (i < lines.length && (/^\s+/.test(lines[i] ?? "") || (lines[i] ?? "") === "")) {
+        block.push((lines[i] ?? "").replace(/^  /, ""));
+        i++;
+      }
+      i--;
+      obj[key] = block.join("\n").trimEnd();
+      continue;
+    }
+    if (typeof val !== "string") val = "";
+    if (val.startsWith("[") && val.endsWith("]")) {
+      const arr = val.slice(1, -1).split(",").map((s) => s && typeof s === "string" ? s.trim().replace(/^["']|["']$/g, "") : "").filter(Boolean);
+      obj[key] = arr;
+    } else {
+      obj[key] = typeof val === "string" ? val.replace(/^["']|["']$/g, "") : val;
+    }
+  }
+  return obj;
+}
+function parseTaskFile(md) {
+  if (!md || typeof md !== "string") {
+    return { frontmatter: { id: "", title: "" }, body: "" };
+  }
+  const lines = md.split("\n");
+  if (lines[0] && lines[0].trim() === "---") {
+    const fmLines = [];
+    let i = 1;
+    while (i < lines.length && lines[i].trim() !== "---") {
+      fmLines.push(lines[i]);
+      i++;
+    }
+    const body = lines.slice(i + 1).join("\n").trimStart();
+    const fm = parseSimpleYaml(fmLines.join("\n"));
+    return { frontmatter: fm, body };
+  }
+  return { frontmatter: { id: "", title: "" }, body: md };
+}
+function normalizeStatus(status) {
+  const value = typeof status === "string" ? status.trim() : "";
+  return value || "Backlog";
+}
+function normalizePriority(priority) {
+  if (typeof priority !== "string") return null;
+  const value = priority.toUpperCase();
+  return /^(P1|P2|P3|P4)$/.test(value) ? value : null;
+}
+function normalizeOwnerType(ownerType) {
+  if (typeof ownerType !== "string") return "";
+  const value = ownerType.toLowerCase();
+  return value === "human" || value === "ai" ? value : "";
+}
+function taskOrder(task) {
+  const value = task.frontmatter.order;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return Number.MAX_SAFE_INTEGER;
+}
+function taskToBoardTask(task) {
+  const { frontmatter, body } = task;
+  const { subtasks } = extractSubtasks(body);
+  const done = subtasks.filter((s) => s.done).length;
+  const total = subtasks.length;
+  const status = normalizeStatus(frontmatter.status);
+  const tags = Array.isArray(frontmatter.tags) ? frontmatter.tags.filter((tag) => typeof tag === "string" && tag.trim().length > 0) : [];
+  return {
+    id: frontmatter.id || "",
+    title: frontmatter.title || frontmatter.id || "Untitled task",
+    checked: /done|termin|closed|complet/i.test(status),
+    tags,
+    assignee: typeof frontmatter.assignee === "string" && frontmatter.assignee ? frontmatter.assignee : null,
+    priority: normalizePriority(frontmatter.priority),
+    ownerType: normalizeOwnerType(frontmatter.ownerType),
+    progress: total > 0 ? { done, total } : null
+  };
+}
+function buildColumnsFromTasks(tasks, configuredColumns = DEFAULT_COLUMNS) {
+  const columnNames = configuredColumns.length > 0 ? configuredColumns : DEFAULT_COLUMNS;
+  const columnsByName = /* @__PURE__ */ new Map();
+  const configured = columnNames.map((name) => ({ name, tasks: [] }));
+  for (const column of configured) columnsByName.set(column.name.toLowerCase(), column);
+  const unknownColumns = [];
+  const sortedTasks = [...tasks].filter((task) => Boolean(task.frontmatter.id)).sort((a, b) => {
+    const byOrder = taskOrder(a) - taskOrder(b);
+    if (byOrder !== 0) return byOrder;
+    return a.frontmatter.id.localeCompare(b.frontmatter.id, void 0, { numeric: true });
+  });
+  for (const task of sortedTasks) {
+    const status = normalizeStatus(task.frontmatter.status);
+    let column = columnsByName.get(status.toLowerCase());
+    if (!column) {
+      column = { name: status, tasks: [] };
+      columnsByName.set(status.toLowerCase(), column);
+      unknownColumns.push(column);
+    }
+    column.tasks.push(taskToBoardTask(task));
+  }
+  return [...unknownColumns, ...configured];
+}
+function extractSubtasks(body) {
+  const subtasks = [];
+  if (!body || typeof body !== "string") return { subtasks, bodyWithoutSubtasks: body ?? "" };
+  const lines = body.split("\n");
+  const kept = [];
+  let inSubtaskSection = false;
+  for (const line of lines) {
+    if (/^#{1,6}\s+(subtasks?|sous[- ]t[âa]ches?|crit[èe]res?)/i.test(line)) {
+      inSubtaskSection = true;
+      kept.push(line);
+      continue;
+    }
+    if (/^#{1,6}\s+/.test(line) && inSubtaskSection) {
+      inSubtaskSection = false;
+      kept.push(line);
+      continue;
+    }
+    const m = line.match(/^\s*-\s+\[([ xX])\]\s+(.+)$/);
+    if (m && inSubtaskSection) {
+      const text = m[2]?.trim() ?? "";
+      subtasks.push({ done: (m[1]?.toLowerCase() ?? "") === "x", text });
+      continue;
+    }
+    const descMatch = line.match(/^\s*\[DESC\]\s*(.*)$/);
+    if (descMatch && subtasks.length > 0) {
+      subtasks[subtasks.length - 1].description = descMatch[1];
+      continue;
+    }
+    const reportMatch = line.match(/^\s*\[REPORT\]\s*(.*)$/);
+    if (reportMatch && subtasks.length > 0) {
+      subtasks[subtasks.length - 1].report = reportMatch[1];
+      continue;
+    }
+    kept.push(line);
+  }
+  return { subtasks, bodyWithoutSubtasks: kept.join("\n") };
+}
+
+// src/lib/serializer.ts
+function serializeTaskFile(frontmatter, body) {
+  const lines = ["---"];
+  if (frontmatter && typeof frontmatter === "object") {
+    for (const [k, v] of Object.entries(frontmatter)) {
+      if (v === null || v === void 0 || v === "") continue;
+      if (Array.isArray(v)) {
+        if (v.length === 0) continue;
+        lines.push(`${k}: [${v.join(", ")}]`);
+      } else if (typeof v === "string" && v.includes("\n")) {
+        lines.push(`${k}: |`);
+        lines.push(...v.split("\n").map((line) => `  ${line}`));
+      } else if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") {
+        lines.push(`${k}: ${v}`);
+      }
+    }
+  }
+  lines.push("---");
+  lines.push("");
+  lines.push((body ?? "").trim());
+  lines.push("");
+  return lines.join("\n");
+}
+
+// src/cli/lib/board-reader.ts
+function getProjectRoot(kandownDir) {
+  return dirname(kandownDir);
+}
+function listTaskIds(kandownDir) {
+  const tasksDir = join2(kandownDir, "tasks");
+  if (!existsSync3(tasksDir)) return [];
+  return readdirSync(tasksDir).filter((name) => name.endsWith(".md")).map((name) => name.slice(0, -3)).sort((a, b) => a.localeCompare(b, void 0, { numeric: true }));
+}
+function readBoard(kandownDir) {
+  const config = loadConfig(kandownDir);
+  const tasks = listTaskIds(kandownDir).map((id) => {
+    const task = readTask(kandownDir, id);
+    return {
+      ...task,
+      frontmatter: {
+        ...task.frontmatter,
+        id: task.frontmatter.id || id,
+        status: task.frontmatter.status || "Backlog"
+      }
+    };
+  });
+  return {
+    frontmatter: null,
+    title: "Project Kanban",
+    columns: buildColumnsFromTasks(tasks, config.board.columns)
+  };
+}
+function readTask(kandownDir, taskId) {
+  const taskPath = join2(kandownDir, "tasks", `${taskId}.md`);
+  if (!existsSync3(taskPath)) {
+    return {
+      frontmatter: { id: taskId, title: `Task ${taskId}`, status: "Backlog" },
+      body: ""
+    };
+  }
+  const content = readFileSync3(taskPath, "utf8");
+  const parsed = parseTaskFile(content);
+  return {
+    ...parsed,
+    frontmatter: {
+      ...parsed.frontmatter,
+      id: parsed.frontmatter.id || taskId,
+      status: parsed.frontmatter.status || "Backlog"
+    }
+  };
+}
+function readAgentDoc(kandownDir) {
+  const root = getProjectRoot(kandownDir);
+  const candidates = [
+    join2(root, "AGENT_KANDOWN.md"),
+    join2(kandownDir, "AGENT.md")
+  ];
+  for (const candidate of candidates) {
+    if (existsSync3(candidate)) {
+      return readFileSync3(candidate, "utf8");
+    }
+  }
+  return "";
+}
+function moveTaskToColumn(kandownDir, taskId, targetColumn) {
+  const taskPath = join2(kandownDir, "tasks", `${taskId}.md`);
+  if (!existsSync3(taskPath)) return false;
+  const parsed = readTask(kandownDir, taskId);
+  writeFileSync2(taskPath, serializeTaskFile({
+    ...parsed.frontmatter,
+    id: taskId,
+    status: targetColumn
+  }, parsed.body), "utf8");
+  return true;
+}
+
+// src/cli/lib/file-watcher.ts
+import { createReadStream, statSync } from "fs";
+import { createHash } from "crypto";
+import { join as join5 } from "path";
+
 // node_modules/.pnpm/chokidar@4.0.3/node_modules/chokidar/esm/index.js
 import { stat as statcb } from "fs";
 import { stat as stat3, readdir as readdir2 } from "fs/promises";
@@ -56018,263 +56279,211 @@ function watch(paths, options = {}) {
   return watcher;
 }
 
-// src/cli/screens/board.tsx
-import { join as join6 } from "path";
-
-// src/cli/lib/board-reader.ts
-import { existsSync as existsSync3, readdirSync, readFileSync as readFileSync3, writeFileSync as writeFileSync2 } from "fs";
-import { dirname as dirname3, join as join4 } from "path";
-
-// src/lib/types.ts
-var DEFAULT_COLUMNS = ["Backlog", "Todo", "In Progress", "Review", "Done"];
-
-// src/lib/parser.ts
-function parseSimpleYaml(yaml) {
-  const obj = {};
-  if (!yaml || typeof yaml !== "string") return obj;
-  const lines = yaml.split("\n");
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i] ?? "";
-    const m = line.match(/^([a-zA-Z_][\w-]*)\s*:\s*(.*)$/);
-    if (!m) continue;
-    const key = m[1];
-    if (!key) continue;
-    let val = m[2]?.trim() ?? "";
-    if (val === "|") {
-      const block = [];
-      i++;
-      while (i < lines.length && (/^\s+/.test(lines[i] ?? "") || (lines[i] ?? "") === "")) {
-        block.push((lines[i] ?? "").replace(/^  /, ""));
-        i++;
-      }
-      i--;
-      obj[key] = block.join("\n").trimEnd();
-      continue;
-    }
-    if (typeof val !== "string") val = "";
-    if (val.startsWith("[") && val.endsWith("]")) {
-      const arr = val.slice(1, -1).split(",").map((s) => s && typeof s === "string" ? s.trim().replace(/^["']|["']$/g, "") : "").filter(Boolean);
-      obj[key] = arr;
-    } else {
-      obj[key] = typeof val === "string" ? val.replace(/^["']|["']$/g, "") : val;
-    }
-  }
-  return obj;
-}
-function parseTaskFile(md) {
-  if (!md || typeof md !== "string") {
-    return { frontmatter: { id: "", title: "" }, body: "" };
-  }
-  const lines = md.split("\n");
-  if (lines[0] && lines[0].trim() === "---") {
-    const fmLines = [];
-    let i = 1;
-    while (i < lines.length && lines[i].trim() !== "---") {
-      fmLines.push(lines[i]);
-      i++;
-    }
-    const body = lines.slice(i + 1).join("\n").trimStart();
-    const fm = parseSimpleYaml(fmLines.join("\n"));
-    return { frontmatter: fm, body };
-  }
-  return { frontmatter: { id: "", title: "" }, body: md };
-}
-function normalizeStatus(status) {
-  const value = typeof status === "string" ? status.trim() : "";
-  return value || "Backlog";
-}
-function normalizePriority(priority) {
-  if (typeof priority !== "string") return null;
-  const value = priority.toUpperCase();
-  return /^(P1|P2|P3|P4)$/.test(value) ? value : null;
-}
-function normalizeOwnerType(ownerType) {
-  if (typeof ownerType !== "string") return "";
-  const value = ownerType.toLowerCase();
-  return value === "human" || value === "ai" ? value : "";
-}
-function taskOrder(task) {
-  const value = task.frontmatter.order;
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim()) {
-    const parsed = Number(value);
-    if (Number.isFinite(parsed)) return parsed;
-  }
-  return Number.MAX_SAFE_INTEGER;
-}
-function taskToBoardTask(task) {
-  const { frontmatter, body } = task;
-  const { subtasks } = extractSubtasks(body);
-  const done = subtasks.filter((s) => s.done).length;
-  const total = subtasks.length;
-  const status = normalizeStatus(frontmatter.status);
-  const tags = Array.isArray(frontmatter.tags) ? frontmatter.tags.filter((tag) => typeof tag === "string" && tag.trim().length > 0) : [];
-  return {
-    id: frontmatter.id || "",
-    title: frontmatter.title || frontmatter.id || "Untitled task",
-    checked: /done|termin|closed|complet/i.test(status),
-    tags,
-    assignee: typeof frontmatter.assignee === "string" && frontmatter.assignee ? frontmatter.assignee : null,
-    priority: normalizePriority(frontmatter.priority),
-    ownerType: normalizeOwnerType(frontmatter.ownerType),
-    progress: total > 0 ? { done, total } : null
-  };
-}
-function buildColumnsFromTasks(tasks, configuredColumns = DEFAULT_COLUMNS) {
-  const columnNames = configuredColumns.length > 0 ? configuredColumns : DEFAULT_COLUMNS;
-  const columnsByName = /* @__PURE__ */ new Map();
-  const configured = columnNames.map((name) => ({ name, tasks: [] }));
-  for (const column of configured) columnsByName.set(column.name.toLowerCase(), column);
-  const unknownColumns = [];
-  const sortedTasks = [...tasks].filter((task) => Boolean(task.frontmatter.id)).sort((a, b) => {
-    const byOrder = taskOrder(a) - taskOrder(b);
-    if (byOrder !== 0) return byOrder;
-    return a.frontmatter.id.localeCompare(b.frontmatter.id, void 0, { numeric: true });
+// src/cli/lib/file-watcher.ts
+function hashFile(filePath) {
+  return new Promise((resolve3, reject) => {
+    const hash = createHash("sha256");
+    const stream = createReadStream(filePath);
+    stream.on("data", (chunk) => hash.update(chunk));
+    stream.on("end", () => resolve3(hash.digest("hex")));
+    stream.on("error", reject);
   });
-  for (const task of sortedTasks) {
-    const status = normalizeStatus(task.frontmatter.status);
-    let column = columnsByName.get(status.toLowerCase());
-    if (!column) {
-      column = { name: status, tasks: [] };
-      columnsByName.set(status.toLowerCase(), column);
-      unknownColumns.push(column);
-    }
-    column.tasks.push(taskToBoardTask(task));
-  }
-  return [...unknownColumns, ...configured];
 }
-function extractSubtasks(body) {
-  const subtasks = [];
-  if (!body || typeof body !== "string") return { subtasks, bodyWithoutSubtasks: body ?? "" };
-  const lines = body.split("\n");
-  const kept = [];
-  let inSubtaskSection = false;
-  for (const line of lines) {
-    if (/^#{1,6}\s+(subtasks?|sous[- ]t[âa]ches?|crit[èe]res?)/i.test(line)) {
-      inSubtaskSection = true;
-      kept.push(line);
-      continue;
-    }
-    if (/^#{1,6}\s+/.test(line) && inSubtaskSection) {
-      inSubtaskSection = false;
-      kept.push(line);
-      continue;
-    }
-    const m = line.match(/^\s*-\s+\[([ xX])\]\s+(.+)$/);
-    if (m && inSubtaskSection) {
-      const text = m[2]?.trim() ?? "";
-      subtasks.push({ done: (m[1]?.toLowerCase() ?? "") === "x", text });
-      continue;
-    }
-    const descMatch = line.match(/^\s*\[DESC\]\s*(.*)$/);
-    if (descMatch && subtasks.length > 0) {
-      subtasks[subtasks.length - 1].description = descMatch[1];
-      continue;
-    }
-    const reportMatch = line.match(/^\s*\[REPORT\]\s*(.*)$/);
-    if (reportMatch && subtasks.length > 0) {
-      subtasks[subtasks.length - 1].report = reportMatch[1];
-      continue;
-    }
-    kept.push(line);
-  }
-  return { subtasks, bodyWithoutSubtasks: kept.join("\n") };
+function hashFileSync(filePath) {
+  const content = __require("fs").readFileSync(filePath, "utf8");
+  return createHash("sha256").update(content).digest("hex");
 }
-
-// src/lib/serializer.ts
-function serializeTaskFile(frontmatter, body) {
-  const lines = ["---"];
-  if (frontmatter && typeof frontmatter === "object") {
-    for (const [k, v] of Object.entries(frontmatter)) {
-      if (v === null || v === void 0 || v === "") continue;
-      if (Array.isArray(v)) {
-        if (v.length === 0) continue;
-        lines.push(`${k}: [${v.join(", ")}]`);
-      } else if (typeof v === "string" && v.includes("\n")) {
-        lines.push(`${k}: |`);
-        lines.push(...v.split("\n").map((line) => `  ${line}`));
-      } else if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") {
-        lines.push(`${k}: ${v}`);
+var FileWatcher = class {
+  watcher = null;
+  taskHashes = /* @__PURE__ */ new Map();
+  knownTaskIds = /* @__PURE__ */ new Set();
+  listeners = /* @__PURE__ */ new Map();
+  debounceTimers = /* @__PURE__ */ new Map();
+  debounceDelay = 50;
+  watchDebounceDelay = 100;
+  pollInterval = null;
+  stopped = false;
+  /**
+   * 📖 Start watching task files and kandown.json.
+   * Uses chokidar for immediate FS event detection, plus a fallback 500ms
+   * poll to catch any races or network-mounted file changes.
+   */
+  start(kandownDir) {
+    const tasksDir = join5(kandownDir, "tasks");
+    const configPath = join5(kandownDir, "kandown.json");
+    const existingIds = listTaskIds(kandownDir);
+    for (const id of existingIds) {
+      this.knownTaskIds.add(id);
+      try {
+        const filePath = join5(tasksDir, `${id}.md`);
+        this.taskHashes.set(id, hashFileSync(filePath));
+      } catch {
       }
     }
+    this.watcher = watch([join5(tasksDir, "*.md"), configPath], {
+      persistent: true,
+      ignoreInitial: true,
+      awaitWriteFinish: { stabilityThreshold: 50, pollInterval: 25 }
+    });
+    this.watcher.on("all", (event, path) => {
+      this.handleFsEvent(event, path, kandownDir);
+    });
+    this.pollInterval = setInterval(() => {
+      this.pollHashes(kandownDir);
+    }, 500);
   }
-  lines.push("---");
-  lines.push("");
-  lines.push((body ?? "").trim());
-  lines.push("");
-  return lines.join("\n");
-}
-
-// src/cli/lib/board-reader.ts
-function getProjectRoot(kandownDir) {
-  return dirname3(kandownDir);
-}
-function listTaskIds(kandownDir) {
-  const tasksDir = join4(kandownDir, "tasks");
-  if (!existsSync3(tasksDir)) return [];
-  return readdirSync(tasksDir).filter((name) => name.endsWith(".md")).map((name) => name.slice(0, -3)).sort((a, b) => a.localeCompare(b, void 0, { numeric: true }));
-}
-function readBoard(kandownDir) {
-  const config = loadConfig(kandownDir);
-  const tasks = listTaskIds(kandownDir).map((id) => {
-    const task = readTask(kandownDir, id);
-    return {
-      ...task,
-      frontmatter: {
-        ...task.frontmatter,
-        id: task.frontmatter.id || id,
-        status: task.frontmatter.status || "Backlog"
-      }
-    };
-  });
-  return {
-    frontmatter: null,
-    title: "Project Kanban",
-    columns: buildColumnsFromTasks(tasks, config.board.columns)
-  };
-}
-function readTask(kandownDir, taskId) {
-  const taskPath = join4(kandownDir, "tasks", `${taskId}.md`);
-  if (!existsSync3(taskPath)) {
-    return {
-      frontmatter: { id: taskId, title: `Task ${taskId}`, status: "Backlog" },
-      body: ""
+  /**
+   * 📖 Stop watching and clean up all resources.
+   */
+  stop() {
+    this.stopped = true;
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+      this.pollInterval = null;
+    }
+    if (this.watcher) {
+      this.watcher.close();
+      this.watcher = null;
+    }
+    this.debounceTimers.forEach((t) => clearTimeout(t));
+    this.debounceTimers.clear();
+    this.taskHashes.clear();
+    this.knownTaskIds.clear();
+    this.emit("stopped");
+  }
+  /** 📖 Register an event handler. Returns an unsubscribe function. */
+  on(event, handler) {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, /* @__PURE__ */ new Set());
+    }
+    this.listeners.get(event).add(handler);
+    return () => {
+      this.listeners.get(event)?.delete(handler);
     };
   }
-  const content = readFileSync3(taskPath, "utf8");
-  const parsed = parseTaskFile(content);
-  return {
-    ...parsed,
-    frontmatter: {
-      ...parsed.frontmatter,
-      id: parsed.frontmatter.id || taskId,
-      status: parsed.frontmatter.status || "Backlog"
+  /** 📖 Current set of known task IDs. */
+  getKnownTaskIds() {
+    return Array.from(this.knownTaskIds);
+  }
+  // ─── Private ───────────────────────────────────────────────────────────────
+  handleFsEvent(event, filePath, kandownDir) {
+    if (this.stopped) return;
+    const tasksDir = join5(kandownDir, "tasks");
+    const configPath = join5(kandownDir, "kandown.json");
+    if (filePath === configPath) {
+      const key = `config:${event}`;
+      const existing = this.debounceTimers.get(key);
+      if (existing) clearTimeout(existing);
+      this.debounceTimers.set(key, setTimeout(() => {
+        this.debounceTimers.delete(key);
+        this.emit("configChanged");
+      }, this.watchDebounceDelay));
+      return;
     }
-  };
-}
-function readAgentDoc(kandownDir) {
-  const root = getProjectRoot(kandownDir);
-  const candidates = [
-    join4(root, "AGENT_KANDOWN.md"),
-    join4(kandownDir, "AGENT.md")
-  ];
-  for (const candidate of candidates) {
-    if (existsSync3(candidate)) {
-      return readFileSync3(candidate, "utf8");
+    const taskId = filePath.replace(/\\/g, "/").split("/").pop()?.replace(/\.md$/, "") ?? "";
+    if (!taskId) return;
+    if (event === "add" || event === "change") {
+      const key = `task:${taskId}:${event}`;
+      const existing = this.debounceTimers.get(key);
+      if (existing) clearTimeout(existing);
+      this.debounceTimers.set(key, setTimeout(() => {
+        this.debounceTimers.delete(key);
+        void this.checkTaskContentChange(taskId, filePath, true);
+      }, this.watchDebounceDelay));
+    } else if (event === "unlink") {
+      this.taskHashes.delete(taskId);
+      this.knownTaskIds.delete(taskId);
     }
   }
-  return "";
-}
-function moveTaskToColumn(kandownDir, taskId, targetColumn) {
-  const taskPath = join4(kandownDir, "tasks", `${taskId}.md`);
-  if (!existsSync3(taskPath)) return false;
-  const parsed = readTask(kandownDir, taskId);
-  writeFileSync2(taskPath, serializeTaskFile({
-    ...parsed.frontmatter,
-    id: taskId,
-    status: targetColumn
-  }, parsed.body), "utf8");
-  return true;
+  async checkTaskContentChange(taskId, filePath, isNew) {
+    try {
+      const newHash = await hashFile(filePath);
+      const oldHash = this.taskHashes.get(taskId);
+      if (isNew && !this.knownTaskIds.has(taskId)) {
+        this.knownTaskIds.add(taskId);
+        this.taskHashes.set(taskId, newHash);
+        this.emit("newTaskDetected", taskId);
+        return;
+      }
+      if (oldHash !== void 0 && newHash !== oldHash) {
+        this.taskHashes.set(taskId, newHash);
+        this.emit("taskChanged", taskId);
+      } else if (oldHash === void 0) {
+        this.knownTaskIds.add(taskId);
+        this.taskHashes.set(taskId, newHash);
+        if (isNew) {
+          this.emit("newTaskDetected", taskId);
+        }
+      }
+    } catch {
+    }
+  }
+  /** 📖 Fallback poll — catches changes that chokidar missed (network mounts, exotic FS). */
+  async pollHashes(kandownDir) {
+    if (this.stopped) return;
+    const tasksDir = join5(kandownDir, "tasks");
+    const configPath = join5(kandownDir, "kandown.json");
+    try {
+      const newHash = hashFileSync(configPath);
+    } catch {
+    }
+    for (const taskId of this.knownTaskIds) {
+      const filePath = join5(tasksDir, `${taskId}.md`);
+      try {
+        statSync(filePath);
+        const newHash = await hashFile(filePath);
+        const oldHash = this.taskHashes.get(taskId);
+        if (oldHash !== void 0 && newHash !== oldHash) {
+          this.taskHashes.set(taskId, newHash);
+          this.emit("taskChanged", taskId);
+        }
+      } catch {
+        this.taskHashes.delete(taskId);
+        this.knownTaskIds.delete(taskId);
+      }
+    }
+    const currentIds = listTaskIds(kandownDir);
+    for (const id of currentIds) {
+      if (!this.knownTaskIds.has(id)) {
+        const filePath = join5(tasksDir, `${id}.md`);
+        try {
+          const newHash = await hashFile(filePath);
+          this.knownTaskIds.add(id);
+          this.taskHashes.set(id, newHash);
+          this.emit("newTaskDetected", id);
+        } catch {
+        }
+      }
+    }
+  }
+  debouncedEmit(event, ...args) {
+    const key = event + JSON.stringify(args);
+    const existing = this.debounceTimers.get(key);
+    if (existing) clearTimeout(existing);
+    const timer = setTimeout(() => {
+      this.debounceTimers.delete(key);
+      this.emit(event, ...args);
+    }, this.debounceDelay);
+    this.debounceTimers.set(key, timer);
+  }
+  emit(event, ...args) {
+    if (this.stopped) return;
+    const handlers = this.listeners.get(event);
+    handlers?.forEach((handler) => {
+      if (event === "configChanged") {
+        handler();
+      } else if (event === "taskChanged") {
+        handler(...args);
+      } else if (event === "newTaskDetected") {
+        handler(...args);
+      } else {
+        handler();
+      }
+    });
+  }
+};
+function createWatcher() {
+  return new FileWatcher();
 }
 
 // src/cli/lib/agents.ts
@@ -56408,7 +56617,7 @@ function buildPrompt(agentDoc, taskContent, taskId, kandownDir) {
 // src/cli/lib/launcher.ts
 import { execSync, spawn } from "child_process";
 import { writeFileSync as writeFileSync3 } from "fs";
-import { join as join5 } from "path";
+import { join as join6 } from "path";
 import { tmpdir } from "os";
 function isInTmux() {
   return !!process.env.TMUX;
@@ -56432,7 +56641,7 @@ function launchAgent(opts) {
   ].join("\n");
   const { systemPrompt, taskPrompt } = buildPrompt(agentDoc, taskFileContent, taskId, kandownDir);
   moveTaskToColumn(kandownDir, taskId, "In Progress");
-  const contextFile = join5(tmpdir(), `kandown-${taskId}-context.md`);
+  const contextFile = join6(tmpdir(), `kandown-${taskId}-context.md`);
   writeFileSync3(contextFile, `${systemPrompt}
 
 ---
@@ -56723,27 +56932,27 @@ function Board({ kandownDir }) {
     setBoard(loaded);
     setInstalledAgents(detectInstalledAgents());
   }, [kandownDir]);
+  const colIndexRef = (0, import_react36.useRef)(0);
+  const rowIndexRef = (0, import_react36.useRef)(0);
   (0, import_react36.useEffect)(() => {
-    const tasksDir = join6(kandownDir, "tasks");
-    const configPath = join6(kandownDir, "kandown.json");
-    let debounceTimer = null;
-    const watcher = watch([join6(tasksDir, "*.md"), configPath], {
-      persistent: true,
-      ignoreInitial: true,
-      awaitWriteFinish: { stabilityThreshold: 200, pollInterval: 50 }
+    const watcher = createWatcher();
+    watcher.on("taskChanged", () => {
+      const loaded = readBoard(kandownDir);
+      setBoard(loaded);
     });
-    watcher.on("all", (event) => {
-      if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        const loaded = readBoard(kandownDir);
-        setBoard(loaded);
-        setStatusMsg(`Reloaded (${event})`);
-        setTimeout(() => setStatusMsg(""), 1500);
-      }, 100);
+    watcher.on("newTaskDetected", (taskId) => {
+      const loaded = readBoard(kandownDir);
+      setBoard(loaded);
+      setStatusMsg(`New task: ${taskId}`);
+      setTimeout(() => setStatusMsg(""), 2e3);
     });
+    watcher.on("configChanged", () => {
+      const loaded = readBoard(kandownDir);
+      setBoard(loaded);
+    });
+    watcher.start(kandownDir);
     return () => {
-      watcher.close();
-      if (debounceTimer) clearTimeout(debounceTimer);
+      watcher.stop();
     };
   }, [kandownDir]);
   const reloadBoard = (0, import_react36.useCallback)(() => {
