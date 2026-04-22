@@ -573,7 +573,7 @@ export const useStore = create<State>((set, get) => ({
     const targetOrder = columns.find(c => c.name === targetColName)?.tasks.length ?? 0;
     const task: BoardTask = {
       id,
-      title: 'New task',
+      title: '',
       checked: false,
       tags: [],
       assignee: null,
@@ -588,7 +588,7 @@ export const useStore = create<State>((set, get) => ({
     try {
       const fm: TaskFrontmatter = {
         id,
-        title: 'New task',
+        title: '',
         status: targetColName,
         order: targetOrder,
         priority: config.fields.priority ? config.board.defaultPriority : '',
@@ -598,12 +598,16 @@ export const useStore = create<State>((set, get) => ({
         ownerType: config.fields.ownerType ? config.board.defaultOwnerType : '',
         tools: '',
       };
-      const body = `# New task\n\n## Context\n\n\n## Subtasks\n\n`;
+      const body = '';
       await fsWriteTaskFile(tasksDirHandle, id, fm, body);
       const newContents = new Map(taskContents);
       newContents.set(id, { frontmatter: fm, subtasks: [], body });
       set({ taskContents: newContents });
       get().toast(`Created ${id.replace(/^t/, '')}`);
+      
+      // Auto-open drawer for the newly created task
+      await get().openDrawer(id);
+      
       return id;
     } catch (e) {
       get().toast('Failed to create: ' + (e as Error).message, 'error');

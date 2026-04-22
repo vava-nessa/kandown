@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
 import { useStore } from '../lib/store';
 import type { ConflictState } from '../lib/store';
+import { Button } from './ui/button';
 
 export function ConflictModal() {
   const { t } = useTranslation();
@@ -85,24 +86,24 @@ export function ConflictModal() {
 
               {/* Footer */}
               <div className="flex items-center justify-end gap-2 border-t border-border px-5 py-3 rounded-b-2xl">
-                <button
+                <Button
+                  variant="outline"
                   onClick={() => resolveConflict('cancel')}
-                  className="h-9 rounded-lg border border-border bg-bg px-3.5 text-[13.5px] font-medium text-fg transition-colors hover:bg-bg-2"
                 >
                   {t('conflict.cancel')}
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="outline"
                   onClick={() => resolveConflict('reload')}
-                  className="h-9 rounded-lg border border-border bg-bg px-3.5 text-[13.5px] font-medium text-fg transition-colors hover:bg-bg-2"
                 >
                   {t('conflict.reloadFromDisk')}
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="default"
                   onClick={() => resolveConflict('overwrite')}
-                  className="h-9 rounded-lg bg-primary px-3.5 text-[13.5px] font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                 >
                   {t('conflict.keepMyVersion')}
-                </button>
+                </Button>
               </div>
             </div>
           </motion.div>

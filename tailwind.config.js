@@ -80,6 +80,8 @@ export default {
         success: 'hsl(var(--success) / <alpha-value>)',
         danger: 'hsl(var(--destructive) / <alpha-value>)',
         warning: 'hsl(var(--warning) / <alpha-value>)',
+        input: 'hsl(var(--input) / <alpha-value>)',
+        ring: 'hsl(var(--ring) / <alpha-value>)',
       },
       borderRadius: {
         DEFAULT: '6px',

@@ -260,7 +260,7 @@ export function CommandPalette() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: -8 }}
             transition={{ type: 'spring', stiffness: 400, damping: 32, mass: 0.8 }}
-            className="fixed left-1/2 top-[15%] -translate-x-1/2 w-[min(640px,92vw)] z-[201] glass rounded-[10px] shadow-[0_24px_80px_rgba(0,0,0,0.6)] overflow-hidden"
+            className="fixed inset-0 m-auto h-fit w-[min(640px,92vw)] z-[201] glass rounded-[10px] shadow-[0_24px_80px_rgba(0,0,0,0.6)] overflow-hidden"
           >
             {/* Search input */}
             <div className="flex items-center gap-2 px-4 h-11 border-b border-border">

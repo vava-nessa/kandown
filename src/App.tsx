@@ -19,7 +19,7 @@
 
 import { useEffect } from 'react';
 import { Header } from './components/Header';
-import { FilterBar } from './components/FilterBar';
+
 import { Board } from './components/Board';
 import { ListView } from './components/ListView';
 import { EmptyState } from './components/EmptyState';
@@ -113,7 +113,7 @@ export function App() {
       if (e.key === '/' && dirHandle) {
         e.preventDefault();
         const input = document.querySelector<HTMLInputElement>(
-          'input[placeholder="Search tasks..."]'
+          'header input[type="text"]'
         );
         input?.focus();
       }
@@ -146,7 +146,6 @@ export function App() {
             />
           )}
           <div className={`flex flex-col h-full relative ${config.ui.background === 'liquid-ether' ? 'z-10' : ''}`}>
-            <FilterBar />
             {viewMode === 'board' ? <Board /> : <ListView />}
           </div>
         </div>

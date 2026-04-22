@@ -1,15 +1,18 @@
 /**
  * @file App header
- * @description Top navigation bar for project switching, task counts, view mode,
- * density, settings, command palette, reload, and task creation.
+ * @description Top navigation bar for project switching, task search, filters,
+ * view mode, density, settings, command palette, reload, and task creation.
  *
+ * 📖 The header now owns the compact search input and active filter chips that
+ * previously lived in a separate FilterBar below the header. This keeps the
+ * board/list area maximally spacious while keeping filters one click away.
  * 📖 The header is intentionally thin: it reads state from the store, delegates
  * commands to store actions, and lets the board/list/drawer handle the actual
  * task presentation.
  *
  * @functions
  *  → LogoSvg — inline Kandown mark used in the header
- *  → Header — primary app toolbar and recent-project menu
+ *  → Header — primary app toolbar with search, filters, and recent-project menu
  *
  * @exports Header
  * @see src/lib/store.ts
@@ -24,6 +27,7 @@ import { KbdButton } from './KbdButton';
 import { useStore } from '../lib/store';
 import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
 import { KANDOWN_VERSION } from '../lib/version';
+import type { OwnerType } from '../lib/types';
 
 const LogoSvg = ({ className }: { className?: string }) => (
   <svg
@@ -54,12 +58,30 @@ export function Header() {
   const setCurrentPage = useStore(s => s.setCurrentPage);
   const recentProjects = useStore(s => s.recentProjects);
   const openRecentProject = useStore(s => s.openRecentProject);
+  const filters = useStore(s => s.filters);
+  const setFilter = useStore(s => s.setFilter);
+  const clearFilters = useStore(s => s.clearFilters);
+  const fields = useStore(s => s.config.fields);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   const totalTasks = columns.reduce((sum, c) => sum + c.tasks.length, 0);
   const displayCount = useAnimatedNumber(totalTasks);
+
+  const chips: Array<{ type: keyof typeof filters; label: string; value: string }> = [];
+  if (fields.priority && filters.priority) chips.push({ type: 'priority', label: filters.priority, value: filters.priority });
+  if (fields.tags && filters.tag) chips.push({ type: 'tag', label: '#' + filters.tag, value: filters.tag });
+  if (fields.assignee && filters.assignee) chips.push({ type: 'assignee', label: '@' + filters.assignee, value: filters.assignee });
+
+  const ownerOptions: Array<{ label: string; value: OwnerType }> = [
+    { label: t('filterBar.ownerAll'), value: '' },
+    { label: t('filterBar.ownerHuman'), value: 'human' },
+    { label: t('filterBar.ownerAI'), value: 'ai' },
+  ];
+
+  const hasFilters = chips.length > 0 || filters.search || (fields.ownerType && filters.ownerType);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -74,8 +96,8 @@ export function Header() {
 
   return (
     <header className="flex items-center justify-between px-5 h-14 border-b border-border bg-bg relative z-10">
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={() => window.history.pushState({}, '', window.location.pathname)}
             className="flex items-center gap-2 cursor-pointer"
@@ -88,8 +110,78 @@ export function Header() {
 
         {dirHandle && (
           <>
-            <div className="w-px h-[18px] bg-border" />
-            <div className="relative" ref={menuRef}>
+            <div className="w-px h-[18px] bg-border flex-shrink-0" />
+
+            {/* 📖 Compact search bar — lives in the header next to the logo */}
+            <div className="flex items-center gap-2 px-2.5 h-8 bg-bg-2 border border-border rounded-[8px] min-w-[180px] max-w-[260px] focus-within:border-border-focus focus-within:bg-bg-3 transition-colors">
+              <Icon.Search size={14} className="text-fg-muted flex-shrink-0" />
+              <input
+                ref={searchRef}
+                type="text"
+                placeholder={t('filterBar.searchPlaceholder')}
+                value={filters.search}
+                onChange={e => setFilter('search', e.target.value)}
+                className="bg-transparent border-none outline-none text-fg text-[13px] w-full placeholder:text-fg-muted"
+              />
+              {filters.search && (
+                <button
+                  onClick={() => setFilter('search', '')}
+                  className="text-fg-muted hover:text-fg flex-shrink-0"
+                >
+                  <Icon.X size={14} />
+                </button>
+              )}
+            </div>
+
+            {/* 📖 Active filter chips — inline in the header when filters are active */}
+            <div className="flex items-center gap-1.5 flex-wrap overflow-hidden">
+              <AnimatePresence>
+                {chips.map(chip => (
+                  <motion.button
+                    key={chip.type + chip.value}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.15 }}
+                    onClick={() => setFilter(chip.type as never, null as never)}
+                    className="inline-flex items-center gap-1 h-6 px-2 text-[12px] text-fg bg-bg-3 border border-border-strong rounded-[4px] hover:bg-bg-hover transition-colors"
+                  >
+                    {chip.label}
+                    <Icon.X size={10} className="text-fg-muted" />
+                  </motion.button>
+                ))}
+              </AnimatePresence>
+
+              {fields.ownerType && (
+                <div className="flex items-center h-6 border border-border-strong rounded-[4px] overflow-hidden">
+                  {ownerOptions.map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setFilter('ownerType', opt.value)}
+                      className={`h-full px-2 text-[12px] transition-colors ${filters.ownerType === opt.value ? 'bg-bg-hover text-fg' : 'text-fg-muted hover:text-fg'}`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {hasFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="text-[12px] text-fg-muted hover:text-fg transition-colors"
+                >
+                  {t('filterBar.clearAll')}
+                </button>
+              )}
+            </div>
+          </>
+        )}
+
+        {dirHandle && (
+          <>
+            <div className="w-px h-[18px] bg-border flex-shrink-0" />
+            <div className="relative flex-shrink-0" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen(o => !o)}
                 className="flex items-center gap-1.5 px-2 py-1 text-[14px] text-fg-dim hover:text-fg hover:bg-bg-2 rounded-[6px] transition-colors"
@@ -151,7 +243,7 @@ export function Header() {
         )}
       </div>
 
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 flex-shrink-0">
         {dirHandle ? (
           <>
             <div className="flex items-center gap-2 mr-2 text-[13px] text-fg-muted">

@@ -66,9 +66,14 @@
     "zustand": "^5.0.0"
   },
   "dependencies": {
+    "@radix-ui/react-slot": "1.2.4",
     "chokidar": "^4.0.0",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "lucide-react": "1.8.0",
     "react-devtools-core": ">=6.1.2",
-    "signal-exit": "^3.0.7"
+    "signal-exit": "^3.0.7",
+    "tailwind-merge": "3.5.0"
   },
   "engines": {
     "node": ">=18"

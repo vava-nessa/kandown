@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- **Fixed**: Command palette is now exactly centered in the middle of the screen.
+- **Fixed**: When a new task is created, the title and description are now empty by default, and the editor drawer opens natively focusing the title.
+
 ## 0.2.3 — 2026-04-20 — "EmptyState Server Mode Fix"
 
 - **Fixed**: When served via `npx kandown`, the web app now detects server mode and shows a contextual "Open this project" button instead of the generic select-folder UI. User grants folder access once, browser remembers it for next time.

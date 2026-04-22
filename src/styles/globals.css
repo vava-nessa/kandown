@@ -203,35 +203,35 @@
   }
 
   .btn-base {
-    @apply inline-flex items-center gap-1.5 h-7 px-2.5 text-[13px] font-medium rounded-[6px] transition-all duration-150 ease-out whitespace-nowrap;
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:opacity-50 h-9 px-4 py-2 cursor-pointer shadow-sm shadow-black/5;
   }
 
   .btn-primary {
-    @apply btn-base bg-primary text-primary-foreground border border-primary hover:bg-primary/90 hover:border-primary/90;
+    @apply btn-base bg-primary text-primary-foreground hover:bg-primary/90;
   }
 
   .btn-secondary {
-    @apply btn-base bg-transparent text-fg border border-border-strong hover:bg-bg-2 hover:border-border-focus;
+    @apply btn-base border border-input bg-background hover:bg-accent hover:text-accent-foreground;
   }
 
   .btn-ghost {
-    @apply btn-base bg-transparent text-fg-dim border border-transparent hover:bg-bg-2 hover:text-fg;
+    @apply btn-base shadow-none hover:bg-accent hover:text-accent-foreground;
   }
 
   .btn-danger {
-    @apply btn-base bg-transparent text-danger border border-border-strong hover:bg-danger/10 hover:border-danger;
+    @apply btn-base bg-destructive text-destructive-foreground hover:bg-destructive/90;
   }
 
   .btn-icon {
-    @apply inline-flex items-center justify-center w-7 h-7 text-fg-dim bg-transparent border border-transparent rounded-[6px] cursor-pointer transition-all duration-150 ease-out hover:bg-bg-2 hover:text-fg;
+    @apply inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-colors outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:opacity-50 h-9 w-9 hover:bg-accent hover:text-accent-foreground cursor-pointer shadow-sm shadow-black/5;
   }
 
   .kbd {
-    @apply inline-block px-1.5 py-0 text-[13px] font-mono text-fg-muted bg-bg-2 border border-border rounded-[3px];
+    @apply inline-flex h-5 max-h-full items-center rounded border border-border bg-background px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70;
   }
 
   .field-input {
-    @apply bg-transparent border border-transparent text-fg px-2 py-1 rounded-[4px] text-[13.5px] outline-none transition-all duration-150 ease-out hover:bg-bg-2 focus:bg-bg-2 focus:border-border-strong;
+    @apply flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50;
   }
 }
 

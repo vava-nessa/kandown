@@ -5,7 +5,7 @@ It installs on the user project with `npx kandown init`.
 That installs the CLI Tool and the `.kandown` folder.
 Task files in `.kandown/tasks/` are the source of truth; board columns live in `.kandown/kandown.json` under `board.columns`.
 
-If the user mentions **tasks**, **kandown**, **backlog**, or any task-related work — read `AGENT_KANDOWN.md` first to understand how the Kandown task system works.
+If the user mentions **tasks**, **kandown**, **backlog**, or any task-related work — read `AGENT_KANDOWN.md` first to understand how the Kandown task system works. you should ALWAYS Keep kandown tasks up to date, move them to the corresponding columns, state, and add rreports in them to explain what you did, and move them to correct column.
 Read the README.md file for more information.
 
 ---
