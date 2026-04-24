@@ -1,9 +1,16 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 — 2026-04-25 — "Server Mode"
 
-- **Fixed**: Command palette is now exactly centered in the middle of the screen.
-- **Fixed**: When a new task is created, the title and description are now empty by default, and the editor drawer opens natively focusing the title.
+- **Added**: Full REST API server in `bin/kandown.js` for all file operations (`GET/PUT /api/config`, `/api/board`, `/api/tasks`, `/api/tasks/:id`)
+- **Added**: `src/lib/filesystem.ts` server-mode helpers that proxy all file operations to the CLI REST API via `fetch()`
+- **Added**: `openServerProject()` store action — auto-loads the project on mount with zero user interaction when served via `npx kandown`
+- **Added**: `isServerMode()` detection and `getServerRoot()` path accessor
+- **Changed**: Board now renders when `isOpen` is true (server mode) OR `dirHandle` is set (file mode)
+- **Changed**: CLI HTTP server routes `/api/*` to `handleApi()` with full CRUD for config, board, and tasks
+- **Changed**: EmptyState shows loading spinner during server-mode auto-load, then a passive message (no button needed)
+- **Fixed**: Command palette is now exactly centered in the middle of the screen
+- **Fixed**: When a new task is created, the title and description are now empty by default, and the editor drawer opens natively focusing the title
 
 ## 0.2.3 — 2026-04-20 — "EmptyState Server Mode Fix"
 
