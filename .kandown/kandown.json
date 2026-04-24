@@ -1,7 +1,7 @@
 {
   "ui": {
     "language": "en",
-    "theme": "dark",
+    "theme": "auto",
     "skin": "rose",
     "font": "system",
     "background": "solid"

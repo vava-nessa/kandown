@@ -2,13 +2,20 @@
  * @file Browser file-system adapter
  * @description Wraps the File System Access API, `.kandown` discovery/creation,
  * task reads and writes, project config persistence, and recent-project
- * IndexedDB storage.
+ * IndexedDB storage. Also provides server-mode helpers that proxy all file
+ * operations to the CLI REST API when window.__KANDOWN_ROOT__ is set.
  *
  * 📖 All browser file handles pass through this module. UI and store code should
  * call these helpers instead of touching File System Access APIs directly.
  *
+ * 📖 In server mode (when served via `npx kandown`), all filesystem operations
+ * are routed through the CLI REST API instead of using FileSystemDirectoryHandle.
+ * This allows the web app to work without user interaction.
+ *
  * @functions
  *  → supportsFileSystemAccess — detects compatible Chromium browsers
+ *  → isServerMode — returns true when serving via CLI (window.__KANDOWN_ROOT__ set)
+ *  → getServerRoot — returns window.__KANDOWN_ROOT__ path or null
  *  → pickDirectory — prompts for a writable project directory
  *  → pickProjectDirectory — opens or creates `.kandown`
  *  → getKandownHandle — resolves `.kandown` from a remembered project handle
@@ -17,8 +24,12 @@
  *  → readTaskFile / writeTaskFile / deleteTaskFile — task file helpers
  *  → saveRecentProject / listRecentProjects / removeRecentProject — IndexedDB recent projects
  *  → verifyPermission — requests persisted read/write access
+ *  → serverReadBoard / serverWriteBoard — board.md via REST
+ *  → serverReadConfig / serverWriteConfig — kandown.json via REST
+ *  → serverListTasks — list task IDs via REST
+ *  → serverReadTask / serverWriteTask / serverDeleteTask — task CRUD via REST
  *
- * @exports supportsFileSystemAccess, pickDirectory, pickProjectDirectory, getKandownHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission
+ * @exports supportsFileSystemAccess, isServerMode, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverWriteTask, serverDeleteTask
  * @see src/lib/store.ts
  * @see src/lib/parser.ts
  */
@@ -32,6 +43,8 @@ import { normalizeFontId, normalizeSkinId, normalizeThemeMode } from './theme';
 declare global {
   interface Window {
     showDirectoryPicker: (options?: { mode?: 'read' | 'readwrite' }) => Promise<FileSystemDirectoryHandle>;
+    /** 📖 Set by the CLI server when serving the web app. Contains the absolute path to .kandown/. */
+    __KANDOWN_ROOT__?: string;
   }
   interface FileSystemDirectoryHandle {
     name: string;
@@ -53,6 +66,7 @@ declare global {
 }
 
 export function supportsFileSystemAccess(): boolean {
+  if (isServerMode()) return true;
   return 'showDirectoryPicker' in window;
 }
 
@@ -61,7 +75,7 @@ export function supportsFileSystemAccess(): boolean {
  * Indicates the app is running in "server mode" — the CLI knows the project path.
  */
 export function isServerMode(): boolean {
-  return typeof window !== 'undefined' && typeof (window as unknown as { __KANDOWN_ROOT__?: string }).__KANDOWN_ROOT__ === 'string';
+  return typeof window !== 'undefined' && typeof window.__KANDOWN_ROOT__ === 'string' && window.__KANDOWN_ROOT__.length > 0;
 }
 
 /**
@@ -70,7 +84,96 @@ export function isServerMode(): boolean {
  */
 export function getServerRoot(): string | null {
   if (!isServerMode()) return null;
-  return (window as unknown as { __KANDOWN_ROOT__: string }).__KANDOWN_ROOT__ ?? null;
+  return window.__KANDOWN_ROOT__ ?? null;
+}
+
+/**
+ * 📖 Base path for server API calls — relative so it works on any port.
+ */
+const API_BASE = '';
+
+/**
+ * 📖 Central fetch wrapper for the Kandown REST API.
+ * Throws with a descriptive message on non-OK responses.
+ */
+async function apiFetch(path: string, options?: RequestInit): Promise<Response> {
+  const res = await fetch(`${API_BASE}${path}`, options);
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`API ${options?.method ?? 'GET'} ${path} → ${res.status}${text ? ': ' + text : ''}`);
+  }
+  return res;
+}
+
+/* ═════════════ Server-mode REST API helpers ═════════════ */
+/**
+ * @description Fetches board.md content via the CLI server.
+ */
+export async function serverReadBoard(): Promise<string> {
+  const res = await apiFetch('/api/board');
+  return res.text();
+}
+
+/**
+ * @description Writes board.md content via the CLI server.
+ */
+export async function serverWriteBoard(content: string): Promise<void> {
+  await apiFetch('/api/board', { method: 'PUT', body: content, headers: { 'Content-Type': 'text/plain' } });
+}
+
+/**
+ * @description Fetches and parses kandown.json via the CLI server.
+ */
+export async function serverReadConfig(): Promise<KandownConfig> {
+  const res = await apiFetch('/api/config');
+  return res.json() as Promise<KandownConfig>;
+}
+
+/**
+ * @description Writes kandown.json via the CLI server.
+ */
+async function serverWriteConfig(config: KandownConfig): Promise<void> {
+  await apiFetch('/api/config', { method: 'PUT', body: JSON.stringify(config, null, 2), headers: { 'Content-Type': 'application/json' } });
+}
+
+/**
+ * @description Lists all task IDs via the CLI server.
+ */
+export async function serverListTasks(): Promise<string[]> {
+  const res = await apiFetch('/api/tasks');
+  return res.json() as Promise<string[]>;
+}
+
+/**
+ * @description Fetches a single task file via the CLI server and parses it.
+ * @throws Error if the task is not found (404).
+ */
+export async function serverReadTaskFile(id: string) {
+  const text = await serverReadTask(id);
+  return parseTaskFile(text);
+}
+
+/**
+ * @description Fetches a single task file via the CLI server.
+ * @throws Error if the task is not found (404).
+ */
+export async function serverReadTask(id: string): Promise<string> {
+  const res = await apiFetch(`/api/tasks/${encodeURIComponent(id)}`);
+  return res.text();
+}
+
+/**
+ * @description Writes a task file via the CLI server.
+ */
+async function serverWriteTask(id: string, content: string): Promise<void> {
+  await apiFetch(`/api/tasks/${encodeURIComponent(id)}`, { method: 'PUT', body: content, headers: { 'Content-Type': 'text/plain' } });
+}
+
+/**
+ * @description Deletes a task file via the CLI server.
+ */
+async function serverDeleteTask(id: string): Promise<void> {
+  await apiFetch(`/api/tasks/${encodeURIComponent(id)}`, { method: 'DELETE' });
 }
 
 export async function pickDirectory(): Promise<FileSystemDirectoryHandle | null> {
@@ -110,9 +213,10 @@ export async function getKandownHandle(projectHandle: FileSystemDirectoryHandle)
 
 /* ═════════════ Config (kandown.json) ═════════════ */
 
-export async function readConfigFile(kandownHandle: FileSystemDirectoryHandle): Promise<KandownConfig | null> {
+export async function readConfigFile(_kandownHandle: FileSystemDirectoryHandle | null): Promise<KandownConfig | null> {
+  if (isServerMode()) return serverReadConfig();
   try {
-    const h = await kandownHandle.getFileHandle('kandown.json');
+    const h = await _kandownHandle!.getFileHandle('kandown.json');
     const file = await h.getFile();
     const text = await file.text();
     const raw = JSON.parse(text) as Partial<KandownConfig>;
@@ -140,8 +244,9 @@ export async function readConfigFile(kandownHandle: FileSystemDirectoryHandle): 
   }
 }
 
-export async function writeConfigFile(kandownHandle: FileSystemDirectoryHandle, config: KandownConfig): Promise<void> {
-  const h = await kandownHandle.getFileHandle('kandown.json', { create: true });
+export async function writeConfigFile(_kandownHandle: FileSystemDirectoryHandle | null, config: KandownConfig): Promise<void> {
+  if (isServerMode()) return serverWriteConfig(config);
+  const h = await _kandownHandle!.getFileHandle('kandown.json', { create: true });
   const w = await h.createWritable();
   await w.write(JSON.stringify(config, null, 2) + '\n');
   await w.close();
@@ -151,9 +256,10 @@ export async function ensureTasksDir(dirHandle: FileSystemDirectoryHandle): Prom
   return await dirHandle.getDirectoryHandle('tasks', { create: true });
 }
 
-export async function listTaskIds(tasksDir: FileSystemDirectoryHandle): Promise<string[]> {
+export async function listTaskIds(_tasksDir: FileSystemDirectoryHandle | null): Promise<string[]> {
+  if (isServerMode()) return serverListTasks();
   const ids: string[] = [];
-  for await (const entry of tasksDir.values()) {
+  for await (const entry of _tasksDir!.values()) {
     if (entry.kind === 'file' && entry.name.endsWith('.md')) {
       ids.push(entry.name.slice(0, -3));
     }
@@ -161,9 +267,27 @@ export async function listTaskIds(tasksDir: FileSystemDirectoryHandle): Promise<
   return ids.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 }
 
-export async function readTaskFile(tasksDir: FileSystemDirectoryHandle, id: string) {
+export async function readTaskFile(_tasksDir: FileSystemDirectoryHandle | null, id: string) {
+  if (isServerMode()) {
+    try {
+      const text = await serverReadTask(id);
+      return parseTaskFile(text);
+    } catch {
+      return {
+        frontmatter: {
+          id,
+          title: '',
+          priority: '',
+          tags: [],
+          assignee: '',
+          created: new Date().toISOString().slice(0, 10),
+        } as TaskFrontmatter,
+        body: `# ${id}\n\n## Context\n\n## Subtasks\n\n`,
+      };
+    }
+  }
   try {
-    const h = await tasksDir.getFileHandle(`${id}.md`);
+    const h = await _tasksDir!.getFileHandle(`${id}.md`);
     const file = await h.getFile();
     const text = await file.text();
     return parseTaskFile(text);
@@ -177,26 +301,28 @@ export async function readTaskFile(tasksDir: FileSystemDirectoryHandle, id: stri
         assignee: '',
         created: new Date().toISOString().slice(0, 10),
       } as TaskFrontmatter,
-      body: `# ${id}\n\n## Context\n\n\n## Subtasks\n\n`,
+      body: `# ${id}\n\n## Context\n\n## Subtasks\n\n`,
     };
   }
 }
 
 export async function writeTaskFile(
-  tasksDir: FileSystemDirectoryHandle,
+  _tasksDir: FileSystemDirectoryHandle | null,
   id: string,
   frontmatter: TaskFrontmatter,
   body: string
 ): Promise<void> {
-  const h = await tasksDir.getFileHandle(`${id}.md`, { create: true });
+  if (isServerMode()) return serverWriteTask(id, serializeTaskFile(frontmatter, body));
+  const h = await _tasksDir!.getFileHandle(`${id}.md`, { create: true });
   const w = await h.createWritable();
   await w.write(serializeTaskFile(frontmatter, body));
   await w.close();
 }
 
-export async function deleteTaskFile(tasksDir: FileSystemDirectoryHandle, id: string): Promise<void> {
+export async function deleteTaskFile(_tasksDir: FileSystemDirectoryHandle | null, id: string): Promise<void> {
+  if (isServerMode()) return serverDeleteTask(id);
   try {
-    await tasksDir.removeEntry(`${id}.md`);
+    await _tasksDir!.removeEntry(`${id}.md`);
   } catch {
     // ignore
   }

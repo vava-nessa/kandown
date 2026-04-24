@@ -46,6 +46,10 @@ import {
   verifyPermission,
   isServerMode,
   getServerRoot,
+  serverReadBoard,
+  serverReadConfig,
+  serverListTasks,
+  serverReadTaskFile,
   type RecentProject,
 } from './filesystem';
 import { buildColumnsFromTasks, extractSubtasks, injectSubtasks, searchTaskContent } from './parser';
@@ -89,6 +93,8 @@ export interface ConflictState {
 }
 
 interface State {
+  isOpen: boolean;
+  loading: boolean;
   dirHandle: FileSystemDirectoryHandle | null;
   projectName: string | null;
   tasksDirHandle: FileSystemDirectoryHandle | null;
@@ -125,6 +131,7 @@ interface State {
   // Actions
   openFolder: () => Promise<void>;
   openRecentProject: (project: RecentProject) => Promise<void>;
+  openServerProject: () => Promise<void>;
   tryAutoOpenServerProject: () => Promise<void>;
   reloadBoard: () => Promise<void>;
   loadConfig: () => Promise<void>;
@@ -268,6 +275,8 @@ const notificationSnapshots = new Map<string, NotificationTaskSnapshot>();
 const taskEditTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
 export const useStore = create<State>((set, get) => ({
+  isOpen: false,
+  loading: false,
   dirHandle: null,
   projectName: null,
   tasksDirHandle: null,
@@ -334,6 +343,60 @@ export const useStore = create<State>((set, get) => ({
     void get().setupWatcher();
   },
 
+  /** 📖 Opens a project in server mode using the CLI REST API — no file picker needed. */
+  openServerProject: async () => {
+    set({ loading: true });
+    try {
+      const serverRoot = getServerRoot();
+      if (!serverRoot) throw new Error('No server root');
+      const projectName = serverRoot.split('/').filter(Boolean).pop() ?? 'Project';
+      const config = await serverReadConfig();
+      applyConfigTheme(config);
+      const ids = await serverListTasks();
+      const tasks = await Promise.all(ids.map(async (id) => {
+        const { frontmatter, body } = await serverReadTaskFile(id);
+        const normalizedFrontmatter = {
+          ...frontmatter,
+          id: frontmatter.id || id,
+          status: frontmatter.status || 'Backlog',
+        };
+        const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
+        return { id, frontmatter: normalizedFrontmatter, body: bodyWithoutSubtasks, subtasks };
+      }));
+      syncNotificationSnapshots(tasks);
+      const parsedTasks = tasks.map(task => ({
+        frontmatter: task.frontmatter,
+        body: injectSubtasks(task.body, task.subtasks),
+      }));
+      const columns = buildColumnsFromTasks(parsedTasks, config.board.columns);
+      const totalTasks = columns.reduce((acc, col) => acc + col.tasks.length, 0);
+      const nextContents = new Map<string, TaskContent>();
+      if (totalTasks <= 10) {
+        for (const task of tasks) {
+          nextContents.set(task.frontmatter.id, {
+            frontmatter: task.frontmatter,
+            subtasks: task.subtasks,
+            body: task.body,
+          });
+        }
+      }
+      set({
+        loading: false,
+        isOpen: true,
+        config,
+        columns,
+        boardTitle: 'Project Kanban',
+        projectName,
+        taskContents: nextContents,
+        searchMatches: new Map(),
+      });
+      window.history.pushState({}, '', `?p=${encodeURIComponent(projectName)}`);
+    } catch (err) {
+      set({ loading: false, isOpen: false });
+      get().toast('Impossible de charger le projet. Relancez `kandown`.', 'error');
+    }
+  },
+
   /** 📖 Called on mount when isServerMode() is true. Finds the matching recent project by its .kandown path and auto-opens it. */
   tryAutoOpenServerProject: async () => {
     if (!isServerMode()) return;
@@ -341,9 +404,15 @@ export const useStore = create<State>((set, get) => ({
     if (!serverRoot) return;
     const recent = await listRecentProjects();
     const match = recent.find(p => p.kandownDir === serverRoot);
-    if (!match) return;
+    if (!match) {
+      await get().openServerProject();
+      return;
+    }
     const ok = await verifyPermission(match.handle, true);
-    if (!ok) return;
+    if (!ok) {
+      await get().openServerProject();
+      return;
+    }
     const kandownHandle = await getKandownHandle(match.handle);
     const tasksDir = await ensureTasksDir(kandownHandle);
     const projectName = match.handle.name;

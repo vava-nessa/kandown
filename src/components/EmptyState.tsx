@@ -36,6 +36,8 @@ const LogoSvg = ({ className }: { className?: string }) => (
 export function EmptyState() {
   const { t } = useTranslation();
   const openFolder = useStore(s => s.openFolder);
+  const openServerProject = useStore(s => s.openServerProject);
+  const loading = useStore(s => s.loading);
   const recentProjects = useStore(s => s.recentProjects);
   const openRecentProject = useStore(s => s.openRecentProject);
   const tryAutoOpenServerProject = useStore(s => s.tryAutoOpenServerProject);
@@ -50,6 +52,17 @@ export function EmptyState() {
   }
 
   const serverMode = isServerMode();
+
+  if (serverMode && loading) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 px-10 text-center">
+        <div className="text-[22px] font-semibold tracking-tight text-fg">Chargement…</div>
+        <div className="text-[14px] text-fg-dim max-w-[440px] leading-relaxed">
+          {t('emptyState.serverModeLoadingDesc') ?? 'Connexion au serveur…'}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -83,21 +96,7 @@ export function EmptyState() {
             transition={{ delay: 0.1 }}
             className="text-[14.5px] text-fg-dim max-w-[480px] leading-relaxed"
           >
-            {t('emptyState.serverModeDesc') ?? 'Kandown is running in server mode. Click below to open your project — the browser will remember your choice for next time.'}
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-          >
-            <KbdButton
-              variant="primary"
-              label={t('emptyState.openThisProject') ?? 'Open this project'}
-              onClick={openFolder}
-              className="h-10 px-6 text-[16px]"
-              iconSize={20}
-              icon="Folder"
-            />
+            {t('emptyState.serverModeDesc') ?? 'Kandown est lanc\u00e9 en mode serveur. Le projet va se charger automatiquement.'}
           </motion.div>
         </>
       ) : (

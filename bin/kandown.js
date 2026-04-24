@@ -47,6 +47,7 @@ import {
   writeFileSync,
   readdirSync,
   statSync,
+  unlinkSync,
 } from 'node:fs';
 import { spawnSync, spawn } from 'node:child_process';
 
@@ -379,14 +380,6 @@ function parsePort(value) {
   return port;
 }
 
-function writeText(res, status, body, headers = {}) {
-  res.writeHead(status, {
-    'Content-Type': 'text/plain; charset=utf-8',
-    ...headers,
-  });
-  res.end(body);
-}
-
 function apiHeaders() {
   return {
     'Access-Control-Allow-Origin': '*',
@@ -400,8 +393,174 @@ function handleCors(res) {
   res.end();
 }
 
-function handleApi(req, res) {
-  writeText(res, 501, 'Not Implemented', apiHeaders());
+function writeJson(res, status, body) {
+  const headers = { ...apiHeaders(), 'Content-Type': 'application/json' };
+  res.writeHead(status, headers);
+  res.end(JSON.stringify(body));
+}
+
+function writeText(res, status, body, contentType = 'text/plain; charset=utf-8') {
+  res.writeHead(status, { ...apiHeaders(), 'Content-Type': contentType });
+  res.end(body);
+}
+
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on('data', chunk => chunks.push(chunk));
+    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+    req.on('error', reject);
+  });
+}
+
+function isValidTaskId(id) {
+  return /^[a-zA-Z0-9_-]+$/.test(id);
+}
+
+function getConfig(res, kandownDir) {
+  const configPath = join(kandownDir, 'kandown.json');
+  if (!existsSync(configPath)) {
+    writeJson(res, 404, { error: 'kandown.json not found' });
+    return;
+  }
+  try {
+    const content = readFileSync(configPath, 'utf8');
+    const config = JSON.parse(content);
+    writeJson(res, 200, config);
+  } catch (e) {
+    writeJson(res, 500, { error: `Failed to read config: ${e.message}` });
+  }
+}
+
+function putConfig(req, res, kandownDir) {
+  readBody(req).then(body => {
+    try {
+      JSON.parse(body);
+      const configPath = join(kandownDir, 'kandown.json');
+      writeFileSync(configPath, body, 'utf8');
+      writeJson(res, 200, { ok: true });
+    } catch (e) {
+      writeJson(res, 400, { error: 'Invalid JSON' });
+    }
+  }).catch(e => {
+    writeJson(res, 500, { error: `Failed to read body: ${e.message}` });
+  });
+}
+
+function getBoard(res, kandownDir) {
+  const boardPath = join(kandownDir, 'board.md');
+  if (!existsSync(boardPath)) {
+    writeText(res, 404, 'board.md not found');
+    return;
+  }
+  try {
+    const content = readFileSync(boardPath, 'utf8');
+    writeText(res, 200, content);
+  } catch (e) {
+    writeText(res, 500, `Failed to read board: ${e.message}`);
+  }
+}
+
+function putBoard(req, res, kandownDir) {
+  readBody(req).then(body => {
+    const boardPath = join(kandownDir, 'board.md');
+    writeFileSync(boardPath, body, 'utf8');
+    writeJson(res, 200, { ok: true });
+  }).catch(e => {
+    writeJson(res, 500, { error: `Failed to write board: ${e.message}` });
+  });
+}
+
+function getTasks(res, kandownDir) {
+  const tasksDir = join(kandownDir, 'tasks');
+  if (!existsSync(tasksDir)) {
+    writeJson(res, 200, []);
+    return;
+  }
+  try {
+    const files = readdirSync(tasksDir).filter(f => f.endsWith('.md'));
+    const ids = files.map(f => f.replace(/\.md$/, ''));
+    writeJson(res, 200, ids);
+  } catch (e) {
+    writeJson(res, 500, { error: `Failed to list tasks: ${e.message}` });
+  }
+}
+
+function getTask(res, kandownDir, id) {
+  if (!isValidTaskId(id)) {
+    writeText(res, 400, 'Invalid task id');
+    return;
+  }
+  const taskPath = join(kandownDir, 'tasks', `${id}.md`);
+  if (!existsSync(taskPath)) {
+    writeText(res, 404, 'Task not found');
+    return;
+  }
+  try {
+    const content = readFileSync(taskPath, 'utf8');
+    writeText(res, 200, content);
+  } catch (e) {
+    writeText(res, 500, `Failed to read task: ${e.message}`);
+  }
+}
+
+function putTask(req, res, kandownDir, id) {
+  if (!isValidTaskId(id)) {
+    writeText(res, 400, 'Invalid task id');
+    return;
+  }
+  readBody(req).then(body => {
+    const tasksDir = join(kandownDir, 'tasks');
+    if (!existsSync(tasksDir)) mkdirSync(tasksDir, { recursive: true });
+    const taskPath = join(tasksDir, `${id}.md`);
+    writeFileSync(taskPath, body, 'utf8');
+    writeJson(res, 200, { ok: true });
+  }).catch(e => {
+    writeJson(res, 500, { error: `Failed to write task: ${e.message}` });
+  });
+}
+
+function deleteTask(res, kandownDir, id) {
+  if (!isValidTaskId(id)) {
+    writeText(res, 400, 'Invalid task id');
+    return;
+  }
+  const taskPath = join(kandownDir, 'tasks', `${id}.md`);
+  if (!existsSync(taskPath)) {
+    writeJson(res, 404, { error: 'Task not found' });
+    return;
+  }
+  try {
+    unlinkSync(taskPath);
+    writeJson(res, 200, { ok: true });
+  } catch (e) {
+    writeJson(res, 500, { error: `Failed to delete task: ${e.message}` });
+  }
+}
+
+function handleApi(req, res, url, kandownDir) {
+  const parts = url.pathname.replace('/api/', '').split('/');
+  const resource = parts[0];
+  const id = parts[1];
+
+  if (resource === 'config') {
+    if (req.method === 'GET') return getConfig(res, kandownDir);
+    if (req.method === 'PUT') return putConfig(req, res, kandownDir);
+  }
+
+  if (resource === 'board') {
+    if (req.method === 'GET') return getBoard(res, kandownDir);
+    if (req.method === 'PUT') return putBoard(req, res, kandownDir);
+  }
+
+  if (resource === 'tasks') {
+    if (req.method === 'GET' && !id) return getTasks(res, kandownDir);
+    if (req.method === 'GET' && id) return getTask(res, kandownDir, id);
+    if (req.method === 'PUT' && id) return putTask(req, res, kandownDir, id);
+    if (req.method === 'DELETE' && id) return deleteTask(res, kandownDir, id);
+  }
+
+  writeJson(res, 404, { error: 'Not found' });
 }
 
 function serveApp(res, kandownDir) {
@@ -434,7 +593,9 @@ function createServeServer(kandownDir) {
     const requestUrl = new URL(req.url || '/', 'http://localhost');
     if (req.method === 'OPTIONS') return handleCors(res);
     if (requestUrl.pathname === '/') return serveApp(res, kandownDir);
-    if (requestUrl.pathname.startsWith('/api/')) return handleApi(req, res, requestUrl, kandownDir);
+    if (requestUrl.pathname.startsWith('/api/')) {
+      return handleApi(req, res, requestUrl, kandownDir);
+    }
     return writeText(res, 404, 'Not found');
   });
 }

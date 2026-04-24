@@ -35,6 +35,7 @@ import i18n from './lib/i18n';
 
 export function App() {
   const dirHandle = useStore(s => s.dirHandle);
+  const isOpen = useStore(s => s.isOpen);
   const viewMode = useStore(s => s.viewMode);
   const setViewMode = useStore(s => s.setViewMode);
   const drawerTaskId = useStore(s => s.drawerTaskId);
@@ -60,13 +61,13 @@ export function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const projectSlug = params.get('p');
-    if (projectSlug && !dirHandle) {
+    if (projectSlug && !isOpen && !dirHandle) {
       const match = recentProjects.find(p => p.name === projectSlug);
       if (match) {
         openRecentProject(match);
       }
     }
-  }, [recentProjects, dirHandle, openRecentProject]);
+  }, [recentProjects, isOpen, dirHandle, openRecentProject]);
 
   // 📖 When served via `npx kandown`, window.__KANDOWN_ROOT__ is set. Try to auto-open
   // the matching recent project (if user previously granted access) without showing the picker.
@@ -102,15 +103,15 @@ export function App() {
 
       if (isTyping || drawerTaskId || commandOpen) return;
 
-      if (e.key === 'n' && dirHandle) {
+      if (e.key === 'n' && (isOpen || dirHandle)) {
         e.preventDefault();
         createTask();
       }
-      if (e.key === 'r' && dirHandle) {
+      if (e.key === 'r' && (isOpen || dirHandle)) {
         e.preventDefault();
         reloadBoard();
       }
-      if (e.key === '/' && dirHandle) {
+      if (e.key === '/' && (isOpen || dirHandle)) {
         e.preventDefault();
         const input = document.querySelector<HTMLInputElement>(
           'header input[type="text"]'
@@ -121,14 +122,14 @@ export function App() {
 
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [dirHandle, commandOpen, drawerTaskId, setCommandOpen, setViewMode, createTask, reloadBoard]);
+  }, [isOpen, dirHandle, commandOpen, drawerTaskId, setCommandOpen, setViewMode, createTask, reloadBoard]);
 
   return (
     <div className="flex flex-col h-screen">
       <Header />
       {currentPage === 'settings' ? (
         <SettingsPage />
-      ) : dirHandle ? (
+      ) : isOpen || dirHandle ? (
         <div className="flex-1 relative overflow-hidden">
           {config.ui.background === 'liquid-ether' && (
             <LiquidEther
