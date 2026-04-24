@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1 — 2026-04-25 — "Auto-update Fix"
+
+- **Fixed**: `npx kandown` now auto-refreshes `kandown.html` on every serve, so CLI upgrades propagate to the web UI without needing a separate `kandown update`.
+
 ## 0.3.0 — 2026-04-25 — "Server Mode"
 
 - **Added**: Full REST API server in `bin/kandown.js` for all file operations (`GET/PUT /api/config`, `/api/board`, `/api/tasks`, `/api/tasks/:id`)
