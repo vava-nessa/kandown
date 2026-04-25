@@ -57,6 +57,8 @@ const PKG_ROOT = resolve(__dirname, '..');
 // 📖 Default localhost range for the zero-config `kandown` web UI server.
 const DEFAULT_SERVE_PORT = 2048;
 const MAX_SERVE_PORT = 2060;
+const START_PORT_RANGE = 2048;
+const END_PORT_RANGE = 2060;
 
 // 📖 Get current CLI version from package.json at PKG_ROOT
 function getCurrentVersion() {
@@ -626,8 +628,8 @@ function listen(server, port) {
 }
 
 async function listenOnAvailablePort(kandownDir, preferredPort) {
-  const startPort = preferredPort ?? DEFAULT_SERVE_PORT;
-  const endPort = preferredPort ?? MAX_SERVE_PORT;
+  const startPort = preferredPort ?? START_PORT_RANGE;
+  const endPort = preferredPort ?? END_PORT_RANGE;
 
   for (let port = startPort; port <= endPort; port++) {
     const server = createServeServer(kandownDir);
@@ -640,7 +642,7 @@ async function listenOnAvailablePort(kandownDir, preferredPort) {
   }
 
   const range = preferredPort === null
-    ? `${DEFAULT_SERVE_PORT}-${MAX_SERVE_PORT}`
+    ? `${START_PORT_RANGE}-${END_PORT_RANGE}`
     : String(preferredPort);
   err(`No free port available in ${c.bold}${range}${c.reset}.`);
   process.exit(1);
@@ -690,17 +692,27 @@ async function cmdServe(rawArgs) {
 }
 
 /**
- * 📖 Opens a file path in the system default browser/app.
+ * 📖 Opens a URL in the system default browser after confirming the server is ready.
  * Non-blocking — spawns the opener and returns immediately.
  * macOS: open, Linux: xdg-open, Windows: start (via cmd.exe).
  */
-function openInBrowser(filePath) {
+async function openInBrowser(url) {
+  // 📖 Wait for server to be truly ready (up to 2s) before opening browser.
+  // This prevents ERR_UNSAFE_PORT and similar race conditions.
+  for (let i = 0; i < 10; i++) {
+    try {
+      const res = await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(500) });
+      if (res.ok || res.status === 404) break; // server is up (404 means serving HTML)
+    } catch { /* server not ready yet */ }
+    await new Promise(r => setTimeout(r, 200));
+  }
+
   const opener = process.platform === 'darwin'
     ? 'open'
     : process.platform === 'win32'
       ? 'cmd'
       : 'xdg-open';
-  const args = process.platform === 'win32' ? ['/c', 'start', '', filePath] : [filePath];
+  const args = process.platform === 'win32' ? ['/c', 'start', '', url] : [url];
   const child = spawn(opener, args, { detached: true, stdio: 'ignore' });
   child.on('error', (e) => warn(`Could not open browser automatically: ${e.message}`));
   child.unref();

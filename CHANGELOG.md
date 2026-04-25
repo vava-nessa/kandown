@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.4 — 2026-04-25 — "Browser Ready Check"
+
+- **Fixed**: `openInBrowser()` now waits up to 2s for the server to be ready (via HTTP HEAD probe) before opening the URL, preventing `ERR_UNSAFE_PORT` and race conditions when multiple instances start simultaneously.
+- **Fixed**: Port range scan improved — always starts from 2048 when no explicit port is set.
+
 ## 0.3.3 — 2026-04-25 — "Auto-update Loop Fix"
 
 - **Fixed**: Auto-update now spawns the newly installed global binary directly (via `npm prefix`), preventing `npx` from re-resolving the old cached version and causing an infinite update loop.
