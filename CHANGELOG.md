@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2 — 2026-04-25 — "Debug Refresh"
+
+- **Changed**: Added debug logging to kandown.html auto-refresh in cmdServe.
+
 ## 0.3.1 — 2026-04-25 — "Auto-update Fix"
 
 - **Fixed**: `npx kandown` now auto-refreshes `kandown.html` on every serve, so CLI upgrades propagate to the web UI without needing a separate `kandown update`.

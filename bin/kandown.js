@@ -645,6 +645,21 @@ async function listenOnAvailablePort(kandownDir, preferredPort) {
 async function cmdServe(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
 
+  // 📖 Auto-refresh kandown.html if it already exists — ensures CLI upgrades
+  // propagate to the web UI without requiring a separate `kandown update`.
+  const htmlDest = join(kandownDir, 'kandown.html');
+  const htmlSrc = join(PKG_ROOT, 'dist', 'index.html');
+  if (existsSync(htmlDest) && existsSync(htmlSrc)) {
+    try {
+      copyFileSync(htmlSrc, htmlDest);
+      info(`Refreshed kandown.html (CLI v${getCurrentVersion()})`);
+    } catch (e) {
+      warn(`Could not refresh kandown.html: ${e.message}`);
+    }
+  } else {
+    info(`kandown.html not refreshed: dest=${existsSync(htmlDest)}, src=${existsSync(htmlSrc)}, PKG_ROOT=${PKG_ROOT}`);
+  }
+
   const preferredPort = parsePort(parseArgs(rawArgs).port);
   const { server, port } = await listenOnAvailablePort(kandownDir, preferredPort);
   const url = `http://localhost:${port}`;
