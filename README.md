@@ -127,14 +127,20 @@ It also copies `AGENT_KANDOWN.md` to the project root and wires it into your `AG
 
 ## 🖥️ CLI Commands
 
+### Installation
+
+**Always install globally first:**
+
+```bash
+npm install -g kandown
+```
+
+Then run from any project directory. Upgrades are automatic — just run `kandown` again.
+
 ### Usage
 
 ```bash
-# If installed globally (recommended):
 kandown [command] [options]
-
-# Or with npx (no install needed):
-npx kandown [command] [options]
 ```
 
 ### Commands
@@ -335,7 +341,7 @@ Disabled fields are hidden from cards, list view, the task drawer, and metadata 
 | Firefox | ❌ (no File System Access API) |
 | Safari | ❌ (no File System Access API) |
 
-> **Server mode** (`kandown` CLI command) works in all browsers — it proxies file operations through a local REST API, bypassing the File System Access API requirement.
+> **Server mode** (run `kandown` from the CLI, no browser install needed) works in all browsers — it proxies file operations through a local REST API, bypassing the File System Access API requirement.
 
 ---
 

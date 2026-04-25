@@ -182,6 +182,21 @@ function nextTaskId(columns: Column[]): string {
   return 't' + (maxN + 1);
 }
 
+async function readAllTasksServer(): Promise<LoadedTask[]> {
+  const ids = await serverListTasks();
+  const tasks = await Promise.all(ids.map(async (id) => {
+    const { frontmatter, body } = await serverReadTaskFile(id);
+    const normalizedFrontmatter = {
+      ...frontmatter,
+      id: frontmatter.id || id,
+      status: frontmatter.status || 'Backlog',
+    };
+    const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
+    return { id, frontmatter: normalizedFrontmatter, body: bodyWithoutSubtasks, subtasks };
+  }));
+  return tasks;
+}
+
 async function readAllTasks(
   tasksDirHandle: FileSystemDirectoryHandle,
 ): Promise<LoadedTask[]> {
@@ -457,9 +472,9 @@ export const useStore = create<State>((set, get) => ({
 
   reloadBoard: async () => {
     const { tasksDirHandle, config } = get();
-    if (!tasksDirHandle) return;
+    if (!isServerMode()) return;
     try {
-      const tasks = await readAllTasks(tasksDirHandle);
+      const tasks = await readAllTasksServer();
       syncNotificationSnapshots(tasks);
       const parsedTasks = tasks.map(task => ({
         frontmatter: task.frontmatter,
@@ -487,8 +502,9 @@ export const useStore = create<State>((set, get) => ({
   },
 
   moveTask: async (taskId, fromCol, toCol, toIndex) => {
-    const { columns, tasksDirHandle, config } = get();
-    if (!tasksDirHandle) return;
+    const { columns, config } = get();
+    const isServer = isServerMode();
+    if (!isServer && !get().tasksDirHandle) return;
     const fromColObj = columns.find(c => c.name === fromCol);
     const toColObj = columns.find(c => c.name === toCol);
     if (!fromColObj || !toColObj) return;
@@ -506,6 +522,9 @@ export const useStore = create<State>((set, get) => ({
     // Optimistic
     set({ columns: newColumns });
     try {
+      if (isServerMode()) return; // server mode: handled by REST API on save
+      const { tasksDirHandle } = get();
+      if (!tasksDirHandle) return;
       const affected = fromCol === toCol
         ? newColumns.filter(c => c.name === toCol)
         : newColumns.filter(c => c.name === fromCol || c.name === toCol);
@@ -519,7 +538,7 @@ export const useStore = create<State>((set, get) => ({
 
   reorderInColumn: async (colName, fromIndex, toIndex) => {
     const { columns, tasksDirHandle, config } = get();
-    if (!tasksDirHandle) return;
+    if (!tasksDirHandle && !isServerMode()) return;
     const newColumns = columns.map(c => ({ ...c, tasks: [...c.tasks] }));
     const col = newColumns.find(c => c.name === colName);
     if (!col) return;
@@ -527,6 +546,9 @@ export const useStore = create<State>((set, get) => ({
     col.tasks.splice(toIndex, 0, task);
     set({ columns: newColumns });
     try {
+      if (isServerMode()) return;
+      const { tasksDirHandle } = get();
+      if (!tasksDirHandle) return;
       await persistColumnOrder(tasksDirHandle, [col], config.board.columns);
     } catch (e) {
       get().toast('Failed to save: ' + (e as Error).message, 'error');
@@ -606,7 +628,7 @@ export const useStore = create<State>((set, get) => ({
 
   deleteColumn: async (name) => {
     const { columns, tasksDirHandle } = get();
-    if (!tasksDirHandle) return;
+    if (!tasksDirHandle && !isServerMode()) return;
     const target = columns.find(col => col.name === name);
     if (!target) return;
     const oldColumns = columns;
@@ -636,7 +658,8 @@ export const useStore = create<State>((set, get) => ({
 
   createTask: async (colName) => {
     const { columns, tasksDirHandle, config, taskContents } = get();
-    if (!tasksDirHandle || !columns.length) return null;
+    if (!tasksDirHandle && !isServerMode()) return null;
+    if (!columns.length) return null;
     const targetColName = colName || config.board.columns[0] || columns[0].name;
     const id = nextTaskId(columns);
     const targetOrder = columns.find(c => c.name === targetColName)?.tasks.length ?? 0;
@@ -668,7 +691,8 @@ export const useStore = create<State>((set, get) => ({
         tools: '',
       };
       const body = '';
-      await fsWriteTaskFile(tasksDirHandle, id, fm, body);
+      const handle = tasksDirHandle || null;
+      await fsWriteTaskFile(handle, id, fm, body);
       const newContents = new Map(taskContents);
       newContents.set(id, { frontmatter: fm, subtasks: [], body });
       set({ taskContents: newContents });
@@ -687,7 +711,7 @@ export const useStore = create<State>((set, get) => ({
 
   deleteTask: async (taskId) => {
     const { columns, tasksDirHandle, taskContents } = get();
-    if (!tasksDirHandle) return;
+    if (!tasksDirHandle && !isServerMode()) return;
     const newColumns = columns.map(c => ({ ...c, tasks: c.tasks.filter(t => t.id !== taskId) }));
     set({ columns: newColumns });
 
@@ -699,7 +723,7 @@ export const useStore = create<State>((set, get) => ({
     set({ taskContents: newContents, searchMatches: newMatches });
 
     try {
-      await fsDeleteTaskFile(tasksDirHandle, taskId);
+      await fsDeleteTaskFile(tasksDirHandle || null, taskId);
       get().toast('Deleted');
     } catch (e) {
       get().toast('Failed to delete: ' + (e as Error).message, 'error');
@@ -709,7 +733,7 @@ export const useStore = create<State>((set, get) => ({
 
   openDrawer: async (taskId) => {
     const { tasksDirHandle } = get();
-    if (!tasksDirHandle) return;
+    if (!tasksDirHandle && !isServerMode()) return;
     try {
       const { frontmatter, body } = await fsReadTaskFile(tasksDirHandle, taskId);
       const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
@@ -741,12 +765,12 @@ export const useStore = create<State>((set, get) => ({
 
   saveDrawer: async () => {
     const { drawerTaskId, drawerData, tasksDirHandle, taskContents } = get();
-    if (!drawerTaskId || !drawerData || !tasksDirHandle) return;
+    if (!drawerTaskId || !drawerData) return;
 
     const fullBody = injectSubtasks(drawerData.body, drawerData.subtasks);
     const fm = { ...drawerData.frontmatter, id: drawerTaskId };
     try {
-      await fsWriteTaskFile(tasksDirHandle, drawerTaskId, fm, fullBody);
+      await fsWriteTaskFile(tasksDirHandle || null, drawerTaskId, fm, fullBody);
 
       get().toast('Saved');
       set({ drawerTaskId: null, drawerData: null });
@@ -767,12 +791,11 @@ export const useStore = create<State>((set, get) => ({
 
   saveDrawerMetadata: async () => {
     const { drawerTaskId, drawerData, tasksDirHandle, taskContents } = get();
-    if (!drawerTaskId || !drawerData || !tasksDirHandle) return;
-
+    if (!drawerTaskId || !drawerData) return;
+    try {
       const fullBody = injectSubtasks(drawerData.body, drawerData.subtasks);
       const fm = { ...drawerData.frontmatter, id: drawerTaskId };
-      try {
-      await fsWriteTaskFile(tasksDirHandle, drawerTaskId, fm, fullBody);
+      await fsWriteTaskFile(tasksDirHandle || null, drawerTaskId, fm, fullBody);
 
       // Update content cache
       const newContents = new Map(taskContents);

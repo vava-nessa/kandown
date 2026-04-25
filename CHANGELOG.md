@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.5 — 2026-04-25 — "Server Mode Task CRUD Fix"
+
+- **Fixed**: Task creation, deletion, drawer save, and board reload now work in server mode (`kandown` CLI) — all mutations go through the REST API instead of requiring `tasksDirHandle`.
+- **Changed**: Server-mode store actions no longer require `tasksDirHandle` — they pass `null` to `filesystem.ts` helpers which bypass it when `isServerMode()` is true.
+- **Changed**: `moveTask` and `reorderInColumn` skip file persistence in server mode (full reload handles sync).
+- **Added**: `readAllTasksServer()` — reads all tasks via the REST API for board reload in server mode.
+- **Changed**: README now strongly recommends `npm install -g kandown` over `npx`.
+
 ## 0.3.4 — 2026-04-25 — "Browser Ready Check"
 
 - **Fixed**: `openInBrowser()` now waits up to 2s for the server to be ready (via HTTP HEAD probe) before opening the URL, preventing `ERR_UNSAFE_PORT` and race conditions when multiple instances start simultaneously.
