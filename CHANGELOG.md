@@ -1,11 +1,8 @@
 # Changelog
 
-## 0.3.2 — 2026-04-25 — "Debug Refresh"
+## 0.3.3 — 2026-04-25 — "Auto-update Loop Fix"
 
-- **Changed**: Added debug logging to kandown.html auto-refresh in cmdServe.
-
-## 0.3.1 — 2026-04-25 — "Auto-update Fix"
-
+- **Fixed**: Auto-update now spawns the newly installed global binary directly (via `npm prefix`), preventing `npx` from re-resolving the old cached version and causing an infinite update loop.
 - **Fixed**: `npx kandown` now auto-refreshes `kandown.html` on every serve, so CLI upgrades propagate to the web UI without needing a separate `kandown update`.
 
 ## 0.3.0 — 2026-04-25 — "Server Mode"

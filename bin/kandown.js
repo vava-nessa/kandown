@@ -91,7 +91,16 @@ async function checkForUpdate(argv = process.argv) {
       })).trim().replace(/^"|"$/g, '');
       if (newVersion === latest) {
         log(`${c.green}✓ Updated to v${newVersion}${c.reset} — restarting…`);
-        const child = spawn(process.argv[0], ['--experimental-vm-modules', ...argv.slice(1)], {
+        // Resolve the global bin directory from npm prefix and spawn directly,
+        // bypassing npx which may re-resolve the cached old version.
+        const npmPrefix = String(execSync('npm config get prefix 2>/dev/null', {
+          timeout: 5000, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'],
+        })).trim();
+        const isMacos = existsSync(join(npmPrefix, 'bin', 'kandown'));
+        const kandownBin = isMacos
+          ? join(npmPrefix, 'bin', 'kandown')
+          : join(npmPrefix, 'bin', 'kandown');
+        const child = spawn(kandownBin, ['--experimental-vm-modules', ...argv.slice(1)], {
           detached: true, stdio: 'ignore', env: { ...process.env } });
         child.unref();
         process.exit(0);
