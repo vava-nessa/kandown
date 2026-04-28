@@ -28,7 +28,7 @@ import { CommandPalette } from './components/CommandPalette';
 import { SettingsPage } from './components/SettingsPage';
 import { Toaster } from './components/Toaster';
 import { ConflictModal } from './components/ConflictModal';
-import LiquidEther from './components/LiquidEther';
+
 import { useStore } from './lib/store';
 import { changeLanguage, SUPPORTED_LANGUAGES, type SupportedLanguage } from './lib/i18n';
 import i18n from './lib/i18n';
@@ -131,22 +131,10 @@ export function App() {
         <SettingsPage />
       ) : isOpen || dirHandle ? (
         <div className="flex-1 relative overflow-hidden">
-          {config.ui.background === 'liquid-ether' && (
-            <LiquidEther
-              className="z-0"
-              mouseForce={12}
-              cursorSize={45}
-              isViscous
-              viscous={30}
-              colors={['#28098f', '#351131', '#2c1818']}
-              autoDemo
-              autoSpeed={0.3}
-              autoIntensity={0.9}
-              isBounce={false}
-              resolution={0.5}
-            />
+          {config.ui.background === 'static-gradient' && (
+            <div className="absolute inset-0 z-0 bg-gradient-to-br from-primary/10 via-background to-accent/10" />
           )}
-          <div className={`flex flex-col h-full relative ${config.ui.background === 'liquid-ether' ? 'z-10' : ''}`}>
+          <div className={`flex flex-col h-full relative ${config.ui.background === 'static-gradient' ? 'z-10' : ''}`}>
             {viewMode === 'board' ? <Board /> : <ListView />}
           </div>
         </div>

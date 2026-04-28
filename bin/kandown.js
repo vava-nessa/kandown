@@ -333,6 +333,11 @@ function cmdInit(rawArgs) {
   const kandownPath = args.path;
   const kandownDir = resolve(cwd, kandownPath);
 
+  if (existsSync(join(cwd, '.kandown', 'board.md'))) {
+    err(`Kandown already initialized in this directory. To reinitialize, remove the .kandown folder first.`);
+    process.exit(1);
+  }
+
   log('');
   info(`Installing kandown in ${c.bold}${kandownPath}/${c.reset}`);
   log('');

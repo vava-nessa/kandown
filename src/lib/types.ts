@@ -89,7 +89,7 @@ export type ViewMode = 'board' | 'list';
 export type ThemeMode = 'auto' | 'light' | 'dark';
 export type SkinId = 'kandown' | 'graphite' | 'sage' | 'cobalt' | 'rose';
 export type FontId = 'inter' | 'system' | 'serif' | 'mono' | 'rounded';
-export type BackgroundId = 'solid' | 'liquid-ether';
+export type BackgroundId = 'solid' | 'static-gradient';
 export type NotificationSoundId = 'soft' | 'chime' | 'ping' | 'pop';
 
 export interface Filters {

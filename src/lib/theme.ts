@@ -102,9 +102,9 @@ export const BACKGROUND_OPTIONS: BackgroundOption[] = [
     description: 'Flat background color from the skin.',
   },
   {
-    id: 'liquid-ether',
-    label: 'Liquid Ether',
-    description: 'Animated fluid simulation with velocity-based colors.',
+    id: 'static-gradient',
+    label: 'Static Gradient',
+    description: 'A subtle static gradient background.',
   },
 ];
 
