@@ -264,3 +264,55 @@
     text-wrap: balance;
   }
 }
+
+/* ─── BlockNote editor integration ──────────────────────────────────────────── */
+
+/* Remove BlockNote's outer border/shadow — kandown's wrapper handles the frame */
+.blocknote-editor-wrapper .bn-editor {
+  padding: 8px 12px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Placeholder via data attribute on the wrapper (shown when editor is empty) */
+.blocknote-editor-wrapper:has(.ProseMirror-focused) .bn-editor .ProseMirror p:first-child:last-child.is-empty::before,
+.blocknote-editor-wrapper .bn-editor .ProseMirror p:first-child:last-child.is-empty::before {
+  content: attr(data-placeholder);
+  pointer-events: none;
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+}
+
+/* Cascade the wrapper's placeholder text down to the ProseMirror instance */
+.blocknote-editor-wrapper[data-placeholder] .bn-editor .ProseMirror:not([class*="has-content"]) > p:only-child:empty::before {
+  content: attr(data-placeholder);
+  pointer-events: none;
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+  float: left;
+  height: 0;
+}
+
+/* Remove BlockNote's default outer padding to align with the rest of the drawer */
+.blocknote-editor-wrapper .bn-container {
+  background: transparent;
+}
+
+/* Code blocks: match kandown's muted background */
+.blocknote-editor-wrapper .bn-block-content[data-content-type="codeBlock"] {
+  background: hsl(var(--muted)) !important;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+/* Slash menu z-index fix: --bn-ui-base-z-index is injected via JS on the portal
+   element (see BlockNoteMarkdownEditor). This CSS sets it on the editor wrapper
+   as well so any non-portal popover (formatting toolbar inline) also wins. */
+.blocknote-editor-wrapper .bn-root {
+  --bn-ui-base-z-index: 150;
+}
+
+/* Remove default BlockNote focus ring on inner editor */
+.blocknote-editor-wrapper .bn-editor .ProseMirror:focus {
+  outline: none;
+}

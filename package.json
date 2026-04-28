@@ -66,6 +66,9 @@
     "zustand": "^5.0.0"
   },
   "dependencies": {
+    "@blocknote/core": "0.49.0",
+    "@blocknote/mantine": "0.49.0",
+    "@blocknote/react": "0.49.0",
     "@radix-ui/react-slot": "1.2.4",
     "chokidar": "^4.0.0",
     "class-variance-authority": "0.7.1",

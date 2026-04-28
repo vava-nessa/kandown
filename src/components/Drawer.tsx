@@ -28,6 +28,7 @@ import { Icon } from './Icons';
 import { KbdButton } from './KbdButton';
 import { SubtaskItem } from './SubtaskItem';
 import { MarkdownEditor } from './ui/MarkdownEditor';
+import { BlockNoteMarkdownEditor } from './ui/BlockNoteMarkdownEditor';
 import { useStore } from '../lib/store';
 import type { Priority, OwnerType } from '../lib/types';
 
@@ -362,7 +363,7 @@ export function Drawer() {
                     <div className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted mb-2">
                       {t('drawer.description')}
                     </div>
-                    <MarkdownEditor
+                    <BlockNoteMarkdownEditor
                       value={drawerData.body}
                       onChange={val =>
                         updateDrawerData(d => ({ ...d, body: val }))
