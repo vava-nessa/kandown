@@ -39,6 +39,7 @@ interface CardStackProps {
   onCardDragStart: (taskId: string, fromCol: string) => void;
   onCardDragEnd: () => void;
   defaultExpanded?: boolean;
+  doneTags?: Set<string>;
 }
 
 export function CardStack({
@@ -49,6 +50,7 @@ export function CardStack({
   onCardDragStart,
   onCardDragEnd,
   defaultExpanded = false,
+  doneTags,
 }: CardStackProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(defaultExpanded);
@@ -96,6 +98,7 @@ export function CardStack({
               searchMatches={searchMatches.get(task.id) || []}
               density={density}
               columnName={columnName}
+              doneTags={doneTags}
               onDragStart={() => onCardDragStart(task.id, columnName)}
               onDragEnd={onCardDragEnd}
             />

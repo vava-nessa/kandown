@@ -37,7 +37,7 @@ import { CardStack } from './CardStack';
 import { Icon } from './Icons';
 import { KbdButton } from './KbdButton';
 import { useStore } from '../lib/store';
-import { groupTasksByTag } from '../lib/grouping';
+import { groupTasksByTag, extractGroupKey } from '../lib/grouping';
 import type { Column as ColumnType, BoardTask, Density, SearchMatch, ColumnColor } from '../lib/types';
 
 const columnIconsByName: Readonly<Record<string, TablerIcon>> = {
@@ -232,6 +232,25 @@ export function Column({
   // 📖 Group tasks by shared [bracket] or #hashtag title tags into collapsible stacks
   const columnItems = useMemo(() => groupTasksByTag(filteredTasks), [filteredTasks]);
 
+  // 📖 Compute which group keys have ALL their tasks (across all columns) marked as done
+  const doneTags = useMemo(() => {
+    const tagToTasks = new Map<string, BoardTask[]>();
+    for (const col of useStore.getState().columns) {
+      for (const t of col.tasks) {
+        const key = extractGroupKey(t.title);
+        if (key) {
+          if (!tagToTasks.has(key)) tagToTasks.set(key, []);
+          tagToTasks.get(key)!.push(t);
+        }
+      }
+    }
+    const result = new Set<string>();
+    for (const [key, tasks] of tagToTasks) {
+      if (tasks.every(t => t.checked)) result.add(key);
+    }
+    return result;
+  }, []);
+
   const colColorKey = config.board.columnColors?.[column.name.toLowerCase()] ?? 'gray';
   const colBg = COLUMN_COLOR_MAP[colColorKey] ?? COLUMN_COLOR_MAP.gray;
 
@@ -364,6 +383,7 @@ export function Column({
                   searchMatches={searchMatches.get(item.task.id) || []}
                   density={density}
                   columnName={column.name}
+                  doneTags={doneTags}
                   onDragStart={() => onCardDragStart(item.task.id, column.name)}
                   onDragEnd={onCardDragEnd}
                 />
@@ -374,6 +394,7 @@ export function Column({
                   searchMatches={searchMatches}
                   density={density}
                   columnName={column.name}
+                  doneTags={doneTags}
                   onCardDragStart={onCardDragStart}
                   onCardDragEnd={onCardDragEnd}
                   defaultExpanded={!!filters.search}

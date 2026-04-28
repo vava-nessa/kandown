@@ -58,9 +58,10 @@ interface CardProps {
   onDragStart?: (e: React.DragEvent) => void;
   onDragEnd?: (e: React.DragEvent) => void;
   columnName: string;
+  doneTags?: Set<string>;
 }
 
-export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd, columnName }: CardProps) {
+export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd, columnName, doneTags }: CardProps) {
   const { t } = useTranslation();
   const openDrawer = useStore(s => s.openDrawer);
   const deleteTask = useStore(s => s.deleteTask);
