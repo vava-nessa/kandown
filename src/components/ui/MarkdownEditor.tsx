@@ -48,7 +48,7 @@ export function MarkdownEditor({
   placeholder,
   minHeight = '120px',
 }: MarkdownEditorProps) {
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(true);
 
   const isLocked = readOnly || !onChange;
 
