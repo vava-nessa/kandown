@@ -8,29 +8,10 @@
     color-scheme: dark;
     --font-sans: 'Inter var', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
-    /* ── Kandown Premium Design Tokens ── */
-    /* App background */
-    --app-bg: #faf9f7;
-    --surface: #ffffff;
-    --border: rgba(20, 20, 20, 0.08);
-    --border-strong: rgba(20, 20, 20, 0.14);
-    --border-focus: rgba(20, 20, 20, 0.22);
-    --text: #1f1f23;
-    --muted: #737078;
-
-    /* Column accent colors */
-    --col-progress: #f7f7f6;
-    --col-backlog: #fbf3ff;
-    --col-todo: #f0fbff;
-    --col-doing: #fff8ea;
-
-    /* Brand accents */
-    --purple: #7c3aed;
-    --blue: #2563eb;
-    --amber: #d97706;
-    --green: #22c55e;
-
     /* Semantic tokens (dark defaults — overridden by applyProjectTheme) */
+    --border: 0 0% 12%;
+    --border-strong: 0 0% 16%;
+    --border-focus: 0 0% 23%;
     --background: 0 0% 4%;
     --foreground: 0 0% 93%;
     --card: 0 0% 9%;
@@ -54,37 +35,6 @@
     --grid: 0 0% 100% / 0.035;
     --glass: 0 0% 9% / 0.74;
     --glass-border: 0 0% 16% / 0.82;
-  }
-
-  /* ── Light mode tokens (applied via .light-skin) ── */
-  .light-skin,
-  .light-skin body {
-    --background: 40 20% 97%;
-    --foreground: 240 6% 10%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 6% 10%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 6% 10%;
-    --primary: 240 6% 10%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 4% 90%;
-    --secondary-foreground: 240 6% 10%;
-    --muted-raw: 240 4% 90%;
-    --muted: 240 3% 46%;
-    --accent: 240 4% 90%;
-    --accent-foreground: 240 6% 10%;
-    --border: 240 5% 88%;
-    --border-strong: 240 5% 80%;
-    --border-focus: 240 5% 70%;
-    --input: 240 5% 88%;
-    --ring: 240 5% 70%;
-    --app-bg: #faf9f7;
-    --surface: #ffffff;
-    --border: rgba(20, 20, 20, 0.08);
-    --border-strong: rgba(20, 20, 20, 0.14);
-    --border-focus: rgba(20, 20, 20, 0.22);
-    --text: #1f1f23;
-    --muted: #737078;
   }
 
   @supports (font-variation-settings: normal) {
@@ -350,12 +300,24 @@
   background: transparent;
 }
 
-/* Code blocks: match kandown's muted background */
+/* Code blocks: match kandown's muted background and ensure readable text in
+   both modes (BlockNote ships hardcoded rgb(22 22 22) bg + white text, and
+   Shiki may inject conflicting fg/bg via inline style/CSS vars). */
 .blocknote-editor-wrapper .bn-block-content[data-content-type="codeBlock"],
 .blocknote-editor-wrapper .bn-code-block {
   background: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
+  border: 1px solid hsl(var(--border));
   border-radius: 6px;
   font-size: 13px;
+}
+.blocknote-editor-wrapper .bn-block-content[data-content-type="codeBlock"] > pre {
+  background: transparent !important;
+  color: hsl(var(--foreground)) !important;
+}
+.blocknote-editor-wrapper .bn-block-content[data-content-type="codeBlock"] > div > select,
+.blocknote-editor-wrapper .bn-block-content[data-content-type="codeBlock"] > div > select > option {
+  color: hsl(var(--foreground)) !important;
 }
 
 /* Slash menu z-index fix: --bn-ui-base-z-index is injected via JS on the portal

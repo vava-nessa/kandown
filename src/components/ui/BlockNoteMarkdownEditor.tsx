@@ -146,6 +146,18 @@ export function BlockNoteMarkdownEditor({
   // True during initial replaceBlocks — blocks onChange to prevent dirty write
   const isInitializingRef = useRef(true);
   const theme = useBlockNoteTheme();
+  // Tracks the resolved color scheme so the wrapper can mirror it via data attr
+  const [colorScheme, setColorScheme] = useState<'light' | 'dark'>(() =>
+    typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+  );
+
+  useEffect(() => {
+    const obs = new MutationObserver(() => {
+      setColorScheme(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    });
+    obs.observe(document.documentElement, { attributeFilter: ['class'] });
+    return () => obs.disconnect();
+  }, []);
 
   const editor = useCreateBlockNote({ schema: markdownSchema });
 
@@ -165,9 +177,9 @@ export function BlockNoteMarkdownEditor({
   useEffect(() => {
     const portal = editor.portalElement;
     if (!portal) return;
-    const isDark = document.documentElement.classList.contains('dark');
-    portal.setAttribute('data-mantine-color-scheme', isDark ? 'dark' : 'light');
-  }, [editor, theme]); // theme changes when dark/light or skin changes
+    portal.setAttribute('data-mantine-color-scheme', colorScheme);
+    portal.setAttribute('data-color-scheme', colorScheme);
+  }, [editor, colorScheme]);
 
   // Load initial markdown content once on mount.
   // We intentionally do NOT re-run on value changes — the editor is the source
@@ -194,6 +206,8 @@ export function BlockNoteMarkdownEditor({
       className="blocknote-editor-wrapper rounded-[6px] overflow-hidden"
       style={{ minHeight }}
       data-placeholder={placeholder}
+      data-mantine-color-scheme={colorScheme}
+      data-color-scheme={colorScheme}
     >
       <BlockNoteView
         editor={editor}
