@@ -431,7 +431,7 @@ export const useStore = create<State>((set, get) => ({
     const kandownHandle = await getKandownHandle(match.handle);
     const tasksDir = await ensureTasksDir(kandownHandle);
     const projectName = match.handle.name;
-    set({ dirHandle: kandownHandle, tasksDirHandle: tasksDir, projectName, recentProjects: recent });
+    set({ dirHandle: kandownHandle, tasksDirHandle: tasksDir, projectName, recentProjects: recent, isOpen: true });
     window.history.pushState({}, '', `?p=${encodeURIComponent(projectName)}`);
     await saveRecentProject({ ...match, lastOpened: Date.now() });
     await get().loadConfig();

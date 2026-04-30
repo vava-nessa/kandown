@@ -24,6 +24,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
 import { KbdButton } from './KbdButton';
+import { ThemeToggle } from './ThemeToggle';
 import { useStore } from '../lib/store';
 import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
 import { KANDOWN_VERSION } from '../lib/version';
@@ -45,6 +46,7 @@ const LogoSvg = ({ className }: { className?: string }) => (
 export function Header() {
   const { t } = useTranslation();
   const dirHandle = useStore(s => s.dirHandle);
+  const isOpen = useStore(s => s.isOpen);
   const projectName = useStore(s => s.projectName);
   const columns = useStore(s => s.columns);
   const openFolder = useStore(s => s.openFolder);
@@ -250,7 +252,7 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-2 flex-shrink-0">
-        {dirHandle ? (
+        {(isOpen || dirHandle) ? (
           <>
             <div className="flex items-center gap-2 mr-2 text-[12.5px] text-fg-muted/70">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -297,6 +299,8 @@ export function Header() {
               onClick={() => setCurrentPage('settings')}
               title={t('common.settings')}
             />
+
+            <ThemeToggle />
 
             <div className="w-px h-5 bg-black/[0.08] dark:bg-white/[0.08] mx-1" />
 
