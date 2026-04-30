@@ -33,10 +33,12 @@ import {
   defaultBlockSpecs,
   defaultStyleSpecs,
   defaultInlineContentSpecs,
+  createCodeBlockSpec,
 } from '@blocknote/core';
 import { useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView, type Theme } from '@blocknote/mantine';
 import '@blocknote/mantine/style.css';
+import { codeBlockOptions } from '@blocknote/code-block';
 
 export interface MarkdownEditorProps {
   /** Markdown string to display/edit */
@@ -53,14 +55,17 @@ export interface MarkdownEditorProps {
 
 // ─── Schema ────────────────────────────────────────────────────────────────────
 
-// Keep only markdown-native blocks
-const { audio, file, video, table, toggleListItem, ...markdownBlockSpecs } = defaultBlockSpecs;
+// Keep only markdown-native blocks (but replace codeBlock with syntax-highlighted version)
+const { audio, file, video, table, toggleListItem, codeBlock: _codeBlock, ...markdownBlockSpecs } = defaultBlockSpecs;
 
 // Keep only styles that have native markdown syntax
 const { underline, textColor, backgroundColor, ...markdownStyleSpecs } = defaultStyleSpecs;
 
 const markdownSchema = BlockNoteSchema.create({
-  blockSpecs: markdownBlockSpecs,
+  blockSpecs: {
+    ...markdownBlockSpecs,
+    codeBlock: createCodeBlockSpec(codeBlockOptions),
+  },
   inlineContentSpecs: defaultInlineContentSpecs,
   styleSpecs: markdownStyleSpecs,
 });

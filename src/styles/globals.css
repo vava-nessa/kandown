@@ -299,7 +299,8 @@
 }
 
 /* Code blocks: match kandown's muted background */
-.blocknote-editor-wrapper .bn-block-content[data-content-type="codeBlock"] {
+.blocknote-editor-wrapper .bn-block-content[data-content-type="codeBlock"],
+.blocknote-editor-wrapper .bn-code-block {
   background: hsl(var(--muted)) !important;
   border-radius: 6px;
   font-size: 13px;
