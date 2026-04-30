@@ -139,7 +139,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       onMouseLeave={() => setDeleteArmed(false)}
       data-task-id={task.id}
       data-col={columnName}
-      className={`group relative cursor-pointer rounded-xl border border-black/5 bg-white p-3.5 shadow-sm transition-all hover:border-black/12 hover:shadow-md dark:border-white/10 dark:bg-white/90 dark:hover:border-white/20 ${
+      className={`group relative cursor-pointer rounded-xl border border-border bg-card p-3.5 shadow-sm transition-all hover:border-border-strong hover:shadow-md ${
         task.checked ? 'opacity-70' : ''
       }`}
     >
@@ -167,7 +167,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
         className={`absolute right-2 top-2 z-10 inline-flex h-6 w-6 items-center justify-center rounded-lg border transition-all ${
           deleteArmed
             ? 'border-red-500 bg-red-500 text-white opacity-100 shadow-sm'
-            : 'border-black/10 bg-white/80 text-fg-muted opacity-0 hover:border-red-500/60 hover:bg-white hover:text-red-500 group-hover:opacity-100 dark:border-white/20 dark:bg-white/80 dark:hover:bg-white dark:hover:text-red-500'
+            : 'border-border bg-card/80 text-fg-muted opacity-0 hover:border-red-500/60 hover:bg-card hover:text-red-500 group-hover:opacity-100'
         } ${isDeleting ? 'pointer-events-none opacity-60' : ''}`}
       >
         {deleteArmed ? <IconTrashX size={14} stroke={1.9} /> : <IconTrash size={14} stroke={1.8} />}

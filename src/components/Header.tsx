@@ -97,7 +97,7 @@ export function Header() {
   }, [menuOpen]);
 
   return (
-    <header className="flex items-center justify-between px-5 h-[64px] border-b border-black/[0.06] dark:border-white/[0.08] bg-white/80 dark:bg-[#1a1a1a]/80 backdrop-blur-xl relative z-10">
+    <header className="flex items-center justify-between px-5 h-[64px] border-b border-border bg-card/80 backdrop-blur-xl relative z-10">
       <div className="flex items-center gap-4 min-w-0">
         <div className="flex items-center gap-2.5 flex-shrink-0">
           <button
@@ -117,7 +117,7 @@ export function Header() {
             <div className="w-px h-[20px] bg-black/[0.08] dark:bg-white/[0.08] flex-shrink-0" />
 
             {/* Premium search bar */}
-            <div className="flex items-center gap-2 px-3 h-9 bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.1] rounded-xl min-w-[200px] max-w-[280px] focus-within:border-black/[0.14] dark:focus-within:border-white/[0.18] focus-within:bg-white dark:focus-within:bg-white/10 transition-all">
+            <div className="flex items-center gap-2 px-3 h-9 bg-secondary/60 border border-border rounded-xl min-w-[200px] max-w-[280px] focus-within:border-border-focus focus-within:bg-secondary transition-all">
               <Icon.Search size={14} className="text-fg-muted/60 flex-shrink-0" />
               <input
                 ref={searchRef}
@@ -266,7 +266,7 @@ export function Header() {
                 onClick={() => setViewMode('board')}
                 className={`w-9 h-9 inline-flex items-center justify-center rounded-lg transition-all ${
                   viewMode === 'board'
-                    ? 'bg-white dark:bg-white/20 text-fg shadow-sm'
+                    ? 'bg-card text-fg shadow-sm'
                     : 'text-fg-muted/70 hover:text-fg'
                 }`}
                 title={t('common.board')}
@@ -277,7 +277,7 @@ export function Header() {
                 onClick={() => setViewMode('list')}
                 className={`w-9 h-9 inline-flex items-center justify-center rounded-lg transition-all ${
                   viewMode === 'list'
-                    ? 'bg-white dark:bg-white/20 text-fg shadow-sm'
+                    ? 'bg-card text-fg shadow-sm'
                     : 'text-fg-muted/70 hover:text-fg'
                 }`}
                 title={t('common.list')}

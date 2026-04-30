@@ -30,7 +30,7 @@
     --amber: #d97706;
     --green: #22c55e;
 
-    /* Semantic tokens */
+    /* Semantic tokens (dark defaults — overridden by applyProjectTheme) */
     --background: 0 0% 4%;
     --foreground: 0 0% 93%;
     --card: 0 0% 9%;
@@ -41,8 +41,8 @@
     --primary-foreground: 0 0% 4%;
     --secondary: 0 0% 13%;
     --secondary-foreground: 0 0% 93%;
-    --muted-raw: 0 0% 11%;
-    --muted: 0 0% 43%;
+    --muted: 0 0% 11%;
+    --muted-foreground: 0 0% 43%;
     --accent: 0 0% 16%;
     --accent-foreground: 0 0% 93%;
     --destructive: 358 74% 59%;

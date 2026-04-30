@@ -122,14 +122,14 @@ export function CardStack({
       {/* Layer 2 (deepest): offset furthest, smallest scale */}
       {taskCount > 2 && (
         <div
-          className="absolute inset-0 rounded-xl border border-black/[0.06] bg-white/40 dark:border-white/10 dark:bg-white/20 pointer-events-none"
+          className="absolute inset-0 rounded-xl border border-border bg-card/40 pointer-events-none"
           style={{ transform: 'translateY(8px) scale(0.94)', zIndex: 0 }}
         />
       )}
 
       {/* Layer 1: slightly offset behind the main card */}
       <div
-        className="absolute inset-0 rounded-xl border border-black/[0.05] bg-white/50 dark:border-white/15 dark:bg-white/30 pointer-events-none"
+        className="absolute inset-0 rounded-xl border border-border bg-card/60 pointer-events-none"
         style={{ transform: 'translateY(4px) scale(0.97)', zIndex: 1 }}
       />
 
@@ -137,7 +137,7 @@ export function CardStack({
       <motion.div
         whileHover={{ y: -2, boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}
         whileTap={{ scale: 0.98 }}
-        className="relative z-10 rounded-xl border border-black/[0.06] bg-white p-3.5 shadow-sm transition-all hover:border-black/[0.1] hover:shadow-md dark:border-white/10 dark:bg-white/90 dark:hover:border-white/20"
+        className="relative z-10 rounded-xl border border-border bg-card p-3.5 shadow-sm transition-all hover:border-border-strong hover:shadow-md"
       >
         {/* Header: stack icon + group key + task count */}
         <div className="flex items-center justify-between mb-2">
