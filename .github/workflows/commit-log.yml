@@ -13,28 +13,21 @@ jobs:
         run: |
           echo "sha_short=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
           echo "msg_first=$(echo '${{ github.event.head_commit.message }}' | head -n1 | sed 's/"/\\"/g')" >> $GITHUB_OUTPUT
-          echo "author=${{ github.actor }}" >> $GITHUB_OUTPUT
           echo "repo=${{ github.event.repository.name }}" >> $GITHUB_OUTPUT
           echo "ref=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
-          echo "timestamp=${{ github.event.head_commit.timestamp }}" >> $GITHUB_OUTPUT
 
-      - name: Send rich embed to Discord
+      - name: Send embed to Discord
         run: |
           JSON=$(cat <<EOF
           {
             "embeds": [{
               "title": "[${{ steps.info.outputs.repo }}] ${{ steps.info.outputs.msg_first }}",
               "url": "https://github.com/${{ github.repository }}/commit/${{ github.sha }}",
-              "description": "**Commit:** \`${{ steps.info.outputs.sha_short }}\`\n**Author:** \`${{ steps.info.outputs.author }}\`",
+              "description": "Commit \`${{ steps.info.outputs.sha_short }}\` on \`${{ steps.info.outputs.ref }}\`",
               "color": 5814783,
-              "author": {
-                "name": "${{ github.actor }}",
-                "url": "https://github.com/${{ github.actor }}"
-              },
               "footer": {
-                "text": "${{ steps.info.outputs.repo }} › ${{ steps.info.outputs.ref }}"
-              },
-              "timestamp": "${{ steps.info.outputs.timestamp }}"
+                "text": "${{ steps.info.outputs.repo }}"
+              }
             }]
           }
           EOF)
