@@ -131,7 +131,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.12 } }}
-      whileHover={{ y: -1 }}
+      whileHover={{ y: -2, boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}
       whileTap={{ scale: 0.98 }}
       draggable
       {...dragHandlers}
@@ -139,10 +139,22 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       onMouseLeave={() => setDeleteArmed(false)}
       data-task-id={task.id}
       data-col={columnName}
-      className={`group relative cursor-pointer rounded-[6px] border border-white/60 bg-white/50 p-3 transition-colors hover:border-white/80 hover:bg-white/65 dark:border-black/40 dark:bg-black/50 dark:hover:border-black/55 dark:hover:bg-black/65 ${
-        task.checked ? 'opacity-75' : ''
+      className={`group relative cursor-pointer rounded-xl border border-black/5 bg-white p-3.5 shadow-sm transition-all hover:border-black/12 hover:shadow-md dark:border-white/10 dark:bg-white/90 dark:hover:border-white/20 ${
+        task.checked ? 'opacity-70' : ''
       }`}
     >
+      {/* Drag handle */}
+      <div className="absolute left-1.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-40 transition-opacity cursor-grab active:cursor-grabbing">
+        <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor" className="text-fg-muted">
+          <circle cx="3" cy="2" r="1.5"/>
+          <circle cx="7" cy="2" r="1.5"/>
+          <circle cx="3" cy="8" r="1.5"/>
+          <circle cx="7" cy="8" r="1.5"/>
+          <circle cx="3" cy="14" r="1.5"/>
+          <circle cx="7" cy="14" r="1.5"/>
+        </svg>
+      </div>
+
       <button
         type="button"
         draggable={false}
@@ -152,10 +164,10 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
         onClick={handleDeleteClick}
         onPointerDown={e => e.stopPropagation()}
         onBlur={() => setDeleteArmed(false)}
-        className={`absolute right-2 top-2 z-10 inline-flex h-6 w-6 items-center justify-center rounded-[5px] border transition-all ${
+        className={`absolute right-2 top-2 z-10 inline-flex h-6 w-6 items-center justify-center rounded-lg border transition-all ${
           deleteArmed
             ? 'border-red-500 bg-red-500 text-white opacity-100 shadow-sm'
-            : 'border-white/60 bg-white/80 text-fg-muted opacity-0 hover:border-red-500/60 hover:bg-white hover:text-red-500 group-hover:opacity-100 dark:border-black/40 dark:bg-black/80 dark:hover:bg-black'
+            : 'border-black/10 bg-white/80 text-fg-muted opacity-0 hover:border-red-500/60 hover:bg-white hover:text-red-500 group-hover:opacity-100 dark:border-white/20 dark:bg-white/80 dark:hover:bg-white dark:hover:text-red-500'
         } ${isDeleting ? 'pointer-events-none opacity-60' : ''}`}
       >
         {deleteArmed ? <IconTrashX size={14} stroke={1.9} /> : <IconTrash size={14} stroke={1.8} />}
@@ -164,24 +176,16 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       {/* Subtle priority edge indicator */}
       {fields.priority && task.priority && (
         <div
-          className="absolute left-0 top-3 bottom-3 w-[2px] rounded-r-full"
+          className="absolute left-0 top-3 bottom-3 w-[2.5px] rounded-r-full"
           style={{ backgroundColor: priorityColors[task.priority] }}
         />
       )}
 
-      <div className="flex items-center justify-between mb-1.5">
-        <div className="flex items-center gap-1.5">
-          <span className="font-mono text-[13px] font-bold tracking-wide text-fg-muted">
-            {task.id.replace(/^t/, '')}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[12px] font-semibold text-fg-muted/70">
+            #{task.id.replace(/^t/, '')}
           </span>
-          {/* 📖 Bracket tag (e.g. [optimization], [CLI REFACTOR-3]) rendered bold next to the task number */}
-          {bracketTag && (
-            <span className="text-[11.5px] font-bold tracking-wide text-fg-muted uppercase">
-              {bracketTag}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-1.5">
           {fields.priority && task.priority && (
             <span
               title={task.priority}
@@ -193,19 +197,28 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       </div>
 
       <div
-        className={`text-[14px] leading-snug font-normal ${
+        className={`text-[13.5px] leading-snug font-medium ${
           task.checked ? 'line-through text-fg-muted' : 'text-fg'
         } ${isCompact ? 'line-clamp-1' : 'line-clamp-2'}`}
       >
         {titleWithoutTag}
       </div>
 
+      {/* Bracket tag next to title if present */}
+      {bracketTag && (
+        <div className="mt-1.5">
+          <span className="inline-flex items-center h-[18px] px-1.5 text-[10.5px] font-semibold tracking-wide text-fg-muted uppercase rounded bg-black/[0.04] dark:bg-white/10">
+            {bracketTag}
+          </span>
+        </div>
+      )}
+
       {/* Search preview */}
       {showPreview && (
-        <div className="mt-2 space-y-1">
+        <div className="mt-2.5 space-y-1">
           {searchMatches.slice(0, 2).map((match, i) => (
-            <div key={i} className="text-[12px] text-fg-dim bg-bg rounded px-2 py-1 border border-border">
-              <span className="text-[10.5px] font-medium text-fg-muted uppercase tracking-wide mr-1.5">
+            <div key={i} className="text-[12px] text-fg-dim bg-black/[0.03] dark:bg-white/[0.04] rounded-lg px-2.5 py-1.5 border border-black/[0.05] dark:border-white/[0.08]">
+              <span className="text-[10px] font-semibold text-fg-muted uppercase tracking-wide mr-1.5">
                 {t(`sectionLabels.${match.section}`) || match.section}
               </span>
               <HighlightedText text={match.snippet} keyword={match.keyword} />
@@ -215,40 +228,40 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       )}
 
       {!isCompact && task.progress && task.progress.total > 0 && (
-        <div className={`mt-2 flex items-center gap-2 ${showPreview ? '' : ''}`}>
-          <div className="flex-1 h-[3px] bg-bg rounded-full overflow-hidden">
+        <div className={`mt-2.5 flex items-center gap-2 ${showPreview ? '' : ''}`}>
+          <div className="flex-1 h-[3px] bg-black/[0.06] dark:bg-white/[0.1] rounded-full overflow-hidden">
             <motion.div
               className="h-full rounded-full"
-              style={{ backgroundColor: isComplete ? '#30a46c' : '#a1a1a1' }}
+              style={{ backgroundColor: isComplete ? '#22c55e' : '#737078' }}
               initial={false}
               animate={{ width: `${progressPct}%` }}
               transition={{ type: 'spring', stiffness: 160, damping: 22 }}
             />
           </div>
-          <span className="font-mono text-[11.5px] text-fg-muted tabular-nums">
+          <span className="font-mono text-[11px] text-fg-muted tabular-nums">
             {task.progress.done}/{task.progress.total}
           </span>
         </div>
       )}
 
       {(visibleTags.length > 0 || (fields.assignee && task.assignee)) && (
-        <div className={`flex flex-wrap gap-1 ${isCompact ? 'mt-1.5' : 'mt-2'}`}>
+        <div className={`flex flex-wrap gap-1.5 ${isCompact ? 'mt-1.5' : 'mt-2.5'}`}>
           {visibleTags.map(tag => (
             <span
               key={tag}
-              className="inline-flex items-center h-[18px] px-1.5 text-[11.5px] rounded-[3px] text-fg-dim bg-bg border border-border"
+              className="inline-flex items-center h-[20px] px-2 text-[11px] rounded-md font-medium text-fg-muted bg-black/[0.04] dark:bg-white/[0.08] border border-black/[0.06] dark:border-white/[0.1]"
             >
               {tag}
             </span>
           ))}
           {extraTags > 0 && (
-            <span className="inline-flex items-center h-[18px] px-1.5 text-[11.5px] rounded-[3px] text-fg-muted bg-bg border border-border">
+            <span className="inline-flex items-center h-[20px] px-2 text-[11px] rounded-md font-medium text-fg-muted bg-black/[0.04] dark:bg-white/[0.08] border border-black/[0.06] dark:border-white/[0.1]">
               +{extraTags}
             </span>
           )}
           {fields.assignee && task.assignee && (
-            <span className="inline-flex items-center h-[18px] px-1.5 text-[11.5px] rounded-[3px] text-fg bg-bg-3 border border-border-strong">
-              <span className="w-1 h-1 rounded-full bg-success mr-1" />
+            <span className="inline-flex items-center h-[20px] px-2 text-[11px] rounded-md font-medium text-fg bg-black/[0.06] dark:bg-white/[0.12] border border-black/[0.08] dark:border-white/[0.15]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5" />
               {task.assignee}
             </span>
           )}

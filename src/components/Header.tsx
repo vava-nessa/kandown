@@ -95,45 +95,51 @@ export function Header() {
   }, [menuOpen]);
 
   return (
-    <header className="flex items-center justify-between px-5 h-14 border-b border-border bg-bg relative z-10">
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="flex items-center gap-2 flex-shrink-0">
+    <header className="flex items-center justify-between px-5 h-[64px] border-b border-black/[0.06] dark:border-white/[0.08] bg-white/80 dark:bg-[#1a1a1a]/80 backdrop-blur-xl relative z-10">
+      <div className="flex items-center gap-4 min-w-0">
+        <div className="flex items-center gap-2.5 flex-shrink-0">
           <button
             onClick={() => window.history.pushState({}, '', window.location.pathname)}
             className="flex items-center gap-2 cursor-pointer"
           >
-            <LogoSvg className="w-[36px] h-[36px] dark:text-white text-black" />
-            <span className="text-[15px] font-semibold tracking-tight">{t('app.name')}</span>
-            <span className="text-[11px] font-mono font-bold text-red-500">v{KANDOWN_VERSION}</span>
+            <LogoSvg className="w-[34px] h-[34px] dark:text-white text-black" />
+            <span className="text-[15px] font-semibold tracking-tight text-fg">kandown</span>
+            <span className="inline-flex items-center h-5 px-1.5 text-[10.5px] font-semibold text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-500/15 rounded-md">
+              v{KANDOWN_VERSION}
+            </span>
           </button>
         </div>
 
         {dirHandle && (
           <>
-            <div className="w-px h-[18px] bg-border flex-shrink-0" />
+            <div className="w-px h-[20px] bg-black/[0.08] dark:bg-white/[0.08] flex-shrink-0" />
 
-            {/* 📖 Compact search bar — lives in the header next to the logo */}
-            <div className="flex items-center gap-2 px-2.5 h-8 bg-bg-2 border border-border rounded-[8px] min-w-[180px] max-w-[260px] focus-within:border-border-focus focus-within:bg-bg-3 transition-colors">
-              <Icon.Search size={14} className="text-fg-muted flex-shrink-0" />
+            {/* Premium search bar */}
+            <div className="flex items-center gap-2 px-3 h-9 bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.1] rounded-xl min-w-[200px] max-w-[280px] focus-within:border-black/[0.14] dark:focus-within:border-white/[0.18] focus-within:bg-white dark:focus-within:bg-white/10 transition-all">
+              <Icon.Search size={14} className="text-fg-muted/60 flex-shrink-0" />
               <input
                 ref={searchRef}
                 type="text"
                 placeholder={t('filterBar.searchPlaceholder')}
                 value={filters.search}
                 onChange={e => setFilter('search', e.target.value)}
-                className="bg-transparent border-none outline-none text-fg text-[13px] w-full placeholder:text-fg-muted"
+                className="bg-transparent border-none outline-none text-fg text-[13px] w-full placeholder:text-fg-muted/60"
               />
-              {filters.search && (
+              {filters.search ? (
                 <button
                   onClick={() => setFilter('search', '')}
-                  className="text-fg-muted hover:text-fg flex-shrink-0"
+                  className="text-fg-muted/60 hover:text-fg flex-shrink-0"
                 >
                   <Icon.X size={14} />
                 </button>
+              ) : (
+                <kbd className="inline-flex items-center h-5 px-1.5 text-[10px] font-medium text-fg-muted/50 bg-black/[0.04] dark:bg-white/[0.08] rounded border border-black/[0.06] dark:border-white/[0.1]">
+                  ⌘K
+                </kbd>
               )}
             </div>
 
-            {/* 📖 Active filter chips — inline in the header when filters are active */}
+            {/* Active filter chips */}
             <div className="flex items-center gap-1.5 flex-wrap overflow-hidden">
               <AnimatePresence>
                 {chips.map(chip => (
@@ -144,21 +150,21 @@ export function Header() {
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ duration: 0.15 }}
                     onClick={() => setFilter(chip.type as never, null as never)}
-                    className="inline-flex items-center gap-1 h-6 px-2 text-[12px] text-fg bg-bg-3 border border-border-strong rounded-[4px] hover:bg-bg-hover transition-colors"
+                    className="inline-flex items-center gap-1 h-6 px-2.5 text-[12px] text-fg bg-black/[0.05] dark:bg-white/[0.1] border border-black/[0.08] dark:border-white/[0.12] rounded-lg hover:bg-black/[0.08] dark:hover:bg-white/[0.15] transition-colors"
                   >
                     {chip.label}
-                    <Icon.X size={10} className="text-fg-muted" />
+                    <Icon.X size={10} className="text-fg-muted/60" />
                   </motion.button>
                 ))}
               </AnimatePresence>
 
               {fields.ownerType && (
-                <div className="flex items-center h-6 border border-border-strong rounded-[4px] overflow-hidden">
+                <div className="flex items-center h-6 border border-black/[0.06] dark:border-white/[0.1] rounded-lg overflow-hidden">
                   {ownerOptions.map(opt => (
                     <button
                       key={opt.value}
                       onClick={() => setFilter('ownerType', opt.value)}
-                      className={`h-full px-2 text-[12px] transition-colors ${filters.ownerType === opt.value ? 'bg-bg-hover text-fg' : 'text-fg-muted hover:text-fg'}`}
+                      className={`h-full px-2.5 text-[12px] transition-colors ${filters.ownerType === opt.value ? 'bg-black/[0.06] dark:bg-white/[0.12] text-fg' : 'text-fg-muted/70 hover:text-fg'}`}
                     >
                       {opt.label}
                     </button>
@@ -169,7 +175,7 @@ export function Header() {
               {hasFilters && (
                 <button
                   onClick={clearFilters}
-                  className="text-[12px] text-fg-muted hover:text-fg transition-colors"
+                  className="text-[12px] text-fg-muted/60 hover:text-fg transition-colors"
                 >
                   {t('filterBar.clearAll')}
                 </button>
@@ -180,15 +186,15 @@ export function Header() {
 
         {dirHandle && (
           <>
-            <div className="w-px h-[18px] bg-border flex-shrink-0" />
+            <div className="w-px h-[20px] bg-black/[0.08] dark:bg-white/[0.08] flex-shrink-0" />
             <div className="relative flex-shrink-0" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen(o => !o)}
-                className="flex items-center gap-1.5 px-2 py-1 text-[14px] text-fg-dim hover:text-fg hover:bg-bg-2 rounded-[6px] transition-colors"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-[13px] text-fg-muted hover:text-fg hover:bg-black/[0.04] dark:hover:bg-white/[0.06] rounded-lg transition-colors border border-transparent hover:border-black/[0.06] dark:hover:border-white/[0.1]"
               >
-                <Icon.Folder size={12} className="text-fg-muted" />
-                <span>{dirHandle.name}</span>
-                <Icon.ChevronDown size={10} className="opacity-60" />
+                <Icon.Folder size={13} className="text-fg-muted/70" />
+                <span className="font-medium">.{dirHandle.name}</span>
+                <Icon.ChevronDown size={11} className="opacity-50" />
               </button>
               <AnimatePresence>
                 {menuOpen && (
@@ -197,12 +203,12 @@ export function Header() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -4, scale: 0.98 }}
                     transition={{ duration: 0.12 }}
-                    className="absolute top-full left-0 mt-1.5 min-w-[240px] glass rounded-[8px] shadow-[0_16px_48px_rgba(0,0,0,0.5)] overflow-hidden z-50"
+                    className="absolute top-full left-0 mt-2 min-w-[240px] glass rounded-xl shadow-[0_16px_48px_rgba(0,0,0,0.5)] overflow-hidden z-50"
                   >
                     <div className="py-1.5">
                       {recentProjects.length > 0 && (
                         <>
-                          <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-fg-faint">
+                          <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-fg-muted/60">
                             {t('header.recentProjects')}
                           </div>
                           {recentProjects.map(p => (
@@ -212,16 +218,16 @@ export function Header() {
                                 setMenuOpen(false);
                                 openRecentProject(p);
                               }}
-                              className="w-full flex items-center gap-2 px-3 py-1.5 text-[13.5px] text-left hover:bg-bg-3 transition-colors"
+                              className="w-full flex items-center gap-2 px-3 py-2 text-[13.5px] text-left hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
                             >
-                              <Icon.Folder size={12} className="text-fg-muted" />
+                              <Icon.Folder size={12} className="text-fg-muted/60" />
                               <span className="truncate">{p.name}</span>
                               {p.id === dirHandle.name && (
-                                <Icon.Check size={12} className="ml-auto text-success" />
+                                <Icon.Check size={12} className="ml-auto text-emerald-500" />
                               )}
                             </button>
                           ))}
-                          <div className="h-px bg-border my-1.5 mx-2" />
+                          <div className="h-px bg-black/[0.06] dark:bg-white/[0.08] my-1.5 mx-2" />
                         </>
                       )}
                       <button
@@ -229,9 +235,9 @@ export function Header() {
                           setMenuOpen(false);
                           openFolder();
                         }}
-                        className="w-full flex items-center gap-2 px-3 py-1.5 text-[13.5px] text-left hover:bg-bg-3 transition-colors"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-[13.5px] text-left hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
                       >
-                        <Icon.Plus size={12} className="text-fg-muted" />
+                        <Icon.Plus size={12} className="text-fg-muted/60" />
                         <span>{t('header.openFolder...')}</span>
                       </button>
                     </div>
@@ -243,42 +249,41 @@ export function Header() {
         )}
       </div>
 
-      <div className="flex items-center gap-1.5 flex-shrink-0">
+      <div className="flex items-center gap-2 flex-shrink-0">
         {dirHandle ? (
           <>
-            <div className="flex items-center gap-2 mr-2 text-[13px] text-fg-muted">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-success" />
-              <motion.span className="tabular-nums">{displayCount}</motion.span>
+            <div className="flex items-center gap-2 mr-2 text-[12.5px] text-fg-muted/70">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <motion.span className="tabular-nums font-medium">{displayCount}</motion.span>
               <span>{t('header.tasks')}</span>
             </div>
 
             {/* View mode toggle */}
-            <div className="flex items-center bg-bg-2 border border-border rounded-[10px] p-0.5 h-11">
+            <div className="flex items-center bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.1] rounded-xl p-0.5 h-10">
               <button
                 onClick={() => setViewMode('board')}
-                className={`w-10 h-10 inline-flex items-center justify-center rounded-[8px] transition-all ${
+                className={`w-9 h-9 inline-flex items-center justify-center rounded-lg transition-all ${
                   viewMode === 'board'
-                    ? 'bg-bg-3 text-fg'
-                    : 'text-fg-muted hover:text-fg'
+                    ? 'bg-white dark:bg-white/20 text-fg shadow-sm'
+                    : 'text-fg-muted/70 hover:text-fg'
                 }`}
                 title={t('common.board')}
               >
-                <Icon.LayoutBoard size={20} />
+                <Icon.LayoutBoard size={18} />
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`w-10 h-10 inline-flex items-center justify-center rounded-[8px] transition-all ${
+                className={`w-9 h-9 inline-flex items-center justify-center rounded-lg transition-all ${
                   viewMode === 'list'
-                    ? 'bg-bg-3 text-fg'
-                    : 'text-fg-muted hover:text-fg'
+                    ? 'bg-white dark:bg-white/20 text-fg shadow-sm'
+                    : 'text-fg-muted/70 hover:text-fg'
                 }`}
                 title={t('common.list')}
               >
-                <Icon.LayoutList size={20} />
+                <Icon.LayoutList size={18} />
               </button>
             </div>
 
-            {/* Density toggle */}
             <KbdButton
               variant="icon"
               icon="Density"
@@ -286,13 +291,14 @@ export function Header() {
               title={`Density: ${density}`}
             />
 
-            {/* Settings */}
             <KbdButton
               variant="icon"
               icon="Settings"
               onClick={() => setCurrentPage('settings')}
               title={t('common.settings')}
             />
+
+            <div className="w-px h-5 bg-black/[0.08] dark:bg-white/[0.08] mx-1" />
 
             <KbdButton
               variant="secondary"

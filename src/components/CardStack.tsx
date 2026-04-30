@@ -76,20 +76,20 @@ export function CardStack({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.12 } }}
-        className="flex flex-col gap-1.5"
+        className="flex flex-col gap-2"
       >
-        {/* 📖 Expanded header: shows group key + collapse button */}
+        {/* Expanded header: shows group key + collapse button */}
         <button
           type="button"
           onClick={() => setExpanded(false)}
-          className="flex items-center gap-1.5 px-2 py-1 rounded-[5px] text-[11.5px] font-semibold text-fg-muted uppercase tracking-wide hover:bg-white/30 dark:hover:bg-black/20 transition-colors"
+          className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-[11.5px] font-semibold text-fg-muted/70 uppercase tracking-wide hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors w-fit"
         >
           <IconChevronUp size={13} stroke={2} />
           <span>{group.displayKey}</span>
-          <span className="font-normal text-fg-faint">{taskCount}</span>
+          <span className="font-normal text-fg-muted/40">{taskCount}</span>
         </button>
 
-        {/* 📖 Individual cards: fully interactive, draggable */}
+        {/* Individual cards: fully interactive, draggable */}
         <AnimatePresence mode="popLayout">
           {group.tasks.map(task => (
             <Card
@@ -108,7 +108,7 @@ export function CardStack({
     );
   }
 
-  // 📖 Collapsed state: stacked card with shadow layers
+  // Collapsed state: stacked card with shadow layers
   return (
     <motion.div
       layout
@@ -117,50 +117,50 @@ export function CardStack({
       exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.12 } }}
       transition={{ type: 'spring', stiffness: 500, damping: 40, mass: 0.8 }}
       onClick={() => setExpanded(true)}
-      className="relative cursor-pointer pb-2"
+      className="relative cursor-pointer pb-3"
     >
-      {/* 📖 Layer 2 (deepest): offset furthest, smallest scale */}
+      {/* Layer 2 (deepest): offset furthest, smallest scale */}
       {taskCount > 2 && (
         <div
-          className="absolute inset-0 rounded-[6px] border border-white/40 bg-white/25 dark:border-black/25 dark:bg-black/25 pointer-events-none"
+          className="absolute inset-0 rounded-xl border border-black/[0.06] bg-white/40 dark:border-white/10 dark:bg-white/20 pointer-events-none"
           style={{ transform: 'translateY(8px) scale(0.94)', zIndex: 0 }}
         />
       )}
 
-      {/* 📖 Layer 1: slightly offset behind the main card */}
+      {/* Layer 1: slightly offset behind the main card */}
       <div
-        className="absolute inset-0 rounded-[6px] border border-white/50 bg-white/35 dark:border-black/30 dark:bg-black/35 pointer-events-none"
+        className="absolute inset-0 rounded-xl border border-black/[0.05] bg-white/50 dark:border-white/15 dark:bg-white/30 pointer-events-none"
         style={{ transform: 'translateY(4px) scale(0.97)', zIndex: 1 }}
       />
 
-      {/* 📖 Main card surface */}
+      {/* Main card surface */}
       <motion.div
-        whileHover={{ y: -1 }}
+        whileHover={{ y: -2, boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}
         whileTap={{ scale: 0.98 }}
-        className="relative z-10 rounded-[6px] border border-white/60 bg-white/50 p-3 transition-colors hover:border-white/80 hover:bg-white/65 dark:border-black/40 dark:bg-black/50 dark:hover:border-black/55 dark:hover:bg-black/65"
+        className="relative z-10 rounded-xl border border-black/[0.06] bg-white p-3.5 shadow-sm transition-all hover:border-black/[0.1] hover:shadow-md dark:border-white/10 dark:bg-white/90 dark:hover:border-white/20"
       >
-        {/* 📖 Header: stack icon + group key + task count */}
-        <div className="flex items-center justify-between mb-1.5">
-          <div className="flex items-center gap-1.5">
-            <IconStack2 size={14} stroke={1.8} className="text-fg-muted" />
-            <span className="text-[12px] font-bold tracking-wide text-fg-muted uppercase">
+        {/* Header: stack icon + group key + task count */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <IconStack2 size={14} stroke={1.8} className="text-fg-muted/60" />
+            <span className="text-[11.5px] font-semibold tracking-wide text-fg-muted uppercase">
               {group.displayKey}
             </span>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="inline-flex items-center h-[18px] px-1.5 text-[11px] font-semibold rounded-[4px] text-fg-muted bg-bg border border-border tabular-nums">
+          <div className="flex items-center gap-1.5">
+            <span className="inline-flex items-center h-5 px-2 text-[11px] font-semibold rounded-md text-fg-muted bg-black/[0.05] dark:bg-white/[0.1] border border-black/[0.06] dark:border-white/[0.12] tabular-nums">
               {taskCount}
             </span>
-            <IconChevronDown size={13} stroke={2} className="text-fg-muted" />
+            <IconChevronDown size={13} stroke={2} className="text-fg-muted/50" />
           </div>
         </div>
 
-        {/* 📖 Preview: first task title (tag stripped) */}
-        <div className="text-[13px] leading-snug text-fg line-clamp-1">
+        {/* Preview: first task title (tag stripped) */}
+        <div className="text-[13.5px] leading-snug font-medium text-fg line-clamp-1">
           {previewTitle}
           {taskCount > 1 && (
-            <span className="text-fg-muted ml-1">
-              {t('cardStack.andMore', { count: taskCount - 1, defaultValue: `+${taskCount - 1} more` })}
+            <span className="text-fg-muted/50 ml-1.5">
+              +{taskCount - 1}
             </span>
           )}
         </div>

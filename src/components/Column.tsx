@@ -313,33 +313,40 @@ export function Column({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       data-column={column.name}
-      className="flex flex-col flex-none w-[304px] h-full rounded-[10px] transition-colors duration-150"
+      className="flex flex-col flex-none w-[320px] h-full rounded-2xl border border-black/[0.06] dark:border-white/[0.08] shadow-sm transition-colors duration-150"
       style={{ backgroundColor: isOver ? 'rgba(255,255,255,0.03)' : colBg }}
     >
-      <div className="flex items-center justify-between px-3.5 pt-3 pb-2">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between px-4 pt-3.5 pb-2.5">
+        <div className="flex items-center gap-2.5">
           <ColumnIcon
             aria-hidden="true"
-            size={15}
+            size={16}
             stroke={1.8}
             className="flex-none text-fg-muted"
           />
           <span className="text-[13.5px] font-semibold tracking-tight text-fg">{column.name}</span>
-          <span className="text-[12px] text-fg-muted tabular-nums">
+          <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 text-[11px] font-semibold text-fg-muted bg-black/[0.05] dark:bg-white/[0.1] rounded-full tabular-nums">
             {filteredTasks.length}
             {isFiltered && <span className="text-fg-faint">/{column.tasks.length}</span>}
           </span>
         </div>
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
           {!isConfiguredColumn && (
             <button
               onClick={() => addColumn(column.name)}
-              className="h-5 rounded-[4px] px-1.5 text-[11px] font-medium text-fg-muted transition-colors hover:bg-bg-3 hover:text-fg"
+              className="h-6 rounded-md px-2 text-[11px] font-medium text-fg-muted transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.1] hover:text-fg"
               title={t('column.addToSettings')}
             >
               {t('column.addColumn')}
             </button>
           )}
+          <button
+            onClick={() => createTask(column.name)}
+            className="w-6 h-6 inline-flex items-center justify-center text-fg-muted hover:bg-black/[0.05] dark:hover:bg-white/[0.1] hover:text-fg rounded-md transition-colors"
+            title={t('column.addTask')}
+          >
+            <Icon.Plus size={14} />
+          </button>
           <ColumnColorMenu
             columnName={column.name.toLowerCase()}
             currentColor={colColorKey}
@@ -347,71 +354,81 @@ export function Column({
           />
           <button
             onClick={handleRenameColumn}
-            className="w-5 h-5 inline-flex items-center justify-center text-fg-muted hover:bg-bg-3 hover:text-fg rounded-[4px] transition-colors"
+            className="w-6 h-6 inline-flex items-center justify-center text-fg-muted hover:bg-black/[0.05] dark:hover:bg-white/[0.1] hover:text-fg rounded-md transition-colors"
             title={t('column.renameColumn')}
           >
             <span className="text-[11px] leading-none">✎</span>
           </button>
           <button
             onClick={handleDeleteColumn}
-            className="w-5 h-5 inline-flex items-center justify-center text-fg-muted hover:bg-bg-3 hover:text-red-500 rounded-[4px] transition-colors"
+            className="w-6 h-6 inline-flex items-center justify-center text-fg-muted hover:bg-red-500/10 hover:text-red-500 rounded-md transition-colors"
             title={t('column.deleteColumn')}
           >
             <span className="text-[13px] leading-none">×</span>
-          </button>
-          <button
-            onClick={() => createTask(column.name)}
-            className="w-5 h-5 inline-flex items-center justify-center text-fg-muted hover:bg-bg-3 hover:text-fg rounded-[4px] transition-colors"
-            title={t('column.addTask')}
-          >
-            <Icon.Plus size={12} />
           </button>
         </div>
       </div>
 
       <div
-        className="flex-1 min-h-0 px-2 scrollbar-always"
+        className="flex-1 min-h-0 px-3 scrollbar-always"
         style={{ overflowY: 'scroll' }}
       >
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2.5 py-1">
           <AnimatePresence mode="popLayout">
-            {columnItems.map(item =>
-              item.type === 'single' ? (
-                <Card
-                  key={item.task.id}
-                  task={item.task}
-                  searchMatches={searchMatches.get(item.task.id) || []}
-                  density={density}
-                  columnName={column.name}
-                  doneTags={doneTags}
-                  onDragStart={() => onCardDragStart(item.task.id, column.name)}
-                  onDragEnd={onCardDragEnd}
-                />
-              ) : (
-                <CardStack
-                  key={`stack-${item.groupKey}`}
-                  group={item}
-                  searchMatches={searchMatches}
-                  density={density}
-                  columnName={column.name}
-                  doneTags={doneTags}
-                  onCardDragStart={onCardDragStart}
-                  onCardDragEnd={onCardDragEnd}
-                  defaultExpanded={!!filters.search}
-                />
+            {columnItems.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center justify-center py-10 px-4 text-center"
+              >
+                <div className="w-10 h-10 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] flex items-center justify-center mb-3">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-fg-muted/50">
+                    <path d="M9 11l3 3L22 4"/>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                  </svg>
+                </div>
+                <p className="text-[13px] font-medium text-fg-muted/70">No tasks yet</p>
+                <p className="text-[12px] text-fg-muted/50 mt-0.5">Drag tasks here to get started.</p>
+              </motion.div>
+            ) : (
+              columnItems.map(item =>
+                item.type === 'single' ? (
+                  <Card
+                    key={item.task.id}
+                    task={item.task}
+                    searchMatches={searchMatches.get(item.task.id) || []}
+                    density={density}
+                    columnName={column.name}
+                    doneTags={doneTags}
+                    onDragStart={() => onCardDragStart(item.task.id, column.name)}
+                    onDragEnd={onCardDragEnd}
+                  />
+                ) : (
+                  <CardStack
+                    key={`stack-${item.groupKey}`}
+                    group={item}
+                    searchMatches={searchMatches}
+                    density={density}
+                    columnName={column.name}
+                    doneTags={doneTags}
+                    onCardDragStart={onCardDragStart}
+                    onCardDragEnd={onCardDragEnd}
+                    defaultExpanded={!!filters.search}
+                  />
+                )
               )
             )}
           </AnimatePresence>
         </div>
       </div>
 
-      <div className="flex-none px-2 pb-2.5 pt-1">
+      <div className="flex-none px-3 pb-3 pt-1">
         <KbdButton
           variant="ghost"
           icon="Plus"
           label={t('column.addTask')}
           onClick={() => createTask(column.name)}
-          className="w-full justify-start px-2 py-1.5 h-auto text-[12.5px]"
+          className="w-full justify-start px-2.5 py-2 h-auto text-[12.5px] text-fg-muted hover:text-fg rounded-xl hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
         />
       </div>
     </motion.div>
