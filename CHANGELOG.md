@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.0 — 2026-05-04 — "CLI Launch Fix"
+
+- **Added**: BlockNote now powers task description editing with a markdown-native schema and anti-pollution guards.
+- **Added**: Syntax-highlighted code blocks in the BlockNote editor.
+- **Added**: Premium semantic design system updates, refreshed header components, and Cobalt as the default skin.
+- **Added**: Tags now render with strikethrough when every task using that tag is Done.
+- **Fixed**: `kandown` server mode no longer injects `window.__KANDOWN_ROOT__` into bundled JavaScript when parser strings contain literal `</head>`.
+- **Fixed**: Single-file HTML builds now repair escaped regex lookbehind openers from inlined Shiki grammars, preventing browser syntax crashes on launch.
+- **Fixed**: Dark-mode readability across UI components and BlockNote code blocks.
+- **Changed**: Component styling now consistently uses semantic color variables.
+- **Changed**: Embed output was simplified for cleaner markdown.
+- **Removed**: Obsolete placeholder project-board tasks.
+
 ## 0.3.5 — 2026-04-25 — "Server Mode Task CRUD Fix"
 
 - **Fixed**: Task creation, deletion, drawer save, and board reload now work in server mode (`kandown` CLI) — all mutations go through the REST API instead of requiring `tasksDirHandle`.
