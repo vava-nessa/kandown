@@ -4,6 +4,37 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 
+const CLOSING_HEAD_TAG = '</head>';
+
+function injectBeforeClosingHead(html: string, content: string): string {
+  const markerIndex = html.toLowerCase().lastIndexOf(CLOSING_HEAD_TAG);
+  if (markerIndex === -1) return content + html;
+
+  return html.slice(0, markerIndex) + content + html.slice(markerIndex);
+}
+
+function repairSingleFileHtml(html: string): string {
+  // 📖 esbuild can HTML-escape `<` inside regex literals embedded by Shiki
+  // grammars. In a lookbehind opener, `(?\x3C` is invalid JavaScript while
+  // `(?<` is the intended syntax. Repair after vite-plugin-singlefile inlines
+  // the generated bundle into HTML.
+  return html.replace(/\(\?\\x3C/g, '(?<');
+}
+
+function kandownSingleFileRepairPlugin() {
+  return {
+    name: 'kandown-single-file-repair',
+    enforce: 'post' as const,
+    generateBundle(_options, bundle) {
+      for (const output of Object.values(bundle)) {
+        if (output.type !== 'asset' || !output.fileName.endsWith('.html')) continue;
+        if (typeof output.source !== 'string') continue;
+        output.source = repairSingleFileHtml(output.source);
+      }
+    },
+  };
+}
+
 function kandownDevPlugin() {
   return {
     name: 'kandown-dev-api',
@@ -205,9 +236,9 @@ function kandownDevPlugin() {
       const kandownPath = resolve(process.cwd(), '.kandown');
       if (!existsSync(kandownPath)) return html;
       return {
-        html: html.replace(
-          '</head>',
-          `<script>window.__KANDOWN_ROOT__ = ${JSON.stringify(kandownPath)};</script>\n</head>`,
+        html: injectBeforeClosingHead(
+          html,
+          `<script>window.__KANDOWN_ROOT__ = ${JSON.stringify(kandownPath)};</script>\n`,
         ),
         tags: [],
       };
@@ -216,7 +247,7 @@ function kandownDevPlugin() {
 }
 
 export default defineConfig({
-  plugins: [kandownDevPlugin(), react(), viteSingleFile()],
+  plugins: [kandownDevPlugin(), react(), viteSingleFile(), kandownSingleFileRepairPlugin()],
   build: {
     target: 'esnext',
     assetsInlineLimit: 100_000_000,

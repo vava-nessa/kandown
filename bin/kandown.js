@@ -18,6 +18,7 @@
  *  → parseArgs — parses shared CLI flags
  *  → cmdInit — installs `.kandown`
  *  → cmdUpdate — refreshes installed kandown.html
+ *  → injectServerRoot — injects the CLI server root into single-file HTML
  *  → createServeServer — creates the local zero-dependency HTTP server
  *  → cmdServe — opens the web UI over localhost and launches the board TUI
  *  → main — dispatches CLI commands
@@ -554,6 +555,22 @@ function deleteTask(res, kandownDir, id) {
   }
 }
 
+/**
+ * 📖 The single-file Vite bundle can contain literal strings such as
+ * `</head>` from HTML parser libraries. Use the last closing head tag so the
+ * CLI does not inject server-mode globals into bundled JavaScript text.
+ */
+function injectServerRoot(html, kandownDir) {
+  const marker = '</head>';
+  const markerIndex = html.toLowerCase().lastIndexOf(marker);
+  const safeRoot = JSON.stringify(kandownDir).replace(/</g, '\\u003c');
+  const script = `<script>window.__KANDOWN_ROOT__ = ${safeRoot};</script>\n`;
+
+  if (markerIndex === -1) return script + html;
+
+  return html.slice(0, markerIndex) + script + html.slice(markerIndex);
+}
+
 function handleApi(req, res, url, kandownDir) {
   const parts = url.pathname.replace('/api/', '').split('/');
   const resource = parts[0];
@@ -588,10 +605,7 @@ function serveApp(res, kandownDir) {
 
   try {
     const html = readFileSync(htmlPath, 'utf8');
-    const injected = html.replace(
-      '</head>',
-      `<script>window.__KANDOWN_ROOT__ = ${JSON.stringify(kandownDir)};</script>\n</head>`,
-    );
+    const injected = injectServerRoot(html, kandownDir);
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(injected);
   } catch (e) {
