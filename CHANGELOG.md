@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0 — 2026-06-03 — "Minor Update"
+
+- **Added**: Graph visualization output directory with cache, metadata, and an HTML viewer.
+- **Added**: DESIGN_IMPROVEMENTS.md documentation file.
+- **Audit**: Source code analysis audit added.
+- **Chore**: Refreshed generated graph output.
+
 ## 0.4.0 — 2026-05-04 — "CLI Launch Fix"
 
 - **Added**: BlockNote now powers task description editing with a markdown-native schema and anti-pollution guards.
