@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.6.0 — 2026-06-03 — "Auto-Updater v2"
+
+- **Added**: Non-blocking auto-updater using async `spawn` instead of `execSync` — CLI no longer freezes during update checks.
+- **Added**: Lock file (`.update.lock`) with 60s auto-expiry to prevent concurrent update races.
+- **Added**: pnpm fallback — tries `pnpm install -g` if `npm install -g` fails.
+- **Added**: Post-install version verification — confirms the update actually landed before respawning.
+- **Added**: `--no-update-check` flag — respawned children skip the update loop.
+- **Added**: `resolveKandownBin()` — resolves the global kandown binary across npm/pnpm installs.
+- **Added**: `semverGt()` — proper semver comparison replacing string equality checks.
+- **Changed**: Graceful fallback on every failure point — update failure never crashes the CLI, current version continues normally.
+- **Changed**: Removed dead code (unused `isMacos` variable, unnecessary `--experimental-vm-modules` injection).
+- **Fixed**: Respawn logic now works for both global installs and npx.
+
 ## 0.5.0 — 2026-06-03 — "Minor Update"
 
 - **Added**: Graph visualization output directory with cache, metadata, and an HTML viewer.

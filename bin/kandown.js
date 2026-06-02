@@ -16,6 +16,9 @@
  *  → appendAgentReference — injects a Kandown task-management reference
  *  → createAgentsFileIfMissing — creates AGENTS.md when none exists
  *  → parseArgs — parses shared CLI flags
+ *  → resolveKandownBin — resolves the global kandown binary path for respawn
+ *  → semverGt — compares two semver strings
+ *  → checkForUpdate — non-blocking auto-updater with lock file and graceful fallback
  *  → cmdInit — installs `.kandown`
  *  → cmdUpdate — refreshes installed kandown.html
  *  → injectServerRoot — injects the CLI server root into single-file HTML
@@ -69,50 +72,191 @@ function getCurrentVersion() {
   } catch { return null; }
 }
 
-// 📖 Check npm for a newer version and auto-update if outdated.
-// Runs in background — does not block startup. Only activates when running from
-// an installed npm package (not local dev source, where src/ exists).
-// 📖 Uses npm install -g to self-upgrade, then re-spawns with the same arguments.
+/**
+ * 📖 Resolves the kandown binary path for respawning after an update.
+ * Tries, in order: npm global bin → pnpm global bin → process.execPath fallback.
+ * @returns {string|null} Absolute path to the kandown binary, or null.
+ */
+function resolveKandownBin() {
+  try {
+    const npmBin = String(execSync('npm config get prefix 2>/dev/null', {
+      timeout: 3000, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'],
+    })).trim();
+    if (existsSync(join(npmBin, 'bin', 'kandown'))) return join(npmBin, 'bin', 'kandown');
+  } catch { /* npm not available */ }
+  try {
+    const pnpmBin = String(execSync('pnpm config get prefix 2>/dev/null', {
+      timeout: 3000, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'],
+    })).trim();
+    if (existsSync(join(pnpmBin, 'bin', 'kandown'))) return join(pnpmBin, 'bin', 'kandown');
+  } catch { /* pnpm not available */ }
+  return null;
+}
+
+/**
+ * 📖 Compares two semver strings (major.minor.patch).
+ * @returns {number} 1 if a > b, -1 if a < b, 0 if equal.
+ */
+function semverGt(a, b) {
+  const pa = a.replace(/^v/, '').split('.').map(Number);
+  const pb = b.replace(/^v/, '').split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    if ((pa[i] || 0) > (pb[i] || 0)) return 1;
+    if ((pa[i] || 0) < (pb[i] || 0)) return -1;
+  }
+  return 0;
+}
+
+/**
+ * 📖 Check npm for a newer version and auto-update if outdated.
+ *
+ * Design principles:
+ * - 🚀 Non-blocking: spawns npm check as a background child process.
+ * - 🔒 Lock file: prevents concurrent update races when multiple kandown
+ *   instances start simultaneously.
+ * - 🛡️ Resilient: if the update fails for any reason (network, permissions,
+ *   npm registry downtime), the current version continues normally.
+ * - 🔄 Respawn: after a successful update, re-spawns the CLI with the same
+ *   arguments so the user gets the new version immediately.
+ * - 📦 Package manager agnostic: tries npm, then pnpm, for both the update
+ *   and the binary resolution.
+ *
+ * Only activates when running from an installed npm package
+ * (not local dev source, where `src/` exists in PKG_ROOT).
+ */
 async function checkForUpdate(argv = process.argv) {
-  if (existsSync(join(PKG_ROOT, 'src'))) return; // local dev — skip
+  // 📖 Local dev — skip entirely
+  if (existsSync(join(PKG_ROOT, 'src'))) return;
+
   const current = getCurrentVersion();
   if (!current) return;
-  try {
-    const { execSync } = await import('node:child_process');
-    const latest = String(execSync('npm view kandown version --json 2>/dev/null', {
-      timeout: 8000, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'],
-    })).trim().replace(/^"|"$/g, '');
-    if (!latest || latest === current) return;
 
-    log(`${c.yellow}⚡ Auto-updating kandown ${c.reset}${c.dim}${current}${c.reset} ${c.yellow}→${c.reset} ${c.green}${latest}${c.reset}…`);
-    try {
-      execSync('npm install -g kandown 2>/dev/null', {
-        timeout: 30000, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'],
-      });
-      const newVersion = String(execSync('npm view kandown version 2>/dev/null', {
-        timeout: 5000, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'],
-      })).trim().replace(/^"|"$/g, '');
-      if (newVersion === latest) {
-        log(`${c.green}✓ Updated to v${newVersion}${c.reset} — restarting…`);
-        // Resolve the global bin directory from npm prefix and spawn directly,
-        // bypassing npx which may re-resolve the cached old version.
-        const npmPrefix = String(execSync('npm config get prefix 2>/dev/null', {
-          timeout: 5000, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'],
-        })).trim();
-        const isMacos = existsSync(join(npmPrefix, 'bin', 'kandown'));
-        const kandownBin = isMacos
-          ? join(npmPrefix, 'bin', 'kandown')
-          : join(npmPrefix, 'bin', 'kandown');
-        const child = spawn(kandownBin, ['--experimental-vm-modules', ...argv.slice(1)], {
-          detached: true, stdio: 'ignore', env: { ...process.env } });
-        child.unref();
-        process.exit(0);
-      }
-    } catch {
-      log(`${c.yellow}⚠ Auto-update failed — will retry on next run${c.reset}`);
-      log(`  Run ${c.cyan}npm install -g kandown${c.reset} to upgrade manually`);
+  // 📖 Skip if a lock file exists — another kandown instance is already updating.
+  // The lock auto-expires after 60 seconds to handle stale locks from crashed processes.
+  const lockFile = join(PKG_ROOT, '.update.lock');
+  const now = Date.now();
+  try {
+    if (existsSync(lockFile)) {
+      const lockAge = now - statSync(lockFile).mtimeMs;
+      if (lockAge < 60_000) return; // another process is handling the update
+      unlinkSync(lockFile); // stale lock — remove it
     }
-  } catch { /* offline or npm slow — silently skip */ }
+  } catch { /* ignore lock errors */ }
+
+  // 📖 Step 1: Check latest version on npm registry (non-blocking).
+  // We use `npm view` in a spawned child process with a short timeout.
+  const latest = await new Promise((resolve) => {
+    const child = spawn('npm', ['view', 'kandown', 'version'], {
+      timeout: 6000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env },
+      // 📖 Detach so we can kill cleanly on timeout
+      detached: false,
+    });
+    let stdout = '';
+    child.stdout.on('data', (d) => { stdout += d; });
+    child.stderr.on('data', () => {}); // silence stderr
+    child.on('error', () => resolve(null));
+    child.on('close', (code) => {
+      if (code !== 0) return resolve(null);
+      const v = stdout.trim().replace(/^"|"$/g, '');
+      resolve(v || null);
+    });
+  });
+
+  if (!latest || semverGt(current, latest) >= 0) return; // up to date or offline
+
+  log('');
+  log(`${c.yellow}⚡ Update available:${c.reset} kandown ${c.dim}${current}${c.reset} → ${c.green}${latest}${c.reset}`);
+  info('Auto-updating…');
+
+  // 📖 Step 2: Create lock file to prevent concurrent updates.
+  try { writeFileSync(lockFile, `${process.pid}\n${now}`, 'utf8'); } catch { /* ignore */ }
+
+  // 📖 Step 3: Run the update via npm or pnpm.
+  // Try npm first, fall back to pnpm.
+  const updateOk = await new Promise((resolve) => {
+    const tryInstall = (cmd) => {
+      return new Promise((res) => {
+        const child = spawn(cmd, ['install', '-g', 'kandown'], {
+          timeout: 45000,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          env: { ...process.env },
+          detached: false,
+        });
+        child.stderr.on('data', () => {}); // silence npm noise
+        child.stdout.on('data', () => {});
+        child.on('error', () => res(false));
+        child.on('close', (code) => res(code === 0));
+      });
+    };
+    tryInstall('npm').then((ok) => {
+      if (ok) resolve(true);
+      else tryInstall('pnpm').then(resolve);
+    });
+  });
+
+  // 📖 Clean up lock file regardless of outcome.
+  try { if (existsSync(lockFile)) unlinkSync(lockFile); } catch { /* ignore */ }
+
+  if (!updateOk) {
+    warn('Auto-update failed — continuing with current version');
+    log(`  Run ${c.cyan}npm install -g kandown${c.reset} to upgrade manually`);
+    log('');
+    return;
+  }
+
+  // 📖 Step 4: Verify the update actually landed.
+  const postVersion = await new Promise((resolve) => {
+    const child = spawn('npm', ['view', 'kandown', 'version'], {
+      timeout: 5000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      detached: false,
+    });
+    let stdout = '';
+    child.stdout.on('data', (d) => { stdout += d; });
+    child.stderr.on('data', () => {});
+    child.on('error', () => resolve(null));
+    child.on('close', (code) => {
+      if (code !== 0) return resolve(null);
+      resolve(stdout.trim().replace(/^"|"$/g, '') || null);
+    });
+  });
+
+  if (!postVersion || semverGt(postVersion, latest) < 0) {
+    // Install claimed success but version didn't change — probably a permissions issue.
+    warn('Update did not apply — continuing with current version');
+    log(`  Run ${c.cyan}npm install -g kandown${c.reset} to upgrade manually`);
+    log('');
+    return;
+  }
+
+  success(`Updated to v${postVersion} — restarting…`);
+  log('');
+
+  // 📖 Step 5: Respawn with the new version.
+  // Pass --no-update-check to the child so it doesn't try to update again.
+  const bin = resolveKandownBin();
+  const childArgs = ['--no-update-check', ...argv.slice(2)];
+
+  if (bin) {
+    const child = spawn(bin, childArgs, {
+      detached: true,
+      stdio: 'inherit',
+      env: { ...process.env },
+    });
+    child.unref();
+  } else {
+    // 📖 Fallback: re-use the current binary path (works for npx).
+    const child = spawn(process.argv[0], [process.argv[1], ...childArgs], {
+      detached: true,
+      stdio: 'inherit',
+      env: { ...process.env },
+    });
+    child.unref();
+  }
+
+  process.exit(0);
 }
 
 const c = {
@@ -764,7 +908,8 @@ async function cmdTui(screen, rawArgs) {
   }
 }
 
-const [cmd, ...rest] = process.argv.slice(2);
+const rawArgs = process.argv.slice(2).filter((a) => a !== '--no-update-check');
+const [cmd, ...rest] = rawArgs;
 
 // 📖 Handle --version / -v before any command logic
 if (cmd === '--version' || cmd === '-v') {
@@ -773,9 +918,13 @@ if (cmd === '--version' || cmd === '-v') {
   process.exit(0);
 }
 
+// 📖 Skip auto-update if this is a respawned child after an update.
+// The parent passes --no-update-check to prevent an infinite update loop.
+const skipUpdate = process.argv.slice(2).includes('--no-update-check');
+
 // 📖 Auto-update check runs before EVERY command (except --version).
 // Uses a short timeout so startup is not noticeably slower.
-await checkForUpdate(rest);
+if (!skipUpdate) await checkForUpdate(process.argv);
 
 switch (cmd) {
   case 'init':
