@@ -22,7 +22,7 @@
  *  - Click outside → cancel current mode
  *
  * 📖 Keyboard:
- *  browse:       h/l ←/→ columns, j/k ↑/↓ tasks, Enter=detail, m=menu, a=agent, r=reload, q=quit
+ *  browse:       h/l ←/→ columns, j/k ↑/↓ tasks, Enter=detail, m=menu, a=agent, d=daemon, r=reload, q=quit
  *  context-menu: j/k ↑/↓ options, Enter=confirm, Esc=cancel
  *  move-target:  h/l ←/→ columns, Enter=confirm, Esc=cancel
  *  detail:       j/k scroll, a=agent, Esc=back
@@ -36,6 +36,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Box, Text, useInput, useApp } from 'ink';
 import { readBoard, readTask, moveTaskToColumn } from '../lib/board-reader.js';
+import { getDaemonStatus, startProjectDaemon, stopProjectDaemon, type DaemonStatus } from '../lib/daemon.js';
 import { createWatcher } from '../lib/file-watcher.js';
 import { detectInstalledAgents, type AgentDef } from '../lib/agents.js';
 import { launchAgent, isInTmux } from '../lib/launcher.js';
@@ -109,6 +110,16 @@ const RE_SUBTASK    = /^\s*-\s+\[([ xX])\]/;
 const RE_DONE       = /^\s*-\s+\[x\]/i;
 const RE_BRACKET_TAG = /^\[([^\]]+)\]\s*/;
 
+function columnAccentColor(name: string): string {
+  const normalized = name.toLowerCase();
+  if (/backlog/.test(normalized)) return 'magenta';
+  if (/todo/.test(normalized)) return 'cyan';
+  if (/progress|doing/.test(normalized)) return 'yellow';
+  if (/review/.test(normalized)) return 'blue';
+  if (/done|archive|closed|complete/.test(normalized)) return 'green';
+  return 'cyan';
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function TaskRow({ task, focused, dragging, colWidth }: {
@@ -164,8 +175,9 @@ function KanbanColumn({ name, tasks, focusedRow, isFocused, colWidth,
   showMoveTarget?: boolean; isMoveFocused?: boolean;
   draggedTaskId?: string | null;
 }) {
-  const headerBg    = isFocused ? 'cyan' : undefined;
-  const headerColor = isFocused ? 'black' : 'cyan';
+  const accent = columnAccentColor(name);
+  const headerBg    = isFocused ? accent : undefined;
+  const headerColor = isFocused ? 'black' : accent;
   const countStr    = tasks.length > 0 ? ` (${tasks.length})` : '';
 
   // 📖 Build task rows with optional inline context menu
@@ -210,37 +222,63 @@ function KanbanColumn({ name, tasks, focusedRow, isFocused, colWidth,
   );
 }
 
-function BoardHeader({ title, inTmux, modeHint, version }: {
-  title: string; inTmux: boolean; modeHint?: string; version?: string;
+function BoardHeader({ title, inTmux, modeHint, version, daemonStatus, daemonBusy }: {
+  title: string;
+  inTmux: boolean;
+  modeHint?: string;
+  version?: string;
+  daemonStatus: DaemonStatus;
+  daemonBusy: boolean;
 }) {
   const tmuxHint    = inTmux ? ' tmux' : '';
   const versionTag  = version ? ` v${version}` : '';
-  const hint = modeHint || 'h/l cols · j/k tasks · Enter detail · m menu · a agent · r reload · q quit';
+  const daemonLabel = daemonBusy
+    ? '◌ daemon…'
+    : daemonStatus.running
+      ? `● web ${daemonStatus.metadata?.port ?? ''}`
+      : '○ web off';
+  const hint = modeHint || 'h/l cols · j/k tasks · drag tasks · d daemon · r reload · q quit';
   const width = termWidth();
-  const leftWidth = Math.min(Math.max(28, Math.floor(width * 0.42)), width);
-  const rightWidth = Math.max(0, width - leftWidth);
-  const left = pad(`  KANDOWN${tmuxHint}${versionTag}  ${title}`, leftWidth);
+  const leftWidth = Math.min(Math.max(34, Math.floor(width * 0.46)), width);
+  const daemonWidth = Math.min(16, Math.max(0, width - leftWidth));
+  const rightWidth = Math.max(0, width - leftWidth - daemonWidth);
+  const left = pad(`  ◆ KANDOWN${tmuxHint}${versionTag}  ${title}`, leftWidth);
+  const daemon = pad(daemonLabel, daemonWidth);
   const right = truncate(hint, rightWidth).padStart(rightWidth, ' ');
 
   return (
     <Box marginBottom={1}>
       <Text bold color="cyan">{left}</Text>
+      {daemonWidth > 0 && <Text color={daemonStatus.running ? 'green' : 'yellow'} bold>{daemon}</Text>}
       {rightWidth > 0 && <Text color="gray" dimColor>{right}</Text>}
     </Box>
   );
 }
 
-function StatusBar({ message, task }: { message: string; task: BoardTask | null }) {
-  if (message) {
-    return <Box marginTop={1}><Text color="yellow">{message}</Text></Box>;
-  }
-  if (!task) return <Box marginTop={1}><Text color="gray"> </Text></Box>;
+function StatusBar({ message, task, daemonStatus }: {
+  message: string;
+  task: BoardTask | null;
+  daemonStatus: DaemonStatus;
+}) {
+  const daemonText = daemonStatus.running && daemonStatus.metadata
+    ? `web daemon ON · ${daemonStatus.metadata.url}`
+    : 'web daemon OFF · press d to start';
+
   return (
-    <Box marginTop={1}>
-      <Text color="gray">
-        {task.id}
-        {task.progress ? `  (${task.progress.done}/${task.progress.total})` : ''}
-        {'  '}{task.checked ? '✓ done' : '○ open'}
+    <Box marginTop={1} flexDirection="column">
+      {message ? (
+        <Text color="yellow" bold>  ✦ {message}</Text>
+      ) : task ? (
+        <Text color="gray">
+          {'  '}◆ <Text color="yellow" bold>{task.id}</Text>
+          {task.progress ? `  checklist ${task.progress.done}/${task.progress.total}` : ''}
+          {'  '}{task.checked ? '✓ done' : '○ open'}
+        </Text>
+      ) : (
+        <Text color="gray"> </Text>
+      )}
+      <Text color={daemonStatus.running ? 'green' : 'yellow'} dimColor={!daemonStatus.running}>
+        {'  '}{daemonStatus.running ? '●' : '○'} {daemonText}
       </Text>
     </Box>
   );
@@ -318,6 +356,11 @@ export function Board({ kandownDir, version }: BoardProps) {
   // Mouse drag/drop mode
   const [mousePress, setMousePress] = useState<MousePressState | null>(null);
   const [taskDrag, setTaskDrag] = useState<TaskDragState | null>(null);
+
+  // Daemon
+  const [daemonStatus, setDaemonStatus] = useState<DaemonStatus>({ running: false, metadata: null });
+  const [daemonBusy, setDaemonBusy] = useState(false);
+  const [preferredDaemonPort, setPreferredDaemonPort] = useState<number | null>(null);
 
   // Agents
   const [installedAgents, setInstalledAgents] = useState<AgentDef[]>([]);
@@ -402,6 +445,45 @@ export function Board({ kandownDir, version }: BoardProps) {
     setStatusMsg('Board reloaded');
     setTimeout(() => setStatusMsg(''), 1500);
   }, [kandownDir, updateLayout]);
+
+  const refreshDaemonStatus = useCallback(async () => {
+    const next = await getDaemonStatus(kandownDir);
+    setDaemonStatus(next);
+    if (next.running && next.metadata) setPreferredDaemonPort(next.metadata.port);
+  }, [kandownDir]);
+
+  useEffect(() => {
+    void refreshDaemonStatus();
+    const timer = setInterval(() => {
+      void refreshDaemonStatus();
+    }, 2000);
+    return () => clearInterval(timer);
+  }, [refreshDaemonStatus]);
+
+  const toggleDaemon = useCallback(async () => {
+    if (daemonBusy) return;
+    setDaemonBusy(true);
+    try {
+      const current = await getDaemonStatus(kandownDir);
+      if (current.running) {
+        if (current.metadata) setPreferredDaemonPort(current.metadata.port);
+        await stopProjectDaemon(kandownDir);
+        const next = await getDaemonStatus(kandownDir);
+        setDaemonStatus(next);
+        setStatusMsg('Web daemon stopped');
+      } else {
+        const next = await startProjectDaemon(kandownDir, preferredDaemonPort);
+        setDaemonStatus(next);
+        if (next.running && next.metadata) setPreferredDaemonPort(next.metadata.port);
+        setStatusMsg(next.running ? 'Web daemon started' : 'Web daemon failed to start');
+      }
+    } catch (error) {
+      setStatusMsg(`Daemon error: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setDaemonBusy(false);
+      setTimeout(() => setStatusMsg(''), 2500);
+    }
+  }, [daemonBusy, kandownDir, preferredDaemonPort]);
 
   // ─── Derived helpers ──────────────────────────────────────────────────────
 
@@ -684,6 +766,7 @@ export function Board({ kandownDir, version }: BoardProps) {
     if (mode === 'browse') {
       if (input === 'q' || key.escape) { exit(); return; }
       if (input === 'r') { reloadBoard(); return; }
+      if (input === 'd') { void toggleDaemon(); return; }
 
       if (input === 'l' || key.rightArrow) {
         const maxCol = (board?.columns.length ?? 1) - 1;
@@ -878,7 +961,7 @@ export function Board({ kandownDir, version }: BoardProps) {
     const taskId = detailTaskId || focusedTask?.id || '';
     return (
       <Box flexDirection="column">
-        <BoardHeader title={board.title} inTmux={inTmux} version={version} />
+        <BoardHeader title={board.title} inTmux={inTmux} version={version} daemonStatus={daemonStatus} daemonBusy={daemonBusy} />
         <AgentPicker
           agents={installedAgents}
           taskId={taskId}
@@ -908,7 +991,7 @@ export function Board({ kandownDir, version }: BoardProps) {
 
   return (
     <Box flexDirection="column">
-      <BoardHeader title={board.title} inTmux={inTmux} modeHint={modeHint} version={version} />
+      <BoardHeader title={board.title} inTmux={inTmux} modeHint={modeHint} version={version} daemonStatus={daemonStatus} daemonBusy={daemonBusy} />
 
       <Box flexDirection="row">
         {board.columns.map((col, cIdx) => (
@@ -940,7 +1023,7 @@ export function Board({ kandownDir, version }: BoardProps) {
         </Box>
       )}
 
-      <StatusBar message={statusMsg} task={focusedTask} />
+      <StatusBar message={statusMsg} task={focusedTask} daemonStatus={daemonStatus} />
     </Box>
   );
 }

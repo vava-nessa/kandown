@@ -54589,10 +54589,137 @@ function moveTaskToColumn(kandownDir, taskId, targetColumn) {
   return true;
 }
 
+// src/cli/lib/daemon.ts
+import { existsSync as existsSync4, readFileSync as readFileSync4, unlinkSync } from "fs";
+import { dirname as dirname2, join as join3 } from "path";
+import { spawn } from "child_process";
+function metadataPath(kandownDir) {
+  return join3(kandownDir, "daemon.json");
+}
+function isRecord(value) {
+  return typeof value === "object" && value !== null;
+}
+function parseMetadata(value) {
+  if (!isRecord(value)) return null;
+  const { pid, port, url, kandownDir, startedAt, version } = value;
+  if (typeof pid !== "number" || !Number.isInteger(pid)) return null;
+  if (typeof port !== "number" || !Number.isInteger(port)) return null;
+  if (typeof url !== "string" || typeof kandownDir !== "string") return null;
+  if (typeof startedAt !== "string") return null;
+  if (version !== null && typeof version !== "string" && version !== void 0) return null;
+  return { pid, port, url, kandownDir, startedAt, version: version ?? null };
+}
+function readDaemonMetadata(kandownDir) {
+  const path = metadataPath(kandownDir);
+  if (!existsSync4(path)) return null;
+  try {
+    return parseMetadata(JSON.parse(readFileSync4(path, "utf8")));
+  } catch {
+    return null;
+  }
+}
+function removeDaemonMetadata(kandownDir) {
+  try {
+    const path = metadataPath(kandownDir);
+    if (existsSync4(path)) unlinkSync(path);
+  } catch {
+  }
+}
+function isProcessAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+function parseRemoteDaemonInfo(value) {
+  if (!isRecord(value)) return null;
+  const { ok, pid, kandownDir } = value;
+  if (ok !== true || typeof pid !== "number" || !Number.isInteger(pid) || typeof kandownDir !== "string") return null;
+  return { ok, pid, kandownDir };
+}
+async function fetchDaemonInfo(port) {
+  try {
+    const response = await fetch(`http://127.0.0.1:${port}/api/daemon`, {
+      signal: AbortSignal.timeout(700)
+    });
+    if (!response.ok) return null;
+    return parseRemoteDaemonInfo(await response.json());
+  } catch {
+    return null;
+  }
+}
+async function getDaemonStatus(kandownDir) {
+  const metadata = readDaemonMetadata(kandownDir);
+  if (!metadata) return { running: false, metadata: null };
+  if (!isProcessAlive(metadata.pid)) {
+    removeDaemonMetadata(kandownDir);
+    return { running: false, metadata: null };
+  }
+  const remote = await fetchDaemonInfo(metadata.port);
+  if (!remote || remote.pid !== metadata.pid || remote.kandownDir !== kandownDir) {
+    removeDaemonMetadata(kandownDir);
+    return { running: false, metadata: null };
+  }
+  return { running: true, metadata };
+}
+async function waitForDaemon(kandownDir, timeoutMs = 5e3) {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    const status = await getDaemonStatus(kandownDir);
+    if (status.running) return status;
+    await new Promise((resolve3) => setTimeout(resolve3, 150));
+  }
+  return { running: false, metadata: null };
+}
+async function startProjectDaemon(kandownDir, preferredPort) {
+  const current = await getDaemonStatus(kandownDir);
+  if (current.running) return current;
+  const cliPath = process.argv[1];
+  if (!cliPath) throw new Error("Cannot locate kandown CLI entrypoint");
+  const args = [
+    cliPath,
+    "--no-update-check",
+    "daemon",
+    "run",
+    "--path",
+    kandownDir
+  ];
+  if (typeof preferredPort === "number" && Number.isInteger(preferredPort)) {
+    args.push("--port", String(preferredPort));
+  }
+  const child = spawn(process.execPath, args, {
+    cwd: dirname2(kandownDir),
+    detached: true,
+    stdio: "ignore",
+    env: { ...process.env, KANDOWN_DAEMON: "1" }
+  });
+  child.unref();
+  return waitForDaemon(kandownDir);
+}
+async function stopProjectDaemon(kandownDir) {
+  const status = await getDaemonStatus(kandownDir);
+  if (!status.running || !status.metadata) {
+    removeDaemonMetadata(kandownDir);
+    return false;
+  }
+  try {
+    process.kill(status.metadata.pid, "SIGTERM");
+  } catch {
+  }
+  const started = Date.now();
+  while (Date.now() - started < 2500 && isProcessAlive(status.metadata.pid)) {
+    await new Promise((resolve3) => setTimeout(resolve3, 100));
+  }
+  removeDaemonMetadata(kandownDir);
+  return true;
+}
+
 // src/cli/lib/file-watcher.ts
 import { createReadStream, statSync } from "fs";
 import { createHash } from "crypto";
-import { join as join5 } from "path";
+import { join as join6 } from "path";
 
 // node_modules/.pnpm/chokidar@4.0.3/node_modules/chokidar/esm/index.js
 import { stat as statcb } from "fs";
@@ -55323,9 +55450,9 @@ var NodeFsHandler = class {
     if (this.fsw.closed) {
       return;
     }
-    const dirname4 = sysPath.dirname(file);
+    const dirname5 = sysPath.dirname(file);
     const basename3 = sysPath.basename(file);
-    const parent = this.fsw._getWatchedDir(dirname4);
+    const parent = this.fsw._getWatchedDir(dirname5);
     let prevStats = stats;
     if (parent.has(basename3))
       return;
@@ -55352,7 +55479,7 @@ var NodeFsHandler = class {
             prevStats = newStats2;
           }
         } catch (error) {
-          this.fsw._remove(dirname4, basename3);
+          this.fsw._remove(dirname5, basename3);
         }
       } else if (parent.has(basename3)) {
         const at = newStats.atimeMs;
@@ -56314,18 +56441,18 @@ var FileWatcher = class {
    * poll to catch any races or network-mounted file changes.
    */
   start(kandownDir) {
-    const tasksDir = join5(kandownDir, "tasks");
-    const configPath = join5(kandownDir, "kandown.json");
+    const tasksDir = join6(kandownDir, "tasks");
+    const configPath = join6(kandownDir, "kandown.json");
     const existingIds = listTaskIds(kandownDir);
     for (const id of existingIds) {
       this.knownTaskIds.add(id);
       try {
-        const filePath = join5(tasksDir, `${id}.md`);
+        const filePath = join6(tasksDir, `${id}.md`);
         this.taskHashes.set(id, hashFileSync(filePath));
       } catch {
       }
     }
-    this.watcher = watch([join5(tasksDir, "*.md"), configPath], {
+    this.watcher = watch([join6(tasksDir, "*.md"), configPath], {
       ignoreInitial: true,
       awaitWriteFinish: { stabilityThreshold: 25, pollInterval: 25 },
       alwaysStat: true
@@ -56373,8 +56500,8 @@ var FileWatcher = class {
   // ─── Private ───────────────────────────────────────────────────────────────
   handleFsEvent(event, filePath, kandownDir) {
     if (this.stopped) return;
-    const tasksDir = join5(kandownDir, "tasks");
-    const configPath = join5(kandownDir, "kandown.json");
+    const tasksDir = join6(kandownDir, "tasks");
+    const configPath = join6(kandownDir, "kandown.json");
     if (filePath === configPath) {
       const key = `config:${event}`;
       const existing = this.debounceTimers.get(key);
@@ -56426,14 +56553,14 @@ var FileWatcher = class {
   /** 📖 Fallback poll — catches changes that chokidar missed (network mounts, exotic FS). */
   async pollHashes(kandownDir) {
     if (this.stopped) return;
-    const tasksDir = join5(kandownDir, "tasks");
-    const configPath = join5(kandownDir, "kandown.json");
+    const tasksDir = join6(kandownDir, "tasks");
+    const configPath = join6(kandownDir, "kandown.json");
     try {
       const newHash = hashFileSync(configPath);
     } catch {
     }
     for (const taskId of this.knownTaskIds) {
-      const filePath = join5(tasksDir, `${taskId}.md`);
+      const filePath = join6(tasksDir, `${taskId}.md`);
       try {
         statSync(filePath);
         const newHash = await hashFile(filePath);
@@ -56450,7 +56577,7 @@ var FileWatcher = class {
     const currentIds = listTaskIds(kandownDir);
     for (const id of currentIds) {
       if (!this.knownTaskIds.has(id)) {
-        const filePath = join5(tasksDir, `${id}.md`);
+        const filePath = join6(tasksDir, `${id}.md`);
         try {
           const newHash = await hashFile(filePath);
           this.knownTaskIds.add(id);
@@ -56620,9 +56747,9 @@ function buildPrompt(agentDoc, taskContent, taskId, kandownDir) {
 }
 
 // src/cli/lib/launcher.ts
-import { execSync, spawn } from "child_process";
+import { execSync, spawn as spawn2 } from "child_process";
 import { writeFileSync as writeFileSync3 } from "fs";
-import { join as join6 } from "path";
+import { join as join7 } from "path";
 import { tmpdir } from "os";
 function isInTmux() {
   return !!process.env.TMUX;
@@ -56646,7 +56773,7 @@ function launchAgent(opts) {
   ].join("\n");
   const { systemPrompt, taskPrompt } = buildPrompt(agentDoc, taskFileContent, taskId, kandownDir);
   moveTaskToColumn(kandownDir, taskId, "In Progress");
-  const contextFile = join6(tmpdir(), `kandown-${taskId}-context.md`);
+  const contextFile = join7(tmpdir(), `kandown-${taskId}-context.md`);
   writeFileSync3(contextFile, `${systemPrompt}
 
 ---
@@ -56664,7 +56791,7 @@ ${taskPrompt}`, "utf8");
     });
   } else {
     onBeforeExec?.();
-    const child = spawn(binary, args, {
+    const child = spawn2(binary, args, {
       stdio: "inherit",
       env: {
         ...process.env,
@@ -56864,6 +56991,15 @@ var RE_HEADER = /^#{1,3}\s/;
 var RE_SUBTASK = /^\s*-\s+\[([ xX])\]/;
 var RE_DONE = /^\s*-\s+\[x\]/i;
 var RE_BRACKET_TAG = /^\[([^\]]+)\]\s*/;
+function columnAccentColor(name) {
+  const normalized = name.toLowerCase();
+  if (/backlog/.test(normalized)) return "magenta";
+  if (/todo/.test(normalized)) return "cyan";
+  if (/progress|doing/.test(normalized)) return "yellow";
+  if (/review/.test(normalized)) return "blue";
+  if (/done|archive|closed|complete/.test(normalized)) return "green";
+  return "cyan";
+}
 function TaskRow({ task, focused, dragging, colWidth }) {
   const cursor = dragging ? "\u2195" : focused ? "\u25B8" : " ";
   const check2 = task.checked ? "\u2713" : "\u25CB";
@@ -56920,8 +57056,9 @@ function KanbanColumn({
   isMoveFocused,
   draggedTaskId
 }) {
-  const headerBg = isFocused ? "cyan" : void 0;
-  const headerColor = isFocused ? "black" : "cyan";
+  const accent = columnAccentColor(name);
+  const headerBg = isFocused ? accent : void 0;
+  const headerColor = isFocused ? "black" : accent;
   const countStr = tasks.length > 0 ? ` (${tasks.length})` : "";
   const rows = [];
   tasks.forEach((task, idx) => {
@@ -56960,31 +57097,45 @@ function KanbanColumn({
     showMoveTarget && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(MovePlaceholder, { name, focused: !!isMoveFocused, colWidth })
   ] });
 }
-function BoardHeader({ title, inTmux, modeHint, version }) {
+function BoardHeader({ title, inTmux, modeHint, version, daemonStatus, daemonBusy }) {
   const tmuxHint = inTmux ? " tmux" : "";
   const versionTag = version ? ` v${version}` : "";
-  const hint = modeHint || "h/l cols \xB7 j/k tasks \xB7 Enter detail \xB7 m menu \xB7 a agent \xB7 r reload \xB7 q quit";
+  const daemonLabel = daemonBusy ? "\u25CC daemon\u2026" : daemonStatus.running ? `\u25CF web ${daemonStatus.metadata?.port ?? ""}` : "\u25CB web off";
+  const hint = modeHint || "h/l cols \xB7 j/k tasks \xB7 drag tasks \xB7 d daemon \xB7 r reload \xB7 q quit";
   const width = termWidth();
-  const leftWidth = Math.min(Math.max(28, Math.floor(width * 0.42)), width);
-  const rightWidth = Math.max(0, width - leftWidth);
-  const left = pad(`  KANDOWN${tmuxHint}${versionTag}  ${title}`, leftWidth);
+  const leftWidth = Math.min(Math.max(34, Math.floor(width * 0.46)), width);
+  const daemonWidth = Math.min(16, Math.max(0, width - leftWidth));
+  const rightWidth = Math.max(0, width - leftWidth - daemonWidth);
+  const left = pad(`  \u25C6 KANDOWN${tmuxHint}${versionTag}  ${title}`, leftWidth);
+  const daemon = pad(daemonLabel, daemonWidth);
   const right = truncate(hint, rightWidth).padStart(rightWidth, " ");
   return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { marginBottom: 1, children: [
     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { bold: true, color: "cyan", children: left }),
+    daemonWidth > 0 && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: daemonStatus.running ? "green" : "yellow", bold: true, children: daemon }),
     rightWidth > 0 && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", dimColor: true, children: right })
   ] });
 }
-function StatusBar({ message, task }) {
-  if (message) {
-    return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", children: message }) });
-  }
-  if (!task) return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: " " }) });
-  return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: "gray", children: [
-    task.id,
-    task.progress ? `  (${task.progress.done}/${task.progress.total})` : "",
-    "  ",
-    task.checked ? "\u2713 done" : "\u25CB open"
-  ] }) });
+function StatusBar({ message, task, daemonStatus }) {
+  const daemonText = daemonStatus.running && daemonStatus.metadata ? `web daemon ON \xB7 ${daemonStatus.metadata.url}` : "web daemon OFF \xB7 press d to start";
+  return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { marginTop: 1, flexDirection: "column", children: [
+    message ? /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: "yellow", bold: true, children: [
+      "  \u2726 ",
+      message
+    ] }) : task ? /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: "gray", children: [
+      "  ",
+      "\u25C6 ",
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: task.id }),
+      task.progress ? `  checklist ${task.progress.done}/${task.progress.total}` : "",
+      "  ",
+      task.checked ? "\u2713 done" : "\u25CB open"
+    ] }) : /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: " " }),
+    /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: daemonStatus.running ? "green" : "yellow", dimColor: !daemonStatus.running, children: [
+      "  ",
+      daemonStatus.running ? "\u25CF" : "\u25CB",
+      " ",
+      daemonText
+    ] })
+  ] });
 }
 function TaskDetail({ task, taskId, scrollOffset }) {
   const fm = task.frontmatter;
@@ -57049,6 +57200,9 @@ function Board({ kandownDir, version }) {
   const [moveTargetCol, setMoveTargetCol] = (0, import_react37.useState)(0);
   const [mousePress, setMousePress] = (0, import_react37.useState)(null);
   const [taskDrag, setTaskDrag] = (0, import_react37.useState)(null);
+  const [daemonStatus, setDaemonStatus] = (0, import_react37.useState)({ running: false, metadata: null });
+  const [daemonBusy, setDaemonBusy] = (0, import_react37.useState)(false);
+  const [preferredDaemonPort, setPreferredDaemonPort] = (0, import_react37.useState)(null);
   const [installedAgents, setInstalledAgents] = (0, import_react37.useState)([]);
   const inTmux = isInTmux();
   const layoutRef = (0, import_react37.useRef)({
@@ -57122,6 +57276,42 @@ function Board({ kandownDir, version }) {
     setStatusMsg("Board reloaded");
     setTimeout(() => setStatusMsg(""), 1500);
   }, [kandownDir, updateLayout]);
+  const refreshDaemonStatus = (0, import_react37.useCallback)(async () => {
+    const next = await getDaemonStatus(kandownDir);
+    setDaemonStatus(next);
+    if (next.running && next.metadata) setPreferredDaemonPort(next.metadata.port);
+  }, [kandownDir]);
+  (0, import_react37.useEffect)(() => {
+    void refreshDaemonStatus();
+    const timer = setInterval(() => {
+      void refreshDaemonStatus();
+    }, 2e3);
+    return () => clearInterval(timer);
+  }, [refreshDaemonStatus]);
+  const toggleDaemon = (0, import_react37.useCallback)(async () => {
+    if (daemonBusy) return;
+    setDaemonBusy(true);
+    try {
+      const current = await getDaemonStatus(kandownDir);
+      if (current.running) {
+        if (current.metadata) setPreferredDaemonPort(current.metadata.port);
+        await stopProjectDaemon(kandownDir);
+        const next = await getDaemonStatus(kandownDir);
+        setDaemonStatus(next);
+        setStatusMsg("Web daemon stopped");
+      } else {
+        const next = await startProjectDaemon(kandownDir, preferredDaemonPort);
+        setDaemonStatus(next);
+        if (next.running && next.metadata) setPreferredDaemonPort(next.metadata.port);
+        setStatusMsg(next.running ? "Web daemon started" : "Web daemon failed to start");
+      }
+    } catch (error) {
+      setStatusMsg(`Daemon error: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setDaemonBusy(false);
+      setTimeout(() => setStatusMsg(""), 2500);
+    }
+  }, [daemonBusy, kandownDir, preferredDaemonPort]);
   const getFocusedTask = (0, import_react37.useCallback)(() => {
     if (!board) return null;
     const col = board.columns[colIndex];
@@ -57370,6 +57560,10 @@ function Board({ kandownDir, version }) {
         reloadBoard();
         return;
       }
+      if (input === "d") {
+        void toggleDaemon();
+        return;
+      }
       if (input === "l" || key.rightArrow) {
         const maxCol = (board?.columns.length ?? 1) - 1;
         setColIndex((c) => Math.min(c + 1, maxCol));
@@ -57548,7 +57742,7 @@ function Board({ kandownDir, version }) {
   if (mode === "agent-picker") {
     const taskId = detailTaskId || focusedTask?.id || "";
     return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { flexDirection: "column", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(BoardHeader, { title: board.title, inTmux, version }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(BoardHeader, { title: board.title, inTmux, version, daemonStatus, daemonBusy }),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
         AgentPicker,
         {
@@ -57574,7 +57768,7 @@ function Board({ kandownDir, version }) {
     ] });
   }
   return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { flexDirection: "column", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(BoardHeader, { title: board.title, inTmux, modeHint, version }),
+    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(BoardHeader, { title: board.title, inTmux, modeHint, version, daemonStatus, daemonBusy }),
     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { flexDirection: "row", children: board.columns.map((col, cIdx) => /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
       KanbanColumn,
       {
@@ -57598,7 +57792,7 @@ function Board({ kandownDir, version }) {
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: mode === "dragging" ? "release over a column" : "click \u2193" }),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: mode === "dragging" ? " \xB7 Esc cancel" : " or \u2190/\u2192 + Enter" })
     ] }) }),
-    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(StatusBar, { message: statusMsg, task: focusedTask })
+    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(StatusBar, { message: statusMsg, task: focusedTask, daemonStatus })
   ] });
 }
 

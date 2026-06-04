@@ -64,9 +64,11 @@ This creates a `.kandown/` folder with:
 kandown
 ```
 
-This opens:
+This starts a per-project local web daemon, then opens:
 - A **web UI** in your browser (board view, list view, task editor)
 - A **terminal TUI** for keyboard-driven workflow (works over SSH, no browser needed)
+
+The web daemon stays alive after you quit the TUI so the browser keeps working. Stop or restart it anytime from the TUI with `d`, or from the CLI with `kandown daemon stop`.
 
 ### CLI Commands
 
@@ -76,6 +78,9 @@ This opens:
 | `kandown init` | Initialize in current project |
 | `kandown board` | TUI only (no browser) |
 | `kandown settings` | Terminal settings editor |
+| `kandown daemon status` | Show this project's web daemon status |
+| `kandown daemon start` | Start/reconnect this project's web daemon |
+| `kandown daemon stop` | Stop this project's web daemon |
 | `kandown update` | Update `kandown.html` to latest |
 | `kandown help` | CLI help |
 
@@ -141,6 +146,15 @@ Press `a` in the board TUI to launch an AI agent on any task. Supported agents:
 | `Esc` | Close drawer / palette |
 | `⌘S` / `Ctrl+S` | Save task |
 | `⌘⌫` / `Ctrl+Backspace` | Delete task (with confirmation) |
+
+### TUI extras
+
+| Shortcut / gesture | Action |
+|---|---|
+| `d` | Start/stop the per-project web daemon |
+| Mouse drag task | Move a task between columns in the terminal |
+| `m` | Open the focused task context menu |
+| `r` | Reload board from disk |
 
 ### Data Model
 

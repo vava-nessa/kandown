@@ -23,7 +23,11 @@
  *  → cmdUpdate — refreshes installed kandown.html
  *  → injectServerRoot — injects the CLI server root into single-file HTML
  *  → createServeServer — creates the local zero-dependency HTTP server
- *  → cmdServe — opens the web UI over localhost and launches the board TUI
+ *  → readDaemonMetadata — reads per-project daemon status metadata
+ *  → startDaemon — starts/reconnects the per-project web daemon
+ *  → stopDaemon — stops the per-project web daemon
+ *  → cmdDaemon — daemon lifecycle command router
+ *  → cmdServe — starts/reconnects the daemon, opens web UI, and launches the board TUI
  *  → main — dispatches CLI commands
  *
  * @exports none
@@ -63,6 +67,7 @@ const DEFAULT_SERVE_PORT = 2048;
 const MAX_SERVE_PORT = 2060;
 const START_PORT_RANGE = 2048;
 const END_PORT_RANGE = 2060;
+const DAEMON_FILE = 'daemon.json';
 
 // 📖 Get current CLI version from package.json at PKG_ROOT
 function getCurrentVersion() {
@@ -290,6 +295,7 @@ ${c.bold}Commands:${c.reset}
   ${c.cyan}board${c.reset}       Open the interactive kanban board in the terminal
   ${c.cyan}init${c.reset}        Initialize .kandown/ in the current directory
   ${c.cyan}settings${c.reset}    Open the settings TUI
+  ${c.cyan}daemon${c.reset}      Manage the per-project web daemon (start|stop|status)
   ${c.cyan}update${c.reset}      Update kandown.html to the latest version
   ${c.cyan}help${c.reset}        Show this help
 
@@ -300,6 +306,7 @@ ${c.bold}Examples:${c.reset}
   ${c.dim}$${c.reset} npx kandown              ${c.dim}# local web server + board TUI${c.reset}
   ${c.dim}$${c.reset} npx kandown --port 3000  ${c.dim}# use a specific web UI port${c.reset}
   ${c.dim}$${c.reset} npx kandown board        ${c.dim}# board TUI only${c.reset}
+  ${c.dim}$${c.reset} npx kandown daemon stop  ${c.dim}# stop this project's web daemon${c.reset}
   ${c.dim}$${c.reset} npx kandown init
   ${c.dim}$${c.reset} npx kandown init --path docs/kanban
   ${c.dim}$${c.reset} npx kandown init --no-agents
@@ -448,6 +455,12 @@ function doInit(args, cwd, kandownPath, kandownDir) {
     info('kandown.json already exists (kept)');
   }
 
+  const kandownGitignore = join(kandownDir, '.gitignore');
+  if (!existsSync(kandownGitignore)) {
+    writeFileSync(kandownGitignore, `${DAEMON_FILE}\n`, 'utf8');
+    success('.gitignore (daemon runtime metadata ignored)');
+  }
+
   const agentKandownSrc = join(templatesDir, 'AGENT_KANDOWN.md');
   const agentKandownDest = join(kandownDir, 'AGENT_KANDOWN.md');
   if (!existsSync(agentKandownDest)) {
@@ -539,6 +552,151 @@ function parsePort(value) {
     process.exit(1);
   }
   return port;
+}
+
+function daemonMetadataPath(kandownDir) {
+  return join(kandownDir, DAEMON_FILE);
+}
+
+function readDaemonMetadata(kandownDir) {
+  const metadataPath = daemonMetadataPath(kandownDir);
+  if (!existsSync(metadataPath)) return null;
+  try {
+    const raw = JSON.parse(readFileSync(metadataPath, 'utf8'));
+    if (!raw || typeof raw !== 'object') return null;
+    if (!Number.isInteger(raw.pid) || !Number.isInteger(raw.port)) return null;
+    if (typeof raw.url !== 'string' || typeof raw.kandownDir !== 'string') return null;
+    return raw;
+  } catch {
+    return null;
+  }
+}
+
+function writeDaemonMetadata(kandownDir, metadata) {
+  writeFileSync(daemonMetadataPath(kandownDir), JSON.stringify(metadata, null, 2) + '\n', 'utf8');
+}
+
+function removeDaemonMetadata(kandownDir) {
+  try {
+    if (existsSync(daemonMetadataPath(kandownDir))) unlinkSync(daemonMetadataPath(kandownDir));
+  } catch { /* ignore cleanup failure */ }
+}
+
+function ensureDaemonGitignore(kandownDir) {
+  const gitignorePath = join(kandownDir, '.gitignore');
+  try {
+    if (!existsSync(gitignorePath)) {
+      writeFileSync(gitignorePath, `${DAEMON_FILE}\n`, 'utf8');
+      return;
+    }
+    const existing = readFileSync(gitignorePath, 'utf8');
+    if (!existing.split(/\r?\n/).includes(DAEMON_FILE)) {
+      writeFileSync(gitignorePath, `${existing.trimEnd()}\n${DAEMON_FILE}\n`, 'utf8');
+    }
+  } catch { /* ignore gitignore best-effort failure */ }
+}
+
+function isProcessAlive(pid) {
+  if (!Number.isInteger(pid) || pid <= 0) return false;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function fetchDaemonInfo(port) {
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/daemon`, {
+      signal: AbortSignal.timeout(700),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+async function getDaemonStatus(kandownDir) {
+  const metadata = readDaemonMetadata(kandownDir);
+  if (!metadata) return { running: false, metadata: null };
+  if (!isProcessAlive(metadata.pid)) {
+    removeDaemonMetadata(kandownDir);
+    return { running: false, metadata: null };
+  }
+  const remote = await fetchDaemonInfo(metadata.port);
+  if (!remote || remote.kandownDir !== kandownDir || remote.pid !== metadata.pid) {
+    removeDaemonMetadata(kandownDir);
+    return { running: false, metadata: null };
+  }
+  return { running: true, metadata };
+}
+
+function refreshKandownHtml(kandownDir) {
+  const htmlDest = join(kandownDir, 'kandown.html');
+  const htmlSrc = join(PKG_ROOT, 'dist', 'index.html');
+  if (existsSync(htmlDest) && existsSync(htmlSrc)) {
+    copyFileSync(htmlSrc, htmlDest);
+    return true;
+  }
+  return false;
+}
+
+async function waitForDaemon(kandownDir, timeoutMs = 5000) {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    const status = await getDaemonStatus(kandownDir);
+    if (status.running) return status;
+    await new Promise(r => setTimeout(r, 150));
+  }
+  return { running: false, metadata: null };
+}
+
+async function startDaemon(kandownDir, preferredPort) {
+  const current = await getDaemonStatus(kandownDir);
+  if (current.running) return current;
+
+  removeDaemonMetadata(kandownDir);
+  ensureDaemonGitignore(kandownDir);
+  const daemonArgs = [
+    process.argv[1],
+    '--no-update-check',
+    'daemon',
+    'run',
+    '--path',
+    kandownDir,
+  ];
+  if (preferredPort !== null) daemonArgs.push('--port', String(preferredPort));
+
+  const child = spawn(process.execPath, daemonArgs, {
+    cwd: dirname(kandownDir),
+    detached: true,
+    stdio: 'ignore',
+    env: { ...process.env, KANDOWN_DAEMON: '1' },
+  });
+  child.unref();
+
+  return waitForDaemon(kandownDir);
+}
+
+async function stopDaemon(kandownDir) {
+  const status = await getDaemonStatus(kandownDir);
+  if (!status.running || !status.metadata) {
+    removeDaemonMetadata(kandownDir);
+    return false;
+  }
+
+  try {
+    process.kill(status.metadata.pid, 'SIGTERM');
+  } catch { /* already stopped */ }
+
+  const started = Date.now();
+  while (Date.now() - started < 2500 && isProcessAlive(status.metadata.pid)) {
+    await new Promise(r => setTimeout(r, 100));
+  }
+  removeDaemonMetadata(kandownDir);
+  return true;
 }
 
 function apiHeaders() {
@@ -720,6 +878,18 @@ function handleApi(req, res, url, kandownDir) {
   const resource = parts[0];
   const id = parts[1];
 
+  if (resource === 'daemon') {
+    if (req.method === 'GET') {
+      return writeJson(res, 200, {
+        ok: true,
+        pid: process.pid,
+        kandownDir,
+        version: getCurrentVersion(),
+        startedAt: daemonStartedAt,
+      });
+    }
+  }
+
   if (resource === 'config') {
     if (req.method === 'GET') return getConfig(res, kandownDir);
     if (req.method === 'PUT') return putConfig(req, res, kandownDir);
@@ -739,6 +909,8 @@ function handleApi(req, res, url, kandownDir) {
 
   writeJson(res, 404, { error: 'Not found' });
 }
+
+const daemonStartedAt = new Date().toISOString();
 
 function serveApp(res, kandownDir) {
   const htmlPath = join(kandownDir, 'kandown.html');
@@ -915,47 +1087,96 @@ function detectStaleKandown(port, currentKandownDir) {
   };
 }
 
+async function cmdDaemon(rawArgs) {
+  const [subcommand = 'status', ...rest] = rawArgs;
+  const { kandownDir } = ensureKandownDir(rest);
+  const preferredPort = parsePort(parseArgs(rest).port);
+
+  if (subcommand === 'run') {
+    const { server, port } = await listenOnAvailablePort(kandownDir, preferredPort);
+    const url = `http://localhost:${port}`;
+    ensureDaemonGitignore(kandownDir);
+    writeDaemonMetadata(kandownDir, {
+      pid: process.pid,
+      port,
+      url,
+      kandownDir,
+      startedAt: daemonStartedAt,
+      version: getCurrentVersion(),
+    });
+
+    const shutdown = () => {
+      server.close(() => {
+        removeDaemonMetadata(kandownDir);
+        process.exit(0);
+      });
+    };
+    process.once('SIGINT', shutdown);
+    process.once('SIGTERM', shutdown);
+    await new Promise(() => {});
+    return;
+  }
+
+  if (subcommand === 'start') {
+    refreshKandownHtml(kandownDir);
+    const status = await startDaemon(kandownDir, preferredPort);
+    if (!status.running || !status.metadata) {
+      err('Daemon failed to start');
+      process.exit(1);
+    }
+    success(`Daemon running: ${status.metadata.url}`);
+    return;
+  }
+
+  if (subcommand === 'stop') {
+    const stopped = await stopDaemon(kandownDir);
+    if (stopped) success('Daemon stopped');
+    else info('Daemon already stopped');
+    return;
+  }
+
+  if (subcommand === 'status') {
+    const status = await getDaemonStatus(kandownDir);
+    if (status.running && status.metadata) {
+      success(`Daemon ON  ${status.metadata.url}  PID ${status.metadata.pid}`);
+    } else {
+      info('Daemon OFF');
+    }
+    return;
+  }
+
+  err(`Unknown daemon command: ${subcommand}`);
+  log(`  Use ${c.cyan}kandown daemon start|stop|status${c.reset}`);
+  process.exit(1);
+}
+
 /**
- * 📖 Starts the local web UI server, opens it in the browser, then hands the
- * terminal to the board TUI. The server intentionally stays in this process so
- * the browser can keep talking to localhost while the terminal board is active.
+ * 📖 Starts/reconnects the per-project web daemon, opens it in the browser,
+ * then hands the terminal to the board TUI. The daemon intentionally survives
+ * TUI exit so the web UI keeps working until the user stops it.
  */
 async function cmdServe(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
 
-  // 📖 Auto-refresh kandown.html if it already exists — ensures CLI upgrades
-  // propagate to the web UI without requiring a separate `kandown update`.
-  const htmlDest = join(kandownDir, 'kandown.html');
-  const htmlSrc = join(PKG_ROOT, 'dist', 'index.html');
-  if (existsSync(htmlDest) && existsSync(htmlSrc)) {
-    try {
-      copyFileSync(htmlSrc, htmlDest);
+  try {
+    if (refreshKandownHtml(kandownDir)) {
       info(`Refreshed kandown.html (CLI v${getCurrentVersion()})`);
-    } catch (e) {
-      warn(`Could not refresh kandown.html: ${e.message}`);
     }
-  } else {
-    info(`kandown.html not refreshed: dest=${existsSync(htmlDest)}, src=${existsSync(htmlSrc)}, PKG_ROOT=${PKG_ROOT}`);
+  } catch (e) {
+    warn(`Could not refresh kandown.html: ${e.message}`);
   }
 
   const preferredPort = parsePort(parseArgs(rawArgs).port);
-  const { server, port } = await listenOnAvailablePort(kandownDir, preferredPort);
-  const url = `http://localhost:${port}`;
-
-  const shutdown = () => {
-    server.close(() => process.exit(0));
-  };
-  process.once('SIGINT', shutdown);
-  process.once('SIGTERM', shutdown);
-
-  success(`Web UI: ${url}`);
-  info(`Project: ${kandownDir}`);
-  openInBrowser(url);
-  try {
-    await cmdTui('board', rawArgs);
-  } finally {
-    server.close();
+  const status = await startDaemon(kandownDir, preferredPort);
+  if (!status.running || !status.metadata) {
+    err('Failed to start web daemon');
+    process.exit(1);
   }
+
+  success(`Web daemon: ${status.metadata.url}`);
+  info(`Project: ${kandownDir}`);
+  openInBrowser(status.metadata.url);
+  await cmdTui('board', rawArgs);
 }
 
 /**
@@ -1042,6 +1263,10 @@ switch (cmd) {
 
   case 'settings':
     await cmdTui('settings', rest);
+    break;
+
+  case 'daemon':
+    await cmdDaemon(rest);
     break;
 
   case 'update':
