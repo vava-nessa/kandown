@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.3 — 2026-06-04 — "Port Reclaim"
+
+- **Added**: Stale process detection — when `kandown` detects its preferred port (2048) is already occupied by another kandown process for the same project, it automatically kills the zombie and reclaims the port instead of silently moving to 2049.
+- **Added**: Cross-project awareness — if the port is occupied by a kandown from a *different* project, the port is skipped and the next available port is used (no interference between projects).
+- **Added**: Non-kandown processes on the target port are left untouched — only kandown zombies are auto-cleaned.
+- **Changed**: `listenOnAvailablePort()` now includes a `detectStaleKandown()` pre-check that inspects the process command line and working directory before attempting to listen.
+
 ## 0.7.2 — 2026-06-04 — "Live Sync"
 
 - **Fixed**: CLI TUI watcher — `persistent: true` removed (obsolete in chokidar v4, could prevent events), `stabilityThreshold` 50→25ms, `alwaysStat: true` added for reliable change detection.

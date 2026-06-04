@@ -53,7 +53,7 @@ import {
   statSync,
   unlinkSync,
 } from 'node:fs';
-import { spawnSync, spawn } from 'node:child_process';
+import { spawnSync, spawn, execSync } from 'node:child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -791,24 +791,128 @@ function listen(server, port) {
 }
 
 async function listenOnAvailablePort(kandownDir, preferredPort) {
-  const startPort = preferredPort ?? START_PORT_RANGE;
-  const endPort = preferredPort ?? END_PORT_RANGE;
+  const port = preferredPort ?? START_PORT_RANGE;
+  const isSinglePort = preferredPort !== null;
 
-  for (let port = startPort; port <= endPort; port++) {
+  // 📖 Check if the target port is already occupied by a stale kandown process.
+  // This happens when the TUI crashes but the HTTP server stays alive.
+  const staleInfo = detectStaleKandown(port, kandownDir);
+  if (staleInfo) {
+    warn(staleInfo.reason);
+    try {
+      process.kill(staleInfo.pid, 'SIGTERM');
+      // Give it a moment to clean up
+      await new Promise(r => setTimeout(r, 300));
+      info(`Reclaimed port ${c.cyan}${port}${c.reset} (killed stale kandown PID ${staleInfo.pid})`);
+    } catch {
+      // Process already dead
+    }
+  }
+
+  // If user specified a specific port, only try that one
+  if (isSinglePort) {
     const server = createServeServer(kandownDir);
     try {
       await listen(server, port);
       return { server, port };
     } catch (e) {
+      if (e.code === 'EADDRINUSE') {
+        err(`Port ${c.bold}${port}${c.reset} is in use by another application.`);
+        process.exit(1);
+      }
+      throw e;
+    }
+  }
+
+  // 📖 Scan range — try ports until one works
+  for (let p = START_PORT_RANGE; p <= END_PORT_RANGE; p++) {
+    // Skip port if occupied by a stale kandown from a DIFFERENT project
+    const stale = detectStaleKandown(p, kandownDir);
+    if (stale && !stale.reason) {
+      // reason is null → different project, skip this port
+      continue;
+    }
+    if (stale) {
+      // Same project — already killed above for the first port, but handle edge case
+      try { process.kill(stale.pid, 'SIGTERM'); } catch {}
+      await new Promise(r => setTimeout(r, 200));
+    }
+
+    const server = createServeServer(kandownDir);
+    try {
+      await listen(server, p);
+      return { server, port: p };
+    } catch (e) {
       if (e.code !== 'EADDRINUSE') throw e;
     }
   }
 
-  const range = preferredPort === null
-    ? `${START_PORT_RANGE}-${END_PORT_RANGE}`
-    : String(preferredPort);
-  err(`No free port available in ${c.bold}${range}${c.reset}.`);
+  err(`No free port available in ${c.bold}${START_PORT_RANGE}-${END_PORT_RANGE}${c.reset}.`);
   process.exit(1);
+}
+
+/**
+ * 📖 Detects if a port is occupied by a stale/zombie kandown process.
+ * A "stale" kandown is one whose TUI has exited but the HTTP server is still alive.
+ * Returns { pid, cwd, reason } or null if the port is free or used by something else.
+ */
+function detectStaleKandown(port, currentKandownDir) {
+  let pid;
+  try {
+    pid = execSync(`lsof -ti :${port} -sTCP:LISTEN`, { encoding: 'utf8', timeout: 2000 }).trim();
+  } catch {
+    return null; // Port is free
+  }
+  if (!pid) return null;
+
+  const pids = pid.split('\n').filter(Boolean);
+  if (pids.length === 0) return null;
+  pid = parseInt(pids[0], 10);
+  if (isNaN(pid) || pid === process.pid) return null;
+
+  // Check if it's a kandown process
+  let cmdline;
+  try {
+    cmdline = execSync(`ps -p ${pid} -o command=`, { encoding: 'utf8', timeout: 2000 }).trim();
+  } catch {
+    return null; // Process gone
+  }
+
+  if (!/[/\\]kandown\b|^kandown\b|\skandown\b/.test(cmdline)) return null; // Not a kandown process
+
+  // Get the working directory of the existing process
+  let cwd;
+  try {
+    if (process.platform === 'linux') {
+      cwd = execSync(`readlink -f /proc/${pid}/cwd`, { encoding: 'utf8', timeout: 2000 }).trim();
+    } else {
+      // macOS
+      cwd = execSync(`lsof -p ${pid} -Fn -a -d cwd 2>/dev/null | grep '^n' | cut -c2-`, { encoding: 'utf8', timeout: 2000, shell: true }).trim();
+    }
+  } catch {
+    cwd = null;
+  }
+
+  // 📖 Compare with our project root (parent of .kandown/), not process.cwd().
+  // process.cwd() could be a subdirectory; the project root is stable.
+  const ourProjectRoot = currentKandownDir ? dirname(currentKandownDir) : process.cwd();
+  const isSameProject = cwd && (cwd === ourProjectRoot || cwd === process.cwd());
+
+  // 📖 If it's our own process, skip (we're checking our own port)
+  if (pid === process.pid) return null;
+
+  // 📖 Different project — don't touch, just skip the port
+  if (!isSameProject) {
+    return { pid, cwd: cwd || 'unknown', reason: null };
+  }
+
+  // 📖 Same project — stale/zombie or legitimate, kill it either way.
+  // The user is explicitly launching kandown, so they want a fresh instance.
+  return {
+    pid,
+    cwd: cwd || 'unknown',
+    reason: `${c.yellow}Existing kandown found on port ${c.cyan}${port}${c.yellow} (PID ${pid}, same project). Reconnecting...${c.reset}`,
+  };
 }
 
 /**
