@@ -6,16 +6,17 @@
  * Mouse sequences are detected in useInput's `input` parameter.
  *
  * 📖 How it works (v2):
- *  1. `useMouseMode()` enables SGR mouse tracking (\x1b[?1006h)
- *  2. Terminal sends `\x1b[<Cb;Cx;CyM` on click
+ *  1. `useMouseMode()` enables SGR mouse tracking + button-motion drag events through Ink's stdout helper
+ *  2. Terminal sends `\x1b[<Cb;Cx;CyM` on press/drag and `\x1b[<Cb;Cx;Cym` on release
  *  3. Ink's input parser passes these as raw `input` strings in useInput
- *  4. `parseMouseInput()` extracts coordinates from the string
+ *  4. `parseMouseInput()` extracts coordinates, button, and action
  *  5. No stdin interception — no conflicts with Ink
  *
  * 📖 SGR format: `\x1b[<Cb;Cx;CyM` (press) or `\x1b[<Cb;Cx;Cym` (release)
  *  Cb = button code, Cx = column (1-based), Cy = row (1-based)
  *
  * @functions
+ *  → safeWrite       — writes terminal control codes without throwing during teardown
  *  → useMouseMode    — React hook to enable/disable terminal mouse tracking
  *  → parseMouseInput — parse SGR mouse sequence from a string
  *
@@ -23,6 +24,7 @@
  */
 
 import { useEffect } from 'react';
+import { useStdout } from 'ink';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -33,14 +35,14 @@ export interface MouseInputEvent {
   y: number;
   /** Which button: 0=left, 1=middle, 2=right */
   button: number;
-  /** 'press' or 'release' */
-  action: 'press' | 'release';
+  /** Press, drag, release, hover move, or wheel scroll. */
+  action: 'press' | 'drag' | 'release' | 'move' | 'scroll';
 }
 
 // ─── ANSI sequences ──────────────────────────────────────────────────────────
 
-const MOUSE_ENABLE  = '\x1b[?1000h\x1b[?1006h';
-const MOUSE_DISABLE = '\x1b[?1006l\x1b[?1000l';
+const MOUSE_ENABLE  = '\x1b[?1000h\x1b[?1002h\x1b[?1006h';
+const MOUSE_DISABLE = '\x1b[?1006l\x1b[?1002l\x1b[?1000l';
 
 // ─── Regex ───────────────────────────────────────────────────────────────────
 
@@ -62,13 +64,22 @@ export function parseMouseInput(input: string): MouseInputEvent | null {
   const cb = parseInt(match[1], 10);
   const cx = parseInt(match[2], 10);
   const cy = parseInt(match[3], 10);
-  const isPress = match[4] === 'M';
+  const final = match[4];
+  const buttonNumber = (cb & 0b0000_0011) | ((cb & 0b1100_0000) >> 4);
+  const dragging = (cb & 0b0010_0000) === 0b0010_0000;
+
+  let action: MouseInputEvent['action'];
+  if (final === 'm') action = 'release';
+  else if (dragging && buttonNumber <= 2) action = 'drag';
+  else if (dragging) action = 'move';
+  else if (buttonNumber >= 4 && buttonNumber <= 7) action = 'scroll';
+  else action = 'press';
 
   return {
     x: cx,
     y: cy,
-    button: cb & 0x03,
-    action: isPress ? 'press' : 'release',
+    button: buttonNumber <= 2 ? buttonNumber : 0,
+    action,
   };
 }
 
@@ -87,22 +98,30 @@ export function isMouseInput(input: string): boolean {
  *
  * @param enabled — whether mouse tracking is active (default: true)
  */
+function safeWrite(write: (data: string) => void, data: string): void {
+  try {
+    write(data);
+  } catch {
+    // 📖 Terminal teardown can close stdout before React effects finish.
+  }
+}
+
 export function useMouseMode(enabled = true): void {
+  const { write } = useStdout();
+
   useEffect(() => {
     if (!enabled) return;
     if (!process.stdin.isTTY) return;
 
-    process.stdout.write(MOUSE_ENABLE);
+    safeWrite(write, MOUSE_ENABLE);
 
-    // 📖 Safety: ensure mouse mode is disabled on process exit
-    const cleanup = () => {
-      process.stdout.write(MOUSE_DISABLE);
-    };
+    // 📖 Safety: ensure mouse mode is disabled on process exit.
+    const cleanup = () => safeWrite(write, MOUSE_DISABLE);
     process.on('exit', cleanup);
 
     return () => {
       process.removeListener('exit', cleanup);
-      process.stdout.write(MOUSE_DISABLE);
+      safeWrite(write, MOUSE_DISABLE);
     };
-  }, [enabled]);
+  }, [enabled, write]);
 }

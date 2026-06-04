@@ -27895,7 +27895,7 @@ var require_backend = __commonJS({
                     });
                     return value;
                   },
-                  useEffect: function useEffect10(create3) {
+                  useEffect: function useEffect11(create3) {
                     nextHook();
                     hookLog.push({
                       displayName: null,
@@ -27983,7 +27983,7 @@ var require_backend = __commonJS({
                     });
                     return initialValue;
                   },
-                  useState: function useState9(initialState) {
+                  useState: function useState10(initialState) {
                     var hook = nextHook();
                     initialState = null !== hook ? hook.memoizedState : "function" === typeof initialState ? initialState() : initialState;
                     hookLog.push({
@@ -53951,6 +53951,8 @@ var use_app_default = useApp;
 
 // node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/hooks/use-stdout.js
 var import_react25 = __toESM(require_react(), 1);
+var useStdout = () => (0, import_react25.useContext)(StdoutContext_default);
+var use_stdout_default = useStdout;
 
 // node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/hooks/use-stderr.js
 var import_react26 = __toESM(require_react(), 1);
@@ -53975,6 +53977,9 @@ var import_react32 = __toESM(require_react(), 1);
 
 // node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/hooks/use-box-metrics.js
 var import_react33 = __toESM(require_react(), 1);
+
+// src/cli/app.tsx
+var import_react38 = __toESM(require_react(), 1);
 
 // src/cli/screens/settings.tsx
 var import_react34 = __toESM(require_react(), 1);
@@ -56757,8 +56762,8 @@ function AgentPicker({ agents, taskId, onSelect, onCancel }) {
 
 // src/cli/hooks/use-mouse.ts
 var import_react36 = __toESM(require_react(), 1);
-var MOUSE_ENABLE = "\x1B[?1000h\x1B[?1006h";
-var MOUSE_DISABLE = "\x1B[?1006l\x1B[?1000l";
+var MOUSE_ENABLE = "\x1B[?1000h\x1B[?1002h\x1B[?1006h";
+var MOUSE_DISABLE = "\x1B[?1006l\x1B[?1002l\x1B[?1000l";
 var RE_SGR_MOUSE = /^\[<(\d+);(\d+);(\d+)([Mm])/;
 function parseMouseInput(input) {
   const match = input.match(RE_SGR_MOUSE);
@@ -56766,31 +56771,44 @@ function parseMouseInput(input) {
   const cb = parseInt(match[1], 10);
   const cx = parseInt(match[2], 10);
   const cy = parseInt(match[3], 10);
-  const isPress = match[4] === "M";
+  const final = match[4];
+  const buttonNumber = cb & 3 | (cb & 192) >> 4;
+  const dragging = (cb & 32) === 32;
+  let action;
+  if (final === "m") action = "release";
+  else if (dragging && buttonNumber <= 2) action = "drag";
+  else if (dragging) action = "move";
+  else if (buttonNumber >= 4 && buttonNumber <= 7) action = "scroll";
+  else action = "press";
   return {
     x: cx,
     y: cy,
-    button: cb & 3,
-    action: isPress ? "press" : "release"
+    button: buttonNumber <= 2 ? buttonNumber : 0,
+    action
   };
 }
 function isMouseInput(input) {
   return input.startsWith("[<") || input.startsWith("[M");
 }
+function safeWrite(write, data) {
+  try {
+    write(data);
+  } catch {
+  }
+}
 function useMouseMode(enabled = true) {
+  const { write } = use_stdout_default();
   (0, import_react36.useEffect)(() => {
     if (!enabled) return;
     if (!process.stdin.isTTY) return;
-    process.stdout.write(MOUSE_ENABLE);
-    const cleanup = () => {
-      process.stdout.write(MOUSE_DISABLE);
-    };
+    safeWrite(write, MOUSE_ENABLE);
+    const cleanup = () => safeWrite(write, MOUSE_DISABLE);
     process.on("exit", cleanup);
     return () => {
       process.removeListener("exit", cleanup);
-      process.stdout.write(MOUSE_DISABLE);
+      safeWrite(write, MOUSE_DISABLE);
     };
-  }, [enabled]);
+  }, [enabled, write]);
 }
 
 // src/cli/components/task-context-menu.tsx
@@ -56846,8 +56864,8 @@ var RE_HEADER = /^#{1,3}\s/;
 var RE_SUBTASK = /^\s*-\s+\[([ xX])\]/;
 var RE_DONE = /^\s*-\s+\[x\]/i;
 var RE_BRACKET_TAG = /^\[([^\]]+)\]\s*/;
-function TaskRow({ task, focused, colWidth }) {
-  const cursor = focused ? "\u25B8" : " ";
+function TaskRow({ task, focused, dragging, colWidth }) {
+  const cursor = dragging ? "\u2195" : focused ? "\u25B8" : " ";
   const check2 = task.checked ? "\u2713" : "\u25CB";
   const idStr = task.id;
   const tagMatch = task.title.match(RE_BRACKET_TAG);
@@ -56857,15 +56875,15 @@ function TaskRow({ task, focused, colWidth }) {
   const tagChars = tag ? tag.length + 1 : 0;
   const titleStr = truncate(titleClean, Math.max(4, colWidth - fixedChars - tagChars));
   return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { children: [
-    /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: focused ? "cyan" : void 0, bold: focused, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: dragging ? "yellow" : focused ? "cyan" : void 0, bold: focused || dragging, children: [
       cursor,
       " "
     ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: task.checked ? "green" : focused ? "white" : "gray", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: dragging ? "yellow" : task.checked ? "green" : focused ? "white" : "gray", children: [
       check2,
       " "
     ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: focused ? "cyan" : "yellow", bold: focused, children: idStr }),
+    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: dragging ? "yellow" : focused ? "cyan" : "yellow", bold: focused || dragging, children: idStr }),
     tag && /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: focused ? "white" : "magenta", bold: true, children: [
       " ",
       tag
@@ -56899,7 +56917,8 @@ function KanbanColumn({
   contextMenuRow,
   contextMenuCursor,
   showMoveTarget,
-  isMoveFocused
+  isMoveFocused,
+  draggedTaskId
 }) {
   const headerBg = isFocused ? "cyan" : void 0;
   const headerColor = isFocused ? "black" : "cyan";
@@ -56912,6 +56931,7 @@ function KanbanColumn({
         {
           task,
           focused: isFocused && idx === focusedRow,
+          dragging: task.id === draggedTaskId,
           colWidth
         },
         task.id
@@ -56944,16 +56964,14 @@ function BoardHeader({ title, inTmux, modeHint, version }) {
   const tmuxHint = inTmux ? " tmux" : "";
   const versionTag = version ? ` v${version}` : "";
   const hint = modeHint || "h/l cols \xB7 j/k tasks \xB7 Enter detail \xB7 m menu \xB7 a agent \xB7 r reload \xB7 q quit";
-  return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { marginBottom: 1, justifyContent: "space-between", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { bold: true, color: "cyan", children: [
-      "  ",
-      "KANDOWN",
-      tmuxHint,
-      versionTag,
-      "  ",
-      title
-    ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", dimColor: true, children: hint })
+  const width = termWidth();
+  const leftWidth = Math.min(Math.max(28, Math.floor(width * 0.42)), width);
+  const rightWidth = Math.max(0, width - leftWidth);
+  const left = pad(`  KANDOWN${tmuxHint}${versionTag}  ${title}`, leftWidth);
+  const right = truncate(hint, rightWidth).padStart(rightWidth, " ");
+  return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { marginBottom: 1, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { bold: true, color: "cyan", children: left }),
+    rightWidth > 0 && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", dimColor: true, children: right })
   ] });
 }
 function StatusBar({ message, task }) {
@@ -57029,6 +57047,8 @@ function Board({ kandownDir, version }) {
   const [ctxMenuCursor, setCtxMenuCursor] = (0, import_react37.useState)(0);
   const [moveTaskId, setMoveTaskId] = (0, import_react37.useState)(null);
   const [moveTargetCol, setMoveTargetCol] = (0, import_react37.useState)(0);
+  const [mousePress, setMousePress] = (0, import_react37.useState)(null);
+  const [taskDrag, setTaskDrag] = (0, import_react37.useState)(null);
   const [installedAgents, setInstalledAgents] = (0, import_react37.useState)([]);
   const inTmux = isInTmux();
   const layoutRef = (0, import_react37.useRef)({
@@ -57046,6 +57066,25 @@ function Board({ kandownDir, version }) {
     }
     layoutRef.current = { colStarts: starts, colWidth: cw };
   }, []);
+  const columnAtX = (0, import_react37.useCallback)((x) => {
+    const layout = layoutRef.current;
+    for (let c = 0; c < layout.colStarts.length; c++) {
+      const start = layout.colStarts[c];
+      if (x >= start && x < start + layout.colWidth) return c;
+    }
+    return -1;
+  }, []);
+  const taskHitAt = (0, import_react37.useCallback)((x, y) => {
+    if (!board) return null;
+    const clickedCol = columnAtX(x);
+    if (clickedCol < 0) return null;
+    const col = board.columns[clickedCol];
+    if (!col) return null;
+    const taskIdx = y - TASKS_START_Y;
+    const task = taskIdx >= 0 ? col.tasks[taskIdx] : void 0;
+    if (!task) return null;
+    return { taskId: task.id, colIndex: clickedCol, rowIndex: taskIdx, startX: x, startY: y };
+  }, [board, columnAtX]);
   (0, import_react37.useEffect)(() => {
     const loaded = readBoard(kandownDir);
     setBoard(loaded);
@@ -57239,12 +57278,87 @@ function Board({ kandownDir, version }) {
       return;
     }
   }, [board, mode, colIndex, rowIndex, ctxMenuRow, moveTaskId, kandownDir, updateLayout, openDetail, closeContextMenu]);
+  const handleMouseEvent = (0, import_react37.useCallback)((mouse) => {
+    if (!board) return;
+    if (mode === "browse") {
+      if (mouse.action === "press" && mouse.button === 0) {
+        const hit = taskHitAt(mouse.x, mouse.y);
+        if (hit) {
+          setMousePress(hit);
+          setColIndex(hit.colIndex);
+          setRowIndex(hit.rowIndex);
+        }
+        return;
+      }
+      if (mouse.action === "drag" && mousePress) {
+        const delta = Math.max(Math.abs(mouse.x - mousePress.startX), Math.abs(mouse.y - mousePress.startY));
+        if (delta < 1) return;
+        const hoverCol = columnAtX(mouse.x);
+        setTaskDrag({ taskId: mousePress.taskId, sourceCol: mousePress.colIndex, hoverCol });
+        setMoveTargetCol(hoverCol >= 0 ? hoverCol : mousePress.colIndex);
+        setMoveTaskId(mousePress.taskId);
+        setMode("dragging");
+        closeContextMenu();
+        return;
+      }
+      if (mouse.action === "release" && mousePress) {
+        const hit = taskHitAt(mouse.x, mouse.y);
+        if (hit && hit.taskId === mousePress.taskId) {
+          setCtxMenuRow(mousePress.rowIndex);
+          setCtxMenuCursor(0);
+          setMode("context-menu");
+        }
+        setMousePress(null);
+        return;
+      }
+      if (mouse.action === "press") handleMouseClick(mouse.x, mouse.y);
+      return;
+    }
+    if (mode === "dragging") {
+      if (!taskDrag) {
+        setMode("browse");
+        setMoveTaskId(null);
+        setMousePress(null);
+        return;
+      }
+      if (mouse.action === "drag") {
+        const hoverCol = columnAtX(mouse.x);
+        setTaskDrag((current) => current ? { ...current, hoverCol } : current);
+        setMoveTargetCol(hoverCol >= 0 ? hoverCol : taskDrag.sourceCol);
+        return;
+      }
+      if (mouse.action === "release") {
+        const targetCol = columnAtX(mouse.x);
+        if (targetCol >= 0 && targetCol !== taskDrag.sourceCol) {
+          const targetColName = board.columns[targetCol]?.name;
+          if (targetColName) {
+            moveTaskToColumn(kandownDir, taskDrag.taskId, targetColName);
+            const loaded = readBoard(kandownDir);
+            setBoard(loaded);
+            updateLayout(loaded);
+            setColIndex(targetCol);
+            const movedRow = loaded.columns[targetCol]?.tasks.findIndex((task) => task.id === taskDrag.taskId) ?? 0;
+            setRowIndex(Math.max(0, movedRow));
+            setStatusMsg(`Dragged ${taskDrag.taskId} \u2192 ${targetColName}`);
+            setTimeout(() => setStatusMsg(""), 2e3);
+          }
+        }
+        setTaskDrag(null);
+        setMousePress(null);
+        setMoveTaskId(null);
+        setMode("browse");
+        return;
+      }
+      return;
+    }
+    if (mouse.action === "press" && mouse.button === 0) {
+      handleMouseClick(mouse.x, mouse.y);
+    }
+  }, [board, mode, mousePress, taskDrag, taskHitAt, columnAtX, closeContextMenu, handleMouseClick, kandownDir, updateLayout]);
   use_input_default((input, key) => {
     if (isMouseInput(input)) {
       const mouse = parseMouseInput(input);
-      if (mouse && mouse.action === "press" && mouse.button === 0) {
-        handleMouseClick(mouse.x, mouse.y);
-      }
+      if (mouse) handleMouseEvent(mouse);
       return;
     }
     if (mode === "browse") {
@@ -57335,6 +57449,16 @@ function Board({ kandownDir, version }) {
         return;
       }
     }
+    if (mode === "dragging") {
+      if (key.escape || input === "q") {
+        setTaskDrag(null);
+        setMousePress(null);
+        setMoveTaskId(null);
+        setMode("browse");
+        return;
+      }
+      return;
+    }
     if (mode === "move-target") {
       if (key.escape || input === "q") {
         setMoveTaskId(null);
@@ -57418,6 +57542,8 @@ function Board({ kandownDir, version }) {
     modeHint = "j/k choose \xB7 Enter confirm \xB7 Esc cancel \xB7 or click";
   } else if (mode === "move-target") {
     modeHint = "\u2190/\u2192 pick column \xB7 Enter confirm \xB7 Esc cancel \xB7 or click \u2193";
+  } else if (mode === "dragging") {
+    modeHint = "drag over target column \xB7 release to drop \xB7 Esc cancel";
   }
   if (mode === "agent-picker") {
     const taskId = detailTaskId || focusedTask?.id || "";
@@ -57459,17 +57585,18 @@ function Board({ kandownDir, version }) {
         colWidth,
         contextMenuRow: mode === "context-menu" && cIdx === colIndex ? ctxMenuRow : -1,
         contextMenuCursor: ctxMenuCursor,
-        showMoveTarget: mode === "move-target" && cIdx !== colIndex,
-        isMoveFocused: mode === "move-target" && cIdx === moveTargetCol
+        showMoveTarget: mode === "move-target" && cIdx !== colIndex || mode === "dragging" && cIdx !== taskDrag?.sourceCol,
+        isMoveFocused: (mode === "move-target" || mode === "dragging") && cIdx === moveTargetCol,
+        draggedTaskId: taskDrag?.taskId ?? null
       },
       col.name
     )) }),
-    mode === "move-target" && moveTaskId && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: "yellow", bold: true, children: [
+    (mode === "move-target" || mode === "dragging") && moveTaskId && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: "yellow", bold: true, children: [
       "Moving ",
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "cyan", children: moveTaskId }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: " \u2014 click " }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "\u2193" }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: " or \u2190/\u2192 + Enter" })
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: " \u2014 " }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: mode === "dragging" ? "release over a column" : "click \u2193" }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: mode === "dragging" ? " \xB7 Esc cancel" : " or \u2190/\u2192 + Enter" })
     ] }) }),
     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(StatusBar, { message: statusMsg, task: focusedTask })
   ] });
@@ -57477,18 +57604,38 @@ function Board({ kandownDir, version }) {
 
 // src/cli/app.tsx
 var import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
+function getTerminalRows() {
+  const rows = process.stdout.rows;
+  return typeof rows === "number" && Number.isFinite(rows) && rows > 0 ? rows : 24;
+}
+function useTerminalRows() {
+  const [rows, setRows] = (0, import_react38.useState)(getTerminalRows);
+  (0, import_react38.useEffect)(() => {
+    const handleResize = () => setRows(getTerminalRows());
+    process.stdout.on("resize", handleResize);
+    return () => {
+      process.stdout.off("resize", handleResize);
+    };
+  }, []);
+  return rows;
+}
 function App2({ screen, kandownDir, version }) {
+  const rows = useTerminalRows();
+  let content;
   switch (screen) {
     case "settings":
-      return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Settings, { kandownDir, version });
+      content = /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Settings, { kandownDir, version });
+      break;
     case "board":
-      return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Board, { kandownDir, version });
+      content = /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Board, { kandownDir, version });
+      break;
     default:
-      return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { padding: 2, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "red", bold: true, children: [
+      content = /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { padding: 2, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "red", bold: true, children: [
         "Unknown screen: ",
         screen
       ] }) });
   }
+  return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { flexDirection: "column", height: rows, overflow: "hidden", children: content });
 }
 
 // src/cli/tui.tsx
@@ -57499,15 +57646,13 @@ async function run(screen, kandownDir, version) {
       "kandown TUI requires an interactive terminal. Run this command directly in your terminal."
     );
   }
-  process.stdout.write("\x1B[?1049h\x1B[H");
   const instance = render_default(/* @__PURE__ */ (0, import_jsx_runtime6.jsx)(App2, { screen, kandownDir, version }), {
-    exitOnCtrlC: true
+    exitOnCtrlC: true,
+    interactive: true,
+    alternateScreen: true,
+    maxFps: 30
   });
-  try {
-    await instance.waitUntilExit();
-  } finally {
-    process.stdout.write("\x1B[?1049l");
-  }
+  await instance.waitUntilExit();
 }
 export {
   run

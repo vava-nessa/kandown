@@ -1,14 +1,14 @@
 /**
  * @file TUI entry point
- * @description Launches the full-screen terminal UI using Ink (React for CLI).
- * Uses the alternate screen buffer so the original terminal content is restored on exit,
- * exactly like vim, htop, or any well-behaved fullscreen TUI.
+ * @description Launches the fixed-screen terminal UI using Ink (React for CLI).
+ * Uses Ink's native alternate-screen support so the original terminal content is
+ * restored on exit, exactly like vim, htop, OpenCode, or any well-behaved TUI.
  *
  * 📖 Called by bin/kandown.js when the user runs `kandown settings` (or future commands
  * like `kandown board`). The `run()` function is the public API.
  *
  * @functions
- *  → run — enters alternate screen buffer, renders the TUI, restores on exit
+ *  → run — renders the TUI in Ink's managed alternate screen buffer
  *
  * @exports run
  * @see src/cli/app.tsx — screen router
@@ -31,17 +31,12 @@ export async function run(screen: string, kandownDir: string, version?: string):
     );
   }
 
-  // 📖 Enter alternate screen buffer — terminal content is preserved and restored on exit
-  process.stdout.write('\x1b[?1049h\x1b[H');
-
   const instance = render(<App screen={screen} kandownDir={kandownDir} version={version} />, {
     exitOnCtrlC: true,
+    interactive: true,
+    alternateScreen: true,
+    maxFps: 30,
   });
 
-  try {
-    await instance.waitUntilExit();
-  } finally {
-    // 📖 Leave alternate screen buffer — original terminal is restored
-    process.stdout.write('\x1b[?1049l');
-  }
+  await instance.waitUntilExit();
 }

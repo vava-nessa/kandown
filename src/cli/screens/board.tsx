@@ -8,6 +8,7 @@
  *  - 'browse'       — main board, navigate columns/tasks (keyboard + mouse)
  *  - 'context-menu' — inline menu under a task: "Open task" / "Move task"
  *  - 'move-target'  — pick target column to move task (↓ placeholders)
+ *  - 'dragging'     — mouse drag/drop task between columns
  *  - 'detail'       — full-screen task detail
  *  - 'agent-picker' — AI agent selection overlay
  *
@@ -15,6 +16,7 @@
  *  - Terminal mouse mode enabled via ANSI \x1b[?1006h (SGR)
  *  - Click sequences detected in Ink's useInput via parseMouseInput()
  *  - Click on task → focus it + open inline context menu
+ *  - Drag task card → drop into another column
  *  - Click on "Open" / "Move" in context menu → execute action
  *  - Click on ↓ placeholder → move task
  *  - Click outside → cancel current mode
@@ -44,7 +46,21 @@ import { InlineContextMenu, MENU_HEIGHT } from '../components/task-context-menu.
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type Mode = 'browse' | 'detail' | 'agent-picker' | 'context-menu' | 'move-target';
+type Mode = 'browse' | 'detail' | 'agent-picker' | 'context-menu' | 'move-target' | 'dragging';
+
+interface MousePressState {
+  taskId: string;
+  colIndex: number;
+  rowIndex: number;
+  startX: number;
+  startY: number;
+}
+
+interface TaskDragState {
+  taskId: string;
+  sourceCol: number;
+  hoverCol: number;
+}
 
 interface BoardProps {
   kandownDir: string;
@@ -95,10 +111,10 @@ const RE_BRACKET_TAG = /^\[([^\]]+)\]\s*/;
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function TaskRow({ task, focused, colWidth }: {
-  task: BoardTask; focused: boolean; colWidth: number;
+function TaskRow({ task, focused, dragging, colWidth }: {
+  task: BoardTask; focused: boolean; dragging?: boolean; colWidth: number;
 }) {
-  const cursor = focused ? '▸' : ' ';
+  const cursor = dragging ? '↕' : focused ? '▸' : ' ';
   const check  = task.checked ? '✓' : '○';
   const idStr  = task.id;
 
@@ -112,9 +128,9 @@ function TaskRow({ task, focused, colWidth }: {
 
   return (
     <Box>
-      <Text color={focused ? 'cyan' : undefined} bold={focused}>{cursor}{' '}</Text>
-      <Text color={task.checked ? 'green' : focused ? 'white' : 'gray'}>{check}{' '}</Text>
-      <Text color={focused ? 'cyan' : 'yellow'} bold={focused}>{idStr}</Text>
+      <Text color={dragging ? 'yellow' : focused ? 'cyan' : undefined} bold={focused || dragging}>{cursor}{' '}</Text>
+      <Text color={dragging ? 'yellow' : task.checked ? 'green' : focused ? 'white' : 'gray'}>{check}{' '}</Text>
+      <Text color={dragging ? 'yellow' : focused ? 'cyan' : 'yellow'} bold={focused || dragging}>{idStr}</Text>
       {tag && <Text color={focused ? 'white' : 'magenta'} bold>{' '}{tag}</Text>}
       <Text color={focused ? 'white' : 'gray'}>{' '}{titleStr}</Text>
     </Box>
@@ -138,7 +154,7 @@ function MovePlaceholder({ name, focused, colWidth }: {
 }
 
 function KanbanColumn({ name, tasks, focusedRow, isFocused, colWidth,
-  contextMenuRow, contextMenuCursor, showMoveTarget, isMoveFocused }: {
+  contextMenuRow, contextMenuCursor, showMoveTarget, isMoveFocused, draggedTaskId }: {
   name: string; tasks: BoardTask[]; focusedRow: number;
   isFocused: boolean; colWidth: number;
   /** Task index that has the context menu open (-1 = none) */
@@ -146,6 +162,7 @@ function KanbanColumn({ name, tasks, focusedRow, isFocused, colWidth,
   /** Which context-menu option is highlighted (0 or 1) */
   contextMenuCursor?: number;
   showMoveTarget?: boolean; isMoveFocused?: boolean;
+  draggedTaskId?: string | null;
 }) {
   const headerBg    = isFocused ? 'cyan' : undefined;
   const headerColor = isFocused ? 'black' : 'cyan';
@@ -159,6 +176,7 @@ function KanbanColumn({ name, tasks, focusedRow, isFocused, colWidth,
         key={task.id}
         task={task}
         focused={isFocused && idx === focusedRow}
+        dragging={task.id === draggedTaskId}
         colWidth={colWidth}
       />
     );
@@ -198,10 +216,16 @@ function BoardHeader({ title, inTmux, modeHint, version }: {
   const tmuxHint    = inTmux ? ' tmux' : '';
   const versionTag  = version ? ` v${version}` : '';
   const hint = modeHint || 'h/l cols · j/k tasks · Enter detail · m menu · a agent · r reload · q quit';
+  const width = termWidth();
+  const leftWidth = Math.min(Math.max(28, Math.floor(width * 0.42)), width);
+  const rightWidth = Math.max(0, width - leftWidth);
+  const left = pad(`  KANDOWN${tmuxHint}${versionTag}  ${title}`, leftWidth);
+  const right = truncate(hint, rightWidth).padStart(rightWidth, ' ');
+
   return (
-    <Box marginBottom={1} justifyContent="space-between">
-      <Text bold color="cyan">{'  '}KANDOWN{tmuxHint}{versionTag}{'  '}{title}</Text>
-      <Text color="gray" dimColor>{hint}</Text>
+    <Box marginBottom={1}>
+      <Text bold color="cyan">{left}</Text>
+      {rightWidth > 0 && <Text color="gray" dimColor>{right}</Text>}
     </Box>
   );
 }
@@ -291,6 +315,10 @@ export function Board({ kandownDir, version }: BoardProps) {
   const [moveTaskId, setMoveTaskId]       = useState<string | null>(null);
   const [moveTargetCol, setMoveTargetCol] = useState(0);
 
+  // Mouse drag/drop mode
+  const [mousePress, setMousePress] = useState<MousePressState | null>(null);
+  const [taskDrag, setTaskDrag] = useState<TaskDragState | null>(null);
+
   // Agents
   const [installedAgents, setInstalledAgents] = useState<AgentDef[]>([]);
 
@@ -313,6 +341,27 @@ export function Board({ kandownDir, version }: BoardProps) {
     }
     layoutRef.current = { colStarts: starts, colWidth: cw };
   }, []);
+
+  const columnAtX = useCallback((x: number): number => {
+    const layout = layoutRef.current;
+    for (let c = 0; c < layout.colStarts.length; c++) {
+      const start = layout.colStarts[c];
+      if (x >= start && x < start + layout.colWidth) return c;
+    }
+    return -1;
+  }, []);
+
+  const taskHitAt = useCallback((x: number, y: number): MousePressState | null => {
+    if (!board) return null;
+    const clickedCol = columnAtX(x);
+    if (clickedCol < 0) return null;
+    const col = board.columns[clickedCol];
+    if (!col) return null;
+    const taskIdx = y - TASKS_START_Y;
+    const task = taskIdx >= 0 ? col.tasks[taskIdx] : undefined;
+    if (!task) return null;
+    return { taskId: task.id, colIndex: clickedCol, rowIndex: taskIdx, startX: x, startY: y };
+  }, [board, columnAtX]);
 
   // ─── Board loading & watching ─────────────────────────────────────────────
 
@@ -534,15 +583,100 @@ export function Board({ kandownDir, version }: BoardProps) {
     }
   }, [board, mode, colIndex, rowIndex, ctxMenuRow, moveTaskId, kandownDir, updateLayout, openDetail, closeContextMenu]);
 
+  const handleMouseEvent = useCallback((mouse: NonNullable<ReturnType<typeof parseMouseInput>>) => {
+    if (!board) return;
+
+    if (mode === 'browse') {
+      if (mouse.action === 'press' && mouse.button === 0) {
+        const hit = taskHitAt(mouse.x, mouse.y);
+        if (hit) {
+          setMousePress(hit);
+          setColIndex(hit.colIndex);
+          setRowIndex(hit.rowIndex);
+        }
+        return;
+      }
+
+      if (mouse.action === 'drag' && mousePress) {
+        const delta = Math.max(Math.abs(mouse.x - mousePress.startX), Math.abs(mouse.y - mousePress.startY));
+        if (delta < 1) return;
+        const hoverCol = columnAtX(mouse.x);
+        setTaskDrag({ taskId: mousePress.taskId, sourceCol: mousePress.colIndex, hoverCol });
+        setMoveTargetCol(hoverCol >= 0 ? hoverCol : mousePress.colIndex);
+        setMoveTaskId(mousePress.taskId);
+        setMode('dragging');
+        closeContextMenu();
+        return;
+      }
+
+      if (mouse.action === 'release' && mousePress) {
+        const hit = taskHitAt(mouse.x, mouse.y);
+        if (hit && hit.taskId === mousePress.taskId) {
+          setCtxMenuRow(mousePress.rowIndex);
+          setCtxMenuCursor(0);
+          setMode('context-menu');
+        }
+        setMousePress(null);
+        return;
+      }
+
+      if (mouse.action === 'press') handleMouseClick(mouse.x, mouse.y);
+      return;
+    }
+
+    if (mode === 'dragging') {
+      if (!taskDrag) {
+        setMode('browse');
+        setMoveTaskId(null);
+        setMousePress(null);
+        return;
+      }
+
+      if (mouse.action === 'drag') {
+        const hoverCol = columnAtX(mouse.x);
+        setTaskDrag(current => current ? { ...current, hoverCol } : current);
+        setMoveTargetCol(hoverCol >= 0 ? hoverCol : taskDrag.sourceCol);
+        return;
+      }
+
+      if (mouse.action === 'release') {
+        const targetCol = columnAtX(mouse.x);
+        if (targetCol >= 0 && targetCol !== taskDrag.sourceCol) {
+          const targetColName = board.columns[targetCol]?.name;
+          if (targetColName) {
+            moveTaskToColumn(kandownDir, taskDrag.taskId, targetColName);
+            const loaded = readBoard(kandownDir);
+            setBoard(loaded);
+            updateLayout(loaded);
+            setColIndex(targetCol);
+            const movedRow = loaded.columns[targetCol]?.tasks.findIndex(task => task.id === taskDrag.taskId) ?? 0;
+            setRowIndex(Math.max(0, movedRow));
+            setStatusMsg(`Dragged ${taskDrag.taskId} → ${targetColName}`);
+            setTimeout(() => setStatusMsg(''), 2000);
+          }
+        }
+        setTaskDrag(null);
+        setMousePress(null);
+        setMoveTaskId(null);
+        setMode('browse');
+        return;
+      }
+
+      return;
+    }
+
+    if (mouse.action === 'press' && mouse.button === 0) {
+      handleMouseClick(mouse.x, mouse.y);
+    }
+  }, [board, mode, mousePress, taskDrag, taskHitAt, columnAtX, closeContextMenu, handleMouseClick, kandownDir, updateLayout]);
+
   // ─── Input handling (keyboard + mouse) ────────────────────────────────────
 
   useInput((input, key) => {
     // 📖 Mouse sequence detected — parse and handle click
     if (isMouseInput(input)) {
       const mouse = parseMouseInput(input);
-      if (mouse && mouse.action === 'press' && mouse.button === 0) {
-        handleMouseClick(mouse.x, mouse.y);
-      }
+      if (mouse) handleMouseEvent(mouse);
       return;
     }
 
@@ -644,6 +778,17 @@ export function Board({ kandownDir, version }: BoardProps) {
     }
 
     // ─── Move-target mode ─────────────────────────────────────────────────
+    if (mode === 'dragging') {
+      if (key.escape || input === 'q') {
+        setTaskDrag(null);
+        setMousePress(null);
+        setMoveTaskId(null);
+        setMode('browse');
+        return;
+      }
+      return;
+    }
+
     if (mode === 'move-target') {
       if (key.escape || input === 'q') {
         setMoveTaskId(null);
@@ -723,6 +868,8 @@ export function Board({ kandownDir, version }: BoardProps) {
     modeHint = 'j/k choose · Enter confirm · Esc cancel · or click';
   } else if (mode === 'move-target') {
     modeHint = '←/→ pick column · Enter confirm · Esc cancel · or click ↓';
+  } else if (mode === 'dragging') {
+    modeHint = 'drag over target column · release to drop · Esc cancel';
   }
 
   // ─── Agent picker ─────────────────────────────────────────────────────────
@@ -775,19 +922,20 @@ export function Board({ kandownDir, version }: BoardProps) {
             // 📖 Context menu renders inline in the focused column only
             contextMenuRow={mode === 'context-menu' && cIdx === colIndex ? ctxMenuRow : -1}
             contextMenuCursor={ctxMenuCursor}
-            showMoveTarget={mode === 'move-target' && cIdx !== colIndex}
-            isMoveFocused={mode === 'move-target' && cIdx === moveTargetCol}
+            showMoveTarget={(mode === 'move-target' && cIdx !== colIndex) || (mode === 'dragging' && cIdx !== taskDrag?.sourceCol)}
+            isMoveFocused={(mode === 'move-target' || mode === 'dragging') && cIdx === moveTargetCol}
+            draggedTaskId={taskDrag?.taskId ?? null}
           />
         ))}
       </Box>
 
-      {mode === 'move-target' && moveTaskId && (
+      {(mode === 'move-target' || mode === 'dragging') && moveTaskId && (
         <Box marginTop={1}>
           <Text color="yellow" bold>
             Moving <Text color="cyan">{moveTaskId}</Text>
-            <Text color="gray"> — click </Text>
-            <Text color="yellow" bold>↓</Text>
-            <Text color="gray"> or ←/→ + Enter</Text>
+            <Text color="gray"> — </Text>
+            <Text color="yellow" bold>{mode === 'dragging' ? 'release over a column' : 'click ↓'}</Text>
+            <Text color="gray">{mode === 'dragging' ? ' · Esc cancel' : ' or ←/→ + Enter'}</Text>
           </Text>
         </Box>
       )}
