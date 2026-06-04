@@ -1,118 +1,40 @@
 /**
- * @file Task Context Menu component
- * @description Small, unobtrusive popup menu that appears when a user clicks
- * on a task in the board TUI. Provides two actions:
- *   - "Open task" — opens the task detail view (same as pressing Enter)
- *   - "Move task" — enters move mode, showing target placeholders in other columns
+ * @file Inline context menu for task actions
+ * @description Compact 2-line context menu rendered inline within a board column,
+ * directly below the task it refers to. Shows "Open task" and "Move task" options.
  *
- * 📖 Design philosophy: minimal, sober TUI modal — no flashy colors, no borders.
- * Just a small floating box near the cursor position with two options.
- *
- * 📖 Keyboard support: j/k or ↑/↓ to navigate, Enter to confirm, Esc to cancel.
- * Mouse support: click on an option to select it.
+ * 📖 Design: minimal, no borders, just indented options with a ▸ cursor.
+ * Fits naturally within the column width. Keyboard-navigable (j/k + Enter).
  *
  * @functions
- *  → TaskContextMenu — context menu overlay component
+ *  → InlineContextMenu — inline menu component
  *
- * @exports TaskContextMenu
- * @see src/cli/screens/board.tsx — parent that renders this menu
+ * @exports InlineContextMenu
+ * @see src/cli/screens/board.tsx — renders this inside KanbanColumn
  */
 
-import { useState } from 'react';
-import { Box, Text, useInput } from 'ink';
+import { Box, Text } from 'ink';
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-export interface ContextMenuOption {
-  id: string;
-  label: string;
-  icon: string;
+interface InlineContextMenuProps {
+  /** Which option is focused (0 or 1) */
+  cursor: number;
+  /** Available width (column width) */
+  colWidth: number;
 }
 
-interface TaskContextMenuProps {
-  /** Task ID the menu is for (shown in header) */
-  taskId: string;
-  /** Available menu options */
-  options: ContextMenuOption[];
-  /** Called when user confirms a selection */
-  onSelect: (optionId: string) => void;
-  /** Called when user cancels (Esc/q) */
-  onCancel: () => void;
-  /** Mouse position to position the menu near (1-based terminal coords) */
-  mouseX?: number;
-  mouseY?: number;
-  /** Callback fired on mouse click — used for click-to-select in menu items */
-  onMouseClick?: (x: number, y: number) => void;
-  /** The row offset where the menu starts rendering (for click detection) */
-  menuStartRow?: number;
-}
-
-// ─── Component ───────────────────────────────────────────────────────────────
-
-export function TaskContextMenu({
-  taskId,
-  options,
-  onSelect,
-  onCancel,
-  mouseX,
-  mouseY,
-  onMouseClick,
-  menuStartRow,
-}: TaskContextMenuProps) {
-  const [cursor, setCursor] = useState(0);
-
-  useInput((input, key) => {
-    if (key.escape || input === 'q') {
-      onCancel();
-      return;
-    }
-
-    if (key.downArrow || input === 'j') {
-      setCursor(c => Math.min(c + 1, options.length - 1));
-      return;
-    }
-    if (key.upArrow || input === 'k') {
-      setCursor(c => Math.max(c - 1, 0));
-      return;
-    }
-
-    if (key.return) {
-      const opt = options[cursor];
-      if (opt) onSelect(opt.id);
-      return;
-    }
-  });
-
-  // 📖 Calculate menu width — enough for the longest option + icon + padding
-  const maxLabelLen = Math.max(...options.map(o => o.label.length));
-  const menuWidth = Math.max(24, maxLabelLen + 8);
-
-  // 📖 Build menu lines with position tracking for mouse clicks
-  const lines: { optionId: string; y: number }[] = [];
-  const startRow = menuStartRow ?? 0;
+export function InlineContextMenu({ cursor, colWidth }: InlineContextMenuProps) {
+  const options = [
+    { label: 'Open task', icon: '📖' },
+    { label: 'Move task', icon: '↗' },
+  ];
 
   return (
-    <Box
-      flexDirection="column"
-      paddingLeft={2}
-      marginTop={0}
-    >
-      {/* Header — small, subtle */}
-      <Box>
-        <Text color="gray" dimColor>┌─ </Text>
-        <Text color="cyan" bold>{taskId}</Text>
-        <Text color="gray" dimColor> ─┐</Text>
-      </Box>
-
-      {/* Options */}
+    <Box flexDirection="column">
       {options.map((opt, idx) => {
         const focused = idx === cursor;
-        const lineY = startRow + 1 + idx; // +1 for header line
-        lines.push({ optionId: opt.id, y: lineY });
-
         return (
-          <Box key={opt.id}>
-            <Text color="gray" dimColor>│ </Text>
+          <Box key={opt.label}>
+            <Text color="gray" dimColor>{'  '}</Text>
             <Text
               color={focused ? 'black' : 'gray'}
               backgroundColor={focused ? 'cyan' : undefined}
@@ -120,16 +42,12 @@ export function TaskContextMenu({
             >
               {focused ? '▸' : ' '} {opt.icon} {opt.label}
             </Text>
-            {!focused && <Text color="gray" dimColor>{' '.repeat(Math.max(0, menuWidth - opt.label.length - 4))}│</Text>}
-            {focused && <Text color="gray" dimColor>{' '.repeat(Math.max(0, menuWidth - opt.label.length - 4))}│</Text>}
           </Box>
         );
       })}
-
-      {/* Footer */}
-      <Box>
-        <Text color="gray" dimColor>└{'─'.repeat(menuWidth)}┘</Text>
-      </Box>
     </Box>
   );
 }
+
+/** 📖 Number of terminal lines the menu occupies (for Y-coordinate offset calculation). */
+export const MENU_HEIGHT = 2;

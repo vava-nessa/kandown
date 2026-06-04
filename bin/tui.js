@@ -27968,7 +27968,7 @@ var require_backend = __commonJS({
                     return [initialArg, function() {
                     }];
                   },
-                  useRef: function useRef6(initialValue) {
+                  useRef: function useRef5(initialValue) {
                     var hook = nextHook();
                     initialValue = null !== hook ? hook.memoizedState : {
                       current: initialValue
@@ -27983,7 +27983,7 @@ var require_backend = __commonJS({
                     });
                     return initialValue;
                   },
-                  useState: function useState10(initialState) {
+                  useState: function useState9(initialState) {
                     var hook = nextHook();
                     initialState = null !== hook ? hook.memoizedState : "function" === typeof initialState ? initialState() : initialState;
                     hookLog.push({
@@ -54326,7 +54326,7 @@ function ValueDisplay({ setting, value, focused }) {
 }
 
 // src/cli/screens/board.tsx
-var import_react38 = __toESM(require_react(), 1);
+var import_react37 = __toESM(require_react(), 1);
 
 // src/cli/lib/board-reader.ts
 import { existsSync as existsSync3, readdirSync, readFileSync as readFileSync3, writeFileSync as writeFileSync2 } from "fs";
@@ -56757,222 +56757,76 @@ function AgentPicker({ agents, taskId, onSelect, onCancel }) {
 
 // src/cli/hooks/use-mouse.ts
 var import_react36 = __toESM(require_react(), 1);
-var MOUSE_ENABLE_X10 = "\x1B[?1000h";
-var MOUSE_DISABLE_X10 = "\x1B[?1000l";
-var MOUSE_ENABLE_SGR = "\x1B[?1006h";
-var MOUSE_DISABLE_SGR = "\x1B[?1006l";
-function parseSGRMouse(buffer) {
-  const sgrRegex = /^\x1b\[<(\d+);(\d+);(\d+)([Mm])/;
-  const match = buffer.match(sgrRegex);
+var MOUSE_ENABLE = "\x1B[?1000h\x1B[?1006h";
+var MOUSE_DISABLE = "\x1B[?1006l\x1B[?1000l";
+var RE_SGR_MOUSE = /^\[<(\d+);(\d+);(\d+)([Mm])/;
+function parseMouseInput(input) {
+  const match = input.match(RE_SGR_MOUSE);
   if (!match) return null;
   const cb = parseInt(match[1], 10);
   const cx = parseInt(match[2], 10);
   const cy = parseInt(match[3], 10);
   const isPress = match[4] === "M";
-  const button = cb & 3;
-  const shift = (cb & 4) !== 0;
-  const meta = (cb & 8) !== 0;
-  const ctrl = (cb & 16) !== 0;
   return {
-    event: {
-      x: cx,
-      y: cy,
-      button,
-      action: isPress ? "press" : "release",
-      shift,
-      meta,
-      ctrl
-    },
-    endIndex: match[0].length
+    x: cx,
+    y: cy,
+    button: cb & 3,
+    action: isPress ? "press" : "release"
   };
 }
-function parseX10Mouse(buffer) {
-  if (!buffer.startsWith("\x1B[M")) return null;
-  if (buffer.length < 6) return null;
-  const cb = buffer.charCodeAt(3) - 32;
-  const cx = buffer.charCodeAt(4) - 32;
-  const cy = buffer.charCodeAt(5) - 32;
-  if (cb < 0 || cx < 0 || cy < 0) return null;
-  const button = cb & 3;
-  const shift = (cb & 4) !== 0;
-  const meta = (cb & 8) !== 0;
-  const ctrl = (cb & 16) !== 0;
-  return {
-    event: {
-      x: cx,
-      y: cy,
-      button,
-      action: "press",
-      // X10 only reports press
-      shift,
-      meta,
-      ctrl
-    },
-    endIndex: 6
-  };
+function isMouseInput(input) {
+  return input.startsWith("[<") || input.startsWith("[M");
 }
-function useMouse(handler, options = {}) {
-  const { enabled = true, pressOnly = true } = options;
-  const handlerRef = (0, import_react36.useRef)(handler);
-  handlerRef.current = handler;
+function useMouseMode(enabled = true) {
   (0, import_react36.useEffect)(() => {
     if (!enabled) return;
-    const stdin = process.stdin;
-    if (!stdin.isTTY) return;
-    process.stdout.write(MOUSE_ENABLE_SGR + MOUSE_ENABLE_X10);
-    let buffer = "";
-    const onData = (data) => {
-      buffer += data.toString("utf8");
-      while (buffer.length > 0) {
-        let parsed = parseSGRMouse(buffer);
-        if (!parsed) {
-          parsed = parseX10Mouse(buffer);
-        }
-        if (parsed) {
-          const { event, endIndex } = parsed;
-          buffer = buffer.slice(endIndex);
-          if (pressOnly && event.action === "release") continue;
-          if (event.button === 3 && event.action === "press") continue;
-          handlerRef.current(event);
-        } else if (buffer.startsWith("\x1B[")) {
-          if (buffer.length >= 3 && buffer[2] !== "<" && buffer[2] !== "M") {
-            const leftover = buffer;
-            buffer = "";
-            stdin.unshift(Buffer.from(leftover, "utf8"));
-            break;
-          }
-          if (buffer.length > 32) {
-            const leftover = buffer;
-            buffer = "";
-            stdin.unshift(Buffer.from(leftover, "utf8"));
-          }
-          break;
-        } else if (buffer.startsWith("\x1B") && buffer.length > 1 && buffer[1] !== "[") {
-          const leftover = buffer;
-          buffer = "";
-          stdin.unshift(Buffer.from(leftover, "utf8"));
-          break;
-        } else if (buffer.startsWith("\x1B") && buffer.length === 1) {
-          break;
-        } else {
-          const leftover = buffer;
-          buffer = "";
-          stdin.unshift(Buffer.from(leftover, "utf8"));
-          break;
-        }
-      }
-      if (buffer.length > 256) {
-        const leftover = buffer;
-        buffer = "";
-        stdin.unshift(Buffer.from(leftover, "utf8"));
-      }
-    };
-    stdin.prependListener("data", onData);
+    if (!process.stdin.isTTY) return;
+    process.stdout.write(MOUSE_ENABLE);
     const cleanup = () => {
-      process.stdout.write(MOUSE_DISABLE_SGR + MOUSE_DISABLE_X10);
+      process.stdout.write(MOUSE_DISABLE);
     };
     process.on("exit", cleanup);
     return () => {
-      stdin.removeListener("data", onData);
       process.removeListener("exit", cleanup);
-      process.stdout.write(MOUSE_DISABLE_SGR + MOUSE_DISABLE_X10);
+      process.stdout.write(MOUSE_DISABLE);
     };
-  }, [enabled, pressOnly]);
+  }, [enabled]);
 }
 
 // src/cli/components/task-context-menu.tsx
-var import_react37 = __toESM(require_react(), 1);
 var import_jsx_runtime3 = __toESM(require_jsx_runtime(), 1);
-function TaskContextMenu({
-  taskId,
-  options,
-  onSelect,
-  onCancel,
-  mouseX,
-  mouseY,
-  onMouseClick,
-  menuStartRow
-}) {
-  const [cursor, setCursor] = (0, import_react37.useState)(0);
-  use_input_default((input, key) => {
-    if (key.escape || input === "q") {
-      onCancel();
-      return;
-    }
-    if (key.downArrow || input === "j") {
-      setCursor((c) => Math.min(c + 1, options.length - 1));
-      return;
-    }
-    if (key.upArrow || input === "k") {
-      setCursor((c) => Math.max(c - 1, 0));
-      return;
-    }
-    if (key.return) {
-      const opt = options[cursor];
-      if (opt) onSelect(opt.id);
-      return;
-    }
-  });
-  const maxLabelLen = Math.max(...options.map((o) => o.label.length));
-  const menuWidth = Math.max(24, maxLabelLen + 8);
-  const lines = [];
-  const startRow = menuStartRow ?? 0;
-  return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
-    Box_default,
-    {
-      flexDirection: "column",
-      paddingLeft: 2,
-      marginTop: 0,
-      children: [
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(Box_default, { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(Text, { color: "gray", dimColor: true, children: "\u250C\u2500 " }),
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(Text, { color: "cyan", bold: true, children: taskId }),
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(Text, { color: "gray", dimColor: true, children: " \u2500\u2510" })
-        ] }),
-        options.map((opt, idx) => {
-          const focused = idx === cursor;
-          const lineY = startRow + 1 + idx;
-          lines.push({ optionId: opt.id, y: lineY });
-          return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(Box_default, { children: [
-            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(Text, { color: "gray", dimColor: true, children: "\u2502 " }),
-            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
-              Text,
-              {
-                color: focused ? "black" : "gray",
-                backgroundColor: focused ? "cyan" : void 0,
-                bold: focused,
-                children: [
-                  focused ? "\u25B8" : " ",
-                  " ",
-                  opt.icon,
-                  " ",
-                  opt.label
-                ]
-              }
-            ),
-            !focused && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(Text, { color: "gray", dimColor: true, children: [
-              " ".repeat(Math.max(0, menuWidth - opt.label.length - 4)),
-              "\u2502"
-            ] }),
-            focused && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(Text, { color: "gray", dimColor: true, children: [
-              " ".repeat(Math.max(0, menuWidth - opt.label.length - 4)),
-              "\u2502"
-            ] })
-          ] }, opt.id);
-        }),
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(Box_default, { children: /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(Text, { color: "gray", dimColor: true, children: [
-          "\u2514",
-          "\u2500".repeat(menuWidth),
-          "\u2518"
-        ] }) })
-      ]
-    }
-  );
+function InlineContextMenu({ cursor, colWidth }) {
+  const options = [
+    { label: "Open task", icon: "\u{1F4D6}" },
+    { label: "Move task", icon: "\u2197" }
+  ];
+  return /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(Box_default, { flexDirection: "column", children: options.map((opt, idx) => {
+    const focused = idx === cursor;
+    return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(Box_default, { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(Text, { color: "gray", dimColor: true, children: "  " }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
+        Text,
+        {
+          color: focused ? "black" : "gray",
+          backgroundColor: focused ? "cyan" : void 0,
+          bold: focused,
+          children: [
+            focused ? "\u25B8" : " ",
+            " ",
+            opt.icon,
+            " ",
+            opt.label
+          ]
+        }
+      )
+    ] }, opt.label);
+  }) });
 }
+var MENU_HEIGHT = 2;
 
 // src/cli/screens/board.tsx
 var import_jsx_runtime4 = __toESM(require_jsx_runtime(), 1);
-var HEADER_LINES = 4;
+var TASKS_START_Y = 5;
 function truncate(str, maxLen) {
   if (str.length <= maxLen) return str;
   return str.slice(0, maxLen - 1) + "\u2026";
@@ -56990,23 +56844,18 @@ function calcColWidth(numCols) {
 }
 var RE_HEADER = /^#{1,3}\s/;
 var RE_SUBTASK = /^\s*-\s+\[([ xX])\]/;
-var RE_DONE_SUBTASK = /^\s*-\s+\[x\]/i;
+var RE_DONE = /^\s*-\s+\[x\]/i;
 var RE_BRACKET_TAG = /^\[([^\]]+)\]\s*/;
-function TaskRow({
-  task,
-  focused,
-  colWidth
-}) {
+function TaskRow({ task, focused, colWidth }) {
   const cursor = focused ? "\u25B8" : " ";
   const check2 = task.checked ? "\u2713" : "\u25CB";
   const idStr = task.id;
   const tagMatch = task.title.match(RE_BRACKET_TAG);
   const tag = tagMatch ? `[${tagMatch[1]}]` : "";
-  const titleWithoutTag = tagMatch ? task.title.slice(tagMatch[0].length) : task.title;
+  const titleClean = tagMatch ? task.title.slice(tagMatch[0].length) : task.title;
   const fixedChars = 4 + idStr.length + 1;
   const tagChars = tag ? tag.length + 1 : 0;
-  const available = colWidth - fixedChars - tagChars;
-  const titleStr = truncate(titleWithoutTag, Math.max(4, available));
+  const titleStr = truncate(titleClean, Math.max(4, colWidth - fixedChars - tagChars));
   return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { children: [
     /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: focused ? "cyan" : void 0, bold: focused, children: [
       cursor,
@@ -57027,12 +56876,7 @@ function TaskRow({
     ] })
   ] });
 }
-function MovePlaceholder({
-  name,
-  focused,
-  colWidth
-}) {
-  const label = `\u2193 ${name}`;
+function MovePlaceholder({ name, focused, colWidth }) {
   return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { children: /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(
     Text,
     {
@@ -57041,7 +56885,7 @@ function MovePlaceholder({
       bold: focused,
       children: [
         "  ",
-        pad(label, colWidth - 2)
+        pad(`\u2193 ${name}`, colWidth - 2)
       ]
     }
   ) });
@@ -57052,35 +56896,54 @@ function KanbanColumn({
   focusedRow,
   isFocused,
   colWidth,
+  contextMenuRow,
+  contextMenuCursor,
   showMoveTarget,
   isMoveFocused
 }) {
   const headerBg = isFocused ? "cyan" : void 0;
   const headerColor = isFocused ? "black" : "cyan";
   const countStr = tasks.length > 0 ? ` (${tasks.length})` : "";
-  const headerText = truncate(`${name}${countStr}`, colWidth);
+  const rows = [];
+  tasks.forEach((task, idx) => {
+    rows.push(
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+        TaskRow,
+        {
+          task,
+          focused: isFocused && idx === focusedRow,
+          colWidth
+        },
+        task.id
+      )
+    );
+    if (contextMenuRow === idx) {
+      rows.push(
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+          InlineContextMenu,
+          {
+            cursor: contextMenuCursor ?? 0,
+            colWidth
+          },
+          "ctx-menu"
+        )
+      );
+    }
+  });
   return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { flexDirection: "column", width: colWidth, marginRight: 1, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { backgroundColor: headerBg, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: headerColor, bold: true, children: pad(headerText, colWidth) }) }),
+    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { backgroundColor: headerBg, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: headerColor, bold: true, children: pad(`${name}${countStr}`, colWidth) }) }),
     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: isFocused ? "cyan" : "gray", children: "\u2500".repeat(colWidth) }),
     tasks.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: "gray", dimColor: true, children: [
       " ".repeat(2),
       "(empty)"
-    ] }) : tasks.map((task, idx) => /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
-      TaskRow,
-      {
-        task,
-        focused: isFocused && idx === focusedRow,
-        colWidth
-      },
-      task.id
-    )),
+    ] }) : rows,
     showMoveTarget && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(MovePlaceholder, { name, focused: !!isMoveFocused, colWidth })
   ] });
 }
 function BoardHeader({ title, inTmux, modeHint, version }) {
   const tmuxHint = inTmux ? " tmux" : "";
-  const hint = modeHint || "h/l cols  j/k tasks  Enter detail  a agent  r reload  q quit";
   const versionTag = version ? ` v${version}` : "";
+  const hint = modeHint || "h/l cols \xB7 j/k tasks \xB7 Enter detail \xB7 m menu \xB7 a agent \xB7 r reload \xB7 q quit";
   return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { marginBottom: 1, justifyContent: "space-between", children: [
     /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { bold: true, color: "cyan", children: [
       "  ",
@@ -57099,17 +56962,13 @@ function StatusBar({ message, task }) {
   }
   if (!task) return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: " " }) });
   return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: "gray", children: [
-    task.id.replace(/^t/, ""),
+    task.id,
     task.progress ? `  (${task.progress.done}/${task.progress.total})` : "",
     "  ",
     task.checked ? "\u2713 done" : "\u25CB open"
   ] }) });
 }
-function TaskDetail({
-  task,
-  taskId,
-  scrollOffset
-}) {
+function TaskDetail({ task, taskId, scrollOffset }) {
   const fm = task.frontmatter;
   const bodyLines = task.body.split("\n");
   const maxVisible = (process.stdout.rows || 24) - 10;
@@ -57131,14 +56990,14 @@ function TaskDetail({
     ] }) }),
     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: "\u2500".repeat(termWidth() - 4) }),
     visibleLines.map((line, idx) => {
-      const isHeader = RE_HEADER.test(line);
-      const isSubtask = RE_SUBTASK.test(line);
-      const isDone = RE_DONE_SUBTASK.test(line);
+      const isH = RE_HEADER.test(line);
+      const isS = RE_SUBTASK.test(line);
+      const isD = RE_DONE.test(line);
       return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
         Text,
         {
-          color: isHeader ? "cyan" : isDone ? "green" : isSubtask ? "white" : "gray",
-          bold: isHeader,
+          color: isH ? "cyan" : isD ? "green" : isS ? "white" : "gray",
+          bold: isH,
           children: line || " "
         },
         scrollOffset + idx
@@ -57158,25 +57017,25 @@ function TaskDetail({
 }
 function Board({ kandownDir, version }) {
   const { exit } = use_app_default();
-  const [board, setBoard] = (0, import_react38.useState)(null);
-  const [colIndex, setColIndex] = (0, import_react38.useState)(0);
-  const [rowIndex, setRowIndex] = (0, import_react38.useState)(0);
-  const [mode, setMode] = (0, import_react38.useState)("browse");
-  const [detailTask, setDetailTask] = (0, import_react38.useState)(null);
-  const [detailTaskId, setDetailTaskId] = (0, import_react38.useState)("");
-  const [detailScroll, setDetailScroll] = (0, import_react38.useState)(0);
-  const [installedAgents, setInstalledAgents] = (0, import_react38.useState)([]);
-  const [statusMsg, setStatusMsg] = (0, import_react38.useState)("");
-  const [contextTaskId, setContextTaskId] = (0, import_react38.useState)(null);
-  const [moveTaskId, setMoveTaskId] = (0, import_react38.useState)(null);
-  const [moveTargetCol, setMoveTargetCol] = (0, import_react38.useState)(0);
+  const [board, setBoard] = (0, import_react37.useState)(null);
+  const [colIndex, setColIndex] = (0, import_react37.useState)(0);
+  const [rowIndex, setRowIndex] = (0, import_react37.useState)(0);
+  const [mode, setMode] = (0, import_react37.useState)("browse");
+  const [statusMsg, setStatusMsg] = (0, import_react37.useState)("");
+  const [detailTask, setDetailTask] = (0, import_react37.useState)(null);
+  const [detailTaskId, setDetailTaskId] = (0, import_react37.useState)("");
+  const [detailScroll, setDetailScroll] = (0, import_react37.useState)(0);
+  const [ctxMenuRow, setCtxMenuRow] = (0, import_react37.useState)(-1);
+  const [ctxMenuCursor, setCtxMenuCursor] = (0, import_react37.useState)(0);
+  const [moveTaskId, setMoveTaskId] = (0, import_react37.useState)(null);
+  const [moveTargetCol, setMoveTargetCol] = (0, import_react37.useState)(0);
+  const [installedAgents, setInstalledAgents] = (0, import_react37.useState)([]);
   const inTmux = isInTmux();
-  const layoutRef = (0, import_react38.useRef)({
+  const layoutRef = (0, import_react37.useRef)({
     colStarts: [],
-    colWidth: 0,
-    colTaskCounts: []
+    colWidth: 0
   });
-  const updateLayout = (0, import_react38.useCallback)((b) => {
+  const updateLayout = (0, import_react37.useCallback)((b) => {
     if (!b) return;
     const cw = calcColWidth(b.columns.length);
     const starts = [];
@@ -57185,19 +57044,15 @@ function Board({ kandownDir, version }) {
       starts.push(x);
       x += cw + 1;
     }
-    layoutRef.current = {
-      colStarts: starts,
-      colWidth: cw,
-      colTaskCounts: b.columns.map((c) => c.tasks.length)
-    };
+    layoutRef.current = { colStarts: starts, colWidth: cw };
   }, []);
-  (0, import_react38.useEffect)(() => {
+  (0, import_react37.useEffect)(() => {
     const loaded = readBoard(kandownDir);
     setBoard(loaded);
     updateLayout(loaded);
     setInstalledAgents(detectInstalledAgents());
   }, [kandownDir, updateLayout]);
-  (0, import_react38.useEffect)(() => {
+  (0, import_react37.useEffect)(() => {
     const watcher = createWatcher();
     watcher.on("taskChanged", () => {
       const loaded = readBoard(kandownDir);
@@ -57221,27 +57076,31 @@ function Board({ kandownDir, version }) {
       watcher.stop();
     };
   }, [kandownDir, updateLayout]);
-  const reloadBoard = (0, import_react38.useCallback)(() => {
+  const reloadBoard = (0, import_react37.useCallback)(() => {
     const loaded = readBoard(kandownDir);
     setBoard(loaded);
     updateLayout(loaded);
     setStatusMsg("Board reloaded");
     setTimeout(() => setStatusMsg(""), 1500);
   }, [kandownDir, updateLayout]);
-  const getFocusedTask = (0, import_react38.useCallback)(() => {
+  const getFocusedTask = (0, import_react37.useCallback)(() => {
     if (!board) return null;
     const col = board.columns[colIndex];
     if (!col || col.tasks.length === 0) return null;
     return col.tasks[Math.min(rowIndex, col.tasks.length - 1)] ?? null;
   }, [board, colIndex, rowIndex]);
-  const openDetail = (0, import_react38.useCallback)((taskId) => {
+  const openDetail = (0, import_react37.useCallback)((taskId) => {
     const task = readTask(kandownDir, taskId);
     setDetailTask(task);
     setDetailTaskId(taskId);
     setDetailScroll(0);
     setMode("detail");
   }, [kandownDir]);
-  const handleAgentSelect = (0, import_react38.useCallback)((agentId) => {
+  const closeContextMenu = (0, import_react37.useCallback)(() => {
+    setCtxMenuRow(-1);
+    setCtxMenuCursor(0);
+  }, []);
+  const handleAgentSelect = (0, import_react37.useCallback)((agentId) => {
     const task = getFocusedTask();
     const taskId = mode === "detail" ? detailTaskId : task?.id;
     if (!taskId) return;
@@ -57249,12 +57108,7 @@ function Board({ kandownDir, version }) {
     setStatusMsg(`Launching ${agentId} for ${taskId}\u2026`);
     setTimeout(() => {
       try {
-        launchAgent({
-          taskId,
-          agentId,
-          kandownDir,
-          onBeforeExec: () => exit()
-        });
+        launchAgent({ taskId, agentId, kandownDir, onBeforeExec: () => exit() });
         reloadBoard();
         setStatusMsg(`${agentId} launched in tmux pane`);
         setTimeout(() => setStatusMsg(""), 3e3);
@@ -57264,122 +57118,135 @@ function Board({ kandownDir, version }) {
       }
     }, 50);
   }, [mode, detailTaskId, getFocusedTask, kandownDir, exit, reloadBoard]);
-  const handleMouseClick = (0, import_react38.useCallback)((evt) => {
-    if (evt.button !== 0) return;
+  useMouseMode(mode !== "agent-picker");
+  const handleMouseClick = (0, import_react37.useCallback)((x, y) => {
     if (!board) return;
-    const { x, y } = evt;
     const layout = layoutRef.current;
+    let clickedCol = -1;
+    for (let c = 0; c < layout.colStarts.length; c++) {
+      const start = layout.colStarts[c];
+      if (x >= start && x < start + layout.colWidth) {
+        clickedCol = c;
+        break;
+      }
+    }
     if (mode === "browse") {
-      for (let c = 0; c < board.columns.length; c++) {
-        const colStart = layout.colStarts[c] || 0;
-        const colEnd = colStart + layout.colWidth;
-        if (x >= colStart && x <= colEnd) {
-          const taskRow = y - HEADER_LINES;
-          if (taskRow >= 0 && taskRow < board.columns[c].tasks.length) {
-            setColIndex(c);
-            setRowIndex(taskRow);
-            const task = board.columns[c].tasks[taskRow];
-            if (task) {
-              setContextTaskId(task.id);
-              setMode("context-menu");
-            }
-            return;
-          }
-        }
+      if (clickedCol < 0) return;
+      const col = board.columns[clickedCol];
+      const taskIdx = y - TASKS_START_Y;
+      if (taskIdx >= 0 && taskIdx < col.tasks.length) {
+        setColIndex(clickedCol);
+        setRowIndex(taskIdx);
+        setCtxMenuRow(taskIdx);
+        setCtxMenuCursor(0);
+        setMode("context-menu");
       }
       return;
     }
     if (mode === "context-menu") {
-      const maxTasks = Math.max(...board.columns.map((c) => c.tasks.length), 0);
-      const menuStartY = HEADER_LINES + maxTasks + 1;
-      const menuRow = y - menuStartY;
-      if (menuRow === 1) {
-        if (contextTaskId) {
-          setContextTaskId(null);
-          openDetail(contextTaskId);
-        }
+      if (clickedCol < 0) {
+        closeContextMenu();
+        setMode("browse");
         return;
       }
-      if (menuRow === 2) {
-        if (contextTaskId) {
-          const taskId = contextTaskId;
-          setContextTaskId(null);
-          setMoveTaskId(taskId);
-          const target = colIndex === 0 ? Math.min(1, board.columns.length - 1) : 0;
-          setMoveTargetCol(target);
-          setMode("move-target");
+      const col = board.columns[clickedCol];
+      const hasMenu = clickedCol === colIndex && ctxMenuRow >= 0;
+      if (hasMenu) {
+        const taskIdx = y - TASKS_START_Y;
+        if (taskIdx >= 0 && taskIdx < ctxMenuRow) {
+          setRowIndex(taskIdx);
+          setCtxMenuRow(taskIdx);
+          setCtxMenuCursor(0);
+          return;
         }
-        return;
-      }
-      if (menuRow < 0 || menuRow > 3) {
-        for (let c = 0; c < board.columns.length; c++) {
-          const colStart = layout.colStarts[c] || 0;
-          const colEnd = colStart + layout.colWidth;
-          if (x >= colStart && x <= colEnd) {
-            const taskRow = y - HEADER_LINES;
-            if (taskRow >= 0 && taskRow < board.columns[c].tasks.length) {
-              setColIndex(c);
-              setRowIndex(taskRow);
-              const task = board.columns[c].tasks[taskRow];
-              if (task) {
-                setContextTaskId(task.id);
-              }
-              return;
+        if (taskIdx === ctxMenuRow) {
+          closeContextMenu();
+          setMode("browse");
+          return;
+        }
+        const menuOffset = taskIdx - ctxMenuRow - 1;
+        if (menuOffset >= 0 && menuOffset < MENU_HEIGHT) {
+          if (menuOffset === 0) {
+            const task = col.tasks[ctxMenuRow];
+            if (task) {
+              closeContextMenu();
+              openDetail(task.id);
+            }
+          } else {
+            const task = col.tasks[ctxMenuRow];
+            if (task) {
+              setMoveTaskId(task.id);
+              const target = colIndex === 0 ? Math.min(1, board.columns.length - 1) : 0;
+              setMoveTargetCol(target);
+              closeContextMenu();
+              setMode("move-target");
             }
           }
+          return;
         }
-        setContextTaskId(null);
-        setMode("browse");
+        const belowIdx = taskIdx - MENU_HEIGHT;
+        if (belowIdx >= 0 && belowIdx < col.tasks.length) {
+          setRowIndex(belowIdx);
+          closeContextMenu();
+          setCtxMenuRow(belowIdx);
+          setCtxMenuCursor(0);
+          return;
+        }
+      } else {
+        const taskIdx = y - TASKS_START_Y;
+        if (taskIdx >= 0 && taskIdx < col.tasks.length) {
+          closeContextMenu();
+          setColIndex(clickedCol);
+          setRowIndex(taskIdx);
+          setCtxMenuRow(taskIdx);
+          setCtxMenuCursor(0);
+          return;
+        }
       }
+      closeContextMenu();
+      setMode("browse");
       return;
     }
     if (mode === "move-target") {
-      let clickedPlaceholder = false;
-      for (let c = 0; c < board.columns.length; c++) {
-        if (c === colIndex) continue;
-        const colStart = layout.colStarts[c] || 0;
-        const colEnd = colStart + layout.colWidth;
-        const colTaskCount = board.columns[c].tasks.length;
-        const placeholderRow = HEADER_LINES + colTaskCount;
-        if (x >= colStart && x <= colEnd && y === placeholderRow) {
-          const targetColName = board.columns[c].name;
-          if (moveTaskId && targetColName) {
-            moveTaskToColumn(kandownDir, moveTaskId, targetColName);
-            const loaded = readBoard(kandownDir);
-            setBoard(loaded);
-            updateLayout(loaded);
-            setStatusMsg(`Moved ${moveTaskId} \u2192 ${targetColName}`);
-            setTimeout(() => setStatusMsg(""), 2e3);
-          }
-          setMoveTaskId(null);
-          setMode("browse");
-          clickedPlaceholder = true;
-          break;
-        }
+      if (clickedCol < 0) {
+        setMoveTaskId(null);
+        setMode("browse");
+        return;
       }
-      if (!clickedPlaceholder) {
-        let clickedTask = false;
-        for (let c = 0; c < board.columns.length; c++) {
-          const colStart = layout.colStarts[c] || 0;
-          const colEnd = colStart + layout.colWidth;
-          if (x >= colStart && x <= colEnd) {
-            const taskRow = y - HEADER_LINES;
-            if (taskRow >= 0 && taskRow < board.columns[c].tasks.length) {
-              clickedTask = true;
-              break;
-            }
-          }
+      if (clickedCol === colIndex) {
+        setMoveTaskId(null);
+        setMode("browse");
+        return;
+      }
+      const col = board.columns[clickedCol];
+      const placeholderY = TASKS_START_Y + col.tasks.length;
+      if (y === placeholderY) {
+        const targetColName = col.name;
+        if (moveTaskId) {
+          moveTaskToColumn(kandownDir, moveTaskId, targetColName);
+          const loaded = readBoard(kandownDir);
+          setBoard(loaded);
+          updateLayout(loaded);
+          setStatusMsg(`Moved ${moveTaskId} \u2192 ${targetColName}`);
+          setTimeout(() => setStatusMsg(""), 2e3);
         }
-        if (!clickedTask) {
-          setMoveTaskId(null);
-          setMode("browse");
-        }
+        setMoveTaskId(null);
+        setMode("browse");
+        return;
+      }
+      setMoveTaskId(null);
+      setMode("browse");
+      return;
+    }
+  }, [board, mode, colIndex, rowIndex, ctxMenuRow, moveTaskId, kandownDir, updateLayout, openDetail, closeContextMenu]);
+  use_input_default((input, key) => {
+    if (isMouseInput(input)) {
+      const mouse = parseMouseInput(input);
+      if (mouse && mouse.action === "press" && mouse.button === 0) {
+        handleMouseClick(mouse.x, mouse.y);
       }
       return;
     }
-  }, [board, mode, colIndex, contextTaskId, moveTaskId, kandownDir, updateLayout, openDetail]);
-  useMouse(handleMouseClick, { enabled: mode !== "agent-picker" });
-  use_input_default((input, key) => {
     if (mode === "browse") {
       if (input === "q" || key.escape) {
         exit();
@@ -57415,9 +57282,18 @@ function Board({ kandownDir, version }) {
         if (task) openDetail(task.id);
         return;
       }
+      if (input === "m") {
+        const col = board?.columns[colIndex];
+        if (col && col.tasks.length > 0) {
+          setCtxMenuRow(rowIndex);
+          setCtxMenuCursor(0);
+          setMode("context-menu");
+        }
+        return;
+      }
       if (input === "a") {
         if (installedAgents.length === 0) {
-          setStatusMsg("No AI agents found in PATH (install claude, codex, aider, goose\u2026)");
+          setStatusMsg("No AI agents found in PATH");
           setTimeout(() => setStatusMsg(""), 3e3);
           return;
         }
@@ -57428,7 +57304,36 @@ function Board({ kandownDir, version }) {
       }
     }
     if (mode === "context-menu") {
-      return;
+      if (key.escape || input === "q") {
+        closeContextMenu();
+        setMode("browse");
+        return;
+      }
+      if (input === "j" || key.downArrow) {
+        setCtxMenuCursor((c) => Math.min(c + 1, 1));
+        return;
+      }
+      if (input === "k" || key.upArrow) {
+        setCtxMenuCursor((c) => Math.max(c - 1, 0));
+        return;
+      }
+      if (key.return) {
+        const col = board?.columns[colIndex];
+        if (!col) return;
+        const task = col.tasks[ctxMenuRow];
+        if (!task) return;
+        if (ctxMenuCursor === 0) {
+          closeContextMenu();
+          openDetail(task.id);
+        } else {
+          setMoveTaskId(task.id);
+          const target = colIndex === 0 ? Math.min(1, (board?.columns.length ?? 1) - 1) : 0;
+          setMoveTargetCol(target);
+          closeContextMenu();
+          setMode("move-target");
+        }
+        return;
+      }
     }
     if (mode === "move-target") {
       if (key.escape || input === "q") {
@@ -57438,29 +57343,27 @@ function Board({ kandownDir, version }) {
       }
       if (input === "l" || key.rightArrow) {
         if (!board) return;
-        const otherCols = board.columns.map((_, i) => i).filter((i) => i !== colIndex);
-        const currentIdx = otherCols.indexOf(moveTargetCol);
-        const nextIdx = Math.min(currentIdx + 1, otherCols.length - 1);
-        setMoveTargetCol(otherCols[nextIdx] ?? 0);
+        const others = board.columns.map((_, i) => i).filter((i) => i !== colIndex);
+        const cur = others.indexOf(moveTargetCol);
+        setMoveTargetCol(others[Math.min(cur + 1, others.length - 1)] ?? 0);
         return;
       }
       if (input === "h" || key.leftArrow) {
         if (!board) return;
-        const otherCols = board.columns.map((_, i) => i).filter((i) => i !== colIndex);
-        const currentIdx = otherCols.indexOf(moveTargetCol);
-        const prevIdx = Math.max(currentIdx - 1, 0);
-        setMoveTargetCol(otherCols[prevIdx] ?? 0);
+        const others = board.columns.map((_, i) => i).filter((i) => i !== colIndex);
+        const cur = others.indexOf(moveTargetCol);
+        setMoveTargetCol(others[Math.max(cur - 1, 0)] ?? 0);
         return;
       }
       if (key.return) {
         if (!board || !moveTaskId) return;
-        const targetColName = board.columns[moveTargetCol]?.name;
-        if (targetColName) {
-          moveTaskToColumn(kandownDir, moveTaskId, targetColName);
+        const name = board.columns[moveTargetCol]?.name;
+        if (name) {
+          moveTaskToColumn(kandownDir, moveTaskId, name);
           const loaded = readBoard(kandownDir);
           setBoard(loaded);
           updateLayout(loaded);
-          setStatusMsg(`Moved ${moveTaskId} \u2192 ${targetColName}`);
+          setStatusMsg(`Moved ${moveTaskId} \u2192 ${name}`);
           setTimeout(() => setStatusMsg(""), 2e3);
         }
         setMoveTaskId(null);
@@ -57504,12 +57407,18 @@ function Board({ kandownDir, version }) {
       /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: "gray", children: [
         "Run ",
         /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "cyan", children: "kandown init" }),
-        " to set up kandown in this project."
+        " to set up."
       ] })
     ] });
   }
   const colWidth = calcColWidth(board.columns.length);
   const focusedTask = getFocusedTask();
+  let modeHint;
+  if (mode === "context-menu") {
+    modeHint = "j/k choose \xB7 Enter confirm \xB7 Esc cancel \xB7 or click";
+  } else if (mode === "move-target") {
+    modeHint = "\u2190/\u2192 pick column \xB7 Enter confirm \xB7 Esc cancel \xB7 or click \u2193";
+  }
   if (mode === "agent-picker") {
     const taskId = detailTaskId || focusedTask?.id || "";
     return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { flexDirection: "column", children: [
@@ -57528,7 +57437,7 @@ function Board({ kandownDir, version }) {
   if (mode === "detail" && detailTask) {
     return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { flexDirection: "column", children: [
       /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { marginBottom: 1, justifyContent: "space-between", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: "Esc back  a launch agent  j/k scroll" }),
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: "Esc back \xB7 a agent \xB7 j/k scroll" }),
         /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: "gray", dimColor: true, children: [
           "KANDOWN  ",
           board.title
@@ -57537,16 +57446,6 @@ function Board({ kandownDir, version }) {
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(TaskDetail, { task: detailTask, taskId: detailTaskId, scrollOffset: detailScroll }),
       statusMsg && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", children: statusMsg }) })
     ] });
-  }
-  const contextMenuOptions = [
-    { id: "open", label: "Open task", icon: "\u{1F4D6}" },
-    { id: "move", label: "Move task", icon: "\u2197" }
-  ];
-  let modeHint;
-  if (mode === "context-menu") {
-    modeHint = "\u2191/\u2193 navigate  Enter confirm  Esc cancel  (or click)";
-  } else if (mode === "move-target") {
-    modeHint = "\u2190/\u2192 pick column  Enter confirm  Esc cancel  (or click \u2193 placeholder)";
   }
   return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { flexDirection: "column", children: [
     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(BoardHeader, { title: board.title, inTmux, modeHint, version }),
@@ -57558,42 +57457,19 @@ function Board({ kandownDir, version }) {
         focusedRow: cIdx === colIndex ? rowIndex : -1,
         isFocused: cIdx === colIndex,
         colWidth,
+        contextMenuRow: mode === "context-menu" && cIdx === colIndex ? ctxMenuRow : -1,
+        contextMenuCursor: ctxMenuCursor,
         showMoveTarget: mode === "move-target" && cIdx !== colIndex,
         isMoveFocused: mode === "move-target" && cIdx === moveTargetCol
       },
       col.name
     )) }),
-    mode === "context-menu" && contextTaskId && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { marginTop: 0, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
-      TaskContextMenu,
-      {
-        taskId: contextTaskId,
-        options: contextMenuOptions,
-        onSelect: (optionId) => {
-          if (optionId === "open") {
-            setContextTaskId(null);
-            openDetail(contextTaskId);
-          } else if (optionId === "move") {
-            setContextTaskId(null);
-            setMoveTaskId(contextTaskId);
-            const target = colIndex === 0 ? Math.min(1, board.columns.length - 1) : 0;
-            setMoveTargetCol(target);
-            setMode("move-target");
-          }
-        },
-        onCancel: () => {
-          setContextTaskId(null);
-          setMode("browse");
-        },
-        mouseX: layoutRef.current.colStarts[colIndex],
-        mouseY: HEADER_LINES + rowIndex
-      }
-    ) }),
     mode === "move-target" && moveTaskId && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: "yellow", bold: true, children: [
       "Moving ",
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "cyan", children: moveTaskId }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: " \u2014 click a " }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: " \u2014 click " }),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "\u2193" }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: " placeholder or use \u2190/\u2192 + Enter" })
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: " or \u2190/\u2192 + Enter" })
     ] }) }),
     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(StatusBar, { message: statusMsg, task: focusedTask })
   ] });
