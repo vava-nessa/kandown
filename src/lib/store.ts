@@ -216,7 +216,7 @@ async function readAllTasks(
 }
 
 async function persistColumnOrder(
-  tasksDirHandle: FileSystemDirectoryHandle,
+  tasksDirHandle: FileSystemDirectoryHandle | null,
   columns: Column[],
   _columnNames: string[],
 ): Promise<void> {
@@ -559,13 +559,12 @@ export const useStore = create<State>((set, get) => ({
     // Optimistic
     set({ columns: newColumns });
     try {
-      if (isServerMode()) return; // server mode: handled by REST API on save
       const { tasksDirHandle } = get();
-      if (!tasksDirHandle) return;
+      if (!tasksDirHandle && !isServer) return;
       const affected = fromCol === toCol
         ? newColumns.filter(c => c.name === toCol)
         : newColumns.filter(c => c.name === fromCol || c.name === toCol);
-      await persistColumnOrder(tasksDirHandle, affected, config.board.columns);
+      await persistColumnOrder(tasksDirHandle ?? null, affected, config.board.columns);
     } catch (e) {
       get().toast('Failed to save: ' + (e as Error).message, 'error');
       // Rollback
@@ -583,10 +582,10 @@ export const useStore = create<State>((set, get) => ({
     col.tasks.splice(toIndex, 0, task);
     set({ columns: newColumns });
     try {
-      if (isServerMode()) return;
       const { tasksDirHandle } = get();
-      if (!tasksDirHandle) return;
-      await persistColumnOrder(tasksDirHandle, [col], config.board.columns);
+      const isServer = isServerMode();
+      if (!tasksDirHandle && !isServer) return;
+      await persistColumnOrder(tasksDirHandle ?? null, [col], config.board.columns);
     } catch (e) {
       get().toast('Failed to save: ' + (e as Error).message, 'error');
       set({ columns });
