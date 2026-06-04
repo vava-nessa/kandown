@@ -28,7 +28,7 @@ export function App({ screen, kandownDir, version }: AppProps) {
     case 'settings':
       return <Settings kandownDir={kandownDir} version={version} />;
     case 'board':
-      return <Board kandownDir={kandownDir} />;
+      return <Board kandownDir={kandownDir} version={version} />;
     default:
       return (
         <Box padding={2}>

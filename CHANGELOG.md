@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.7.0 — 2026-06-04 — "Mouse & Move"
+
+- **Added**: Full mouse support in the TUI board — click on tasks, menus, and move placeholders using SGR extended mouse mode (\x1b[?1006h) with X10 fallback.
+- **Added**: Context menu on task click — small, sober popup with "Open task" and "Move task" options (keyboard + mouse).
+- **Added**: Move-task flow — select "Move task" from context menu, then click a yellow ↓ placeholder in any other column to move the task there (drag-and-drop alternative for TUI).
+- **Added**: `useMouse` React hook (`src/cli/hooks/use-mouse.ts`) — enables terminal mouse tracking, parses SGR/X10 click events, passes keyboard data through to Ink.
+- **Added**: `TaskContextMenu` component (`src/cli/components/task-context-menu.tsx`) — reusable inline popup with j/k/Enter/Escape + click support.
+- **Added**: Version number displayed in TUI header next to KANDOWN logo (auto-read from package.json on every launch).
+- **Added**: Move-target placeholder component with yellow highlight, keyboard navigation (←/→), and click-to-move.
+- **Added**: Click-outside-to-cancel for context menu and move mode.
+- **Changed**: Board header hint dynamically updates based on current mode (browse, context-menu, move-target).
+- **Changed**: Board screen refactored to 5 modes: browse, detail, agent-picker, context-menu, move-target.
+
 ## 0.6.1 — 2026-06-04 — "Server Mode Fixes"
 
 - **Fixed**: Dark/light mode toggle was broken in CLI server mode — `updateConfig` and `loadConfig` silently returned when `dirHandle` was null.
