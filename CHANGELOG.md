@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.4 — 2026-06-04 — "Move Sync"
+
+- **Fixed**: Web drag-and-drop in CLI server mode now persists task moves to `tasks/*.md` instead of only updating optimistic UI state.
+- **Fixed**: Web ↔ TUI sync after task moves — moved tasks now keep their new status after server polling reloads the board.
+- **Changed**: Column order persistence now uses the shared filesystem adapter in both browser File System Access mode and CLI REST server mode.
+
 ## 0.7.3 — 2026-06-04 — "Port Reclaim"
 
 - **Added**: Stale process detection — when `kandown` detects its preferred port (2048) is already occupied by another kandown process for the same project, it automatically kills the zombie and reclaims the port instead of silently moving to 2049.
