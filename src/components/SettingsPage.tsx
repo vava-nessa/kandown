@@ -529,6 +529,8 @@ export function SettingsPage() {
   const updateConfig = useStore(s => s.updateConfig);
   const setCurrentPage = useStore(s => s.setCurrentPage);
   const dirHandle = useStore(s => s.dirHandle);
+  const isOpen = useStore(s => s.isOpen);
+  const projectName = useStore(s => s.projectName);
   const loadConfig = useStore(s => s.loadConfig);
   const toast = useStore(s => s.toast);
 
@@ -628,13 +630,15 @@ export function SettingsPage() {
     }
   };
 
-  if (!dirHandle) {
+  if (!dirHandle && !isOpen) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <p className="text-fg-muted">{t('settings.noProjectOpen')}</p>
       </div>
     );
   }
+
+  const settingsProjectName = dirHandle?.name ?? projectName ?? 'Server project';
 
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden">
@@ -655,7 +659,7 @@ export function SettingsPage() {
             </span>
             <div className="min-w-0">
               <h1 className="truncate text-[17px] font-semibold tracking-tight text-fg">{t('settings.settingsTitle')}</h1>
-              <p className="truncate text-[12.5px] text-fg-muted">{dirHandle.name}</p>
+              <p className="truncate text-[12.5px] text-fg-muted">{settingsProjectName}</p>
             </div>
           </div>
         </div>

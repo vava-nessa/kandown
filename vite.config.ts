@@ -5,6 +5,8 @@ import react from '@vitejs/plugin-react';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 
 const CLOSING_HEAD_TAG = '</head>';
+// 📖 Keep the local web UI dev server predictable so agents and humans can share the same URL.
+const DEFAULT_DEV_SERVER_PORT = 5176;
 
 function injectBeforeClosingHead(html: string, content: string): string {
   const markerIndex = html.toLowerCase().lastIndexOf(CLOSING_HEAD_TAG);
@@ -248,6 +250,9 @@ function kandownDevPlugin() {
 
 export default defineConfig({
   plugins: [kandownDevPlugin(), react(), viteSingleFile(), kandownSingleFileRepairPlugin()],
+  server: {
+    port: DEFAULT_DEV_SERVER_PORT,
+  },
   build: {
     target: 'esnext',
     assetsInlineLimit: 100_000_000,

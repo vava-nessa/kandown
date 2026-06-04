@@ -180,7 +180,7 @@ Contributions are welcome! Please read the existing code style and conventions b
 git clone https://github.com/vava-nessa/kandown.git
 cd kandown
 pnpm install
-pnpm dev          # Web UI at localhost:5173
+pnpm dev          # Web UI at localhost:5176
 ```
 
 ### Scripts

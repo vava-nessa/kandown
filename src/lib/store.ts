@@ -19,6 +19,7 @@
  *  → persistColumnOrder — writes status/order metadata back to task files
  *  → applyConfigTheme — applies persisted project appearance settings
  *  → syncNotificationSnapshots — seeds task snapshots without notifying
+ *  → getProjectNameFromServerRoot — derives the project label from the CLI `.kandown` path
  *  → useStore — Zustand store with file, board, config, search, and UI actions
  *
  * @exports useStore
@@ -259,6 +260,13 @@ function syncNotificationSnapshots(tasks: LoadedTask[]): void {
   });
 }
 
+function getProjectNameFromServerRoot(serverRoot: string): string {
+  const parts = serverRoot.split(/[\\/]+/).filter(Boolean);
+  const lastPart = parts[parts.length - 1];
+  if (lastPart === '.kandown') return parts[parts.length - 2] ?? 'Project';
+  return lastPart ?? 'Project';
+}
+
 function getCompletedSubtaskCount(previous: Subtask[], current: Subtask[]): number {
   return current.reduce((count, subtask, index) => {
     const wasDone = previous[index]?.done ?? false;
@@ -364,7 +372,7 @@ export const useStore = create<State>((set, get) => ({
     try {
       const serverRoot = getServerRoot();
       if (!serverRoot) throw new Error('No server root');
-      const projectName = serverRoot.split('/').filter(Boolean).pop() ?? 'Project';
+      const projectName = getProjectNameFromServerRoot(serverRoot);
       const config = await serverReadConfig();
       applyConfigTheme(config);
       const ids = await serverListTasks();
@@ -441,7 +449,7 @@ export const useStore = create<State>((set, get) => ({
 
   loadConfig: async () => {
     const { dirHandle } = get();
-    if (!dirHandle) return;
+    if (!dirHandle && !isServerMode()) return;
     try {
       const config = await readConfigFile(dirHandle);
       if (config) {
@@ -459,7 +467,7 @@ export const useStore = create<State>((set, get) => ({
 
   updateConfig: async (updater) => {
     const { dirHandle, config } = get();
-    if (!dirHandle) return;
+    if (!dirHandle && !isServerMode()) return;
     const newConfig = updater(config);
     set({ config: newConfig });
     applyConfigTheme(newConfig);
