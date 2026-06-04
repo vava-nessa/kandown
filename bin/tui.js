@@ -56299,8 +56299,8 @@ var FileWatcher = class {
   knownTaskIds = /* @__PURE__ */ new Set();
   listeners = /* @__PURE__ */ new Map();
   debounceTimers = /* @__PURE__ */ new Map();
-  debounceDelay = 50;
-  watchDebounceDelay = 100;
+  debounceDelay = 30;
+  watchDebounceDelay = 75;
   pollInterval = null;
   stopped = false;
   /**
@@ -56321,16 +56321,16 @@ var FileWatcher = class {
       }
     }
     this.watcher = watch([join5(tasksDir, "*.md"), configPath], {
-      persistent: true,
       ignoreInitial: true,
-      awaitWriteFinish: { stabilityThreshold: 50, pollInterval: 25 }
+      awaitWriteFinish: { stabilityThreshold: 25, pollInterval: 25 },
+      alwaysStat: true
     });
     this.watcher.on("all", (event, path) => {
       this.handleFsEvent(event, path, kandownDir);
     });
     this.pollInterval = setInterval(() => {
       this.pollHashes(kandownDir);
-    }, 500);
+    }, 300);
   }
   /**
    * 📖 Stop watching and clean up all resources.

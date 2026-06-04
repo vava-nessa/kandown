@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.2 — 2026-06-04 — "Live Sync"
+
+- **Fixed**: CLI TUI watcher — `persistent: true` removed (obsolete in chokidar v4, could prevent events), `stabilityThreshold` 50→25ms, `alwaysStat: true` added for reliable change detection.
+- **Fixed**: CLI TUI polling fallback tightened from 500ms to 300ms for faster external change detection.
+- **Fixed**: Web app `reloadBoard()` was a dead no-op in local File System Access API mode — `if (!isServerMode()) return;` blocked all watcher-driven refreshes. Added full local-mode path that reads from `FileSystemDirectoryHandle` and rebuilds the board.
+- **Fixed**: Web app server mode (when served via `npx kandown`) had no file watcher at all — `setupWatcher()` was never called. Added REST API polling every 2 seconds so the board stays in sync with external edits.
+- **Changed**: Browser-side `FileWatcher` polling interval 500→300ms, debounce delay 200→150ms for snappier sync.
+- **Changed**: `openServerProject()` now calls `setupWatcher()` to activate server-mode polling on open.
+
 ## 0.7.1 — 2026-06-04 — "Mouse v2"
 
 - **Fixed**: Complete rewrite of mouse support — no more stdin interception (fragile with Ink). Mouse sequences are now detected directly inside Ink's `useInput` handler.

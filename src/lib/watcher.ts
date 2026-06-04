@@ -34,13 +34,13 @@ export class FileWatcher {
   private knownTaskIds: Set<string> = new Set();
   private listeners: Map<keyof WatcherEvents, Set<unknown>> = new Map();
   private debounceTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
-  private debounceDelay = 200;
+  private debounceDelay = 150;
 
   start(dirHandle: FileSystemDirectoryHandle, tasksDirHandle: FileSystemDirectoryHandle): void {
     this.dirHandle = dirHandle;
     this.tasksDirHandle = tasksDirHandle;
     void this.initHashes();
-    this.intervalId = setInterval(() => void this.tick(), 500);
+    this.intervalId = setInterval(() => void this.tick(), 300);
   }
 
   stop(): void {

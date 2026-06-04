@@ -296,6 +296,8 @@ function didTaskBodyChange(previous: NotificationTaskSnapshot, current: Notifica
 let toastIdCounter = 0;
 const notificationSnapshots = new Map<string, NotificationTaskSnapshot>();
 const taskEditTimers = new Map<string, ReturnType<typeof setTimeout>>();
+/** 📖 Server-mode polling interval for detecting external file changes via REST API. */
+let serverPollInterval: ReturnType<typeof setInterval> | null = null;
 
 export const useStore = create<State>((set, get) => ({
   isOpen: false,
@@ -414,6 +416,7 @@ export const useStore = create<State>((set, get) => ({
         searchMatches: new Map(),
       });
       window.history.pushState({}, '', `?p=${encodeURIComponent(projectName)}`);
+      void get().setupWatcher();
     } catch (err) {
       set({ loading: false, isOpen: false });
       get().toast('Impossible de charger le projet. Relancez `kandown`.', 'error');
@@ -480,32 +483,58 @@ export const useStore = create<State>((set, get) => ({
 
   reloadBoard: async () => {
     const { tasksDirHandle, config } = get();
-    if (!isServerMode()) return;
-    try {
-      const tasks = await readAllTasksServer();
-      syncNotificationSnapshots(tasks);
-      const parsedTasks = tasks.map(task => ({
-        frontmatter: task.frontmatter,
-        body: injectSubtasks(task.body, task.subtasks),
-      }));
-      const columns = buildColumnsFromTasks(parsedTasks, config.board.columns);
-      set({ boardTitle: 'Project Kanban', columns });
+    if (isServerMode()) {
+      try {
+        const tasks = await readAllTasksServer();
+        syncNotificationSnapshots(tasks);
+        const parsedTasks = tasks.map(task => ({
+          frontmatter: task.frontmatter,
+          body: injectSubtasks(task.body, task.subtasks),
+        }));
+        const columns = buildColumnsFromTasks(parsedTasks, config.board.columns);
+        set({ boardTitle: 'Project Kanban', columns });
 
-      // Load all task contents eagerly if <= 10 tasks total
-      const totalTasks = columns.reduce((acc, col) => acc + col.tasks.length, 0);
-      const nextContents = new Map<string, TaskContent>();
-      if (totalTasks <= 10) {
-        for (const task of tasks) {
-          nextContents.set(task.frontmatter.id, {
-            frontmatter: task.frontmatter,
-            subtasks: task.subtasks,
-            body: task.body,
-          });
+        const totalTasks = columns.reduce((acc, col) => acc + col.tasks.length, 0);
+        const nextContents = new Map<string, TaskContent>();
+        if (totalTasks <= 10) {
+          for (const task of tasks) {
+            nextContents.set(task.frontmatter.id, {
+              frontmatter: task.frontmatter,
+              subtasks: task.subtasks,
+              body: task.body,
+            });
+          }
         }
+        set({ taskContents: nextContents, searchMatches: new Map() });
+      } catch (e) {
+        get().toast('Failed to load board: ' + (e as Error).message, 'error');
       }
-      set({ taskContents: nextContents, searchMatches: new Map() });
-    } catch (e) {
-      get().toast('Failed to load board: ' + (e as Error).message, 'error');
+    } else if (tasksDirHandle) {
+      try {
+        const tasks = await readAllTasks(tasksDirHandle);
+        syncNotificationSnapshots(tasks);
+        const parsedTasks = tasks.map(task => ({
+          frontmatter: task.frontmatter,
+          body: injectSubtasks(task.body, task.subtasks),
+        }));
+        const columns = buildColumnsFromTasks(parsedTasks, config.board.columns);
+        set({ boardTitle: 'Project Kanban', columns });
+
+        const totalTasks = columns.reduce((acc, col) => acc + col.tasks.length, 0);
+        const nextContents = new Map<string, TaskContent>();
+        if (totalTasks <= 10) {
+          for (const task of tasks) {
+            nextContents.set(task.frontmatter.id, {
+              frontmatter: task.frontmatter,
+              subtasks: task.subtasks,
+              body: task.body,
+            });
+          }
+        }
+        set({ taskContents: nextContents, searchMatches: new Map() });
+      } catch (e) {
+        get().toast('Failed to load board: ' + (e as Error).message, 'error');
+      }
     }
   },
 
@@ -927,6 +956,15 @@ export const useStore = create<State>((set, get) => ({
   // ── File watcher setup (called after project open) ─────────────────────────
 
   setupWatcher: () => {
+    // 📖 Server mode — use REST API polling (no FileSystemDirectoryHandle available)
+    if (isServerMode()) {
+      if (serverPollInterval) clearInterval(serverPollInterval);
+      serverPollInterval = setInterval(() => {
+        void get().reloadBoard();
+      }, 2000);
+      return;
+    }
+
     const { dirHandle, tasksDirHandle } = get();
     if (!dirHandle || !tasksDirHandle) return;
 

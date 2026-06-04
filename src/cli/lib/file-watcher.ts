@@ -64,8 +64,8 @@ export class FileWatcher {
   private knownTaskIds: Set<string> = new Set();
   private listeners: Map<keyof CliWatcherEvents, Set<unknown>> = new Map();
   private debounceTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
-  private debounceDelay = 50;
-  private watchDebounceDelay = 100;
+  private debounceDelay = 30;
+  private watchDebounceDelay = 75;
   private pollInterval: ReturnType<typeof setInterval> | null = null;
   private stopped = false;
 
@@ -91,19 +91,21 @@ export class FileWatcher {
     }
 
     this.watcher = watch([join(tasksDir, '*.md'), configPath], {
-      persistent: true,
       ignoreInitial: true,
-      awaitWriteFinish: { stabilityThreshold: 50, pollInterval: 25 },
+      awaitWriteFinish: { stabilityThreshold: 25, pollInterval: 25 },
+      alwaysStat: true,
     });
 
     this.watcher.on('all', (event, path) => {
       this.handleFsEvent(event, path, kandownDir);
     });
 
-    // Fallback 500ms poll to catch any missed updates (network mounts, etc.)
+    // 📖 Aggressive fallback poll (300ms) to catch any updates missed by chokidar.
+    // This is the workhorse — chokidar may silently fail on some macOS configs,
+    // so we run a tight polling loop with SHA-256 content comparison.
     this.pollInterval = setInterval(() => {
       this.pollHashes(kandownDir);
-    }, 500);
+    }, 300);
   }
 
   /**
