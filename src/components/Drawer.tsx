@@ -1,34 +1,30 @@
 /**
  * @file Task drawer editor
- * @description Full-height task detail editor for title, subtasks, description
- * body, report, save/close, autosave, and deletion.
+ * @description Full-height task detail editor for title, description, report,
+ * save/close, autosave, and deletion.
  *
  * 📖 The drawer edits the parsed task file and writes changes back into
  * frontmatter, keeping `tasks/<id>.md` as the single source of truth for board
  * state and rich task context.
  * 📖 Destructive keyboard deletion uses Cmd/Ctrl+Backspace instead of a naked
- * Delete key so normal text editing inside title, description, and subtask
- * fields remains predictable.
- * 📖 Frontmatter metadata fields (priority, assignee, tags, due, ownerType,
- * tools) are NOT surfaced in the drawer — they are managed via the
- * frontmatter directly in the task file, or via per-card metadata on the
- * board. The drawer is intentionally focused on title + body + report +
- * subtasks.
+ * Delete key so normal text editing inside title and description remains
+ * predictable.
+ * 📖 Layout is intentionally minimal: title on top, then DESCRIPTION (full
+ * width), then REPORT (full width, below description). No subtask editor, no
+ * frontmatter metadata fields — those are managed in the task file directly
+ * or via the per-card metadata block on the board.
  *
  * @functions
  *  → Drawer — task editor panel with keyboard shortcuts and autosave
  *
  * @exports Drawer
  * @see src/lib/store.ts
- * @see src/components/SubtaskItem.tsx
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
-import { Icon } from './Icons';
 import { KbdButton } from './KbdButton';
-import { SubtaskItem } from './SubtaskItem';
 import { BlockNoteMarkdownEditor } from './ui/BlockNoteMarkdownEditor';
 import { useStore } from '../lib/store';
 
@@ -49,7 +45,6 @@ export function Drawer() {
   const isTaskArchived = String(drawerData?.frontmatter.archived) === 'true';
   const updateDrawerData = useStore(s => s.updateDrawerData);
 
-  const [focusedSubtaskIdx, setFocusedSubtaskIdx] = useState<number | null>(null);
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isSavingRef = useRef(false);
@@ -152,9 +147,6 @@ export function Drawer() {
 
   if (!drawerData) return null;
 
-  const total = drawerData.subtasks.length;
-  const done = drawerData.subtasks.filter(s => s.done).length;
-
   const updateField = <K extends keyof typeof drawerData.frontmatter>(
     key: K,
     value: (typeof drawerData.frontmatter)[K]
@@ -162,69 +154,6 @@ export function Drawer() {
     updateDrawerData(d => ({
       ...d,
       frontmatter: { ...d.frontmatter, [key]: value },
-    }));
-    triggerAutoSave();
-  };
-
-  const toggleSubtask = (i: number) => {
-    updateDrawerData(d => ({
-      ...d,
-      subtasks: d.subtasks.map((s, idx) => (idx === i ? { ...s, done: !s.done } : s)),
-    }));
-    triggerAutoSave();
-  };
-
-  const changeSubtask = (i: number, text: string) => {
-    updateDrawerData(d => ({
-      ...d,
-      subtasks: d.subtasks.map((s, idx) => (idx === i ? { ...s, text } : s)),
-    }));
-    triggerAutoSave();
-  };
-
-  const removeSubtask = (i: number) => {
-    updateDrawerData(d => ({
-      ...d,
-      subtasks: d.subtasks.filter((_, idx) => idx !== i),
-    }));
-    setFocusedSubtaskIdx(Math.max(0, i - 1));
-    triggerAutoSave();
-  };
-
-  const addSubtask = () => {
-    updateDrawerData(d => ({
-      ...d,
-      subtasks: [...d.subtasks, { done: false, text: '' }],
-    }));
-    setFocusedSubtaskIdx(drawerData.subtasks.length);
-    triggerAutoSave();
-  };
-
-  const insertSubtaskAfter = (i: number) => {
-    updateDrawerData(d => ({
-      ...d,
-      subtasks: [
-        ...d.subtasks.slice(0, i + 1),
-        { done: false, text: '' },
-        ...d.subtasks.slice(i + 1),
-      ],
-    }));
-    setFocusedSubtaskIdx(i + 1);
-    triggerAutoSave();
-  };
-
-  const handleDescriptionChange = (i: number, description: string) => {
-    updateDrawerData(d => ({
-      ...d,
-      subtasks: d.subtasks.map((s, idx) => (idx === i ? { ...s, description } : s)),
-    }));
-    triggerAutoSave();
-  };
-
-  const handleReportChange = (i: number, report: string) => {
-    updateDrawerData(d => ({
-      ...d,
-      subtasks: d.subtasks.map((s, idx) => (idx === i ? { ...s, report } : s)),
     }));
     triggerAutoSave();
   };
@@ -258,11 +187,6 @@ export function Drawer() {
                   {currentCol && (
                     <span className="text-[12.5px] text-fg-dim">· {currentCol}</span>
                   )}
-                  {total > 0 && (
-                    <span className="text-[12px] text-fg-muted tabular-nums">
-                      {done}/{total} {t('drawer.doneSubtasks')}
-                    </span>
-                  )}
                 </div>
                 <KbdButton
                   variant="icon"
@@ -287,90 +211,33 @@ export function Drawer() {
 
                 <div className="h-px bg-border -mx-5" />
 
-                {/* Description + Report (2 columns) */}
-                <div className="grid grid-cols-[7fr_3fr] gap-4 -mx-5 px-5">
-                  {/* Description (left) */}
-                  <div>
-                    <div className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted mb-2">
-                      {t('drawer.description')}
-                    </div>
-                    <BlockNoteMarkdownEditor
-                      value={drawerData.body}
-                      onChange={val =>
-                        updateDrawerData(d => ({ ...d, body: val }))
-                      }
-                      placeholder={t('drawer.descriptionPlaceholder')}
-                      minHeight="180px"
-                    />
+                {/* Description (full width) */}
+                <div>
+                  <div className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted mb-2">
+                    {t('drawer.description')}
                   </div>
-
-                  {/* Report (right) */}
-                  <div>
-                    <div className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted mb-2">
-                      {t('drawer.report')}
-                    </div>
-                    <BlockNoteMarkdownEditor
-                      value={drawerData.frontmatter.report as string || ''}
-                      onChange={val => updateField('report', val)}
-                      placeholder={t('drawer.reportPlaceholder')}
-                      minHeight="180px"
-                    />
-                  </div>
+                  <BlockNoteMarkdownEditor
+                    value={drawerData.body}
+                    onChange={val =>
+                      updateDrawerData(d => ({ ...d, body: val }))
+                    }
+                    placeholder={t('drawer.descriptionPlaceholder')}
+                    minHeight="280px"
+                  />
                 </div>
 
                 <div className="h-px bg-border -mx-5" />
 
-                {/* Subtasks */}
+                {/* Report (full width, below description) */}
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted">
-                      {t('drawer.subtasks')}
-                    </span>
-                    {total > 0 && (
-                      <span className="text-[12px] text-fg-faint tabular-nums">
-                        {done}/{total}
-                      </span>
-                    )}
+                  <div className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted mb-2">
+                    {t('drawer.report')}
                   </div>
-                  {total > 0 && (
-                    <div className="mb-2 h-[3px] bg-bg-2 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full rounded-full"
-                        style={{
-                          backgroundColor: done === total ? '#30a46c' : '#a1a1a1',
-                        }}
-                        initial={false}
-                        animate={{
-                          width: total > 0 ? `${(done / total) * 100}%` : '0%',
-                        }}
-                        transition={{ type: 'spring', stiffness: 160, damping: 22 }}
-                      />
-                    </div>
-                  )}
-                  <div className="flex flex-col">
-                    <AnimatePresence initial={false}>
-                      {drawerData.subtasks.map((s, i) => (
-                        <SubtaskItem
-                          key={i}
-                          subtask={s}
-                          index={i}
-                          autoFocus={focusedSubtaskIdx === i}
-                          onToggle={toggleSubtask}
-                          onChange={changeSubtask}
-                          onRemove={removeSubtask}
-                          onEnterAtEnd={insertSubtaskAfter}
-                          onDescriptionChange={handleDescriptionChange}
-                          onReportChange={handleReportChange}
-                        />
-                      ))}
-                    </AnimatePresence>
-                  </div>
-                  <KbdButton
-                    variant="ghost"
-                    icon="Plus"
-                    label={t('drawer.addSubtask')}
-                    onClick={addSubtask}
-                    className="mt-1"
+                  <BlockNoteMarkdownEditor
+                    value={drawerData.frontmatter.report as string || ''}
+                    onChange={val => updateField('report', val)}
+                    placeholder={t('drawer.reportPlaceholder')}
+                    minHeight="180px"
                   />
                 </div>
               </div>
