@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.1 — 2026-06-16 — "Clean Drawer"
+
+- **Removed**: The metadata edit block (Priority, Assignee, Tags, Due, Owner, Tools) at the top of the task editor drawer. The drawer is now strictly title + description + report + subtasks. Frontmatter metadata is still managed in the task `.md` file directly, or surfaced on the board via the per-card "Show metadata" toggle. The unused `FieldRow` helper, the `tagsValue` derived string, the `Priority`/`OwnerType` type imports, and the `fields` selector are gone too.
+
 ## 0.10.0 — 2026-06-16 — "Linear Look"
 
 - **Changed**: The board got a full Linear-style relook — pure black background in dark mode, off-white in light, with a refined two-layer dot grid (the "taches") that adapts to the theme. Default columns are now neutral; any per-column tints you set via the 3-dot menu use a restrained 6% opacity.
