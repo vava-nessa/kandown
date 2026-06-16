@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.11.0 — 2026-06-16 — "Lean Drawer"
+
+- **Removed**: The subtask editor in the task drawer (add/remove/check subtasks and the per-subtask description/report fields). The subtask data model is untouched — tasks still keep their `- [ ]` / `- [x]` checklist in the .md file, and the per-card progress bar on the board still shows `done/total`. Editing subtasks just happens in the task file directly now, not in the drawer.
+- **Changed**: The drawer body is now strictly stacked: title → DESCRIPTION (full width) → REPORT (full width, below description). The previous side-by-side 7/3 grid is gone, so each editor gets full room to breathe and feels closer to a writing surface than a form.
+- **Removed**: The header subtask count chip (`done/total doneSubtasks`) — no more subtasks in the drawer header.
+- **Removed**: The `focusedSubtaskIdx` state and the `toggleSubtask` / `changeSubtask` / `removeSubtask` / `addSubtask` / `insertSubtaskAfter` / `handleDescriptionChange` / `handleReportChange` handlers — all dead code now that the subtask editor is gone. The `SubtaskItem` import is gone too (the component file is left in the tree since the data model still uses `Subtask`).
+
 ## 0.10.1 — 2026-06-16 — "Clean Drawer"
 
 - **Removed**: The metadata edit block (Priority, Assignee, Tags, Due, Owner, Tools) at the top of the task editor drawer. The drawer is now strictly title + description + report + subtasks. Frontmatter metadata is still managed in the task `.md` file directly, or surfaced on the board via the per-card "Show metadata" toggle. The unused `FieldRow` helper, the `tagsValue` derived string, the `Priority`/`OwnerType` type imports, and the `fields` selector are gone too.
