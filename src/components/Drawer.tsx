@@ -1,20 +1,22 @@
 /**
  * @file Task drawer editor
- * @description Full-height task detail editor for title, metadata, subtasks,
- * description body, save/close, autosave metadata, and deletion.
+ * @description Full-height task detail editor for title, subtasks, description
+ * body, report, save/close, autosave, and deletion.
  *
- * 📖 The drawer edits the parsed task file and writes metadata back into
+ * 📖 The drawer edits the parsed task file and writes changes back into
  * frontmatter, keeping `tasks/<id>.md` as the single source of truth for board
  * state and rich task context.
  * 📖 Destructive keyboard deletion uses Cmd/Ctrl+Backspace instead of a naked
  * Delete key so normal text editing inside title, description, and subtask
  * fields remains predictable.
- * 📖 Optional metadata rows read `config.fields`; disabled fields stay hidden
- * even when old task files still contain matching frontmatter values.
+ * 📖 Frontmatter metadata fields (priority, assignee, tags, due, ownerType,
+ * tools) are NOT surfaced in the drawer — they are managed via the
+ * frontmatter directly in the task file, or via per-card metadata on the
+ * board. The drawer is intentionally focused on title + body + report +
+ * subtasks.
  *
  * @functions
  *  → Drawer — task editor panel with keyboard shortcuts and autosave
- *  → FieldRow — aligned metadata row used by the drawer form
  *
  * @exports Drawer
  * @see src/lib/store.ts
@@ -29,7 +31,6 @@ import { KbdButton } from './KbdButton';
 import { SubtaskItem } from './SubtaskItem';
 import { BlockNoteMarkdownEditor } from './ui/BlockNoteMarkdownEditor';
 import { useStore } from '../lib/store';
-import type { Priority, OwnerType } from '../lib/types';
 
 export function Drawer() {
   const { t } = useTranslation();
@@ -47,7 +48,6 @@ export function Drawer() {
   // keeps scalars as strings). Computed early so handlers and JSX share it.
   const isTaskArchived = String(drawerData?.frontmatter.archived) === 'true';
   const updateDrawerData = useStore(s => s.updateDrawerData);
-  const fields = useStore(s => s.config.fields);
 
   const [focusedSubtaskIdx, setFocusedSubtaskIdx] = useState<number | null>(null);
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
@@ -229,10 +229,6 @@ export function Drawer() {
     triggerAutoSave();
   };
 
-  const tagsValue = Array.isArray(drawerData.frontmatter.tags)
-    ? drawerData.frontmatter.tags.join(', ')
-    : '';
-
   return (
     <AnimatePresence>
       {isOpen && (
@@ -288,88 +284,6 @@ export function Drawer() {
                   rows={1}
                   className="w-full bg-transparent border-none outline-none text-fg text-[22px] font-semibold tracking-tight leading-tight resize-none placeholder:text-fg-faint"
                 />
-
-                {(fields.priority || fields.assignee || fields.tags || fields.dueDate || fields.ownerType || fields.tools) && (
-                  <div className="flex flex-col gap-0.5">
-                    {fields.priority && (
-                      <FieldRow label={t('drawer.priority')}>
-                        <select
-                          value={(drawerData.frontmatter.priority as string) || ''}
-                          onChange={e => updateField('priority', e.target.value as Priority)}
-                          className="field-input w-full"
-                        >
-                          <option value="">{t('drawer.noPriority')}</option>
-                          <option value="P1">{t('drawer.urgentP1')}</option>
-                          <option value="P2">{t('drawer.highP2')}</option>
-                          <option value="P3">{t('drawer.mediumP3')}</option>
-                          <option value="P4">{t('drawer.lowP4')}</option>
-                        </select>
-                      </FieldRow>
-                    )}
-                    {fields.assignee && (
-                      <FieldRow label={t('drawer.assignee')}>
-                        <input
-                          type="text"
-                          value={(drawerData.frontmatter.assignee as string) || ''}
-                          onChange={e => updateField('assignee', e.target.value.replace(/^@/, ''))}
-                          placeholder={t('drawer.assigneePlaceholder')}
-                          className="field-input w-full"
-                        />
-                      </FieldRow>
-                    )}
-                    {fields.tags && (
-                      <FieldRow label={t('drawer.tags')}>
-                        <input
-                          type="text"
-                          value={tagsValue}
-                          onChange={e => {
-                            const arr = e.target.value
-                              .split(',')
-                              .map(s => s.trim().replace(/^#/, ''))
-                              .filter(Boolean);
-                            updateField('tags', arr);
-                          }}
-                          placeholder={t('drawer.tagsPlaceholder')}
-                          className="field-input w-full"
-                        />
-                      </FieldRow>
-                    )}
-                    {fields.dueDate && (
-                      <FieldRow label={t('drawer.dueDate')}>
-                        <input
-                          type="date"
-                          value={(drawerData.frontmatter.due as string) || ''}
-                          onChange={e => updateField('due', e.target.value)}
-                          className="field-input w-full"
-                        />
-                      </FieldRow>
-                    )}
-                    {fields.ownerType && (
-                      <FieldRow label={t('drawer.owner')}>
-                        <select
-                          value={(drawerData.frontmatter.ownerType as OwnerType) || ''}
-                          onChange={e => updateField('ownerType', e.target.value as OwnerType)}
-                          className="field-input w-full"
-                        >
-                          <option value="">{t('drawer.unset')}</option>
-                          <option value="human">{t('drawer.human')}</option>
-                          <option value="ai">{t('drawer.ai')}</option>
-                        </select>
-                      </FieldRow>
-                    )}
-                    {fields.tools && (
-                      <FieldRow label={t('drawer.tools')}>
-                        <input
-                          type="text"
-                          value={(drawerData.frontmatter.tools as string) || ''}
-                          onChange={e => updateField('tools', e.target.value)}
-                          placeholder={t('drawer.toolsPlaceholder')}
-                          className="field-input w-full"
-                        />
-                      </FieldRow>
-                    )}
-                  </div>
-                )}
 
                 <div className="h-px bg-border -mx-5" />
 
@@ -499,14 +413,5 @@ export function Drawer() {
         </>
       )}
     </AnimatePresence>
-  );
-}
-
-function FieldRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="grid grid-cols-[110px_1fr] items-center gap-3 text-[13.5px]">
-      <span className="text-fg-muted">{label}</span>
-      <div>{children}</div>
-    </div>
   );
 }
