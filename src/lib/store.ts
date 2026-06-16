@@ -42,6 +42,8 @@ import {
   readTaskFile as fsReadTaskFile,
   writeTaskFile as fsWriteTaskFile,
   deleteTaskFile as fsDeleteTaskFile,
+  archiveTaskFile as fsArchiveTaskFile,
+  unarchiveTaskFile as fsUnarchiveTaskFile,
   saveRecentProject,
   listRecentProjects,
   verifyPermission,
@@ -53,7 +55,7 @@ import {
   serverReadTaskFile,
   type RecentProject,
 } from './filesystem';
-import { buildColumnsFromTasks, extractSubtasks, injectSubtasks, searchTaskContent } from './parser';
+import { buildColumnsFromTasks, extractSubtasks, injectSubtasks, searchTaskContent, extractArchivedTasks } from './parser';
 import { applyProjectTheme } from './theme';
 import { fileWatcher } from './watcher';
 import { emitKandownNotification } from './notifications';
@@ -101,6 +103,11 @@ interface State {
   tasksDirHandle: FileSystemDirectoryHandle | null;
   boardTitle: string;
   columns: Column[];
+  /** Tasks with `archived: true` — hidden from the active board, shown in the
+   * dedicated archive view. Backed by files in tasks/archive/. */
+  archivedTasks: BoardTask[];
+  /** When true the board renders the archive view instead of the active board. */
+  showArchives: boolean;
 
   // Content search cache (loaded lazily when >10 tasks, eagerly otherwise)
   taskContents: Map<string, TaskContent>;
@@ -145,6 +152,12 @@ interface State {
   deleteColumn: (name: string) => Promise<void>;
   createTask: (colName?: string) => Promise<string | null>;
   deleteTask: (taskId: string) => Promise<void>;
+  /** Archives a task: sets `archived: true` and moves the file to tasks/archive/. */
+  archiveTask: (taskId: string) => Promise<void>;
+  /** Restores an archived task: removes the flag and moves the file back to tasks/. */
+  unarchiveTask: (taskId: string) => Promise<void>;
+  /** Toggles between the active board and the archive view. */
+  setShowArchives: (show: boolean) => void;
 
   openDrawer: (taskId: string) => Promise<void>;
   closeDrawer: () => void;
@@ -307,6 +320,8 @@ export const useStore = create<State>((set, get) => ({
   tasksDirHandle: null,
   boardTitle: 'Project Kanban',
   columns: [],
+  archivedTasks: [],
+  showArchives: false,
 
   taskContents: new Map(),
   searchMatches: new Map(),
@@ -394,6 +409,7 @@ export const useStore = create<State>((set, get) => ({
         body: injectSubtasks(task.body, task.subtasks),
       }));
       const columns = buildColumnsFromTasks(parsedTasks, config.board.columns);
+      const archivedTasks = extractArchivedTasks(parsedTasks);
       const totalTasks = columns.reduce((acc, col) => acc + col.tasks.length, 0);
       const nextContents = new Map<string, TaskContent>();
       if (totalTasks <= 10) {
@@ -410,6 +426,7 @@ export const useStore = create<State>((set, get) => ({
         isOpen: true,
         config,
         columns,
+        archivedTasks,
         boardTitle: 'Project Kanban',
         projectName,
         taskContents: nextContents,
@@ -492,7 +509,8 @@ export const useStore = create<State>((set, get) => ({
           body: injectSubtasks(task.body, task.subtasks),
         }));
         const columns = buildColumnsFromTasks(parsedTasks, config.board.columns);
-        set({ boardTitle: 'Project Kanban', columns });
+        const archivedTasks = extractArchivedTasks(parsedTasks);
+        set({ boardTitle: 'Project Kanban', columns, archivedTasks });
 
         const totalTasks = columns.reduce((acc, col) => acc + col.tasks.length, 0);
         const nextContents = new Map<string, TaskContent>();
@@ -518,7 +536,8 @@ export const useStore = create<State>((set, get) => ({
           body: injectSubtasks(task.body, task.subtasks),
         }));
         const columns = buildColumnsFromTasks(parsedTasks, config.board.columns);
-        set({ boardTitle: 'Project Kanban', columns });
+        const archivedTasks = extractArchivedTasks(parsedTasks);
+        set({ boardTitle: 'Project Kanban', columns, archivedTasks });
 
         const totalTasks = columns.reduce((acc, col) => acc + col.tasks.length, 0);
         const nextContents = new Map<string, TaskContent>();
@@ -766,6 +785,41 @@ export const useStore = create<State>((set, get) => ({
       set({ columns });
     }
   },
+
+  // 📖 Archive = flip the frontmatter flag on, move the file into
+  // tasks/archive/, close any open drawer on it, then reload the board so it
+  // disappears from the active columns and appears in the archive view.
+  archiveTask: async (taskId) => {
+    const { tasksDirHandle } = get();
+    if (!tasksDirHandle && !isServerMode()) return;
+    try {
+      const { frontmatter, body } = await fsReadTaskFile(tasksDirHandle || null, taskId);
+      await fsArchiveTaskFile(tasksDirHandle || null, taskId, { ...frontmatter, archived: true }, body);
+      if (get().drawerTaskId === taskId) get().closeDrawer();
+      await get().reloadBoard();
+      get().toast('Archived');
+    } catch (e) {
+      get().toast('Failed to archive: ' + (e as Error).message, 'error');
+    }
+  },
+
+  // 📖 Restore = drop the archived flag, move the file back to tasks/, reload.
+  unarchiveTask: async (taskId) => {
+    const { tasksDirHandle } = get();
+    if (!tasksDirHandle && !isServerMode()) return;
+    try {
+      const { frontmatter, body } = await fsReadTaskFile(tasksDirHandle || null, taskId);
+      const restored = { ...frontmatter };
+      delete restored.archived;
+      await fsUnarchiveTaskFile(tasksDirHandle || null, taskId, restored, body);
+      await get().reloadBoard();
+      get().toast('Restored');
+    } catch (e) {
+      get().toast('Failed to restore: ' + (e as Error).message, 'error');
+    }
+  },
+
+  setShowArchives: (show) => set({ showArchives: show }),
 
   openDrawer: async (taskId) => {
     const { tasksDirHandle } = get();

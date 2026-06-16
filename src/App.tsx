@@ -21,6 +21,7 @@ import { useEffect } from 'react';
 import { Header } from './components/Header';
 
 import { Board } from './components/Board';
+import { ArchiveView } from './components/ArchiveView';
 import { ListView } from './components/ListView';
 import { EmptyState } from './components/EmptyState';
 import { Drawer } from './components/Drawer';
@@ -47,6 +48,7 @@ export function App() {
   const openRecentProject = useStore(s => s.openRecentProject);
   const tryAutoOpenServerProject = useStore(s => s.tryAutoOpenServerProject);
   const currentPage = useStore(s => s.currentPage);
+  const showArchives = useStore(s => s.showArchives);
   const config = useStore(s => s.config);
 
   // Sync language from config to i18n
@@ -135,7 +137,7 @@ export function App() {
             <div className="absolute inset-0 z-0 bg-gradient-to-br from-primary/10 via-background to-accent/10" />
           )}
           <div className={`flex flex-col h-full relative ${config.ui.background === 'static-gradient' ? 'z-10' : ''}`}>
-            {viewMode === 'board' ? <Board /> : <ListView />}
+            {showArchives ? <ArchiveView /> : viewMode === 'board' ? <Board /> : <ListView />}
           </div>
         </div>
       ) : (

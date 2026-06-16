@@ -54438,7 +54438,7 @@ function buildColumnsFromTasks(tasks, configuredColumns = DEFAULT_COLUMNS) {
   const configured = columnNames.map((name) => ({ name, tasks: [] }));
   for (const column of configured) columnsByName.set(column.name.toLowerCase(), column);
   const unknownColumns = [];
-  const sortedTasks = [...tasks].filter((task) => Boolean(task.frontmatter.id)).sort((a, b) => {
+  const sortedTasks = [...tasks].filter((task) => Boolean(task.frontmatter.id)).filter((task) => !isArchived(task)).sort((a, b) => {
     const byOrder = taskOrder(a) - taskOrder(b);
     if (byOrder !== 0) return byOrder;
     return a.frontmatter.id.localeCompare(b.frontmatter.id, void 0, { numeric: true });
@@ -54454,6 +54454,9 @@ function buildColumnsFromTasks(tasks, configuredColumns = DEFAULT_COLUMNS) {
     column.tasks.push(taskToBoardTask(task));
   }
   return [...unknownColumns, ...configured];
+}
+function isArchived(task) {
+  return String(task.frontmatter.archived) === "true";
 }
 function extractSubtasks(body) {
   const subtasks = [];
@@ -54488,6 +54491,16 @@ function extractSubtasks(body) {
       subtasks[subtasks.length - 1].report = reportMatch[1];
       continue;
     }
+    const legacyDescMatch = line.match(/^\s+description:\s*(.+)$/);
+    if (legacyDescMatch && inSubtaskSection && subtasks.length > 0) {
+      subtasks[subtasks.length - 1].description = legacyDescMatch[1].trim();
+      continue;
+    }
+    const legacyReportMatch = line.match(/^\s+report:\s*(.+)$/);
+    if (legacyReportMatch && inSubtaskSection && subtasks.length > 0) {
+      subtasks[subtasks.length - 1].report = legacyReportMatch[1].trim();
+      continue;
+    }
     kept.push(line);
   }
   return { subtasks, bodyWithoutSubtasks: kept.join("\n") };
@@ -54504,7 +54517,7 @@ function serializeTaskFile(frontmatter, body) {
         lines.push(`${k}: [${v.join(", ")}]`);
       } else if (typeof v === "string" && v.includes("\n")) {
         lines.push(`${k}: |`);
-        lines.push(...v.split("\n").map((line) => `  ${line}`));
+        lines.push(...v.split("\n").map((line) => line === "" ? "" : `  ${line}`));
       } else if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") {
         lines.push(`${k}: ${v}`);
       }

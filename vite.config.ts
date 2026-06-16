@@ -49,7 +49,7 @@ function kandownDevPlugin() {
         if (!req.url?.startsWith('/api/')) return next();
 
         res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, DELETE, OPTIONS');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
         if (req.method === 'OPTIONS') {
@@ -108,17 +108,23 @@ function kandownDevPlugin() {
         if (resource === 'tasks') {
           if (req.method === 'GET' && !id) {
             const tasksDir = join(kandownPath, 'tasks');
-            if (!existsSync(tasksDir)) {
-              res.writeHead(200, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify([]));
-              return;
-            }
+            const archiveDir = join(tasksDir, 'archive');
             try {
               const { readdirSync } = await import('node:fs');
-              const files = readdirSync(tasksDir).filter(f => f.endsWith('.md'));
-              const taskIds = files.map(f => f.replace(/\.md$/, ''));
+              const ids = new Set<string>();
+              if (existsSync(tasksDir)) {
+                for (const f of readdirSync(tasksDir).filter(f => f.endsWith('.md'))) {
+                  ids.add(f.replace(/\.md$/, ''));
+                }
+              }
+              // 📖 Also surface archived tasks (tasks/archive/*.md).
+              if (existsSync(archiveDir)) {
+                for (const f of readdirSync(archiveDir).filter(f => f.endsWith('.md'))) {
+                  ids.add(f.replace(/\.md$/, ''));
+                }
+              }
               res.writeHead(200, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify(taskIds));
+              res.end(JSON.stringify([...ids].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))));
             } catch (e) {
               res.writeHead(500, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify({ error: `Failed to list tasks: ${e.message}` }));
@@ -126,8 +132,11 @@ function kandownDevPlugin() {
             return;
           }
           if (req.method === 'GET' && id) {
-            const taskPath = join(kandownPath, 'tasks', `${id}.md`);
-            if (!existsSync(taskPath)) {
+            // 📖 Search active dir then archive/ so archived tasks stay readable.
+            const inTasks = join(kandownPath, 'tasks', `${id}.md`);
+            const inArchive = join(kandownPath, 'tasks', 'archive', `${id}.md`);
+            const taskPath = existsSync(inTasks) ? inTasks : existsSync(inArchive) ? inArchive : null;
+            if (!taskPath) {
               res.writeHead(404, { 'Content-Type': 'text/plain' });
               res.end('Task not found');
               return;
@@ -144,13 +153,13 @@ function kandownDevPlugin() {
           }
           if (req.method === 'PUT' && id) {
             const tasksDir = join(kandownPath, 'tasks');
+            const archiveDir = join(tasksDir, 'archive');
             if (!existsSync(tasksDir)) {
               try {
                 const { mkdirSync } = await import('node:fs');
                 mkdirSync(tasksDir, { recursive: true });
               } catch { /* ignore */ }
             }
-            const taskPath = join(tasksDir, `${id}.md`);
             try {
               const { writeFileSync } = await import('node:fs');
               const chunks: Buffer[] = [];
@@ -160,7 +169,10 @@ function kandownDevPlugin() {
                 req.on('error', reject);
               });
               const body = Buffer.concat(chunks).toString('utf8');
-              writeFileSync(taskPath, body, 'utf8');
+              // 📖 Write in place: an archived task stays inside archive/.
+              const inArchive = existsSync(join(archiveDir, `${id}.md`));
+              const targetDir = inArchive ? archiveDir : tasksDir;
+              writeFileSync(join(targetDir, `${id}.md`), body, 'utf8');
               res.writeHead(200, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify({ ok: true }));
             } catch (e) {
@@ -170,20 +182,47 @@ function kandownDevPlugin() {
             return;
           }
           if (req.method === 'DELETE' && id) {
-            const taskPath = join(kandownPath, 'tasks', `${id}.md`);
-            if (!existsSync(taskPath)) {
-              res.writeHead(404, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ error: 'Task not found' }));
-              return;
-            }
+            const inTasks = join(kandownPath, 'tasks', `${id}.md`);
+            const inArchive = join(kandownPath, 'tasks', 'archive', `${id}.md`);
             try {
               const { unlinkSync } = await import('node:fs');
-              unlinkSync(taskPath);
+              if (existsSync(inTasks)) unlinkSync(inTasks);
+              if (existsSync(inArchive)) unlinkSync(inArchive);
               res.writeHead(200, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify({ ok: true }));
             } catch (e) {
               res.writeHead(500, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify({ error: `Failed to delete task: ${e.message}` }));
+            }
+            return;
+          }
+          // 📖 Archive/unarchive: the body already carries the toggled frontmatter.
+          // parts[2] is the sub-resource ('archive' or 'unarchive'). Write the file
+          // to the destination dir then unlink the source so the move is atomic.
+          if (req.method === 'POST' && id && (parts[2] === 'archive' || parts[2] === 'unarchive')) {
+            const archiving = parts[2] === 'archive';
+            const tasksDir = join(kandownPath, 'tasks');
+            const archiveDir = join(tasksDir, 'archive');
+            const src = join(archiving ? tasksDir : archiveDir, `${id}.md`);
+            const dst = join(archiving ? archiveDir : tasksDir, `${id}.md`);
+            try {
+              const { writeFileSync, mkdirSync, unlinkSync } = await import('node:fs');
+              if (!existsSync(archiveDir)) mkdirSync(archiveDir, { recursive: true });
+              if (!existsSync(tasksDir)) mkdirSync(tasksDir, { recursive: true });
+              const chunks: Buffer[] = [];
+              await new Promise<void>((resolve, reject) => {
+                req.on('data', chunk => chunks.push(chunk));
+                req.on('end', resolve);
+                req.on('error', reject);
+              });
+              const body = Buffer.concat(chunks).toString('utf8');
+              writeFileSync(dst, body, 'utf8');
+              if (existsSync(src)) unlinkSync(src);
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ ok: true }));
+            } catch (e) {
+              res.writeHead(500, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: `Failed to ${parts[2]} task: ${e.message}` }));
             }
             return;
           }

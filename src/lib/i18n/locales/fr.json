@@ -36,7 +36,9 @@
   "header": {
     "tasks": "tâches",
     "recentProjects": "Projets récents",
-    "openFolder...": "Ouvrir un dossier..."
+    "openFolder...": "Ouvrir un dossier...",
+    "archives": "Archives",
+    "backToBoard": "Retour au board"
   },
   "filterBar": {
     "searchPlaceholder": "Rechercher des tâches...",
@@ -82,8 +84,13 @@
     "subtasks": "Sous-tâches",
     "addSubtask": "Ajouter une sous-tâche",
     "deleteTask": "Supprimer",
+    "archive": "Archiver",
+    "restore": "Restaurer",
     "saveClose": "Enregistrer et fermer",
     "cancel": "Annuler"
+  },
+  "archive": {
+    "empty": "Aucune tâche archivée."
   },
   "subtask": {
     "placeholder": "Sous-tâche...",

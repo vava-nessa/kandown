@@ -26,7 +26,11 @@ export function serializeTaskFile(frontmatter: TaskFrontmatter, body: string): s
         lines.push(`${k}: [${v.join(', ')}]`);
       } else if (typeof v === 'string' && v.includes('\n')) {
         lines.push(`${k}: |`);
-        lines.push(...v.split('\n').map(line => `  ${line}`));
+        // 📖 Preserve truly empty lines in YAML block scalars instead of
+        // padding them with 2 spaces. An empty line stays empty so the file
+        // stays byte-stable across open/save round-trips (no cosmetic git diff
+        // noise). YAML block scalars treat a blank line as a blank line.
+        lines.push(...v.split('\n').map(line => (line === '' ? '' : `  ${line}`)));
       } else if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
         lines.push(`${k}: ${v}`);
       }

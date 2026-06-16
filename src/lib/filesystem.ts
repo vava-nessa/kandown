@@ -34,7 +34,7 @@
  * @see src/lib/parser.ts
  */
 
-import type { KandownConfig, TaskFrontmatter } from './types';
+import type { KandownConfig, TaskFrontmatter, ParsedTask } from './types';
 import { DEFAULT_CONFIG } from './types';
 import { serializeTaskFile } from './serializer';
 import { parseTaskFile } from './parser';
@@ -256,15 +256,75 @@ export async function ensureTasksDir(dirHandle: FileSystemDirectoryHandle): Prom
   return await dirHandle.getDirectoryHandle('tasks', { create: true });
 }
 
+/** Empty placeholder task returned when a file can't be read. */
+function emptyTask(id: string): ParsedTask {
+  return {
+    frontmatter: {
+      id,
+      title: '',
+      priority: '',
+      tags: [],
+      assignee: '',
+      created: new Date().toISOString().slice(0, 10),
+    } as TaskFrontmatter,
+    body: `# ${id}\n\n## Context\n\n## Subtasks\n\n`,
+  };
+}
+
+/** Reads a task file from the archive subfolder. Returns null if absent. */
+async function tryArchiveRead(tasksDir: FileSystemDirectoryHandle, id: string): Promise<string | null> {
+  try {
+    const archiveDir = await tasksDir.getDirectoryHandle('archive', { create: false });
+    const h = await archiveDir.getFileHandle(`${id}.md`);
+    const file = await h.getFile();
+    return await file.text();
+  } catch {
+    return null;
+  }
+}
+
+/** Returns true when the task currently lives in tasks/archive/. */
+async function taskIsInArchive(tasksDir: FileSystemDirectoryHandle, id: string): Promise<boolean> {
+  try {
+    const archiveDir = await tasksDir.getDirectoryHandle('archive', { create: false });
+    await archiveDir.getFileHandle(`${id}.md`);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Returns the tasks/archive/ directory handle, creating it when `create`. */
+async function getArchiveDirHandle(tasksDir: FileSystemDirectoryHandle, create: boolean): Promise<FileSystemDirectoryHandle | null> {
+  try {
+    return await tasksDir.getDirectoryHandle('archive', { create });
+  } catch {
+    return null;
+  }
+}
+
 export async function listTaskIds(_tasksDir: FileSystemDirectoryHandle | null): Promise<string[]> {
   if (isServerMode()) return serverListTasks();
-  const ids: string[] = [];
+  const ids = new Set<string>();
   for await (const entry of _tasksDir!.values()) {
     if (entry.kind === 'file' && entry.name.endsWith('.md')) {
-      ids.push(entry.name.slice(0, -3));
+      ids.add(entry.name.slice(0, -3));
     }
   }
-  return ids.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  // 📖 Also surface archived tasks (tasks/archive/*.md) so the archive view can
+  // list them. The server endpoint already merges both dirs; this mirrors it
+  // for the browser (File System Access API) backend.
+  try {
+    const archiveDir = await _tasksDir!.getDirectoryHandle('archive', { create: false });
+    for await (const entry of archiveDir.values()) {
+      if (entry.kind === 'file' && entry.name.endsWith('.md')) {
+        ids.add(entry.name.slice(0, -3));
+      }
+    }
+  } catch {
+    // archive/ doesn't exist yet — no archived tasks
+  }
+  return [...ids].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 }
 
 export async function readTaskFile(_tasksDir: FileSystemDirectoryHandle | null, id: string) {
@@ -273,37 +333,22 @@ export async function readTaskFile(_tasksDir: FileSystemDirectoryHandle | null, 
       const text = await serverReadTask(id);
       return parseTaskFile(text);
     } catch {
-      return {
-        frontmatter: {
-          id,
-          title: '',
-          priority: '',
-          tags: [],
-          assignee: '',
-          created: new Date().toISOString().slice(0, 10),
-        } as TaskFrontmatter,
-        body: `# ${id}\n\n## Context\n\n## Subtasks\n\n`,
-      };
+      return emptyTask(id);
     }
   }
-  try {
-    const h = await _tasksDir!.getFileHandle(`${id}.md`);
-    const file = await h.getFile();
-    const text = await file.text();
-    return parseTaskFile(text);
-  } catch {
-    return {
-      frontmatter: {
-        id,
-        title: '',
-        priority: '',
-        tags: [],
-        assignee: '',
-        created: new Date().toISOString().slice(0, 10),
-      } as TaskFrontmatter,
-      body: `# ${id}\n\n## Context\n\n## Subtasks\n\n`,
-    };
-  }
+  // 📖 Try the active dir first, then archive/ (archived tasks live there).
+  const tryRead = async (dir: FileSystemDirectoryHandle): Promise<string | null> => {
+    try {
+      const h = await dir.getFileHandle(`${id}.md`);
+      const file = await h.getFile();
+      return await file.text();
+    } catch {
+      return null;
+    }
+  };
+  const text = (await tryRead(_tasksDir!)) ?? (await tryArchiveRead(_tasksDir!, id));
+  if (text !== null) return parseTaskFile(text);
+  return emptyTask(id);
 }
 
 export async function writeTaskFile(
@@ -312,20 +357,90 @@ export async function writeTaskFile(
   frontmatter: TaskFrontmatter,
   body: string
 ): Promise<void> {
-  if (isServerMode()) return serverWriteTask(id, serializeTaskFile(frontmatter, body));
-  const h = await _tasksDir!.getFileHandle(`${id}.md`, { create: true });
+  const content = serializeTaskFile(frontmatter, body);
+  if (isServerMode()) return serverWriteTask(id, content);
+  // 📖 Write in place: an archived task stays inside archive/ on save so its
+  // file location never drifts from its archived flag.
+  const targetDir = (await taskIsInArchive(_tasksDir!, id))
+    ? (await getArchiveDirHandle(_tasksDir!, true))!
+    : _tasksDir!;
+  const h = await targetDir.getFileHandle(`${id}.md`, { create: true });
   const w = await h.createWritable();
-  await w.write(serializeTaskFile(frontmatter, body));
+  await w.write(content);
   await w.close();
 }
 
 export async function deleteTaskFile(_tasksDir: FileSystemDirectoryHandle | null, id: string): Promise<void> {
   if (isServerMode()) return serverDeleteTask(id);
+  // 📖 Remove from whichever location holds the file (active or archive).
+  try { await _tasksDir!.removeEntry(`${id}.md`); } catch { /* not in active */ }
   try {
-    await _tasksDir!.removeEntry(`${id}.md`);
-  } catch {
-    // ignore
-  }
+    const archiveDir = await _tasksDir!.getDirectoryHandle('archive', { create: false });
+    await archiveDir.removeEntry(`${id}.md`);
+  } catch { /* not in archive */ }
+}
+
+/** 📖 Moves a task into tasks/archive/ via the CLI server. The body already
+ * carries `archived: true` in frontmatter — server writes it to archive/ then
+ * unlinks the active copy. */
+async function serverArchiveTask(id: string, content: string): Promise<void> {
+  await apiFetch(`/api/tasks/${encodeURIComponent(id)}/archive`, {
+    method: 'POST',
+    body: content,
+    headers: { 'Content-Type': 'text/plain' },
+  });
+}
+
+/** 📖 Moves a task back from tasks/archive/ to tasks/ via the CLI server. */
+async function serverUnarchiveTask(id: string, content: string): Promise<void> {
+  await apiFetch(`/api/tasks/${encodeURIComponent(id)}/unarchive`, {
+    method: 'POST',
+    body: content,
+    headers: { 'Content-Type': 'text/plain' },
+  });
+}
+
+/**
+ * Archives a task: writes the (already flag-updated) content into
+ * tasks/archive/<id>.md and removes the active tasks/<id>.md.
+ * Works in both server and browser (File System Access API) modes.
+ */
+export async function archiveTaskFile(
+  _tasksDir: FileSystemDirectoryHandle | null,
+  id: string,
+  frontmatter: TaskFrontmatter,
+  body: string
+): Promise<void> {
+  const content = serializeTaskFile(frontmatter, body);
+  if (isServerMode()) return serverArchiveTask(id, content);
+  const archiveDir = (await getArchiveDirHandle(_tasksDir!, true))!;
+  const h = await archiveDir.getFileHandle(`${id}.md`, { create: true });
+  const w = await h.createWritable();
+  await w.write(content);
+  await w.close();
+  try { await _tasksDir!.removeEntry(`${id}.md`); } catch { /* already absent */ }
+}
+
+/**
+ * Restores an archived task: writes the content into tasks/<id>.md and removes
+ * the archived copy. Mirror of archiveTaskFile.
+ */
+export async function unarchiveTaskFile(
+  _tasksDir: FileSystemDirectoryHandle | null,
+  id: string,
+  frontmatter: TaskFrontmatter,
+  body: string
+): Promise<void> {
+  const content = serializeTaskFile(frontmatter, body);
+  if (isServerMode()) return serverUnarchiveTask(id, content);
+  const h = await _tasksDir!.getFileHandle(`${id}.md`, { create: true });
+  const w = await h.createWritable();
+  await w.write(content);
+  await w.close();
+  try {
+    const archiveDir = await _tasksDir!.getDirectoryHandle('archive', { create: false });
+    await archiveDir.removeEntry(`${id}.md`);
+  } catch { /* already absent */ }
 }
 
 /* ═════════════ Recent projects via IndexedDB ═════════════ */

@@ -150,6 +150,9 @@ export function buildColumnsFromTasks(tasks: ParsedTask[], configuredColumns: st
   const unknownColumns: Column[] = [];
   const sortedTasks = [...tasks]
     .filter(task => Boolean(task.frontmatter.id))
+    // 📖 Archived tasks are hidden from the active board — they live in the
+    // dedicated archive view (see extractArchivedTasks).
+    .filter(task => !isArchived(task))
     .sort((a, b) => {
       const byOrder = taskOrder(a) - taskOrder(b);
       if (byOrder !== 0) return byOrder;
@@ -168,6 +171,24 @@ export function buildColumnsFromTasks(tasks: ParsedTask[], configuredColumns: st
   }
 
   return [...unknownColumns, ...configured];
+}
+
+/** True when a task carries the archived flag in its frontmatter.
+ * Accepts both boolean true and the string "true" because parseSimpleYaml keeps
+ * scalar values as strings. String() normalizes both forms safely. */
+function isArchived(task: ParsedTask): boolean {
+  return String(task.frontmatter.archived) === 'true';
+}
+
+/**
+ * Returns the compact board metadata for every archived task, sorted by id.
+ * Used to populate the dedicated archive view (separate from the active board).
+ */
+export function extractArchivedTasks(tasks: ParsedTask[]): BoardTask[] {
+  return [...tasks]
+    .filter(task => Boolean(task.frontmatter.id) && isArchived(task))
+    .sort((a, b) => a.frontmatter.id.localeCompare(b.frontmatter.id, undefined, { numeric: true }))
+    .map(taskToBoardTask);
 }
 
 export function extractSubtasks(body: string): { subtasks: Subtask[]; bodyWithoutSubtasks: string } {
@@ -202,6 +223,23 @@ export function extractSubtasks(body: string): { subtasks: Subtask[]; bodyWithou
     const reportMatch = line.match(/^\s*\[REPORT\]\s*(.*)$/);
     if (reportMatch && subtasks.length > 0) {
       subtasks[subtasks.length - 1].report = reportMatch[1];
+      continue;
+    }
+    // 📖 Legacy format (pre-canonical): `description:` / `report:` indented under a
+    // subtask, before the [DESC]/[REPORT] markers were introduced. Recognizing
+    // them here attaches the notes to the subtask so they survive a save — and
+    // since injectSubtasks writes the canonical [DESC]/[REPORT] form, the file
+    // auto-migrates on the first open+save. Only matched while inside the
+    // subtask section to avoid swallowing body prose that happens to start with
+    // "report:" or "description:".
+    const legacyDescMatch = line.match(/^\s+description:\s*(.+)$/);
+    if (legacyDescMatch && inSubtaskSection && subtasks.length > 0) {
+      subtasks[subtasks.length - 1].description = legacyDescMatch[1].trim();
+      continue;
+    }
+    const legacyReportMatch = line.match(/^\s+report:\s*(.+)$/);
+    if (legacyReportMatch && inSubtaskSection && subtasks.length > 0) {
+      subtasks[subtasks.length - 1].report = legacyReportMatch[1].trim();
       continue;
     }
     kept.push(line);

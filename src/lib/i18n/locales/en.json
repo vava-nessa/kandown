@@ -38,7 +38,9 @@
   "header": {
     "tasks": "tasks",
     "recentProjects": "Recent projects",
-    "openFolder...": "Open folder..."
+    "openFolder...": "Open folder...",
+    "archives": "Archives",
+    "backToBoard": "Back to board"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -92,8 +94,13 @@
     "subtasks": "Subtasks",
     "addSubtask": "Add subtask",
     "deleteTask": "Delete",
+    "archive": "Archive",
+    "restore": "Restore",
     "saveClose": "Save & Close",
     "cancel": "Cancel"
+  },
+  "archive": {
+    "empty": "No archived tasks."
   },
   "subtask": {
     "placeholder": "Subtask...",

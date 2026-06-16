@@ -48,6 +48,9 @@ export function Header() {
   const dirHandle = useStore(s => s.dirHandle);
   const isOpen = useStore(s => s.isOpen);
   const projectName = useStore(s => s.projectName);
+  const archivedCount = useStore(s => s.archivedTasks.length);
+  const showArchives = useStore(s => s.showArchives);
+  const setShowArchives = useStore(s => s.setShowArchives);
   const columns = useStore(s => s.columns);
   const openFolder = useStore(s => s.openFolder);
   const reloadBoard = useStore(s => s.reloadBoard);
@@ -285,6 +288,14 @@ export function Header() {
                 <Icon.LayoutList size={18} />
               </button>
             </div>
+
+            <KbdButton
+              variant="icon"
+              icon="Archive"
+              onClick={() => setShowArchives(!showArchives)}
+              title={showArchives ? t('header.backToBoard') : `${t('header.archives')} (${archivedCount})`}
+              className={showArchives ? 'text-accent' : ''}
+            />
 
             <KbdButton
               variant="icon"

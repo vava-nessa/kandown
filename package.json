@@ -1,6 +1,6 @@
 {
   "name": "kandown",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "File-based Kanban engine backed by Markdown. Zero backend, AI-agent friendly.",
   "type": "module",
   "bin": {
@@ -47,11 +47,9 @@
     "@types/react-dom": "^19.0.0",
     "@types/three": "0.182.0",
     "@vitejs/plugin-react": "^4.3.4",
-    "@wysimark/react": "3.0.20",
     "autoprefixer": "^10.4.20",
     "i18next": "26.0.5",
     "ink": "7.0.1",
-    "marked": "18.0.2",
     "motion": "^12.38.0",
     "postcss": "^8.5.1",
     "react": "^19.0.0",

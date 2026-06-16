@@ -56,6 +56,7 @@ import {
   readdirSync,
   statSync,
   unlinkSync,
+  renameSync,
 } from 'node:fs';
 import { spawnSync, spawn, execSync } from 'node:child_process';
 
@@ -790,16 +791,39 @@ function putBoard(req, res, kandownDir) {
   });
 }
 
+/**
+ * 📖 Resolves the on-disk path of a task id, searching the active tasks dir
+ * first, then the archive subfolder. Returns null when the id exists in
+ * neither location. Used by every CRUD handler so archived tasks stay
+ * reachable at their real location.
+ */
+function findTaskPath(kandownDir, id) {
+  const inTasks = join(kandownDir, 'tasks', `${id}.md`);
+  if (existsSync(inTasks)) return inTasks;
+  const inArchive = join(kandownDir, 'tasks', 'archive', `${id}.md`);
+  if (existsSync(inArchive)) return inArchive;
+  return null;
+}
+
 function getTasks(res, kandownDir) {
   const tasksDir = join(kandownDir, 'tasks');
-  if (!existsSync(tasksDir)) {
-    writeJson(res, 200, []);
-    return;
-  }
+  const archiveDir = join(tasksDir, 'archive');
+  const ids = new Set();
   try {
-    const files = readdirSync(tasksDir).filter(f => f.endsWith('.md'));
-    const ids = files.map(f => f.replace(/\.md$/, ''));
-    writeJson(res, 200, ids);
+    if (existsSync(tasksDir)) {
+      for (const f of readdirSync(tasksDir).filter(f => f.endsWith('.md'))) {
+        ids.add(f.replace(/\.md$/, ''));
+      }
+    }
+    // 📖 Also surface archived tasks so the UI can list them in the archive
+    // view. The archived flag in frontmatter (not the folder) is the source of
+    // truth for hiding them from the active board.
+    if (existsSync(archiveDir)) {
+      for (const f of readdirSync(archiveDir).filter(f => f.endsWith('.md'))) {
+        ids.add(f.replace(/\.md$/, ''));
+      }
+    }
+    writeJson(res, 200, [...ids].sort((a, b) => a.localeCompare(b, undefined, { numeric: true })));
   } catch (e) {
     writeJson(res, 500, { error: `Failed to list tasks: ${e.message}` });
   }
@@ -810,8 +834,8 @@ function getTask(res, kandownDir, id) {
     writeText(res, 400, 'Invalid task id');
     return;
   }
-  const taskPath = join(kandownDir, 'tasks', `${id}.md`);
-  if (!existsSync(taskPath)) {
+  const taskPath = findTaskPath(kandownDir, id);
+  if (!taskPath) {
     writeText(res, 404, 'Task not found');
     return;
   }
@@ -831,7 +855,13 @@ function putTask(req, res, kandownDir, id) {
   readBody(req).then(body => {
     const tasksDir = join(kandownDir, 'tasks');
     if (!existsSync(tasksDir)) mkdirSync(tasksDir, { recursive: true });
-    const taskPath = join(tasksDir, `${id}.md`);
+    // 📖 Write in place: keep an archived task inside archive/ on save so the
+    // file location never drifts from its archived flag.
+    const existing = findTaskPath(kandownDir, id);
+    const archiveDir = join(tasksDir, 'archive');
+    const inArchive = existing && existing.startsWith(archiveDir);
+    const targetDir = inArchive ? archiveDir : tasksDir;
+    const taskPath = join(targetDir, `${id}.md`);
     writeFileSync(taskPath, body, 'utf8');
     writeJson(res, 200, { ok: true });
   }).catch(e => {
@@ -844,8 +874,8 @@ function deleteTask(res, kandownDir, id) {
     writeText(res, 400, 'Invalid task id');
     return;
   }
-  const taskPath = join(kandownDir, 'tasks', `${id}.md`);
-  if (!existsSync(taskPath)) {
+  const taskPath = findTaskPath(kandownDir, id);
+  if (!taskPath) {
     writeJson(res, 404, { error: 'Task not found' });
     return;
   }
@@ -905,6 +935,10 @@ function handleApi(req, res, url, kandownDir) {
     if (req.method === 'GET' && id) return getTask(res, kandownDir, id);
     if (req.method === 'PUT' && id) return putTask(req, res, kandownDir, id);
     if (req.method === 'DELETE' && id) return deleteTask(res, kandownDir, id);
+    // parts[2] is the sub-resource: 'archive' or 'unarchive'. The body carries
+    // the full task file content with the archived flag already toggled.
+    if (req.method === 'POST' && id && parts[2] === 'archive') return archiveTask(req, res, kandownDir, id);
+    if (req.method === 'POST' && id && parts[2] === 'unarchive') return unarchiveTask(req, res, kandownDir, id);
   }
 
   writeJson(res, 404, { error: 'Not found' });

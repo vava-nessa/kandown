@@ -198,7 +198,13 @@ export function BlockNoteMarkdownEditor({
   const handleChange = useCallback(() => {
     if (isInitializingRef.current || !onChange) return;
     const md = editor.blocksToMarkdownLossy(editor.document);
-    onChange(md);
+    // 📖 Idempotence fix: BlockNote serializes empty lines between blocks as
+    // whitespace-only lines ("  "). Normalize them back to truly empty lines so
+    // the .md round-trip stays byte-stable and git-friendly. Safe because a
+    // whitespace-only line is semantically identical to an empty line in
+    // markdown (we only touch lines that contain *nothing but* spaces).
+    const normalized = md.replace(/^ +$/gm, '');
+    onChange(normalized);
   }, [editor, onChange]);
 
   return (

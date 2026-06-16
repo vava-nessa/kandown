@@ -27,7 +27,6 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
 import { KbdButton } from './KbdButton';
 import { SubtaskItem } from './SubtaskItem';
-import { MarkdownEditor } from './ui/MarkdownEditor';
 import { BlockNoteMarkdownEditor } from './ui/BlockNoteMarkdownEditor';
 import { useStore } from '../lib/store';
 import type { Priority, OwnerType } from '../lib/types';
@@ -41,6 +40,12 @@ export function Drawer() {
   const saveDrawer = useStore(s => s.saveDrawer);
   const saveDrawerMetadata = useStore(s => s.saveDrawerMetadata);
   const deleteTask = useStore(s => s.deleteTask);
+  const archiveTask = useStore(s => s.archiveTask);
+  const unarchiveTask = useStore(s => s.unarchiveTask);
+
+  // 📖 archived flag is read as either boolean or the string "true" (parseSimpleYaml
+  // keeps scalars as strings). Computed early so handlers and JSX share it.
+  const isTaskArchived = String(drawerData?.frontmatter.archived) === 'true';
   const updateDrawerData = useStore(s => s.updateDrawerData);
   const fields = useStore(s => s.config.fields);
 
@@ -93,6 +98,18 @@ export function Drawer() {
     await deleteTask(drawerTaskId);
     await safeCloseDrawer();
   }, [safeCloseDrawer, deleteTask, drawerTaskId, t]);
+
+  // 📖 Archive/restore toggle. Flushes pending autosave first so no edit is
+  // lost when the file is moved to tasks/archive/.
+  const handleArchiveToggle = useCallback(async () => {
+    if (!drawerTaskId) return;
+    if (isTaskArchived) {
+      await unarchiveTask(drawerTaskId);
+    } else {
+      await flushAutoSave();
+      await archiveTask(drawerTaskId);
+    }
+  }, [drawerTaskId, isTaskArchived, archiveTask, unarchiveTask, flushAutoSave]);
 
   // Get current column for status display
   const currentCol = drawerTaskId
@@ -378,11 +395,10 @@ export function Drawer() {
                     <div className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted mb-2">
                       {t('drawer.report')}
                     </div>
-                    <MarkdownEditor
+                    <BlockNoteMarkdownEditor
                       value={drawerData.frontmatter.report as string || ''}
                       onChange={val => updateField('report', val)}
                       placeholder={t('drawer.reportPlaceholder')}
-                      readOnly={false}
                       minHeight="180px"
                     />
                   </div>
@@ -448,13 +464,21 @@ export function Drawer() {
 
             {/* Footer */}
             <div className="flex items-center justify-between gap-2 px-5 py-3 border-t border-border rounded-b-2xl">
-              <KbdButton
-                variant="danger"
-                icon="Trash"
-                label={t('drawer.deleteTask')}
-                shortcut="⌘⌫"
-                onClick={handleDelete}
-              />
+              <div className="flex items-center gap-2">
+                <KbdButton
+                  variant="danger"
+                  icon="Trash"
+                  label={t('drawer.deleteTask')}
+                  shortcut="⌘⌫"
+                  onClick={handleDelete}
+                />
+                <KbdButton
+                  variant="secondary"
+                  icon={isTaskArchived ? 'ArchiveRestore' : 'Archive'}
+                  label={t(isTaskArchived ? 'drawer.restore' : 'drawer.archive')}
+                  onClick={handleArchiveToggle}
+                />
+              </div>
               <div className="flex items-center gap-2">
                 <KbdButton
                   variant="secondary"

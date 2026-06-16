@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.0 — 2026-06-16 — "Archive & Markdown"
+
+- **Added**: Archive folder and view — tasks can now be archived via a button in the drawer, which moves the file to `.kandown/tasks/archive/`, sets `archived: true` in the frontmatter, and hides it from the active board. A new header button toggles a dedicated Archive view listing all archived tasks with a one-click Restore action.
+- **Added**: `archive` and `restore` actions on the store, plus matching CLI server endpoints (`POST /api/tasks/:id/archive` and `…/unarchive`) and dev-mode vite middleware routes so the feature works in browser and server modes.
+- **Changed**: Unified markdown editor across the drawer — the task Report field and all subtask descriptions/reports now use the same BlockNote editor as the task description body, with the same slash menu, block types, and markdown round-trip guarantees. Wysimark and its `marked`-based preview have been removed entirely.
+- **Removed**: `src/components/ui/MarkdownEditor.tsx` (Wysimark), all wysimark CSS rules, and the `@wysimark/react` + `marked` dependencies.
+- **Fixed**: Legacy subtask `report:` / `description:` indented lines are now recognized by `extractSubtasks` and migrated to the canonical `[REPORT]` / `[DESC]` markers on the first open+save. Previously these lines were silently dropped on save, causing silent loss of subtask reports in older task files.
+- **Fixed**: YAML block scalar serializer no longer pads truly empty lines with two spaces, so the frontmatter `report: |` block stays byte-stable across open/save round-trips (no cosmetic git diff noise).
+
 ## 0.8.0 — 2026-06-04 — "Project Daemon"
 
 - **Added**: Per-project web daemon — `kandown` now starts/reconnects a background server by default so the browser keeps working after quitting the TUI.

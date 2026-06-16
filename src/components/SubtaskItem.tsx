@@ -19,7 +19,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
-import { MarkdownEditor } from './ui/MarkdownEditor';
+import { BlockNoteMarkdownEditor } from './ui/BlockNoteMarkdownEditor';
 import type { Subtask } from '../lib/types';
 
 interface SubtaskItemProps {
@@ -177,7 +177,7 @@ export function SubtaskItem({
               <label className="text-[11px] font-medium text-fg-muted uppercase tracking-wide">
                 {t('subtask.description')}
               </label>
-              <MarkdownEditor
+              <BlockNoteMarkdownEditor
                 value={subtask.description ?? ''}
                 onChange={val => onDescriptionChange(index, val)}
                 placeholder={t('subtask.descriptionPlaceholder')}
@@ -201,7 +201,7 @@ export function SubtaskItem({
                       </span>
                     )}
                   </label>
-                  <MarkdownEditor
+                  <BlockNoteMarkdownEditor
                     value={subtask.report ?? ''}
                     onChange={val => onReportChange(index, val)}
                     placeholder={t('subtask.reportPlaceholder')}
