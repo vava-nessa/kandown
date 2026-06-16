@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.10.0 — 2026-06-16 — "Linear Look"
+
+- **Changed**: The board got a full Linear-style relook — pure black background in dark mode, off-white in light, with a refined two-layer dot grid (the "taches") that adapts to the theme. Default columns are now neutral; any per-column tints you set via the 3-dot menu use a restrained 6% opacity.
+- **Changed**: The default "kandown" skin is rebuilt around Linear tokens — pure black background (`0 0% 0%`), cards at `0 0% 6%` with very subtle borders in dark; off-white background with white cards in light. The 4 colored skins (Graphite, Sage, Cobalt, Rose) were also retuned to match — darker bases, more restrained hues.
+- **Changed**: Cards and card stacks are now `rounded-lg` with a lighter, hand-tuned shadow that lifts on hover. No more heavy `shadow-sm/md` defaults.
+- **Changed**: Column headers are tighter and more refined — smaller icons, lighter typography, more breathing room. The Add task button at the bottom of each column blends in better.
+- **Removed**: The SVG noise-overlay grain (Board + EmptyState + CSS) — it was making the board feel noisy and the CSS class is gone.
+- **Fixed**: The `class="dark"` attribute was hardcoded in `index.html`, blocking the `theme: "auto"` mode from working. The hardcoded class is removed so the OS preference drives the theme.
+- **Fixed**: `kandown.json` is now set to `theme: "auto"` and `columnColors: {}` by default, so a fresh install starts in Linear neutral mode without the previously-saved saturated column tints.
+
 ## 0.9.0 — 2026-06-16 — "Archive & Markdown"
 
 - **Added**: Archive folder and view — tasks can now be archived via a button in the drawer, which moves the file to `.kandown/tasks/archive/`, sets `archived: true` in the frontmatter, and hides it from the active board. A new header button toggles a dedicated Archive view listing all archived tasks with a one-click Restore action.

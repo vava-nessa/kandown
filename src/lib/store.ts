@@ -108,6 +108,11 @@ interface State {
   archivedTasks: BoardTask[];
   /** When true the board renders the archive view instead of the active board. */
   showArchives: boolean;
+  /** Master switch for the per-card metadata block. When true (default) the
+ * metadata block stays hidden and cards show only id + title + progress. Toggling
+ * it false reveals every frontmatter metadata field (priority, assignee, tags,
+ * due, ownerType, tools, plus any custom key) inside a single block per card. */
+  showMetadata: boolean;
 
   // Content search cache (loaded lazily when >10 tasks, eagerly otherwise)
   taskContents: Map<string, TaskContent>;
@@ -158,6 +163,8 @@ interface State {
   unarchiveTask: (taskId: string) => Promise<void>;
   /** Toggles between the active board and the archive view. */
   setShowArchives: (show: boolean) => void;
+  /** Master switch for the per-card metadata block (see showMetadata). */
+  setShowMetadata: (show: boolean) => void;
 
   openDrawer: (taskId: string) => Promise<void>;
   closeDrawer: () => void;
@@ -322,6 +329,7 @@ export const useStore = create<State>((set, get) => ({
   columns: [],
   archivedTasks: [],
   showArchives: false,
+  showMetadata: true,
 
   taskContents: new Map(),
   searchMatches: new Map(),
@@ -727,6 +735,7 @@ export const useStore = create<State>((set, get) => ({
       priority: config.fields.priority ? (config.board.defaultPriority as BoardTask['priority']) : null,
       ownerType: config.fields.ownerType ? config.board.defaultOwnerType : '',
       progress: null,
+      frontmatter: {},
     };
     const newColumns = columns.map(c =>
       c.name === targetColName ? { ...c, tasks: [...c.tasks, task] } : c
@@ -820,6 +829,7 @@ export const useStore = create<State>((set, get) => ({
   },
 
   setShowArchives: (show) => set({ showArchives: show }),
+  setShowMetadata: (show) => set({ showMetadata: show }),
 
   openDrawer: async (taskId) => {
     const { tasksDirHandle } = get();

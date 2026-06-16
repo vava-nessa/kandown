@@ -38,7 +38,9 @@
     "recentProjects": "Projets récents",
     "openFolder...": "Ouvrir un dossier...",
     "archives": "Archives",
-    "backToBoard": "Retour au board"
+    "backToBoard": "Retour au board",
+    "showMetadata": "Afficher les métadonnées",
+    "hideMetadata": "Masquer les métadonnées"
   },
   "filterBar": {
     "searchPlaceholder": "Rechercher des tâches...",

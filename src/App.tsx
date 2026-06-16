@@ -18,7 +18,9 @@
  */
 
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Header } from './components/Header';
+import { Icon } from './components/Icons';
 
 import { Board } from './components/Board';
 import { ArchiveView } from './components/ArchiveView';
@@ -43,12 +45,15 @@ export function App() {
   const commandOpen = useStore(s => s.commandOpen);
   const setCommandOpen = useStore(s => s.setCommandOpen);
   const createTask = useStore(s => s.createTask);
+  const { t } = useTranslation();
   const reloadBoard = useStore(s => s.reloadBoard);
   const recentProjects = useStore(s => s.recentProjects);
   const openRecentProject = useStore(s => s.openRecentProject);
   const tryAutoOpenServerProject = useStore(s => s.tryAutoOpenServerProject);
   const currentPage = useStore(s => s.currentPage);
   const showArchives = useStore(s => s.showArchives);
+  const showMetadata = useStore(s => s.showMetadata);
+  const setShowMetadata = useStore(s => s.setShowMetadata);
   const config = useStore(s => s.config);
 
   // Sync language from config to i18n
@@ -139,6 +144,20 @@ export function App() {
           <div className={`flex flex-col h-full relative ${config.ui.background === 'static-gradient' ? 'z-10' : ''}`}>
             {showArchives ? <ArchiveView /> : viewMode === 'board' ? <Board /> : <ListView />}
           </div>
+          {/* 📖 Discreet bottom-right master switch for the per-card metadata
+           * block. Hidden by default (showMetadata = true). When flipped, every
+           * card on the board reveals its frontmatter metadata (priority,
+           * assignee, tags, due, ownerType, tools, custom keys) in a single
+           * collapsible block. Fixed so it never collides with the columns. */}
+          <button
+            type="button"
+            onClick={() => setShowMetadata(!showMetadata)}
+            title={showMetadata ? t('header.showMetadata') : t('header.hideMetadata')}
+            className="fixed bottom-3 right-3 z-40 px-2.5 py-1 rounded-md bg-card/80 backdrop-blur border border-border text-[11px] text-fg-muted hover:text-fg hover:border-border-strong transition-colors flex items-center gap-1.5"
+          >
+            {showMetadata ? <Icon.Eye size={12} /> : <Icon.EyeOff size={12} />}
+            <span>{showMetadata ? t('header.showMetadata') : t('header.hideMetadata')}</span>
+          </button>
         </div>
       ) : (
         <EmptyState />

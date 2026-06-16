@@ -36,6 +36,10 @@ export interface BoardTask {
   priority: Priority | null;
   ownerType: OwnerType;
   progress: TaskProgress | null;
+  /** 📖 Raw frontmatter metadata (structural fields + report already filtered
+   * out by taskToBoardTask). The card's metadata block iterates over this to
+   * render every key generically — no hardcoded field list. */
+  frontmatter: Record<string, unknown>;
 }
 
 export interface Column {

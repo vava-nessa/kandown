@@ -40,7 +40,9 @@
     "recentProjects": "Recent projects",
     "openFolder...": "Open folder...",
     "archives": "Archives",
-    "backToBoard": "Back to board"
+    "backToBoard": "Back to board",
+    "showMetadata": "Show metadata",
+    "hideMetadata": "Hide metadata"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",

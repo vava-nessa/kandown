@@ -130,6 +130,13 @@ export function taskToBoardTask(task: ParsedTask): BoardTask {
     ? frontmatter.tags.filter((tag): tag is string => typeof tag === 'string' && tag.trim().length > 0)
     : [];
 
+  // 📖 Expose the raw frontmatter to the card so the metadata block can render
+  // every key (priority, assignee, tags, due, ownerType, tools, plus any custom
+  // field the user adds) without the card knowing the field list up-front.
+  // Structural fields (id, title, status, order, created, archived) and the
+  // heavy `report` body are dropped here so they don't pollute the metadata view.
+  const { id: _id, title: _title, status: _status, order: _order, created: _created, archived: _archived, report: _report, ...metadata } = frontmatter;
+
   return {
     id: frontmatter.id || '',
     title: frontmatter.title || frontmatter.id || 'Untitled task',
@@ -139,6 +146,7 @@ export function taskToBoardTask(task: ParsedTask): BoardTask {
     priority: normalizePriority(frontmatter.priority),
     ownerType: normalizeOwnerType(frontmatter.ownerType),
     progress: total > 0 ? { done, total } : null,
+    frontmatter: metadata,
   };
 }
 

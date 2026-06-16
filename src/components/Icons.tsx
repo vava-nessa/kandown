@@ -148,6 +148,13 @@ export const Icon = {
       <circle cx="12" cy="12" r="3" />
     </svg>
   ),
+  EyeOff: ({ size = 12, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+      <path d="M3 3l18 18" />
+    </svg>
+  ),
   Sun: ({ size = 14, ...p }: IconProps) => (
     <svg {...defaults} width={size} height={size} {...p}>
       <circle cx="12" cy="12" r="4" />
