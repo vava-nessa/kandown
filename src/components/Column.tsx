@@ -63,29 +63,32 @@ function getColumnIcon(columnName: string): TablerIcon {
   return columnIconsByName[normalizedName] ?? IconListDetails;
 }
 
+// 📖 Column tints. Default is a barely-there neutral that lets the cards carry
+// the visual weight. Brighter tints are dialed way down vs the old defaults so
+// the board never feels like a kid's coloring book.
 const COLUMN_COLOR_MAP: Record<ColumnColor, string> = {
-  red: 'rgba(239,68,68,0.12)',
-  orange: 'rgba(249,115,22,0.12)',
-  amber: 'rgba(245,158,11,0.12)',
-  yellow: 'rgba(234,179,8,0.12)',
-  lime: 'rgba(132,204,22,0.12)',
-  green: 'rgba(34,197,94,0.12)',
-  emerald: 'rgba(16,185,129,0.12)',
-  teal: 'rgba(20,184,166,0.12)',
-  cyan: 'rgba(6,182,212,0.12)',
-  sky: 'rgba(14,165,233,0.12)',
-  blue: 'rgba(59,130,246,0.12)',
-  indigo: 'rgba(99,102,241,0.12)',
-  violet: 'rgba(139,92,246,0.12)',
-  purple: 'rgba(168,85,247,0.12)',
-  fuchsia: 'rgba(217,70,239,0.12)',
-  pink: 'rgba(236,72,153,0.12)',
-  rose: 'rgba(244,63,94,0.12)',
-  slate: 'rgba(100,116,139,0.12)',
-  gray: 'rgba(156,163,175,0.12)',
-  zinc: 'rgba(113,113,122,0.12)',
-  black: 'rgba(0,0,0,0.34)',
-  blackTransparent: 'rgba(0,0,0,0.16)',
+  red: 'rgba(239,68,68,0.06)',
+  orange: 'rgba(249,115,22,0.06)',
+  amber: 'rgba(245,158,11,0.06)',
+  yellow: 'rgba(234,179,8,0.06)',
+  lime: 'rgba(132,204,22,0.06)',
+  green: 'rgba(34,197,94,0.06)',
+  emerald: 'rgba(16,185,129,0.06)',
+  teal: 'rgba(20,184,166,0.06)',
+  cyan: 'rgba(6,182,212,0.06)',
+  sky: 'rgba(14,165,233,0.06)',
+  blue: 'rgba(59,130,246,0.06)',
+  indigo: 'rgba(99,102,241,0.06)',
+  violet: 'rgba(139,92,246,0.06)',
+  purple: 'rgba(168,85,247,0.06)',
+  fuchsia: 'rgba(217,70,239,0.06)',
+  pink: 'rgba(236,72,153,0.06)',
+  rose: 'rgba(244,63,94,0.06)',
+  slate: 'rgba(100,116,139,0.05)',
+  gray: 'rgba(255,255,255,0.025)',
+  zinc: 'rgba(113,113,122,0.05)',
+  black: 'rgba(0,0,0,0.24)',
+  blackTransparent: 'rgba(0,0,0,0.1)',
 };
 
 const COLOR_SWATCHES: { key: ColumnColor; label: string; color: string }[] = [
@@ -313,19 +316,19 @@ export function Column({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       data-column={column.name}
-      className="flex flex-col flex-none w-[320px] h-full rounded-2xl border border-black/[0.06] dark:border-white/[0.08] shadow-sm transition-colors duration-150"
-      style={{ backgroundColor: isOver ? 'rgba(255,255,255,0.03)' : colBg }}
+      className="group flex flex-col flex-none w-[320px] h-full rounded-xl border border-border transition-colors duration-150"
+      style={{ backgroundColor: isOver ? 'rgba(255,255,255,0.04)' : colBg }}
     >
-      <div className="flex items-center justify-between px-4 pt-3.5 pb-2.5">
-        <div className="flex items-center gap-2.5">
+      <div className="flex items-center justify-between px-3.5 pt-3 pb-2">
+        <div className="flex items-center gap-2">
           <ColumnIcon
             aria-hidden="true"
-            size={16}
+            size={14}
             stroke={1.8}
             className="flex-none text-fg-muted"
           />
-          <span className="text-[13.5px] font-semibold tracking-tight text-fg">{column.name}</span>
-          <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 text-[11px] font-semibold text-fg-muted bg-black/[0.05] dark:bg-white/[0.1] rounded-full tabular-nums">
+          <span className="text-[12.5px] font-semibold tracking-tight text-fg">{column.name}</span>
+          <span className="inline-flex items-center justify-center min-w-[20px] h-[18px] px-1.5 text-[10.5px] font-medium text-fg-muted rounded-md tabular-nums">
             {filteredTasks.length}
             {isFiltered && <span className="text-fg-faint">/{column.tasks.length}</span>}
           </span>
@@ -370,10 +373,10 @@ export function Column({
       </div>
 
       <div
-        className="flex-1 min-h-0 px-3 scrollbar-always"
+        className="flex-1 min-h-0 px-2.5 scrollbar-always"
         style={{ overflowY: 'scroll' }}
       >
-        <div className="flex flex-col gap-2.5 py-1">
+        <div className="flex flex-col gap-2 py-1">
           <AnimatePresence mode="popLayout">
             {columnItems.length === 0 ? (
               <motion.div
@@ -422,13 +425,13 @@ export function Column({
         </div>
       </div>
 
-      <div className="flex-none px-3 pb-3 pt-1">
+      <div className="flex-none px-2.5 pb-2.5 pt-1">
         <KbdButton
           variant="ghost"
           icon="Plus"
           label={t('column.addTask')}
           onClick={() => createTask(column.name)}
-          className="w-full justify-start px-2.5 py-2 h-auto text-[12.5px] text-fg-muted hover:text-fg rounded-xl hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
+          className="w-full justify-start px-2.5 py-1.5 h-auto text-[12.5px] text-fg-muted hover:text-fg rounded-lg hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
         />
       </div>
     </motion.div>

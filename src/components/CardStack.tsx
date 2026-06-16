@@ -82,7 +82,7 @@ export function CardStack({
         <button
           type="button"
           onClick={() => setExpanded(false)}
-          className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-[11.5px] font-semibold text-fg-muted/70 uppercase tracking-wide hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors w-fit"
+          className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-semibold text-fg-muted/70 uppercase tracking-wide hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors w-fit"
         >
           <IconChevronUp size={13} stroke={2} />
           <span>{group.displayKey}</span>
@@ -122,47 +122,49 @@ export function CardStack({
       {/* Layer 2 (deepest): offset furthest, smallest scale */}
       {taskCount > 2 && (
         <div
-          className="absolute inset-0 rounded-xl border border-border bg-card/40 pointer-events-none"
+          className="absolute inset-0 rounded-lg border border-border bg-card/40 pointer-events-none"
           style={{ transform: 'translateY(8px) scale(0.94)', zIndex: 0 }}
         />
       )}
 
       {/* Layer 1: slightly offset behind the main card */}
       <div
-        className="absolute inset-0 rounded-xl border border-border bg-card/60 pointer-events-none"
+        className="absolute inset-0 rounded-lg border border-border bg-card/60 pointer-events-none"
         style={{ transform: 'translateY(4px) scale(0.97)', zIndex: 1 }}
       />
 
       {/* Main card surface */}
       <motion.div
-        whileHover={{ y: -2, boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}
-        whileTap={{ scale: 0.98 }}
-        className="relative z-10 rounded-xl border border-border bg-card p-3.5 shadow-sm transition-all hover:border-border-strong hover:shadow-md"
+        whileHover={{ y: -1 }}
+        whileTap={{ scale: 0.99 }}
+        className="relative z-10 rounded-lg border border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all hover:border-border-strong hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
       >
-        {/* Header: stack icon + group key + task count */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <IconStack2 size={14} stroke={1.8} className="text-fg-muted/60" />
-            <span className="text-[11.5px] font-semibold tracking-wide text-fg-muted uppercase">
-              {group.displayKey}
-            </span>
+        <div className="px-3.5 pt-3 pb-2.5">
+          {/* Header: stack icon + group key + task count */}
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-1.5">
+              <IconStack2 size={12} stroke={1.8} className="text-fg-muted/60" />
+              <span className="text-[11px] font-semibold tracking-wide text-fg-muted uppercase">
+                {group.displayKey}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="inline-flex items-center h-[18px] px-1.5 text-[10.5px] font-medium rounded-md text-fg-muted tabular-nums">
+                {taskCount}
+              </span>
+              <IconChevronDown size={12} stroke={2} className="text-fg-muted/50" />
+            </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-flex items-center h-5 px-2 text-[11px] font-semibold rounded-md text-fg-muted bg-black/[0.05] dark:bg-white/[0.1] border border-black/[0.06] dark:border-white/[0.12] tabular-nums">
-              {taskCount}
-            </span>
-            <IconChevronDown size={13} stroke={2} className="text-fg-muted/50" />
-          </div>
-        </div>
 
-        {/* Preview: first task title (tag stripped) */}
-        <div className="text-[13.5px] leading-snug font-medium text-fg line-clamp-1">
-          {previewTitle}
-          {taskCount > 1 && (
-            <span className="text-fg-muted/50 ml-1.5">
-              +{taskCount - 1}
-            </span>
-          )}
+          {/* Preview: first task title (tag stripped) */}
+          <div className="text-[13.5px] leading-snug font-medium text-fg line-clamp-1">
+            {previewTitle}
+            {taskCount > 1 && (
+              <span className="text-fg-muted/50 ml-1.5">
+                +{taskCount - 1}
+              </span>
+            )}
+          </div>
         </div>
       </motion.div>
     </motion.div>

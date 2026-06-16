@@ -71,7 +71,6 @@ export function EmptyState() {
       transition={{ duration: 0.3 }}
       className="flex-1 flex flex-col items-center justify-start pt-32 gap-5 px-10 text-center board-bg relative"
     >
-      <div className="noise-overlay" />
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}

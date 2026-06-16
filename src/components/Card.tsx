@@ -35,6 +35,101 @@ const priorityColors: Record<string, string> = {
   P4: '#6e6e6e',
 };
 
+// 📖 Map known frontmatter keys to human-readable labels. Custom keys fall
+// through to a capitalize() fallback so the block stays useful for any field
+// the user adds to a task file (e.g. `estimate: 3d`).
+const FIELD_LABELS: Record<string, string> = {
+  priority: 'Priority',
+  assignee: 'Assignee',
+  tags: 'Tags',
+  due: 'Due',
+  ownerType: 'Owner',
+  tools: 'Tools',
+};
+
+// Defensive: never render these even if they ever leak into frontmatter.
+const EXCLUDED_KEYS = new Set(['report']);
+
+function labelFor(key: string): string {
+  return FIELD_LABELS[key] ?? key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
+}
+
+function isIsoDate(s: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}/.test(s)) return false;
+  const d = new Date(s);
+  return !isNaN(d.getTime());
+}
+
+function renderValue(key: string, value: unknown) {
+  if (value === null || value === undefined) return null;
+  if (Array.isArray(value)) {
+    return (
+      <span className="flex flex-wrap gap-1">
+        {value.map((item, i) => (
+          <span
+            key={i}
+            className="inline-flex items-center h-[18px] px-1.5 rounded bg-black/[0.04] dark:bg-white/[0.08] border border-border/60 text-fg-dim"
+          >
+            {String(item)}
+          </span>
+        ))}
+      </span>
+    );
+  }
+  if (typeof value === 'string') {
+    // Dates (the `due` field or any ISO-860ish string) get a locale format.
+    if (key === 'due' || isIsoDate(value)) {
+      const d = new Date(value);
+      if (!isNaN(d.getTime())) {
+        return (
+          <span className="text-fg-dim">
+            {d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+          </span>
+        );
+      }
+    }
+    return <span className="text-fg-dim break-words">{value}</span>;
+  }
+  if (typeof value === 'boolean') {
+    return <span className="text-fg-dim">{value ? 'yes' : 'no'}</span>;
+  }
+  if (typeof value === 'number') {
+    return <span className="text-fg-dim">{value}</span>;
+  }
+  return <span className="text-fg-dim">{String(value)}</span>;
+}
+
+/**
+ * 📖 The per-card metadata block. Renders every key of the task's frontmatter
+ * (except heavy/excluded ones) as a small `Label: value` list, adapting to the
+ * runtime type of each value: arrays become chips, date-like strings become
+ * locale-formatted dates, booleans become yes/no, everything else stays text.
+ *
+ * When `hidden` is true (the global default), the block returns null so cards
+ * stay minimal — just id, title, progress. The App-level master switch flips
+ * `hidden` to false to reveal every task's metadata in one click.
+ */
+function MetadataBlock({ frontmatter, hidden }: { frontmatter: Record<string, unknown>; hidden: boolean }) {
+  if (hidden) return null;
+  const entries = Object.entries(frontmatter).filter(([k, v]) => {
+    if (EXCLUDED_KEYS.has(k)) return false;
+    if (v === null || v === undefined || v === '') return false;
+    if (Array.isArray(v) && v.length === 0) return false;
+    return true;
+  });
+  if (entries.length === 0) return null;
+  return (
+    <div className="mt-2.5 pt-2 border-t border-border/60 space-y-1">
+      {entries.map(([key, value]) => (
+        <div key={key} className="flex items-start gap-2 text-[11.5px] leading-snug">
+          <span className="text-fg-muted/80 font-medium flex-shrink-0 min-w-[64px]">{labelFor(key)}</span>
+          <span className="flex-1 min-w-0">{renderValue(key, value)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function HighlightedText({ text, keyword }: { text: string; keyword: string }) {
   if (!keyword) return <>{text}</>;
   const parts = text.split(new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
@@ -65,14 +160,12 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
   const { t } = useTranslation();
   const openDrawer = useStore(s => s.openDrawer);
   const deleteTask = useStore(s => s.deleteTask);
-  const fields = useStore(s => s.config.fields);
+  const showMetadata = useStore(s => s.showMetadata);
   const [deleteArmed, setDeleteArmed] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const isMountedRef = useRef(true);
 
   const isCompact = density === 'compact';
-  const visibleTags = fields.tags ? task.tags.slice(0, isCompact ? 1 : 2) : [];
-  const extraTags = fields.tags ? task.tags.length - visibleTags.length : 0;
 
   const progressPct =
     task.progress && task.progress.total > 0
@@ -131,15 +224,15 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.12 } }}
-      whileHover={{ y: -2, boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}
-      whileTap={{ scale: 0.98 }}
+      whileHover={{ y: -1 }}
+      whileTap={{ scale: 0.99 }}
       draggable
       {...dragHandlers}
       onClick={() => openDrawer(task.id)}
       onMouseLeave={() => setDeleteArmed(false)}
       data-task-id={task.id}
       data-col={columnName}
-      className={`group relative cursor-pointer rounded-xl border border-border bg-card p-3.5 shadow-sm transition-all hover:border-border-strong hover:shadow-md ${
+      className={`group relative cursor-pointer rounded-lg border border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-150 hover:border-border-strong hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] ${
         task.checked ? 'opacity-70' : ''
       }`}
     >
@@ -164,7 +257,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
         onClick={handleDeleteClick}
         onPointerDown={e => e.stopPropagation()}
         onBlur={() => setDeleteArmed(false)}
-        className={`absolute right-2 top-2 z-10 inline-flex h-6 w-6 items-center justify-center rounded-lg border transition-all ${
+        className={`absolute right-2 top-2 z-10 inline-flex h-6 w-6 items-center justify-center rounded-md border transition-all ${
           deleteArmed
             ? 'border-red-500 bg-red-500 text-white opacity-100 shadow-sm'
             : 'border-border bg-card/80 text-fg-muted opacity-0 hover:border-red-500/60 hover:bg-card hover:text-red-500 group-hover:opacity-100'
@@ -173,100 +266,66 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
         {deleteArmed ? <IconTrashX size={14} stroke={1.9} /> : <IconTrash size={14} stroke={1.8} />}
       </button>
 
-      {/* Subtle priority edge indicator */}
-      {fields.priority && task.priority && (
+      {/* Subtle priority edge indicator — removed; priority now lives in the
+       * metadata block (revealed via the global showMetadata toggle). */}
+
+      <div className="px-3.5 pt-3 pb-1.5">
+        <span className="font-mono text-[11.5px] font-medium text-fg-faint tabular-nums">
+          {task.id.replace(/^t/, '#')}
+        </span>
+      </div>
+
+      <div className="px-3.5 pb-1.5">
         <div
-          className="absolute left-0 top-3 bottom-3 w-[2.5px] rounded-r-full"
-          style={{ backgroundColor: priorityColors[task.priority] }}
-        />
-      )}
-
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-[12px] font-semibold text-fg-muted/70">
-            #{task.id.replace(/^t/, '')}
-          </span>
-          {fields.priority && task.priority && (
-            <span
-              title={task.priority}
-              className="inline-block w-1.5 h-1.5 rounded-full"
-              style={{ backgroundColor: priorityColors[task.priority] }}
-            />
-          )}
+          className={`text-[13.5px] leading-snug font-medium ${
+            task.checked ? 'line-through text-fg-muted' : 'text-fg'
+          } ${isCompact ? 'line-clamp-1' : 'line-clamp-2'}`}
+        >
+          {titleWithoutTag}
         </div>
-      </div>
 
-      <div
-        className={`text-[13.5px] leading-snug font-medium ${
-          task.checked ? 'line-through text-fg-muted' : 'text-fg'
-        } ${isCompact ? 'line-clamp-1' : 'line-clamp-2'}`}
-      >
-        {titleWithoutTag}
-      </div>
-
-      {/* Bracket tag next to title if present */}
-      {bracketTag && (
-        <div className="mt-1.5">
-          <span className="inline-flex items-center h-[18px] px-1.5 text-[10.5px] font-semibold tracking-wide text-fg-muted uppercase rounded bg-black/[0.04] dark:bg-white/10">
-            {bracketTag}
-          </span>
-        </div>
-      )}
-
-      {/* Search preview */}
-      {showPreview && (
-        <div className="mt-2.5 space-y-1">
-          {searchMatches.slice(0, 2).map((match, i) => (
-            <div key={i} className="text-[12px] text-fg-dim bg-black/[0.03] dark:bg-white/[0.04] rounded-lg px-2.5 py-1.5 border border-black/[0.05] dark:border-white/[0.08]">
-              <span className="text-[10px] font-semibold text-fg-muted uppercase tracking-wide mr-1.5">
-                {t(`sectionLabels.${match.section}`) || match.section}
-              </span>
-              <HighlightedText text={match.snippet} keyword={match.keyword} />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {!isCompact && task.progress && task.progress.total > 0 && (
-        <div className={`mt-2.5 flex items-center gap-2 ${showPreview ? '' : ''}`}>
-          <div className="flex-1 h-[3px] bg-black/[0.06] dark:bg-white/[0.1] rounded-full overflow-hidden">
-            <motion.div
-              className="h-full rounded-full"
-              style={{ backgroundColor: isComplete ? '#22c55e' : '#737078' }}
-              initial={false}
-              animate={{ width: `${progressPct}%` }}
-              transition={{ type: 'spring', stiffness: 160, damping: 22 }}
-            />
+        {/* Bracket tag next to title if present */}
+        {bracketTag && (
+          <div className="mt-1.5">
+            <span className="inline-flex items-center h-[18px] px-1.5 text-[10.5px] font-semibold tracking-wide text-fg-muted uppercase rounded bg-black/[0.04] dark:bg-white/10">
+              {bracketTag}
+            </span>
           </div>
-          <span className="font-mono text-[11px] text-fg-muted tabular-nums">
-            {task.progress.done}/{task.progress.total}
-          </span>
-        </div>
-      )}
+        )}
 
-      {(visibleTags.length > 0 || (fields.assignee && task.assignee)) && (
-        <div className={`flex flex-wrap gap-1.5 ${isCompact ? 'mt-1.5' : 'mt-2.5'}`}>
-          {visibleTags.map(tag => (
-            <span
-              key={tag}
-              className="inline-flex items-center h-[20px] px-2 text-[11px] rounded-md font-medium text-fg-muted bg-black/[0.04] dark:bg-white/[0.08] border border-black/[0.06] dark:border-white/[0.1]"
-            >
-              {tag}
+        {/* Search preview */}
+        {showPreview && (
+          <div className="mt-2.5 space-y-1">
+            {searchMatches.slice(0, 2).map((match, i) => (
+              <div key={i} className="text-[12px] text-fg-dim bg-black/[0.03] dark:bg-white/[0.04] rounded-lg px-2.5 py-1.5 border border-black/[0.05] dark:border-white/[0.08]">
+                <span className="text-[10px] font-semibold text-fg-muted uppercase tracking-wide mr-1.5">
+                  {t(`sectionLabels.${match.section}`) || match.section}
+                </span>
+                <HighlightedText text={match.snippet} keyword={match.keyword} />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!isCompact && task.progress && task.progress.total > 0 && (
+          <div className={`mt-2.5 flex items-center gap-2 ${showPreview ? '' : ''}`}>
+            <div className="flex-1 h-[3px] bg-black/[0.06] dark:bg-white/[0.1] rounded-full overflow-hidden">
+              <motion.div
+                className="h-full rounded-full"
+                style={{ backgroundColor: isComplete ? '#22c55e' : '#737078' }}
+                initial={false}
+                animate={{ width: `${progressPct}%` }}
+                transition={{ type: 'spring', stiffness: 160, damping: 22 }}
+              />
+            </div>
+            <span className="font-mono text-[11px] text-fg-muted tabular-nums">
+              {task.progress.done}/{task.progress.total}
             </span>
-          ))}
-          {extraTags > 0 && (
-            <span className="inline-flex items-center h-[20px] px-2 text-[11px] rounded-md font-medium text-fg-muted bg-black/[0.04] dark:bg-white/[0.08] border border-black/[0.06] dark:border-white/[0.1]">
-              +{extraTags}
-            </span>
-          )}
-          {fields.assignee && task.assignee && (
-            <span className="inline-flex items-center h-[20px] px-2 text-[11px] rounded-md font-medium text-fg bg-black/[0.06] dark:bg-white/[0.12] border border-black/[0.08] dark:border-white/[0.15]">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5" />
-              {task.assignee}
-            </span>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+
+        <MetadataBlock frontmatter={task.frontmatter} hidden={showMetadata} />
+      </div>
     </motion.div>
   );
 }
