@@ -57060,23 +57060,22 @@ function CategoryTaskRow({ task, focused, dragging, colWidth }) {
   const titleClean = category ? task.title.slice(task.title.indexOf(category.key) + category.key.length).trim() : task.title;
   const contentWidth = Math.max(4, colWidth - 2);
   const titleStr = truncate(titleClean, contentWidth);
-  const bg = dragging ? "yellow" : focused ? "cyan" : "gray";
-  const idColor = dragging ? "yellow" : focused ? "black" : "cyan";
-  const catColor = dragging ? "yellow" : focused ? "white" : "magenta";
-  const ttlColor = dragging ? "yellow" : focused ? "white" : "gray";
+  const bg = dragging ? "yellow" : focused ? "cyan" : "#222";
+  const txtColor = dragging ? "black" : focused ? "black" : "white";
+  const catColor = dragging ? "black" : focused ? "black" : "magenta";
   return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { flexDirection: "column", backgroundColor: bg, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: idColor, bold: focused || dragging, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: txtColor, bold: focused || dragging, children: [
       cursor,
       " ",
       check2,
       " ",
       idStr
     ] }),
-    category && /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: catColor, bold: focused || dragging, children: [
+    category && /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: catColor, bold: true, children: [
       "  ",
       category.label
     ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: ttlColor, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: txtColor, children: [
       "  ",
       titleStr
     ] })

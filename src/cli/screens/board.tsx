@@ -171,7 +171,7 @@ function getTitleCategory(title: string): { key: string; label: string } | null 
  *
  * Layout (all inside one Box flexDirection="column"):
  *   Line 1 — ▸ t102          (cursor + task ID)
- *   Line 2 —   [category]    (category tag, indented)
+ *   Line 2 —   refactor       (category tag, indented)
  *   Line 3 —   My task title (clean title, indented)
  *
  * The outer Box counts as one logical row in the column's task list, so
@@ -180,9 +180,9 @@ function getTitleCategory(title: string): { key: string; label: string } | null 
 function CategoryTaskRow({ task, focused, dragging, colWidth }: {
   task: BoardTask; focused: boolean; dragging?: boolean; colWidth: number;
 }) {
-  const cursor  = dragging ? '↕' : focused ? '▸' : ' ';
-  const check   = task.checked ? '✓' : '○';
-  const idStr   = task.id;
+  const cursor   = dragging ? '↕' : focused ? '▸' : ' ';
+  const check    = task.checked ? '✓' : '○';
+  const idStr    = task.id;
   const category = getTitleCategory(task.title);
 
   // Strip the bracket tag / hashtag from the title for the 3rd line
@@ -190,29 +190,29 @@ function CategoryTaskRow({ task, focused, dragging, colWidth }: {
     ? task.title.slice(task.title.indexOf(category.key) + category.key.length).trim()
     : task.title;
 
-  // colWidth − 2 for left indent (− prefix + one space)
+  // colWidth − 2 for left indent (cursor prefix + one space)
   const contentWidth = Math.max(4, colWidth - 2);
   const titleStr     = truncate(titleClean, contentWidth);
 
-  const bg       = dragging ? 'yellow' : focused ? 'cyan' : 'gray';
-  const idColor  = dragging ? 'yellow' : focused ? 'black' : 'cyan';
-  const catColor = dragging ? 'yellow' : focused ? 'white' : 'magenta';
-  const ttlColor = dragging ? 'yellow' : focused ? 'white' : 'gray';
+  // Color scheme: dark bg (#222), white text, magenta category
+  const bg       = dragging ? 'yellow' : focused ? 'cyan' : '#222';
+  const txtColor = dragging ? 'black'  : focused ? 'black' : 'white';
+  const catColor = dragging ? 'black'  : focused ? 'black' : 'magenta';
 
   return (
     <Box flexDirection="column" backgroundColor={bg}>
       {/* Line 1: cursor + checkbox + task ID */}
-      <Text color={idColor} bold={focused || dragging}>
+      <Text color={txtColor} bold={focused || dragging}>
         {cursor} {check}{' '}{idStr}
       </Text>
-      {/* Line 2: category tag */}
+      {/* Line 2: category tag (magenta, always bold for visual pop) */}
       {category && (
-        <Text color={catColor} bold={focused || dragging}>
+        <Text color={catColor} bold>
           {'  '}{category.label}
         </Text>
       )}
       {/* Line 3: title (clean, truncated) */}
-      <Text color={ttlColor}>
+      <Text color={txtColor}>
         {'  '}{titleStr}
       </Text>
     </Box>
