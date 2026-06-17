@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.2 — 2026-06-17 — "TUI Category Cards"
+
+- **Fixed**: Category task rows now use a proper dark background (`#222`) instead of the too-light ANSI `gray`. All task text (ID, title) is white for full readability on the dark block. Category tag remains magenta.
+
 ## 0.11.1 — 2026-06-17 — "TUI Category Cards"
 
 - **Changed**: TUI board now renders tasks with a `[category]` bracket tag or `#hashtag` in their title as a **3-line dark-gray block**: task ID on line 1, category on line 2, clean title on line 3. Tasks without a category render as a single line, unchanged. A separator line (`───`) is inserted between all tasks for improved readability.
