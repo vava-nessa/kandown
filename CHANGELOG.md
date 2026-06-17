@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.11.1 — 2026-06-17 — "TUI Category Cards"
+
+- **Changed**: TUI board now renders tasks with a `[category]` bracket tag or `#hashtag` in their title as a **3-line dark-gray block**: task ID on line 1, category on line 2, clean title on line 3. Tasks without a category render as a single line, unchanged. A separator line (`───`) is inserted between all tasks for improved readability.
+- **Added**: New `CategoryTaskRow` component for the 3-line category block; `SingleTaskRow` preserves the original single-line layout for untagged tasks.
+- **Added**: `getTitleCategory()` helper — extracts bracket tags and hashtags from task titles to determine which row type to use.
+- **Changed**: `KanbanColumn` now dynamically selects the row component per task and injects separator lines automatically.
+- **Changed**: Dragging state colors (`yellow` background) now apply to the entire `CategoryTaskRow` block consistently.
+
 ## 0.11.0 — 2026-06-16 — "Lean Drawer"
 
 - **Removed**: The subtask editor in the task drawer (add/remove/check subtasks and the per-subtask description/report fields). The subtask data model is untouched — tasks still keep their `- [ ]` / `- [x]` checklist in the .md file, and the per-card progress bar on the board still shows `done/total`. Editing subtasks just happens in the task file directly now, not in the drawer.

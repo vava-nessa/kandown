@@ -54421,6 +54421,7 @@ function taskToBoardTask(task) {
   const total = subtasks.length;
   const status = normalizeStatus(frontmatter.status);
   const tags = Array.isArray(frontmatter.tags) ? frontmatter.tags.filter((tag) => typeof tag === "string" && tag.trim().length > 0) : [];
+  const { id: _id, title: _title, status: _status, order: _order, created: _created, archived: _archived, report: _report, ...metadata } = frontmatter;
   return {
     id: frontmatter.id || "",
     title: frontmatter.title || frontmatter.id || "Untitled task",
@@ -54429,7 +54430,8 @@ function taskToBoardTask(task) {
     assignee: typeof frontmatter.assignee === "string" && frontmatter.assignee ? frontmatter.assignee : null,
     priority: normalizePriority(frontmatter.priority),
     ownerType: normalizeOwnerType(frontmatter.ownerType),
-    progress: total > 0 ? { done, total } : null
+    progress: total > 0 ? { done, total } : null,
+    frontmatter: metadata
   };
 }
 function buildColumnsFromTasks(tasks, configuredColumns = DEFAULT_COLUMNS) {
@@ -57013,7 +57015,7 @@ function columnAccentColor(name) {
   if (/done|archive|closed|complete/.test(normalized)) return "green";
   return "cyan";
 }
-function TaskRow({ task, focused, dragging, colWidth }) {
+function SingleTaskRow({ task, focused, dragging, colWidth }) {
   const cursor = dragging ? "\u2195" : focused ? "\u25B8" : " ";
   const check2 = task.checked ? "\u2713" : "\u25CB";
   const idStr = task.id;
@@ -57039,6 +57041,43 @@ function TaskRow({ task, focused, dragging, colWidth }) {
     ] }),
     /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: focused ? "white" : "gray", children: [
       " ",
+      titleStr
+    ] })
+  ] });
+}
+function getTitleCategory(title) {
+  const bracket = title.match(/^\[([^\]]+)\]\s*/);
+  if (bracket) return { key: `[${bracket[1].toLowerCase()}]`, label: bracket[1] };
+  const hash = title.match(/#(\w+)/);
+  if (hash) return { key: `#${hash[1].toLowerCase()}`, label: `#${hash[1]}` };
+  return null;
+}
+function CategoryTaskRow({ task, focused, dragging, colWidth }) {
+  const cursor = dragging ? "\u2195" : focused ? "\u25B8" : " ";
+  const check2 = task.checked ? "\u2713" : "\u25CB";
+  const idStr = task.id;
+  const category = getTitleCategory(task.title);
+  const titleClean = category ? task.title.slice(task.title.indexOf(category.key) + category.key.length).trim() : task.title;
+  const contentWidth = Math.max(4, colWidth - 2);
+  const titleStr = truncate(titleClean, contentWidth);
+  const bg = dragging ? "yellow" : focused ? "cyan" : "gray";
+  const idColor = dragging ? "yellow" : focused ? "black" : "cyan";
+  const catColor = dragging ? "yellow" : focused ? "white" : "magenta";
+  const ttlColor = dragging ? "yellow" : focused ? "white" : "gray";
+  return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { flexDirection: "column", backgroundColor: bg, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: idColor, bold: focused || dragging, children: [
+      cursor,
+      " ",
+      check2,
+      " ",
+      idStr
+    ] }),
+    category && /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: catColor, bold: focused || dragging, children: [
+      "  ",
+      category.label
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: ttlColor, children: [
+      "  ",
       titleStr
     ] })
   ] });
@@ -57075,17 +57114,9 @@ function KanbanColumn({
   const countStr = tasks.length > 0 ? ` (${tasks.length})` : "";
   const rows = [];
   tasks.forEach((task, idx) => {
+    const hasCategory = getTitleCategory(task.title) !== null;
     rows.push(
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
-        TaskRow,
-        {
-          task,
-          focused: isFocused && idx === focusedRow,
-          dragging: task.id === draggedTaskId,
-          colWidth
-        },
-        task.id
-      )
+      hasCategory ? /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(CategoryTaskRow, { task, focused: !!(isFocused && idx === focusedRow), dragging: task.id === draggedTaskId, colWidth }, task.id) : /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(SingleTaskRow, { task, focused: !!(isFocused && idx === focusedRow), dragging: task.id === draggedTaskId, colWidth }, task.id)
     );
     if (contextMenuRow === idx) {
       rows.push(
@@ -57097,6 +57128,11 @@ function KanbanColumn({
           },
           "ctx-menu"
         )
+      );
+    }
+    if (idx < tasks.length - 1) {
+      rows.push(
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: isFocused ? "cyan" : "gray", dimColor: true, children: "\u2500".repeat(colWidth) }, `sep-${task.id}`)
       );
     }
   });

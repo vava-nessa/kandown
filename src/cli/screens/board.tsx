@@ -122,7 +122,11 @@ function columnAccentColor(name: string): string {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function TaskRow({ task, focused, dragging, colWidth }: {
+/**
+ * 📖 Single-line row for tasks WITHOUT a bracket tag / hashtag category.
+ * Unchanged from the previous flat layout.
+ */
+function SingleTaskRow({ task, focused, dragging, colWidth }: {
   task: BoardTask; focused: boolean; dragging?: boolean; colWidth: number;
 }) {
   const cursor = dragging ? '↕' : focused ? '▸' : ' ';
@@ -144,6 +148,73 @@ function TaskRow({ task, focused, dragging, colWidth }: {
       <Text color={dragging ? 'yellow' : focused ? 'cyan' : 'yellow'} bold={focused || dragging}>{idStr}</Text>
       {tag && <Text color={focused ? 'white' : 'magenta'} bold>{' '}{tag}</Text>}
       <Text color={focused ? 'white' : 'gray'}>{' '}{titleStr}</Text>
+    </Box>
+  );
+}
+
+/**
+ * 📖 Returns the bracket tag / hashtag extracted from a task title.
+ * Used to decide whether a task should render as CategoryTaskRow.
+ * Mirrors extractGroupKey from src/lib/grouping.ts but also captures the
+ * display label (without brackets / hash) for the category line.
+ */
+function getTitleCategory(title: string): { key: string; label: string } | null {
+  const bracket = title.match(/^\[([^\]]+)\]\s*/);
+  if (bracket) return { key: `[${bracket[1].toLowerCase()}]`, label: bracket[1] };
+  const hash = title.match(/#(\w+)/);
+  if (hash) return { key: `#${hash[1].toLowerCase()}`, label: `#${hash[1]}` };
+  return null;
+}
+
+/**
+ * 📖 3-line dark-gray block for tasks that have a bracket tag or hashtag.
+ *
+ * Layout (all inside one Box flexDirection="column"):
+ *   Line 1 — ▸ t102          (cursor + task ID)
+ *   Line 2 —   [category]    (category tag, indented)
+ *   Line 3 —   My task title (clean title, indented)
+ *
+ * The outer Box counts as one logical row in the column's task list, so
+ * focusedRow navigation (j/k) continues to work correctly.
+ */
+function CategoryTaskRow({ task, focused, dragging, colWidth }: {
+  task: BoardTask; focused: boolean; dragging?: boolean; colWidth: number;
+}) {
+  const cursor  = dragging ? '↕' : focused ? '▸' : ' ';
+  const check   = task.checked ? '✓' : '○';
+  const idStr   = task.id;
+  const category = getTitleCategory(task.title);
+
+  // Strip the bracket tag / hashtag from the title for the 3rd line
+  const titleClean = category
+    ? task.title.slice(task.title.indexOf(category.key) + category.key.length).trim()
+    : task.title;
+
+  // colWidth − 2 for left indent (− prefix + one space)
+  const contentWidth = Math.max(4, colWidth - 2);
+  const titleStr     = truncate(titleClean, contentWidth);
+
+  const bg       = dragging ? 'yellow' : focused ? 'cyan' : 'gray';
+  const idColor  = dragging ? 'yellow' : focused ? 'black' : 'cyan';
+  const catColor = dragging ? 'yellow' : focused ? 'white' : 'magenta';
+  const ttlColor = dragging ? 'yellow' : focused ? 'white' : 'gray';
+
+  return (
+    <Box flexDirection="column" backgroundColor={bg}>
+      {/* Line 1: cursor + checkbox + task ID */}
+      <Text color={idColor} bold={focused || dragging}>
+        {cursor} {check}{' '}{idStr}
+      </Text>
+      {/* Line 2: category tag */}
+      {category && (
+        <Text color={catColor} bold={focused || dragging}>
+          {'  '}{category.label}
+        </Text>
+      )}
+      {/* Line 3: title (clean, truncated) */}
+      <Text color={ttlColor}>
+        {'  '}{titleStr}
+      </Text>
     </Box>
   );
 }
@@ -180,17 +251,15 @@ function KanbanColumn({ name, tasks, focusedRow, isFocused, colWidth,
   const headerColor = isFocused ? 'black' : accent;
   const countStr    = tasks.length > 0 ? ` (${tasks.length})` : '';
 
-  // 📖 Build task rows with optional inline context menu
+  // 📖 Build task rows: CategoryTaskRow for tagged tasks, SingleTaskRow otherwise.
+  // A thin separator line (─) is inserted between tasks for visual separation.
   const rows: React.ReactNode[] = [];
   tasks.forEach((task, idx) => {
+    const hasCategory = getTitleCategory(task.title) !== null;
     rows.push(
-      <TaskRow
-        key={task.id}
-        task={task}
-        focused={isFocused && idx === focusedRow}
-        dragging={task.id === draggedTaskId}
-        colWidth={colWidth}
-      />
+      hasCategory
+        ? <CategoryTaskRow key={task.id} task={task} focused={!!(isFocused && idx === focusedRow)} dragging={task.id === draggedTaskId} colWidth={colWidth} />
+        : <SingleTaskRow  key={task.id} task={task} focused={!!(isFocused && idx === focusedRow)} dragging={task.id === draggedTaskId} colWidth={colWidth} />
     );
     // 📖 Insert context menu directly after the focused task
     if (contextMenuRow === idx) {
@@ -200,6 +269,12 @@ function KanbanColumn({ name, tasks, focusedRow, isFocused, colWidth,
           cursor={contextMenuCursor ?? 0}
           colWidth={colWidth}
         />
+      );
+    }
+    // 📖 Separator line between tasks (but not after the last one)
+    if (idx < tasks.length - 1) {
+      rows.push(
+        <Text key={`sep-${task.id}`} color={isFocused ? 'cyan' : 'gray'} dimColor>{'─'.repeat(colWidth)}</Text>
       );
     }
   });
