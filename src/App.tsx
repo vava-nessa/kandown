@@ -28,6 +28,7 @@ import { ListView } from './components/ListView';
 import { EmptyState } from './components/EmptyState';
 import { Drawer } from './components/Drawer';
 import { CommandPalette } from './components/CommandPalette';
+import { Cheatsheet } from './components/Cheatsheet';
 import { SettingsPage } from './components/SettingsPage';
 import { Toaster } from './components/Toaster';
 import { ConflictModal } from './components/ConflictModal';
@@ -44,6 +45,8 @@ export function App() {
   const drawerTaskId = useStore(s => s.drawerTaskId);
   const commandOpen = useStore(s => s.commandOpen);
   const setCommandOpen = useStore(s => s.setCommandOpen);
+  const cheatsheetOpen = useStore(s => s.cheatsheetOpen);
+  const setCheatsheetOpen = useStore(s => s.setCheatsheetOpen);
   const createTask = useStore(s => s.createTask);
   const { t } = useTranslation();
   const reloadBoard = useStore(s => s.reloadBoard);
@@ -97,6 +100,14 @@ export function App() {
         return;
       }
 
+      // 📖 `?` toggles the cheatsheet. Only outside text inputs to avoid
+      // hijacking the actual `?` character when the user is typing.
+      if (e.key === '?' && !isTyping && !drawerTaskId) {
+        e.preventDefault();
+        setCheatsheetOpen(!cheatsheetOpen);
+        return;
+      }
+
       if ((e.metaKey || e.ctrlKey) && e.key === '1') {
         e.preventDefault();
         setViewMode('board');
@@ -129,7 +140,7 @@ export function App() {
 
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [isOpen, dirHandle, commandOpen, drawerTaskId, setCommandOpen, setViewMode, createTask, reloadBoard]);
+  }, [isOpen, dirHandle, commandOpen, cheatsheetOpen, drawerTaskId, setCommandOpen, setCheatsheetOpen, setViewMode, createTask, reloadBoard]);
 
   return (
     <div className="flex flex-col h-screen">
@@ -164,6 +175,7 @@ export function App() {
       )}
       <Drawer />
       <CommandPalette />
+      <Cheatsheet />
       <Toaster />
       <ConflictModal />
     </div>

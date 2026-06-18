@@ -61,6 +61,7 @@ export function CommandPalette() {
   const setViewMode = useStore(s => s.setViewMode);
   const setDensity = useStore(s => s.setDensity);
   const clearFilters = useStore(s => s.clearFilters);
+  const setCheatsheetOpen = useStore(s => s.setCheatsheetOpen);
   const taskContents = useStore(s => s.taskContents);
   const loadTaskContents = useStore(s => s.loadTaskContents);
 
@@ -126,6 +127,16 @@ export function CommandPalette() {
           clearFilters();
         },
       },
+      {
+        id: 'action:cheatsheet',
+        label: t('cheatsheet.title'),
+        hint: '?',
+        category: 'action',
+        onSelect: () => {
+          setCommandOpen(false);
+          setCheatsheetOpen(true);
+        },
+      },
     ];
 
     const viewCommands: CommandItem[] = [
@@ -168,7 +179,7 @@ export function CommandPalette() {
     ];
 
     return [...actionCommands, ...viewCommands, ...taskCommands];
-  }, [columns, setCommandOpen, openDrawer, createTask, reloadBoard, clearFilters, setViewMode, setDensity]);
+  }, [columns, setCommandOpen, openDrawer, createTask, reloadBoard, clearFilters, setCheatsheetOpen, setViewMode, setDensity]);
 
   // Compute search matches for tasks
   const searchMatchesMap = useMemo(() => {

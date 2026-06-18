@@ -131,6 +131,40 @@
     "navigate": "navigate",
     "select": "select"
   },
+  "cheatsheet": {
+    "title": "Keyboard shortcuts",
+    "close": "Close cheatsheet",
+    "footerHint": "Press any key to dismiss",
+    "groups": {
+      "global": "Global",
+      "drawer": "Task drawer",
+      "commandPalette": "Command palette",
+      "tui": "Terminal UI"
+    },
+    "shortcuts": {
+      "commandPalette": "Open command palette",
+      "showCheatsheet": "Toggle this cheatsheet",
+      "boardView": "Board view",
+      "listView": "List view",
+      "newTask": "New task",
+      "reloadBoard": "Reload from disk",
+      "focusSearch": "Focus search",
+      "closeOverlay": "Close overlay / drawer",
+      "saveClose": "Save & close",
+      "deleteTask": "Delete task",
+      "cancel": "Cancel",
+      "navigate": "Navigate items",
+      "select": "Select item",
+      "close": "Close palette",
+      "switchColumn": "Switch column",
+      "selectTask": "Select task",
+      "openTask": "Open task detail",
+      "contextMenu": "Open context menu",
+      "launchAgent": "Launch AI agent",
+      "toggleDaemon": "Toggle web daemon",
+      "quit": "Quit"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Title",

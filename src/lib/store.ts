@@ -124,6 +124,7 @@ interface State {
   density: Density;
   filters: Filters;
   commandOpen: boolean;
+  cheatsheetOpen: boolean;
   drawerTaskId: string | null;
   drawerData: { frontmatter: TaskFrontmatter; subtasks: Subtask[]; body: string } | null;
   currentPage: 'board' | 'settings';
@@ -179,6 +180,7 @@ interface State {
   clearFilters: () => void;
 
   setCommandOpen: (open: boolean) => void;
+  setCheatsheetOpen: (open: boolean) => void;
   setCurrentPage: (page: 'board' | 'settings') => void;
 
   loadTaskContents: (taskIds: string[]) => Promise<void>;
@@ -339,6 +341,7 @@ export const useStore = create<State>((set, get) => ({
   density: (localStorage.getItem('kandown:density') as Density) || 'comfortable',
   filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null },
   commandOpen: false,
+  cheatsheetOpen: false,
   drawerTaskId: null,
   drawerData: null,
   currentPage: 'board',
@@ -956,6 +959,7 @@ export const useStore = create<State>((set, get) => ({
     set({ filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null }, searchMatches: new Map() }),
 
   setCommandOpen: (open) => set({ commandOpen: open }),
+  setCheatsheetOpen: (open) => set({ cheatsheetOpen: open }),
   setCurrentPage: (page) => set({ currentPage: page }),
 
   loadTaskContents: async (taskIds: string[]) => {
