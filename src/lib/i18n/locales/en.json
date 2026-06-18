@@ -66,7 +66,20 @@
   },
   "card": {
     "delete": "Delete task",
-    "confirmDelete": "Click again to delete"
+    "confirmDelete": "Click again to delete",
+    "blockedBy": "Blocked by: {{ids}}"
+  },
+  "dependencies": {
+    "label": "Dependencies",
+    "addPlaceholder": "task id (e.g. t42)",
+    "add": "Add",
+    "remove": "Remove",
+    "none": "No dependencies",
+    "resolved": "Resolved",
+    "unresolved": "Blocked",
+    "unknown": "Unknown task",
+    "blockedByPanel": "Blocked by",
+    "blocksPanel": "Blocks"
   },
   "drawer": {
     "close": "Close (Esc)",

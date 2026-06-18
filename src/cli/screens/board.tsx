@@ -36,6 +36,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Box, Text, useInput, useApp } from 'ink';
 import { readBoard, readTask, moveTaskToColumn } from '../lib/board-reader.js';
+import { loadConfig } from '../lib/config.js';
 import { getDaemonStatus, startProjectDaemon, stopProjectDaemon, type DaemonStatus } from '../lib/daemon.js';
 import { createWatcher } from '../lib/file-watcher.js';
 import { detectInstalledAgents, type AgentDef } from '../lib/agents.js';
@@ -146,6 +147,12 @@ function SingleTaskRow({ task, focused, dragging, colWidth }: {
       <Text color={dragging ? 'yellow' : focused ? 'cyan' : undefined} bold={focused || dragging}>{cursor}{' '}</Text>
       <Text color={dragging ? 'yellow' : task.checked ? 'green' : focused ? 'white' : 'gray'}>{check}{' '}</Text>
       <Text color={dragging ? 'yellow' : focused ? 'cyan' : 'yellow'} bold={focused || dragging}>{idStr}</Text>
+      {task.dependsOn && task.dependsOn.length > 0 && (
+        // 📖 TUI equivalent of the web card's `↪N` chip. Surfaces blocked
+        // work inline so the user doesn't try to move a task they can't
+        // unblock without a different upstream task first.
+        <Text color="yellow">{' '}↪{task.dependsOn.length}</Text>
+      )}
       {tag && <Text color={focused ? 'white' : 'magenta'} bold>{' '}{tag}</Text>}
       <Text color={focused ? 'white' : 'gray'}>{' '}{titleStr}</Text>
     </Box>
@@ -381,6 +388,16 @@ function TaskDetail({ task, taskId, scrollOffset }: {
           {fm.due ? `  due: ${fm.due}` : ''}
         </Text>
       </Box>
+      {Array.isArray(fm.depends_on) && fm.depends_on.length > 0 && (
+        // 📖 TUI equivalent of the web Drawer's dependency chips. Lists raw
+        // ids — the user can `cat tasks/<id>.md` to inspect any one. We don't
+        // resolve live status here (read-only context) but the move gate in
+        // the TUI blocks the user from moving into Done until they're clear.
+        <Box marginBottom={1}>
+          <Text color="gray">depends on: </Text>
+          <Text color="yellow">{fm.depends_on.join(', ')}</Text>
+        </Box>
+      )}
       <Text color="gray">{'─'.repeat(termWidth() - 4)}</Text>
       {visibleLines.map((line, idx) => {
         const isH = RE_HEADER.test(line);
@@ -559,6 +576,47 @@ export function Board({ kandownDir, version }: BoardProps) {
       setTimeout(() => setStatusMsg(''), 2500);
     }
   }, [daemonBusy, kandownDir, preferredDaemonPort]);
+
+  // 📖 TUI gate check: refuses to move a task to the terminal column when at
+  // least one of its `depends_on` ids is not yet resolved (terminal or
+  // archived). Mirrors the web store's gate. Returns true when the move
+  // is safe to perform, false when it was blocked.
+  const tryMoveWithGate = useCallback((taskId: string, targetCol: string): boolean => {
+    if (!board) return false;
+    const cfg = loadConfig(kandownDir);
+    const cols = cfg.board.columns;
+    const terminalLower = (cols[cols.length - 1] || 'Done').toLowerCase();
+    const isTerminal = targetCol.toLowerCase() === terminalLower;
+    if (!isTerminal) return true;
+    // 📖 Build a quick id → resolved map from the current board snapshot.
+    // Same shortcut as the web store: archived OR terminal status counts as
+    // resolved; unknown ids / self-refs are ignored (never block).
+    const resolved = new Map<string, boolean>();
+    for (const col of board.columns) {
+      for (const t of col.tasks) {
+        const isArch = t.frontmatter && (t.frontmatter.archived === true || t.frontmatter.archived === 'true');
+        resolved.set(t.id, isArch || col.name.toLowerCase() === terminalLower);
+      }
+    }
+    const movingTask = board.columns.flatMap(c => c.tasks).find(t => t.id === taskId);
+    if (!movingTask) return true;
+    const deps = Array.isArray(movingTask.dependsOn) ? movingTask.dependsOn : [];
+    const blocked: string[] = [];
+    for (const dep of deps) {
+      if (typeof dep !== 'string' || !dep.trim() || dep === taskId) continue;
+      const r = resolved.get(dep);
+      if (!r) blocked.push(dep);
+    }
+    if (blocked.length > 0) {
+      const list = blocked.length === 1
+        ? blocked[0]
+        : `${blocked.slice(0, -1).join(', ')} and ${blocked[blocked.length - 1]}`;
+      setStatusMsg(`Blocked: ${taskId} ← ${list}`);
+      setTimeout(() => setStatusMsg(''), 3500);
+      return false;
+    }
+    return true;
+  }, [board, kandownDir]);
 
   // 📖 Forwards a task to the agent hook configured on the CLI daemon. The
   // hook is strictly opt-in via KANDOWN_AGENT_HOOK_URL on the daemon process.
@@ -751,6 +809,11 @@ export function Board({ kandownDir, version }: BoardProps) {
         // Move!
         const targetColName = col.name;
         if (moveTaskId) {
+          if (!tryMoveWithGate(moveTaskId, targetColName)) {
+            setMoveTaskId(null);
+            setMode('browse');
+            return;
+          }
           moveTaskToColumn(kandownDir, moveTaskId, targetColName);
           const loaded = readBoard(kandownDir);
           setBoard(loaded);
@@ -830,6 +893,12 @@ export function Board({ kandownDir, version }: BoardProps) {
         if (targetCol >= 0 && targetCol !== taskDrag.sourceCol) {
           const targetColName = board.columns[targetCol]?.name;
           if (targetColName) {
+            if (!tryMoveWithGate(taskDrag.taskId, targetColName)) {
+              setTaskDrag(null);
+              setMousePress(null);
+              setMode('browse');
+              return;
+            }
             moveTaskToColumn(kandownDir, taskDrag.taskId, targetColName);
             const loaded = readBoard(kandownDir);
             setBoard(loaded);
@@ -1010,6 +1079,11 @@ export function Board({ kandownDir, version }: BoardProps) {
         if (!board || !moveTaskId) return;
         const name = board.columns[moveTargetCol]?.name;
         if (name) {
+          if (!tryMoveWithGate(moveTaskId, name)) {
+            setMoveTaskId(null);
+            setMode('browse');
+            return;
+          }
           moveTaskToColumn(kandownDir, moveTaskId, name);
           const loaded = readBoard(kandownDir);
           setBoard(loaded);

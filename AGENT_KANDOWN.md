@@ -145,6 +145,7 @@ Edge cases, gotchas.
 | `assignee` | Username or AI agent name |
 | `ownerType` | `human` or `ai` |
 | `report` | Completion summary (markdown, shown in UI) |
+| `depends_on` | Task ids this one is blocked by. Moving to the terminal column (last `board.columns` entry) is rejected while any dependency is unresolved. Archived / terminal / unknown ids do not block. |
 
 ---
 

@@ -60,6 +60,7 @@ import {
   type RecentProject,
 } from './filesystem';
 import { buildColumnsFromTasks, extractSubtasks, injectSubtasks, searchTaskContent, extractArchivedTasks } from './parser';
+import { isTerminalStatus, terminalStatus, DependencyGateError } from './dependencies';
 import { applyProjectTheme } from './theme';
 import { fileWatcher } from './watcher';
 import { emitKandownNotification } from './notifications';
@@ -609,6 +610,42 @@ export const useStore = create<State>((set, get) => ({
     if (!fromColObj || !toColObj) return;
     const taskIdx = fromColObj.tasks.findIndex(t => t.id === taskId);
     if (taskIdx === -1) return;
+    const movingTask = fromColObj.tasks[taskIdx];
+    if (!movingTask) return;
+
+    // 📖 Terminal-status gate: if the target column is the last configured
+    // column (default "Done") and the task has unresolved dependencies, refuse
+    // the move before any optimistic state change. Other transitions stay
+    // free — the gate is only on the final hop, matching how GitHub / Linear
+    // / Jira treat blocking relations.
+    if (isTerminalStatus(toCol, config)) {
+      const depStatus = new Map<string, { exists: boolean; resolved: boolean }>();
+      const terminalLower = terminalStatus(config).toLowerCase();
+      for (const col of columns) {
+        for (const t of col.tasks) {
+          const isArch = t.frontmatter && (t.frontmatter.archived === true || t.frontmatter.archived === 'true');
+          depStatus.set(t.id, {
+            exists: true,
+            resolved: isArch || (t.id === taskId) || col.name.toLowerCase() === terminalLower,
+          });
+        }
+      }
+      // 📖 Self-references and unknown ids are ignored (file header note).
+      const blocked: string[] = [];
+      for (const dep of movingTask.dependsOn) {
+        if (typeof dep !== 'string' || !dep.trim() || dep === taskId) continue;
+        const r = depStatus.get(dep);
+        if (!r || !r.resolved) blocked.push(dep);
+      }
+      if (blocked.length > 0) {
+        const list = blocked.length === 1
+          ? blocked[0]
+          : `${blocked.slice(0, -1).join(', ')} and ${blocked[blocked.length - 1]}`;
+        get().toast(`Cannot move ${taskId} to ${toCol}: blocked by ${list}`, 'error');
+        return;
+      }
+    }
+
     const newColumns = columns.map(c => ({ ...c, tasks: [...c.tasks] }));
     const newFrom = newColumns.find(c => c.name === fromCol)!;
     const newTo = newColumns.find(c => c.name === toCol)!;
@@ -765,6 +802,7 @@ export const useStore = create<State>((set, get) => ({
       id,
       title: '',
       checked: false,
+      dependsOn: [],
       tags: [],
       assignee: null,
       priority: config.fields.priority ? (config.board.defaultPriority as BoardTask['priority']) : null,

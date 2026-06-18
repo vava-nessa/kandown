@@ -920,6 +920,21 @@ function shellShow(rawArgs) {
   process.stdout.write(readFileSync(path, 'utf8'));
 }
 
+/**
+ * 📖 Resolves a task id to whether it is in a "blocking" state (i.e. still
+ * pending). Used by the move gate. Mirrors the web store's logic: a dep is
+ * resolved when it lives in the terminal column OR is archived. Unknown
+ * ids and self-references never block.
+ */
+function shellTaskIsResolved(kandownDir, id, terminalLower) {
+  if (!/^[a-zA-Z0-9_-]+$/.test(id)) return true; // unknown / invalid → don't block
+  const path = findTaskFile(kandownDir, id);
+  if (!path) return true; // unknown id → don't block
+  const parsed = parseFrontmatter(readFileSync(path, 'utf8'));
+  const isArch = parsed.frontmatter.archived === true || parsed.frontmatter.archived === 'true';
+  return isArch || (parsed.frontmatter.status || '').toLowerCase() === terminalLower;
+}
+
 function shellCreate(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
   const args = shellParseArgs(rawArgs);
@@ -988,6 +1003,26 @@ function shellMove(rawArgs) {
   if (!path) {
     err(`Task not found: ${id}`);
     process.exit(1);
+  }
+  // 📖 Terminal-status gate: if the target is the configured terminal column
+  // (default: last entry of `board.columns`, "Done"), refuse the move while
+  // any `depends_on` is not yet resolved. Mirrors the web store + TUI gate.
+  if (config && Array.isArray(config.board.columns) && config.board.columns.length > 0) {
+    const terminalLower = (config.board.columns[config.board.columns.length - 1]).toLowerCase();
+    if (resolved.toLowerCase() === terminalLower) {
+      const parsed = parseFrontmatter(readFileSync(path, 'utf8'));
+      const deps = Array.isArray(parsed.frontmatter.depends_on) ? parsed.frontmatter.depends_on : [];
+      const blocked = [];
+      for (const dep of deps) {
+        if (typeof dep !== 'string' || !dep.trim() || dep === id) continue;
+        if (!shellTaskIsResolved(kandownDir, dep, terminalLower)) blocked.push(dep);
+      }
+      if (blocked.length > 0) {
+        const list = blocked.length === 1 ? blocked[0] : `${blocked.slice(0, -1).join(', ')} and ${blocked[blocked.length - 1]}`;
+        err(`Cannot move ${id} to ${resolved}: blocked by ${list}`);
+        process.exit(1);
+      }
+    }
   }
   const parsed = parseFrontmatter(readFileSync(path, 'utf8'));
   parsed.frontmatter.status = resolved;

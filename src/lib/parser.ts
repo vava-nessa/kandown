@@ -146,6 +146,9 @@ export function taskToBoardTask(task: ParsedTask): BoardTask {
     priority: normalizePriority(frontmatter.priority),
     ownerType: normalizeOwnerType(frontmatter.ownerType),
     progress: total > 0 ? { done, total } : null,
+    dependsOn: Array.isArray(frontmatter.depends_on)
+      ? frontmatter.depends_on.filter((d): d is string => typeof d === 'string' && d.trim().length > 0)
+      : [],
     frontmatter: metadata,
   };
 }

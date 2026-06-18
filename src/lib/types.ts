@@ -36,6 +36,11 @@ export interface BoardTask {
   priority: Priority | null;
   ownerType: OwnerType;
   progress: TaskProgress | null;
+  /** 📖 Other task ids this task is blocked by. Surfaced as a `↪N` chip on
+   * the card (N = unresolved dependency count) and as a "Blocked by" panel
+   * in the task drawer. The store enforces a gate on terminal status
+   * transitions based on this. */
+  dependsOn: string[];
   /** 📖 Raw frontmatter metadata (structural fields + report already filtered
    * out by taskToBoardTask). The card's metadata block iterates over this to
    * render every key generically — no hardcoded field list. */
@@ -66,6 +71,12 @@ export interface TaskFrontmatter {
   ownerType?: OwnerType;
   tools?: string;
   report?: string;
+  /** 📖 Other task ids this one is blocked by. Moving the task to the
+   * terminal board column (last entry of `config.board.columns`, default
+   * "Done") is rejected while any dependency is not yet in the terminal
+   * status. Other transitions stay free — the gate is only on the final
+   * hop, matching how GitHub / Linear / Jira treat blocking relations. */
+  depends_on?: string[];
   /** When true the task is archived: hidden from the active board and stored
    * under `tasks/archive/` at the project root. The flag is the source of
    * truth; the file location mirrors it. Set/toggled by the archive/unarchive

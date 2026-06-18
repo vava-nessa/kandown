@@ -273,6 +273,19 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
         <span className="font-mono text-[11.5px] font-medium text-fg-faint tabular-nums">
           {task.id.replace(/^t/, '#')}
         </span>
+        {task.dependsOn && task.dependsOn.length > 0 && (
+          // 📖 Dep chip: surfaces the task's `depends_on` count next to the id
+          // so blocked work is visible at a glance on the board. Hover shows
+          // the full id list — the drawer has the "Blocked by" panel for the
+          // resolved/unresolved breakdown.
+          <span
+            className="ml-1.5 inline-flex items-center gap-0.5 px-1.5 h-[16px] rounded text-[10.5px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20"
+            title={t('card.blockedBy', { ids: task.dependsOn.join(', ') })}
+            aria-label={t('card.blockedBy', { ids: task.dependsOn.join(', ') })}
+          >
+            ↪{task.dependsOn.length}
+          </span>
+        )}
       </div>
 
       <div className="px-3.5 pb-1.5">
