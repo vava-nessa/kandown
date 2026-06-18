@@ -312,7 +312,7 @@ function BoardHeader({ title, inTmux, modeHint, version, daemonStatus, daemonBus
     : daemonStatus.running
       ? `● web ${daemonStatus.metadata?.port ?? ''}`
       : '○ web off';
-  const hint = modeHint || 'h/l cols · j/k tasks · drag tasks · d daemon · r reload · q quit';
+  const hint = modeHint || 'h/l cols · j/k tasks · drag tasks · a agent · g send-hook · d daemon · r reload · q quit';
   const width = termWidth();
   const leftWidth = Math.min(Math.max(34, Math.floor(width * 0.46)), width);
   const daemonWidth = Math.min(16, Math.max(0, width - leftWidth));
@@ -559,6 +559,35 @@ export function Board({ kandownDir, version }: BoardProps) {
       setTimeout(() => setStatusMsg(''), 2500);
     }
   }, [daemonBusy, kandownDir, preferredDaemonPort]);
+
+  // 📖 Forwards a task to the agent hook configured on the CLI daemon. The
+  // hook is strictly opt-in via KANDOWN_AGENT_HOOK_URL on the daemon process.
+  // If the hook is unconfigured, the daemon returns 501 — we surface that
+  // instead of silently no-op'ing so users learn the feature exists.
+  const sendTaskToAgentHook = useCallback(async (taskId: string) => {
+    const status = await getDaemonStatus(kandownDir);
+    if (!status.running || !status.metadata) {
+      setStatusMsg('Web daemon not running (press d to start)');
+      setTimeout(() => setStatusMsg(''), 2500);
+      return;
+    }
+    try {
+      const res = await fetch(`http://127.0.0.1:${status.metadata.port}/api/tasks/${encodeURIComponent(taskId)}/agent`, {
+        method: 'POST',
+        signal: AbortSignal.timeout(8000),
+      });
+      if (res.ok) {
+        setStatusMsg(`Sent ${taskId} to agent hook`);
+      } else {
+        const body = await res.text().catch(() => '');
+        setStatusMsg(`Agent hook: ${res.status}${body ? ' — ' + body.slice(0, 60) : ''}`);
+      }
+    } catch (error) {
+      setStatusMsg(`Agent hook failed: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setTimeout(() => setStatusMsg(''), 3000);
+    }
+  }, [kandownDir]);
 
   // ─── Derived helpers ──────────────────────────────────────────────────────
 
@@ -892,6 +921,16 @@ export function Board({ kandownDir, version }: BoardProps) {
         const task = getFocusedTask();
         if (!task) return;
         setMode('agent-picker');
+        return;
+      }
+
+      // 📖 `g` forwards the focused task to the agent hook configured on the
+      // daemon. Strictly opt-in: if KANDOWN_AGENT_HOOK_URL is not set, the
+      // daemon returns 501 and we surface that to the user — no silent no-op.
+      if (input === 'g') {
+        const task = getFocusedTask();
+        if (!task) return;
+        void sendTaskToAgentHook(task.id);
         return;
       }
     }

@@ -54,6 +54,9 @@ import {
   serverListTasks,
   serverReadTaskFile,
   serverMigrateTasks,
+  serverGetDaemonInfo,
+  serverSendTaskToAgent,
+  type ServerAgentHook,
   type RecentProject,
 } from './filesystem';
 import { buildColumnsFromTasks, extractSubtasks, injectSubtasks, searchTaskContent, extractArchivedTasks } from './parser';
@@ -135,6 +138,10 @@ interface State {
   // Recent projects
   recentProjects: RecentProject[];
 
+  // Agent hook (server mode only). null when not configured; the UI hides
+  // the "Send to Agent" button when null.
+  agentHook: ServerAgentHook | null;
+
   // Toasts
   toasts: Toast[];
 
@@ -185,6 +192,11 @@ interface State {
 
   loadTaskContents: (taskIds: string[]) => Promise<void>;
   computeSearchMatches: (query: string) => void;
+
+  /** Sends the current drawer task to the configured agent hook (no-op when null). */
+  sendTaskToAgent: (taskId: string) => Promise<void>;
+  /** Fetches the daemon's agent hook info and stores it on the state. */
+  refreshAgentHook: () => Promise<void>;
 
   toast: (message: string, type?: Toast['type']) => void;
   dismissToast: (id: number) => void;
@@ -351,6 +363,8 @@ export const useStore = create<State>((set, get) => ({
   recentProjects: [],
   toasts: [],
 
+  agentHook: null,
+
   drawerBaseVersion: null,
   conflictState: null,
   showConflictModal: false,
@@ -453,6 +467,10 @@ export const useStore = create<State>((set, get) => ({
       });
       window.history.pushState({}, '', `?p=${encodeURIComponent(projectName)}`);
       void get().setupWatcher();
+      // 📖 Fetch the agent hook config in parallel so the UI can render the
+      // "Send to Agent" button as soon as the project is open. Failure is
+      // non-fatal — the button stays hidden and the user can still work.
+      void get().refreshAgentHook();
     } catch (err) {
       set({ loading: false, isOpen: false });
       get().toast('Impossible de charger le projet. Relancez `kandown`.', 'error');
@@ -960,6 +978,37 @@ export const useStore = create<State>((set, get) => ({
 
   setCommandOpen: (open) => set({ commandOpen: open }),
   setCheatsheetOpen: (open) => set({ cheatsheetOpen: open }),
+
+  refreshAgentHook: async () => {
+    // 📖 Server mode only — the agent hook is a CLI-daemon feature. In browser
+    // mode the hook never exists, so we explicitly clear the state to keep
+    // the UI honest (no stale "send to agent" button if the user toggles modes).
+    if (!isServerMode()) {
+      set({ agentHook: null });
+      return;
+    }
+    const info = await serverGetDaemonInfo();
+    set({ agentHook: info?.agentHook ?? null });
+  },
+
+  sendTaskToAgent: async (taskId) => {
+    const hook = get().agentHook;
+    if (!hook) {
+      get().toast('Agent hook not configured', 'error');
+      return;
+    }
+    get().toast(`Sending to ${hook.label}…`);
+    const result = await serverSendTaskToAgent(taskId);
+    if (result === null) {
+      get().toast('Could not reach the daemon', 'error');
+      return;
+    }
+    if (result.ok) {
+      get().toast(`Sent to ${hook.label}`);
+    } else {
+      get().toast(result.error || 'Agent hook failed', 'error');
+    }
+  },
   setCurrentPage: (page) => set({ currentPage: page }),
 
   loadTaskContents: async (taskIds: string[]) => {

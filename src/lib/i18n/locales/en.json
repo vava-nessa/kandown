@@ -99,7 +99,9 @@
     "archive": "Archive",
     "restore": "Restore",
     "saveClose": "Save & Close",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "sendToAgent": "Send to Agent",
+    "sendToAgentTitle": "Forward the full task to the configured agent hook (env: KANDOWN_AGENT_HOOK_URL)"
   },
   "archive": {
     "empty": "No archived tasks."

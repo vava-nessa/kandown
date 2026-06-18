@@ -39,6 +39,8 @@ export function Drawer() {
   const deleteTask = useStore(s => s.deleteTask);
   const archiveTask = useStore(s => s.archiveTask);
   const unarchiveTask = useStore(s => s.unarchiveTask);
+  const agentHook = useStore(s => s.agentHook);
+  const sendTaskToAgent = useStore(s => s.sendTaskToAgent);
 
   // 📖 archived flag is read as either boolean or the string "true" (parseSimpleYaml
   // keeps scalars as strings). Computed early so handlers and JSX share it.
@@ -110,6 +112,15 @@ export function Drawer() {
   const currentCol = drawerTaskId
     ? columns.find(c => c.tasks.some(t => t.id === drawerTaskId))?.name
     : null;
+
+  // 📖 Agent hook button is only rendered when the daemon is configured with
+  // KANDOWN_AGENT_HOOK_URL. The button is intentionally in the footer next to
+  // the destructive actions — sending a task to an agent is a "go" action, not
+  // an edit, so it deserves a visible slot.
+  const handleSendToAgent = useCallback(() => {
+    if (!drawerTaskId) return;
+    void sendTaskToAgent(drawerTaskId);
+  }, [drawerTaskId, sendTaskToAgent]);
 
   useEffect(() => {
     if (isOpen) {
@@ -259,6 +270,15 @@ export function Drawer() {
                   label={t(isTaskArchived ? 'drawer.restore' : 'drawer.archive')}
                   onClick={handleArchiveToggle}
                 />
+                {agentHook && (
+                  <KbdButton
+                    variant="secondary"
+                    icon="Arrow"
+                    label={`${t('drawer.sendToAgent')} · ${agentHook.label}`}
+                    onClick={handleSendToAgent}
+                    title={t('drawer.sendToAgentTitle')}
+                  />
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <KbdButton

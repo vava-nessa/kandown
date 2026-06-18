@@ -876,6 +876,105 @@ function readBody(req) {
   });
 }
 
+/**
+ * 📖 Resolves the agent hook configuration from environment variables.
+ *
+ * Strictly opt-in: if KANDOWN_AGENT_HOOK_URL is not set, returns null and no
+ * agent-related UI surfaces in the web app. This is the only check the UI
+ * uses to decide whether to show the "Send to Agent" button.
+ *
+ * Env vars (all optional except URL):
+ *   - KANDOWN_AGENT_HOOK_URL      target URL (POST receives `{action, task, context}`)
+ *   - KANDOWN_AGENT_HOOK_LABEL    button label (default: "Agent")
+ *   - KANDOWN_AGENT_HOOK_HEADERS  JSON object of extra headers (default: {})
+ *
+ * Malformed HEADERS are silently ignored so a typo never disables the hook.
+ */
+function loadAgentHook() {
+  const url = process.env.KANDOWN_AGENT_HOOK_URL;
+  if (!url) return null;
+  const label = process.env.KANDOWN_AGENT_HOOK_LABEL || 'Agent';
+  const headers = {};
+  const raw = process.env.KANDOWN_AGENT_HOOK_HEADERS;
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        for (const [k, v] of Object.entries(parsed)) {
+          if (typeof v === 'string') headers[k] = v;
+        }
+      }
+    } catch {
+      // Malformed JSON — ignore and ship with the default empty headers.
+    }
+  }
+  return { url, label, headers };
+}
+
+/**
+ * 📖 Forwards a task to the configured agent hook. Returns a status object
+ * the HTTP handler converts to a JSON response. Failures (network, non-2xx,
+ * timeout) are surfaced as 502 so the UI can show a useful error.
+ */
+async function postAgentTask(hook, taskMarkdown, id, kandownDir) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+  try {
+    const res = await fetch(hook.url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...hook.headers,
+      },
+      body: JSON.stringify({
+        action: 'agent',
+        task: { id, content: taskMarkdown },
+        context: {
+          tasksDir: getTasksDir(kandownDir),
+          cwd: getProjectRoot(kandownDir),
+          schema: 'kandown',
+        },
+      }),
+      signal: controller.signal,
+    });
+    const body = await res.text().catch(() => '');
+    return { ok: res.ok, status: res.status, body };
+  } catch (e) {
+    const message = e && e.name === 'AbortError' ? 'agent hook timed out (8s)' : `agent hook failed: ${e.message}`;
+    return { ok: false, status: 502, body: message };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function postTaskToAgent(req, res, kandownDir, id) {
+  if (!isValidTaskId(id)) {
+    return writeText(res, 400, 'Invalid task id');
+  }
+  const hook = loadAgentHook();
+  if (!hook) {
+    return writeJson(res, 501, { error: 'agent hook not configured (set KANDOWN_AGENT_HOOK_URL)' });
+  }
+  const taskPath = findTaskPath(kandownDir, id);
+  if (!taskPath) {
+    return writeJson(res, 404, { error: 'task not found' });
+  }
+  let taskMarkdown;
+  try {
+    taskMarkdown = readFileSync(taskPath, 'utf8');
+  } catch (e) {
+    return writeJson(res, 500, { error: `failed to read task: ${e.message}` });
+  }
+  postAgentTask(hook, taskMarkdown, id, kandownDir).then(result => {
+    if (!result.ok) {
+      return writeJson(res, 502, { error: result.body || `agent hook returned ${result.status}` });
+    }
+    return writeJson(res, 200, { ok: true });
+  }).catch(e => {
+    writeJson(res, 500, { error: e.message });
+  });
+}
+
 function isValidTaskId(id) {
   return /^[a-zA-Z0-9_-]+$/.test(id);
 }
@@ -1117,12 +1216,14 @@ function handleApi(req, res, url, kandownDir) {
 
   if (resource === 'daemon') {
     if (req.method === 'GET') {
+      const hook = loadAgentHook();
       return writeJson(res, 200, {
         ok: true,
         pid: process.pid,
         kandownDir,
         version: getCurrentVersion(),
         startedAt: daemonStartedAt,
+        agentHook: hook ? { enabled: true, label: hook.label } : null,
       });
     }
   }
@@ -1146,6 +1247,7 @@ function handleApi(req, res, url, kandownDir) {
     // the full task file content with the archived flag already toggled.
     if (req.method === 'POST' && id && parts[2] === 'archive') return archiveTask(req, res, kandownDir, id);
     if (req.method === 'POST' && id && parts[2] === 'unarchive') return unarchiveTask(req, res, kandownDir, id);
+    if (req.method === 'POST' && id && parts[2] === 'agent') return postTaskToAgent(req, res, kandownDir, id);
   }
 
   // 📖 Migration endpoint: `POST /api/migrate-tasks` with no id. Idempotent.
