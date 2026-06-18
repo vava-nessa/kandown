@@ -19,7 +19,10 @@
  *  → resolveKandownBin — resolves the global kandown binary path for respawn
  *  → semverGt — compares two semver strings
  *  → checkForUpdate — non-blocking auto-updater with lock file and graceful fallback
- *  → cmdInit — installs `.kandown`
+ *  → getProjectRoot — returns the project root (parent of .kandown/)
+ *  → getTasksDir — returns the project-root tasks/ path
+ *  → migrateTasksToTopLevel — silently moves legacy .kandown/tasks/ → ./tasks/
+ *  → cmdInit — installs `.kandown` and top-level `tasks/`
  *  → cmdUpdate — refreshes installed kandown.html
  *  → injectServerRoot — injects the CLI server root into single-file HTML
  *  → createServeServer — creates the local zero-dependency HTTP server
@@ -57,6 +60,7 @@ import {
   statSync,
   unlinkSync,
   renameSync,
+  rmdirSync,
 } from 'node:fs';
 import { spawnSync, spawn, execSync } from 'node:child_process';
 
@@ -355,8 +359,8 @@ ${marker}
 **IMPORTANT:** Before touching any task files, you MUST read \`${kandownPath}/AGENT_KANDOWN.md\`.
 
 This project uses a file-based kanban:
-- **Tasks live in \`${kandownPath}/tasks/t-xxx.md\`** — each task file owns its status
-- **Columns live in \`${kandownPath}/kandown.json\`** under \`board.columns\`
+- **Tasks live in \`./tasks/t-xxx.md\`** at the project root — each task file owns its status
+- **Config lives in \`${kandownPath}/kandown.json\`** (columns, appearance, agent settings)
 - **Completion workflow:** set task frontmatter \`status: Done\` + write the completion report
 `;
 
@@ -376,8 +380,8 @@ function createAgentsFileIfMissing(cwd, kandownPath) {
 **IMPORTANT:** Before touching any task files, you MUST read \`AGENT_KANDOWN.md\`.
 
 This project uses a file-based kandown:
-- **Tasks live in \`${kandownPath}/tasks/t-xxx.md\`** — each task file owns its status
-- **Columns live in \`${kandownPath}/kandown.json\`** under \`board.columns\`
+- **Tasks live in \`./tasks/t-xxx.md\`** at the project root — each task file owns its status
+- **Config lives in \`${kandownPath}/kandown.json\`** (columns, appearance, agent settings)
 - **Completion workflow:** set task frontmatter \`status: Done\` + write the completion report
 `;
   writeFileSync(agentsPath, content, 'utf8');
@@ -397,8 +401,129 @@ function parseArgs(argv) {
 }
 
 /**
+ * 📖 Returns the absolute path of the project root (parent of the kandown
+ * config dir). Tasks live at the project root in `./tasks/`, not inside
+ * `.kandown/tasks/`. Used by every code path that touches task files.
+ * @param {string} kandownDir absolute path to the kandown config dir
+ * @returns {string} absolute path to the project root
+ */
+function getProjectRoot(kandownDir) {
+  return dirname(kandownDir);
+}
+
+/**
+ * 📖 Returns the absolute path of the tasks directory at the project root.
+ * Mirrors the File System Access layout: `./tasks/` is a sibling of `.kandown/`.
+ * @param {string} kandownDir absolute path to the kandown config dir
+ * @returns {string} absolute path to `./tasks/`
+ */
+function getTasksDir(kandownDir) {
+  return join(getProjectRoot(kandownDir), 'tasks');
+}
+
+/**
+ * 📖 Silently migrates task files from the legacy `.kandown/tasks/` location
+ * to the new top-level `./tasks/` location. Idempotent: returns
+ * `{ moved, cleanedUp }` describing what was done (or nothing).
+ *
+ * Rules:
+ *  - If `./tasks/*.md` already exists, never move anything (avoid clobbering).
+ *  - If `.kandown/tasks/` doesn't exist or has no .md files, no-op.
+ *  - Move every `.md` file (including those in `archive/`) to `./tasks/`.
+ *  - Delete `.kandown/tasks/` only if it's now empty (preserves any non-md
+ *    files like `.scratch/` notes the user may have stashed there).
+ *  - Never throw — failures are logged and skipped so a single bad file
+ *    doesn't block the rest of the migration.
+ *
+ * @param {string} kandownDir absolute path to the kandown config dir
+ * @returns {{ moved: number, cleanedUp: boolean, skipped: boolean }}
+ */
+function migrateTasksToTopLevel(kandownDir) {
+  const projectRoot = getProjectRoot(kandownDir);
+  const oldDir = join(kandownDir, 'tasks');
+  const newDir = getTasksDir(kandownDir);
+  const result = { moved: 0, cleanedUp: false, skipped: false };
+
+  if (!existsSync(oldDir)) return result;
+  if (!existsSync(newDir)) mkdirSync(newDir, { recursive: true });
+
+  // 📖 If the new location already has any .md file, don't touch anything.
+  // The user is in a hybrid state and we should not clobber their work.
+  const existingNew = existsSync(newDir)
+    ? readdirSync(newDir).filter(n => n.endsWith('.md'))
+    : [];
+  if (existingNew.length > 0) {
+    result.skipped = true;
+    return result;
+  }
+
+  // 📖 If the old location has no .md files either, no migration needed.
+  const oldMdFiles = readdirSync(oldDir, { withFileTypes: true })
+    .filter(e => e.isFile() && e.name.endsWith('.md'));
+  if (oldMdFiles.length === 0) {
+    // Still try the archive subfolder.
+    return migrateArchive(kandownDir, result);
+  }
+
+  for (const entry of oldMdFiles) {
+    try {
+      renameSync(join(oldDir, entry.name), join(newDir, entry.name));
+      result.moved += 1;
+    } catch (e) {
+      warn(`migrate: could not move ${entry.name} (${e.code ?? e.message})`);
+    }
+  }
+
+  return migrateArchive(kandownDir, result);
+}
+
+/**
+ * 📖 Helper that moves the legacy `archive/` subfolder to the new location.
+ * Called from migrateTasksToTopLevel after the active files have been moved.
+ */
+function migrateArchive(kandownDir, result) {
+  const oldArchive = join(kandownDir, 'tasks', 'archive');
+  const newArchive = join(getTasksDir(kandownDir), 'archive');
+  if (!existsSync(oldArchive)) return cleanupLegacyTasksDir(kandownDir, result);
+
+  if (!existsSync(newArchive)) mkdirSync(newArchive, { recursive: true });
+  for (const entry of readdirSync(oldArchive, { withFileTypes: true })) {
+    if (entry.isFile() && entry.name.endsWith('.md')) {
+      try {
+        renameSync(join(oldArchive, entry.name), join(newArchive, entry.name));
+        result.moved += 1;
+      } catch (e) {
+        warn(`migrate: could not move archive/${entry.name} (${e.code ?? e.message})`);
+      }
+    }
+  }
+
+  return cleanupLegacyTasksDir(kandownDir, result);
+}
+
+/**
+ * 📖 Removes the legacy `.kandown/tasks/` directory only if it is empty.
+ * Preserves any leftover non-md files (e.g. `.scratch/` notes) so we never
+ * delete user data the migration didn't move.
+ */
+function cleanupLegacyTasksDir(kandownDir, result) {
+  const oldDir = join(kandownDir, 'tasks');
+  if (!existsSync(oldDir)) return result;
+  const remaining = readdirSync(oldDir);
+  if (remaining.length === 0) {
+    try {
+      rmdirSync(oldDir);
+      result.cleanedUp = true;
+    } catch { /* directory not empty or platform limitation — leave it */ }
+  }
+  return result;
+}
+
+/**
  * @returns {{ kandownDir: string, alreadyExisted: boolean }} — resolves the
  * kandown directory and auto-inits it if it doesn't exist (no prompt, silent init).
+ * Also performs a one-time silent migration of tasks from `.kandown/tasks/` to
+ * the project root `./tasks/` on first access of a legacy project.
  */
 function ensureKandownDir(rawArgs) {
   const args = parseArgs(rawArgs);
@@ -406,7 +531,18 @@ function ensureKandownDir(rawArgs) {
   const explicitPath = rawArgs.includes('--path') || rawArgs.includes('-p');
   const kandownDir = resolve(cwd, args.path);
 
-  if (existsSync(kandownDir)) return { kandownDir, alreadyExisted: true };
+  if (existsSync(kandownDir)) {
+    // 📖 Silent one-time migration: move any legacy `.kandown/tasks/*.md` to
+    // the project-root `./tasks/`. Idempotent — safe to call on every startup.
+    const migration = migrateTasksToTopLevel(kandownDir);
+    if (migration.moved > 0) {
+      success(`Migrated ${migration.moved} task${migration.moved === 1 ? '' : 's'} from .kandown/tasks/ to ./tasks/`);
+      if (migration.cleanedUp) info('Removed empty .kandown/tasks/ folder');
+    } else if (migration.skipped) {
+      info('Both .kandown/tasks/ and ./tasks/ have files — leaving both in place');
+    }
+    return { kandownDir, alreadyExisted: true };
+  }
 
   log('');
   info(`No .kandown/ found — auto-installing...`);
@@ -440,13 +576,16 @@ function doInit(args, cwd, kandownPath, kandownDir) {
     success('README.md');
   }
 
+  // 📖 Tasks live at the project root in `./tasks/`, not inside `.kandown/`.
+  // This keeps config separate from data and follows the user-facing convention.
   const tasksSrc = join(templatesDir, 'tasks');
-  const tasksDest = join(kandownDir, 'tasks');
+  const tasksDest = getTasksDir(kandownDir);
   if (!existsSync(tasksDest)) {
+    mkdirSync(tasksDest, { recursive: true });
     copyRecursive(tasksSrc, tasksDest);
-    success('tasks/ (with welcome example)');
+    success('./tasks/ (with welcome example)');
   } else {
-    info('tasks/ already exists (kept)');
+    info('./tasks/ already exists (kept)');
   }
 
   if (!existsSync(join(kandownDir, 'kandown.json'))) {
@@ -512,9 +651,13 @@ function cmdInit(rawArgs) {
   log('');
   log(`${c.green}${c.bold}Done.${c.reset}`);
   log('');
+  log(`  ${c.dim}Layout:${c.reset}`);
+  log(`  ${c.dim}└─${c.reset} ${c.bold}.kandown/${c.reset}     — config, web UI, agent docs`);
+  log(`  ${c.dim}└─${c.reset} ${c.bold}tasks/${c.reset}          — task files (source of truth)`);
+  log('');
   log(`  ${c.dim}Next steps:${c.reset}`);
   log(`  ${c.cyan}1.${c.reset} Open ${c.bold}${kandownPath}/kandown.html${c.reset} in Chrome/Edge/Brave`);
-  log(`  ${c.cyan}2.${c.reset} Select the ${c.bold}${kandownPath}/${c.reset} folder when prompted`);
+  log(`  ${c.cyan}2.${c.reset} Select the ${c.bold}project root${c.reset} (the parent of ${c.bold}${kandownPath}/${c.reset})`);
   log(`  ${c.cyan}3.${c.reset} Start creating tasks. Press ${c.cyan}⌘K${c.reset} for the command palette`);
   log('');
   log(`  ${c.dim}macOS:${c.reset}   open ${kandownPath}/kandown.html`);
@@ -796,17 +939,21 @@ function putBoard(req, res, kandownDir) {
  * first, then the archive subfolder. Returns null when the id exists in
  * neither location. Used by every CRUD handler so archived tasks stay
  * reachable at their real location.
+ *
+ * Tasks live at the project root in `./tasks/` (sibling of `.kandown/`),
+ * not inside `.kandown/tasks/`.
  */
 function findTaskPath(kandownDir, id) {
-  const inTasks = join(kandownDir, 'tasks', `${id}.md`);
+  const tasksDir = getTasksDir(kandownDir);
+  const inTasks = join(tasksDir, `${id}.md`);
   if (existsSync(inTasks)) return inTasks;
-  const inArchive = join(kandownDir, 'tasks', 'archive', `${id}.md`);
+  const inArchive = join(tasksDir, 'archive', `${id}.md`);
   if (existsSync(inArchive)) return inArchive;
   return null;
 }
 
 function getTasks(res, kandownDir) {
-  const tasksDir = join(kandownDir, 'tasks');
+  const tasksDir = getTasksDir(kandownDir);
   const archiveDir = join(tasksDir, 'archive');
   const ids = new Set();
   try {
@@ -853,7 +1000,7 @@ function putTask(req, res, kandownDir, id) {
     return;
   }
   readBody(req).then(body => {
-    const tasksDir = join(kandownDir, 'tasks');
+    const tasksDir = getTasksDir(kandownDir);
     if (!existsSync(tasksDir)) mkdirSync(tasksDir, { recursive: true });
     // 📖 Write in place: keep an archived task inside archive/ on save so the
     // file location never drifts from its archived flag.
@@ -884,6 +1031,66 @@ function deleteTask(res, kandownDir, id) {
     writeJson(res, 200, { ok: true });
   } catch (e) {
     writeJson(res, 500, { error: `Failed to delete task: ${e.message}` });
+  }
+}
+
+/**
+ * 📖 Archives a task: writes the (already flag-updated) content into
+ * `tasks/archive/<id>.md` and removes the active `tasks/<id>.md` copy.
+ * The body comes pre-flagged from the web client (which knows frontmatter).
+ */
+function archiveTask(req, res, kandownDir, id) {
+  if (!isValidTaskId(id)) {
+    writeText(res, 400, 'Invalid task id');
+    return;
+  }
+  readBody(req).then(body => {
+    const tasksDir = getTasksDir(kandownDir);
+    const archiveDir = join(tasksDir, 'archive');
+    if (!existsSync(archiveDir)) mkdirSync(archiveDir, { recursive: true });
+    writeFileSync(join(archiveDir, `${id}.md`), body, 'utf8');
+    try {
+      unlinkSync(join(tasksDir, `${id}.md`));
+    } catch { /* already absent */ }
+    writeJson(res, 200, { ok: true });
+  }).catch(e => {
+    writeJson(res, 500, { error: `Failed to archive task: ${e.message}` });
+  });
+}
+
+/**
+ * 📖 Unarchives a task: writes the content back into `tasks/<id>.md` and
+ * removes the archived copy. Mirror of archiveTask.
+ */
+function unarchiveTask(req, res, kandownDir, id) {
+  if (!isValidTaskId(id)) {
+    writeText(res, 400, 'Invalid task id');
+    return;
+  }
+  readBody(req).then(body => {
+    const tasksDir = getTasksDir(kandownDir);
+    writeFileSync(join(tasksDir, `${id}.md`), body, 'utf8');
+    try {
+      unlinkSync(join(tasksDir, 'archive', `${id}.md`));
+    } catch { /* already absent */ }
+    writeJson(res, 200, { ok: true });
+  }).catch(e => {
+    writeJson(res, 500, { error: `Failed to unarchive task: ${e.message}` });
+  });
+}
+
+/**
+ * 📖 REST endpoint to trigger the silent one-time task migration. The web
+ * client (server mode) can call this on startup to perform the same
+ * `.kandown/tasks/` → `./tasks/` move the CLI does on first access.
+ * Safe to call multiple times — idempotent.
+ */
+function postMigrateTasks(res, kandownDir) {
+  try {
+    const result = migrateTasksToTopLevel(kandownDir);
+    writeJson(res, 200, { ok: true, ...result });
+  } catch (e) {
+    writeJson(res, 500, { error: `Migration failed: ${e.message}` });
   }
 }
 
@@ -939,6 +1146,11 @@ function handleApi(req, res, url, kandownDir) {
     // the full task file content with the archived flag already toggled.
     if (req.method === 'POST' && id && parts[2] === 'archive') return archiveTask(req, res, kandownDir, id);
     if (req.method === 'POST' && id && parts[2] === 'unarchive') return unarchiveTask(req, res, kandownDir, id);
+  }
+
+  // 📖 Migration endpoint: `POST /api/migrate-tasks` with no id. Idempotent.
+  if (resource === 'migrate-tasks' && req.method === 'POST' && !id) {
+    return postMigrateTasks(res, kandownDir);
   }
 
   writeJson(res, 404, { error: 'Not found' });

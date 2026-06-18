@@ -1,9 +1,9 @@
 /**
  * @file Archive view
  * @description Lists every archived task (frontmatter `archived: true`, files
- * living under .kandown/tasks/archive/) as a flat, read-only list with a
- * one-click "Restore" action. Shown when the user toggles the archive button
- * in the header, instead of the active board.
+ * living under `tasks/archive/` at the project root) as a flat, read-only list
+ * with a one-click "Restore" action. Shown when the user toggles the archive
+ * button in the header, instead of the active board.
  *
  * 📖 Archived tasks are hidden from the board (see buildColumnsFromTasks) and
  * surface only here. Restoring a task moves its file back to tasks/ and drops

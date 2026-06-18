@@ -4,19 +4,26 @@
  * files for the CLI. The board is derived from tasks/*.md plus the configured
  * columns in kandown.json; there is no separate board index.
  *
+ * 📖 Tasks live at the project root in `./tasks/`, not inside `.kandown/tasks/`.
+ * The CLI's `kandown init` creates them at the project root, and a one-time
+ * silent migration moves any legacy `.kandown/tasks/*.md` to the new location
+ * on first access. See `bin/kandown.js → migrateTasksToTopLevel`.
+ *
  * 📖 The parser in src/lib/parser.ts works on plain strings with zero browser
  * dependencies, so the CLI only adds a thin Node fs layer here. Moving a task
  * updates the task frontmatter status directly, which keeps task files as the
  * single source of truth.
  *
  * @functions
- *  → readBoard           — scans tasks/*.md and returns a ParsedBoard-compatible shape
+ *  → getProjectRoot      — returns the project root (parent of .kandown/)
+ *  → getTasksDir         — returns the project-root ./tasks/ absolute path
+ *  → listTaskIds         — scans ./tasks/*.md and returns task ids
+ *  → readBoard           — scans ./tasks/*.md and returns a ParsedBoard shape
  *  → readTask            — reads a task file by ID and returns a ParsedTask
  *  → readAgentDoc        — returns AGENT_KANDOWN.md or fallback instructions
  *  → moveTaskToColumn    — updates a task frontmatter status
- *  → getProjectRoot      — returns the project root (parent of .kandown/)
  *
- * @exports readBoard, readTask, readAgentDoc, moveTaskToColumn, getProjectRoot
+ * @exports getProjectRoot, getTasksDir, listTaskIds, readBoard, readTask, readAgentDoc, moveTaskToColumn
  * @see src/lib/parser.ts — pure string parsers reused here
  */
 
@@ -35,8 +42,17 @@ export function getProjectRoot(kandownDir: string): string {
   return dirname(kandownDir);
 }
 
+/**
+ * 📖 Returns the absolute path of the tasks directory at the project root.
+ * Mirrors the web layout: `./tasks/` is a sibling of `.kandown/`.
+ * e.g. /home/user/myproject/.kandown → /home/user/myproject/tasks
+ */
+export function getTasksDir(kandownDir: string): string {
+  return join(getProjectRoot(kandownDir), 'tasks');
+}
+
 export function listTaskIds(kandownDir: string): string[] {
-  const tasksDir = join(kandownDir, 'tasks');
+  const tasksDir = getTasksDir(kandownDir);
   if (!existsSync(tasksDir)) return [];
   return readdirSync(tasksDir)
     .filter(name => name.endsWith('.md'))
@@ -74,7 +90,7 @@ export function readBoard(kandownDir: string): ParsedBoard {
  * Returns a minimal ParsedTask with just the id if the file doesn't exist.
  */
 export function readTask(kandownDir: string, taskId: string): ParsedTask {
-  const taskPath = join(kandownDir, 'tasks', `${taskId}.md`);
+  const taskPath = join(getTasksDir(kandownDir), `${taskId}.md`);
   if (!existsSync(taskPath)) {
     return {
       frontmatter: { id: taskId, title: `Task ${taskId}`, status: 'Backlog' },
@@ -123,7 +139,7 @@ export function moveTaskToColumn(
   taskId: string,
   targetColumn: string,
 ): boolean {
-  const taskPath = join(kandownDir, 'tasks', `${taskId}.md`);
+  const taskPath = join(getTasksDir(kandownDir), `${taskId}.md`);
   if (!existsSync(taskPath)) return false;
 
   const parsed = readTask(kandownDir, taskId);

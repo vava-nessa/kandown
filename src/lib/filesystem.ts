@@ -1,12 +1,20 @@
 /**
  * @file Browser file-system adapter
- * @description Wraps the File System Access API, `.kandown` discovery/creation,
- * task reads and writes, project config persistence, and recent-project
- * IndexedDB storage. Also provides server-mode helpers that proxy all file
- * operations to the CLI REST API when window.__KANDOWN_ROOT__ is set.
+ * @description Wraps the File System Access API, project discovery, task reads
+ * and writes, project config persistence, and recent-project IndexedDB storage.
+ * Also provides server-mode helpers that proxy all file operations to the CLI
+ * REST API when window.__KANDOWN_ROOT__ is set.
  *
  * 📖 All browser file handles pass through this module. UI and store code should
  * call these helpers instead of touching File System Access APIs directly.
+ *
+ * 📖 Layout (v0.12+):
+ *   - `.kandown/` holds config (`kandown.json`), web UI (`kandown.html`),
+ *     and agent docs (`AGENT.md`, `AGENT_KANDOWN.md`).
+ *   - `./tasks/` (project root, sibling of `.kandown/`) holds the markdown
+ *     task files and `./tasks/archive/` for archived ones.
+ *   The user picks the **project root** in the file picker — we derive
+ *   `.kandown/` and `tasks/` from it.
  *
  * 📖 In server mode (when served via `npx kandown`), all filesystem operations
  * are routed through the CLI REST API instead of using FileSystemDirectoryHandle.
@@ -17,8 +25,9 @@
  *  → isServerMode — returns true when serving via CLI (window.__KANDOWN_ROOT__ set)
  *  → getServerRoot — returns window.__KANDOWN_ROOT__ path or null
  *  → pickDirectory — prompts for a writable project directory
- *  → pickProjectDirectory — opens or creates `.kandown`
- *  → getKandownHandle — resolves `.kandown` from a remembered project handle
+ *  → pickProjectDirectory — opens the project root, derives `.kandown` and `tasks/`
+ *  → getKandownHandle — resolves `.kandown` from a project handle
+ *  → getTasksDirHandle — resolves `./tasks/` from a project handle
  *  → readConfigFile / writeConfigFile — load and persist kandown.json
  *  → listTaskIds — scans tasks/*.md and returns task ids
  *  → readTaskFile / writeTaskFile / deleteTaskFile — task file helpers
@@ -28,8 +37,9 @@
  *  → serverReadConfig / serverWriteConfig — kandown.json via REST
  *  → serverListTasks — list task IDs via REST
  *  → serverReadTask / serverWriteTask / serverDeleteTask — task CRUD via REST
+ *  → serverMigrateTasks — triggers the legacy → new layout migration via REST
  *
- * @exports supportsFileSystemAccess, isServerMode, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverWriteTask, serverDeleteTask
+ * @exports supportsFileSystemAccess, isServerMode, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverWriteTask, serverDeleteTask, serverMigrateTasks
  * @see src/lib/store.ts
  * @see src/lib/parser.ts
  */
@@ -176,6 +186,21 @@ async function serverDeleteTask(id: string): Promise<void> {
   await apiFetch(`/api/tasks/${encodeURIComponent(id)}`, { method: 'DELETE' });
 }
 
+/**
+ * 📖 One-time migration helper. Triggers the CLI server to move any legacy
+ * `.kandown/tasks/*.md` to the project-root `./tasks/`. Idempotent — safe
+ * to call on every web app startup. Returns the migration result or null
+ * if the server is unreachable.
+ */
+export async function serverMigrateTasks(): Promise<{ moved: number; cleanedUp: boolean; skipped: boolean } | null> {
+  try {
+    const res = await apiFetch('/api/migrate-tasks', { method: 'POST' });
+    return await res.json() as { moved: number; cleanedUp: boolean; skipped: boolean };
+  } catch {
+    return null;
+  }
+}
+
 export async function pickDirectory(): Promise<FileSystemDirectoryHandle | null> {
   try {
     return await window.showDirectoryPicker({ mode: 'readwrite' });
@@ -186,29 +211,29 @@ export async function pickDirectory(): Promise<FileSystemDirectoryHandle | null>
   }
 }
 
-export async function pickProjectDirectory(): Promise<{ projectHandle: FileSystemDirectoryHandle; kandownHandle: FileSystemDirectoryHandle } | null> {
+export async function pickProjectDirectory(): Promise<{ projectHandle: FileSystemDirectoryHandle; kandownHandle: FileSystemDirectoryHandle; tasksHandle: FileSystemDirectoryHandle } | null> {
   const projectHandle = await pickDirectory();
   if (!projectHandle) return null;
 
-  try {
-    const kandownHandle = await projectHandle.getDirectoryHandle('.kandown', { create: false });
-    return { projectHandle, kandownHandle };
-  } catch {
-    // .kandown doesn't exist - create it
-    const kandownHandle = await projectHandle.getDirectoryHandle('.kandown', { create: true });
-    await ensureTasksDir(kandownHandle);
-    return { projectHandle, kandownHandle };
-  }
+  // 📖 The user picks the project root. We then derive `.kandown/` (config)
+  // and `tasks/` (tasks, sibling of `.kandown/`) from it. This keeps config
+  // and data cleanly separated.
+  const kandownHandle = await getKandownHandle(projectHandle);
+  const tasksHandle = await getTasksDirHandle(projectHandle);
+  return { projectHandle, kandownHandle, tasksHandle };
 }
 
 export async function getKandownHandle(projectHandle: FileSystemDirectoryHandle): Promise<FileSystemDirectoryHandle> {
-  try {
-    return await projectHandle.getDirectoryHandle('.kandown', { create: false });
-  } catch {
-    const kandownHandle = await projectHandle.getDirectoryHandle('.kandown', { create: true });
-    await ensureTasksDir(kandownHandle);
-    return kandownHandle;
-  }
+  return await projectHandle.getDirectoryHandle('.kandown', { create: false });
+}
+
+/**
+ * 📖 Returns the tasks directory handle, creating it on demand. Tasks live
+ * at the project root in `./tasks/`, NOT inside `.kandown/`. This keeps
+ * config (in `.kandown/`) and data (in `./tasks/`) cleanly separated.
+ */
+export async function getTasksDirHandle(projectHandle: FileSystemDirectoryHandle): Promise<FileSystemDirectoryHandle> {
+  return await projectHandle.getDirectoryHandle('tasks', { create: true });
 }
 
 /* ═════════════ Config (kandown.json) ═════════════ */
@@ -252,6 +277,13 @@ export async function writeConfigFile(_kandownHandle: FileSystemDirectoryHandle 
   await w.close();
 }
 
+/**
+ * 📖 Kept for backwards compatibility: the old API took the `.kandown/`
+ * handle and returned a `tasks` handle nested inside it. The new layout
+ * derives tasks from the **project root** instead, so prefer
+ * `getTasksDirHandle(projectHandle)` in new code. This helper still works
+ * for any caller that has a project-root-like handle.
+ */
 export async function ensureTasksDir(dirHandle: FileSystemDirectoryHandle): Promise<FileSystemDirectoryHandle> {
   return await dirHandle.getDirectoryHandle('tasks', { create: true });
 }

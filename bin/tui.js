@@ -54536,8 +54536,11 @@ function serializeTaskFile(frontmatter, body) {
 function getProjectRoot(kandownDir) {
   return dirname(kandownDir);
 }
+function getTasksDir(kandownDir) {
+  return join2(getProjectRoot(kandownDir), "tasks");
+}
 function listTaskIds(kandownDir) {
-  const tasksDir = join2(kandownDir, "tasks");
+  const tasksDir = getTasksDir(kandownDir);
   if (!existsSync3(tasksDir)) return [];
   return readdirSync(tasksDir).filter((name) => name.endsWith(".md")).map((name) => name.slice(0, -3)).sort((a, b) => a.localeCompare(b, void 0, { numeric: true }));
 }
@@ -54561,7 +54564,7 @@ function readBoard(kandownDir) {
   };
 }
 function readTask(kandownDir, taskId) {
-  const taskPath = join2(kandownDir, "tasks", `${taskId}.md`);
+  const taskPath = join2(getTasksDir(kandownDir), `${taskId}.md`);
   if (!existsSync3(taskPath)) {
     return {
       frontmatter: { id: taskId, title: `Task ${taskId}`, status: "Backlog" },
@@ -54593,7 +54596,7 @@ function readAgentDoc(kandownDir) {
   return "";
 }
 function moveTaskToColumn(kandownDir, taskId, targetColumn) {
-  const taskPath = join2(kandownDir, "tasks", `${taskId}.md`);
+  const taskPath = join2(getTasksDir(kandownDir), `${taskId}.md`);
   if (!existsSync3(taskPath)) return false;
   const parsed = readTask(kandownDir, taskId);
   writeFileSync2(taskPath, serializeTaskFile({
@@ -56454,9 +56457,12 @@ var FileWatcher = class {
    * 📖 Start watching task files and kandown.json.
    * Uses chokidar for immediate FS event detection, plus a fallback 500ms
    * poll to catch any races or network-mounted file changes.
+   *
+   * Tasks live at the project root (`./tasks/`, sibling of `.kandown/`);
+   * kandown.json lives inside `.kandown/`.
    */
   start(kandownDir) {
-    const tasksDir = join6(kandownDir, "tasks");
+    const tasksDir = getTasksDir(kandownDir);
     const configPath = join6(kandownDir, "kandown.json");
     const existingIds = listTaskIds(kandownDir);
     for (const id of existingIds) {
@@ -56515,7 +56521,7 @@ var FileWatcher = class {
   // ─── Private ───────────────────────────────────────────────────────────────
   handleFsEvent(event, filePath, kandownDir) {
     if (this.stopped) return;
-    const tasksDir = join6(kandownDir, "tasks");
+    const tasksDir = getTasksDir(kandownDir);
     const configPath = join6(kandownDir, "kandown.json");
     if (filePath === configPath) {
       const key = `config:${event}`;
@@ -56568,7 +56574,7 @@ var FileWatcher = class {
   /** 📖 Fallback poll — catches changes that chokidar missed (network mounts, exotic FS). */
   async pollHashes(kandownDir) {
     if (this.stopped) return;
-    const tasksDir = join6(kandownDir, "tasks");
+    const tasksDir = getTasksDir(kandownDir);
     const configPath = join6(kandownDir, "kandown.json");
     try {
       const newHash = hashFileSync(configPath);

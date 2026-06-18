@@ -7,6 +7,10 @@
  * 📖 Uses SHA-256 content hashing to avoid parsing on every tick — only
  * triggers a reload event when the file content actually changed.
  *
+ * 📖 Layout (v0.12+): the watcher takes the project root handle plus a
+ * separate `tasksDirHandle` (sibling of `.kandown/`). `kandown.json` is
+ * read from a derived `.kandown/` handle.
+ *
  * @functions
  *  → FileWatcher — polling watcher with content hashing
  *  → fileWatcher — singleton instance
@@ -84,7 +88,8 @@ export class FileWatcher {
   private async tick(): Promise<void> {
     if (!this.dirHandle || !this.tasksDirHandle) return;
 
-    // Check kandown.json
+    // Check kandown.json (lives inside .kandown/, which the caller passes as
+    // dirHandle). The tasks dir is a sibling of .kandown/ at the project root.
     const configText = await readConfigFileText(this.dirHandle);
     if (configText !== null) {
       const newHash = await this.hash(configText);

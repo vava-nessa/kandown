@@ -31,7 +31,7 @@
   "emptyState": {
     "unsupportedBrowser": "المتصفح غير مدعوم",
     "unsupportedBrowserDesc": "يتطلب هذا المحرك <code>File System Access API</code>. استخدم Chrome أو Edge أو Brave أو Opera. Firefox وSafari غير مدعومين حتى الآن.",
-    "selectFolderDesc": "Select a project folder containing a <code>.kandown/tasks/</code> directory."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
   },
   "header": {
     "tasks": "المهام",

@@ -48,15 +48,24 @@ cd my-project
 kandown init
 ```
 
-This creates a `.kandown/` folder with:
+This creates two folders at your project root:
 
 ```
-.kandown/
+.kandown/             # config + web UI + agent docs
 ├── kandown.html      # Single-file web app
 ├── kandown.json      # Project config (columns, appearance)
-├── tasks/            # One .md file per task
-└── AGENT.md          # AI-agent quick reference
+├── AGENT.md          # AI-agent quick reference
+└── AGENT_KANDOWN.md  # Full agent reference
+
+tasks/                # Task files (source of truth)
+├── t1.md             # One .md file per task
+└── archive/          # Archived tasks live here
 ```
+
+> **Layout note:** tasks live at the project root in `./tasks/`, not inside
+> `.kandown/`. This keeps config and data cleanly separated. If you're
+> upgrading from an older version with tasks in `.kandown/tasks/`, the CLI
+> will move them automatically the first time you run it — nothing to do.
 
 ### Launch the board
 

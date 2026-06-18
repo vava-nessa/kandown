@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.12.0 — 2026-06-18 — "Top-Level Tasks"
+
+- **Changed**: **Tasks moved to the project root.** Task files (and `./tasks/archive/`) now live at the project root in `./tasks/`, while `.kandown/` only holds config (`kandown.json`), the web UI (`kandown.html`), agent docs (`AGENT.md`, `AGENT_KANDOWN.md`), and daemon runtime metadata. The previous layout (`.kandown/tasks/*.md`) is no longer supported.
+- **Added**: Silent one-time migration. The first time a project is opened after this change, any `.kandown/tasks/*.md` is moved to `./tasks/` (plus the `archive/` subfolder). The legacy `.kandown/tasks/` directory is removed if it ends up empty. No user action required — the migration runs in the background on startup and logs a single line to the CLI.
+- **Changed**: `kandown init` now creates `tasks/` at the project root instead of inside `.kandown/`. The init banner shows the new layout explicitly.
+- **Changed**: The web app (File System Access mode) now asks the user to pick the **project root** (the parent of `.kandown/`) rather than `.kandown/` directly. The app derives both `.kandown/` (config) and `./tasks/` (tasks) from it. Server mode already routes through the CLI REST API, so only the server-side path needed updating.
+- **Added**: New `POST /api/migrate-tasks` endpoint and `serverMigrateTasks()` browser helper. The web app calls it on startup in server mode before reading tasks, so the legacy → new layout move happens transparently.
+- **Added**: `bin/kandown.js → getProjectRoot(kandownDir)`, `getTasksDir(kandownDir)`, `migrateTasksToTopLevel(kandownDir)`, plus the matching helpers in `src/cli/lib/board-reader.ts` (`getTasksDir`). All previous `kandownDir + 'tasks'` paths are now `getTasksDir(kandownDir)`.
+- **Fixed**: `archiveTask` / `unarchiveTask` REST endpoints were referenced in the route handler but never defined (would 404 on every archive action). Implemented them on the new tasks path.
+- **Changed**: All 48 i18n locales — `emptyState.selectFolderDesc` now tells the user to pick the project root and references both folders.
+- **Changed**: `templates/AGENT.md`, `templates/AGENT_KANDOWN.md`, and `templates/README.md` document the new layout. The legacy `templates/.kandown/tasks/` (empty) is removed; sample tasks already lived at `templates/tasks/` at the top level.
+- **Changed**: Default Empty State text and CLI init banner updated to reflect the new layout.
+
 ## 0.11.2 — 2026-06-17 — "TUI Category Cards"
 
 - **Fixed**: Category task rows now use a proper dark background (`#222`) instead of the too-light ANSI `gray`. All task text (ID, title) is white for full readability on the dark block. Category tag remains magenta.

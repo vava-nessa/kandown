@@ -1,6 +1,6 @@
 # Kandown conventions for AI agents
 
-This project uses a file-based Kandown board located in `.kandown/`. Read this file before touching task files.
+This project uses a file-based Kandown board. The config and web UI live in `.kandown/`; the task files live in `tasks/` at the project root. Read this file before touching task files.
 
 ## Source of truth
 
@@ -9,10 +9,13 @@ Tasks are the source of truth. There is no board index to maintain.
 ```
 .kandown/
 ├── kandown.json      ← project settings and board columns
-├── tasks/
-│   ├── t1.md      ← task status, metadata, subtasks, notes, report
-│   └── ...
-└── kandown.html      ← local web UI
+├── kandown.html      ← local web UI
+├── AGENT.md          ← this file
+└── AGENT_KANDOWN.md  ← full reference
+
+tasks/
+├── t1.md             ← task status, metadata, subtasks, notes, report
+└── ...
 ```
 
 Columns are stored in `.kandown/kandown.json` under `board.columns`. A task belongs to a column through its frontmatter `status`.
@@ -83,7 +86,7 @@ report: |
 
 ## Creating tasks
 
-Create a new `tasks/<id>.md` file. Pick the next available ID by scanning filenames in `.kandown/tasks/`. Task IDs use the format `t<N>` (e.g. `t1`, `t2`, `t45`).
+Create a new `tasks/<id>.md` file. Pick the next available ID by scanning filenames in `tasks/`. Task IDs use the format `t<N>` (e.g. `t1`, `t2`, `t45`).
 
 ## Mutation rules
 
@@ -94,8 +97,8 @@ Create a new `tasks/<id>.md` file. Pick the next available ID by scanning filena
 | Change title/priority/tags/assignee | Task file frontmatter only |
 | Change ownerType/tools | Task file frontmatter only |
 | Edit description/notes/subtasks/report | Task file body/frontmatter only |
-| Create task | Create one file in `.kandown/tasks/` |
-| Delete task | Delete its file from `.kandown/tasks/` |
+| Create task | Create one file in `tasks/` |
+| Delete task | Delete its file from `tasks/` |
 
 ## Scope control
 

@@ -20,7 +20,7 @@ import { createReadStream, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { watch, FSWatcher } from 'chokidar';
-import { listTaskIds } from './board-reader.js';
+import { listTaskIds, getTasksDir } from './board-reader.js';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -73,9 +73,12 @@ export class FileWatcher {
    * 📖 Start watching task files and kandown.json.
    * Uses chokidar for immediate FS event detection, plus a fallback 500ms
    * poll to catch any races or network-mounted file changes.
+   *
+   * Tasks live at the project root (`./tasks/`, sibling of `.kandown/`);
+   * kandown.json lives inside `.kandown/`.
    */
   start(kandownDir: string): void {
-    const tasksDir = join(kandownDir, 'tasks');
+    const tasksDir = getTasksDir(kandownDir);
     const configPath = join(kandownDir, 'kandown.json');
 
     // Seed hashes for all existing task files
@@ -149,7 +152,7 @@ export class FileWatcher {
   private handleFsEvent(event: string, filePath: string, kandownDir: string): void {
     if (this.stopped) return;
 
-    const tasksDir = join(kandownDir, 'tasks');
+    const tasksDir = getTasksDir(kandownDir);
     const configPath = join(kandownDir, 'kandown.json');
 
     if (filePath === configPath) {
@@ -218,7 +221,7 @@ export class FileWatcher {
   private async pollHashes(kandownDir: string): Promise<void> {
     if (this.stopped) return;
 
-    const tasksDir = join(kandownDir, 'tasks');
+    const tasksDir = getTasksDir(kandownDir);
     const configPath = join(kandownDir, 'kandown.json');
 
     // Check config

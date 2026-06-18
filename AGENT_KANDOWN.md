@@ -2,13 +2,20 @@
 
 ## The System
 
-Kandown is a file-based Kanban backed by plain markdown. All task state lives in `.kandown/tasks/*.md` — no separate board index, no database.
+Kandown is a file-based Kanban backed by plain markdown. All task state lives in `tasks/*.md` at the project root — no separate board index, no database.
 
 ```
-.kandown/
-├── tasks/           # Task files (source of truth)
-├── kandown.json     # Board columns + project settings
-└── kandown.html     # Web UI
+.kandown/             # config, web UI, agent docs
+├── kandown.json      # Board columns + project settings
+├── kandown.html      # Web UI (single-file bundle)
+├── AGENT.md          # AI-agent conventions
+└── AGENT_KANDOWN.md  # (this file) full reference
+
+tasks/                # source of truth — one .md per task
+├── t1.md
+├── t2.md
+└── archive/          # archived tasks (.md files moved here)
+    └── t99.md
 ```
 
 **Board columns** are configured in `kandown.json` at `board.columns`. Tasks without a `status` go to **Backlog**.
@@ -87,9 +94,9 @@ The `report:` field supports markdown and is displayed prominently in the UI. Wr
 | Reorder task | Task file: update `order:` in frontmatter |
 | Change title/priority/tags/assignee | Task file frontmatter |
 | Edit description/notes/subtasks | Task file body only |
-| Create task | Create one new `.kandown/tasks/t-NNN.md` |
+| Create task | Create one new `tasks/t-NNN.md` |
 | Delete task | Delete the task file |
-| Create/rename/delete columns | `kandown.json` at `board.columns` |
+| Create/rename/delete columns | `.kandown/kandown.json` at `board.columns` |
 
 **One task file = one source of truth.** Never maintain a separate board index.
 

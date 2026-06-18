@@ -35,7 +35,7 @@ import { DEFAULT_CONFIG } from './types';
 import {
   pickProjectDirectory,
   getKandownHandle,
-  ensureTasksDir,
+  getTasksDirHandle,
   listTaskIds,
   readConfigFile,
   writeConfigFile,
@@ -53,6 +53,7 @@ import {
   serverReadConfig,
   serverListTasks,
   serverReadTaskFile,
+  serverMigrateTasks,
   type RecentProject,
 } from './filesystem';
 import { buildColumnsFromTasks, extractSubtasks, injectSubtasks, searchTaskContent, extractArchivedTasks } from './parser';
@@ -354,10 +355,11 @@ export const useStore = create<State>((set, get) => ({
   openFolder: async () => {
     const result = await pickProjectDirectory();
     if (!result) return;
-    const { projectHandle, kandownHandle } = result;
-    const tasksDir = await ensureTasksDir(kandownHandle);
+    const { projectHandle, kandownHandle, tasksHandle } = result;
     const projectName = projectHandle.name;
-    set({ dirHandle: kandownHandle, tasksDirHandle: tasksDir, projectName });
+    // 📖 Layout (v0.12+): `dirHandle` is `.kandown/` (for kandown.json);
+    // `tasksDirHandle` is the project-root `./tasks/` (sibling of `.kandown/`).
+    set({ dirHandle: kandownHandle, tasksDirHandle: tasksHandle, projectName });
     window.history.pushState({}, '', `?p=${encodeURIComponent(projectName)}`);
     const serverRoot = isServerMode() ? getServerRoot() : null;
     await saveRecentProject({
@@ -380,10 +382,12 @@ export const useStore = create<State>((set, get) => ({
       get().toast('Permission denied', 'error');
       return;
     }
+    // 📖 Layout (v0.12+): derive both `.kandown/` and `./tasks/` from the
+    // project root that was remembered in IndexedDB.
     const kandownHandle = await getKandownHandle(project.handle);
-    const tasksDir = await ensureTasksDir(kandownHandle);
+    const tasksHandle = await getTasksDirHandle(project.handle);
     const projectName = project.handle.name;
-    set({ dirHandle: kandownHandle, tasksDirHandle: tasksDir, projectName });
+    set({ dirHandle: kandownHandle, tasksDirHandle: tasksHandle, projectName });
     window.history.pushState({}, '', `?p=${encodeURIComponent(projectName)}`);
     await saveRecentProject({ ...project, lastOpened: Date.now() });
     await get().loadConfig();
@@ -397,6 +401,10 @@ export const useStore = create<State>((set, get) => ({
     try {
       const serverRoot = getServerRoot();
       if (!serverRoot) throw new Error('No server root');
+      // 📖 One-time silent migration: the CLI may have legacy tasks in
+      // `.kandown/tasks/`. Trigger the migration endpoint before reading.
+      // Idempotent — safe on every startup.
+      await serverMigrateTasks();
       const projectName = getProjectNameFromServerRoot(serverRoot);
       const config = await serverReadConfig();
       applyConfigTheme(config);
@@ -453,6 +461,10 @@ export const useStore = create<State>((set, get) => ({
     if (!isServerMode()) return;
     const serverRoot = getServerRoot();
     if (!serverRoot) return;
+    // 📖 One-time silent migration: trigger the CLI migration endpoint so any
+    // legacy `.kandown/tasks/*.md` is moved to `./tasks/` before we read.
+    // Idempotent — safe to call on every web app startup.
+    await serverMigrateTasks();
     const recent = await listRecentProjects();
     const match = recent.find(p => p.kandownDir === serverRoot);
     if (!match) {
@@ -464,10 +476,12 @@ export const useStore = create<State>((set, get) => ({
       await get().openServerProject();
       return;
     }
+    // 📖 Layout (v0.12+): derive both `.kandown/` and `./tasks/` from the
+    // project root that was remembered in IndexedDB.
     const kandownHandle = await getKandownHandle(match.handle);
-    const tasksDir = await ensureTasksDir(kandownHandle);
+    const tasksHandle = await getTasksDirHandle(match.handle);
     const projectName = match.handle.name;
-    set({ dirHandle: kandownHandle, tasksDirHandle: tasksDir, projectName, recentProjects: recent, isOpen: true });
+    set({ dirHandle: kandownHandle, tasksDirHandle: tasksHandle, projectName, recentProjects: recent, isOpen: true });
     window.history.pushState({}, '', `?p=${encodeURIComponent(projectName)}`);
     await saveRecentProject({ ...match, lastOpened: Date.now() });
     await get().loadConfig();

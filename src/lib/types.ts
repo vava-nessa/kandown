@@ -67,8 +67,9 @@ export interface TaskFrontmatter {
   tools?: string;
   report?: string;
   /** When true the task is archived: hidden from the active board and stored
-   * under .kandown/tasks/archive/. The flag is the source of truth; the file
-   * location mirrors it. Set/toggled by the archive/unarchive actions. */
+   * under `tasks/archive/` at the project root. The flag is the source of
+   * truth; the file location mirrors it. Set/toggled by the archive/unarchive
+   * actions. */
   archived?: boolean;
   [k: string]: unknown;
 }
