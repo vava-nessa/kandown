@@ -302,6 +302,7 @@ ${c.bold}Commands:${c.reset}
   ${c.cyan}settings${c.reset}    Open the settings TUI
   ${c.cyan}daemon${c.reset}      Manage the per-project web daemon (start|stop|status)
   ${c.cyan}update${c.reset}      Update kandown.html to the latest version
+  ${c.cyan}shell${c.reset}       Run shellable task commands (list/show/create/move/assign/commit)
   ${c.cyan}help${c.reset}        Show this help
 
 ${c.bold}Options:${c.reset}
@@ -315,6 +316,9 @@ ${c.bold}Examples:${c.reset}
   ${c.dim}$${c.reset} npx kandown init
   ${c.dim}$${c.reset} npx kandown init --path docs/kanban
   ${c.dim}$${c.reset} npx kandown init --no-agents
+  ${c.dim}$${c.reset} npx kandown shell list --json
+  ${c.dim}$${c.reset} npx kandown shell create "Refactor auth" -p P1
+  ${c.dim}$${c.reset} npx kandown shell commit -m "tasks: refactor auth"
 `);
 }
 
@@ -685,6 +689,441 @@ function cmdUpdate(rawArgs) {
   }
   copyFileSync(htmlSrc, htmlDest);
   success(`Updated ${args.path}/kandown.html`);
+}
+
+/* ═════════════ Shellable task commands ═════════════ */
+/**
+ * 📖 Self-contained minimal YAML frontmatter parser/writer for the CLI shell
+ * commands. The web app uses a richer schema (parseSimpleYaml) in the
+ * browser; the CLI keeps its own because it can't import the browser bundle
+ * and these commands only need to round-trip a known small set of scalar
+ * fields (status, priority, assignee, tags, ownerType, depends_on, etc.).
+ *
+ * Quirk: tags and depends_on are emitted as inline YAML arrays
+ * `[a, b, c]` because list-as-block-scalar is harder to round-trip cleanly
+ * and shell tools downstream (jq, awk, grep) parse the inline form
+ * trivially.
+ */
+
+function parseFrontmatter(content) {
+  const out = { frontmatter: {}, body: content || '' };
+  if (!content || !content.startsWith('---\n')) return out;
+  const end = content.indexOf('\n---\n', 4);
+  if (end === -1) {
+    out.body = content;
+    return out;
+  }
+  const yaml = content.slice(4, end);
+  out.body = content.slice(end + 5).replace(/^\n+/, '');
+  for (const line of yaml.split('\n')) {
+    if (!line.trim() || line.trim().startsWith('#')) continue;
+    const m = line.match(/^([a-zA-Z_][\w-]*)\s*:\s*(.*)$/);
+    if (!m) continue;
+    const key = m[1];
+    let val = (m[2] || '').trim();
+    if (val.startsWith('[') && val.endsWith(']')) {
+      val = val.slice(1, -1).split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
+    } else if (val === 'true' || val === 'false') {
+      val = val === 'true';
+    } else if (val === 'null' || val === '') {
+      val = null;
+    } else if (/^-?\d+(\.\d+)?$/.test(val)) {
+      val = Number(val);
+    } else {
+      val = val.replace(/^["']|["']$/g, '');
+    }
+    out.frontmatter[key] = val;
+  }
+  return out;
+}
+
+function serializeFrontmatter(fm, body) {
+  const lines = ['---'];
+  for (const [k, v] of Object.entries(fm || {})) {
+    if (v === null || v === undefined || v === '') continue;
+    if (Array.isArray(v)) {
+      if (v.length === 0) continue;
+      lines.push(`${k}: [${v.join(', ')}]`);
+    } else if (typeof v === 'string' && v.includes('\n')) {
+      lines.push(`${k}: |`);
+      lines.push(...v.split('\n').map(l => (l === '' ? '' : `  ${l}`)));
+    } else {
+      lines.push(`${k}: ${v}`);
+    }
+  }
+  lines.push('---', '', (body || '').replace(/^\n+/, '').replace(/\n+$/, '') + '\n');
+  return lines.join('\n');
+}
+
+function readKandownConfig(kandownDir) {
+  const configPath = join(kandownDir, 'kandown.json');
+  if (!existsSync(configPath)) return null;
+  try {
+    return JSON.parse(readFileSync(configPath, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+function findTaskFile(kandownDir, id) {
+  if (!/^[a-zA-Z0-9_-]+$/.test(id)) return null;
+  const tasksDir = getTasksDir(kandownDir);
+  const inTasks = join(tasksDir, `${id}.md`);
+  if (existsSync(inTasks)) return inTasks;
+  const inArchive = join(tasksDir, 'archive', `${id}.md`);
+  if (existsSync(inArchive)) return inArchive;
+  return null;
+}
+
+function listAllTaskIds(kandownDir) {
+  const tasksDir = getTasksDir(kandownDir);
+  const ids = new Set();
+  if (existsSync(tasksDir)) {
+    for (const f of readdirSync(tasksDir).filter(f => f.endsWith('.md'))) {
+      ids.add(f.replace(/\.md$/, ''));
+    }
+    const archive = join(tasksDir, 'archive');
+    if (existsSync(archive)) {
+      for (const f of readdirSync(archive).filter(f => f.endsWith('.md'))) {
+        ids.add(f.replace(/\.md$/, ''));
+      }
+    }
+  }
+  return [...ids].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+}
+
+function nextTaskId(kandownDir) {
+  const ids = listAllTaskIds(kandownDir);
+  let maxN = 0;
+  for (const id of ids) {
+    const m = id.match(/^t(\d+)$/i);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      if (Number.isFinite(n) && n > maxN) maxN = n;
+    }
+  }
+  return 't' + (maxN + 1);
+}
+
+function shellPad(str, len) {
+  const s = String(str);
+  if (s.length >= len) return s.slice(0, Math.max(0, len - 1)) + (s.length > len ? '…' : '');
+  return s + ' '.repeat(len - s.length);
+}
+
+function shellParseArgs(argv) {
+  // 📖 Minimal flag parser for the shell subcommands. Stops at the first
+  // positional arg so `kandown create "Some title with -dash"` works.
+  const out = { positional: [], flags: {} };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === '--json') out.flags.json = true;
+    else if (a === '--archived') out.flags.archived = true;
+    else if (a === '-s' || a === '--status') out.flags.status = argv[++i];
+    else if (a === '-a' || a === '--assignee') out.flags.assignee = argv[++i];
+    else if (a === '-p' || a === '--priority') out.flags.priority = argv[++i];
+    else if (a === '-t' || a === '--tag') out.flags.tags = (out.flags.tags || []).concat([argv[++i]]);
+    else if (a === '-d' || a === '--depends-on') out.flags.dependsOn = (out.flags.dependsOn || []).concat([argv[++i]]);
+    else if (a === '-m' || a === '--message') out.flags.message = argv[++i];
+    else if (a === '--to') out.flags.to = argv[++i];
+    else if (a === '--id') out.flags.id = argv[++i];
+    else out.positional.push(a);
+  }
+  return out;
+}
+
+function shellResolveStatus(config, status) {
+  // 📖 Status can be a configured column name OR the reserved `archived`
+  // sentinel. Match is case-insensitive to keep shell usage forgiving.
+  if (!status) return null;
+  const lower = status.toLowerCase();
+  if (lower === 'archived') return 'archived';
+  const columns = (config && config.board && config.board.columns) || [];
+  for (const c of columns) {
+    if (c.toLowerCase() === lower) return c;
+  }
+  return null;
+}
+
+function shellList(rawArgs) {
+  const { kandownDir } = ensureKandownDir(rawArgs);
+  const args = shellParseArgs(rawArgs);
+  const config = readKandownConfig(kandownDir);
+  const statusFilter = args.flags.status ? shellResolveStatus(config, args.flags.status) : null;
+  if (args.flags.status && !statusFilter) {
+    err(`Unknown status: ${args.flags.status}`);
+    process.exit(1);
+  }
+  if (statusFilter && statusFilter !== 'archived' && config && !(config.board.columns || []).map(c => c.toLowerCase()).includes(statusFilter.toLowerCase())) {
+    err(`Status not in board columns: ${statusFilter}`);
+    process.exit(1);
+  }
+
+  const ids = listAllTaskIds(kandownDir);
+  const rows = [];
+  for (const id of ids) {
+    const path = findTaskFile(kandownDir, id);
+    if (!path) continue;
+    const parsed = parseFrontmatter(readFileSync(path, 'utf8'));
+    const fm = parsed.frontmatter;
+    const isArchived = fm.archived === true || fm.archived === 'true' || path.includes('/archive/');
+    if (args.flags.archived ? !isArchived : isArchived) continue;
+    if (statusFilter && statusFilter !== 'archived' && (fm.status || '').toLowerCase() !== statusFilter.toLowerCase()) continue;
+    if (args.flags.assignee && fm.assignee !== args.flags.assignee) continue;
+    if (args.flags.priority && (fm.priority || '').toLowerCase() !== args.flags.priority.toLowerCase()) continue;
+    if (args.flags.tags && args.flags.tags.length > 0) {
+      const taskTags = Array.isArray(fm.tags) ? fm.tags : [];
+      const wanted = new Set(args.flags.tags);
+      let ok = true;
+      for (const t of wanted) { if (!taskTags.includes(t)) { ok = false; break; } }
+      if (!ok) continue;
+    }
+    rows.push({ id, fm, body: parsed.body });
+  }
+
+  if (args.flags.json) {
+    process.stdout.write(JSON.stringify(rows.map(r => ({
+      id: r.id, ...r.fm, archived: r.fm.archived === true || r.fm.archived === 'true',
+    })), null, 2) + '\n');
+    return;
+  }
+
+  if (rows.length === 0) {
+    log(c.dim + '(no tasks)' + c.reset);
+    return;
+  }
+
+  const idW = Math.max(2, ...rows.map(r => r.id.length));
+  log(`${c.dim}${shellPad('ID', idW)}  ${shellPad('STATUS', 14)}  ${shellPad('PRI', 4)}  ${shellPad('ASSIGNEE', 12)}  TITLE${c.reset}`);
+  for (const r of rows) {
+    const status = (r.fm.status || 'Backlog') + (r.fm.archived === true || r.fm.archived === 'true' ? ' (archived)' : '');
+    const pri = r.fm.priority || '';
+    const assignee = r.fm.assignee || '';
+    const title = (r.fm.title || '(untitled)').replace(/\n/g, ' ');
+    log(`${shellPad(r.id, idW)}  ${shellPad(status, 14)}  ${shellPad(pri, 4)}  ${shellPad(assignee, 12)}  ${title}`);
+  }
+}
+
+function shellShow(rawArgs) {
+  const { kandownDir } = ensureKandownDir(rawArgs);
+  const args = shellParseArgs(rawArgs);
+  const id = args.positional[0];
+  if (!id) {
+    err('Usage: kandown show <id>');
+    process.exit(1);
+  }
+  const path = findTaskFile(kandownDir, id);
+  if (!path) {
+    err(`Task not found: ${id}`);
+    process.exit(1);
+  }
+  process.stdout.write(readFileSync(path, 'utf8'));
+}
+
+function shellCreate(rawArgs) {
+  const { kandownDir } = ensureKandownDir(rawArgs);
+  const args = shellParseArgs(rawArgs);
+  const title = args.positional.join(' ').trim();
+  if (!title) {
+    err('Usage: kandown create "title" [-p priority] [-a assignee] [-t tag] [--to status]');
+    process.exit(1);
+  }
+  const config = readKandownConfig(kandownDir);
+  const defaultStatus = (config && config.board && config.board.columns && config.board.columns[0]) || 'Backlog';
+  const targetStatus = args.flags.to ? shellResolveStatus(config, args.flags.to) : defaultStatus;
+  if (args.flags.to && !targetStatus) {
+    err(`Unknown status: ${args.flags.to}`);
+    process.exit(1);
+  }
+  const id = args.flags.id || nextTaskId(kandownDir);
+  if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
+    err(`Invalid task id: ${id}`);
+    process.exit(1);
+  }
+  const tasksDir = getTasksDir(kandownDir);
+  if (!existsSync(tasksDir)) mkdirSync(tasksDir, { recursive: true });
+  const targetPath = join(tasksDir, `${id}.md`);
+  if (existsSync(targetPath)) {
+    err(`Task already exists: ${id}`);
+    process.exit(1);
+  }
+  const fm = {
+    id,
+    title,
+    status: targetStatus,
+    created: new Date().toISOString().slice(0, 10),
+  };
+  if (args.flags.priority) fm.priority = args.flags.priority;
+  if (args.flags.assignee) fm.assignee = args.flags.assignee;
+  if (args.flags.tags && args.flags.tags.length > 0) fm.tags = args.flags.tags;
+  if (args.flags.dependsOn && args.flags.dependsOn.length > 0) fm.depends_on = args.flags.dependsOn;
+  const content = serializeFrontmatter(fm, '');
+  writeFileSync(targetPath, content, 'utf8');
+  log(`${c.green}✓${c.reset} Created ${c.bold}${id}${c.reset} → ${targetStatus}`);
+  if (args.flags.json) {
+    process.stdout.write(JSON.stringify({ id, ...fm }, null, 2) + '\n');
+  } else {
+    // 📖 Print the id on stdout (last line) so scripts can do
+    // `ID=$(kandown create "...")` without parsing the colored status line.
+    process.stdout.write(id + '\n');
+  }
+}
+
+function shellMove(rawArgs) {
+  const { kandownDir } = ensureKandownDir(rawArgs);
+  const args = shellParseArgs(rawArgs);
+  const [id, rawStatus] = args.positional;
+  const targetStatus = rawStatus || args.flags.to;
+  if (!id || !targetStatus) {
+    err('Usage: kandown move <id> <status>');
+    process.exit(1);
+  }
+  const config = readKandownConfig(kandownDir);
+  const resolved = shellResolveStatus(config, targetStatus);
+  if (!resolved) {
+    err(`Unknown status: ${targetStatus}`);
+    process.exit(1);
+  }
+  const path = findTaskFile(kandownDir, id);
+  if (!path) {
+    err(`Task not found: ${id}`);
+    process.exit(1);
+  }
+  const parsed = parseFrontmatter(readFileSync(path, 'utf8'));
+  parsed.frontmatter.status = resolved;
+  if (resolved === 'archived') parsed.frontmatter.archived = true;
+  else delete parsed.frontmatter.archived;
+  // 📖 When archiving, move the file to tasks/archive/ to match what the
+  // web UI does. Mirrors src/lib/filesystem.ts#archiveTaskFile.
+  if (resolved === 'archived') {
+    const archiveDir = join(getTasksDir(kandownDir), 'archive');
+    if (!existsSync(archiveDir)) mkdirSync(archiveDir, { recursive: true });
+    writeFileSync(join(archiveDir, `${id}.md`), serializeFrontmatter(parsed.frontmatter, parsed.body), 'utf8');
+    try { unlinkSync(path); } catch { /* already absent */ }
+  } else {
+    writeFileSync(path, serializeFrontmatter(parsed.frontmatter, parsed.body), 'utf8');
+  }
+  log(`${c.green}✓${c.reset} ${c.bold}${id}${c.reset} → ${resolved}`);
+}
+
+function shellAssign(rawArgs) {
+  const { kandownDir } = ensureKandownDir(rawArgs);
+  const args = shellParseArgs(rawArgs);
+  const [id, name] = args.positional;
+  if (!id) {
+    err('Usage: kandown assign <id> [name]   (omit name to unassign)');
+    process.exit(1);
+  }
+  const path = findTaskFile(kandownDir, id);
+  if (!path) {
+    err(`Task not found: ${id}`);
+    process.exit(1);
+  }
+  const parsed = parseFrontmatter(readFileSync(path, 'utf8'));
+  if (name) parsed.frontmatter.assignee = name;
+  else delete parsed.frontmatter.assignee;
+  writeFileSync(path, serializeFrontmatter(parsed.frontmatter, parsed.body), 'utf8');
+  log(`${c.green}✓${c.reset} ${c.bold}${id}${c.reset} → ${name ? c.cyan + name : c.dim + '(unassigned)'}${c.reset}`);
+}
+
+function shellCommit(rawArgs) {
+  const { kandownDir } = ensureKandownDir(rawArgs);
+  const args = shellParseArgs(rawArgs);
+  const projectRoot = getProjectRoot(kandownDir);
+  // 📖 Refuse to commit if not inside a git repo — silently failing here would
+  // let the user believe they versioned their tasks when they didn't.
+  try {
+    execSync('git rev-parse --is-inside-work-tree', { cwd: projectRoot, stdio: 'pipe' });
+  } catch {
+    err('Not a git repository — kandown commit only stages and commits in a git repo.');
+    err('  Run `git init` first or commit manually.');
+    process.exit(1);
+  }
+  const tasksRel = 'tasks';
+  const configRel = '.kandown/kandown.json';
+  const staged = [];
+  for (const rel of [tasksRel, configRel]) {
+    const abs = join(projectRoot, rel);
+    if (!existsSync(abs)) continue;
+    try {
+      execSync(`git add -A -- "${rel}"`, { cwd: projectRoot, stdio: 'pipe' });
+      staged.push(rel);
+    } catch (e) {
+      err(`git add failed for ${rel}: ${e.message}`);
+      process.exit(1);
+    }
+  }
+  if (staged.length === 0) {
+    log(c.dim + 'Nothing to commit.' + c.reset);
+    return;
+  }
+  const message = args.flags.message || `chore(kandown): update tasks`;
+  try {
+    execSync(`git commit -m ${JSON.stringify(message)}`, { cwd: projectRoot, stdio: 'inherit' });
+    success(`Committed ${staged.length} path${staged.length === 1 ? '' : 's'}: ${staged.join(', ')}`);
+  } catch (e) {
+    // 📖 git commit exits non-zero when there's nothing to commit (after the
+    // add). Treat that as a no-op so the user doesn't think they broke
+    // anything.
+    if (e && e.status === 1) {
+      log(c.dim + 'Nothing to commit (working tree clean).' + c.reset);
+      return;
+    }
+    err(`git commit failed: ${e.message}`);
+    process.exit(1);
+  }
+}
+
+function cmdShell(subcmd, rawArgs) {
+  switch (subcmd) {
+    case 'list':
+    case 'ls':
+      shellList(rawArgs);
+      return;
+    case 'show':
+      shellShow(rawArgs);
+      return;
+    case 'create':
+    case 'new':
+      shellCreate(rawArgs);
+      return;
+    case 'move':
+      shellMove(rawArgs);
+      return;
+    case 'assign':
+      shellAssign(rawArgs);
+      return;
+    case 'commit':
+      shellCommit(rawArgs);
+      return;
+    case undefined:
+    case 'help':
+    case '--help':
+    case '-h':
+      log(`
+${c.bold}kandown shell${c.reset} ${c.dim}· task commands (one-shot, scriptable)${c.reset}
+
+${c.bold}Commands:${c.reset}
+  ${c.cyan}list${c.reset}   [-s status] [-a assignee] [-t tag] [-p priority] [--archived] [--json]
+  ${c.cyan}show${c.reset}    <id>
+  ${c.cyan}create${c.reset}  "title" [-p priority] [-a assignee] [-t tag ...] [--to status] [--id custom-id] [--json]
+  ${c.cyan}move${c.reset}    <id> <status>     (status is a column name or "archived")
+  ${c.cyan}assign${c.reset}  <id> [name]       (omit name to unassign)
+  ${c.cyan}commit${c.reset}  [-m "message"]   (git add tasks/ + .kandown/kandown.json + git commit)
+
+${c.bold}Examples:${c.reset}
+  ${c.dim}$${c.reset} kandown list --json | jq '.[] | select(.priority=="P1")'
+  ${c.dim}$${c.reset} kandown create "Refactor auth middleware" -p P1 -t backend
+  ${c.dim}$${c.reset} kandown move t42 Done
+  ${c.dim}$${c.reset} kandown assign t42 alice
+  ${c.dim}$${c.reset} kandown commit -m "tasks: add auth refactor"
+`);
+      return;
+    default:
+      err(`Unknown shell command: ${subcmd}`);
+      log(`  Run ${c.cyan}kandown shell help${c.reset} for the list.`);
+      process.exit(1);
+  }
 }
 
 function parsePort(value) {
@@ -1620,6 +2059,14 @@ switch (cmd) {
   case 'update':
     cmdUpdate(rest);
     break;
+
+  case 'shell': {
+    // 📖 Two-level command: `kandown shell <subcmd> [...args]`. Pull the
+    // first non-flag arg as the subcommand and forward the rest.
+    const [shellSubcmd, ...shellRest] = rest;
+    cmdShell(shellSubcmd, shellRest);
+    break;
+  }
 
   case 'help':
   case '--help':
