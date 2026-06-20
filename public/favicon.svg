@@ -1,25 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   @file public/favicon.svg
-  @description Kandown brand mark — vector favicon.
-  📖 Hand-traced from kandownlogo.png. Optimised for 16–256px rendering.
-     Colors: dark surface #0a0a0a, K strokes #ffffff, lime accent #cef867.
-     The lime slash is a parallelogram that slices from top-right to bottom-left,
-     crossing the K. Z-order is: surface → K strokes → lime slash.
+  @description Kandown brand mark — adaptive favicon.
+  📖 Transparent background so the icon adapts to the browser's tab-strip
+     color (no more black-on-black on dark themes). The K recolors itself
+     via @media (prefers-color-scheme: dark) so the contrast holds in both
+     light and dark browser themes:
+       • light browser: dark K (#0a0a0a) on white/cream tab → high contrast
+       • dark  browser: white K (#ffffff) on dark tab         → high contrast
+     The lime slash (#cef867) is the constant brand element on top.
+  📖 PNG fallbacks (16/32/48/ico) ship in the light-mode variant (dark K on
+     transparent) for browsers that don't honor SVG media queries. PWA /
+     OS-launcher icons (apple-touch, android-chrome, mstile, og-image)
+     still use the dark surface — those have a different use case (solid
+     background required by the platform).
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Kandown">
   <title>Kandown</title>
-  <rect width="256" height="256" rx="48" ry="48" fill="#0a0a0a"/>
+  <style>
+    .k     { fill: #0a0a0a; }
+    .slash { fill: #cef867; }
+    @media (prefers-color-scheme: dark) {
+      .k { fill: #ffffff; }
+    }
+  </style>
 
   <!-- K vertical bar (left stem) -->
-  <rect x="50" y="36" width="34" height="184" rx="3" ry="3" fill="#ffffff"/>
+  <rect class="k" x="50" y="36" width="34" height="184" rx="3" ry="3"/>
 
   <!-- K upper diagonal: middle-left → top-right -->
-  <path d="M 84 128 L 200 36 L 222 36 L 84 152 Z" fill="#ffffff"/>
+  <path class="k" d="M 84 128 L 200 36 L 222 36 L 84 152 Z"/>
 
   <!-- K lower diagonal: middle-left → bottom-right (with the small flag/notch on the right) -->
-  <path d="M 84 128 L 200 220 L 222 220 L 188 186 L 200 174 L 84 132 Z" fill="#ffffff"/>
+  <path class="k" d="M 84 128 L 200 220 L 222 220 L 188 186 L 200 174 L 84 132 Z"/>
 
   <!-- Lime diagonal slash: thick parallelogram from top-right to bottom-left -->
-  <path d="M 232 22 L 174 22 L 24 172 L 24 230 Z" fill="#cef867"/>
+  <path class="slash" d="M 232 22 L 174 22 L 24 172 L 24 230 Z"/>
 </svg>
