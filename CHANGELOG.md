@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.13.1 — 2026-06-20 — "Transparent Favicon"
+
+- **Fixed**: **Favicon had a solid dark surface that disappeared on dark browser tabs.** The 0.13.0 favicon used a `#0a0a0a` rounded background that blended with Chrome's `#202124` tab strip and Safari's dark chrome, leaving a near-invisible blob. The new \`public/favicon.svg\` has a transparent background and recolors the K via \`@media (prefers-color-scheme: dark)\` so the contrast holds in both light and dark browser themes. The lime slash (\`#cef867\`) is the constant brand element on top. \`favicon-{16,32,48}.png\` and \`favicon.ico\` are regenerated with transparent backgrounds. PWA / OS-launcher icons (apple-touch-icon, android-chrome-192/-512, mstile-150, og-image) keep their dark surface — they live on home screens, app drawers, Windows tiles, and social cards where a solid background is required by the platform.
+
 ## 0.13.0 — 2026-06-20 — "TUI Agents"
 
 - **Added**: **Agent hook HTTP for IDE / Electron integration** (`c5ce628`). The CLI daemon now forwards a task to a host process (IDE, Electron main, custom server) over plain HTTP. Wire format is JSON: `{ action, task, context }` POSTed to a URL configured via `KANDOWN_AGENT_HOOK_URL`. The web UI surfaces a "Send to Agent" button in the task drawer; the TUI binds `g` to the same action. Both are strictly opt-in — hidden / no-op unless the env var is set on the daemon.
