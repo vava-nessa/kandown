@@ -166,4 +166,10 @@ export const Icon = {
       <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
     </svg>
   ),
+  Keyboard: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <rect x="2" y="6" width="20" height="12" rx="2" />
+      <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M10 14h4" />
+    </svg>
+  ),
 };

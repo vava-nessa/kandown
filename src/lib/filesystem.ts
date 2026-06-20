@@ -201,6 +201,51 @@ export async function serverMigrateTasks(): Promise<{ moved: number; cleanedUp: 
   }
 }
 
+/**
+ * 📖 Fetches the daemon's public info. Includes the agent hook label when
+ * KANDOWN_AGENT_HOOK_URL is set on the daemon — the UI uses this to
+ * conditionally surface the "Send to Agent" button.
+ *
+ * Returns null when the server is unreachable so the UI can fall back to a
+ * non-hook experience without erroring.
+ */
+export interface ServerAgentHook {
+  enabled: true;
+  label: string;
+}
+
+export interface ServerDaemonInfo {
+  ok: true;
+  pid: number;
+  kandownDir: string;
+  version: string | null;
+  startedAt: string;
+  agentHook: ServerAgentHook | null;
+}
+
+export async function serverGetDaemonInfo(): Promise<ServerDaemonInfo | null> {
+  try {
+    const res = await apiFetch('/api/daemon');
+    return await res.json() as ServerDaemonInfo;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 📖 Sends a task to the agent hook configured on the CLI daemon. The daemon
+ * posts the full task markdown + context to KANDOWN_AGENT_HOOK_URL.
+ * Returns the JSON response from the daemon, or null on network failure.
+ */
+export async function serverSendTaskToAgent(id: string): Promise<{ ok: boolean; error?: string } | null> {
+  try {
+    const res = await apiFetch(`/api/tasks/${encodeURIComponent(id)}/agent`, { method: 'POST' });
+    return await res.json() as { ok: boolean; error?: string };
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
 export async function pickDirectory(): Promise<FileSystemDirectoryHandle | null> {
   try {
     return await window.showDirectoryPicker({ mode: 'readwrite' });

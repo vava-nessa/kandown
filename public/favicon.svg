@@ -1,7 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150">
-<!-- SVG created with Arrow, by QuiverAI (https://quiver.ai) -->
-  <style type="text/css">.cls-0 {fill:#161616;}</style>
-  <path class="cls-0" d="m57.6 64.6 0.1-0.1v-31.3c-0.1-3.5-2.7-5.6-5.7-5.6h-16.3v59.6c0.2-1.3 0.9-2.6 1.7-3.2l20.2-19.4z"/>
-  <path class="cls-0" d="m87.6 43.8c-3.4 0.1-7.1 1.3-9.9 3.7l-38.5 38.7c-2.1 2.1-3.4 4.8-3.5 7.5v26.7l77.5-76.4v-0.2h-25.6z"/>
-  <path class="cls-0" d="m108.1 96.4-6 5-22.4-20.8-14.6 14.2 21.1 21.4-5 4.1c-0.6 0.5-0.3 0.9 0.2 0.9h27.6c0.4 0 0.7-0.4 0.7-0.6v-24.8c0-0.7-1.1-0.3-1.6 0.3v0.3z"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  @file public/favicon.svg
+  @description Kandown brand mark — vector favicon.
+  📖 Hand-traced from kandownlogo.png. Optimised for 16–256px rendering.
+     Colors: dark surface #0a0a0a, K strokes #ffffff, lime accent #cef867.
+     The lime slash is a parallelogram that slices from top-right to bottom-left,
+     crossing the K. Z-order is: surface → K strokes → lime slash.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Kandown">
+  <title>Kandown</title>
+  <rect width="256" height="256" rx="48" ry="48" fill="#0a0a0a"/>
+
+  <!-- K vertical bar (left stem) -->
+  <rect x="50" y="36" width="34" height="184" rx="3" ry="3" fill="#ffffff"/>
+
+  <!-- K upper diagonal: middle-left → top-right -->
+  <path d="M 84 128 L 200 36 L 222 36 L 84 152 Z" fill="#ffffff"/>
+
+  <!-- K lower diagonal: middle-left → bottom-right (with the small flag/notch on the right) -->
+  <path d="M 84 128 L 200 220 L 222 220 L 188 186 L 200 174 L 84 132 Z" fill="#ffffff"/>
+
+  <!-- Lime diagonal slash: thick parallelogram from top-right to bottom-left -->
+  <path d="M 232 22 L 174 22 L 24 172 L 24 230 Z" fill="#cef867"/>
 </svg>

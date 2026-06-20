@@ -66,7 +66,20 @@
   },
   "card": {
     "delete": "Delete task",
-    "confirmDelete": "Click again to delete"
+    "confirmDelete": "Click again to delete",
+    "blockedBy": "Blocked by: {{ids}}"
+  },
+  "dependencies": {
+    "label": "Dependencies",
+    "addPlaceholder": "task id (e.g. t42)",
+    "add": "Add",
+    "remove": "Remove",
+    "none": "No dependencies",
+    "resolved": "Resolved",
+    "unresolved": "Blocked",
+    "unknown": "Unknown task",
+    "blockedByPanel": "Blocked by",
+    "blocksPanel": "Blocks"
   },
   "drawer": {
     "close": "Close (Esc)",
@@ -99,7 +112,9 @@
     "archive": "Archive",
     "restore": "Restore",
     "saveClose": "Save & Close",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "sendToAgent": "Send to Agent",
+    "sendToAgentTitle": "Forward the full task to the configured agent hook (env: KANDOWN_AGENT_HOOK_URL)"
   },
   "archive": {
     "empty": "No archived tasks."
@@ -130,6 +145,40 @@
     "comfortableDensity": "Comfortable density",
     "navigate": "navigate",
     "select": "select"
+  },
+  "cheatsheet": {
+    "title": "Keyboard shortcuts",
+    "close": "Close cheatsheet",
+    "footerHint": "Press any key to dismiss",
+    "groups": {
+      "global": "Global",
+      "drawer": "Task drawer",
+      "commandPalette": "Command palette",
+      "tui": "Terminal UI"
+    },
+    "shortcuts": {
+      "commandPalette": "Open command palette",
+      "showCheatsheet": "Toggle this cheatsheet",
+      "boardView": "Board view",
+      "listView": "List view",
+      "newTask": "New task",
+      "reloadBoard": "Reload from disk",
+      "focusSearch": "Focus search",
+      "closeOverlay": "Close overlay / drawer",
+      "saveClose": "Save & close",
+      "deleteTask": "Delete task",
+      "cancel": "Cancel",
+      "navigate": "Navigate items",
+      "select": "Select item",
+      "close": "Close palette",
+      "switchColumn": "Switch column",
+      "selectTask": "Select task",
+      "openTask": "Open task detail",
+      "contextMenu": "Open context menu",
+      "launchAgent": "Launch AI agent",
+      "toggleDaemon": "Toggle web daemon",
+      "quit": "Quit"
+    }
   },
   "listView": {
     "id": "ID",

@@ -54,9 +54,13 @@ import {
   serverListTasks,
   serverReadTaskFile,
   serverMigrateTasks,
+  serverGetDaemonInfo,
+  serverSendTaskToAgent,
+  type ServerAgentHook,
   type RecentProject,
 } from './filesystem';
 import { buildColumnsFromTasks, extractSubtasks, injectSubtasks, searchTaskContent, extractArchivedTasks } from './parser';
+import { isTerminalStatus, terminalStatus, DependencyGateError } from './dependencies';
 import { applyProjectTheme } from './theme';
 import { fileWatcher } from './watcher';
 import { emitKandownNotification } from './notifications';
@@ -124,6 +128,7 @@ interface State {
   density: Density;
   filters: Filters;
   commandOpen: boolean;
+  cheatsheetOpen: boolean;
   drawerTaskId: string | null;
   drawerData: { frontmatter: TaskFrontmatter; subtasks: Subtask[]; body: string } | null;
   currentPage: 'board' | 'settings';
@@ -133,6 +138,10 @@ interface State {
 
   // Recent projects
   recentProjects: RecentProject[];
+
+  // Agent hook (server mode only). null when not configured; the UI hides
+  // the "Send to Agent" button when null.
+  agentHook: ServerAgentHook | null;
 
   // Toasts
   toasts: Toast[];
@@ -179,10 +188,16 @@ interface State {
   clearFilters: () => void;
 
   setCommandOpen: (open: boolean) => void;
+  setCheatsheetOpen: (open: boolean) => void;
   setCurrentPage: (page: 'board' | 'settings') => void;
 
   loadTaskContents: (taskIds: string[]) => Promise<void>;
   computeSearchMatches: (query: string) => void;
+
+  /** Sends the current drawer task to the configured agent hook (no-op when null). */
+  sendTaskToAgent: (taskId: string) => Promise<void>;
+  /** Fetches the daemon's agent hook info and stores it on the state. */
+  refreshAgentHook: () => Promise<void>;
 
   toast: (message: string, type?: Toast['type']) => void;
   dismissToast: (id: number) => void;
@@ -339,6 +354,7 @@ export const useStore = create<State>((set, get) => ({
   density: (localStorage.getItem('kandown:density') as Density) || 'comfortable',
   filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null },
   commandOpen: false,
+  cheatsheetOpen: false,
   drawerTaskId: null,
   drawerData: null,
   currentPage: 'board',
@@ -347,6 +363,8 @@ export const useStore = create<State>((set, get) => ({
 
   recentProjects: [],
   toasts: [],
+
+  agentHook: null,
 
   drawerBaseVersion: null,
   conflictState: null,
@@ -450,6 +468,10 @@ export const useStore = create<State>((set, get) => ({
       });
       window.history.pushState({}, '', `?p=${encodeURIComponent(projectName)}`);
       void get().setupWatcher();
+      // 📖 Fetch the agent hook config in parallel so the UI can render the
+      // "Send to Agent" button as soon as the project is open. Failure is
+      // non-fatal — the button stays hidden and the user can still work.
+      void get().refreshAgentHook();
     } catch (err) {
       set({ loading: false, isOpen: false });
       get().toast('Impossible de charger le projet. Relancez `kandown`.', 'error');
@@ -588,6 +610,42 @@ export const useStore = create<State>((set, get) => ({
     if (!fromColObj || !toColObj) return;
     const taskIdx = fromColObj.tasks.findIndex(t => t.id === taskId);
     if (taskIdx === -1) return;
+    const movingTask = fromColObj.tasks[taskIdx];
+    if (!movingTask) return;
+
+    // 📖 Terminal-status gate: if the target column is the last configured
+    // column (default "Done") and the task has unresolved dependencies, refuse
+    // the move before any optimistic state change. Other transitions stay
+    // free — the gate is only on the final hop, matching how GitHub / Linear
+    // / Jira treat blocking relations.
+    if (isTerminalStatus(toCol, config)) {
+      const depStatus = new Map<string, { exists: boolean; resolved: boolean }>();
+      const terminalLower = terminalStatus(config).toLowerCase();
+      for (const col of columns) {
+        for (const t of col.tasks) {
+          const isArch = t.frontmatter && (t.frontmatter.archived === true || t.frontmatter.archived === 'true');
+          depStatus.set(t.id, {
+            exists: true,
+            resolved: isArch || (t.id === taskId) || col.name.toLowerCase() === terminalLower,
+          });
+        }
+      }
+      // 📖 Self-references and unknown ids are ignored (file header note).
+      const blocked: string[] = [];
+      for (const dep of movingTask.dependsOn) {
+        if (typeof dep !== 'string' || !dep.trim() || dep === taskId) continue;
+        const r = depStatus.get(dep);
+        if (!r || !r.resolved) blocked.push(dep);
+      }
+      if (blocked.length > 0) {
+        const list = blocked.length === 1
+          ? blocked[0]
+          : `${blocked.slice(0, -1).join(', ')} and ${blocked[blocked.length - 1]}`;
+        get().toast(`Cannot move ${taskId} to ${toCol}: blocked by ${list}`, 'error');
+        return;
+      }
+    }
+
     const newColumns = columns.map(c => ({ ...c, tasks: [...c.tasks] }));
     const newFrom = newColumns.find(c => c.name === fromCol)!;
     const newTo = newColumns.find(c => c.name === toCol)!;
@@ -744,6 +802,7 @@ export const useStore = create<State>((set, get) => ({
       id,
       title: '',
       checked: false,
+      dependsOn: [],
       tags: [],
       assignee: null,
       priority: config.fields.priority ? (config.board.defaultPriority as BoardTask['priority']) : null,
@@ -956,6 +1015,38 @@ export const useStore = create<State>((set, get) => ({
     set({ filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null }, searchMatches: new Map() }),
 
   setCommandOpen: (open) => set({ commandOpen: open }),
+  setCheatsheetOpen: (open) => set({ cheatsheetOpen: open }),
+
+  refreshAgentHook: async () => {
+    // 📖 Server mode only — the agent hook is a CLI-daemon feature. In browser
+    // mode the hook never exists, so we explicitly clear the state to keep
+    // the UI honest (no stale "send to agent" button if the user toggles modes).
+    if (!isServerMode()) {
+      set({ agentHook: null });
+      return;
+    }
+    const info = await serverGetDaemonInfo();
+    set({ agentHook: info?.agentHook ?? null });
+  },
+
+  sendTaskToAgent: async (taskId) => {
+    const hook = get().agentHook;
+    if (!hook) {
+      get().toast('Agent hook not configured', 'error');
+      return;
+    }
+    get().toast(`Sending to ${hook.label}…`);
+    const result = await serverSendTaskToAgent(taskId);
+    if (result === null) {
+      get().toast('Could not reach the daemon', 'error');
+      return;
+    }
+    if (result.ok) {
+      get().toast(`Sent to ${hook.label}`);
+    } else {
+      get().toast(result.error || 'Agent hook failed', 'error');
+    }
+  },
   setCurrentPage: (page) => set({ currentPage: page }),
 
   loadTaskContents: async (taskIds: string[]) => {

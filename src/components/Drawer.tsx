@@ -21,7 +21,7 @@
  * @see src/lib/store.ts
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useMemo } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { KbdButton } from './KbdButton';
@@ -33,12 +33,15 @@ export function Drawer() {
   const drawerTaskId = useStore(s => s.drawerTaskId);
   const drawerData = useStore(s => s.drawerData);
   const columns = useStore(s => s.columns);
+  const config = useStore(s => s.config);
   const closeDrawer = useStore(s => s.closeDrawer);
   const saveDrawer = useStore(s => s.saveDrawer);
   const saveDrawerMetadata = useStore(s => s.saveDrawerMetadata);
   const deleteTask = useStore(s => s.deleteTask);
   const archiveTask = useStore(s => s.archiveTask);
   const unarchiveTask = useStore(s => s.unarchiveTask);
+  const agentHook = useStore(s => s.agentHook);
+  const sendTaskToAgent = useStore(s => s.sendTaskToAgent);
 
   // 📖 archived flag is read as either boolean or the string "true" (parseSimpleYaml
   // keeps scalars as strings). Computed early so handlers and JSX share it.
@@ -110,6 +113,42 @@ export function Drawer() {
   const currentCol = drawerTaskId
     ? columns.find(c => c.tasks.some(t => t.id === drawerTaskId))?.name
     : null;
+
+  // 📖 Agent hook button is only rendered when the daemon is configured with
+  // KANDOWN_AGENT_HOOK_URL. The button is intentionally in the footer next to
+  // the destructive actions — sending a task to an agent is a "go" action, not
+  // an edit, so it deserves a visible slot.
+  const handleSendToAgent = useCallback(() => {
+    if (!drawerTaskId) return;
+    void sendTaskToAgent(drawerTaskId);
+  }, [drawerTaskId, sendTaskToAgent]);
+
+  // 📖 Build a depId → { exists, resolved } map for the dependency chips.
+  // "Resolved" = in terminal status OR archived OR unknown (typos never
+  // block — see src/lib/dependencies.ts for the rationale).
+  const depResolution = useMemo(() => {
+    const map = new Map<string, { exists: boolean; resolved: boolean }>();
+    const terminal = (config.board.columns[config.board.columns.length - 1] || 'Done').toLowerCase();
+    for (const col of columns) {
+      for (const t of col.tasks) {
+        const isArch = t.frontmatter && (t.frontmatter.archived === true || t.frontmatter.archived === 'true');
+        map.set(t.id, {
+          exists: true,
+          resolved: isArch || col.name.toLowerCase() === terminal,
+        });
+      }
+    }
+    for (const col of columns) {
+      for (const t of col.tasks) {
+        const deps = Array.isArray(t.frontmatter.depends_on) ? t.frontmatter.depends_on : [];
+        for (const d of deps) {
+          if (typeof d !== 'string' || !d.trim()) continue;
+          if (!map.has(d)) map.set(d, { exists: false, resolved: true });
+        }
+      }
+    }
+    return map;
+  }, [columns, config.board.columns]);
 
   useEffect(() => {
     if (isOpen) {
@@ -211,6 +250,74 @@ export function Drawer() {
 
                 <div className="h-px bg-border -mx-5" />
 
+                {/* Dependencies — task ids this one is blocked by. Comma-
+                 * separated input with chip rendering. Editable in place; the
+                 * store enforces the terminal-status gate on save/move. */}
+                <div>
+                  <div className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted mb-2">
+                    {t('dependencies.label')}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {(Array.isArray(drawerData.frontmatter.depends_on)
+                      ? drawerData.frontmatter.depends_on.filter((d): d is string => typeof d === 'string')
+                      : []
+                    ).map((depId, i) => {
+                      const isResolved = depResolution.get(depId)?.resolved ?? false;
+                      const exists = depResolution.get(depId)?.exists ?? true;
+                      return (
+                        <span
+                          key={i}
+                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[12px] font-mono border ${
+                            !exists
+                              ? 'border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300'
+                              : isResolved
+                                ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                                : 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                          }`}
+                          title={!exists ? t('dependencies.unknown') : isResolved ? t('dependencies.resolved') : t('dependencies.unresolved')}
+                        >
+                          {depId}
+                          <button
+                            type="button"
+                            aria-label={t('dependencies.remove')}
+                            onClick={() => {
+                              const next = (Array.isArray(drawerData.frontmatter.depends_on)
+                                ? drawerData.frontmatter.depends_on
+                                : []
+                              ).filter((_, idx) => idx !== i);
+                              updateField('depends_on', next.length > 0 ? next : undefined);
+                            }}
+                            className="text-current opacity-60 hover:opacity-100"
+                          >×</button>
+                        </span>
+                      );
+                    })}
+                  </div>
+                  <input
+                    type="text"
+                    className="w-full bg-bg-2 border border-border rounded px-2 py-1.5 text-[13px] text-fg placeholder:text-fg-faint focus:outline-none focus:border-border-strong"
+                    placeholder={t('dependencies.addPlaceholder')}
+                    onKeyDown={e => {
+                      if (e.key !== 'Enter') return;
+                      e.preventDefault();
+                      const raw = (e.currentTarget.value || '').trim();
+                      if (!raw) return;
+                      const cleaned = raw.replace(/^#/, '').trim();
+                      const current = Array.isArray(drawerData.frontmatter.depends_on)
+                        ? drawerData.frontmatter.depends_on.filter((d): d is string => typeof d === 'string')
+                        : [];
+                      if (current.includes(cleaned) || cleaned === drawerData.frontmatter.id) {
+                        e.currentTarget.value = '';
+                        return;
+                      }
+                      updateField('depends_on', [...current, cleaned]);
+                      e.currentTarget.value = '';
+                    }}
+                  />
+                </div>
+
+                <div className="h-px bg-border -mx-5" />
+
                 {/* Description (full width) */}
                 <div>
                   <div className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted mb-2">
@@ -259,6 +366,15 @@ export function Drawer() {
                   label={t(isTaskArchived ? 'drawer.restore' : 'drawer.archive')}
                   onClick={handleArchiveToggle}
                 />
+                {agentHook && (
+                  <KbdButton
+                    variant="secondary"
+                    icon="Arrow"
+                    label={`${t('drawer.sendToAgent')} · ${agentHook.label}`}
+                    onClick={handleSendToAgent}
+                    title={t('drawer.sendToAgentTitle')}
+                  />
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <KbdButton
