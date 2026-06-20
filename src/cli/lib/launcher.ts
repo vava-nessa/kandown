@@ -90,8 +90,11 @@ export function launchAgent(opts: LaunchAgentOpts): void {
   // 📖 Step 4: Auto-move to In Progress before launching.
   moveTaskToColumn(kandownDir, taskId, 'In Progress');
 
-  // 📖 Step 5: Write the full context to a temp file so the user/agent can reference it.
-  // Useful for agents like opencode that can't receive a startup prompt via args.
+  // 📖 Step 5: Write the full context to a temp file. Every agent now receives
+  // the prompt directly as a CLI arg (including opencode via `run --interactive`),
+  // but we keep the file as a safety net: very large prompts can hit the OS
+  // argv-length limit, so the full text is exposed via KANDOWN_CONTEXT_FILE for
+  // the agent to re-read if its initial message ever gets truncated.
   const contextFile = join(tmpdir(), `kandown-${taskId}-context.md`);
   writeFileSync(contextFile, `${systemPrompt}\n\n---\n\n${taskPrompt}`, 'utf8');
 
@@ -106,8 +109,18 @@ export function launchAgent(opts: LaunchAgentOpts): void {
   if (isInTmux()) {
     // 📖 tmux path: open a new 50%-wide right pane, TUI stays in the left pane.
     // We build a shell command string from the binary + args.
+    //
+    // A new tmux pane inherits the tmux *server's* environment, NOT this
+    // process's env overrides, so execSync's `env` option alone won't reach
+    // the agent. We prefix `env VAR=val ...` to forward KANDOWN_* vars into
+    // the pane, keeping parity with the direct-exec path below.
     const shellCmd = buildShellCmd(binary, args);
-    execSync(`tmux split-window -h -p 50 ${shellescape(shellCmd)}`, {
+    const envPrefix = [
+      `KANDOWN_CONTEXT_FILE=${shellescape(contextFile)}`,
+      `KANDOWN_TASK_ID=${shellescape(taskId)}`,
+      `KANDOWN_DIR=${shellescape(kandownDir)}`,
+    ].join(' ');
+    execSync(`tmux split-window -h -p 50 ${shellescape(`env ${envPrefix} ${shellCmd}`)}`, {
       stdio: 'inherit',
     });
   } else {

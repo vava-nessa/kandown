@@ -54431,6 +54431,7 @@ function taskToBoardTask(task) {
     priority: normalizePriority(frontmatter.priority),
     ownerType: normalizeOwnerType(frontmatter.ownerType),
     progress: total > 0 ? { done, total } : null,
+    dependsOn: Array.isArray(frontmatter.depends_on) ? frontmatter.depends_on.filter((d) => typeof d === "string" && d.trim().length > 0) : [],
     frontmatter: metadata
   };
 }
@@ -56684,7 +56685,7 @@ ${taskPrompt}`;
 ---
 
 ${taskPrompt}`;
-      return ["gemini", "-p", combined];
+      return ["gemini", "--prompt-interactive", combined];
     }
   },
   {
@@ -56723,8 +56724,13 @@ ${taskPrompt}`;
     bin: "opencode",
     description: "SST AI coding TUI",
     interactive: true,
-    buildCommand: ({ taskPrompt }) => {
-      return ["opencode"];
+    buildCommand: ({ systemPrompt, taskPrompt }) => {
+      const combined = `${systemPrompt}
+
+---
+
+${taskPrompt}`;
+      return ["opencode", "--prompt", combined];
     }
   }
 ];
@@ -56807,7 +56813,12 @@ ${taskPrompt}`, "utf8");
   }
   if (isInTmux()) {
     const shellCmd = buildShellCmd(binary, args);
-    execSync(`tmux split-window -h -p 50 ${shellescape(shellCmd)}`, {
+    const envPrefix = [
+      `KANDOWN_CONTEXT_FILE=${shellescape(contextFile)}`,
+      `KANDOWN_TASK_ID=${shellescape(taskId)}`,
+      `KANDOWN_DIR=${shellescape(kandownDir)}`
+    ].join(" ");
+    execSync(`tmux split-window -h -p 50 ${shellescape(`env ${envPrefix} ${shellCmd}`)}`, {
       stdio: "inherit"
     });
   } else {
@@ -57041,6 +57052,14 @@ function SingleTaskRow({ task, focused, dragging, colWidth }) {
       " "
     ] }),
     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: dragging ? "yellow" : focused ? "cyan" : "yellow", bold: focused || dragging, children: idStr }),
+    task.dependsOn && task.dependsOn.length > 0 && // 📖 TUI equivalent of the web card's `↪N` chip. Surfaces blocked
+    // work inline so the user doesn't try to move a task they can't
+    // unblock without a different upstream task first.
+    /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: "yellow", children: [
+      " ",
+      "\u21AA",
+      task.dependsOn.length
+    ] }),
     tag && /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: focused ? "white" : "magenta", bold: true, children: [
       " ",
       tag
@@ -57155,7 +57174,7 @@ function BoardHeader({ title, inTmux, modeHint, version, daemonStatus, daemonBus
   const tmuxHint = inTmux ? " tmux" : "";
   const versionTag = version ? ` v${version}` : "";
   const daemonLabel = daemonBusy ? "\u25CC daemon\u2026" : daemonStatus.running ? `\u25CF web ${daemonStatus.metadata?.port ?? ""}` : "\u25CB web off";
-  const hint = modeHint || "h/l cols \xB7 j/k tasks \xB7 drag tasks \xB7 d daemon \xB7 r reload \xB7 q quit";
+  const hint = modeHint || "h/l cols \xB7 j/k tasks \xB7 drag tasks \xB7 a agent \xB7 g send-hook \xB7 d daemon \xB7 r reload \xB7 q quit";
   const width = termWidth();
   const leftWidth = Math.min(Math.max(34, Math.floor(width * 0.46)), width);
   const daemonWidth = Math.min(16, Math.max(0, width - leftWidth));
@@ -57211,6 +57230,14 @@ function TaskDetail({ task, taskId, scrollOffset }) {
       fm.assignee ? `  assignee: ${fm.assignee}` : "",
       fm.due ? `  due: ${fm.due}` : ""
     ] }) }),
+    Array.isArray(fm.depends_on) && fm.depends_on.length > 0 && // 📖 TUI equivalent of the web Drawer's dependency chips. Lists raw
+    // ids — the user can `cat tasks/<id>.md` to inspect any one. We don't
+    // resolve live status here (read-only context) but the move gate in
+    // the TUI blocks the user from moving into Done until they're clear.
+    /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { marginBottom: 1, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: "depends on: " }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", children: fm.depends_on.join(", ") })
+    ] }),
     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: "\u2500".repeat(termWidth() - 4) }),
     visibleLines.map((line, idx) => {
       const isH = RE_HEADER.test(line);
@@ -57366,6 +57393,61 @@ function Board({ kandownDir, version }) {
       setTimeout(() => setStatusMsg(""), 2500);
     }
   }, [daemonBusy, kandownDir, preferredDaemonPort]);
+  const tryMoveWithGate = (0, import_react37.useCallback)((taskId, targetCol) => {
+    if (!board) return false;
+    const cfg = loadConfig(kandownDir);
+    const cols = cfg.board.columns;
+    const terminalLower = (cols[cols.length - 1] || "Done").toLowerCase();
+    const isTerminal = targetCol.toLowerCase() === terminalLower;
+    if (!isTerminal) return true;
+    const resolved = /* @__PURE__ */ new Map();
+    for (const col of board.columns) {
+      for (const t of col.tasks) {
+        const isArch = t.frontmatter && (t.frontmatter.archived === true || t.frontmatter.archived === "true");
+        resolved.set(t.id, isArch || col.name.toLowerCase() === terminalLower);
+      }
+    }
+    const movingTask = board.columns.flatMap((c) => c.tasks).find((t) => t.id === taskId);
+    if (!movingTask) return true;
+    const deps = Array.isArray(movingTask.dependsOn) ? movingTask.dependsOn : [];
+    const blocked = [];
+    for (const dep of deps) {
+      if (typeof dep !== "string" || !dep.trim() || dep === taskId) continue;
+      const r = resolved.get(dep);
+      if (!r) blocked.push(dep);
+    }
+    if (blocked.length > 0) {
+      const list = blocked.length === 1 ? blocked[0] : `${blocked.slice(0, -1).join(", ")} and ${blocked[blocked.length - 1]}`;
+      setStatusMsg(`Blocked: ${taskId} \u2190 ${list}`);
+      setTimeout(() => setStatusMsg(""), 3500);
+      return false;
+    }
+    return true;
+  }, [board, kandownDir]);
+  const sendTaskToAgentHook = (0, import_react37.useCallback)(async (taskId) => {
+    const status = await getDaemonStatus(kandownDir);
+    if (!status.running || !status.metadata) {
+      setStatusMsg("Web daemon not running (press d to start)");
+      setTimeout(() => setStatusMsg(""), 2500);
+      return;
+    }
+    try {
+      const res = await fetch(`http://127.0.0.1:${status.metadata.port}/api/tasks/${encodeURIComponent(taskId)}/agent`, {
+        method: "POST",
+        signal: AbortSignal.timeout(8e3)
+      });
+      if (res.ok) {
+        setStatusMsg(`Sent ${taskId} to agent hook`);
+      } else {
+        const body = await res.text().catch(() => "");
+        setStatusMsg(`Agent hook: ${res.status}${body ? " \u2014 " + body.slice(0, 60) : ""}`);
+      }
+    } catch (error) {
+      setStatusMsg(`Agent hook failed: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setTimeout(() => setStatusMsg(""), 3e3);
+    }
+  }, [kandownDir]);
   const getFocusedTask = (0, import_react37.useCallback)(() => {
     if (!board) return null;
     const col = board.columns[colIndex];
@@ -57506,6 +57588,11 @@ function Board({ kandownDir, version }) {
       if (y === placeholderY) {
         const targetColName = col.name;
         if (moveTaskId) {
+          if (!tryMoveWithGate(moveTaskId, targetColName)) {
+            setMoveTaskId(null);
+            setMode("browse");
+            return;
+          }
           moveTaskToColumn(kandownDir, moveTaskId, targetColName);
           const loaded = readBoard(kandownDir);
           setBoard(loaded);
@@ -57576,6 +57663,12 @@ function Board({ kandownDir, version }) {
         if (targetCol >= 0 && targetCol !== taskDrag.sourceCol) {
           const targetColName = board.columns[targetCol]?.name;
           if (targetColName) {
+            if (!tryMoveWithGate(taskDrag.taskId, targetColName)) {
+              setTaskDrag(null);
+              setMousePress(null);
+              setMode("browse");
+              return;
+            }
             moveTaskToColumn(kandownDir, taskDrag.taskId, targetColName);
             const loaded = readBoard(kandownDir);
             setBoard(loaded);
@@ -57664,6 +57757,12 @@ function Board({ kandownDir, version }) {
         setMode("agent-picker");
         return;
       }
+      if (input === "g") {
+        const task = getFocusedTask();
+        if (!task) return;
+        void sendTaskToAgentHook(task.id);
+        return;
+      }
     }
     if (mode === "context-menu") {
       if (key.escape || input === "q") {
@@ -57731,6 +57830,11 @@ function Board({ kandownDir, version }) {
         if (!board || !moveTaskId) return;
         const name = board.columns[moveTargetCol]?.name;
         if (name) {
+          if (!tryMoveWithGate(moveTaskId, name)) {
+            setMoveTaskId(null);
+            setMode("browse");
+            return;
+          }
           moveTaskToColumn(kandownDir, moveTaskId, name);
           const loaded = readBoard(kandownDir);
           setBoard(loaded);

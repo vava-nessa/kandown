@@ -93,9 +93,12 @@ export const AGENTS: AgentDef[] = [
     interactive: true,
     buildCommand: ({ systemPrompt, taskPrompt }) => {
       const combined = `${systemPrompt}\n\n---\n\n${taskPrompt}`;
-      // 📖 Gemini CLI: `gemini -p "prompt"` for non-interactive,
-      // or just `gemini "prompt"` to start with context.
-      return ['gemini', '-p', combined];
+      // 📖 Gemini CLI: `-i/--prompt-interactive` runs the given prompt and then
+      // continues in interactive mode — exactly what we want when the user
+      // assigns a task to an agent. (`-p/--prompt` is headless one-shot: it
+      // would run the prompt and immediately exit, dropping the user out of
+      // the TUI, which contradicts this agent's `interactive: true` flag.)
+      return ['gemini', '--prompt-interactive', combined];
     },
   },
   {
@@ -128,11 +131,12 @@ export const AGENTS: AgentDef[] = [
     bin: 'opencode',
     description: 'SST AI coding TUI',
     interactive: true,
-    buildCommand: ({ taskPrompt }) => {
-      // 📖 OpenCode is a full TUI — it doesn't accept a startup prompt via args.
-      // We launch it and print a hint about the context file.
-      // The launcher writes the context to a temp file before spawning.
-      return ['opencode'];
+    buildCommand: ({ systemPrompt, taskPrompt }) => {
+      // 📖 Use the default TUI command with `--prompt` to pre-fill the initial
+      // user message. The `run` subcommand is for non-interactive one-shot
+      // queries and does not launch the interactive TUI.
+      const combined = `${systemPrompt}\n\n---\n\n${taskPrompt}`;
+      return ['opencode', '--prompt', combined];
     },
   },
 ];
