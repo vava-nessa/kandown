@@ -53993,7 +53993,8 @@ var DEFAULT_CONFIG = {
   board: {
     columns: ["Backlog", "Todo", "In Progress", "Review", "Done"],
     defaultPriority: "P3",
-    defaultOwnerType: "human"
+    defaultOwnerType: "human",
+    stackDefaultState: "collapsed"
   },
   fields: {
     priority: false,
@@ -54107,6 +54108,13 @@ var SETTINGS = [
     max: 5
   },
   // Board
+  {
+    key: "board.stackDefaultState",
+    label: "Task groups",
+    section: "Board",
+    type: "select",
+    options: ["collapsed", "expanded"]
+  },
   {
     key: "board.defaultPriority",
     label: "Default priority",

@@ -161,6 +161,12 @@ export interface KandownConfig {
     defaultPriority: string;
     defaultOwnerType: 'human' | 'ai';
     columnColors?: Record<string, ColumnColor>;
+    /** 📖 Default visual state for groups of tasks sharing the same `[bracket]`
+     * or `#hashtag` title tag. `'collapsed'` shows them as a single stacked
+     * summary card (click to expand), `'expanded'` always renders the
+     * individual cards inline. Search forces `'expanded'` regardless of this
+     * value so match highlights stay visible. */
+    stackDefaultState: 'collapsed' | 'expanded';
   };
   fields: {
     priority: boolean;
@@ -197,6 +203,7 @@ export const DEFAULT_CONFIG: KandownConfig = {
       review: 'violet',
       done: 'green',
     },
+    stackDefaultState: 'collapsed',
   },
   fields: {
     priority: false,

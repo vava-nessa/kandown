@@ -12,7 +12,8 @@
   "board": {
     "columns": ["Backlog", "Todo", "In Progress", "Review", "Done"],
     "defaultPriority": "P3",
-    "defaultOwnerType": "human"
+    "defaultOwnerType": "human",
+    "stackDefaultState": "collapsed"
   },
   "fields": {
     "priority": false,

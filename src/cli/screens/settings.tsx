@@ -90,6 +90,13 @@ const SETTINGS: SettingDef[] = [
 
   // Board
   {
+    key: 'board.stackDefaultState',
+    label: 'Task groups',
+    section: 'Board',
+    type: 'select',
+    options: ['collapsed', 'expanded'],
+  },
+  {
     key: 'board.defaultPriority',
     label: 'Default priority',
     section: 'Fields',

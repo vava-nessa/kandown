@@ -416,7 +416,9 @@ export function Column({
                     doneTags={doneTags}
                     onCardDragStart={onCardDragStart}
                     onCardDragEnd={onCardDragEnd}
-                    defaultExpanded={!!filters.search}
+                    defaultExpanded={
+                      config.board.stackDefaultState === 'expanded' || !!filters.search
+                    }
                   />
                 )
               )

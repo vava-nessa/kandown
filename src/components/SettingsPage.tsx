@@ -347,6 +347,18 @@ const getSETTINGS = (t: ReturnType<typeof useTranslation>['t']): SettingDef[] =>
     keywords: ['statuses', 'workflow', 'kanban'],
   },
   {
+    key: 'board.stackDefaultState',
+    label: t('settings.stackDefaultState'),
+    section: 'board',
+    type: 'select',
+    description: t('settings.stackDefaultStateDesc'),
+    options: [
+      { value: 'collapsed', label: t('settings.stackCollapsed') },
+      { value: 'expanded', label: t('settings.stackExpanded') },
+    ],
+    keywords: ['group', 'stack', 'collapse', 'expand', 'tag', 'bracket', 'hashtag'],
+  },
+  {
     key: 'board.defaultPriority',
     label: t('settings.defaultPriority'),
     section: 'fields',

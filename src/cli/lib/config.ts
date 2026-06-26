@@ -34,6 +34,10 @@ export interface KandownConfig {
     columns: string[];
     defaultPriority: string;
     defaultOwnerType: 'human' | 'ai';
+    /** 📖 Default visual state for groups of tasks sharing the same `[bracket]`
+     * or `#hashtag` title tag. `'collapsed'` shows them as a stacked summary
+     * card, `'expanded'` always renders the individual cards inline. */
+    stackDefaultState: 'collapsed' | 'expanded';
   };
   fields: {
     priority: boolean;
@@ -69,6 +73,7 @@ const DEFAULT_CONFIG: KandownConfig = {
     columns: ['Backlog', 'Todo', 'In Progress', 'Review', 'Done'],
     defaultPriority: 'P3',
     defaultOwnerType: 'human',
+    stackDefaultState: 'collapsed',
   },
   fields: {
     priority: false,
