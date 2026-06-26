@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.14.0 — 2026-06-26 — "Task Groups"
+
+- **Added**: **User preference for default task group state** (`board.stackDefaultState`). Until now, when several tasks shared the same `[bracket]` or `#hashtag` title tag, they always rendered as a single collapsible stack (click to expand). The new setting in **Settings → Board → Task groups** lets users pick:
+  - **Collapsed (stacked)** — default, current behavior. One summary card per group with a count and a preview line; click to expand.
+  - **Expanded (all visible)** — every task in the group is rendered inline as its own card, identical to how untagged tasks display. Useful when the board is mainly used as a flat list rather than a high-density overview.
+  - The active search filter still forces expansion regardless of the setting, so search match highlights always remain visible. Per-stack collapse / expand toggles on click still work in both modes.
+- **Added**: **CLI parity** — the same `board.stackDefaultState` setting is now configurable from the TUI settings screen (under the **Board** section), so terminal-only users can toggle it without opening the web UI.
+- **Added**: **New `board.stackDefaultState` key in `templates/kandown.json`** so fresh installs (`kandown init`) ship with the field explicitly set to `'collapsed'`. Existing projects without the key inherit `'collapsed'` through the existing deep-merge in `readConfigFile` / `loadConfig` — no migration needed.
+- **Added**: **English + French translations** for the new setting: `stackDefaultState` ("Task groups" / "Groupes de tâches"), `stackDefaultStateDesc`, `stackCollapsed` ("Collapsed (stacked)" / "Pliées (empilées)"), `stackExpanded` ("Expanded (all visible)" / "Dépliées (toutes visibles)"). Other locales fall back to English until they're updated.
+- **Changed**: **`Column.tsx` now combines the user preference with the search filter** when computing `CardStack`'s `defaultExpanded` prop: `config.board.stackDefaultState === 'expanded' || !!filters.search`. Previously the prop only reflected the search state.
+
+
 ## 0.13.1 — 2026-06-20 — "Transparent Favicon"
 
 - **Fixed**: **Favicon had a solid dark surface that disappeared on dark browser tabs.** The 0.13.0 favicon used a `#0a0a0a` rounded background that blended with Chrome's `#202124` tab strip and Safari's dark chrome, leaving a near-invisible blob. The new \`public/favicon.svg\` has a transparent background and recolors the K via \`@media (prefers-color-scheme: dark)\` so the contrast holds in both light and dark browser themes. The lime slash (\`#cef867\`) is the constant brand element on top. \`favicon-{16,32,48}.png\` and \`favicon.ico\` are regenerated with transparent backgrounds. PWA / OS-launcher icons (apple-touch-icon, android-chrome-192/-512, mstile-150, og-image) keep their dark surface — they live on home screens, app drawers, Windows tiles, and social cards where a solid background is required by the platform.
