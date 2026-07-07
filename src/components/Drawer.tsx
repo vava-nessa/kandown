@@ -42,6 +42,10 @@ export function Drawer() {
   const unarchiveTask = useStore(s => s.unarchiveTask);
   const agentHook = useStore(s => s.agentHook);
   const sendTaskToAgent = useStore(s => s.sendTaskToAgent);
+  const hasUnsavedDrawerEdits = useStore(s => s.hasUnsavedDrawerEdits);
+  const lastSaveError = useStore(s => s.lastSaveError);
+  const markDrawerDirty = useStore(s => s.markDrawerDirty);
+  const forceCloseDrawer = useStore(s => s.forceCloseDrawer);
 
   // 📖 archived flag is read as either boolean or the string "true" (parseSimpleYaml
   // keeps scalars as strings). Computed early so handlers and JSX share it.
@@ -84,6 +88,24 @@ export function Drawer() {
     await flushAutoSave();
     await saveDrawer();
   }, [flushAutoSave, saveDrawer]);
+
+  /**
+   * 📖 Close guard (t110): if there are unsaved edits OR a known save error,
+   * prompt before discarding. Choosing "discard" stashes the edits into the
+   * recovery buffer (via forceCloseDrawer) so they can be restored when the
+   * same task is reopened; choosing "cancel" keeps the drawer open.
+   */
+  const handleProtectedClose = useCallback(async () => {
+    if (hasUnsavedDrawerEdits || lastSaveError) {
+      const msg = lastSaveError
+        ? `${lastSaveError}\n\nDiscard your unsaved edits? They will be kept as a draft you can restore.`
+        : 'You have unsaved edits. Discard them? They will be kept as a draft you can restore.';
+      if (!confirm(msg)) return;
+      forceCloseDrawer();
+      return;
+    }
+    await handleClose();
+  }, [hasUnsavedDrawerEdits, lastSaveError, forceCloseDrawer, handleClose]);
 
   const safeCloseDrawer = useCallback(async () => {
     await flushAutoSave();
@@ -169,7 +191,7 @@ export function Drawer() {
     if (!isOpen) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !e.defaultPrevented) {
-        void handleClose();
+        void handleProtectedClose();
       }
       if ((e.metaKey || e.ctrlKey) && e.key === 's') {
         e.preventDefault();
@@ -182,7 +204,7 @@ export function Drawer() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [isOpen, handleClose, handleDelete]);
+  }, [isOpen, handleProtectedClose, handleClose, handleDelete]);
 
   if (!drawerData) return null;
 
@@ -194,6 +216,7 @@ export function Drawer() {
       ...d,
       frontmatter: { ...d.frontmatter, [key]: value },
     }));
+    markDrawerDirty();
     triggerAutoSave();
   };
 
@@ -206,7 +229,7 @@ export function Drawer() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0 }}
-            onClick={handleClose}
+            onClick={handleProtectedClose}
             className="fixed inset-0 bg-black/50 backdrop-blur-[4px] z-[100]"
           />
           <motion.div
@@ -230,7 +253,7 @@ export function Drawer() {
                 <KbdButton
                   variant="icon"
                   icon="X"
-                  onClick={handleClose}
+                  onClick={handleProtectedClose}
                   title={t('drawer.close')}
                 />
               </div>
@@ -325,9 +348,10 @@ export function Drawer() {
                   </div>
                   <BlockNoteMarkdownEditor
                     value={drawerData.body}
-                    onChange={val =>
-                      updateDrawerData(d => ({ ...d, body: val }))
-                    }
+                    onChange={val => {
+                      updateDrawerData(d => ({ ...d, body: val }));
+                      markDrawerDirty();
+                    }}
                     placeholder={t('drawer.descriptionPlaceholder')}
                     minHeight="280px"
                   />
@@ -351,6 +375,18 @@ export function Drawer() {
             </div>
 
             {/* Footer */}
+            {/* 📖 Save-error banner (t110): persists in the footer until the user
+             * retries successfully or discards. */}
+            {lastSaveError && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-danger/10 border-t border-danger/30">
+                <span className="text-danger text-[12px] flex-1 truncate" title={lastSaveError}>{lastSaveError}</span>
+                <KbdButton
+                  variant="primary"
+                  label="Retry save"
+                  onClick={saveDrawer}
+                />
+              </div>
+            )}
             <div className="flex items-center justify-between gap-2 px-5 py-3 border-t border-border rounded-b-2xl">
               <div className="flex items-center gap-2">
                 <KbdButton
@@ -377,11 +413,16 @@ export function Drawer() {
                 )}
               </div>
               <div className="flex items-center gap-2">
+                {hasUnsavedDrawerEdits && (
+                  <span className="text-[11px] text-amber-600 dark:text-amber-300" title="Unsaved edits kept as a draft if you close">
+                    ● unsaved
+                  </span>
+                )}
                 <KbdButton
                   variant="secondary"
                   label={t('drawer.cancel')}
                   shortcut="Esc"
-                  onClick={handleClose}
+                  onClick={handleProtectedClose}
                 />
                 <KbdButton
                   variant="primary"

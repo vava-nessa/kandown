@@ -157,6 +157,23 @@ interface State {
   // Toasts
   toasts: Toast[];
 
+  // 📖 Resilience state. `isReloading` lets the UI show a loading indicator
+  // during reloadBoard; `lastReloadError` is non-null when the most recent
+  // reload failed (previous board state preserved). `failedTaskIds` lists task
+  // ids that could not be parsed on the last load so the UI can flag them.
+  isReloading: boolean;
+  lastReloadError: string | null;
+  failedTaskIds: string[];
+
+  // 📖 Drawer save recovery. `hasUnsavedDrawerEdits` is true when the drawer
+  // holds edits that have not been persisted; `lastSaveError` carries the most
+  // recent save failure message; `drawerRecoveryData` keeps a per-task copy of
+  // unsaved drawer data so it can be restored if the drawer is force-closed
+  // (e.g. by opening another task) before a successful save.
+  hasUnsavedDrawerEdits: boolean;
+  lastSaveError: string | null;
+  drawerRecoveryData: Map<string, { frontmatter: TaskFrontmatter; subtasks: Subtask[]; body: string }>;
+
   // File watcher support
   drawerBaseVersion: DrawerSnapshot | null;
   conflictState: ConflictState | null;
@@ -192,6 +209,11 @@ interface State {
   updateDrawerData: (updater: (data: NonNullable<State['drawerData']>) => NonNullable<State['drawerData']>) => void;
   saveDrawer: () => Promise<void>;
   saveDrawerMetadata: () => Promise<void>;
+  /** Marks the drawer as having unsaved edits (called from Drawer on each change). */
+  markDrawerDirty: () => void;
+  /** Forcibly closes the drawer even when there are unsaved edits, after
+   * stashing them into the recovery buffer keyed by task id. */
+  forceCloseDrawer: () => void;
 
   setViewMode: (mode: ViewMode) => void;
   setDensity: (density: Density) => void;
@@ -247,32 +269,53 @@ async function readAllTasksServer(): Promise<LoadedTask[]> {
 
 async function readAllTasks(
   tasksDirHandle: FileSystemDirectoryHandle,
-): Promise<LoadedTask[]> {
+): Promise<{ tasks: LoadedTask[]; failedIds: string[] }> {
   const ids = await listTaskIds(tasksDirHandle);
-  const tasks = await Promise.all(ids.map(async (id) => {
-    const { frontmatter, body } = await fsReadTaskFile(tasksDirHandle, id);
-    const normalizedFrontmatter = {
-      ...frontmatter,
-      id: frontmatter.id || id,
-      status: frontmatter.status || 'Backlog',
-    };
-    const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
-    return { id, frontmatter: normalizedFrontmatter, body: bodyWithoutSubtasks, subtasks };
-  }));
-  return tasks;
+  // 📖 Promise.allSettled so one corrupted/unreadable task file does not wipe
+  // the whole board (t116). Each rejected id is reported back to the caller,
+  // which surfaces a "N tasks could not be loaded" warning.
+  const settled = await Promise.allSettled(
+    ids.map(async (id): Promise<LoadedTask> => {
+      const { frontmatter, body } = await fsReadTaskFile(tasksDirHandle, id);
+      const normalizedFrontmatter = {
+        ...frontmatter,
+        id: frontmatter.id || id,
+        status: frontmatter.status || 'Backlog',
+      };
+      const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
+      return { id, frontmatter: normalizedFrontmatter, body: bodyWithoutSubtasks, subtasks };
+    }),
+  );
+
+  const tasks: LoadedTask[] = [];
+  const failedIds: string[] = [];
+  settled.forEach((result, index) => {
+    const id = ids[index];
+    if (result.status === 'fulfilled') {
+      tasks.push(result.value);
+    } else {
+      failedIds.push(id);
+    }
+  });
+  return { tasks, failedIds };
 }
 
+/**
+ * 📖 Persists status + order metadata back to each affected task file.
+ * Returns the list of ids that failed to persist so the caller can warn the
+ * user and roll back the optimistic state (t116 / t104).
+ */
 async function persistColumnOrder(
   tasksDirHandle: FileSystemDirectoryHandle | null,
   columns: Column[],
   _columnNames: string[],
-): Promise<void> {
-  const writes: Promise<void>[] = [];
+): Promise<{ failedIds: string[] }> {
+  const writes: Array<{ id: string; promise: Promise<void> }> = [];
 
   for (const column of columns) {
     const status = column.name;
     column.tasks.forEach((task, index) => {
-      writes.push((async () => {
+      const promise = (async () => {
         const { frontmatter, body } = await fsReadTaskFile(tasksDirHandle, task.id);
         await fsWriteTaskFile(tasksDirHandle, task.id, {
           ...frontmatter,
@@ -280,11 +323,17 @@ async function persistColumnOrder(
           status,
           order: index,
         }, body);
-      })());
+      })();
+      writes.push({ id: task.id, promise });
     });
   }
 
-  await Promise.all(writes);
+  const settled = await Promise.allSettled(writes.map(w => w.promise));
+  const failedIds: string[] = [];
+  settled.forEach((result, index) => {
+    if (result.status === 'rejected') failedIds.push(writes[index].id);
+  });
+  return { failedIds };
 }
 
 function applyConfigTheme(config: KandownConfig): void {
@@ -376,6 +425,14 @@ export const useStore = create<State>((set, get) => ({
   toasts: [],
 
   agentHook: null,
+
+  isReloading: false,
+  lastReloadError: null,
+  failedTaskIds: [],
+
+  hasUnsavedDrawerEdits: false,
+  lastSaveError: null,
+  drawerRecoveryData: new Map(),
 
   drawerBaseVersion: null,
   conflictState: null,
@@ -613,14 +670,23 @@ export const useStore = create<State>((set, get) => ({
     try {
       await writeConfigFile(dirHandle, newConfig);
     } catch (e) {
-      get().toast('Failed to save config: ' + (e as Error).message, 'error');
+      const err = e as Error;
+      if (err instanceof DiskFullError) {
+        get().toast('Disk is full — settings were not saved.', 'error', 8000);
+      } else {
+        get().toast('Failed to save config: ' + err.message, 'error');
+      }
     }
   },
 
   reloadBoard: async () => {
     const { tasksDirHandle, config } = get();
-    if (isServerMode()) {
-      try {
+    // 📖 Mark as loading + clear the previous error so the UI can show a
+    // spinner. We do NOT clear columns here — if the reload fails we want to
+    // keep showing the last good board (t106).
+    set({ isReloading: true, lastReloadError: null });
+    try {
+      if (isServerMode()) {
         const tasks = await readAllTasksServer();
         syncNotificationSnapshots(tasks);
         const parsedTasks = tasks.map(task => ({
@@ -642,13 +708,9 @@ export const useStore = create<State>((set, get) => ({
             });
           }
         }
-        set({ taskContents: nextContents, searchMatches: new Map() });
-      } catch (e) {
-        get().toast('Failed to load board: ' + (e as Error).message, 'error');
-      }
-    } else if (tasksDirHandle) {
-      try {
-        const tasks = await readAllTasks(tasksDirHandle);
+        set({ taskContents: nextContents, searchMatches: new Map(), failedTaskIds: [], isReloading: false });
+      } else if (tasksDirHandle) {
+        const { tasks, failedIds } = await readAllTasks(tasksDirHandle);
         syncNotificationSnapshots(tasks);
         const parsedTasks = tasks.map(task => ({
           frontmatter: task.frontmatter,
@@ -669,15 +731,33 @@ export const useStore = create<State>((set, get) => ({
             });
           }
         }
-        set({ taskContents: nextContents, searchMatches: new Map() });
-      } catch (e) {
-        get().toast('Failed to load board: ' + (e as Error).message, 'error');
+        // 📖 Partial-failure reporting: if some task files were unreadable we
+        // keep the readable ones on the board and warn the user (t102/t116).
+        if (failedIds.length > 0) {
+          const msg = failedIds.length === 1
+            ? `Task ${failedIds[0]} could not be loaded`
+            : `${failedIds.length} tasks could not be loaded`;
+          get().toast(msg, 'warning', 8000);
+        }
+        set({ taskContents: nextContents, searchMatches: new Map(), failedTaskIds: failedIds, isReloading: false });
+      } else {
+        // No handle and not in server mode — nothing to reload.
+        set({ isReloading: false });
       }
+    } catch (e) {
+      // 📖 Preserve the previous board state — do NOT clear columns. The user
+      // keeps their current view and gets a clear error they can act on (t106).
+      const message = (e as Error).message || String(e);
+      set({
+        isReloading: false,
+        lastReloadError: `Failed to reload board: ${message}`,
+      });
+      get().toast(`Board reload failed — showing last loaded state (${message})`, 'warning', 8000);
     }
   },
 
   moveTask: async (taskId, fromCol, toCol, toIndex) => {
-    const { columns, config } = get();
+    const { columns, config, taskContents, searchMatches } = get();
     const isServer = isServerMode();
     if (!isServer && !get().tasksDirHandle) return;
     const fromColObj = columns.find(c => c.name === fromCol);
@@ -738,16 +818,40 @@ export const useStore = create<State>((set, get) => ({
       const affected = fromCol === toCol
         ? newColumns.filter(c => c.name === toCol)
         : newColumns.filter(c => c.name === fromCol || c.name === toCol);
-      await persistColumnOrder(tasksDirHandle ?? null, affected, config.board.columns);
+      // 📖 Retry transient failures (disk full may resolve between attempts)
+      // before rolling back. Non-retryable errors (permission denied, etc.)
+      // bubble up immediately to the catch below (t105).
+      const { failedIds } = await withRetry(
+        () => persistColumnOrder(tasksDirHandle ?? null, affected, config.board.columns),
+        { maxAttempts: 3 },
+      );
+
+      if (failedIds.length > 0) {
+        // 📖 Partial persistence failure: some tasks moved on disk, others did
+        // not. Best-effort recovery is to reload from disk so the board
+        // reflects reality, plus warn the user (t104/t116).
+        const msg = failedIds.length === 1
+          ? `Could not save move for ${failedIds[0]}`
+          : `${failedIds.length} tasks could not be moved`;
+        get().toast(msg, 'warning', 8000);
+        await get().reloadBoard();
+      }
     } catch (e) {
-      get().toast('Failed to save: ' + (e as Error).message, 'error');
-      // Rollback
-      set({ columns });
+      const err = e as Error;
+      if (err instanceof DiskFullError) {
+        get().toast('Disk is full — move was not saved. Free up space and try again.', 'error', 8000);
+      } else {
+        get().toast('Failed to save: ' + err.message, 'error');
+      }
+      // 📖 Full rollback of the optimistic update. We restore columns AND the
+      // taskContents / searchMatches caches captured before mutation so the
+      // store stays internally consistent (t104).
+      set({ columns, taskContents, searchMatches });
     }
   },
 
   reorderInColumn: async (colName, fromIndex, toIndex) => {
-    const { columns, tasksDirHandle, config } = get();
+    const { columns, tasksDirHandle, config, taskContents, searchMatches } = get();
     if (!tasksDirHandle && !isServerMode()) return;
     const newColumns = columns.map(c => ({ ...c, tasks: [...c.tasks] }));
     const col = newColumns.find(c => c.name === colName);
@@ -759,10 +863,23 @@ export const useStore = create<State>((set, get) => ({
       const { tasksDirHandle } = get();
       const isServer = isServerMode();
       if (!tasksDirHandle && !isServer) return;
-      await persistColumnOrder(tasksDirHandle ?? null, [col], config.board.columns);
+      const { failedIds } = await withRetry(
+        () => persistColumnOrder(tasksDirHandle ?? null, [col], config.board.columns),
+        { maxAttempts: 3 },
+      );
+      if (failedIds.length > 0) {
+        get().toast(`Could not save reorder for ${failedIds.length} task(s)`, 'warning', 8000);
+        await get().reloadBoard();
+      }
     } catch (e) {
-      get().toast('Failed to save: ' + (e as Error).message, 'error');
-      set({ columns });
+      const err = e as Error;
+      if (err instanceof DiskFullError) {
+        get().toast('Disk is full — reorder was not saved.', 'error', 8000);
+      } else {
+        get().toast('Failed to save: ' + err.message, 'error');
+      }
+      // 📖 Restore columns + caches captured pre-mutation (t104).
+      set({ columns, taskContents, searchMatches });
     }
   },
 
@@ -799,7 +916,9 @@ export const useStore = create<State>((set, get) => ({
     try {
       const targetColumn = oldColumns.find(col => col.name === oldName);
       if (targetColumn) {
-        await Promise.all(targetColumn.tasks.map(async (task, index) => {
+        // 📖 Tolerate per-task failures so one unreadable file doesn't abort a
+        // column rename (t116).
+        const settled = await Promise.allSettled(targetColumn.tasks.map(async (task, index) => {
           const { frontmatter, body } = await fsReadTaskFile(tasksDirHandle, task.id);
           await fsWriteTaskFile(tasksDirHandle, task.id, {
             ...frontmatter,
@@ -808,6 +927,10 @@ export const useStore = create<State>((set, get) => ({
             order: index,
           }, body);
         }));
+        const failed = settled.filter(r => r.status === 'rejected').length;
+        if (failed > 0) {
+          get().toast(`${failed} task(s) could not be renamed`, 'warning', 8000);
+        }
       }
 
       await get().updateConfig(current => {
@@ -845,7 +968,15 @@ export const useStore = create<State>((set, get) => ({
     set({ columns: columns.filter(col => col.name !== name) });
 
     try {
-      await Promise.all(target.tasks.map(task => fsDeleteTaskFile(tasksDirHandle, task.id)));
+      // 📖 Tolerate per-task delete failures so one locked file doesn't abort
+      // the whole column delete (t116).
+      const settled = await Promise.allSettled(
+        target.tasks.map(task => fsDeleteTaskFile(tasksDirHandle, task.id)),
+      );
+      const failed = settled.filter(r => r.status === 'rejected').length;
+      if (failed > 0) {
+        get().toast(`${failed} task(s) could not be deleted`, 'warning', 8000);
+      }
       await get().updateConfig(current => {
         const nextColumnColors = { ...(current.board.columnColors ?? {}) };
         delete nextColumnColors[name.toLowerCase()];
@@ -867,7 +998,7 @@ export const useStore = create<State>((set, get) => ({
   },
 
   createTask: async (colName) => {
-    const { columns, tasksDirHandle, config, taskContents } = get();
+    const { columns, tasksDirHandle, config, taskContents, searchMatches } = get();
     if (!tasksDirHandle && !isServerMode()) return null;
     if (!columns.length) return null;
     const targetColName = colName || config.board.columns[0] || columns[0].name;
@@ -888,41 +1019,50 @@ export const useStore = create<State>((set, get) => ({
     const newColumns = columns.map(c =>
       c.name === targetColName ? { ...c, tasks: [...c.tasks, task] } : c
     );
-    set({ columns: newColumns });
+    // Optimistic update — both columns and the content cache.
+    const newContents = new Map(taskContents);
+    const fm: TaskFrontmatter = {
+      id,
+      title: '',
+      status: targetColName,
+      order: targetOrder,
+      priority: config.fields.priority ? config.board.defaultPriority : '',
+      tags: [],
+      assignee: '',
+      created: new Date().toISOString().slice(0, 10),
+      ownerType: config.fields.ownerType ? config.board.defaultOwnerType : '',
+      tools: '',
+    };
+    const body = '';
+    newContents.set(id, { frontmatter: fm, subtasks: [], body });
+    set({ columns: newColumns, taskContents: newContents });
     try {
-      const fm: TaskFrontmatter = {
-        id,
-        title: '',
-        status: targetColName,
-        order: targetOrder,
-        priority: config.fields.priority ? config.board.defaultPriority : '',
-        tags: [],
-        assignee: '',
-        created: new Date().toISOString().slice(0, 10),
-        ownerType: config.fields.ownerType ? config.board.defaultOwnerType : '',
-        tools: '',
-      };
-      const body = '';
       const handle = tasksDirHandle || null;
-      await fsWriteTaskFile(handle, id, fm, body);
-      const newContents = new Map(taskContents);
-      newContents.set(id, { frontmatter: fm, subtasks: [], body });
-      set({ taskContents: newContents });
+      await withRetry(() => fsWriteTaskFile(handle, id, fm, body), { maxAttempts: 3 });
       get().toast(`Created ${id.replace(/^t/, '')}`);
-      
+
       // Auto-open drawer for the newly created task
       await get().openDrawer(id);
-      
+
       return id;
     } catch (e) {
-      get().toast('Failed to create: ' + (e as Error).message, 'error');
-      set({ columns });
+      const err = e as Error;
+      if (err instanceof DiskFullError) {
+        get().toast('Disk is full — task was not created.', 'error', 8000);
+      } else {
+        get().toast('Failed to create: ' + err.message, 'error');
+      }
+      // 📖 Roll back columns AND the content cache we mutated optimistically
+      // (t104). searchMatches captured too for full consistency.
+      set({ columns, taskContents, searchMatches });
       return null;
     }
   },
 
   deleteTask: async (taskId) => {
-    const { columns, tasksDirHandle, taskContents } = get();
+    // 📖 Capture ALL pre-mutation state so we can restore everything if the
+    // filesystem delete fails (t104).
+    const { columns, tasksDirHandle, taskContents, searchMatches } = get();
     if (!tasksDirHandle && !isServerMode()) return;
     const newColumns = columns.map(c => ({ ...c, tasks: c.tasks.filter(t => t.id !== taskId) }));
     set({ columns: newColumns });
@@ -930,7 +1070,7 @@ export const useStore = create<State>((set, get) => ({
     // Remove from content cache
     const newContents = new Map(taskContents);
     newContents.delete(taskId);
-    const newMatches = new Map(get().searchMatches);
+    const newMatches = new Map(searchMatches);
     newMatches.delete(taskId);
     set({ taskContents: newContents, searchMatches: newMatches });
 
@@ -938,8 +1078,10 @@ export const useStore = create<State>((set, get) => ({
       await fsDeleteTaskFile(tasksDirHandle || null, taskId);
       get().toast('Deleted');
     } catch (e) {
-      get().toast('Failed to delete: ' + (e as Error).message, 'error');
-      set({ columns });
+      const err = e as Error;
+      get().toast('Failed to delete: ' + err.message, 'error');
+      // 📖 Restore columns + both caches so the store matches disk again (t104).
+      set({ columns, taskContents, searchMatches });
     }
   },
 
@@ -956,7 +1098,12 @@ export const useStore = create<State>((set, get) => ({
       await get().reloadBoard();
       get().toast('Archived');
     } catch (e) {
-      get().toast('Failed to archive: ' + (e as Error).message, 'error');
+      const err = e as Error;
+      if (err instanceof DiskFullError) {
+        get().toast('Disk is full — task was not archived.', 'error', 8000);
+      } else {
+        get().toast('Failed to archive: ' + err.message, 'error');
+      }
     }
   },
 
@@ -972,7 +1119,12 @@ export const useStore = create<State>((set, get) => ({
       await get().reloadBoard();
       get().toast('Restored');
     } catch (e) {
-      get().toast('Failed to restore: ' + (e as Error).message, 'error');
+      const err = e as Error;
+      if (err instanceof DiskFullError) {
+        get().toast('Disk is full — task was not restored.', 'error', 8000);
+      } else {
+        get().toast('Failed to restore: ' + err.message, 'error');
+      }
     }
   },
 
@@ -991,19 +1143,63 @@ export const useStore = create<State>((set, get) => ({
         body: bodyWithoutSubtasks,
         savedAt: Date.now(),
       };
+      // 📖 Recovery (t110): if we have stashed unsaved edits for this task
+      // (because the drawer was force-closed before a successful save), prefer
+      // them over the on-disk version so the user's work is not lost.
+      const recovery = get().drawerRecoveryData.get(taskId);
+      const initialDrawerData = recovery
+        ? { frontmatter: recovery.frontmatter, subtasks: recovery.subtasks, body: recovery.body }
+        : { frontmatter, subtasks, body: bodyWithoutSubtasks };
+      const newRecovery = new Map(get().drawerRecoveryData);
+      newRecovery.delete(taskId);
       set({
         drawerTaskId: taskId,
-        drawerData: { frontmatter, subtasks, body: bodyWithoutSubtasks },
+        drawerData: initialDrawerData,
         drawerBaseVersion: snapshot,
         conflictState: null,
         showConflictModal: false,
+        hasUnsavedDrawerEdits: !!recovery,
+        lastSaveError: null,
+        drawerRecoveryData: newRecovery,
       });
+      if (recovery) {
+        get().toast('Restored your unsaved edits for this task', 'info');
+      }
     } catch (e) {
       get().toast('Failed to open: ' + (e as Error).message, 'error');
     }
   },
 
-  closeDrawer: () => set({ drawerTaskId: null, drawerData: null, drawerBaseVersion: null, conflictState: null, showConflictModal: false }),
+  closeDrawer: () => set({
+    drawerTaskId: null,
+    drawerData: null,
+    drawerBaseVersion: null,
+    conflictState: null,
+    showConflictModal: false,
+    hasUnsavedDrawerEdits: false,
+    lastSaveError: null,
+  }),
+
+  /** 📖 Marks the drawer as having unsaved edits. Called from the Drawer on
+   * every keystroke so the close-guard UI knows whether to prompt before
+   * discarding (t110). */
+  markDrawerDirty: () => set({ hasUnsavedDrawerEdits: true }),
+
+  /** 📖 Force-closes the drawer after stashing unsaved edits into the recovery
+   * buffer so they can be restored when the same task is reopened (t110). */
+  forceCloseDrawer: () => {
+    const { drawerTaskId, drawerData } = get();
+    if (drawerTaskId && drawerData) {
+      const recovery = new Map(get().drawerRecoveryData);
+      recovery.set(drawerTaskId, {
+        frontmatter: drawerData.frontmatter,
+        subtasks: drawerData.subtasks,
+        body: drawerData.body,
+      });
+      set({ drawerRecoveryData: recovery });
+    }
+    get().closeDrawer();
+  },
 
   updateDrawerData: (updater) => {
     const { drawerData } = get();
@@ -1018,10 +1214,19 @@ export const useStore = create<State>((set, get) => ({
     const fullBody = injectSubtasks(drawerData.body, drawerData.subtasks);
     const fm = { ...drawerData.frontmatter, id: drawerTaskId };
     try {
-      await fsWriteTaskFile(tasksDirHandle || null, drawerTaskId, fm, fullBody);
+      await withRetry(() => fsWriteTaskFile(tasksDirHandle || null, drawerTaskId, fm, fullBody), { maxAttempts: 3 });
 
       get().toast('Saved');
-      set({ drawerTaskId: null, drawerData: null });
+      // Clear recovery data for this task now that the save succeeded.
+      const newRecovery = new Map(get().drawerRecoveryData);
+      newRecovery.delete(drawerTaskId);
+      set({
+        drawerTaskId: null,
+        drawerData: null,
+        hasUnsavedDrawerEdits: false,
+        lastSaveError: null,
+        drawerRecoveryData: newRecovery,
+      });
 
       // Update content cache
       const newContents = new Map(taskContents);
@@ -1033,7 +1238,14 @@ export const useStore = create<State>((set, get) => ({
       set({ taskContents: newContents });
       await get().reloadBoard();
     } catch (e) {
-      get().toast('Failed to save: ' + (e as Error).message, 'error');
+      const err = e as Error;
+      const message = err instanceof DiskFullError
+        ? 'Disk is full — your edits are kept. Free up space and retry.'
+        : 'Failed to save: ' + err.message;
+      get().toast(message, 'error', 8000);
+      // 📖 Keep the drawer open with edits intact + flag unsaved so the close
+      // guard can prompt the user (t110).
+      set({ lastSaveError: message });
     }
   },
 
@@ -1043,7 +1255,7 @@ export const useStore = create<State>((set, get) => ({
     try {
       const fullBody = injectSubtasks(drawerData.body, drawerData.subtasks);
       const fm = { ...drawerData.frontmatter, id: drawerTaskId };
-      await fsWriteTaskFile(tasksDirHandle || null, drawerTaskId, fm, fullBody);
+      await withRetry(() => fsWriteTaskFile(tasksDirHandle || null, drawerTaskId, fm, fullBody), { maxAttempts: 3 });
 
       // Update content cache
       const newContents = new Map(taskContents);
@@ -1052,10 +1264,17 @@ export const useStore = create<State>((set, get) => ({
         subtasks: drawerData.subtasks,
         body: drawerData.body,
       });
-      set({ taskContents: newContents });
+      set({ taskContents: newContents, hasUnsavedDrawerEdits: false, lastSaveError: null });
       await get().reloadBoard();
     } catch (e) {
-      get().toast('Failed to save: ' + (e as Error).message, 'error');
+      const err = e as Error;
+      const message = err instanceof DiskFullError
+        ? 'Disk is full — your edits are kept.'
+        : 'Failed to save: ' + err.message;
+      // Autosave background failures: flag unsaved + last error, but do NOT
+      // spam a toast on every keystroke. The user will see the persistent
+      // error banner in the drawer footer (t110).
+      set({ hasUnsavedDrawerEdits: true, lastSaveError: message });
     }
   },
 
@@ -1186,13 +1405,17 @@ export const useStore = create<State>((set, get) => ({
       if (drawerData && drawerTaskId && drawerBaseVersion) {
         const fullBody = injectSubtasks(drawerData.body, drawerData.subtasks);
         const fm = { ...drawerData.frontmatter, id: drawerTaskId };
-        await fsWriteTaskFile(tasksDirHandle, drawerTaskId, fm, fullBody);
-        set({
-          drawerBaseVersion: { ...drawerData, savedAt: Date.now() },
-          conflictState: null,
-          showConflictModal: false,
-        });
-        get().toast('Overwritten remote changes');
+        try {
+          await fsWriteTaskFile(tasksDirHandle, drawerTaskId, fm, fullBody);
+          set({
+            drawerBaseVersion: { ...drawerData, savedAt: Date.now() },
+            conflictState: null,
+            showConflictModal: false,
+          });
+          get().toast('Overwritten remote changes');
+        } catch (e) {
+          get().toast('Failed to overwrite: ' + (e as Error).message, 'error');
+        }
       }
     } else {
       set({ conflictState: null, showConflictModal: false });

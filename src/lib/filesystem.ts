@@ -323,10 +323,37 @@ export async function readConfigFile(_kandownHandle: FileSystemDirectoryHandle |
 
 export async function writeConfigFile(_kandownHandle: FileSystemDirectoryHandle | null, config: KandownConfig): Promise<void> {
   if (isServerMode()) return serverWriteConfig(config);
-  const h = await _kandownHandle!.getFileHandle('kandown.json', { create: true });
-  const w = await h.createWritable();
-  await w.write(JSON.stringify(config, null, 2) + '\n');
-  await w.close();
+  try {
+    const h = await _kandownHandle!.getFileHandle('kandown.json', { create: true });
+    const w = await h.createWritable();
+    try {
+      await w.write(JSON.stringify(config, null, 2) + '\n');
+    } finally {
+      await w.close();
+    }
+  } catch (e) {
+    // 📖 Map quota / disk-full DOM errors to a typed DiskFullError so callers
+    // can show an actionable message instead of a generic stack trace (t105).
+    throw toWriteError(e, 'kandown.json');
+  }
+}
+
+/**
+ * 📖 Maps a filesystem write DOMException to a typed Kandown error. Quota /
+ * disk-full → DiskFullError, permission revoked → PermissionDeniedError,
+ * everything else rethrown as-is so callers still see the original.
+ */
+function toWriteError(e: unknown, path: string): unknown {
+  const err = e as { name?: string; message?: string };
+  const name = err?.name ?? '';
+  const msg = err?.message ?? '';
+  if (name === 'QuotaExceededError' || name === 'NoModificationAllowedError' || /quota|disk/i.test(msg)) {
+    return new DiskFullError(path);
+  }
+  if (name === 'NotAllowedError' || name === 'SecurityError') {
+    return new PermissionDeniedError(`write ${path}`);
+  }
+  return e;
 }
 
 /**
@@ -443,15 +470,22 @@ export async function writeTaskFile(
 ): Promise<void> {
   const content = serializeTaskFile(frontmatter, body);
   if (isServerMode()) return serverWriteTask(id, content);
-  // 📖 Write in place: an archived task stays inside archive/ on save so its
-  // file location never drifts from its archived flag.
-  const targetDir = (await taskIsInArchive(_tasksDir!, id))
-    ? (await getArchiveDirHandle(_tasksDir!, true))!
-    : _tasksDir!;
-  const h = await targetDir.getFileHandle(`${id}.md`, { create: true });
-  const w = await h.createWritable();
-  await w.write(content);
-  await w.close();
+  try {
+    // 📖 Write in place: an archived task stays inside archive/ on save so its
+    // file location never drifts from its archived flag.
+    const targetDir = (await taskIsInArchive(_tasksDir!, id))
+      ? (await getArchiveDirHandle(_tasksDir!, true))!
+      : _tasksDir!;
+    const h = await targetDir.getFileHandle(`${id}.md`, { create: true });
+    const w = await h.createWritable();
+    try {
+      await w.write(content);
+    } finally {
+      await w.close();
+    }
+  } catch (e) {
+    throw toWriteError(e, `${id}.md`);
+  }
 }
 
 export async function deleteTaskFile(_tasksDir: FileSystemDirectoryHandle | null, id: string): Promise<void> {
@@ -497,12 +531,19 @@ export async function archiveTaskFile(
 ): Promise<void> {
   const content = serializeTaskFile(frontmatter, body);
   if (isServerMode()) return serverArchiveTask(id, content);
-  const archiveDir = (await getArchiveDirHandle(_tasksDir!, true))!;
-  const h = await archiveDir.getFileHandle(`${id}.md`, { create: true });
-  const w = await h.createWritable();
-  await w.write(content);
-  await w.close();
-  try { await _tasksDir!.removeEntry(`${id}.md`); } catch { /* already absent */ }
+  try {
+    const archiveDir = (await getArchiveDirHandle(_tasksDir!, true))!;
+    const h = await archiveDir.getFileHandle(`${id}.md`, { create: true });
+    const w = await h.createWritable();
+    try {
+      await w.write(content);
+    } finally {
+      await w.close();
+    }
+    try { await _tasksDir!.removeEntry(`${id}.md`); } catch { /* already absent */ }
+  } catch (e) {
+    throw toWriteError(e, `archive/${id}.md`);
+  }
 }
 
 /**
@@ -517,14 +558,21 @@ export async function unarchiveTaskFile(
 ): Promise<void> {
   const content = serializeTaskFile(frontmatter, body);
   if (isServerMode()) return serverUnarchiveTask(id, content);
-  const h = await _tasksDir!.getFileHandle(`${id}.md`, { create: true });
-  const w = await h.createWritable();
-  await w.write(content);
-  await w.close();
   try {
-    const archiveDir = await _tasksDir!.getDirectoryHandle('archive', { create: false });
-    await archiveDir.removeEntry(`${id}.md`);
-  } catch { /* already absent */ }
+    const h = await _tasksDir!.getFileHandle(`${id}.md`, { create: true });
+    const w = await h.createWritable();
+    try {
+      await w.write(content);
+    } finally {
+      await w.close();
+    }
+    try {
+      const archiveDir = await _tasksDir!.getDirectoryHandle('archive', { create: false });
+      await archiveDir.removeEntry(`${id}.md`);
+    } catch { /* already absent */ }
+  } catch (e) {
+    throw toWriteError(e, `${id}.md`);
+  }
 }
 
 /* ═════════════ Recent projects via IndexedDB ═════════════ */
