@@ -71,10 +71,31 @@ const PKG_ROOT = resolve(__dirname, '..');
 // 📖 Default localhost range for the zero-config `kandown` web UI server.
 // 📖 Single source of truth for the daemon port range. Each kandown project
 // gets its own daemon on the first free port in this range, so multiple
-// projects can run in parallel (A=2048, B=2049, C=2050, ...).
+// projects can run in parallel (A=2048, B=2050, C=2051, ...).
 const START_PORT_RANGE = 2048;
 const END_PORT_RANGE = 2150;
 const DAEMON_FILE = 'daemon.json';
+
+/**
+ * 📖 Ports that Chromium/Firefox/Safari refuse to load (net::ERR_UNSAFE_PORT).
+ * These are reserved for well-known services (NFS, ssh, smtp, X11, ...).
+ * Browsers block navigation to them with no recourse, so a daemon listening
+ * on one of these appears dead in the browser even though it serves fine via
+ * curl. We MUST skip them when allocating ports. The most common victim in
+ * our 2048+ range is 2049 (NFS), which silently broke the 2nd concurrent
+ * kandown project. Sourced from Chromium's net/base/port_util.cc restricted
+ * ports list (stable, updated rarely).
+ */
+const BROWSER_UNSAFE_PORTS = new Set([
+  1, 7, 9, 11, 13, 15, 17, 19, 20, 21, 22, 23, 25, 37, 42, 43, 53, 69, 77,
+  79, 87, 95, 101, 102, 103, 104, 109, 110, 111, 113, 115, 117, 119, 123,
+  135, 139, 143, 179, 389, 427, 465, 512, 513, 514, 515, 526, 530, 531, 532,
+  540, 548, 554, 556, 563, 587, 601, 636, 993, 995, 1720, 1723, 2049, 3659,
+  4045, 5060, 5061, 6000, 6566, 6665, 6666, 6667, 6668, 6669, 6697, 10080,
+]);
+function isBrowserUnsafePort(port) {
+  return BROWSER_UNSAFE_PORTS.has(port);
+}
 
 // 📖 Get current CLI version from package.json at PKG_ROOT
 function getCurrentVersion() {
@@ -1902,6 +1923,11 @@ async function listenOnAvailablePort(kandownDir, preferredPort) {
 
   // If user specified a specific port, only try that one
   if (isSinglePort) {
+    if (isBrowserUnsafePort(port)) {
+      err(`Port ${c.bold}${port}${c.reset} is reserved for a well-known service and ${c.bold}blocked by all browsers${c.reset} (net::ERR_UNSAFE_PORT).`);
+      log(`  Pick another port with ${c.cyan}--port${c.reset}.`);
+      process.exit(1);
+    }
     const server = createServeServer(kandownDir);
     try {
       await listen(server, port);
@@ -1917,6 +1943,10 @@ async function listenOnAvailablePort(kandownDir, preferredPort) {
 
   // 📖 Scan range — try ports until one works
   for (let p = START_PORT_RANGE; p <= END_PORT_RANGE; p++) {
+    // 📖 Skip browser-blocked ports (e.g. 2049 = NFS). A daemon here would
+    // start fine and answer curl, but the browser refuses with
+    // net::ERR_UNSAFE_PORT, so the web UI looks dead. Move to the next port.
+    if (isBrowserUnsafePort(p)) continue;
     // Skip port if occupied by a stale kandown from a DIFFERENT project
     const stale = detectStaleKandown(p, kandownDir);
     if (stale && !stale.reason) {

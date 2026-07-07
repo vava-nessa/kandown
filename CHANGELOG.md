@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.15.2 — 2026-07-07 — "Safe Ports"
+
+- **Fixed**: **2nd concurrent project looked dead in the browser** — when running `kandown` in a second project folder, the daemon correctly moved to port **2049**, but Chrome/Firefox/Safari refuse to load it (`net::ERR_UNSAFE_PORT`) because 2049 is the well-known **NFS** port. The server answered fine (curl worked) yet the browser showed an error page. Port allocation now skips every port in the browsers' restricted-ports list (`BROWSER_UNSAFE_PORTS`, sourced from Chromium's `net/base/port_util.cc`), so the 2nd project lands on a browser-loadable port (2050) instead. The default 2048 stays safe and stable for the primary project. `--port <n>` pointing at an unsafe port is now rejected with a clear message.
+
 ## 0.15.1 — 2026-07-07 — "Parallel Daemons"
 
 - **Fixed**: **Multi-project daemon port clash** — launching `kandown` from a second project folder no longer kills the first project's web daemon and steals its port. Each project now gets its own daemon on an auto-allocated port (A=2048, B=2049, C=2050, …), so multiple kandown boards can finally run in parallel.
