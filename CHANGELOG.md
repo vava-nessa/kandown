@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.14.1 — 2026-07-07 — "Resilience Pass"
+
+- **Added**: **Typed error hierarchy** (`src/lib/errors.ts`) — `KandownError` base with `BrowserNotSupported`, `PermissionDenied`, `DiskFull`, `Corrupted`, `FileRead` subclasses, plus a `Result<T>` discriminated union and `isRetryableError`. One shared vocabulary for the whole web UI.
+- **Added**: **Retry with exponential backoff** (`src/lib/retry.ts`) — `withRetry()` wraps fallible async operations and retries only transient failures (disk full, network). Used by every store write path so a user freeing space between attempts recovers automatically.
+- **Added**: **React error boundary** (`src/components/ErrorBoundary.tsx`). A top-level boundary catches whole-app crashes with Retry + Copy-report; a granular boundary around the board means a malformed task crashing the render no longer takes down the drawer (unsaved edits stay safe).
+- **Added**: **Global error handlers** (`src/lib/globalErrors.ts`) — `window.onerror` + `unhandledrejection` listeners installed before React mount, with throttled toasts (max 3 per 5s, dedup) so a tight rejection loop can't flood the UI.
+- **Added**: **Browser support gating** (t100) — `openFolder` checks `supportsFileSystemAccess()` first and shows an actionable toast on Firefox/Safari instead of crashing with `TypeError: showDirectoryPicker is not a function`.
+- **Fixed**: **Ghost-task silent corruption** (t102) — `readTaskFileStrict()` returns a typed `TaskReadResult` distinguishing not-found (benign) from permission/corrupted (actionable). `readAllTasks` migrated so unreadable files are dropped + reported via `failedTaskIds` and an "N tasks could not be loaded" warning instead of returning empty ghost tasks.
+- **Fixed**: **Store rollback completeness** (t104) — every mutating action now captures `columns` + `taskContents` + `searchMatches` and restores all three on failure. `persistColumnOrder` returns `{ failedIds }` via `Promise.allSettled` and partial-failure callers warn + reload from disk.
+- **Fixed**: **Disk full / quota handling** (t105) — filesystem writes map `QuotaExceededError` to a typed `DiskFullError` and close streams in a `finally`. Toast reads "Disk is full — <action> was not saved. Free up space and try again." (8s).
+- **Fixed**: **reloadBoard preserves previous state** (t106) — adds `isReloading`, `lastReloadError`, `failedTaskIds` state. Hard failure keeps the previous board visible + warning; partial failure keeps readable tasks and warns.
+- **Fixed**: **File watcher silent failures** (t107) — watcher callbacks wrapped in try/catch; per-task reads guarded so one bad file doesn't abort the tick. Auto-disables after 5 consecutive tick failures and emits a `watcherError` event; Header shows an amber banner with "Restart watcher" + "Reload" buttons.
+- **Fixed**: **IndexedDB unhandled rejection at startup** (t108) — module-level `listRecentProjects()` has `.catch()`; `openFolder`/`openRecentProject` wrap IDB calls so private browsing never blocks project opening.
+- **Fixed**: **Revoked-handle recovery** (t109) — `verifyPermission()` swallows internal throws; `openRecentProject` is transactional (captures + rolls back state) and auto-removes dead entries from recent projects with a clear warning.
+- **Fixed**: **Drawer data loss on save failure** (t110) — unsaved edits are stashed into a per-task recovery buffer when the drawer is force-closed, and restored on next open. Close guard prompts before discarding; footer shows "Retry save" + "● unsaved" indicator when there's a pending error.
+- **Fixed**: **Silent config corruption** (t111) — `readConfigFileStrict()` distinguishes not-found (silent) from corrupted (warn + back up to `kandown.json.backup`). Null-safe spreading means `"board": null` no longer crashes with `TypeError`. CLI `loadConfig` mirrors the fix and warns to stderr.
+- **Fixed**: **`Promise.all` → `Promise.allSettled`** (t116) — `readAllTasks`, `persistColumnOrder`, `renameColumn`, `deleteColumn` all tolerate per-task failures instead of failing the whole batch.
+- **Fixed**: **CLI agent launch error handling** (t112) — `board-reader.ts` per-task guards; `launcher.ts` step-by-step guarded launch with task-status rollback if the agent fails to spawn (tmux missing, binary not found). `child.on('error')` no longer crashes the TUI.
+- **Fixed**: **CLI `copyRecursive` crash + HTTP error leaks** (t113) — `copyRecursive` returns per-file errors; `appendAgentReference` TOCTOU-safe; `serveApp` 500 no longer leaks paths to HTTP clients; `listenOnAvailablePort` treats `EACCES` like `EADDRINUSE`.
+- **Fixed**: **TUI error handling** (t114) — board.tsx adds `boardError` state with a recoverable "Press r to retry, q to quit" view; `openDetail`/`persistConfig` wrapped; empty agent-picker shows a hint instead of an empty box.
+- **Added**: **Toast `warning` severity** with longer duration (6s) for actionable messages, rendered in amber.
+
 ## 0.14.0 — 2026-06-26 — "Task Groups"
 
 - **Added**: **User preference for default task group state** (`board.stackDefaultState`). Until now, when several tasks shared the same `[bracket]` or `#hashtag` title tag, they always rendered as a single collapsible stack (click to expand). The new setting in **Settings → Board → Task groups** lets users pick:
