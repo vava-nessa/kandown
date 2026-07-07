@@ -67,6 +67,9 @@ export function Header() {
   const setFilter = useStore(s => s.setFilter);
   const clearFilters = useStore(s => s.clearFilters);
   const fields = useStore(s => s.config.fields);
+  const lastReloadError = useStore(s => s.lastReloadError);
+  const watcherError = useStore(s => s.watcherError);
+  const restartWatcher = useStore(s => s.restartWatcher);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -100,6 +103,32 @@ export function Header() {
   }, [menuOpen]);
 
   return (
+    <>
+    {(lastReloadError || watcherError) && (
+      <div className="flex items-center gap-2 px-5 py-1.5 bg-amber-500/10 border-b border-amber-500/30 text-[12px] text-amber-700 dark:text-amber-300">
+        <span className="flex-1 truncate">
+          {watcherError
+            ? `⚠ ${watcherError}`
+            : `⚠ ${lastReloadError}`}
+        </span>
+        {watcherError && (
+          <button
+            type="button"
+            onClick={restartWatcher}
+            className="px-2 py-0.5 rounded bg-amber-500/20 hover:bg-amber-500/30 text-[11.5px] font-medium"
+          >
+            Restart watcher
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={reloadBoard}
+          className="px-2 py-0.5 rounded bg-amber-500/20 hover:bg-amber-500/30 text-[11.5px] font-medium"
+        >
+          Reload
+        </button>
+      </div>
+    )}
     <header className="flex items-center justify-between px-5 h-[64px] border-b border-border bg-card/80 backdrop-blur-xl relative z-10">
       <div className="flex items-center gap-4 min-w-0">
         <div className="flex items-center gap-2.5 flex-shrink-0">
@@ -348,5 +377,6 @@ export function Header() {
         )}
       </div>
     </header>
+    </>
   );
 }

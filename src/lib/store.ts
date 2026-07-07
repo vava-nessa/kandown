@@ -166,6 +166,9 @@ interface State {
   isReloading: boolean;
   lastReloadError: string | null;
   failedTaskIds: string[];
+  /** 📖 Set when the file watcher auto-disabled itself after repeated tick
+   * failures (t107). The Header shows a banner + a restart button. */
+  watcherError: string | null;
 
   // 📖 Drawer save recovery. `hasUnsavedDrawerEdits` is true when the drawer
   // holds edits that have not been persisted; `lastSaveError` carries the most
@@ -238,6 +241,8 @@ interface State {
   dismissToast: (id: number) => void;
   resolveConflict: (resolution: 'reload' | 'overwrite' | 'cancel') => Promise<void>;
   setupWatcher: () => void;
+  /** 📖 Restarts the file watcher after it auto-disabled itself (t107). */
+  restartWatcher: () => void;
 }
 
 function nextTaskId(columns: Column[]): string {
@@ -434,6 +439,7 @@ export const useStore = create<State>((set, get) => ({
   isReloading: false,
   lastReloadError: null,
   failedTaskIds: [],
+  watcherError: null,
 
   hasUnsavedDrawerEdits: false,
   lastSaveError: null,
@@ -1498,7 +1504,17 @@ export const useStore = create<State>((set, get) => ({
       const { tasksDirHandle: tdh, config } = get();
       if (!tdh) return;
 
-      const { frontmatter, body } = await fsReadTaskFile(tdh, taskId);
+      // 📖 Guard the read — a corrupted/revoked file should not kill the
+      // watcher's taskChanged pipeline. We fall back to the ghost task and
+      // skip the notification diff (t107).
+      let frontmatter: TaskFrontmatter;
+      let body: string;
+      try {
+        ({ frontmatter, body } = await fsReadTaskFile(tdh, taskId));
+      } catch (e) {
+        console.warn(`[Watcher] notifyTaskChange: failed to read ${taskId}:`, e);
+        return;
+      }
       const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
       const task: LoadedTask = {
         id: taskId,
@@ -1545,55 +1561,97 @@ export const useStore = create<State>((set, get) => ({
     };
 
     fileWatcher.on('configChanged', () => {
-      get().loadConfig();
-      get().toast('Settings updated externally', 'info');
+      try {
+        void get().loadConfig();
+        get().toast('Settings updated externally', 'info');
+      } catch (e) {
+        console.error('[Watcher] configChanged handler error:', e);
+      }
     });
 
     fileWatcher.on('taskChanged', async (taskId) => {
-      const { drawerTaskId, drawerBaseVersion, tasksDirHandle: tdh } = get();
-      await notifyTaskChange(taskId);
-      if (drawerTaskId === taskId && drawerBaseVersion && tdh) {
-        const { frontmatter, body } = await fsReadTaskFile(tdh, taskId);
-        const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
-        const base = drawerBaseVersion;
-        const fmChanged = JSON.stringify(base.frontmatter) !== JSON.stringify(frontmatter);
-        const bodyChanged = base.body !== bodyWithoutSubtasks;
-        const subsChanged = JSON.stringify(base.subtasks) !== JSON.stringify(subtasks);
+      try {
+        const { drawerTaskId, drawerBaseVersion, tasksDirHandle: tdh } = get();
+        await notifyTaskChange(taskId);
+        if (drawerTaskId === taskId && drawerBaseVersion && tdh) {
+          let frontmatter: TaskFrontmatter;
+          let body: string;
+          try {
+            ({ frontmatter, body } = await fsReadTaskFile(tdh, taskId));
+          } catch (e) {
+            console.warn(`[Watcher] taskChanged: failed to re-read ${taskId}:`, e);
+            return;
+          }
+          const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
+          const base = drawerBaseVersion;
+          const fmChanged = JSON.stringify(base.frontmatter) !== JSON.stringify(frontmatter);
+          const bodyChanged = base.body !== bodyWithoutSubtasks;
+          const subsChanged = JSON.stringify(base.subtasks) !== JSON.stringify(subtasks);
 
-        if (!fmChanged && !bodyChanged && !subsChanged) return;
+          if (!fmChanged && !bodyChanged && !subsChanged) return;
 
-        let type: ConflictType = 'none';
-        if (fmChanged && (bodyChanged || subsChanged)) type = 'full';
-        else if (fmChanged) type = 'metadata-only';
-        else if (bodyChanged || subsChanged) type = 'body-only';
+          let type: ConflictType = 'none';
+          if (fmChanged && (bodyChanged || subsChanged)) type = 'full';
+          else if (fmChanged) type = 'metadata-only';
+          else if (bodyChanged || subsChanged) type = 'body-only';
 
-        set({
-          conflictState: { taskId, type, local: base, remote: { frontmatter, body: bodyWithoutSubtasks, subtasks } },
-          showConflictModal: type === 'full',
-        });
-      } else {
-        get().reloadBoard();
+          set({
+            conflictState: { taskId, type, local: base, remote: { frontmatter, body: bodyWithoutSubtasks, subtasks } },
+            showConflictModal: type === 'full',
+          });
+        } else {
+          await get().reloadBoard();
+        }
+      } catch (e) {
+        console.error(`[Watcher] taskChanged handler error for ${taskId}:`, e);
       }
     });
 
     fileWatcher.on('newTaskDetected', async (taskId) => {
-      const { tasksDirHandle: tdh } = get();
-      if (tdh) {
-        const { frontmatter, body } = await fsReadTaskFile(tdh, taskId);
-        const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
-        notificationSnapshots.set(taskId, buildNotificationSnapshot({
-          id: taskId,
-          frontmatter: {
-            ...frontmatter,
-            id: frontmatter.id || taskId,
-            status: frontmatter.status || 'Backlog',
-          },
-          body: bodyWithoutSubtasks,
-          subtasks,
-        }));
+      try {
+        const { tasksDirHandle: tdh } = get();
+        if (tdh) {
+          let frontmatter: TaskFrontmatter;
+          let body: string;
+          try {
+            ({ frontmatter, body } = await fsReadTaskFile(tdh, taskId));
+          } catch (e) {
+            console.warn(`[Watcher] newTaskDetected: failed to read ${taskId}:`, e);
+            get().toast(`New task ${taskId} detected but could not be loaded`, 'warning');
+            return;
+          }
+          const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
+          notificationSnapshots.set(taskId, buildNotificationSnapshot({
+            id: taskId,
+            frontmatter: {
+              ...frontmatter,
+              id: frontmatter.id || taskId,
+              status: frontmatter.status || 'Backlog',
+            },
+            body: bodyWithoutSubtasks,
+            subtasks,
+          }));
+        }
+        await get().reloadBoard();
+      } catch (e) {
+        console.error(`[Watcher] newTaskDetected handler error for ${taskId}:`, e);
       }
-      get().reloadBoard();
     });
+
+    // 📖 Watcher self-disabled after repeated failures (t107). Surface a
+    // banner in the Header and offer a manual restart.
+    fileWatcher.on('watcherError', (message) => {
+      set({ watcherError: message });
+      get().toast(message, 'warning', 10000);
+    });
+  },
+
+  restartWatcher: () => {
+    const { dirHandle, tasksDirHandle } = get();
+    if (!dirHandle || !tasksDirHandle) return;
+    set({ watcherError: null });
+    get().setupWatcher();
+    get().toast('File watcher restarted');
   },
 }));
 
