@@ -38,8 +38,10 @@ import {
   getTasksDirHandle,
   listTaskIds,
   readConfigFile,
+  readConfigFileStrict,
   writeConfigFile,
   readTaskFile as fsReadTaskFile,
+  readTaskFileStrict,
   writeTaskFile as fsWriteTaskFile,
   deleteTaskFile as fsDeleteTaskFile,
   archiveTaskFile as fsArchiveTaskFile,
@@ -271,32 +273,35 @@ async function readAllTasks(
   tasksDirHandle: FileSystemDirectoryHandle,
 ): Promise<{ tasks: LoadedTask[]; failedIds: string[] }> {
   const ids = await listTaskIds(tasksDirHandle);
-  // 📖 Promise.allSettled so one corrupted/unreadable task file does not wipe
-  // the whole board (t116). Each rejected id is reported back to the caller,
-  // which surfaces a "N tasks could not be loaded" warning.
-  const settled = await Promise.allSettled(
-    ids.map(async (id): Promise<LoadedTask> => {
-      const { frontmatter, body } = await fsReadTaskFile(tasksDirHandle, id);
-      const normalizedFrontmatter = {
-        ...frontmatter,
-        id: frontmatter.id || id,
-        status: frontmatter.status || 'Backlog',
-      };
-      const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
-      return { id, frontmatter: normalizedFrontmatter, body: bodyWithoutSubtasks, subtasks };
+  // 📖 Use readTaskFileStrict per file so we can tell "file deleted externally"
+  // (benign, skip silently) from "file exists but unreadable" (actionable,
+  // report to failedIds) — see t102. Promise.allSettled would also work but the
+  // per-file Result is more precise about the reason.
+  const results = await Promise.all(
+    ids.map(async (id) => {
+      const result = await readTaskFileStrict(tasksDirHandle, id);
+      return { id, result };
     }),
   );
 
   const tasks: LoadedTask[] = [];
   const failedIds: string[] = [];
-  settled.forEach((result, index) => {
-    const id = ids[index];
-    if (result.status === 'fulfilled') {
-      tasks.push(result.value);
+  for (const { id, result } of results) {
+    if (result.ok) {
+      const frontmatter = {
+        ...result.task.frontmatter,
+        id: result.task.frontmatter.id || id,
+        status: result.task.frontmatter.status || 'Backlog',
+      };
+      const { subtasks, bodyWithoutSubtasks } = extractSubtasks(result.task.body);
+      tasks.push({ id, frontmatter, body: bodyWithoutSubtasks, subtasks });
+    } else if (result.reason === 'not-found') {
+      // File deleted externally — skip silently.
+      continue;
     } else {
       failedIds.push(id);
     }
-  });
+  }
   return { tasks, failedIds };
 }
 
@@ -500,26 +505,31 @@ export const useStore = create<State>((set, get) => ({
       tasksDirHandle: get().tasksDirHandle,
       projectName: get().projectName,
     };
-    let ok: boolean;
-    try {
-      ok = await verifyPermission(project.handle, true);
-    } catch (e) {
-      // 📖 The stored handle was revoked (browser restart, user revocation).
-      // Remove it from recent projects so the user isn't stuck with a dead
-      // entry, and surface a clear message.
-      console.warn('[Store] Stored handle is invalid, removing from recent:', e);
-      get().toast(`"${project.name}" is no longer accessible. Removed from recent projects.`, 'warning', 8000);
-      try {
-        await removeRecentProject(project.id);
-        const updated = await listRecentProjects();
-        set({ recentProjects: updated });
-      } catch {
-        // IDB unavailable — nothing more we can do.
-      }
-      return;
-    }
+    // 📖 verifyPermission now swallows internal throws (revoked handles) and
+    // returns false. To distinguish "user denied the prompt" from "handle is
+    // dead", we attempt to resolve the child handles — if that throws, the
+    // entry is unrecoverable and we remove it (t109).
+    const ok = await verifyPermission(project.handle, true);
     if (!ok) {
-      get().toast('Permission denied', 'error');
+      let handleAlive = false;
+      try {
+        await getKandownHandle(project.handle);
+        handleAlive = true;
+      } catch {
+        handleAlive = false;
+      }
+      if (!handleAlive) {
+        get().toast(`"${project.name}" is no longer accessible. Removed from recent projects.`, 'warning', 8000);
+        try {
+          await removeRecentProject(project.id);
+          const updated = await listRecentProjects();
+          set({ recentProjects: updated });
+        } catch {
+          // IDB unavailable — nothing more we can do.
+        }
+        return;
+      }
+      get().toast('Permission denied — please grant access to the folder', 'error');
       return;
     }
     try {
@@ -647,14 +657,38 @@ export const useStore = create<State>((set, get) => ({
     const { dirHandle } = get();
     if (!dirHandle && !isServerMode()) return;
     try {
-      const config = await readConfigFile(dirHandle);
-      if (config) {
-        set({ config });
-        applyConfigTheme(config);
-      } else {
-        set({ config: DEFAULT_CONFIG });
-        applyConfigTheme(DEFAULT_CONFIG);
+      const result = await readConfigFileStrict(dirHandle);
+      if (result.ok) {
+        set({ config: result.config });
+        applyConfigTheme(result.config);
+        return;
       }
+      // 📖 Distinguish "first run, no config" (silent) from "config is
+      // corrupted" (warn + back up the bad file before falling back). Null
+      // sub-objects can't crash the merge anymore (t111).
+      if (result.reason === 'corrupted') {
+        // Best-effort backup so the user can recover their custom columns/theme.
+        if (result.rawContent && dirHandle) {
+          try {
+            const backup = await dirHandle.getFileHandle('kandown.json.backup', { create: true });
+            const w = await backup.createWritable();
+            try {
+              await w.write(result.rawContent);
+            } finally {
+              await w.close();
+            }
+          } catch {
+            // Backup write itself failed — don't block startup, just warn.
+          }
+        }
+        get().toast(
+          'kandown.json is corrupted — using default settings. A backup was saved as kandown.json.backup.',
+          'warning',
+          10000,
+        );
+      }
+      set({ config: DEFAULT_CONFIG });
+      applyConfigTheme(DEFAULT_CONFIG);
     } catch (e) {
       set({ config: DEFAULT_CONFIG });
       applyConfigTheme(DEFAULT_CONFIG);

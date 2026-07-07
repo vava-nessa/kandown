@@ -111,33 +111,56 @@ export function findKandownDir(cwd: string = process.cwd()): string | null {
 
 /**
  * 📖 Loads kandown.json from the given directory, deep-merged with defaults.
- * Missing keys get filled in from DEFAULT_CONFIG.
+ * Missing keys get filled in from DEFAULT_CONFIG. Null-safe: a sub-section set
+ * to `null` in the file (e.g. `"board": null` from a botched manual edit) no
+ * longer crashes the spread (t111).
  */
 export function loadConfig(kandownDir: string): KandownConfig {
   const configPath = join(kandownDir, 'kandown.json');
   if (!existsSync(configPath)) return structuredClone(DEFAULT_CONFIG);
 
+  let raw: unknown;
   try {
-    const raw = JSON.parse(readFileSync(configPath, 'utf8'));
-    const merged: KandownConfig = {
-      ui: { ...DEFAULT_CONFIG.ui, ...raw.ui },
-      agent: { ...DEFAULT_CONFIG.agent, ...raw.agent },
-      board: {
-        ...DEFAULT_CONFIG.board,
-        ...raw.board,
-        columns: Array.isArray(raw.board?.columns) && raw.board.columns.length > 0
-          ? raw.board.columns.filter((name: unknown): name is string => typeof name === 'string' && name.trim().length > 0)
-          : DEFAULT_CONFIG.board.columns,
-      },
-      fields: { ...DEFAULT_CONFIG.fields, ...raw.fields },
-      notifications: { ...DEFAULT_CONFIG.notifications, ...raw.notifications },
-    };
-    // 📖 agents is optional — only include it if present in the file
-    if (raw.agents) merged.agents = raw.agents;
-    return merged;
-  } catch {
+    raw = JSON.parse(readFileSync(configPath, 'utf8'));
+  } catch (e) {
+    // 📖 Distinguish corruption from "file not found" so the CLI can warn the
+    // user instead of silently resetting their config (t111).
+    const err = e as NodeJS.ErrnoException;
+    if (err.code === 'ENOENT') return structuredClone(DEFAULT_CONFIG);
+    console.warn(`[kandown] kandown.json is corrupted, using defaults: ${(e as Error).message}`);
     return structuredClone(DEFAULT_CONFIG);
   }
+
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
+    console.warn('[kandown] kandown.json must be a JSON object, using defaults.');
+    return structuredClone(DEFAULT_CONFIG);
+  }
+
+  // 📖 Safe object spread — `{ ...null }` throws TypeError, so guard every
+  // section. Arrays and primitives are treated as missing (t111).
+  const obj = raw as Record<string, unknown>;
+  const safeObj = <T extends Record<string, unknown>>(v: unknown): Partial<T> =>
+    (v && typeof v === 'object' && !Array.isArray(v) ? v : {}) as Partial<T>;
+
+  const boardRaw = safeObj<KandownConfig['board']>(obj.board);
+  const merged: KandownConfig = {
+    ui: { ...DEFAULT_CONFIG.ui, ...safeObj(obj.ui) },
+    agent: { ...DEFAULT_CONFIG.agent, ...safeObj(obj.agent) },
+    board: {
+      ...DEFAULT_CONFIG.board,
+      ...boardRaw,
+      columns: Array.isArray(boardRaw.columns) && boardRaw.columns.length > 0
+        ? boardRaw.columns.filter((name: unknown): name is string => typeof name === 'string' && name.trim().length > 0)
+        : DEFAULT_CONFIG.board.columns,
+    },
+    fields: { ...DEFAULT_CONFIG.fields, ...safeObj(obj.fields) },
+    notifications: { ...DEFAULT_CONFIG.notifications, ...safeObj(obj.notifications) },
+  };
+  // 📖 agents is optional — only include it if present AND object-shaped.
+  if (obj.agents && typeof obj.agents === 'object') {
+    merged.agents = obj.agents as NonNullable<KandownConfig['agents']>;
+  }
+  return merged;
 }
 
 /**

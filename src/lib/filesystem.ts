@@ -290,35 +290,106 @@ export async function getTasksDirHandle(projectHandle: FileSystemDirectoryHandle
 
 /* ═════════════ Config (kandown.json) ═════════════ */
 
-export async function readConfigFile(_kandownHandle: FileSystemDirectoryHandle | null): Promise<KandownConfig | null> {
-  if (isServerMode()) return serverReadConfig();
+/** 📖 Outcome of {@link readConfigFileStrict}. `not-found` is the benign first-run
+ * case; `corrupted` means the file exists but couldn't be parsed and should be
+ * backed up before falling back to defaults (t111). */
+export type ConfigReadResult =
+  | { ok: true; config: KandownConfig }
+  | { ok: false; reason: 'not-found'; rawContent?: string }
+  | { ok: false; reason: 'corrupted'; rawContent?: string; error: Error };
+
+/**
+ * 📖 Safe object-spread helper. `{ ...null }` throws TypeError, so when the
+ * user (or a botched manual edit) writes `"board": null` in kandown.json we
+ * must guard each spread. Returns `{}` for any non-plain-object value (t111).
+ */
+function safeObject<T extends Record<string, unknown>>(value: unknown): Partial<T> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Partial<T>
+    : {};
+}
+
+/**
+ * 📖 Strict config reader. Distinguishes "file not found" (benign first run)
+ * from "corrupted JSON" (actionable: caller should back up + warn the user).
+ * Null-safe spreading means `"board": null` in the file no longer crashes
+ * (t111).
+ *
+ * Prefer this over {@link readConfigFile} in new code; the legacy helper is
+ * kept for callers that just want `null` on any failure.
+ */
+export async function readConfigFileStrict(
+  _kandownHandle: FileSystemDirectoryHandle | null,
+): Promise<ConfigReadResult> {
+  if (isServerMode()) {
+    try {
+      const config = await serverReadConfig();
+      return { ok: true, config };
+    } catch (e) {
+      return { ok: false, reason: 'corrupted', error: e as Error };
+    }
+  }
+  let text: string;
   try {
     const h = await _kandownHandle!.getFileHandle('kandown.json');
     const file = await h.getFile();
-    const text = await file.text();
-    const raw = JSON.parse(text) as Partial<KandownConfig>;
-    const ui = { ...DEFAULT_CONFIG.ui, ...raw.ui };
-    return {
-      ui: {
-        ...ui,
-        theme: normalizeThemeMode(ui.theme),
-        skin: normalizeSkinId(ui.skin),
-        font: normalizeFontId(ui.font),
-      },
-      agent: { ...DEFAULT_CONFIG.agent, ...raw.agent },
-      board: {
-        ...DEFAULT_CONFIG.board,
-        ...raw.board,
-        columns: Array.isArray(raw.board?.columns) && raw.board.columns.length > 0
-          ? raw.board.columns.filter((name): name is string => typeof name === 'string' && name.trim().length > 0)
-          : DEFAULT_CONFIG.board.columns,
-      },
-      fields: { ...DEFAULT_CONFIG.fields, ...raw.fields },
-      notifications: { ...DEFAULT_CONFIG.notifications, ...raw.notifications },
-    };
-  } catch {
-    return null;
+    text = await file.text();
+  } catch (e) {
+    const name = (e as { name?: string }).name;
+    if (name === 'NotFoundError') return { ok: false, reason: 'not-found' };
+    // Permission denied / disk error — treat as corrupted so the caller warns.
+    return { ok: false, reason: 'corrupted', error: e as Error };
   }
+
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text);
+  } catch (e) {
+    return { ok: false, reason: 'corrupted', rawContent: text, error: e as Error };
+  }
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
+    return {
+      ok: false,
+      reason: 'corrupted',
+      rawContent: text,
+      error: new Error('kandown.json must be a JSON object'),
+    };
+  }
+
+  const partial = raw as Partial<KandownConfig>;
+  const ui = { ...DEFAULT_CONFIG.ui, ...safeObject(partial.ui) };
+  const boardRaw = safeObject(partial.board);
+  const config: KandownConfig = {
+    ui: {
+      ...ui,
+      theme: normalizeThemeMode(ui.theme),
+      skin: normalizeSkinId(ui.skin),
+      font: normalizeFontId(ui.font),
+    },
+    agent: { ...DEFAULT_CONFIG.agent, ...safeObject(partial.agent) },
+    board: {
+      ...DEFAULT_CONFIG.board,
+      ...boardRaw,
+      columns: Array.isArray(boardRaw.columns) && boardRaw.columns.length > 0
+        ? boardRaw.columns.filter((name): name is string => typeof name === 'string' && name.trim().length > 0)
+        : DEFAULT_CONFIG.board.columns,
+    },
+    fields: { ...DEFAULT_CONFIG.fields, ...safeObject(partial.fields) },
+    notifications: { ...DEFAULT_CONFIG.notifications, ...safeObject(partial.notifications) },
+  };
+  // 📖 Preserve optional `agents` block if present and object-shaped. Cast
+  // through `unknown` because the web KandownConfig type doesn't declare it
+  // (the CLI type does) — we still want to round-trip it untouched.
+  const extra = partial as unknown as Record<string, unknown>;
+  if (extra.agents && typeof extra.agents === 'object') {
+    (config as unknown as Record<string, unknown>).agents = extra.agents;
+  }
+  return { ok: true, config };
+}
+
+export async function readConfigFile(_kandownHandle: FileSystemDirectoryHandle | null): Promise<KandownConfig | null> {
+  const result = await readConfigFileStrict(_kandownHandle);
+  return result.ok ? result.config : null;
 }
 
 export async function writeConfigFile(_kandownHandle: FileSystemDirectoryHandle | null, config: KandownConfig): Promise<void> {
@@ -460,6 +531,63 @@ export async function readTaskFile(_tasksDir: FileSystemDirectoryHandle | null, 
   const text = (await tryRead(_tasksDir!)) ?? (await tryArchiveRead(_tasksDir!, id));
   if (text !== null) return parseTaskFile(text);
   return emptyTask(id);
+}
+
+/** 📖 Outcome of {@link readTaskFileStrict}. `not-found` is benign (file was
+ * deleted externally); every other reason means the file exists but is broken
+ * and the caller should warn the user (t102). */
+export type TaskReadResult =
+  | { ok: true; task: ParsedTask }
+  | { ok: false; reason: 'not-found' | 'permission-denied' | 'corrupted' | 'unknown'; error?: Error };
+
+/**
+ * 📖 Strict task reader returning a typed Result. Distinguishes the benign
+ * "file deleted externally" case (not-found) from actionable failures
+ * (permission revoked, corrupted/empty content, disk error). Use this in new
+ * code where the caller wants to know WHY a read failed; the legacy
+ * {@link readTaskFile} still returns a ghost task for back-compat.
+ */
+export async function readTaskFileStrict(
+  _tasksDir: FileSystemDirectoryHandle | null,
+  id: string,
+): Promise<TaskReadResult> {
+  if (isServerMode()) {
+    try {
+      const text = await serverReadTask(id);
+      return { ok: true, task: parseTaskFile(text) };
+    } catch (e) {
+      const name = (e as { name?: string }).name;
+      if (name === 'NotFoundError') return { ok: false, reason: 'not-found' };
+      return { ok: false, reason: 'unknown', error: e as Error };
+    }
+  }
+  // Try active dir, then archive.
+  let text: string | null = null;
+  try {
+    const h = await _tasksDir!.getFileHandle(`${id}.md`);
+    const file = await h.getFile();
+    text = await file.text();
+  } catch {
+    // Fall through to archive lookup.
+  }
+  if (text === null) {
+    try {
+      text = await tryArchiveRead(_tasksDir!, id);
+    } catch (e) {
+      return { ok: false, reason: 'unknown', error: e as Error };
+    }
+  }
+  if (text === null) return { ok: false, reason: 'not-found' };
+  // 📖 Empty file = a ghost from a previous silent error — flag as corrupted
+  // so the user knows the file is broken instead of genuinely blank (t102).
+  if (text.trim() === '') {
+    return { ok: false, reason: 'corrupted', error: new Error(`Task file ${id}.md is empty`) };
+  }
+  try {
+    return { ok: true, task: parseTaskFile(text) };
+  } catch (e) {
+    return { ok: false, reason: 'corrupted', error: e as Error };
+  }
 }
 
 export async function writeTaskFile(
@@ -642,8 +770,17 @@ export async function verifyPermission(
   handle: FileSystemDirectoryHandle,
   readWrite: boolean = true
 ): Promise<boolean> {
+  // 📖 A stored handle can be revoked by the browser (restart, user action).
+  // queryPermission / requestPermission throw on such handles instead of
+  // returning 'denied' — we swallow that and report false so callers can show
+  // a clean "no longer accessible" message and clean up the entry (t109).
   const opts = { mode: readWrite ? 'readwrite' : 'read' } as const;
-  if ((await handle.queryPermission(opts)) === 'granted') return true;
-  if ((await handle.requestPermission(opts)) === 'granted') return true;
-  return false;
+  try {
+    if ((await handle.queryPermission(opts)) === 'granted') return true;
+    if ((await handle.requestPermission(opts)) === 'granted') return true;
+    return false;
+  } catch (e) {
+    console.warn('[FS] verifyPermission: handle is no longer valid:', e);
+    return false;
+  }
 }

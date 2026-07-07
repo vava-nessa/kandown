@@ -54017,24 +54017,37 @@ var DEFAULT_CONFIG = {
 function loadConfig(kandownDir) {
   const configPath = join(kandownDir, "kandown.json");
   if (!existsSync2(configPath)) return structuredClone(DEFAULT_CONFIG);
+  let raw;
   try {
-    const raw = JSON.parse(readFileSync2(configPath, "utf8"));
-    const merged = {
-      ui: { ...DEFAULT_CONFIG.ui, ...raw.ui },
-      agent: { ...DEFAULT_CONFIG.agent, ...raw.agent },
-      board: {
-        ...DEFAULT_CONFIG.board,
-        ...raw.board,
-        columns: Array.isArray(raw.board?.columns) && raw.board.columns.length > 0 ? raw.board.columns.filter((name) => typeof name === "string" && name.trim().length > 0) : DEFAULT_CONFIG.board.columns
-      },
-      fields: { ...DEFAULT_CONFIG.fields, ...raw.fields },
-      notifications: { ...DEFAULT_CONFIG.notifications, ...raw.notifications }
-    };
-    if (raw.agents) merged.agents = raw.agents;
-    return merged;
-  } catch {
+    raw = JSON.parse(readFileSync2(configPath, "utf8"));
+  } catch (e) {
+    const err = e;
+    if (err.code === "ENOENT") return structuredClone(DEFAULT_CONFIG);
+    console.warn(`[kandown] kandown.json is corrupted, using defaults: ${e.message}`);
     return structuredClone(DEFAULT_CONFIG);
   }
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+    console.warn("[kandown] kandown.json must be a JSON object, using defaults.");
+    return structuredClone(DEFAULT_CONFIG);
+  }
+  const obj = raw;
+  const safeObj = (v) => v && typeof v === "object" && !Array.isArray(v) ? v : {};
+  const boardRaw = safeObj(obj.board);
+  const merged = {
+    ui: { ...DEFAULT_CONFIG.ui, ...safeObj(obj.ui) },
+    agent: { ...DEFAULT_CONFIG.agent, ...safeObj(obj.agent) },
+    board: {
+      ...DEFAULT_CONFIG.board,
+      ...boardRaw,
+      columns: Array.isArray(boardRaw.columns) && boardRaw.columns.length > 0 ? boardRaw.columns.filter((name) => typeof name === "string" && name.trim().length > 0) : DEFAULT_CONFIG.board.columns
+    },
+    fields: { ...DEFAULT_CONFIG.fields, ...safeObj(obj.fields) },
+    notifications: { ...DEFAULT_CONFIG.notifications, ...safeObj(obj.notifications) }
+  };
+  if (obj.agents && typeof obj.agents === "object") {
+    merged.agents = obj.agents;
+  }
+  return merged;
 }
 function saveConfig(kandownDir, config) {
   const configPath = join(kandownDir, "kandown.json");
