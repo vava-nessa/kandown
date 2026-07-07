@@ -59,7 +59,11 @@ export function isInTmux(): boolean {
  *   4. Writes a context file to /tmp for reference
  *   5. Spawns the agent in tmux split or direct exec
  *
- * @throws if the agent ID is not recognized
+ * Each step is guarded so a failure produces a clear error instead of crashing
+ * the TUI. When the agent fails to spawn AFTER the task was moved to In
+ * Progress, the task is rolled back to its original column (t112).
+ *
+ * @throws if the agent ID is not recognized or a critical step fails
  */
 export function launchAgent(opts: LaunchAgentOpts): void {
   const { taskId, agentId, kandownDir, onBeforeExec } = opts;
@@ -70,11 +74,20 @@ export function launchAgent(opts: LaunchAgentOpts): void {
     throw new Error(`Unknown agent: ${agentId}`);
   }
 
-  // 📖 Step 2: Read task file and agent docs
-  const task = readTask(kandownDir, taskId);
+  // 📖 Step 2: Read task file. readTask returns a minimal placeholder when the
+  // file is missing, so this only throws on a genuine fs error.
+  let task;
+  try {
+    task = readTask(kandownDir, taskId);
+  } catch (e) {
+    throw new Error(`Failed to read task ${taskId}: ${(e as Error).message}`);
+  }
+  const originalStatus = task.frontmatter.status || 'Backlog';
+
+  // 📖 Step 3: Read agent docs (non-critical — agent can launch without them).
   const agentDoc = readAgentDoc(kandownDir);
 
-  // 📖 Step 3: Build the prompt strings
+  // 📖 Step 4: Build the prompt strings
   const taskFileContent = [
     `---`,
     `id: ${task.frontmatter.id}`,
@@ -87,22 +100,29 @@ export function launchAgent(opts: LaunchAgentOpts): void {
 
   const { systemPrompt, taskPrompt } = buildPrompt(agentDoc, taskFileContent, taskId, kandownDir);
 
-  // 📖 Step 4: Auto-move to In Progress before launching.
-  moveTaskToColumn(kandownDir, taskId, 'In Progress');
+  // 📖 Step 5: Auto-move to In Progress before launching. Track success so we
+  // can roll back if the agent fails to spawn (t112).
+  const taskMoved = moveTaskToColumn(kandownDir, taskId, 'In Progress');
+  if (!taskMoved) {
+    throw new Error(`Could not move task ${taskId} to In Progress — task file missing or unwritable.`);
+  }
 
-  // 📖 Step 5: Write the full context to a temp file. Every agent now receives
-  // the prompt directly as a CLI arg (including opencode via `run --interactive`),
-  // but we keep the file as a safety net: very large prompts can hit the OS
-  // argv-length limit, so the full text is exposed via KANDOWN_CONTEXT_FILE for
-  // the agent to re-read if its initial message ever gets truncated.
+  // 📖 Step 6: Write the full context to a temp file. Non-critical: the agent
+  // gets its prompt directly as a CLI arg, this file is only a safety net for
+  // very large prompts that hit the argv-length limit (t112).
   const contextFile = join(tmpdir(), `kandown-${taskId}-context.md`);
-  writeFileSync(contextFile, `${systemPrompt}\n\n---\n\n${taskPrompt}`, 'utf8');
+  try {
+    writeFileSync(contextFile, `${systemPrompt}\n\n---\n\n${taskPrompt}`, 'utf8');
+  } catch (e) {
+    console.warn(`[kandown] Failed to write context file (${(e as Error).message}); launching anyway.`);
+  }
 
   // 📖 Build the command array from the agent definition
   const launchOpts = { systemPrompt, taskPrompt, kandownDir, taskId };
   const [binary, ...args] = agentDef.buildCommand(launchOpts);
 
   if (!binary) {
+    rollbackTaskStatus(kandownDir, taskId, originalStatus);
     throw new Error(`Agent ${agentId} returned an empty command`);
   }
 
@@ -120,27 +140,66 @@ export function launchAgent(opts: LaunchAgentOpts): void {
       `KANDOWN_TASK_ID=${shellescape(taskId)}`,
       `KANDOWN_DIR=${shellescape(kandownDir)}`,
     ].join(' ');
-    execSync(`tmux split-window -h -p 50 ${shellescape(`env ${envPrefix} ${shellCmd}`)}`, {
-      stdio: 'inherit',
-    });
+    try {
+      execSync(`tmux split-window -h -p 50 ${shellescape(`env ${envPrefix} ${shellCmd}`)}`, {
+        stdio: 'inherit',
+      });
+    } catch (e) {
+      // tmux not installed, session gone, or split failed. Roll back the task
+      // status and surface a clear error instead of leaving the task in
+      // "In Progress" with no agent running (t112).
+      rollbackTaskStatus(kandownDir, taskId, originalStatus);
+      throw new Error(`Failed to open agent pane in tmux: ${(e as Error).message}. Is tmux installed and the session valid?`);
+    }
   } else {
     // 📖 Direct exec path: let the caller restore the terminal first (exit Ink),
     // then spawn the agent with inherited stdio.
-    onBeforeExec?.();
-    const child = spawn(binary, args, {
-      stdio: 'inherit',
-      env: {
-        ...process.env,
-        // 📖 Expose the context file path so agents that support env vars can use it
-        KANDOWN_CONTEXT_FILE: contextFile,
-        KANDOWN_TASK_ID: taskId,
-        KANDOWN_DIR: kandownDir,
-      },
-    });
+    try {
+      onBeforeExec?.();
+      const child = spawn(binary, args, {
+        stdio: 'inherit',
+        env: {
+          ...process.env,
+          // 📖 Expose the context file path so agents that support env vars can use it
+          KANDOWN_CONTEXT_FILE: contextFile,
+          KANDOWN_TASK_ID: taskId,
+          KANDOWN_DIR: kandownDir,
+        },
+      });
 
-    child.on('exit', code => {
-      process.exit(code ?? 0);
-    });
+      child.on('error', e => {
+        // Spawn failed (binary missing, etc.). Roll back + tell the user.
+        rollbackTaskStatus(kandownDir, taskId, originalStatus);
+        console.error(`[kandown] Failed to launch ${agentDef.name}: ${e.message}`);
+        process.exit(1);
+      });
+
+      child.on('exit', code => {
+        // 📖 Non-zero / null exit = agent crashed or was killed. We no longer
+        // call process.exit unconditionally on crash — instead let the TUI
+        // recover when possible. In direct-exec mode we typically want to
+        // return control to the shell, so exit with the agent's code only on
+        // clean exit; on crash, exit non-zero so scripts can detect it (t112).
+        if (code === 0) process.exit(0);
+        if (code === null) return; // process killed by signal — don't override
+        process.exit(code);
+      });
+    } catch (e) {
+      rollbackTaskStatus(kandownDir, taskId, originalStatus);
+      throw new Error(`Failed to launch ${agentDef.name}: ${(e as Error).message}`);
+    }
+  }
+}
+
+/**
+ * 📖 Best-effort rollback of a task's status after a failed agent launch. Logs
+ * a warning if the rollback itself fails so the user is not left with a
+ * silently-inconsistent task file (t112).
+ */
+function rollbackTaskStatus(kandownDir: string, taskId: string, originalStatus: string): void {
+  const ok = moveTaskToColumn(kandownDir, taskId, originalStatus);
+  if (!ok) {
+    console.warn(`[kandown] Could not roll back task ${taskId} to ${originalStatus} — update it manually.`);
   }
 }
 

@@ -170,12 +170,20 @@ export function Settings({ kandownDir, version }: SettingsProps) {
     setConfig(loaded);
   }, [kandownDir]);
 
-  // 📖 Auto-save: persist config to disk on every change
+  // 📖 Auto-save: persist config to disk on every change. Wrapped in try/catch
+  // so a disk-full / permission error doesn't crash the TUI (t114). On failure
+  // we log + bump savedAt to null so the UI shows "saving…" indefinitely as a
+  // subtle signal; the local state still updates so the user's edit isn't lost.
   const persistConfig = useCallback(
     (newConfig: KandownConfig) => {
       setConfig(newConfig);
-      saveConfig(kandownDir, newConfig);
-      setSavedAt(Date.now());
+      try {
+        saveConfig(kandownDir, newConfig);
+        setSavedAt(Date.now());
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('[kandown] Failed to save config:', e);
+      }
     },
     [kandownDir],
   );

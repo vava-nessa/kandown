@@ -54185,8 +54185,12 @@ function Settings({ kandownDir, version }) {
   const persistConfig = (0, import_react34.useCallback)(
     (newConfig) => {
       setConfig(newConfig);
-      saveConfig(kandownDir, newConfig);
-      setSavedAt(Date.now());
+      try {
+        saveConfig(kandownDir, newConfig);
+        setSavedAt(Date.now());
+      } catch (e) {
+        console.error("[kandown] Failed to save config:", e);
+      }
     },
     [kandownDir]
   );
@@ -54568,17 +54572,23 @@ function listTaskIds(kandownDir) {
 }
 function readBoard(kandownDir) {
   const config = loadConfig(kandownDir);
-  const tasks = listTaskIds(kandownDir).map((id) => {
-    const task = readTask(kandownDir, id);
-    return {
-      ...task,
-      frontmatter: {
-        ...task.frontmatter,
-        id: task.frontmatter.id || id,
-        status: task.frontmatter.status || "Backlog"
-      }
-    };
-  });
+  const ids = listTaskIds(kandownDir);
+  const tasks = [];
+  for (const id of ids) {
+    try {
+      const task = readTask(kandownDir, id);
+      tasks.push({
+        ...task,
+        frontmatter: {
+          ...task.frontmatter,
+          id: task.frontmatter.id || id,
+          status: task.frontmatter.status || "Backlog"
+        }
+      });
+    } catch (e) {
+      console.error(`[kandown] Failed to read task ${id}:`, e.message);
+    }
+  }
   return {
     frontmatter: null,
     title: "Project Kanban",
@@ -54611,8 +54621,11 @@ function readAgentDoc(kandownDir) {
     join2(kandownDir, "AGENT.md")
   ];
   for (const candidate of candidates) {
-    if (existsSync3(candidate)) {
+    if (!existsSync3(candidate)) continue;
+    try {
       return readFileSync3(candidate, "utf8");
+    } catch (e) {
+      console.warn(`[kandown] Could not read ${candidate}:`, e.message);
     }
   }
   return "";
@@ -54620,13 +54633,18 @@ function readAgentDoc(kandownDir) {
 function moveTaskToColumn(kandownDir, taskId, targetColumn) {
   const taskPath = join2(getTasksDir(kandownDir), `${taskId}.md`);
   if (!existsSync3(taskPath)) return false;
-  const parsed = readTask(kandownDir, taskId);
-  writeFileSync2(taskPath, serializeTaskFile({
-    ...parsed.frontmatter,
-    id: taskId,
-    status: targetColumn
-  }, parsed.body), "utf8");
-  return true;
+  try {
+    const parsed = readTask(kandownDir, taskId);
+    writeFileSync2(taskPath, serializeTaskFile({
+      ...parsed.frontmatter,
+      id: taskId,
+      status: targetColumn
+    }, parsed.body), "utf8");
+    return true;
+  } catch (e) {
+    console.error(`[kandown] Failed to move task ${taskId} to ${targetColumn}:`, e.message);
+    return false;
+  }
 }
 
 // src/cli/lib/daemon.ts
@@ -56808,7 +56826,13 @@ function launchAgent(opts) {
   if (!agentDef) {
     throw new Error(`Unknown agent: ${agentId}`);
   }
-  const task = readTask(kandownDir, taskId);
+  let task;
+  try {
+    task = readTask(kandownDir, taskId);
+  } catch (e) {
+    throw new Error(`Failed to read task ${taskId}: ${e.message}`);
+  }
+  const originalStatus = task.frontmatter.status || "Backlog";
   const agentDoc = readAgentDoc(kandownDir);
   const taskFileContent = [
     `---`,
@@ -56820,16 +56844,24 @@ function launchAgent(opts) {
     task.body.trim()
   ].join("\n");
   const { systemPrompt, taskPrompt } = buildPrompt(agentDoc, taskFileContent, taskId, kandownDir);
-  moveTaskToColumn(kandownDir, taskId, "In Progress");
+  const taskMoved = moveTaskToColumn(kandownDir, taskId, "In Progress");
+  if (!taskMoved) {
+    throw new Error(`Could not move task ${taskId} to In Progress \u2014 task file missing or unwritable.`);
+  }
   const contextFile = join7(tmpdir(), `kandown-${taskId}-context.md`);
-  writeFileSync3(contextFile, `${systemPrompt}
+  try {
+    writeFileSync3(contextFile, `${systemPrompt}
 
 ---
 
 ${taskPrompt}`, "utf8");
+  } catch (e) {
+    console.warn(`[kandown] Failed to write context file (${e.message}); launching anyway.`);
+  }
   const launchOpts = { systemPrompt, taskPrompt, kandownDir, taskId };
   const [binary, ...args] = agentDef.buildCommand(launchOpts);
   if (!binary) {
+    rollbackTaskStatus(kandownDir, taskId, originalStatus);
     throw new Error(`Agent ${agentId} returned an empty command`);
   }
   if (isInTmux()) {
@@ -56839,24 +56871,47 @@ ${taskPrompt}`, "utf8");
       `KANDOWN_TASK_ID=${shellescape(taskId)}`,
       `KANDOWN_DIR=${shellescape(kandownDir)}`
     ].join(" ");
-    execSync(`tmux split-window -h -p 50 ${shellescape(`env ${envPrefix} ${shellCmd}`)}`, {
-      stdio: "inherit"
-    });
+    try {
+      execSync(`tmux split-window -h -p 50 ${shellescape(`env ${envPrefix} ${shellCmd}`)}`, {
+        stdio: "inherit"
+      });
+    } catch (e) {
+      rollbackTaskStatus(kandownDir, taskId, originalStatus);
+      throw new Error(`Failed to open agent pane in tmux: ${e.message}. Is tmux installed and the session valid?`);
+    }
   } else {
-    onBeforeExec?.();
-    const child = spawn2(binary, args, {
-      stdio: "inherit",
-      env: {
-        ...process.env,
-        // 📖 Expose the context file path so agents that support env vars can use it
-        KANDOWN_CONTEXT_FILE: contextFile,
-        KANDOWN_TASK_ID: taskId,
-        KANDOWN_DIR: kandownDir
-      }
-    });
-    child.on("exit", (code) => {
-      process.exit(code ?? 0);
-    });
+    try {
+      onBeforeExec?.();
+      const child = spawn2(binary, args, {
+        stdio: "inherit",
+        env: {
+          ...process.env,
+          // 📖 Expose the context file path so agents that support env vars can use it
+          KANDOWN_CONTEXT_FILE: contextFile,
+          KANDOWN_TASK_ID: taskId,
+          KANDOWN_DIR: kandownDir
+        }
+      });
+      child.on("error", (e) => {
+        rollbackTaskStatus(kandownDir, taskId, originalStatus);
+        console.error(`[kandown] Failed to launch ${agentDef.name}: ${e.message}`);
+        process.exit(1);
+      });
+      child.on("exit", (code) => {
+        if (code === 0) process.exit(0);
+        if (code === null) return;
+        process.exit(code);
+      });
+    } catch (e) {
+      rollbackTaskStatus(kandownDir, taskId, originalStatus);
+      throw new Error(`Failed to launch ${agentDef.name}: ${e.message}`);
+    }
+  }
+}
+function rollbackTaskStatus(kandownDir, taskId, originalStatus) {
+  const ok = moveTaskToColumn(kandownDir, taskId, originalStatus);
+  if (!ok) {
+    console.warn(`[kandown] Could not roll back task ${taskId} to ${originalStatus} \u2014 update it manually.`);
   }
 }
 function buildShellCmd(binary, args) {
@@ -56916,6 +56971,7 @@ function AgentPicker({ agents, taskId, onSelect, onCancel }) {
             /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { color: "yellow", children: taskId })
           ] })
         ] }),
+        agents.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { color: "yellow", children: "No agents installed. Install claude, codex, or opencode." }),
         agents.map((agent, idx) => {
           const isFocused = idx === cursor;
           const numHint = idx < 9 ? `${idx + 1} ` : "  ";
@@ -57293,6 +57349,7 @@ function Board({ kandownDir, version }) {
   const [rowIndex, setRowIndex] = (0, import_react37.useState)(0);
   const [mode, setMode] = (0, import_react37.useState)("browse");
   const [statusMsg, setStatusMsg] = (0, import_react37.useState)("");
+  const [boardError, setBoardError] = (0, import_react37.useState)(null);
   const [detailTask, setDetailTask] = (0, import_react37.useState)(null);
   const [detailTaskId, setDetailTaskId] = (0, import_react37.useState)("");
   const [detailScroll, setDetailScroll] = (0, import_react37.useState)(0);
@@ -57341,43 +57398,49 @@ function Board({ kandownDir, version }) {
     if (!task) return null;
     return { taskId: task.id, colIndex: clickedCol, rowIndex: taskIdx, startX: x, startY: y };
   }, [board, columnAtX]);
-  (0, import_react37.useEffect)(() => {
-    const loaded = readBoard(kandownDir);
-    setBoard(loaded);
-    updateLayout(loaded);
-    setInstalledAgents(detectInstalledAgents());
+  const loadBoardInto = (0, import_react37.useCallback)(() => {
+    try {
+      const loaded = readBoard(kandownDir);
+      setBoard(loaded);
+      updateLayout(loaded);
+      setBoardError(null);
+      return loaded;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setBoardError(`Failed to load board: ${msg}`);
+      setStatusMsg("");
+      return null;
+    }
   }, [kandownDir, updateLayout]);
+  (0, import_react37.useEffect)(() => {
+    loadBoardInto();
+    setInstalledAgents(detectInstalledAgents());
+  }, [kandownDir, loadBoardInto]);
   (0, import_react37.useEffect)(() => {
     const watcher = createWatcher();
     watcher.on("taskChanged", () => {
-      const loaded = readBoard(kandownDir);
-      setBoard(loaded);
-      updateLayout(loaded);
+      loadBoardInto();
     });
     watcher.on("newTaskDetected", (taskId) => {
-      const loaded = readBoard(kandownDir);
-      setBoard(loaded);
-      updateLayout(loaded);
+      loadBoardInto();
       setStatusMsg(`New task: ${taskId}`);
       setTimeout(() => setStatusMsg(""), 2e3);
     });
     watcher.on("configChanged", () => {
-      const loaded = readBoard(kandownDir);
-      setBoard(loaded);
-      updateLayout(loaded);
+      loadBoardInto();
     });
     watcher.start(kandownDir);
     return () => {
       watcher.stop();
     };
-  }, [kandownDir, updateLayout]);
+  }, [kandownDir, loadBoardInto]);
   const reloadBoard = (0, import_react37.useCallback)(() => {
-    const loaded = readBoard(kandownDir);
-    setBoard(loaded);
-    updateLayout(loaded);
-    setStatusMsg("Board reloaded");
-    setTimeout(() => setStatusMsg(""), 1500);
-  }, [kandownDir, updateLayout]);
+    const loaded = loadBoardInto();
+    if (loaded) {
+      setStatusMsg("Board reloaded");
+      setTimeout(() => setStatusMsg(""), 1500);
+    }
+  }, [loadBoardInto]);
   const refreshDaemonStatus = (0, import_react37.useCallback)(async () => {
     const next = await getDaemonStatus(kandownDir);
     setDaemonStatus(next);
@@ -57476,11 +57539,16 @@ function Board({ kandownDir, version }) {
     return col.tasks[Math.min(rowIndex, col.tasks.length - 1)] ?? null;
   }, [board, colIndex, rowIndex]);
   const openDetail = (0, import_react37.useCallback)((taskId) => {
-    const task = readTask(kandownDir, taskId);
-    setDetailTask(task);
-    setDetailTaskId(taskId);
-    setDetailScroll(0);
-    setMode("detail");
+    try {
+      const task = readTask(kandownDir, taskId);
+      setDetailTask(task);
+      setDetailTaskId(taskId);
+      setDetailScroll(0);
+      setMode("detail");
+    } catch (e) {
+      setStatusMsg(`Error opening task: ${e instanceof Error ? e.message : String(e)}`);
+      setTimeout(() => setStatusMsg(""), 4e3);
+    }
   }, [kandownDir]);
   const closeContextMenu = (0, import_react37.useCallback)(() => {
     setCtxMenuRow(-1);
@@ -57615,9 +57683,7 @@ function Board({ kandownDir, version }) {
             return;
           }
           moveTaskToColumn(kandownDir, moveTaskId, targetColName);
-          const loaded = readBoard(kandownDir);
-          setBoard(loaded);
-          updateLayout(loaded);
+          loadBoardInto();
           setStatusMsg(`Moved ${moveTaskId} \u2192 ${targetColName}`);
           setTimeout(() => setStatusMsg(""), 2e3);
         }
@@ -57629,7 +57695,7 @@ function Board({ kandownDir, version }) {
       setMode("browse");
       return;
     }
-  }, [board, mode, colIndex, rowIndex, ctxMenuRow, moveTaskId, kandownDir, updateLayout, openDetail, closeContextMenu]);
+  }, [board, mode, colIndex, rowIndex, ctxMenuRow, moveTaskId, kandownDir, updateLayout, openDetail, closeContextMenu, loadBoardInto]);
   const handleMouseEvent = (0, import_react37.useCallback)((mouse) => {
     if (!board) return;
     if (mode === "browse") {
@@ -57691,11 +57757,9 @@ function Board({ kandownDir, version }) {
               return;
             }
             moveTaskToColumn(kandownDir, taskDrag.taskId, targetColName);
-            const loaded = readBoard(kandownDir);
-            setBoard(loaded);
-            updateLayout(loaded);
+            const loaded = loadBoardInto();
             setColIndex(targetCol);
-            const movedRow = loaded.columns[targetCol]?.tasks.findIndex((task) => task.id === taskDrag.taskId) ?? 0;
+            const movedRow = loaded?.columns[targetCol]?.tasks.findIndex((task) => task.id === taskDrag.taskId) ?? 0;
             setRowIndex(Math.max(0, movedRow));
             setStatusMsg(`Dragged ${taskDrag.taskId} \u2192 ${targetColName}`);
             setTimeout(() => setStatusMsg(""), 2e3);
@@ -57857,9 +57921,7 @@ function Board({ kandownDir, version }) {
             return;
           }
           moveTaskToColumn(kandownDir, moveTaskId, name);
-          const loaded = readBoard(kandownDir);
-          setBoard(loaded);
-          updateLayout(loaded);
+          loadBoardInto();
           setStatusMsg(`Moved ${moveTaskId} \u2192 ${name}`);
           setTimeout(() => setStatusMsg(""), 2e3);
         }
@@ -57892,6 +57954,13 @@ function Board({ kandownDir, version }) {
       }
     }
   });
+  if (boardError) {
+    return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { flexDirection: "column", padding: 2, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "red", bold: true, children: "Error loading board" }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "red", children: boardError }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: "Press 'r' to retry or 'q' to quit." })
+    ] });
+  }
   if (!board) {
     return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { padding: 2, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: "Loading board\u2026" }) });
   }

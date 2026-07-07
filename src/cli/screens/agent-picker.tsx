@@ -80,6 +80,9 @@ export function AgentPicker({ agents, taskId, onSelect, onCancel }: AgentPickerP
       </Box>
 
       {/* Agent list */}
+      {agents.length === 0 && (
+        <Text color="yellow">No agents installed. Install claude, codex, or opencode.</Text>
+      )}
       {agents.map((agent, idx) => {
         const isFocused = idx === cursor;
         const numHint = idx < 9 ? `${idx + 1} ` : '  ';

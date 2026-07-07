@@ -63,20 +63,29 @@ export function listTaskIds(kandownDir: string): string[] {
 /**
  * 📖 Scans task files and derives board columns from task frontmatter.
  * Missing task status values are treated as Backlog by the shared parser.
+ * Tolerates individual unreadable task files — they are skipped with a stderr
+ * warning instead of crashing the whole board render (t112).
  */
 export function readBoard(kandownDir: string): ParsedBoard {
   const config = loadConfig(kandownDir);
-  const tasks = listTaskIds(kandownDir).map(id => {
-    const task = readTask(kandownDir, id);
-    return {
-      ...task,
-      frontmatter: {
-        ...task.frontmatter,
-        id: task.frontmatter.id || id,
-        status: task.frontmatter.status || 'Backlog',
-      },
-    };
-  });
+  const ids = listTaskIds(kandownDir);
+  const tasks: ParsedTask[] = [];
+  for (const id of ids) {
+    try {
+      const task = readTask(kandownDir, id);
+      tasks.push({
+        ...task,
+        frontmatter: {
+          ...task.frontmatter,
+          id: task.frontmatter.id || id,
+          status: task.frontmatter.status || 'Backlog',
+        },
+      });
+    } catch (e) {
+      // 📖 Skip the broken file but keep the rest of the board readable (t112).
+      console.error(`[kandown] Failed to read task ${id}:`, (e as Error).message);
+    }
+  }
 
   return {
     frontmatter: null,
@@ -114,7 +123,7 @@ export function readTask(kandownDir: string, taskId: string): ParsedTask {
  * Priority order:
  *   1. AGENT_KANDOWN.md at project root
  *   2. .kandown/AGENT.md (minimal template fallback)
- * Returns empty string if none found.
+ * Returns empty string if none found or unreadable (t112 — non-critical).
  */
 export function readAgentDoc(kandownDir: string): string {
   const root = getProjectRoot(kandownDir);
@@ -123,8 +132,13 @@ export function readAgentDoc(kandownDir: string): string {
     join(kandownDir, 'AGENT.md'),
   ];
   for (const candidate of candidates) {
-    if (existsSync(candidate)) {
+    if (!existsSync(candidate)) continue;
+    try {
       return readFileSync(candidate, 'utf8');
+    } catch (e) {
+      // File existed at the check but vanished or became unreadable — warn and
+      // try the next candidate rather than crashing the launcher (t112).
+      console.warn(`[kandown] Could not read ${candidate}:`, (e as Error).message);
     }
   }
   return '';
@@ -133,6 +147,8 @@ export function readAgentDoc(kandownDir: string): string {
 /**
  * 📖 Updates the task frontmatter status to move it between board columns.
  * @returns true when the task file exists and was written, false otherwise.
+ * Wraps the read+write in try/catch so a locked / unwritable file surfaces a
+ * clean false instead of crashing the launcher pipeline (t112).
  */
 export function moveTaskToColumn(
   kandownDir: string,
@@ -142,11 +158,16 @@ export function moveTaskToColumn(
   const taskPath = join(getTasksDir(kandownDir), `${taskId}.md`);
   if (!existsSync(taskPath)) return false;
 
-  const parsed = readTask(kandownDir, taskId);
-  writeFileSync(taskPath, serializeTaskFile({
-    ...parsed.frontmatter,
-    id: taskId,
-    status: targetColumn,
-  }, parsed.body), 'utf8');
-  return true;
+  try {
+    const parsed = readTask(kandownDir, taskId);
+    writeFileSync(taskPath, serializeTaskFile({
+      ...parsed.frontmatter,
+      id: taskId,
+      status: targetColumn,
+    }, parsed.body), 'utf8');
+    return true;
+  } catch (e) {
+    console.error(`[kandown] Failed to move task ${taskId} to ${targetColumn}:`, (e as Error).message);
+    return false;
+  }
 }

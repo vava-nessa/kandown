@@ -431,6 +431,9 @@ export function Board({ kandownDir, version }: BoardProps) {
   const [rowIndex, setRowIndex] = useState(0);
   const [mode, setMode]         = useState<Mode>('browse');
   const [statusMsg, setStatusMsg] = useState('');
+  /** 📖 Fatal board-load error. When set, the screen renders an error box with
+   * a retry hint instead of crashing the TUI to the shell (t114). */
+  const [boardError, setBoardError] = useState<string | null>(null);
 
   // Detail view
   const [detailTask, setDetailTask]       = useState<ParsedTask | null>(null);
@@ -500,43 +503,56 @@ export function Board({ kandownDir, version }: BoardProps) {
 
   // ─── Board loading & watching ─────────────────────────────────────────────
 
-  useEffect(() => {
-    const loaded = readBoard(kandownDir);
-    setBoard(loaded);
-    updateLayout(loaded);
-    setInstalledAgents(detectInstalledAgents());
+  /**
+   * 📖 Safe board loader. readBoard already tolerates individual unreadable
+   * task files (board-reader.ts, t112), but the config read or directory scan
+   * can still throw on permission errors. We catch, surface a boardError, and
+   * keep the previously loaded board visible so the TUI never goes blank (t114).
+   */
+  const loadBoardInto = useCallback(() => {
+    try {
+      const loaded = readBoard(kandownDir);
+      setBoard(loaded);
+      updateLayout(loaded);
+      setBoardError(null);
+      return loaded;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setBoardError(`Failed to load board: ${msg}`);
+      setStatusMsg('');
+      return null;
+    }
   }, [kandownDir, updateLayout]);
+
+  useEffect(() => {
+    loadBoardInto();
+    setInstalledAgents(detectInstalledAgents());
+  }, [kandownDir, loadBoardInto]);
 
   useEffect(() => {
     const watcher = createWatcher();
     watcher.on('taskChanged', () => {
-      const loaded = readBoard(kandownDir);
-      setBoard(loaded);
-      updateLayout(loaded);
+      loadBoardInto();
     });
     watcher.on('newTaskDetected', (taskId: string) => {
-      const loaded = readBoard(kandownDir);
-      setBoard(loaded);
-      updateLayout(loaded);
+      loadBoardInto();
       setStatusMsg(`New task: ${taskId}`);
       setTimeout(() => setStatusMsg(''), 2000);
     });
     watcher.on('configChanged', () => {
-      const loaded = readBoard(kandownDir);
-      setBoard(loaded);
-      updateLayout(loaded);
+      loadBoardInto();
     });
     watcher.start(kandownDir);
     return () => { watcher.stop(); };
-  }, [kandownDir, updateLayout]);
+  }, [kandownDir, loadBoardInto]);
 
   const reloadBoard = useCallback(() => {
-    const loaded = readBoard(kandownDir);
-    setBoard(loaded);
-    updateLayout(loaded);
-    setStatusMsg('Board reloaded');
-    setTimeout(() => setStatusMsg(''), 1500);
-  }, [kandownDir, updateLayout]);
+    const loaded = loadBoardInto();
+    if (loaded) {
+      setStatusMsg('Board reloaded');
+      setTimeout(() => setStatusMsg(''), 1500);
+    }
+  }, [loadBoardInto]);
 
   const refreshDaemonStatus = useCallback(async () => {
     const next = await getDaemonStatus(kandownDir);
@@ -657,11 +673,19 @@ export function Board({ kandownDir, version }: BoardProps) {
   }, [board, colIndex, rowIndex]);
 
   const openDetail = useCallback((taskId: string) => {
-    const task = readTask(kandownDir, taskId);
-    setDetailTask(task);
-    setDetailTaskId(taskId);
-    setDetailScroll(0);
-    setMode('detail');
+    // 📖 readTask returns a placeholder when the file is missing and only
+    // throws on a genuine fs error — wrap anyway so a mid-read failure (file
+    // deleted between existsSync and readFileSync) doesn't crash the TUI (t114).
+    try {
+      const task = readTask(kandownDir, taskId);
+      setDetailTask(task);
+      setDetailTaskId(taskId);
+      setDetailScroll(0);
+      setMode('detail');
+    } catch (e) {
+      setStatusMsg(`Error opening task: ${e instanceof Error ? e.message : String(e)}`);
+      setTimeout(() => setStatusMsg(''), 4000);
+    }
   }, [kandownDir]);
 
   const closeContextMenu = useCallback(() => {
@@ -815,9 +839,7 @@ export function Board({ kandownDir, version }: BoardProps) {
             return;
           }
           moveTaskToColumn(kandownDir, moveTaskId, targetColName);
-          const loaded = readBoard(kandownDir);
-          setBoard(loaded);
-          updateLayout(loaded);
+          loadBoardInto();
           setStatusMsg(`Moved ${moveTaskId} → ${targetColName}`);
           setTimeout(() => setStatusMsg(''), 2000);
         }
@@ -830,7 +852,7 @@ export function Board({ kandownDir, version }: BoardProps) {
       setMode('browse');
       return;
     }
-  }, [board, mode, colIndex, rowIndex, ctxMenuRow, moveTaskId, kandownDir, updateLayout, openDetail, closeContextMenu]);
+  }, [board, mode, colIndex, rowIndex, ctxMenuRow, moveTaskId, kandownDir, updateLayout, openDetail, closeContextMenu, loadBoardInto]);
 
   const handleMouseEvent = useCallback((mouse: NonNullable<ReturnType<typeof parseMouseInput>>) => {
     if (!board) return;
@@ -900,11 +922,9 @@ export function Board({ kandownDir, version }: BoardProps) {
               return;
             }
             moveTaskToColumn(kandownDir, taskDrag.taskId, targetColName);
-            const loaded = readBoard(kandownDir);
-            setBoard(loaded);
-            updateLayout(loaded);
+            const loaded = loadBoardInto();
             setColIndex(targetCol);
-            const movedRow = loaded.columns[targetCol]?.tasks.findIndex(task => task.id === taskDrag.taskId) ?? 0;
+            const movedRow = loaded?.columns[targetCol]?.tasks.findIndex(task => task.id === taskDrag.taskId) ?? 0;
             setRowIndex(Math.max(0, movedRow));
             setStatusMsg(`Dragged ${taskDrag.taskId} → ${targetColName}`);
             setTimeout(() => setStatusMsg(''), 2000);
@@ -1085,9 +1105,7 @@ export function Board({ kandownDir, version }: BoardProps) {
             return;
           }
           moveTaskToColumn(kandownDir, moveTaskId, name);
-          const loaded = readBoard(kandownDir);
-          setBoard(loaded);
-          updateLayout(loaded);
+          loadBoardInto();
           setStatusMsg(`Moved ${moveTaskId} → ${name}`);
           setTimeout(() => setStatusMsg(''), 2000);
         }
@@ -1116,6 +1134,19 @@ export function Board({ kandownDir, version }: BoardProps) {
   });
 
   // ─── Loading / empty states ───────────────────────────────────────────────
+
+  // 📖 Fatal board-load error (t114): show the message + a retry hint instead
+  // of crashing the TUI to the shell. Pressing 'r' triggers reloadBoard via
+  // the main useInput handler below.
+  if (boardError) {
+    return (
+      <Box flexDirection="column" padding={2}>
+        <Text color="red" bold>Error loading board</Text>
+        <Text color="red">{boardError}</Text>
+        <Text color="gray">Press 'r' to retry or 'q' to quit.</Text>
+      </Box>
+    );
+  }
 
   if (!board) {
     return <Box padding={2}><Text color="gray">Loading board…</Text></Box>;

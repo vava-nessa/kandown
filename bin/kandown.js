@@ -322,18 +322,43 @@ ${c.bold}Examples:${c.reset}
 `);
 }
 
-function copyRecursive(src, dest) {
-  if (!existsSync(src)) return;
-  mkdirSync(dest, { recursive: true });
-  for (const entry of readdirSync(src)) {
+/**
+ * 📖 Resilient recursive copy used by `kandown init` (t113).
+ * Returns the list of per-entry error messages; an empty array means a fully
+ * clean copy. A partially-failed init no longer leaves the user with no clue
+ * about what went wrong — the caller reports each failure.
+ */
+function copyRecursive(src, dest, errors = []) {
+  if (!existsSync(src)) return errors;
+  try {
+    mkdirSync(dest, { recursive: true });
+  } catch (e) {
+    errors.push(`Failed to create directory ${dest}: ${e.message}`);
+    return errors;
+  }
+  let entries;
+  try {
+    entries = readdirSync(src);
+  } catch (e) {
+    errors.push(`Failed to read ${src}: ${e.message}`);
+    return errors;
+  }
+  for (const entry of entries) {
     const srcPath = join(src, entry);
     const destPath = join(dest, entry);
-    if (statSync(srcPath).isDirectory()) {
-      copyRecursive(srcPath, destPath);
-    } else {
-      copyFileSync(srcPath, destPath);
+    try {
+      if (statSync(srcPath).isDirectory()) {
+        copyRecursive(srcPath, destPath, errors);
+      } else {
+        copyFileSync(srcPath, destPath);
+      }
+    } catch (e) {
+      // 📖 One unreadable / unwritable file shouldn't abort the whole init —
+      // record the error and keep copying the rest (t113).
+      errors.push(`Failed to copy ${srcPath}: ${e.message}`);
     }
   }
+  return errors;
 }
 
 function findAgentsFile(cwd) {
@@ -348,7 +373,15 @@ function findAgentsFile(cwd) {
 function appendAgentReference(cwd, agentsFile, kandownPath) {
   const filePath = join(cwd, agentsFile);
   const marker = '<!-- kandown:agent-ref -->';
-  const existing = readFileSync(filePath, 'utf8');
+  let existing;
+  try {
+    existing = readFileSync(filePath, 'utf8');
+  } catch (e) {
+    // 📖 TOCTOU: file existed at the check but vanished or became unreadable.
+    // Warn and skip rather than crashing init (t113).
+    warn(`Could not read ${agentsFile} (${e.message}); skipping agent reference.`);
+    return false;
+  }
 
   if (existing.includes(marker)) {
     info(`${agentsFile} already references the kandown (skipped)`);
@@ -368,8 +401,13 @@ This project uses a file-based kanban:
 - **Completion workflow:** set task frontmatter \`status: Done\` + write the completion report
 `;
 
-  writeFileSync(filePath, existing + ref, 'utf8');
-  return true;
+  try {
+    writeFileSync(filePath, existing + ref, 'utf8');
+    return true;
+  } catch (e) {
+    warn(`Could not append agent reference to ${agentsFile} (${e.message}).`);
+    return false;
+  }
 }
 
 function createAgentsFileIfMissing(cwd, kandownPath) {
@@ -586,7 +624,13 @@ function doInit(args, cwd, kandownPath, kandownDir) {
   const tasksDest = getTasksDir(kandownDir);
   if (!existsSync(tasksDest)) {
     mkdirSync(tasksDest, { recursive: true });
-    copyRecursive(tasksSrc, tasksDest);
+    // 📖 copyRecursive now returns an errors[] array — report any partial
+    // failures instead of letting them crash the whole init (t113).
+    const copyErrors = copyRecursive(tasksSrc, tasksDest);
+    if (copyErrors.length > 0) {
+      warn(`Some task template files could not be copied:`);
+      for (const msg of copyErrors) warn(`  - ${msg}`);
+    }
     success('./tasks/ (with welcome example)');
   } else {
     info('./tasks/ already exists (kept)');
@@ -1747,7 +1791,10 @@ function serveApp(res, kandownDir) {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(injected);
   } catch (e) {
-    writeText(res, 500, `Failed to serve kandown.html: ${e.message}`);
+    // 📖 Don't leak internal paths / error details to HTTP clients — log the
+    // full error server-side, send a generic message to the browser (t113).
+    console.error(`[serve] Error serving ${htmlPath}:`, e);
+    writeText(res, 500, 'Internal server error — check the terminal where kandown is running.');
   }
 }
 
@@ -1837,7 +1884,10 @@ async function listenOnAvailablePort(kandownDir, preferredPort) {
       await listen(server, p);
       return { server, port: p };
     } catch (e) {
-      if (e.code !== 'EADDRINUSE') throw e;
+      // 📖 EADDRINUSE → try the next port. EACCES (privileged port / blocked
+      // by OS) → also try the next port instead of crashing (t113). Anything
+      // else is unexpected and bubbles up.
+      if (e.code !== 'EADDRINUSE' && e.code !== 'EACCES') throw e;
     }
   }
 
