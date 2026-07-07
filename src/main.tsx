@@ -20,8 +20,13 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { initI18n } from './lib/i18n';
+import { setupGlobalErrorHandlers } from './lib/globalErrors';
 import './styles/globals.css';
 
+// 📖 Install global error handlers BEFORE React mounts so we catch any failure
+// during initial render / hydration. Safe to call early — the module imports
+// the store lazily to avoid a circular dependency.
+setupGlobalErrorHandlers();
 initI18n('en');
 
 createRoot(document.getElementById('root')!).render(

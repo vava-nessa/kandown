@@ -49,6 +49,7 @@ import { DEFAULT_CONFIG } from './types';
 import { serializeTaskFile } from './serializer';
 import { parseTaskFile } from './parser';
 import { normalizeFontId, normalizeSkinId, normalizeThemeMode } from './theme';
+import { PermissionDeniedError, DiskFullError, CorruptedDataError, FileReadError } from './errors';
 
 declare global {
   interface Window {
@@ -251,7 +252,13 @@ export async function pickDirectory(): Promise<FileSystemDirectoryHandle | null>
     return await window.showDirectoryPicker({ mode: 'readwrite' });
   } catch (e) {
     const err = e as Error;
+    // User dismissed the picker — benign, return null so callers can no-op.
     if (err.name === 'AbortError') return null;
+    // Permission refused or sandbox/security block — surface a typed error so
+    // the store can show an actionable toast instead of a raw stack trace.
+    if (err.name === 'NotAllowedError' || err.name === 'SecurityError') {
+      throw new PermissionDeniedError('directory access');
+    }
     throw e;
   }
 }

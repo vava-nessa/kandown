@@ -325,6 +325,14 @@
   "toast": {
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
   },
+  "errors": {
+    "boundaryTitle": "Something went wrong",
+    "boundaryDesc": "An unexpected error occurred. The app is still running but this view crashed.",
+    "retry": "Retry",
+    "copyReport": "Copy error report",
+    "boardCrashed": "Board failed to render",
+    "unknown": "Unknown error"
+  },
   "languageNames": {
     "en": "English",
     "fr": "French",

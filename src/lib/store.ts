@@ -46,6 +46,7 @@ import {
   unarchiveTaskFile as fsUnarchiveTaskFile,
   saveRecentProject,
   listRecentProjects,
+  removeRecentProject,
   verifyPermission,
   isServerMode,
   getServerRoot,
@@ -65,11 +66,21 @@ import { applyProjectTheme } from './theme';
 import { fileWatcher } from './watcher';
 import { emitKandownNotification } from './notifications';
 import type { ConflictType } from './watcher';
+import {
+  supportsFileSystemAccess,
+} from './filesystem';
+import { BrowserNotSupportedError, PermissionDeniedError, DiskFullError } from './errors';
+import { withRetry } from './retry';
+
+/** 📖 Toast severity. `warning` is used for partial-failure / corruption /
+ * disk-full situations where the user must be informed but the app keeps
+ * running. `error` is reserved for hard failures. */
+type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 interface Toast {
   id: number;
   message: string;
-  type: 'success' | 'error' | 'info';
+  type: ToastType;
 }
 
 interface DrawerSnapshot {
@@ -199,7 +210,7 @@ interface State {
   /** Fetches the daemon's agent hook info and stores it on the state. */
   refreshAgentHook: () => Promise<void>;
 
-  toast: (message: string, type?: Toast['type']) => void;
+  toast: (message: string, type?: ToastType, durationMs?: number) => void;
   dismissToast: (id: number) => void;
   resolveConflict: (resolution: 'reload' | 'overwrite' | 'cancel') => Promise<void>;
   setupWatcher: () => void;
@@ -371,7 +382,26 @@ export const useStore = create<State>((set, get) => ({
   showConflictModal: false,
 
   openFolder: async () => {
-    const result = await pickProjectDirectory();
+    // 📖 Refuse to even try on unsupported browsers — calling
+    // window.showDirectoryPicker on Firefox/Safari throws a TypeError that
+    // would otherwise bubble up as an unhandled rejection. The empty-state
+    // screen also gates this, but the store stays defensive.
+    if (!supportsFileSystemAccess()) {
+      const browser = navigator.userAgent || 'this browser';
+      get().toast(new BrowserNotSupportedError(browser).message, 'error', 8000);
+      return;
+    }
+    let result;
+    try {
+      result = await pickProjectDirectory();
+    } catch (e) {
+      if (e instanceof PermissionDeniedError) {
+        get().toast('Permission denied — please grant access to the project folder', 'error');
+      } else {
+        get().toast('Failed to open folder: ' + (e as Error).message, 'error');
+      }
+      return;
+    }
     if (!result) return;
     const { projectHandle, kandownHandle, tasksHandle } = result;
     const projectName = projectHandle.name;
@@ -380,37 +410,82 @@ export const useStore = create<State>((set, get) => ({
     set({ dirHandle: kandownHandle, tasksDirHandle: tasksHandle, projectName });
     window.history.pushState({}, '', `?p=${encodeURIComponent(projectName)}`);
     const serverRoot = isServerMode() ? getServerRoot() : null;
-    await saveRecentProject({
-      id: projectHandle.name,
-      name: projectHandle.name,
-      handle: projectHandle,
-      lastOpened: Date.now(),
-      ...(serverRoot ? { kandownDir: serverRoot } : {}),
-    });
+    // 📖 Saving to recent projects is a convenience, not a requirement — if
+    // IndexedDB is blocked (private browsing), we still open the folder.
+    try {
+      await saveRecentProject({
+        id: projectHandle.name,
+        name: projectHandle.name,
+        handle: projectHandle,
+        lastOpened: Date.now(),
+        ...(serverRoot ? { kandownDir: serverRoot } : {}),
+      });
+    } catch (e) {
+      console.warn('[Store] Failed to save recent project:', e);
+    }
     await get().loadConfig();
     await get().reloadBoard();
-    const recent = await listRecentProjects();
-    set({ recentProjects: recent });
+    try {
+      const recent = await listRecentProjects();
+      set({ recentProjects: recent });
+    } catch (e) {
+      console.warn('[Store] Failed to load recent projects:', e);
+    }
     void get().setupWatcher();
   },
 
   openRecentProject: async (project) => {
-    const ok = await verifyPermission(project.handle, true);
+    // 📖 Capture previous state so we can roll back to it if anything fails
+    // after we start mutating handles — otherwise the store ends up in a
+    // half-initialized state (project name set but no handles).
+    const prev = {
+      dirHandle: get().dirHandle,
+      tasksDirHandle: get().tasksDirHandle,
+      projectName: get().projectName,
+    };
+    let ok: boolean;
+    try {
+      ok = await verifyPermission(project.handle, true);
+    } catch (e) {
+      // 📖 The stored handle was revoked (browser restart, user revocation).
+      // Remove it from recent projects so the user isn't stuck with a dead
+      // entry, and surface a clear message.
+      console.warn('[Store] Stored handle is invalid, removing from recent:', e);
+      get().toast(`"${project.name}" is no longer accessible. Removed from recent projects.`, 'warning', 8000);
+      try {
+        await removeRecentProject(project.id);
+        const updated = await listRecentProjects();
+        set({ recentProjects: updated });
+      } catch {
+        // IDB unavailable — nothing more we can do.
+      }
+      return;
+    }
     if (!ok) {
       get().toast('Permission denied', 'error');
       return;
     }
-    // 📖 Layout (v0.12+): derive both `.kandown/` and `./tasks/` from the
-    // project root that was remembered in IndexedDB.
-    const kandownHandle = await getKandownHandle(project.handle);
-    const tasksHandle = await getTasksDirHandle(project.handle);
-    const projectName = project.handle.name;
-    set({ dirHandle: kandownHandle, tasksDirHandle: tasksHandle, projectName });
-    window.history.pushState({}, '', `?p=${encodeURIComponent(projectName)}`);
-    await saveRecentProject({ ...project, lastOpened: Date.now() });
-    await get().loadConfig();
-    await get().reloadBoard();
-    void get().setupWatcher();
+    try {
+      // 📖 Layout (v0.12+): derive both `.kandown/` and `./tasks/` from the
+      // project root that was remembered in IndexedDB.
+      const kandownHandle = await getKandownHandle(project.handle);
+      const tasksHandle = await getTasksDirHandle(project.handle);
+      const projectName = project.handle.name;
+      set({ dirHandle: kandownHandle, tasksDirHandle: tasksHandle, projectName });
+      window.history.pushState({}, '', `?p=${encodeURIComponent(projectName)}`);
+      try {
+        await saveRecentProject({ ...project, lastOpened: Date.now() });
+      } catch (e) {
+        console.warn('[Store] Failed to update recent project:', e);
+      }
+      await get().loadConfig();
+      await get().reloadBoard();
+      void get().setupWatcher();
+    } catch (e) {
+      // Roll back the half-applied state and tell the user what happened.
+      set(prev);
+      get().toast(`Failed to open project: ${(e as Error).message}`, 'error');
+    }
   },
 
   /** 📖 Opens a project in server mode using the CLI REST API — no file picker needed. */
@@ -1081,12 +1156,15 @@ export const useStore = create<State>((set, get) => ({
     set({ searchMatches: matches });
   },
 
-  toast: (message, type = 'success') => {
+  toast: (message, type = 'success', durationMs) => {
     const id = ++toastIdCounter;
+    // 📖 Severity-aware duration: warnings and errors stay longer because they
+    // carry information the user must act on; info/success flash briefly.
+    const auto = durationMs ?? (type === 'error' || type === 'warning' ? 6000 : 2500);
     set(state => ({ toasts: [...state.toasts, { id, message, type }] }));
     setTimeout(() => {
       set(state => ({ toasts: state.toasts.filter(t => t.id !== id) }));
-    }, 2500);
+    }, auto);
   },
   dismissToast: (id) => set(state => ({ toasts: state.toasts.filter(t => t.id !== id) })),
 
@@ -1262,10 +1340,16 @@ export const useStore = create<State>((set, get) => ({
   },
 }));
 
-// Hydrate recent projects on load
-listRecentProjects().then(items => {
-  useStore.setState({ recentProjects: items });
-});
+// Hydrate recent projects on load. IndexedDB may be unavailable (private
+// browsing, browser blocking, quota) — in that case we degrade silently to an
+// empty recent list rather than crashing the store init.
+listRecentProjects()
+  .then(items => {
+    useStore.setState({ recentProjects: items });
+  })
+  .catch(e => {
+    console.warn('[Store] Failed to hydrate recent projects:', e);
+  });
 
 applyConfigTheme(DEFAULT_CONFIG);
 

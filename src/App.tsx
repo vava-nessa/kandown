@@ -32,6 +32,7 @@ import { Cheatsheet } from './components/Cheatsheet';
 import { SettingsPage } from './components/SettingsPage';
 import { Toaster } from './components/Toaster';
 import { ConflictModal } from './components/ConflictModal';
+import { ErrorBoundary, BoardErrorFallback } from './components/ErrorBoundary';
 
 import { useStore } from './lib/store';
 import { changeLanguage, SUPPORTED_LANGUAGES, type SupportedLanguage } from './lib/i18n';
@@ -143,41 +144,50 @@ export function App() {
   }, [isOpen, dirHandle, commandOpen, cheatsheetOpen, drawerTaskId, setCommandOpen, setCheatsheetOpen, setViewMode, createTask, reloadBoard]);
 
   return (
-    <div className="flex flex-col h-screen">
-      <Header />
-      {currentPage === 'settings' ? (
-        <SettingsPage />
-      ) : isOpen || dirHandle ? (
-        <div className="flex-1 relative overflow-hidden">
-          {config.ui.background === 'static-gradient' && (
-            <div className="absolute inset-0 z-0 bg-gradient-to-br from-primary/10 via-background to-accent/10" />
-          )}
-          <div className={`flex flex-col h-full relative ${config.ui.background === 'static-gradient' ? 'z-10' : ''}`}>
-            {showArchives ? <ArchiveView /> : viewMode === 'board' ? <Board /> : <ListView />}
+    <ErrorBoundary>
+      <div className="flex flex-col h-screen">
+        <Header />
+        {currentPage === 'settings' ? (
+          <SettingsPage />
+        ) : isOpen || dirHandle ? (
+          <div className="flex-1 relative overflow-hidden">
+            {config.ui.background === 'static-gradient' && (
+              <div className="absolute inset-0 z-0 bg-gradient-to-br from-primary/10 via-background to-accent/10" />
+            )}
+            <div className={`flex flex-col h-full relative ${config.ui.background === 'static-gradient' ? 'z-10' : ''}`}>
+              {/* 📖 Granular boundary around the board area: if a malformed task
+               * crashes the render, the drawer (which may hold unsaved edits)
+               * and the header keep working — only the board view falls back. */}
+              <ErrorBoundary fallback={(error, retry) => <BoardErrorFallback error={error} onRetry={retry} compact />}>
+                {showArchives ? <ArchiveView /> : viewMode === 'board' ? <Board /> : <ListView />}
+              </ErrorBoundary>
+            </div>
+            {/* 📖 Discreet bottom-right master switch for the per-card metadata
+             * block. Hidden by default (showMetadata = true). When flipped, every
+             * card on the board reveals its frontmatter metadata (priority,
+             * assignee, tags, due, ownerType, tools, custom keys) in a single
+             * collapsible block. Fixed so it never collides with the columns. */}
+            <button
+              type="button"
+              onClick={() => setShowMetadata(!showMetadata)}
+              title={showMetadata ? t('header.showMetadata') : t('header.hideMetadata')}
+              className="fixed bottom-3 right-3 z-40 px-2.5 py-1 rounded-md bg-card/80 backdrop-blur border border-border text-[11px] text-fg-muted hover:text-fg hover:border-border-strong transition-colors flex items-center gap-1.5"
+            >
+              {showMetadata ? <Icon.Eye size={12} /> : <Icon.EyeOff size={12} />}
+              <span>{showMetadata ? t('header.showMetadata') : t('header.hideMetadata')}</span>
+            </button>
           </div>
-          {/* 📖 Discreet bottom-right master switch for the per-card metadata
-           * block. Hidden by default (showMetadata = true). When flipped, every
-           * card on the board reveals its frontmatter metadata (priority,
-           * assignee, tags, due, ownerType, tools, custom keys) in a single
-           * collapsible block. Fixed so it never collides with the columns. */}
-          <button
-            type="button"
-            onClick={() => setShowMetadata(!showMetadata)}
-            title={showMetadata ? t('header.showMetadata') : t('header.hideMetadata')}
-            className="fixed bottom-3 right-3 z-40 px-2.5 py-1 rounded-md bg-card/80 backdrop-blur border border-border text-[11px] text-fg-muted hover:text-fg hover:border-border-strong transition-colors flex items-center gap-1.5"
-          >
-            {showMetadata ? <Icon.Eye size={12} /> : <Icon.EyeOff size={12} />}
-            <span>{showMetadata ? t('header.showMetadata') : t('header.hideMetadata')}</span>
-          </button>
-        </div>
-      ) : (
-        <EmptyState />
-      )}
-      <Drawer />
-      <CommandPalette />
-      <Cheatsheet />
-      <Toaster />
-      <ConflictModal />
-    </div>
+        ) : (
+          <EmptyState />
+        )}
+        {/* 📖 Drawer is intentionally OUTSIDE the board boundary so a board
+         * render crash never throws away unsaved edits. */}
+        <Drawer />
+        <CommandPalette />
+        <Cheatsheet />
+        <Toaster />
+        <ConflictModal />
+      </div>
+    </ErrorBoundary>
   );
 }
