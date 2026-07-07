@@ -72,6 +72,9 @@ export function Header() {
   const restartWatcher = useStore(s => s.restartWatcher);
 
   const [menuOpen, setMenuOpen] = useState(false);
+  // 📖 Boot splash: show the "kandown v<version>" title for 5s on load, then
+  // hand the header title over to the open project name (the app's page title).
+  const [bootShow, setBootShow] = useState(true);
   const menuRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -101,6 +104,18 @@ export function Header() {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [menuOpen]);
+
+  // 📖 Hide the kandown + version splash after 5s, leaving only the logo with
+  // the open project name shown as the app's page title.
+  useEffect(() => {
+    const timer = setTimeout(() => setBootShow(false), 5000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 📖 Mirror the open project into the browser tab ("page title" of the app).
+  useEffect(() => {
+    document.title = projectName ? `${projectName} · Kandown` : 'Kandown';
+  }, [projectName]);
 
   return (
     <>
@@ -137,10 +152,36 @@ export function Header() {
             className="flex items-center gap-2 cursor-pointer"
           >
             <LogoSvg className="w-[34px] h-[34px] dark:text-white text-black" />
-            <span className="text-[15px] font-semibold tracking-tight text-fg">kandown</span>
-            <span className="inline-flex items-center h-5 px-1.5 text-[10.5px] font-semibold text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-500/15 rounded-md">
-              v{KANDOWN_VERSION}
-            </span>
+            {/* 📖 Boot splash (5s): logo + "kandown" + version, then fades out to
+             * reveal just the logo with the open project name as page title. */}
+            <AnimatePresence mode="wait" initial={false}>
+              {bootShow ? (
+                <motion.span
+                  key="boot"
+                  className="flex items-center gap-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.45 }}
+                >
+                  <span className="text-[15px] font-semibold tracking-tight text-fg">kandown</span>
+                  <span className="inline-flex items-center h-5 px-1.5 text-[10.5px] font-semibold text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-500/15 rounded-md">
+                    v{KANDOWN_VERSION}
+                  </span>
+                </motion.span>
+              ) : projectName ? (
+                <motion.span
+                  key="project"
+                  className="text-[15px] font-semibold tracking-tight text-fg truncate max-w-[240px]"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.45 }}
+                >
+                  {projectName}
+                </motion.span>
+              ) : null}
+            </AnimatePresence>
           </button>
         </div>
 

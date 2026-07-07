@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.15.0 — 2026-07-07 — "Boot Splash"
+
+- **Added**: **Boot splash** — au lancement du projet, le titre `kandown` + badge `v<version>` reste affiché pendant 5 secondes, puis fond en fade-out pour ne laisser que le logo. Le nom du projet ouvert prend ensuite sa place comme titre de page du header, avec une transition douce.
+- **Added**: **Document title dynamique** — l'onglet du navigateur reflète désormais le projet courant (`<Projet> · Kandown`) au lieu d'un titre statique.
+
 ## 0.14.1 — 2026-07-07 — "Resilience Pass"
 
 - **Added**: **Typed error hierarchy** (`src/lib/errors.ts`) — `KandownError` base with `BrowserNotSupported`, `PermissionDenied`, `DiskFull`, `Corrupted`, `FileRead` subclasses, plus a `Result<T>` discriminated union and `isRetryableError`. One shared vocabulary for the whole web UI.
