@@ -63,15 +63,17 @@ import {
   rmdirSync,
 } from 'node:fs';
 import { spawnSync, spawn, execSync } from 'node:child_process';
+import { createConnection } from 'node:net';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const PKG_ROOT = resolve(__dirname, '..');
 // 📖 Default localhost range for the zero-config `kandown` web UI server.
-const DEFAULT_SERVE_PORT = 2048;
-const MAX_SERVE_PORT = 2060;
+// 📖 Single source of truth for the daemon port range. Each kandown project
+// gets its own daemon on the first free port in this range, so multiple
+// projects can run in parallel (A=2048, B=2049, C=2050, ...).
 const START_PORT_RANGE = 2048;
-const END_PORT_RANGE = 2060;
+const END_PORT_RANGE = 2150;
 const DAEMON_FILE = 'daemon.json';
 
 // 📖 Get current CLI version from package.json at PKG_ROOT
@@ -306,7 +308,7 @@ ${c.bold}Commands:${c.reset}
   ${c.cyan}help${c.reset}        Show this help
 
 ${c.bold}Options:${c.reset}
-  ${c.cyan}--port <n>${c.reset}  Preferred local HTTP port for ${c.cyan}kandown${c.reset} (default: ${DEFAULT_SERVE_PORT}-${MAX_SERVE_PORT})
+  ${c.cyan}--port <n>${c.reset}  Preferred local HTTP port for ${c.cyan}kandown${c.reset} (default: ${START_PORT_RANGE}, auto-increments to ${END_PORT_RANGE})
 
 ${c.bold}Examples:${c.reset}
   ${c.dim}$${c.reset} npx kandown              ${c.dim}# local web server + board TUI${c.reset}
@@ -1280,6 +1282,31 @@ async function fetchDaemonInfo(port) {
   }
 }
 
+/**
+ * 📖 Fast, dependency-free TCP probe. Returns true the instant a port accepts
+ * a connection — i.e. the moment the daemon has actually bound its socket.
+ * Used instead of an HTTP fetch to detect startup, because Node's fetch
+ * (undici) can fail to recover from the initial ECONNREFUSED window (fetches
+ * sent before the server binds) and report a healthy local server as down for
+ * seconds, which orphaned freshly-started multi-project daemons. A raw TCP
+ * connect has no connection-pool state to poison, so it reliably tracks the
+ * real liveness of the socket.
+ */
+function isPortListening(port, timeoutMs = 400) {
+  return new Promise((resolve) => {
+    const socket = createConnection({ port, host: '127.0.0.1' }, () => {
+      socket.destroy();
+      resolve(true);
+    });
+    socket.on('error', () => resolve(false));
+    socket.setTimeout(timeoutMs);
+    socket.on('timeout', () => {
+      socket.destroy();
+      resolve(false);
+    });
+  });
+}
+
 async function getDaemonStatus(kandownDir) {
   const metadata = readDaemonMetadata(kandownDir);
   if (!metadata) return { running: false, metadata: null };
@@ -1288,7 +1315,17 @@ async function getDaemonStatus(kandownDir) {
     return { running: false, metadata: null };
   }
   const remote = await fetchDaemonInfo(metadata.port);
-  if (!remote || remote.kandownDir !== kandownDir || remote.pid !== metadata.pid) {
+  if (!remote) {
+    // 📖 Transient fetch failure (server still warming up, undici connection
+    // hiccup, high load). The owning process IS alive (checked above), so we
+    // must NOT destroy the metadata here — otherwise starting a 2nd kandown
+    // project races the just-written metadata and orphans a healthy daemon.
+    // Return non-running so callers retry; the metadata stays intact.
+    return { running: false, metadata: null };
+  }
+  if (remote.kandownDir !== kandownDir || remote.pid !== metadata.pid) {
+    // 📖 Real conflict: the port is owned by a DIFFERENT kandown (another
+    // project, or a reincarnated PID). That is a genuine stale entry — remove.
     removeDaemonMetadata(kandownDir);
     return { running: false, metadata: null };
   }
@@ -1305,12 +1342,22 @@ function refreshKandownHtml(kandownDir) {
   return false;
 }
 
-async function waitForDaemon(kandownDir, timeoutMs = 5000) {
+async function waitForDaemon(kandownDir, timeoutMs = 8000) {
+  // 📖 Detect daemon startup via TCP probe + process liveness rather than HTTP
+  // fetch. The freshly spawned child is known to be ours, so once its process
+  // is alive AND its port accepts a TCP connection, the daemon is up — no need
+  // to wait for an HTTP round-trip that undici may not serve reliably during
+  // the bind window. The dir/pid ownership check still happens later via
+  // getDaemonStatus() for the status/stop commands.
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
-    const status = await getDaemonStatus(kandownDir);
-    if (status.running) return status;
-    await new Promise(r => setTimeout(r, 150));
+    const metadata = readDaemonMetadata(kandownDir);
+    if (metadata && isProcessAlive(metadata.pid)) {
+      if (await isPortListening(metadata.port)) {
+        return { running: true, metadata };
+      }
+    }
+    await new Promise(r => setTimeout(r, 120));
   }
   return { running: false, metadata: null };
 }
@@ -1835,10 +1882,13 @@ async function listenOnAvailablePort(kandownDir, preferredPort) {
   const port = preferredPort ?? START_PORT_RANGE;
   const isSinglePort = preferredPort !== null;
 
-  // 📖 Check if the target port is already occupied by a stale kandown process.
-  // This happens when the TUI crashes but the HTTP server stays alive.
+  // 📖 Check if the target port is already occupied by a stale kandown process
+  // from the SAME project. A stale process is one whose TUI exited but the HTTP
+  // server is still alive. We ONLY reclaim same-project daemons here — a daemon
+  // belonging to a DIFFERENT project (reason === null) must never be touched;
+  // it is handled by the scan loop below (which skips it).
   const staleInfo = detectStaleKandown(port, kandownDir);
-  if (staleInfo) {
+  if (staleInfo && staleInfo.reason) {
     warn(staleInfo.reason);
     try {
       process.kill(staleInfo.pid, 'SIGTERM');

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.15.1 — 2026-07-07 — "Parallel Daemons"
+
+- **Fixed**: **Multi-project daemon port clash** — launching `kandown` from a second project folder no longer kills the first project's web daemon and steals its port. Each project now gets its own daemon on an auto-allocated port (A=2048, B=2049, C=2050, …), so multiple kandown boards can finally run in parallel.
+  - Root cause #1: `listenOnAvailablePort()` unconditionally killed whatever kandown sat on the default port — even when it belonged to a *different* project. The preemptive stale check now only reclaims same-project zombies; other-project daemons fall through to the port-scan loop (which already skips them).
+  - Root cause #2: the parent↔child startup handshake deleted the freshly-written daemon metadata on any transient HTTP fetch failure. Node's `fetch` (undici) doesn't recover from the initial `ECONNREFUSED` window and reported healthy local daemons as down for seconds, orphaning them with a spurious "Daemon failed to start". `getDaemonStatus()` is now non-destructive on transient fetch failures (metadata is removed only on a *real* conflict), and startup detection uses a dependency-free TCP probe (`net.createConnection`) instead of HTTP.
+  - Port range widened 2048–2060 → **2048–2150** (103 slots); startup timeout 5s → 8s.
+
 ## 0.15.0 — 2026-07-07 — "Boot Splash"
 
 - **Added**: **Boot splash** — au lancement du projet, le titre `kandown` + badge `v<version>` reste affiché pendant 5 secondes, puis fond en fade-out pour ne laisser que le logo. Le nom du projet ouvert prend ensuite sa place comme titre de page du header, avec une transition douce.
