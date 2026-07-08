@@ -22,7 +22,25 @@ import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { Column } from './Column';
 import { useStore } from '../lib/store';
-import type { BoardTask, SearchMatch } from '../lib/types';
+import type { BoardTask, SearchMatch, Column as ColumnType } from '../lib/types';
+
+type ColumnGroup =
+  | {
+      type: 'normal';
+      column: ColumnType;
+      filtered: BoardTask[];
+    }
+  | {
+      type: 'compact-single';
+      column: ColumnType;
+      filtered: BoardTask[];
+    }
+  | {
+      type: 'compact-stack';
+      columns: { column: ColumnType; filtered: BoardTask[] }[];
+    };
+
+const EMPTY_MAP = new Map<string, SearchMatch[]>();
 
 export function Board() {
   const { t } = useTranslation();
@@ -56,6 +74,39 @@ export function Board() {
     });
   }, [columns, config.fields, filters, searchMatches]);
 
+  const columnGroups = useMemo((): ColumnGroup[] => {
+    if (density !== 'compact') {
+      return filteredColumns.map(fc => ({ type: 'normal', ...fc }));
+    }
+
+    const groups: ColumnGroup[] = [];
+    let i = 0;
+    while (i < filteredColumns.length) {
+      const fc = filteredColumns[i];
+      const isEmpty = fc.column.tasks.length === 0;
+
+      if (!isEmpty) {
+        groups.push({ type: 'normal', column: fc.column, filtered: fc.filtered });
+        i++;
+        continue;
+      }
+
+      const run: { column: ColumnType; filtered: BoardTask[] }[] = [];
+      while (i < filteredColumns.length && filteredColumns[i].column.tasks.length === 0) {
+        run.push(filteredColumns[i]);
+        i++;
+      }
+
+      if (run.length === 1) {
+        groups.push({ type: 'compact-single', column: run[0].column, filtered: run[0].filtered });
+      } else {
+        groups.push({ type: 'compact-stack', columns: run });
+      }
+    }
+
+    return groups;
+  }, [filteredColumns, density]);
+
   const handleCardDragStart = (taskId: string, fromCol: string) => {
     setDraggedTaskId(taskId);
     setDraggedFromCol(fromCol);
@@ -80,6 +131,26 @@ export function Board() {
     void addColumn(name);
   };
 
+  const searchMatchesMap = filters.search ? searchMatches : EMPTY_MAP;
+
+  const sharedColumnProps = {
+    searchMatches: searchMatchesMap,
+    density,
+    draggedTaskId,
+    draggedFromCol,
+    onCardDragStart: handleCardDragStart,
+    onCardDragEnd: handleDragEnd,
+    onDrop: handleDrop,
+  };
+
+  const animProps = (i: number) => ({
+    initial: { opacity: 0, y: 12 } as const,
+    animate: { opacity: 1, y: 0 } as const,
+    transition: { delay: i * 0.04, duration: 0.35, ease: [0.32, 0.72, 0.35, 1] } as const,
+  });
+
+  const columnBorder = 'rounded-xl border border-border overflow-hidden';
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -87,31 +158,41 @@ export function Board() {
       transition={{ duration: 0.25 }}
       className={`flex-1 min-h-0 flex gap-5 p-5 pb-6 overflow-x-auto overflow-y-hidden relative ${config.ui.background === 'solid' ? 'board-bg' : ''}`}
     >
-      {filteredColumns.map(({ column, filtered }, i) => (
-        <motion.div
-          key={column.name}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            delay: i * 0.04,
-            duration: 0.35,
-            ease: [0.32, 0.72, 0.35, 1],
-          }}
-          className="h-full"
-        >
-          <Column
-            column={column}
-            filteredTasks={filtered}
-            searchMatches={filters.search ? searchMatches : new Map()}
-            density={density}
-            draggedTaskId={draggedTaskId}
-            draggedFromCol={draggedFromCol}
-            onCardDragStart={handleCardDragStart}
-            onCardDragEnd={handleDragEnd}
-            onDrop={handleDrop}
-          />
-        </motion.div>
-      ))}
+      {columnGroups.map((group, i) => {
+        if (group.type === 'normal') {
+          return (
+            <motion.div key={group.column.name} {...animProps(i)} className="h-full">
+              <Column column={group.column} filteredTasks={group.filtered} {...sharedColumnProps} />
+            </motion.div>
+          );
+        }
+
+        if (group.type === 'compact-single') {
+          return (
+            <motion.div key={group.column.name} {...animProps(i)} className="h-full">
+              <div className={`h-full w-[100px] ${columnBorder}`}>
+                <Column column={group.column} filteredTasks={group.filtered} {...sharedColumnProps} isEmptyCompact />
+              </div>
+            </motion.div>
+          );
+        }
+
+        const stackKey = `compact-stack-${group.columns.map(c => c.column.name).join('|')}`;
+        return (
+          <motion.div key={stackKey} {...animProps(i)} className="h-full">
+            <div className={`flex flex-col h-full w-[100px] ${columnBorder}`}>
+              {group.columns.map(({ column, filtered }, idx) => (
+                <div
+                  key={column.name}
+                  className={`flex-1 min-h-0 ${idx < group.columns.length - 1 ? 'border-b border-border' : ''}`}
+                >
+                  <Column column={column} filteredTasks={filtered} {...sharedColumnProps} isEmptyCompact />
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        );
+      })}
       <button
         type="button"
         onClick={handleCreateColumn}

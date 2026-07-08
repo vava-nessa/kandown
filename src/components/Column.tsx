@@ -203,6 +203,7 @@ interface ColumnProps {
   filteredTasks: BoardTask[];
   searchMatches: Map<string, SearchMatch[]>;
   density: Density;
+  isEmptyCompact?: boolean;
   draggedTaskId: string | null;
   draggedFromCol: string | null;
   onCardDragStart: (taskId: string, fromCol: string) => void;
@@ -215,6 +216,7 @@ export function Column({
   filteredTasks,
   searchMatches,
   density,
+  isEmptyCompact,
   draggedTaskId,
   draggedFromCol,
   onCardDragStart,
@@ -293,6 +295,30 @@ export function Column({
 
   const isFiltered = filteredTasks.length !== column.tasks.length;
   const ColumnIcon = getColumnIcon(column.name);
+
+  const isEmptyCompactMode = isEmptyCompact && density === 'compact';
+
+  if (isEmptyCompactMode) {
+    return (
+      <motion.div
+        layout
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        data-column={column.name}
+        className="flex flex-col items-center justify-center w-full h-full min-h-0 px-1 transition-all duration-150 cursor-default"
+        style={{
+          opacity: isOver ? 0.8 : 1,
+          backgroundColor: isOver ? 'rgba(255,255,255,0.04)' : colBg,
+        }}
+      >
+        <ColumnIcon aria-hidden="true" size={16} stroke={1.8} className="text-fg-muted mb-1 shrink-0" />
+        <span className="text-[11px] font-medium text-fg-muted text-center leading-tight max-w-full">
+          {column.name}
+        </span>
+      </motion.div>
+    );
+  }
 
   const handleRenameColumn = () => {
     const nextName = window.prompt(t('column.renamePrompt'), column.name)?.trim();
