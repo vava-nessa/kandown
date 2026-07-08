@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.17.0 — 2026-07-08 — "Column Reorder"
+
+- **Added**: **Native HTML5 drag-and-drop column reordering** — grip columns by the 6-dot gripper icon (left of column name) and drag to a new position. Columns snap, config updates and persists automatically.
+- **Fixed**: **Column drag-and-drop handler signature** — `handleColumnDragOver` now works correctly with HTML5 native drag events (removed unnecessary target index param).
+
 ## 0.16.0 — 2026-07-08 — "Compact Mode"
 
 - **Added**: **Compact board density** — column density can now use a space-saving layout where empty columns collapse into a thin strip (100px wide) or stack vertically when multiple consecutive columns are empty. Normal columns keep their full width. In compact mode the empty-column cards show only an icon + name, minimizing wasted space for boards with many columns.

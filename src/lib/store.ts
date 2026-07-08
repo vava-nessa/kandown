@@ -197,6 +197,7 @@ interface State {
   reorderInColumn: (colName: string, fromIndex: number, toIndex: number) => Promise<void>;
   addColumn: (name: string) => Promise<void>;
   renameColumn: (oldName: string, newName: string) => Promise<void>;
+  reorderColumns: (fromIndex: number, toIndex: number) => Promise<void>;
   deleteColumn: (name: string) => Promise<void>;
   createTask: (colName?: string) => Promise<string | null>;
   deleteTask: (taskId: string) => Promise<void>;
@@ -996,6 +997,33 @@ export const useStore = create<State>((set, get) => ({
     } catch (e) {
       get().toast('Failed to rename column: ' + (e as Error).message, 'error');
       set({ columns: oldColumns });
+    }
+  },
+
+  reorderColumns: async (fromIndex, toIndex) => {
+    const { config, columns, tasksDirHandle } = get();
+    if (fromIndex < 0 || toIndex < 0 || fromIndex >= columns.length || toIndex >= columns.length || fromIndex === toIndex) return;
+    if (!tasksDirHandle && !isServerMode()) return;
+
+    // Build reordered columns array
+    const reordered = Array.from(columns);
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+    set({ columns: reordered });
+
+    // Update column order in config
+    const colOrder = [...config.board.columns];
+    const [movedName] = colOrder.splice(fromIndex, 1);
+    colOrder.splice(toIndex, 0, movedName);
+
+    try {
+      await get().updateConfig(c => ({ ...c, board: { ...c.board, columns: colOrder } }));
+      // Reload board to reflect new order from config
+      await get().reloadBoard();
+    } catch (e) {
+      get().toast('Failed to reorder columns: ' + (e as Error).message, 'error');
+      // Restore previous state
+      set({ columns });
     }
   },
 

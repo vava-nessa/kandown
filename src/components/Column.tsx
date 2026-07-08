@@ -206,9 +206,13 @@ interface ColumnProps {
   isEmptyCompact?: boolean;
   draggedTaskId: string | null;
   draggedFromCol: string | null;
+  draggedColIndex: number | null;
   onCardDragStart: (taskId: string, fromCol: string) => void;
   onCardDragEnd: () => void;
   onDrop: (toCol: string) => void;
+  onColumnDragStart: (e: React.DragEvent, index: number) => void;
+  onColumnDragEnd: (e: React.DragEvent) => void;
+  columnIndex: number;
 }
 
 export function Column({
@@ -219,9 +223,13 @@ export function Column({
   isEmptyCompact,
   draggedTaskId,
   draggedFromCol,
+  draggedColIndex,
   onCardDragStart,
   onCardDragEnd,
   onDrop,
+  onColumnDragStart,
+  onColumnDragEnd,
+  columnIndex,
 }: ColumnProps) {
   const { t } = useTranslation();
   const [isOver, setIsOver] = useState(false);
@@ -347,6 +355,34 @@ export function Column({
     >
       <div className="flex items-center justify-between px-3.5 pt-3 pb-2">
         <div className="flex items-center gap-2">
+          <div
+            draggable
+            onDragStart={(e) => {
+              e.stopPropagation();
+              onColumnDragStart(e, columnIndex);
+            }}
+            onDragEnd={(e) => {
+              e.stopPropagation();
+              onColumnDragEnd(e);
+            }}
+            className={`cursor-grab active:cursor-grabbing p-1 rounded transition-colors ${
+              draggedColIndex === columnIndex
+                ? 'opacity-100 text-fg'  
+                : 'opacity-50 text-fg-muted hover:opacity-80 group-hover/column:opacity-70 hover:bg-black/[0.08] active:bg-black/[0.12]'
+            }`}
+            title={t('column.reorderColumn')}
+            style={{ flexShrink: 0 }}
+          >
+            {/* 6-dot gripper icon (3 columns x 2 rows) */}
+            <svg width="14" height="12" viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="3" cy="2" r="1.5" fill="currentColor"/>
+              <circle cx="11" cy="2" r="1.5" fill="currentColor"/>
+              <circle cx="3" cy="8" r="1.5" fill="currentColor"/>
+              <circle cx="11" cy="8" r="1.5" fill="currentColor"/>
+              <circle cx="3" cy="5" r="1.5" fill="currentColor"/>
+              <circle cx="11" cy="5" r="1.5" fill="currentColor"/>
+            </svg>
+          </div>
           <ColumnIcon
             aria-hidden="true"
             size={14}

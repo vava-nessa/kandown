@@ -29,15 +29,17 @@ type ColumnGroup =
       type: 'normal';
       column: ColumnType;
       filtered: BoardTask[];
+      columnIndex: number;
     }
   | {
       type: 'compact-single';
       column: ColumnType;
       filtered: BoardTask[];
+      columnIndex: number;
     }
   | {
       type: 'compact-stack';
-      columns: { column: ColumnType; filtered: BoardTask[] }[];
+      columns: { column: ColumnType; filtered: BoardTask[]; columnIndex: number }[];
     };
 
 const EMPTY_MAP = new Map<string, SearchMatch[]>();
@@ -49,11 +51,14 @@ export function Board() {
   const filters = useStore(s => s.filters);
   const moveTask = useStore(s => s.moveTask);
   const addColumn = useStore(s => s.addColumn);
+  const reorderColumns = useStore(s => s.reorderColumns);
   const searchMatches = useStore(s => s.searchMatches);
   const config = useStore(s => s.config);
 
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [draggedFromCol, setDraggedFromCol] = useState<string | null>(null);
+  const [draggedColIndex, setDraggedColIndex] = useState<number | null>(null);
+  const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
 
   const filteredColumns = useMemo(() => {
     return columns.map(col => {
@@ -76,29 +81,34 @@ export function Board() {
 
   const columnGroups = useMemo((): ColumnGroup[] => {
     if (density !== 'compact') {
-      return filteredColumns.map(fc => ({ type: 'normal', ...fc }));
+      const result: (typeof columnGroups)[number][] = filteredColumns.map((fc, idx) => ({
+        type: 'normal',
+        column: fc.column,
+        filtered: fc.filtered,
+        columnIndex: idx,
+      }));
+      return result;
     }
 
     const groups: ColumnGroup[] = [];
     let i = 0;
     while (i < filteredColumns.length) {
       const fc = filteredColumns[i];
-      const isEmpty = fc.column.tasks.length === 0;
 
-      if (!isEmpty) {
-        groups.push({ type: 'normal', column: fc.column, filtered: fc.filtered });
+      if (fc.column.tasks.length > 0) {
+        groups.push({ type: 'normal', column: fc.column, filtered: fc.filtered, columnIndex: i });
         i++;
         continue;
       }
 
-      const run: { column: ColumnType; filtered: BoardTask[] }[] = [];
+      const run: { column: ColumnType; filtered: BoardTask[]; columnIndex: number }[] = [];
       while (i < filteredColumns.length && filteredColumns[i].column.tasks.length === 0) {
-        run.push(filteredColumns[i]);
+        run.push({ column: filteredColumns[i].column, filtered: filteredColumns[i].filtered, columnIndex: i });
         i++;
       }
 
       if (run.length === 1) {
-        groups.push({ type: 'compact-single', column: run[0].column, filtered: run[0].filtered });
+        groups.push({ type: 'compact-single', column: run[0].column, filtered: run[0].filtered, columnIndex: run[0].columnIndex });
       } else {
         groups.push({ type: 'compact-stack', columns: run });
       }
@@ -133,14 +143,43 @@ export function Board() {
 
   const searchMatchesMap = filters.search ? searchMatches : EMPTY_MAP;
 
+  const handleColumnDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedColIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    // Semi-transparent ghost so drag is visible
+    (e.target as HTMLElement).style.opacity = '0.4';
+  };
+
+  const handleColumnDragEnd = (e: React.DragEvent) => {
+    setDraggedColIndex(null);
+    setDropTargetIndex(null);
+    (e.target as HTMLElement).style.opacity = '1';
+  };
+
+  const handleColumnDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleColumnDrop = (e: React.DragEvent, toIndex: number) => {
+    e.preventDefault();
+    if (draggedColIndex !== null && draggedColIndex !== toIndex) {
+      void reorderColumns(draggedColIndex, toIndex);
+    }
+    setDraggedColIndex(null);
+  };
+
   const sharedColumnProps = {
     searchMatches: searchMatchesMap,
     density,
     draggedTaskId,
     draggedFromCol,
+    draggedColIndex,
     onCardDragStart: handleCardDragStart,
     onCardDragEnd: handleDragEnd,
     onDrop: handleDrop,
+    onColumnDragStart: handleColumnDragStart,
+    onColumnDragEnd: handleColumnDragEnd,
   };
 
   const animProps = (i: number) => ({
@@ -161,36 +200,71 @@ export function Board() {
       {columnGroups.map((group, i) => {
         if (group.type === 'normal') {
           return (
-            <motion.div key={group.column.name} {...animProps(i)} className="h-full">
-              <Column column={group.column} filteredTasks={group.filtered} {...sharedColumnProps} />
-            </motion.div>
+            <div
+              key={group.column.name}
+              draggable
+              onDragStart={(e) => handleColumnDragStart(e, group.columnIndex)}
+              onDragEnd={handleColumnDragEnd}
+              onDragOver={handleColumnDragOver}
+              onDrop={(e) => handleColumnDrop(e, group.columnIndex)}
+            >
+              <motion.div {...animProps(i)} className="h-full">
+                <Column column={group.column} filteredTasks={group.filtered} {...sharedColumnProps} columnIndex={group.columnIndex} />
+              </motion.div>
+            </div>
           );
         }
 
         if (group.type === 'compact-single') {
           return (
-            <motion.div key={group.column.name} {...animProps(i)} className="h-full">
-              <div className={`h-full w-[100px] ${columnBorder}`}>
-                <Column column={group.column} filteredTasks={group.filtered} {...sharedColumnProps} isEmptyCompact />
-              </div>
-            </motion.div>
+            <div
+              key={group.column.name}
+              draggable
+              onDragStart={(e) => handleColumnDragStart(e, group.columnIndex)}
+              onDragEnd={handleColumnDragEnd}
+              onDragOver={handleColumnDragOver}
+              onDrop={(e) => handleColumnDrop(e, group.columnIndex)}
+            >
+              <motion.div {...animProps(i)} className="h-full w-[100px]">
+                <Column column={group.column} filteredTasks={group.filtered} {...sharedColumnProps} isEmptyCompact columnIndex={group.columnIndex} />
+              </motion.div>
+            </div>
           );
         }
 
+        // 📖 compact-stack: draggable as a whole block, each slot has its own columnIndex
         const stackKey = `compact-stack-${group.columns.map(c => c.column.name).join('|')}`;
         return (
-          <motion.div key={stackKey} {...animProps(i)} className="h-full">
-            <div className={`flex flex-col h-full w-[100px] ${columnBorder}`}>
-              {group.columns.map(({ column, filtered }, idx) => (
-                <div
-                  key={column.name}
-                  className={`flex-1 min-h-0 ${idx < group.columns.length - 1 ? 'border-b border-border' : ''}`}
-                >
-                  <Column column={column} filteredTasks={filtered} {...sharedColumnProps} isEmptyCompact />
-                </div>
-              ))}
-            </div>
-          </motion.div>
+          <div
+            key={stackKey}
+            draggable
+            onDragStart={(e) => handleColumnDragStart(e, group.columns[0].columnIndex)}
+            onDragEnd={handleColumnDragEnd}
+            onDragOver={handleColumnDragOver}
+            onDrop={(e) => {
+              handleColumnDragEnd(e);
+              handleColumnDrop(e, group.columns[0].columnIndex);
+            }}
+          >
+            <motion.div {...animProps(i)} className="h-full">
+              <div className={`flex flex-col h-full w-[100px] ${columnBorder}`}>
+                {group.columns.map(({ column, filtered, columnIndex }, idx) => (
+                  <div
+                    key={column.name}
+                    className={`flex-1 min-h-0 ${idx < group.columns.length - 1 ? 'border-b border-border' : ''}`}
+                  >
+                    <Column
+                      column={column}
+                      filteredTasks={filtered}
+                      {...sharedColumnProps}
+                      isEmptyCompact
+                      columnIndex={columnIndex}
+                    />
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
         );
       })}
       <button
