@@ -316,7 +316,7 @@ export function Column({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       data-column={column.name}
-      className="group flex flex-col flex-none w-[320px] h-full rounded-xl border border-border transition-colors duration-150"
+      className="group/column flex flex-col flex-none w-[320px] h-full rounded-xl border border-border transition-colors duration-150"
       style={{ backgroundColor: isOver ? 'rgba(255,255,255,0.04)' : colBg }}
     >
       <div className="flex items-center justify-between px-3.5 pt-3 pb-2">
@@ -333,7 +333,7 @@ export function Column({
             {isFiltered && <span className="text-fg-faint">/{column.tasks.length}</span>}
           </span>
         </div>
-        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-0.5 opacity-0 group-hover/column:opacity-100 transition-opacity">
           {!isConfiguredColumn && (
             <button
               onClick={() => addColumn(column.name)}

@@ -199,15 +199,14 @@ async function checkForUpdate(argv = process.argv) {
 
   if (!latest || semverGt(current, latest) >= 0) return; // up to date or offline
 
-  log('');
-  log(`${c.yellow}⚡ Update available:${c.reset} kandown ${c.dim}${current}${c.reset} → ${c.green}${latest}${c.reset}`);
-  info('Auto-updating…');
+  tuiDone('⚡', `Update available: ${c.dim}kandown ${current}${c.reset} → ${c.green}${latest}${c.reset}`);
 
   // 📖 Step 2: Create lock file to prevent concurrent updates.
   try { writeFileSync(lockFile, `${process.pid}\n${now}`, 'utf8'); } catch { /* ignore */ }
 
-  // 📖 Step 3: Run the update via npm or pnpm.
-  // Try npm first, fall back to pnpm.
+  // 📖 Step 3: Run the update via npm or pnpm with animated progress.
+  tuiProgress(`Updating to ${latest}…`, 25);
+
   const updateOk = await new Promise((resolve) => {
     const tryInstall = (cmd) => {
       return new Promise((res) => {
@@ -233,7 +232,7 @@ async function checkForUpdate(argv = process.argv) {
   try { if (existsSync(lockFile)) unlinkSync(lockFile); } catch { /* ignore */ }
 
   if (!updateOk) {
-    warn('Auto-update failed — continuing with current version');
+    tuiDone('✗', `${c.yellow}Auto-update failed${c.reset} — continuing with current version`);
     log(`  Run ${c.cyan}npm install -g kandown${c.reset} to upgrade manually`);
     log('');
     return;
@@ -257,14 +256,13 @@ async function checkForUpdate(argv = process.argv) {
   });
 
   if (!postVersion || semverGt(postVersion, latest) < 0) {
-    // Install claimed success but version didn't change — probably a permissions issue.
-    warn('Update did not apply — continuing with current version');
+    tuiDone('✗', `${c.yellow}Update did not apply${c.reset} — continuing with current version`);
     log(`  Run ${c.cyan}npm install -g kandown${c.reset} to upgrade manually`);
     log('');
     return;
   }
 
-  success(`Updated to v${postVersion} — restarting…`);
+  tuiDone('✓', `${c.green}Updated to v${postVersion}${c.reset} — restarting…`);
   log('');
 
   // 📖 Step 5: Respawn with the new version.
@@ -308,6 +306,64 @@ const success = (msg) => log(`${c.green}✓${c.reset} ${msg}`);
 const info = (msg) => log(`${c.cyan}→${c.reset} ${msg}`);
 const warn = (msg) => log(`${c.yellow}⚠${c.reset} ${msg}`);
 const err = (msg) => log(`${c.red}✗${c.reset} ${msg}`);
+
+// ─── TUI spinner & progress bar ─────────────────────────────────────────────
+// 📖 Lightweight terminal animation helpers for the auto-updater.
+// Uses ANSI escape codes (carriage return + clear line) to redraw in-place.
+// Only animate when stdout is a TTY; otherwise fall back to plain text.
+
+const _SP_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+let _spTimer = null;
+let _spIdx = 0;
+const _isTTY = process.stdout.isTTY;
+
+function _tuiClear() {
+  process.stdout.write('\r\x1b[K');
+}
+
+/** Start an animated spinner with the given text. */
+function tuiSpinner(text) {
+  if (_spTimer) clearInterval(_spTimer);
+  _spIdx = 0;
+  _tuiClear();
+  if (!_isTTY) { process.stdout.write(`  ${text}\n`); return; }
+  _spTimer = setInterval(() => {
+    process.stdout.write(`\r\x1b[K${_SP_FRAMES[_spIdx % _SP_FRAMES.length]} ${text}`);
+    _spIdx++;
+  }, 100);
+}
+
+/**
+ * 📖 Start a time-estimated progress bar + spinner.
+ * Shows a filling bar with percentage based on elapsed time.
+ * Caps at 95% until the caller calls tuiDone().
+ */
+function tuiProgress(text, estimateSec = 25, barWidth = 15) {
+  if (_spTimer) clearInterval(_spTimer);
+  _spIdx = 0;
+  _tuiClear();
+  if (!_isTTY) { process.stdout.write(`  ${text}\n`); return; }
+  const start = Date.now();
+  _spTimer = setInterval(() => {
+    const elapsed = (Date.now() - start) / 1000;
+    const pct = Math.min(Math.round((elapsed / estimateSec) * 100), 95);
+    const filled = Math.round(barWidth * pct / 100);
+    const bar = '\u2588'.repeat(filled) + '\u2591'.repeat(barWidth - filled);
+    process.stdout.write(`\r\x1b[K${_SP_FRAMES[_spIdx % _SP_FRAMES.length]} ${text} ${bar} ${pct}%`);
+    _spIdx++;
+  }, 120);
+}
+
+/** Stop the current animation and print a final status line. */
+function tuiDone(symbol, text) {
+  if (_spTimer) { clearInterval(_spTimer); _spTimer = null; }
+  if (_isTTY) {
+    _tuiClear();
+    process.stdout.write(`${symbol} ${text}\n`);
+  } else {
+    log(`${symbol} ${text}`);
+  }
+}
 
 function help() {
   const v = getCurrentVersion() ?? '?';

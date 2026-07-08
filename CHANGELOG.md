@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.15.4 — 2026-07-08 — "Update Animation"
+
+- **Added**: **Animated spinner + progress bar with percentage for the auto-updater** — the `npm install` phase now shows a real-time filling bar (`████░░░ 45%`) with a Braille spinner, giving visual feedback during the 10–30s update. Falls back to plain text when stdout is piped.
+- **Fixed**: **Column CSS `group` conflict** — changed `group` to `group/column` to prevent style collisions when columns are nested inside other `group` containers.
+
 ## 0.15.3 — 2026-07-08 — "Cosmetic Change"
 
 - **Changed**: **Category tag moved next to task ID in cards** — the `[bracket]` category tag previously displayed below the title now sits inline to the right of the task number (`#102 [optimization]`), keeping the card header compact and scannable.
