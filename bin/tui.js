@@ -54651,6 +54651,7 @@ function moveTaskToColumn(kandownDir, taskId, targetColumn) {
 import { existsSync as existsSync4, readFileSync as readFileSync4, unlinkSync } from "fs";
 import { dirname as dirname2, join as join3 } from "path";
 import { spawn } from "child_process";
+import { createConnection } from "net";
 function metadataPath(kandownDir) {
   return join3(kandownDir, "daemon.json");
 }
@@ -54708,6 +54709,20 @@ async function fetchDaemonInfo(port) {
     return null;
   }
 }
+function isPortListening(port, timeoutMs = 400) {
+  return new Promise((resolve3) => {
+    const socket = createConnection({ port, host: "127.0.0.1" }, () => {
+      socket.destroy();
+      resolve3(true);
+    });
+    socket.on("error", () => resolve3(false));
+    socket.setTimeout(timeoutMs);
+    socket.on("timeout", () => {
+      socket.destroy();
+      resolve3(false);
+    });
+  });
+}
 async function getDaemonStatus(kandownDir) {
   const metadata = readDaemonMetadata(kandownDir);
   if (!metadata) return { running: false, metadata: null };
@@ -54716,18 +54731,23 @@ async function getDaemonStatus(kandownDir) {
     return { running: false, metadata: null };
   }
   const remote = await fetchDaemonInfo(metadata.port);
-  if (!remote || remote.pid !== metadata.pid || remote.kandownDir !== kandownDir) {
+  if (!remote) {
+    return { running: false, metadata: null };
+  }
+  if (remote.pid !== metadata.pid || remote.kandownDir !== kandownDir) {
     removeDaemonMetadata(kandownDir);
     return { running: false, metadata: null };
   }
   return { running: true, metadata };
 }
-async function waitForDaemon(kandownDir, timeoutMs = 5e3) {
+async function waitForDaemon(kandownDir, timeoutMs = 8e3) {
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
-    const status = await getDaemonStatus(kandownDir);
-    if (status.running) return status;
-    await new Promise((resolve3) => setTimeout(resolve3, 150));
+    const metadata = readDaemonMetadata(kandownDir);
+    if (metadata && isProcessAlive(metadata.pid) && await isPortListening(metadata.port)) {
+      return { running: true, metadata };
+    }
+    await new Promise((resolve3) => setTimeout(resolve3, 120));
   }
   return { running: false, metadata: null };
 }
@@ -57082,8 +57102,15 @@ var MENU_HEIGHT = 2;
 var import_jsx_runtime4 = __toESM(require_jsx_runtime(), 1);
 var TASKS_START_Y = 5;
 function truncate(str, maxLen) {
+  if (maxLen <= 0) return "";
   if (str.length <= maxLen) return str;
-  return str.slice(0, maxLen - 1) + "\u2026";
+  return str.slice(0, Math.max(0, maxLen - 1)) + "\u2026";
+}
+function terminalHyperlink(label, url) {
+  return `\x1B]8;;${url}\x07${label}\x1B]8;;\x07`;
+}
+function webLinkLabel(url) {
+  return `\u2197 ${url.replace(/^https?:\/\//, "")}`;
 }
 function pad(str, len) {
   const t = truncate(str, len);
@@ -57258,11 +57285,15 @@ function BoardHeader({ title, inTmux, modeHint, version, daemonStatus, daemonBus
   const rightWidth = Math.max(0, width - leftWidth - daemonWidth);
   const left = pad(`  \u25C6 KANDOWN${tmuxHint}${versionTag}  ${title}`, leftWidth);
   const daemon = pad(daemonLabel, daemonWidth);
-  const right = truncate(hint, rightWidth).padStart(rightWidth, " ");
+  const webUrl = daemonStatus.running ? daemonStatus.metadata?.url : null;
+  const rightPlain = webUrl ? truncate(webLinkLabel(webUrl), rightWidth) : truncate(hint, rightWidth);
+  const right = rightPlain.padStart(rightWidth, " ");
+  const rightPadding = right.slice(0, Math.max(0, right.length - rightPlain.length));
+  const rightContent = webUrl ? `${rightPadding}${terminalHyperlink(rightPlain, webUrl)}` : right;
   return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { marginBottom: 1, children: [
     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { bold: true, color: "cyan", children: left }),
     daemonWidth > 0 && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: daemonStatus.running ? "green" : "yellow", bold: true, children: daemon }),
-    rightWidth > 0 && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", dimColor: true, children: right })
+    rightWidth > 0 && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: webUrl ? "blue" : "gray", dimColor: !webUrl, underline: !!webUrl, children: rightContent })
   ] });
 }
 function StatusBar({ message, task, daemonStatus }) {
@@ -58006,7 +58037,7 @@ function Board({ kandownDir, version }) {
     return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { flexDirection: "column", children: [
       /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { marginBottom: 1, justifyContent: "space-between", children: [
         /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: "Esc back \xB7 a agent \xB7 j/k scroll" }),
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: "gray", dimColor: true, children: [
+        daemonStatus.running && daemonStatus.metadata ? /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "blue", underline: true, children: terminalHyperlink(webLinkLabel(daemonStatus.metadata.url), daemonStatus.metadata.url) }) : /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: "gray", dimColor: true, children: [
           "KANDOWN  ",
           board.title
         ] })

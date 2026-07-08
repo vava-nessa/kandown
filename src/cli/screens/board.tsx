@@ -87,8 +87,22 @@ const TASKS_START_Y = 5;
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function truncate(str: string, maxLen: number): string {
+  if (maxLen <= 0) return '';
   if (str.length <= maxLen) return str;
-  return str.slice(0, maxLen - 1) + '…';
+  return str.slice(0, Math.max(0, maxLen - 1)) + '…';
+}
+
+/**
+ * 📖 OSC 8 terminal hyperlink. Terminals that support it make the label
+ * clickable; terminals without hyperlink support simply render the visible
+ * label. Callers truncate/pad the plain label first so layout remains stable.
+ */
+function terminalHyperlink(label: string, url: string): string {
+  return `\u001B]8;;${url}\u0007${label}\u001B]8;;\u0007`;
+}
+
+function webLinkLabel(url: string): string {
+  return `↗ ${url.replace(/^https?:\/\//, '')}`;
 }
 
 function pad(str: string, len: number): string {
@@ -326,13 +340,19 @@ function BoardHeader({ title, inTmux, modeHint, version, daemonStatus, daemonBus
   const rightWidth = Math.max(0, width - leftWidth - daemonWidth);
   const left = pad(`  ◆ KANDOWN${tmuxHint}${versionTag}  ${title}`, leftWidth);
   const daemon = pad(daemonLabel, daemonWidth);
-  const right = truncate(hint, rightWidth).padStart(rightWidth, ' ');
+  const webUrl = daemonStatus.running ? daemonStatus.metadata?.url : null;
+  const rightPlain = webUrl ? truncate(webLinkLabel(webUrl), rightWidth) : truncate(hint, rightWidth);
+  const right = rightPlain.padStart(rightWidth, ' ');
+  const rightPadding = right.slice(0, Math.max(0, right.length - rightPlain.length));
+  const rightContent = webUrl ? `${rightPadding}${terminalHyperlink(rightPlain, webUrl)}` : right;
 
   return (
     <Box marginBottom={1}>
       <Text bold color="cyan">{left}</Text>
       {daemonWidth > 0 && <Text color={daemonStatus.running ? 'green' : 'yellow'} bold>{daemon}</Text>}
-      {rightWidth > 0 && <Text color="gray" dimColor>{right}</Text>}
+      {rightWidth > 0 && (
+        <Text color={webUrl ? 'blue' : 'gray'} dimColor={!webUrl} underline={!!webUrl}>{rightContent}</Text>
+      )}
     </Box>
   );
 }
@@ -1198,7 +1218,11 @@ export function Board({ kandownDir, version }: BoardProps) {
       <Box flexDirection="column">
         <Box marginBottom={1} justifyContent="space-between">
           <Text color="gray">Esc back · a agent · j/k scroll</Text>
-          <Text color="gray" dimColor>KANDOWN  {board.title}</Text>
+          {daemonStatus.running && daemonStatus.metadata ? (
+            <Text color="blue" underline>{terminalHyperlink(webLinkLabel(daemonStatus.metadata.url), daemonStatus.metadata.url)}</Text>
+          ) : (
+            <Text color="gray" dimColor>KANDOWN  {board.title}</Text>
+          )}
         </Box>
         <TaskDetail task={detailTask} taskId={detailTaskId} scrollOffset={detailScroll} />
         {statusMsg && <Box marginTop={1}><Text color="yellow">{statusMsg}</Text></Box>}

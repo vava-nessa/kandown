@@ -269,17 +269,22 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       {/* Subtle priority edge indicator — removed; priority now lives in the
        * metadata block (revealed via the global showMetadata toggle). */}
 
-      <div className="px-3.5 pt-3 pb-1.5">
+      <div className="px-3.5 pt-3 pb-1.5 flex items-center gap-1.5 flex-wrap">
         <span className="font-mono text-[11.5px] font-medium text-fg-faint tabular-nums">
           {task.id.replace(/^t/, '#')}
         </span>
+        {bracketTag && (
+          <span className="inline-flex items-center h-[16px] px-1.5 text-[10px] font-semibold tracking-wide text-fg-muted uppercase rounded bg-black/[0.04] dark:bg-white/10">
+            {bracketTag}
+          </span>
+        )}
         {task.dependsOn && task.dependsOn.length > 0 && (
           // 📖 Dep chip: surfaces the task's `depends_on` count next to the id
           // so blocked work is visible at a glance on the board. Hover shows
           // the full id list — the drawer has the "Blocked by" panel for the
-          // resolved/unresolved breakdown.
+          // unresolved/resolved breakdown.
           <span
-            className="ml-1.5 inline-flex items-center gap-0.5 px-1.5 h-[16px] rounded text-[10.5px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20"
+            className="ml-auto inline-flex items-center gap-0.5 px-1.5 h-[16px] rounded text-[10.5px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20"
             title={t('card.blockedBy', { ids: task.dependsOn.join(', ') })}
             aria-label={t('card.blockedBy', { ids: task.dependsOn.join(', ') })}
           >
@@ -296,15 +301,6 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
         >
           {titleWithoutTag}
         </div>
-
-        {/* Bracket tag next to title if present */}
-        {bracketTag && (
-          <div className="mt-1.5">
-            <span className="inline-flex items-center h-[18px] px-1.5 text-[10.5px] font-semibold tracking-wide text-fg-muted uppercase rounded bg-black/[0.04] dark:bg-white/10">
-              {bracketTag}
-            </span>
-          </div>
-        )}
 
         {/* Search preview */}
         {showPreview && (

@@ -21,6 +21,7 @@
 import { existsSync, readFileSync, unlinkSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { spawn } from 'node:child_process';
+import { createConnection } from 'node:net';
 
 export interface DaemonMetadata {
   pid: number;
@@ -108,6 +109,21 @@ async function fetchDaemonInfo(port: number): Promise<RemoteDaemonInfo | null> {
   }
 }
 
+function isPortListening(port: number, timeoutMs = 400): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = createConnection({ port, host: '127.0.0.1' }, () => {
+      socket.destroy();
+      resolve(true);
+    });
+    socket.on('error', () => resolve(false));
+    socket.setTimeout(timeoutMs);
+    socket.on('timeout', () => {
+      socket.destroy();
+      resolve(false);
+    });
+  });
+}
+
 export async function getDaemonStatus(kandownDir: string): Promise<DaemonStatus> {
   const metadata = readDaemonMetadata(kandownDir);
   if (!metadata) return { running: false, metadata: null };
@@ -117,7 +133,13 @@ export async function getDaemonStatus(kandownDir: string): Promise<DaemonStatus>
   }
 
   const remote = await fetchDaemonInfo(metadata.port);
-  if (!remote || remote.pid !== metadata.pid || remote.kandownDir !== kandownDir) {
+  if (!remote) {
+    // 📖 Fetch can fail transiently during daemon startup (same undici race as
+    // the CLI parent process). Keep metadata while the PID is alive so the next
+    // poll can recover instead of orphaning a healthy daemon.
+    return { running: false, metadata: null };
+  }
+  if (remote.pid !== metadata.pid || remote.kandownDir !== kandownDir) {
     removeDaemonMetadata(kandownDir);
     return { running: false, metadata: null };
   }
@@ -125,12 +147,14 @@ export async function getDaemonStatus(kandownDir: string): Promise<DaemonStatus>
   return { running: true, metadata };
 }
 
-async function waitForDaemon(kandownDir: string, timeoutMs = 5000): Promise<DaemonStatus> {
+async function waitForDaemon(kandownDir: string, timeoutMs = 8000): Promise<DaemonStatus> {
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
-    const status = await getDaemonStatus(kandownDir);
-    if (status.running) return status;
-    await new Promise(resolve => setTimeout(resolve, 150));
+    const metadata = readDaemonMetadata(kandownDir);
+    if (metadata && isProcessAlive(metadata.pid) && await isPortListening(metadata.port)) {
+      return { running: true, metadata };
+    }
+    await new Promise(resolve => setTimeout(resolve, 120));
   }
   return { running: false, metadata: null };
 }

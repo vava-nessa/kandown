@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.15.3 — 2026-07-08 — "Cosmetic Change"
+
+- **Changed**: **Category tag moved next to task ID in cards** — the `[bracket]` category tag previously displayed below the title now sits inline to the right of the task number (`#102 [optimization]`), keeping the card header compact and scannable.
+
 ## 0.15.2 — 2026-07-07 — "Safe Ports"
 
 - **Fixed**: **2nd concurrent project looked dead in the browser** — when running `kandown` in a second project folder, the daemon correctly moved to port **2049**, but Chrome/Firefox/Safari refuse to load it (`net::ERR_UNSAFE_PORT`) because 2049 is the well-known **NFS** port. The server answered fine (curl worked) yet the browser showed an error page. Port allocation now skips every port in the browsers' restricted-ports list (`BROWSER_UNSAFE_PORTS`, sourced from Chromium's `net/base/port_util.cc`), so the 2nd project lands on a browser-loadable port (2050) instead. The default 2048 stays safe and stable for the primary project. `--port <n>` pointing at an unsafe port is now rejected with a clear message.
