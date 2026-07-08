@@ -12,16 +12,19 @@
   },
   "board": {
     "columns": [
-      "Backlog",
+      "Review",
       "Todo",
       "Doing 🟢",
-      "Review",
+      "Backlog",
       "Done",
       "archives"
     ],
     "defaultPriority": "P3",
     "defaultOwnerType": "human",
-    "columnColors": {}
+    "columnColors": {
+      "in progress": "fuchsia",
+      "backlog": "lime"
+    }
   },
   "fields": {
     "priority": false,

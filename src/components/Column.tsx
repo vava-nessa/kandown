@@ -5,7 +5,8 @@
  *
  * 📖 Drag state is owned by `Board`; this component only translates browser
  * drag/drop events into the column-level callbacks that eventually update
- * the task files.
+ * the task files. Column reorder is intentionally started only from the handle
+ * so card dragging and column sorting never fight for the same gesture.
  * 📖 Column header icons are mapped from normalized status names so default
  * boards get clear visual landmarks while custom columns still use a stable
  * fallback icon.
@@ -308,23 +309,38 @@ export function Column({
 
   if (isEmptyCompactMode) {
     return (
-      <motion.div
-        layout
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        data-column={column.name}
-        className="flex flex-col items-center justify-center w-full h-full min-h-0 px-1 transition-all duration-150 cursor-default"
-        style={{
-          opacity: isOver ? 0.8 : 1,
-          backgroundColor: isOver ? 'rgba(255,255,255,0.04)' : colBg,
+      <div
+        draggable
+        onDragStart={(e) => {
+          e.stopPropagation();
+          onColumnDragStart(e, columnIndex);
         }}
+        onDragEnd={(e) => {
+          e.stopPropagation();
+          onColumnDragEnd(e);
+        }}
+        className={`h-full w-full cursor-grab transition-opacity duration-150 active:cursor-grabbing ${
+          draggedColIndex === columnIndex ? 'opacity-45' : ''
+        }`}
       >
-        <ColumnIcon aria-hidden="true" size={16} stroke={1.8} className="text-fg-muted mb-1 shrink-0" />
-        <span className="text-[11px] font-medium text-fg-muted text-center leading-tight max-w-full">
-          {column.name}
-        </span>
-      </motion.div>
+        <motion.div
+          layout
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          data-column={column.name}
+          className="flex flex-col items-center justify-center w-full h-full min-h-0 px-1 transition-all duration-150"
+          style={{
+            opacity: isOver ? 0.8 : 1,
+            backgroundColor: isOver ? 'rgba(255,255,255,0.04)' : colBg,
+          }}
+        >
+          <ColumnIcon aria-hidden="true" size={16} stroke={1.8} className="text-fg-muted mb-1 shrink-0" />
+          <span className="text-[11px] font-medium text-fg-muted text-center leading-tight max-w-full">
+            {column.name}
+          </span>
+        </motion.div>
+      </div>
     );
   }
 
@@ -350,7 +366,9 @@ export function Column({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       data-column={column.name}
-      className="group/column flex flex-col flex-none w-[320px] h-full rounded-xl border border-border transition-colors duration-150"
+      className={`group/column flex flex-col flex-none w-[320px] h-full rounded-xl border border-border transition-[background-color,opacity,transform,box-shadow] duration-150 ${
+        draggedColIndex === columnIndex ? 'opacity-45 scale-[0.985] shadow-sm' : ''
+      }`}
       style={{ backgroundColor: isOver ? 'rgba(255,255,255,0.04)' : colBg }}
     >
       <div className="flex items-center justify-between px-3.5 pt-3 pb-2">

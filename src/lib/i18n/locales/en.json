@@ -61,6 +61,7 @@
     "createPrompt": "Column name",
     "renameColumn": "Rename column",
     "renamePrompt": "New column name",
+    "reorderColumn": "Reorder column",
     "deleteColumn": "Delete column",
     "deleteConfirm": "Delete \"{{name}}\" and its {{count}} tasks?"
   },

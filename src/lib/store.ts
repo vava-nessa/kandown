@@ -1011,10 +1011,11 @@ export const useStore = create<State>((set, get) => ({
     reordered.splice(toIndex, 0, moved);
     set({ columns: reordered });
 
-    // Update column order in config
-    const colOrder = [...config.board.columns];
-    const [movedName] = colOrder.splice(fromIndex, 1);
-    colOrder.splice(toIndex, 0, movedName);
+    // 📖 Persist the visible column order, not the old config array indices.
+    // Unknown task statuses can appear as columns after parsing; if vava drags
+    // one, it should become a real configured column instead of corrupting the
+    // config by splicing `undefined` from a shorter array.
+    const colOrder = reordered.map(col => col.name);
 
     try {
       await get().updateConfig(c => ({ ...c, board: { ...c.board, columns: colOrder } }));
