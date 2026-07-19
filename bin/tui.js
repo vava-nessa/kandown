@@ -53985,8 +53985,26 @@ var import_react38 = __toESM(require_react(), 1);
 var import_react34 = __toESM(require_react(), 1);
 
 // src/cli/lib/config.ts
-import { readFileSync as readFileSync2, writeFileSync, existsSync as existsSync2 } from "fs";
+import { readFileSync as readFileSync2, existsSync as existsSync2 } from "fs";
 import { join } from "path";
+
+// src/cli/lib/atomic-write.ts
+import { renameSync, unlinkSync, writeFileSync } from "fs";
+function atomicWriteFileSync(path, content) {
+  const tmp = `${path}.${process.pid}.tmp`;
+  try {
+    writeFileSync(tmp, content, "utf8");
+    renameSync(tmp, path);
+  } catch (e) {
+    try {
+      unlinkSync(tmp);
+    } catch {
+    }
+    throw e;
+  }
+}
+
+// src/cli/lib/config.ts
 var DEFAULT_CONFIG = {
   ui: { language: "en", theme: "auto", skin: "kandown", font: "inter" },
   agent: { suggestFollowUp: false, maxSuggestions: 3 },
@@ -54051,7 +54069,7 @@ function loadConfig(kandownDir) {
 }
 function saveConfig(kandownDir, config) {
   const configPath = join(kandownDir, "kandown.json");
-  writeFileSync(configPath, JSON.stringify(config, null, 2) + "\n", "utf8");
+  atomicWriteFileSync(configPath, JSON.stringify(config, null, 2) + "\n");
 }
 function getConfigValue(config, path) {
   const parts = path.split(".");
@@ -54359,7 +54377,7 @@ function ValueDisplay({ setting, value, focused }) {
 var import_react37 = __toESM(require_react(), 1);
 
 // src/cli/lib/board-reader.ts
-import { existsSync as existsSync3, readdirSync, readFileSync as readFileSync3, writeFileSync as writeFileSync2 } from "fs";
+import { existsSync as existsSync3, readdirSync, readFileSync as readFileSync3 } from "fs";
 import { dirname, join as join2 } from "path";
 
 // src/lib/types.ts
@@ -54635,11 +54653,11 @@ function moveTaskToColumn(kandownDir, taskId, targetColumn) {
   if (!existsSync3(taskPath)) return false;
   try {
     const parsed = readTask(kandownDir, taskId);
-    writeFileSync2(taskPath, serializeTaskFile({
+    atomicWriteFileSync(taskPath, serializeTaskFile({
       ...parsed.frontmatter,
       id: taskId,
       status: targetColumn
-    }, parsed.body), "utf8");
+    }, parsed.body));
     return true;
   } catch (e) {
     console.error(`[kandown] Failed to move task ${taskId} to ${targetColumn}:`, e.message);
@@ -54648,7 +54666,7 @@ function moveTaskToColumn(kandownDir, taskId, targetColumn) {
 }
 
 // src/cli/lib/daemon.ts
-import { existsSync as existsSync4, readFileSync as readFileSync4, unlinkSync } from "fs";
+import { existsSync as existsSync4, readFileSync as readFileSync4, unlinkSync as unlinkSync2 } from "fs";
 import { dirname as dirname2, join as join3 } from "path";
 import { execFileSync as execFileSync2, spawn } from "child_process";
 import { createConnection } from "net";
@@ -54660,13 +54678,14 @@ function isRecord(value) {
 }
 function parseMetadata(value) {
   if (!isRecord(value)) return null;
-  const { pid, port, url, kandownDir, startedAt, version } = value;
+  const { pid, port, url, kandownDir, startedAt, version, token } = value;
   if (typeof pid !== "number" || !Number.isInteger(pid)) return null;
   if (typeof port !== "number" || !Number.isInteger(port)) return null;
   if (typeof url !== "string" || typeof kandownDir !== "string") return null;
   if (typeof startedAt !== "string") return null;
   if (version !== null && typeof version !== "string" && version !== void 0) return null;
-  return { pid, port, url, kandownDir, startedAt, version: version ?? null };
+  if (token !== null && typeof token !== "string" && token !== void 0) return null;
+  return { pid, port, url, kandownDir, startedAt, version: version ?? null, token: typeof token === "string" ? token : null };
 }
 function readDaemonMetadata(kandownDir) {
   const path = metadataPath(kandownDir);
@@ -54680,7 +54699,7 @@ function readDaemonMetadata(kandownDir) {
 function removeDaemonMetadata(kandownDir) {
   try {
     const path = metadataPath(kandownDir);
-    if (existsSync4(path)) unlinkSync(path);
+    if (existsSync4(path)) unlinkSync2(path);
   } catch {
   }
 }
@@ -56859,7 +56878,7 @@ function buildPrompt(agentDoc, taskContent, taskId, kandownDir) {
 
 // src/cli/lib/launcher.ts
 import { execSync, spawn as spawn2 } from "child_process";
-import { writeFileSync as writeFileSync3 } from "fs";
+import { writeFileSync as writeFileSync2 } from "fs";
 import { join as join7 } from "path";
 import { tmpdir } from "os";
 function isInTmux() {
@@ -56895,7 +56914,7 @@ function launchAgent(opts) {
   }
   const contextFile = join7(tmpdir(), `kandown-${taskId}-context.md`);
   try {
-    writeFileSync3(contextFile, `${systemPrompt}
+    writeFileSync2(contextFile, `${systemPrompt}
 
 ---
 
@@ -57675,6 +57694,9 @@ function Board({ kandownDir, version }) {
     try {
       const res = await fetch(`http://127.0.0.1:${status.metadata.port}/api/tasks/${encodeURIComponent(taskId)}/agent`, {
         method: "POST",
+        // 📖 The daemon requires its per-instance token (M5); the TUI reads it
+        // from daemon.json via getDaemonStatus.
+        headers: status.metadata.token ? { "X-Kandown-Token": status.metadata.token } : {},
         signal: AbortSignal.timeout(8e3)
       });
       if (res.ok) {

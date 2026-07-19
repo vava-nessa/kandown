@@ -30,7 +30,7 @@ Un thème devient un objet sérialisable — chargeable depuis le code (presets)
 {
   "id": "my-theme",
   "name": "My Theme",
-  "author": "vava",
+  "author": "Vanessa Depraute",
   "base": "vercel",              // héritage : ne redéfinir que des deltas
   "appearance": {
     "radius": "8px",             // --radius (cards/inputs dérivés : calc)

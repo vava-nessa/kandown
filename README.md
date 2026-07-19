@@ -219,9 +219,11 @@ pnpm dev          # Web UI at localhost:5176
 
 ---
 
-## License
+## License & credits
 
-[MIT](LICENSE) — use it, fork it, ship it.
+[MIT](LICENSE) © 2026 [Vanessa Depraute](https://vanessadepraute.dev) — GitHub: [vava-nessa](https://github.com/vava-nessa).
+
+Created and maintained by [Vanessa Depraute](https://vanessadepraute.dev).
 
 ---
 

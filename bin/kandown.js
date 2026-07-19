@@ -60,10 +60,27 @@ import {
   statSync,
   unlinkSync,
   renameSync,
-  rmdirSync,
+  rmSync,
+  openSync,
+  writeSync,
+  closeSync,
 } from 'node:fs';
-import { spawnSync, spawn, execSync } from 'node:child_process';
+import { spawn, execSync } from 'node:child_process';
 import { createConnection } from 'node:net';
+import { randomBytes } from 'node:crypto';
+
+// 📖 Global safety net: a stray exception or unhandled rejection prints a clean
+// one-liner instead of a raw stack trace. The daemon (KANDOWN_DAEMON=1) logs
+// and keeps serving — a single bad request must not take the web UI down.
+// Set KANDOWN_DEBUG=1 to get the full stack.
+function handleFatal(kind, e) {
+  const msg = e instanceof Error ? e.message : String(e);
+  console.error(`\x1b[31m✗\x1b[0m kandown ${kind}: ${msg}`);
+  if (process.env.KANDOWN_DEBUG && e instanceof Error) console.error(e.stack);
+  if (process.env.KANDOWN_DAEMON !== '1') process.exit(1);
+}
+process.on('uncaughtException', (e) => handleFatal('crashed', e));
+process.on('unhandledRejection', (e) => handleFatal('internal error', e));
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -127,17 +144,50 @@ function resolveKandownBin() {
 }
 
 /**
- * 📖 Compares two semver strings (major.minor.patch).
+ * 📖 Compares two semver strings (major.minor.patch, optional -prerelease).
+ * Prerelease-safe: "0.18.0-beta.1" no longer parses as NaN — the numeric
+ * triple is compared first, and on a tie a release outranks a prerelease.
  * @returns {number} 1 if a > b, -1 if a < b, 0 if equal.
  */
 function semverGt(a, b) {
-  const pa = a.replace(/^v/, '').split('.').map(Number);
-  const pb = b.replace(/^v/, '').split('.').map(Number);
+  const parse = (v) => {
+    const [core, ...pre] = String(v).replace(/^v/, '').split('-');
+    return { nums: core.split('.').map(n => Number(n) || 0), pre: pre.length > 0 };
+  };
+  const pa = parse(a);
+  const pb = parse(b);
   for (let i = 0; i < 3; i++) {
-    if ((pa[i] || 0) > (pb[i] || 0)) return 1;
-    if ((pa[i] || 0) < (pb[i] || 0)) return -1;
+    if ((pa.nums[i] || 0) > (pb.nums[i] || 0)) return 1;
+    if ((pa.nums[i] || 0) < (pb.nums[i] || 0)) return -1;
   }
+  if (!pa.pre && pb.pre) return 1;
+  if (pa.pre && !pb.pre) return -1;
   return 0;
+}
+
+/**
+ * 📖 Update-check throttle: remembers the last successful registry check in a
+ * small cache file next to the package. The network check runs at most once
+ * per 24h — `kandown` stays fast (and fully offline-silent) the rest of the
+ * time. Cache write failures are ignored (read-only installs just check more
+ * often, which is the pre-throttle behavior).
+ */
+const UPDATE_CHECK_CACHE = join(PKG_ROOT, '.update-check.json');
+const UPDATE_CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000;
+
+function updateCheckedRecently() {
+  try {
+    const raw = JSON.parse(readFileSync(UPDATE_CHECK_CACHE, 'utf8'));
+    return Number.isFinite(raw?.lastCheck) && Date.now() - raw.lastCheck < UPDATE_CHECK_INTERVAL_MS;
+  } catch {
+    return false;
+  }
+}
+
+function rememberUpdateCheck() {
+  try {
+    writeFileSync(UPDATE_CHECK_CACHE, JSON.stringify({ lastCheck: Date.now() }), 'utf8');
+  } catch { /* read-only install — check again next time */ }
 }
 
 /**
@@ -160,6 +210,17 @@ function semverGt(a, b) {
 async function checkForUpdate(argv = process.argv) {
   // 📖 Local dev — skip entirely
   if (existsSync(join(PKG_ROOT, 'src'))) return;
+
+  // 📖 Opt-out for CI / controlled environments.
+  if (process.env.KANDOWN_NO_UPDATE === '1') return;
+
+  // 📖 Script context (piped/captured output): never surprise-update — a
+  // respawn mid-pipeline would interleave output from two versions.
+  if (!process.stdout.isTTY) return;
+
+  // 📖 Throttle: the registry round-trip runs at most once per 24h, so the
+  // command stays instant (and silent offline) the rest of the time.
+  if (updateCheckedRecently()) return;
 
   const current = getCurrentVersion();
   if (!current) return;
@@ -196,6 +257,10 @@ async function checkForUpdate(argv = process.argv) {
       resolve(v || null);
     });
   });
+
+  // 📖 A successful registry answer (even "up to date") arms the 24h throttle.
+  // Offline / registry-down does NOT — we retry on the next interactive run.
+  if (latest) rememberUpdateCheck();
 
   if (!latest || semverGt(current, latest) >= 0) return; // up to date or offline
 
@@ -301,7 +366,29 @@ const c = {
   cyan: '\x1b[36m',
 };
 
-const log = (msg) => console.log(msg);
+/**
+ * 📖 Atomic write (M6): write to a sibling temp file then rename over the
+ * target. A crash/kill mid-write can no longer leave a truncated task file or
+ * a corrupted kandown.json — rename is atomic on the same filesystem.
+ */
+function atomicWriteFileSync(path, content) {
+  const tmp = `${path}.${process.pid}.tmp`;
+  try {
+    writeFileSync(tmp, content, 'utf8');
+    renameSync(tmp, path);
+  } catch (e) {
+    try { unlinkSync(tmp); } catch { /* nothing to clean */ }
+    throw e;
+  }
+}
+
+// 📖 Output contract (M2): stdout carries DATA ONLY (ids, JSON, tables, help)
+// so `$(kandown shell create ...)` and `| jq` pipelines stay clean. Every
+// decoration — status lines, warnings, errors, progress — goes to stderr.
+/** Data output → stdout. Use ONLY for content the command was asked to produce. */
+const out = (msg) => console.log(msg);
+/** Decoration output → stderr (status, hints, banners). */
+const log = (msg) => console.error(msg);
 const success = (msg) => log(`${c.green}✓${c.reset} ${msg}`);
 const info = (msg) => log(`${c.cyan}→${c.reset} ${msg}`);
 const warn = (msg) => log(`${c.yellow}⚠${c.reset} ${msg}`);
@@ -315,22 +402,11 @@ const err = (msg) => log(`${c.red}✗${c.reset} ${msg}`);
 const _SP_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 let _spTimer = null;
 let _spIdx = 0;
-const _isTTY = process.stdout.isTTY;
+// 📖 Animations are decorations → stderr, and only when stderr is a TTY.
+const _isTTY = process.stderr.isTTY;
 
 function _tuiClear() {
-  process.stdout.write('\r\x1b[K');
-}
-
-/** Start an animated spinner with the given text. */
-function tuiSpinner(text) {
-  if (_spTimer) clearInterval(_spTimer);
-  _spIdx = 0;
-  _tuiClear();
-  if (!_isTTY) { process.stdout.write(`  ${text}\n`); return; }
-  _spTimer = setInterval(() => {
-    process.stdout.write(`\r\x1b[K${_SP_FRAMES[_spIdx % _SP_FRAMES.length]} ${text}`);
-    _spIdx++;
-  }, 100);
+  process.stderr.write('\r\x1b[K');
 }
 
 /**
@@ -342,14 +418,14 @@ function tuiProgress(text, estimateSec = 25, barWidth = 15) {
   if (_spTimer) clearInterval(_spTimer);
   _spIdx = 0;
   _tuiClear();
-  if (!_isTTY) { process.stdout.write(`  ${text}\n`); return; }
+  if (!_isTTY) { process.stderr.write(`  ${text}\n`); return; }
   const start = Date.now();
   _spTimer = setInterval(() => {
     const elapsed = (Date.now() - start) / 1000;
     const pct = Math.min(Math.round((elapsed / estimateSec) * 100), 95);
     const filled = Math.round(barWidth * pct / 100);
     const bar = '\u2588'.repeat(filled) + '\u2591'.repeat(barWidth - filled);
-    process.stdout.write(`\r\x1b[K${_SP_FRAMES[_spIdx % _SP_FRAMES.length]} ${text} ${bar} ${pct}%`);
+    process.stderr.write(`\r\x1b[K${_SP_FRAMES[_spIdx % _SP_FRAMES.length]} ${text} ${bar} ${pct}%`);
     _spIdx++;
   }, 120);
 }
@@ -359,7 +435,7 @@ function tuiDone(symbol, text) {
   if (_spTimer) { clearInterval(_spTimer); _spTimer = null; }
   if (_isTTY) {
     _tuiClear();
-    process.stdout.write(`${symbol} ${text}\n`);
+    process.stderr.write(`${symbol} ${text}\n`);
   } else {
     log(`${symbol} ${text}`);
   }
@@ -367,7 +443,7 @@ function tuiDone(symbol, text) {
 
 function help() {
   const v = getCurrentVersion() ?? '?';
-  log(`
+  out(`
 ${c.bold}kandown${c.reset} ${c.dim}· file-based kanban backed by markdown${c.reset}
 ${c.dim}v${v}${c.reset}
 
@@ -555,7 +631,6 @@ function getTasksDir(kandownDir) {
  * @returns {{ moved: number, cleanedUp: boolean, skipped: boolean }}
  */
 function migrateTasksToTopLevel(kandownDir) {
-  const projectRoot = getProjectRoot(kandownDir);
   const oldDir = join(kandownDir, 'tasks');
   const newDir = getTasksDir(kandownDir);
   const result = { moved: 0, cleanedUp: false, skipped: false };
@@ -628,7 +703,7 @@ function cleanupLegacyTasksDir(kandownDir, result) {
   const remaining = readdirSync(oldDir);
   if (remaining.length === 0) {
     try {
-      rmdirSync(oldDir);
+      rmSync(oldDir, { recursive: false });
       result.cleanedUp = true;
     } catch { /* directory not empty or platform limitation — leave it */ }
   }
@@ -644,7 +719,6 @@ function cleanupLegacyTasksDir(kandownDir, result) {
 function ensureKandownDir(rawArgs) {
   const args = parseArgs(rawArgs);
   const cwd = process.cwd();
-  const explicitPath = rawArgs.includes('--path') || rawArgs.includes('-p');
   const kandownDir = resolve(cwd, args.path);
 
   if (existsSync(kandownDir)) {
@@ -1006,11 +1080,6 @@ function shellList(rawArgs) {
     err(`Unknown status: ${args.flags.status}`);
     process.exit(1);
   }
-  if (statusFilter && statusFilter !== 'archived' && config && !(config.board.columns || []).map(c => c.toLowerCase()).includes(statusFilter.toLowerCase())) {
-    err(`Status not in board columns: ${statusFilter}`);
-    process.exit(1);
-  }
-
   const ids = listAllTaskIds(kandownDir);
   const rows = [];
   for (const id of ids) {
@@ -1041,18 +1110,20 @@ function shellList(rawArgs) {
   }
 
   if (rows.length === 0) {
+    // 📖 Placeholder goes to stderr — an empty result on stdout stays empty
+    // so `[ -z "$(kandown shell list ...)" ]` style checks behave.
     log(c.dim + '(no tasks)' + c.reset);
     return;
   }
 
   const idW = Math.max(2, ...rows.map(r => r.id.length));
-  log(`${c.dim}${shellPad('ID', idW)}  ${shellPad('STATUS', 14)}  ${shellPad('PRI', 4)}  ${shellPad('ASSIGNEE', 12)}  TITLE${c.reset}`);
+  out(`${c.dim}${shellPad('ID', idW)}  ${shellPad('STATUS', 14)}  ${shellPad('PRI', 4)}  ${shellPad('ASSIGNEE', 12)}  TITLE${c.reset}`);
   for (const r of rows) {
     const status = (r.fm.status || 'Backlog') + (r.fm.archived === true || r.fm.archived === 'true' ? ' (archived)' : '');
     const pri = r.fm.priority || '';
     const assignee = r.fm.assignee || '';
     const title = (r.fm.title || '(untitled)').replace(/\n/g, ' ');
-    log(`${shellPad(r.id, idW)}  ${shellPad(status, 14)}  ${shellPad(pri, 4)}  ${shellPad(assignee, 12)}  ${title}`);
+    out(`${shellPad(r.id, idW)}  ${shellPad(status, 14)}  ${shellPad(pri, 4)}  ${shellPad(assignee, 12)}  ${title}`);
   }
 }
 
@@ -1061,7 +1132,7 @@ function shellShow(rawArgs) {
   const args = shellParseArgs(rawArgs);
   const id = args.positional[0];
   if (!id) {
-    err('Usage: kandown show <id>');
+    err('Usage: kandown shell show <id>');
     process.exit(1);
   }
   const path = findTaskFile(kandownDir, id);
@@ -1092,7 +1163,7 @@ function shellCreate(rawArgs) {
   const args = shellParseArgs(rawArgs);
   const title = args.positional.join(' ').trim();
   if (!title) {
-    err('Usage: kandown create "title" [-p priority] [-a assignee] [-t tag] [--to status]');
+    err('Usage: kandown shell create "title" [-p priority] [-a assignee] [-t tag] [--to status]');
     process.exit(1);
   }
   const config = readKandownConfig(kandownDir);
@@ -1125,7 +1196,7 @@ function shellCreate(rawArgs) {
   if (args.flags.tags && args.flags.tags.length > 0) fm.tags = args.flags.tags;
   if (args.flags.dependsOn && args.flags.dependsOn.length > 0) fm.depends_on = args.flags.dependsOn;
   const content = serializeFrontmatter(fm, '');
-  writeFileSync(targetPath, content, 'utf8');
+  atomicWriteFileSync(targetPath, content);
   process.stderr.write(`${c.green}✓${c.reset} Created ${c.bold}${id}${c.reset} → ${targetStatus}\n`);
   if (args.flags.json) {
     process.stdout.write(JSON.stringify({ id, ...fm }, null, 2) + '\n');
@@ -1142,7 +1213,7 @@ function shellMove(rawArgs) {
   const [id, rawStatus] = args.positional;
   const targetStatus = rawStatus || args.flags.to;
   if (!id || !targetStatus) {
-    err('Usage: kandown move <id> <status>');
+    err('Usage: kandown shell move <id> <status>');
     process.exit(1);
   }
   const config = readKandownConfig(kandownDir);
@@ -1183,12 +1254,12 @@ function shellMove(rawArgs) {
   if (resolved === 'archived') {
     const archiveDir = join(getTasksDir(kandownDir), 'archive');
     if (!existsSync(archiveDir)) mkdirSync(archiveDir, { recursive: true });
-    writeFileSync(join(archiveDir, `${id}.md`), serializeFrontmatter(parsed.frontmatter, parsed.body), 'utf8');
+    atomicWriteFileSync(join(archiveDir, `${id}.md`), serializeFrontmatter(parsed.frontmatter, parsed.body));
     try { unlinkSync(path); } catch { /* already absent */ }
   } else {
     const normalTasksDir = getTasksDir(kandownDir);
     const normalPath = join(normalTasksDir, `${id}.md`);
-    writeFileSync(normalPath, serializeFrontmatter(parsed.frontmatter, parsed.body), 'utf8');
+    atomicWriteFileSync(normalPath, serializeFrontmatter(parsed.frontmatter, parsed.body));
     if (path !== normalPath) {
       try { unlinkSync(path); } catch { /* already absent */ }
     }
@@ -1201,7 +1272,7 @@ function shellAssign(rawArgs) {
   const args = shellParseArgs(rawArgs);
   const [id, name] = args.positional;
   if (!id) {
-    err('Usage: kandown assign <id> [name]   (omit name to unassign)');
+    err('Usage: kandown shell assign <id> [name]   (omit name to unassign)');
     process.exit(1);
   }
   const path = findTaskFile(kandownDir, id);
@@ -1212,7 +1283,7 @@ function shellAssign(rawArgs) {
   const parsed = parseFrontmatter(readFileSync(path, 'utf8'));
   if (name) parsed.frontmatter.assignee = name;
   else delete parsed.frontmatter.assignee;
-  writeFileSync(path, serializeFrontmatter(parsed.frontmatter, parsed.body), 'utf8');
+  atomicWriteFileSync(path, serializeFrontmatter(parsed.frontmatter, parsed.body));
   log(`${c.green}✓${c.reset} ${c.bold}${id}${c.reset} → ${name ? c.cyan + name : c.dim + '(unassigned)'}${c.reset}`);
 }
 
@@ -1290,7 +1361,7 @@ function cmdShell(subcmd, rawArgs) {
     case 'help':
     case '--help':
     case '-h':
-      log(`
+      out(`
 ${c.bold}kandown shell${c.reset} ${c.dim}· task commands (one-shot, scriptable)${c.reset}
 
 ${c.bold}Commands:${c.reset}
@@ -1302,11 +1373,11 @@ ${c.bold}Commands:${c.reset}
   ${c.cyan}commit${c.reset}  [-m "message"]   (git add tasks/ + .kandown/kandown.json + git commit)
 
 ${c.bold}Examples:${c.reset}
-  ${c.dim}$${c.reset} kandown list --json | jq '.[] | select(.priority=="P1")'
-  ${c.dim}$${c.reset} kandown create "Refactor auth middleware" -p P1 -t backend
-  ${c.dim}$${c.reset} kandown move t42 Done
-  ${c.dim}$${c.reset} kandown assign t42 alice
-  ${c.dim}$${c.reset} kandown commit -m "tasks: add auth refactor"
+  ${c.dim}$${c.reset} kandown shell list --json | jq '.[] | select(.priority=="P1")'
+  ${c.dim}$${c.reset} kandown shell create "Refactor auth middleware" -p P1 -t backend
+  ${c.dim}$${c.reset} kandown shell move t42 Done
+  ${c.dim}$${c.reset} kandown shell assign t42 alice
+  ${c.dim}$${c.reset} kandown shell commit -m "tasks: add auth refactor"
 `);
       return;
     default:
@@ -1346,7 +1417,7 @@ function readDaemonMetadata(kandownDir) {
 }
 
 function writeDaemonMetadata(kandownDir, metadata) {
-  writeFileSync(daemonMetadataPath(kandownDir), JSON.stringify(metadata, null, 2) + '\n', 'utf8');
+  atomicWriteFileSync(daemonMetadataPath(kandownDir), JSON.stringify(metadata, null, 2) + '\n');
 }
 
 function removeDaemonMetadata(kandownDir) {
@@ -1357,14 +1428,18 @@ function removeDaemonMetadata(kandownDir) {
 
 function ensureDaemonGitignore(kandownDir) {
   const gitignorePath = join(kandownDir, '.gitignore');
+  // 📖 Runtime files that must never be committed: daemon metadata + spawn lock.
+  const runtimeEntries = [DAEMON_FILE, 'daemon.lock'];
   try {
     if (!existsSync(gitignorePath)) {
-      writeFileSync(gitignorePath, `${DAEMON_FILE}\n`, 'utf8');
+      writeFileSync(gitignorePath, runtimeEntries.join('\n') + '\n', 'utf8');
       return;
     }
     const existing = readFileSync(gitignorePath, 'utf8');
-    if (!existing.split(/\r?\n/).includes(DAEMON_FILE)) {
-      writeFileSync(gitignorePath, `${existing.trimEnd()}\n${DAEMON_FILE}\n`, 'utf8');
+    const lines = existing.split(/\r?\n/);
+    const missing = runtimeEntries.filter(entry => !lines.includes(entry));
+    if (missing.length > 0) {
+      writeFileSync(gitignorePath, `${existing.trimEnd()}\n${missing.join('\n')}\n`, 'utf8');
     }
   } catch { /* ignore gitignore best-effort failure */ }
 }
@@ -1471,31 +1546,75 @@ async function waitForDaemon(kandownDir, timeoutMs = 8000) {
   return { running: false, metadata: null };
 }
 
+/**
+ * 📖 Spawn lock (M7): two `kandown` processes started at the same moment in
+ * the same project must not BOTH spawn a daemon (the loser's daemon.json
+ * write would orphan the winner's daemon). O_EXCL file creation is the mutex;
+ * the loser just waits for the winner's daemon to come up. A lock older than
+ * 15s is stale (crashed spawner) and gets stolen.
+ */
+function acquireDaemonSpawnLock(kandownDir) {
+  const lockPath = join(kandownDir, 'daemon.lock');
+  try {
+    const fd = openSync(lockPath, 'wx');
+    writeSync(fd, String(process.pid));
+    closeSync(fd);
+    return lockPath;
+  } catch (e) {
+    if (e.code !== 'EEXIST') return null;
+    try {
+      if (Date.now() - statSync(lockPath).mtimeMs > 15_000) {
+        unlinkSync(lockPath);
+        return acquireDaemonSpawnLock(kandownDir);
+      }
+    } catch { /* lock vanished — racing is fine, caller waits */ }
+    return null;
+  }
+}
+
+function releaseDaemonSpawnLock(lockPath) {
+  try { unlinkSync(lockPath); } catch { /* already gone */ }
+}
+
 async function startDaemon(kandownDir, preferredPort) {
   const current = await getDaemonStatus(kandownDir);
   if (current.running) return current;
 
-  removeDaemonMetadata(kandownDir);
-  ensureDaemonGitignore(kandownDir);
-  const daemonArgs = [
-    process.argv[1],
-    '--no-update-check',
-    'daemon',
-    'run',
-    '--path',
-    kandownDir,
-  ];
-  if (preferredPort !== null) daemonArgs.push('--port', String(preferredPort));
+  const lock = acquireDaemonSpawnLock(kandownDir);
+  if (!lock) {
+    // 📖 Another process is spawning the daemon right now — just wait for it.
+    return waitForDaemon(kandownDir);
+  }
 
-  const child = spawn(process.execPath, daemonArgs, {
-    cwd: dirname(kandownDir),
-    detached: true,
-    stdio: 'ignore',
-    env: { ...process.env, KANDOWN_DAEMON: '1' },
-  });
-  child.unref();
+  try {
+    // Double-checked: the daemon may have come up while we acquired the lock.
+    const recheck = await getDaemonStatus(kandownDir);
+    if (recheck.running) return recheck;
 
-  return waitForDaemon(kandownDir);
+    removeDaemonMetadata(kandownDir);
+    ensureDaemonGitignore(kandownDir);
+    const daemonArgs = [
+      process.argv[1],
+      '--no-update-check',
+      'daemon',
+      'run',
+      '--path',
+      kandownDir,
+    ];
+    if (preferredPort !== null) daemonArgs.push('--port', String(preferredPort));
+
+    const child = spawn(process.execPath, daemonArgs, {
+      cwd: dirname(kandownDir),
+      detached: true,
+      stdio: 'ignore',
+      env: { ...process.env, KANDOWN_DAEMON: '1' },
+    });
+    child.unref();
+
+    return await waitForDaemon(kandownDir);
+  } finally {
+    releaseDaemonSpawnLock(lock);
+  }
 }
 
 /**
@@ -1552,17 +1671,38 @@ async function stopDaemon(kandownDir) {
   return true;
 }
 
+/**
+ * 📖 API auth token (M5). Generated fresh at every daemon start, stored in
+ * daemon.json (CLI/TUI read it there) and injected into the served HTML as
+ * `window.__KANDOWN_TOKEN__`. Every API route except `GET /api/daemon`
+ * requires it via the `X-Kandown-Token` header — a drive-by web page scanning
+ * localhost ports can no longer read or write the task files.
+ */
+const DAEMON_TOKEN = randomBytes(24).toString('hex');
+
 function apiHeaders() {
+  // 📖 No Access-Control-Allow-Origin (M5): the web UI is served same-origin
+  // by this daemon, so cross-origin browser access is intentionally blocked.
+  // Non-browser clients (CLI, TUI, curl) are unaffected by CORS.
   return {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'GET, PUT, POST, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Kandown-Token',
   };
 }
 
 function handleCors(res) {
   res.writeHead(204, apiHeaders());
   res.end();
+}
+
+/**
+ * 📖 Token gate for API routes. Returns true when the request carries the
+ * daemon token; otherwise answers 401 and returns false.
+ */
+function requireToken(req, res) {
+  if (req.headers['x-kandown-token'] === DAEMON_TOKEN) return true;
+  writeJson(res, 401, { error: 'missing or invalid X-Kandown-Token' });
+  return false;
 }
 
 function writeJson(res, status, body) {
@@ -1576,10 +1716,25 @@ function writeText(res, status, body, contentType = 'text/plain; charset=utf-8')
   res.end(body);
 }
 
+// 📖 Body size cap: task files and configs are small — anything above 10 MB
+// is a bug or abuse, and buffering it would balloon the daemon's memory.
+const MAX_BODY_BYTES = 10 * 1024 * 1024;
+
 function readBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
-    req.on('data', chunk => chunks.push(chunk));
+    let total = 0;
+    req.on('data', chunk => {
+      total += chunk.length;
+      if (total > MAX_BODY_BYTES) {
+        const e = new Error('Request body too large (max 10 MB)');
+        e.statusCode = 413;
+        req.destroy();
+        reject(e);
+        return;
+      }
+      chunks.push(chunk);
+    });
     req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
     req.on('error', reject);
   });
@@ -1703,18 +1858,41 @@ function getConfig(res, kandownDir) {
   }
 }
 
+/**
+ * 📖 Shape validation for kandown.json writes: "is valid JSON" is not enough —
+ * a stray `[]` or `null` body would overwrite the config and silently reset
+ * every setting on the next load. Requires a plain object, and when `board`
+ * or `board.columns` are present they must have the right shape.
+ */
+function isValidConfigShape(parsed) {
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return false;
+  if ('board' in parsed) {
+    const board = parsed.board;
+    if (!board || typeof board !== 'object' || Array.isArray(board)) return false;
+    if ('columns' in board) {
+      if (!Array.isArray(board.columns)) return false;
+      if (!board.columns.every(col => typeof col === 'string' && col.trim().length > 0)) return false;
+    }
+  }
+  return true;
+}
+
 function putConfig(req, res, kandownDir) {
   readBody(req).then(body => {
+    let parsed;
     try {
-      JSON.parse(body);
-      const configPath = join(kandownDir, 'kandown.json');
-      writeFileSync(configPath, body, 'utf8');
-      writeJson(res, 200, { ok: true });
-    } catch (e) {
-      writeJson(res, 400, { error: 'Invalid JSON' });
+      parsed = JSON.parse(body);
+    } catch {
+      return writeJson(res, 400, { error: 'Invalid JSON' });
     }
+    if (!isValidConfigShape(parsed)) {
+      return writeJson(res, 400, { error: 'Invalid config shape: expected an object (board.columns must be a non-empty string array)' });
+    }
+    const configPath = join(kandownDir, 'kandown.json');
+    atomicWriteFileSync(configPath, body);
+    writeJson(res, 200, { ok: true });
   }).catch(e => {
-    writeJson(res, 500, { error: `Failed to read body: ${e.message}` });
+    writeJson(res, e.statusCode || 500, { error: `Failed to read body: ${e.message}` });
   });
 }
 
@@ -1735,7 +1913,7 @@ function getBoard(res, kandownDir) {
 function putBoard(req, res, kandownDir) {
   readBody(req).then(body => {
     const boardPath = join(kandownDir, 'board.md');
-    writeFileSync(boardPath, body, 'utf8');
+    atomicWriteFileSync(boardPath, body);
     writeJson(res, 200, { ok: true });
   }).catch(e => {
     writeJson(res, 500, { error: `Failed to write board: ${e.message}` });
@@ -1817,7 +1995,7 @@ function putTask(req, res, kandownDir, id) {
     const inArchive = existing && existing.startsWith(archiveDir);
     const targetDir = inArchive ? archiveDir : tasksDir;
     const taskPath = join(targetDir, `${id}.md`);
-    writeFileSync(taskPath, body, 'utf8');
+    atomicWriteFileSync(taskPath, body);
     writeJson(res, 200, { ok: true });
   }).catch(e => {
     writeJson(res, 500, { error: `Failed to write task: ${e.message}` });
@@ -1856,7 +2034,7 @@ function archiveTask(req, res, kandownDir, id) {
     const tasksDir = getTasksDir(kandownDir);
     const archiveDir = join(tasksDir, 'archive');
     if (!existsSync(archiveDir)) mkdirSync(archiveDir, { recursive: true });
-    writeFileSync(join(archiveDir, `${id}.md`), body, 'utf8');
+    atomicWriteFileSync(join(archiveDir, `${id}.md`), body);
     try {
       unlinkSync(join(tasksDir, `${id}.md`));
     } catch { /* already absent */ }
@@ -1877,7 +2055,7 @@ function unarchiveTask(req, res, kandownDir, id) {
   }
   readBody(req).then(body => {
     const tasksDir = getTasksDir(kandownDir);
-    writeFileSync(join(tasksDir, `${id}.md`), body, 'utf8');
+    atomicWriteFileSync(join(tasksDir, `${id}.md`), body);
     try {
       unlinkSync(join(tasksDir, 'archive', `${id}.md`));
     } catch { /* already absent */ }
@@ -1911,7 +2089,10 @@ function injectServerRoot(html, kandownDir) {
   const marker = '</head>';
   const markerIndex = html.toLowerCase().lastIndexOf(marker);
   const safeRoot = JSON.stringify(kandownDir).replace(/</g, '\\u003c');
-  const script = `<script>window.__KANDOWN_ROOT__ = ${safeRoot};</script>\n`;
+  // 📖 The token rides along with the root: same-origin page → full API access;
+  // any other page (drive-by localhost scan) never sees it (M5).
+  const safeToken = JSON.stringify(DAEMON_TOKEN).replace(/</g, '\\u003c');
+  const script = `<script>window.__KANDOWN_ROOT__ = ${safeRoot}; window.__KANDOWN_TOKEN__ = ${safeToken};</script>\n`;
 
   if (markerIndex === -1) return script + html;
 
@@ -1922,6 +2103,14 @@ function handleApi(req, res, url, kandownDir) {
   const parts = url.pathname.replace('/api/', '').split('/');
   const resource = parts[0];
   const id = parts[1];
+
+  // 📖 Token gate (M5): every API route requires X-Kandown-Token, except
+  // GET /api/daemon which stays open — it is the identity endpoint the CLI
+  // and sibling daemons use to verify ownership before they have the token,
+  // and it never exposes the token itself.
+  if (!(resource === 'daemon' && req.method === 'GET')) {
+    if (!requireToken(req, res)) return;
+  }
 
   if (resource === 'daemon') {
     if (req.method === 'GET') {
@@ -2178,6 +2367,10 @@ async function cmdDaemon(rawArgs) {
       kandownDir,
       startedAt: daemonStartedAt,
       version: getCurrentVersion(),
+      // 📖 Local-only secret (M5): daemon.json is chmod-protected by the
+      // user's umask and gitignored; the CLI/TUI read the token here to call
+      // the API. Never exposed by GET /api/daemon.
+      token: DAEMON_TOKEN,
     });
 
     const shutdown = () => {
@@ -2281,19 +2474,6 @@ async function openInBrowser(url) {
   child.unref();
 }
 
-/**
- * 📖 Finds the kandown directory from cwd. Checks .kandown/ and kandown/.
- * Returns the resolved absolute path or null if not found.
- */
-function findKandownDir(cwd) {
-  const candidates = ['.kandown', 'kandown'];
-  for (const dir of candidates) {
-    const p = resolve(cwd, dir);
-    if (existsSync(p)) return p;
-  }
-  return null;
-}
-
 // 📖 Launches the fullscreen TUI for a given screen (settings, board, etc.)
 async function cmdTui(screen, rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
@@ -2314,7 +2494,7 @@ const [cmd, ...rest] = rawArgs;
 // 📖 Handle --version / -v before any command logic
 if (cmd === '--version' || cmd === '-v') {
   const v = getCurrentVersion() ?? 'unknown';
-  log(`kandown v${v}`);
+  out(`kandown v${v}`);
   process.exit(0);
 }
 
@@ -2322,9 +2502,13 @@ if (cmd === '--version' || cmd === '-v') {
 // The parent passes --no-update-check to prevent an infinite update loop.
 const skipUpdate = process.argv.slice(2).includes('--no-update-check');
 
-// 📖 Auto-update check runs before EVERY command (except --version).
-// Uses a short timeout so startup is not noticeably slower.
-if (!skipUpdate) await checkForUpdate(process.argv);
+// 📖 Update policy (M1): the check only runs for INTERACTIVE commands.
+// `shell` (scripts/agents) and `daemon` (spawned children, status probes)
+// must never pay a network round-trip nor risk a mid-pipeline respawn.
+// Inside checkForUpdate there are further guards: 24h throttle, TTY-only,
+// and the KANDOWN_NO_UPDATE=1 opt-out.
+const SCRIPTED_COMMANDS = new Set(['shell', 'daemon']);
+if (!skipUpdate && !SCRIPTED_COMMANDS.has(cmd)) await checkForUpdate(process.argv);
 
 switch (cmd) {
   case 'init':

@@ -27,8 +27,9 @@
  * @see src/lib/parser.ts — pure string parsers reused here
  */
 
-import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { atomicWriteFileSync } from './atomic-write.js';
 import { buildColumnsFromTasks, parseTaskFile } from '../../lib/parser.js';
 import { serializeTaskFile } from '../../lib/serializer.js';
 import type { ParsedBoard, ParsedTask } from '../../lib/types.js';
@@ -160,11 +161,11 @@ export function moveTaskToColumn(
 
   try {
     const parsed = readTask(kandownDir, taskId);
-    writeFileSync(taskPath, serializeTaskFile({
+    atomicWriteFileSync(taskPath, serializeTaskFile({
       ...parsed.frontmatter,
       id: taskId,
       status: targetColumn,
-    }, parsed.body), 'utf8');
+    }, parsed.body));
     return true;
   } catch (e) {
     console.error(`[kandown] Failed to move task ${taskId} to ${targetColumn}:`, (e as Error).message);

@@ -1162,12 +1162,28 @@ function AboutVersionCard({ currentVersion, updateStatus, latestVersion, onCheck
           {t('settings.links') ?? 'Links'}
         </span>
         <a
+          href="https://vanessadepraute.dev"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[13px] text-fg underline underline-offset-2 hover:text-fg-muted"
+        >
+          Author: Vanessa Depraute
+        </a>
+        <a
+          href="https://github.com/vava-nessa"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[13px] text-fg underline underline-offset-2 hover:text-fg-muted"
+        >
+          GitHub: vava-nessa
+        </a>
+        <a
           href="https://github.com/vava-nessa/kandown"
           target="_blank"
           rel="noopener noreferrer"
           className="text-[13px] text-fg underline underline-offset-2 hover:text-fg-muted"
         >
-          GitHub
+          Repository
         </a>
         <a
           href="https://www.npmjs.com/package/kandown"

@@ -30,6 +30,9 @@ export interface DaemonMetadata {
   kandownDir: string;
   startedAt: string;
   version: string | null;
+  /** 📖 Per-daemon API auth token (M5). Required as `X-Kandown-Token` on every
+   * API route except `GET /api/daemon`. Absent on pre-token daemons. */
+  token: string | null;
 }
 
 export interface DaemonStatus {
@@ -53,13 +56,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function parseMetadata(value: unknown): DaemonMetadata | null {
   if (!isRecord(value)) return null;
-  const { pid, port, url, kandownDir, startedAt, version } = value;
+  const { pid, port, url, kandownDir, startedAt, version, token } = value;
   if (typeof pid !== 'number' || !Number.isInteger(pid)) return null;
   if (typeof port !== 'number' || !Number.isInteger(port)) return null;
   if (typeof url !== 'string' || typeof kandownDir !== 'string') return null;
   if (typeof startedAt !== 'string') return null;
   if (version !== null && typeof version !== 'string' && version !== undefined) return null;
-  return { pid, port, url, kandownDir, startedAt, version: version ?? null };
+  if (token !== null && typeof token !== 'string' && token !== undefined) return null;
+  return { pid, port, url, kandownDir, startedAt, version: version ?? null, token: typeof token === 'string' ? token : null };
 }
 
 export function readDaemonMetadata(kandownDir: string): DaemonMetadata | null {

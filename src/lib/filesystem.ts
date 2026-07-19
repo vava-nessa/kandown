@@ -56,6 +56,9 @@ declare global {
     showDirectoryPicker: (options?: { mode?: 'read' | 'readwrite' }) => Promise<FileSystemDirectoryHandle>;
     /** 📖 Set by the CLI server when serving the web app. Contains the absolute path to .kandown/. */
     __KANDOWN_ROOT__?: string;
+    /** 📖 Per-daemon API auth token injected by the CLI server alongside the
+     * root. Sent as `X-Kandown-Token` on every API call — see apiFetch. */
+    __KANDOWN_TOKEN__?: string;
   }
   interface FileSystemDirectoryHandle {
     name: string;
@@ -106,9 +109,18 @@ const API_BASE = '';
 /**
  * 📖 Central fetch wrapper for the Kandown REST API.
  * Throws with a descriptive message on non-OK responses.
+ * Attaches the daemon auth token (`X-Kandown-Token`) injected by the CLI
+ * server — every route except `GET /api/daemon` requires it.
  */
 async function apiFetch(path: string, options?: RequestInit): Promise<Response> {
-  const res = await fetch(`${API_BASE}${path}`, options);
+  const token = typeof window !== 'undefined' && typeof window.__KANDOWN_TOKEN__ === 'string'
+    ? window.__KANDOWN_TOKEN__
+    : null;
+  const headers: HeadersInit = {
+    ...(options?.headers as Record<string, string> | undefined),
+    ...(token ? { 'X-Kandown-Token': token } : {}),
+  };
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     throw new Error(`API ${options?.method ?? 'GET'} ${path} → ${res.status}${text ? ': ' + text : ''}`);

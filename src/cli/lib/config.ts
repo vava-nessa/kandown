@@ -15,8 +15,9 @@
  * @exports KandownConfig, findKandownDir, loadConfig, saveConfig, getConfigValue, setConfigValue
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { atomicWriteFileSync } from './atomic-write.js';
 
 // 📖 Full config shape — mirrors templates/kandown.json
 export interface KandownConfig {
@@ -168,7 +169,7 @@ export function loadConfig(kandownDir: string): KandownConfig {
  */
 export function saveConfig(kandownDir: string, config: KandownConfig): void {
   const configPath = join(kandownDir, 'kandown.json');
-  writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n', 'utf8');
+  atomicWriteFileSync(configPath, JSON.stringify(config, null, 2) + '\n');
 }
 
 /**

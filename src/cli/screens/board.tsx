@@ -804,6 +804,9 @@ export function Board({ kandownDir, version }: BoardProps) {
     try {
       const res = await fetch(`http://127.0.0.1:${status.metadata.port}/api/tasks/${encodeURIComponent(taskId)}/agent`, {
         method: 'POST',
+        // 📖 The daemon requires its per-instance token (M5); the TUI reads it
+        // from daemon.json via getDaemonStatus.
+        headers: status.metadata.token ? { 'X-Kandown-Token': status.metadata.token } : {},
         signal: AbortSignal.timeout(8000),
       });
       if (res.ok) {
