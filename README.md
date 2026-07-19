@@ -91,7 +91,54 @@ The web daemon stays alive after you quit the TUI so the browser keeps working. 
 | `kandown daemon start` | Start/reconnect this project's web daemon |
 | `kandown daemon stop` | Stop this project's web daemon |
 | `kandown update` | Update `kandown.html` to latest |
+| `kandown shell <cmd>` | Scriptable, one-shot task commands (see below) |
 | `kandown help` | CLI help |
+
+### Shell commands (scriptable, agent-friendly)
+
+`kandown shell` is a one-shot, non-interactive interface to the board — built for scripts, CI, and AI agents. Every command auto-inits `.kandown/` on first use, same as the interactive CLI.
+
+| Command | Description |
+|---|---|
+| `kandown shell list` | List tasks — `[-s status] [-a assignee] [-t tag] [-p priority] [--archived] [--json]` |
+| `kandown shell show <id>` | Print a task file's raw content |
+| `kandown shell create "title"` | Create a task — `[-p priority] [-a assignee] [-t tag ...] [--to status] [--id custom-id] [--json]` |
+| `kandown shell move <id> <status>` | Move a task — `<status>` is a column name or `"archived"` |
+| `kandown shell assign <id> [name]` | Assign a task (omit name to unassign) |
+| `kandown shell commit [-m "message"]` | `git add tasks/ .kandown/kandown.json` + `git commit` |
+
+```bash
+kandown shell list --json | jq '.[] | select(.priority=="P1")'
+kandown shell create "Refactor auth middleware" -p P1 -t backend
+kandown shell move t42 Done
+kandown shell assign t42 alice
+kandown shell commit -m "tasks: add auth refactor"
+```
+
+**Output contract:** stdout carries data only (task ids, JSON, tables) — everything decorative (`✓ Created…`, warnings, errors) goes to stderr. This keeps `ID=$(kandown shell create "...")` and `kandown shell list --json | jq ...` clean and composable. Exit code `0` on success, non-zero on error — safe to check in scripts.
+
+**No update checks:** `kandown shell` and `kandown daemon` never touch the npm registry, so they stay fast and fully offline-capable — ideal for CI and for AI agents driving the board directly.
+
+---
+
+## Environment variables
+
+| Variable | Effect |
+|---|---|
+| `KANDOWN_NO_UPDATE=1` | Disable the background auto-update check entirely (recommended for CI) |
+| `KANDOWN_DEBUG=1` | Print full stack traces on unexpected errors instead of a one-line summary |
+| `KANDOWN_AGENT_HOOK_URL` | POST endpoint that receives tasks sent via the "Send to Agent" button / TUI `g` key |
+| `KANDOWN_AGENT_HOOK_LABEL` | Custom label for the agent hook button (default: `Agent`) |
+| `KANDOWN_AGENT_HOOK_HEADERS` | JSON object of extra HTTP headers to send with the agent hook request |
+
+Interactive runs of `kandown` check npm for updates at most once every 24 hours (never for `shell`/`daemon`, never when stdout isn't a terminal) and auto-install silently when one is found.
+
+---
+
+## Security notes
+
+- The local web daemon binds to `127.0.0.1` only and issues a random per-project API token on startup (stored in the gitignored `.kandown/daemon.json`, injected into the served page). Every API route except the read-only `GET /api/daemon` identity check requires it — a stray browser tab on another site can't read or write your tasks through it.
+- `.kandown/daemon.json` and `.kandown/daemon.lock` are runtime-only files; `kandown init` adds them to `.kandown/.gitignore` automatically.
 
 ---
 
