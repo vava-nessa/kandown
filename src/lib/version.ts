@@ -5,4 +5,4 @@
  */
 
 export const KANDOWN_VERSION = "0.17.1";
-export const KANDOWN_BUILD_TIME = "2026-07-08T11:47:04.328Z";
+export const KANDOWN_BUILD_TIME = "2026-07-19T09:39:41.198Z";

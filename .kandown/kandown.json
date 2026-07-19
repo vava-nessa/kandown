@@ -12,10 +12,11 @@
   },
   "board": {
     "columns": [
+      "Backlog",
+      "In Progress",
       "Review",
       "Todo",
       "Doing 🟢",
-      "Backlog",
       "Done",
       "archives"
     ],
@@ -23,7 +24,9 @@
     "defaultOwnerType": "human",
     "columnColors": {
       "in progress": "fuchsia",
-      "backlog": "lime"
+      "backlog": "lime",
+      "todo": "red",
+      "doing 🟢": "slate"
     }
   },
   "fields": {

@@ -513,7 +513,7 @@ function parseArgs(argv) {
   const args = { path: '.kandown', noAgents: false, force: false, port: null };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
-    if (a === '--path' || a === '-p') args.path = argv[++i];
+    if (a === '--path') args.path = argv[++i];
     else if (a === '--port') args.port = argv[++i];
     else if (a === '--no-agents') args.noAgents = true;
     else if (a === '--force' || a === '-f') args.force = true;
@@ -548,11 +548,6 @@ function getTasksDir(kandownDir) {
  * `{ moved, cleanedUp }` describing what was done (or nothing).
  *
  * Rules:
- *  - If `./tasks/*.md` already exists, never move anything (avoid clobbering).
- *  - If `.kandown/tasks/` doesn't exist or has no .md files, no-op.
- *  - Move every `.md` file (including those in `archive/`) to `./tasks/`.
- *  - Delete `.kandown/tasks/` only if it's now empty (preserves any non-md
- *    files like `.scratch/` notes the user may have stashed there).
  *  - Never throw — failures are logged and skipped so a single bad file
  *    doesn't block the rest of the migration.
  *
@@ -838,10 +833,40 @@ function parseFrontmatter(content) {
   }
   const yaml = content.slice(4, end);
   out.body = content.slice(end + 5).replace(/^\n+/, '');
-  for (const line of yaml.split('\n')) {
-    if (!line.trim() || line.trim().startsWith('#')) continue;
+
+  const lines = yaml.split('\n');
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (!line.trim() || line.trim().startsWith('#')) {
+      i++;
+      continue;
+    }
+
+    const blockMatch = line.match(/^([a-zA-Z_][\w-]*)\s*:\s*\|\s*$/);
+    if (blockMatch) {
+      const key = blockMatch[1];
+      const valLines = [];
+      i++;
+      while (i < lines.length && (lines[i].startsWith(' ') || lines[i] === '')) {
+        if (lines[i].startsWith('  ')) {
+          valLines.push(lines[i].slice(2));
+        } else if (lines[i].startsWith(' ')) {
+          valLines.push(lines[i].slice(1));
+        } else {
+          valLines.push(lines[i]);
+        }
+        i++;
+      }
+      out.frontmatter[key] = valLines.join('\n');
+      continue;
+    }
+
     const m = line.match(/^([a-zA-Z_][\w-]*)\s*:\s*(.*)$/);
-    if (!m) continue;
+    if (!m) {
+      i++;
+      continue;
+    }
     const key = m[1];
     let val = (m[2] || '').trim();
     if (val.startsWith('[') && val.endsWith(']')) {
@@ -856,6 +881,7 @@ function parseFrontmatter(content) {
       val = val.replace(/^["']|["']$/g, '');
     }
     out.frontmatter[key] = val;
+    i++;
   }
   return out;
 }
@@ -1097,7 +1123,7 @@ function shellCreate(rawArgs) {
   if (args.flags.dependsOn && args.flags.dependsOn.length > 0) fm.depends_on = args.flags.dependsOn;
   const content = serializeFrontmatter(fm, '');
   writeFileSync(targetPath, content, 'utf8');
-  log(`${c.green}✓${c.reset} Created ${c.bold}${id}${c.reset} → ${targetStatus}`);
+  process.stderr.write(`${c.green}✓${c.reset} Created ${c.bold}${id}${c.reset} → ${targetStatus}\n`);
   if (args.flags.json) {
     process.stdout.write(JSON.stringify({ id, ...fm }, null, 2) + '\n');
   } else {
@@ -1151,15 +1177,18 @@ function shellMove(rawArgs) {
   parsed.frontmatter.status = resolved;
   if (resolved === 'archived') parsed.frontmatter.archived = true;
   else delete parsed.frontmatter.archived;
-  // 📖 When archiving, move the file to tasks/archive/ to match what the
-  // web UI does. Mirrors src/lib/filesystem.ts#archiveTaskFile.
   if (resolved === 'archived') {
     const archiveDir = join(getTasksDir(kandownDir), 'archive');
     if (!existsSync(archiveDir)) mkdirSync(archiveDir, { recursive: true });
     writeFileSync(join(archiveDir, `${id}.md`), serializeFrontmatter(parsed.frontmatter, parsed.body), 'utf8');
     try { unlinkSync(path); } catch { /* already absent */ }
   } else {
-    writeFileSync(path, serializeFrontmatter(parsed.frontmatter, parsed.body), 'utf8');
+    const normalTasksDir = getTasksDir(kandownDir);
+    const normalPath = join(normalTasksDir, `${id}.md`);
+    writeFileSync(normalPath, serializeFrontmatter(parsed.frontmatter, parsed.body), 'utf8');
+    if (path !== normalPath) {
+      try { unlinkSync(path); } catch { /* already absent */ }
+    }
   }
   log(`${c.green}✓${c.reset} ${c.bold}${id}${c.reset} → ${resolved}`);
 }
@@ -1467,20 +1496,32 @@ async function startDaemon(kandownDir, preferredPort) {
 }
 
 async function stopDaemon(kandownDir) {
-  const status = await getDaemonStatus(kandownDir);
-  if (!status.running || !status.metadata) {
-    removeDaemonMetadata(kandownDir);
-    return false;
+  const metadata = readDaemonMetadata(kandownDir);
+  if (!metadata) return false;
+
+  const pid = metadata.pid;
+  if (isProcessAlive(pid)) {
+    try {
+      process.kill(pid, 'SIGTERM');
+    } catch { /* already stopped */ }
+
+    const started = Date.now();
+    let killed = false;
+    while (Date.now() - started < 2500) {
+      if (!isProcessAlive(pid)) {
+        killed = true;
+        break;
+      }
+      await new Promise(r => setTimeout(r, 100));
+    }
+
+    if (!killed && isProcessAlive(pid)) {
+      try {
+        process.kill(pid, 'SIGKILL');
+      } catch {}
+    }
   }
 
-  try {
-    process.kill(status.metadata.pid, 'SIGTERM');
-  } catch { /* already stopped */ }
-
-  const started = Date.now();
-  while (Date.now() - started < 2500 && isProcessAlive(status.metadata.pid)) {
-    await new Promise(r => setTimeout(r, 100));
-  }
   removeDaemonMetadata(kandownDir);
   return true;
 }

@@ -56,6 +56,7 @@ interface MousePressState {
   rowIndex: number;
   startX: number;
   startY: number;
+  isMenu?: boolean;
 }
 
 interface TaskDragState {
@@ -257,7 +258,8 @@ function MovePlaceholder({ name, focused, colWidth }: {
 }
 
 function KanbanColumn({ name, tasks, focusedRow, isFocused, colWidth,
-  contextMenuRow, contextMenuCursor, showMoveTarget, isMoveFocused, draggedTaskId }: {
+  contextMenuRow, contextMenuCursor, showMoveTarget, isMoveFocused, draggedTaskId,
+  maxTasksHeight }: {
   name: string; tasks: BoardTask[]; focusedRow: number;
   isFocused: boolean; colWidth: number;
   /** Task index that has the context menu open (-1 = none) */
@@ -266,23 +268,77 @@ function KanbanColumn({ name, tasks, focusedRow, isFocused, colWidth,
   contextMenuCursor?: number;
   showMoveTarget?: boolean; isMoveFocused?: boolean;
   draggedTaskId?: string | null;
+  maxTasksHeight: number;
 }) {
   const accent = columnAccentColor(name);
   const headerBg    = isFocused ? accent : undefined;
   const headerColor = isFocused ? 'black' : accent;
   const countStr    = tasks.length > 0 ? ` (${tasks.length})` : '';
 
-  // 📖 Build task rows: CategoryTaskRow for tagged tasks, SingleTaskRow otherwise.
-  // A thin separator line (─) is inserted between tasks for visual separation.
+  // Calculate scroll offset to keep the focused row in view
+  let scrollIdx = 0;
+  if (isFocused && focusedRow >= 0) {
+    let currentScroll = 0;
+    while (currentScroll < focusedRow) {
+      let h = 0;
+      const hasTopIndicator = currentScroll > 0;
+      const adjustedMaxHeight = maxTasksHeight - (hasTopIndicator ? 1 : 0);
+      for (let k = currentScroll; k <= focusedRow; k++) {
+        const hasCategory = getTitleCategory(tasks[k].title) !== null;
+        h += hasCategory ? 3 : 1;
+        if (contextMenuRow === k) h += MENU_HEIGHT;
+        if (k < focusedRow) h += 1; // separator
+      }
+      if (h <= adjustedMaxHeight) {
+        break;
+      }
+      currentScroll++;
+    }
+    scrollIdx = currentScroll;
+  }
+
+  // Calculate how many tasks we can fit starting from scrollIdx
+  let accumulatedHeight = 0;
+  let endIdx = scrollIdx;
+  const hasTopIndicator = scrollIdx > 0;
+  const topIndicatorHeight = hasTopIndicator ? 1 : 0;
+
+  while (endIdx < tasks.length) {
+    const hasCategory = getTitleCategory(tasks[endIdx].title) !== null;
+    let taskHeight = hasCategory ? 3 : 1;
+    if (contextMenuRow === endIdx) taskHeight += MENU_HEIGHT;
+    const sepHeight = (endIdx < tasks.length - 1) ? 1 : 0;
+
+    const hasBottomIndicator = endIdx < tasks.length - 1;
+    const bottomIndicatorHeight = hasBottomIndicator ? 1 : 0;
+    const currentMax = maxTasksHeight - topIndicatorHeight - bottomIndicatorHeight;
+
+    if (accumulatedHeight + taskHeight + sepHeight > currentMax) {
+      if (endIdx === scrollIdx) {
+        endIdx++;
+      }
+      break;
+    }
+    accumulatedHeight += taskHeight + sepHeight;
+    endIdx++;
+  }
+
   const rows: React.ReactNode[] = [];
-  tasks.forEach((task, idx) => {
+
+  if (hasTopIndicator) {
+    rows.push(
+      <Text key="scroll-up" color="cyan" dimColor>{' '.repeat(2)}▲ {scrollIdx} more</Text>
+    );
+  }
+
+  for (let idx = scrollIdx; idx < endIdx; idx++) {
+    const task = tasks[idx];
     const hasCategory = getTitleCategory(task.title) !== null;
     rows.push(
       hasCategory
         ? <CategoryTaskRow key={task.id} task={task} focused={!!(isFocused && idx === focusedRow)} dragging={task.id === draggedTaskId} colWidth={colWidth} />
         : <SingleTaskRow  key={task.id} task={task} focused={!!(isFocused && idx === focusedRow)} dragging={task.id === draggedTaskId} colWidth={colWidth} />
     );
-    // 📖 Insert context menu directly after the focused task
     if (contextMenuRow === idx) {
       rows.push(
         <InlineContextMenu
@@ -292,13 +348,18 @@ function KanbanColumn({ name, tasks, focusedRow, isFocused, colWidth,
         />
       );
     }
-    // 📖 Separator line between tasks (but not after the last one)
-    if (idx < tasks.length - 1) {
+    if (idx < endIdx - 1) {
       rows.push(
         <Text key={`sep-${task.id}`} color={isFocused ? 'cyan' : 'gray'} dimColor>{'─'.repeat(colWidth)}</Text>
       );
     }
-  });
+  }
+
+  if (endIdx < tasks.length) {
+    rows.push(
+      <Text key="scroll-down" color="cyan" dimColor>{' '.repeat(2)}▼ {tasks.length - endIdx} more</Text>
+    );
+  }
 
   return (
     <Box flexDirection="column" width={colWidth} marginRight={1}>
@@ -451,6 +512,25 @@ export function Board({ kandownDir, version }: BoardProps) {
   const [rowIndex, setRowIndex] = useState(0);
   const [mode, setMode]         = useState<Mode>('browse');
   const [statusMsg, setStatusMsg] = useState('');
+  const statusTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const showStatus = useCallback((msg: string, ms = 2000) => {
+    setStatusMsg(msg);
+    if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+    if (msg) {
+      statusTimerRef.current = setTimeout(() => {
+        setStatusMsg('');
+        statusTimerRef.current = null;
+      }, ms);
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+    };
+  }, []);
+
   /** 📖 Fatal board-load error. When set, the screen renders an error box with
    * a retry hint instead of crashing the TUI to the shell (t114). */
   const [boardError, setBoardError] = useState<string | null>(null);
@@ -484,42 +564,108 @@ export function Board({ kandownDir, version }: BoardProps) {
 
   // ─── Layout tracking for mouse hit-testing ────────────────────────────────
 
-  const layoutRef = useRef<{ colStarts: number[]; colWidth: number }>({
-    colStarts: [], colWidth: 0,
-  });
-
   const updateLayout = useCallback((b: ParsedBoard | null) => {
-    if (!b) return;
-    const cw = calcColWidth(b.columns.length);
-    const starts: number[] = [];
-    let x = 1;
-    for (let i = 0; i < b.columns.length; i++) {
-      starts.push(x);
-      x += cw + 1;
-    }
-    layoutRef.current = { colStarts: starts, colWidth: cw };
+    // 📖 No longer strictly needed since columnAtX and taskHitAt compute layout on the fly,
+    // but kept as a no-op to avoid breaking call-sites.
   }, []);
 
   const columnAtX = useCallback((x: number): number => {
-    const layout = layoutRef.current;
-    for (let c = 0; c < layout.colStarts.length; c++) {
-      const start = layout.colStarts[c];
-      if (x >= start && x < start + layout.colWidth) return c;
+    if (!board) return -1;
+    const numCols = board.columns.length;
+    const cw = calcColWidth(numCols);
+    let startX = 1;
+    for (let c = 0; c < numCols; c++) {
+      if (x >= startX && x < startX + cw) return c;
+      startX += cw + 1;
     }
     return -1;
-  }, []);
+  }, [board]);
 
   const taskHitAt = useCallback((x: number, y: number): MousePressState | null => {
     if (!board) return null;
     const clickedCol = columnAtX(x);
     if (clickedCol < 0) return null;
     const col = board.columns[clickedCol];
-    if (!col) return null;
-    const taskIdx = y - TASKS_START_Y;
-    const task = taskIdx >= 0 ? col.tasks[taskIdx] : undefined;
-    if (!task) return null;
-    return { taskId: task.id, colIndex: clickedCol, rowIndex: taskIdx, startX: x, startY: y };
-  }, [board, columnAtX]);
+    if (!col || col.tasks.length === 0) return null;
+
+    const maxTasksHeight = Math.max(5, (process.stdout.rows || 24) - TASKS_START_Y - 3 - ((mode === 'move-target' || mode === 'dragging') ? 2 : 0));
+
+    // Calculate scroll offset
+    let scrollIdx = 0;
+    const isFocused = clickedCol === colIndex;
+    const focusedRow = isFocused ? rowIndex : -1;
+    const contextMenuRowVal = mode === 'context-menu' && isFocused ? ctxMenuRow : -1;
+
+    if (isFocused && focusedRow >= 0) {
+      let currentScroll = 0;
+      while (currentScroll < focusedRow) {
+        let h = 0;
+        const hasTopIndicator = currentScroll > 0;
+        const adjustedMaxHeight = maxTasksHeight - (hasTopIndicator ? 1 : 0);
+        for (let k = currentScroll; k <= focusedRow; k++) {
+          const hasCategory = getTitleCategory(col.tasks[k].title) !== null;
+          h += hasCategory ? 3 : 1;
+          if (contextMenuRowVal === k) h += MENU_HEIGHT;
+          if (k < focusedRow) h += 1; // separator
+        }
+        if (h <= adjustedMaxHeight) {
+          break;
+        }
+        currentScroll++;
+      }
+      scrollIdx = currentScroll;
+    }
+
+    const hasTopIndicator = scrollIdx > 0;
+    let currentY = TASKS_START_Y;
+    if (hasTopIndicator) {
+      if (y === currentY) return null;
+      currentY += 1;
+    }
+
+    let endIdx = scrollIdx;
+    let accumulatedHeight = 0;
+    const topIndicatorHeight = hasTopIndicator ? 1 : 0;
+
+    while (endIdx < col.tasks.length) {
+      const hasCategory = getTitleCategory(col.tasks[endIdx].title) !== null;
+      const taskHeight = hasCategory ? 3 : 1;
+      const sepHeight = (endIdx < col.tasks.length - 1) ? 1 : 0;
+
+      const hasBottomIndicator = endIdx < col.tasks.length - 1;
+      const bottomIndicatorHeight = hasBottomIndicator ? 1 : 0;
+      const currentMax = maxTasksHeight - topIndicatorHeight - bottomIndicatorHeight;
+
+      if (accumulatedHeight + taskHeight + sepHeight > currentMax) {
+        if (endIdx === scrollIdx) {
+          endIdx++;
+        }
+        break;
+      }
+
+      if (y >= currentY && y < currentY + taskHeight) {
+        return { taskId: col.tasks[endIdx].id, colIndex: clickedCol, rowIndex: endIdx, startX: x, startY: y };
+      }
+      currentY += taskHeight;
+
+      if (contextMenuRowVal === endIdx) {
+        if (y >= currentY && y < currentY + MENU_HEIGHT) {
+          return { taskId: col.tasks[endIdx].id, colIndex: clickedCol, rowIndex: endIdx, startX: x, startY: y, isMenu: true };
+        }
+        currentY += MENU_HEIGHT;
+      }
+
+      if (endIdx < col.tasks.length - 1) {
+        if (y === currentY) return null;
+        currentY += 1;
+      }
+
+      accumulatedHeight += taskHeight + sepHeight;
+      endIdx++;
+    }
+
+    return null;
+  }, [board, colIndex, rowIndex, mode, ctxMenuRow, columnAtX]);
 
   // ─── Board loading & watching ─────────────────────────────────────────────
 
@@ -556,23 +702,21 @@ export function Board({ kandownDir, version }: BoardProps) {
     });
     watcher.on('newTaskDetected', (taskId: string) => {
       loadBoardInto();
-      setStatusMsg(`New task: ${taskId}`);
-      setTimeout(() => setStatusMsg(''), 2000);
+      showStatus(`New task: ${taskId}`, 2000);
     });
     watcher.on('configChanged', () => {
       loadBoardInto();
     });
     watcher.start(kandownDir);
     return () => { watcher.stop(); };
-  }, [kandownDir, loadBoardInto]);
+  }, [kandownDir, loadBoardInto, showStatus]);
 
   const reloadBoard = useCallback(() => {
     const loaded = loadBoardInto();
     if (loaded) {
-      setStatusMsg('Board reloaded');
-      setTimeout(() => setStatusMsg(''), 1500);
+      showStatus('Board reloaded', 1500);
     }
-  }, [loadBoardInto]);
+  }, [loadBoardInto, showStatus]);
 
   const refreshDaemonStatus = useCallback(async () => {
     const next = await getDaemonStatus(kandownDir);
@@ -598,20 +742,19 @@ export function Board({ kandownDir, version }: BoardProps) {
         await stopProjectDaemon(kandownDir);
         const next = await getDaemonStatus(kandownDir);
         setDaemonStatus(next);
-        setStatusMsg('Web daemon stopped');
+        showStatus('Web daemon stopped', 2500);
       } else {
         const next = await startProjectDaemon(kandownDir, preferredDaemonPort);
         setDaemonStatus(next);
         if (next.running && next.metadata) setPreferredDaemonPort(next.metadata.port);
-        setStatusMsg(next.running ? 'Web daemon started' : 'Web daemon failed to start');
+        showStatus(next.running ? 'Web daemon started' : 'Web daemon failed to start', 2500);
       }
     } catch (error) {
-      setStatusMsg(`Daemon error: ${error instanceof Error ? error.message : String(error)}`);
+      showStatus(`Daemon error: ${error instanceof Error ? error.message : String(error)}`, 2500);
     } finally {
       setDaemonBusy(false);
-      setTimeout(() => setStatusMsg(''), 2500);
     }
-  }, [daemonBusy, kandownDir, preferredDaemonPort]);
+  }, [daemonBusy, kandownDir, preferredDaemonPort, showStatus]);
 
   // 📖 TUI gate check: refuses to move a task to the terminal column when at
   // least one of its `depends_on` ids is not yet resolved (terminal or
@@ -647,12 +790,11 @@ export function Board({ kandownDir, version }: BoardProps) {
       const list = blocked.length === 1
         ? blocked[0]
         : `${blocked.slice(0, -1).join(', ')} and ${blocked[blocked.length - 1]}`;
-      setStatusMsg(`Blocked: ${taskId} ← ${list}`);
-      setTimeout(() => setStatusMsg(''), 3500);
+      showStatus(`Blocked: ${taskId} ← ${list}`, 3500);
       return false;
     }
     return true;
-  }, [board, kandownDir]);
+  }, [board, kandownDir, showStatus]);
 
   // 📖 Forwards a task to the agent hook configured on the CLI daemon. The
   // hook is strictly opt-in via KANDOWN_AGENT_HOOK_URL on the daemon process.
@@ -661,8 +803,7 @@ export function Board({ kandownDir, version }: BoardProps) {
   const sendTaskToAgentHook = useCallback(async (taskId: string) => {
     const status = await getDaemonStatus(kandownDir);
     if (!status.running || !status.metadata) {
-      setStatusMsg('Web daemon not running (press d to start)');
-      setTimeout(() => setStatusMsg(''), 2500);
+      showStatus('Web daemon not running (press d to start)', 2500);
       return;
     }
     try {
@@ -671,17 +812,15 @@ export function Board({ kandownDir, version }: BoardProps) {
         signal: AbortSignal.timeout(8000),
       });
       if (res.ok) {
-        setStatusMsg(`Sent ${taskId} to agent hook`);
+        showStatus(`Sent ${taskId} to agent hook`, 2000);
       } else {
         const body = await res.text().catch(() => '');
-        setStatusMsg(`Agent hook: ${res.status}${body ? ' — ' + body.slice(0, 60) : ''}`);
+        showStatus(`Agent hook: ${res.status}${body ? ' — ' + body.slice(0, 60) : ''}`, 3000);
       }
     } catch (error) {
-      setStatusMsg(`Agent hook failed: ${error instanceof Error ? error.message : String(error)}`);
-    } finally {
-      setTimeout(() => setStatusMsg(''), 3000);
+      showStatus(`Agent hook failed: ${error instanceof Error ? error.message : String(error)}`, 3000);
     }
-  }, [kandownDir]);
+  }, [kandownDir, showStatus]);
 
   // ─── Derived helpers ──────────────────────────────────────────────────────
 
@@ -703,10 +842,9 @@ export function Board({ kandownDir, version }: BoardProps) {
       setDetailScroll(0);
       setMode('detail');
     } catch (e) {
-      setStatusMsg(`Error opening task: ${e instanceof Error ? e.message : String(e)}`);
-      setTimeout(() => setStatusMsg(''), 4000);
+      showStatus(`Error opening task: ${e instanceof Error ? e.message : String(e)}`, 4000);
     }
-  }, [kandownDir]);
+  }, [kandownDir, showStatus]);
 
   const closeContextMenu = useCallback(() => {
     setCtxMenuRow(-1);
@@ -718,19 +856,17 @@ export function Board({ kandownDir, version }: BoardProps) {
     const taskId = mode === 'detail' ? detailTaskId : task?.id;
     if (!taskId) return;
     setMode('browse');
-    setStatusMsg(`Launching ${agentId} for ${taskId}…`);
+    showStatus(`Launching ${agentId} for ${taskId}…`, 5000);
     setTimeout(() => {
       try {
         launchAgent({ taskId, agentId, kandownDir, onBeforeExec: () => exit() });
         reloadBoard();
-        setStatusMsg(`${agentId} launched in tmux pane`);
-        setTimeout(() => setStatusMsg(''), 3000);
+        showStatus(`${agentId} launched in tmux pane`, 3000);
       } catch (err) {
-        setStatusMsg(`Error: ${err instanceof Error ? err.message : String(err)}`);
-        setTimeout(() => setStatusMsg(''), 4000);
+        showStatus(`Error: ${err instanceof Error ? err.message : String(err)}`, 4000);
       }
     }, 50);
-  }, [mode, detailTaskId, getFocusedTask, kandownDir, exit, reloadBoard]);
+  }, [mode, detailTaskId, getFocusedTask, kandownDir, exit, reloadBoard, showStatus]);
 
   // ─── Mouse mode ───────────────────────────────────────────────────────────
 
@@ -740,28 +876,123 @@ export function Board({ kandownDir, version }: BoardProps) {
 
   const handleMouseClick = useCallback((x: number, y: number) => {
     if (!board) return;
-    const layout = layoutRef.current;
+    const clickedCol = columnAtX(x);
+    if (clickedCol < 0) {
+      if (mode === 'context-menu') {
+        closeContextMenu();
+        setMode('browse');
+      } else if (mode === 'move-target') {
+        setMoveTaskId(null);
+        setMode('browse');
+      }
+      return;
+    }
 
-    // 📖 Step 1: determine which column was clicked
-    let clickedCol = -1;
-    for (let c = 0; c < layout.colStarts.length; c++) {
-      const start = layout.colStarts[c];
-      if (x >= start && x < start + layout.colWidth) {
-        clickedCol = c;
+    const col = board.columns[clickedCol];
+    const maxTasksHeight = Math.max(5, (process.stdout.rows || 24) - TASKS_START_Y - 3 - ((mode === 'move-target' || mode === 'dragging') ? 2 : 0));
+
+    // Calculate scroll offset
+    let scrollIdx = 0;
+    const isFocused = clickedCol === colIndex;
+    const focusedRow = isFocused ? rowIndex : -1;
+    const contextMenuRowVal = mode === 'context-menu' && isFocused ? ctxMenuRow : -1;
+
+    if (isFocused && focusedRow >= 0) {
+      let currentScroll = 0;
+      while (currentScroll < focusedRow) {
+        let h = 0;
+        const hasTopIndicator = currentScroll > 0;
+        const adjustedMaxHeight = maxTasksHeight - (hasTopIndicator ? 1 : 0);
+        for (let k = currentScroll; k <= focusedRow; k++) {
+          const hasCategory = getTitleCategory(col.tasks[k].title) !== null;
+          h += hasCategory ? 3 : 1;
+          if (contextMenuRowVal === k) h += MENU_HEIGHT;
+          if (k < focusedRow) h += 1; // separator
+        }
+        if (h <= adjustedMaxHeight) {
+          break;
+        }
+        currentScroll++;
+      }
+      scrollIdx = currentScroll;
+    }
+
+    const hasTopIndicator = scrollIdx > 0;
+    let currentY = TASKS_START_Y;
+    if (hasTopIndicator) {
+      if (y === currentY) {
+        if (isFocused) {
+          setRowIndex(r => Math.max(0, r - 1));
+        }
+        return;
+      }
+      currentY += 1;
+    }
+
+    let endIdx = scrollIdx;
+    let accumulatedHeight = 0;
+    const topIndicatorHeight = hasTopIndicator ? 1 : 0;
+
+    let clickedTaskIdx = -1;
+    let clickedMenuOffset = -1;
+
+    while (endIdx < col.tasks.length) {
+      const hasCategory = getTitleCategory(col.tasks[endIdx].title) !== null;
+      const taskHeight = hasCategory ? 3 : 1;
+      const sepHeight = (endIdx < col.tasks.length - 1) ? 1 : 0;
+
+      const hasBottomIndicator = endIdx < col.tasks.length - 1;
+      const bottomIndicatorHeight = hasBottomIndicator ? 1 : 0;
+      const currentMax = maxTasksHeight - topIndicatorHeight - bottomIndicatorHeight;
+
+      if (accumulatedHeight + taskHeight + sepHeight > currentMax) {
+        if (endIdx === scrollIdx) {
+          endIdx++;
+        }
         break;
       }
+
+      if (y >= currentY && y < currentY + taskHeight) {
+        clickedTaskIdx = endIdx;
+        break;
+      }
+      currentY += taskHeight;
+
+      if (contextMenuRowVal === endIdx) {
+        if (y >= currentY && y < currentY + MENU_HEIGHT) {
+          clickedTaskIdx = endIdx;
+          clickedMenuOffset = y - currentY;
+          break;
+        }
+        currentY += MENU_HEIGHT;
+      }
+
+      if (endIdx < col.tasks.length - 1) {
+        if (y === currentY) {
+          return;
+        }
+        currentY += 1;
+      }
+
+      accumulatedHeight += taskHeight + sepHeight;
+      endIdx++;
+    }
+
+    if (endIdx < col.tasks.length) {
+      if (y === currentY) {
+        if (isFocused) {
+          setRowIndex(r => Math.min(col.tasks.length - 1, r + 1));
+        }
+        return;
+      }
+      currentY += 1; // account for bottom indicator line
     }
 
     if (mode === 'browse') {
-      if (clickedCol < 0) return;
-      const col = board.columns[clickedCol];
-      // 📖 Y → task index (no context menu to offset)
-      const taskIdx = y - TASKS_START_Y;
-      if (taskIdx >= 0 && taskIdx < col.tasks.length) {
+      if (clickedTaskIdx >= 0) {
         setColIndex(clickedCol);
-        setRowIndex(taskIdx);
-        // 📖 Open context menu on this task
-        setCtxMenuRow(taskIdx);
+        setRowIndex(clickedTaskIdx);
+        setCtxMenuRow(clickedTaskIdx);
         setCtxMenuCursor(0);
         setMode('context-menu');
       }
@@ -769,88 +1000,55 @@ export function Board({ kandownDir, version }: BoardProps) {
     }
 
     if (mode === 'context-menu') {
-      if (clickedCol < 0) { closeContextMenu(); setMode('browse'); return; }
-      const col = board.columns[clickedCol];
       const hasMenu = clickedCol === colIndex && ctxMenuRow >= 0;
-
       if (hasMenu) {
-        // 📖 This column has the inline context menu after ctxMenuRow
-        // Rows 0..ctxMenuRow: normal tasks
-        // Rows ctxMenuRow+1 .. ctxMenuRow+MENU_HEIGHT: context menu
-        // Rows after: tasks shifted by MENU_HEIGHT
-        const taskIdx = y - TASKS_START_Y;
-
-        if (taskIdx >= 0 && taskIdx < ctxMenuRow) {
-          // Clicked a task ABOVE the menu → switch focus to it
-          setRowIndex(taskIdx);
-          setCtxMenuRow(taskIdx);
-          setCtxMenuCursor(0);
-          return;
-        }
-        if (taskIdx === ctxMenuRow) {
-          // Clicked the same task → close menu
+        if (clickedTaskIdx >= 0) {
+          if (clickedMenuOffset >= 0) {
+            if (clickedMenuOffset === 0) {
+              const task = col.tasks[ctxMenuRow];
+              if (task) { closeContextMenu(); openDetail(task.id); }
+            } else {
+              const task = col.tasks[ctxMenuRow];
+              if (task) {
+                setMoveTaskId(task.id);
+                const target = colIndex === 0 ? Math.min(1, board.columns.length - 1) : 0;
+                setMoveTargetCol(target);
+                closeContextMenu();
+                setMode('move-target');
+              }
+            }
+          } else if (clickedTaskIdx === ctxMenuRow) {
+            closeContextMenu();
+            setMode('browse');
+          } else {
+            setRowIndex(clickedTaskIdx);
+            closeContextMenu();
+            setCtxMenuRow(clickedTaskIdx);
+            setCtxMenuCursor(0);
+          }
+        } else {
           closeContextMenu();
           setMode('browse');
-          return;
-        }
-        const menuOffset = taskIdx - ctxMenuRow - 1; // 0-based menu option
-        if (menuOffset >= 0 && menuOffset < MENU_HEIGHT) {
-          // 📖 Clicked a context menu option!
-          if (menuOffset === 0) {
-            // Open task
-            const task = col.tasks[ctxMenuRow];
-            if (task) { closeContextMenu(); openDetail(task.id); }
-          } else {
-            // Move task
-            const task = col.tasks[ctxMenuRow];
-            if (task) {
-              setMoveTaskId(task.id);
-              const target = colIndex === 0 ? Math.min(1, board.columns.length - 1) : 0;
-              setMoveTargetCol(target);
-              closeContextMenu();
-              setMode('move-target');
-            }
-          }
-          return;
-        }
-        // Below menu → task shifted by MENU_HEIGHT
-        const belowIdx = taskIdx - MENU_HEIGHT;
-        if (belowIdx >= 0 && belowIdx < col.tasks.length) {
-          setRowIndex(belowIdx);
-          closeContextMenu();
-          setCtxMenuRow(belowIdx);
-          setCtxMenuCursor(0);
-          // Stay in context-menu mode for the new task
-          return;
         }
       } else {
-        // 📖 Clicked in a different column — no menu offset
-        const taskIdx = y - TASKS_START_Y;
-        if (taskIdx >= 0 && taskIdx < col.tasks.length) {
+        if (clickedTaskIdx >= 0) {
           closeContextMenu();
           setColIndex(clickedCol);
-          setRowIndex(taskIdx);
-          setCtxMenuRow(taskIdx);
+          setRowIndex(clickedTaskIdx);
+          setCtxMenuRow(clickedTaskIdx);
           setCtxMenuCursor(0);
-          // Stay in context-menu for the newly clicked task
-          return;
+        } else {
+          closeContextMenu();
+          setMode('browse');
         }
       }
-      // Clicked empty space → cancel
-      closeContextMenu();
-      setMode('browse');
       return;
     }
 
     if (mode === 'move-target') {
-      if (clickedCol < 0) { setMoveTaskId(null); setMode('browse'); return; }
       if (clickedCol === colIndex) { setMoveTaskId(null); setMode('browse'); return; }
-
-      // 📖 Check if click is on the ↓ placeholder in this column
-      const col = board.columns[clickedCol];
-      const placeholderY = TASKS_START_Y + col.tasks.length;
-      if (y === placeholderY) {
-        // Move!
+      const showMoveTargetVal = clickedCol !== colIndex;
+      if (y === currentY || showMoveTargetVal) { // check click on placeholder
         const targetColName = col.name;
         if (moveTaskId) {
           if (!tryMoveWithGate(moveTaskId, targetColName)) {
@@ -860,19 +1058,17 @@ export function Board({ kandownDir, version }: BoardProps) {
           }
           moveTaskToColumn(kandownDir, moveTaskId, targetColName);
           loadBoardInto();
-          setStatusMsg(`Moved ${moveTaskId} → ${targetColName}`);
-          setTimeout(() => setStatusMsg(''), 2000);
+          showStatus(`Moved ${moveTaskId} → ${targetColName}`);
         }
         setMoveTaskId(null);
         setMode('browse');
-        return;
+      } else {
+        setMoveTaskId(null);
+        setMode('browse');
       }
-      // Clicked elsewhere → cancel move
-      setMoveTaskId(null);
-      setMode('browse');
       return;
     }
-  }, [board, mode, colIndex, rowIndex, ctxMenuRow, moveTaskId, kandownDir, updateLayout, openDetail, closeContextMenu, loadBoardInto]);
+  }, [board, mode, colIndex, rowIndex, ctxMenuRow, moveTaskId, kandownDir, columnAtX, closeContextMenu, openDetail, loadBoardInto, tryMoveWithGate, taskDrag, showStatus]);
 
   const handleMouseEvent = useCallback((mouse: NonNullable<ReturnType<typeof parseMouseInput>>) => {
     if (!board) return;
@@ -946,8 +1142,7 @@ export function Board({ kandownDir, version }: BoardProps) {
             setColIndex(targetCol);
             const movedRow = loaded?.columns[targetCol]?.tasks.findIndex(task => task.id === taskDrag.taskId) ?? 0;
             setRowIndex(Math.max(0, movedRow));
-            setStatusMsg(`Dragged ${taskDrag.taskId} → ${targetColName}`);
-            setTimeout(() => setStatusMsg(''), 2000);
+            showStatus(`Dragged ${taskDrag.taskId} → ${targetColName}`, 2000);
           }
         }
         setTaskDrag(null);
@@ -1023,8 +1218,7 @@ export function Board({ kandownDir, version }: BoardProps) {
 
       if (input === 'a') {
         if (installedAgents.length === 0) {
-          setStatusMsg('No AI agents found in PATH');
-          setTimeout(() => setStatusMsg(''), 3000);
+          showStatus('No AI agents found in PATH', 3000);
           return;
         }
         const task = getFocusedTask();
@@ -1126,8 +1320,7 @@ export function Board({ kandownDir, version }: BoardProps) {
           }
           moveTaskToColumn(kandownDir, moveTaskId, name);
           loadBoardInto();
-          setStatusMsg(`Moved ${moveTaskId} → ${name}`);
-          setTimeout(() => setStatusMsg(''), 2000);
+          showStatus(`Moved ${moveTaskId} → ${name}`, 2000);
         }
         setMoveTaskId(null);
         setMode('browse');
@@ -1138,12 +1331,17 @@ export function Board({ kandownDir, version }: BoardProps) {
     // ─── Detail mode ──────────────────────────────────────────────────────
     if (mode === 'detail') {
       if (key.escape || input === 'q') { setMode('browse'); return; }
-      if (input === 'j' || key.downArrow) { setDetailScroll(s => s + 1); return; }
+      if (input === 'j' || key.downArrow) {
+        const bodyLines = detailTask ? detailTask.body.split('\n') : [];
+        const maxVisible = (process.stdout.rows || 24) - 10;
+        const maxScroll = Math.max(0, bodyLines.length - maxVisible);
+        setDetailScroll(s => Math.min(s + 1, maxScroll));
+        return;
+      }
       if (input === 'k' || key.upArrow) { setDetailScroll(s => Math.max(0, s - 1)); return; }
       if (input === 'a') {
         if (installedAgents.length === 0) {
-          setStatusMsg('No AI agents found in PATH');
-          setTimeout(() => setStatusMsg(''), 3000);
+          showStatus('No AI agents found in PATH', 3000);
           return;
         }
         setMode('agent-picker');
@@ -1251,6 +1449,7 @@ export function Board({ kandownDir, version }: BoardProps) {
             showMoveTarget={(mode === 'move-target' && cIdx !== colIndex) || (mode === 'dragging' && cIdx !== taskDrag?.sourceCol)}
             isMoveFocused={(mode === 'move-target' || mode === 'dragging') && cIdx === moveTargetCol}
             draggedTaskId={taskDrag?.taskId ?? null}
+            maxTasksHeight={Math.max(5, (process.stdout.rows || 24) - TASKS_START_Y - 3 - ((mode === 'move-target' || mode === 'dragging') ? 2 : 0))}
           />
         ))}
       </Box>
