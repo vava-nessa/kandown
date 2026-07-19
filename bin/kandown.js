@@ -50,6 +50,7 @@ globalThis.require = createRequire(import.meta.url);
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'node:http';
 import { dirname, join, resolve } from 'node:path';
+import { homedir } from 'node:os';
 import {
   existsSync,
   mkdirSync,
@@ -383,7 +384,7 @@ function atomicWriteFileSync(path, content) {
 }
 
 // 📖 Output contract (M2): stdout carries DATA ONLY (ids, JSON, tables, help)
-// so `$(kandown shell create ...)` and `| jq` pipelines stay clean. Every
+// so `$(kandown create ...)` and `| jq` pipelines stay clean. Every
 // decoration — status lines, warnings, errors, progress — goes to stderr.
 /** Data output → stdout. Use ONLY for content the command was asked to produce. */
 const out = (msg) => console.log(msg);
@@ -457,7 +458,14 @@ ${c.bold}Commands:${c.reset}
   ${c.cyan}settings${c.reset}    Open the settings TUI
   ${c.cyan}daemon${c.reset}      Manage the per-project web daemon (start|stop|status)
   ${c.cyan}update${c.reset}      Update kandown.html to the latest version
-  ${c.cyan}shell${c.reset}       Run shellable task commands (list/show/create/move/assign/commit)
+  ${c.cyan}list${c.reset}        List tasks ${c.dim}(-s status, -a assignee, -t tag, -p priority, --json)${c.reset}
+  ${c.cyan}show${c.reset}        Print a task's raw file content
+  ${c.cyan}create${c.reset}      Create a task ${c.dim}(-p priority, -a assignee, -t tag, --to status)${c.reset}
+  ${c.cyan}move${c.reset}        Move a task to a column (or "archived")
+  ${c.cyan}assign${c.reset}      Assign / unassign a task
+  ${c.cyan}commit${c.reset}      git add + commit the task files
+  ${c.cyan}tasks${c.reset}       Full help for the commands above
+  ${c.cyan}work${c.reset}        ${c.bold}For AI agents:${c.reset} print the agent rules + live board digest
   ${c.cyan}help${c.reset}        Show this help
 
 ${c.bold}Options:${c.reset}
@@ -471,9 +479,10 @@ ${c.bold}Examples:${c.reset}
   ${c.dim}$${c.reset} npx kandown init
   ${c.dim}$${c.reset} npx kandown init --path docs/kanban
   ${c.dim}$${c.reset} npx kandown init --no-agents
-  ${c.dim}$${c.reset} npx kandown shell list --json
-  ${c.dim}$${c.reset} npx kandown shell create "Refactor auth" -p P1
-  ${c.dim}$${c.reset} npx kandown shell commit -m "tasks: refactor auth"
+  ${c.dim}$${c.reset} npx kandown work         ${c.dim}# what an AI agent should run first${c.reset}
+  ${c.dim}$${c.reset} npx kandown list --json
+  ${c.dim}$${c.reset} npx kandown create "Refactor auth" -p P1
+  ${c.dim}$${c.reset} npx kandown commit -m "tasks: refactor auth"
 `);
 }
 
@@ -548,12 +557,7 @@ function appendAgentReference(cwd, agentsFile, kandownPath) {
 ${marker}
 ## Task management
 
-**IMPORTANT:** Before touching any task files, you MUST read \`${kandownPath}/AGENT_KANDOWN.md\`.
-
-This project uses a file-based kanban:
-- **Tasks live in \`./tasks/t-xxx.md\`** at the project root — each task file owns its status
-- **Config lives in \`${kandownPath}/kandown.json\`** (columns, appearance, agent settings)
-- **Completion workflow:** set task frontmatter \`status: Done\` + write the completion report
+This project uses **kandown** for task management. **Always run \`kandown work\` when starting a new task** — it prints the current rules and board state, kept in sync with the installed CLI version. (Tasks live in \`./tasks/*.md\`; if you can't run the CLI, read \`${kandownPath}/AGENT_KANDOWN.md\` instead.)
 `;
 
   try {
@@ -574,12 +578,7 @@ function createAgentsFileIfMissing(cwd, kandownPath) {
 <!-- kandown:agent-ref -->
 ## Task management
 
-**IMPORTANT:** Before touching any task files, you MUST read \`AGENT_KANDOWN.md\`.
-
-This project uses a file-based kandown:
-- **Tasks live in \`./tasks/t-xxx.md\`** at the project root — each task file owns its status
-- **Config lives in \`${kandownPath}/kandown.json\`** (columns, appearance, agent settings)
-- **Completion workflow:** set task frontmatter \`status: Done\` + write the completion report
+This project uses **kandown** for task management. **Always run \`kandown work\` when starting a new task** — it prints the current rules and board state, kept in sync with the installed CLI version. (Tasks live in \`./tasks/*.md\`; if you can't run the CLI, read \`${kandownPath}/AGENT_KANDOWN.md\` instead.)
 `;
   writeFileSync(agentsPath, content, 'utf8');
   return true;
@@ -883,9 +882,9 @@ function cmdUpdate(rawArgs) {
   success(`Updated ${args.path}/kandown.html`);
 }
 
-/* ═════════════ Shellable task commands ═════════════ */
+/* ═════════════ One-shot task commands ═════════════ */
 /**
- * 📖 Self-contained minimal YAML frontmatter parser/writer for the CLI shell
+ * 📖 Self-contained minimal YAML frontmatter parser/writer for the one-shot task
  * commands. The web app uses a richer schema (parseSimpleYaml) in the
  * browser; the CLI keeps its own because it can't import the browser bundle
  * and these commands only need to round-trip a known small set of scalar
@@ -1028,7 +1027,7 @@ function nextTaskId(kandownDir) {
   return 't' + (maxN + 1);
 }
 
-function shellPad(str, len) {
+function padCell(str, len) {
   const s = String(str);
   // 📖 Only truncate when the string is strictly LONGER than the column —
   // an exact fit must render as-is (`>=` chopped the last char of e.g. the
@@ -1037,8 +1036,8 @@ function shellPad(str, len) {
   return s + ' '.repeat(len - s.length);
 }
 
-function shellParseArgs(argv) {
-  // 📖 Minimal flag parser for the shell subcommands. Stops at the first
+function taskParseArgs(argv) {
+  // 📖 Minimal flag parser for the task commands. Stops at the first
   // positional arg so `kandown create "Some title with -dash"` works.
   const out = { positional: [], flags: {} };
   for (let i = 0; i < argv.length; i++) {
@@ -1058,9 +1057,9 @@ function shellParseArgs(argv) {
   return out;
 }
 
-function shellResolveStatus(config, status) {
+function resolveStatusArg(config, status) {
   // 📖 Status can be a configured column name OR the reserved `archived`
-  // sentinel. Match is case-insensitive to keep shell usage forgiving.
+  // sentinel. Match is case-insensitive to stay forgiving in scripts.
   if (!status) return null;
   const lower = status.toLowerCase();
   if (lower === 'archived') return 'archived';
@@ -1071,11 +1070,11 @@ function shellResolveStatus(config, status) {
   return null;
 }
 
-function shellList(rawArgs) {
+function cmdList(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
-  const args = shellParseArgs(rawArgs);
+  const args = taskParseArgs(rawArgs);
   const config = readKandownConfig(kandownDir);
-  const statusFilter = args.flags.status ? shellResolveStatus(config, args.flags.status) : null;
+  const statusFilter = args.flags.status ? resolveStatusArg(config, args.flags.status) : null;
   if (args.flags.status && !statusFilter) {
     err(`Unknown status: ${args.flags.status}`);
     process.exit(1);
@@ -1111,28 +1110,28 @@ function shellList(rawArgs) {
 
   if (rows.length === 0) {
     // 📖 Placeholder goes to stderr — an empty result on stdout stays empty
-    // so `[ -z "$(kandown shell list ...)" ]` style checks behave.
+    // so `[ -z "$(kandown list ...)" ]` style checks behave.
     log(c.dim + '(no tasks)' + c.reset);
     return;
   }
 
   const idW = Math.max(2, ...rows.map(r => r.id.length));
-  out(`${c.dim}${shellPad('ID', idW)}  ${shellPad('STATUS', 14)}  ${shellPad('PRI', 4)}  ${shellPad('ASSIGNEE', 12)}  TITLE${c.reset}`);
+  out(`${c.dim}${padCell('ID', idW)}  ${padCell('STATUS', 14)}  ${padCell('PRI', 4)}  ${padCell('ASSIGNEE', 12)}  TITLE${c.reset}`);
   for (const r of rows) {
     const status = (r.fm.status || 'Backlog') + (r.fm.archived === true || r.fm.archived === 'true' ? ' (archived)' : '');
     const pri = r.fm.priority || '';
     const assignee = r.fm.assignee || '';
     const title = (r.fm.title || '(untitled)').replace(/\n/g, ' ');
-    out(`${shellPad(r.id, idW)}  ${shellPad(status, 14)}  ${shellPad(pri, 4)}  ${shellPad(assignee, 12)}  ${title}`);
+    out(`${padCell(r.id, idW)}  ${padCell(status, 14)}  ${padCell(pri, 4)}  ${padCell(assignee, 12)}  ${title}`);
   }
 }
 
-function shellShow(rawArgs) {
+function cmdShow(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
-  const args = shellParseArgs(rawArgs);
+  const args = taskParseArgs(rawArgs);
   const id = args.positional[0];
   if (!id) {
-    err('Usage: kandown shell show <id>');
+    err('Usage: kandown show <id>');
     process.exit(1);
   }
   const path = findTaskFile(kandownDir, id);
@@ -1149,7 +1148,7 @@ function shellShow(rawArgs) {
  * resolved when it lives in the terminal column OR is archived. Unknown
  * ids and self-references never block.
  */
-function shellTaskIsResolved(kandownDir, id, terminalLower) {
+function depIsResolved(kandownDir, id, terminalLower) {
   if (!/^[a-zA-Z0-9_-]+$/.test(id)) return true; // unknown / invalid → don't block
   const path = findTaskFile(kandownDir, id);
   if (!path) return true; // unknown id → don't block
@@ -1158,17 +1157,17 @@ function shellTaskIsResolved(kandownDir, id, terminalLower) {
   return isArch || (parsed.frontmatter.status || '').toLowerCase() === terminalLower;
 }
 
-function shellCreate(rawArgs) {
+function cmdCreate(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
-  const args = shellParseArgs(rawArgs);
+  const args = taskParseArgs(rawArgs);
   const title = args.positional.join(' ').trim();
   if (!title) {
-    err('Usage: kandown shell create "title" [-p priority] [-a assignee] [-t tag] [--to status]');
+    err('Usage: kandown create "title" [-p priority] [-a assignee] [-t tag] [--to status]');
     process.exit(1);
   }
   const config = readKandownConfig(kandownDir);
   const defaultStatus = (config && config.board && config.board.columns && config.board.columns[0]) || 'Backlog';
-  const targetStatus = args.flags.to ? shellResolveStatus(config, args.flags.to) : defaultStatus;
+  const targetStatus = args.flags.to ? resolveStatusArg(config, args.flags.to) : defaultStatus;
   if (args.flags.to && !targetStatus) {
     err(`Unknown status: ${args.flags.to}`);
     process.exit(1);
@@ -1207,17 +1206,17 @@ function shellCreate(rawArgs) {
   }
 }
 
-function shellMove(rawArgs) {
+function cmdMove(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
-  const args = shellParseArgs(rawArgs);
+  const args = taskParseArgs(rawArgs);
   const [id, rawStatus] = args.positional;
   const targetStatus = rawStatus || args.flags.to;
   if (!id || !targetStatus) {
-    err('Usage: kandown shell move <id> <status>');
+    err('Usage: kandown move <id> <status>');
     process.exit(1);
   }
   const config = readKandownConfig(kandownDir);
-  const resolved = shellResolveStatus(config, targetStatus);
+  const resolved = resolveStatusArg(config, targetStatus);
   if (!resolved) {
     err(`Unknown status: ${targetStatus}`);
     process.exit(1);
@@ -1238,7 +1237,7 @@ function shellMove(rawArgs) {
       const blocked = [];
       for (const dep of deps) {
         if (typeof dep !== 'string' || !dep.trim() || dep === id) continue;
-        if (!shellTaskIsResolved(kandownDir, dep, terminalLower)) blocked.push(dep);
+        if (!depIsResolved(kandownDir, dep, terminalLower)) blocked.push(dep);
       }
       if (blocked.length > 0) {
         const list = blocked.length === 1 ? blocked[0] : `${blocked.slice(0, -1).join(', ')} and ${blocked[blocked.length - 1]}`;
@@ -1267,12 +1266,12 @@ function shellMove(rawArgs) {
   log(`${c.green}✓${c.reset} ${c.bold}${id}${c.reset} → ${resolved}`);
 }
 
-function shellAssign(rawArgs) {
+function cmdAssign(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
-  const args = shellParseArgs(rawArgs);
+  const args = taskParseArgs(rawArgs);
   const [id, name] = args.positional;
   if (!id) {
-    err('Usage: kandown shell assign <id> [name]   (omit name to unassign)');
+    err('Usage: kandown assign <id> [name]   (omit name to unassign)');
     process.exit(1);
   }
   const path = findTaskFile(kandownDir, id);
@@ -1287,9 +1286,9 @@ function shellAssign(rawArgs) {
   log(`${c.green}✓${c.reset} ${c.bold}${id}${c.reset} → ${name ? c.cyan + name : c.dim + '(unassigned)'}${c.reset}`);
 }
 
-function shellCommit(rawArgs) {
+function cmdCommit(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
-  const args = shellParseArgs(rawArgs);
+  const args = taskParseArgs(rawArgs);
   const projectRoot = getProjectRoot(kandownDir);
   // 📖 Refuse to commit if not inside a git repo — silently failing here would
   // let the user believe they versioned their tasks when they didn't.
@@ -1335,34 +1334,16 @@ function shellCommit(rawArgs) {
   }
 }
 
-function cmdShell(subcmd, rawArgs) {
-  switch (subcmd) {
-    case 'list':
-    case 'ls':
-      shellList(rawArgs);
-      return;
-    case 'show':
-      shellShow(rawArgs);
-      return;
-    case 'create':
-    case 'new':
-      shellCreate(rawArgs);
-      return;
-    case 'move':
-      shellMove(rawArgs);
-      return;
-    case 'assign':
-      shellAssign(rawArgs);
-      return;
-    case 'commit':
-      shellCommit(rawArgs);
-      return;
-    case undefined:
-    case 'help':
-    case '--help':
-    case '-h':
-      out(`
-${c.bold}kandown shell${c.reset} ${c.dim}· task commands (one-shot, scriptable)${c.reset}
+/**
+ * 📖 Prints the one-shot task-command cheatsheet. Reachable as `kandown tasks`
+ * (or `kandown tasks help`) — the commands themselves (list/show/create/move/
+ * assign/commit) are top-level, not nested under a "shell" prefix, since
+ * they're the most basic operations of the product and scripts/agents should
+ * never need to remember a wrapper word to reach them.
+ */
+function printTaskCommandsHelp() {
+  out(`
+${c.bold}kandown${c.reset} ${c.dim}· one-shot task commands (scriptable, agent-friendly)${c.reset}
 
 ${c.bold}Commands:${c.reset}
   ${c.cyan}list${c.reset}   [-s status] [-a assignee] [-t tag] [-p priority] [--archived] [--json]
@@ -1373,18 +1354,151 @@ ${c.bold}Commands:${c.reset}
   ${c.cyan}commit${c.reset}  [-m "message"]   (git add tasks/ + .kandown/kandown.json + git commit)
 
 ${c.bold}Examples:${c.reset}
-  ${c.dim}$${c.reset} kandown shell list --json | jq '.[] | select(.priority=="P1")'
-  ${c.dim}$${c.reset} kandown shell create "Refactor auth middleware" -p P1 -t backend
-  ${c.dim}$${c.reset} kandown shell move t42 Done
-  ${c.dim}$${c.reset} kandown shell assign t42 alice
-  ${c.dim}$${c.reset} kandown shell commit -m "tasks: add auth refactor"
+  ${c.dim}$${c.reset} kandown list --json | jq '.[] | select(.priority=="P1")'
+  ${c.dim}$${c.reset} kandown create "Refactor auth middleware" -p P1 -t backend
+  ${c.dim}$${c.reset} kandown move t42 Done
+  ${c.dim}$${c.reset} kandown assign t42 alice
+  ${c.dim}$${c.reset} kandown commit -m "tasks: add auth refactor"
 `);
-      return;
-    default:
-      err(`Unknown shell command: ${subcmd}`);
-      log(`  Run ${c.cyan}kandown shell help${c.reset} for the list.`);
-      process.exit(1);
+}
+
+/* ═════════════ kandown work — agent entrypoint ═════════════ */
+/**
+ * 📖 `kandown work` replaces the "paste the rules into AGENTS.md/CLAUDE.md"
+ * pattern: instead of a stale copy embedded in the project's agent file at
+ * init time, the CLI serves the rules fresh on every invocation — always in
+ * sync with the installed version — plus a live digest of the board so the
+ * agent gets its marching orders and its context in one call.
+ *
+ * Layering (base → global → project), each optional except the base:
+ *   1. Base rules   — templates/AGENT_KANDOWN.md, shipped with the package.
+ *   2. Global       — ~/.kandown/instructions.md, applies to every project
+ *                     on this machine (team conventions, personal style).
+ *   3. Project      — .kandown/instructions.md, this project only.
+ * Later layers are appended, not merged — the agent reads all of them.
+ */
+
+const PRIORITY_RANK = { P1: 0, P2: 1, P3: 2, P4: 3 };
+function priorityRank(p) {
+  return Object.prototype.hasOwnProperty.call(PRIORITY_RANK, p) ? PRIORITY_RANK[p] : 4;
+}
+
+/**
+ * 📖 Builds the "Current board" section: column counts, tasks per column
+ * (with blocked-by annotations), and a "Next actionable task" pick — the
+ * task in the most-advanced non-terminal column (closest to done, so
+ * in-flight work finishes before new work starts) with no unresolved
+ * `depends_on`, tie-broken by priority. Mirrors the same gate logic used by
+ * `move`/the TUI/the web store.
+ */
+function buildBoardDigest(kandownDir) {
+  const config = readKandownConfig(kandownDir);
+  const columns = (config && config.board && Array.isArray(config.board.columns) && config.board.columns.length > 0)
+    ? config.board.columns
+    : ['Backlog', 'Todo', 'In Progress', 'Review', 'Done'];
+  const terminalCol = columns[columns.length - 1];
+  const terminalLower = terminalCol.toLowerCase();
+
+  const rows = [];
+  for (const id of listAllTaskIds(kandownDir)) {
+    const path = findTaskFile(kandownDir, id);
+    if (!path) continue;
+    let content;
+    try { content = readFileSync(path, 'utf8'); } catch { continue; }
+    const parsed = parseFrontmatter(content);
+    const fm = parsed.frontmatter;
+    const isArchived = fm.archived === true || fm.archived === 'true' || path.includes('/archive/');
+    if (isArchived) continue;
+    rows.push({ id, fm });
   }
+
+  if (rows.length === 0) {
+    return `## Current board\n\n(no tasks yet)`;
+  }
+
+  const resolved = new Map();
+  for (const r of rows) {
+    const isArch = r.fm.archived === true || r.fm.archived === 'true';
+    resolved.set(r.id, isArch || (r.fm.status || '').toLowerCase() === terminalLower);
+  }
+
+  const byColumn = new Map(columns.map(col => [col, []]));
+  for (const r of rows) {
+    const status = r.fm.status || columns[0];
+    const col = columns.find(c => c.toLowerCase() === String(status).toLowerCase()) || columns[0];
+    const deps = Array.isArray(r.fm.depends_on) ? r.fm.depends_on : [];
+    const blocked = deps.filter(d => typeof d === 'string' && d.trim() && d !== r.id && !resolved.get(d));
+    // 📖 `col` always resolves to one of `columns` (falls back to columns[0]),
+    // which the Map was seeded with above — the entry always exists.
+    byColumn.get(col).push({ ...r, blocked });
+  }
+
+  const lines = ['## Current board', ''];
+  lines.push(`**Columns:** ${columns.map(col => `${col} (${(byColumn.get(col) || []).length})`).join(' · ')}`);
+
+  for (const col of columns) {
+    const tasks = (byColumn.get(col) || []).sort((a, b) => priorityRank(a.fm.priority) - priorityRank(b.fm.priority));
+    if (tasks.length === 0) continue;
+    lines.push('', `### ${col}`);
+    for (const t of tasks) {
+      const pri = t.fm.priority ? `[${t.fm.priority}] ` : '';
+      const assignee = t.fm.assignee ? ` (@${t.fm.assignee})` : '';
+      const blockedStr = t.blocked.length > 0 ? ` ⛔ blocked by ${t.blocked.join(', ')}` : '';
+      lines.push(`- ${t.id} ${pri}${t.fm.title || '(untitled)'}${assignee}${blockedStr}`);
+    }
+  }
+
+  const actionable = rows.filter(r => {
+    const status = r.fm.status || columns[0];
+    if (status.toLowerCase() === terminalLower) return false;
+    const deps = Array.isArray(r.fm.depends_on) ? r.fm.depends_on : [];
+    return !deps.some(d => typeof d === 'string' && d.trim() && d !== r.id && !resolved.get(d));
+  });
+  const next = actionable.sort((a, b) => {
+    const idxA = columns.findIndex(col => col.toLowerCase() === (a.fm.status || columns[0]).toLowerCase());
+    const idxB = columns.findIndex(col => col.toLowerCase() === (b.fm.status || columns[0]).toLowerCase());
+    if (idxA !== idxB) return idxB - idxA; // most-advanced non-terminal column first
+    return priorityRank(a.fm.priority) - priorityRank(b.fm.priority);
+  })[0];
+
+  lines.push('', '### Next actionable task');
+  lines.push(next
+    ? `→ **${next.id}** — ${next.fm.title || '(untitled)'} (${next.fm.priority || 'no priority'}, ${next.fm.status || columns[0]})`
+    : 'None — every task is done, archived, or blocked.');
+
+  return lines.join('\n');
+}
+
+async function cmdWork(rawArgs) {
+  const { kandownDir } = ensureKandownDir(rawArgs);
+
+  let baseRules = '';
+  try {
+    baseRules = readFileSync(join(PKG_ROOT, 'templates', 'AGENT_KANDOWN.md'), 'utf8').trim();
+  } catch (e) {
+    warn(`Could not read base rules (${e.message})`);
+  }
+
+  let globalInstructions = '';
+  const globalPath = join(homedir(), '.kandown', 'instructions.md');
+  if (existsSync(globalPath)) {
+    try { globalInstructions = readFileSync(globalPath, 'utf8').trim(); }
+    catch (e) { warn(`Could not read global instructions (${e.message})`); }
+  }
+
+  let projectInstructions = '';
+  const projectPath = join(kandownDir, 'instructions.md');
+  if (existsSync(projectPath)) {
+    try { projectInstructions = readFileSync(projectPath, 'utf8').trim(); }
+    catch (e) { warn(`Could not read project instructions (${e.message})`); }
+  }
+
+  const sections = [baseRules];
+  if (globalInstructions) sections.push(`## Global instructions\n\n${globalInstructions}`);
+  if (projectInstructions) sections.push(`## Project-specific instructions\n\n${projectInstructions}`);
+  sections.push(buildBoardDigest(kandownDir));
+
+  out(sections.filter(Boolean).join('\n\n---\n\n'));
 }
 
 function parsePort(value) {
@@ -2503,11 +2617,13 @@ if (cmd === '--version' || cmd === '-v') {
 const skipUpdate = process.argv.slice(2).includes('--no-update-check');
 
 // 📖 Update policy (M1): the check only runs for INTERACTIVE commands.
-// `shell` (scripts/agents) and `daemon` (spawned children, status probes)
-// must never pay a network round-trip nor risk a mid-pipeline respawn.
-// Inside checkForUpdate there are further guards: 24h throttle, TTY-only,
-// and the KANDOWN_NO_UPDATE=1 opt-out.
-const SCRIPTED_COMMANDS = new Set(['shell', 'daemon']);
+// The one-shot task commands (scripts/agents) and `daemon` (spawned
+// children, status probes) must never pay a network round-trip nor risk a
+// mid-pipeline respawn. Inside checkForUpdate there are further guards: 24h
+// throttle, TTY-only, and the KANDOWN_NO_UPDATE=1 opt-out.
+const SCRIPTED_COMMANDS = new Set([
+  'list', 'ls', 'show', 'create', 'new', 'move', 'assign', 'commit', 'tasks', 'work', 'daemon',
+]);
 if (!skipUpdate && !SCRIPTED_COMMANDS.has(cmd)) await checkForUpdate(process.argv);
 
 switch (cmd) {
@@ -2532,13 +2648,47 @@ switch (cmd) {
     cmdUpdate(rest);
     break;
 
-  case 'shell': {
-    // 📖 Two-level command: `kandown shell <subcmd> [...args]`. Pull the
-    // first non-flag arg as the subcommand and forward the rest.
-    const [shellSubcmd, ...shellRest] = rest;
-    cmdShell(shellSubcmd, shellRest);
+  // 📖 One-shot task commands — top-level, no "shell" wrapper. These are the
+  // most basic operations of the product (list/read/create/move/assign a
+  // task, commit the board to git); nesting them under a prefix only added
+  // friction for scripts and AI agents, which is exactly who these are for.
+  case 'list':
+  case 'ls':
+    cmdList(rest);
     break;
-  }
+
+  case 'show':
+    cmdShow(rest);
+    break;
+
+  case 'create':
+  case 'new':
+    cmdCreate(rest);
+    break;
+
+  case 'move':
+    cmdMove(rest);
+    break;
+
+  case 'assign':
+    cmdAssign(rest);
+    break;
+
+  case 'commit':
+    cmdCommit(rest);
+    break;
+
+  case 'tasks':
+    // 📖 `kandown tasks` — cheatsheet for the commands above (`list help`
+    // etc. would collide with real usage, so the index lives on its own verb).
+    printTaskCommandsHelp();
+    break;
+
+  case 'work':
+    // 📖 `kandown work` — the agent entrypoint (rules + live board digest).
+    // See cmdWork's doc comment for the full rationale.
+    await cmdWork(rest);
+    break;
 
   case 'help':
   case '--help':

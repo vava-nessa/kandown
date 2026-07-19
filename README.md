@@ -91,33 +91,50 @@ The web daemon stays alive after you quit the TUI so the browser keeps working. 
 | `kandown daemon start` | Start/reconnect this project's web daemon |
 | `kandown daemon stop` | Stop this project's web daemon |
 | `kandown update` | Update `kandown.html` to latest |
-| `kandown shell <cmd>` | Scriptable, one-shot task commands (see below) |
+| `kandown list` \| `show` \| `create` \| `move` \| `assign` \| `commit` | One-shot task commands (see below) |
+| `kandown tasks` | Full help for the one-shot task commands |
+| `kandown work` | **For AI agents:** print the agent rules + a live board digest (see below) |
 | `kandown help` | CLI help |
 
-### Shell commands (scriptable, agent-friendly)
+### One-shot task commands (scriptable, agent-friendly)
 
-`kandown shell` is a one-shot, non-interactive interface to the board — built for scripts, CI, and AI agents. Every command auto-inits `.kandown/` on first use, same as the interactive CLI.
+Top-level, non-interactive commands for scripting, CI, and AI agents — no wrapper prefix, just `kandown <command>`. Every command auto-inits `.kandown/` on first use, same as the interactive CLI.
 
 | Command | Description |
 |---|---|
-| `kandown shell list` | List tasks — `[-s status] [-a assignee] [-t tag] [-p priority] [--archived] [--json]` |
-| `kandown shell show <id>` | Print a task file's raw content |
-| `kandown shell create "title"` | Create a task — `[-p priority] [-a assignee] [-t tag ...] [--to status] [--id custom-id] [--json]` |
-| `kandown shell move <id> <status>` | Move a task — `<status>` is a column name or `"archived"` |
-| `kandown shell assign <id> [name]` | Assign a task (omit name to unassign) |
-| `kandown shell commit [-m "message"]` | `git add tasks/ .kandown/kandown.json` + `git commit` |
+| `kandown list` | List tasks — `[-s status] [-a assignee] [-t tag] [-p priority] [--archived] [--json]` |
+| `kandown show <id>` | Print a task file's raw content |
+| `kandown create "title"` | Create a task — `[-p priority] [-a assignee] [-t tag ...] [--to status] [--id custom-id] [--json]` |
+| `kandown move <id> <status>` | Move a task — `<status>` is a column name or `"archived"` |
+| `kandown assign <id> [name]` | Assign a task (omit name to unassign) |
+| `kandown commit [-m "message"]` | `git add tasks/ .kandown/kandown.json` + `git commit` |
 
 ```bash
-kandown shell list --json | jq '.[] | select(.priority=="P1")'
-kandown shell create "Refactor auth middleware" -p P1 -t backend
-kandown shell move t42 Done
-kandown shell assign t42 alice
-kandown shell commit -m "tasks: add auth refactor"
+kandown list --json | jq '.[] | select(.priority=="P1")'
+kandown create "Refactor auth middleware" -p P1 -t backend
+kandown move t42 Done
+kandown assign t42 alice
+kandown commit -m "tasks: add auth refactor"
 ```
 
-**Output contract:** stdout carries data only (task ids, JSON, tables) — everything decorative (`✓ Created…`, warnings, errors) goes to stderr. This keeps `ID=$(kandown shell create "...")` and `kandown shell list --json | jq ...` clean and composable. Exit code `0` on success, non-zero on error — safe to check in scripts.
+**Output contract:** stdout carries data only (task ids, JSON, tables) — everything decorative (`✓ Created…`, warnings, errors) goes to stderr. This keeps `ID=$(kandown create "...")` and `kandown list --json | jq ...` clean and composable. Exit code `0` on success, non-zero on error — safe to check in scripts.
 
-**No update checks:** `kandown shell` and `kandown daemon` never touch the npm registry, so they stay fast and fully offline-capable — ideal for CI and for AI agents driving the board directly.
+**No update checks:** the task commands and `kandown daemon` never touch the npm registry, so they stay fast and fully offline-capable — ideal for CI and for AI agents driving the board directly.
+
+### `kandown work` — the agent entrypoint
+
+`kandown init` no longer copies a block of rules into your `AGENTS.md`/`CLAUDE.md` — it appends a single line instead:
+
+> This project uses **kandown** for task management. **Always run `kandown work` when starting a new task** — it prints the current rules and board state, kept in sync with the installed CLI version.
+
+Running `kandown work` prints, as plain markdown on stdout:
+
+1. **The agent rules** — always fresh, served straight from the installed CLI version instead of a copy that goes stale the moment the package updates.
+2. **Global instructions** (optional) — `~/.kandown/instructions.md`, applied to every kandown project on this machine (personal conventions, team-wide rules).
+3. **Project instructions** (optional) — `.kandown/instructions.md`, this project only (stack quirks, "always use pnpm", commit message language, etc).
+4. **A live board digest** — column counts, tasks per column with blocked-by annotations, and a computed **"next actionable task"** (closest to done, unblocked, highest priority) — so the agent gets its context in the same call.
+
+This removes the drift problem of a rules block frozen into every project's `AGENTS.md` at init time, keeps the injected footprint to one line, and lets you layer instructions globally or per project without touching the agent file at all.
 
 ---
 
@@ -131,7 +148,7 @@ kandown shell commit -m "tasks: add auth refactor"
 | `KANDOWN_AGENT_HOOK_LABEL` | Custom label for the agent hook button (default: `Agent`) |
 | `KANDOWN_AGENT_HOOK_HEADERS` | JSON object of extra HTTP headers to send with the agent hook request |
 
-Interactive runs of `kandown` check npm for updates at most once every 24 hours (never for `shell`/`daemon`, never when stdout isn't a terminal) and auto-install silently when one is found.
+Interactive runs of `kandown` check npm for updates at most once every 24 hours (never for the task commands or `daemon`, never when stdout isn't a terminal) and auto-install silently when one is found.
 
 ---
 

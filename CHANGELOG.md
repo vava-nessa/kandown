@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.18.0 — 2026-07-19 — "Agent Workflow"
+
+- **Added**: **`kandown work` — the agent entrypoint** — a single command that prints the full agent rules (served fresh from the installed CLI version, never a stale per-project copy) plus a live board digest: column counts, tasks per column with blocked-by annotations, and a computed "next actionable task" (closest to done, unblocked, highest priority). One call gives an AI agent both its rules and its context.
+- **Added**: **Layered instructions** — optional `~/.kandown/instructions.md` (applies to every kandown project on this machine) and `.kandown/instructions.md` (this project only) are appended after the base rules in `kandown work` output, letting users customize agent behavior globally or per project without touching the agent file.
+- **Changed**: **`kandown init` no longer injects a rules block into `AGENTS.md`/`CLAUDE.md`** — it appends a single line pointing the agent at `kandown work` instead. Removes the drift problem of a rules copy going stale the moment the package updates, and cuts the injected footprint from a paragraph to one line.
+- **Changed**: **Task commands promoted to top-level, `shell` prefix removed entirely** — `kandown list/show/create/move/assign/commit` (previously `kandown shell <cmd>`, no alias kept). These are the most basic operations of the product; nesting them under a wrapper word only added friction for the scripts and AI agents they're built for. New `kandown tasks` prints the cheatsheet for this group.
+- **Fixed**: internal function names and comments across `bin/kandown.js` no longer reference the removed `shell` wrapper.
+
 ## 0.17.2 — 2026-07-19 — "CLI Hardening"
 
 - **Added**: **CLI/daemon hardening pass** — daemon routes now use per-daemon `X-Kandown-Token` auth, remove wildcard CORS, cap request bodies at 10MB, and keep the daemon alive after recoverable fatal handlers.
