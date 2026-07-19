@@ -20,7 +20,7 @@
 
 import { existsSync, readFileSync, unlinkSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { createConnection } from 'node:net';
 
 export interface DaemonMetadata {
@@ -189,22 +189,58 @@ export async function startProjectDaemon(kandownDir: string, preferredPort?: num
   return waitForDaemon(kandownDir);
 }
 
+/**
+ * 📖 Guard against PID reuse before killing: only treat the PID as ours if the
+ * daemon API confirms ownership, or — when the API is unreachable (wedged /
+ * still starting) — the OS process table shows a kandown process launched for
+ * THIS project. Without this, stale metadata after a crash could point at a
+ * recycled PID and we would SIGKILL an unrelated process.
+ */
+async function isOwnedKandownDaemon(pid: number, port: number, kandownDir: string): Promise<boolean> {
+  const remote = await fetchDaemonInfo(port);
+  if (remote) return remote.pid === pid && remote.kandownDir === kandownDir;
+  try {
+    const cmd = execFileSync('ps', ['-p', String(pid), '-o', 'command='], {
+      encoding: 'utf8', timeout: 2000,
+    }).trim();
+    return /kandown/.test(cmd) && cmd.includes(kandownDir);
+  } catch {
+    return false;
+  }
+}
+
 export async function stopProjectDaemon(kandownDir: string): Promise<boolean> {
-  const status = await getDaemonStatus(kandownDir);
-  if (!status.running || !status.metadata) {
+  // 📖 Read the metadata directly instead of going through getDaemonStatus:
+  // a daemon whose HTTP health-check transiently fails is still a live process
+  // we must terminate — otherwise we'd delete the metadata and orphan it with
+  // the port held forever.
+  const metadata = readDaemonMetadata(kandownDir);
+  if (!metadata) return false;
+
+  const pid = metadata.pid;
+  if (!isProcessAlive(pid)) {
+    removeDaemonMetadata(kandownDir);
+    return false;
+  }
+
+  if (!(await isOwnedKandownDaemon(pid, metadata.port, kandownDir))) {
+    // Alive PID that isn't our daemon (recycled PID / stale metadata) — never kill.
     removeDaemonMetadata(kandownDir);
     return false;
   }
 
   try {
-    process.kill(status.metadata.pid, 'SIGTERM');
+    process.kill(pid, 'SIGTERM');
   } catch {
     // 📖 Already gone; metadata cleanup below makes the UI reflect OFF.
   }
 
   const started = Date.now();
-  while (Date.now() - started < 2500 && isProcessAlive(status.metadata.pid)) {
+  while (Date.now() - started < 2500 && isProcessAlive(pid)) {
     await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  if (isProcessAlive(pid)) {
+    try { process.kill(pid, 'SIGKILL'); } catch { /* raced to death */ }
   }
   removeDaemonMetadata(kandownDir);
   return true;

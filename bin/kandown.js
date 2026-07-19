@@ -956,7 +956,10 @@ function nextTaskId(kandownDir) {
 
 function shellPad(str, len) {
   const s = String(str);
-  if (s.length >= len) return s.slice(0, Math.max(0, len - 1)) + (s.length > len ? '…' : '');
+  // 📖 Only truncate when the string is strictly LONGER than the column —
+  // an exact fit must render as-is (`>=` chopped the last char of e.g. the
+  // longest task id, displaying "t99" as "t9").
+  if (s.length > len) return s.slice(0, Math.max(0, len - 1)) + '…';
   return s + ' '.repeat(len - s.length);
 }
 
@@ -1495,12 +1498,35 @@ async function startDaemon(kandownDir, preferredPort) {
   return waitForDaemon(kandownDir);
 }
 
+/**
+ * 📖 Guard against PID reuse before killing: the PID is only "ours" if the
+ * daemon API confirms ownership, or — when the API is unreachable (wedged /
+ * still starting) — the OS process table shows a kandown process launched for
+ * THIS project. Without this, stale metadata left by a crash could point at a
+ * recycled PID and stopDaemon would SIGKILL an unrelated process.
+ */
+async function isOwnedKandownDaemon(pid, port, kandownDir) {
+  const remote = await fetchDaemonInfo(port);
+  if (remote) return remote.pid === pid && remote.kandownDir === kandownDir;
+  try {
+    const cmd = execSync(`ps -p ${pid} -o command=`, { encoding: 'utf8', timeout: 2000 }).trim();
+    return /kandown/.test(cmd) && cmd.includes(kandownDir);
+  } catch {
+    return false;
+  }
+}
+
 async function stopDaemon(kandownDir) {
   const metadata = readDaemonMetadata(kandownDir);
   if (!metadata) return false;
 
   const pid = metadata.pid;
   if (isProcessAlive(pid)) {
+    if (!(await isOwnedKandownDaemon(pid, metadata.port, kandownDir))) {
+      // Alive PID that isn't our daemon (recycled PID / stale metadata) — never kill.
+      removeDaemonMetadata(kandownDir);
+      return false;
+    }
     try {
       process.kill(pid, 'SIGTERM');
     } catch { /* already stopped */ }

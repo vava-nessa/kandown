@@ -54650,7 +54650,7 @@ function moveTaskToColumn(kandownDir, taskId, targetColumn) {
 // src/cli/lib/daemon.ts
 import { existsSync as existsSync4, readFileSync as readFileSync4, unlinkSync } from "fs";
 import { dirname as dirname2, join as join3 } from "path";
-import { spawn } from "child_process";
+import { execFileSync as execFileSync2, spawn } from "child_process";
 import { createConnection } from "net";
 function metadataPath(kandownDir) {
   return join3(kandownDir, "daemon.json");
@@ -54776,19 +54776,44 @@ async function startProjectDaemon(kandownDir, preferredPort) {
   child.unref();
   return waitForDaemon(kandownDir);
 }
+async function isOwnedKandownDaemon(pid, port, kandownDir) {
+  const remote = await fetchDaemonInfo(port);
+  if (remote) return remote.pid === pid && remote.kandownDir === kandownDir;
+  try {
+    const cmd = execFileSync2("ps", ["-p", String(pid), "-o", "command="], {
+      encoding: "utf8",
+      timeout: 2e3
+    }).trim();
+    return /kandown/.test(cmd) && cmd.includes(kandownDir);
+  } catch {
+    return false;
+  }
+}
 async function stopProjectDaemon(kandownDir) {
-  const status = await getDaemonStatus(kandownDir);
-  if (!status.running || !status.metadata) {
+  const metadata = readDaemonMetadata(kandownDir);
+  if (!metadata) return false;
+  const pid = metadata.pid;
+  if (!isProcessAlive(pid)) {
+    removeDaemonMetadata(kandownDir);
+    return false;
+  }
+  if (!await isOwnedKandownDaemon(pid, metadata.port, kandownDir)) {
     removeDaemonMetadata(kandownDir);
     return false;
   }
   try {
-    process.kill(status.metadata.pid, "SIGTERM");
+    process.kill(pid, "SIGTERM");
   } catch {
   }
   const started = Date.now();
-  while (Date.now() - started < 2500 && isProcessAlive(status.metadata.pid)) {
+  while (Date.now() - started < 2500 && isProcessAlive(pid)) {
     await new Promise((resolve3) => setTimeout(resolve3, 100));
+  }
+  if (isProcessAlive(pid)) {
+    try {
+      process.kill(pid, "SIGKILL");
+    } catch {
+    }
   }
   removeDaemonMetadata(kandownDir);
   return true;
@@ -56700,7 +56725,7 @@ function createWatcher() {
 }
 
 // src/cli/lib/agents.ts
-import { execFileSync as execFileSync2 } from "child_process";
+import { execFileSync as execFileSync3 } from "child_process";
 var AGENTS = [
   {
     id: "claude",
@@ -56797,7 +56822,7 @@ var installCache = /* @__PURE__ */ new Map();
 function isAgentInstalled(bin) {
   if (installCache.has(bin)) return installCache.get(bin);
   try {
-    execFileSync2("which", [bin], { stdio: "ignore" });
+    execFileSync3("which", [bin], { stdio: "ignore" });
     installCache.set(bin, true);
     return true;
   } catch {
@@ -57224,6 +57249,24 @@ function MovePlaceholder({ name, focused, colWidth }) {
     }
   ) });
 }
+function computeScrollIdx(tasks, focusedRow, contextMenuRow, maxTasksHeight) {
+  if (focusedRow < 0) return 0;
+  const reserveBottom = focusedRow < tasks.length - 1 ? 1 : 0;
+  let currentScroll = 0;
+  while (currentScroll < focusedRow) {
+    const hasTopIndicator = currentScroll > 0;
+    const adjustedMaxHeight = maxTasksHeight - (hasTopIndicator ? 1 : 0) - reserveBottom;
+    let h = 0;
+    for (let k = currentScroll; k <= focusedRow; k++) {
+      h += getTitleCategory(tasks[k].title) !== null ? 3 : 1;
+      if (contextMenuRow === k) h += MENU_HEIGHT;
+      if (k < focusedRow) h += 1;
+    }
+    if (h <= adjustedMaxHeight) break;
+    currentScroll++;
+  }
+  return currentScroll;
+}
 function KanbanColumn({
   name,
   tasks,
@@ -57241,26 +57284,7 @@ function KanbanColumn({
   const headerBg = isFocused ? accent : void 0;
   const headerColor = isFocused ? "black" : accent;
   const countStr = tasks.length > 0 ? ` (${tasks.length})` : "";
-  let scrollIdx = 0;
-  if (isFocused && focusedRow >= 0) {
-    let currentScroll = 0;
-    while (currentScroll < focusedRow) {
-      let h = 0;
-      const hasTopIndicator2 = currentScroll > 0;
-      const adjustedMaxHeight = maxTasksHeight - (hasTopIndicator2 ? 1 : 0);
-      for (let k = currentScroll; k <= focusedRow; k++) {
-        const hasCategory = getTitleCategory(tasks[k].title) !== null;
-        h += hasCategory ? 3 : 1;
-        if (contextMenuRow === k) h += MENU_HEIGHT;
-        if (k < focusedRow) h += 1;
-      }
-      if (h <= adjustedMaxHeight) {
-        break;
-      }
-      currentScroll++;
-    }
-    scrollIdx = currentScroll;
-  }
+  const scrollIdx = isFocused ? computeScrollIdx(tasks, focusedRow, contextMenuRow ?? -1, maxTasksHeight) : 0;
   let accumulatedHeight = 0;
   let endIdx = scrollIdx;
   const hasTopIndicator = scrollIdx > 0;
@@ -57474,8 +57498,6 @@ function Board({ kandownDir, version }) {
   const [preferredDaemonPort, setPreferredDaemonPort] = (0, import_react37.useState)(null);
   const [installedAgents, setInstalledAgents] = (0, import_react37.useState)([]);
   const inTmux = isInTmux();
-  const updateLayout = (0, import_react37.useCallback)((b) => {
-  }, []);
   const columnAtX = (0, import_react37.useCallback)((x) => {
     if (!board) return -1;
     const numCols = board.columns.length;
@@ -57494,29 +57516,10 @@ function Board({ kandownDir, version }) {
     const col = board.columns[clickedCol];
     if (!col || col.tasks.length === 0) return null;
     const maxTasksHeight = Math.max(5, (process.stdout.rows || 24) - TASKS_START_Y - 3 - (mode === "move-target" || mode === "dragging" ? 2 : 0));
-    let scrollIdx = 0;
     const isFocused = clickedCol === colIndex;
     const focusedRow = isFocused ? rowIndex : -1;
     const contextMenuRowVal = mode === "context-menu" && isFocused ? ctxMenuRow : -1;
-    if (isFocused && focusedRow >= 0) {
-      let currentScroll = 0;
-      while (currentScroll < focusedRow) {
-        let h = 0;
-        const hasTopIndicator2 = currentScroll > 0;
-        const adjustedMaxHeight = maxTasksHeight - (hasTopIndicator2 ? 1 : 0);
-        for (let k = currentScroll; k <= focusedRow; k++) {
-          const hasCategory = getTitleCategory(col.tasks[k].title) !== null;
-          h += hasCategory ? 3 : 1;
-          if (contextMenuRowVal === k) h += MENU_HEIGHT;
-          if (k < focusedRow) h += 1;
-        }
-        if (h <= adjustedMaxHeight) {
-          break;
-        }
-        currentScroll++;
-      }
-      scrollIdx = currentScroll;
-    }
+    const scrollIdx = isFocused ? computeScrollIdx(col.tasks, focusedRow, contextMenuRowVal, maxTasksHeight) : 0;
     const hasTopIndicator = scrollIdx > 0;
     let currentY = TASKS_START_Y;
     if (hasTopIndicator) {
@@ -57562,7 +57565,6 @@ function Board({ kandownDir, version }) {
     try {
       const loaded = readBoard(kandownDir);
       setBoard(loaded);
-      updateLayout(loaded);
       setBoardError(null);
       return loaded;
     } catch (e) {
@@ -57571,7 +57573,7 @@ function Board({ kandownDir, version }) {
       setStatusMsg("");
       return null;
     }
-  }, [kandownDir, updateLayout]);
+  }, [kandownDir]);
   (0, import_react37.useEffect)(() => {
     loadBoardInto();
     setInstalledAgents(detectInstalledAgents());
@@ -57737,30 +57739,31 @@ function Board({ kandownDir, version }) {
       return;
     }
     const col = board.columns[clickedCol];
-    const maxTasksHeight = Math.max(5, (process.stdout.rows || 24) - TASKS_START_Y - 3 - (mode === "move-target" || mode === "dragging" ? 2 : 0));
-    let scrollIdx = 0;
+    if (mode === "move-target") {
+      if (clickedCol === colIndex) {
+        setMoveTaskId(null);
+        setMode("browse");
+        return;
+      }
+      if (moveTaskId) {
+        if (!tryMoveWithGate(moveTaskId, col.name)) {
+          setMoveTaskId(null);
+          setMode("browse");
+          return;
+        }
+        moveTaskToColumn(kandownDir, moveTaskId, col.name);
+        loadBoardInto();
+        showStatus(`Moved ${moveTaskId} \u2192 ${col.name}`);
+      }
+      setMoveTaskId(null);
+      setMode("browse");
+      return;
+    }
+    const maxTasksHeight = Math.max(5, (process.stdout.rows || 24) - TASKS_START_Y - 3 - (mode === "dragging" ? 2 : 0));
     const isFocused = clickedCol === colIndex;
     const focusedRow = isFocused ? rowIndex : -1;
     const contextMenuRowVal = mode === "context-menu" && isFocused ? ctxMenuRow : -1;
-    if (isFocused && focusedRow >= 0) {
-      let currentScroll = 0;
-      while (currentScroll < focusedRow) {
-        let h = 0;
-        const hasTopIndicator2 = currentScroll > 0;
-        const adjustedMaxHeight = maxTasksHeight - (hasTopIndicator2 ? 1 : 0);
-        for (let k = currentScroll; k <= focusedRow; k++) {
-          const hasCategory = getTitleCategory(col.tasks[k].title) !== null;
-          h += hasCategory ? 3 : 1;
-          if (contextMenuRowVal === k) h += MENU_HEIGHT;
-          if (k < focusedRow) h += 1;
-        }
-        if (h <= adjustedMaxHeight) {
-          break;
-        }
-        currentScroll++;
-      }
-      scrollIdx = currentScroll;
-    }
+    const scrollIdx = isFocused ? computeScrollIdx(col.tasks, focusedRow, contextMenuRowVal, maxTasksHeight) : 0;
     const hasTopIndicator = scrollIdx > 0;
     let currentY = TASKS_START_Y;
     if (hasTopIndicator) {
@@ -57879,33 +57882,6 @@ function Board({ kandownDir, version }) {
       }
       return;
     }
-    if (mode === "move-target") {
-      if (clickedCol === colIndex) {
-        setMoveTaskId(null);
-        setMode("browse");
-        return;
-      }
-      const showMoveTargetVal = clickedCol !== colIndex;
-      if (y === currentY || showMoveTargetVal) {
-        const targetColName = col.name;
-        if (moveTaskId) {
-          if (!tryMoveWithGate(moveTaskId, targetColName)) {
-            setMoveTaskId(null);
-            setMode("browse");
-            return;
-          }
-          moveTaskToColumn(kandownDir, moveTaskId, targetColName);
-          loadBoardInto();
-          showStatus(`Moved ${moveTaskId} \u2192 ${targetColName}`);
-        }
-        setMoveTaskId(null);
-        setMode("browse");
-      } else {
-        setMoveTaskId(null);
-        setMode("browse");
-      }
-      return;
-    }
   }, [board, mode, colIndex, rowIndex, ctxMenuRow, moveTaskId, kandownDir, columnAtX, closeContextMenu, openDetail, loadBoardInto, tryMoveWithGate, taskDrag, showStatus]);
   const handleMouseEvent = (0, import_react37.useCallback)((mouse) => {
     if (!board) return;
@@ -57986,7 +57962,7 @@ function Board({ kandownDir, version }) {
     if (mouse.action === "press" && mouse.button === 0) {
       handleMouseClick(mouse.x, mouse.y);
     }
-  }, [board, mode, mousePress, taskDrag, taskHitAt, columnAtX, closeContextMenu, handleMouseClick, kandownDir, updateLayout]);
+  }, [board, mode, mousePress, taskDrag, taskHitAt, columnAtX, closeContextMenu, handleMouseClick, kandownDir]);
   use_input_default((input, key) => {
     if (isMouseInput(input)) {
       const mouse = parseMouseInput(input);
@@ -58193,7 +58169,7 @@ function Board({ kandownDir, version }) {
   if (mode === "context-menu") {
     modeHint = "j/k choose \xB7 Enter confirm \xB7 Esc cancel \xB7 or click";
   } else if (mode === "move-target") {
-    modeHint = "\u2190/\u2192 pick column \xB7 Enter confirm \xB7 Esc cancel \xB7 or click \u2193";
+    modeHint = "\u2190/\u2192 pick column \xB7 Enter confirm \xB7 Esc cancel \xB7 or click a column";
   } else if (mode === "dragging") {
     modeHint = "drag over target column \xB7 release to drop \xB7 Esc cancel";
   }
@@ -58248,7 +58224,7 @@ function Board({ kandownDir, version }) {
       "Moving ",
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "cyan", children: moveTaskId }),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: " \u2014 " }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: mode === "dragging" ? "release over a column" : "click \u2193" }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: mode === "dragging" ? "release over a column" : "click a column" }),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: mode === "dragging" ? " \xB7 Esc cancel" : " or \u2190/\u2192 + Enter" })
     ] }) }),
     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(StatusBar, { message: statusMsg, task: focusedTask, daemonStatus })

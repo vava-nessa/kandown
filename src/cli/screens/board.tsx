@@ -257,6 +257,40 @@ function MovePlaceholder({ name, focused, colWidth }: {
   );
 }
 
+/**
+ * 📖 Shared scroll computation for a column. Returns the first visible task
+ * index so that `focusedRow` fits in `maxTasksHeight`, accounting for variable
+ * task heights (3-line category rows), the inline context menu, separators,
+ * and BOTH scroll-indicator lines. Used by the render (KanbanColumn) and the
+ * mouse hit-testing (taskHitAt / handleMouseClick) so they can never diverge.
+ */
+function computeScrollIdx(
+  tasks: BoardTask[],
+  focusedRow: number,
+  contextMenuRow: number,
+  maxTasksHeight: number,
+): number {
+  if (focusedRow < 0) return 0;
+  // 📖 Reserve the "▼ n more" line whenever tasks below the focus could be
+  // cut off — otherwise the focused row can land exactly behind the bottom
+  // indicator and become invisible while still being the cursor target.
+  const reserveBottom = focusedRow < tasks.length - 1 ? 1 : 0;
+  let currentScroll = 0;
+  while (currentScroll < focusedRow) {
+    const hasTopIndicator = currentScroll > 0;
+    const adjustedMaxHeight = maxTasksHeight - (hasTopIndicator ? 1 : 0) - reserveBottom;
+    let h = 0;
+    for (let k = currentScroll; k <= focusedRow; k++) {
+      h += getTitleCategory(tasks[k].title) !== null ? 3 : 1;
+      if (contextMenuRow === k) h += MENU_HEIGHT;
+      if (k < focusedRow) h += 1; // separator
+    }
+    if (h <= adjustedMaxHeight) break;
+    currentScroll++;
+  }
+  return currentScroll;
+}
+
 function KanbanColumn({ name, tasks, focusedRow, isFocused, colWidth,
   contextMenuRow, contextMenuCursor, showMoveTarget, isMoveFocused, draggedTaskId,
   maxTasksHeight }: {
@@ -276,26 +310,9 @@ function KanbanColumn({ name, tasks, focusedRow, isFocused, colWidth,
   const countStr    = tasks.length > 0 ? ` (${tasks.length})` : '';
 
   // Calculate scroll offset to keep the focused row in view
-  let scrollIdx = 0;
-  if (isFocused && focusedRow >= 0) {
-    let currentScroll = 0;
-    while (currentScroll < focusedRow) {
-      let h = 0;
-      const hasTopIndicator = currentScroll > 0;
-      const adjustedMaxHeight = maxTasksHeight - (hasTopIndicator ? 1 : 0);
-      for (let k = currentScroll; k <= focusedRow; k++) {
-        const hasCategory = getTitleCategory(tasks[k].title) !== null;
-        h += hasCategory ? 3 : 1;
-        if (contextMenuRow === k) h += MENU_HEIGHT;
-        if (k < focusedRow) h += 1; // separator
-      }
-      if (h <= adjustedMaxHeight) {
-        break;
-      }
-      currentScroll++;
-    }
-    scrollIdx = currentScroll;
-  }
+  const scrollIdx = isFocused
+    ? computeScrollIdx(tasks, focusedRow, contextMenuRow ?? -1, maxTasksHeight)
+    : 0;
 
   // Calculate how many tasks we can fit starting from scrollIdx
   let accumulatedHeight = 0;
@@ -563,11 +580,8 @@ export function Board({ kandownDir, version }: BoardProps) {
   const inTmux = isInTmux();
 
   // ─── Layout tracking for mouse hit-testing ────────────────────────────────
-
-  const updateLayout = useCallback((b: ParsedBoard | null) => {
-    // 📖 No longer strictly needed since columnAtX and taskHitAt compute layout on the fly,
-    // but kept as a no-op to avoid breaking call-sites.
-  }, []);
+  // 📖 columnAtX and taskHitAt compute the layout on the fly from the current
+  // board + terminal size, so clicks stay accurate after a resize.
 
   const columnAtX = useCallback((x: number): number => {
     if (!board) return -1;
@@ -590,31 +604,13 @@ export function Board({ kandownDir, version }: BoardProps) {
 
     const maxTasksHeight = Math.max(5, (process.stdout.rows || 24) - TASKS_START_Y - 3 - ((mode === 'move-target' || mode === 'dragging') ? 2 : 0));
 
-    // Calculate scroll offset
-    let scrollIdx = 0;
+    // Calculate scroll offset (shared with the render — see computeScrollIdx)
     const isFocused = clickedCol === colIndex;
     const focusedRow = isFocused ? rowIndex : -1;
     const contextMenuRowVal = mode === 'context-menu' && isFocused ? ctxMenuRow : -1;
-
-    if (isFocused && focusedRow >= 0) {
-      let currentScroll = 0;
-      while (currentScroll < focusedRow) {
-        let h = 0;
-        const hasTopIndicator = currentScroll > 0;
-        const adjustedMaxHeight = maxTasksHeight - (hasTopIndicator ? 1 : 0);
-        for (let k = currentScroll; k <= focusedRow; k++) {
-          const hasCategory = getTitleCategory(col.tasks[k].title) !== null;
-          h += hasCategory ? 3 : 1;
-          if (contextMenuRowVal === k) h += MENU_HEIGHT;
-          if (k < focusedRow) h += 1; // separator
-        }
-        if (h <= adjustedMaxHeight) {
-          break;
-        }
-        currentScroll++;
-      }
-      scrollIdx = currentScroll;
-    }
+    const scrollIdx = isFocused
+      ? computeScrollIdx(col.tasks, focusedRow, contextMenuRowVal, maxTasksHeight)
+      : 0;
 
     const hasTopIndicator = scrollIdx > 0;
     let currentY = TASKS_START_Y;
@@ -679,7 +675,6 @@ export function Board({ kandownDir, version }: BoardProps) {
     try {
       const loaded = readBoard(kandownDir);
       setBoard(loaded);
-      updateLayout(loaded);
       setBoardError(null);
       return loaded;
     } catch (e) {
@@ -688,7 +683,7 @@ export function Board({ kandownDir, version }: BoardProps) {
       setStatusMsg('');
       return null;
     }
-  }, [kandownDir, updateLayout]);
+  }, [kandownDir]);
 
   useEffect(() => {
     loadBoardInto();
@@ -889,33 +884,36 @@ export function Board({ kandownDir, version }: BoardProps) {
     }
 
     const col = board.columns[clickedCol];
-    const maxTasksHeight = Math.max(5, (process.stdout.rows || 24) - TASKS_START_Y - 3 - ((mode === 'move-target' || mode === 'dragging') ? 2 : 0));
 
-    // Calculate scroll offset
-    let scrollIdx = 0;
+    // 📖 Move-target mode: the whole target column is a drop zone, consistent
+    // with drag & drop (release over a column). Clicking the source column or
+    // outside the board cancels (handled above).
+    if (mode === 'move-target') {
+      if (clickedCol === colIndex) { setMoveTaskId(null); setMode('browse'); return; }
+      if (moveTaskId) {
+        if (!tryMoveWithGate(moveTaskId, col.name)) {
+          setMoveTaskId(null);
+          setMode('browse');
+          return;
+        }
+        moveTaskToColumn(kandownDir, moveTaskId, col.name);
+        loadBoardInto();
+        showStatus(`Moved ${moveTaskId} → ${col.name}`);
+      }
+      setMoveTaskId(null);
+      setMode('browse');
+      return;
+    }
+
+    const maxTasksHeight = Math.max(5, (process.stdout.rows || 24) - TASKS_START_Y - 3 - (mode === 'dragging' ? 2 : 0));
+
+    // Calculate scroll offset (shared with the render — see computeScrollIdx)
     const isFocused = clickedCol === colIndex;
     const focusedRow = isFocused ? rowIndex : -1;
     const contextMenuRowVal = mode === 'context-menu' && isFocused ? ctxMenuRow : -1;
-
-    if (isFocused && focusedRow >= 0) {
-      let currentScroll = 0;
-      while (currentScroll < focusedRow) {
-        let h = 0;
-        const hasTopIndicator = currentScroll > 0;
-        const adjustedMaxHeight = maxTasksHeight - (hasTopIndicator ? 1 : 0);
-        for (let k = currentScroll; k <= focusedRow; k++) {
-          const hasCategory = getTitleCategory(col.tasks[k].title) !== null;
-          h += hasCategory ? 3 : 1;
-          if (contextMenuRowVal === k) h += MENU_HEIGHT;
-          if (k < focusedRow) h += 1; // separator
-        }
-        if (h <= adjustedMaxHeight) {
-          break;
-        }
-        currentScroll++;
-      }
-      scrollIdx = currentScroll;
-    }
+    const scrollIdx = isFocused
+      ? computeScrollIdx(col.tasks, focusedRow, contextMenuRowVal, maxTasksHeight)
+      : 0;
 
     const hasTopIndicator = scrollIdx > 0;
     let currentY = TASKS_START_Y;
@@ -1045,29 +1043,6 @@ export function Board({ kandownDir, version }: BoardProps) {
       return;
     }
 
-    if (mode === 'move-target') {
-      if (clickedCol === colIndex) { setMoveTaskId(null); setMode('browse'); return; }
-      const showMoveTargetVal = clickedCol !== colIndex;
-      if (y === currentY || showMoveTargetVal) { // check click on placeholder
-        const targetColName = col.name;
-        if (moveTaskId) {
-          if (!tryMoveWithGate(moveTaskId, targetColName)) {
-            setMoveTaskId(null);
-            setMode('browse');
-            return;
-          }
-          moveTaskToColumn(kandownDir, moveTaskId, targetColName);
-          loadBoardInto();
-          showStatus(`Moved ${moveTaskId} → ${targetColName}`);
-        }
-        setMoveTaskId(null);
-        setMode('browse');
-      } else {
-        setMoveTaskId(null);
-        setMode('browse');
-      }
-      return;
-    }
   }, [board, mode, colIndex, rowIndex, ctxMenuRow, moveTaskId, kandownDir, columnAtX, closeContextMenu, openDetail, loadBoardInto, tryMoveWithGate, taskDrag, showStatus]);
 
   const handleMouseEvent = useCallback((mouse: NonNullable<ReturnType<typeof parseMouseInput>>) => {
@@ -1158,7 +1133,7 @@ export function Board({ kandownDir, version }: BoardProps) {
     if (mouse.action === 'press' && mouse.button === 0) {
       handleMouseClick(mouse.x, mouse.y);
     }
-  }, [board, mode, mousePress, taskDrag, taskHitAt, columnAtX, closeContextMenu, handleMouseClick, kandownDir, updateLayout]);
+  }, [board, mode, mousePress, taskDrag, taskHitAt, columnAtX, closeContextMenu, handleMouseClick, kandownDir]);
 
   // ─── Input handling (keyboard + mouse) ────────────────────────────────────
 
@@ -1387,7 +1362,7 @@ export function Board({ kandownDir, version }: BoardProps) {
   if (mode === 'context-menu') {
     modeHint = 'j/k choose · Enter confirm · Esc cancel · or click';
   } else if (mode === 'move-target') {
-    modeHint = '←/→ pick column · Enter confirm · Esc cancel · or click ↓';
+    modeHint = '←/→ pick column · Enter confirm · Esc cancel · or click a column';
   } else if (mode === 'dragging') {
     modeHint = 'drag over target column · release to drop · Esc cancel';
   }
@@ -1459,7 +1434,7 @@ export function Board({ kandownDir, version }: BoardProps) {
           <Text color="yellow" bold>
             Moving <Text color="cyan">{moveTaskId}</Text>
             <Text color="gray"> — </Text>
-            <Text color="yellow" bold>{mode === 'dragging' ? 'release over a column' : 'click ↓'}</Text>
+            <Text color="yellow" bold>{mode === 'dragging' ? 'release over a column' : 'click a column'}</Text>
             <Text color="gray">{mode === 'dragging' ? ' · Esc cancel' : ' or ←/→ + Enter'}</Text>
           </Text>
         </Box>
