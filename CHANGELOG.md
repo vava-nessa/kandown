@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.19.0 — 2026-07-19 — "Upgrade Notices"
+
+- **Added**: **Breaking-change migration notices** — when an interactive `kandown` command detects it just crossed a release with user-facing changes (starting with v0.18.0's `shell` removal), it prints a one-time notice explaining what changed and how to adapt. Fires right after a successful auto-update, and also via a lightweight version-seen tracker (`.version-seen.json` next to the install) that catches upgrades made outside the auto-updater — manual `npm install -g kandown`, pnpm/yarn/bun, etc. TTY-only and never fires for scripted/one-shot commands.
+- **Changed**: **New tagline** — "Too Many Ideas, Not Enough Agents." Kandown helps you queue tasks in an elegant and clever way.
+- **Fixed**: A `const` array referencing the CLI's color palette was declared before that palette existed in module load order, which would have crashed every single `kandown` invocation the moment the migration-notice feature above was exercised. Caught by testing before release — moved the declaration after the palette.
+
 ## 0.18.0 — 2026-07-19 — "Agent Workflow"
 
 - **Added**: **`kandown work` — the agent entrypoint** — a single command that prints the full agent rules (served fresh from the installed CLI version, never a stale per-project copy) plus a live board digest: column counts, tasks per column with blocked-by annotations, and a computed "next actionable task" (closest to done, unblocked, highest priority). One call gives an AI agent both its rules and its context.

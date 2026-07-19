@@ -5,7 +5,8 @@
 <h1 align="center">Kandown</h1>
 
 <p align="center">
-  <strong>File-based Kanban board backed by plain Markdown.</strong><br>
+  <strong>Too Many Ideas, Not Enough Agents.</strong><br>
+  Kandown helps you queue tasks in an elegant and clever way — file-based Kanban backed by plain Markdown.<br>
   Zero backend · Zero database · No account · AI-agent friendly
 </p>
 
@@ -135,6 +136,8 @@ Running `kandown work` prints, as plain markdown on stdout:
 4. **A live board digest** — column counts, tasks per column with blocked-by annotations, and a computed **"next actionable task"** (closest to done, unblocked, highest priority) — so the agent gets its context in the same call.
 
 This removes the drift problem of a rules block frozen into every project's `AGENTS.md` at init time, keeps the injected footprint to one line, and lets you layer instructions globally or per project without touching the agent file at all.
+
+> **Upgrading from before v0.18.0?** `kandown shell <cmd>` was removed (no alias) — the commands are now top-level: `kandown list/show/create/move/assign/commit`. Existing projects keep their old `AGENTS.md`/`CLAUDE.md` block until you re-run `kandown init`. The CLI prints a one-time notice about this the next time you run an interactive command after updating — see [Environment variables](#environment-variables) if you want to silence version-check output entirely.
 
 ---
 

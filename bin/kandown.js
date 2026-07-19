@@ -329,6 +329,7 @@ async function checkForUpdate(argv = process.argv) {
   }
 
   tuiDone('✓', `${c.green}Updated to v${postVersion}${c.reset} — restarting…`);
+  printBreakingChangeNotices(current, postVersion);
   log('');
 
   // 📖 Step 5: Respawn with the new version.
@@ -366,6 +367,69 @@ const c = {
   red: '\x1b[31m',
   cyan: '\x1b[36m',
 };
+
+/**
+ * 📖 One-time migration notices shown right after a successful auto-update,
+ * when the jump crosses a release that changed user-facing behavior (i.e.
+ * `fromVersion < notice.version <= toVersion`). Keeps upgraders from being
+ * silently surprised by a removed command or a changed convention — full
+ * details always live in CHANGELOG.md. Add an entry here for any future
+ * breaking release; harmless no-op for anyone already past that version.
+ */
+const BREAKING_CHANGE_NOTICES = [
+  {
+    version: '0.18.0',
+    lines: [
+      `${c.yellow}⚠ Breaking change in v0.18.0:${c.reset}`,
+      `  ${c.dim}•${c.reset} ${c.cyan}kandown shell <cmd>${c.reset} is gone — commands are now top-level: ${c.cyan}kandown list/show/create/move/assign/commit${c.reset}`,
+      `  ${c.dim}•${c.reset} ${c.cyan}kandown init${c.reset} now injects one line into AGENTS.md/CLAUDE.md pointing agents at ${c.cyan}kandown work${c.reset} — existing projects keep their old block until you re-run ${c.cyan}kandown init${c.reset}`,
+      `  ${c.dim}•${c.reset} New: ${c.cyan}kandown work${c.reset} prints the agent rules + a live board digest — the recommended way to brief an AI agent`,
+      `  ${c.dim}Full changelog:${c.reset} https://github.com/vava-nessa/kandown/blob/main/CHANGELOG.md`,
+    ],
+  },
+];
+
+function printBreakingChangeNotices(fromVersion, toVersion) {
+  for (const notice of BREAKING_CHANGE_NOTICES) {
+    if (semverGt(fromVersion, notice.version) < 0 && semverGt(toVersion, notice.version) >= 0) {
+      log('');
+      for (const line of notice.lines) log(line);
+    }
+  }
+}
+
+/**
+ * 📖 Version-seen tracker: catches breaking-change notices for upgrades that
+ * DON'T go through checkForUpdate's own auto-update flow — a manual
+ * `npm install -g kandown`, pnpm/yarn/bun global installs, or any future
+ * package manager. Records the last version this install printed notices for
+ * in a small cache file next to the package; on the next interactive launch,
+ * any BREAKING_CHANGE_NOTICES entry crossed since then is shown once.
+ * TTY-only and skipped for scripted commands — never fires in a script/CI.
+ * First run after this mechanism ships has no prior cache, so it seeds
+ * silently rather than guessing; the checkForUpdate path covers that specific
+ * transition for auto-updaters, and every version from here on is covered.
+ */
+const VERSION_SEEN_CACHE = join(PKG_ROOT, '.version-seen.json');
+
+function checkVersionSeenNotices() {
+  if (!process.stdout.isTTY) return;
+  const current = getCurrentVersion();
+  if (!current) return;
+
+  let lastSeen = null;
+  try {
+    const raw = JSON.parse(readFileSync(VERSION_SEEN_CACHE, 'utf8'));
+    if (typeof raw?.lastSeen === 'string') lastSeen = raw.lastSeen;
+  } catch { /* first run, or corrupted cache — treat as unknown */ }
+
+  if (lastSeen && lastSeen !== current) {
+    printBreakingChangeNotices(lastSeen, current);
+  }
+  if (lastSeen !== current) {
+    try { writeFileSync(VERSION_SEEN_CACHE, JSON.stringify({ lastSeen: current })); } catch { /* best-effort */ }
+  }
+}
 
 /**
  * 📖 Atomic write (M6): write to a sibling temp file then rename over the
@@ -2625,6 +2689,11 @@ const SCRIPTED_COMMANDS = new Set([
   'list', 'ls', 'show', 'create', 'new', 'move', 'assign', 'commit', 'tasks', 'work', 'daemon',
 ]);
 if (!skipUpdate && !SCRIPTED_COMMANDS.has(cmd)) await checkForUpdate(process.argv);
+
+// 📖 Catches breaking-change notices for upgrades that bypassed the
+// auto-updater above (manual `npm install -g kandown`, pnpm/yarn/bun, a
+// respawned child, etc). See checkVersionSeenNotices' doc comment.
+if (!SCRIPTED_COMMANDS.has(cmd)) checkVersionSeenNotices();
 
 switch (cmd) {
   case 'init':
