@@ -699,6 +699,22 @@ function migrateTasksToTopLevel(kandownDir) {
   const result = { moved: 0, cleanedUp: false, skipped: false };
 
   if (!existsSync(oldDir)) return result;
+
+  // 📖 Check FIRST whether the legacy dir actually has anything to migrate
+  // (top-level .md files or an archive/ subfolder with .md files). A stray
+  // empty `.kandown/tasks/` — common on old/incomplete installs — has
+  // nothing worth protecting, so it should just get cleaned up regardless
+  // of what's in `./tasks/`, instead of being misreported as a "conflict".
+  const oldMdFiles = readdirSync(oldDir, { withFileTypes: true })
+    .filter(e => e.isFile() && e.name.endsWith('.md'));
+  const oldArchiveDir = join(oldDir, 'archive');
+  const oldArchiveHasMd = existsSync(oldArchiveDir)
+    && readdirSync(oldArchiveDir, { withFileTypes: true }).some(e => e.isFile() && e.name.endsWith('.md'));
+
+  if (oldMdFiles.length === 0 && !oldArchiveHasMd) {
+    return cleanupLegacyTasksDir(kandownDir, result);
+  }
+
   if (!existsSync(newDir)) mkdirSync(newDir, { recursive: true });
 
   // 📖 If the new location already has any .md file, don't touch anything.
@@ -709,14 +725,6 @@ function migrateTasksToTopLevel(kandownDir) {
   if (existingNew.length > 0) {
     result.skipped = true;
     return result;
-  }
-
-  // 📖 If the old location has no .md files either, no migration needed.
-  const oldMdFiles = readdirSync(oldDir, { withFileTypes: true })
-    .filter(e => e.isFile() && e.name.endsWith('.md'));
-  if (oldMdFiles.length === 0) {
-    // Still try the archive subfolder.
-    return migrateArchive(kandownDir, result);
   }
 
   for (const entry of oldMdFiles) {
@@ -766,7 +774,10 @@ function cleanupLegacyTasksDir(kandownDir, result) {
   const remaining = readdirSync(oldDir);
   if (remaining.length === 0) {
     try {
-      rmSync(oldDir, { recursive: false });
+      // 📖 fs.rmSync requires { recursive: true } to remove a directory at
+      // all — even an already-confirmed-empty one — or it throws EISDIR.
+      // `remaining.length === 0` just verified above makes this safe.
+      rmSync(oldDir, { recursive: true });
       result.cleanedUp = true;
     } catch { /* directory not empty or platform limitation — leave it */ }
   }

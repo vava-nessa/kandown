@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.19.1 — 2026-07-19 — "Migration Fixes"
+
+- **Fixed**: **False "conflict" on legacy task migration** — `migrateTasksToTopLevel` reported `.kandown/tasks/` and `./tasks/` as conflicting (and silently left an old install un-migrated) whenever `.kandown/tasks/` existed but was actually empty, even though there was nothing to protect. It now checks the legacy folder's real content first and only defers to the "don't clobber" guard when there's genuinely something to migrate.
+- **Fixed**: **Legacy folder cleanup never actually ran** — `cleanupLegacyTasksDir` called `fs.rmSync(dir, { recursive: false })` on an already-confirmed-empty directory, which throws `EISDIR` (Node's `rmSync` requires `recursive: true` to remove a directory at all, even an empty one — introduced by the earlier `rmdirSync` → `rmSync` cleanup in v0.19.0). Found by testing this release's migration fix against kandown's own dev install before shipping.
+
 ## 0.19.0 — 2026-07-19 — "Upgrade Notices"
 
 - **Added**: **Breaking-change migration notices** — when an interactive `kandown` command detects it just crossed a release with user-facing changes (starting with v0.18.0's `shell` removal), it prints a one-time notice explaining what changed and how to adapt. Fires right after a successful auto-update, and also via a lightweight version-seen tracker (`.version-seen.json` next to the install) that catches upgrades made outside the auto-updater — manual `npm install -g kandown`, pnpm/yarn/bun, etc. TTY-only and never fires for scripted/one-shot commands.
