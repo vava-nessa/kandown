@@ -1,6 +1,6 @@
 {
   "name": "kandown",
-  "version": "0.19.1",
+  "version": "0.20.0",
   "description": "File-based Kanban engine backed by Markdown. Zero backend, AI-agent friendly.",
   "type": "module",
   "bin": {

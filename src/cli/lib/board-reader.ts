@@ -20,7 +20,7 @@
  *  → listTaskIds         — scans ./tasks/*.md and returns task ids
  *  → readBoard           — scans ./tasks/*.md and returns a ParsedBoard shape
  *  → readTask            — reads a task file by ID and returns a ParsedTask
- *  → readAgentDoc        — returns AGENT_KANDOWN.md or fallback instructions
+ *  → readAgentDoc        — base rules (from the package) + global/project instructions.md layers
  *  → moveTaskToColumn    — updates a task frontmatter status
  *
  * @exports getProjectRoot, getTasksDir, listTaskIds, readBoard, readTask, readAgentDoc, moveTaskToColumn
@@ -29,6 +29,8 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { homedir } from 'node:os';
 import { atomicWriteFileSync } from './atomic-write.js';
 import { buildColumnsFromTasks, parseTaskFile } from '../../lib/parser.js';
 import { serializeTaskFile } from '../../lib/serializer.js';
@@ -120,29 +122,54 @@ export function readTask(kandownDir: string, taskId: string): ParsedTask {
 }
 
 /**
- * 📖 Returns the full text of the agent instructions doc.
- * Priority order:
- *   1. AGENT_KANDOWN.md at project root
- *   2. .kandown/AGENT.md (minimal template fallback)
- * Returns empty string if none found or unreadable (t112 — non-critical).
+ * 📖 Absolute path to the installed kandown package root. Computed from this
+ * module's own location inside the built `bin/tui.js` bundle (same trick as
+ * PKG_ROOT in bin/kandown.js), NOT from the project being browsed — so the
+ * rules served below are always the ones shipped with the running CLI
+ * version, never a per-project snapshot that can drift out of sync.
+ */
+const PKG_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
+
+/**
+ * 📖 Returns the full text of the agent instructions doc used when launching
+ * an agent from the TUI (`a` key) — the exact same layered rules `kandown
+ * work` prints, so the two entry points can never disagree:
+ *   1. Base rules — templates/AGENT_KANDOWN.md, shipped with the package
+ *      (never a project-local copy, which would go stale the moment the
+ *      package updates — see t… migration from per-project AGENT_KANDOWN.md).
+ *   2. Global additions — ~/.kandown/instructions.md, if present.
+ *   3. Project additions — .kandown/instructions.md, if present.
+ * Returns empty string only if the base rules can't be read at all (t112 —
+ * non-critical, the agent still launches, just without a system prompt).
  */
 export function readAgentDoc(kandownDir: string): string {
-  const root = getProjectRoot(kandownDir);
-  const candidates = [
-    join(root, 'AGENT_KANDOWN.md'),
-    join(kandownDir, 'AGENT.md'),
-  ];
-  for (const candidate of candidates) {
-    if (!existsSync(candidate)) continue;
+  const sections: string[] = [];
+
+  try {
+    sections.push(readFileSync(join(PKG_ROOT, 'templates', 'AGENT_KANDOWN.md'), 'utf8').trim());
+  } catch (e) {
+    console.warn('[kandown] Could not read base agent rules:', (e as Error).message);
+  }
+
+  const globalPath = join(homedir(), '.kandown', 'instructions.md');
+  if (existsSync(globalPath)) {
     try {
-      return readFileSync(candidate, 'utf8');
+      sections.push(`## Global instructions\n\n${readFileSync(globalPath, 'utf8').trim()}`);
     } catch (e) {
-      // File existed at the check but vanished or became unreadable — warn and
-      // try the next candidate rather than crashing the launcher (t112).
-      console.warn(`[kandown] Could not read ${candidate}:`, (e as Error).message);
+      console.warn(`[kandown] Could not read ${globalPath}:`, (e as Error).message);
     }
   }
-  return '';
+
+  const projectPath = join(kandownDir, 'instructions.md');
+  if (existsSync(projectPath)) {
+    try {
+      sections.push(`## Project-specific instructions\n\n${readFileSync(projectPath, 'utf8').trim()}`);
+    } catch (e) {
+      console.warn(`[kandown] Could not read ${projectPath}:`, (e as Error).message);
+    }
+  }
+
+  return sections.filter(Boolean).join('\n\n---\n\n');
 }
 
 /**

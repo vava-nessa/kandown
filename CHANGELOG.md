@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.20.0 — 2026-07-19 — "No More Stale Copies"
+
+- **Changed**: **`kandown init` no longer copies `AGENT.md`/`AGENT_KANDOWN.md` into new projects** — both `kandown work` and the TUI's agent launcher (`a` key) now read the rules straight from the installed package's `templates/AGENT_KANDOWN.md` at call time, so there's no per-project snapshot left to go stale. Existing projects with an old copy are left untouched — nothing is auto-deleted.
+- **Changed**: **The TUI's agent launcher now uses the same layered rules as `kandown work`** — base rules from the package, plus optional `~/.kandown/instructions.md` (global) and `.kandown/instructions.md` (project). Previously it read a project-local `AGENT_KANDOWN.md`/`AGENT.md` copy that could silently drift from what `kandown work` printed; the two entry points can no longer disagree.
+- **Changed**: **`kandown init`'s injected `AGENTS.md`/`CLAUDE.md` line no longer promises a local fallback file** — dropped "if you can't run the CLI, read `.kandown/AGENT_KANDOWN.md` instead" since that file is no longer shipped and the scenario (an agent that can follow `AGENTS.md` but can't run a shell command) is effectively nonexistent.
+
 ## 0.19.1 — 2026-07-19 — "Migration Fixes"
 
 - **Fixed**: **False "conflict" on legacy task migration** — `migrateTasksToTopLevel` reported `.kandown/tasks/` and `./tasks/` as conflicting (and silently left an old install un-migrated) whenever `.kandown/tasks/` existed but was actually empty, even though there was nothing to protect. It now checks the legacy folder's real content first and only defers to the "don't clobber" guard when there's genuinely something to migrate.

@@ -54379,6 +54379,8 @@ var import_react37 = __toESM(require_react(), 1);
 // src/cli/lib/board-reader.ts
 import { existsSync as existsSync3, readdirSync, readFileSync as readFileSync3 } from "fs";
 import { dirname, join as join2 } from "path";
+import { fileURLToPath } from "url";
+import { homedir } from "os";
 
 // src/lib/types.ts
 var DEFAULT_COLUMNS = ["Backlog", "Todo", "In Progress", "Review", "Done"];
@@ -54632,21 +54634,35 @@ function readTask(kandownDir, taskId) {
     }
   };
 }
+var PKG_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 function readAgentDoc(kandownDir) {
-  const root = getProjectRoot(kandownDir);
-  const candidates = [
-    join2(root, "AGENT_KANDOWN.md"),
-    join2(kandownDir, "AGENT.md")
-  ];
-  for (const candidate of candidates) {
-    if (!existsSync3(candidate)) continue;
+  const sections = [];
+  try {
+    sections.push(readFileSync3(join2(PKG_ROOT, "templates", "AGENT_KANDOWN.md"), "utf8").trim());
+  } catch (e) {
+    console.warn("[kandown] Could not read base agent rules:", e.message);
+  }
+  const globalPath = join2(homedir(), ".kandown", "instructions.md");
+  if (existsSync3(globalPath)) {
     try {
-      return readFileSync3(candidate, "utf8");
+      sections.push(`## Global instructions
+
+${readFileSync3(globalPath, "utf8").trim()}`);
     } catch (e) {
-      console.warn(`[kandown] Could not read ${candidate}:`, e.message);
+      console.warn(`[kandown] Could not read ${globalPath}:`, e.message);
     }
   }
-  return "";
+  const projectPath = join2(kandownDir, "instructions.md");
+  if (existsSync3(projectPath)) {
+    try {
+      sections.push(`## Project-specific instructions
+
+${readFileSync3(projectPath, "utf8").trim()}`);
+    } catch (e) {
+      console.warn(`[kandown] Could not read ${projectPath}:`, e.message);
+    }
+  }
+  return sections.filter(Boolean).join("\n\n---\n\n");
 }
 function moveTaskToColumn(kandownDir, taskId, targetColumn) {
   const taskPath = join2(getTasksDir(kandownDir), `${taskId}.md`);

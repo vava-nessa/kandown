@@ -621,7 +621,7 @@ function appendAgentReference(cwd, agentsFile, kandownPath) {
 ${marker}
 ## Task management
 
-This project uses **kandown** for task management. **Always run \`kandown work\` when starting a new task** — it prints the current rules and board state, kept in sync with the installed CLI version. (Tasks live in \`./tasks/*.md\`; if you can't run the CLI, read \`${kandownPath}/AGENT_KANDOWN.md\` instead.)
+This project uses **kandown** for task management. **Always run \`kandown work\` when starting a new task** — it prints the current rules and board state, kept in sync with the installed CLI version. (Tasks live in \`./tasks/*.md\`.)
 `;
 
   try {
@@ -642,7 +642,7 @@ function createAgentsFileIfMissing(cwd, kandownPath) {
 <!-- kandown:agent-ref -->
 ## Task management
 
-This project uses **kandown** for task management. **Always run \`kandown work\` when starting a new task** — it prints the current rules and board state, kept in sync with the installed CLI version. (Tasks live in \`./tasks/*.md\`; if you can't run the CLI, read \`${kandownPath}/AGENT_KANDOWN.md\` instead.)
+This project uses **kandown** for task management. **Always run \`kandown work\` when starting a new task** — it prints the current rules and board state, kept in sync with the installed CLI version. (Tasks live in \`./tasks/*.md\`.)
 `;
   writeFileSync(agentsPath, content, 'utf8');
   return true;
@@ -830,11 +830,14 @@ function doInit(args, cwd, kandownPath, kandownDir) {
   copyFileSync(htmlSrc, htmlDest);
   success('kandown.html');
 
+  // 📖 AGENT.md and AGENT_KANDOWN.md are intentionally NOT copied into new
+  // projects anymore. Both `kandown work` and the TUI's agent launcher (`a`)
+  // now read the rules straight from this package's templates/AGENT_KANDOWN.md
+  // at call time — a per-project copy would only go stale the moment the
+  // package updates, with nothing to keep it in sync. Existing projects with
+  // an old copy are left alone (never auto-deleted); customization now goes
+  // in `.kandown/instructions.md` / `~/.kandown/instructions.md` instead.
   const templatesDir = join(PKG_ROOT, 'templates');
-  if (!existsSync(join(kandownDir, 'AGENT.md'))) {
-    copyFileSync(join(templatesDir, 'AGENT.md'), join(kandownDir, 'AGENT.md'));
-    success('AGENT.md');
-  }
   if (!existsSync(join(kandownDir, 'README.md'))) {
     copyFileSync(join(templatesDir, 'README.md'), join(kandownDir, 'README.md'));
     success('README.md');
@@ -869,15 +872,6 @@ function doInit(args, cwd, kandownPath, kandownDir) {
   if (!existsSync(kandownGitignore)) {
     writeFileSync(kandownGitignore, `${DAEMON_FILE}\n`, 'utf8');
     success('.gitignore (daemon runtime metadata ignored)');
-  }
-
-  const agentKandownSrc = join(templatesDir, 'AGENT_KANDOWN.md');
-  const agentKandownDest = join(kandownDir, 'AGENT_KANDOWN.md');
-  if (!existsSync(agentKandownDest)) {
-    copyFileSync(agentKandownSrc, agentKandownDest);
-    success('AGENT_KANDOWN.md');
-  } else {
-    info('AGENT_KANDOWN.md already exists (kept)');
   }
 
   if (!args.noAgents) {
