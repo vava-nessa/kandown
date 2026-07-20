@@ -21,7 +21,7 @@
  * @see src/lib/store.ts
  */
 
-import { useEffect, useRef, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { KbdButton } from './KbdButton';
@@ -60,6 +60,18 @@ export function Drawer() {
   const isSavingRef = useRef(false);
 
   const isOpen = !!drawerTaskId && !!drawerData;
+  const [isDesktop, setIsDesktop] = useState(() => window.matchMedia('(min-width: 768px)').matches);
+
+  // 📖 Desktop task editing is now handled by TaskWorkspace. Keep this modal
+  // mounted only on small screens so mobile keeps the familiar full-screen
+  // overlay while desktop gets the split-pane workspace below the header.
+  useEffect(() => {
+    const query = window.matchMedia('(min-width: 768px)');
+    const update = () => setIsDesktop(query.matches);
+    update();
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
 
   const triggerAutoSave = useCallback(() => {
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
@@ -187,10 +199,10 @@ export function Drawer() {
   }, [columns, config.board.columns]);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !isDesktop) {
       setTimeout(() => titleInputRef.current?.focus(), 250);
     }
-  }, [isOpen]);
+  }, [isOpen, isDesktop]);
 
   // Auto-resize title
   useEffect(() => {
@@ -202,7 +214,7 @@ export function Drawer() {
 
   // Keyboard shortcuts
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || isDesktop) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !e.defaultPrevented) {
         void handleProtectedClose();
@@ -218,9 +230,9 @@ export function Drawer() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [isOpen, handleProtectedClose, handleClose, handleDelete]);
+  }, [isOpen, isDesktop, handleProtectedClose, handleClose, handleDelete]);
 
-  if (!drawerData) return null;
+  if (!drawerData || isDesktop) return null;
 
   const updateField = <K extends keyof typeof drawerData.frontmatter>(
     key: K,

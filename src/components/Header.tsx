@@ -37,6 +37,8 @@ export function Header() {
   const isOpen = useStore(s => s.isOpen);
   const projectName = useStore(s => s.projectName);
   const closeDrawer = useStore(s => s.closeDrawer);
+  const drawerTaskId = useStore(s => s.drawerTaskId);
+  const saveDrawer = useStore(s => s.saveDrawer);
   const archivedCount = useStore(s => s.archivedTasks.length);
   const showArchives = useStore(s => s.showArchives);
   const setShowArchives = useStore(s => s.setShowArchives);
@@ -137,7 +139,13 @@ export function Header() {
       <div className="flex items-center gap-4 min-w-0">
         <div className="flex items-center gap-2.5 flex-shrink-0">
           <button
-            onClick={() => closeDrawer({ replace: true })}
+            onClick={() => {
+              if (drawerTaskId) {
+                void saveDrawer();
+              } else {
+                closeDrawer({ replace: true });
+              }
+            }}
             className="flex items-center gap-2 cursor-pointer"
           >
             <LogoSvg className="w-[34px] h-[34px] dark:text-white text-black" />
@@ -172,6 +180,17 @@ export function Header() {
               ) : null}
             </AnimatePresence>
           </button>
+          {drawerTaskId && (
+            <button
+              type="button"
+              onClick={() => { void saveDrawer(); }}
+              className="hidden md:inline-flex items-center gap-2 rounded-xl border border-border bg-bg px-3 py-2 text-[13px] font-semibold text-fg shadow-sm transition-colors hover:border-border-strong hover:bg-bg-2"
+              title={t('taskWorkspace.backToCards')}
+            >
+              <Icon.ArrowLeft size={15} />
+              <span>{t('common.back')}</span>
+            </button>
+          )}
         </div>
 
         {dirHandle && (

@@ -26,7 +26,8 @@
     "settings": "Settings",
     "board": "Board",
     "reload": "Reload",
-    "newTask": "New task"
+    "newTask": "New task",
+    "back": "Back"
   },
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
@@ -116,6 +117,12 @@
     "cancel": "Cancel",
     "sendToAgent": "Send to Agent",
     "sendToAgentTitle": "Forward the full task to the configured agent hook (env: KANDOWN_AGENT_HOOK_URL)"
+  },
+  "taskWorkspace": {
+    "allTasks": "All tasks",
+    "switchHint": "Grouped by status for quick switching.",
+    "copyUrl": "Copy URL",
+    "backToCards": "Back to cards"
   },
   "archive": {
     "empty": "No archived tasks."

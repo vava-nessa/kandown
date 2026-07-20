@@ -27,6 +27,7 @@ import { ArchiveView } from './components/ArchiveView';
 import { ListView } from './components/ListView';
 import { EmptyState } from './components/EmptyState';
 import { Drawer } from './components/Drawer';
+import { TaskWorkspace } from './components/TaskWorkspace';
 import { CommandPalette } from './components/CommandPalette';
 import { Cheatsheet } from './components/Cheatsheet';
 import { SettingsPage } from './components/SettingsPage';
@@ -47,6 +48,7 @@ export function App() {
   const viewMode = useStore(s => s.viewMode);
   const setViewMode = useStore(s => s.setViewMode);
   const drawerTaskId = useStore(s => s.drawerTaskId);
+  const drawerData = useStore(s => s.drawerData);
   const commandOpen = useStore(s => s.commandOpen);
   const setCommandOpen = useStore(s => s.setCommandOpen);
   const cheatsheetOpen = useStore(s => s.cheatsheetOpen);
@@ -190,7 +192,15 @@ export function App() {
                * crashes the render, the drawer (which may hold unsaved edits)
                * and the header keep working — only the board view falls back. */}
               <ErrorBoundary fallback={(error, retry) => <BoardErrorFallback error={error} onRetry={retry} compact />}>
-                {showArchives ? <ArchiveView /> : viewMode === 'board' ? <Board /> : <ListView />}
+                {drawerTaskId && drawerData ? (
+                  <TaskWorkspace />
+                ) : showArchives ? (
+                  <ArchiveView />
+                ) : viewMode === 'board' ? (
+                  <Board />
+                ) : (
+                  <ListView />
+                )}
               </ErrorBoundary>
             </div>
             {/* 📖 Discreet bottom-right master switch for the per-card metadata
