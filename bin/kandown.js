@@ -869,6 +869,7 @@ function ensureKandownDir(rawArgs) {
     } else if (migration.skipped) {
       info('Both .kandown/tasks/ and ./tasks/ have files — leaving both in place');
     }
+    syncKandownAgentDoc(kandownDir);
     return { kandownDir, alreadyExisted: true };
   }
 
@@ -894,13 +895,13 @@ function doInit(args, cwd, kandownPath, kandownDir) {
   copyFileSync(htmlSrc, htmlDest);
   success('kandown.html');
 
-  // 📖 AGENT.md and AGENT_KANDOWN.md are intentionally NOT copied into new
-  // projects anymore. Both `kandown work` and the TUI's agent launcher (`a`)
-  // now read the rules straight from this package's templates/AGENT_KANDOWN.md
-  // at call time — a per-project copy would only go stale the moment the
-  // package updates, with nothing to keep it in sync. Existing projects with
-  // an old copy are left alone (never auto-deleted); customization now goes
-  // in `.kandown/instructions.md` / `~/.kandown/instructions.md` instead.
+  // 📖 Keep the generated agent reference inside `.kandown/` only. It is safe
+  // to recreate/overwrite because user-specific behavior belongs in
+  // `.kandown/instructions.md` or the `agent.workOutput` config, not in this
+  // generated package reference.
+  syncKandownAgentDoc(kandownDir);
+  success('AGENT_KANDOWN.md');
+
   const templatesDir = join(PKG_ROOT, 'templates');
   if (!existsSync(join(kandownDir, 'README.md'))) {
     copyFileSync(join(templatesDir, 'README.md'), join(kandownDir, 'README.md'));
@@ -1557,6 +1558,93 @@ function priorityRank(p) {
   return Object.prototype.hasOwnProperty.call(PRIORITY_RANK, p) ? PRIORITY_RANK[p] : 4;
 }
 
+const WORK_OUTPUT_SECTION_IDS = ['baseRules', 'projectInstructions', 'boardDigest'];
+const CONCISE_AGENT_RULES = `# Kandown agent rules — concise
+
+- Task state lives in project-root \`tasks/*.md\`; do not maintain a separate board index.
+- Before work, read the relevant task file and keep it updated while you progress.
+- Move tasks by editing frontmatter \`status:\`; complete work by setting \`status: Done\` and adding a markdown \`report:\` summary.
+- Update subtasks in-place: \`- [ ]\` → \`- [x]\`, with a short \`report:\` line for meaningful progress.
+- Board columns live in \`.kandown/kandown.json\` under \`board.columns\`; project instructions live in \`.kandown/instructions.md\`.
+- Never put Kandown task data inside \`.kandown/\`; tasks belong in \`./tasks/\`.`;
+const DEFAULT_WORK_OUTPUT = {
+  mode: 'blocks',
+  includeBaseRules: true,
+  baseRulesMode: 'full',
+  includeProjectInstructions: true,
+  includeBoardDigest: true,
+  sectionOrder: WORK_OUTPUT_SECTION_IDS,
+  rawTemplate: '{{baseRules}}\n\n---\n\n{{projectInstructions}}\n\n---\n\n{{boardDigest}}',
+  boardDigest: {
+    showColumnCounts: true,
+    showTasks: true,
+    showPriority: true,
+    showAssignee: true,
+    showBlockedBy: true,
+    showNextActionable: true,
+  },
+};
+
+function safePlainObject(value) {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+}
+
+function normalizeWorkOutputConfig(config) {
+  const raw = safePlainObject(safePlainObject(config?.agent).workOutput);
+  const digest = safePlainObject(raw.boardDigest);
+  const sectionOrder = Array.isArray(raw.sectionOrder)
+    ? raw.sectionOrder.filter(id => WORK_OUTPUT_SECTION_IDS.includes(id))
+    : DEFAULT_WORK_OUTPUT.sectionOrder;
+  const order = sectionOrder.length > 0 ? sectionOrder : DEFAULT_WORK_OUTPUT.sectionOrder;
+  return {
+    ...DEFAULT_WORK_OUTPUT,
+    ...raw,
+    mode: raw.mode === 'raw' ? 'raw' : 'blocks',
+    baseRulesMode: raw.baseRulesMode === 'concise' ? 'concise' : 'full',
+    sectionOrder: order,
+    rawTemplate: typeof raw.rawTemplate === 'string' && raw.rawTemplate.trim()
+      ? raw.rawTemplate
+      : DEFAULT_WORK_OUTPUT.rawTemplate,
+    boardDigest: { ...DEFAULT_WORK_OUTPUT.boardDigest, ...digest },
+  };
+}
+
+function readBaseAgentRules(mode = 'full') {
+  if (mode === 'concise') return CONCISE_AGENT_RULES;
+  try {
+    return readFileSync(join(PKG_ROOT, 'templates', 'AGENT_KANDOWN.md'), 'utf8').trim();
+  } catch (e) {
+    warn(`Could not read base rules (${e.message})`);
+    return '';
+  }
+}
+
+function syncKandownAgentDoc(kandownDir) {
+  const source = join(PKG_ROOT, 'templates', 'AGENT_KANDOWN.md');
+  const target = join(kandownDir, 'AGENT_KANDOWN.md');
+  if (!existsSync(source)) return false;
+  const expected = readFileSync(source, 'utf8');
+  const existing = existsSync(target) ? readFileSync(target, 'utf8') : null;
+  const isMissing = existing === null;
+  const isMalformed = existing !== null && !existing.includes('# Kandown') && !existing.includes('## The System');
+  const isStaleGeneratedDoc = existing !== null && existing.includes('# Kandown') && existing !== expected;
+
+  if (isMissing || isMalformed || isStaleGeneratedDoc) {
+    atomicWriteFileSync(target, expected.endsWith('\n') ? expected : `${expected}\n`);
+    return true;
+  }
+  return false;
+}
+
+function applyWorkRawTemplate(template, blocks) {
+  return template
+    .replaceAll('{{baseRules}}', blocks.baseRules)
+    .replaceAll('{{projectInstructions}}', blocks.projectInstructions)
+    .replaceAll('{{boardDigest}}', blocks.boardDigest)
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 /**
  * 📖 Builds the "Current board" section: column counts, tasks per column
  * (with blocked-by annotations), and a "Next actionable task" pick — the
@@ -1565,7 +1653,8 @@ function priorityRank(p) {
  * `depends_on`, tie-broken by priority. Mirrors the same gate logic used by
  * `move`/the TUI/the web store.
  */
-function buildBoardDigest(kandownDir) {
+function buildBoardDigest(kandownDir, options = DEFAULT_WORK_OUTPUT.boardDigest) {
+  const digestOptions = { ...DEFAULT_WORK_OUTPUT.boardDigest, ...safePlainObject(options) };
   const config = readKandownConfig(kandownDir);
   const columns = (config && config.board && Array.isArray(config.board.columns) && config.board.columns.length > 0)
     ? config.board.columns
@@ -1608,17 +1697,21 @@ function buildBoardDigest(kandownDir) {
   }
 
   const lines = ['## Current board', ''];
-  lines.push(`**Columns:** ${columns.map(col => `${col} (${(byColumn.get(col) || []).length})`).join(' · ')}`);
+  if (digestOptions.showColumnCounts) {
+    lines.push(`**Columns:** ${columns.map(col => `${col} (${(byColumn.get(col) || []).length})`).join(' · ')}`);
+  }
 
-  for (const col of columns) {
-    const tasks = (byColumn.get(col) || []).sort((a, b) => priorityRank(a.fm.priority) - priorityRank(b.fm.priority));
-    if (tasks.length === 0) continue;
-    lines.push('', `### ${col}`);
-    for (const t of tasks) {
-      const pri = t.fm.priority ? `[${t.fm.priority}] ` : '';
-      const assignee = t.fm.assignee ? ` (@${t.fm.assignee})` : '';
-      const blockedStr = t.blocked.length > 0 ? ` ⛔ blocked by ${t.blocked.join(', ')}` : '';
-      lines.push(`- ${t.id} ${pri}${t.fm.title || '(untitled)'}${assignee}${blockedStr}`);
+  if (digestOptions.showTasks) {
+    for (const col of columns) {
+      const tasks = (byColumn.get(col) || []).sort((a, b) => priorityRank(a.fm.priority) - priorityRank(b.fm.priority));
+      if (tasks.length === 0) continue;
+      lines.push('', `### ${col}`);
+      for (const t of tasks) {
+        const pri = digestOptions.showPriority && t.fm.priority ? `[${t.fm.priority}] ` : '';
+        const assignee = digestOptions.showAssignee && t.fm.assignee ? ` (@${t.fm.assignee})` : '';
+        const blockedStr = digestOptions.showBlockedBy && t.blocked.length > 0 ? ` ⛔ blocked by ${t.blocked.join(', ')}` : '';
+        lines.push(`- ${t.id} ${pri}${t.fm.title || '(untitled)'}${assignee}${blockedStr}`);
+      }
     }
   }
 
@@ -1635,30 +1728,23 @@ function buildBoardDigest(kandownDir) {
     return priorityRank(a.fm.priority) - priorityRank(b.fm.priority);
   })[0];
 
-  lines.push('', '### Next actionable task');
-  lines.push(next
-    ? `→ **${next.id}** — ${next.fm.title || '(untitled)'} (${next.fm.priority || 'no priority'}, ${next.fm.status || columns[0]})`
-    : 'None — every task is done, archived, or blocked.');
+  if (digestOptions.showNextActionable) {
+    lines.push('', '### Next actionable task');
+    lines.push(next
+      ? `→ **${next.id}** — ${next.fm.title || '(untitled)'} (${next.fm.priority || 'no priority'}, ${next.fm.status || columns[0]})`
+      : 'None — every task is done, archived, or blocked.');
+  }
 
   return lines.join('\n');
 }
 
 async function cmdWork(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
+  const config = readKandownConfig(kandownDir);
+  const workOutput = normalizeWorkOutputConfig(config);
+  syncKandownAgentDoc(kandownDir);
 
-  let baseRules = '';
-  try {
-    baseRules = readFileSync(join(PKG_ROOT, 'templates', 'AGENT_KANDOWN.md'), 'utf8').trim();
-  } catch (e) {
-    warn(`Could not read base rules (${e.message})`);
-  }
-
-  let globalInstructions = '';
-  const globalPath = join(homedir(), '.kandown', 'instructions.md');
-  if (existsSync(globalPath)) {
-    try { globalInstructions = readFileSync(globalPath, 'utf8').trim(); }
-    catch (e) { warn(`Could not read global instructions (${e.message})`); }
-  }
+  const baseRules = readBaseAgentRules(workOutput.baseRulesMode);
 
   let projectInstructions = '';
   const projectPath = join(kandownDir, 'instructions.md');
@@ -1667,10 +1753,23 @@ async function cmdWork(rawArgs) {
     catch (e) { warn(`Could not read project instructions (${e.message})`); }
   }
 
-  const sections = [baseRules];
-  if (globalInstructions) sections.push(`## Global instructions\n\n${globalInstructions}`);
-  if (projectInstructions) sections.push(`## Project-specific instructions\n\n${projectInstructions}`);
-  sections.push(buildBoardDigest(kandownDir));
+  const blocks = {
+    baseRules,
+    projectInstructions: projectInstructions ? `## Project-specific instructions\n\n${projectInstructions}` : '',
+    boardDigest: buildBoardDigest(kandownDir, workOutput.boardDigest),
+  };
+
+  if (workOutput.mode === 'raw') {
+    out(applyWorkRawTemplate(workOutput.rawTemplate, blocks));
+    return;
+  }
+
+  const sections = [];
+  for (const sectionId of workOutput.sectionOrder) {
+    if (sectionId === 'baseRules' && workOutput.includeBaseRules) sections.push(blocks.baseRules);
+    if (sectionId === 'projectInstructions' && workOutput.includeProjectInstructions) sections.push(blocks.projectInstructions);
+    if (sectionId === 'boardDigest' && workOutput.includeBoardDigest) sections.push(blocks.boardDigest);
+  }
 
   out(sections.filter(Boolean).join('\n\n---\n\n'));
 }
@@ -2232,6 +2331,30 @@ function putConfig(req, res, kandownDir) {
   });
 }
 
+function getInstructions(res, kandownDir) {
+  const instructionsPath = join(kandownDir, 'instructions.md');
+  if (!existsSync(instructionsPath)) {
+    writeText(res, 200, '');
+    return;
+  }
+  try {
+    writeText(res, 200, readFileSync(instructionsPath, 'utf8'));
+  } catch (e) {
+    writeText(res, 500, `Failed to read instructions: ${e.message}`);
+  }
+}
+
+function putInstructions(req, res, kandownDir) {
+  readBody(req).then(body => {
+    const instructionsPath = join(kandownDir, 'instructions.md');
+    const normalized = body.trim() ? body.replace(/\s+$/, '') + '\n' : '';
+    atomicWriteFileSync(instructionsPath, normalized);
+    writeJson(res, 200, { ok: true });
+  }).catch(e => {
+    writeJson(res, e.statusCode || 500, { error: `Failed to write instructions: ${e.message}` });
+  });
+}
+
 function getBoard(res, kandownDir) {
   const boardPath = join(kandownDir, 'board.md');
   if (!existsSync(boardPath)) {
@@ -2503,6 +2626,11 @@ function handleApi(req, res, url, kandownDir) {
   if (resource === 'config') {
     if (req.method === 'GET') return getConfig(res, kandownDir);
     if (req.method === 'PUT') return putConfig(req, res, kandownDir);
+  }
+
+  if (resource === 'instructions') {
+    if (req.method === 'GET') return getInstructions(res, kandownDir);
+    if (req.method === 'PUT') return putInstructions(req, res, kandownDir);
   }
 
   if (resource === 'board') {

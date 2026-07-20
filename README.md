@@ -131,11 +131,14 @@ kandown commit -m "tasks: add auth refactor"
 Running `kandown work` prints, as plain markdown on stdout:
 
 1. **The agent rules** — always fresh, served straight from the installed CLI version instead of a copy that goes stale the moment the package updates.
-2. **Global instructions** (optional) — `~/.kandown/instructions.md`, applied to every kandown project on this machine (personal conventions, team-wide rules).
-3. **Project instructions** (optional) — `.kandown/instructions.md`, this project only (stack quirks, "always use pnpm", commit message language, etc).
-4. **A live board digest** — column counts, tasks per column with blocked-by annotations, and a computed **"next actionable task"** (closest to done, unblocked, highest priority) — so the agent gets its context in the same call.
+2. **Project instructions** (optional) — `.kandown/instructions.md`, this project only (stack quirks, "always use pnpm", commit message language, token-efficient agent preferences, etc).
+3. **A live board digest** — column counts, tasks per column with blocked-by annotations, and a computed **"next actionable task"** (closest to done, unblocked, highest priority) — so the agent gets its context in the same call.
 
-This removes the drift problem of a rules block frozen into every project's `AGENTS.md` at init time, keeps the injected footprint to one line, and lets you layer instructions globally or per project without touching the agent file at all.
+The Settings page includes an **Agent → kandown work output** configurator. You can toggle each generated block, switch the base rules to a concise token-efficient mode, hide detailed digest fields, see an estimated token count, or use **Raw template** mode to control the complete output with `{{baseRules}}`, `{{projectInstructions}}`, and `{{boardDigest}}` variables.
+
+Kandown keeps generated agent reference docs inside `.kandown/` only. If `.kandown/AGENT_KANDOWN.md` is missing, malformed, or an outdated generated copy, the CLI recreates it from the installed package template. Custom behavior belongs in `.kandown/instructions.md` and `.kandown/kandown.json`, not in project-root agent files.
+
+This removes the drift problem of a rules block frozen into every project's `AGENTS.md` at init time, keeps the injected footprint to one line, and lets you layer project instructions without touching the agent file at all.
 
 > **Upgrading from before v0.18.0?** `kandown shell <cmd>` was removed (no alias) — the commands are now top-level: `kandown list/show/create/move/assign/commit`. Existing projects keep their old `AGENTS.md`/`CLAUDE.md` block until you re-run `kandown init`. The CLI prints a one-time notice about this the next time you run an interactive command after updating — see [Environment variables](#environment-variables) if you want to silence version-check output entirely.
 

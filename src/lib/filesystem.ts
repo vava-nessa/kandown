@@ -38,14 +38,15 @@
  *  → serverListTasks — list task IDs via REST
  *  → serverReadTask / serverWriteTask / serverDeleteTask — task CRUD via REST
  *  → serverMigrateTasks — triggers the legacy → new layout migration via REST
+ *  → readProjectInstructions / writeProjectInstructions — edits `.kandown/instructions.md`
  *
- * @exports supportsFileSystemAccess, isServerMode, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverWriteTask, serverDeleteTask, serverMigrateTasks
+ * @exports supportsFileSystemAccess, isServerMode, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverWriteTask, serverDeleteTask, serverMigrateTasks
  * @see src/lib/store.ts
  * @see src/lib/parser.ts
  */
 
 import type { KandownConfig, TaskFrontmatter, ParsedTask } from './types';
-import { DEFAULT_CONFIG } from './types';
+import { DEFAULT_CONFIG, DEFAULT_WORK_OUTPUT } from './types';
 import { serializeTaskFile } from './serializer';
 import { parseTaskFile } from './parser';
 import { normalizeFontId, normalizeSkinId, normalizeThemeMode } from './theme';
@@ -157,6 +158,15 @@ export async function serverReadConfig(): Promise<KandownConfig> {
  */
 async function serverWriteConfig(config: KandownConfig): Promise<void> {
   await apiFetch('/api/config', { method: 'PUT', body: JSON.stringify(config, null, 2), headers: { 'Content-Type': 'application/json' } });
+}
+
+async function serverReadProjectInstructions(): Promise<string> {
+  const res = await apiFetch('/api/instructions');
+  return res.text();
+}
+
+async function serverWriteProjectInstructions(content: string): Promise<void> {
+  await apiFetch('/api/instructions', { method: 'PUT', body: content, headers: { 'Content-Type': 'text/plain' } });
 }
 
 /**
@@ -370,6 +380,9 @@ export async function readConfigFileStrict(
 
   const partial = raw as Partial<KandownConfig>;
   const ui = { ...DEFAULT_CONFIG.ui, ...safeObject(partial.ui) };
+  const agentRaw = safeObject(partial.agent);
+  const workOutputRaw = safeObject(agentRaw.workOutput);
+  const boardDigestRaw = safeObject(workOutputRaw.boardDigest);
   const boardRaw = safeObject(partial.board);
   const config: KandownConfig = {
     ui: {
@@ -378,7 +391,25 @@ export async function readConfigFileStrict(
       skin: normalizeSkinId(ui.skin),
       font: normalizeFontId(ui.font),
     },
-    agent: { ...DEFAULT_CONFIG.agent, ...safeObject(partial.agent) },
+    agent: {
+      ...DEFAULT_CONFIG.agent,
+      ...agentRaw,
+      workOutput: {
+        ...DEFAULT_WORK_OUTPUT,
+        ...workOutputRaw,
+        mode: workOutputRaw.mode === 'raw' ? 'raw' : 'blocks',
+        baseRulesMode: workOutputRaw.baseRulesMode === 'concise' ? 'concise' : 'full',
+        sectionOrder: Array.isArray(workOutputRaw.sectionOrder)
+          ? workOutputRaw.sectionOrder.filter((id): id is typeof DEFAULT_WORK_OUTPUT.sectionOrder[number] => (
+            id === 'baseRules' || id === 'projectInstructions' || id === 'boardDigest'
+          ))
+          : DEFAULT_WORK_OUTPUT.sectionOrder,
+        rawTemplate: typeof workOutputRaw.rawTemplate === 'string'
+          ? workOutputRaw.rawTemplate
+          : DEFAULT_WORK_OUTPUT.rawTemplate,
+        boardDigest: { ...DEFAULT_WORK_OUTPUT.boardDigest, ...boardDigestRaw },
+      },
+    },
     board: {
       ...DEFAULT_CONFIG.board,
       ...boardRaw,
@@ -418,6 +449,34 @@ export async function writeConfigFile(_kandownHandle: FileSystemDirectoryHandle 
     // 📖 Map quota / disk-full DOM errors to a typed DiskFullError so callers
     // can show an actionable message instead of a generic stack trace (t105).
     throw toWriteError(e, 'kandown.json');
+  }
+}
+
+export async function readProjectInstructions(_kandownHandle: FileSystemDirectoryHandle | null): Promise<string> {
+  if (isServerMode()) return serverReadProjectInstructions();
+  try {
+    const h = await _kandownHandle!.getFileHandle('instructions.md');
+    const file = await h.getFile();
+    return await file.text();
+  } catch (e) {
+    const name = (e as { name?: string }).name;
+    if (name === 'NotFoundError') return '';
+    throw e;
+  }
+}
+
+export async function writeProjectInstructions(_kandownHandle: FileSystemDirectoryHandle | null, content: string): Promise<void> {
+  if (isServerMode()) return serverWriteProjectInstructions(content);
+  try {
+    const h = await _kandownHandle!.getFileHandle('instructions.md', { create: true });
+    const w = await h.createWritable();
+    try {
+      await w.write(content.trim() ? content.replace(/\s+$/, '') + '\n' : '');
+    } finally {
+      await w.close();
+    }
+  } catch (e) {
+    throw toWriteError(e, 'instructions.md');
   }
 }
 

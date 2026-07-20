@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.24.0 — 2026-07-20 — "Work Output Configurator"
+
+- **Added**: **`kandown work` Output Configurator** — added a new Settings panel under Agent configuration that lets each project control the markdown emitted by `kandown work`. Users can enable or disable the base rules, project instructions, and live board digest blocks without editing generated files by hand.
+- **Added**: **Raw Template Mode for Agent Context** — added an advanced raw editor for the complete `kandown work` output with `{{baseRules}}`, `{{projectInstructions}}`, and `{{boardDigest}}` variables. This gives power users full control over the final prompt while keeping the source of truth in `.kandown/kandown.json`.
+- **Added**: **Token-Efficient Concise Rules Mode** — added a compact Kandown rules preset for `kandown work` that keeps the essential task-management contract while dramatically reducing prompt size for cost-sensitive or context-limited agents.
+- **Added**: **Estimated Token Counter and Output Preview** — the Settings configurator now previews the generated `kandown work` markdown and displays an approximate token estimate so users can tune the output before handing it to an agent.
+- **Added**: **Project Instructions Editor** — added authenticated web/server helpers and UI editing for `.kandown/instructions.md`, keeping custom project behavior inside `.kandown/` instead of polluting project-root agent files.
+- **Changed**: **Project-Scoped Work Output Storage** — added `agent.workOutput` to `.kandown/kandown.json` and the default template config, including section toggles, section ordering, digest detail toggles, base-rule verbosity, and raw template content.
+- **Changed**: **Configurable Board Digest Detail** — the generated board digest can now hide column counts, task lists, priorities, assignees, blocked-by annotations, and next-actionable-task output independently to minimize tokens when desired.
+- **Fixed**: **Safe `.kandown/AGENT_KANDOWN.md` Healing** — Kandown now recreates `.kandown/AGENT_KANDOWN.md` when missing and overwrites malformed or stale generated copies from the package template, while keeping all generated reference docs inside `.kandown/` only.
+
 ## 0.23.0 — 2026-07-20 — "Theme Switcher & Auto Update"
 
 - **Added**: **Animated Theme Switcher** — added a shadcn-style three-option theme switcher under `src/components/ui/theme-switcher-1.tsx` with system, light, and dark choices, lucide icons, and Motion layout animation.

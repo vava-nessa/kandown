@@ -42,7 +42,9 @@ import { fileWatcher } from '../lib/watcher';
 import { BACKGROUND_OPTIONS, FONT_OPTIONS, SKIN_OPTIONS } from '../lib/theme';
 import { SUPPORTED_LANGUAGES, LANGUAGE_LABELS } from '../lib/i18n';
 import { getBrowserNotificationPermission, requestBrowserNotificationPermission, type BrowserNotificationPermission } from '../lib/notifications';
-import type { KandownConfig, ThemeMode } from '../lib/types';
+import { readProjectInstructions, writeProjectInstructions } from '../lib/filesystem';
+import { DEFAULT_WORK_OUTPUT } from '../lib/types';
+import type { BoardTask, KandownConfig, ThemeMode, WorkOutputConfig } from '../lib/types';
 
 type SettingType = 'toggle' | 'select' | 'number' | 'text' | 'skin' | 'theme' | 'language' | 'permission';
 type SettingsSectionId = 'appearance' | 'agent' | 'board' | 'fields' | 'notifications' | 'about';
@@ -564,6 +566,7 @@ export function SettingsPage() {
   const projectName = useStore(s => s.projectName);
   const loadConfig = useStore(s => s.loadConfig);
   const toast = useStore(s => s.toast);
+  const columns = useStore(s => s.columns);
 
   const [activeSectionId, setActiveSectionId] = useState<SettingsSectionId>('appearance');
   const [query, setQuery] = useState('');
@@ -814,20 +817,33 @@ export function SettingsPage() {
                     <p className="mt-1 text-[13px] text-fg-muted">{t('settings.tryAnotherSearch')}</p>
                   </div>
                 ) : (
-                  visibleSettings.map((setting, index) => (
-                    <SettingRow
-                      key={setting.key}
-                      setting={setting}
-                      value={getConfigValue(config, setting.key)}
-                      showSection={!!normalizedQuery}
-                      isLast={index === visibleSettings.length - 1}
-                      onChange={(newValue) => handleChange(setting, newValue)}
-                      onHelp={() => setActiveHelpKey(setting.key)}
-                      nested={Boolean(setting.parentKey)}
-                      notificationPermission={notificationPermission}
-                      onRequestNotificationPermission={handleRequestNotificationPermission}
-                    />
-                  ))
+                  <>
+                    {!normalizedQuery && activeSectionId === 'agent' && (
+                      <WorkOutputConfigurator
+                        config={config}
+                        columns={columns}
+                        dirHandle={dirHandle}
+                        onChange={(next) => {
+                          void updateConfig(currentConfig => setConfigValue(currentConfig, 'agent.workOutput', next));
+                        }}
+                        toast={toast}
+                      />
+                    )}
+                    {visibleSettings.map((setting, index) => (
+                      <SettingRow
+                        key={setting.key}
+                        setting={setting}
+                        value={getConfigValue(config, setting.key)}
+                        showSection={!!normalizedQuery}
+                        isLast={index === visibleSettings.length - 1}
+                        onChange={(newValue) => handleChange(setting, newValue)}
+                        onHelp={() => setActiveHelpKey(setting.key)}
+                        nested={Boolean(setting.parentKey)}
+                        notificationPermission={notificationPermission}
+                        onRequestNotificationPermission={handleRequestNotificationPermission}
+                      />
+                    ))}
+                  </>
                 )}
               </div>
 
@@ -840,6 +856,242 @@ export function SettingsPage() {
           </motion.div>
         </div>
       </main>
+    </div>
+  );
+}
+
+const CONCISE_RULES_PREVIEW = `# Kandown agent rules — concise
+
+- Task state lives in project-root \`tasks/*.md\`; do not maintain a separate board index.
+- Before work, read the relevant task file and keep it updated while you progress.
+- Move tasks by editing frontmatter \`status:\`; complete work by setting \`status: Done\` and adding a markdown \`report:\` summary.
+- Update subtasks in-place: \`- [ ]\` → \`- [x]\`, with a short \`report:\` line for meaningful progress.
+- Board columns live in \`.kandown/kandown.json\` under \`board.columns\`; project instructions live in \`.kandown/instructions.md\`.
+- Never put Kandown task data inside \`.kandown/\`; tasks belong in \`./tasks/\`.`;
+
+function estimateTokenCount(text: string): number {
+  return Math.max(0, Math.ceil(text.trim().length / 4));
+}
+
+function buildDigestPreview(columns: { name: string; tasks: BoardTask[] }[], options: WorkOutputConfig['boardDigest']): string {
+  const lines = ['## Current board', ''];
+  if (options.showColumnCounts) {
+    lines.push(`**Columns:** ${columns.map(col => `${col.name} (${col.tasks.length})`).join(' · ')}`);
+  }
+  if (options.showTasks) {
+    for (const col of columns) {
+      if (col.tasks.length === 0) continue;
+      lines.push('', `### ${col.name}`);
+      for (const task of col.tasks.slice(0, 8)) {
+        const pri = options.showPriority && task.priority ? `[${task.priority}] ` : '';
+        const assignee = options.showAssignee && task.assignee ? ` (@${task.assignee})` : '';
+        const blocked = options.showBlockedBy && task.dependsOn.length > 0 ? ` ⛔ blocked by ${task.dependsOn.join(', ')}` : '';
+        lines.push(`- ${task.id} ${pri}${task.title || '(untitled)'}${assignee}${blocked}`);
+      }
+      if (col.tasks.length > 8) lines.push(`- … ${col.tasks.length - 8} more`);
+    }
+  }
+  if (options.showNextActionable) {
+    const next = columns.flatMap(col => col.tasks.map(task => ({ task, status: col.name }))).find(item => item.task.dependsOn.length === 0);
+    lines.push('', '### Next actionable task');
+    lines.push(next ? `→ **${next.task.id}** — ${next.task.title} (${next.task.priority ?? 'no priority'}, ${next.status})` : 'None — every task is done, archived, or blocked.');
+  }
+  return lines.join('\n');
+}
+
+function renderWorkPreview(config: WorkOutputConfig, projectInstructions: string, columns: { name: string; tasks: BoardTask[] }[]): string {
+  const rules = config.baseRulesMode === 'concise' ? CONCISE_RULES_PREVIEW : '[Full Kandown agent rules from .kandown/AGENT_KANDOWN.md]';
+  const blocks = {
+    baseRules: rules,
+    projectInstructions: projectInstructions.trim() ? `## Project-specific instructions\n\n${projectInstructions.trim()}` : '',
+    boardDigest: buildDigestPreview(columns, config.boardDigest),
+  };
+  if (config.mode === 'raw') {
+    return config.rawTemplate
+      .replaceAll('{{baseRules}}', blocks.baseRules)
+      .replaceAll('{{projectInstructions}}', blocks.projectInstructions)
+      .replaceAll('{{boardDigest}}', blocks.boardDigest)
+      .trim();
+  }
+  return config.sectionOrder
+    .map(section => {
+      if (section === 'baseRules' && config.includeBaseRules) return blocks.baseRules;
+      if (section === 'projectInstructions' && config.includeProjectInstructions) return blocks.projectInstructions;
+      if (section === 'boardDigest' && config.includeBoardDigest) return blocks.boardDigest;
+      return '';
+    })
+    .filter(Boolean)
+    .join('\n\n---\n\n');
+}
+
+interface WorkOutputConfiguratorProps {
+  config: KandownConfig;
+  columns: { name: string; tasks: BoardTask[] }[];
+  dirHandle: FileSystemDirectoryHandle | null;
+  onChange: (next: WorkOutputConfig) => void;
+  toast: (message: string, type?: 'success' | 'error' | 'info' | 'warning', durationMs?: number) => void;
+}
+
+function WorkOutputConfigurator({ config, columns, dirHandle, onChange, toast }: WorkOutputConfiguratorProps) {
+  const workOutput = { ...DEFAULT_WORK_OUTPUT, ...config.agent.workOutput, boardDigest: { ...DEFAULT_WORK_OUTPUT.boardDigest, ...config.agent.workOutput?.boardDigest } };
+  const [instructions, setInstructions] = useState('');
+  const [savedInstructions, setSavedInstructions] = useState('');
+  const [loadingInstructions, setLoadingInstructions] = useState(false);
+  const [savingInstructions, setSavingInstructions] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoadingInstructions(true);
+    readProjectInstructions(dirHandle)
+      .then(text => {
+        if (cancelled) return;
+        setInstructions(text);
+        setSavedInstructions(text);
+      })
+      .catch(e => toast(`Failed to load .kandown/instructions.md: ${(e as Error).message}`, 'error'))
+      .finally(() => {
+        if (!cancelled) setLoadingInstructions(false);
+      });
+    return () => { cancelled = true; };
+  }, [dirHandle, toast]);
+
+  const preview = renderWorkPreview(workOutput, instructions, columns);
+  const estimatedTokens = estimateTokenCount(preview) + (workOutput.baseRulesMode === 'full' && workOutput.includeBaseRules ? 1100 : 0);
+
+  const patch = (partial: Partial<WorkOutputConfig>) => onChange({ ...workOutput, ...partial });
+  const patchDigest = (partial: Partial<WorkOutputConfig['boardDigest']>) => onChange({
+    ...workOutput,
+    boardDigest: { ...workOutput.boardDigest, ...partial },
+  });
+
+  const saveInstructions = async () => {
+    setSavingInstructions(true);
+    try {
+      await writeProjectInstructions(dirHandle, instructions);
+      setSavedInstructions(instructions);
+      toast('Saved .kandown/instructions.md', 'success');
+    } catch (e) {
+      toast(`Failed to save instructions: ${(e as Error).message}`, 'error');
+    } finally {
+      setSavingInstructions(false);
+    }
+  };
+
+  return (
+    <div className="border-b border-border bg-bg-1 px-4 py-4">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3 className="text-[15px] font-semibold text-fg">kandown work output</h3>
+          <p className="mt-1 max-w-[560px] text-[12.5px] leading-relaxed text-fg-muted">
+            Configure the markdown printed by <code>kandown work</code>. Project text is stored in <code>.kandown/instructions.md</code>; renderer options stay in <code>.kandown/kandown.json</code>.
+          </p>
+        </div>
+        <div className="rounded-[7px] border border-border bg-bg-2 px-3 py-2 text-right">
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-fg-faint">Estimated output</div>
+          <div className="font-mono text-[18px] font-semibold text-fg">~{estimatedTokens}</div>
+          <div className="text-[11px] text-fg-muted">tokens</div>
+        </div>
+      </div>
+
+      <div className="mb-4 grid gap-2 md:grid-cols-3">
+        {[{ value: 'blocks', label: 'Blocks' }, { value: 'raw', label: 'Raw template' }].map(option => (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => patch({ mode: option.value as WorkOutputConfig['mode'] })}
+            className={`rounded-[7px] border px-3 py-2 text-left text-[13px] transition-colors ${workOutput.mode === option.value ? 'border-border-focus bg-bg-3 text-fg' : 'border-border bg-bg-2 text-fg-dim hover:bg-bg-3 hover:text-fg'}`}
+          >
+            {option.label}
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={() => patch({ baseRulesMode: workOutput.baseRulesMode === 'full' ? 'concise' : 'full' })}
+          className={`rounded-[7px] border px-3 py-2 text-left text-[13px] transition-colors ${workOutput.baseRulesMode === 'concise' ? 'border-success/50 bg-success/10 text-success' : 'border-border bg-bg-2 text-fg-dim hover:bg-bg-3 hover:text-fg'}`}
+        >
+          Token efficient: {workOutput.baseRulesMode === 'concise' ? 'on' : 'off'}
+        </button>
+      </div>
+
+      {workOutput.mode === 'blocks' && (
+        <div className="mb-4 grid gap-2 sm:grid-cols-2">
+          {[
+            ['includeBaseRules', 'Base Kandown rules'],
+            ['includeProjectInstructions', 'Project instructions'],
+            ['includeBoardDigest', 'Live board digest'],
+          ].map(([key, label]) => (
+            <label key={key} className="flex items-center justify-between gap-3 rounded-[7px] border border-border bg-bg-2 px-3 py-2 text-[13px] text-fg">
+              <span>{label}</span>
+              <input
+                type="checkbox"
+                checked={Boolean(workOutput[key as keyof WorkOutputConfig])}
+                onChange={e => patch({ [key]: e.target.checked } as Partial<WorkOutputConfig>)}
+              />
+            </label>
+          ))}
+        </div>
+      )}
+
+      <div className="mb-4 rounded-[7px] border border-border bg-bg-2 p-3">
+        <div className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-fg-faint">Board digest details</div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {[
+            ['showColumnCounts', 'Column counts'],
+            ['showTasks', 'Task list'],
+            ['showPriority', 'Priority'],
+            ['showAssignee', 'Assignee'],
+            ['showBlockedBy', 'Blocked-by'],
+            ['showNextActionable', 'Next actionable task'],
+          ].map(([key, label]) => (
+            <label key={key} className="flex items-center justify-between gap-3 text-[12.5px] text-fg-dim">
+              <span>{label}</span>
+              <input
+                type="checkbox"
+                checked={Boolean(workOutput.boardDigest[key as keyof WorkOutputConfig['boardDigest']])}
+                onChange={e => patchDigest({ [key]: e.target.checked } as Partial<WorkOutputConfig['boardDigest']>)}
+              />
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <label className="mb-4 block">
+        <span className="mb-1 block text-[12px] font-semibold uppercase tracking-wider text-fg-faint">.kandown/instructions.md</span>
+        <textarea
+          value={instructions}
+          onChange={e => setInstructions(e.target.value)}
+          disabled={loadingInstructions}
+          placeholder="Project-specific agent instructions…"
+          className="min-h-[150px] w-full resize-y rounded-[7px] border border-border bg-bg-2 px-3 py-2 font-mono text-[12.5px] leading-relaxed text-fg outline-none placeholder:text-fg-faint focus:border-border-focus"
+        />
+      </label>
+      <div className="mb-4 flex justify-end">
+        <button
+          type="button"
+          onClick={saveInstructions}
+          disabled={savingInstructions || instructions === savedInstructions}
+          className="rounded-[7px] border border-border bg-bg-2 px-3 py-1.5 text-[12.5px] text-fg transition-colors hover:bg-bg-3 disabled:cursor-default disabled:text-fg-faint disabled:hover:bg-bg-2"
+        >
+          {savingInstructions ? 'Saving…' : 'Save project instructions'}
+        </button>
+      </div>
+
+      {workOutput.mode === 'raw' && (
+        <label className="mb-4 block">
+          <span className="mb-1 block text-[12px] font-semibold uppercase tracking-wider text-fg-faint">Raw template</span>
+          <textarea
+            value={workOutput.rawTemplate}
+            onChange={e => patch({ rawTemplate: e.target.value })}
+            className="min-h-[150px] w-full resize-y rounded-[7px] border border-border bg-bg-2 px-3 py-2 font-mono text-[12.5px] leading-relaxed text-fg outline-none focus:border-border-focus"
+          />
+          <span className="mt-1 block text-[11.5px] text-fg-muted">Variables: {'{{baseRules}}'}, {'{{projectInstructions}}'}, {'{{boardDigest}}'}</span>
+        </label>
+      )}
+
+      <details className="rounded-[7px] border border-border bg-bg-2">
+        <summary className="cursor-pointer px-3 py-2 text-[12.5px] font-medium text-fg">Preview</summary>
+        <pre className="max-h-[280px] overflow-auto border-t border-border px-3 py-3 text-[11.5px] leading-relaxed text-fg-muted">{preview}</pre>
+      </details>
     </div>
   );
 }

@@ -7,7 +7,24 @@
   },
   "agent": {
     "suggestFollowUp": false,
-    "maxSuggestions": 3
+    "maxSuggestions": 3,
+    "workOutput": {
+      "mode": "blocks",
+      "includeBaseRules": true,
+      "baseRulesMode": "full",
+      "includeProjectInstructions": true,
+      "includeBoardDigest": true,
+      "sectionOrder": ["baseRules", "projectInstructions", "boardDigest"],
+      "rawTemplate": "{{baseRules}}\n\n---\n\n{{projectInstructions}}\n\n---\n\n{{boardDigest}}",
+      "boardDigest": {
+        "showColumnCounts": true,
+        "showTasks": true,
+        "showPriority": true,
+        "showAssignee": true,
+        "showBlockedBy": true,
+        "showNextActionable": true
+      }
+    }
   },
   "board": {
     "columns": ["Backlog", "Todo", "In Progress", "Review", "Done"],

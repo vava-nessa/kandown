@@ -112,6 +112,28 @@ export type FontId = 'inter' | 'system' | 'serif' | 'mono' | 'rounded';
 export type BackgroundId = 'solid' | 'static-gradient';
 export type NotificationSoundId = 'soft' | 'chime' | 'ping' | 'pop';
 
+export type WorkOutputMode = 'blocks' | 'raw';
+export type WorkOutputBaseRulesMode = 'full' | 'concise';
+export type WorkOutputSectionId = 'baseRules' | 'projectInstructions' | 'boardDigest';
+
+export interface WorkOutputConfig {
+  mode: WorkOutputMode;
+  includeBaseRules: boolean;
+  baseRulesMode: WorkOutputBaseRulesMode;
+  includeProjectInstructions: boolean;
+  includeBoardDigest: boolean;
+  sectionOrder: WorkOutputSectionId[];
+  rawTemplate: string;
+  boardDigest: {
+    showColumnCounts: boolean;
+    showTasks: boolean;
+    showPriority: boolean;
+    showAssignee: boolean;
+    showBlockedBy: boolean;
+    showNextActionable: boolean;
+  };
+}
+
 export interface Filters {
   search: string;
   priority: Priority | null;
@@ -156,6 +178,12 @@ export interface KandownConfig {
   agent: {
     suggestFollowUp: boolean;
     maxSuggestions: number;
+    /** 📖 Project-scoped renderer settings for `kandown work`. The actual
+     * editable prose lives in `.kandown/instructions.md`; this config controls
+     * which generated blocks are printed and optionally replaces the full
+     * output with a raw template using `{{baseRules}}`, `{{projectInstructions}}`,
+     * and `{{boardDigest}}` placeholders. */
+    workOutput: WorkOutputConfig;
   };
   board: {
     columns: string[];
@@ -192,9 +220,27 @@ export interface KandownConfig {
 
 export const DEFAULT_COLUMNS = ['Backlog', 'Todo', 'In Progress', 'Review', 'Done'];
 
+export const DEFAULT_WORK_OUTPUT: WorkOutputConfig = {
+  mode: 'blocks',
+  includeBaseRules: true,
+  baseRulesMode: 'full',
+  includeProjectInstructions: true,
+  includeBoardDigest: true,
+  sectionOrder: ['baseRules', 'projectInstructions', 'boardDigest'],
+  rawTemplate: '{{baseRules}}\n\n---\n\n{{projectInstructions}}\n\n---\n\n{{boardDigest}}',
+  boardDigest: {
+    showColumnCounts: true,
+    showTasks: true,
+    showPriority: true,
+    showAssignee: true,
+    showBlockedBy: true,
+    showNextActionable: true,
+  },
+};
+
 export const DEFAULT_CONFIG: KandownConfig = {
   ui: { language: 'en', theme: 'auto', skin: 'kandown', font: 'inter', background: 'solid' },
-  agent: { suggestFollowUp: false, maxSuggestions: 3 },
+  agent: { suggestFollowUp: false, maxSuggestions: 3, workOutput: DEFAULT_WORK_OUTPUT },
   board: {
     columns: DEFAULT_COLUMNS,
     defaultPriority: 'P3',
