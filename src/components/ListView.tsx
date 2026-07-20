@@ -24,14 +24,13 @@ import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../lib/store';
-import type { BoardTask, SearchMatch, Column as ColumnType } from '../lib/types';
-
-const priorityColors: Record<string, string> = {
-  P1: '#e5484d',
-  P2: '#e9a23b',
-  P3: '#3e63dd',
-  P4: '#6e6e6e',
-};
+import { Card } from './Card';
+import { CardStack } from './CardStack';
+import { KbdButton } from './KbdButton';
+import { groupTasksByTag, extractGroupKey } from '../lib/grouping';
+import { getColumnIcon, COLUMN_COLOR_MAP } from '../lib/columnUtils';
+import { ColumnHeaderActions } from './ColumnHeaderActions';
+import type { BoardTask, SearchMatch, Column as ColumnType, ColumnColor } from '../lib/types';
 
 interface FilteredColumn {
   column: ColumnType;
@@ -100,6 +99,31 @@ export function ListView() {
   const reorderColumns = useStore(s => s.reorderColumns);
   const searchMatches = useStore(s => s.searchMatches);
   const fields = useStore(s => s.config.fields);
+  const config = useStore(s => s.config);
+  const updateConfig = useStore(s => s.updateConfig);
+  const createTask = useStore(s => s.createTask);
+  const renameColumn = useStore(s => s.renameColumn);
+  const deleteColumn = useStore(s => s.deleteColumn);
+  const addColumn = useStore(s => s.addColumn);
+  const density = useStore(s => s.density);
+
+  const doneTags = useMemo(() => {
+    const tagToTasks = new Map<string, BoardTask[]>();
+    for (const col of useStore.getState().columns) {
+      for (const t of col.tasks) {
+        const key = extractGroupKey(t.title);
+        if (key) {
+          if (!tagToTasks.has(key)) tagToTasks.set(key, []);
+          tagToTasks.get(key)!.push(t);
+        }
+      }
+    }
+    const result = new Set<string>();
+    for (const [key, tasks] of tagToTasks) {
+      if (tasks.every(t => t.checked)) result.add(key);
+    }
+    return result;
+  }, []);
 
   const [draggedTask, setDraggedTask] = useState<DraggedTask | null>(null);
   const [taskDropColumn, setTaskDropColumn] = useState<string | null>(null);
@@ -128,17 +152,6 @@ export function ListView() {
   const totalVisibleRows = useMemo(() => {
     return filteredColumns.reduce((sum, { filtered }) => sum + filtered.length, 0);
   }, [filteredColumns]);
-
-  const listGridStyle = useMemo(() => ({
-    gridTemplateColumns: [
-      '78px',
-      fields.priority ? '34px' : null,
-      'minmax(220px, 1fr)',
-      fields.tags ? 'minmax(100px, 140px)' : null,
-      fields.assignee ? 'minmax(100px, 140px)' : null,
-      '72px',
-    ].filter(Boolean).join(' '),
-  }), [fields.assignee, fields.priority, fields.tags]);
 
   const dueSummary = useMemo(() => {
     const now = new Date().toISOString().slice(0, 10);
@@ -246,7 +259,7 @@ export function ListView() {
       transition={{ duration: 0.2 }}
       className={`flex-1 min-h-0 overflow-y-auto ${isColumnReordering ? 'select-none' : ''}`}
     >
-      <div className="max-w-[1200px] mx-auto px-6 py-5 space-y-4">
+      <div className="w-full px-6 py-5 space-y-4">
         {(dueSummary.overdue.length > 0 || dueSummary.dueSoon.length > 0) && (
           <div className="p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-xs flex items-center gap-4">
             <span className="font-semibold text-amber-500">📅 Due Dates & Calendar:</span>
@@ -263,6 +276,37 @@ export function ListView() {
           {filteredColumns.map(({ column, filtered }, sectionIndex) => {
             const isTaskDropTarget = taskDropColumn === column.name;
             const isFiltered = filtered.length !== column.tasks.length;
+            const colColorKey = config.board.columnColors?.[column.name.toLowerCase()] ?? 'gray';
+            const colBg = COLUMN_COLOR_MAP[colColorKey] ?? COLUMN_COLOR_MAP.gray;
+            const ColumnIcon = getColumnIcon(column.name);
+            const isConfiguredColumn = config.board.columns.some(name => name.toLowerCase() === column.name.toLowerCase());
+            const columnItems = groupTasksByTag(filtered);
+
+            const handleColorChange = (color: ColumnColor) => {
+              updateConfig(c => ({
+                ...c,
+                board: {
+                  ...c.board,
+                  columnColors: {
+                    ...(c.board.columnColors ?? {}),
+                    [column.name.toLowerCase()]: color,
+                  },
+                },
+              }));
+            };
+
+            const handleRenameColumn = () => {
+              const nextName = window.prompt(t('column.renamePrompt'), column.name)?.trim();
+              if (!nextName || nextName === column.name) return;
+              void renameColumn(column.name, nextName);
+            };
+
+            const handleDeleteColumn = () => {
+              const message = t('column.deleteConfirm', { name: column.name, count: column.tasks.length });
+              if (!window.confirm(message)) return;
+              void deleteColumn(column.name);
+            };
+
             return (
               <div
                 key={column.name}
@@ -284,13 +328,14 @@ export function ListView() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ delay: Math.min(sectionIndex * 0.025, 0.18), duration: 0.2 }}
-                  className={`overflow-hidden rounded-xl border transition-[border-color,background-color,opacity,transform,box-shadow] duration-150 ${
+                  className={`group/section overflow-hidden rounded-xl border transition-[border-color,background-color,opacity,transform,box-shadow] duration-150 ${
                     isTaskDropTarget
                       ? 'border-border-strong bg-bg-1 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]'
-                      : 'border-border bg-bg/55'
+                      : 'border-border'
                   } ${draggedColIndex === sectionIndex ? 'opacity-45 scale-[0.995]' : ''}`}
+                  style={{ backgroundColor: isTaskDropTarget ? undefined : colBg }}
                 >
-                  <header className="flex items-center justify-between gap-3 border-b border-border bg-bg-1/70 px-4 py-3">
+                  <header className="flex items-center justify-between gap-3 border-b border-border bg-bg-1/40 px-4 py-3">
                     <div className="flex min-w-0 items-center gap-2.5">
                       <div
                         draggable
@@ -318,6 +363,7 @@ export function ListView() {
                           <circle cx="10" cy="13" r="1.5" fill="currentColor" />
                         </svg>
                       </div>
+                      <ColumnIcon aria-hidden="true" size={16} stroke={1.8} className="flex-none text-fg-muted" />
                       <div className="min-w-0">
                         <h2 className="truncate text-[13px] font-semibold tracking-tight text-fg">{column.name}</h2>
                         <p className="text-[11.5px] text-fg-muted">
@@ -326,110 +372,89 @@ export function ListView() {
                         </p>
                       </div>
                     </div>
-                    <span className="rounded-full border border-border bg-bg px-2 py-0.5 font-mono text-[11px] text-fg-muted">
-                      #{sectionIndex + 1}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full border border-border bg-bg/80 px-2 py-0.5 font-mono text-[11px] text-fg-muted">
+                        #{sectionIndex + 1}
+                      </span>
+                      <ColumnHeaderActions
+                        columnName={column.name}
+                        taskCount={filtered.length}
+                        isConfiguredColumn={isConfiguredColumn}
+                        currentColor={colColorKey}
+                        onColorSelect={handleColorChange}
+                        onCreateTask={() => createTask(column.name)}
+                        onRenameColumn={handleRenameColumn}
+                        onDeleteColumn={handleDeleteColumn}
+                        onAddColumn={() => addColumn(column.name)}
+                        className="opacity-0 group-hover/section:opacity-100 transition-opacity"
+                      />
+                    </div>
                   </header>
 
-                  <div
-                    className="grid gap-3 border-b border-border px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-fg-faint"
-                    style={listGridStyle}
-                  >
-                    <div>{t('listView.id')}</div>
-                    {fields.priority && <div></div>}
-                    <div>{t('listView.title')}</div>
-                    {fields.tags && <div>{t('listView.tags')}</div>}
-                    {fields.assignee && <div>{t('listView.assignee')}</div>}
-                    <div>{t('listView.progress')}</div>
+                  <div className="p-3">
+                    <div className="flex flex-col gap-2">
+                      <AnimatePresence mode="popLayout">
+                        {columnItems.length === 0 ? (
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="flex flex-col items-center justify-center py-8 px-4 text-center"
+                          >
+                            <div className="w-10 h-10 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] flex items-center justify-center mb-3">
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-fg-muted/50">
+                                <path d="M9 11l3 3L22 4"/>
+                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                              </svg>
+                            </div>
+                            <p className="text-[13px] font-medium text-fg-muted/70">
+                              {filters.search || filters.priority || filters.tag || filters.assignee || filters.ownerType
+                                ? t('listView.noMatchingTasks')
+                                : 'No tasks yet'}
+                            </p>
+                            <p className="text-[12px] text-fg-muted/50 mt-0.5">Drag tasks here to get started.</p>
+                          </motion.div>
+                        ) : (
+                          columnItems.map(item =>
+                            item.type === 'single' ? (
+                              <Card
+                                key={item.task.id}
+                                task={item.task}
+                                searchMatches={searchMatches.get(item.task.id) || []}
+                                density={density}
+                                columnName={column.name}
+                                doneTags={doneTags}
+                                onDragStart={(e) => handleTaskDragStart(e, item.task.id, column.name)}
+                                onDragEnd={handleTaskDragEnd}
+                              />
+                            ) : (
+                              <CardStack
+                                key={`stack-${item.groupKey}`}
+                                group={item}
+                                searchMatches={searchMatches}
+                                density={density}
+                                columnName={column.name}
+                                doneTags={doneTags}
+                                onCardDragStart={(taskId, fromCol) => handleTaskDragStart({} as React.DragEvent, taskId, fromCol)}
+                                onCardDragEnd={handleTaskDragEnd}
+                                defaultExpanded={
+                                  config.board.stackDefaultState === 'expanded' || !!filters.search
+                                }
+                              />
+                            )
+                          )
+                        )}
+                      </AnimatePresence>
+                    </div>
                   </div>
 
-                  <div className="min-h-[44px]">
-                    {filtered.length === 0 ? (
-                      <div className="px-4 py-6 text-center text-[13px] text-fg-muted">
-                        {filters.search || filters.priority || filters.tag || filters.assignee || filters.ownerType
-                          ? t('listView.noMatchingTasks')
-                          : 'No tasks yet. Drag tasks here to get started.'}
-                      </div>
-                    ) : (
-                      filtered.map((task, taskIndex) => {
-                        const matches = filters.search ? (searchMatches.get(task.id) || []) : [];
-                        const showPreview = matches.length > 0;
-                        return (
-                          <div key={task.id} className="border-b border-border/70 last:border-b-0">
-                            <motion.button
-                              layout
-                              draggable
-                              initial={{ opacity: 0, y: 4 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0 }}
-                              transition={{ delay: Math.min(taskIndex * 0.01, 0.12), duration: 0.16 }}
-                              onDragStartCapture={(e) => handleTaskDragStart(e, task.id, column.name)}
-                              onDragEndCapture={handleTaskDragEnd}
-                              onClick={() => openDrawer(task.id)}
-                              className="group w-full grid gap-3 px-4 py-2.5 text-[13.5px] hover:bg-bg-1 transition-colors text-left items-center cursor-pointer"
-                              style={listGridStyle}
-                            >
-                              <span className="flex items-center gap-2 font-mono text-[13px] font-bold text-fg-muted">
-                                <span className="opacity-0 transition-opacity group-hover:opacity-40 cursor-grab">⋮⋮</span>
-                                {task.id.replace(/^t/, '')}
-                              </span>
-                              {fields.priority && (
-                                <span className="flex items-center gap-1.5">
-                                  {task.priority && (
-                                    <span
-                                      className="w-1.5 h-1.5 rounded-full"
-                                      style={{ backgroundColor: priorityColors[task.priority] }}
-                                      title={task.priority}
-                                    />
-                                  )}
-                                </span>
-                              )}
-                              <span className={`truncate ${task.checked ? 'line-through text-fg-muted' : 'text-fg'}`}>
-                                {task.title}
-                              </span>
-                              {fields.tags && (
-                                <span className="flex flex-wrap gap-1">
-                                  {task.tags.slice(0, 2).map(tag => (
-                                    <span key={tag} className="text-[11.5px] px-1.5 py-0.5 rounded-[3px] bg-bg-2 border border-border text-fg-dim">
-                                      {tag}
-                                    </span>
-                                  ))}
-                                </span>
-                              )}
-                              {fields.assignee && (
-                                <span className="text-[12.5px] text-fg-dim">
-                                  {task.assignee ? `@${task.assignee}` : ''}
-                                </span>
-                              )}
-                              <span className="text-[12px] font-mono text-fg-muted tabular-nums">
-                                {task.progress ? `${task.progress.done}/${task.progress.total}` : ''}
-                              </span>
-                            </motion.button>
-
-                            {showPreview && (
-                              <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="px-4 pb-2 grid gap-3"
-                                style={listGridStyle}
-                              >
-                                <div className={`${fields.priority ? 'col-start-3' : 'col-start-2'} flex flex-col gap-1`}>
-                                  {matches.slice(0, 2).map((match: SearchMatch, idx: number) => (
-                                    <div key={idx} className="text-[12px] text-fg-dim bg-bg rounded px-2 py-1 border border-border">
-                                      <span className="text-[10.5px] font-medium text-fg-muted uppercase tracking-wide mr-1.5">
-                                        {t(`sectionLabels.${match.section}`) || match.section}
-                                      </span>
-                                      <HighlightedText text={match.snippet} keyword={match.keyword} />
-                                    </div>
-                                  ))}
-                                </div>
-                              </motion.div>
-                            )}
-                          </div>
-                        );
-                      })
-                    )}
+                  <div className="flex-none px-3 pb-3 pt-1">
+                    <KbdButton
+                      variant="ghost"
+                      icon="Plus"
+                      label={t('column.addTask')}
+                      onClick={() => createTask(column.name)}
+                      className="w-full justify-start px-2.5 py-1.5 h-auto text-[12.5px] text-fg-muted hover:text-fg rounded-lg hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
+                    />
                   </div>
                 </motion.section>
                 <SectionDropGuide side="bottom" active={canShowDropGuide(columns.length) && sectionIndex === columns.length - 1} />

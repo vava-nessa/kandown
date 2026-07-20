@@ -24,180 +24,15 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
-import {
-  IconCircleCheck,
-  IconClipboardList,
-  IconEyeCheck,
-  IconInbox,
-  IconListDetails,
-  IconProgress,
-  type TablerIcon,
-} from '@tabler/icons-react';
 import { Card } from './Card';
 import { CardStack } from './CardStack';
 import { Icon } from './Icons';
 import { KbdButton } from './KbdButton';
+import { ColumnHeaderActions } from './ColumnHeaderActions';
+import { getColumnIcon, COLUMN_COLOR_MAP } from '../lib/columnUtils';
 import { useStore } from '../lib/store';
 import { groupTasksByTag, extractGroupKey } from '../lib/grouping';
 import type { Column as ColumnType, BoardTask, Density, SearchMatch, ColumnColor } from '../lib/types';
-
-const columnIconsByName: Readonly<Record<string, TablerIcon>> = {
-  backlog: IconInbox,
-  icebox: IconInbox,
-  todo: IconClipboardList,
-  'to do': IconClipboardList,
-  ready: IconClipboardList,
-  doing: IconProgress,
-  progress: IconProgress,
-  'in progress': IconProgress,
-  active: IconProgress,
-  review: IconEyeCheck,
-  qa: IconEyeCheck,
-  verify: IconEyeCheck,
-  done: IconCircleCheck,
-  complete: IconCircleCheck,
-  completed: IconCircleCheck,
-};
-
-function getColumnIcon(columnName: string): TablerIcon {
-  const normalizedName = columnName.trim().toLowerCase();
-  return columnIconsByName[normalizedName] ?? IconListDetails;
-}
-
-// 📖 Column tints. Default is a barely-there neutral that lets the cards carry
-// the visual weight. Brighter tints are dialed way down vs the old defaults so
-// the board never feels like a kid's coloring book.
-const COLUMN_COLOR_MAP: Record<ColumnColor, string> = {
-  red: 'rgba(239,68,68,0.06)',
-  orange: 'rgba(249,115,22,0.06)',
-  amber: 'rgba(245,158,11,0.06)',
-  yellow: 'rgba(234,179,8,0.06)',
-  lime: 'rgba(132,204,22,0.06)',
-  green: 'rgba(34,197,94,0.06)',
-  emerald: 'rgba(16,185,129,0.06)',
-  teal: 'rgba(20,184,166,0.06)',
-  cyan: 'rgba(6,182,212,0.06)',
-  sky: 'rgba(14,165,233,0.06)',
-  blue: 'rgba(59,130,246,0.06)',
-  indigo: 'rgba(99,102,241,0.06)',
-  violet: 'rgba(139,92,246,0.06)',
-  purple: 'rgba(168,85,247,0.06)',
-  fuchsia: 'rgba(217,70,239,0.06)',
-  pink: 'rgba(236,72,153,0.06)',
-  rose: 'rgba(244,63,94,0.06)',
-  slate: 'rgba(100,116,139,0.05)',
-  gray: 'rgba(255,255,255,0.025)',
-  zinc: 'rgba(113,113,122,0.05)',
-  black: 'rgba(0,0,0,0.24)',
-  blackTransparent: 'rgba(0,0,0,0.1)',
-};
-
-const COLOR_SWATCHES: { key: ColumnColor; label: string; color: string }[] = [
-  { key: 'red', label: 'Red', color: 'rgba(239,68,68,0.9)' },
-  { key: 'orange', label: 'Orange', color: 'rgba(249,115,22,0.9)' },
-  { key: 'amber', label: 'Amber', color: 'rgba(245,158,11,0.9)' },
-  { key: 'yellow', label: 'Yellow', color: 'rgba(234,179,8,0.9)' },
-  { key: 'lime', label: 'Lime', color: 'rgba(132,204,22,0.9)' },
-  { key: 'green', label: 'Green', color: 'rgba(34,197,94,0.9)' },
-  { key: 'emerald', label: 'Emerald', color: 'rgba(16,185,129,0.9)' },
-  { key: 'teal', label: 'Teal', color: 'rgba(20,184,166,0.9)' },
-  { key: 'cyan', label: 'Cyan', color: 'rgba(6,182,212,0.9)' },
-  { key: 'sky', label: 'Sky', color: 'rgba(14,165,233,0.9)' },
-  { key: 'blue', label: 'Blue', color: 'rgba(59,130,246,0.9)' },
-  { key: 'indigo', label: 'Indigo', color: 'rgba(99,102,241,0.9)' },
-  { key: 'violet', label: 'Violet', color: 'rgba(139,92,246,0.9)' },
-  { key: 'purple', label: 'Purple', color: 'rgba(168,85,247,0.9)' },
-  { key: 'fuchsia', label: 'Fuchsia', color: 'rgba(217,70,239,0.9)' },
-  { key: 'pink', label: 'Pink', color: 'rgba(236,72,153,0.9)' },
-  { key: 'rose', label: 'Rose', color: 'rgba(244,63,94,0.9)' },
-  { key: 'slate', label: 'Slate', color: 'rgba(100,116,139,0.9)' },
-  { key: 'gray', label: 'Gray', color: 'rgba(156,163,175,0.9)' },
-  { key: 'zinc', label: 'Zinc', color: 'rgba(113,113,122,0.9)' },
-  { key: 'black', label: 'Black', color: 'rgba(0,0,0,0.9)' },
-  { key: 'blackTransparent', label: 'Black 50%', color: 'rgba(0,0,0,0.5)' },
-];
-
-interface ColumnColorMenuProps {
-  columnName: string;
-  currentColor: ColumnColor;
-  onSelect: (color: ColumnColor) => void;
-}
-
-function ColumnColorMenu({ columnName, currentColor, onSelect }: ColumnColorMenuProps) {
-  const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
-
-  return (
-    <div ref={menuRef} className="relative">
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpen(v => !v);
-        }}
-        className="w-5 h-5 inline-flex items-center justify-center text-fg-muted hover:bg-bg-3 hover:text-fg rounded-[4px] transition-colors"
-        title={t('column.columnColor')}
-      >
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="opacity-60">
-          <circle cx="3" cy="2" r="1.2" fill="currentColor" />
-          <circle cx="9" cy="2" r="1.2" fill="currentColor" />
-          <circle cx="3" cy="6" r="1.2" fill="currentColor" />
-          <circle cx="9" cy="6" r="1.2" fill="currentColor" />
-          <circle cx="3" cy="10" r="1.2" fill="currentColor" />
-          <circle cx="9" cy="10" r="1.2" fill="currentColor" />
-        </svg>
-      </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.12 }}
-            className="absolute right-0 top-full mt-1 bg-bg-2 border border-border rounded-[6px] shadow-lg p-1.5 z-50 min-w-[152px]"
-            style={{ transformOrigin: 'top right' }}
-          >
-            <div className="text-[11px] text-fg-muted px-1.5 pb-1.5 font-medium">{t('column.color')}</div>
-            <div className="grid grid-cols-5 gap-1">
-              {COLOR_SWATCHES.map(({ key, label, color }) => (
-                <button
-                  key={key}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSelect(key);
-                    setOpen(false);
-                  }}
-                  title={label}
-                  className={`w-6 h-6 rounded-[4px] flex items-center justify-center transition-all ${
-                    currentColor === key ? 'ring-2 ring-offset-1 ring-offset-bg-2 ring-fg' : 'hover:scale-110'
-                  }`}
-                  style={{ backgroundColor: color }}
-                >
-                  {currentColor === key && (
-                    <svg width="10" height="10" viewBox="0 0 10 10" className="text-white">
-                      <path d="M2 5l2.5 2.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                    </svg>
-                  )}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
 
 interface ColumnProps {
   column: ColumnType;
@@ -413,43 +248,18 @@ export function Column({
             {isFiltered && <span className="text-fg-faint">/{column.tasks.length}</span>}
           </span>
         </div>
-        <div className="flex items-center gap-0.5 opacity-0 group-hover/column:opacity-100 transition-opacity">
-          {!isConfiguredColumn && (
-            <button
-              onClick={() => addColumn(column.name)}
-              className="h-6 rounded-md px-2 text-[11px] font-medium text-fg-muted transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.1] hover:text-fg"
-              title={t('column.addToSettings')}
-            >
-              {t('column.addColumn')}
-            </button>
-          )}
-          <button
-            onClick={() => createTask(column.name)}
-            className="w-6 h-6 inline-flex items-center justify-center text-fg-muted hover:bg-black/[0.05] dark:hover:bg-white/[0.1] hover:text-fg rounded-md transition-colors"
-            title={t('column.addTask')}
-          >
-            <Icon.Plus size={14} />
-          </button>
-          <ColumnColorMenu
-            columnName={column.name.toLowerCase()}
-            currentColor={colColorKey}
-            onSelect={handleColorChange}
-          />
-          <button
-            onClick={handleRenameColumn}
-            className="w-6 h-6 inline-flex items-center justify-center text-fg-muted hover:bg-black/[0.05] dark:hover:bg-white/[0.1] hover:text-fg rounded-md transition-colors"
-            title={t('column.renameColumn')}
-          >
-            <span className="text-[11px] leading-none">✎</span>
-          </button>
-          <button
-            onClick={handleDeleteColumn}
-            className="w-6 h-6 inline-flex items-center justify-center text-fg-muted hover:bg-red-500/10 hover:text-red-500 rounded-md transition-colors"
-            title={t('column.deleteColumn')}
-          >
-            <span className="text-[13px] leading-none">×</span>
-          </button>
-        </div>
+        <ColumnHeaderActions
+          columnName={column.name}
+          taskCount={filteredTasks.length}
+          isConfiguredColumn={isConfiguredColumn}
+          currentColor={colColorKey}
+          onColorSelect={handleColorChange}
+          onCreateTask={() => createTask(column.name)}
+          onRenameColumn={handleRenameColumn}
+          onDeleteColumn={handleDeleteColumn}
+          onAddColumn={() => addColumn(column.name)}
+          className="opacity-0 group-hover/column:opacity-100 transition-opacity"
+        />
       </div>
 
       <div

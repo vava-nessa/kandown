@@ -16,7 +16,7 @@ Ce qui bloque :
 - ❌ Les 5 skins sont **hardcodés dans `theme.ts`** (~270 lignes de HSL) — ajouter un thème = release npm.
 - ❌ Les tokens ne couvrent que la **couleur** : radius, ombres, densité, borders, fonts display, vitesse d'animation sont figés dans Tailwind/composants. Or c'est précisément ce qui distingue un look « Vercel » (sec, carré, sans ombre) d'un look « Apple » (rond, translucide, ombré).
 - ❌ `SkinId`/`FontId` sont des unions fermées (`types.ts:110-111`) — impossible de référencer un thème custom.
-- ❌ Le TUI ignore totalement le thème du projet (couleurs ANSI en dur dans `board.tsx`).
+
 
 ---
 
@@ -138,8 +138,7 @@ Implémentation : les composants remplacent leurs classes figées (`rounded-lg`,
 - Garde-fou accessibilité : contrôle WCAG live (contraste texte/fond ≥ 4.5, muted ≥ 3.0) avec warning inline.
 - Export/import du JSON (copier-coller ou fichier dans `.kandown/themes/`).
 
-### 4.3 Cohérence TUI 🟡
-Mapper chaque preset vers un mini-thème terminal (accent + 4 couleurs de colonnes en ANSI 256/truecolor) lu depuis `kandown.json` — le TUI cesse d'avoir ses couleurs en dur (`board.tsx:columnAccentColor`) et suit enfin `board.columnColors` + le skin.
+
 
 ---
 
@@ -165,7 +164,7 @@ Mapper chaque preset vers un mini-thème terminal (accent + 4 couleurs de colonn
 | 4 | Grille de sélection avec previews live (§4.1) | Remplace le sélecteur actuel |
 | 5 | `ui.customThemes` + import/export JSON (§4.2 sans l'éditeur) | Les power users créent déjà leurs thèmes à la main |
 | 6 | Éditeur visuel + garde-fous WCAG | La cerise |
-| 7 | Thème TUI (§4.3) | Peut se faire en parallèle dès l'étape 2 |
+
 
 Les étapes 1-3 suffisent à transformer la perception du produit (« 5 skins » → « galerie de thèmes dignes de Linear ») ; 5 rend le système *ouvert*, ce qui colle à l'ADN file-over-app de Kandown.
 

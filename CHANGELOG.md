@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.27.0 — 2026-07-20 — "Unified Views"
+
+- **Added**: **Full Component Parity between Board and List Views** — unified the List view (`ListView.tsx`) and Board view (`Column.tsx`) so that List view sections and task items share the exact same components, column background color tints, icons, and action options as Board columns.
+- **Added**: **Guarded Delete Button & Card Actions in List View** — task items in List view are now rendered with `<Card>` (and `<CardStack>` for tag-grouped tasks). Hovering over a task row in List view now reveals the guarded delete button (`IconTrash`/`IconTrashX`) with double-click confirmation, multi-task selection (`⌘/Ctrl/Shift + Click`), tag/epic/report/blocked-by badges, subtask progress bars, search-preview snippets, and frontmatter metadata blocks.
+- **Added**: **Shared Column Header Actions & Color Picker** — added `<ColumnHeaderActions>` and `<ColumnColorMenu>` to List view section headers. Users can pick column accent colors, rename columns (`✎`), delete columns (`×`), create tasks (`+`), and add unconfigured columns to project settings directly from List view.
+- **Added**: **Section Footers in List View** — each section in List view now includes the `+ Add task` (`KbdButton`) footer at the bottom of the section container.
+- **Changed**: **100% Viewport Width for List View** — removed the fixed `max-w-[1200px]` width constraint so List view occupies 100% of the viewport width, allowing task titles and metadata to expand flexibly across wider displays.
+
 ## 0.26.0 — 2026-07-20 — "Task Workspace"
 
 - **Added**: **Desktop opened-task workspace** — opening a task on desktop now replaces the modal overlay with a split workspace below the sticky header. The left pane lists tasks grouped by board status, while the right pane keeps the full task editor available in a large three-quarter-width panel.
