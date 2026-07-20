@@ -131,16 +131,26 @@ function getCurrentVersion() {
  */
 function resolveKandownBin() {
   try {
+    const whichBin = String(execSync('which kandown 2>/dev/null || command -v kandown 2>/dev/null', {
+      timeout: 3000, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'],
+    })).trim();
+    if (whichBin && existsSync(whichBin)) return whichBin;
+  } catch { /* ignore */ }
+  const localBin = join(homedir(), '.local', 'bin', 'kandown');
+  if (existsSync(localBin)) return localBin;
+  try {
     const npmBin = String(execSync('npm config get prefix 2>/dev/null', {
       timeout: 3000, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'],
     })).trim();
     if (existsSync(join(npmBin, 'bin', 'kandown'))) return join(npmBin, 'bin', 'kandown');
+    if (existsSync(join(npmBin, 'kandown'))) return join(npmBin, 'kandown');
   } catch { /* npm not available */ }
   try {
     const pnpmBin = String(execSync('pnpm config get prefix 2>/dev/null', {
       timeout: 3000, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'],
     })).trim();
     if (existsSync(join(pnpmBin, 'bin', 'kandown'))) return join(pnpmBin, 'bin', 'kandown');
+    if (existsSync(join(pnpmBin, 'kandown'))) return join(pnpmBin, 'kandown');
   } catch { /* pnpm not available */ }
   return null;
 }
@@ -307,10 +317,16 @@ async function checkForUpdate(argv = process.argv) {
   const updateOk = await new Promise((resolve) => {
     const tryInstall = (cmd) => {
       return new Promise((res) => {
+        const cleanEnv = { ...process.env };
+        for (const k of Object.keys(cleanEnv)) {
+          if (k.startsWith('npm_config_') || k.startsWith('npm_') || k === 'INIT_CWD') {
+            delete cleanEnv[k];
+          }
+        }
         const child = spawn(cmd, ['install', '-g', 'kandown'], {
-          timeout: 45000,
+          timeout: 60000,
           stdio: ['pipe', 'pipe', 'pipe'],
-          env: { ...process.env },
+          env: cleanEnv,
           detached: false,
         });
         child.stderr.on('data', () => {}); // silence npm noise
@@ -1926,10 +1942,19 @@ async function refreshRunningProjectHtml() {
       .filter(dir => typeof dir === 'string' && dir.length > 0)
   );
 
+  const currentVersion = getCurrentVersion();
   let refreshed = 0;
   for (const kandownDir of kandownDirs) {
     try {
       if (refreshKandownHtml(kandownDir)) refreshed++;
+      const current = await getDaemonStatus(kandownDir);
+      if (current.running) {
+        const daemonVersion = current.metadata?.version || null;
+        if (!daemonVersion || (currentVersion && semverGt(currentVersion, daemonVersion) > 0)) {
+          await stopDaemon(kandownDir);
+          await startDaemon(kandownDir, current.metadata?.port || null);
+        }
+      }
     } catch { /* best-effort: one locked project must not block restart */ }
   }
   return refreshed;

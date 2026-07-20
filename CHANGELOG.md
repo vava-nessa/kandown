@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.27.1 — 2026-07-20 — "Auto-Updater & Daemon Process Upgrade"
+
+- **Fixed**: **Environment inheritance during background auto-update** — cleaned inherited `npm_config_*` and `npm_*` environment variables when spawning `npm install -g kandown` in `checkForUpdate()`. Previously, if Kandown was run via `npx` or `npm run`, inherited local prefix overrides could cause global background updates to fail or target a temporary cache.
+- **Fixed**: **Binary path resolution for system PATH and `~/.local/bin`** — updated `resolveKandownBin()` to check `which kandown`, `command -v kandown`, and `~/.local/bin/kandown` before checking package manager prefixes, ensuring custom global PATH installations are detected accurately.
+- **Fixed**: **Live daemon process upgrade on CLI update** — updated `refreshRunningProjectHtml()` so that background project daemon processes in RAM running older code are automatically stopped and relaunched with the newly updated CLI binary.
+
 ## 0.27.0 — 2026-07-20 — "Unified Views"
 
 - **Added**: **Full Component Parity between Board and List Views** — unified the List view (`ListView.tsx`) and Board view (`Column.tsx`) so that List view sections and task items share the exact same components, column background color tints, icons, and action options as Board columns.
