@@ -411,6 +411,40 @@ function printBreakingChangeNotices(fromVersion, toVersion) {
  * silently rather than guessing; the checkForUpdate path covers that specific
  * transition for auto-updaters, and every version from here on is covered.
  */
+function getChangelogForVersion(version) {
+  const changelogPath = join(PKG_ROOT, 'CHANGELOG.md');
+  if (!existsSync(changelogPath)) return null;
+  try {
+    const text = readFileSync(changelogPath, 'utf8');
+    const escapedVer = version.replace(/\./g, '\\.');
+    const regex = new RegExp(`##\\s+${escapedVer}[\\s\\S]*?(?=\\n##\\s+|$)`, 'i');
+    const match = text.match(regex);
+    if (!match) return null;
+    return match[0].trim();
+  } catch {
+    return null;
+  }
+}
+
+function printVersionChangelog(version) {
+  const section = getChangelogForVersion(version);
+  if (!section) return;
+  const lines = section.split('\n');
+  log('');
+  log(`  ${c.bold}${c.cyan}${lines[0].replace(/^##\s+/, '📋 Release ')}${c.reset}`);
+  log(`  ${c.dim}${'─'.repeat(55)}${c.reset}`);
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line.trim()) continue;
+    if (line.startsWith('- **')) {
+      log(`    ${c.green}•${c.reset} ${line.slice(2)}`);
+    } else {
+      log(`      ${c.dim}${line}${c.reset}`);
+    }
+  }
+  log('');
+}
+
 const VERSION_SEEN_CACHE = join(PKG_ROOT, '.version-seen.json');
 
 function checkVersionSeenNotices() {
@@ -425,6 +459,7 @@ function checkVersionSeenNotices() {
   } catch { /* first run, or corrupted cache — treat as unknown */ }
 
   if (lastSeen && lastSeen !== current) {
+    printVersionChangelog(current);
     printBreakingChangeNotices(lastSeen, current);
   }
   if (lastSeen !== current) {
@@ -3026,6 +3061,13 @@ function cmdImport(rawArgs) {
   }
 
   success(`Imported ${count} tasks into board`);
+}
+
+async function cmdUpdate(rawArgs) {
+  const current = getCurrentVersion();
+  log(`${c.bold}kandown update${c.reset} ${c.dim}— checking version notice & updates…${c.reset}`);
+  printVersionChangelog(current);
+  await checkForUpdate(['node', 'kandown', ...rawArgs]);
 }
 
 const SCRIPTED_COMMANDS = new Set([

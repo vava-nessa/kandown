@@ -85,15 +85,17 @@ Every release has a short **name** — a 1–3 word label capturing the main cha
 - If the user forgot, **suggest one** based on the biggest change in the release and ask for confirmation.
 - The name goes in the changelog heading and the git tag annotation.
 
-### 2. Update CHANGELOG.md
+### 2. Update CHANGELOG.md (Mandatory Detailed English Changelog)
 
-- Add a new `## <version> — <YYYY-MM-DD> — "<name>"` section at the top (below `# Changelog`).
-- Summarize all commits since the last release as bullet points, grouped by type:
-  - **Added**: new features
-  - **Fixed**: bug fixes
-  - **Changed**: improvements, refactors
-  - **Removed**: deleted features or code
-- Keep entries concise (one line each). Don't list every file touched — describe what changed for the user.
+- **Language Requirement**: The changelog MUST be written in clear, comprehensive **English** for every release.
+- Add a new `## <version> — <YYYY-MM-DD> — "<name>"` section at the top of `CHANGELOG.md` (below `# Changelog`).
+- Thoroughly document and explain every feature, fix, and behavior change as bullet points, grouped by type:
+  - **Added**: new features, new CLI/TUI commands, API endpoints, MCP tools
+  - **Fixed**: bug fixes, edge case resolutions
+  - **Changed**: improvements, UI refactors, workflow adjustments
+  - **Removed**: deleted features or obsolete code
+- Ensure every change is clearly described with full context and explanations (never omit items or just list raw filenames).
+- **CLI Update Display**: The CLI parses `CHANGELOG.md` during auto-updates, `kandown update`, and version notice popups to display the full release changelog directly in the terminal so users see what changed.
 
 ### 3. Build & verify
 
