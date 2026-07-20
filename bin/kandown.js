@@ -3228,3 +3228,12 @@ switch (cmd) {
     help();
     process.exit(1);
 }
+
+// 📖 Some bundled/imported dependencies can leave passive handles alive even
+// after a one-shot CLI command has finished its synchronous work. Scripted
+// commands must be pipeline-safe, so terminate explicitly once their handler
+// returns. The daemon runner, MCP server, and interactive TUI paths are the
+// long-lived exceptions.
+if (SCRIPTED_COMMANDS.has(cmd) && !(cmd === 'daemon' && rest[0] === 'run')) {
+  process.exit(0);
+}

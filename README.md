@@ -169,7 +169,7 @@ Interactive runs of `kandown` check npm for updates at most once every 24 hours 
 | Feature | Description |
 |---|---|
 | Board view | Horizontal kanban with drag-and-drop |
-| List view | Dense table with filters & search |
+| List view | Sectioned vertical list with filters, search, and drag-and-drop between statuses |
 | Content search | Search titles, body, subtasks, tags, assignee, priority |
 | Command palette | `⌘K` / `Ctrl+K` for quick actions |
 | Custom columns | Add, rename, delete columns freely |

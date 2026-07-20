@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.22.0 — 2026-07-20 — "Sectioned List View"
+
+- **Added**: **Sectioned List View** — rebuilt the web List view so board columns such as Backlog, Todo, In Progress, Review, and Done are displayed as horizontal task sections stacked vertically. This keeps the dense list/table workflow while making the List view match the mental model of the Kanban board in the opposite orientation.
+- **Added**: **Vertical Section Drag-and-Drop** — added gripper-based drag-and-drop for List view sections. Reordering sections persists through the existing `reorderColumns` store action, so the same column order is shared by Board view, List view, config, and future reloads.
+- **Added**: **Task Drag-and-Drop Between List Sections** — task rows in List view can now be dragged between sections to change their status. Drops reuse the existing `moveTask` persistence path, including dependency gates, optimistic updates, rollback behavior, and markdown frontmatter writes.
+- **Changed**: **List View Layout** — replaced the previous single flat table with per-column section headers, task counts, repeated metadata headers, section drop guides, and empty-section drop targets. Search, filters, due-date summaries, metadata columns, drawer opening, and search-preview snippets continue to work inside the new sectioned layout.
+- **Fixed**: **Scripted CLI Commands Exit Cleanly** — one-shot commands such as `kandown doctor` and `kandown list --json` now terminate explicitly after their handler finishes. This prevents passive bundled dependency handles from keeping scripted commands alive after successful output, preserving reliable CI and agent pipeline behavior.
+
 ## 0.21.7 — 2026-07-20 — "Web UI Vector Logo & CLI Changelog Fix"
 
 - **Added**: **Vector Brand Logo Component (`LogoSvg.tsx`)** — unified header and empty state UI components to render the official multi-color brand vector logo from `logo.svg`.
