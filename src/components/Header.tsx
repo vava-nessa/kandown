@@ -24,7 +24,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
 import { KbdButton } from './KbdButton';
-import { ThemeToggle } from './ThemeToggle';
+import { ThemeSwitcher } from './ui/theme-switcher-1';
 import { useStore } from '../lib/store';
 import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
 import { KANDOWN_VERSION } from '../lib/version';
@@ -369,7 +369,7 @@ export function Header() {
               title={t('common.settings')}
             />
 
-            <ThemeToggle />
+            <ThemeSwitcher />
 
             <div className="w-px h-5 bg-black/[0.08] dark:bg-white/[0.08] mx-1" />
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.23.0 — 2026-07-20 — "Theme Switcher & Auto Update"
+
+- **Added**: **Animated Theme Switcher** — added a shadcn-style three-option theme switcher under `src/components/ui/theme-switcher-1.tsx` with system, light, and dark choices, lucide icons, and Motion layout animation.
+- **Changed**: **Theme Mode UX** — replaced the Appearance settings theme dropdown and the old header two-state toggle with the new animated switcher. The component keeps Kandown's existing `auto`, `light`, and `dark` config values so existing `.kandown/kandown.json` files remain compatible.
+- **Changed**: **Framework Integration** — adapted the provided `next-themes` component to Kandown's Vite/Zustand theme pipeline instead of adding a Next.js-only provider. Theme changes continue to persist through the existing project config and apply via the local CSS token engine.
+- **Fixed**: **Auto-Updater Retry Blocking** — failed auto-update installs are no longer cached as a successful update check. Previously, if npm answered the registry but the install failed, Kandown could suppress retries for 24 hours, making auto-update feel blocked across open projects.
+- **Fixed**: **Multi-Project Auto-Update Refresh** — after a successful in-place global update, Kandown now scans active local daemons and refreshes `kandown.html` for every open project, so two simultaneously open boards do not remain stuck on different web UI bundles.
+- **Fixed**: **Installed Version Verification** — the auto-updater now verifies the installed Kandown CLI version instead of only checking the npm registry version, making successful restart decisions based on the actual local binary.
+
 ## 0.22.0 — 2026-07-20 — "Sectioned List View"
 
 - **Added**: **Sectioned List View** — rebuilt the web List view so board columns such as Backlog, Todo, In Progress, Review, and Done are displayed as horizontal task sections stacked vertically. This keeps the dense list/table workflow while making the List view match the mental model of the Kanban board in the opposite orientation.

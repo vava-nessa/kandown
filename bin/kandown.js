@@ -145,6 +145,32 @@ function resolveKandownBin() {
   return null;
 }
 
+async function readInstalledKandownVersion(targetVersion) {
+  const localVersion = getCurrentVersion();
+  if (localVersion && semverGt(localVersion, targetVersion) >= 0) return localVersion;
+
+  const bin = resolveKandownBin();
+  if (!bin) return localVersion;
+
+  return await new Promise((resolveVersion) => {
+    const child = spawn(bin, ['--version'], {
+      timeout: 5000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env, KANDOWN_NO_UPDATE: '1' },
+      detached: false,
+    });
+    let stdout = '';
+    child.stdout.on('data', (d) => { stdout += d; });
+    child.stderr.on('data', () => {});
+    child.on('error', () => resolveVersion(localVersion));
+    child.on('close', (code) => {
+      if (code !== 0) return resolveVersion(localVersion);
+      const match = stdout.trim().match(/v?(\d+\.\d+\.\d+(?:-[\w.-]+)?)/);
+      resolveVersion(match ? match[1] : localVersion);
+    });
+  });
+}
+
 /**
  * 📖 Compares two semver strings (major.minor.patch, optional -prerelease).
  * Prerelease-safe: "0.18.0-beta.1" no longer parses as NaN — the numeric
@@ -260,11 +286,15 @@ async function checkForUpdate(argv = process.argv) {
     });
   });
 
-  // 📖 A successful registry answer (even "up to date") arms the 24h throttle.
-  // Offline / registry-down does NOT — we retry on the next interactive run.
-  if (latest) rememberUpdateCheck();
+  if (!latest) return; // offline / registry-down — retry on the next interactive run
 
-  if (!latest || semverGt(current, latest) >= 0) return; // up to date or offline
+  if (semverGt(current, latest) >= 0) {
+    // 📖 Up-to-date registry answers can be throttled. Failed update attempts
+    // below are intentionally NOT cached, otherwise one broken install would
+    // silence auto-update retries for 24h across every open project.
+    rememberUpdateCheck();
+    return;
+  }
 
   tuiDone('⚡', `Update available: ${c.dim}kandown ${current}${c.reset} → ${c.green}${latest}${c.reset}`);
 
@@ -305,28 +335,27 @@ async function checkForUpdate(argv = process.argv) {
     return;
   }
 
-  // 📖 Step 4: Verify the update actually landed.
-  const postVersion = await new Promise((resolve) => {
-    const child = spawn('npm', ['view', 'kandown', 'version'], {
-      timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe'],
-      detached: false,
-    });
-    let stdout = '';
-    child.stdout.on('data', (d) => { stdout += d; });
-    child.stderr.on('data', () => {});
-    child.on('error', () => resolve(null));
-    child.on('close', (code) => {
-      if (code !== 0) return resolve(null);
-      resolve(stdout.trim().replace(/^"|"$/g, '') || null);
-    });
-  });
+  // 📖 Step 4: Verify the installed CLI, not just the npm registry, because
+  // `npm view kandown version` only proves a version exists remotely.
+  const postVersion = await readInstalledKandownVersion(latest);
 
   if (!postVersion || semverGt(postVersion, latest) < 0) {
     tuiDone('✗', `${c.yellow}Update did not apply${c.reset} — continuing with current version`);
     log(`  Run ${c.cyan}npm install -g kandown${c.reset} to upgrade manually`);
     log('');
     return;
+  }
+
+  rememberUpdateCheck();
+
+  // 📖 If the running package directory has been replaced in-place (normal
+  // global install), refresh every currently open project daemon, not only the
+  // project that triggered the update. This keeps two simultaneously open
+  // Kandown boards from getting stuck on different kandown.html versions.
+  const localVersionAfterInstall = getCurrentVersion();
+  if (localVersionAfterInstall && semverGt(localVersionAfterInstall, latest) >= 0) {
+    const refreshed = await refreshRunningProjectHtml();
+    if (refreshed > 0) info(`Refreshed ${refreshed} open project${refreshed === 1 ? '' : 's'}`);
   }
 
   tuiDone('✓', `${c.green}Updated to v${postVersion}${c.reset} — restarting…`);
@@ -1783,6 +1812,28 @@ function refreshKandownHtml(kandownDir) {
     return true;
   }
   return false;
+}
+
+async function refreshRunningProjectHtml() {
+  const ports = [];
+  for (let port = START_PORT_RANGE; port <= END_PORT_RANGE; port++) {
+    if (!isBrowserUnsafePort(port)) ports.push(port);
+  }
+
+  const daemons = await Promise.all(ports.map(port => fetchDaemonInfo(port)));
+  const kandownDirs = new Set(
+    daemons
+      .map(daemon => daemon?.kandownDir)
+      .filter(dir => typeof dir === 'string' && dir.length > 0)
+  );
+
+  let refreshed = 0;
+  for (const kandownDir of kandownDirs) {
+    try {
+      if (refreshKandownHtml(kandownDir)) refreshed++;
+    } catch { /* best-effort: one locked project must not block restart */ }
+  }
+  return refreshed;
 }
 
 async function waitForDaemon(kandownDir, timeoutMs = 8000) {

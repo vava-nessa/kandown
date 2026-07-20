@@ -36,14 +36,15 @@ import {
 } from '@tabler/icons-react';
 import { KANDOWN_VERSION } from '../lib/version';
 import { KbdButton } from './KbdButton';
+import { ThemeSwitcher } from './ui/theme-switcher-1';
 import { useStore } from '../lib/store';
 import { fileWatcher } from '../lib/watcher';
 import { BACKGROUND_OPTIONS, FONT_OPTIONS, SKIN_OPTIONS } from '../lib/theme';
 import { SUPPORTED_LANGUAGES, LANGUAGE_LABELS } from '../lib/i18n';
 import { getBrowserNotificationPermission, requestBrowserNotificationPermission, type BrowserNotificationPermission } from '../lib/notifications';
-import type { KandownConfig } from '../lib/types';
+import type { KandownConfig, ThemeMode } from '../lib/types';
 
-type SettingType = 'toggle' | 'select' | 'number' | 'text' | 'skin' | 'language' | 'permission';
+type SettingType = 'toggle' | 'select' | 'number' | 'text' | 'skin' | 'theme' | 'language' | 'permission';
 type SettingsSectionId = 'appearance' | 'agent' | 'board' | 'fields' | 'notifications' | 'about';
 
 interface SettingOption {
@@ -282,7 +283,7 @@ const getSETTINGS = (t: ReturnType<typeof useTranslation>['t']): SettingDef[] =>
     key: 'ui.theme',
     label: t('settings.mode'),
     section: 'appearance',
-    type: 'select',
+    type: 'theme',
     description: t('settings.modeDesc'),
     options: [
       { value: 'auto', label: t('settings.auto') },
@@ -957,6 +958,10 @@ function SettingRow({
 
         {setting.type === 'skin' && (
           <SkinPicker value={String(value)} onChange={onChange} />
+        )}
+
+        {setting.type === 'theme' && (
+          <ThemeSwitcher value={String(value) as ThemeMode} onChange={onChange} />
         )}
 
         {setting.type === 'select' && setting.options && (
