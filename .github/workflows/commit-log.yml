@@ -10,11 +10,15 @@ jobs:
     steps:
       - name: Extract commit info
         id: info
+        env:
+          HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
-          echo "sha_short=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
-          echo "msg_first=$(echo '${{ github.event.head_commit.message }}' | head -n1 | sed 's/"/\\"/g')" >> $GITHUB_OUTPUT
-          echo "repo=${{ github.event.repository.name }}" >> $GITHUB_OUTPUT
-          echo "ref=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+          {
+            echo "sha_short=${GITHUB_SHA:0:7}"
+            printf 'msg_first=%s\n' "$(printf '%s\n' "$HEAD_COMMIT_MESSAGE" | head -n1 | sed 's/"/\\"/g')"
+            echo "repo=${{ github.event.repository.name }}"
+            echo "ref=${GITHUB_REF#refs/heads/}"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Send embed to Discord
         env:
