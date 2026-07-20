@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.25.1 — 2026-07-20 — "Stale Daemon Refresh"
+
+- **Fixed**: **Deep-link refreshes after existing daemon sessions** — Kandown now detects when a project daemon was started by an older CLI version and restarts it when the current CLI is newer. This matters because URL refresh handling for paths like `/058?p=suzu` lives in the daemon process itself; refreshing `kandown.html` alone cannot teach an already-running old daemon to serve task deep-link routes.
+- **Fixed**: **Direct task URLs no longer require manual daemon restarts after updates** — running `kandown` or `kandown daemon start` now upgrades stale daemon processes automatically, so newly published routing behavior becomes active for existing projects without users needing to hunt for old PIDs.
+- **Changed**: **Daemon reconnect behavior** — reconnecting to a same-project daemon still reuses compatible current/newer daemons, but older or unknown-version daemons are stopped and relaunched with the current CLI before returning the daemon URL.
+
 ## 0.25.0 — 2026-07-20 — "Task Deep Links"
 
 - **Added**: **Shareable task deep links** — opening a task drawer now updates the browser URL to a copy-pasteable route such as `/210?p=kandown`, where numeric task segments are normalized to Kandown task ids like `t210`. This makes it possible to send a direct link to a specific task instead of asking someone to find it manually on the board.

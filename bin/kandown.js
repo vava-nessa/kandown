@@ -1987,7 +1987,21 @@ function releaseDaemonSpawnLock(lockPath) {
 
 async function startDaemon(kandownDir, preferredPort) {
   const current = await getDaemonStatus(kandownDir);
-  if (current.running) return current;
+  if (current.running) {
+    const currentVersion = getCurrentVersion();
+    const daemonVersion = current.metadata?.version || null;
+    // 📖 Deep-link routes and other daemon-owned behavior live in the long-running
+    // daemon process, not in kandown.html. If the CLI updated while a daemon was
+    // already running, reconnecting to the old process keeps old routing alive
+    // (e.g. refreshing `/058?p=suzu` returned 404). Restart only when the local
+    // CLI is newer; newer/dev daemons are left untouched.
+    if (!daemonVersion || semverGt(currentVersion, daemonVersion) > 0) {
+      warn(`Restarting daemon v${daemonVersion || 'unknown'} → v${currentVersion}...`);
+      await stopDaemon(kandownDir);
+    } else {
+      return current;
+    }
+  }
 
   const lock = acquireDaemonSpawnLock(kandownDir);
   if (!lock) {
