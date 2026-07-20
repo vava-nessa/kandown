@@ -974,6 +974,10 @@ function cmdInit(rawArgs) {
 }
 
 function cmdUpdate(rawArgs) {
+  const current = getCurrentVersion();
+  log(`${c.bold}kandown update${c.reset} ${c.dim}— v${current}${c.reset}`);
+  printVersionChangelog(current);
+
   const args = parseArgs(rawArgs);
   const cwd = process.cwd();
   const kandownDir = resolve(cwd, args.path);
@@ -2998,6 +3002,8 @@ async function cmdProjects(rawArgs) {
   for (const d of running) {
     log(`  ${c.green}●${c.reset} Port ${c.cyan}${d.port}${c.reset}  PID ${d.pid}  ${c.dim}${d.kandownDir}${c.reset}`);
   }
+}
+
 function cmdExport(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
   const isCsv = rawArgs.includes('--csv');
@@ -3061,13 +3067,6 @@ function cmdImport(rawArgs) {
   }
 
   success(`Imported ${count} tasks into board`);
-}
-
-async function cmdUpdate(rawArgs) {
-  const current = getCurrentVersion();
-  log(`${c.bold}kandown update${c.reset} ${c.dim}— checking version notice & updates…${c.reset}`);
-  printVersionChangelog(current);
-  await checkForUpdate(['node', 'kandown', ...rawArgs]);
 }
 
 const SCRIPTED_COMMANDS = new Set([

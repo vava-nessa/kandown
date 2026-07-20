@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.21.2 — 2026-07-20 — "Pre-Bump Manual Validation"
+
+- **Added**: **Mandatory Pre-Bump Testing Rule in `AGENTS.md`** — formal rule requiring agents to manually launch and test `kandown` CLI and web daemon before executing a release bump to catch runtime errors.
+- **Fixed**: **Closing brace syntax in `cmdProjects`** — resolved missing `}` in `cmdProjects` that caused a `SyntaxError` on CLI startup.
+
 ## 0.21.1 — 2026-07-20 — "CLI Live Changelog"
 
 - **Added**: **CLI Live Changelog Display** — the CLI automatically parses and displays formatted release changelogs from `CHANGELOG.md` directly in the terminal during auto-updates, `kandown update`, and version notice popups.
