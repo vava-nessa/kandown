@@ -574,7 +574,7 @@ ${c.bold}Commands:${c.reset}
   ${c.cyan}board${c.reset}       Open the interactive kanban board in the terminal
   ${c.cyan}init${c.reset}        Initialize .kandown/ in the current directory
   ${c.cyan}settings${c.reset}    Open the settings TUI
-  ${c.cyan}daemon${c.reset}      Manage the per-project web daemon (start|stop|status)
+  ${c.cyan}daemon${c.reset}      Manage web daemons (start|stop|status|refresh-all)
   ${c.cyan}update${c.reset}      Update kandown.html to the latest version
   ${c.cyan}list${c.reset}        List tasks ${c.dim}(-s status, -a assignee, -t tag, -p priority, --json)${c.reset}
   ${c.cyan}show${c.reset}        Print a task's raw file content
@@ -594,6 +594,7 @@ ${c.bold}Examples:${c.reset}
   ${c.dim}$${c.reset} npx kandown --port 3000  ${c.dim}# use a specific web UI port${c.reset}
   ${c.dim}$${c.reset} npx kandown board        ${c.dim}# board TUI only${c.reset}
   ${c.dim}$${c.reset} npx kandown daemon stop  ${c.dim}# stop this project's web daemon${c.reset}
+  ${c.dim}$${c.reset} npx kandown daemon refresh-all ${c.dim}# refresh/restart outdated open daemons${c.reset}
   ${c.dim}$${c.reset} npx kandown init
   ${c.dim}$${c.reset} npx kandown init --path docs/kanban
   ${c.dim}$${c.reset} npx kandown init --no-agents
@@ -1946,35 +1947,62 @@ function refreshKandownHtml(kandownDir) {
   return false;
 }
 
-async function refreshRunningProjectHtml() {
+function daemonScanPorts() {
   const ports = [];
   for (let port = START_PORT_RANGE; port <= END_PORT_RANGE; port++) {
     if (!isBrowserUnsafePort(port)) ports.push(port);
   }
+  return ports;
+}
 
-  const daemons = await Promise.all(ports.map(port => fetchDaemonInfo(port)));
-  const kandownDirs = new Set(
-    daemons
-      .map(daemon => daemon?.kandownDir)
-      .filter(dir => typeof dir === 'string' && dir.length > 0)
-  );
-
-  const currentVersion = getCurrentVersion();
-  let refreshed = 0;
-  for (const kandownDir of kandownDirs) {
-    try {
-      if (refreshKandownHtml(kandownDir)) refreshed++;
-      const current = await getDaemonStatus(kandownDir);
-      if (current.running) {
-        const daemonVersion = current.metadata?.version || null;
-        if (!daemonVersion || (currentVersion && semverGt(currentVersion, daemonVersion) > 0)) {
-          await stopDaemon(kandownDir);
-          await startDaemon(kandownDir, current.metadata?.port || null);
-        }
-      }
-    } catch { /* best-effort: one locked project must not block restart */ }
+async function listRunningDaemons() {
+  const daemons = await Promise.all(daemonScanPorts().map(port => fetchDaemonInfo(port)));
+  const byDir = new Map();
+  for (const daemon of daemons) {
+    if (!daemon || typeof daemon.kandownDir !== 'string' || daemon.kandownDir.length === 0) continue;
+    if (!byDir.has(daemon.kandownDir)) byDir.set(daemon.kandownDir, daemon);
   }
-  return refreshed;
+  return [...byDir.values()];
+}
+
+async function refreshRunningDaemons({ forceRestart = false } = {}) {
+  const daemons = await listRunningDaemons();
+  const currentVersion = getCurrentVersion();
+  const results = {
+    found: daemons.length,
+    refreshed: 0,
+    restarted: 0,
+    skipped: 0,
+    failed: [],
+  };
+
+  for (const daemon of daemons) {
+    const kandownDir = daemon.kandownDir;
+    try {
+      if (refreshKandownHtml(kandownDir)) results.refreshed++;
+      const current = await getDaemonStatus(kandownDir);
+      const daemonVersion = daemon.version || current.metadata?.version || null;
+      const shouldRestart = forceRestart || !daemonVersion || (currentVersion && semverGt(currentVersion, daemonVersion) > 0);
+      if (!shouldRestart) {
+        results.skipped++;
+        continue;
+      }
+      const preferredPort = daemon.port || current.metadata?.port || null;
+      await stopDaemon(kandownDir);
+      const restarted = await startDaemon(kandownDir, preferredPort);
+      if (!restarted.running) throw new Error('daemon failed to restart');
+      results.restarted++;
+    } catch (e) {
+      results.failed.push({ kandownDir, error: e.message });
+    }
+  }
+
+  return results;
+}
+
+async function refreshRunningProjectHtml() {
+  const results = await refreshRunningDaemons({ forceRestart: false });
+  return results.refreshed;
 }
 
 async function waitForDaemon(kandownDir, timeoutMs = 8000) {
@@ -2978,6 +3006,21 @@ function detectStaleKandown(port, currentKandownDir) {
 
 async function cmdDaemon(rawArgs) {
   const [subcommand = 'status', ...rest] = rawArgs;
+
+  if (subcommand === 'refresh-all' || subcommand === 'restart-all') {
+    const forceRestart = rest.includes('--force') || subcommand === 'restart-all';
+    const results = await refreshRunningDaemons({ forceRestart });
+    success(`Scanned ${results.found} running daemon${results.found === 1 ? '' : 's'}`);
+    info(`Refreshed ${results.refreshed} kandown.html bundle${results.refreshed === 1 ? '' : 's'}`);
+    info(`${forceRestart ? 'Restarted' : 'Restarted outdated'} ${results.restarted} daemon${results.restarted === 1 ? '' : 's'}`);
+    if (!forceRestart && results.skipped > 0) info(`Skipped ${results.skipped} already-current daemon${results.skipped === 1 ? '' : 's'}`);
+    if (results.failed.length > 0) {
+      for (const failure of results.failed) warn(`${failure.kandownDir}: ${failure.error}`);
+      process.exit(1);
+    }
+    return;
+  }
+
   const { kandownDir } = ensureKandownDir(rest);
   const preferredPort = parsePort(parseArgs(rest).port);
 
@@ -3039,7 +3082,7 @@ async function cmdDaemon(rawArgs) {
   }
 
   err(`Unknown daemon command: ${subcommand}`);
-  log(`  Use ${c.cyan}kandown daemon start|stop|status${c.reset}`);
+  log(`  Use ${c.cyan}kandown daemon start|stop|status|refresh-all${c.reset}`);
   process.exit(1);
 }
 

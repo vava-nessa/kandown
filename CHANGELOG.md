@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.29.0 — 2026-07-20 — "Global Daemon Refresh"
+
+- **Added**: **Global daemon refresh command** — added `kandown daemon refresh-all`, which scans every active local Kandown daemon across the configured port range, refreshes each open project's `.kandown/kandown.html`, and restarts any daemon running an older CLI version.
+- **Added**: **Forced daemon reboot aliases** — added `kandown daemon restart-all` and `kandown daemon refresh-all --force` for cases where every open Kandown daemon should be restarted, even when versions already match.
+- **Changed**: **Safer post-update refresh flow** — refactored the existing auto-update refresh path to reuse the same daemon scan/restart helper, keeping automatic package-update behavior aligned with the new explicit global command.
+- **Changed**: **Daemon CLI documentation** — updated CLI help and the README command table to surface `daemon refresh-all` as the recommended fix when old project sessions remain open after a global update.
+- **Fixed**: **Outdated open project daemons after global updates** — users no longer need to manually find and restart each project when a global Kandown update succeeds but already-running daemons continue serving older code in memory.
+
 ## 0.28.1 — 2026-07-20 — "Robust Global Auto-Updater"
 
 - **Fixed**: **Global package manager auto-update commands** — updated `checkForUpdate()` and `cmdUpdate()` to run `pnpm add -g kandown@latest` (instead of `pnpm install -g kandown`), with fallback chain across `pnpm`, `npm`, `yarn`, and `bun`.

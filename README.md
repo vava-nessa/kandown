@@ -91,6 +91,7 @@ The web daemon stays alive after you quit the TUI so the browser keeps working. 
 | `kandown daemon status` | Show this project's web daemon status |
 | `kandown daemon start` | Start/reconnect this project's web daemon |
 | `kandown daemon stop` | Stop this project's web daemon |
+| `kandown daemon refresh-all` | Refresh open projects and restart outdated daemons with the current CLI version |
 | `kandown update` | Update `kandown.html` to latest |
 | `kandown list` \| `show` \| `create` \| `move` \| `assign` \| `commit` | One-shot task commands (see below) |
 | `kandown tasks` | Full help for the one-shot task commands |
