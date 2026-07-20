@@ -73,6 +73,7 @@ import {
 } from './filesystem';
 import { BrowserNotSupportedError, PermissionDeniedError, DiskFullError } from './errors';
 import { withRetry } from './retry';
+import { parseQuickAddInput } from './quick-add-parser';
 
 /** 📖 Toast severity. `warning` is used for partial-failure / corruption /
  * disk-full situations where the user must be informed but the app keeps
@@ -199,7 +200,7 @@ interface State {
   renameColumn: (oldName: string, newName: string) => Promise<void>;
   reorderColumns: (fromIndex: number, toIndex: number) => Promise<void>;
   deleteColumn: (name: string) => Promise<void>;
-  createTask: (colName?: string) => Promise<string | null>;
+  createTask: (colName?: string, quickAddInput?: string) => Promise<string | null>;
   deleteTask: (taskId: string) => Promise<void>;
   /** Archives a task: sets `archived: true` and moves the file to tasks/archive/. */
   archiveTask: (taskId: string) => Promise<void>;
@@ -209,6 +210,12 @@ interface State {
   setShowArchives: (show: boolean) => void;
   /** Master switch for the per-card metadata block (see showMetadata). */
   setShowMetadata: (show: boolean) => void;
+
+  selectedTaskIds: string[];
+  toggleTaskSelection: (id: string) => void;
+  clearTaskSelection: () => void;
+  bulkMoveTasks: (targetColumn: string) => Promise<void>;
+  bulkDeleteTasks: () => Promise<void>;
 
   openDrawer: (taskId: string) => Promise<void>;
   closeDrawer: () => void;
@@ -445,6 +452,41 @@ export const useStore = create<State>((set, get) => ({
   hasUnsavedDrawerEdits: false,
   lastSaveError: null,
   drawerRecoveryData: new Map(),
+
+  selectedTaskIds: [],
+  toggleTaskSelection: (id: string) => {
+    set(state => {
+      const exists = state.selectedTaskIds.includes(id);
+      const next = exists ? state.selectedTaskIds.filter(i => i !== id) : [...state.selectedTaskIds, id];
+      return { selectedTaskIds: next };
+    });
+  },
+
+  clearTaskSelection: () => set({ selectedTaskIds: [] }),
+
+  bulkMoveTasks: async (targetColumn: string) => {
+    const { selectedTaskIds, columns, moveTask } = get();
+    for (const id of selectedTaskIds) {
+      // Find source column for task
+      let sourceCol = 'Backlog';
+      for (const col of columns) {
+        if (col.tasks.some(t => t.id === id)) {
+          sourceCol = col.name;
+          break;
+        }
+      }
+      await moveTask(id, sourceCol, targetColumn);
+    }
+    set({ selectedTaskIds: [] });
+  },
+
+  bulkDeleteTasks: async () => {
+    const { selectedTaskIds, deleteTask } = get();
+    for (const id of selectedTaskIds) {
+      await deleteTask(id);
+    }
+    set({ selectedTaskIds: [] });
+  },
 
   drawerBaseVersion: null,
   conflictState: null,
@@ -1066,21 +1108,22 @@ export const useStore = create<State>((set, get) => ({
     }
   },
 
-  createTask: async (colName) => {
+  createTask: async (colName, quickAddInput) => {
     const { columns, tasksDirHandle, config, taskContents, searchMatches } = get();
     if (!tasksDirHandle && !isServerMode()) return null;
     if (!columns.length) return null;
     const targetColName = colName || config.board.columns[0] || columns[0].name;
     const id = nextTaskId(columns);
     const targetOrder = columns.find(c => c.name === targetColName)?.tasks.length ?? 0;
+    const parsed = quickAddInput ? parseQuickAddInput(quickAddInput) : null;
     const task: BoardTask = {
       id,
-      title: '',
+      title: parsed?.title || '',
       checked: false,
-      dependsOn: [],
-      tags: [],
-      assignee: null,
-      priority: config.fields.priority ? (config.board.defaultPriority as BoardTask['priority']) : null,
+      dependsOn: parsed?.depends_on || [],
+      tags: parsed?.tags || [],
+      assignee: parsed?.assignee || null,
+      priority: (parsed?.priority as BoardTask['priority']) || (config.fields.priority ? (config.board.defaultPriority as BoardTask['priority']) : null),
       ownerType: config.fields.ownerType ? config.board.defaultOwnerType : '',
       progress: null,
       frontmatter: {},
@@ -1092,12 +1135,14 @@ export const useStore = create<State>((set, get) => ({
     const newContents = new Map(taskContents);
     const fm: TaskFrontmatter = {
       id,
-      title: '',
+      title: parsed?.title || '',
       status: targetColName,
       order: targetOrder,
-      priority: config.fields.priority ? config.board.defaultPriority : '',
-      tags: [],
-      assignee: '',
+      priority: parsed?.priority || (config.fields.priority ? config.board.defaultPriority : ''),
+      tags: parsed?.tags || [],
+      assignee: parsed?.assignee || '',
+      due: parsed?.due || '',
+      depends_on: parsed?.depends_on || [],
       created: new Date().toISOString().slice(0, 10),
       ownerType: config.fields.ownerType ? config.board.defaultOwnerType : '',
       tools: '',

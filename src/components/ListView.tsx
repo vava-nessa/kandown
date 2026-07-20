@@ -85,6 +85,20 @@ export function ListView() {
     gridTemplateColumns: listGridClass.replaceAll('_', ' '),
   };
 
+  const dueSummary = useMemo(() => {
+    const now = new Date().toISOString().slice(0, 10);
+    const overdue: BoardTask[] = [];
+    const dueSoon: BoardTask[] = [];
+    for (const { task } of rows) {
+      const d = task.frontmatter.due as string | undefined;
+      if (d) {
+        if (d < now) overdue.push(task);
+        else dueSoon.push(task);
+      }
+    }
+    return { overdue, dueSoon };
+  }, [rows]);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -93,6 +107,18 @@ export function ListView() {
       className="flex-1 overflow-y-auto"
     >
       <div className="max-w-[1200px] mx-auto">
+        {(dueSummary.overdue.length > 0 || dueSummary.dueSoon.length > 0) && (
+          <div className="mx-6 mt-4 p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-xs flex items-center gap-4">
+            <span className="font-semibold text-amber-500">📅 Due Dates & Calendar:</span>
+            {dueSummary.overdue.length > 0 && (
+              <span className="text-red-400 font-medium">{dueSummary.overdue.length} Overdue</span>
+            )}
+            {dueSummary.dueSoon.length > 0 && (
+              <span className="text-amber-300 font-medium">{dueSummary.dueSoon.length} Upcoming</span>
+            )}
+          </div>
+        )}
+
         {/* Header row */}
         <div className="grid grid-cols-[80px_40px_1fr_140px_120px_120px_80px] gap-3 px-6 py-2 text-[11.5px] font-semibold uppercase tracking-wider text-fg-faint border-b border-border sticky top-0 bg-bg z-10">
           <div>{t('listView.id')}</div>

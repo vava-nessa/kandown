@@ -70,6 +70,19 @@ export async function requestBrowserNotificationPermission(): Promise<BrowserNot
 }
 
 export function emitKandownNotification({ title, body, config }: KandownNotificationOptions): void {
+  if (config.notifications.webhookUrl) {
+    fetch(config.notifications.webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event: 'kandown_notification',
+        title,
+        body,
+        timestamp: new Date().toISOString(),
+      }),
+    }).catch(() => {});
+  }
+
   if (config.notifications.sound) {
     playNotificationSound(config.notifications.soundId);
   }

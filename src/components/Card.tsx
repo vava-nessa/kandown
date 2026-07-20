@@ -216,6 +216,10 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
     }
   };
 
+  const selectedTaskIds = useStore(s => s.selectedTaskIds);
+  const toggleTaskSelection = useStore(s => s.toggleTaskSelection);
+  const isSelected = selectedTaskIds?.includes(task.id) ?? false;
+
   return (
     <motion.div
       layout
@@ -228,11 +232,20 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       whileTap={{ scale: 0.99 }}
       draggable
       {...dragHandlers}
-      onClick={() => openDrawer(task.id)}
+      onClick={(e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey) {
+          e.stopPropagation();
+          toggleTaskSelection(task.id);
+        } else {
+          openDrawer(task.id);
+        }
+      }}
       onMouseLeave={() => setDeleteArmed(false)}
       data-task-id={task.id}
       data-col={columnName}
-      className={`group relative cursor-pointer rounded-lg border border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-150 hover:border-border-strong hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] ${
+      className={`group relative cursor-pointer rounded-lg border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-150 hover:border-border-strong hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] ${
+        isSelected ? 'border-primary ring-2 ring-primary/40 bg-primary/[0.03]' : 'border-border'
+      } ${
         task.checked ? 'opacity-70' : ''
       }`}
     >
@@ -278,6 +291,22 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
             {bracketTag}
           </span>
         )}
+        {task.frontmatter.epic ? (
+          <span
+            className="inline-flex items-center h-[16px] px-1.5 text-[10px] font-semibold text-sky-700 dark:text-sky-300 bg-sky-500/10 border border-sky-500/20 rounded"
+            title={`Epic: ${task.frontmatter.epic}`}
+          >
+            ⚡ {String(task.frontmatter.epic)}
+          </span>
+        ) : null}
+        {task.frontmatter.report || task.frontmatter.agentReport ? (
+          <span
+            className="inline-flex items-center h-[16px] px-1.5 text-[10px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-500/10 border border-purple-500/20 rounded"
+            title="Agent report ready"
+          >
+            🤖 report
+          </span>
+        ) : null}
         {task.dependsOn && task.dependsOn.length > 0 && (
           // 📖 Dep chip: surfaces the task's `depends_on` count next to the id
           // so blocked work is visible at a glance on the board. Hover shows

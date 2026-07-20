@@ -118,6 +118,7 @@ export interface Filters {
   tag: string | null;
   assignee: string | null;
   ownerType: OwnerType | null;
+  groupBy?: 'none' | 'assignee' | 'priority' | 'epic';
 }
 
 export type ColumnColor =
@@ -161,6 +162,7 @@ export interface KandownConfig {
     defaultPriority: string;
     defaultOwnerType: 'human' | 'ai';
     columnColors?: Record<string, ColumnColor>;
+    wipLimits?: Record<string, number>;
     /** 📖 Default visual state for groups of tasks sharing the same `[bracket]`
      * or `#hashtag` title tag. `'collapsed'` shows them as a single stacked
      * summary card (click to expand), `'expanded'` always renders the
@@ -184,6 +186,7 @@ export interface KandownConfig {
     taskEdits: boolean;
     subtaskCompletions: boolean;
     editDebounceMs: number;
+    webhookUrl?: string;
   };
 }
 

@@ -19,6 +19,8 @@
  * @exports FileWatcher, fileWatcher
  */
 
+import { isServerMode } from './filesystem';
+
 export type ConflictType = 'none' | 'body-only' | 'metadata-only' | 'full';
 
 export interface WatcherEvents {
@@ -50,17 +52,54 @@ export class FileWatcher {
   private readonly maxConsecutiveErrors = 5;
   /** 📖 True once the watcher has auto-disabled itself; cleared on restart. */
   private disabled = false;
+  private eventSource: EventSource | null = null;
 
-  start(dirHandle: FileSystemDirectoryHandle, tasksDirHandle: FileSystemDirectoryHandle): void {
+  start(dirHandle: FileSystemDirectoryHandle | null, tasksDirHandle: FileSystemDirectoryHandle | null): void {
     this.dirHandle = dirHandle;
     this.tasksDirHandle = tasksDirHandle;
     this.consecutiveErrors = 0;
     this.disabled = false;
-    void this.initHashes();
-    this.intervalId = setInterval(() => void this.tick(), 300);
+    if (isServerMode()) {
+      this.startServerSse();
+    }
+    if (dirHandle && tasksDirHandle) {
+      void this.initHashes();
+      this.intervalId = setInterval(() => void this.tick(), 300);
+    }
+  }
+
+  startServerSse(): void {
+    if (typeof window === 'undefined' || !isServerMode()) return;
+    if (this.eventSource) return;
+    const token = window.__KANDOWN_TOKEN__;
+    const url = token ? `/api/events?token=${encodeURIComponent(token)}` : '/api/events';
+    try {
+      this.eventSource = new EventSource(url);
+      this.eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'change') {
+            if (data.taskId) {
+              this.emit('taskChanged', data.taskId);
+            } else {
+              this.emit('configChanged');
+              this.emit('taskChanged', '');
+            }
+          }
+        } catch {
+          // ignore heartbeats
+        }
+      };
+    } catch (e) {
+      console.warn('[Watcher] EventSource init failed:', e);
+    }
   }
 
   stop(): void {
+    if (this.eventSource) {
+      this.eventSource.close();
+      this.eventSource = null;
+    }
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;

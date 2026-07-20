@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.21.0 — 2026-07-20 — "Fable Features & Integrated MCP"
+
+- **Added**: **Integrated MCP Server (`kandown mcp`)** — stdio JSON-RPC 2.0 server for MCP hosts (Claude Desktop, VSCode, Glama, etc.) exposing `list_tasks`, `get_task`, `create_task`, `move_task`, `update_task`, `add_report`, `list_columns`.
+- **Added**: **Full TUI CRUD & Workflow (`kandown board`)** — interactive creation (`n` with inline syntax), editing in `$EDITOR` (`e`), archiving (`x`), deletion with prompt (`D`), fuzzy search (`/`), filter cycling (`f`), cheatsheet modal overlay (`?`), and undo (`u`).
+- **Added**: **Diagnostic command `kandown doctor [--fix]`** — checks CLI/HTML version alignment, daemon liveness, port status, `kandown.json` validity, frontmatter syntax, and auto-resolves duplicate task files.
+- **Added**: **Multi-project Manager (`kandown projects`)** — scans active localhost daemons (ports 2048-2150) and lists running instances with PID, port, and project paths (`--json` supported).
+- **Added**: **Real-Time SSE (`GET /api/events`)** — Server-Sent Events endpoint backed by `chokidar` file watcher for instant live updates in the web UI when agents or CLI edit task files.
+- **Added**: **Quick-Add Inline Parser** — parse `#tag`, `@assignee`, `p1-p4`, `due:date`, `+t12` directly from title strings across web UI, TUI, and `kandown create`.
+- **Added**: **Web Multi-Selection & Floating Action Bar (`BulkActionBar`)** — select multiple tasks with `Cmd`/`Ctrl`/`Shift` click or checkboxes to bulk move or delete tasks in one click.
+- **Added**: **WIP Limits & Visual Indicators** — column limits (`board.wipLimits`) with warning badges when limits are exceeded.
+- **Added**: **Swimlanes & Group By Selector** — filter bar dropdown to group board tasks by Priority, Assignee, or Epic.
+- **Added**: **Épics (`epic: <id>`) & Task Templates** — frontmatter `epic` tracking with card badges, and `.kandown/templates/*.md` card template loading.
+- **Added**: **Due Dates & Calendar View** — overdue and upcoming due-date summary banner in ListView.
+- **Added**: **Import & Export (`kandown export` / `kandown import`)** — export board to JSON or CSV, and import from Trello JSON exports or Markdown headers.
+- **Added**: **Git Task Timeline API (`GET /api/git/history`)** — endpoint serving task modification history (`git log --follow`).
+- **Added**: **Outgoing Webhooks (`notifications.webhookUrl`)** — POST JSON notifications on status changes to Slack, Discord, or n8n.
+- **Added**: **Enriched Agent Context & Config** — `readAgentDoc` automatically injects recent task git commits into agent instructions, and `agent.extraArgs` is configurable in Web & CLI Settings.
+- **Changed**: TUI move context menu proposes the next column to the right by default for natural left-to-right Kanban flow.
+
 ## 0.20.0 — 2026-07-19 — "No More Stale Copies"
 
 - **Changed**: **`kandown init` no longer copies `AGENT.md`/`AGENT_KANDOWN.md` into new projects** — both `kandown work` and the TUI's agent launcher (`a` key) now read the rules straight from the installed package's `templates/AGENT_KANDOWN.md` at call time, so there's no per-project snapshot left to go stale. Existing projects with an old copy are left untouched — nothing is auto-deleted.

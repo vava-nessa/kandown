@@ -27,14 +27,15 @@
  * @see src/lib/parser.ts — pure string parsers reused here
  */
 
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, mkdirSync, unlinkSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
+import { execFileSync } from 'node:child_process';
 import { atomicWriteFileSync } from './atomic-write.js';
 import { buildColumnsFromTasks, parseTaskFile } from '../../lib/parser.js';
 import { serializeTaskFile } from '../../lib/serializer.js';
-import type { ParsedBoard, ParsedTask } from '../../lib/types.js';
+import type { ParsedBoard, ParsedTask, TaskFrontmatter } from '../../lib/types.js';
 import { loadConfig } from './config.js';
 
 /**
@@ -169,6 +170,16 @@ export function readAgentDoc(kandownDir: string): string {
     }
   }
 
+  try {
+    const root = getProjectRoot(kandownDir);
+    const gitLog = execFileSync('git', ['log', '-n', '5', '--oneline', '--', 'tasks/'], { cwd: root, encoding: 'utf8' }).trim();
+    if (gitLog) {
+      sections.push(`## Recent Task Activity (Git History)\n\n\`\`\`\n${gitLog}\n\`\`\``);
+    }
+  } catch {
+    // Non-fatal if not in git repo
+  }
+
   return sections.filter(Boolean).join('\n\n---\n\n');
 }
 
@@ -187,15 +198,200 @@ export function moveTaskToColumn(
   if (!existsSync(taskPath)) return false;
 
   try {
+    const prevContent = readFileSync(taskPath, 'utf8');
     const parsed = readTask(kandownDir, taskId);
-    atomicWriteFileSync(taskPath, serializeTaskFile({
+    const newContent = serializeTaskFile({
       ...parsed.frontmatter,
       id: taskId,
       status: targetColumn,
-    }, parsed.body));
+    }, parsed.body);
+    atomicWriteFileSync(taskPath, newContent);
+    pushUndo(kandownDir, {
+      type: 'move',
+      taskId,
+      path: taskPath,
+      previousContent: prevContent,
+      newContent,
+      timestamp: Date.now(),
+    });
     return true;
   } catch (e) {
     console.error(`[kandown] Failed to move task ${taskId} to ${targetColumn}:`, (e as Error).message);
     return false;
+  }
+}
+
+interface UndoRecord {
+  type: 'move' | 'create' | 'delete' | 'archive';
+  taskId: string;
+  path: string;
+  previousContent: string | null;
+  newContent: string | null;
+  timestamp: number;
+}
+
+function pushUndo(kandownDir: string, record: UndoRecord): void {
+  try {
+    const undoDir = join(kandownDir, '.undo');
+    if (!existsSync(undoDir)) mkdirSync(undoDir, { recursive: true });
+    const logPath = join(undoDir, 'log.json');
+    let list: UndoRecord[] = [];
+    if (existsSync(logPath)) {
+      try { list = JSON.parse(readFileSync(logPath, 'utf8')); } catch { list = []; }
+    }
+    list.unshift(record);
+    if (list.length > 50) list = list.slice(0, 50);
+    atomicWriteFileSync(logPath, JSON.stringify(list, null, 2));
+  } catch {
+    // Non-fatal
+  }
+}
+
+export function undoLastAction(kandownDir: string): boolean {
+  try {
+    const logPath = join(kandownDir, '.undo', 'log.json');
+    if (!existsSync(logPath)) return false;
+    const list: UndoRecord[] = JSON.parse(readFileSync(logPath, 'utf8'));
+    if (!list || list.length === 0) return false;
+    const record = list.shift()!;
+    atomicWriteFileSync(logPath, JSON.stringify(list, null, 2));
+
+    if (record.previousContent === null) {
+      if (existsSync(record.path)) unlinkSync(record.path);
+    } else {
+      const dir = dirname(record.path);
+      if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+      atomicWriteFileSync(record.path, record.previousContent);
+      if (record.newContent !== null && record.path.includes('/archive/')) {
+        const activePath = record.path.replace('/archive/', '/');
+        if (existsSync(activePath)) unlinkSync(activePath);
+      }
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function createTaskInBoard(kandownDir: string, rawInput: string, status?: string): string {
+  const tasksDir = getTasksDir(kandownDir);
+  if (!existsSync(tasksDir)) mkdirSync(tasksDir, { recursive: true });
+  const ids = listTaskIds(kandownDir);
+  let maxN = 0;
+  for (const id of ids) {
+    const m = id.match(/^t(\d+)$/i);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      if (Number.isFinite(n) && n > maxN) maxN = n;
+    }
+  }
+  const newId = `t${maxN + 1}`;
+  const config = loadConfig(kandownDir);
+  const targetStatus = status || (config.board.columns[0] ?? 'Backlog');
+
+  let text = rawInput.trim();
+  let priority: string | undefined;
+  const tags: string[] = [];
+  let assignee: string | undefined;
+  let due: string | undefined;
+  const depends_on: string[] = [];
+
+  text = text.replace(/(?:^|\s)p([1-4])(?:\s|$)/i, (_, level) => { priority = `P${level}`; return ' '; });
+  text = text.replace(/(?:^|\s)#([a-zA-Z0-9_-]+)/g, (_, tag) => { tags.push(tag.toLowerCase()); return ' '; });
+  text = text.replace(/(?:^|\s)@([a-zA-Z0-9_-]+)/g, (_, user) => { assignee = user; return ' '; });
+  text = text.replace(/(?:^|\s)due:([^\s]+)/i, (_, d) => { due = d; return ' '; });
+  text = text.replace(/(?:^|\s)\+([a-zA-Z0-9_-]+)/g, (_, depId) => { depends_on.push(depId); return ' '; });
+  const title = text.replace(/\s+/g, ' ').trim() || rawInput;
+
+  const fm: TaskFrontmatter = {
+    id: newId,
+    title,
+    status: targetStatus,
+    created: new Date().toISOString().slice(0, 10),
+  };
+  if (priority) fm.priority = priority;
+  if (assignee) fm.assignee = assignee;
+  if (tags.length > 0) fm.tags = tags;
+  if (due) fm.due = due;
+  if (depends_on.length > 0) fm.depends_on = depends_on;
+
+  const content = serializeTaskFile(fm, '');
+  const taskPath = join(tasksDir, `${newId}.md`);
+  atomicWriteFileSync(taskPath, content);
+  pushUndo(kandownDir, {
+    type: 'create',
+    taskId: newId,
+    path: taskPath,
+    previousContent: null,
+    newContent: content,
+    timestamp: Date.now(),
+  });
+  return newId;
+}
+
+export function deleteTaskInBoard(kandownDir: string, taskId: string): boolean {
+  const taskPath = join(getTasksDir(kandownDir), `${taskId}.md`);
+  if (!existsSync(taskPath)) return false;
+  try {
+    const prevContent = readFileSync(taskPath, 'utf8');
+    unlinkSync(taskPath);
+    pushUndo(kandownDir, {
+      type: 'delete',
+      taskId,
+      path: taskPath,
+      previousContent: prevContent,
+      newContent: null,
+      timestamp: Date.now(),
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function archiveTaskInBoard(kandownDir: string, taskId: string): boolean {
+  const tasksDir = getTasksDir(kandownDir);
+  const taskPath = join(tasksDir, `${taskId}.md`);
+  if (!existsSync(taskPath)) return false;
+  try {
+    const prevContent = readFileSync(taskPath, 'utf8');
+    const archiveDir = join(tasksDir, 'archive');
+    if (!existsSync(archiveDir)) mkdirSync(archiveDir, { recursive: true });
+    const parsed = readTask(kandownDir, taskId);
+    const newContent = serializeTaskFile({
+      ...parsed.frontmatter,
+      id: taskId,
+      archived: true,
+    }, parsed.body);
+    const destPath = join(archiveDir, `${taskId}.md`);
+    atomicWriteFileSync(destPath, newContent);
+    unlinkSync(taskPath);
+    pushUndo(kandownDir, {
+      type: 'archive',
+      taskId,
+      path: destPath,
+      previousContent: prevContent,
+      newContent,
+      timestamp: Date.now(),
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function listTemplates(kandownDir: string): string[] {
+  const tplDir = join(kandownDir, 'templates');
+  if (!existsSync(tplDir)) return [];
+  return readdirSync(tplDir).filter(f => f.endsWith('.md')).map(f => f.slice(0, -3));
+}
+
+export function getTemplateContent(kandownDir: string, name: string): string | null {
+  const tplPath = join(kandownDir, 'templates', `${name}.md`);
+  if (!existsSync(tplPath)) return null;
+  try {
+    return readFileSync(tplPath, 'utf8');
+  } catch {
+    return null;
   }
 }

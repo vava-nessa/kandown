@@ -95,6 +95,20 @@ export function FilterBar() {
             ))}
           </div>
         )}
+
+        <div className="flex items-center gap-1.5 ml-2 text-[12px] text-fg-muted">
+          <span>Group:</span>
+          <select
+            value={filters.groupBy || 'none'}
+            onChange={e => setFilter('groupBy', e.target.value as any)}
+            className="bg-bg-2 border border-border rounded px-1.5 py-0.5 text-xs text-fg outline-none"
+          >
+            <option value="none">None</option>
+            <option value="priority">Priority</option>
+            <option value="assignee">Assignee</option>
+            <option value="epic">Epic</option>
+          </select>
+        </div>
       </div>
 
       {hasFilters && (

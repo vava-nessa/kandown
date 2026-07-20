@@ -336,6 +336,15 @@ const getSETTINGS = (t: ReturnType<typeof useTranslation>['t']): SettingDef[] =>
     max: 5,
     keywords: ['limit', 'follow-up'],
   },
+  {
+    key: 'agent.extraArgs',
+    label: 'Agent Extra Arguments',
+    section: 'agent',
+    type: 'text',
+    description: 'Extra CLI flags passed when launching agents from Kandown (e.g. --dangerously-skip-permissions)',
+    placeholder: '--dangerously-skip-permissions',
+    keywords: ['flags', 'arguments', 'cli', 'agent'],
+  },
   
   {
     key: 'board.columns',
@@ -488,6 +497,15 @@ const getSETTINGS = (t: ReturnType<typeof useTranslation>['t']): SettingDef[] =>
     ],
     keywords: ['audio', 'tone', 'sound'],
     parentKey: 'notifications.sound',
+  },
+  {
+    key: 'notifications.webhookUrl',
+    label: 'Outgoing Webhook URL',
+    section: 'notifications',
+    type: 'text',
+    description: 'POST JSON notifications to Slack, Discord, or n8n on task status updates',
+    placeholder: 'https://hooks.slack.com/services/...',
+    keywords: ['webhook', 'slack', 'discord', 'http', 'post'],
   },
 ];
 

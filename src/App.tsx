@@ -33,6 +33,8 @@ import { SettingsPage } from './components/SettingsPage';
 import { Toaster } from './components/Toaster';
 import { ConflictModal } from './components/ConflictModal';
 import { ErrorBoundary, BoardErrorFallback } from './components/ErrorBoundary';
+import { BulkActionBar } from './components/BulkActionBar';
+import { OnboardingTour } from './components/OnboardingTour';
 
 import { useStore } from './lib/store';
 import { changeLanguage, SUPPORTED_LANGUAGES, type SupportedLanguage } from './lib/i18n';
@@ -187,6 +189,8 @@ export function App() {
         <Cheatsheet />
         <Toaster />
         <ConflictModal />
+        <OnboardingTour />
+        <BulkActionBar />
       </div>
     </ErrorBoundary>
   );

@@ -54093,6 +54093,56 @@ function setConfigValue(config, path, value) {
 
 // src/cli/screens/settings.tsx
 var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
+var ALL_LANGUAGES = [
+  "en",
+  "fr",
+  "zh",
+  "es",
+  "pt",
+  "hi",
+  "de",
+  "it",
+  "nl",
+  "pl",
+  "uk",
+  "ro",
+  "sv",
+  "cs",
+  "el",
+  "hu",
+  "fi",
+  "da",
+  "no",
+  "sk",
+  "bg",
+  "sr",
+  "hr",
+  "lt",
+  "lv",
+  "sl",
+  "et",
+  "ar",
+  "bn",
+  "ru",
+  "ja",
+  "ko",
+  "tr",
+  "vi",
+  "id",
+  "ur",
+  "fa",
+  "th",
+  "ms",
+  "ta",
+  "te",
+  "mr",
+  "gu",
+  "kn",
+  "ml",
+  "si",
+  "my",
+  "km"
+];
 var SETTINGS = [
   // UI
   {
@@ -54100,7 +54150,7 @@ var SETTINGS = [
     label: "Language",
     section: "Appearance",
     type: "select",
-    options: ["en", "fr", "es", "de", "pt", "ja", "zh", "ko", "it", "nl", "ru"]
+    options: ALL_LANGUAGES
   },
   {
     key: "ui.theme",
@@ -54375,12 +54425,15 @@ function ValueDisplay({ setting, value, focused }) {
 
 // src/cli/screens/board.tsx
 var import_react37 = __toESM(require_react(), 1);
+import { spawnSync } from "child_process";
+import { join as join8 } from "path";
 
 // src/cli/lib/board-reader.ts
-import { existsSync as existsSync3, readdirSync, readFileSync as readFileSync3 } from "fs";
+import { existsSync as existsSync3, readdirSync, readFileSync as readFileSync3, mkdirSync, unlinkSync as unlinkSync2 } from "fs";
 import { dirname, join as join2 } from "path";
 import { fileURLToPath } from "url";
 import { homedir } from "os";
+import { execFileSync as execFileSync2 } from "child_process";
 
 // src/lib/types.ts
 var DEFAULT_COLUMNS = ["Backlog", "Todo", "In Progress", "Review", "Done"];
@@ -54662,29 +54715,209 @@ ${readFileSync3(projectPath, "utf8").trim()}`);
       console.warn(`[kandown] Could not read ${projectPath}:`, e.message);
     }
   }
+  try {
+    const root = getProjectRoot(kandownDir);
+    const gitLog = execFileSync2("git", ["log", "-n", "5", "--oneline", "--", "tasks/"], { cwd: root, encoding: "utf8" }).trim();
+    if (gitLog) {
+      sections.push(`## Recent Task Activity (Git History)
+
+\`\`\`
+${gitLog}
+\`\`\``);
+    }
+  } catch {
+  }
   return sections.filter(Boolean).join("\n\n---\n\n");
 }
 function moveTaskToColumn(kandownDir, taskId, targetColumn) {
   const taskPath = join2(getTasksDir(kandownDir), `${taskId}.md`);
   if (!existsSync3(taskPath)) return false;
   try {
+    const prevContent = readFileSync3(taskPath, "utf8");
     const parsed = readTask(kandownDir, taskId);
-    atomicWriteFileSync(taskPath, serializeTaskFile({
+    const newContent = serializeTaskFile({
       ...parsed.frontmatter,
       id: taskId,
       status: targetColumn
-    }, parsed.body));
+    }, parsed.body);
+    atomicWriteFileSync(taskPath, newContent);
+    pushUndo(kandownDir, {
+      type: "move",
+      taskId,
+      path: taskPath,
+      previousContent: prevContent,
+      newContent,
+      timestamp: Date.now()
+    });
     return true;
   } catch (e) {
     console.error(`[kandown] Failed to move task ${taskId} to ${targetColumn}:`, e.message);
     return false;
   }
 }
+function pushUndo(kandownDir, record) {
+  try {
+    const undoDir = join2(kandownDir, ".undo");
+    if (!existsSync3(undoDir)) mkdirSync(undoDir, { recursive: true });
+    const logPath = join2(undoDir, "log.json");
+    let list = [];
+    if (existsSync3(logPath)) {
+      try {
+        list = JSON.parse(readFileSync3(logPath, "utf8"));
+      } catch {
+        list = [];
+      }
+    }
+    list.unshift(record);
+    if (list.length > 50) list = list.slice(0, 50);
+    atomicWriteFileSync(logPath, JSON.stringify(list, null, 2));
+  } catch {
+  }
+}
+function undoLastAction(kandownDir) {
+  try {
+    const logPath = join2(kandownDir, ".undo", "log.json");
+    if (!existsSync3(logPath)) return false;
+    const list = JSON.parse(readFileSync3(logPath, "utf8"));
+    if (!list || list.length === 0) return false;
+    const record = list.shift();
+    atomicWriteFileSync(logPath, JSON.stringify(list, null, 2));
+    if (record.previousContent === null) {
+      if (existsSync3(record.path)) unlinkSync2(record.path);
+    } else {
+      const dir = dirname(record.path);
+      if (!existsSync3(dir)) mkdirSync(dir, { recursive: true });
+      atomicWriteFileSync(record.path, record.previousContent);
+      if (record.newContent !== null && record.path.includes("/archive/")) {
+        const activePath = record.path.replace("/archive/", "/");
+        if (existsSync3(activePath)) unlinkSync2(activePath);
+      }
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+function createTaskInBoard(kandownDir, rawInput, status) {
+  const tasksDir = getTasksDir(kandownDir);
+  if (!existsSync3(tasksDir)) mkdirSync(tasksDir, { recursive: true });
+  const ids = listTaskIds(kandownDir);
+  let maxN = 0;
+  for (const id of ids) {
+    const m = id.match(/^t(\d+)$/i);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      if (Number.isFinite(n) && n > maxN) maxN = n;
+    }
+  }
+  const newId = `t${maxN + 1}`;
+  const config = loadConfig(kandownDir);
+  const targetStatus = status || (config.board.columns[0] ?? "Backlog");
+  let text = rawInput.trim();
+  let priority;
+  const tags = [];
+  let assignee;
+  let due;
+  const depends_on = [];
+  text = text.replace(/(?:^|\s)p([1-4])(?:\s|$)/i, (_, level) => {
+    priority = `P${level}`;
+    return " ";
+  });
+  text = text.replace(/(?:^|\s)#([a-zA-Z0-9_-]+)/g, (_, tag) => {
+    tags.push(tag.toLowerCase());
+    return " ";
+  });
+  text = text.replace(/(?:^|\s)@([a-zA-Z0-9_-]+)/g, (_, user) => {
+    assignee = user;
+    return " ";
+  });
+  text = text.replace(/(?:^|\s)due:([^\s]+)/i, (_, d) => {
+    due = d;
+    return " ";
+  });
+  text = text.replace(/(?:^|\s)\+([a-zA-Z0-9_-]+)/g, (_, depId) => {
+    depends_on.push(depId);
+    return " ";
+  });
+  const title = text.replace(/\s+/g, " ").trim() || rawInput;
+  const fm = {
+    id: newId,
+    title,
+    status: targetStatus,
+    created: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10)
+  };
+  if (priority) fm.priority = priority;
+  if (assignee) fm.assignee = assignee;
+  if (tags.length > 0) fm.tags = tags;
+  if (due) fm.due = due;
+  if (depends_on.length > 0) fm.depends_on = depends_on;
+  const content = serializeTaskFile(fm, "");
+  const taskPath = join2(tasksDir, `${newId}.md`);
+  atomicWriteFileSync(taskPath, content);
+  pushUndo(kandownDir, {
+    type: "create",
+    taskId: newId,
+    path: taskPath,
+    previousContent: null,
+    newContent: content,
+    timestamp: Date.now()
+  });
+  return newId;
+}
+function deleteTaskInBoard(kandownDir, taskId) {
+  const taskPath = join2(getTasksDir(kandownDir), `${taskId}.md`);
+  if (!existsSync3(taskPath)) return false;
+  try {
+    const prevContent = readFileSync3(taskPath, "utf8");
+    unlinkSync2(taskPath);
+    pushUndo(kandownDir, {
+      type: "delete",
+      taskId,
+      path: taskPath,
+      previousContent: prevContent,
+      newContent: null,
+      timestamp: Date.now()
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+function archiveTaskInBoard(kandownDir, taskId) {
+  const tasksDir = getTasksDir(kandownDir);
+  const taskPath = join2(tasksDir, `${taskId}.md`);
+  if (!existsSync3(taskPath)) return false;
+  try {
+    const prevContent = readFileSync3(taskPath, "utf8");
+    const archiveDir = join2(tasksDir, "archive");
+    if (!existsSync3(archiveDir)) mkdirSync(archiveDir, { recursive: true });
+    const parsed = readTask(kandownDir, taskId);
+    const newContent = serializeTaskFile({
+      ...parsed.frontmatter,
+      id: taskId,
+      archived: true
+    }, parsed.body);
+    const destPath = join2(archiveDir, `${taskId}.md`);
+    atomicWriteFileSync(destPath, newContent);
+    unlinkSync2(taskPath);
+    pushUndo(kandownDir, {
+      type: "archive",
+      taskId,
+      path: destPath,
+      previousContent: prevContent,
+      newContent,
+      timestamp: Date.now()
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 // src/cli/lib/daemon.ts
-import { existsSync as existsSync4, readFileSync as readFileSync4, unlinkSync as unlinkSync2 } from "fs";
+import { existsSync as existsSync4, readFileSync as readFileSync4, unlinkSync as unlinkSync3 } from "fs";
 import { dirname as dirname2, join as join3 } from "path";
-import { execFileSync as execFileSync2, spawn } from "child_process";
+import { execFileSync as execFileSync3, spawn } from "child_process";
 import { createConnection } from "net";
 function metadataPath(kandownDir) {
   return join3(kandownDir, "daemon.json");
@@ -54715,7 +54948,7 @@ function readDaemonMetadata(kandownDir) {
 function removeDaemonMetadata(kandownDir) {
   try {
     const path = metadataPath(kandownDir);
-    if (existsSync4(path)) unlinkSync2(path);
+    if (existsSync4(path)) unlinkSync3(path);
   } catch {
   }
 }
@@ -54815,7 +55048,7 @@ async function isOwnedKandownDaemon(pid, port, kandownDir) {
   const remote = await fetchDaemonInfo(port);
   if (remote) return remote.pid === pid && remote.kandownDir === kandownDir;
   try {
-    const cmd = execFileSync2("ps", ["-p", String(pid), "-o", "command="], {
+    const cmd = execFileSync3("ps", ["-p", String(pid), "-o", "command="], {
       encoding: "utf8",
       timeout: 2e3
     }).trim();
@@ -56760,7 +56993,7 @@ function createWatcher() {
 }
 
 // src/cli/lib/agents.ts
-import { execFileSync as execFileSync3 } from "child_process";
+import { execFileSync as execFileSync4 } from "child_process";
 var AGENTS = [
   {
     id: "claude",
@@ -56857,7 +57090,7 @@ var installCache = /* @__PURE__ */ new Map();
 function isAgentInstalled(bin) {
   if (installCache.has(bin)) return installCache.get(bin);
   try {
-    execFileSync3("which", [bin], { stdio: "ignore" });
+    execFileSync4("which", [bin], { stdio: "ignore" });
     installCache.set(bin, true);
     return true;
   } catch {
@@ -57532,6 +57765,9 @@ function Board({ kandownDir, version }) {
   const [daemonBusy, setDaemonBusy] = (0, import_react37.useState)(false);
   const [preferredDaemonPort, setPreferredDaemonPort] = (0, import_react37.useState)(null);
   const [installedAgents, setInstalledAgents] = (0, import_react37.useState)([]);
+  const [createInput, setCreateInput] = (0, import_react37.useState)("");
+  const [searchQuery, setSearchQuery] = (0, import_react37.useState)("");
+  const [filterMode, setFilterMode] = (0, import_react37.useState)("all");
   const inTmux = isInTmux();
   const columnAtX = (0, import_react37.useCallback)((x) => {
     if (!board) return -1;
@@ -58007,6 +58243,77 @@ function Board({ kandownDir, version }) {
       if (mouse) handleMouseEvent(mouse);
       return;
     }
+    if (mode === "create-task") {
+      if (key.escape) {
+        setCreateInput("");
+        setMode("browse");
+        return;
+      }
+      if (key.return) {
+        if (createInput.trim()) {
+          const colName = board?.columns[colIndex]?.name;
+          const newId = createTaskInBoard(kandownDir, createInput.trim(), colName);
+          loadBoardInto();
+          showStatus(`Created task ${newId}`, 2500);
+        }
+        setCreateInput("");
+        setMode("browse");
+        return;
+      }
+      if (key.backspace || key.delete) {
+        setCreateInput((s) => s.slice(0, -1));
+        return;
+      }
+      if (input && !key.ctrl && !key.meta) {
+        setCreateInput((s) => s + input);
+        return;
+      }
+      return;
+    }
+    if (mode === "confirm-delete") {
+      if (input === "y" || input === "Y") {
+        const task = getFocusedTask();
+        if (task) {
+          deleteTaskInBoard(kandownDir, task.id);
+          loadBoardInto();
+          showStatus(`Deleted ${task.id}`, 2e3);
+        }
+        setMode("browse");
+        return;
+      }
+      if (input === "n" || input === "N" || key.escape) {
+        setMode("browse");
+        return;
+      }
+      return;
+    }
+    if (mode === "cheatsheet") {
+      if (key.escape || input === "q" || input === "?") {
+        setMode("browse");
+        return;
+      }
+      return;
+    }
+    if (mode === "search") {
+      if (key.escape) {
+        setSearchQuery("");
+        setMode("browse");
+        return;
+      }
+      if (key.return) {
+        setMode("browse");
+        return;
+      }
+      if (key.backspace || key.delete) {
+        setSearchQuery((s) => s.slice(0, -1));
+        return;
+      }
+      if (input && !key.ctrl && !key.meta) {
+        setSearchQuery((s) => s + input);
+        return;
+      }
+      return;
+    }
     if (mode === "browse") {
       if (input === "q" || key.escape) {
         exit();
@@ -58018,6 +58325,67 @@ function Board({ kandownDir, version }) {
       }
       if (input === "d") {
         void toggleDaemon();
+        return;
+      }
+      if (input === "n") {
+        setCreateInput("");
+        setMode("create-task");
+        return;
+      }
+      if (input === "?") {
+        setMode("cheatsheet");
+        return;
+      }
+      if (input === "/") {
+        setMode("search");
+        return;
+      }
+      if (input === "u") {
+        const ok = undoLastAction(kandownDir);
+        if (ok) {
+          loadBoardInto();
+          showStatus("Undid last action", 2e3);
+        } else {
+          showStatus("No actions to undo", 2e3);
+        }
+        return;
+      }
+      if (input === "e") {
+        const task = getFocusedTask();
+        if (task) {
+          const taskPath = join8(getTasksDir(kandownDir), `${task.id}.md`);
+          const editor = process.env.EDITOR || "nano";
+          try {
+            spawnSync(editor, [taskPath], { stdio: "inherit" });
+            loadBoardInto();
+          } catch (err) {
+            showStatus(`Editor error: ${err.message}`, 3e3);
+          }
+        }
+        return;
+      }
+      if (input === "x") {
+        const task = getFocusedTask();
+        if (task) {
+          archiveTaskInBoard(kandownDir, task.id);
+          loadBoardInto();
+          showStatus(`Archived ${task.id}`, 2e3);
+        }
+        return;
+      }
+      if (input === "D") {
+        const task = getFocusedTask();
+        if (task) {
+          setMode("confirm-delete");
+        }
+        return;
+      }
+      if (input === "f") {
+        const modes = ["all", "priority-p1", "owner-ai", "owner-human"];
+        const nextIdx = (modes.indexOf(filterMode) + 1) % modes.length;
+        const nextMode = modes[nextIdx];
+        setFilterMode(nextMode);
+        showStatus(`Filter: ${nextMode}`, 2e3);
         return;
       }
       if (input === "l" || key.rightArrow) {
@@ -58096,7 +58464,7 @@ function Board({ kandownDir, version }) {
           openDetail(task.id);
         } else {
           setMoveTaskId(task.id);
-          const target = colIndex === 0 ? Math.min(1, (board?.columns.length ?? 1) - 1) : 0;
+          const target = (colIndex + 1) % (board?.columns.length ?? 1);
           setMoveTargetCol(target);
           closeContextMenu();
           setMode("move-target");
@@ -58211,6 +58579,76 @@ function Board({ kandownDir, version }) {
   } else if (mode === "dragging") {
     modeHint = "drag over target column \xB7 release to drop \xB7 Esc cancel";
   }
+  if (mode === "cheatsheet") {
+    return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { flexDirection: "column", borderStyle: "round", borderColor: "cyan", paddingX: 2, paddingY: 1, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "cyan", bold: true, children: "Kandown TUI Cheatsheet (Press Esc or ? to return)" }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: "\u2500".repeat(60) }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "n         " }),
+        "Create new task (inline: #tag @user p1 due:date +t12)"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "e         " }),
+        "Edit task file in $EDITOR"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "x         " }),
+        "Archive focused task"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "D         " }),
+        "Delete focused task (with confirmation)"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "/         " }),
+        "Search / fuzzy filter tasks"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "f         " }),
+        "Cycle filter mode (All, P1, AI owner, Human owner)"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "u         " }),
+        "Undo last action"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "m         " }),
+        "Open move context menu"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "a         " }),
+        "Launch AI agent on task"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "g         " }),
+        "Send task to agent hook"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "d         " }),
+        "Toggle local web daemon"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "r         " }),
+        "Reload board from disk"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "h/l \u2190/\u2192  " }),
+        "Navigate columns"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "j/k \u2191/\u2193  " }),
+        "Navigate tasks"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "Enter    " }),
+        "Open task details"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "q / Esc  " }),
+        "Quit / Cancel"
+      ] })
+    ] });
+  }
   if (mode === "agent-picker") {
     const taskId = detailTaskId || focusedTask?.id || "";
     return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { flexDirection: "column", children: [
@@ -58258,6 +58696,23 @@ function Board({ kandownDir, version }) {
       },
       col.name
     )) }),
+    mode === "create-task" && /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { marginTop: 1, borderStyle: "single", borderColor: "green", paddingX: 1, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "green", bold: true, children: "New Task: " }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { children: createInput }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: " \u2588 (Enter create \xB7 Esc cancel)" })
+    ] }),
+    mode === "confirm-delete" && focusedTask && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { marginTop: 1, borderStyle: "single", borderColor: "red", paddingX: 1, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: "red", bold: true, children: [
+      "Delete task ",
+      focusedTask.id,
+      " (",
+      truncate(focusedTask.title, 30),
+      ")? [y/N] "
+    ] }) }),
+    mode === "search" && /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { marginTop: 1, borderStyle: "single", borderColor: "cyan", paddingX: 1, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "cyan", bold: true, children: "Search: " }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { children: searchQuery }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: " \u2588 (Enter done \xB7 Esc clear)" })
+    ] }),
     (mode === "move-target" || mode === "dragging") && moveTaskId && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: "yellow", bold: true, children: [
       "Moving ",
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "cyan", children: moveTaskId }),

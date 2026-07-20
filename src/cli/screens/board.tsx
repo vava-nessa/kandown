@@ -35,7 +35,18 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Box, Text, useInput, useApp } from 'ink';
-import { readBoard, readTask, moveTaskToColumn } from '../lib/board-reader.js';
+import { spawnSync } from 'node:child_process';
+import { join } from 'node:path';
+import {
+  readBoard,
+  readTask,
+  moveTaskToColumn,
+  createTaskInBoard,
+  deleteTaskInBoard,
+  archiveTaskInBoard,
+  undoLastAction,
+  getTasksDir,
+} from '../lib/board-reader.js';
 import { loadConfig } from '../lib/config.js';
 import { getDaemonStatus, startProjectDaemon, stopProjectDaemon, type DaemonStatus } from '../lib/daemon.js';
 import { createWatcher } from '../lib/file-watcher.js';
@@ -48,7 +59,7 @@ import { InlineContextMenu, MENU_HEIGHT } from '../components/task-context-menu.
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type Mode = 'browse' | 'detail' | 'agent-picker' | 'context-menu' | 'move-target' | 'dragging';
+type Mode = 'browse' | 'detail' | 'agent-picker' | 'context-menu' | 'move-target' | 'dragging' | 'create-task' | 'confirm-delete' | 'cheatsheet' | 'search';
 
 interface MousePressState {
   taskId: string;
@@ -576,6 +587,11 @@ export function Board({ kandownDir, version }: BoardProps) {
 
   // Agents
   const [installedAgents, setInstalledAgents] = useState<AgentDef[]>([]);
+
+  // TUI extensions
+  const [createInput, setCreateInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterMode, setFilterMode] = useState<'all' | 'priority-p1' | 'owner-ai' | 'owner-human'>('all');
 
   const inTmux = isInTmux();
 
@@ -1148,11 +1164,145 @@ export function Board({ kandownDir, version }: BoardProps) {
       return;
     }
 
+    // ─── Create Task mode ─────────────────────────────────────────────────
+    if (mode === 'create-task') {
+      if (key.escape) {
+        setCreateInput('');
+        setMode('browse');
+        return;
+      }
+      if (key.return) {
+        if (createInput.trim()) {
+          const colName = board?.columns[colIndex]?.name;
+          const newId = createTaskInBoard(kandownDir, createInput.trim(), colName);
+          loadBoardInto();
+          showStatus(`Created task ${newId}`, 2500);
+        }
+        setCreateInput('');
+        setMode('browse');
+        return;
+      }
+      if (key.backspace || key.delete) {
+        setCreateInput(s => s.slice(0, -1));
+        return;
+      }
+      if (input && !key.ctrl && !key.meta) {
+        setCreateInput(s => s + input);
+        return;
+      }
+      return;
+    }
+
+    // ─── Confirm Delete mode ──────────────────────────────────────────────
+    if (mode === 'confirm-delete') {
+      if (input === 'y' || input === 'Y') {
+        const task = getFocusedTask();
+        if (task) {
+          deleteTaskInBoard(kandownDir, task.id);
+          loadBoardInto();
+          showStatus(`Deleted ${task.id}`, 2000);
+        }
+        setMode('browse');
+        return;
+      }
+      if (input === 'n' || input === 'N' || key.escape) {
+        setMode('browse');
+        return;
+      }
+      return;
+    }
+
+    // ─── Cheatsheet mode ──────────────────────────────────────────────────
+    if (mode === 'cheatsheet') {
+      if (key.escape || input === 'q' || input === '?') {
+        setMode('browse');
+        return;
+      }
+      return;
+    }
+
+    // ─── Search mode ──────────────────────────────────────────────────────
+    if (mode === 'search') {
+      if (key.escape) {
+        setSearchQuery('');
+        setMode('browse');
+        return;
+      }
+      if (key.return) {
+        setMode('browse');
+        return;
+      }
+      if (key.backspace || key.delete) {
+        setSearchQuery(s => s.slice(0, -1));
+        return;
+      }
+      if (input && !key.ctrl && !key.meta) {
+        setSearchQuery(s => s + input);
+        return;
+      }
+      return;
+    }
+
     // ─── Browse mode ──────────────────────────────────────────────────────
     if (mode === 'browse') {
       if (input === 'q' || key.escape) { exit(); return; }
       if (input === 'r') { reloadBoard(); return; }
       if (input === 'd') { void toggleDaemon(); return; }
+      if (input === 'n') { setCreateInput(''); setMode('create-task'); return; }
+      if (input === '?') { setMode('cheatsheet'); return; }
+      if (input === '/') { setMode('search'); return; }
+      if (input === 'u') {
+        const ok = undoLastAction(kandownDir);
+        if (ok) {
+          loadBoardInto();
+          showStatus('Undid last action', 2000);
+        } else {
+          showStatus('No actions to undo', 2000);
+        }
+        return;
+      }
+
+      if (input === 'e') {
+        const task = getFocusedTask();
+        if (task) {
+          const taskPath = join(getTasksDir(kandownDir), `${task.id}.md`);
+          const editor = process.env.EDITOR || 'nano';
+          try {
+            spawnSync(editor, [taskPath], { stdio: 'inherit' });
+            loadBoardInto();
+          } catch (err) {
+            showStatus(`Editor error: ${(err as Error).message}`, 3000);
+          }
+        }
+        return;
+      }
+
+      if (input === 'x') {
+        const task = getFocusedTask();
+        if (task) {
+          archiveTaskInBoard(kandownDir, task.id);
+          loadBoardInto();
+          showStatus(`Archived ${task.id}`, 2000);
+        }
+        return;
+      }
+
+      if (input === 'D') {
+        const task = getFocusedTask();
+        if (task) {
+          setMode('confirm-delete');
+        }
+        return;
+      }
+
+      if (input === 'f') {
+        const modes: Array<'all' | 'priority-p1' | 'owner-ai' | 'owner-human'> = ['all', 'priority-p1', 'owner-ai', 'owner-human'];
+        const nextIdx = (modes.indexOf(filterMode) + 1) % modes.length;
+        const nextMode = modes[nextIdx];
+        setFilterMode(nextMode);
+        showStatus(`Filter: ${nextMode}`, 2000);
+        return;
+      }
 
       if (input === 'l' || key.rightArrow) {
         const maxCol = (board?.columns.length ?? 1) - 1;
@@ -1183,7 +1333,7 @@ export function Board({ kandownDir, version }: BoardProps) {
         return;
       }
 
-      // 📖 'm' = open context menu on focused task
+      // 📖 'm' = open context menu on focused task (proposes next column to right)
       if (input === 'm') {
         const col = board?.columns[colIndex];
         if (col && col.tasks.length > 0) {
@@ -1242,9 +1392,9 @@ export function Board({ kandownDir, version }: BoardProps) {
           closeContextMenu();
           openDetail(task.id);
         } else {
-          // 📖 Move task
+          // 📖 Move task (proposes next column to the right)
           setMoveTaskId(task.id);
-          const target = colIndex === 0 ? Math.min(1, (board?.columns.length ?? 1) - 1) : 0;
+          const target = (colIndex + 1) % (board?.columns.length ?? 1);
           setMoveTargetCol(target);
           closeContextMenu();
           setMode('move-target');
@@ -1370,6 +1520,33 @@ export function Board({ kandownDir, version }: BoardProps) {
     modeHint = 'drag over target column · release to drop · Esc cancel';
   }
 
+  // ─── Cheatsheet overlay ───────────────────────────────────────────────────
+
+  if (mode === 'cheatsheet') {
+    return (
+      <Box flexDirection="column" borderStyle="round" borderColor="cyan" paddingX={2} paddingY={1}>
+        <Text color="cyan" bold>Kandown TUI Cheatsheet (Press Esc or ? to return)</Text>
+        <Text color="gray">{'─'.repeat(60)}</Text>
+        <Text><Text color="yellow" bold>n         </Text>Create new task (inline: #tag @user p1 due:date +t12)</Text>
+        <Text><Text color="yellow" bold>e         </Text>Edit task file in $EDITOR</Text>
+        <Text><Text color="yellow" bold>x         </Text>Archive focused task</Text>
+        <Text><Text color="yellow" bold>D         </Text>Delete focused task (with confirmation)</Text>
+        <Text><Text color="yellow" bold>/         </Text>Search / fuzzy filter tasks</Text>
+        <Text><Text color="yellow" bold>f         </Text>Cycle filter mode (All, P1, AI owner, Human owner)</Text>
+        <Text><Text color="yellow" bold>u         </Text>Undo last action</Text>
+        <Text><Text color="yellow" bold>m         </Text>Open move context menu</Text>
+        <Text><Text color="yellow" bold>a         </Text>Launch AI agent on task</Text>
+        <Text><Text color="yellow" bold>g         </Text>Send task to agent hook</Text>
+        <Text><Text color="yellow" bold>d         </Text>Toggle local web daemon</Text>
+        <Text><Text color="yellow" bold>r         </Text>Reload board from disk</Text>
+        <Text><Text color="yellow" bold>h/l ←/→  </Text>Navigate columns</Text>
+        <Text><Text color="yellow" bold>j/k ↑/↓  </Text>Navigate tasks</Text>
+        <Text><Text color="yellow" bold>Enter    </Text>Open task details</Text>
+        <Text><Text color="yellow" bold>q / Esc  </Text>Quit / Cancel</Text>
+      </Box>
+    );
+  }
+
   // ─── Agent picker ─────────────────────────────────────────────────────────
 
   if (mode === 'agent-picker') {
@@ -1421,7 +1598,6 @@ export function Board({ kandownDir, version }: BoardProps) {
             focusedRow={cIdx === colIndex ? rowIndex : -1}
             isFocused={cIdx === colIndex}
             colWidth={colWidth}
-            // 📖 Context menu renders inline in the focused column only
             contextMenuRow={mode === 'context-menu' && cIdx === colIndex ? ctxMenuRow : -1}
             contextMenuCursor={ctxMenuCursor}
             showMoveTarget={(mode === 'move-target' && cIdx !== colIndex) || (mode === 'dragging' && cIdx !== taskDrag?.sourceCol)}
@@ -1431,6 +1607,28 @@ export function Board({ kandownDir, version }: BoardProps) {
           />
         ))}
       </Box>
+
+      {mode === 'create-task' && (
+        <Box marginTop={1} borderStyle="single" borderColor="green" paddingX={1}>
+          <Text color="green" bold>New Task: </Text>
+          <Text>{createInput}</Text>
+          <Text color="gray"> █ (Enter create · Esc cancel)</Text>
+        </Box>
+      )}
+
+      {mode === 'confirm-delete' && focusedTask && (
+        <Box marginTop={1} borderStyle="single" borderColor="red" paddingX={1}>
+          <Text color="red" bold>Delete task {focusedTask.id} ({truncate(focusedTask.title, 30)})? [y/N] </Text>
+        </Box>
+      )}
+
+      {mode === 'search' && (
+        <Box marginTop={1} borderStyle="single" borderColor="cyan" paddingX={1}>
+          <Text color="cyan" bold>Search: </Text>
+          <Text>{searchQuery}</Text>
+          <Text color="gray"> █ (Enter done · Esc clear)</Text>
+        </Box>
+      )}
 
       {(mode === 'move-target' || mode === 'dragging') && moveTaskId && (
         <Box marginTop={1}>

@@ -69,6 +69,7 @@ import {
 import { spawn, execSync } from 'node:child_process';
 import { createConnection } from 'node:net';
 import { randomBytes } from 'node:crypto';
+import { watch as watchFs } from 'chokidar';
 
 // 📖 Global safety net: a stray exception or unhandled rejection prints a clean
 // one-liner instead of a raw stack trace. The daemon (KANDOWN_DAEMON=1) logs
@@ -886,6 +887,13 @@ function doInit(args, cwd, kandownPath, kandownDir) {
     }
   }
 
+  const hasGit = existsSync(join(cwd, '.git'));
+  if (!hasGit) {
+    log('');
+    warn(`No git repository detected in ${c.bold}${cwd}${c.reset}.`);
+    info(`  Tip: Run ${c.cyan}git init${c.reset} and track ${c.bold}./tasks/${c.reset} for git history & portability!`);
+  }
+
   return true;
 }
 
@@ -1226,26 +1234,54 @@ function depIsResolved(kandownDir, id, terminalLower) {
   return isArch || (parsed.frontmatter.status || '').toLowerCase() === terminalLower;
 }
 
+function parseInlineQuickAdd(rawTitle) {
+  let text = (rawTitle || '').trim();
+  let priority;
+  const tags = [];
+  let assignee;
+  let due;
+  const dependsOn = [];
+
+  text = text.replace(/(?:^|\s)p([1-4])(?:\s|$)/i, (_, level) => {
+    priority = `P${level}`;
+    return ' ';
+  });
+
+  text = text.replace(/(?:^|\s)#([a-zA-Z0-9_-]+)/g, (_, tag) => {
+    tags.push(tag.toLowerCase());
+    return ' ';
+  });
+
+  text = text.replace(/(?:^|\s)@([a-zA-Z0-9_-]+)/g, (_, user) => {
+    assignee = user;
+    return ' ';
+  });
+
+  text = text.replace(/(?:^|\s)due:([^\s]+)/i, (_, dateStr) => {
+    due = dateStr;
+    return ' ';
+  });
+
+  text = text.replace(/(?:^|\s)\+([a-zA-Z0-9_-]+)/g, (_, depId) => {
+    dependsOn.push(depId);
+    return ' ';
+  });
+
+  const title = text.replace(/\s+/g, ' ').trim();
+  return { title: title || rawTitle, priority, tags, assignee, due, dependsOn };
+}
+
 function cmdCreate(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
   const args = taskParseArgs(rawArgs);
-  const title = args.positional.join(' ').trim();
-  if (!title) {
-    err('Usage: kandown create "title" [-p priority] [-a assignee] [-t tag] [--to status]');
+  const rawTitle = args.positional[0];
+  if (!rawTitle) {
+    err('Usage: kandown create "<title>" [-p priority] [-a assignee] [-t tag ...] [--to status]');
     process.exit(1);
   }
   const config = readKandownConfig(kandownDir);
-  const defaultStatus = (config && config.board && config.board.columns && config.board.columns[0]) || 'Backlog';
-  const targetStatus = args.flags.to ? resolveStatusArg(config, args.flags.to) : defaultStatus;
-  if (args.flags.to && !targetStatus) {
-    err(`Unknown status: ${args.flags.to}`);
-    process.exit(1);
-  }
+  const targetStatus = resolveStatusArg(config, args.flags.to) || (config && config.board && config.board.columns ? config.board.columns[0] : 'Backlog');
   const id = args.flags.id || nextTaskId(kandownDir);
-  if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
-    err(`Invalid task id: ${id}`);
-    process.exit(1);
-  }
   const tasksDir = getTasksDir(kandownDir);
   if (!existsSync(tasksDir)) mkdirSync(tasksDir, { recursive: true });
   const targetPath = join(tasksDir, `${id}.md`);
@@ -1253,6 +1289,8 @@ function cmdCreate(rawArgs) {
     err(`Task already exists: ${id}`);
     process.exit(1);
   }
+  const parsedInline = parseInlineQuickAdd(rawTitle);
+  const title = parsedInline.title;
   const fm = {
     id,
     title,
@@ -1883,10 +1921,36 @@ function handleCors(res) {
  * daemon token; otherwise answers 401 and returns false.
  */
 function requireToken(req, res) {
-  if (req.headers['x-kandown-token'] === DAEMON_TOKEN) return true;
+  const tokenHeader = req.headers['x-kandown-token'];
+  const requestUrl = new URL(req.url || '/', 'http://localhost');
+  const tokenQuery = requestUrl.searchParams.get('token');
+  if (tokenHeader === DAEMON_TOKEN || tokenQuery === DAEMON_TOKEN) return true;
   writeJson(res, 401, { error: 'missing or invalid X-Kandown-Token' });
   return false;
 }
+
+const sseClients = new Set();
+
+function broadcastSseEvent(eventData) {
+  const payload = `data: ${JSON.stringify(eventData)}\n\n`;
+  for (const client of sseClients) {
+    try {
+      client.write(payload);
+    } catch {
+      sseClients.delete(client);
+    }
+  }
+}
+
+setInterval(() => {
+  for (const client of sseClients) {
+    try {
+      client.write(':\n\n');
+    } catch {
+      sseClients.delete(client);
+    }
+  }
+}, 15000);
 
 function writeJson(res, status, body) {
   const headers = { ...apiHeaders(), 'Content-Type': 'application/json' };
@@ -2309,6 +2373,44 @@ function handleApi(req, res, url, kandownDir) {
     }
   }
 
+  if (resource === 'events') {
+    if (req.method === 'GET') {
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+      });
+      res.write('data: {"type":"connected"}\n\n');
+      sseClients.add(res);
+      req.on('close', () => {
+        sseClients.delete(res);
+      });
+      return;
+    }
+  }
+
+  if (resource === 'git' && parts[1] === 'history') {
+    const taskId = url.searchParams.get('id');
+    if (!taskId) return writeJson(res, 400, { error: 'Missing task id' });
+    try {
+      const taskPath = findTaskPath(kandownDir, taskId);
+      if (!taskPath) return writeJson(res, 404, { error: 'Task not found' });
+      const relativePath = relative(getProjectRoot(kandownDir), taskPath);
+      const output = execFileSync('git', ['log', '-n', '10', '--follow', '--format=%h|%an|%ar|%s', '--', relativePath], {
+        cwd: getProjectRoot(kandownDir),
+        encoding: 'utf8',
+      }).trim();
+      const commits = output ? output.split('\n').map(line => {
+        const [hash, author, date, message] = line.split('|');
+        return { hash, author, date, message };
+      }) : [];
+      return writeJson(res, 200, { commits });
+    } catch {
+      return writeJson(res, 200, { commits: [] });
+    }
+  }
+
   if (resource === 'config') {
     if (req.method === 'GET') return getConfig(res, kandownDir);
     if (req.method === 'PUT') return putConfig(req, res, kandownDir);
@@ -2367,6 +2469,21 @@ function serveApp(res, kandownDir) {
  * follow-up REST task, keeping this refactor limited to server bootstrapping.
  */
 function createServeServer(kandownDir) {
+  try {
+    const tasksDir = getTasksDir(kandownDir);
+    const configPath = join(kandownDir, 'kandown.json');
+    const watcher = watchFs([join(tasksDir, '*.md'), configPath], {
+      ignoreInitial: true,
+      awaitWriteFinish: { stabilityThreshold: 50, pollInterval: 25 },
+    });
+    watcher.on('all', (_event, filePath) => {
+      const taskId = filePath.replace(/\\/g, '/').split('/').pop()?.replace(/\.md$/, '') || '';
+      broadcastSseEvent({ type: 'change', taskId });
+    });
+  } catch (e) {
+    console.error('[daemon] File watcher init warning:', e.message);
+  }
+
   return createServer((req, res) => {
     const requestUrl = new URL(req.url || '/', 'http://localhost');
     if (req.method === 'OPTIONS') return handleCors(res);
@@ -2690,19 +2807,264 @@ const skipUpdate = process.argv.slice(2).includes('--no-update-check');
 // children, status probes) must never pay a network round-trip nor risk a
 // mid-pipeline respawn. Inside checkForUpdate there are further guards: 24h
 // throttle, TTY-only, and the KANDOWN_NO_UPDATE=1 opt-out.
+async function cmdDoctor(rawArgs) {
+  const { kandownDir } = ensureKandownDir(rawArgs);
+  const fix = rawArgs.includes('--fix');
+  log(`${c.bold}kandown doctor${c.reset} ${c.dim}— environment & board diagnostic${c.reset}\n`);
+
+  let errors = 0;
+  let warnings = 0;
+
+  const cliVer = getCurrentVersion();
+  log(`  ${c.cyan}CLI Version:${c.reset} ${cliVer}`);
+
+  const configPath = join(kandownDir, 'kandown.json');
+  if (existsSync(configPath)) {
+    try {
+      JSON.parse(readFileSync(configPath, 'utf8'));
+      log(`  ${c.green}✓${c.reset} kandown.json valid`);
+    } catch (e) {
+      log(`  ${c.red}✗${c.reset} kandown.json invalid JSON: ${e.message}`);
+      errors++;
+    }
+  } else {
+    log(`  ${c.red}✗${c.reset} kandown.json missing`);
+    errors++;
+  }
+
+  const daemon = readDaemonMetadata(kandownDir);
+  if (daemon) {
+    const alive = isProcessAlive(daemon.pid);
+    if (alive) {
+      log(`  ${c.green}✓${c.reset} Daemon running on port ${daemon.port} (PID ${daemon.pid})`);
+    } else {
+      log(`  ${c.yellow}⚠${c.reset} Daemon metadata stale (PID ${daemon.pid} dead)`);
+      warnings++;
+      if (fix) {
+        removeDaemonMetadata(kandownDir);
+        log(`    ${c.green}└─ Fixed: removed stale daemon.json${c.reset}`);
+      }
+    }
+  } else {
+    log(`  ${c.dim}ℹ Daemon not running${c.reset}`);
+  }
+
+  const tasksDir = getTasksDir(kandownDir);
+  if (existsSync(tasksDir)) {
+    const activeFiles = readdirSync(tasksDir).filter(f => f.endsWith('.md'));
+    const archiveDir = join(tasksDir, 'archive');
+    const archiveFiles = existsSync(archiveDir) ? readdirSync(archiveDir).filter(f => f.endsWith('.md')) : [];
+
+    log(`  ${c.cyan}Tasks:${c.reset} ${activeFiles.length} active, ${archiveFiles.length} archived`);
+
+    const activeSet = new Set(activeFiles);
+    const duplicates = archiveFiles.filter(f => activeSet.has(f));
+    if (duplicates.length > 0) {
+      log(`  ${c.red}✗${c.reset} Found ${duplicates.length} duplicate file(s) in tasks/ and archive/: ${duplicates.join(', ')}`);
+      errors++;
+      if (fix) {
+        for (const dup of duplicates) {
+          unlinkSync(join(archiveDir, dup));
+        }
+        log(`    ${c.green}└─ Fixed: removed duplicate archived files${c.reset}`);
+      }
+    } else {
+      log(`  ${c.green}✓${c.reset} No duplicate task files`);
+    }
+
+    let invalidFm = 0;
+    for (const f of activeFiles) {
+      try {
+        const content = readFileSync(join(tasksDir, f), 'utf8');
+        parseFrontmatter(content);
+      } catch {
+        invalidFm++;
+      }
+    }
+    if (invalidFm > 0) {
+      log(`  ${c.yellow}⚠${c.reset} ${invalidFm} task file(s) have invalid frontmatter formatting`);
+      warnings++;
+    } else {
+      log(`  ${c.green}✓${c.reset} Task frontmatters valid`);
+    }
+  }
+
+  log('');
+  if (errors === 0 && warnings === 0) {
+    success('Everything looks good!');
+  } else {
+    info(`Doctor summary: ${errors} error(s), ${warnings} warning(s). ${fix ? '' : 'Run with --fix to resolve automatically.'}`);
+  }
+}
+
+function cmdUndo(rawArgs) {
+  const { kandownDir } = ensureKandownDir(rawArgs);
+  const logPath = join(kandownDir, '.undo', 'log.json');
+  if (!existsSync(logPath)) {
+    info('No actions to undo');
+    return;
+  }
+  try {
+    const list = JSON.parse(readFileSync(logPath, 'utf8'));
+    if (!list || list.length === 0) {
+      info('No actions to undo');
+      return;
+    }
+    const record = list.shift();
+    writeFileSync(logPath, JSON.stringify(list, null, 2), 'utf8');
+    if (record.previousContent === null) {
+      if (existsSync(record.path)) unlinkSync(record.path);
+    } else {
+      const dir = dirname(record.path);
+      if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+      writeFileSync(record.path, record.previousContent, 'utf8');
+      if (record.newContent !== null && record.path.includes('/archive/')) {
+        const activePath = record.path.replace('/archive/', '/');
+        if (existsSync(activePath)) unlinkSync(activePath);
+      }
+    }
+    success(`Undid last action (${record.type} ${record.taskId})`);
+  } catch (e) {
+    err(`Undo failed: ${e.message}`);
+  }
+}
+
+async function cmdProjects(rawArgs) {
+  const isJson = rawArgs.includes('--json');
+  const running = [];
+
+  for (let port = START_PORT_RANGE; port <= END_PORT_RANGE; port++) {
+    if (isBrowserUnsafePort(port)) continue;
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 200);
+      const res = await fetch(`http://127.0.0.1:${port}/api/daemon`, { signal: controller.signal });
+      clearTimeout(timeout);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.ok) {
+          running.push({ port, pid: data.pid, kandownDir: data.kandownDir, startedAt: data.startedAt, version: data.version });
+        }
+      }
+    } catch {}
+  }
+
+  if (isJson) {
+    out(JSON.stringify(running, null, 2));
+    return;
+  }
+
+  if (running.length === 0) {
+    info('No active kandown web daemons running on this machine');
+    return;
+  }
+
+  log(`${c.bold}Active Kandown Daemons (${running.length})${c.reset}\n`);
+  for (const d of running) {
+    log(`  ${c.green}●${c.reset} Port ${c.cyan}${d.port}${c.reset}  PID ${d.pid}  ${c.dim}${d.kandownDir}${c.reset}`);
+  }
+function cmdExport(rawArgs) {
+  const { kandownDir } = ensureKandownDir(rawArgs);
+  const isCsv = rawArgs.includes('--csv');
+  const board = readBoard(kandownDir);
+
+  if (isCsv) {
+    let csv = 'id,title,status,priority,assignee,tags,created\n';
+    for (const col of board.columns) {
+      for (const t of col.tasks) {
+        const task = readTask(kandownDir, t.id);
+        const tags = (t.tags || []).join(';');
+        csv += `"${t.id}","${t.title.replace(/"/g, '""')}","${col.name}","${t.priority || ''}","${t.assignee || ''}","${tags}","${task.frontmatter.created || ''}"\n`;
+      }
+    }
+    out(csv);
+  } else {
+    const data = [];
+    for (const col of board.columns) {
+      for (const t of col.tasks) {
+        const task = readTask(kandownDir, t.id);
+        data.push({ ...task, status: col.name });
+      }
+    }
+    out(JSON.stringify(data, null, 2));
+  }
+}
+
+function cmdImport(rawArgs) {
+  const { kandownDir } = ensureKandownDir(rawArgs);
+  const fileIdx = rawArgs.findIndex(a => a.endsWith('.json') || a.endsWith('.md'));
+  if (fileIdx === -1 || !existsSync(rawArgs[fileIdx])) {
+    err('Usage: kandown import <file.json | file.md>');
+    process.exit(1);
+  }
+  const filePath = rawArgs[fileIdx];
+  const content = readFileSync(filePath, 'utf8');
+  let count = 0;
+
+  if (filePath.endsWith('.json')) {
+    try {
+      const parsed = JSON.parse(content);
+      const cards = Array.isArray(parsed) ? parsed : (parsed.cards || []);
+      for (const c of cards) {
+        const title = c.name || c.title || 'Imported Task';
+        createTaskInBoard(kandownDir, title, c.status || 'Backlog');
+        count++;
+      }
+    } catch (e) {
+      err(`Import failed: ${e.message}`);
+      process.exit(1);
+    }
+  } else {
+    const lines = content.split('\n');
+    for (const line of lines) {
+      const m = line.match(/^#{1,3}\s+(.+)$/);
+      if (m) {
+        createTaskInBoard(kandownDir, m[1].trim(), 'Backlog');
+        count++;
+      }
+    }
+  }
+
+  success(`Imported ${count} tasks into board`);
+}
+
 const SCRIPTED_COMMANDS = new Set([
   'list', 'ls', 'show', 'create', 'new', 'move', 'assign', 'commit', 'tasks', 'work', 'daemon',
+  'doctor', 'undo', 'projects', 'export', 'import',
 ]);
 if (!skipUpdate && !SCRIPTED_COMMANDS.has(cmd)) await checkForUpdate(process.argv);
 
-// 📖 Catches breaking-change notices for upgrades that bypassed the
-// auto-updater above (manual `npm install -g kandown`, pnpm/yarn/bun, a
-// respawned child, etc). See checkVersionSeenNotices' doc comment.
 if (!SCRIPTED_COMMANDS.has(cmd)) checkVersionSeenNotices();
 
 switch (cmd) {
+  case 'export':
+    cmdExport(rest);
+    break;
+
+  case 'import':
+    cmdImport(rest);
+    break;
   case 'init':
     cmdInit(rest);
+    break;
+
+  case 'doctor':
+    await cmdDoctor(rest);
+    break;
+
+  case 'undo':
+    cmdUndo(rest);
+    break;
+
+  case 'mcp': {
+    const { kandownDir } = ensureKandownDir(rest);
+    const { startMcpServer } = await import('../src/cli/lib/mcp.js');
+    startMcpServer(kandownDir);
+    break;
+  }
+
+  case 'projects':
+    await cmdProjects(rest);
     break;
 
   case 'board':

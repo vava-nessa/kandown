@@ -40,6 +40,14 @@ interface SettingDef {
   max?: number;
 }
 
+const ALL_LANGUAGES = [
+  'en', 'fr', 'zh', 'es', 'pt', 'hi', 'de', 'it',
+  'nl', 'pl', 'uk', 'ro', 'sv', 'cs', 'el', 'hu',
+  'fi', 'da', 'no', 'sk', 'bg', 'sr', 'hr', 'lt', 'lv', 'sl', 'et',
+  'ar', 'bn', 'ru', 'ja', 'ko', 'tr', 'vi', 'id', 'ur', 'fa',
+  'th', 'ms', 'ta', 'te', 'mr', 'gu', 'kn', 'ml', 'si', 'my', 'km',
+];
+
 // 📖 Flat list of all configurable settings — order matters for navigation
 const SETTINGS: SettingDef[] = [
   // UI
@@ -48,7 +56,7 @@ const SETTINGS: SettingDef[] = [
     label: 'Language',
     section: 'Appearance',
     type: 'select',
-    options: ['en', 'fr', 'es', 'de', 'pt', 'ja', 'zh', 'ko', 'it', 'nl', 'ru'],
+    options: ALL_LANGUAGES,
   },
   {
     key: 'ui.theme',
