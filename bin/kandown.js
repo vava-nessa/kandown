@@ -1575,18 +1575,32 @@ function priorityRank(p) {
 }
 
 const WORK_OUTPUT_SECTION_IDS = ['baseRules', 'projectInstructions', 'boardDigest'];
-const CONCISE_AGENT_RULES = `# Kandown agent rules — concise
+const OPTIMIZED_AGENT_RULES = `# Kandown agent rules
 
+## CLI Commands
+- \`kandown list\` (list tasks) · \`kandown show <id>\` (view task)
+- \`kandown create "<title>"\` (create task) · \`kandown move <id> <status>\` (move task column)
+- \`kandown assign <id> <user>\` · \`kandown commit\` (commit board to git)
+
+## Rules
 - Task state lives in project-root \`tasks/*.md\`; do not maintain a separate board index.
 - Before work, read the relevant task file and keep it updated while you progress.
 - Move tasks by editing frontmatter \`status:\`; complete work by setting \`status: Done\` and adding a markdown \`report:\` summary.
 - Update subtasks in-place: \`- [ ]\` → \`- [x]\`, with a short \`report:\` line for meaningful progress.
 - Board columns live in \`.kandown/kandown.json\` under \`board.columns\`; project instructions live in \`.kandown/instructions.md\`.
 - Never put Kandown task data inside \`.kandown/\`; tasks belong in \`./tasks/\`.`;
+
+const CAVEMAN_AGENT_RULES = `# Kandown agent rules
+
+CLI: kandown list | kandown show <id> | kandown create "<title>" | kandown move <id> <status> | kandown assign <id> <user> | kandown commit
+RULES: TASKS IN ./tasks/*.md. READ TASK BEFORE WORK. UPDATE SUBTASKS - [ ] -> - [x] + REPORT. MOVE: EDIT status:. DONE: status: Done + report:.`;
+
+const CONCISE_AGENT_RULES = OPTIMIZED_AGENT_RULES;
+
 const DEFAULT_WORK_OUTPUT = {
   mode: 'blocks',
   includeBaseRules: true,
-  baseRulesMode: 'full',
+  baseRulesMode: 'verbose',
   includeProjectInstructions: true,
   includeBoardDigest: true,
   sectionOrder: WORK_OUTPUT_SECTION_IDS,
@@ -1612,11 +1626,13 @@ function normalizeWorkOutputConfig(config) {
     ? raw.sectionOrder.filter(id => WORK_OUTPUT_SECTION_IDS.includes(id))
     : DEFAULT_WORK_OUTPUT.sectionOrder;
   const order = sectionOrder.length > 0 ? sectionOrder : DEFAULT_WORK_OUTPUT.sectionOrder;
+  const validBaseModes = ['verbose', 'optimized', 'caveman', 'full', 'concise'];
+  const baseMode = validBaseModes.includes(raw.baseRulesMode) ? raw.baseRulesMode : DEFAULT_WORK_OUTPUT.baseRulesMode;
   return {
     ...DEFAULT_WORK_OUTPUT,
     ...raw,
     mode: raw.mode === 'raw' ? 'raw' : 'blocks',
-    baseRulesMode: raw.baseRulesMode === 'concise' ? 'concise' : 'full',
+    baseRulesMode: baseMode,
     sectionOrder: order,
     rawTemplate: typeof raw.rawTemplate === 'string' && raw.rawTemplate.trim()
       ? raw.rawTemplate
@@ -1625,8 +1641,9 @@ function normalizeWorkOutputConfig(config) {
   };
 }
 
-function readBaseAgentRules(mode = 'full') {
-  if (mode === 'concise') return CONCISE_AGENT_RULES;
+function readBaseAgentRules(mode = 'verbose') {
+  if (mode === 'caveman') return CAVEMAN_AGENT_RULES;
+  if (mode === 'optimized' || mode === 'concise') return OPTIMIZED_AGENT_RULES;
   try {
     return readFileSync(join(PKG_ROOT, 'templates', 'AGENT_KANDOWN.md'), 'utf8').trim();
   } catch (e) {

@@ -113,7 +113,7 @@ export type BackgroundId = 'solid' | 'static-gradient';
 export type NotificationSoundId = 'soft' | 'chime' | 'ping' | 'pop';
 
 export type WorkOutputMode = 'blocks' | 'raw';
-export type WorkOutputBaseRulesMode = 'full' | 'concise';
+export type WorkOutputBaseRulesMode = 'verbose' | 'optimized' | 'caveman' | 'full' | 'concise';
 export type WorkOutputSectionId = 'baseRules' | 'projectInstructions' | 'boardDigest';
 
 export interface WorkOutputConfig {

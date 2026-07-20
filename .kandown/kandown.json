@@ -1,14 +1,35 @@
 {
   "ui": {
     "language": "en",
-    "theme": "light",
+    "theme": "auto",
     "skin": "kandown",
     "font": "system",
     "background": "solid"
   },
   "agent": {
     "suggestFollowUp": true,
-    "maxSuggestions": 2
+    "maxSuggestions": 2,
+    "workOutput": {
+      "mode": "blocks",
+      "includeBaseRules": true,
+      "baseRulesMode": "optimized",
+      "includeProjectInstructions": true,
+      "includeBoardDigest": true,
+      "sectionOrder": [
+        "baseRules",
+        "projectInstructions",
+        "boardDigest"
+      ],
+      "rawTemplate": "{{baseRules}}\n\n---\n\n{{projectInstructions}}\n\n---\n\n{{boardDigest}}",
+      "boardDigest": {
+        "showColumnCounts": true,
+        "showTasks": true,
+        "showPriority": true,
+        "showAssignee": true,
+        "showBlockedBy": true,
+        "showNextActionable": true
+      }
+    }
   },
   "board": {
     "columns": [
