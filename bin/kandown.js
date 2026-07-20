@@ -330,6 +330,7 @@ async function checkForUpdate(argv = process.argv) {
   }
 
   tuiDone('✓', `${c.green}Updated to v${postVersion}${c.reset} — restarting…`);
+  printVersionChangelog(postVersion);
   printBreakingChangeNotices(current, postVersion);
   log('');
 
@@ -458,11 +459,9 @@ function checkVersionSeenNotices() {
     if (typeof raw?.lastSeen === 'string') lastSeen = raw.lastSeen;
   } catch { /* first run, or corrupted cache — treat as unknown */ }
 
-  if (lastSeen && lastSeen !== current) {
-    printVersionChangelog(current);
-    printBreakingChangeNotices(lastSeen, current);
-  }
   if (lastSeen !== current) {
+    printVersionChangelog(current);
+    if (lastSeen) printBreakingChangeNotices(lastSeen, current);
     try { writeFileSync(VERSION_SEEN_CACHE, JSON.stringify({ lastSeen: current })); } catch { /* best-effort */ }
   }
 }

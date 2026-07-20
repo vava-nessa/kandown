@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.21.7 — 2026-07-20 — "Web UI Vector Logo & CLI Changelog Fix"
+
+- **Added**: **Vector Brand Logo Component (`LogoSvg.tsx`)** — unified header and empty state UI components to render the official multi-color brand vector logo from `logo.svg`.
+- **Fixed**: **CLI Changelog Display on Update & First Run** — fixed `checkVersionSeenNotices()` in `bin/kandown.js` so release changelogs render cleanly whenever a new version is detected or installed, ensuring version notices and changelogs are printed reliably in the terminal during updates.
+
 ## 0.21.6 — 2026-07-20 — "Favicons & CI Workflow Fix"
 
 - **Added**: **Official Favicon Suite from `logo.svg`** — generated multi-format favicons (`favicon.svg`, inline base64 SVG data URI, `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `favicon-48x48.png`, `favicon-96x96.png`), `apple-touch-icon.png` (180x180), `android-chrome-192x192.png`, `android-chrome-512x512.png`, and Web Manifests (`manifest.json`, `site.webmanifest`).
