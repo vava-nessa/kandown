@@ -2507,6 +2507,47 @@ function serveApp(res, kandownDir) {
  * It serves the single-file web app and exposes placeholder API routes for the
  * follow-up REST task, keeping this refactor limited to server bootstrapping.
  */
+const ASSET_MIME_TYPES = {
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.ico': 'image/x-icon',
+  '.json': 'application/json',
+  '.webmanifest': 'application/manifest+json',
+};
+
+function serveStaticAsset(req, res, pathname) {
+  const fileBasename = pathname.replace(/^\//, '');
+  if (!fileBasename || fileBasename.includes('..')) return false;
+  const assetPath = join(PKG_ROOT, 'public', fileBasename);
+  if (existsSync(assetPath) && statSync(assetPath).isFile()) {
+    const ext = extname(assetPath).toLowerCase();
+    const contentType = ASSET_MIME_TYPES[ext] || 'application/octet-stream';
+    try {
+      handleCors(res);
+      const content = readFileSync(assetPath);
+      if (req.method === 'HEAD') {
+        res.writeHead(200, {
+          'Content-Type': contentType,
+          'Content-Length': content.length,
+          'Cache-Control': 'public, max-age=86400',
+        });
+        res.end();
+        return true;
+      }
+      res.writeHead(200, {
+        'Content-Type': contentType,
+        'Content-Length': content.length,
+        'Cache-Control': 'public, max-age=86400',
+      });
+      res.end(content);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
 function createServeServer(kandownDir) {
   try {
     const tasksDir = getTasksDir(kandownDir);
@@ -2530,6 +2571,7 @@ function createServeServer(kandownDir) {
     if (requestUrl.pathname.startsWith('/api/')) {
       return handleApi(req, res, requestUrl, kandownDir);
     }
+    if (serveStaticAsset(req, res, requestUrl.pathname)) return;
     return writeText(res, 404, 'Not found');
   });
 }

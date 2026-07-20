@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.21.4 — 2026-07-20 — "Favicons & App Icons"
+
+- **Added**: **Official Favicon Suite from `logo.svg`** — generated multi-format favicons (`favicon.svg`, inline base64 SVG data URI, `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `favicon-48x48.png`, `favicon-96x96.png`), `apple-touch-icon.png` (180x180), `android-chrome-192x192.png`, `android-chrome-512x512.png`, and Web Manifests (`manifest.json`, `site.webmanifest`).
+- **Added**: **Daemon Static Asset Handler** — added `serveStaticAsset` in `bin/kandown.js` so web daemons serve app favicons and manifests directly.
+
 ## 0.21.3 — 2026-07-20 — "Editor Text Colors & Highlights"
 
 - **Fixed**: **Editor Text & Highlight Color Persistence** — enabled `textColor` and `backgroundColor` specs in BlockNote schema (`src/components/ui/BlockNoteMarkdownEditor.tsx`) so inline text colors and background highlights added in the web task description editor serialize to HTML inline tags and persist cleanly across reloads and markdown round-trips.
