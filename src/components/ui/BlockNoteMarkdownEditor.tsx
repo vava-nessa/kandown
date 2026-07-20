@@ -16,8 +16,8 @@
  *  Blocks kept  : paragraph, heading, bulletListItem, numberedListItem,
  *                 checkListItem, codeBlock, image, quote, divider
  *  Blocks removed: audio, file, video, table, toggleListItem
- *  Styles kept  : bold, italic, strike, code
- *  Styles removed: underline (not standard markdown), textColor, backgroundColor
+ *  Styles kept  : bold, italic, strike, code, textColor, backgroundColor
+ *  Styles removed: underline (not standard markdown)
  *
  * @functions
  *  → BlockNoteMarkdownEditor — BlockNote editor with markdown round-trip
@@ -58,8 +58,8 @@ export interface MarkdownEditorProps {
 // Keep only markdown-native blocks (but replace codeBlock with syntax-highlighted version)
 const { audio, file, video, table, toggleListItem, codeBlock: _codeBlock, ...markdownBlockSpecs } = defaultBlockSpecs;
 
-// Keep only styles that have native markdown syntax
-const { underline, textColor, backgroundColor, ...markdownStyleSpecs } = defaultStyleSpecs;
+// Keep styles including textColor and backgroundColor for inline color & highlight formatting
+const { underline, ...markdownStyleSpecs } = defaultStyleSpecs;
 
 const markdownSchema = BlockNoteSchema.create({
   blockSpecs: {

@@ -1,6 +1,6 @@
 {
   "name": "kandown",
-  "version": "0.21.2",
+  "version": "0.21.3",
   "description": "File-based Kanban engine backed by Markdown. Zero backend, AI-agent friendly.",
   "type": "module",
   "bin": {
@@ -76,6 +76,7 @@
     "chokidar": "^4.0.0",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
+    "kandown": "link:",
     "lucide-react": "1.8.0",
     "react-devtools-core": ">=6.1.2",
     "signal-exit": "^3.0.7",

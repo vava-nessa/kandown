@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.21.3 — 2026-07-20 — "Editor Text Colors & Highlights"
+
+- **Fixed**: **Editor Text & Highlight Color Persistence** — enabled `textColor` and `backgroundColor` specs in BlockNote schema (`src/components/ui/BlockNoteMarkdownEditor.tsx`) so inline text colors and background highlights added in the web task description editor serialize to HTML inline tags and persist cleanly across reloads and markdown round-trips.
+
 ## 0.21.2 — 2026-07-20 — "Pre-Bump Manual Validation"
 
 - **Added**: **Mandatory Pre-Bump Testing Rule in `AGENTS.md`** — formal rule requiring agents to manually launch and test `kandown` CLI and web daemon before executing a release bump to catch runtime errors.
