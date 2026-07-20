@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.21.1 — 2026-07-20 — "CLI Live Changelog"
+
+- **Added**: **CLI Live Changelog Display** — the CLI automatically parses and displays formatted release changelogs from `CHANGELOG.md` directly in the terminal during auto-updates, `kandown update`, and version notice popups.
+- **Added**: **Release Guidelines in `AGENTS.md`** — mandatory rule requiring every release to include a comprehensive, detailed English changelog in `CHANGELOG.md` and attached to the release commit body.
+- **Changed**: Included `CHANGELOG.md` in published npm package `files` array so terminal displays have access to release notes in production installs.
+
 ## 0.21.0 — 2026-07-20 — "Fable Features & Integrated MCP"
 
 - **Added**: **Integrated MCP Server (`kandown mcp`)** — stdio JSON-RPC 2.0 server for MCP hosts (Claude Desktop, VSCode, Glama, etc.) exposing `list_tasks`, `get_task`, `create_task`, `move_task`, `update_task`, `add_report`, `list_columns`.
