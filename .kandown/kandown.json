@@ -1,7 +1,7 @@
 {
   "ui": {
     "language": "en",
-    "theme": "auto",
+    "theme": "light",
     "skin": "kandown",
     "font": "system",
     "background": "solid"
@@ -14,11 +14,10 @@
     "columns": [
       "Backlog",
       "In Progress",
+      "Doing 🟢",
       "Review",
       "Todo",
-      "Doing 🟢",
-      "Done",
-      "archives"
+      "Done"
     ],
     "defaultPriority": "P3",
     "defaultOwnerType": "human",

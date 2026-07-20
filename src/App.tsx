@@ -17,7 +17,7 @@
  * @see src/components/SettingsPage.tsx
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Header } from './components/Header';
 import { Icon } from './components/Icons';
@@ -37,6 +37,7 @@ import { BulkActionBar } from './components/BulkActionBar';
 import { OnboardingTour } from './components/OnboardingTour';
 
 import { useStore } from './lib/store';
+import { getProjectSlugFromLocation, getTaskIdFromLocation } from './lib/task-url';
 import { changeLanguage, SUPPORTED_LANGUAGES, type SupportedLanguage } from './lib/i18n';
 import i18n from './lib/i18n';
 
@@ -53,6 +54,8 @@ export function App() {
   const createTask = useStore(s => s.createTask);
   const { t } = useTranslation();
   const reloadBoard = useStore(s => s.reloadBoard);
+  const openDrawer = useStore(s => s.openDrawer);
+  const closeDrawer = useStore(s => s.closeDrawer);
   const recentProjects = useStore(s => s.recentProjects);
   const openRecentProject = useStore(s => s.openRecentProject);
   const tryAutoOpenServerProject = useStore(s => s.tryAutoOpenServerProject);
@@ -61,6 +64,7 @@ export function App() {
   const showMetadata = useStore(s => s.showMetadata);
   const setShowMetadata = useStore(s => s.setShowMetadata);
   const config = useStore(s => s.config);
+  const [urlTaskId, setUrlTaskId] = useState(() => getTaskIdFromLocation(window.location));
 
   // Sync language from config to i18n
   useEffect(() => {
@@ -72,8 +76,7 @@ export function App() {
 
   // Handle URL hydration on mount
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const projectSlug = params.get('p');
+    const projectSlug = getProjectSlugFromLocation(window.location);
     if (projectSlug && !isOpen && !dirHandle) {
       const match = recentProjects.find(p => p.name === projectSlug);
       if (match) {
@@ -81,6 +84,32 @@ export function App() {
       }
     }
   }, [recentProjects, isOpen, dirHandle, openRecentProject]);
+
+  // 📖 Task deep-links: `/210?p=kandown`, `?task=210`, and tolerant
+  // `?p=kandown/210` all resolve to task `t210`. `pushState` does not emit a
+  // native popstate event, so the store dispatches `kandown:urlchange` after
+  // internal URL updates and this shell listens to both signals.
+  useEffect(() => {
+    const syncUrlTask = () => setUrlTaskId(getTaskIdFromLocation(window.location));
+    window.addEventListener('popstate', syncUrlTask);
+    window.addEventListener('kandown:urlchange', syncUrlTask);
+    return () => {
+      window.removeEventListener('popstate', syncUrlTask);
+      window.removeEventListener('kandown:urlchange', syncUrlTask);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen && !dirHandle) return;
+    if (!urlTaskId) {
+      if (drawerTaskId) closeDrawer({ syncUrl: false });
+      return;
+    }
+    if (drawerTaskId === urlTaskId) return;
+
+    const urlStillHasTask = getTaskIdFromLocation(window.location) === urlTaskId;
+    void openDrawer(urlTaskId, { syncUrl: !urlStillHasTask, replace: !urlStillHasTask });
+  }, [isOpen, dirHandle, urlTaskId, drawerTaskId, openDrawer, closeDrawer]);
 
   // 📖 When served via `npx kandown`, window.__KANDOWN_ROOT__ is set. Try to auto-open
   // the matching recent project (if user previously granted access) without showing the picker.

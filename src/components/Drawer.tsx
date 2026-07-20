@@ -27,6 +27,7 @@ import { useTranslation } from 'react-i18next';
 import { KbdButton } from './KbdButton';
 import { BlockNoteMarkdownEditor } from './ui/BlockNoteMarkdownEditor';
 import { useStore } from '../lib/store';
+import { buildTaskUrl } from '../lib/task-url';
 
 export function Drawer() {
   const { t } = useTranslation();
@@ -34,6 +35,8 @@ export function Drawer() {
   const drawerData = useStore(s => s.drawerData);
   const columns = useStore(s => s.columns);
   const config = useStore(s => s.config);
+  const projectName = useStore(s => s.projectName);
+  const toast = useStore(s => s.toast);
   const closeDrawer = useStore(s => s.closeDrawer);
   const saveDrawer = useStore(s => s.saveDrawer);
   const saveDrawerMetadata = useStore(s => s.saveDrawerMetadata);
@@ -145,6 +148,17 @@ export function Drawer() {
     void sendTaskToAgent(drawerTaskId);
   }, [drawerTaskId, sendTaskToAgent]);
 
+  const handleCopyTaskUrl = useCallback(async () => {
+    if (!drawerTaskId) return;
+    const url = new URL(buildTaskUrl(drawerTaskId, projectName), window.location.origin).toString();
+    try {
+      await navigator.clipboard.writeText(url);
+      toast('Task URL copied', 'success');
+    } catch {
+      toast(url, 'info', 8000);
+    }
+  }, [drawerTaskId, projectName, toast]);
+
   // 📖 Build a depId → { exists, resolved } map for the dependency chips.
   // "Resolved" = in terminal status OR archived OR unknown (typos never
   // block — see src/lib/dependencies.ts for the rationale).
@@ -249,6 +263,14 @@ export function Drawer() {
                   {currentCol && (
                     <span className="text-[12.5px] text-fg-dim">· {currentCol}</span>
                   )}
+                  <button
+                    type="button"
+                    onClick={handleCopyTaskUrl}
+                    className="text-[12.5px] text-fg-muted underline underline-offset-2 hover:text-fg"
+                    title="Copy task URL"
+                  >
+                    Copy URL
+                  </button>
                 </div>
                 <KbdButton
                   variant="icon"

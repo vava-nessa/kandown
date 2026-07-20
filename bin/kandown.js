@@ -2726,6 +2726,15 @@ function serveStaticAsset(req, res, pathname) {
   return false;
 }
 
+function isTaskDeepLinkPath(pathname) {
+  try {
+    const cleaned = decodeURIComponent(pathname).replace(/^\/+|\/+$/g, '');
+    return !!cleaned && !cleaned.includes('/') && !cleaned.includes('.') && /^[A-Za-z0-9_-]+$/.test(cleaned);
+  } catch {
+    return false;
+  }
+}
+
 function createServeServer(kandownDir) {
   try {
     const tasksDir = getTasksDir(kandownDir);
@@ -2750,6 +2759,7 @@ function createServeServer(kandownDir) {
       return handleApi(req, res, requestUrl, kandownDir);
     }
     if (serveStaticAsset(req, res, requestUrl.pathname)) return;
+    if (req.method === 'GET' && isTaskDeepLinkPath(requestUrl.pathname)) return serveApp(res, kandownDir);
     return writeText(res, 404, 'Not found');
   });
 }

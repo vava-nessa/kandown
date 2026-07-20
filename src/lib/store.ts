@@ -74,6 +74,24 @@ import {
 import { BrowserNotSupportedError, PermissionDeniedError, DiskFullError } from './errors';
 import { withRetry } from './retry';
 import { parseQuickAddInput } from './quick-add-parser';
+import { buildBoardUrl, buildTaskUrl, getTaskIdFromLocation } from './task-url';
+
+function updateBrowserUrl(nextUrl: string, replace = false): void {
+  if (typeof window === 'undefined') return;
+  const currentUrl = `${window.location.pathname}${window.location.search}`;
+  if (currentUrl === nextUrl) return;
+  if (replace) {
+    window.history.replaceState({}, '', nextUrl);
+  } else {
+    window.history.pushState({}, '', nextUrl);
+  }
+  window.dispatchEvent(new Event('kandown:urlchange'));
+}
+
+function updateProjectBoardUrl(projectName: string): void {
+  if (typeof window !== 'undefined' && getTaskIdFromLocation(window.location)) return;
+  updateBrowserUrl(buildBoardUrl(projectName));
+}
 
 /** 📖 Toast severity. `warning` is used for partial-failure / corruption /
  * disk-full situations where the user must be informed but the app keeps
@@ -217,8 +235,8 @@ interface State {
   bulkMoveTasks: (targetColumn: string) => Promise<void>;
   bulkDeleteTasks: () => Promise<void>;
 
-  openDrawer: (taskId: string) => Promise<void>;
-  closeDrawer: () => void;
+  openDrawer: (taskId: string, options?: { syncUrl?: boolean; replace?: boolean }) => Promise<void>;
+  closeDrawer: (options?: { syncUrl?: boolean; replace?: boolean }) => void;
   updateDrawerData: (updater: (data: NonNullable<State['drawerData']>) => NonNullable<State['drawerData']>) => void;
   saveDrawer: () => Promise<void>;
   saveDrawerMetadata: () => Promise<void>;
@@ -519,7 +537,7 @@ export const useStore = create<State>((set, get) => ({
     // 📖 Layout (v0.12+): `dirHandle` is `.kandown/` (for kandown.json);
     // `tasksDirHandle` is the project-root `./tasks/` (sibling of `.kandown/`).
     set({ dirHandle: kandownHandle, tasksDirHandle: tasksHandle, projectName });
-    window.history.pushState({}, '', `?p=${encodeURIComponent(projectName)}`);
+    updateProjectBoardUrl(projectName);
     const serverRoot = isServerMode() ? getServerRoot() : null;
     // 📖 Saving to recent projects is a convenience, not a requirement — if
     // IndexedDB is blocked (private browsing), we still open the folder.
@@ -588,7 +606,7 @@ export const useStore = create<State>((set, get) => ({
       const tasksHandle = await getTasksDirHandle(project.handle);
       const projectName = project.handle.name;
       set({ dirHandle: kandownHandle, tasksDirHandle: tasksHandle, projectName });
-      window.history.pushState({}, '', `?p=${encodeURIComponent(projectName)}`);
+      updateProjectBoardUrl(projectName);
       try {
         await saveRecentProject({ ...project, lastOpened: Date.now() });
       } catch (e) {
@@ -657,7 +675,7 @@ export const useStore = create<State>((set, get) => ({
         taskContents: nextContents,
         searchMatches: new Map(),
       });
-      window.history.pushState({}, '', `?p=${encodeURIComponent(projectName)}`);
+      updateProjectBoardUrl(projectName);
       void get().setupWatcher();
       // 📖 Fetch the agent hook config in parallel so the UI can render the
       // "Send to Agent" button as soon as the project is open. Failure is
@@ -695,7 +713,7 @@ export const useStore = create<State>((set, get) => ({
     const tasksHandle = await getTasksDirHandle(match.handle);
     const projectName = match.handle.name;
     set({ dirHandle: kandownHandle, tasksDirHandle: tasksHandle, projectName, recentProjects: recent, isOpen: true });
-    window.history.pushState({}, '', `?p=${encodeURIComponent(projectName)}`);
+    updateProjectBoardUrl(projectName);
     await saveRecentProject({ ...match, lastOpened: Date.now() });
     await get().loadConfig();
     await get().reloadBoard();
@@ -1245,8 +1263,8 @@ export const useStore = create<State>((set, get) => ({
   setShowArchives: (show) => set({ showArchives: show }),
   setShowMetadata: (show) => set({ showMetadata: show }),
 
-  openDrawer: async (taskId) => {
-    const { tasksDirHandle } = get();
+  openDrawer: async (taskId, options = {}) => {
+    const { tasksDirHandle, projectName } = get();
     if (!tasksDirHandle && !isServerMode()) return;
     try {
       const { frontmatter, body } = await fsReadTaskFile(tasksDirHandle, taskId);
@@ -1266,6 +1284,9 @@ export const useStore = create<State>((set, get) => ({
         : { frontmatter, subtasks, body: bodyWithoutSubtasks };
       const newRecovery = new Map(get().drawerRecoveryData);
       newRecovery.delete(taskId);
+      if (options.syncUrl !== false) {
+        updateBrowserUrl(buildTaskUrl(taskId, projectName), options.replace);
+      }
       set({
         drawerTaskId: taskId,
         drawerData: initialDrawerData,
@@ -1284,15 +1305,20 @@ export const useStore = create<State>((set, get) => ({
     }
   },
 
-  closeDrawer: () => set({
-    drawerTaskId: null,
-    drawerData: null,
-    drawerBaseVersion: null,
-    conflictState: null,
-    showConflictModal: false,
-    hasUnsavedDrawerEdits: false,
-    lastSaveError: null,
-  }),
+  closeDrawer: (options = {}) => {
+    if (options.syncUrl !== false) {
+      updateBrowserUrl(buildBoardUrl(get().projectName), options.replace);
+    }
+    set({
+      drawerTaskId: null,
+      drawerData: null,
+      drawerBaseVersion: null,
+      conflictState: null,
+      showConflictModal: false,
+      hasUnsavedDrawerEdits: false,
+      lastSaveError: null,
+    });
+  },
 
   /** 📖 Marks the drawer as having unsaved edits. Called from the Drawer on
    * every keystroke so the close-guard UI knows whether to prompt before
@@ -1334,6 +1360,7 @@ export const useStore = create<State>((set, get) => ({
       // Clear recovery data for this task now that the save succeeded.
       const newRecovery = new Map(get().drawerRecoveryData);
       newRecovery.delete(drawerTaskId);
+      updateBrowserUrl(buildBoardUrl(get().projectName));
       set({
         drawerTaskId: null,
         drawerData: null,

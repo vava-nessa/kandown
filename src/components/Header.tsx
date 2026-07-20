@@ -36,6 +36,7 @@ export function Header() {
   const dirHandle = useStore(s => s.dirHandle);
   const isOpen = useStore(s => s.isOpen);
   const projectName = useStore(s => s.projectName);
+  const closeDrawer = useStore(s => s.closeDrawer);
   const archivedCount = useStore(s => s.archivedTasks.length);
   const showArchives = useStore(s => s.showArchives);
   const setShowArchives = useStore(s => s.setShowArchives);
@@ -136,7 +137,7 @@ export function Header() {
       <div className="flex items-center gap-4 min-w-0">
         <div className="flex items-center gap-2.5 flex-shrink-0">
           <button
-            onClick={() => window.history.pushState({}, '', window.location.pathname)}
+            onClick={() => closeDrawer({ replace: true })}
             className="flex items-center gap-2 cursor-pointer"
           >
             <LogoSvg className="w-[34px] h-[34px] dark:text-white text-black" />

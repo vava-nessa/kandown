@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.25.0 — 2026-07-20 — "Task Deep Links"
+
+- **Added**: **Shareable task deep links** — opening a task drawer now updates the browser URL to a copy-pasteable route such as `/210?p=kandown`, where numeric task segments are normalized to Kandown task ids like `t210`. This makes it possible to send a direct link to a specific task instead of asking someone to find it manually on the board.
+- **Added**: **Direct URL hydration for task drawers** — pasted links are parsed on web app startup and after browser navigation. Kandown now accepts the canonical `/210?p=kandown` format plus tolerant alternatives such as `/t210?p=kandown`, `?task=210`, and `?p=kandown/210`, then opens the matching drawer once the project is loaded.
+- **Added**: **Browser history support for task navigation** — drawer open and close actions now synchronize with `pushState`/`replaceState`, and Kandown listens for `popstate` so browser Back and Forward switch between board-only and task-focused URLs instead of leaving stale drawer state behind.
+- **Added**: **Copy URL action in the task drawer** — the opened task header now includes a lightweight Copy URL control that writes the absolute task link to the clipboard, with a toast fallback that displays the URL if clipboard access is denied.
+- **Fixed**: **Daemon routing for deep links** — the local web daemon now serves the single-page app for safe one-segment task paths like `/210`, preventing direct task URLs from returning `404 Not found` before React has a chance to hydrate and open the drawer.
+- **Changed**: **Project URL handling** — board/project URLs now go through shared URL helpers so project-only navigation keeps `/?p=<project>` while task navigation cleanly adds or removes the task path segment.
+- **Changed**: **Board housekeeping** — completed Kandown task files were archived or removed from the active task set, new backlog tasks were added for upcoming archive/subtask/opened-task redesign work, and local board config/runtime ignore files were updated to match the current project workflow.
+
 ## 0.24.0 — 2026-07-20 — "Work Output Configurator"
 
 - **Added**: **`kandown work` Output Configurator** — added a new Settings panel under Agent configuration that lets each project control the markdown emitted by `kandown work`. Users can enable or disable the base rules, project instructions, and live board digest blocks without editing generated files by hand.
