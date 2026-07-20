@@ -5,17 +5,19 @@
 
 ---
 
-## 1. La feature phare : serveur MCP intégré 🟢🟢
+## 1. Serveur MCP intégré 🟢 — *distribution*, pas *nécessité technique*
 
-Kandown se vend « AI-agent friendly », mais aujourd'hui l'intégration agent = injection de prompt + fichiers markdown. Le standard du marché est **MCP (Model Context Protocol)** : Claude Code, Codex, Gemini CLI, Goose et OpenCode le supportent tous.
+> **Note révisée (2026-07-20)** : ce paragraphe surestimait initialement l'urgence technique du MCP. Depuis, le CLI a été entièrement retravaillé pour l'usage agent (`kandown work`, `list/create/move/assign` en top-level, sortie JSON propre, exit codes typés, stdout/stderr disciplinés — voir `FABLE_CLI.md`). Le public cible de kandown — Claude Code, Codex, Gemini CLI, Goose, OpenCode — a par définition un accès shell complet : le CLI seul couvre déjà 95 % du besoin d'intégration agent pour cette audience. Le MCP n'est donc plus "LA priorité qui débloque l'histoire AI-native", il ne l'était que tant que l'alternative était "lire AGENT_KANDOWN.md et éditer du YAML à la main".
+>
+> Ce qui justifie de le garder quand même : le **référencement**. MCP est devenu un canal de découverte à part entière — les annuaires (smithery.ai, mcp.so, glama.ai, la liste officielle Anthropic, etc.) indexent les serveurs MCP et génèrent du trafic/backlinks qu'un simple `npm install -g kandown` ne capte pas. Être listé comme "kandown MCP server" élargit la surface de découverte du produit (SEO, intégrations tierces, produits no-code/chatbots qui n'ont pas de shell) sans rien retirer au CLI qui reste l'interface principale. C'est un investissement marketing/écosystème, pas un prérequis fonctionnel.
 
 ```bash
-kandown mcp        # stdio MCP server
+kandown mcp        # stdio MCP server — fin wrapper au-dessus des mêmes opérations que le CLI top-level
 ```
 
-Outils exposés : `list_tasks`, `get_task`, `create_task`, `move_task`, `update_task`, `add_report`, `list_columns`. Le daemon HTTP existant fait déjà 90 % du travail — c'est un adaptateur fin au-dessus de `src/cli/lib/board-reader.ts`.
+Outils exposés : `list_tasks`, `get_task`, `create_task`, `move_task`, `update_task`, `add_report`, `list_columns` — essentiellement les mêmes verbes que `kandown list/show/create/move/assign` (voir `FABLE_CLI.md` §3), réexposés en schéma typé pour les hosts MCP. Le daemon HTTP existant fait déjà 90 % du travail — c'est un adaptateur fin au-dessus de `src/cli/lib/board-reader.ts`.
 
-**Pourquoi c'est LA priorité :** un agent qui gère le board nativement (sans lire AGENT_KANDOWN.md ni éditer du YAML à la main) supprime toute la classe de bugs « l'agent a cassé le frontmatter », et c'est un argument d'adoption énorme (`claude mcp add kandown -- kandown mcp`). Bonus : `kandown init` peut proposer d'enregistrer le serveur MCP dans `.mcp.json` du projet.
+**Pourquoi le garder malgré tout :** SEO/découverte via les annuaires MCP, intégration dans des produits sans accès shell (chatbots, no-code), et un argument d'adoption facile (`claude mcp add kandown -- kandown mcp`). Bonus : `kandown init` peut proposer d'enregistrer le serveur MCP dans `.mcp.json` du projet. À construire **après** le CLI top-level (déjà fait) plutôt qu'avant — il n'y a plus de raison technique de le prioriser en premier.
 
 ---
 
@@ -121,11 +123,13 @@ Lien bidirectionnel opt-in (`github: owner/repo#123` en frontmatter) : fermer l'
 
 ## Priorisation recommandée
 
-1. **MCP server** (§1) — différenciateur produit, débloque tout le reste de l'histoire « AI-native ».
-2. **SSE temps réel** (§3.1) — transforme la démo et l'usage quotidien avec agents.
-3. **TUI create/edit/search** (§2.1, 2.2) — rend le TUI autosuffisant.
-4. **Quick-add + bulk + undo web** (§3.2, 3.3, 3.8) — vélocité au quotidien.
-5. **`kandown doctor` + shell top-level** (§2.4, 2.5) — fiabilité perçue du CLI.
+> Mise à jour 2026-07-20 : le CLI top-level et `kandown work` (§2.5, ex-priorité 5) sont **déjà livrés** (v0.18.0-v0.20.0). Le MCP redescend en position 5 — c'est un canal de distribution/SEO, plus une dépendance technique du reste de la liste.
+
+1. **SSE temps réel** (§3.1) — transforme la démo et l'usage quotidien avec agents.
+2. **TUI create/edit/search** (§2.1, 2.2) — rend le TUI autosuffisant.
+3. **Quick-add + bulk + undo web** (§3.2, 3.3, 3.8) — vélocité au quotidien.
+4. **`kandown doctor`** (§2.4) — fiabilité perçue du CLI.
+5. **MCP server** (§1) — référencement / élargissement de la surface de découverte, indépendant du reste.
 6. **Git timeline + insights** (§4.1) — la feature « personne d'autre ne peut faire ça aussi simplement ».
 
 ---
