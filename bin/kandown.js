@@ -313,40 +313,14 @@ async function checkForUpdate(argv = process.argv) {
 
   // 📖 Step 3: Run the update via npm or pnpm with animated progress.
   tuiProgress(`Updating to ${latest}…`, 25);
-
-  const updateOk = await new Promise((resolve) => {
-    const tryInstall = (cmd) => {
-      return new Promise((res) => {
-        const cleanEnv = { ...process.env };
-        for (const k of Object.keys(cleanEnv)) {
-          if (k.startsWith('npm_config_') || k.startsWith('npm_') || k === 'INIT_CWD') {
-            delete cleanEnv[k];
-          }
-        }
-        const child = spawn(cmd, ['install', '-g', 'kandown'], {
-          timeout: 60000,
-          stdio: ['pipe', 'pipe', 'pipe'],
-          env: cleanEnv,
-          detached: false,
-        });
-        child.stderr.on('data', () => {}); // silence npm noise
-        child.stdout.on('data', () => {});
-        child.on('error', () => res(false));
-        child.on('close', (code) => res(code === 0));
-      });
-    };
-    tryInstall('npm').then((ok) => {
-      if (ok) resolve(true);
-      else tryInstall('pnpm').then(resolve);
-    });
-  });
+  const updateOk = await performGlobalPackageUpdate(`kandown@${latest}`);
 
   // 📖 Clean up lock file regardless of outcome.
   try { if (existsSync(lockFile)) unlinkSync(lockFile); } catch { /* ignore */ }
 
   if (!updateOk) {
     tuiDone('✗', `${c.yellow}Auto-update failed${c.reset} — continuing with current version`);
-    log(`  Run ${c.cyan}npm install -g kandown${c.reset} to upgrade manually`);
+    log(`  Run ${c.cyan}pnpm add -g kandown@latest${c.reset} or ${c.cyan}npm install -g kandown@latest${c.reset} to upgrade manually`);
     log('');
     return;
   }
@@ -1018,29 +992,55 @@ function cmdInit(rawArgs) {
   log('');
 }
 
-function cmdUpdate(rawArgs) {
+async function cmdUpdate(rawArgs) {
   const current = getCurrentVersion();
   log(`${c.bold}kandown update${c.reset} ${c.dim}— v${current}${c.reset}`);
-  printVersionChangelog(current);
+
+  // 📖 Step 1: Check latest version on npm registry
+  const latest = await new Promise((resolve) => {
+    const child = spawn('npm', ['view', 'kandown', 'version'], {
+      timeout: 6000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env },
+      detached: false,
+    });
+    let stdout = '';
+    child.stdout.on('data', (d) => { stdout += d; });
+    child.stderr.on('data', () => {});
+    child.on('error', () => resolve(null));
+    child.on('close', (code) => {
+      if (code !== 0) return resolve(null);
+      const v = stdout.trim().replace(/^"|"$/g, '');
+      resolve(v || null);
+    });
+  });
+
+  if (latest && semverGt(latest, current) > 0) {
+    tuiProgress(`Updating kandown package v${current} → v${latest}…`, 30);
+    const updateOk = await performGlobalPackageUpdate(`kandown@${latest}`);
+    if (updateOk) {
+      tuiDone('✓', `${c.green}Successfully upgraded kandown to v${latest}${c.reset}`);
+      printVersionChangelog(latest);
+    } else {
+      tuiDone('✗', `${c.yellow}Global CLI update failed${c.reset} — try running: ${c.cyan}pnpm add -g kandown@latest${c.reset} or ${c.cyan}npm install -g kandown@latest${c.reset}`);
+    }
+  } else {
+    printVersionChangelog(current);
+    info(`kandown CLI is already up to date (v${current}).`);
+  }
 
   const args = parseArgs(rawArgs);
   const cwd = process.cwd();
   const kandownDir = resolve(cwd, args.path);
   const htmlDest = join(kandownDir, 'kandown.html');
 
-  if (!existsSync(htmlDest)) {
-    err(`No kandown.html found at ${c.bold}${htmlDest}${c.reset}`);
-    log(`  Run ${c.cyan}npx kandown init${c.reset} first.`);
-    process.exit(1);
+  if (existsSync(htmlDest)) {
+    const htmlSrc = join(PKG_ROOT, 'dist', 'index.html');
+    if (existsSync(htmlSrc)) {
+      copyFileSync(htmlSrc, htmlDest);
+      success(`Refreshed ${args.path}/kandown.html`);
+    }
   }
-
-  const htmlSrc = join(PKG_ROOT, 'dist', 'index.html');
-  if (!existsSync(htmlSrc)) {
-    err(`Missing build output. Did you run 'npm run build'?`);
-    process.exit(1);
-  }
-  copyFileSync(htmlSrc, htmlDest);
-  success(`Updated ${args.path}/kandown.html`);
 }
 
 /* ═════════════ One-shot task commands ═════════════ */
@@ -3408,7 +3408,7 @@ switch (cmd) {
     break;
 
   case 'update':
-    cmdUpdate(rest);
+    await cmdUpdate(rest);
     break;
 
   // 📖 One-shot task commands — top-level, no "shell" wrapper. These are the

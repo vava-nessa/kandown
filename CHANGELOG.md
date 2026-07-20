@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.28.1 — 2026-07-20 — "Robust Global Auto-Updater"
+
+- **Fixed**: **Global package manager auto-update commands** — updated `checkForUpdate()` and `cmdUpdate()` to run `pnpm add -g kandown@latest` (instead of `pnpm install -g kandown`), with fallback chain across `pnpm`, `npm`, `yarn`, and `bun`.
+- **Fixed**: **`kandown update` command behavior** — `kandown update` now queries the npm registry for the latest release, updates the global CLI package using the active package manager, and refreshes project `.kandown/kandown.html` files.
+- **Fixed**: **Terminal & tmux auto-update compatibility** — fixed `checkForUpdate()` invocation so interactive terminal sessions (including tmux and iTerm) automatically detect and offer updates.
+
 ## 0.28.0 — 2026-07-20 — "Agent Instruction Modes & CLI Reference"
 
 - **Added**: **3 Base Agent Rule Modes (Verbose, Optimized, Caveman)** — redesigned the Agent instructions settings into 3 distinct rule density modes. Users can choose between **Verbose** (full reference guide), **Optimized** (concise, high-density structured rules tailored for LLMs), and **Caveman** (ultra-compact minimal token rules).
