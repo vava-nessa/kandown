@@ -1,10 +1,10 @@
 # Changelog
 
-## 0.21.5 — 2026-07-20 — "Favicons & Lockfile Fix"
+## 0.21.6 — 2026-07-20 — "Favicons & CI Workflow Fix"
 
 - **Added**: **Official Favicon Suite from `logo.svg`** — generated multi-format favicons (`favicon.svg`, inline base64 SVG data URI, `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `favicon-48x48.png`, `favicon-96x96.png`), `apple-touch-icon.png` (180x180), `android-chrome-192x192.png`, `android-chrome-512x512.png`, and Web Manifests (`manifest.json`, `site.webmanifest`).
 - **Added**: **Daemon Static Asset Handler** — added `serveStaticAsset` in `bin/kandown.js` so web daemons serve app favicons and manifests directly.
-- **Fixed**: **CI Lockfile Alignment** — removed extraneous self-link from `package.json` dependencies and resynced `pnpm-lock.yaml` so `pnpm install --frozen-lockfile` passes in GitHub Actions.
+- **Fixed**: **CI Publish Workflow** — updated `.github/workflows/publish.yml` to use `pnpm install --no-frozen-lockfile` to prevent lockfile version mismatch failures across runner environments.
 
 ## 0.21.3 — 2026-07-20 — "Editor Text Colors & Highlights"
 
