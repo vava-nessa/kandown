@@ -17,7 +17,14 @@ jobs:
           echo "ref=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
 
       - name: Send embed to Discord
+        env:
+          DISCORD_WEBHOOK_GITHUB: ${{ secrets.DISCORD_WEBHOOK_GITHUB }}
         run: |
+          if [ -z "$DISCORD_WEBHOOK_GITHUB" ]; then
+            echo "DISCORD_WEBHOOK_GITHUB is not configured; skipping Discord notification."
+            exit 0
+          fi
+
           JSON=$(cat <<EOF
           {
             "embeds": [{
@@ -30,7 +37,8 @@ jobs:
               }
             }]
           }
-          EOF)
-          curl -s -H "Content-Type: application/json" \
+          EOF
+          )
+          curl -fsS -H "Content-Type: application/json" \
             -d "$JSON" \
-            ${{ secrets.DISCORD_WEBHOOK_GITHUB }}
+            "$DISCORD_WEBHOOK_GITHUB"
