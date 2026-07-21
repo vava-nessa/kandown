@@ -17,11 +17,17 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: { tui: 'src/cli/tui.tsx' },
+  entry: {
+    tui: 'src/cli/tui.tsx',
+    kandown: 'src/cli/cli.ts',
+  },
   format: ['esm'],
   outDir: 'bin',
   clean: false,
   target: 'node18',
+  banner: {
+    js: '#!/usr/bin/env node',
+  },
   splitting: false,
   sourcemap: false,
   dts: false,

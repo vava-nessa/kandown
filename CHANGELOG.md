@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.32.1 — 2026-07-21 — "CLI Modularization & Updater Speed"
+
+- **Fixed**: **Auto-Updater Check Throttle** — reduced update check throttle from 24h to 10 minutes (`UPDATE_CHECK_INTERVAL_MS = 10m`) and prioritized global `npm install -g kandown --force` for npm setups so release updates trigger promptly when launching Kandown.
+- **Added**: **`kandown upgrade` Command Alias** — added `upgrade` as an alias for `kandown update`.
+- **Refactored**: **CLI Modular Architecture** — refactored monolithic `bin/kandown.js` (3,500+ lines) into clean, modular TypeScript files in `src/cli/` (`cli.ts`, `lib/updater.ts`, `lib/board-reader.ts`, `lib/daemon.ts`). Built automatically into `bin/kandown.js` via `tsup`.
+
 ## 0.32.0 — 2026-07-21 — "38 Modern Fable UI Themes Collection"
 
 - **Added**: **30 New Curated Fable UI Theme Presets** — expanded Kandown's built-in theme library from 8 to **38 distinct, ultra-crafted modern themes** inspired by iconic tech products, design movements, nature, elements, and luxury aesthetics:
