@@ -8,6 +8,7 @@
  *  → semverGt — semver version comparison helper
  *  → resolveKandownBin — resolves installed global kandown binary path
  *  → readInstalledKandownVersion — queries version of installed binary
+ *  → requestedSemver — extracts exact package target version for verification
  *  → performGlobalPackageUpdate — installs package globally via npm/pnpm/yarn/bun
  *  → checkForUpdate — background updater with reliable registry checks
  *
@@ -148,6 +149,11 @@ export function rememberUpdateCheck(): void {
   } catch { /* ignore write errors */ }
 }
 
+function requestedSemver(packageSpec: string): string | null {
+  const match = packageSpec.match(/@(\d+\.\d+\.\d+(?:-[\w.-]+)?)$/);
+  return match ? match[1] : null;
+}
+
 export async function performGlobalPackageUpdate(packageSpec: string): Promise<boolean> {
   const cleanEnv = { ...process.env };
   for (const k of Object.keys(cleanEnv)) {
@@ -155,6 +161,14 @@ export async function performGlobalPackageUpdate(packageSpec: string): Promise<b
       delete cleanEnv[k];
     }
   }
+
+  const targetVersion = requestedSemver(packageSpec);
+
+  const verifyInstalledVersion = async (): Promise<boolean> => {
+    if (!targetVersion) return true;
+    const installedVersion = await readInstalledKandownVersion(targetVersion);
+    return semverGt(installedVersion, targetVersion) >= 0;
+  };
 
   const tryPkgCmd = (cmd: string, args: string[]): Promise<boolean> => {
     return new Promise((res) => {
@@ -171,6 +185,11 @@ export async function performGlobalPackageUpdate(packageSpec: string): Promise<b
     });
   };
 
+  const tryPkgCmdAndVerify = async (cmd: string, args: string[]): Promise<boolean> => {
+    if (!(await tryPkgCmd(cmd, args))) return false;
+    return verifyInstalledVersion();
+  };
+
   const currentBin = resolveKandownBin() || '';
   const currentBinDir = currentBin ? dirname(currentBin) : null;
   const siblingNpm = currentBinDir ? join(currentBinDir, 'npm') : null;
@@ -182,19 +201,19 @@ export async function performGlobalPackageUpdate(packageSpec: string): Promise<b
   // generic `npm install -g` may update a different prefix and leave the actual
   // `kandown` command stale. Updating through the sibling npm/pnpm keeps the
   // auto-updater attached to the executable the user really launched.
-  if (siblingPnpm && existsSync(siblingPnpm) && await tryPkgCmd(siblingPnpm, ['add', '-g', packageSpec])) return true;
-  if (siblingNpm && existsSync(siblingNpm) && await tryPkgCmd(siblingNpm, ['install', '-g', packageSpec, '--force'])) return true;
+  if (siblingPnpm && existsSync(siblingPnpm) && await tryPkgCmdAndVerify(siblingPnpm, ['add', '-g', packageSpec])) return true;
+  if (siblingNpm && existsSync(siblingNpm) && await tryPkgCmdAndVerify(siblingNpm, ['install', '-g', packageSpec, '--force'])) return true;
 
   if (isPnpmInstall) {
-    if (await tryPkgCmd('pnpm', ['add', '-g', packageSpec])) return true;
-    if (await tryPkgCmd('npm', ['install', '-g', packageSpec, '--force'])) return true;
+    if (await tryPkgCmdAndVerify('pnpm', ['add', '-g', packageSpec])) return true;
+    if (await tryPkgCmdAndVerify('npm', ['install', '-g', packageSpec, '--force'])) return true;
   } else {
-    if (await tryPkgCmd('npm', ['install', '-g', packageSpec, '--force'])) return true;
-    if (await tryPkgCmd('pnpm', ['add', '-g', packageSpec])) return true;
+    if (await tryPkgCmdAndVerify('npm', ['install', '-g', packageSpec, '--force'])) return true;
+    if (await tryPkgCmdAndVerify('pnpm', ['add', '-g', packageSpec])) return true;
   }
 
-  if (await tryPkgCmd('yarn', ['global', 'add', packageSpec])) return true;
-  return await tryPkgCmd('bun', ['add', '-g', packageSpec]);
+  if (await tryPkgCmdAndVerify('yarn', ['global', 'add', packageSpec])) return true;
+  return await tryPkgCmdAndVerify('bun', ['add', '-g', packageSpec]);
 }
 
 export async function checkForUpdate(argv = process.argv): Promise<void> {

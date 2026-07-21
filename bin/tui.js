@@ -907,21 +907,21 @@ var require_react_development = __commonJS({
         );
         actScopeDepth = prevActScopeDepth;
       }
-      function recursivelyFlushAsyncActWork(returnValue, resolve3, reject) {
+      function recursivelyFlushAsyncActWork(returnValue, resolve4, reject) {
         var queue = ReactSharedInternals.actQueue;
         if (null !== queue)
           if (0 !== queue.length)
             try {
               flushActQueue(queue);
               enqueueTask(function() {
-                return recursivelyFlushAsyncActWork(returnValue, resolve3, reject);
+                return recursivelyFlushAsyncActWork(returnValue, resolve4, reject);
               });
               return;
             } catch (error) {
               ReactSharedInternals.thrownErrors.push(error);
             }
           else ReactSharedInternals.actQueue = null;
-        0 < ReactSharedInternals.thrownErrors.length ? (queue = aggregateErrors(ReactSharedInternals.thrownErrors), ReactSharedInternals.thrownErrors.length = 0, reject(queue)) : resolve3(returnValue);
+        0 < ReactSharedInternals.thrownErrors.length ? (queue = aggregateErrors(ReactSharedInternals.thrownErrors), ReactSharedInternals.thrownErrors.length = 0, reject(queue)) : resolve4(returnValue);
       }
       function flushActQueue(queue) {
         if (!isFlushing) {
@@ -1108,7 +1108,7 @@ var require_react_development = __commonJS({
             ));
           });
           return {
-            then: function(resolve3, reject) {
+            then: function(resolve4, reject) {
               didAwaitActCall = true;
               thenable.then(
                 function(returnValue) {
@@ -1118,7 +1118,7 @@ var require_react_development = __commonJS({
                       flushActQueue(queue), enqueueTask(function() {
                         return recursivelyFlushAsyncActWork(
                           returnValue,
-                          resolve3,
+                          resolve4,
                           reject
                         );
                       });
@@ -1132,7 +1132,7 @@ var require_react_development = __commonJS({
                       ReactSharedInternals.thrownErrors.length = 0;
                       reject(_thrownError);
                     }
-                  } else resolve3(returnValue);
+                  } else resolve4(returnValue);
                 },
                 function(error) {
                   popActScope(prevActQueue, prevActScopeDepth);
@@ -1154,15 +1154,15 @@ var require_react_development = __commonJS({
         if (0 < ReactSharedInternals.thrownErrors.length)
           throw callback = aggregateErrors(ReactSharedInternals.thrownErrors), ReactSharedInternals.thrownErrors.length = 0, callback;
         return {
-          then: function(resolve3, reject) {
+          then: function(resolve4, reject) {
             didAwaitActCall = true;
             0 === prevActScopeDepth ? (ReactSharedInternals.actQueue = queue, enqueueTask(function() {
               return recursivelyFlushAsyncActWork(
                 returnValue$jscomp$0,
-                resolve3,
+                resolve4,
                 reject
               );
-            })) : resolve3(returnValue$jscomp$0);
+            })) : resolve4(returnValue$jscomp$0);
           }
         };
       };
@@ -3048,8 +3048,8 @@ var require_react_reconciler_production = __commonJS({
           currentEntangledActionThenable = {
             status: "pending",
             value: void 0,
-            then: function(resolve3) {
-              entangledListeners.push(resolve3);
+            then: function(resolve4) {
+              entangledListeners.push(resolve4);
             }
           };
         }
@@ -3072,8 +3072,8 @@ var require_react_reconciler_production = __commonJS({
           status: "pending",
           value: null,
           reason: null,
-          then: function(resolve3) {
-            listeners.push(resolve3);
+          then: function(resolve4) {
+            listeners.push(resolve4);
           }
         };
         thenable.then(
@@ -12672,8 +12672,8 @@ var require_react_reconciler_development = __commonJS({
           currentEntangledActionThenable = {
             status: "pending",
             value: void 0,
-            then: function(resolve3) {
-              entangledListeners.push(resolve3);
+            then: function(resolve4) {
+              entangledListeners.push(resolve4);
             }
           };
         }
@@ -12696,8 +12696,8 @@ var require_react_reconciler_development = __commonJS({
           status: "pending",
           value: null,
           reason: null,
-          then: function(resolve3) {
-            listeners.push(resolve3);
+          then: function(resolve4) {
+            listeners.push(resolve4);
           }
         };
         thenable.then(
@@ -44418,22 +44418,22 @@ var init_devtools = __esm({
     init_devtools_window_polyfill();
     init_wrapper();
     import_react_devtools_core = __toESM(require_backend(), 1);
-    isDevToolsReachable = async () => new Promise((resolve3) => {
+    isDevToolsReachable = async () => new Promise((resolve4) => {
       const socket = new wrapper_default("ws://localhost:8097");
       const timeout = setTimeout(() => {
         socket.terminate();
-        resolve3(false);
+        resolve4(false);
       }, 2e3);
       timeout.unref();
       socket.on("open", () => {
         clearTimeout(timeout);
         socket.terminate();
-        resolve3(true);
+        resolve4(true);
       });
       socket.on("error", () => {
         clearTimeout(timeout);
         socket.terminate();
-        resolve3(false);
+        resolve4(false);
       });
     });
     if (await isDevToolsReachable()) {
@@ -52683,8 +52683,8 @@ var kittyModifiers = {
 var noop = () => {
 };
 var textEncoder = new TextEncoder();
-var yieldImmediate = async () => new Promise((resolve3) => {
-  setImmediate(resolve3);
+var yieldImmediate = async () => new Promise((resolve4) => {
+  setImmediate(resolve4);
 });
 var kittyQueryEscapeByte = 27;
 var kittyQueryOpenBracketByte = 91;
@@ -52888,8 +52888,8 @@ var Ink = class {
       };
     }
     this.initKittyKeyboard();
-    this.exitPromise = new Promise((resolve3, reject) => {
-      this.resolveExitPromise = resolve3;
+    this.exitPromise = new Promise((resolve4, reject) => {
+      this.resolveExitPromise = resolve4;
       this.rejectExitPromise = reject;
     });
     void this.exitPromise.catch(noop);
@@ -53182,9 +53182,9 @@ var Ink = class {
     settleThrottle(this.throttledOnRender, canWriteToStdout);
     settleThrottle(this.throttledLog, canWriteToStdout);
     if (canWriteToStdout && hasWritableState) {
-      await new Promise((resolve3) => {
+      await new Promise((resolve4) => {
         this.options.stdout.write("", () => {
-          resolve3();
+          resolve4();
         });
       });
       return;
@@ -53251,8 +53251,8 @@ var Ink = class {
   async awaitNextRender() {
     if (!this.nextRenderCommit) {
       let resolveRender;
-      const promise = new Promise((resolve3) => {
-        resolveRender = resolve3;
+      const promise = new Promise((resolve4) => {
+        resolveRender = resolve4;
       });
       this.nextRenderCommit = { promise, resolve: resolveRender };
     }
@@ -53984,7 +53984,7 @@ var import_react32 = __toESM(require_react(), 1);
 var import_react33 = __toESM(require_react(), 1);
 
 // src/cli/tui.tsx
-import { fileURLToPath as fileURLToPath2 } from "url";
+import { fileURLToPath as fileURLToPath3 } from "url";
 
 // src/cli/app.tsx
 var import_react38 = __toESM(require_react(), 1);
@@ -54434,7 +54434,7 @@ function ValueDisplay({ setting, value, focused }) {
 // src/cli/screens/board.tsx
 var import_react37 = __toESM(require_react(), 1);
 import { spawnSync } from "child_process";
-import { join as join8 } from "path";
+import { join as join9 } from "path";
 
 // src/cli/lib/board-reader.ts
 import { existsSync as existsSync3, readdirSync, readFileSync as readFileSync3, mkdirSync, unlinkSync as unlinkSync2 } from "fs";
@@ -54923,12 +54923,56 @@ function archiveTaskInBoard(kandownDir, taskId) {
 }
 
 // src/cli/lib/daemon.ts
-import { existsSync as existsSync4, readFileSync as readFileSync4, unlinkSync as unlinkSync3 } from "fs";
-import { dirname as dirname2, join as join3 } from "path";
-import { execFileSync as execFileSync3, spawn } from "child_process";
+import { existsSync as existsSync5, readFileSync as readFileSync5, unlinkSync as unlinkSync4 } from "fs";
+import { dirname as dirname3, join as join4 } from "path";
+import { execFileSync as execFileSync3, spawn as spawn2 } from "child_process";
 import { createConnection } from "net";
+
+// src/cli/lib/updater.ts
+import { existsSync as existsSync4, readFileSync as readFileSync4, writeFileSync as writeFileSync2, unlinkSync as unlinkSync3, statSync, mkdirSync as mkdirSync2 } from "fs";
+import { join as join3, resolve } from "path";
+import { spawn, execSync } from "child_process";
+import { homedir as homedir2 } from "os";
+
+// src/lib/version.ts
+var KANDOWN_VERSION = "0.33.4";
+
+// src/cli/lib/updater.ts
+import { fileURLToPath as fileURLToPath2 } from "url";
+import { dirname as dirname2 } from "path";
+function getPackageRoot() {
+  try {
+    const currentFile = fileURLToPath2(import.meta.url);
+    if (currentFile.includes("/bin/")) {
+      return resolve(dirname2(currentFile), "..");
+    }
+    return resolve(dirname2(currentFile), "../../..");
+  } catch {
+    return process.cwd();
+  }
+}
+var PKG_ROOT2 = getPackageRoot();
+var CACHE_DIR = join3(homedir2(), ".kandown");
+var UPDATE_CHECK_CACHE = join3(CACHE_DIR, ".update-check.json");
+var UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1e3;
+function getCurrentVersion() {
+  if (KANDOWN_VERSION && KANDOWN_VERSION !== "0.0.0-dev") {
+    return KANDOWN_VERSION;
+  }
+  try {
+    const pkgPath = resolve(import.meta.url ? new URL("../../..", import.meta.url).pathname : process.cwd(), "package.json");
+    if (existsSync4(pkgPath)) {
+      const pkg = JSON.parse(readFileSync4(pkgPath, "utf8"));
+      if (pkg.version) return pkg.version;
+    }
+  } catch {
+  }
+  return KANDOWN_VERSION || "0.32.1";
+}
+
+// src/cli/lib/daemon.ts
 function metadataPath(kandownDir) {
-  return join3(kandownDir, "daemon.json");
+  return join4(kandownDir, "daemon.json");
 }
 function isRecord(value) {
   return typeof value === "object" && value !== null;
@@ -54946,9 +54990,9 @@ function parseMetadata(value) {
 }
 function readDaemonMetadata(kandownDir) {
   const path = metadataPath(kandownDir);
-  if (!existsSync4(path)) return null;
+  if (!existsSync5(path)) return null;
   try {
-    return parseMetadata(JSON.parse(readFileSync4(path, "utf8")));
+    return parseMetadata(JSON.parse(readFileSync5(path, "utf8")));
   } catch {
     return null;
   }
@@ -54956,7 +55000,7 @@ function readDaemonMetadata(kandownDir) {
 function removeDaemonMetadata(kandownDir) {
   try {
     const path = metadataPath(kandownDir);
-    if (existsSync4(path)) unlinkSync3(path);
+    if (existsSync5(path)) unlinkSync4(path);
   } catch {
   }
 }
@@ -54970,9 +55014,10 @@ function isProcessAlive(pid) {
 }
 function parseRemoteDaemonInfo(value) {
   if (!isRecord(value)) return null;
-  const { ok, pid, kandownDir } = value;
+  const { ok, pid, kandownDir, version } = value;
   if (ok !== true || typeof pid !== "number" || !Number.isInteger(pid) || typeof kandownDir !== "string") return null;
-  return { ok, pid, kandownDir };
+  if (version !== null && typeof version !== "string" && version !== void 0) return null;
+  return { ok, pid, kandownDir, version: typeof version === "string" ? version : null };
 }
 async function fetchDaemonInfo(port) {
   try {
@@ -54986,16 +55031,16 @@ async function fetchDaemonInfo(port) {
   }
 }
 function isPortListening(port, timeoutMs = 400) {
-  return new Promise((resolve3) => {
+  return new Promise((resolve4) => {
     const socket = createConnection({ port, host: "127.0.0.1" }, () => {
       socket.destroy();
-      resolve3(true);
+      resolve4(true);
     });
-    socket.on("error", () => resolve3(false));
+    socket.on("error", () => resolve4(false));
     socket.setTimeout(timeoutMs);
     socket.on("timeout", () => {
       socket.destroy();
-      resolve3(false);
+      resolve4(false);
     });
   });
 }
@@ -55014,7 +55059,7 @@ async function getDaemonStatus(kandownDir) {
     removeDaemonMetadata(kandownDir);
     return { running: false, metadata: null };
   }
-  return { running: true, metadata };
+  return { running: true, metadata: { ...metadata, version: remote.version ?? metadata.version } };
 }
 async function waitForDaemon(kandownDir, timeoutMs = 8e3) {
   const started = Date.now();
@@ -55023,13 +55068,16 @@ async function waitForDaemon(kandownDir, timeoutMs = 8e3) {
     if (metadata && isProcessAlive(metadata.pid) && await isPortListening(metadata.port)) {
       return { running: true, metadata };
     }
-    await new Promise((resolve3) => setTimeout(resolve3, 120));
+    await new Promise((resolve4) => setTimeout(resolve4, 120));
   }
   return { running: false, metadata: null };
 }
 async function startProjectDaemon(kandownDir, preferredPort) {
   const current = await getDaemonStatus(kandownDir);
-  if (current.running) return current;
+  if (current.running) {
+    if (current.metadata?.version === getCurrentVersion()) return current;
+    await stopProjectDaemon(kandownDir);
+  }
   const cliPath = process.argv[1];
   if (!cliPath) throw new Error("Cannot locate kandown CLI entrypoint");
   const args = [
@@ -55043,8 +55091,8 @@ async function startProjectDaemon(kandownDir, preferredPort) {
   if (typeof preferredPort === "number" && Number.isInteger(preferredPort)) {
     args.push("--port", String(preferredPort));
   }
-  const child = spawn(process.execPath, args, {
-    cwd: dirname2(kandownDir),
+  const child = spawn2(process.execPath, args, {
+    cwd: dirname3(kandownDir),
     detached: true,
     stdio: "ignore",
     env: { ...process.env, KANDOWN_DAEMON: "1" }
@@ -55083,7 +55131,7 @@ async function stopProjectDaemon(kandownDir) {
   }
   const started = Date.now();
   while (Date.now() - started < 2500 && isProcessAlive(pid)) {
-    await new Promise((resolve3) => setTimeout(resolve3, 100));
+    await new Promise((resolve4) => setTimeout(resolve4, 100));
   }
   if (isProcessAlive(pid)) {
     try {
@@ -55096,9 +55144,9 @@ async function stopProjectDaemon(kandownDir) {
 }
 
 // src/cli/lib/file-watcher.ts
-import { createReadStream, statSync } from "fs";
+import { createReadStream, statSync as statSync2 } from "fs";
 import { createHash } from "crypto";
-import { join as join6 } from "path";
+import { join as join7 } from "path";
 
 // node_modules/.pnpm/chokidar@4.0.3/node_modules/chokidar/esm/index.js
 import { stat as statcb } from "fs";
@@ -55829,9 +55877,9 @@ var NodeFsHandler = class {
     if (this.fsw.closed) {
       return;
     }
-    const dirname5 = sysPath.dirname(file);
+    const dirname6 = sysPath.dirname(file);
     const basename3 = sysPath.basename(file);
-    const parent = this.fsw._getWatchedDir(dirname5);
+    const parent = this.fsw._getWatchedDir(dirname6);
     let prevStats = stats;
     if (parent.has(basename3))
       return;
@@ -55858,7 +55906,7 @@ var NodeFsHandler = class {
             prevStats = newStats2;
           }
         } catch (error) {
-          this.fsw._remove(dirname5, basename3);
+          this.fsw._remove(dirname6, basename3);
         }
       } else if (parent.has(basename3)) {
         const at = newStats.atimeMs;
@@ -55954,7 +56002,7 @@ var NodeFsHandler = class {
         this._addToNodeFs(path, initialAdd, wh, depth + 1);
       }
     }).on(EV.ERROR, this._boundHandleError);
-    return new Promise((resolve3, reject) => {
+    return new Promise((resolve4, reject) => {
       if (!stream)
         return reject();
       stream.once(STR_END, () => {
@@ -55963,7 +56011,7 @@ var NodeFsHandler = class {
           return;
         }
         const wasThrottled = throttler ? throttler.clear() : false;
-        resolve3(void 0);
+        resolve4(void 0);
         previous.getChildren().filter((item) => {
           return item !== directory && !current.has(item);
         }).forEach((item) => {
@@ -56792,11 +56840,11 @@ function watch(paths, options = {}) {
 
 // src/cli/lib/file-watcher.ts
 function hashFile(filePath) {
-  return new Promise((resolve3, reject) => {
+  return new Promise((resolve4, reject) => {
     const hash = createHash("sha256");
     const stream = createReadStream(filePath);
     stream.on("data", (chunk) => hash.update(chunk));
-    stream.on("end", () => resolve3(hash.digest("hex")));
+    stream.on("end", () => resolve4(hash.digest("hex")));
     stream.on("error", reject);
   });
 }
@@ -56824,17 +56872,17 @@ var FileWatcher = class {
    */
   start(kandownDir) {
     const tasksDir = getTasksDir(kandownDir);
-    const configPath = join6(kandownDir, "kandown.json");
+    const configPath = join7(kandownDir, "kandown.json");
     const existingIds = listTaskIds(kandownDir);
     for (const id of existingIds) {
       this.knownTaskIds.add(id);
       try {
-        const filePath = join6(tasksDir, `${id}.md`);
+        const filePath = join7(tasksDir, `${id}.md`);
         this.taskHashes.set(id, hashFileSync(filePath));
       } catch {
       }
     }
-    this.watcher = watch([join6(tasksDir, "*.md"), configPath], {
+    this.watcher = watch([join7(tasksDir, "*.md"), configPath], {
       ignoreInitial: true,
       awaitWriteFinish: { stabilityThreshold: 25, pollInterval: 25 },
       alwaysStat: true
@@ -56883,7 +56931,7 @@ var FileWatcher = class {
   handleFsEvent(event, filePath, kandownDir) {
     if (this.stopped) return;
     const tasksDir = getTasksDir(kandownDir);
-    const configPath = join6(kandownDir, "kandown.json");
+    const configPath = join7(kandownDir, "kandown.json");
     if (filePath === configPath) {
       const key = `config:${event}`;
       const existing = this.debounceTimers.get(key);
@@ -56936,15 +56984,15 @@ var FileWatcher = class {
   async pollHashes(kandownDir) {
     if (this.stopped) return;
     const tasksDir = getTasksDir(kandownDir);
-    const configPath = join6(kandownDir, "kandown.json");
+    const configPath = join7(kandownDir, "kandown.json");
     try {
       const newHash = hashFileSync(configPath);
     } catch {
     }
     for (const taskId of this.knownTaskIds) {
-      const filePath = join6(tasksDir, `${taskId}.md`);
+      const filePath = join7(tasksDir, `${taskId}.md`);
       try {
-        statSync(filePath);
+        statSync2(filePath);
         const newHash = await hashFile(filePath);
         const oldHash = this.taskHashes.get(taskId);
         if (oldHash !== void 0 && newHash !== oldHash) {
@@ -56959,7 +57007,7 @@ var FileWatcher = class {
     const currentIds = listTaskIds(kandownDir);
     for (const id of currentIds) {
       if (!this.knownTaskIds.has(id)) {
-        const filePath = join6(tasksDir, `${id}.md`);
+        const filePath = join7(tasksDir, `${id}.md`);
         try {
           const newHash = await hashFile(filePath);
           this.knownTaskIds.add(id);
@@ -57134,9 +57182,9 @@ function buildPrompt(agentDoc, taskContent, taskId, kandownDir) {
 }
 
 // src/cli/lib/launcher.ts
-import { execSync, spawn as spawn2 } from "child_process";
-import { writeFileSync as writeFileSync2 } from "fs";
-import { join as join7 } from "path";
+import { execSync as execSync2, spawn as spawn3 } from "child_process";
+import { writeFileSync as writeFileSync3 } from "fs";
+import { join as join8 } from "path";
 import { tmpdir } from "os";
 function isInTmux() {
   return !!process.env.TMUX;
@@ -57169,9 +57217,9 @@ function launchAgent(opts) {
   if (!taskMoved) {
     throw new Error(`Could not move task ${taskId} to In Progress \u2014 task file missing or unwritable.`);
   }
-  const contextFile = join7(tmpdir(), `kandown-${taskId}-context.md`);
+  const contextFile = join8(tmpdir(), `kandown-${taskId}-context.md`);
   try {
-    writeFileSync2(contextFile, `${systemPrompt}
+    writeFileSync3(contextFile, `${systemPrompt}
 
 ---
 
@@ -57193,7 +57241,7 @@ ${taskPrompt}`, "utf8");
       `KANDOWN_DIR=${shellescape(kandownDir)}`
     ].join(" ");
     try {
-      execSync(`tmux split-window -h -p 50 ${shellescape(`env ${envPrefix} ${shellCmd}`)}`, {
+      execSync2(`tmux split-window -h -p 50 ${shellescape(`env ${envPrefix} ${shellCmd}`)}`, {
         stdio: "inherit"
       });
     } catch (e) {
@@ -57203,7 +57251,7 @@ ${taskPrompt}`, "utf8");
   } else {
     try {
       onBeforeExec?.();
-      const child = spawn2(binary, args, {
+      const child = spawn3(binary, args, {
         stdio: "inherit",
         env: {
           ...process.env,
@@ -58361,7 +58409,7 @@ function Board({ kandownDir, version }) {
       if (input === "e") {
         const task = getFocusedTask();
         if (task) {
-          const taskPath = join8(getTasksDir(kandownDir), `${task.id}.md`);
+          const taskPath = join9(getTasksDir(kandownDir), `${task.id}.md`);
           const editor = process.env.EDITOR || "nano";
           try {
             spawnSync(editor, [taskPath], { stdio: "inherit" });
@@ -58784,7 +58832,7 @@ async function run(screen, kandownDir, version) {
   });
   await instance.waitUntilExit();
 }
-if (process.argv[1] === fileURLToPath2(import.meta.url)) {
+if (process.argv[1] === fileURLToPath3(import.meta.url)) {
   const screen = process.argv[2] || "board";
   const kandownDir = process.argv[3];
   const version = process.argv[4];

@@ -22,6 +22,7 @@ import { existsSync, readFileSync, unlinkSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { execFileSync, spawn } from 'node:child_process';
 import { createConnection } from 'node:net';
+import { getCurrentVersion } from './updater';
 
 export interface DaemonMetadata {
   pid: number;
@@ -44,6 +45,7 @@ interface RemoteDaemonInfo {
   ok: boolean;
   pid: number;
   kandownDir: string;
+  version: string | null;
 }
 
 function metadataPath(kandownDir: string): string {
@@ -96,9 +98,10 @@ function isProcessAlive(pid: number): boolean {
 
 function parseRemoteDaemonInfo(value: unknown): RemoteDaemonInfo | null {
   if (!isRecord(value)) return null;
-  const { ok, pid, kandownDir } = value;
+  const { ok, pid, kandownDir, version } = value;
   if (ok !== true || typeof pid !== 'number' || !Number.isInteger(pid) || typeof kandownDir !== 'string') return null;
-  return { ok, pid, kandownDir };
+  if (version !== null && typeof version !== 'string' && version !== undefined) return null;
+  return { ok, pid, kandownDir, version: typeof version === 'string' ? version : null };
 }
 
 async function fetchDaemonInfo(port: number): Promise<RemoteDaemonInfo | null> {
@@ -148,7 +151,7 @@ export async function getDaemonStatus(kandownDir: string): Promise<DaemonStatus>
     return { running: false, metadata: null };
   }
 
-  return { running: true, metadata };
+  return { running: true, metadata: { ...metadata, version: remote.version ?? metadata.version } };
 }
 
 async function waitForDaemon(kandownDir: string, timeoutMs = 8000): Promise<DaemonStatus> {
@@ -165,7 +168,14 @@ async function waitForDaemon(kandownDir: string, timeoutMs = 8000): Promise<Daem
 
 export async function startProjectDaemon(kandownDir: string, preferredPort?: number | null): Promise<DaemonStatus> {
   const current = await getDaemonStatus(kandownDir);
-  if (current.running) return current;
+  if (current.running) {
+    // 📖 A package auto-update replaces the CLI on disk, but existing daemons
+    // keep serving the old bundled web app until they are restarted. Treat a
+    // missing or different daemon version as stale so `kandown` always opens
+    // the current web UI after an update instead of silently reusing old code.
+    if (current.metadata?.version === getCurrentVersion()) return current;
+    await stopProjectDaemon(kandownDir);
+  }
 
   const cliPath = process.argv[1];
   if (!cliPath) throw new Error('Cannot locate kandown CLI entrypoint');

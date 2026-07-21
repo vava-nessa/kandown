@@ -89,6 +89,51 @@ export function syncProjectKandownHtml(kandownDir: string): boolean {
  */
 export function syncGlobalSymlinks(): void {}
 
+function readDaemonPort(kandownDir: string): number | null {
+  try {
+    const raw = JSON.parse(readFileSync(join(kandownDir, 'daemon.json'), 'utf8')) as { port?: unknown };
+    return typeof raw.port === 'number' && Number.isInteger(raw.port) ? raw.port : null;
+  } catch {
+    return null;
+  }
+}
+
+function restartDaemonAfterUpdateResponse(res: ServerResponse, kandownDir: string): void {
+  const cliPath = process.argv[1];
+  if (!cliPath) return;
+
+  const args = ['--no-update-check', 'daemon', 'run', '--path', kandownDir];
+  const port = readDaemonPort(kandownDir);
+  if (port !== null) args.push('--port', String(port));
+
+  // 📖 The web update route runs inside the daemon itself. After the package is
+  // installed, this tiny detached launcher waits for the current process to
+  // release its port, then starts the new CLI daemon on the same project. This
+  // makes Web UI-triggered updates actually switch to the updated server code.
+  const launcher = `
+const { spawn } = require('node:child_process');
+const [nodeBin, cliPath, ...cliArgs] = process.argv.slice(1);
+setTimeout(() => {
+  const child = spawn(nodeBin, [cliPath, ...cliArgs], {
+    detached: true,
+    stdio: 'ignore',
+    env: { ...process.env, KANDOWN_DAEMON: '1' },
+  });
+  child.unref();
+}, 350);
+`;
+
+  res.on('finish', () => {
+    const child = spawn(process.execPath, ['-e', launcher, process.execPath, cliPath, ...args], {
+      detached: true,
+      stdio: 'ignore',
+      env: { ...process.env, KANDOWN_DAEMON: '1' },
+    });
+    child.unref();
+    setTimeout(() => process.exit(0), 50).unref();
+  });
+}
+
 async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, kandownDir: string): Promise<void> {
   const path = url.pathname;
   const method = req.method || 'GET';
@@ -157,7 +202,8 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
     syncProjectKandownHtml(kandownDir);
 
     if (ok) {
-      writeJson(res, 200, { ok: true, version: targetVersion, message: 'Update installed successfully' });
+      restartDaemonAfterUpdateResponse(res, kandownDir);
+      writeJson(res, 200, { ok: true, version: targetVersion, message: 'Update installed successfully; daemon is restarting' });
       broadcastSseEvent({ type: 'update', version: targetVersion });
     } else {
       writeJson(res, 500, { ok: false, message: 'Global package installation failed' });

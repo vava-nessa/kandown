@@ -16,7 +16,7 @@ import { spawn, execSync } from "child_process";
 import { homedir } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.33.3";
+var KANDOWN_VERSION = "0.33.4";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath } from "url";
@@ -99,6 +99,31 @@ function resolveKandownBin() {
   }
   return null;
 }
+async function readInstalledKandownVersion(targetVersion) {
+  const localVersion = getCurrentVersion();
+  const bin = resolveKandownBin();
+  if (!bin) return localVersion;
+  return await new Promise((resolveVersion) => {
+    const child = spawn(bin, ["--version"], {
+      timeout: 5e3,
+      stdio: ["pipe", "pipe", "pipe"],
+      env: { ...process.env, KANDOWN_NO_UPDATE: "1" },
+      detached: false
+    });
+    let stdout = "";
+    child.stdout.on("data", (d) => {
+      stdout += d;
+    });
+    child.stderr.on("data", () => {
+    });
+    child.on("error", () => resolveVersion(localVersion));
+    child.on("close", (code) => {
+      if (code !== 0) return resolveVersion(localVersion);
+      const match = stdout.trim().match(/v?(\d+\.\d+\.\d+(?:-[\w.-]+)?)/);
+      resolveVersion(match ? match[1] : localVersion);
+    });
+  });
+}
 function updateCheckedRecently() {
   try {
     if (!existsSync(UPDATE_CHECK_CACHE)) return false;
@@ -115,6 +140,10 @@ function rememberUpdateCheck() {
   } catch {
   }
 }
+function requestedSemver(packageSpec) {
+  const match = packageSpec.match(/@(\d+\.\d+\.\d+(?:-[\w.-]+)?)$/);
+  return match ? match[1] : null;
+}
 async function performGlobalPackageUpdate(packageSpec) {
   const cleanEnv = { ...process.env };
   for (const k of Object.keys(cleanEnv)) {
@@ -122,6 +151,12 @@ async function performGlobalPackageUpdate(packageSpec) {
       delete cleanEnv[k];
     }
   }
+  const targetVersion = requestedSemver(packageSpec);
+  const verifyInstalledVersion = async () => {
+    if (!targetVersion) return true;
+    const installedVersion = await readInstalledKandownVersion(targetVersion);
+    return semverGt(installedVersion, targetVersion) >= 0;
+  };
   const tryPkgCmd = (cmd, args) => {
     return new Promise((res) => {
       const child = spawn(cmd, args, {
@@ -138,22 +173,26 @@ async function performGlobalPackageUpdate(packageSpec) {
       child.on("close", (code) => res(code === 0));
     });
   };
+  const tryPkgCmdAndVerify = async (cmd, args) => {
+    if (!await tryPkgCmd(cmd, args)) return false;
+    return verifyInstalledVersion();
+  };
   const currentBin = resolveKandownBin() || "";
   const currentBinDir = currentBin ? dirname(currentBin) : null;
   const siblingNpm = currentBinDir ? join(currentBinDir, "npm") : null;
   const siblingPnpm = currentBinDir ? join(currentBinDir, "pnpm") : null;
   const isPnpmInstall = currentBin.includes("pnpm");
-  if (siblingPnpm && existsSync(siblingPnpm) && await tryPkgCmd(siblingPnpm, ["add", "-g", packageSpec])) return true;
-  if (siblingNpm && existsSync(siblingNpm) && await tryPkgCmd(siblingNpm, ["install", "-g", packageSpec, "--force"])) return true;
+  if (siblingPnpm && existsSync(siblingPnpm) && await tryPkgCmdAndVerify(siblingPnpm, ["add", "-g", packageSpec])) return true;
+  if (siblingNpm && existsSync(siblingNpm) && await tryPkgCmdAndVerify(siblingNpm, ["install", "-g", packageSpec, "--force"])) return true;
   if (isPnpmInstall) {
-    if (await tryPkgCmd("pnpm", ["add", "-g", packageSpec])) return true;
-    if (await tryPkgCmd("npm", ["install", "-g", packageSpec, "--force"])) return true;
+    if (await tryPkgCmdAndVerify("pnpm", ["add", "-g", packageSpec])) return true;
+    if (await tryPkgCmdAndVerify("npm", ["install", "-g", packageSpec, "--force"])) return true;
   } else {
-    if (await tryPkgCmd("npm", ["install", "-g", packageSpec, "--force"])) return true;
-    if (await tryPkgCmd("pnpm", ["add", "-g", packageSpec])) return true;
+    if (await tryPkgCmdAndVerify("npm", ["install", "-g", packageSpec, "--force"])) return true;
+    if (await tryPkgCmdAndVerify("pnpm", ["add", "-g", packageSpec])) return true;
   }
-  if (await tryPkgCmd("yarn", ["global", "add", packageSpec])) return true;
-  return await tryPkgCmd("bun", ["add", "-g", packageSpec]);
+  if (await tryPkgCmdAndVerify("yarn", ["global", "add", packageSpec])) return true;
+  return await tryPkgCmdAndVerify("bun", ["add", "-g", packageSpec]);
 }
 async function checkForUpdate(argv = process.argv) {
   if (process.env.KANDOWN_NO_UPDATE === "1") return;
@@ -802,9 +841,10 @@ function isProcessAlive(pid) {
 }
 function parseRemoteDaemonInfo(value) {
   if (!isRecord(value)) return null;
-  const { ok, pid, kandownDir } = value;
+  const { ok, pid, kandownDir, version } = value;
   if (ok !== true || typeof pid !== "number" || !Number.isInteger(pid) || typeof kandownDir !== "string") return null;
-  return { ok, pid, kandownDir };
+  if (version !== null && typeof version !== "string" && version !== void 0) return null;
+  return { ok, pid, kandownDir, version: typeof version === "string" ? version : null };
 }
 async function fetchDaemonInfo(port) {
   try {
@@ -846,7 +886,7 @@ async function getDaemonStatus(kandownDir) {
     removeDaemonMetadata(kandownDir);
     return { running: false, metadata: null };
   }
-  return { running: true, metadata };
+  return { running: true, metadata: { ...metadata, version: remote.version ?? metadata.version } };
 }
 async function waitForDaemon(kandownDir, timeoutMs = 8e3) {
   const started = Date.now();
@@ -861,7 +901,10 @@ async function waitForDaemon(kandownDir, timeoutMs = 8e3) {
 }
 async function startProjectDaemon(kandownDir, preferredPort) {
   const current = await getDaemonStatus(kandownDir);
-  if (current.running) return current;
+  if (current.running) {
+    if (current.metadata?.version === getCurrentVersion()) return current;
+    await stopProjectDaemon(kandownDir);
+  }
   const cliPath = process.argv[1];
   if (!cliPath) throw new Error("Cannot locate kandown CLI entrypoint");
   const args = [
@@ -984,6 +1027,42 @@ function syncProjectKandownHtml(kandownDir) {
   }
   return false;
 }
+function readDaemonPort(kandownDir) {
+  try {
+    const raw = JSON.parse(readFileSync5(join5(kandownDir, "daemon.json"), "utf8"));
+    return typeof raw.port === "number" && Number.isInteger(raw.port) ? raw.port : null;
+  } catch {
+    return null;
+  }
+}
+function restartDaemonAfterUpdateResponse(res, kandownDir) {
+  const cliPath = process.argv[1];
+  if (!cliPath) return;
+  const args = ["--no-update-check", "daemon", "run", "--path", kandownDir];
+  const port = readDaemonPort(kandownDir);
+  if (port !== null) args.push("--port", String(port));
+  const launcher = `
+const { spawn } = require('node:child_process');
+const [nodeBin, cliPath, ...cliArgs] = process.argv.slice(1);
+setTimeout(() => {
+  const child = spawn(nodeBin, [cliPath, ...cliArgs], {
+    detached: true,
+    stdio: 'ignore',
+    env: { ...process.env, KANDOWN_DAEMON: '1' },
+  });
+  child.unref();
+}, 350);
+`;
+  res.on("finish", () => {
+    const child = spawn3(process.execPath, ["-e", launcher, process.execPath, cliPath, ...args], {
+      detached: true,
+      stdio: "ignore",
+      env: { ...process.env, KANDOWN_DAEMON: "1" }
+    });
+    child.unref();
+    setTimeout(() => process.exit(0), 50).unref();
+  });
+}
 async function handleApi(req, res, url, kandownDir) {
   const path = url.pathname;
   const method = req.method || "GET";
@@ -1050,7 +1129,8 @@ async function handleApi(req, res, url, kandownDir) {
     const ok = await performGlobalPackageUpdate(`kandown@${targetVersion}`);
     syncProjectKandownHtml(kandownDir);
     if (ok) {
-      writeJson(res, 200, { ok: true, version: targetVersion, message: "Update installed successfully" });
+      restartDaemonAfterUpdateResponse(res, kandownDir);
+      writeJson(res, 200, { ok: true, version: targetVersion, message: "Update installed successfully; daemon is restarting" });
       broadcastSseEvent({ type: "update", version: targetVersion });
     } else {
       writeJson(res, 500, { ok: false, message: "Global package installation failed" });
