@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.33.2 — 2026-07-21 — "Fix CJS Require Shim & Path Resolution"
+
+- **Fixed**: **TUI Require Shim Error (`Dynamic require of "module"`)** — added `createRequire` global banner shim in `tsup.config.ts` so Ink and React CJS dependencies inside `bin/tui.js` execute natively under Node ESM without dynamic require errors.
+- **Fixed**: **Package Root Path Resolution (`PKG_ROOT`)** — updated `getPackageRoot()` to detect whether execution happens inside `bin/` or `src/cli/`, resolving `PKG_ROOT` to the exact installed package directory in all global installation modes.
+
 ## 0.33.1 — 2026-07-21 — "Instant TUI & Browser Launcher Fix"
 
 - **Fixed**: **CLI Default Command Execution (`kandown`)** — fixed `bin/tui.js` path resolution in global installation so running `kandown` with no arguments instantly opens both the browser AND the interactive terminal board UI (TUI), eliminating the fallback message `Open kandown.html in browser`.

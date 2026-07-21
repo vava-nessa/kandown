@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+import { createRequire as __createRequire } from 'node:module';
+if (typeof globalThis.require === 'undefined') {
+  globalThis.require = __createRequire(import.meta.url);
+}
 
 // src/cli/cli.ts
 import { existsSync as existsSync6, readFileSync as readFileSync6, copyFileSync as copyFileSync2 } from "fs";
@@ -12,10 +16,23 @@ import { spawn, execSync } from "child_process";
 import { homedir } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.33.1";
+var KANDOWN_VERSION = "0.33.2";
 
 // src/cli/lib/updater.ts
-var PKG_ROOT = resolve(import.meta.url ? new URL("../../..", import.meta.url).pathname : process.cwd());
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+function getPackageRoot() {
+  try {
+    const currentFile = fileURLToPath(import.meta.url);
+    if (currentFile.includes("/bin/")) {
+      return resolve(dirname(currentFile), "..");
+    }
+    return resolve(dirname(currentFile), "../../..");
+  } catch {
+    return process.cwd();
+  }
+}
+var PKG_ROOT = getPackageRoot();
 var CACHE_DIR = join(homedir(), ".kandown");
 var UPDATE_CHECK_CACHE = join(CACHE_DIR, ".update-check.json");
 var UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1e3;
@@ -205,8 +222,8 @@ ${now}`, "utf8");
 
 // src/cli/lib/board-reader.ts
 import { existsSync as existsSync3, readdirSync, readFileSync as readFileSync3, mkdirSync as mkdirSync2, unlinkSync as unlinkSync3 } from "fs";
-import { dirname, join as join3 } from "path";
-import { fileURLToPath } from "url";
+import { dirname as dirname2, join as join3 } from "path";
+import { fileURLToPath as fileURLToPath2 } from "url";
 import { homedir as homedir2 } from "os";
 import { execFileSync } from "child_process";
 
@@ -494,7 +511,7 @@ function saveConfig(kandownDir, config) {
 
 // src/cli/lib/board-reader.ts
 function getProjectRoot(kandownDir) {
-  return dirname(kandownDir);
+  return dirname2(kandownDir);
 }
 function getTasksDir(kandownDir) {
   return join3(getProjectRoot(kandownDir), "tasks");
@@ -548,7 +565,7 @@ function readTask(kandownDir, taskId) {
     }
   };
 }
-var PKG_ROOT2 = dirname(dirname(fileURLToPath(import.meta.url)));
+var PKG_ROOT2 = dirname2(dirname2(fileURLToPath2(import.meta.url)));
 function readAgentDoc(kandownDir) {
   const sections = [];
   try {
@@ -638,7 +655,7 @@ function pushUndo(kandownDir, record) {
 
 // src/cli/lib/daemon.ts
 import { existsSync as existsSync4, readFileSync as readFileSync4, unlinkSync as unlinkSync4 } from "fs";
-import { dirname as dirname2, join as join4 } from "path";
+import { dirname as dirname3, join as join4 } from "path";
 import { execFileSync as execFileSync2, spawn as spawn2 } from "child_process";
 import { createConnection } from "net";
 function metadataPath(kandownDir) {
@@ -758,7 +775,7 @@ async function startProjectDaemon(kandownDir, preferredPort) {
     args.push("--port", String(preferredPort));
   }
   const child = spawn2(process.execPath, args, {
-    cwd: dirname2(kandownDir),
+    cwd: dirname3(kandownDir),
     detached: true,
     stdio: "ignore",
     env: { ...process.env, KANDOWN_DAEMON: "1" }
@@ -770,7 +787,7 @@ async function startProjectDaemon(kandownDir, preferredPort) {
 // src/cli/lib/server.ts
 import { createServer } from "http";
 import { existsSync as existsSync5, readFileSync as readFileSync5, copyFileSync, unlinkSync as unlinkSync5, mkdirSync as mkdirSync3 } from "fs";
-import { join as join5, resolve as resolve2, dirname as dirname3 } from "path";
+import { join as join5, resolve as resolve2, dirname as dirname4 } from "path";
 import { execSync as execSync2, spawn as spawn3 } from "child_process";
 import { homedir as homedir3 } from "os";
 var START_PORT_RANGE = 2050;
@@ -836,7 +853,7 @@ function syncGlobalSymlinks() {
     ];
     const currentBin = resolve2(import.meta.url ? new URL("../../bin/kandown.js", import.meta.url).pathname : process.cwd());
     for (const targetPath of candidatePaths) {
-      if (existsSync5(dirname3(targetPath))) {
+      if (existsSync5(dirname4(targetPath))) {
         try {
           if (existsSync5(targetPath)) unlinkSync5(targetPath);
           execSync2(`ln -sf "${currentBin}" "${targetPath}" 2>/dev/null || true`);

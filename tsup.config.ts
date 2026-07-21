@@ -26,8 +26,13 @@ export default defineConfig({
   clean: false,
   target: 'node18',
   banner: {
-    js: '#!/usr/bin/env node',
+    js: `#!/usr/bin/env node
+import { createRequire as __createRequire } from 'node:module';
+if (typeof globalThis.require === 'undefined') {
+  globalThis.require = __createRequire(import.meta.url);
+}`,
   },
+
   splitting: false,
   sourcemap: false,
   dts: false,

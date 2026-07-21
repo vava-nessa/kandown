@@ -21,9 +21,25 @@ import { spawn, execSync } from 'node:child_process';
 import { homedir } from 'node:os';
 import { KANDOWN_VERSION } from '../../lib/version';
 
-export const PKG_ROOT = resolve(import.meta.url ? new URL('../../..', import.meta.url).pathname : process.cwd());
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+
+export function getPackageRoot(): string {
+  try {
+    const currentFile = fileURLToPath(import.meta.url);
+    if (currentFile.includes('/bin/')) {
+      return resolve(dirname(currentFile), '..');
+    }
+    return resolve(dirname(currentFile), '../../..');
+  } catch {
+    return process.cwd();
+  }
+}
+
+export const PKG_ROOT = getPackageRoot();
 const CACHE_DIR = join(homedir(), '.kandown');
 const UPDATE_CHECK_CACHE = join(CACHE_DIR, '.update-check.json');
+
 const UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes throttle
 
 
