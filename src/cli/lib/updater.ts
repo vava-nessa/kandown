@@ -21,9 +21,11 @@ import { spawn, execSync } from 'node:child_process';
 import { homedir } from 'node:os';
 import { KANDOWN_VERSION } from '../../lib/version';
 
+export const PKG_ROOT = resolve(import.meta.url ? new URL('../../..', import.meta.url).pathname : process.cwd());
 const CACHE_DIR = join(homedir(), '.kandown');
 const UPDATE_CHECK_CACHE = join(CACHE_DIR, '.update-check.json');
 const UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes throttle
+
 
 export function getCurrentVersion(): string {
   if (KANDOWN_VERSION && (KANDOWN_VERSION as string) !== '0.0.0-dev') {

@@ -1,13 +1,13 @@
 /**
  * @file Main Kandown CLI Entrypoint
  * @description Entrypoint for the kandown command line tool. Dispatches verbs,
- * runs auto-update checks, manages daemon processes, and spawns the Ink TUI.
+ * runs auto-update checks, manages daemon processes, and spawns the Ink TUI & browser.
  */
 
 import { existsSync, readFileSync, copyFileSync } from 'node:fs';
 import { join, resolve, basename } from 'node:path';
 import { spawn } from 'node:child_process';
-import { getCurrentVersion, checkForUpdate, performGlobalPackageUpdate, semverGt } from './lib/updater';
+import { getCurrentVersion, checkForUpdate, performGlobalPackageUpdate, semverGt, PKG_ROOT } from './lib/updater';
 import { readBoard, readTask, readAgentDoc, moveTaskToColumn, listTaskIds } from './lib/board-reader';
 import { getDaemonStatus, startProjectDaemon } from './lib/daemon';
 import { listenOnAvailablePort } from './lib/server';
@@ -28,6 +28,13 @@ function log(msg: string) { console.log(msg); }
 function info(msg: string) { console.log(`${c.blue}ℹ${c.reset}  ${msg}`); }
 function success(msg: string) { console.log(`${c.green}✓${c.reset}  ${msg}`); }
 function err(msg: string) { console.error(`${c.red}✗${c.reset}  ${msg}`); }
+
+function openBrowser(target: string): void {
+  const cmd = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
+  try {
+    spawn(cmd, [target], { detached: true, stdio: 'ignore' }).unref();
+  } catch { /* ignore open errors */ }
+}
 
 function parseArgs(args: string[]) {
   const flags: Record<string, string | boolean> = {};
@@ -81,7 +88,7 @@ ${c.bold}USAGE:${c.reset}
   kandown [command] [options]
 
 ${c.bold}COMMANDS:${c.reset}
-  (none)              Start web server & launch TUI
+  (none)              Start web server, open browser & launch TUI
   work                Output agent rules + live board digest
   list                List tasks (alias: ls)
   show <id>           Display task details
@@ -148,7 +155,7 @@ async function cmdUpdate(rawArgs: string[]) {
   const htmlDest = join(kandownDir, 'kandown.html');
 
   if (existsSync(htmlDest)) {
-    const htmlSrc = resolve(import.meta.url ? new URL('../..', import.meta.url).pathname : process.cwd(), 'dist', 'index.html');
+    const htmlSrc = resolve(PKG_ROOT, 'dist', 'index.html');
     if (existsSync(htmlSrc)) {
       copyFileSync(htmlSrc, htmlDest);
       success(`Refreshed ${args.path}/kandown.html`);
@@ -263,7 +270,6 @@ async function main() {
     await checkForUpdate(process.argv);
   }
 
-
   switch (cmd) {
     case 'update':
     case 'upgrade':
@@ -314,7 +320,6 @@ async function main() {
           token: null,
         }, null, 2));
         info(`Kandown daemon running on port ${port} (PID ${process.pid})`);
-        // Keep process running
         await new Promise(() => {});
       } else if (subcommand === 'stop') {
         const status = await getDaemonStatus(kandownDir);
@@ -336,22 +341,30 @@ async function main() {
     }
 
     case undefined: {
+      const parsed = parseArgs(rest);
       const { kandownDir } = ensureKandownDir(rest);
-      const status = await getDaemonStatus(kandownDir);
+      let status = await getDaemonStatus(kandownDir);
       if (!status.running) {
-        await startProjectDaemon(kandownDir);
+        status = await startProjectDaemon(kandownDir);
       }
-      // Spawns TUI
-      const tuiPath = resolve(import.meta.url ? new URL('../..', import.meta.url).pathname : process.cwd(), 'bin', 'tui.js');
+
+      // Open browser unless --no-open is specified
+      if (!parsed.flags['no-open']) {
+        const urlToOpen = status.metadata?.url || join(kandownDir, 'kandown.html');
+        openBrowser(urlToOpen);
+      }
+
+      // Spawns TUI reliably
+      const tuiPath = join(PKG_ROOT, 'bin', 'tui.js');
       if (existsSync(tuiPath)) {
-        const child = spawn('node', [tuiPath, ...rest], { stdio: 'inherit' });
+        const child = spawn(process.execPath, [tuiPath, ...rest], { stdio: 'inherit' });
         child.on('close', (code) => process.exit(code || 0));
       } else {
-        info('Kandown daemon running. Open kandown.html in browser.');
+        err(`TUI binary not found at ${tuiPath}`);
+        process.exit(1);
       }
       break;
     }
-
 
     default:
       if (cmd.startsWith('-')) {

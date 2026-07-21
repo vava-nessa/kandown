@@ -12,9 +12,10 @@ import { spawn, execSync } from "child_process";
 import { homedir } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.33.0";
+var KANDOWN_VERSION = "0.33.1";
 
 // src/cli/lib/updater.ts
+var PKG_ROOT = resolve(import.meta.url ? new URL("../../..", import.meta.url).pathname : process.cwd());
 var CACHE_DIR = join(homedir(), ".kandown");
 var UPDATE_CHECK_CACHE = join(CACHE_DIR, ".update-check.json");
 var UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1e3;
@@ -547,11 +548,11 @@ function readTask(kandownDir, taskId) {
     }
   };
 }
-var PKG_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
+var PKG_ROOT2 = dirname(dirname(fileURLToPath(import.meta.url)));
 function readAgentDoc(kandownDir) {
   const sections = [];
   try {
-    sections.push(readFileSync3(join3(PKG_ROOT, "templates", "AGENT_KANDOWN.md"), "utf8").trim());
+    sections.push(readFileSync3(join3(PKG_ROOT2, "templates", "AGENT_KANDOWN.md"), "utf8").trim());
   } catch (e) {
     console.warn("[kandown] Could not read base agent rules:", e.message);
   }
@@ -1089,6 +1090,13 @@ function success(msg) {
 function err(msg) {
   console.error(`${c.red}\u2717${c.reset}  ${msg}`);
 }
+function openBrowser(target) {
+  const cmd = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
+  try {
+    spawn4(cmd, [target], { detached: true, stdio: "ignore" }).unref();
+  } catch {
+  }
+}
 function parseArgs(args) {
   const flags = {};
   const positional = [];
@@ -1137,7 +1145,7 @@ ${c.bold}USAGE:${c.reset}
   kandown [command] [options]
 
 ${c.bold}COMMANDS:${c.reset}
-  (none)              Start web server & launch TUI
+  (none)              Start web server, open browser & launch TUI
   work                Output agent rules + live board digest
   list                List tasks (alias: ls)
   show <id>           Display task details
@@ -1200,7 +1208,7 @@ async function cmdUpdate(rawArgs) {
   const kandownDir = resolve3(cwd, args.path);
   const htmlDest = join6(kandownDir, "kandown.html");
   if (existsSync6(htmlDest)) {
-    const htmlSrc = resolve3(import.meta.url ? new URL("../..", import.meta.url).pathname : process.cwd(), "dist", "index.html");
+    const htmlSrc = resolve3(PKG_ROOT, "dist", "index.html");
     if (existsSync6(htmlSrc)) {
       copyFileSync2(htmlSrc, htmlDest);
       success(`Refreshed ${args.path}/kandown.html`);
@@ -1373,17 +1381,23 @@ async function main() {
       break;
     }
     case void 0: {
+      const parsed = parseArgs(rest);
       const { kandownDir } = ensureKandownDir(rest);
-      const status = await getDaemonStatus(kandownDir);
+      let status = await getDaemonStatus(kandownDir);
       if (!status.running) {
-        await startProjectDaemon(kandownDir);
+        status = await startProjectDaemon(kandownDir);
       }
-      const tuiPath = resolve3(import.meta.url ? new URL("../..", import.meta.url).pathname : process.cwd(), "bin", "tui.js");
+      if (!parsed.flags["no-open"]) {
+        const urlToOpen = status.metadata?.url || join6(kandownDir, "kandown.html");
+        openBrowser(urlToOpen);
+      }
+      const tuiPath = join6(PKG_ROOT, "bin", "tui.js");
       if (existsSync6(tuiPath)) {
-        const child = spawn4("node", [tuiPath, ...rest], { stdio: "inherit" });
+        const child = spawn4(process.execPath, [tuiPath, ...rest], { stdio: "inherit" });
         child.on("close", (code) => process.exit(code || 0));
       } else {
-        info("Kandown daemon running. Open kandown.html in browser.");
+        err(`TUI binary not found at ${tuiPath}`);
+        process.exit(1);
       }
       break;
     }

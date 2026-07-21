@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.33.1 — 2026-07-21 — "Instant TUI & Browser Launcher Fix"
+
+- **Fixed**: **CLI Default Command Execution (`kandown`)** — fixed `bin/tui.js` path resolution in global installation so running `kandown` with no arguments instantly opens both the browser AND the interactive terminal board UI (TUI), eliminating the fallback message `Open kandown.html in browser`.
+- **Fixed**: **Automatic Browser Launch** — `kandown` now automatically invokes `open` (macOS), `xdg-open` (Linux), or `start` (Windows) on launch unless `--no-open` is specified.
+
 ## 0.33.0 — 2026-07-21 — "Universal Auto-Updater & Web UI Prompt Engine"
 
 - **Added**: **Daemon HTTP Server Module (`src/cli/lib/server.ts`)** — re-introduced and modernized full REST API server & SSE live-reload for daemon mode (`/api/daemon`, `/api/board`, `/api/config`, `/api/tasks`, `/api/update/check`, `/api/update/apply`).
