@@ -90,58 +90,77 @@ export const ThemePreviewCard: React.FC<ThemePreviewCardProps> = ({
       {/* Mini Board Isolated Scope */}
       <div
         style={styleVars}
-        className="rounded-[var(--radius)] p-2.5 bg-[hsl(var(--background))] text-[hsl(var(--foreground))] border border-[hsl(var(--border))] transition-colors overflow-hidden select-none"
+        className="rounded-[var(--radius)] p-3 bg-[hsl(var(--background))] text-[hsl(var(--foreground))] border border-[hsl(var(--border))] transition-colors overflow-hidden select-none shadow-xs"
       >
+        {/* Signature Font Pill Banner */}
+        <div className="mb-2 flex items-center justify-between border-b border-[hsl(var(--border))/0.5] pb-1.5 text-[10px]">
+          <span className="font-semibold tracking-tight text-[hsl(var(--foreground))]" style={{ fontFamily: 'var(--font-display)' }}>
+            Aa ✦ {theme.fonts?.display?.split(',')[0].replace(/['"]/g, '') || 'Default'}
+          </span>
+          <span className="text-[9px] font-mono opacity-60">
+            {appearance.radius} · {appearance.shadows}
+          </span>
+        </div>
+
         {/* Mini Board Columns */}
-        <div className="grid grid-cols-3 gap-1.5 font-sans">
+        <div className="grid grid-cols-3 gap-2" style={{ fontFamily: 'var(--font-sans)' }}>
           {/* Column 1 */}
-          <div className="flex flex-col gap-1 p-1.5 rounded-[var(--radius)] bg-[hsl(var(--muted))/0.5] border border-[hsl(var(--border))/0.6]">
-            <div className="flex items-center justify-between px-1 mb-0.5">
-              <span className="text-[9px] font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider font-display">
-                Backlog
+          <div className="flex flex-col gap-1.5 p-1.5 rounded-[var(--radius)] bg-[hsl(var(--muted))/0.4] border border-[hsl(var(--border))/0.6]">
+            <div className="flex items-center justify-between px-0.5">
+              <span className="text-[10px] font-bold text-[hsl(var(--muted-foreground))] uppercase tracking-wider" style={{ fontFamily: 'var(--font-display)' }}>
+                Todo
               </span>
-              <span className="text-[8px] px-1 py-0.2 rounded-full bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))]">
+              <span className="text-[8.5px] font-mono px-1 rounded-full bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))]">
                 1
               </span>
             </div>
-            <div className="p-1.5 rounded-[var(--radius)] bg-[hsl(var(--card))] border border-[hsl(var(--border))] shadow-xs text-[10px] leading-snug">
-              <div className="h-1.5 w-12 rounded bg-[hsl(var(--primary))/0.8] mb-1" />
-              <div className="h-1 w-16 rounded bg-[hsl(var(--muted-foreground))/0.4]" />
+            <div className="p-2 rounded-[var(--radius)] bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-[10.5px] leading-tight">
+              <div className="font-medium text-[hsl(var(--card-foreground))]" style={{ fontFamily: 'var(--font-display)' }}>
+                Refactor Auth
+              </div>
+              <div className="text-[9px] text-[hsl(var(--muted-foreground))] mt-0.5">
+                #t219 · P1
+              </div>
             </div>
           </div>
 
           {/* Column 2 */}
-          <div className="flex flex-col gap-1 p-1.5 rounded-[var(--radius)] bg-[hsl(var(--muted))/0.5] border border-[hsl(var(--border))/0.6]">
-            <div className="flex items-center justify-between px-1 mb-0.5">
-              <span className="text-[9px] font-semibold text-[hsl(var(--primary))] uppercase tracking-wider font-display">
-                Active
+          <div className="flex flex-col gap-1.5 p-1.5 rounded-[var(--radius)] bg-[hsl(var(--muted))/0.4] border border-[hsl(var(--border))/0.6]">
+            <div className="flex items-center justify-between px-0.5">
+              <span className="text-[10px] font-bold text-[hsl(var(--primary))] uppercase tracking-wider" style={{ fontFamily: 'var(--font-display)' }}>
+                Doing
               </span>
-              <span className="text-[8px] px-1 py-0.2 rounded-full bg-[hsl(var(--primary))/0.15] text-[hsl(var(--primary))]">
+              <span className="text-[8.5px] font-mono px-1 rounded-full bg-[hsl(var(--primary))/0.15] text-[hsl(var(--primary))]">
                 1
               </span>
             </div>
-            <div className="p-1.5 rounded-[var(--radius)] bg-[hsl(var(--card))] border border-[hsl(var(--border-focus))] shadow-xs text-[10px] leading-snug">
-              <div className="flex items-center justify-between mb-1">
-                <div className="h-1.5 w-10 rounded bg-[hsl(var(--primary))]" />
-                <div className="h-2 w-2 rounded-full bg-[hsl(var(--warning))]" />
+            <div className="p-2 rounded-[var(--radius)] bg-[hsl(var(--card))] border border-[hsl(var(--border-focus))] text-[10.5px] leading-tight">
+              <div className="font-medium text-[hsl(var(--card-foreground))]" style={{ fontFamily: 'var(--font-display)' }}>
+                Theme Engine
               </div>
-              <div className="h-1 w-14 rounded bg-[hsl(var(--muted-foreground))/0.5]" />
+              <div className="text-[9px] text-[hsl(var(--primary))] mt-0.5 font-medium">
+                In progress
+              </div>
             </div>
           </div>
 
           {/* Column 3 */}
-          <div className="flex flex-col gap-1 p-1.5 rounded-[var(--radius)] bg-[hsl(var(--muted))/0.5] border border-[hsl(var(--border))/0.6]">
-            <div className="flex items-center justify-between px-1 mb-0.5">
-              <span className="text-[9px] font-semibold text-[hsl(var(--success))] uppercase tracking-wider font-display">
+          <div className="flex flex-col gap-1.5 p-1.5 rounded-[var(--radius)] bg-[hsl(var(--muted))/0.4] border border-[hsl(var(--border))/0.6]">
+            <div className="flex items-center justify-between px-0.5">
+              <span className="text-[10px] font-bold text-[hsl(var(--success))] uppercase tracking-wider" style={{ fontFamily: 'var(--font-display)' }}>
                 Done
               </span>
-              <span className="text-[8px] px-1 py-0.2 rounded-full bg-[hsl(var(--success))/0.15] text-[hsl(var(--success))]">
+              <span className="text-[8.5px] font-mono px-1 rounded-full bg-[hsl(var(--success))/0.15] text-[hsl(var(--success))]">
                 1
               </span>
             </div>
-            <div className="p-1.5 rounded-[var(--radius)] bg-[hsl(var(--card))] border border-[hsl(var(--border))] opacity-75 text-[10px] leading-snug">
-              <div className="h-1.5 w-14 rounded bg-[hsl(var(--success))] mb-1 line-through" />
-              <div className="h-1 w-10 rounded bg-[hsl(var(--muted-foreground))/0.3]" />
+            <div className="p-2 rounded-[var(--radius)] bg-[hsl(var(--card))] border border-[hsl(var(--border))] opacity-80 text-[10.5px] leading-tight">
+              <div className="font-medium text-[hsl(var(--card-foreground))] line-through" style={{ fontFamily: 'var(--font-display)' }}>
+                CLI Doctor
+              </div>
+              <div className="text-[9px] text-[hsl(var(--success))] mt-0.5">
+                ✓ Passed
+              </div>
             </div>
           </div>
         </div>

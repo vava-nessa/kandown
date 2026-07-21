@@ -106,7 +106,7 @@ export const THEME_PRESETS: KandownTheme[] = [
     id: 'vercel',
     name: 'Vercel',
     author: 'Geist Design',
-    description: 'Radical monochrome contrast, tight typography, zero shadows, sharp borders.',
+    description: 'Radical monochrome contrast, Geist tight typography, zero shadows, sharp 1px borders.',
     appearance: {
       radius: '6px',
       borderWidth: '1px',
@@ -116,8 +116,8 @@ export const THEME_PRESETS: KandownTheme[] = [
       motion: 'subtle',
     },
     fonts: {
-      sans: "'Inter var', Inter, sans-serif",
-      display: "'Inter var', Inter, sans-serif",
+      sans: "'Inter Tight', 'Inter var', Inter, sans-serif",
+      display: "'Inter Tight', 'Inter var', Inter, sans-serif",
       mono: "'SF Mono', Menlo, monospace",
     },
     light: {
@@ -173,7 +173,7 @@ export const THEME_PRESETS: KandownTheme[] = [
     id: 'linear',
     name: 'Linear',
     author: 'Linear Team',
-    description: 'Dark-first aesthetic, electric violet accent (#5E6AD2), sleek elevated popovers.',
+    description: 'Dark-first aesthetic, Plus Jakarta Sans font, electric violet accent (#5E6AD2), sleek elevated popovers.',
     appearance: {
       radius: '8px',
       borderWidth: '1px',
@@ -183,8 +183,8 @@ export const THEME_PRESETS: KandownTheme[] = [
       motion: 'subtle',
     },
     fonts: {
-      sans: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      display: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      sans: "'Plus Jakarta Sans', Outfit, sans-serif",
+      display: "'Plus Jakarta Sans', Outfit, sans-serif",
       mono: "'SF Mono', Menlo, Consolas, monospace",
     },
     light: {
@@ -240,7 +240,7 @@ export const THEME_PRESETS: KandownTheme[] = [
     id: 'claude',
     name: 'Claude',
     author: 'Anthropic',
-    description: 'Editorial warmth, oat crème light background, terracotta accents, serif headings.',
+    description: 'Editorial warmth, Newsreader serif headings, oat crème light background, terracotta accents.',
     appearance: {
       radius: '12px',
       borderWidth: '1px',
@@ -251,7 +251,7 @@ export const THEME_PRESETS: KandownTheme[] = [
     },
     fonts: {
       sans: "'Inter var', Inter, sans-serif",
-      display: "Charter, 'Bitstream Charter', 'Sitka Text', Cambria, serif",
+      display: "'Newsreader', Charter, Georgia, serif",
       mono: "'SF Mono', Menlo, monospace",
     },
     light: {
@@ -307,7 +307,7 @@ export const THEME_PRESETS: KandownTheme[] = [
     id: 'apple',
     name: 'Apple',
     author: 'Human Interface',
-    description: 'Translucent materials, vibrant blur, System SF typography, rounded 14px squircles.',
+    description: 'Translucent materials, vibrant blur, SF Pro Display typography, 14px squircles.',
     appearance: {
       radius: '14px',
       borderWidth: '1px',
@@ -317,8 +317,8 @@ export const THEME_PRESETS: KandownTheme[] = [
       motion: 'playful',
     },
     fonts: {
-      sans: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif",
-      display: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif",
+      sans: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif",
+      display: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
       mono: "'SF Mono', Menlo, Monaco, monospace",
     },
     light: {
@@ -374,18 +374,18 @@ export const THEME_PRESETS: KandownTheme[] = [
     id: 'stripe',
     name: 'Stripe',
     author: 'Stripe Design',
-    description: 'Indigo night dark mode (#0A0A23), vibrant blue/purple accents (#635BFF).',
+    description: 'Syne & Space Grotesk display, indigo night dark mode (#0A0A23), blurple accents (#635BFF).',
     appearance: {
       radius: '8px',
       borderWidth: '1px',
-      shadows: 'soft',
+      shadows: 'elevated',
       density: 'comfortable',
       glass: true,
       motion: 'subtle',
     },
     fonts: {
-      sans: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-      display: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      sans: "'Space Grotesk', sans-serif",
+      display: "'Syne', 'Space Grotesk', sans-serif",
       mono: "'SF Mono', Menlo, monospace",
     },
     light: {
@@ -441,7 +441,7 @@ export const THEME_PRESETS: KandownTheme[] = [
     id: 'paper',
     name: 'Paper',
     author: 'Notion-inspired',
-    description: 'Calm studio workspace, warm gray background, pastel subtle accents, no shadows.',
+    description: 'Calm studio workspace, Newsreader serif, warm gray background, pastel subtle accents, flat cards.',
     appearance: {
       radius: '4px',
       borderWidth: '1px',
@@ -452,7 +452,7 @@ export const THEME_PRESETS: KandownTheme[] = [
     },
     fonts: {
       sans: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-      display: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      display: "'Newsreader', Georgia, serif",
       mono: "'SF Mono', Menlo, monospace",
     },
     light: {
@@ -508,7 +508,7 @@ export const THEME_PRESETS: KandownTheme[] = [
     id: 'catppuccin',
     name: 'Catppuccin',
     author: 'Catppuccin Org',
-    description: 'Official Mocha dark palette (#1E1E2E mauve #CBA6F7) and Latte light palette.',
+    description: 'JetBrains Mono & Fira Code typography, Mocha dark palette (#1E1E2E, mauve #CBA6F7), Latte light.',
     appearance: {
       radius: '10px',
       borderWidth: '1px',
@@ -518,9 +518,9 @@ export const THEME_PRESETS: KandownTheme[] = [
       motion: 'subtle',
     },
     fonts: {
-      sans: "'Inter var', Inter, sans-serif",
-      display: "'Inter var', Inter, sans-serif",
-      mono: "'Fira Code', 'SF Mono', monospace",
+      sans: "'JetBrains Mono', 'Fira Code', monospace",
+      display: "'JetBrains Mono', 'Fira Code', monospace",
+      mono: "'JetBrains Mono', 'Fira Code', monospace",
     },
     light: {
       ...sharedLight,
@@ -575,7 +575,7 @@ export const THEME_PRESETS: KandownTheme[] = [
     id: 'terminal',
     name: 'Terminal',
     author: 'Retro CRT',
-    description: 'CRT green phosphor homage to TUI (#0C0C0C / #33FF66), full mono font stack.',
+    description: 'VT323 retro CRT mono font, pitch black (#0C0C0C), phosphor neon green text (#33FF66), 0px radius.',
     appearance: {
       radius: '0px',
       borderWidth: '1px',
@@ -585,9 +585,9 @@ export const THEME_PRESETS: KandownTheme[] = [
       motion: 'none',
     },
     fonts: {
-      sans: "'SF Mono', Menlo, Monaco, Consolas, monospace",
-      display: "'SF Mono', Menlo, Monaco, Consolas, monospace",
-      mono: "'SF Mono', Menlo, Monaco, Consolas, monospace",
+      sans: "'VT323', 'SF Mono', monospace",
+      display: "'VT323', 'SF Mono', monospace",
+      mono: "'VT323', 'SF Mono', monospace",
     },
     light: {
       ...sharedLight,

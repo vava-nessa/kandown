@@ -804,7 +804,7 @@ export function SettingsPage() {
               </div>
             </div>
 
-            <div className={!normalizedQuery && activeSectionId === 'agent' ? 'max-w-[1360px]' : 'max-w-4xl'}>
+            <div className={!normalizedQuery && (activeSectionId === 'agent' || activeSectionId === 'appearance') ? 'max-w-[1360px]' : 'max-w-4xl'}>
               {activeSectionId === 'about' ? (
                 <div className="overflow-hidden rounded-[8px] border border-border bg-bg-1">
                   <AboutVersionCard
@@ -1743,6 +1743,31 @@ function SettingRow({
     onChange(Math.max(min, Math.min(max, num + delta)));
   };
 
+  if (setting.type === 'skin') {
+    return (
+      <div className={`flex flex-col gap-4 p-5 transition-colors ${isLast ? '' : 'border-b border-border'}`}>
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[15px] font-semibold text-fg">{setting.label}</span>
+              {showSection && (
+                <span className="rounded-full bg-bg-2 px-1.5 py-0.5 text-[11px] text-fg-muted">
+                  {SECTIONS(t).find(section => section.id === setting.section)?.label ?? setting.section}
+                </span>
+              )}
+            </div>
+            <p className="mt-0.5 text-[13px] leading-snug text-fg-muted">{setting.description}</p>
+            <p className="mt-1 font-mono text-[11px] text-fg-faint">{setting.key}</p>
+          </div>
+        </div>
+
+        <div className="w-full pt-1">
+          <ThemeGalleryPicker value={String(value)} onChange={onChange} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={`grid gap-3 px-4 py-3 transition-colors hover:bg-bg-2 focus-within:bg-bg-2 md:grid-cols-[minmax(0,1fr)_minmax(128px,190px)] md:items-center ${
@@ -1776,10 +1801,6 @@ function SettingRow({
               value ? 'translate-x-[21px]' : 'translate-x-1'
             }`} />
           </button>
-        )}
-
-        {setting.type === 'skin' && (
-          <ThemeGalleryPicker value={String(value)} onChange={onChange} />
         )}
       </div>
     </div>
@@ -1841,25 +1862,25 @@ function ThemeGalleryPicker({ value, onChange }: { value: string; onChange: (val
   };
 
   return (
-    <div className="w-full space-y-3 pt-2">
+    <div className="w-full space-y-4 pt-1">
       {/* Header bar with New Custom Theme button */}
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground font-mono">
-          Theme Presets & Customs ({allThemes.length})
+          Theme Presets & Custom Skins ({allThemes.length})
         </span>
 
         <button
           type="button"
           onClick={() => handleOpenCustomizer()}
-          className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-lg bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors shadow-xs"
         >
-          <IconPlus className="w-3.5 h-3.5" />
+          <IconPlus className="w-4 h-4" />
           Create Custom Theme
         </button>
       </div>
 
       {/* Theme Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {allThemes.map(t => (
           <ThemePreviewCard
             key={t.id}
@@ -1873,6 +1894,7 @@ function ThemeGalleryPicker({ value, onChange }: { value: string; onChange: (val
           />
         ))}
       </div>
+
 
       {/* Editor Modal */}
       {modalOpen && editingTheme && (
