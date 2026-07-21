@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.30.1 — 2026-07-21 — "Fix Auto-Updater Crash"
+
+- **Fixed**: **`performGlobalPackageUpdate` missing function error** — added the missing `performGlobalPackageUpdate` definition in `bin/kandown.js`, fixing a runtime `ReferenceError` crash during automatic background CLI updates and `kandown update`.
+
 ## 0.30.0 — 2026-07-21 — "Fable UI Themes"
 
 - **Added**: **Customizable JSON Theme Engine (`KandownTheme`)** — upgraded Kandown's skin system from 5 hardcoded HSL presets to an open, JSON-driven theme engine with dynamic inheritance (`base`), fallback safety, and runtime custom theme registration (`registerCustomThemes`).

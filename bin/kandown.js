@@ -227,6 +227,34 @@ function rememberUpdateCheck() {
     writeFileSync(UPDATE_CHECK_CACHE, JSON.stringify({ lastCheck: Date.now() }), 'utf8');
   } catch { /* read-only install — check again next time */ }
 }
+async function performGlobalPackageUpdate(packageSpec) {
+  const cleanEnv = { ...process.env };
+  for (const k of Object.keys(cleanEnv)) {
+    if (k.startsWith('npm_config_') || k.startsWith('npm_') || k === 'INIT_CWD') {
+      delete cleanEnv[k];
+    }
+  }
+
+  const tryPkgCmd = (cmd, args) => {
+    return new Promise((res) => {
+      const child = spawn(cmd, args, {
+        timeout: 60000,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        env: cleanEnv,
+        detached: false,
+      });
+      child.stderr.on('data', () => {});
+      child.stdout.on('data', () => {});
+      child.on('error', () => res(false));
+      child.on('close', (code) => res(code === 0));
+    });
+  };
+
+  if (await tryPkgCmd('pnpm', ['add', '-g', packageSpec])) return true;
+  if (await tryPkgCmd('npm', ['install', '-g', packageSpec])) return true;
+  if (await tryPkgCmd('yarn', ['global', 'add', packageSpec])) return true;
+  return await tryPkgCmd('bun', ['add', '-g', packageSpec]);
+}
 
 /**
  * 📖 Check npm for a newer version and auto-update if outdated.
