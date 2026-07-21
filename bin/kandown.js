@@ -6,28 +6,31 @@ import { join as join5, resolve as resolve2, basename } from "path";
 import { spawn as spawn3 } from "child_process";
 
 // src/cli/lib/updater.ts
-import { existsSync, readFileSync, writeFileSync, unlinkSync, statSync } from "fs";
+import { existsSync, readFileSync, writeFileSync, unlinkSync, statSync, mkdirSync } from "fs";
 import { join, resolve } from "path";
 import { spawn, execSync } from "child_process";
 import { homedir } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.32.1";
+var KANDOWN_VERSION = "0.32.2";
 
 // src/cli/lib/updater.ts
-var PKG_ROOT = resolve(import.meta.url ? new URL("../../..", import.meta.url).pathname : process.cwd());
-var UPDATE_CHECK_CACHE = join(PKG_ROOT, ".update-check.json");
-var UPDATE_CHECK_INTERVAL_MS = 10 * 60 * 1e3;
+var CACHE_DIR = join(homedir(), ".kandown");
+var UPDATE_CHECK_CACHE = join(CACHE_DIR, ".update-check.json");
+var UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1e3;
 function getCurrentVersion() {
+  if (KANDOWN_VERSION && KANDOWN_VERSION !== "0.0.0-dev") {
+    return KANDOWN_VERSION;
+  }
   try {
-    const pkgPath = join(PKG_ROOT, "package.json");
+    const pkgPath = resolve(import.meta.url ? new URL("../../..", import.meta.url).pathname : process.cwd(), "package.json");
     if (existsSync(pkgPath)) {
       const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
       if (pkg.version) return pkg.version;
     }
   } catch {
   }
-  return KANDOWN_VERSION || "0.32.0";
+  return KANDOWN_VERSION || "0.32.1";
 }
 function semverGt(a, b) {
   const parse = (v) => {
@@ -78,34 +81,9 @@ function resolveKandownBin() {
   }
   return null;
 }
-async function readInstalledKandownVersion(targetVersion) {
-  const localVersion = getCurrentVersion();
-  if (localVersion && semverGt(localVersion, targetVersion) >= 0) return localVersion;
-  const bin = resolveKandownBin();
-  if (!bin) return localVersion;
-  return await new Promise((resolveVersion) => {
-    const child = spawn(bin, ["--version"], {
-      timeout: 5e3,
-      stdio: ["pipe", "pipe", "pipe"],
-      env: { ...process.env, KANDOWN_NO_UPDATE: "1" },
-      detached: false
-    });
-    let stdout = "";
-    child.stdout.on("data", (d) => {
-      stdout += d;
-    });
-    child.stderr.on("data", () => {
-    });
-    child.on("error", () => resolveVersion(localVersion));
-    child.on("close", (code) => {
-      if (code !== 0) return resolveVersion(localVersion);
-      const match = stdout.trim().match(/v?(\d+\.\d+\.\d+(?:-[\w.-]+)?)/);
-      resolveVersion(match ? match[1] : localVersion);
-    });
-  });
-}
 function updateCheckedRecently() {
   try {
+    if (!existsSync(UPDATE_CHECK_CACHE)) return false;
     const raw = JSON.parse(readFileSync(UPDATE_CHECK_CACHE, "utf8"));
     return Number.isFinite(raw?.lastCheck) && Date.now() - raw.lastCheck < UPDATE_CHECK_INTERVAL_MS;
   } catch {
@@ -114,7 +92,8 @@ function updateCheckedRecently() {
 }
 function rememberUpdateCheck() {
   try {
-    writeFileSync(UPDATE_CHECK_CACHE, JSON.stringify({ lastCheck: Date.now() }), "utf8");
+    if (!existsSync(CACHE_DIR)) mkdirSync(CACHE_DIR, { recursive: true });
+    writeFileSync(UPDATE_CHECK_CACHE, JSON.stringify({ lastCheck: Date.now(), version: getCurrentVersion() }), "utf8");
   } catch {
   }
 }
@@ -154,13 +133,11 @@ async function performGlobalPackageUpdate(packageSpec) {
   return await tryPkgCmd("bun", ["add", "-g", packageSpec]);
 }
 async function checkForUpdate(argv = process.argv) {
-  if (existsSync(join(PKG_ROOT, "src")) && !process.env.KANDOWN_TEST_UPDATE) return;
   if (process.env.KANDOWN_NO_UPDATE === "1") return;
-  if (!process.stdout.isTTY) return;
-  if (updateCheckedRecently()) return;
+  if (updateCheckedRecently() && !process.env.KANDOWN_FORCE_UPDATE) return;
   const current = getCurrentVersion();
   if (!current) return;
-  const lockFile = join(PKG_ROOT, ".update.lock");
+  const lockFile = join(CACHE_DIR, ".update.lock");
   const now = Date.now();
   try {
     if (existsSync(lockFile)) {
@@ -191,29 +168,29 @@ async function checkForUpdate(argv = process.argv) {
     });
   });
   if (!latest) return;
-  if (semverGt(current, latest) >= 0) {
+  if (semverGt(latest, current) <= 0) {
     rememberUpdateCheck();
     return;
   }
-  console.log(`\u26A1 Update available: kandown ${current} \u2192 ${latest}`);
+  console.log(`\x1B[36m\u26A1 Update available:\x1B[0m kandown \x1B[2mv${current}\x1B[0m \u2192 \x1B[32mv${latest}\x1B[0m`);
   try {
+    if (!existsSync(CACHE_DIR)) mkdirSync(CACHE_DIR, { recursive: true });
     writeFileSync(lockFile, `${process.pid}
 ${now}`, "utf8");
   } catch {
   }
+  console.log(`\x1B[32mInstalling kandown@${latest} globally\u2026\x1B[0m`);
   const updateOk = await performGlobalPackageUpdate(`kandown@${latest}`);
   try {
     if (existsSync(lockFile)) unlinkSync(lockFile);
   } catch {
   }
   if (!updateOk) {
-    console.log(`\u2717 Auto-update failed \u2014 continuing with current version`);
+    console.log(`\x1B[33m\u2717 Auto-update failed\x1B[0m \u2014 continuing with current version`);
     return;
   }
-  const postVersion = await readInstalledKandownVersion(latest);
-  if (!postVersion || semverGt(postVersion, latest) < 0) return;
   rememberUpdateCheck();
-  console.log(`\u2713 Updated to v${postVersion} \u2014 restarting\u2026`);
+  console.log(`\x1B[32m\u2713 Successfully updated kandown to v${latest}!\x1B[0m \u2014 restarting\u2026`);
   const bin = resolveKandownBin();
   const childArgs = ["--no-update-check", ...argv.slice(2)];
   const child = spawn(bin || process.argv[0], bin ? childArgs : [process.argv[1], ...childArgs], {
@@ -226,7 +203,7 @@ ${now}`, "utf8");
 }
 
 // src/cli/lib/board-reader.ts
-import { existsSync as existsSync3, readdirSync, readFileSync as readFileSync3, mkdirSync, unlinkSync as unlinkSync3 } from "fs";
+import { existsSync as existsSync3, readdirSync, readFileSync as readFileSync3, mkdirSync as mkdirSync2, unlinkSync as unlinkSync3 } from "fs";
 import { dirname, join as join3 } from "path";
 import { fileURLToPath } from "url";
 import { homedir as homedir2 } from "os";
@@ -566,11 +543,11 @@ function readTask(kandownDir, taskId) {
     }
   };
 }
-var PKG_ROOT2 = dirname(dirname(fileURLToPath(import.meta.url)));
+var PKG_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 function readAgentDoc(kandownDir) {
   const sections = [];
   try {
-    sections.push(readFileSync3(join3(PKG_ROOT2, "templates", "AGENT_KANDOWN.md"), "utf8").trim());
+    sections.push(readFileSync3(join3(PKG_ROOT, "templates", "AGENT_KANDOWN.md"), "utf8").trim());
   } catch (e) {
     console.warn("[kandown] Could not read base agent rules:", e.message);
   }
@@ -637,7 +614,7 @@ function moveTaskToColumn(kandownDir, taskId, targetColumn) {
 function pushUndo(kandownDir, record) {
   try {
     const undoDir = join3(kandownDir, ".undo");
-    if (!existsSync3(undoDir)) mkdirSync(undoDir, { recursive: true });
+    if (!existsSync3(undoDir)) mkdirSync2(undoDir, { recursive: true });
     const logPath = join3(undoDir, "log.json");
     let list = [];
     if (existsSync3(logPath)) {
@@ -1022,8 +999,7 @@ async function main() {
   const cmd = args[0];
   const rest = args.slice(1);
   const skipUpdate = args.includes("--no-update-check") || process.env.KANDOWN_NO_UPDATE === "1";
-  const SCRIPTED = /* @__PURE__ */ new Set(["list", "ls", "show", "create", "new", "move", "assign", "commit", "work", "doctor", "projects", "export", "import"]);
-  if (!skipUpdate && !SCRIPTED.has(cmd)) {
+  if (!skipUpdate) {
     await checkForUpdate(process.argv);
   }
   switch (cmd) {

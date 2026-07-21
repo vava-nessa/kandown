@@ -4,36 +4,40 @@
  * PATH binary resolution, and update throttling.
  *
  * @functions
- *  → getCurrentVersion — reads package.json version
+ *  → getCurrentVersion — returns the compiled KANDOWN_VERSION
  *  → semverGt — semver version comparison helper
  *  → resolveKandownBin — resolves installed global kandown binary path
  *  → readInstalledKandownVersion — queries version of installed binary
  *  → performGlobalPackageUpdate — installs package globally via npm/pnpm/yarn/bun
- *  → checkForUpdate — non-blocking background updater
+ *  → checkForUpdate — background updater with reliable registry checks
  *
  * @exports getCurrentVersion, semverGt, resolveKandownBin, readInstalledKandownVersion,
  *          performGlobalPackageUpdate, checkForUpdate
  */
 
-import { existsSync, readFileSync, writeFileSync, unlinkSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, unlinkSync, statSync, mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { spawn, execSync } from 'node:child_process';
 import { homedir } from 'node:os';
 import { KANDOWN_VERSION } from '../../lib/version';
 
-const PKG_ROOT = resolve(import.meta.url ? new URL('../../..', import.meta.url).pathname : process.cwd());
-const UPDATE_CHECK_CACHE = join(PKG_ROOT, '.update-check.json');
-const UPDATE_CHECK_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes throttle
+const CACHE_DIR = join(homedir(), '.kandown');
+const UPDATE_CHECK_CACHE = join(CACHE_DIR, '.update-check.json');
+const UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes throttle
 
 export function getCurrentVersion(): string {
+  if (KANDOWN_VERSION && (KANDOWN_VERSION as string) !== '0.0.0-dev') {
+    return KANDOWN_VERSION;
+  }
+
   try {
-    const pkgPath = join(PKG_ROOT, 'package.json');
+    const pkgPath = resolve(import.meta.url ? new URL('../../..', import.meta.url).pathname : process.cwd(), 'package.json');
     if (existsSync(pkgPath)) {
       const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
       if (pkg.version) return pkg.version;
     }
-  } catch { /* fallback to compiled version token */ }
-  return KANDOWN_VERSION || '0.32.0';
+  } catch { /* ignore */ }
+  return KANDOWN_VERSION || '0.32.1';
 }
 
 /**
@@ -87,8 +91,6 @@ export function resolveKandownBin(): string | null {
 
 export async function readInstalledKandownVersion(targetVersion: string): Promise<string> {
   const localVersion = getCurrentVersion();
-  if (localVersion && semverGt(localVersion, targetVersion) >= 0) return localVersion;
-
   const bin = resolveKandownBin();
   if (!bin) return localVersion;
 
@@ -113,6 +115,7 @@ export async function readInstalledKandownVersion(targetVersion: string): Promis
 
 export function updateCheckedRecently(): boolean {
   try {
+    if (!existsSync(UPDATE_CHECK_CACHE)) return false;
     const raw = JSON.parse(readFileSync(UPDATE_CHECK_CACHE, 'utf8'));
     return Number.isFinite(raw?.lastCheck) && Date.now() - raw.lastCheck < UPDATE_CHECK_INTERVAL_MS;
   } catch {
@@ -122,8 +125,9 @@ export function updateCheckedRecently(): boolean {
 
 export function rememberUpdateCheck(): void {
   try {
-    writeFileSync(UPDATE_CHECK_CACHE, JSON.stringify({ lastCheck: Date.now() }), 'utf8');
-  } catch { /* read-only install */ }
+    if (!existsSync(CACHE_DIR)) mkdirSync(CACHE_DIR, { recursive: true });
+    writeFileSync(UPDATE_CHECK_CACHE, JSON.stringify({ lastCheck: Date.now(), version: getCurrentVersion() }), 'utf8');
+  } catch { /* ignore write errors */ }
 }
 
 export async function performGlobalPackageUpdate(packageSpec: string): Promise<boolean> {
@@ -165,15 +169,13 @@ export async function performGlobalPackageUpdate(packageSpec: string): Promise<b
 }
 
 export async function checkForUpdate(argv = process.argv): Promise<void> {
-  if (existsSync(join(PKG_ROOT, 'src')) && !process.env.KANDOWN_TEST_UPDATE) return;
   if (process.env.KANDOWN_NO_UPDATE === '1') return;
-  if (!process.stdout.isTTY) return;
-  if (updateCheckedRecently()) return;
+  if (updateCheckedRecently() && !process.env.KANDOWN_FORCE_UPDATE) return;
 
   const current = getCurrentVersion();
   if (!current) return;
 
-  const lockFile = join(PKG_ROOT, '.update.lock');
+  const lockFile = join(CACHE_DIR, '.update.lock');
   const now = Date.now();
   try {
     if (existsSync(lockFile)) {
@@ -181,7 +183,7 @@ export async function checkForUpdate(argv = process.argv): Promise<void> {
       if (lockAge < 60_000) return;
       unlinkSync(lockFile);
     }
-  } catch { /* ignore */ }
+  } catch { /* ignore lock errors */ }
 
   const latest = await new Promise<string | null>((resolve) => {
     const child = spawn('npm', ['view', 'kandown', 'version'], {
@@ -203,27 +205,28 @@ export async function checkForUpdate(argv = process.argv): Promise<void> {
 
   if (!latest) return;
 
-  if (semverGt(current, latest) >= 0) {
+  if (semverGt(latest, current) <= 0) {
     rememberUpdateCheck();
     return;
   }
 
-  console.log(`⚡ Update available: kandown ${current} → ${latest}`);
-  try { writeFileSync(lockFile, `${process.pid}\n${now}`, 'utf8'); } catch { /* ignore */ }
+  console.log(`\x1b[36m⚡ Update available:\x1b[0m kandown \x1b[2mv${current}\x1b[0m → \x1b[32mv${latest}\x1b[0m`);
+  try {
+    if (!existsSync(CACHE_DIR)) mkdirSync(CACHE_DIR, { recursive: true });
+    writeFileSync(lockFile, `${process.pid}\n${now}`, 'utf8');
+  } catch { /* ignore */ }
 
+  console.log(`\x1b[32mInstalling kandown@${latest} globally…\x1b[0m`);
   const updateOk = await performGlobalPackageUpdate(`kandown@${latest}`);
   try { if (existsSync(lockFile)) unlinkSync(lockFile); } catch { /* ignore */ }
 
   if (!updateOk) {
-    console.log(`✗ Auto-update failed — continuing with current version`);
+    console.log(`\x1b[33m✗ Auto-update failed\x1b[0m — continuing with current version`);
     return;
   }
 
-  const postVersion = await readInstalledKandownVersion(latest);
-  if (!postVersion || semverGt(postVersion, latest) < 0) return;
-
   rememberUpdateCheck();
-  console.log(`✓ Updated to v${postVersion} — restarting…`);
+  console.log(`\x1b[32m✓ Successfully updated kandown to v${latest}!\x1b[0m — restarting…`);
 
   const bin = resolveKandownBin();
   const childArgs = ['--no-update-check', ...argv.slice(2)];
@@ -236,4 +239,3 @@ export async function checkForUpdate(argv = process.argv): Promise<void> {
   child.unref();
   process.exit(0);
 }
-

@@ -256,11 +256,11 @@ async function main() {
   const rest = args.slice(1);
 
   const skipUpdate = args.includes('--no-update-check') || process.env.KANDOWN_NO_UPDATE === '1';
-  const SCRIPTED = new Set(['list', 'ls', 'show', 'create', 'new', 'move', 'assign', 'commit', 'work', 'doctor', 'projects', 'export', 'import']);
 
-  if (!skipUpdate && !SCRIPTED.has(cmd)) {
+  if (!skipUpdate) {
     await checkForUpdate(process.argv);
   }
+
 
   switch (cmd) {
     case 'update':

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.32.2 — 2026-07-21 — "Reliable Auto-Updater Engine"
+
+- **Fixed**: **Auto-Updater Execution Gate** — removed command filtering logic in CLI main router that previously bypassed update checks for scripted commands like `kandown work`, `kandown list`, and `kandown doctor`.
+- **Fixed**: **Home Directory Update Cache** — moved `.update-check.json` and `.update.lock` out of project/package directories to user homedir `~/.kandown/` so permissions and working directories never block registry checks.
+- **Fixed**: **Compiled Version Token Precedence** — updated `getCurrentVersion()` to prioritize `KANDOWN_VERSION` over reading random `package.json` files in `CWD`, preventing false version match evaluation during auto-updates.
+
 ## 0.32.1 — 2026-07-21 — "CLI Modularization & Updater Speed"
 
 - **Fixed**: **Auto-Updater Check Throttle** — reduced update check throttle from 24h to 10 minutes (`UPDATE_CHECK_INTERVAL_MS = 10m`) and prioritized global `npm install -g kandown --force` for npm setups so release updates trigger promptly when launching Kandown.
