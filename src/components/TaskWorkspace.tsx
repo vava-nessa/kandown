@@ -489,6 +489,7 @@ export function TaskWorkspace() {
                 onChange={value => {
                   updateDrawerData(data => ({ ...data, body: value }));
                   markDrawerDirty();
+                  triggerAutoSave();
                 }}
                 placeholder={t('drawer.descriptionPlaceholder')}
                 minHeight="320px"

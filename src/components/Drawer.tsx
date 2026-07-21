@@ -385,6 +385,7 @@ export function Drawer() {
                     onChange={val => {
                       updateDrawerData(d => ({ ...d, body: val }));
                       markDrawerDirty();
+                      triggerAutoSave();
                     }}
                     placeholder={t('drawer.descriptionPlaceholder')}
                     minHeight="280px"

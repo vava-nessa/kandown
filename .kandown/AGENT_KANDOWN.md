@@ -1,5 +1,19 @@
 # Kandown — AI Agent Rules
 
+## Quick CLI Reference
+
+| Command | Description |
+|---------|-------------|
+| `kandown work` | Output agent rules + live board state digest |
+| `kandown list` | List tasks (`--status "In Progress"`, `--priority P1`) |
+| `kandown show <id>` | Display task details & subtasks |
+| `kandown create "<title>"` | Create new task (`--priority P1 --assignee user`) |
+| `kandown move <id> <status>` | Move task column (e.g. `kandown move t1 "Done"`) |
+| `kandown assign <id> <user>` | Assign task |
+| `kandown commit` | Commit board changes to git |
+
+---
+
 ## The System
 
 Kandown is a file-based Kanban backed by plain markdown. All task state lives in `tasks/*.md` at the project root — no separate board index, no database.

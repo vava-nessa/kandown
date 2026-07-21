@@ -13,7 +13,13 @@ export default {
           'Segoe UI',
           'sans-serif',
         ],
+        display: [
+          'var(--font-display)',
+          'var(--font-sans)',
+          'sans-serif',
+        ],
         mono: [
+          'var(--font-mono)',
           'ui-monospace',
           'SF Mono',
           'Menlo',
@@ -84,9 +90,10 @@ export default {
         ring: 'hsl(var(--ring) / <alpha-value>)',
       },
       borderRadius: {
-        DEFAULT: '6px',
-        sm: '4px',
-        lg: '10px',
+        DEFAULT: 'var(--radius, 6px)',
+        sm: 'var(--radius-sm, 4px)',
+        lg: 'var(--radius-lg, 10px)',
+        xl: 'calc(var(--radius, 6px) * 2)',
       },
       animation: {
         'fade-in': 'fadeIn 200ms ease-out',

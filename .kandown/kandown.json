@@ -12,7 +12,7 @@
     "workOutput": {
       "mode": "blocks",
       "includeBaseRules": true,
-      "baseRulesMode": "optimized",
+      "baseRulesMode": "verbose",
       "includeProjectInstructions": true,
       "includeBoardDigest": true,
       "sectionOrder": [

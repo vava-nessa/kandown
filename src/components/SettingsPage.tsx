@@ -44,12 +44,14 @@ import { KbdButton } from './KbdButton';
 import { ThemeSwitcher } from './ui/theme-switcher-1';
 import { useStore } from '../lib/store';
 import { fileWatcher } from '../lib/watcher';
-import { BACKGROUND_OPTIONS, FONT_OPTIONS, SKIN_OPTIONS } from '../lib/theme';
+import { BACKGROUND_OPTIONS, FONT_OPTIONS, SKIN_OPTIONS, getAllThemes, registerCustomThemes, applyProjectTheme, THEME_PRESETS } from '../lib/theme';
+import { ThemePreviewCard } from './ThemePreviewCard';
+import { ThemeCustomizerModal } from './ThemeCustomizerModal';
 import { SUPPORTED_LANGUAGES, LANGUAGE_LABELS } from '../lib/i18n';
 import { getBrowserNotificationPermission, requestBrowserNotificationPermission, type BrowserNotificationPermission } from '../lib/notifications';
 import { readProjectInstructions, writeProjectInstructions } from '../lib/filesystem';
 import { DEFAULT_WORK_OUTPUT } from '../lib/types';
-import type { BoardTask, KandownConfig, ThemeMode, WorkOutputConfig, WorkOutputBaseRulesMode } from '../lib/types';
+import type { BoardTask, KandownConfig, KandownTheme, ThemeMode, WorkOutputConfig, WorkOutputBaseRulesMode } from '../lib/types';
 
 type SettingType = 'toggle' | 'select' | 'number' | 'text' | 'skin' | 'theme' | 'language' | 'permission';
 type SettingsSectionId = 'appearance' | 'agent' | 'board' | 'fields' | 'notifications' | 'about';
@@ -1777,118 +1779,115 @@ function SettingRow({
         )}
 
         {setting.type === 'skin' && (
-          <SkinPicker value={String(value)} onChange={onChange} />
-        )}
-
-        {setting.type === 'theme' && (
-          <ThemeSwitcher value={String(value) as ThemeMode} onChange={onChange} />
-        )}
-
-        {setting.type === 'select' && setting.options && (
-          <select
-            value={String(value)}
-            onChange={e => onChange(e.target.value)}
-            className="h-8 w-full rounded-[7px] border border-border bg-bg-2 px-2.5 text-[13.5px] text-fg outline-none transition-colors focus:border-border-focus focus:bg-bg-3 md:w-[168px]"
-          >
-            {setting.options.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-        )}
-
-        {setting.type === 'language' && (
-          <LanguageDropdown value={String(value)} onChange={v => onChange(v)} />
-        )}
-
-        {setting.type === 'text' && (
-          <input
-            value={String(value ?? '')}
-            onChange={e => onChange(e.target.value.trim())}
-            placeholder={setting.placeholder}
-            className="h-8 w-full rounded-[7px] border border-border bg-bg-2 px-2.5 text-[13.5px] text-fg outline-none transition-colors placeholder:text-fg-faint focus:border-border-focus focus:bg-bg-3 md:w-[168px]"
-          />
-        )}
-
-        {setting.type === 'number' && (
-          <div className="inline-flex h-8 items-center overflow-hidden rounded-[7px] border border-border bg-bg-2">
-            <button
-              type="button"
-              onClick={() => handleNumberChange(-1)}
-              className="h-8 w-8 text-[15px] text-fg-muted transition-colors hover:bg-bg-3 hover:text-fg"
-            >
-              -
-            </button>
-            <span className="w-9 text-center text-[13.5px] text-fg tabular-nums">{String(value)}</span>
-            <button
-              type="button"
-              onClick={() => handleNumberChange(1)}
-              className="h-8 w-8 text-[15px] text-fg-muted transition-colors hover:bg-bg-3 hover:text-fg"
-            >
-              +
-            </button>
-          </div>
-        )}
-
-        {setting.type === 'permission' && (
-          <button
-            type="button"
-            onClick={onRequestNotificationPermission}
-            disabled={notificationPermission === 'granted' || notificationPermission === 'unsupported'}
-            className="h-8 rounded-[7px] border border-border bg-bg-2 px-2.5 text-[13px] text-fg transition-colors hover:bg-bg-3 disabled:cursor-default disabled:text-fg-muted disabled:hover:bg-bg-2"
-          >
-            {notificationPermission === 'granted' && t('settings.permissionGranted')}
-            {notificationPermission === 'denied' && t('settings.permissionDenied')}
-            {notificationPermission === 'default' && t('settings.permissionAsk')}
-            {notificationPermission === 'unsupported' && t('settings.permissionUnsupported')}
-          </button>
+          <ThemeGalleryPicker value={String(value)} onChange={onChange} />
         )}
       </div>
     </div>
   );
 }
 
-function SkinPicker({ value, onChange }: { value: string; onChange: (value: unknown) => void }) {
-  return (
-    <div className="grid w-full grid-cols-1 gap-1.5 md:w-[190px]">
-      {SKIN_OPTIONS.map(skin => {
-        const active = skin.id === value;
-        const swatches = [
-          skin.light.background,
-          skin.light.primary,
-          skin.dark.background,
-          skin.dark.primary,
-        ];
+function ThemeGalleryPicker({ value, onChange }: { value: string; onChange: (value: unknown) => void }) {
+  const config = useStore(s => s.config);
+  const updateConfig = useStore(s => s.updateConfig);
+  const resolvedMode = (config.ui.theme === 'auto'
+    ? (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+    : config.ui.theme) as 'light' | 'dark';
 
-        return (
-          <button
-            key={skin.id}
-            type="button"
-            onClick={() => onChange(skin.id)}
-            className={`rounded-[7px] border px-2 py-1.5 text-left transition-colors ${
-              active
-                ? 'border-border-focus bg-bg-3 text-fg'
-                : 'border-border bg-bg-2 text-fg-dim hover:border-border-strong hover:text-fg'
-            }`}
-            title={skin.description}
-          >
-            <span className="flex items-center justify-between gap-2">
-              <span className="truncate text-[12.5px] font-medium">{skin.label}</span>
-              <span className="flex flex-none overflow-hidden rounded-[3px] border border-border">
-                {swatches.map((color, index) => (
-                  <span
-                    key={`${skin.id}-${index}`}
-                    className="h-3 w-3"
-                    style={{ backgroundColor: `hsl(${color})` }}
-                  />
-                ))}
-              </span>
-            </span>
-          </button>
-        );
-      })}
+  const [editingTheme, setEditingTheme] = useState<KandownTheme | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const allThemes = getAllThemes();
+
+  const handleOpenCustomizer = (themeToEdit?: KandownTheme) => {
+    const baseTheme = themeToEdit ?? THEME_PRESETS[0];
+    const initialTheme: KandownTheme = themeToEdit
+      ? { ...themeToEdit }
+      : {
+          id: `custom-${Date.now().toString(36)}`,
+          name: 'My Custom Theme',
+          author: 'User',
+          description: 'Custom theme defined in kandown.json',
+          isCustom: true,
+          base: baseTheme.id,
+          appearance: { ...baseTheme.appearance },
+          fonts: { ...baseTheme.fonts },
+          light: { ...baseTheme.light },
+          dark: { ...baseTheme.dark },
+        };
+    setEditingTheme(initialTheme);
+    setModalOpen(true);
+  };
+
+  const handleSaveCustomTheme = (savedTheme: KandownTheme) => {
+    updateConfig(cfg => {
+      const existing = cfg.ui.customThemes || [];
+      const idx = existing.findIndex(t => t.id === savedTheme.id);
+      const nextCustoms = idx >= 0
+        ? [...existing.slice(0, idx), savedTheme, ...existing.slice(idx + 1)]
+        : [...existing, savedTheme];
+
+      registerCustomThemes(nextCustoms);
+      applyProjectTheme(cfg.ui.theme, savedTheme.id, cfg.ui.font, cfg.ui.background);
+
+      return {
+        ...cfg,
+        ui: {
+          ...cfg.ui,
+          skin: savedTheme.id,
+          customThemes: nextCustoms,
+        },
+      };
+    });
+  };
+
+  return (
+    <div className="w-full space-y-3 pt-2">
+      {/* Header bar with New Custom Theme button */}
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground font-mono">
+          Theme Presets & Customs ({allThemes.length})
+        </span>
+
+        <button
+          type="button"
+          onClick={() => handleOpenCustomizer()}
+          className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-lg bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors"
+        >
+          <IconPlus className="w-3.5 h-3.5" />
+          Create Custom Theme
+        </button>
+      </div>
+
+      {/* Theme Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {allThemes.map(t => (
+          <ThemePreviewCard
+            key={t.id}
+            theme={t}
+            active={t.id === value || (value === 'kandown' && t.id === 'vercel')}
+            mode={resolvedMode}
+            onSelect={() => onChange(t.id)}
+            onEdit={t.isCustom ? () => handleOpenCustomizer(t) : undefined}
+            onDuplicate={() => handleOpenCustomizer({ ...t, id: `${t.id}-copy-${Date.now().toString(36)}`, name: `${t.name} Copy`, isCustom: true })}
+            onExport={() => handleOpenCustomizer(t)}
+          />
+        ))}
+      </div>
+
+      {/* Editor Modal */}
+      {modalOpen && editingTheme && (
+        <ThemeCustomizerModal
+          isOpen={modalOpen}
+          initialTheme={editingTheme}
+          onClose={() => setModalOpen(false)}
+          onSave={handleSaveCustomTheme}
+        />
+      )}
     </div>
   );
 }
+
+
 
 interface AboutVersionCardProps {
   currentVersion: string;

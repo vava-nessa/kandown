@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.30.0 — 2026-07-21 — "Fable UI Themes"
+
+- **Added**: **Customizable JSON Theme Engine (`KandownTheme`)** — upgraded Kandown's skin system from 5 hardcoded HSL presets to an open, JSON-driven theme engine with dynamic inheritance (`base`), fallback safety, and runtime custom theme registration (`registerCustomThemes`).
+- **Added**: **8 Curated Built-in Presets** — introduced 8 design presets in `src/lib/theme.ts`:
+  - ⚡ **Vercel**: Monochrome contrast, tight typography, 6px radius, sharp 1px borders, zero shadows.
+  - 📐 **Linear**: Dark-first (`#08090A`), electric violet (`#5E6AD2`), 8px radius, glass header, soft popover shadows.
+  - 🧡 **Claude**: Editorial warmth, oat crème (`#F5F1EA`), terracotta accent (`#D97757`), Charter serif display font, 12px radius, soft diffuse shadows.
+  - 🍎 **Apple**: Translucent materials (`rgba(255,255,255,0.72)` + backdrop blur), SF system font, 14px squircle radius, multi-layer elevated shadows.
+  - 💳 **Stripe**: Indigo night (`#0A0A23`), blurple accent (`#635BFF`), 8px radius, soft colored glow shadows.
+  - 📄 **Paper**: Notion-style calm studio, `#F7F6F3` light, `#191919` dark, pastel tags, 4px radius, no shadows.
+  - 🧛 **Catppuccin**: Official Mocha (`#1E1E2E` mauve `#CBA6F7`) and Latte palettes.
+  - 🖥️ **Terminal**: CRT homage to TUI, `#0C0C0C` background, `#33FF66` phosphor green text, SF Mono everywhere, 0px radius.
+- **Added**: **Theme Gallery with Live Mini-Board Previews** — replaced static color swatches in Settings with an interactive gallery of `ThemePreviewCard` components rendering isolated live 3-column kanban board previews using each theme's unique HSL tokens, radius, fonts, and shadows.
+- **Added**: **Visual Theme Editor Modal (`ThemeCustomizerModal`)** — added a visual customization drawer for creating and tweaking custom JSON themes with sliders for border radius (0–24px), shadow elevation levels (`none`, `soft`, `elevated`, `dramatic`), density, motion scale, glassmorphism, and live HSL token pickers.
+- **Added**: **Live WCAG 2.1 Contrast Ratio Calculator** — added real-time relative luminance calculation in the theme editor showing an active WCAG AA contrast ratio badge (warning when ratio < 4.5:1).
+- **Added**: **JSON Import & Export** — added direct theme JSON view/edit panel with 1-click clipboard copy for sharing and storing custom themes.
+- **Added**: **`ui.customThemes` Config Support** — custom user themes are automatically persisted in `kandown.json` under `ui.customThemes` and loaded seamlessly on startup.
+- **Changed**: **Appearance CSS Tokens & Design Refinements** — introduced `--radius`, `--shadow-*`, `--font-display`, `--motion-scale`, `--card-blur` variables into `:root` and mapped them to `tailwind.config.js` (`borderRadius`, `fontFamily.display`). Refined base body typography scale to 15px, unified focus rings (`:focus-visible`), and added smooth light/dark root transitions.
+
 ## 0.29.0 — 2026-07-20 — "Global Daemon Refresh"
 
 - **Added**: **Global daemon refresh command** — added `kandown daemon refresh-all`, which scans every active local Kandown daemon across the configured port range, refreshes each open project's `.kandown/kandown.html`, and restarts any daemon running an older CLI version.

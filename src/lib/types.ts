@@ -107,10 +107,70 @@ export interface TaskContent {
 export type Density = 'compact' | 'comfortable';
 export type ViewMode = 'board' | 'list';
 export type ThemeMode = 'auto' | 'light' | 'dark';
-export type SkinId = 'kandown' | 'graphite' | 'sage' | 'cobalt' | 'rose';
+export type SkinId = string;
 export type FontId = 'inter' | 'system' | 'serif' | 'mono' | 'rounded';
 export type BackgroundId = 'solid' | 'static-gradient';
 export type NotificationSoundId = 'soft' | 'chime' | 'ping' | 'pop';
+
+export type TokenName =
+  | 'background'
+  | 'foreground'
+  | 'card'
+  | 'card-foreground'
+  | 'popover'
+  | 'popover-foreground'
+  | 'primary'
+  | 'primary-foreground'
+  | 'secondary'
+  | 'secondary-foreground'
+  | 'muted'
+  | 'muted-foreground'
+  | 'accent'
+  | 'accent-foreground'
+  | 'destructive'
+  | 'destructive-foreground'
+  | 'border'
+  | 'border-strong'
+  | 'border-focus'
+  | 'input'
+  | 'ring'
+  | 'success'
+  | 'warning'
+  | 'grid'
+  | 'grid-strong'
+  | 'glass'
+  | 'glass-border';
+
+export type ThemeTokens = Record<TokenName, string>;
+
+export interface ThemeAppearance {
+  radius: string;
+  borderWidth?: string;
+  shadows: 'none' | 'soft' | 'elevated' | 'dramatic';
+  density: 'compact' | 'comfortable' | 'relaxed';
+  glass: boolean;
+  motion: 'none' | 'subtle' | 'playful';
+}
+
+export interface ThemeFonts {
+  sans?: string;
+  display?: string;
+  mono?: string;
+}
+
+export interface KandownTheme {
+  id: string;
+  name: string;
+  author?: string;
+  description?: string;
+  base?: string;
+  isCustom?: boolean;
+  appearance: ThemeAppearance;
+  fonts?: ThemeFonts;
+  light: ThemeTokens;
+  dark: ThemeTokens;
+  columnAccents?: Record<string, string>;
+}
 
 export type WorkOutputMode = 'blocks' | 'raw';
 export type WorkOutputBaseRulesMode = 'verbose' | 'optimized' | 'caveman' | 'full' | 'concise';
@@ -174,6 +234,7 @@ export interface KandownConfig {
     skin: SkinId;
     font: FontId;
     background: BackgroundId;
+    customThemes?: KandownTheme[];
   };
   agent: {
     suggestFollowUp: boolean;
