@@ -49,7 +49,7 @@ import { ThemePreviewCard } from './ThemePreviewCard';
 import { ThemeCustomizerModal } from './ThemeCustomizerModal';
 import { SUPPORTED_LANGUAGES, LANGUAGE_LABELS } from '../lib/i18n';
 import { getBrowserNotificationPermission, requestBrowserNotificationPermission, type BrowserNotificationPermission } from '../lib/notifications';
-import { readProjectInstructions, writeProjectInstructions } from '../lib/filesystem';
+import { readProjectInstructions, writeProjectInstructions, serverApplyUpdate } from '../lib/filesystem';
 import { DEFAULT_WORK_OUTPUT } from '../lib/types';
 import type { BoardTask, KandownConfig, KandownTheme, ThemeMode, WorkOutputConfig, WorkOutputBaseRulesMode } from '../lib/types';
 
@@ -1920,6 +1920,21 @@ interface AboutVersionCardProps {
 
 function AboutVersionCard({ currentVersion, updateStatus, latestVersion, onCheckUpdate }: AboutVersionCardProps) {
   const { t } = useTranslation();
+  const [applying, setApplying] = useState(false);
+  const [applyMsg, setApplyMsg] = useState('');
+
+  const handleApplyUpdate = async () => {
+    setApplying(true);
+    setApplyMsg('Installing update globally...');
+    const result = await serverApplyUpdate();
+    if (result && result.ok) {
+      setApplyMsg('✓ Updated! Reloading...');
+      setTimeout(() => window.location.reload(), 1000);
+    } else {
+      setApplying(false);
+      setApplyMsg(result?.message || 'Update failed');
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6 px-5 py-6">
@@ -1952,13 +1967,14 @@ function AboutVersionCard({ currentVersion, updateStatus, latestVersion, onCheck
           {updateStatus === 'available' && (
             <div className="flex items-center gap-2">
               <span className="rounded-[5px] bg-warning/10 px-2.5 py-1 text-[12.5px] font-medium text-warning">
-                v{latestVersion} {t('settings.available')}
+                v{latestVersion} available
               </span>
               <button
-                onClick={onCheckUpdate}
-                className="rounded-[5px] bg-bg-2 px-2.5 py-1 text-[12.5px] text-fg transition-colors hover:bg-bg-3"
+                onClick={handleApplyUpdate}
+                disabled={applying}
+                className="rounded-[5px] bg-primary px-3 py-1 text-[12.5px] font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
               >
-                {t('settings.refresh')}
+                {applying ? applyMsg : `Update to v${latestVersion}`}
               </button>
             </div>
           )}
@@ -1975,9 +1991,10 @@ function AboutVersionCard({ currentVersion, updateStatus, latestVersion, onCheck
 
       <div className="flex flex-col gap-2 rounded-[7px] border border-border bg-bg-2 p-3">
         <p className="text-[12.5px] text-fg-muted">
-          {t('settings.autoUpdateDescription') ?? 'Kandown auto-updates when you run npx kandown. To force an update, run npm install -g kandown.'}
+          Kandown auto-updates automatically when launched. You can also click the Update button above to instantly upgrade to the latest release.
         </p>
       </div>
+
 
       <div className="flex flex-col gap-1">
         <span className="text-[11.5px] font-semibold uppercase tracking-wider text-fg-faint">

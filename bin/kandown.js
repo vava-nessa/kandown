@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 // src/cli/cli.ts
-import { existsSync as existsSync5, readFileSync as readFileSync5, copyFileSync } from "fs";
-import { join as join5, resolve as resolve2, basename } from "path";
-import { spawn as spawn3 } from "child_process";
+import { existsSync as existsSync6, readFileSync as readFileSync6, copyFileSync as copyFileSync2 } from "fs";
+import { join as join6, resolve as resolve3, basename } from "path";
+import { spawn as spawn4 } from "child_process";
 
 // src/cli/lib/updater.ts
 import { existsSync, readFileSync, writeFileSync, unlinkSync, statSync, mkdirSync } from "fs";
@@ -12,7 +12,7 @@ import { spawn, execSync } from "child_process";
 import { homedir } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.32.2";
+var KANDOWN_VERSION = "0.33.0";
 
 // src/cli/lib/updater.ts
 var CACHE_DIR = join(homedir(), ".kandown");
@@ -147,7 +147,7 @@ async function checkForUpdate(argv = process.argv) {
     }
   } catch {
   }
-  const latest = await new Promise((resolve3) => {
+  const latest = await new Promise((resolve4) => {
     const child2 = spawn("npm", ["view", "kandown", "version"], {
       timeout: 6e3,
       stdio: ["pipe", "pipe", "pipe"],
@@ -160,11 +160,11 @@ async function checkForUpdate(argv = process.argv) {
     });
     child2.stderr.on("data", () => {
     });
-    child2.on("error", () => resolve3(null));
+    child2.on("error", () => resolve4(null));
     child2.on("close", (code) => {
-      if (code !== 0) return resolve3(null);
+      if (code !== 0) return resolve4(null);
       const v = stdout.trim().replace(/^"|"$/g, "");
-      resolve3(v || null);
+      resolve4(v || null);
     });
   });
   if (!latest) return;
@@ -486,6 +486,10 @@ function loadConfig(kandownDir) {
   }
   return merged;
 }
+function saveConfig(kandownDir, config) {
+  const configPath = join2(kandownDir, "kandown.json");
+  atomicWriteFileSync(configPath, JSON.stringify(config, null, 2) + "\n");
+}
 
 // src/cli/lib/board-reader.ts
 function getProjectRoot(kandownDir) {
@@ -695,16 +699,16 @@ async function fetchDaemonInfo(port) {
   }
 }
 function isPortListening(port, timeoutMs = 400) {
-  return new Promise((resolve3) => {
+  return new Promise((resolve4) => {
     const socket = createConnection({ port, host: "127.0.0.1" }, () => {
       socket.destroy();
-      resolve3(true);
+      resolve4(true);
     });
-    socket.on("error", () => resolve3(false));
+    socket.on("error", () => resolve4(false));
     socket.setTimeout(timeoutMs);
     socket.on("timeout", () => {
       socket.destroy();
-      resolve3(false);
+      resolve4(false);
     });
   });
 }
@@ -732,7 +736,7 @@ async function waitForDaemon(kandownDir, timeoutMs = 8e3) {
     if (metadata && isProcessAlive(metadata.pid) && await isPortListening(metadata.port)) {
       return { running: true, metadata };
     }
-    await new Promise((resolve3) => setTimeout(resolve3, 120));
+    await new Promise((resolve4) => setTimeout(resolve4, 120));
   }
   return { running: false, metadata: null };
 }
@@ -760,6 +764,306 @@ async function startProjectDaemon(kandownDir, preferredPort) {
   });
   child.unref();
   return waitForDaemon(kandownDir);
+}
+
+// src/cli/lib/server.ts
+import { createServer } from "http";
+import { existsSync as existsSync5, readFileSync as readFileSync5, copyFileSync, unlinkSync as unlinkSync5, mkdirSync as mkdirSync3 } from "fs";
+import { join as join5, resolve as resolve2, dirname as dirname3 } from "path";
+import { execSync as execSync2, spawn as spawn3 } from "child_process";
+import { homedir as homedir3 } from "os";
+var START_PORT_RANGE = 2050;
+var END_PORT_RANGE = 2099;
+var UNSAFE_PORTS = /* @__PURE__ */ new Set([2049, 4045, 6e3, 6665, 6666, 6667, 6668, 6669, 6697]);
+var sseClients = [];
+var nextClientId = 1;
+function broadcastSseEvent(data) {
+  const payload = `data: ${JSON.stringify(data)}
+
+`;
+  sseClients.forEach((c2) => c2.res.write(payload));
+}
+function handleCors(res) {
+  res.writeHead(204, {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-Kandown-Token"
+  });
+  res.end();
+}
+function writeJson(res, status, data) {
+  res.writeHead(status, {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*"
+  });
+  res.end(JSON.stringify(data));
+}
+function writeText(res, status, text) {
+  res.writeHead(status, {
+    "Content-Type": "text/plain; charset=utf-8",
+    "Access-Control-Allow-Origin": "*"
+  });
+  res.end(text);
+}
+function syncProjectKandownHtml(kandownDir) {
+  try {
+    const projectHtml = join5(kandownDir, "kandown.html");
+    const cliRoot = resolve2(import.meta.url ? new URL("../..", import.meta.url).pathname : process.cwd());
+    const distHtml = join5(cliRoot, "dist", "index.html");
+    if (!existsSync5(distHtml)) return false;
+    if (!existsSync5(projectHtml)) {
+      copyFileSync(distHtml, projectHtml);
+      return true;
+    }
+    const currentContent = readFileSync5(projectHtml, "utf8");
+    const newContent = readFileSync5(distHtml, "utf8");
+    if (currentContent !== newContent) {
+      atomicWriteFileSync(projectHtml, newContent);
+      return true;
+    }
+  } catch {
+  }
+  return false;
+}
+function syncGlobalSymlinks() {
+  try {
+    const home = homedir3();
+    const candidatePaths = [
+      join5(home, ".local", "bin", "kandown"),
+      join5(home, "Library", "pnpm", "bin", "kandown"),
+      join5(home, ".nvm", "versions", "node", "v25.2.1", "bin", "kandown")
+    ];
+    const currentBin = resolve2(import.meta.url ? new URL("../../bin/kandown.js", import.meta.url).pathname : process.cwd());
+    for (const targetPath of candidatePaths) {
+      if (existsSync5(dirname3(targetPath))) {
+        try {
+          if (existsSync5(targetPath)) unlinkSync5(targetPath);
+          execSync2(`ln -sf "${currentBin}" "${targetPath}" 2>/dev/null || true`);
+        } catch {
+        }
+      }
+    }
+  } catch {
+  }
+}
+async function handleApi(req, res, url, kandownDir) {
+  const path = url.pathname;
+  const method = req.method || "GET";
+  if (path === "/api/daemon" && method === "GET") {
+    return writeJson(res, 200, {
+      ok: true,
+      pid: process.pid,
+      kandownDir,
+      version: getCurrentVersion(),
+      startedAt: (/* @__PURE__ */ new Date()).toISOString(),
+      agentHook: process.env.KANDOWN_AGENT_HOOK_URL ? { enabled: true, label: process.env.KANDOWN_AGENT_HOOK_LABEL || "Send to Agent" } : null
+    });
+  }
+  if (path === "/api/version" && method === "GET") {
+    return writeJson(res, 200, {
+      version: getCurrentVersion()
+    });
+  }
+  if (path === "/api/update/check" && method === "GET") {
+    const current = getCurrentVersion();
+    const latest = await new Promise((resolve4) => {
+      const child = spawn3("npm", ["view", "kandown", "version"], {
+        timeout: 4e3,
+        stdio: ["pipe", "pipe", "pipe"],
+        env: { ...process.env },
+        detached: false
+      });
+      let stdout = "";
+      child.stdout.on("data", (d) => {
+        stdout += d;
+      });
+      child.stderr.on("data", () => {
+      });
+      child.on("error", () => resolve4(null));
+      child.on("close", (code) => {
+        if (code !== 0) return resolve4(null);
+        resolve4(stdout.trim().replace(/^"|"$/g, "") || null);
+      });
+    });
+    const updateAvailable = latest ? semverGt(latest, current) > 0 : false;
+    return writeJson(res, 200, {
+      current,
+      latest: latest || current,
+      updateAvailable
+    });
+  }
+  if (path === "/api/update/apply" && method === "POST") {
+    const current = getCurrentVersion();
+    const latest = await new Promise((resolve4) => {
+      const child = spawn3("npm", ["view", "kandown", "version"], {
+        timeout: 4e3,
+        stdio: ["pipe", "pipe", "pipe"],
+        env: { ...process.env },
+        detached: false
+      });
+      let stdout = "";
+      child.stdout.on("data", (d) => {
+        stdout += d;
+      });
+      child.on("error", () => resolve4(null));
+      child.on("close", (code) => resolve4(code === 0 ? stdout.trim() : null));
+    });
+    const targetVersion = latest || current;
+    const ok = await performGlobalPackageUpdate(`kandown@${targetVersion}`);
+    syncGlobalSymlinks();
+    syncProjectKandownHtml(kandownDir);
+    if (ok) {
+      writeJson(res, 200, { ok: true, version: targetVersion, message: "Update installed successfully" });
+      broadcastSseEvent({ type: "update", version: targetVersion });
+    } else {
+      writeJson(res, 500, { ok: false, message: "Global package installation failed" });
+    }
+    return;
+  }
+  if (path === "/api/events" && method === "GET") {
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      "Connection": "keep-alive",
+      "Access-Control-Allow-Origin": "*"
+    });
+    res.write("retry: 2000\n\n");
+    const id = nextClientId++;
+    sseClients.push({ id, res });
+    req.on("close", () => {
+      sseClients = sseClients.filter((c2) => c2.id !== id);
+    });
+    return;
+  }
+  if (path === "/api/board") {
+    if (method === "GET") {
+      const tasksDir = getTasksDir(kandownDir);
+      const boardPath = join5(tasksDir, "board.md");
+      const text = existsSync5(boardPath) ? readFileSync5(boardPath, "utf8") : "";
+      return writeText(res, 200, text);
+    }
+    if (method === "PUT") {
+      let body = "";
+      req.on("data", (chunk) => {
+        body += chunk;
+      });
+      req.on("end", () => {
+        const tasksDir = getTasksDir(kandownDir);
+        if (!existsSync5(tasksDir)) mkdirSync3(tasksDir, { recursive: true });
+        atomicWriteFileSync(join5(tasksDir, "board.md"), body);
+        broadcastSseEvent({ type: "board" });
+        writeJson(res, 200, { ok: true });
+      });
+      return;
+    }
+  }
+  if (path === "/api/config") {
+    if (method === "GET") {
+      return writeJson(res, 200, loadConfig(kandownDir));
+    }
+    if (method === "PUT") {
+      let body = "";
+      req.on("data", (chunk) => {
+        body += chunk;
+      });
+      req.on("end", () => {
+        try {
+          const parsed = JSON.parse(body);
+          saveConfig(kandownDir, parsed);
+          broadcastSseEvent({ type: "config" });
+          writeJson(res, 200, { ok: true });
+        } catch (e) {
+          writeJson(res, 400, { error: e.message });
+        }
+      });
+      return;
+    }
+  }
+  if (path === "/api/tasks" && method === "GET") {
+    return writeJson(res, 200, listTaskIds(kandownDir));
+  }
+  if (path.startsWith("/api/tasks/")) {
+    const taskId = decodeURIComponent(path.slice("/api/tasks/".length));
+    const tasksDir = getTasksDir(kandownDir);
+    const taskPath = join5(tasksDir, `${taskId}.md`);
+    if (method === "GET") {
+      if (!existsSync5(taskPath)) return writeText(res, 404, "Task not found");
+      return writeText(res, 200, readFileSync5(taskPath, "utf8"));
+    }
+    if (method === "PUT") {
+      let body = "";
+      req.on("data", (chunk) => {
+        body += chunk;
+      });
+      req.on("end", () => {
+        if (!existsSync5(tasksDir)) mkdirSync3(tasksDir, { recursive: true });
+        atomicWriteFileSync(taskPath, body);
+        broadcastSseEvent({ type: "task", id: taskId });
+        writeJson(res, 200, { ok: true });
+      });
+      return;
+    }
+    if (method === "DELETE") {
+      if (existsSync5(taskPath)) unlinkSync5(taskPath);
+      broadcastSseEvent({ type: "task_delete", id: taskId });
+      return writeJson(res, 200, { ok: true });
+    }
+  }
+  writeJson(res, 404, { error: "Route not found" });
+}
+function serveApp(res, kandownDir) {
+  syncProjectKandownHtml(kandownDir);
+  const htmlPath = join5(kandownDir, "kandown.html");
+  if (existsSync5(htmlPath)) {
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    res.end(readFileSync5(htmlPath, "utf8"));
+  } else {
+    writeText(res, 404, "kandown.html not found");
+  }
+}
+function createServeServer(kandownDir) {
+  syncProjectKandownHtml(kandownDir);
+  syncGlobalSymlinks();
+  return createServer((req, res) => {
+    const url = new URL(req.url || "/", "http://localhost");
+    if (req.method === "OPTIONS") return handleCors(res);
+    if (url.pathname === "/" || url.pathname === "/kandown.html") {
+      return serveApp(res, kandownDir);
+    }
+    if (url.pathname.startsWith("/api/")) {
+      return handleApi(req, res, url, kandownDir);
+    }
+    writeText(res, 404, "Not found");
+  });
+}
+function listen(server, port) {
+  return new Promise((resolveListen, rejectListen) => {
+    const onError = (e) => {
+      server.off("listening", onListening);
+      rejectListen(e);
+    };
+    const onListening = () => {
+      server.off("error", onError);
+      resolveListen();
+    };
+    server.once("error", onError);
+    server.once("listening", onListening);
+    server.listen(port, "127.0.0.1");
+  });
+}
+async function listenOnAvailablePort(kandownDir, preferredPort) {
+  const startPort = preferredPort ?? START_PORT_RANGE;
+  for (let p = startPort; p <= END_PORT_RANGE; p++) {
+    if (UNSAFE_PORTS.has(p)) continue;
+    const server = createServeServer(kandownDir);
+    try {
+      await listen(server, p);
+      return { server, port: p };
+    } catch (e) {
+      if (e.code !== "EADDRINUSE" && e.code !== "EACCES") throw e;
+    }
+  }
+  throw new Error(`No free port in range ${START_PORT_RANGE}-${END_PORT_RANGE}`);
 }
 
 // src/cli/cli.ts
@@ -808,16 +1112,16 @@ function parseArgs(args) {
   return { flags, positional, path: typeof flags.path === "string" ? flags.path : ".kandown" };
 }
 function resolveKandownDir(pathArg = ".kandown", cwd = process.cwd()) {
-  if (basename(cwd) === ".kandown" || existsSync5(join5(cwd, "kandown.json"))) {
+  if (basename(cwd) === ".kandown" || existsSync6(join6(cwd, "kandown.json"))) {
     return cwd;
   }
-  return resolve2(cwd, pathArg);
+  return resolve3(cwd, pathArg);
 }
 function ensureKandownDir(rawArgs) {
   const args = parseArgs(rawArgs);
   const cwd = process.cwd();
   const kandownDir = resolveKandownDir(args.path, cwd);
-  if (!existsSync5(kandownDir)) {
+  if (!existsSync6(kandownDir)) {
     err(`No Kandown installation found at ${c.bold}${kandownDir}${c.reset}`);
     log(`  Run ${c.cyan}npx kandown init${c.reset} to create one.`);
     process.exit(1);
@@ -860,8 +1164,8 @@ ${c.bold}OPTIONS:${c.reset}
 async function cmdUpdate(rawArgs) {
   const current = getCurrentVersion();
   log(`${c.bold}kandown update${c.reset} ${c.dim}\u2014 v${current}${c.reset}`);
-  const latest = await new Promise((resolve3) => {
-    const child = spawn3("npm", ["view", "kandown", "version"], {
+  const latest = await new Promise((resolve4) => {
+    const child = spawn4("npm", ["view", "kandown", "version"], {
       timeout: 6e3,
       stdio: ["pipe", "pipe", "pipe"],
       env: { ...process.env },
@@ -873,11 +1177,11 @@ async function cmdUpdate(rawArgs) {
     });
     child.stderr.on("data", () => {
     });
-    child.on("error", () => resolve3(null));
+    child.on("error", () => resolve4(null));
     child.on("close", (code) => {
-      if (code !== 0) return resolve3(null);
+      if (code !== 0) return resolve4(null);
       const v = stdout.trim().replace(/^"|"$/g, "");
-      resolve3(v || null);
+      resolve4(v || null);
     });
   });
   if (latest && semverGt(latest, current) > 0) {
@@ -893,12 +1197,12 @@ async function cmdUpdate(rawArgs) {
   }
   const args = parseArgs(rawArgs);
   const cwd = process.cwd();
-  const kandownDir = resolve2(cwd, args.path);
-  const htmlDest = join5(kandownDir, "kandown.html");
-  if (existsSync5(htmlDest)) {
-    const htmlSrc = resolve2(import.meta.url ? new URL("../..", import.meta.url).pathname : process.cwd(), "dist", "index.html");
-    if (existsSync5(htmlSrc)) {
-      copyFileSync(htmlSrc, htmlDest);
+  const kandownDir = resolve3(cwd, args.path);
+  const htmlDest = join6(kandownDir, "kandown.html");
+  if (existsSync6(htmlDest)) {
+    const htmlSrc = resolve3(import.meta.url ? new URL("../..", import.meta.url).pathname : process.cwd(), "dist", "index.html");
+    if (existsSync6(htmlSrc)) {
+      copyFileSync2(htmlSrc, htmlDest);
       success(`Refreshed ${args.path}/kandown.html`);
     }
   }
@@ -909,10 +1213,10 @@ async function cmdDoctor(rawArgs) {
   log(`${c.bold}kandown doctor${c.reset} ${c.dim}\u2014 environment & board diagnostic${c.reset}
 `);
   log(`  CLI Version: ${currentVersion}`);
-  const configPath = join5(kandownDir, "kandown.json");
-  if (existsSync5(configPath)) {
+  const configPath = join6(kandownDir, "kandown.json");
+  if (existsSync6(configPath)) {
     try {
-      JSON.parse(readFileSync5(configPath, "utf8"));
+      JSON.parse(readFileSync6(configPath, "utf8"));
       success("kandown.json valid");
     } catch (e) {
       err(`kandown.json invalid: ${e.message}`);
@@ -1028,15 +1332,55 @@ async function main() {
     case "-h":
       help();
       break;
+    case "daemon": {
+      const subcommand = rest[0] || "status";
+      const { kandownDir } = ensureKandownDir(rest.slice(1));
+      if (subcommand === "run") {
+        const { port } = await listenOnAvailablePort(kandownDir);
+        const url = `http://localhost:${port}`;
+        const metadataPath2 = join6(kandownDir, "daemon.json");
+        atomicWriteFileSync(metadataPath2, JSON.stringify({
+          pid: process.pid,
+          port,
+          url,
+          kandownDir,
+          startedAt: (/* @__PURE__ */ new Date()).toISOString(),
+          version: getCurrentVersion(),
+          token: null
+        }, null, 2));
+        info(`Kandown daemon running on port ${port} (PID ${process.pid})`);
+        await new Promise(() => {
+        });
+      } else if (subcommand === "stop") {
+        const status = await getDaemonStatus(kandownDir);
+        if (status.running && status.metadata) {
+          try {
+            process.kill(status.metadata.pid, "SIGTERM");
+          } catch {
+          }
+          success(`Stopped daemon PID ${status.metadata.pid}`);
+        } else {
+          info("Daemon not running");
+        }
+      } else {
+        const status = await getDaemonStatus(kandownDir);
+        if (status.running && status.metadata) {
+          success(`Daemon running on port ${status.metadata.port} (PID ${status.metadata.pid})`);
+        } else {
+          info("Daemon not running");
+        }
+      }
+      break;
+    }
     case void 0: {
       const { kandownDir } = ensureKandownDir(rest);
       const status = await getDaemonStatus(kandownDir);
       if (!status.running) {
         await startProjectDaemon(kandownDir);
       }
-      const tuiPath = resolve2(import.meta.url ? new URL("../..", import.meta.url).pathname : process.cwd(), "bin", "tui.js");
-      if (existsSync5(tuiPath)) {
-        const child = spawn3("node", [tuiPath, ...rest], { stdio: "inherit" });
+      const tuiPath = resolve3(import.meta.url ? new URL("../..", import.meta.url).pathname : process.cwd(), "bin", "tui.js");
+      if (existsSync6(tuiPath)) {
+        const child = spawn4("node", [tuiPath, ...rest], { stdio: "inherit" });
         child.on("close", (code) => process.exit(code || 0));
       } else {
         info("Kandown daemon running. Open kandown.html in browser.");

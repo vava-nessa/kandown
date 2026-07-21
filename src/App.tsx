@@ -36,6 +36,8 @@ import { ConflictModal } from './components/ConflictModal';
 import { ErrorBoundary, BoardErrorFallback } from './components/ErrorBoundary';
 import { BulkActionBar } from './components/BulkActionBar';
 import { OnboardingTour } from './components/OnboardingTour';
+import { UpdateNotificationBanner } from './components/UpdateNotificationBanner';
+
 
 import { useStore } from './lib/store';
 import { getProjectSlugFromLocation, getTaskIdFromLocation } from './lib/task-url';
@@ -180,7 +182,9 @@ export function App() {
     <ErrorBoundary>
       <div className="flex flex-col h-screen">
         <Header />
+        <UpdateNotificationBanner />
         {currentPage === 'settings' ? (
+
           <SettingsPage />
         ) : isOpen || dirHandle ? (
           <div className="flex-1 relative overflow-hidden">

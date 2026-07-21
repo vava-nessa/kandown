@@ -841,10 +841,6 @@ export async function verifyPermission(
   handle: FileSystemDirectoryHandle,
   readWrite: boolean = true
 ): Promise<boolean> {
-  // 📖 A stored handle can be revoked by the browser (restart, user action).
-  // queryPermission / requestPermission throw on such handles instead of
-  // returning 'denied' — we swallow that and report false so callers can show
-  // a clean "no longer accessible" message and clean up the entry (t109).
   const opts = { mode: readWrite ? 'readwrite' : 'read' } as const;
   try {
     if ((await handle.queryPermission(opts)) === 'granted') return true;
@@ -855,3 +851,28 @@ export async function verifyPermission(
     return false;
   }
 }
+
+export interface UpdateCheckResult {
+  current: string;
+  latest: string;
+  updateAvailable: boolean;
+}
+
+export async function serverCheckUpdate(): Promise<UpdateCheckResult | null> {
+  try {
+    const res = await apiFetch('/api/update/check');
+    return await res.json() as UpdateCheckResult;
+  } catch {
+    return null;
+  }
+}
+
+export async function serverApplyUpdate(): Promise<{ ok: boolean; version?: string; message?: string } | null> {
+  try {
+    const res = await apiFetch('/api/update/apply', { method: 'POST' });
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+

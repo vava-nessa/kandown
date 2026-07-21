@@ -10,6 +10,8 @@ import { spawn } from 'node:child_process';
 import { getCurrentVersion, checkForUpdate, performGlobalPackageUpdate, semverGt } from './lib/updater';
 import { readBoard, readTask, readAgentDoc, moveTaskToColumn, listTaskIds } from './lib/board-reader';
 import { getDaemonStatus, startProjectDaemon } from './lib/daemon';
+import { listenOnAvailablePort } from './lib/server';
+import { atomicWriteFileSync } from './lib/atomic-write';
 
 const c = {
   reset: '\x1b[0m',
@@ -295,6 +297,44 @@ async function main() {
       help();
       break;
 
+    case 'daemon': {
+      const subcommand = rest[0] || 'status';
+      const { kandownDir } = ensureKandownDir(rest.slice(1));
+      if (subcommand === 'run') {
+        const { port } = await listenOnAvailablePort(kandownDir);
+        const url = `http://localhost:${port}`;
+        const metadataPath = join(kandownDir, 'daemon.json');
+        atomicWriteFileSync(metadataPath, JSON.stringify({
+          pid: process.pid,
+          port,
+          url,
+          kandownDir,
+          startedAt: new Date().toISOString(),
+          version: getCurrentVersion(),
+          token: null,
+        }, null, 2));
+        info(`Kandown daemon running on port ${port} (PID ${process.pid})`);
+        // Keep process running
+        await new Promise(() => {});
+      } else if (subcommand === 'stop') {
+        const status = await getDaemonStatus(kandownDir);
+        if (status.running && status.metadata) {
+          try { process.kill(status.metadata.pid, 'SIGTERM'); } catch { /* ignore */ }
+          success(`Stopped daemon PID ${status.metadata.pid}`);
+        } else {
+          info('Daemon not running');
+        }
+      } else {
+        const status = await getDaemonStatus(kandownDir);
+        if (status.running && status.metadata) {
+          success(`Daemon running on port ${status.metadata.port} (PID ${status.metadata.pid})`);
+        } else {
+          info('Daemon not running');
+        }
+      }
+      break;
+    }
+
     case undefined: {
       const { kandownDir } = ensureKandownDir(rest);
       const status = await getDaemonStatus(kandownDir);
@@ -311,6 +351,7 @@ async function main() {
       }
       break;
     }
+
 
     default:
       if (cmd.startsWith('-')) {
