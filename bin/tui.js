@@ -53983,6 +53983,9 @@ var import_react32 = __toESM(require_react(), 1);
 // node_modules/.pnpm/ink@7.0.1_@types+react@19.2.14_react-devtools-core@7.0.1_react@19.2.5/node_modules/ink/build/hooks/use-box-metrics.js
 var import_react33 = __toESM(require_react(), 1);
 
+// src/cli/tui.tsx
+import { fileURLToPath as fileURLToPath2 } from "url";
+
 // src/cli/app.tsx
 var import_react38 = __toESM(require_react(), 1);
 
@@ -58780,6 +58783,19 @@ async function run(screen, kandownDir, version) {
     maxFps: 30
   });
   await instance.waitUntilExit();
+}
+if (process.argv[1] === fileURLToPath2(import.meta.url)) {
+  const screen = process.argv[2] || "board";
+  const kandownDir = process.argv[3];
+  const version = process.argv[4];
+  if (!kandownDir) {
+    console.error("Usage: kandown-tui <board|settings> <kandownDir> [version]");
+    process.exit(1);
+  }
+  run(screen, kandownDir, version).catch((error) => {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  });
 }
 export {
   run

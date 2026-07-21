@@ -15,6 +15,7 @@
  */
 
 import { render } from 'ink';
+import { fileURLToPath } from 'node:url';
 import { App } from './app.js';
 
 /**
@@ -39,4 +40,20 @@ export async function run(screen: string, kandownDir: string, version?: string):
   });
 
   await instance.waitUntilExit();
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const screen = process.argv[2] || 'board';
+  const kandownDir = process.argv[3];
+  const version = process.argv[4];
+
+  if (!kandownDir) {
+    console.error('Usage: kandown-tui <board|settings> <kandownDir> [version]');
+    process.exit(1);
+  }
+
+  run(screen, kandownDir, version).catch(error => {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  });
 }

@@ -172,7 +172,18 @@ export async function performGlobalPackageUpdate(packageSpec: string): Promise<b
   };
 
   const currentBin = resolveKandownBin() || '';
+  const currentBinDir = currentBin ? dirname(currentBin) : null;
+  const siblingNpm = currentBinDir ? join(currentBinDir, 'npm') : null;
+  const siblingPnpm = currentBinDir ? join(currentBinDir, 'pnpm') : null;
   const isPnpmInstall = currentBin.includes('pnpm');
+
+  // 📖 Prefer the package manager living next to the active `kandown` binary.
+  // vava's machine can have multiple Node prefixes on PATH (Hermes + nvm); a
+  // generic `npm install -g` may update a different prefix and leave the actual
+  // `kandown` command stale. Updating through the sibling npm/pnpm keeps the
+  // auto-updater attached to the executable the user really launched.
+  if (siblingPnpm && existsSync(siblingPnpm) && await tryPkgCmd(siblingPnpm, ['add', '-g', packageSpec])) return true;
+  if (siblingNpm && existsSync(siblingNpm) && await tryPkgCmd(siblingNpm, ['install', '-g', packageSpec, '--force'])) return true;
 
   if (isPnpmInstall) {
     if (await tryPkgCmd('pnpm', ['add', '-g', packageSpec])) return true;

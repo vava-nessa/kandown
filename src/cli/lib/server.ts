@@ -6,13 +6,12 @@
  */
 
 import { createServer, IncomingMessage, ServerResponse } from 'node:http';
-import { existsSync, readFileSync, writeFileSync, copyFileSync, unlinkSync, statSync, mkdirSync, readdirSync } from 'node:fs';
-import { join, resolve, dirname, extname } from 'node:path';
-import { execSync, spawn } from 'node:child_process';
-import { homedir } from 'node:os';
-import { getProjectRoot, getTasksDir, readBoard, readTask, moveTaskToColumn, listTaskIds } from './board-reader';
+import { existsSync, readFileSync, copyFileSync, unlinkSync, mkdirSync } from 'node:fs';
+import { join } from 'node:path';
+import { spawn } from 'node:child_process';
+import { getTasksDir, readBoard, readTask, moveTaskToColumn, listTaskIds } from './board-reader';
 import { loadConfig, saveConfig } from './config';
-import { getCurrentVersion, semverGt, performGlobalPackageUpdate } from './updater';
+import { getCurrentVersion, semverGt, performGlobalPackageUpdate, PKG_ROOT } from './updater';
 import { atomicWriteFileSync } from './atomic-write';
 
 const START_PORT_RANGE = 2050;
@@ -62,8 +61,7 @@ function writeText(res: ServerResponse, status: number, text: string): void {
 export function syncProjectKandownHtml(kandownDir: string): boolean {
   try {
     const projectHtml = join(kandownDir, 'kandown.html');
-    const cliRoot = resolve(import.meta.url ? new URL('../..', import.meta.url).pathname : process.cwd());
-    const distHtml = join(cliRoot, 'dist', 'index.html');
+    const distHtml = join(PKG_ROOT, 'dist', 'index.html');
 
     if (!existsSync(distHtml)) return false;
 
@@ -84,28 +82,12 @@ export function syncProjectKandownHtml(kandownDir: string): boolean {
 }
 
 /**
- * 📖 Overwrites all global binary symlinks on the user's system to point to the latest CLI.
+ * 📖 Legacy no-op kept for compatibility with older bundled imports.
+ * Package managers own the global `kandown` executable; the daemon must never
+ * rewrite user PATH symlinks because a wrong bundle-relative path can brick the
+ * CLI after launch or update.
  */
-export function syncGlobalSymlinks(): void {
-  try {
-    const home = homedir();
-    const candidatePaths = [
-      join(home, '.local', 'bin', 'kandown'),
-      join(home, 'Library', 'pnpm', 'bin', 'kandown'),
-      join(home, '.nvm', 'versions', 'node', 'v25.2.1', 'bin', 'kandown'),
-    ];
-
-    const currentBin = resolve(import.meta.url ? new URL('../../bin/kandown.js', import.meta.url).pathname : process.cwd());
-    for (const targetPath of candidatePaths) {
-      if (existsSync(dirname(targetPath))) {
-        try {
-          if (existsSync(targetPath)) unlinkSync(targetPath);
-          execSync(`ln -sf "${currentBin}" "${targetPath}" 2>/dev/null || true`);
-        } catch { /* ignore individual link failures */ }
-      }
-    }
-  } catch { /* ignore */ }
-}
+export function syncGlobalSymlinks(): void {}
 
 async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, kandownDir: string): Promise<void> {
   const path = url.pathname;
@@ -172,7 +154,6 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
 
     const targetVersion = latest || current;
     const ok = await performGlobalPackageUpdate(`kandown@${targetVersion}`);
-    syncGlobalSymlinks();
     syncProjectKandownHtml(kandownDir);
 
     if (ok) {
@@ -291,7 +272,6 @@ function serveApp(res: ServerResponse, kandownDir: string): void {
 
 export function createServeServer(kandownDir: string) {
   syncProjectKandownHtml(kandownDir);
-  syncGlobalSymlinks();
 
   return createServer((req, res) => {
     const url = new URL(req.url || '/', 'http://localhost');

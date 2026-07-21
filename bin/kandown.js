@@ -5,9 +5,9 @@ if (typeof globalThis.require === 'undefined') {
 }
 
 // src/cli/cli.ts
-import { existsSync as existsSync6, readFileSync as readFileSync6, copyFileSync as copyFileSync2 } from "fs";
-import { join as join6, resolve as resolve3, basename } from "path";
-import { spawn as spawn4 } from "child_process";
+import { existsSync as existsSync8, readFileSync as readFileSync8, copyFileSync as copyFileSync3, mkdirSync as mkdirSync5, readdirSync as readdirSync3 } from "fs";
+import { join as join8, resolve as resolve2, basename } from "path";
+import { spawn as spawn4, spawnSync } from "child_process";
 
 // src/cli/lib/updater.ts
 import { existsSync, readFileSync, writeFileSync, unlinkSync, statSync, mkdirSync } from "fs";
@@ -16,7 +16,7 @@ import { spawn, execSync } from "child_process";
 import { homedir } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.33.2";
+var KANDOWN_VERSION = "0.33.3";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath } from "url";
@@ -139,7 +139,12 @@ async function performGlobalPackageUpdate(packageSpec) {
     });
   };
   const currentBin = resolveKandownBin() || "";
+  const currentBinDir = currentBin ? dirname(currentBin) : null;
+  const siblingNpm = currentBinDir ? join(currentBinDir, "npm") : null;
+  const siblingPnpm = currentBinDir ? join(currentBinDir, "pnpm") : null;
   const isPnpmInstall = currentBin.includes("pnpm");
+  if (siblingPnpm && existsSync(siblingPnpm) && await tryPkgCmd(siblingPnpm, ["add", "-g", packageSpec])) return true;
+  if (siblingNpm && existsSync(siblingNpm) && await tryPkgCmd(siblingNpm, ["install", "-g", packageSpec, "--force"])) return true;
   if (isPnpmInstall) {
     if (await tryPkgCmd("pnpm", ["add", "-g", packageSpec])) return true;
     if (await tryPkgCmd("npm", ["install", "-g", packageSpec, "--force"])) return true;
@@ -165,7 +170,7 @@ async function checkForUpdate(argv = process.argv) {
     }
   } catch {
   }
-  const latest = await new Promise((resolve4) => {
+  const latest = await new Promise((resolve3) => {
     const child2 = spawn("npm", ["view", "kandown", "version"], {
       timeout: 6e3,
       stdio: ["pipe", "pipe", "pipe"],
@@ -178,11 +183,11 @@ async function checkForUpdate(argv = process.argv) {
     });
     child2.stderr.on("data", () => {
     });
-    child2.on("error", () => resolve4(null));
+    child2.on("error", () => resolve3(null));
     child2.on("close", (code) => {
-      if (code !== 0) return resolve4(null);
+      if (code !== 0) return resolve3(null);
       const v = stdout.trim().replace(/^"|"$/g, "");
-      resolve4(v || null);
+      resolve3(v || null);
     });
   });
   if (!latest) return;
@@ -547,14 +552,14 @@ function readBoard(kandownDir) {
   };
 }
 function readTask(kandownDir, taskId) {
-  const taskPath = join3(getTasksDir(kandownDir), `${taskId}.md`);
-  if (!existsSync3(taskPath)) {
+  const taskPath2 = join3(getTasksDir(kandownDir), `${taskId}.md`);
+  if (!existsSync3(taskPath2)) {
     return {
       frontmatter: { id: taskId, title: `Task ${taskId}`, status: "Backlog" },
       body: ""
     };
   }
-  const content = readFileSync3(taskPath, "utf8");
+  const content = readFileSync3(taskPath2, "utf8");
   const parsed = parseTaskFile(content);
   return {
     ...parsed,
@@ -608,21 +613,21 @@ ${gitLog}
   return sections.filter(Boolean).join("\n\n---\n\n");
 }
 function moveTaskToColumn(kandownDir, taskId, targetColumn) {
-  const taskPath = join3(getTasksDir(kandownDir), `${taskId}.md`);
-  if (!existsSync3(taskPath)) return false;
+  const taskPath2 = join3(getTasksDir(kandownDir), `${taskId}.md`);
+  if (!existsSync3(taskPath2)) return false;
   try {
-    const prevContent = readFileSync3(taskPath, "utf8");
+    const prevContent = readFileSync3(taskPath2, "utf8");
     const parsed = readTask(kandownDir, taskId);
     const newContent = serializeTaskFile({
       ...parsed.frontmatter,
       id: taskId,
       status: targetColumn
     }, parsed.body);
-    atomicWriteFileSync(taskPath, newContent);
+    atomicWriteFileSync(taskPath2, newContent);
     pushUndo(kandownDir, {
       type: "move",
       taskId,
-      path: taskPath,
+      path: taskPath2,
       previousContent: prevContent,
       newContent,
       timestamp: Date.now()
@@ -650,6 +655,102 @@ function pushUndo(kandownDir, record) {
     if (list.length > 50) list = list.slice(0, 50);
     atomicWriteFileSync(logPath, JSON.stringify(list, null, 2));
   } catch {
+  }
+}
+function createTaskInBoard(kandownDir, rawInput, status) {
+  const tasksDir = getTasksDir(kandownDir);
+  if (!existsSync3(tasksDir)) mkdirSync2(tasksDir, { recursive: true });
+  const ids = listTaskIds(kandownDir);
+  let maxN = 0;
+  for (const id of ids) {
+    const m = id.match(/^t(\d+)$/i);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      if (Number.isFinite(n) && n > maxN) maxN = n;
+    }
+  }
+  const newId = `t${maxN + 1}`;
+  const config = loadConfig(kandownDir);
+  const targetStatus = status || (config.board.columns[0] ?? "Backlog");
+  let text = rawInput.trim();
+  let priority;
+  const tags = [];
+  let assignee;
+  let due;
+  const depends_on = [];
+  text = text.replace(/(?:^|\s)p([1-4])(?:\s|$)/i, (_, level) => {
+    priority = `P${level}`;
+    return " ";
+  });
+  text = text.replace(/(?:^|\s)#([a-zA-Z0-9_-]+)/g, (_, tag) => {
+    tags.push(tag.toLowerCase());
+    return " ";
+  });
+  text = text.replace(/(?:^|\s)@([a-zA-Z0-9_-]+)/g, (_, user) => {
+    assignee = user;
+    return " ";
+  });
+  text = text.replace(/(?:^|\s)due:([^\s]+)/i, (_, d) => {
+    due = d;
+    return " ";
+  });
+  text = text.replace(/(?:^|\s)\+([a-zA-Z0-9_-]+)/g, (_, depId) => {
+    depends_on.push(depId);
+    return " ";
+  });
+  const title = text.replace(/\s+/g, " ").trim() || rawInput;
+  const fm = {
+    id: newId,
+    title,
+    status: targetStatus,
+    created: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10)
+  };
+  if (priority) fm.priority = priority;
+  if (assignee) fm.assignee = assignee;
+  if (tags.length > 0) fm.tags = tags;
+  if (due) fm.due = due;
+  if (depends_on.length > 0) fm.depends_on = depends_on;
+  const content = serializeTaskFile(fm, "");
+  const taskPath2 = join3(tasksDir, `${newId}.md`);
+  atomicWriteFileSync(taskPath2, content);
+  pushUndo(kandownDir, {
+    type: "create",
+    taskId: newId,
+    path: taskPath2,
+    previousContent: null,
+    newContent: content,
+    timestamp: Date.now()
+  });
+  return newId;
+}
+function archiveTaskInBoard(kandownDir, taskId) {
+  const tasksDir = getTasksDir(kandownDir);
+  const taskPath2 = join3(tasksDir, `${taskId}.md`);
+  if (!existsSync3(taskPath2)) return false;
+  try {
+    const prevContent = readFileSync3(taskPath2, "utf8");
+    const archiveDir = join3(tasksDir, "archive");
+    if (!existsSync3(archiveDir)) mkdirSync2(archiveDir, { recursive: true });
+    const parsed = readTask(kandownDir, taskId);
+    const newContent = serializeTaskFile({
+      ...parsed.frontmatter,
+      id: taskId,
+      archived: true
+    }, parsed.body);
+    const destPath = join3(archiveDir, `${taskId}.md`);
+    atomicWriteFileSync(destPath, newContent);
+    unlinkSync3(taskPath2);
+    pushUndo(kandownDir, {
+      type: "archive",
+      taskId,
+      path: destPath,
+      previousContent: prevContent,
+      newContent,
+      timestamp: Date.now()
+    });
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -717,16 +818,16 @@ async function fetchDaemonInfo(port) {
   }
 }
 function isPortListening(port, timeoutMs = 400) {
-  return new Promise((resolve4) => {
+  return new Promise((resolve3) => {
     const socket = createConnection({ port, host: "127.0.0.1" }, () => {
       socket.destroy();
-      resolve4(true);
+      resolve3(true);
     });
-    socket.on("error", () => resolve4(false));
+    socket.on("error", () => resolve3(false));
     socket.setTimeout(timeoutMs);
     socket.on("timeout", () => {
       socket.destroy();
-      resolve4(false);
+      resolve3(false);
     });
   });
 }
@@ -754,7 +855,7 @@ async function waitForDaemon(kandownDir, timeoutMs = 8e3) {
     if (metadata && isProcessAlive(metadata.pid) && await isPortListening(metadata.port)) {
       return { running: true, metadata };
     }
-    await new Promise((resolve4) => setTimeout(resolve4, 120));
+    await new Promise((resolve3) => setTimeout(resolve3, 120));
   }
   return { running: false, metadata: null };
 }
@@ -783,13 +884,54 @@ async function startProjectDaemon(kandownDir, preferredPort) {
   child.unref();
   return waitForDaemon(kandownDir);
 }
+async function isOwnedKandownDaemon(pid, port, kandownDir) {
+  const remote = await fetchDaemonInfo(port);
+  if (remote) return remote.pid === pid && remote.kandownDir === kandownDir;
+  try {
+    const cmd = execFileSync2("ps", ["-p", String(pid), "-o", "command="], {
+      encoding: "utf8",
+      timeout: 2e3
+    }).trim();
+    return /kandown/.test(cmd) && cmd.includes(kandownDir);
+  } catch {
+    return false;
+  }
+}
+async function stopProjectDaemon(kandownDir) {
+  const metadata = readDaemonMetadata(kandownDir);
+  if (!metadata) return false;
+  const pid = metadata.pid;
+  if (!isProcessAlive(pid)) {
+    removeDaemonMetadata(kandownDir);
+    return false;
+  }
+  if (!await isOwnedKandownDaemon(pid, metadata.port, kandownDir)) {
+    removeDaemonMetadata(kandownDir);
+    return false;
+  }
+  try {
+    process.kill(pid, "SIGTERM");
+  } catch {
+  }
+  const started = Date.now();
+  while (Date.now() - started < 2500 && isProcessAlive(pid)) {
+    await new Promise((resolve3) => setTimeout(resolve3, 100));
+  }
+  if (isProcessAlive(pid)) {
+    try {
+      process.kill(pid, "SIGKILL");
+    } catch {
+    }
+  }
+  removeDaemonMetadata(kandownDir);
+  return true;
+}
 
 // src/cli/lib/server.ts
 import { createServer } from "http";
 import { existsSync as existsSync5, readFileSync as readFileSync5, copyFileSync, unlinkSync as unlinkSync5, mkdirSync as mkdirSync3 } from "fs";
-import { join as join5, resolve as resolve2, dirname as dirname4 } from "path";
-import { execSync as execSync2, spawn as spawn3 } from "child_process";
-import { homedir as homedir3 } from "os";
+import { join as join5 } from "path";
+import { spawn as spawn3 } from "child_process";
 var START_PORT_RANGE = 2050;
 var END_PORT_RANGE = 2099;
 var UNSAFE_PORTS = /* @__PURE__ */ new Set([2049, 4045, 6e3, 6665, 6666, 6667, 6668, 6669, 6697]);
@@ -826,8 +968,7 @@ function writeText(res, status, text) {
 function syncProjectKandownHtml(kandownDir) {
   try {
     const projectHtml = join5(kandownDir, "kandown.html");
-    const cliRoot = resolve2(import.meta.url ? new URL("../..", import.meta.url).pathname : process.cwd());
-    const distHtml = join5(cliRoot, "dist", "index.html");
+    const distHtml = join5(PKG_ROOT, "dist", "index.html");
     if (!existsSync5(distHtml)) return false;
     if (!existsSync5(projectHtml)) {
       copyFileSync(distHtml, projectHtml);
@@ -842,27 +983,6 @@ function syncProjectKandownHtml(kandownDir) {
   } catch {
   }
   return false;
-}
-function syncGlobalSymlinks() {
-  try {
-    const home = homedir3();
-    const candidatePaths = [
-      join5(home, ".local", "bin", "kandown"),
-      join5(home, "Library", "pnpm", "bin", "kandown"),
-      join5(home, ".nvm", "versions", "node", "v25.2.1", "bin", "kandown")
-    ];
-    const currentBin = resolve2(import.meta.url ? new URL("../../bin/kandown.js", import.meta.url).pathname : process.cwd());
-    for (const targetPath of candidatePaths) {
-      if (existsSync5(dirname4(targetPath))) {
-        try {
-          if (existsSync5(targetPath)) unlinkSync5(targetPath);
-          execSync2(`ln -sf "${currentBin}" "${targetPath}" 2>/dev/null || true`);
-        } catch {
-        }
-      }
-    }
-  } catch {
-  }
 }
 async function handleApi(req, res, url, kandownDir) {
   const path = url.pathname;
@@ -884,7 +1004,7 @@ async function handleApi(req, res, url, kandownDir) {
   }
   if (path === "/api/update/check" && method === "GET") {
     const current = getCurrentVersion();
-    const latest = await new Promise((resolve4) => {
+    const latest = await new Promise((resolve3) => {
       const child = spawn3("npm", ["view", "kandown", "version"], {
         timeout: 4e3,
         stdio: ["pipe", "pipe", "pipe"],
@@ -897,10 +1017,10 @@ async function handleApi(req, res, url, kandownDir) {
       });
       child.stderr.on("data", () => {
       });
-      child.on("error", () => resolve4(null));
+      child.on("error", () => resolve3(null));
       child.on("close", (code) => {
-        if (code !== 0) return resolve4(null);
-        resolve4(stdout.trim().replace(/^"|"$/g, "") || null);
+        if (code !== 0) return resolve3(null);
+        resolve3(stdout.trim().replace(/^"|"$/g, "") || null);
       });
     });
     const updateAvailable = latest ? semverGt(latest, current) > 0 : false;
@@ -912,7 +1032,7 @@ async function handleApi(req, res, url, kandownDir) {
   }
   if (path === "/api/update/apply" && method === "POST") {
     const current = getCurrentVersion();
-    const latest = await new Promise((resolve4) => {
+    const latest = await new Promise((resolve3) => {
       const child = spawn3("npm", ["view", "kandown", "version"], {
         timeout: 4e3,
         stdio: ["pipe", "pipe", "pipe"],
@@ -923,12 +1043,11 @@ async function handleApi(req, res, url, kandownDir) {
       child.stdout.on("data", (d) => {
         stdout += d;
       });
-      child.on("error", () => resolve4(null));
-      child.on("close", (code) => resolve4(code === 0 ? stdout.trim() : null));
+      child.on("error", () => resolve3(null));
+      child.on("close", (code) => resolve3(code === 0 ? stdout.trim() : null));
     });
     const targetVersion = latest || current;
     const ok = await performGlobalPackageUpdate(`kandown@${targetVersion}`);
-    syncGlobalSymlinks();
     syncProjectKandownHtml(kandownDir);
     if (ok) {
       writeJson(res, 200, { ok: true, version: targetVersion, message: "Update installed successfully" });
@@ -1003,10 +1122,10 @@ async function handleApi(req, res, url, kandownDir) {
   if (path.startsWith("/api/tasks/")) {
     const taskId = decodeURIComponent(path.slice("/api/tasks/".length));
     const tasksDir = getTasksDir(kandownDir);
-    const taskPath = join5(tasksDir, `${taskId}.md`);
+    const taskPath2 = join5(tasksDir, `${taskId}.md`);
     if (method === "GET") {
-      if (!existsSync5(taskPath)) return writeText(res, 404, "Task not found");
-      return writeText(res, 200, readFileSync5(taskPath, "utf8"));
+      if (!existsSync5(taskPath2)) return writeText(res, 404, "Task not found");
+      return writeText(res, 200, readFileSync5(taskPath2, "utf8"));
     }
     if (method === "PUT") {
       let body = "";
@@ -1015,14 +1134,14 @@ async function handleApi(req, res, url, kandownDir) {
       });
       req.on("end", () => {
         if (!existsSync5(tasksDir)) mkdirSync3(tasksDir, { recursive: true });
-        atomicWriteFileSync(taskPath, body);
+        atomicWriteFileSync(taskPath2, body);
         broadcastSseEvent({ type: "task", id: taskId });
         writeJson(res, 200, { ok: true });
       });
       return;
     }
     if (method === "DELETE") {
-      if (existsSync5(taskPath)) unlinkSync5(taskPath);
+      if (existsSync5(taskPath2)) unlinkSync5(taskPath2);
       broadcastSseEvent({ type: "task_delete", id: taskId });
       return writeJson(res, 200, { ok: true });
     }
@@ -1041,7 +1160,6 @@ function serveApp(res, kandownDir) {
 }
 function createServeServer(kandownDir) {
   syncProjectKandownHtml(kandownDir);
-  syncGlobalSymlinks();
   return createServer((req, res) => {
     const url = new URL(req.url || "/", "http://localhost");
     if (req.method === "OPTIONS") return handleCors(res);
@@ -1084,6 +1202,281 @@ async function listenOnAvailablePort(kandownDir, preferredPort) {
   throw new Error(`No free port in range ${START_PORT_RANGE}-${END_PORT_RANGE}`);
 }
 
+// src/cli/lib/init.ts
+import { existsSync as existsSync6, readFileSync as readFileSync6, mkdirSync as mkdirSync4, copyFileSync as copyFileSync2, readdirSync as readdirSync2, statSync as statSync2 } from "fs";
+import { join as join6 } from "path";
+function copyRecursive(src, dest) {
+  const errors = [];
+  try {
+    if (!existsSync6(dest)) mkdirSync4(dest, { recursive: true });
+    const entries = readdirSync2(src);
+    for (const entry of entries) {
+      const srcPath = join6(src, entry);
+      const destPath = join6(dest, entry);
+      try {
+        if (statSync2(srcPath).isDirectory()) {
+          errors.push(...copyRecursive(srcPath, destPath));
+        } else if (!existsSync6(destPath)) {
+          copyFileSync2(srcPath, destPath);
+        }
+      } catch (error) {
+        errors.push(`${entry}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+  } catch (error) {
+    errors.push(`${src}: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  return errors;
+}
+function syncKandownAgentDoc(kandownDir) {
+  const source = join6(PKG_ROOT, "templates", "AGENT_KANDOWN.md");
+  const target = join6(kandownDir, "AGENT_KANDOWN.md");
+  if (!existsSync6(source)) return false;
+  try {
+    const expected = readFileSync6(source, "utf8");
+    const existing = existsSync6(target) ? readFileSync6(target, "utf8") : null;
+    if (existing === null || !existing.includes("# Kandown")) {
+      atomicWriteFileSync(target, expected.endsWith("\n") ? expected : `${expected}
+`);
+      return true;
+    }
+  } catch {
+  }
+  return false;
+}
+function doInit(kandownDir) {
+  try {
+    mkdirSync4(kandownDir, { recursive: true });
+    const htmlSrc = join6(PKG_ROOT, "dist", "index.html");
+    const htmlDest = join6(kandownDir, "kandown.html");
+    if (existsSync6(htmlSrc)) {
+      copyFileSync2(htmlSrc, htmlDest);
+    }
+    syncKandownAgentDoc(kandownDir);
+    const templatesDir = join6(PKG_ROOT, "templates");
+    if (existsSync6(templatesDir)) {
+      if (!existsSync6(join6(kandownDir, "README.md")) && existsSync6(join6(templatesDir, "README.md"))) {
+        copyFileSync2(join6(templatesDir, "README.md"), join6(kandownDir, "README.md"));
+      }
+      if (!existsSync6(join6(kandownDir, "AGENT.md")) && existsSync6(join6(templatesDir, "AGENT.md"))) {
+        copyFileSync2(join6(templatesDir, "AGENT.md"), join6(kandownDir, "AGENT.md"));
+      }
+      const tasksSrc = join6(templatesDir, "tasks");
+      const tasksDest = getTasksDir(kandownDir);
+      if (!existsSync6(tasksDest) && existsSync6(tasksSrc)) {
+        copyRecursive(tasksSrc, tasksDest);
+      }
+      if (!existsSync6(join6(kandownDir, "kandown.json")) && existsSync6(join6(templatesDir, "kandown.json"))) {
+        copyFileSync2(join6(templatesDir, "kandown.json"), join6(kandownDir, "kandown.json"));
+      }
+    }
+    return true;
+  } catch (error) {
+    console.error(`Init failed: ${error instanceof Error ? error.message : String(error)}`);
+    return false;
+  }
+}
+
+// src/cli/lib/mcp.ts
+import { existsSync as existsSync7 } from "fs";
+import { join as join7 } from "path";
+function startMcpServer(kandownDir) {
+  process.stdin.setEncoding("utf8");
+  let buffer = "";
+  process.stdin.on("data", (chunk) => {
+    buffer += chunk;
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      try {
+        const req = JSON.parse(trimmed);
+        handleJsonRpc(kandownDir, req);
+      } catch (e) {
+        sendResponse(null, { error: { code: -32700, message: "Parse error" } });
+      }
+    }
+  });
+}
+function sendResponse(id, resultOrError) {
+  if (id === void 0) return;
+  const resp = {
+    jsonrpc: "2.0",
+    id,
+    ...resultOrError
+  };
+  process.stdout.write(JSON.stringify(resp) + "\n");
+}
+function handleJsonRpc(kandownDir, req) {
+  const { id, method, params } = req;
+  if (method === "initialize") {
+    sendResponse(id, {
+      result: {
+        protocolVersion: "2024-11-05",
+        capabilities: { tools: {} },
+        serverInfo: { name: "kandown", version: "0.20.0" }
+      }
+    });
+    return;
+  }
+  if (method === "notifications/initialized") {
+    return;
+  }
+  if (method === "tools/list") {
+    sendResponse(id, {
+      result: {
+        tools: [
+          {
+            name: "list_tasks",
+            description: "List all tasks on the Kandown board with optional filtering",
+            inputSchema: {
+              type: "object",
+              properties: {
+                status: { type: "string", description: "Filter by column/status name" },
+                assignee: { type: "string", description: "Filter by assignee" },
+                tag: { type: "string", description: "Filter by tag" },
+                priority: { type: "string", description: "Filter by priority (P1, P2, P3, P4)" }
+              }
+            }
+          },
+          {
+            name: "get_task",
+            description: "Get details and full content of a specific task by ID",
+            inputSchema: {
+              type: "object",
+              properties: {
+                id: { type: "string", description: "Task ID (e.g. t1, t42)" }
+              },
+              required: ["id"]
+            }
+          },
+          {
+            name: "create_task",
+            description: "Create a new task on the Kandown board",
+            inputSchema: {
+              type: "object",
+              properties: {
+                title: { type: "string", description: "Task title (supports inline syntax #tag @user p1 due:date)" },
+                status: { type: "string", description: "Target column name (default: Backlog)" },
+                priority: { type: "string", description: "Priority level (P1, P2, P3, P4)" },
+                assignee: { type: "string", description: "Assignee username" },
+                tags: { type: "array", items: { type: "string" }, description: "Tags" },
+                body: { type: "string", description: "Markdown body content" }
+              },
+              required: ["title"]
+            }
+          },
+          {
+            name: "move_task",
+            description: "Move a task to a different column or to archived",
+            inputSchema: {
+              type: "object",
+              properties: {
+                id: { type: "string", description: "Task ID" },
+                status: { type: "string", description: 'Target column name or "archived"' }
+              },
+              required: ["id", "status"]
+            }
+          },
+          {
+            name: "add_report",
+            description: "Append an agent execution report to a task body",
+            inputSchema: {
+              type: "object",
+              properties: {
+                id: { type: "string", description: "Task ID" },
+                report: { type: "string", description: "Markdown report content to append under ## Report" }
+              },
+              required: ["id", "report"]
+            }
+          },
+          {
+            name: "list_columns",
+            description: "List configured board columns and task counts",
+            inputSchema: { type: "object", properties: {} }
+          }
+        ]
+      }
+    });
+    return;
+  }
+  if (method === "tools/call") {
+    const { name, arguments: args = {} } = params || {};
+    if (name === "list_tasks") {
+      const board = readBoard(kandownDir);
+      let tasks = [];
+      for (const col of board.columns) {
+        if (args.status && col.name.toLowerCase() !== String(args.status).toLowerCase()) continue;
+        for (const t of col.tasks) {
+          if (args.assignee && t.assignee !== args.assignee) continue;
+          if (args.priority && t.priority !== args.priority) continue;
+          if (args.tag && !t.tags.includes(args.tag)) continue;
+          tasks.push({ ...t, status: col.name });
+        }
+      }
+      sendResponse(id, { result: { content: [{ type: "text", text: JSON.stringify(tasks, null, 2) }] } });
+      return;
+    }
+    if (name === "get_task") {
+      const task = readTask(kandownDir, args.id);
+      sendResponse(id, { result: { content: [{ type: "text", text: JSON.stringify(task, null, 2) }] } });
+      return;
+    }
+    if (name === "create_task") {
+      const newId = createTaskInBoard(kandownDir, args.title, args.status);
+      if (args.body || args.priority || args.assignee || args.tags) {
+        const task = readTask(kandownDir, newId);
+        const fm = {
+          ...task.frontmatter,
+          ...args.priority ? { priority: args.priority } : {},
+          ...args.assignee ? { assignee: args.assignee } : {},
+          ...args.tags ? { tags: args.tags } : {}
+        };
+        const body = args.body ? (task.body + "\n\n" + args.body).trim() : task.body;
+        const taskPath2 = join7(getTasksDir(kandownDir), `${newId}.md`);
+        atomicWriteFileSync(taskPath2, serializeTaskFile(fm, body));
+      }
+      sendResponse(id, { result: { content: [{ type: "text", text: `Created task ${newId}` }] } });
+      return;
+    }
+    if (name === "move_task") {
+      const ok = moveTaskToColumn(kandownDir, args.id, args.status);
+      sendResponse(id, { result: { content: [{ type: "text", text: ok ? `Moved ${args.id} to ${args.status}` : `Failed to move ${args.id}` }] } });
+      return;
+    }
+    if (name === "add_report") {
+      const taskPath2 = join7(getTasksDir(kandownDir), `${args.id}.md`);
+      if (!existsSync7(taskPath2)) {
+        sendResponse(id, { error: { code: -32602, message: `Task ${args.id} not found` } });
+        return;
+      }
+      const task = readTask(kandownDir, args.id);
+      const reportSection = `
+
+## Report
+
+${args.report.trim()}`;
+      const newBody = task.body.includes("## Report") ? task.body.replace(/## Report[\s\S]*/, `## Report
+
+${args.report.trim()}`) : task.body.trim() + reportSection;
+      atomicWriteFileSync(taskPath2, serializeTaskFile(task.frontmatter, newBody));
+      sendResponse(id, { result: { content: [{ type: "text", text: `Appended report to ${args.id}` }] } });
+      return;
+    }
+    if (name === "list_columns") {
+      const config = loadConfig(kandownDir);
+      const board = readBoard(kandownDir);
+      const cols = board.columns.map((c2) => ({ name: c2.name, count: c2.tasks.length }));
+      sendResponse(id, { result: { content: [{ type: "text", text: JSON.stringify(cols, null, 2) }] } });
+      return;
+    }
+    sendResponse(id, { error: { code: -32601, message: `Unknown tool: ${name}` } });
+    return;
+  }
+  sendResponse(id, { error: { code: -32601, message: `Method not found: ${method}` } });
+}
+
 // src/cli/cli.ts
 var c = {
   reset: "\x1B[0m",
@@ -1099,10 +1492,10 @@ function log(msg) {
   console.log(msg);
 }
 function info(msg) {
-  console.log(`${c.blue}\u2139${c.reset}  ${msg}`);
+  console.error(`${c.blue}\u2139${c.reset}  ${msg}`);
 }
 function success(msg) {
-  console.log(`${c.green}\u2713${c.reset}  ${msg}`);
+  console.error(`${c.green}\u2713${c.reset}  ${msg}`);
 }
 function err(msg) {
   console.error(`${c.red}\u2717${c.reset}  ${msg}`);
@@ -1136,20 +1529,74 @@ function parseArgs(args) {
   }
   return { flags, positional, path: typeof flags.path === "string" ? flags.path : ".kandown" };
 }
+var COMMANDS = /* @__PURE__ */ new Set([
+  "init",
+  "update",
+  "upgrade",
+  "doctor",
+  "work",
+  "list",
+  "ls",
+  "show",
+  "move",
+  "help",
+  "daemon",
+  "board",
+  "settings",
+  "tasks",
+  "create",
+  "new",
+  "assign",
+  "commit",
+  "projects",
+  "export",
+  "import",
+  "mcp",
+  "version"
+]);
+function splitCommand(args) {
+  const withoutGlobalFlags = args.filter((arg) => arg !== "--no-update-check");
+  const commandIndex = withoutGlobalFlags.findIndex((arg, index) => {
+    if (arg.startsWith("-")) return false;
+    if (COMMANDS.has(arg)) return true;
+    return index === 0;
+  });
+  if (commandIndex === -1) {
+    return { cmd: void 0, rest: withoutGlobalFlags };
+  }
+  return {
+    cmd: withoutGlobalFlags[commandIndex],
+    rest: [...withoutGlobalFlags.slice(0, commandIndex), ...withoutGlobalFlags.slice(commandIndex + 1)]
+  };
+}
+function stripFirstPositional(args, value) {
+  const result = [];
+  let stripped = false;
+  for (const arg of args) {
+    if (!stripped && arg === value) {
+      stripped = true;
+      continue;
+    }
+    result.push(arg);
+  }
+  return result;
+}
 function resolveKandownDir(pathArg = ".kandown", cwd = process.cwd()) {
-  if (basename(cwd) === ".kandown" || existsSync6(join6(cwd, "kandown.json"))) {
+  if (basename(cwd) === ".kandown" || existsSync8(join8(cwd, "kandown.json"))) {
     return cwd;
   }
-  return resolve3(cwd, pathArg);
+  return resolve2(cwd, pathArg);
 }
 function ensureKandownDir(rawArgs) {
   const args = parseArgs(rawArgs);
   const cwd = process.cwd();
   const kandownDir = resolveKandownDir(args.path, cwd);
-  if (!existsSync6(kandownDir)) {
-    err(`No Kandown installation found at ${c.bold}${kandownDir}${c.reset}`);
-    log(`  Run ${c.cyan}npx kandown init${c.reset} to create one.`);
-    process.exit(1);
+  if (!existsSync8(kandownDir)) {
+    info(`No .kandown/ found \u2014 auto-initializing ${c.bold}${kandownDir}${c.reset}`);
+    if (!doInit(kandownDir)) {
+      err(`Could not auto-initialize Kandown at ${c.bold}${kandownDir}${c.reset}`);
+      process.exit(1);
+    }
   }
   return { kandownDir, cwd };
 }
@@ -1163,6 +1610,7 @@ ${c.bold}USAGE:${c.reset}
 
 ${c.bold}COMMANDS:${c.reset}
   (none)              Start web server, open browser & launch TUI
+  init                Initialize Kandown in this project
   work                Output agent rules + live board digest
   list                List tasks (alias: ls)
   show <id>           Display task details
@@ -1183,13 +1631,25 @@ ${c.bold}OPTIONS:${c.reset}
   --path <dir>        Path to .kandown folder (default: .kandown)
   --port <number>     Server port (default: 2050)
   --no-open           Don't open browser automatically
+  --no-update-check   Skip the registry update check for this run
+  --version           Print CLI version
   --help, -h          Show help screen
 `);
+}
+function cmdInit(rawArgs) {
+  const args = parseArgs(rawArgs);
+  const kandownDir = resolve2(process.cwd(), args.path);
+  const created = doInit(kandownDir);
+  if (!created) {
+    err("Failed to initialize Kandown.");
+    process.exit(1);
+  }
+  success(`Kandown initialized at ${kandownDir}`);
 }
 async function cmdUpdate(rawArgs) {
   const current = getCurrentVersion();
   log(`${c.bold}kandown update${c.reset} ${c.dim}\u2014 v${current}${c.reset}`);
-  const latest = await new Promise((resolve4) => {
+  const latest = await new Promise((resolve3) => {
     const child = spawn4("npm", ["view", "kandown", "version"], {
       timeout: 6e3,
       stdio: ["pipe", "pipe", "pipe"],
@@ -1202,11 +1662,11 @@ async function cmdUpdate(rawArgs) {
     });
     child.stderr.on("data", () => {
     });
-    child.on("error", () => resolve4(null));
+    child.on("error", () => resolve3(null));
     child.on("close", (code) => {
-      if (code !== 0) return resolve4(null);
+      if (code !== 0) return resolve3(null);
       const v = stdout.trim().replace(/^"|"$/g, "");
-      resolve4(v || null);
+      resolve3(v || null);
     });
   });
   if (latest && semverGt(latest, current) > 0) {
@@ -1222,12 +1682,12 @@ async function cmdUpdate(rawArgs) {
   }
   const args = parseArgs(rawArgs);
   const cwd = process.cwd();
-  const kandownDir = resolve3(cwd, args.path);
-  const htmlDest = join6(kandownDir, "kandown.html");
-  if (existsSync6(htmlDest)) {
-    const htmlSrc = resolve3(PKG_ROOT, "dist", "index.html");
-    if (existsSync6(htmlSrc)) {
-      copyFileSync2(htmlSrc, htmlDest);
+  const kandownDir = resolve2(cwd, args.path);
+  const htmlDest = join8(kandownDir, "kandown.html");
+  if (existsSync8(htmlDest)) {
+    const htmlSrc = resolve2(PKG_ROOT, "dist", "index.html");
+    if (existsSync8(htmlSrc)) {
+      copyFileSync3(htmlSrc, htmlDest);
       success(`Refreshed ${args.path}/kandown.html`);
     }
   }
@@ -1238,10 +1698,10 @@ async function cmdDoctor(rawArgs) {
   log(`${c.bold}kandown doctor${c.reset} ${c.dim}\u2014 environment & board diagnostic${c.reset}
 `);
   log(`  CLI Version: ${currentVersion}`);
-  const configPath = join6(kandownDir, "kandown.json");
-  if (existsSync6(configPath)) {
+  const configPath = join8(kandownDir, "kandown.json");
+  if (existsSync8(configPath)) {
     try {
-      JSON.parse(readFileSync6(configPath, "utf8"));
+      JSON.parse(readFileSync8(configPath, "utf8"));
       success("kandown.json valid");
     } catch (e) {
       err(`kandown.json invalid: ${e.message}`);
@@ -1275,63 +1735,400 @@ async function cmdWork(rawArgs) {
     log(`- **${col.name}** (${col.tasks.length}): ${col.tasks.map((t) => `${t.id} ${t.title}`).join(", ") || "empty"}`);
   }
 }
+function addMultiFlag(flags, key, value) {
+  const current = flags[key];
+  if (Array.isArray(current)) current.push(value);
+  else if (typeof current === "string") flags[key] = [current, value];
+  else flags[key] = value;
+}
+function taskParseArgs(argv) {
+  const flags = {};
+  const positional = [];
+  const aliases = { s: "status", p: "priority", a: "assignee", t: "tag", m: "message" };
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg.startsWith("--")) {
+      const [rawKey, inlineValue] = arg.slice(2).split("=", 2);
+      const key = rawKey === "to" ? "to" : rawKey;
+      const next = inlineValue ?? argv[i + 1];
+      if (inlineValue === void 0 && next && !next.startsWith("-")) i++;
+      const value = inlineValue ?? (next && !next.startsWith("-") ? next : true);
+      if (key === "tag") addMultiFlag(flags, key, String(value));
+      else flags[key] = value;
+      continue;
+    }
+    if (/^-[spatm]$/.test(arg)) {
+      const key = aliases[arg.slice(1)];
+      const value = argv[i + 1];
+      if (!value || value.startsWith("-")) {
+        flags[key] = true;
+      } else {
+        i++;
+        if (key === "tag") addMultiFlag(flags, key, value);
+        else flags[key] = value;
+      }
+      continue;
+    }
+    positional.push(arg);
+  }
+  return { flags, positional };
+}
+function stringFlag(flags, ...keys) {
+  for (const key of keys) {
+    const value = flags[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return null;
+}
+function listFlag(flags, key) {
+  const value = flags[key];
+  if (Array.isArray(value)) return value.map(String).filter(Boolean);
+  if (typeof value === "string" && value) return [value];
+  return [];
+}
+function resolveStatusArg(kandownDir, status) {
+  const config = loadConfig(kandownDir);
+  return config.board.columns.find((col) => col.toLowerCase() === status.toLowerCase()) ?? null;
+}
+function taskPath(kandownDir, id, archived = false) {
+  return archived ? join8(getTasksDir(kandownDir), "archive", `${id}.md`) : join8(getTasksDir(kandownDir), `${id}.md`);
+}
+function findTaskPath(kandownDir, id) {
+  const active = taskPath(kandownDir, id);
+  if (existsSync8(active)) return active;
+  const archived = taskPath(kandownDir, id, true);
+  if (existsSync8(archived)) return archived;
+  return null;
+}
+function nextTaskId(kandownDir) {
+  const ids = new Set(listTaskIds(kandownDir));
+  const archiveDir = join8(getTasksDir(kandownDir), "archive");
+  if (existsSync8(archiveDir)) {
+    for (const file of readdirSync3(archiveDir)) {
+      if (file.endsWith(".md")) ids.add(file.slice(0, -3));
+    }
+  }
+  let max = 0;
+  for (const id of ids) {
+    const match = id.match(/^t(\d+)$/i);
+    if (match) max = Math.max(max, Number(match[1]));
+  }
+  return `t${max + 1}`;
+}
+function readTaskFile(kandownDir, id) {
+  const path = findTaskPath(kandownDir, id);
+  if (!path) return null;
+  const parsed = parseTaskFile(readFileSync8(path, "utf8"));
+  return {
+    path,
+    frontmatter: { ...parsed.frontmatter, id: parsed.frontmatter.id || id },
+    body: parsed.body,
+    archived: path.includes("/archive/")
+  };
+}
 function cmdList(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
-  const board = readBoard(kandownDir);
-  const { flags } = parseArgs(rawArgs);
-  const statusFilter = typeof flags.status === "string" ? flags.status.toLowerCase() : null;
-  const priorityFilter = typeof flags.priority === "string" ? flags.priority.toUpperCase() : null;
-  for (const col of board.columns) {
-    if (statusFilter && col.name.toLowerCase() !== statusFilter) continue;
+  const args = taskParseArgs(rawArgs);
+  const includeArchived = args.flags.archived === true;
+  const statusFilter = stringFlag(args.flags, "status")?.toLowerCase() ?? null;
+  const priorityFilter = stringFlag(args.flags, "priority")?.toUpperCase() ?? null;
+  const assigneeFilter = stringFlag(args.flags, "assignee");
+  const tagFilters = listFlag(args.flags, "tag").map((tag) => tag.toLowerCase());
+  const rows = [];
+  for (const id of listTaskIds(kandownDir)) {
+    const task = readTask(kandownDir, id);
+    rows.push({
+      id,
+      title: task.frontmatter.title || id,
+      status: task.frontmatter.status || "Backlog",
+      priority: task.frontmatter.priority || "",
+      assignee: task.frontmatter.assignee || "",
+      tags: Array.isArray(task.frontmatter.tags) ? task.frontmatter.tags : [],
+      archived: false
+    });
+  }
+  if (includeArchived) {
+    const archiveDir = join8(getTasksDir(kandownDir), "archive");
+    if (existsSync8(archiveDir)) {
+      for (const file of readdirSync3(archiveDir).filter((name) => name.endsWith(".md"))) {
+        const id = file.slice(0, -3);
+        const parsed = parseTaskFile(readFileSync8(join8(archiveDir, file), "utf8"));
+        rows.push({
+          id,
+          title: parsed.frontmatter.title || id,
+          status: `${parsed.frontmatter.status || "Backlog"} (archived)`,
+          priority: parsed.frontmatter.priority || "",
+          assignee: parsed.frontmatter.assignee || "",
+          tags: Array.isArray(parsed.frontmatter.tags) ? parsed.frontmatter.tags : [],
+          archived: true
+        });
+      }
+    }
+  }
+  const filtered = rows.filter((row) => {
+    if (statusFilter && row.status.toLowerCase() !== statusFilter) return false;
+    if (priorityFilter && row.priority.toUpperCase() !== priorityFilter) return false;
+    if (assigneeFilter && row.assignee !== assigneeFilter) return false;
+    if (tagFilters.length > 0 && !tagFilters.every((tag) => row.tags.map((t) => t.toLowerCase()).includes(tag))) return false;
+    return true;
+  });
+  if (args.flags.json === true) {
+    process.stdout.write(JSON.stringify(filtered, null, 2) + "\n");
+    return;
+  }
+  const byStatus = /* @__PURE__ */ new Map();
+  for (const row of filtered) {
+    const list = byStatus.get(row.status) ?? [];
+    list.push(row);
+    byStatus.set(row.status, list);
+  }
+  for (const [status, tasks] of byStatus) {
     log(`
-${c.bold}${col.name}${c.reset} (${col.tasks.length})`);
-    for (const t of col.tasks) {
-      if (priorityFilter && t.priority !== priorityFilter) continue;
-      log(`  ${c.cyan}${t.id}${c.reset} [${t.priority || "P2"}] ${t.title}`);
+${c.bold}${status}${c.reset} (${tasks.length})`);
+    for (const task of tasks) {
+      const pri = task.priority || "P2";
+      const assignee = task.assignee ? ` @${task.assignee}` : "";
+      log(`  ${c.cyan}${task.id}${c.reset} [${pri}] ${task.title}${assignee}`);
     }
   }
   log("");
 }
 function cmdShow(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
-  const id = rawArgs.find((a) => !a.startsWith("-"));
+  const args = taskParseArgs(rawArgs);
+  const id = args.positional[0];
   if (!id) {
     err("Usage: kandown show <task-id>");
     process.exit(1);
   }
-  try {
-    const task = readTask(kandownDir, id);
-    log(`${c.bold}${task.frontmatter.id}: ${task.frontmatter.title}${c.reset}`);
-    log(`Status: ${task.frontmatter.status} | Priority: ${task.frontmatter.priority || "P2"} | Assignee: ${task.frontmatter.assignee || "none"}
-`);
-    log(task.body);
-  } catch (e) {
-    err(`Could not read task ${id}: ${e.message}`);
+  const path = findTaskPath(kandownDir, id);
+  if (!path) {
+    err(`Task not found: ${id}`);
+    process.exit(1);
   }
+  process.stdout.write(readFileSync8(path, "utf8"));
+}
+function cmdCreate(rawArgs) {
+  const { kandownDir } = ensureKandownDir(rawArgs);
+  const args = taskParseArgs(rawArgs);
+  const title = args.positional.join(" ").trim();
+  if (!title) {
+    err('Usage: kandown create "title" [-p P1] [-a user] [-t tag] [--to status] [--id custom-id] [--json]');
+    process.exit(1);
+  }
+  const id = stringFlag(args.flags, "id") ?? nextTaskId(kandownDir);
+  if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
+    err(`Invalid task id: ${id}`);
+    process.exit(1);
+  }
+  if (findTaskPath(kandownDir, id)) {
+    err(`Task already exists: ${id}`);
+    process.exit(1);
+  }
+  const config = loadConfig(kandownDir);
+  const rawStatus = stringFlag(args.flags, "to", "status");
+  const status = rawStatus ? resolveStatusArg(kandownDir, rawStatus) : config.board.columns[0] || "Backlog";
+  if (!status) {
+    err(`Unknown status: ${rawStatus}`);
+    process.exit(1);
+  }
+  const fm = {
+    id,
+    title,
+    status,
+    created: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10)
+  };
+  const priority = stringFlag(args.flags, "priority")?.toUpperCase();
+  const assignee = stringFlag(args.flags, "assignee");
+  const tags = listFlag(args.flags, "tag");
+  if (priority) fm.priority = priority;
+  if (assignee) fm.assignee = assignee;
+  if (tags.length > 0) fm.tags = tags;
+  const tasksDir = getTasksDir(kandownDir);
+  if (!existsSync8(tasksDir)) mkdirSync5(tasksDir, { recursive: true });
+  const path = taskPath(kandownDir, id);
+  atomicWriteFileSync(path, serializeTaskFile(fm, ""));
+  process.stderr.write(`${c.green}\u2713${c.reset} Created ${c.bold}${id}${c.reset} \u2192 ${status}
+`);
+  process.stdout.write(args.flags.json === true ? JSON.stringify(fm, null, 2) + "\n" : `${id}
+`);
 }
 function cmdMove(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
-  const [id, newStatus] = rawArgs.filter((a) => !a.startsWith("-"));
-  if (!id || !newStatus) {
+  const args = taskParseArgs(rawArgs);
+  const id = args.positional[0];
+  const rawStatus = args.positional.slice(1).join(" ") || stringFlag(args.flags, "to", "status");
+  if (!id || !rawStatus) {
     err("Usage: kandown move <task-id> <status>");
     process.exit(1);
   }
-  try {
-    moveTaskToColumn(kandownDir, id, newStatus);
-    success(`Moved ${id} \u2192 "${newStatus}"`);
-  } catch (e) {
-    err(`Move failed: ${e.message}`);
+  if (rawStatus.toLowerCase() === "archived") {
+    if (!archiveTaskInBoard(kandownDir, id)) {
+      err(`Archive failed: ${id}`);
+      process.exit(1);
+    }
+    success(`Archived ${id}`);
+    return;
   }
+  const status = resolveStatusArg(kandownDir, rawStatus);
+  if (!status) {
+    err(`Unknown status: ${rawStatus}`);
+    process.exit(1);
+  }
+  if (!moveTaskToColumn(kandownDir, id, status)) {
+    err(`Move failed: ${id}`);
+    process.exit(1);
+  }
+  success(`Moved ${id} \u2192 "${status}"`);
+}
+function cmdAssign(rawArgs) {
+  const { kandownDir } = ensureKandownDir(rawArgs);
+  const args = taskParseArgs(rawArgs);
+  const [id, assignee] = args.positional;
+  if (!id) {
+    err("Usage: kandown assign <task-id> [assignee]");
+    process.exit(1);
+  }
+  const task = readTaskFile(kandownDir, id);
+  if (!task) {
+    err(`Task not found: ${id}`);
+    process.exit(1);
+  }
+  const frontmatter = { ...task.frontmatter, id };
+  if (assignee) frontmatter.assignee = assignee;
+  else delete frontmatter.assignee;
+  atomicWriteFileSync(task.path, serializeTaskFile(frontmatter, task.body));
+  success(assignee ? `Assigned ${id} \u2192 ${assignee}` : `Unassigned ${id}`);
+}
+function cmdCommit(rawArgs) {
+  ensureKandownDir(rawArgs);
+  const args = taskParseArgs(rawArgs);
+  const message = stringFlag(args.flags, "message") || "tasks: update kandown board";
+  const add = spawnSync("git", ["add", "tasks", ".kandown/kandown.json"], { stdio: "inherit" });
+  if (add.status !== 0) process.exit(add.status ?? 1);
+  const commit = spawnSync("git", ["commit", "-m", message], { stdio: "inherit" });
+  process.exit(commit.status ?? 1);
+}
+function printTaskCommandsHelp() {
+  log(`
+${c.bold}Kandown task commands${c.reset}
+
+  kandown list [-s status] [-p P1] [-a user] [-t tag] [--archived] [--json]
+  kandown show <id>
+  kandown create "title" [-p P1] [-a user] [-t tag] [--to status] [--id id] [--json]
+  kandown move <id> <status|archived>
+  kandown assign <id> [user]
+  kandown commit [-m "message"]
+`);
+}
+async function launchTui(screen, kandownDir) {
+  if (!process.stdin.isTTY) {
+    info(`TUI skipped because stdin is not interactive. Use ${c.cyan}kandown daemon status${c.reset} to inspect the web daemon.`);
+    return;
+  }
+  const tuiPath = join8(PKG_ROOT, "bin", "tui.js");
+  if (!existsSync8(tuiPath)) {
+    err(`TUI binary not found at ${tuiPath}`);
+    process.exit(1);
+  }
+  await new Promise((resolveTui) => {
+    const child = spawn4(process.execPath, [tuiPath, screen, kandownDir, getCurrentVersion()], { stdio: "inherit" });
+    child.on("close", (code) => {
+      if (typeof code === "number" && code !== 0) process.exit(code);
+      resolveTui();
+    });
+  });
+}
+async function cmdTui(screen, rawArgs) {
+  const { kandownDir } = ensureKandownDir(rawArgs);
+  await launchTui(screen, kandownDir);
+}
+function cmdExport(rawArgs) {
+  const { kandownDir } = ensureKandownDir(rawArgs);
+  const board = readBoard(kandownDir);
+  process.stdout.write(JSON.stringify(board, null, 2) + "\n");
+}
+function cmdProjects(rawArgs) {
+  const { kandownDir } = ensureKandownDir(rawArgs);
+  const metadataPath2 = join8(kandownDir, "daemon.json");
+  if (!existsSync8(metadataPath2)) {
+    info("No daemon metadata for this project.");
+    return;
+  }
+  process.stdout.write(readFileSync8(metadataPath2, "utf8").trim() + "\n");
+}
+function cmdImport(rawArgs) {
+  const { kandownDir } = ensureKandownDir(rawArgs);
+  const args = taskParseArgs(rawArgs);
+  const file = args.positional[0];
+  if (!file) {
+    err("Usage: kandown import <file.json> [--overwrite]");
+    process.exit(1);
+  }
+  const importPath = resolve2(process.cwd(), file);
+  if (!existsSync8(importPath)) {
+    err(`Import file not found: ${file}`);
+    process.exit(1);
+  }
+  let raw;
+  try {
+    raw = JSON.parse(readFileSync8(importPath, "utf8"));
+  } catch (error) {
+    err(`Import file must be JSON: ${error instanceof Error ? error.message : String(error)}`);
+    process.exit(1);
+  }
+  const rows = [];
+  if (Array.isArray(raw)) {
+    rows.push(...raw.filter((value) => typeof value === "object" && value !== null));
+  } else if (typeof raw === "object" && raw !== null && Array.isArray(raw.columns)) {
+    for (const column of raw.columns) {
+      if (typeof column !== "object" || column === null) continue;
+      const col = column;
+      if (!Array.isArray(col.tasks)) continue;
+      for (const task of col.tasks) {
+        if (typeof task === "object" && task !== null) rows.push({ ...task, status: String(col.name || "Backlog") });
+      }
+    }
+  }
+  if (rows.length === 0) {
+    err("No tasks found to import. Expected a list JSON array or kandown export object.");
+    process.exit(1);
+  }
+  const tasksDir = getTasksDir(kandownDir);
+  if (!existsSync8(tasksDir)) mkdirSync5(tasksDir, { recursive: true });
+  let imported = 0;
+  for (const row of rows) {
+    const id = typeof row.id === "string" && /^[a-zA-Z0-9_-]+$/.test(row.id) ? row.id : nextTaskId(kandownDir);
+    const path = taskPath(kandownDir, id);
+    if (existsSync8(path) && args.flags.overwrite !== true) continue;
+    const fm = {
+      id,
+      title: typeof row.title === "string" && row.title ? row.title : id,
+      status: typeof row.status === "string" && row.status ? row.status.replace(/ \(archived\)$/i, "") : "Backlog"
+    };
+    if (typeof row.priority === "string") fm.priority = row.priority;
+    if (typeof row.assignee === "string") fm.assignee = row.assignee;
+    if (Array.isArray(row.tags)) fm.tags = row.tags.map(String);
+    atomicWriteFileSync(path, serializeTaskFile(fm, typeof row.body === "string" ? row.body : ""));
+    imported++;
+  }
+  success(`Imported ${imported} task${imported === 1 ? "" : "s"}`);
 }
 async function main() {
-  const args = process.argv.slice(2);
-  const cmd = args[0];
-  const rest = args.slice(1);
-  const skipUpdate = args.includes("--no-update-check") || process.env.KANDOWN_NO_UPDATE === "1";
+  const rawArgs = process.argv.slice(2);
+  if (rawArgs.length === 1 && (rawArgs[0] === "--version" || rawArgs[0] === "version")) {
+    log(getCurrentVersion());
+    return;
+  }
+  const { cmd, rest } = splitCommand(rawArgs);
+  const skipUpdate = rawArgs.includes("--no-update-check") || process.env.KANDOWN_NO_UPDATE === "1";
   if (!skipUpdate) {
     await checkForUpdate(process.argv);
   }
   switch (cmd) {
+    case "init":
+      cmdInit(rest);
+      break;
     case "update":
     case "upgrade":
       await cmdUpdate(rest);
@@ -1342,6 +2139,12 @@ async function main() {
     case "work":
       await cmdWork(rest);
       break;
+    case "board":
+      await cmdTui("board", rest);
+      break;
+    case "settings":
+      await cmdTui("settings", rest);
+      break;
     case "list":
     case "ls":
       cmdList(rest);
@@ -1349,21 +2152,52 @@ async function main() {
     case "show":
       cmdShow(rest);
       break;
+    case "create":
+    case "new":
+      cmdCreate(rest);
+      break;
     case "move":
       cmdMove(rest);
       break;
+    case "assign":
+      cmdAssign(rest);
+      break;
+    case "commit":
+      cmdCommit(rest);
+      break;
+    case "tasks":
+      printTaskCommandsHelp();
+      break;
+    case "projects":
+      cmdProjects(rest);
+      break;
+    case "export":
+      cmdExport(rest);
+      break;
+    case "import":
+      cmdImport(rest);
+      break;
+    case "mcp": {
+      const { kandownDir } = ensureKandownDir(rest);
+      startMcpServer(kandownDir);
+      break;
+    }
     case "help":
     case "--help":
     case "-h":
       help();
       break;
     case "daemon": {
-      const subcommand = rest[0] || "status";
-      const { kandownDir } = ensureKandownDir(rest.slice(1));
+      const parsedDaemonArgs = parseArgs(rest);
+      const subcommand = parsedDaemonArgs.positional[0] || "status";
+      const daemonArgs = subcommand ? stripFirstPositional(rest, subcommand) : rest;
+      const { kandownDir } = ensureKandownDir(daemonArgs);
       if (subcommand === "run") {
-        const { port } = await listenOnAvailablePort(kandownDir);
+        const daemonOptions = parseArgs(daemonArgs);
+        const preferredPort = typeof daemonOptions.flags.port === "string" ? Number(daemonOptions.flags.port) : null;
+        const { port } = await listenOnAvailablePort(kandownDir, Number.isInteger(preferredPort) ? preferredPort : null);
         const url = `http://localhost:${port}`;
-        const metadataPath2 = join6(kandownDir, "daemon.json");
+        const metadataPath2 = join8(kandownDir, "daemon.json");
         atomicWriteFileSync(metadataPath2, JSON.stringify({
           pid: process.pid,
           port,
@@ -1376,24 +2210,44 @@ async function main() {
         info(`Kandown daemon running on port ${port} (PID ${process.pid})`);
         await new Promise(() => {
         });
-      } else if (subcommand === "stop") {
-        const status = await getDaemonStatus(kandownDir);
-        if (status.running && status.metadata) {
-          try {
-            process.kill(status.metadata.pid, "SIGTERM");
-          } catch {
-          }
-          success(`Stopped daemon PID ${status.metadata.pid}`);
-        } else {
-          info("Daemon not running");
+      } else if (subcommand === "start") {
+        const daemonOptions = parseArgs(daemonArgs);
+        const preferredPort = typeof daemonOptions.flags.port === "string" ? Number(daemonOptions.flags.port) : null;
+        const status = await startProjectDaemon(kandownDir, Number.isInteger(preferredPort) ? preferredPort : null);
+        if (status.running && status.metadata) success(`Daemon running on port ${status.metadata.port} (PID ${status.metadata.pid})`);
+        else {
+          err("Daemon failed to start");
+          process.exit(1);
         }
-      } else {
+      } else if (subcommand === "restart") {
+        await stopProjectDaemon(kandownDir);
+        const status = await startProjectDaemon(kandownDir);
+        if (status.running && status.metadata) success(`Daemon restarted on port ${status.metadata.port} (PID ${status.metadata.pid})`);
+        else {
+          err("Daemon failed to restart");
+          process.exit(1);
+        }
+      } else if (subcommand === "stop") {
+        const stopped = await stopProjectDaemon(kandownDir);
+        if (stopped) success("Daemon stopped");
+        else info("Daemon not running");
+      } else if (subcommand === "status") {
         const status = await getDaemonStatus(kandownDir);
         if (status.running && status.metadata) {
           success(`Daemon running on port ${status.metadata.port} (PID ${status.metadata.pid})`);
         } else {
           info("Daemon not running");
         }
+      } else if (subcommand === "refresh-all") {
+        const status = await getDaemonStatus(kandownDir);
+        if (status.running) await stopProjectDaemon(kandownDir);
+        const restarted = await startProjectDaemon(kandownDir);
+        if (restarted.running && restarted.metadata) success(`Refreshed current project daemon on port ${restarted.metadata.port}`);
+        else info("No running daemon refreshed");
+      } else {
+        err(`Unknown daemon command: ${subcommand}`);
+        log(`  Use ${c.cyan}kandown daemon start|stop|restart|status|refresh-all${c.reset}`);
+        process.exit(1);
       }
       break;
     }
@@ -1405,21 +2259,14 @@ async function main() {
         status = await startProjectDaemon(kandownDir);
       }
       if (!parsed.flags["no-open"]) {
-        const urlToOpen = status.metadata?.url || join6(kandownDir, "kandown.html");
+        const urlToOpen = status.metadata?.url || join8(kandownDir, "kandown.html");
         openBrowser(urlToOpen);
       }
-      const tuiPath = join6(PKG_ROOT, "bin", "tui.js");
-      if (existsSync6(tuiPath)) {
-        const child = spawn4(process.execPath, [tuiPath, ...rest], { stdio: "inherit" });
-        child.on("close", (code) => process.exit(code || 0));
-      } else {
-        err(`TUI binary not found at ${tuiPath}`);
-        process.exit(1);
-      }
+      await launchTui("board", kandownDir);
       break;
     }
     default:
-      if (cmd.startsWith("-")) {
+      if (!cmd || cmd.startsWith("-")) {
         help();
         break;
       }
