@@ -5,7 +5,7 @@ if (typeof globalThis.require === 'undefined') {
 }
 
 // src/cli/cli.ts
-import { existsSync as existsSync8, readFileSync as readFileSync8, copyFileSync as copyFileSync3, mkdirSync as mkdirSync5, readdirSync as readdirSync3 } from "fs";
+import { existsSync as existsSync8, readFileSync as readFileSync8, copyFileSync as copyFileSync3, mkdirSync as mkdirSync5, readdirSync as readdirSync4, statSync as statSync4 } from "fs";
 import { join as join8, resolve as resolve2, basename } from "path";
 import { spawn as spawn4, spawnSync } from "child_process";
 
@@ -16,7 +16,7 @@ import { spawn, execSync } from "child_process";
 import { homedir } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.33.4";
+var KANDOWN_VERSION = "0.33.5";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath } from "url";
@@ -265,7 +265,7 @@ ${now}`, "utf8");
 }
 
 // src/cli/lib/board-reader.ts
-import { existsSync as existsSync3, readdirSync, readFileSync as readFileSync3, mkdirSync as mkdirSync2, unlinkSync as unlinkSync3 } from "fs";
+import { existsSync as existsSync3, readdirSync as readdirSync2, readFileSync as readFileSync3, mkdirSync as mkdirSync2, unlinkSync as unlinkSync3 } from "fs";
 import { dirname as dirname2, join as join3 } from "path";
 import { fileURLToPath as fileURLToPath2 } from "url";
 import { homedir as homedir2 } from "os";
@@ -484,7 +484,7 @@ function serializeTaskFile(frontmatter, body) {
 }
 
 // src/cli/lib/config.ts
-import { readFileSync as readFileSync2, existsSync as existsSync2 } from "fs";
+import { readFileSync as readFileSync2, existsSync as existsSync2, readdirSync, statSync as statSync2 } from "fs";
 import { join as join2 } from "path";
 var DEFAULT_CONFIG = {
   ui: { language: "en", theme: "auto", skin: "kandown", font: "inter" },
@@ -563,7 +563,7 @@ function getTasksDir(kandownDir) {
 function listTaskIds(kandownDir) {
   const tasksDir = getTasksDir(kandownDir);
   if (!existsSync3(tasksDir)) return [];
-  return readdirSync(tasksDir).filter((name) => name.endsWith(".md")).map((name) => name.slice(0, -3)).sort((a, b) => a.localeCompare(b, void 0, { numeric: true }));
+  return readdirSync2(tasksDir).filter((name) => name.endsWith(".md")).map((name) => name.slice(0, -3)).sort((a, b) => a.localeCompare(b, void 0, { numeric: true }));
 }
 function readBoard(kandownDir) {
   const config = loadConfig(kandownDir);
@@ -1283,18 +1283,18 @@ async function listenOnAvailablePort(kandownDir, preferredPort) {
 }
 
 // src/cli/lib/init.ts
-import { existsSync as existsSync6, readFileSync as readFileSync6, mkdirSync as mkdirSync4, copyFileSync as copyFileSync2, readdirSync as readdirSync2, statSync as statSync2 } from "fs";
+import { existsSync as existsSync6, readFileSync as readFileSync6, mkdirSync as mkdirSync4, copyFileSync as copyFileSync2, readdirSync as readdirSync3, statSync as statSync3 } from "fs";
 import { join as join6 } from "path";
 function copyRecursive(src, dest) {
   const errors = [];
   try {
     if (!existsSync6(dest)) mkdirSync4(dest, { recursive: true });
-    const entries = readdirSync2(src);
+    const entries = readdirSync3(src);
     for (const entry of entries) {
       const srcPath = join6(src, entry);
       const destPath = join6(dest, entry);
       try {
-        if (statSync2(srcPath).isDirectory()) {
+        if (statSync3(srcPath).isDirectory()) {
           errors.push(...copyRecursive(srcPath, destPath));
         } else if (!existsSync6(destPath)) {
           copyFileSync2(srcPath, destPath);
@@ -1665,6 +1665,28 @@ function resolveKandownDir(pathArg = ".kandown", cwd = process.cwd()) {
   if (basename(cwd) === ".kandown" || existsSync8(join8(cwd, "kandown.json"))) {
     return cwd;
   }
+  if (pathArg !== ".kandown") {
+    return resolve2(cwd, pathArg);
+  }
+  let entries;
+  try {
+    entries = readdirSync4(cwd);
+  } catch {
+    return resolve2(cwd, pathArg);
+  }
+  for (const name of entries) {
+    if (name.startsWith(".") || name === "node_modules" || name === "tasks") continue;
+    const subPath = join8(cwd, name);
+    let stat;
+    try {
+      stat = statSync4(subPath);
+    } catch {
+      continue;
+    }
+    if (!stat.isDirectory()) continue;
+    const found = resolveKandownDir(pathArg, subPath);
+    if (existsSync8(found)) return found;
+  }
   return resolve2(cwd, pathArg);
 }
 function ensureKandownDir(rawArgs) {
@@ -1884,7 +1906,7 @@ function nextTaskId(kandownDir) {
   const ids = new Set(listTaskIds(kandownDir));
   const archiveDir = join8(getTasksDir(kandownDir), "archive");
   if (existsSync8(archiveDir)) {
-    for (const file of readdirSync3(archiveDir)) {
+    for (const file of readdirSync4(archiveDir)) {
       if (file.endsWith(".md")) ids.add(file.slice(0, -3));
     }
   }
@@ -1930,7 +1952,7 @@ function cmdList(rawArgs) {
   if (includeArchived) {
     const archiveDir = join8(getTasksDir(kandownDir), "archive");
     if (existsSync8(archiveDir)) {
-      for (const file of readdirSync3(archiveDir).filter((name) => name.endsWith(".md"))) {
+      for (const file of readdirSync4(archiveDir).filter((name) => name.endsWith(".md"))) {
         const id = file.slice(0, -3);
         const parsed = parseTaskFile(readFileSync8(join8(archiveDir, file), "utf8"));
         rows.push({

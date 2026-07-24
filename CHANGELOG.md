@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.33.6 — 2026-07-24 — "Subdirectory Project Discovery"
+
+- **Fixed**: **Auto-detect `.kandown/` in sub-directories from parent folder** — when running `kandown` from a parent directory that contains a sub-directory with a `.kandown/` folder, the CLI now recursively searches sub-directories (skipping `node_modules`, hidden dirs, and `tasks/`) to find it automatically. This restores the expected behaviour where `kandown` opens the child project without requiring an explicit `--path` argument.
+
 ## 0.33.5 — 2026-07-24 — "Sidebar Task Switch Fix"
 
 - **Fixed**: **BlockNote Editor Not Refreshing on Sidebar Task Switch** — the BlockNote markdown editor now properly reloads when switching between tasks via the sidebar explorer. Previously, the editor body kept showing the previous task's content because the `useEffect` only ran once on mount. The fix compares the editor's current markdown (normalized) against the incoming `value` prop and only calls `replaceBlocks` when they differ. This makes the editor reactive to external value changes (task switch) while preserving cursor/focus during the user's own typing sessions.

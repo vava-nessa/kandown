@@ -15,7 +15,7 @@
  * @exports KandownConfig, findKandownDir, loadConfig, saveConfig, getConfigValue, setConfigValue
  */
 
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { atomicWriteFileSync } from './atomic-write.js';
 
@@ -96,16 +96,43 @@ const DEFAULT_CONFIG: KandownConfig = {
 };
 
 /**
- * 📖 Walks up from cwd looking for a `.kandown/` directory.
+ * 📖 Searches for a `.kandown/` directory:
+ *  1. First in the given cwd itself.
+ *  2. Then recursively in sub-directories (so starting kandown from a
+ *     parent folder automatically opens the first child project).
  * Returns the absolute path or null if not found.
  */
 export function findKandownDir(cwd: string = process.cwd()): string | null {
+  // 1. Check cwd directly
   const dir = join(cwd, '.kandown');
   if (existsSync(dir)) return dir;
 
-  // 📖 Also check for custom paths — common alternative locations
+  // 1b. Also check `kandown/` (legacy/custom convention)
   const altDir = join(cwd, 'kandown');
   if (existsSync(altDir)) return altDir;
+
+  // 2. Recurse into sub-directories
+  let entries: string[];
+  try {
+    entries = readdirSync(cwd);
+  } catch {
+    return null;
+  }
+
+  for (const name of entries) {
+    // Skip hidden dirs, node_modules, and the tasks dir itself
+    if (name.startsWith('.') || name === 'node_modules' || name === 'tasks') continue;
+    const subPath = join(cwd, name);
+    let stat: ReturnType<typeof statSync>;
+    try {
+      stat = statSync(subPath);
+    } catch {
+      continue;
+    }
+    if (!stat.isDirectory()) continue;
+    const found = findKandownDir(subPath);
+    if (found) return found;
+  }
 
   return null;
 }

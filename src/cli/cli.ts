@@ -4,7 +4,7 @@
  * runs auto-update checks, manages daemon processes, and spawns the Ink TUI & browser.
  */
 
-import { existsSync, readFileSync, copyFileSync, mkdirSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, copyFileSync, mkdirSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve, basename } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { getCurrentVersion, checkForUpdate, performGlobalPackageUpdate, semverGt, PKG_ROOT } from './lib/updater';
@@ -103,8 +103,33 @@ function stripFirstPositional(args: string[], value: string): string[] {
 }
 
 function resolveKandownDir(pathArg = '.kandown', cwd = process.cwd()): string {
+  // 1. cwd itself is already a .kandown dir or contains its config directly
   if (basename(cwd) === '.kandown' || existsSync(join(cwd, 'kandown.json'))) {
     return cwd;
+  }
+  // 2. Explicit --path was given
+  if (pathArg !== '.kandown') {
+    return resolve(cwd, pathArg);
+  }
+  // 3. Recurse into sub-directories to find the first .kandown/ or ./tasks
+  let entries: string[];
+  try {
+    entries = readdirSync(cwd);
+  } catch {
+    return resolve(cwd, pathArg);
+  }
+  for (const name of entries) {
+    if (name.startsWith('.') || name === 'node_modules' || name === 'tasks') continue;
+    const subPath = join(cwd, name);
+    let stat: ReturnType<typeof statSync>;
+    try {
+      stat = statSync(subPath);
+    } catch {
+      continue;
+    }
+    if (!stat.isDirectory()) continue;
+    const found = resolveKandownDir(pathArg, subPath);
+    if (existsSync(found)) return found;
   }
   return resolve(cwd, pathArg);
 }

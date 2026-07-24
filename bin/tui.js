@@ -53993,7 +53993,7 @@ var import_react38 = __toESM(require_react(), 1);
 var import_react34 = __toESM(require_react(), 1);
 
 // src/cli/lib/config.ts
-import { readFileSync as readFileSync2, existsSync as existsSync2 } from "fs";
+import { readFileSync as readFileSync2, existsSync as existsSync2, readdirSync, statSync } from "fs";
 import { join } from "path";
 
 // src/cli/lib/atomic-write.ts
@@ -54437,7 +54437,7 @@ import { spawnSync } from "child_process";
 import { join as join9 } from "path";
 
 // src/cli/lib/board-reader.ts
-import { existsSync as existsSync3, readdirSync, readFileSync as readFileSync3, mkdirSync, unlinkSync as unlinkSync2 } from "fs";
+import { existsSync as existsSync3, readdirSync as readdirSync2, readFileSync as readFileSync3, mkdirSync, unlinkSync as unlinkSync2 } from "fs";
 import { dirname, join as join2 } from "path";
 import { fileURLToPath } from "url";
 import { homedir } from "os";
@@ -54649,7 +54649,7 @@ function getTasksDir(kandownDir) {
 function listTaskIds(kandownDir) {
   const tasksDir = getTasksDir(kandownDir);
   if (!existsSync3(tasksDir)) return [];
-  return readdirSync(tasksDir).filter((name) => name.endsWith(".md")).map((name) => name.slice(0, -3)).sort((a, b) => a.localeCompare(b, void 0, { numeric: true }));
+  return readdirSync2(tasksDir).filter((name) => name.endsWith(".md")).map((name) => name.slice(0, -3)).sort((a, b) => a.localeCompare(b, void 0, { numeric: true }));
 }
 function readBoard(kandownDir) {
   const config = loadConfig(kandownDir);
@@ -54929,13 +54929,13 @@ import { execFileSync as execFileSync3, spawn as spawn2 } from "child_process";
 import { createConnection } from "net";
 
 // src/cli/lib/updater.ts
-import { existsSync as existsSync4, readFileSync as readFileSync4, writeFileSync as writeFileSync2, unlinkSync as unlinkSync3, statSync, mkdirSync as mkdirSync2 } from "fs";
+import { existsSync as existsSync4, readFileSync as readFileSync4, writeFileSync as writeFileSync2, unlinkSync as unlinkSync3, statSync as statSync2, mkdirSync as mkdirSync2 } from "fs";
 import { join as join3, resolve } from "path";
 import { spawn, execSync } from "child_process";
 import { homedir as homedir2 } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.33.4";
+var KANDOWN_VERSION = "0.33.5";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath as fileURLToPath2 } from "url";
@@ -55144,7 +55144,7 @@ async function stopProjectDaemon(kandownDir) {
 }
 
 // src/cli/lib/file-watcher.ts
-import { createReadStream, statSync as statSync2 } from "fs";
+import { createReadStream, statSync as statSync3 } from "fs";
 import { createHash } from "crypto";
 import { join as join7 } from "path";
 
@@ -56992,7 +56992,7 @@ var FileWatcher = class {
     for (const taskId of this.knownTaskIds) {
       const filePath = join7(tasksDir, `${taskId}.md`);
       try {
-        statSync2(filePath);
+        statSync3(filePath);
         const newHash = await hashFile(filePath);
         const oldHash = this.taskHashes.get(taskId);
         if (oldHash !== void 0 && newHash !== oldHash) {
