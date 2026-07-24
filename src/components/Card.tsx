@@ -238,7 +238,12 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
     // `whileTap` with Tailwind's `transition-all` produced a 500ms "pop" on
     // every card (the user reported). Hover lift, tap scale, and shadow are
     // all in the className now.
+    // `draggable` + the spread `dragHandlers` are kept because they wire the
+    // native HTML5 drag-and-drop events (`onDragStart`, `onDragEnd`) the
+    // board uses to move tasks between columns.
     <div
+      draggable
+      {...dragHandlers}
       onClick={(e) => {
         if (e.metaKey || e.ctrlKey || e.shiftKey) {
           e.stopPropagation();
