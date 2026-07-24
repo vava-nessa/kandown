@@ -181,10 +181,22 @@ export function BlockNoteMarkdownEditor({
     portal.setAttribute('data-color-scheme', colorScheme);
   }, [editor, colorScheme]);
 
-  // Load initial markdown content once on mount.
-  // We intentionally do NOT re-run on value changes — the editor is the source
-  // of truth while the drawer is open. Changes flow out via onChange, not in.
+  // 📖 Reload the editor whenever the incoming `value` differs from the
+  // editor's own current markdown. Two cases covered:
+  //  1. First mount — editor default is empty, value is the saved task body,
+  //     so we load it.
+  //  2. External value change (e.g. user picked a different task from the
+  //     sidebar explorer) — value no longer matches the editor's current
+  //     blocks, so we re-seed the editor with the new task's content.
+  // We compare against the editor's actual current content (not against the
+  // last onChange we emitted) so the cursor/focus stays put during the user's
+  // own typing — the editor already has the new blocks, so the comparison
+  // matches and we skip the reload. Comparing on the normalized form also
+  // stays stable across BlockNote's whitespace-only-line serialization
+  // (the same normalization the parent applies via onChange).
   useEffect(() => {
+    const currentMarkdown = editor.blocksToMarkdownLossy(editor.document).replace(/^ +$/gm, '');
+    if (currentMarkdown === (value || '')) return;
     isInitializingRef.current = true;
     const blocks = editor.tryParseMarkdownToBlocks(value || '');
     editor.replaceBlocks(editor.document, blocks);
@@ -193,7 +205,7 @@ export function BlockNoteMarkdownEditor({
     requestAnimationFrame(() => {
       isInitializingRef.current = false;
     });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [value, editor]);
 
   const handleChange = useCallback(() => {
     if (isInitializingRef.current || !onChange) return;

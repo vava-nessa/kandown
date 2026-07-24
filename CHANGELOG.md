@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.33.5 — 2026-07-24 — "Sidebar Task Switch Fix"
+
+- **Fixed**: **BlockNote Editor Not Refreshing on Sidebar Task Switch** — the BlockNote markdown editor now properly reloads when switching between tasks via the sidebar explorer. Previously, the editor body kept showing the previous task's content because the `useEffect` only ran once on mount. The fix compares the editor's current markdown (normalized) against the incoming `value` prop and only calls `replaceBlocks` when they differ. This makes the editor reactive to external value changes (task switch) while preserving cursor/focus during the user's own typing sessions.
+- **Changed**: **Agent Work Rules Default Output Mode** — the agent work output base rules mode changed from `verbose` to `full` for more complete context generation.
+- **Changed**: **UI Theme** — updated default skin from `kandown` to `linear` for a more modern appearance.
+- **Added**: **Stack Default State** — new `stackDefaultState: collapsed` configuration option for the UI.
+
 ## 0.33.4 — 2026-07-21 — "Daemon Update Recovery"
 
 - **Fixed**: **Default `kandown` Launch Reusing Stale Daemons** — running `kandown` now validates the already-running project daemon version before reusing it. If the daemon is missing a version or is running a different CLI version than the current command, Kandown safely stops it and starts a fresh daemon from the active CLI so the browser opens the current web app instead of stale in-memory code.
