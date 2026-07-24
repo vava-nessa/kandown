@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.34.3 — 2026-07-24 — "Motion Polish — Drag Fix"
+
+- **Fixed**: **Cards could not be dragged between columns after the v0.34.2 motion polish** — the `motion.div` → plain `<div>` replacement in `Card.tsx` accidentally dropped the `draggable` HTML5 attribute and the `{...dragHandlers}` spread that wire `onDragStart` / `onDragEnd` on each card. Without `draggable` the native HTML5 drag event never fired, so the board could not move tasks between columns even though the click-to-open drawer still worked. Restores `draggable` and `dragHandlers` on the card container; no other behavior changes.
+
 ## 0.34.2 — 2026-07-24 — "Motion Polish"
 
 - **Fixed**: **0.5s pop on card hover, click, and rearrange** — `Card`, `Column`, and `CardStack` were animating through Framer Motion springs (`whileHover={{ y: -1 }}`, `whileTap={{ scale: 0.99 }}` with stiffness 500) AND Tailwind `transition-all duration-150` at the same time, on the same `transform` property. The result was the half-second scale snap the user reported on every interaction. Replaced with a hybrid system:
