@@ -10,7 +10,7 @@
  */
 
 import { useState } from 'react';
-import { Box, Text } from 'ink';
+import { Box, Text, useApp, useInput } from 'ink';
 
 interface InitPromptProps {
   kandownDir: string;
@@ -19,6 +19,17 @@ interface InitPromptProps {
 
 export function InitPrompt({ kandownDir, onConfirm }: InitPromptProps) {
   const [pressed, setPressed] = useState(false);
+  const { exit } = useApp();
+
+  useInput((_input, key) => {
+    if (key.return) {
+      setPressed(true);
+      onConfirm();
+    } else if (key.escape) {
+      exit();
+    }
+  });
+
   return (
     <Box flexDirection="column" padding={1} borderStyle="round" borderColor="yellow">
       <Text bold color="yellow">

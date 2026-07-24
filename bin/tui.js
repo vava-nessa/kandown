@@ -54963,7 +54963,7 @@ import { spawn, execSync } from "child_process";
 import { homedir as homedir2 } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.34.0";
+var KANDOWN_VERSION = "0.34.1";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath as fileURLToPath2 } from "url";
@@ -57479,8 +57479,7 @@ function InlineContextMenu({ cursor, colWidth }) {
 }
 var MENU_HEIGHT = 2;
 
-// src/cli/screens/board.tsx
-var import_jsx_runtime4 = __toESM(require_jsx_runtime(), 1);
+// src/cli/screens/board/helpers.ts
 var TASKS_START_Y = 5;
 function truncate(str, maxLen) {
   if (maxLen <= 0) return "";
@@ -57517,6 +57516,34 @@ function columnAccentColor(name) {
   if (/done|archive|closed|complete/.test(normalized)) return "green";
   return "cyan";
 }
+function getTitleCategory(title) {
+  const bracket = title.match(/^\[([^\]]+)\]\s*/);
+  if (bracket) return { key: `[${bracket[1].toLowerCase()}]`, label: bracket[1] };
+  const hash = title.match(/#(\w+)/);
+  if (hash) return { key: `#${hash[1].toLowerCase()}`, label: `#${hash[1]}` };
+  return null;
+}
+function computeScrollIdx(tasks, focusedRow, contextMenuRow, maxTasksHeight) {
+  if (focusedRow < 0) return 0;
+  const reserveBottom = focusedRow < tasks.length - 1 ? 1 : 0;
+  let currentScroll = 0;
+  while (currentScroll < focusedRow) {
+    const hasTopIndicator = currentScroll > 0;
+    const adjustedMaxHeight = maxTasksHeight - (hasTopIndicator ? 1 : 0) - reserveBottom;
+    let h = 0;
+    for (let k = currentScroll; k <= focusedRow; k++) {
+      h += getTitleCategory(tasks[k].title) !== null ? 3 : 1;
+      if (contextMenuRow === k) h += MENU_HEIGHT;
+      if (k < focusedRow) h += 1;
+    }
+    if (h <= adjustedMaxHeight) break;
+    currentScroll++;
+  }
+  return currentScroll;
+}
+
+// src/cli/screens/board/components.tsx
+var import_jsx_runtime4 = __toESM(require_jsx_runtime(), 1);
 function SingleTaskRow({ task, focused, dragging, colWidth }) {
   const cursor = dragging ? "\u2195" : focused ? "\u25B8" : " ";
   const check2 = task.checked ? "\u2713" : "\u25CB";
@@ -57554,13 +57581,6 @@ function SingleTaskRow({ task, focused, dragging, colWidth }) {
       titleStr
     ] })
   ] });
-}
-function getTitleCategory(title) {
-  const bracket = title.match(/^\[([^\]]+)\]\s*/);
-  if (bracket) return { key: `[${bracket[1].toLowerCase()}]`, label: bracket[1] };
-  const hash = title.match(/#(\w+)/);
-  if (hash) return { key: `#${hash[1].toLowerCase()}`, label: `#${hash[1]}` };
-  return null;
 }
 function CategoryTaskRow({ task, focused, dragging, colWidth }) {
   const cursor = dragging ? "\u2195" : focused ? "\u25B8" : " ";
@@ -57604,24 +57624,6 @@ function MovePlaceholder({ name, focused, colWidth }) {
       ]
     }
   ) });
-}
-function computeScrollIdx(tasks, focusedRow, contextMenuRow, maxTasksHeight) {
-  if (focusedRow < 0) return 0;
-  const reserveBottom = focusedRow < tasks.length - 1 ? 1 : 0;
-  let currentScroll = 0;
-  while (currentScroll < focusedRow) {
-    const hasTopIndicator = currentScroll > 0;
-    const adjustedMaxHeight = maxTasksHeight - (hasTopIndicator ? 1 : 0) - reserveBottom;
-    let h = 0;
-    for (let k = currentScroll; k <= focusedRow; k++) {
-      h += getTitleCategory(tasks[k].title) !== null ? 3 : 1;
-      if (contextMenuRow === k) h += MENU_HEIGHT;
-      if (k < focusedRow) h += 1;
-    }
-    if (h <= adjustedMaxHeight) break;
-    currentScroll++;
-  }
-  return currentScroll;
 }
 function KanbanColumn({
   name,
@@ -57816,6 +57818,9 @@ function TaskDetail({ task, taskId, scrollOffset }) {
     ] })
   ] });
 }
+
+// src/cli/screens/board.tsx
+var import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
 function Board({ kandownDir, version }) {
   const { exit } = use_app_default();
   const [board, setBoard] = (0, import_react37.useState)(null);
@@ -58635,24 +58640,24 @@ function Board({ kandownDir, version }) {
     }
   });
   if (boardError) {
-    return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { flexDirection: "column", padding: 2, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "red", bold: true, children: "Error loading board" }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "red", children: boardError }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: "Press 'r' to retry or 'q' to quit." })
+    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", padding: 2, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "red", bold: true, children: "Error loading board" }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "red", children: boardError }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", children: "Press 'r' to retry or 'q' to quit." })
     ] });
   }
   if (!board) {
-    return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { padding: 2, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: "Loading board\u2026" }) });
+    return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { padding: 2, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", children: "Loading board\u2026" }) });
   }
   if (board.columns.length === 0) {
-    return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { flexDirection: "column", padding: 2, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: "red", bold: true, children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", padding: 2, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "red", bold: true, children: [
         "No board found at ",
         kandownDir
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: "gray", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "gray", children: [
         "Run ",
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "cyan", children: "kandown init" }),
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "cyan", children: "kandown init" }),
         " to set up."
       ] })
     ] });
@@ -58668,80 +58673,80 @@ function Board({ kandownDir, version }) {
     modeHint = "drag over target column \xB7 release to drop \xB7 Esc cancel";
   }
   if (mode === "cheatsheet") {
-    return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { flexDirection: "column", borderStyle: "round", borderColor: "cyan", paddingX: 2, paddingY: 1, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "cyan", bold: true, children: "Kandown TUI Cheatsheet (Press Esc or ? to return)" }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: "\u2500".repeat(60) }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "n         " }),
+    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", borderStyle: "round", borderColor: "cyan", paddingX: 2, paddingY: 1, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "cyan", bold: true, children: "Kandown TUI Cheatsheet (Press Esc or ? to return)" }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", children: "\u2500".repeat(60) }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "n         " }),
         "Create new task (inline: #tag @user p1 due:date +t12)"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "e         " }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "e         " }),
         "Edit task file in $EDITOR"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "x         " }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "x         " }),
         "Archive focused task"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "D         " }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "D         " }),
         "Delete focused task (with confirmation)"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "/         " }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "/         " }),
         "Search / fuzzy filter tasks"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "f         " }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "f         " }),
         "Cycle filter mode (All, P1, AI owner, Human owner)"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "u         " }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "u         " }),
         "Undo last action"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "m         " }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "m         " }),
         "Open move context menu"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "a         " }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "a         " }),
         "Launch AI agent on task"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "g         " }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "g         " }),
         "Send task to agent hook"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "d         " }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "d         " }),
         "Toggle local web daemon"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "r         " }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "r         " }),
         "Reload board from disk"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "h/l \u2190/\u2192  " }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "h/l \u2190/\u2192  " }),
         "Navigate columns"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "j/k \u2191/\u2193  " }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "j/k \u2191/\u2193  " }),
         "Navigate tasks"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "Enter    " }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "Enter    " }),
         "Open task details"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: "q / Esc  " }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "q / Esc  " }),
         "Quit / Cancel"
       ] })
     ] });
   }
   if (mode === "agent-picker") {
     const taskId = detailTaskId || focusedTask?.id || "";
-    return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { flexDirection: "column", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(BoardHeader, { title: board.title, inTmux, version, daemonStatus, daemonBusy }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(BoardHeader, { title: board.title, inTmux, version, daemonStatus, daemonBusy }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
         AgentPicker,
         {
           agents: installedAgents,
@@ -58753,21 +58758,21 @@ function Board({ kandownDir, version }) {
     ] });
   }
   if (mode === "detail" && detailTask) {
-    return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { flexDirection: "column", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { marginBottom: 1, justifyContent: "space-between", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: "Esc back \xB7 a agent \xB7 j/k scroll" }),
-        daemonStatus.running && daemonStatus.metadata ? /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "blue", underline: true, children: terminalHyperlink(webLinkLabel(daemonStatus.metadata.url), daemonStatus.metadata.url) }) : /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: "gray", dimColor: true, children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { marginBottom: 1, justifyContent: "space-between", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", children: "Esc back \xB7 a agent \xB7 j/k scroll" }),
+        daemonStatus.running && daemonStatus.metadata ? /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "blue", underline: true, children: terminalHyperlink(webLinkLabel(daemonStatus.metadata.url), daemonStatus.metadata.url) }) : /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "gray", dimColor: true, children: [
           "KANDOWN  ",
           board.title
         ] })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(TaskDetail, { task: detailTask, taskId: detailTaskId, scrollOffset: detailScroll }),
-      statusMsg && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", children: statusMsg }) })
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(TaskDetail, { task: detailTask, taskId: detailTaskId, scrollOffset: detailScroll }),
+      statusMsg && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", children: statusMsg }) })
     ] });
   }
-  return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { flexDirection: "column", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(BoardHeader, { title: board.title, inTmux, modeHint, version, daemonStatus, daemonBusy }),
-    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { flexDirection: "row", children: board.columns.map((col, cIdx) => /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(BoardHeader, { title: board.title, inTmux, modeHint, version, daemonStatus, daemonBusy }),
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { flexDirection: "row", children: board.columns.map((col, cIdx) => /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
       KanbanColumn,
       {
         name: col.name,
@@ -58784,79 +58789,57 @@ function Board({ kandownDir, version }) {
       },
       col.name
     )) }),
-    mode === "create-task" && /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { marginTop: 1, borderStyle: "single", borderColor: "green", paddingX: 1, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "green", bold: true, children: "New Task: " }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { children: createInput }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: " \u2588 (Enter create \xB7 Esc cancel)" })
+    mode === "create-task" && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { marginTop: 1, borderStyle: "single", borderColor: "green", paddingX: 1, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "green", bold: true, children: "New Task: " }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { children: createInput }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", children: " \u2588 (Enter create \xB7 Esc cancel)" })
     ] }),
-    mode === "confirm-delete" && focusedTask && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { marginTop: 1, borderStyle: "single", borderColor: "red", paddingX: 1, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: "red", bold: true, children: [
+    mode === "confirm-delete" && focusedTask && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { marginTop: 1, borderStyle: "single", borderColor: "red", paddingX: 1, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "red", bold: true, children: [
       "Delete task ",
       focusedTask.id,
       " (",
       truncate(focusedTask.title, 30),
       ")? [y/N] "
     ] }) }),
-    mode === "search" && /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Box_default, { marginTop: 1, borderStyle: "single", borderColor: "cyan", paddingX: 1, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "cyan", bold: true, children: "Search: " }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { children: searchQuery }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: " \u2588 (Enter done \xB7 Esc clear)" })
+    mode === "search" && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { marginTop: 1, borderStyle: "single", borderColor: "cyan", paddingX: 1, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "cyan", bold: true, children: "Search: " }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { children: searchQuery }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", children: " \u2588 (Enter done \xB7 Esc clear)" })
     ] }),
-    (mode === "move-target" || mode === "dragging") && moveTaskId && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(Text, { color: "yellow", bold: true, children: [
+    (mode === "move-target" || mode === "dragging") && moveTaskId && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "yellow", bold: true, children: [
       "Moving ",
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "cyan", children: moveTaskId }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: " \u2014 " }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "yellow", bold: true, children: mode === "dragging" ? "release over a column" : "click a column" }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Text, { color: "gray", children: mode === "dragging" ? " \xB7 Esc cancel" : " or \u2190/\u2192 + Enter" })
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "cyan", children: moveTaskId }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", children: " \u2014 " }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: mode === "dragging" ? "release over a column" : "click a column" }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", children: mode === "dragging" ? " \xB7 Esc cancel" : " or \u2190/\u2192 + Enter" })
     ] }) }),
-    /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(StatusBar, { message: statusMsg, task: focusedTask, daemonStatus })
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(StatusBar, { message: statusMsg, task: focusedTask, daemonStatus })
   ] });
 }
 
 // src/cli/screens/init-prompt.tsx
 var import_react38 = __toESM(require_react(), 1);
-var import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
+var import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
 function InitPrompt({ kandownDir, onConfirm }) {
+  const [pressed, setPressed] = (0, import_react38.useState)(false);
   const { exit } = use_app_default();
-  const [creating, setCreating] = (0, import_react38.useState)(false);
-  const [error, setError] = (0, import_react38.useState)(null);
-  use_input_default((input, key) => {
-    if (creating) return;
-    if (key.escape || input.toLowerCase() === "n") {
+  use_input_default((_input, key) => {
+    if (key.return) {
+      setPressed(true);
+      onConfirm();
+    } else if (key.escape) {
       exit();
-      return;
-    }
-    if (key.return || input.toLowerCase() === "y") {
-      setCreating(true);
-      setError(null);
-      try {
-        onConfirm();
-      } catch (e) {
-        setCreating(false);
-        setError(e instanceof Error ? e.message : String(e));
-      }
     }
   });
-  return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", padding: 2, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { bold: true, color: "cyan", children: "No kandown project found here" }),
-    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { dimColor: true, children: kandownDir }) }),
-    /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { marginTop: 1, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { children: "This will create an empty " }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { bold: true, children: ".kandown/" }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { children: " config folder and a project-root " }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { bold: true, children: "tasks/" }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { children: " folder." })
-    ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { marginTop: 1, children: creating ? /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", children: "Creating project\u2026" }) : /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
-      "Create it now? ",
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { bold: true, color: "green", children: "[Y]" }),
-      "es / ",
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { bold: true, color: "red", children: "[N]" }),
-      "o"
-    ] }) }),
-    error && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "red", children: [
-      "\u2717 ",
-      error
-    ] }) })
+  return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Box_default, { flexDirection: "column", padding: 1, borderStyle: "round", borderColor: "yellow", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { bold: true, color: "yellow", children: "No .kandown/ project found" }),
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { children: `Create one at ${kandownDir} and start the web daemon?` }),
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { dimColor: true, children: "Press Enter to create, Esc to quit." }),
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Box_default, { marginTop: 1, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { inverse: !pressed, color: pressed ? "gray" : "green", children: ` Create (Enter) ` }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { children: "  " }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { inverse: pressed, color: pressed ? "red" : "gray", children: ` Quit (Esc) ` })
+    ] })
   ] });
 }
 
@@ -58946,7 +58929,7 @@ function openBrowser(target) {
 }
 
 // src/cli/app.tsx
-var import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
+var import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
 function getTerminalRows() {
   const rows = process.stdout.rows;
   return typeof rows === "number" && Number.isFinite(rows) && rows > 0 ? rows : 24;
@@ -58967,7 +58950,7 @@ function App2({ screen, kandownDir, version, projectExists = true }) {
   const [created, setCreated] = (0, import_react39.useState)(false);
   let content;
   if (!projectExists && !created) {
-    content = /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+    content = /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
       InitPrompt,
       {
         kandownDir,
@@ -58986,23 +58969,23 @@ function App2({ screen, kandownDir, version, projectExists = true }) {
   } else {
     switch (screen) {
       case "settings":
-        content = /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Settings, { kandownDir, version });
+        content = /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Settings, { kandownDir, version });
         break;
       case "board":
-        content = /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Board, { kandownDir, version });
+        content = /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Board, { kandownDir, version });
         break;
       default:
-        content = /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Box_default, { padding: 2, children: /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { color: "red", bold: true, children: [
+        content = /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Box_default, { padding: 2, children: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(Text, { color: "red", bold: true, children: [
           "Unknown screen: ",
           screen
         ] }) });
     }
   }
-  return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Box_default, { flexDirection: "column", height: rows, overflow: "hidden", children: content });
+  return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Box_default, { flexDirection: "column", height: rows, overflow: "hidden", children: content });
 }
 
 // src/cli/tui.tsx
-var import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
+var import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
 async function run(screen, kandownDir, version) {
   if (!process.stdin.isTTY) {
     throw new Error(
@@ -59010,7 +58993,7 @@ async function run(screen, kandownDir, version) {
     );
   }
   const projectExists = existsSync8(join11(kandownDir, "kandown.json"));
-  const instance = render_default(/* @__PURE__ */ (0, import_jsx_runtime7.jsx)(App2, { screen, kandownDir, version, projectExists }), {
+  const instance = render_default(/* @__PURE__ */ (0, import_jsx_runtime8.jsx)(App2, { screen, kandownDir, version, projectExists }), {
     exitOnCtrlC: true,
     interactive: true,
     alternateScreen: true,
