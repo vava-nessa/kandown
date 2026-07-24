@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.34.2 — 2026-07-24 — "Motion Polish"
+
+- **Fixed**: **0.5s pop on card hover, click, and rearrange** — `Card`, `Column`, and `CardStack` were animating through Framer Motion springs (`whileHover={{ y: -1 }}`, `whileTap={{ scale: 0.99 }}` with stiffness 500) AND Tailwind `transition-all duration-150` at the same time, on the same `transform` property. The result was the half-second scale snap the user reported on every interaction. Replaced with a hybrid system:
+  - `src/lib/motion-presets.ts` defines a single source of truth (`EASE_OUT`, `EASE_SPRING`, `MOTION.fade / toast / progressBar / heroStagger / headerCrossfade / panel / rotate / chip`) for every `motion.*` and `AnimatePresence` in the project.
+  - `Card`, `Column`, `CardStack` (collapsed + expanded), `Board` wrapper, and `ListView` sections are now plain `<div>` / `<section>`. Drag is HTML5-native, so `layout` animation was unused and the spring was just overhead.
+  - Hover/active feedback is now Tailwind only: `hover:-translate-y-px active:scale-[0.99] active:duration-75` with `transition-[border-color,box-shadow,transform] duration-200 ease-out`. CSS, no overshoot, no animation on `all`.
+  - Motion is reserved for what actually needs an enter/exit curve: `Toaster`, `EmptyState` hero, `Header` boot cross-fade, `SubtaskEditor` progress bar (no more spring on `width` — it jittered), `SubtaskItem` panel expand/collapse + chevron rotate, and `Header` filter chips. Every site uses the corresponding `MOTION.*` token.
+
 ## 0.34.1 — 2026-07-24 — "CLI Modular Refactor"
 
 - **Fixed**: **Web UI no longer opens to the project picker** — running `kandown` inside a project directory now auto-opens both the TUI and the Web UI directly into that project again. The regression was a missing `window.__KANDOWN_ROOT__` injection into the served HTML (lost during an earlier partial refactor); the web app now correctly detects server mode and skips the manual folder-picker screen.
