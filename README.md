@@ -178,6 +178,7 @@ Interactive runs of `kandown` check npm for updates at most once every 24 hours 
 | Command palette | `⌘K` / `Ctrl+K` for quick actions |
 | Custom columns | Add, rename, delete columns freely |
 | Guarded deletion | Double-click to delete — no accidents |
+| Terminal bulk actions | Archive or permanently delete every task in the terminal column with confirmation |
 
 ### Task Management
 
@@ -185,6 +186,7 @@ Interactive runs of `kandown` check npm for updates at most once every 24 hours 
 |---|---|
 | Rich task drawer | WYSIWYG markdown editor for title, metadata, subtasks, body |
 | Subtasks | Full checklist with progress tracking on cards |
+| Subtask editor | Add, reorder-by-keyboard, check off, remove, and edit per-step descriptions and reports |
 | Metadata fields | Priority, assignee, tags, due date, owner type |
 | Owner filtering | Filter human vs AI-agent tasks separately |
 | External-change detection | Warns when files are modified outside the app |

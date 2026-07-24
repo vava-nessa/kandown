@@ -1,7 +1,7 @@
 /**
  * @file Task drawer editor
- * @description Full-height task detail editor for title, description, report,
- * save/close, autosave, and deletion.
+ * @description Full-height task detail editor for title, description, subtasks,
+ * report, save/close, autosave, and deletion.
  *
  * 📖 The drawer edits the parsed task file and writes changes back into
  * frontmatter, keeping `tasks/<id>.md` as the single source of truth for board
@@ -9,25 +9,27 @@
  * 📖 Destructive keyboard deletion uses Cmd/Ctrl+Backspace instead of a naked
  * Delete key so normal text editing inside title and description remains
  * predictable.
- * 📖 Layout is intentionally minimal: title on top, then DESCRIPTION (full
- * width), then REPORT (full width, below description). No subtask editor, no
- * frontmatter metadata fields — those are managed in the task file directly
- * or via the per-card metadata block on the board.
+ * 📖 Layout keeps the writing surface focused: title, dependencies,
+ * DESCRIPTION, editable SUBTASKS, then REPORT. Subtasks remain markdown-backed
+ * checklist items so agents and the UI share the same source of truth.
  *
  * @functions
  *  → Drawer — task editor panel with keyboard shortcuts and autosave
  *
  * @exports Drawer
  * @see src/lib/store.ts
+ * @see src/components/SubtaskEditor.tsx
  */
 
 import { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { KbdButton } from './KbdButton';
+import { SubtaskEditor } from './SubtaskEditor';
 import { BlockNoteMarkdownEditor } from './ui/BlockNoteMarkdownEditor';
 import { useStore } from '../lib/store';
 import { buildTaskUrl } from '../lib/task-url';
+import type { Subtask } from '../lib/types';
 
 export function Drawer() {
   const { t } = useTranslation();
@@ -232,6 +234,12 @@ export function Drawer() {
     return () => window.removeEventListener('keydown', handler);
   }, [isOpen, isDesktop, handleProtectedClose, handleClose, handleDelete]);
 
+  const handleSubtasksChange = useCallback((subtasks: Subtask[]) => {
+    updateDrawerData(data => ({ ...data, subtasks }));
+    markDrawerDirty();
+    triggerAutoSave();
+  }, [markDrawerDirty, triggerAutoSave, updateDrawerData]);
+
   if (!drawerData || isDesktop) return null;
 
   const updateField = <K extends keyof typeof drawerData.frontmatter>(
@@ -274,6 +282,11 @@ export function Drawer() {
                   </span>
                   {currentCol && (
                     <span className="text-[12.5px] text-fg-dim">· {currentCol}</span>
+                  )}
+                  {drawerData.subtasks.length > 0 && (
+                    <span className="text-[12px] text-fg-muted tabular-nums">
+                      {drawerData.subtasks.filter(subtask => subtask.done).length}/{drawerData.subtasks.length} {t('drawer.doneSubtasks')}
+                    </span>
                   )}
                   <button
                     type="button"
@@ -394,7 +407,14 @@ export function Drawer() {
 
                 <div className="h-px bg-border -mx-5" />
 
-                {/* Report (full width, below description) */}
+                <SubtaskEditor
+                  subtasks={drawerData.subtasks}
+                  onSubtasksChange={handleSubtasksChange}
+                />
+
+                <div className="h-px bg-border -mx-5" />
+
+                {/* Report (full width, below subtasks) */}
                 <div>
                   <div className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted mb-2">
                     {t('drawer.report')}

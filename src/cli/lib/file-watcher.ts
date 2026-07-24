@@ -16,7 +16,7 @@
  * @exports FileWatcher, createWatcher
  */
 
-import { createReadStream, statSync } from 'node:fs';
+import { createReadStream, statSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { watch, FSWatcher } from 'chokidar';
@@ -56,6 +56,12 @@ function hashFileSync(filePath: string): string {
   return createHash('sha256').update(content).digest('hex');
 }
 
+/** 📖 Returns the active or archived path for a task id. */
+function taskFilePath(tasksDir: string, taskId: string): string {
+  const activePath = join(tasksDir, `${taskId}.md`);
+  return existsSync(activePath) ? activePath : join(tasksDir, 'archive', `${taskId}.md`);
+}
+
 // ─── FileWatcher ───────────────────────────────────────────────────────────────
 
 export class FileWatcher {
@@ -86,14 +92,14 @@ export class FileWatcher {
     for (const id of existingIds) {
       this.knownTaskIds.add(id);
       try {
-        const filePath = join(tasksDir, `${id}.md`);
+        const filePath = taskFilePath(tasksDir, id);
         this.taskHashes.set(id, hashFileSync(filePath));
       } catch {
         // File may have been deleted between listTaskIds and now
       }
     }
 
-    this.watcher = watch([join(tasksDir, '*.md'), configPath], {
+    this.watcher = watch([join(tasksDir, '*.md'), join(tasksDir, 'archive', '*.md'), configPath], {
       ignoreInitial: true,
       awaitWriteFinish: { stabilityThreshold: 25, pollInterval: 25 },
       alwaysStat: true,
@@ -235,7 +241,7 @@ export class FileWatcher {
 
     // Check known task files
     for (const taskId of this.knownTaskIds) {
-      const filePath = join(tasksDir, `${taskId}.md`);
+      const filePath = taskFilePath(tasksDir, taskId);
       try {
         statSync(filePath); // Quick existence check
         const newHash = await hashFile(filePath);
@@ -255,7 +261,7 @@ export class FileWatcher {
     const currentIds = listTaskIds(kandownDir);
     for (const id of currentIds) {
       if (!this.knownTaskIds.has(id)) {
-        const filePath = join(tasksDir, `${id}.md`);
+        const filePath = taskFilePath(tasksDir, id);
         try {
           const newHash = await hashFile(filePath);
           this.knownTaskIds.add(id);

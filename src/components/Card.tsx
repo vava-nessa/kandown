@@ -2,7 +2,7 @@
  * @file Task card component
  * @description Displays one board task with priority, progress, tags, assignee,
  * drag handlers, optional highlighted search-preview snippets, and guarded
- * hover deletion.
+ * hover archive/delete actions.
  *
  * 📖 Cards are intentionally view-only. Clicking opens the drawer through the
  * store, while mutations such as moving, editing, and deleting stay centralized.
@@ -25,6 +25,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { IconTrash, IconTrashX } from '@tabler/icons-react';
+import { Icon } from './Icons';
 import type { BoardTask, Density, SearchMatch } from '../lib/types';
 import { useStore } from '../lib/store';
 
@@ -160,9 +161,11 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
   const { t } = useTranslation();
   const openDrawer = useStore(s => s.openDrawer);
   const deleteTask = useStore(s => s.deleteTask);
+  const archiveTask = useStore(s => s.archiveTask);
   const showMetadata = useStore(s => s.showMetadata);
   const [deleteArmed, setDeleteArmed] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
   const isMountedRef = useRef(true);
 
   const isCompact = density === 'compact';
@@ -186,6 +189,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
   const showPreview = searchMatches.length > 0 && !isCompact;
 
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
     };
@@ -201,7 +205,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
   const handleDeleteClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     e.preventDefault();
-    if (isDeleting) return;
+    if (isDeleting || isArchiving) return;
 
     if (!deleteArmed) {
       setDeleteArmed(true);
@@ -214,6 +218,16 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       setIsDeleting(false);
       setDeleteArmed(false);
     }
+  };
+
+  const handleArchiveClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (isDeleting || isArchiving) return;
+
+    setIsArchiving(true);
+    await archiveTask(task.id);
+    if (isMountedRef.current) setIsArchiving(false);
   };
 
   const selectedTaskIds = useStore(s => s.selectedTaskIds);
@@ -261,23 +275,44 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
         </svg>
       </div>
 
-      <button
-        type="button"
-        draggable={false}
-        aria-label={deleteArmed ? t('card.confirmDelete') : t('card.delete')}
-        title={deleteArmed ? t('card.confirmDelete') : t('card.delete')}
-        disabled={isDeleting}
-        onClick={handleDeleteClick}
+      <div
+        className="absolute right-2 top-2 z-10 flex items-center gap-1"
         onPointerDown={e => e.stopPropagation()}
-        onBlur={() => setDeleteArmed(false)}
-        className={`absolute right-2 top-2 z-10 inline-flex h-6 w-6 items-center justify-center rounded-md border transition-all ${
-          deleteArmed
-            ? 'border-red-500 bg-red-500 text-white opacity-100 shadow-sm'
-            : 'border-border bg-card/80 text-fg-muted opacity-0 hover:border-red-500/60 hover:bg-card hover:text-red-500 group-hover:opacity-100'
-        } ${isDeleting ? 'pointer-events-none opacity-60' : ''}`}
+        draggable={false}
       >
-        {deleteArmed ? <IconTrashX size={14} stroke={1.9} /> : <IconTrash size={14} stroke={1.8} />}
-      </button>
+        <button
+          type="button"
+          draggable={false}
+          aria-label={t('card.archive')}
+          title={t(isArchiving ? 'card.archiving' : 'card.archive')}
+          disabled={isDeleting || isArchiving}
+          onClick={handleArchiveClick}
+          className={`inline-flex h-6 w-6 items-center justify-center rounded-md border transition-all ${
+            isArchiving
+              ? 'border-accent bg-accent/15 text-accent opacity-100'
+              : 'border-border bg-card/80 text-fg-muted opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hover:border-accent/60 hover:bg-card hover:text-accent'
+          } ${isDeleting ? 'pointer-events-none opacity-40' : ''}`}
+        >
+          <Icon.Archive size={14} strokeWidth={1.8} />
+        </button>
+        <button
+          type="button"
+          draggable={false}
+          aria-label={deleteArmed ? t('card.confirmDelete') : t('card.delete')}
+          title={deleteArmed ? t('card.confirmDelete') : t('card.delete')}
+          disabled={isDeleting || isArchiving}
+          onClick={handleDeleteClick}
+          onPointerDown={e => e.stopPropagation()}
+          onBlur={() => setDeleteArmed(false)}
+          className={`inline-flex h-6 w-6 items-center justify-center rounded-md border transition-all ${
+            deleteArmed
+              ? 'border-red-500 bg-red-500 text-white opacity-100 shadow-sm'
+              : 'border-border bg-card/80 text-fg-muted opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hover:border-red-500/60 hover:bg-card hover:text-red-500'
+          } ${isDeleting || isArchiving ? 'pointer-events-none opacity-60' : ''}`}
+        >
+          {deleteArmed ? <IconTrashX size={14} stroke={1.9} /> : <IconTrash size={14} stroke={1.8} />}
+        </button>
+      </div>
 
       {/* Subtle priority edge indicator — removed; priority now lives in the
        * metadata block (revealed via the global showMetadata toggle). */}

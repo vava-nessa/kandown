@@ -29,6 +29,7 @@ import { CardStack } from './CardStack';
 import { KbdButton } from './KbdButton';
 import { groupTasksByTag, extractGroupKey } from '../lib/grouping';
 import { getColumnIcon, COLUMN_COLOR_MAP } from '../lib/columnUtils';
+import { terminalStatus } from '../lib/dependencies';
 import { ColumnHeaderActions } from './ColumnHeaderActions';
 import type { BoardTask, SearchMatch, Column as ColumnType, ColumnColor } from '../lib/types';
 
@@ -104,6 +105,8 @@ export function ListView() {
   const createTask = useStore(s => s.createTask);
   const renameColumn = useStore(s => s.renameColumn);
   const deleteColumn = useStore(s => s.deleteColumn);
+  const bulkArchiveTasks = useStore(s => s.bulkArchiveTasks);
+  const bulkDeleteTasks = useStore(s => s.bulkDeleteTasks);
   const addColumn = useStore(s => s.addColumn);
   const density = useStore(s => s.density);
 
@@ -307,6 +310,28 @@ export function ListView() {
               void deleteColumn(column.name);
             };
 
+            const isTerminalColumn = column.name.toLowerCase() === terminalStatus(config).toLowerCase();
+            const handleArchiveAll = () => {
+              const taskIds = column.tasks.map(task => task.id);
+              if (taskIds.length === 0) return;
+              const message = t('column.archiveAllConfirm', {
+                count: taskIds.length,
+                column: column.name,
+              });
+              if (!window.confirm(message)) return;
+              void bulkArchiveTasks(taskIds);
+            };
+            const handleDeleteAll = () => {
+              const taskIds = column.tasks.map(task => task.id);
+              if (taskIds.length === 0) return;
+              const message = t('column.deleteAllConfirm', {
+                count: taskIds.length,
+                column: column.name,
+              });
+              if (!window.confirm(message)) return;
+              void bulkDeleteTasks(taskIds);
+            };
+
             return (
               <div
                 key={column.name}
@@ -379,6 +404,10 @@ export function ListView() {
                       <ColumnHeaderActions
                         columnName={column.name}
                         taskCount={filtered.length}
+                        bulkTaskCount={column.tasks.length}
+                        isTerminalColumn={isTerminalColumn}
+                        onArchiveAll={handleArchiveAll}
+                        onDeleteAll={handleDeleteAll}
                         isConfiguredColumn={isConfiguredColumn}
                         currentColor={colColorKey}
                         onColorSelect={handleColorChange}

@@ -27988,7 +27988,7 @@ var require_backend = __commonJS({
                     });
                     return initialValue;
                   },
-                  useState: function useState10(initialState) {
+                  useState: function useState11(initialState) {
                     var hook = nextHook();
                     initialState = null !== hook ? hook.memoizedState : "function" === typeof initialState ? initialState() : initialState;
                     hookLog.push({
@@ -53985,9 +53985,11 @@ var import_react33 = __toESM(require_react(), 1);
 
 // src/cli/tui.tsx
 import { fileURLToPath as fileURLToPath3 } from "url";
+import { existsSync as existsSync8 } from "fs";
+import { join as join11 } from "path";
 
 // src/cli/app.tsx
-var import_react38 = __toESM(require_react(), 1);
+var import_react39 = __toESM(require_react(), 1);
 
 // src/cli/screens/settings.tsx
 var import_react34 = __toESM(require_react(), 1);
@@ -54584,30 +54586,42 @@ function extractSubtasks(body) {
       kept.push(line);
       continue;
     }
-    const m = line.match(/^\s*-\s+\[([ xX])\]\s+(.+)$/);
+    const m = line.match(/^\s*-\s+\[([ xX])\]\s*(.*)$/);
     if (m && inSubtaskSection) {
       const text = m[2]?.trim() ?? "";
       subtasks.push({ done: (m[1]?.toLowerCase() ?? "") === "x", text });
       continue;
     }
-    const descMatch = line.match(/^\s*\[DESC\]\s*(.*)$/);
+    const descMatch = line.match(/^\s*\[DESC\]\s?(.*)$/);
     if (descMatch && subtasks.length > 0) {
-      subtasks[subtasks.length - 1].description = descMatch[1];
+      const subtask = subtasks[subtasks.length - 1];
+      const nextLine = descMatch[1] ?? "";
+      subtask.description = subtask.description === void 0 ? nextLine : `${subtask.description}
+${nextLine}`;
       continue;
     }
-    const reportMatch = line.match(/^\s*\[REPORT\]\s*(.*)$/);
+    const reportMatch = line.match(/^\s*\[REPORT\]\s?(.*)$/);
     if (reportMatch && subtasks.length > 0) {
-      subtasks[subtasks.length - 1].report = reportMatch[1];
+      const subtask = subtasks[subtasks.length - 1];
+      const nextLine = reportMatch[1] ?? "";
+      subtask.report = subtask.report === void 0 ? nextLine : `${subtask.report}
+${nextLine}`;
       continue;
     }
     const legacyDescMatch = line.match(/^\s+description:\s*(.+)$/);
     if (legacyDescMatch && inSubtaskSection && subtasks.length > 0) {
-      subtasks[subtasks.length - 1].description = legacyDescMatch[1].trim();
+      const subtask = subtasks[subtasks.length - 1];
+      const nextLine = legacyDescMatch[1].trim();
+      subtask.description = subtask.description ? `${subtask.description}
+${nextLine}` : nextLine;
       continue;
     }
     const legacyReportMatch = line.match(/^\s+report:\s*(.+)$/);
     if (legacyReportMatch && inSubtaskSection && subtasks.length > 0) {
-      subtasks[subtasks.length - 1].report = legacyReportMatch[1].trim();
+      const subtask = subtasks[subtasks.length - 1];
+      const nextLine = legacyReportMatch[1].trim();
+      subtask.report = subtask.report ? `${subtask.report}
+${nextLine}` : nextLine;
       continue;
     }
     kept.push(line);
@@ -54648,8 +54662,22 @@ function getTasksDir(kandownDir) {
 }
 function listTaskIds(kandownDir) {
   const tasksDir = getTasksDir(kandownDir);
-  if (!existsSync3(tasksDir)) return [];
-  return readdirSync2(tasksDir).filter((name) => name.endsWith(".md")).map((name) => name.slice(0, -3)).sort((a, b) => a.localeCompare(b, void 0, { numeric: true }));
+  const ids = /* @__PURE__ */ new Set();
+  for (const directory of [tasksDir, join2(tasksDir, "archive")]) {
+    if (!existsSync3(directory)) continue;
+    for (const name of readdirSync2(directory).filter((entry) => entry.endsWith(".md"))) {
+      ids.add(name.slice(0, -3));
+    }
+  }
+  return [...ids].sort((a, b) => a.localeCompare(b, void 0, { numeric: true }));
+}
+function findTaskPath(kandownDir, taskId) {
+  if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return null;
+  const tasksDir = getTasksDir(kandownDir);
+  const activePath = join2(tasksDir, `${taskId}.md`);
+  if (existsSync3(activePath)) return activePath;
+  const archivedPath = join2(tasksDir, "archive", `${taskId}.md`);
+  return existsSync3(archivedPath) ? archivedPath : null;
 }
 function readBoard(kandownDir) {
   const config = loadConfig(kandownDir);
@@ -54677,8 +54705,8 @@ function readBoard(kandownDir) {
   };
 }
 function readTask(kandownDir, taskId) {
-  const taskPath = join2(getTasksDir(kandownDir), `${taskId}.md`);
-  if (!existsSync3(taskPath)) {
+  const taskPath = findTaskPath(kandownDir, taskId);
+  if (!taskPath) {
     return {
       frontmatter: { id: taskId, title: `Task ${taskId}`, status: "Backlog" },
       body: ""
@@ -54738,8 +54766,8 @@ ${gitLog}
   return sections.filter(Boolean).join("\n\n---\n\n");
 }
 function moveTaskToColumn(kandownDir, taskId, targetColumn) {
-  const taskPath = join2(getTasksDir(kandownDir), `${taskId}.md`);
-  if (!existsSync3(taskPath)) return false;
+  const taskPath = findTaskPath(kandownDir, taskId);
+  if (!taskPath) return false;
   try {
     const prevContent = readFileSync3(taskPath, "utf8");
     const parsed = readTask(kandownDir, taskId);
@@ -54873,8 +54901,8 @@ function createTaskInBoard(kandownDir, rawInput, status) {
   return newId;
 }
 function deleteTaskInBoard(kandownDir, taskId) {
-  const taskPath = join2(getTasksDir(kandownDir), `${taskId}.md`);
-  if (!existsSync3(taskPath)) return false;
+  const taskPath = findTaskPath(kandownDir, taskId);
+  if (!taskPath) return false;
   try {
     const prevContent = readFileSync3(taskPath, "utf8");
     unlinkSync2(taskPath);
@@ -54935,7 +54963,7 @@ import { spawn, execSync } from "child_process";
 import { homedir as homedir2 } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.33.5";
+var KANDOWN_VERSION = "0.34.0";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath as fileURLToPath2 } from "url";
@@ -55078,8 +55106,8 @@ async function startProjectDaemon(kandownDir, preferredPort) {
     if (current.metadata?.version === getCurrentVersion()) return current;
     await stopProjectDaemon(kandownDir);
   }
-  const cliPath = process.argv[1];
-  if (!cliPath) throw new Error("Cannot locate kandown CLI entrypoint");
+  const cliPath = join4(PKG_ROOT2, "bin", "kandown.js");
+  if (!existsSync5(cliPath)) throw new Error(`Cannot locate kandown CLI entrypoint at ${cliPath}`);
   const args = [
     cliPath,
     "--no-update-check",
@@ -55144,7 +55172,7 @@ async function stopProjectDaemon(kandownDir) {
 }
 
 // src/cli/lib/file-watcher.ts
-import { createReadStream, statSync as statSync3 } from "fs";
+import { createReadStream, statSync as statSync3, existsSync as existsSync6 } from "fs";
 import { createHash } from "crypto";
 import { join as join7 } from "path";
 
@@ -56852,6 +56880,10 @@ function hashFileSync(filePath) {
   const content = __require("fs").readFileSync(filePath, "utf8");
   return createHash("sha256").update(content).digest("hex");
 }
+function taskFilePath(tasksDir, taskId) {
+  const activePath = join7(tasksDir, `${taskId}.md`);
+  return existsSync6(activePath) ? activePath : join7(tasksDir, "archive", `${taskId}.md`);
+}
 var FileWatcher = class {
   watcher = null;
   taskHashes = /* @__PURE__ */ new Map();
@@ -56877,12 +56909,12 @@ var FileWatcher = class {
     for (const id of existingIds) {
       this.knownTaskIds.add(id);
       try {
-        const filePath = join7(tasksDir, `${id}.md`);
+        const filePath = taskFilePath(tasksDir, id);
         this.taskHashes.set(id, hashFileSync(filePath));
       } catch {
       }
     }
-    this.watcher = watch([join7(tasksDir, "*.md"), configPath], {
+    this.watcher = watch([join7(tasksDir, "*.md"), join7(tasksDir, "archive", "*.md"), configPath], {
       ignoreInitial: true,
       awaitWriteFinish: { stabilityThreshold: 25, pollInterval: 25 },
       alwaysStat: true
@@ -56990,7 +57022,7 @@ var FileWatcher = class {
     } catch {
     }
     for (const taskId of this.knownTaskIds) {
-      const filePath = join7(tasksDir, `${taskId}.md`);
+      const filePath = taskFilePath(tasksDir, taskId);
       try {
         statSync3(filePath);
         const newHash = await hashFile(filePath);
@@ -57007,7 +57039,7 @@ var FileWatcher = class {
     const currentIds = listTaskIds(kandownDir);
     for (const id of currentIds) {
       if (!this.knownTaskIds.has(id)) {
-        const filePath = join7(tasksDir, `${id}.md`);
+        const filePath = taskFilePath(tasksDir, id);
         try {
           const newHash = await hashFile(filePath);
           this.knownTaskIds.add(id);
@@ -58780,15 +58812,148 @@ function Board({ kandownDir, version }) {
   ] });
 }
 
-// src/cli/app.tsx
+// src/cli/screens/init-prompt.tsx
+var import_react38 = __toESM(require_react(), 1);
 var import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
+function InitPrompt({ kandownDir, onConfirm }) {
+  const { exit } = use_app_default();
+  const [creating, setCreating] = (0, import_react38.useState)(false);
+  const [error, setError] = (0, import_react38.useState)(null);
+  use_input_default((input, key) => {
+    if (creating) return;
+    if (key.escape || input.toLowerCase() === "n") {
+      exit();
+      return;
+    }
+    if (key.return || input.toLowerCase() === "y") {
+      setCreating(true);
+      setError(null);
+      try {
+        onConfirm();
+      } catch (e) {
+        setCreating(false);
+        setError(e instanceof Error ? e.message : String(e));
+      }
+    }
+  });
+  return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", padding: 2, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { bold: true, color: "cyan", children: "No kandown project found here" }),
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { dimColor: true, children: kandownDir }) }),
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { marginTop: 1, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { children: "This will create an empty " }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { bold: true, children: ".kandown/" }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { children: " config folder and a project-root " }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { bold: true, children: "tasks/" }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { children: " folder." })
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { marginTop: 1, children: creating ? /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", children: "Creating project\u2026" }) : /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
+      "Create it now? ",
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { bold: true, color: "green", children: "[Y]" }),
+      "es / ",
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { bold: true, color: "red", children: "[N]" }),
+      "o"
+    ] }) }),
+    error && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "red", children: [
+      "\u2717 ",
+      error
+    ] }) })
+  ] });
+}
+
+// src/cli/lib/init.ts
+import { existsSync as existsSync7, readFileSync as readFileSync6, mkdirSync as mkdirSync3, copyFileSync, readdirSync as readdirSync3, statSync as statSync4 } from "fs";
+import { join as join10 } from "path";
+function copyRecursive(src, dest) {
+  const errors = [];
+  try {
+    if (!existsSync7(dest)) mkdirSync3(dest, { recursive: true });
+    const entries = readdirSync3(src);
+    for (const entry of entries) {
+      const srcPath = join10(src, entry);
+      const destPath = join10(dest, entry);
+      try {
+        if (statSync4(srcPath).isDirectory()) {
+          errors.push(...copyRecursive(srcPath, destPath));
+        } else if (!existsSync7(destPath)) {
+          copyFileSync(srcPath, destPath);
+        }
+      } catch (error) {
+        errors.push(`${entry}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+  } catch (error) {
+    errors.push(`${src}: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  return errors;
+}
+function syncKandownAgentDoc(kandownDir) {
+  const source = join10(PKG_ROOT2, "templates", "AGENT_KANDOWN.md");
+  const target = join10(kandownDir, "AGENT_KANDOWN.md");
+  if (!existsSync7(source)) return false;
+  try {
+    const expected = readFileSync6(source, "utf8");
+    const existing = existsSync7(target) ? readFileSync6(target, "utf8") : null;
+    if (existing === null || !existing.includes("# Kandown")) {
+      atomicWriteFileSync(target, expected.endsWith("\n") ? expected : `${expected}
+`);
+      return true;
+    }
+  } catch {
+  }
+  return false;
+}
+function doInit(kandownDir) {
+  try {
+    mkdirSync3(kandownDir, { recursive: true });
+    const htmlSrc = join10(PKG_ROOT2, "dist", "index.html");
+    const htmlDest = join10(kandownDir, "kandown.html");
+    if (existsSync7(htmlSrc)) {
+      copyFileSync(htmlSrc, htmlDest);
+    }
+    syncKandownAgentDoc(kandownDir);
+    const templatesDir = join10(PKG_ROOT2, "templates");
+    if (existsSync7(templatesDir)) {
+      if (!existsSync7(join10(kandownDir, "README.md")) && existsSync7(join10(templatesDir, "README.md"))) {
+        copyFileSync(join10(templatesDir, "README.md"), join10(kandownDir, "README.md"));
+      }
+      if (!existsSync7(join10(kandownDir, "AGENT.md")) && existsSync7(join10(templatesDir, "AGENT.md"))) {
+        copyFileSync(join10(templatesDir, "AGENT.md"), join10(kandownDir, "AGENT.md"));
+      }
+      const tasksSrc = join10(templatesDir, "tasks");
+      const tasksDest = getTasksDir(kandownDir);
+      if (!existsSync7(tasksDest) && existsSync7(tasksSrc)) {
+        copyRecursive(tasksSrc, tasksDest);
+      }
+      if (!existsSync7(join10(kandownDir, "kandown.json")) && existsSync7(join10(templatesDir, "kandown.json"))) {
+        copyFileSync(join10(templatesDir, "kandown.json"), join10(kandownDir, "kandown.json"));
+      }
+    }
+    return true;
+  } catch (error) {
+    console.error(`Init failed: ${error instanceof Error ? error.message : String(error)}`);
+    return false;
+  }
+}
+
+// src/cli/lib/browser.ts
+import { spawn as spawn4 } from "child_process";
+function openBrowser(target) {
+  const cmd = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
+  try {
+    spawn4(cmd, [target], { detached: true, stdio: "ignore" }).unref();
+  } catch {
+  }
+}
+
+// src/cli/app.tsx
+var import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
 function getTerminalRows() {
   const rows = process.stdout.rows;
   return typeof rows === "number" && Number.isFinite(rows) && rows > 0 ? rows : 24;
 }
 function useTerminalRows() {
-  const [rows, setRows] = (0, import_react38.useState)(getTerminalRows);
-  (0, import_react38.useEffect)(() => {
+  const [rows, setRows] = (0, import_react39.useState)(getTerminalRows);
+  (0, import_react39.useEffect)(() => {
     const handleResize = () => setRows(getTerminalRows());
     process.stdout.on("resize", handleResize);
     return () => {
@@ -58797,34 +58962,55 @@ function useTerminalRows() {
   }, []);
   return rows;
 }
-function App2({ screen, kandownDir, version }) {
+function App2({ screen, kandownDir, version, projectExists = true }) {
   const rows = useTerminalRows();
+  const [created, setCreated] = (0, import_react39.useState)(false);
   let content;
-  switch (screen) {
-    case "settings":
-      content = /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Settings, { kandownDir, version });
-      break;
-    case "board":
-      content = /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Board, { kandownDir, version });
-      break;
-    default:
-      content = /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { padding: 2, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "red", bold: true, children: [
-        "Unknown screen: ",
-        screen
-      ] }) });
+  if (!projectExists && !created) {
+    content = /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+      InitPrompt,
+      {
+        kandownDir,
+        onConfirm: () => {
+          if (!doInit(kandownDir)) {
+            throw new Error(`Could not create project at ${kandownDir}`);
+          }
+          setCreated(true);
+          void startProjectDaemon(kandownDir).then((status) => {
+            if (status.metadata?.url) openBrowser(status.metadata.url);
+          }).catch(() => {
+          });
+        }
+      }
+    );
+  } else {
+    switch (screen) {
+      case "settings":
+        content = /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Settings, { kandownDir, version });
+        break;
+      case "board":
+        content = /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Board, { kandownDir, version });
+        break;
+      default:
+        content = /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Box_default, { padding: 2, children: /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { color: "red", bold: true, children: [
+          "Unknown screen: ",
+          screen
+        ] }) });
+    }
   }
-  return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { flexDirection: "column", height: rows, overflow: "hidden", children: content });
+  return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Box_default, { flexDirection: "column", height: rows, overflow: "hidden", children: content });
 }
 
 // src/cli/tui.tsx
-var import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
+var import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
 async function run(screen, kandownDir, version) {
   if (!process.stdin.isTTY) {
     throw new Error(
       "kandown TUI requires an interactive terminal. Run this command directly in your terminal."
     );
   }
-  const instance = render_default(/* @__PURE__ */ (0, import_jsx_runtime6.jsx)(App2, { screen, kandownDir, version }), {
+  const projectExists = existsSync8(join11(kandownDir, "kandown.json"));
+  const instance = render_default(/* @__PURE__ */ (0, import_jsx_runtime7.jsx)(App2, { screen, kandownDir, version, projectExists }), {
     exitOnCtrlC: true,
     interactive: true,
     alternateScreen: true,

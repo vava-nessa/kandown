@@ -2,7 +2,8 @@
  * @file Desktop opened-task workspace
  * @description Replaces the desktop task modal with a split workspace: a
  * grouped task navigator on the left and the existing task editor surface on
- * the right, while mobile keeps using the original modal drawer.
+ * the right, including the shared markdown-backed subtask editor, while mobile
+ * keeps using the original modal drawer.
  *
  * 📖 The workspace deliberately reuses the drawer store state and save actions
  * instead of creating a second editing model. That keeps autosave, conflict
@@ -16,6 +17,7 @@
  *
  * @exports TaskWorkspace
  * @see src/components/Drawer.tsx
+ * @see src/components/SubtaskEditor.tsx
  * @see src/lib/store.ts
  */
 
@@ -24,10 +26,11 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
 import { KbdButton } from './KbdButton';
+import { SubtaskEditor } from './SubtaskEditor';
 import { BlockNoteMarkdownEditor } from './ui/BlockNoteMarkdownEditor';
 import { useStore } from '../lib/store';
 import { buildTaskUrl } from '../lib/task-url';
-import type { BoardTask, Column } from '../lib/types';
+import type { BoardTask, Column, Subtask } from '../lib/types';
 
 const priorityColors: Record<string, string> = {
   P1: '#e5484d',
@@ -169,6 +172,15 @@ export function TaskWorkspace() {
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isSavingRef = useRef(false);
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(() => new Set());
+  const [isDesktop, setIsDesktop] = useState(() => window.matchMedia('(min-width: 768px)').matches);
+
+  useEffect(() => {
+    const query = window.matchMedia('(min-width: 768px)');
+    const update = () => setIsDesktop(query.matches);
+    update();
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
 
   const isTaskArchived = String(drawerData?.frontmatter.archived) === 'true';
   const isOpen = !!drawerTaskId && !!drawerData;
@@ -334,7 +346,13 @@ export function TaskWorkspace() {
     return () => window.removeEventListener('keydown', handler);
   }, [handleClose, handleDelete, handleProtectedClose, isOpen]);
 
-  if (!drawerData) return null;
+  const handleSubtasksChange = useCallback((subtasks: Subtask[]) => {
+    updateDrawerData(data => ({ ...data, subtasks }));
+    markDrawerDirty();
+    triggerAutoSave();
+  }, [markDrawerDirty, triggerAutoSave, updateDrawerData]);
+
+  if (!drawerData || !isDesktop) return null;
 
   const updateField = <K extends keyof typeof drawerData.frontmatter>(
     key: K,
@@ -385,6 +403,11 @@ export function TaskWorkspace() {
               {drawerTaskId?.toUpperCase()}
             </span>
             {currentCol && <span className="text-[12.5px] text-fg-dim">· {currentCol}</span>}
+            {drawerData.subtasks.length > 0 && (
+              <span className="text-[12px] text-fg-muted tabular-nums">
+                {drawerData.subtasks.filter(subtask => subtask.done).length}/{drawerData.subtasks.length} {t('drawer.doneSubtasks')}
+              </span>
+            )}
             <button
               type="button"
               onClick={handleCopyTaskUrl}
@@ -495,6 +518,13 @@ export function TaskWorkspace() {
                 minHeight="320px"
               />
             </div>
+
+            <div className="h-px bg-border -mx-5" />
+
+            <SubtaskEditor
+              subtasks={drawerData.subtasks}
+              onSubtasksChange={handleSubtasksChange}
+            />
 
             <div className="h-px bg-border -mx-5" />
 

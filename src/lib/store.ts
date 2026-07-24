@@ -233,7 +233,8 @@ interface State {
   toggleTaskSelection: (id: string) => void;
   clearTaskSelection: () => void;
   bulkMoveTasks: (targetColumn: string) => Promise<void>;
-  bulkDeleteTasks: () => Promise<void>;
+  bulkDeleteTasks: (taskIds?: string[]) => Promise<void>;
+  bulkArchiveTasks: (taskIds: string[]) => Promise<void>;
 
   openDrawer: (taskId: string, options?: { syncUrl?: boolean; replace?: boolean }) => Promise<void>;
   closeDrawer: (options?: { syncUrl?: boolean; replace?: boolean }) => void;
@@ -271,15 +272,13 @@ interface State {
   restartWatcher: () => void;
 }
 
-function nextTaskId(columns: Column[]): string {
+function nextTaskId(columns: Column[], archivedTasks: BoardTask[] = []): string {
   let maxN = -1;
-  for (const col of columns) {
-    for (const t of col.tasks) {
-      const m = t.id.match(/^t(\d+)$/);
-      if (m) {
-        const n = parseInt(m[1], 10);
-        if (n > maxN) maxN = n;
-      }
+  for (const task of [...columns.flatMap(column => column.tasks), ...archivedTasks]) {
+    const m = task.id.match(/^t(\d+)$/);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      if (n > maxN) maxN = n;
     }
   }
   return 't' + (maxN + 1);
@@ -430,6 +429,13 @@ const notificationSnapshots = new Map<string, NotificationTaskSnapshot>();
 const taskEditTimers = new Map<string, ReturnType<typeof setTimeout>>();
 /** 📖 Server-mode polling interval for detecting external file changes via REST API. */
 let serverPollInterval: ReturnType<typeof setInterval> | null = null;
+/** 📖 Prevents two destructive batch operations from racing each other when a
+ * user double-clicks a terminal-column action or a bulk-action-bar control. */
+let bulkMutationInFlight = false;
+
+function uniqueTaskIds(taskIds: string[]): string[] {
+  return [...new Set(taskIds.filter(id => typeof id === 'string' && id.trim().length > 0))];
+}
 
 export const useStore = create<State>((set, get) => ({
   isOpen: false,
@@ -498,12 +504,87 @@ export const useStore = create<State>((set, get) => ({
     set({ selectedTaskIds: [] });
   },
 
-  bulkDeleteTasks: async () => {
-    const { selectedTaskIds, deleteTask } = get();
-    for (const id of selectedTaskIds) {
-      await deleteTask(id);
+  bulkDeleteTasks: async (taskIds?: string[]) => {
+    const { selectedTaskIds, tasksDirHandle, drawerTaskId } = get();
+    const ids = uniqueTaskIds(taskIds ?? selectedTaskIds);
+    if (ids.length === 0 || (!tasksDirHandle && !isServerMode())) return;
+    if (bulkMutationInFlight) {
+      get().toast('Another bulk action is already running', 'warning');
+      return;
     }
-    set({ selectedTaskIds: [] });
+
+    bulkMutationInFlight = true;
+    try {
+      const settled = await Promise.allSettled(
+        ids.map(id => withRetry(
+          () => fsDeleteTaskFile(tasksDirHandle || null, id),
+          { maxAttempts: 3 },
+        )),
+      );
+      const succeededIds = ids.filter((_, index) => settled[index]?.status === 'fulfilled');
+      const failedIds = ids.filter((_, index) => settled[index]?.status === 'rejected');
+
+      if (drawerTaskId && succeededIds.includes(drawerTaskId)) get().closeDrawer();
+      set(state => ({
+        selectedTaskIds: state.selectedTaskIds.filter(id => !succeededIds.includes(id)),
+      }));
+      await get().reloadBoard();
+
+      if (failedIds.length > 0) {
+        get().toast(`${succeededIds.length} deleted, ${failedIds.length} could not be deleted`, 'warning', 8000);
+      } else {
+        get().toast(`Deleted ${succeededIds.length} task${succeededIds.length === 1 ? '' : 's'}`);
+      }
+    } finally {
+      bulkMutationInFlight = false;
+    }
+  },
+
+  bulkArchiveTasks: async (taskIds: string[]) => {
+    const { tasksDirHandle, drawerTaskId } = get();
+    const ids = uniqueTaskIds(taskIds);
+    if (ids.length === 0 || (!tasksDirHandle && !isServerMode())) return;
+    if (bulkMutationInFlight) {
+      get().toast('Another bulk action is already running', 'warning');
+      return;
+    }
+
+    bulkMutationInFlight = true;
+    try {
+      const settled = await Promise.allSettled(ids.map(async id => {
+        // 📖 Strict reads prevent a failed read from turning into an empty
+        // placeholder task that could overwrite real data during archiving.
+        const result = await readTaskFileStrict(tasksDirHandle || null, id);
+        if (!result.ok) {
+          throw new Error(`Task ${id} could not be read (${result.reason})`);
+        }
+        await withRetry(
+          () => fsArchiveTaskFile(
+            tasksDirHandle || null,
+            id,
+            { ...result.task.frontmatter, id, archived: true },
+            result.task.body,
+          ),
+          { maxAttempts: 3 },
+        );
+      }));
+      const succeededIds = ids.filter((_, index) => settled[index]?.status === 'fulfilled');
+      const failedIds = ids.filter((_, index) => settled[index]?.status === 'rejected');
+
+      if (drawerTaskId && succeededIds.includes(drawerTaskId)) get().closeDrawer();
+      set(state => ({
+        selectedTaskIds: state.selectedTaskIds.filter(id => !succeededIds.includes(id)),
+      }));
+      await get().reloadBoard();
+
+      if (failedIds.length > 0) {
+        get().toast(`${succeededIds.length} archived, ${failedIds.length} could not be archived`, 'warning', 8000);
+      } else {
+        get().toast(`Archived ${succeededIds.length} task${succeededIds.length === 1 ? '' : 's'}`);
+      }
+    } finally {
+      bulkMutationInFlight = false;
+    }
   },
 
   drawerBaseVersion: null,
@@ -1127,11 +1208,11 @@ export const useStore = create<State>((set, get) => ({
   },
 
   createTask: async (colName, quickAddInput) => {
-    const { columns, tasksDirHandle, config, taskContents, searchMatches } = get();
+    const { columns, tasksDirHandle, config, taskContents, searchMatches, archivedTasks } = get();
     if (!tasksDirHandle && !isServerMode()) return null;
     if (!columns.length) return null;
     const targetColName = colName || config.board.columns[0] || columns[0].name;
-    const id = nextTaskId(columns);
+    const id = nextTaskId(columns, archivedTasks);
     const targetOrder = columns.find(c => c.name === targetColName)?.tasks.length ?? 0;
     const parsed = quickAddInput ? parseQuickAddInput(quickAddInput) : null;
     const task: BoardTask = {

@@ -32,6 +32,7 @@ import { ColumnHeaderActions } from './ColumnHeaderActions';
 import { getColumnIcon, COLUMN_COLOR_MAP } from '../lib/columnUtils';
 import { useStore } from '../lib/store';
 import { groupTasksByTag, extractGroupKey } from '../lib/grouping';
+import { terminalStatus } from '../lib/dependencies';
 import type { Column as ColumnType, BoardTask, Density, SearchMatch, ColumnColor } from '../lib/types';
 
 interface ColumnProps {
@@ -73,6 +74,8 @@ export function Column({
   const addColumn = useStore(s => s.addColumn);
   const renameColumn = useStore(s => s.renameColumn);
   const deleteColumn = useStore(s => s.deleteColumn);
+  const bulkArchiveTasks = useStore(s => s.bulkArchiveTasks);
+  const bulkDeleteTasks = useStore(s => s.bulkDeleteTasks);
   const updateConfig = useStore(s => s.updateConfig);
   const config = useStore(s => s.config);
   const filters = useStore(s => s.filters);
@@ -191,6 +194,28 @@ export function Column({
     void deleteColumn(column.name);
   };
 
+  const isTerminalColumn = column.name.toLowerCase() === terminalStatus(config).toLowerCase();
+  const handleArchiveAll = () => {
+    const taskIds = column.tasks.map(task => task.id);
+    if (taskIds.length === 0) return;
+    const message = t('column.archiveAllConfirm', {
+      count: taskIds.length,
+      column: column.name,
+    });
+    if (!window.confirm(message)) return;
+    void bulkArchiveTasks(taskIds);
+  };
+  const handleDeleteAll = () => {
+    const taskIds = column.tasks.map(task => task.id);
+    if (taskIds.length === 0) return;
+    const message = t('column.deleteAllConfirm', {
+      count: taskIds.length,
+      column: column.name,
+    });
+    if (!window.confirm(message)) return;
+    void bulkDeleteTasks(taskIds);
+  };
+
   return (
     <motion.div
       layout
@@ -251,6 +276,10 @@ export function Column({
         <ColumnHeaderActions
           columnName={column.name}
           taskCount={filteredTasks.length}
+          bulkTaskCount={column.tasks.length}
+          isTerminalColumn={isTerminalColumn}
+          onArchiveAll={handleArchiveAll}
+          onDeleteAll={handleDeleteAll}
           isConfiguredColumn={isConfiguredColumn}
           currentColor={colColorKey}
           onColorSelect={handleColorChange}

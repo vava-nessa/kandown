@@ -15,6 +15,7 @@ import { atomicWriteFileSync } from './lib/atomic-write';
 import { doInit } from './lib/init';
 import { loadConfig } from './lib/config';
 import { startMcpServer } from './lib/mcp';
+import { openBrowser } from './lib/browser';
 import { parseTaskFile } from '../lib/parser';
 import { serializeTaskFile } from '../lib/serializer';
 import type { TaskFrontmatter } from '../lib/types';
@@ -34,13 +35,6 @@ function log(msg: string) { console.log(msg); }
 function info(msg: string) { console.error(`${c.blue}ℹ${c.reset}  ${msg}`); }
 function success(msg: string) { console.error(`${c.green}✓${c.reset}  ${msg}`); }
 function err(msg: string) { console.error(`${c.red}✗${c.reset}  ${msg}`); }
-
-function openBrowser(target: string): void {
-  const cmd = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
-  try {
-    spawn(cmd, [target], { detached: true, stdio: 'ignore' }).unref();
-  } catch { /* ignore open errors */ }
-}
 
 function parseArgs(args: string[]) {
   const flags: Record<string, string | boolean> = {};
@@ -629,7 +623,8 @@ async function launchTui(screen: 'board' | 'settings', kandownDir: string): Prom
 }
 
 async function cmdTui(screen: 'board' | 'settings', rawArgs: string[]): Promise<void> {
-  const { kandownDir } = ensureKandownDir(rawArgs);
+  const args = parseArgs(rawArgs);
+  const kandownDir = resolveKandownDir(args.path, process.cwd());
   await launchTui(screen, kandownDir);
 }
 
@@ -873,16 +868,23 @@ async function main() {
 
     case undefined: {
       const parsed = parseArgs(rest);
-      const { kandownDir } = ensureKandownDir(rest);
-      let status = await getDaemonStatus(kandownDir);
-      if (!status.running) {
-        status = await startProjectDaemon(kandownDir);
-      }
+      const kandownDir = resolveKandownDir(parsed.path, process.cwd());
 
-      // Open browser unless --no-open is specified
-      if (!parsed.flags['no-open']) {
-        const urlToOpen = status.metadata?.url || join(kandownDir, 'kandown.html');
-        openBrowser(urlToOpen);
+      // 📖 Only start the daemon & open the browser if the project already
+      // exists. If it doesn't, the TUI shows a confirmation prompt first —
+      // it starts the daemon and opens the browser itself once created.
+      if (existsSync(kandownDir)) {
+        let status = await getDaemonStatus(kandownDir);
+        if (!status.running) {
+          status = await startProjectDaemon(kandownDir);
+        }
+        if (!parsed.flags['no-open']) {
+          const urlToOpen = status.metadata?.url || join(kandownDir, 'kandown.html');
+          openBrowser(urlToOpen);
+        }
+      } else if (!process.stdin.isTTY) {
+        err(`No kandown project found at ${c.bold}${kandownDir}${c.reset} — run ${c.cyan}kandown init${c.reset} first.`);
+        process.exit(1);
       }
 
       await launchTui('board', kandownDir);

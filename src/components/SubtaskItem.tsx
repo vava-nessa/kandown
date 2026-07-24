@@ -114,7 +114,9 @@ export function SubtaskItem({
         className="group flex items-center gap-2 px-1.5 py-1 transition-colors"
       >
         <button
+          type="button"
           onClick={() => onToggle(index)}
+          aria-label={subtask.done ? t('subtask.markOpen') : t('subtask.markDone')}
           className={`flex items-center justify-center w-[14px] h-[14px] rounded-[3px] border flex-shrink-0 transition-all ${
             subtask.done
               ? 'bg-success border-success'
@@ -143,9 +145,11 @@ export function SubtaskItem({
           }`}
         />
         <button
+          type="button"
           onClick={() => setExpanded(v => !v)}
           title={expanded ? t('subtask.collapse') : t('subtask.expand')}
-          className={`opacity-0 group-hover:opacity-100 px-1 py-0.5 rounded-[3px] transition-all ${
+          aria-label={expanded ? t('subtask.collapse') : t('subtask.expand')}
+          className={`opacity-70 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 px-1 py-0.5 rounded-[3px] transition-all ${
             hasDetail ? 'text-accent' : 'text-fg-muted'
           } hover:bg-bg-3`}
         >
@@ -157,8 +161,10 @@ export function SubtaskItem({
           </motion.div>
         </button>
         <button
+          type="button"
           onClick={() => onRemove(index)}
-          className="opacity-0 group-hover:opacity-100 text-fg-muted hover:text-danger px-1.5 py-0.5 rounded-[3px] hover:bg-bg-3 transition-all"
+          aria-label={t('subtask.remove')}
+          className="opacity-70 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 text-fg-muted hover:text-danger px-1.5 py-0.5 rounded-[3px] hover:bg-bg-3 transition-all"
         >
           <Icon.X size={12} />
         </button>

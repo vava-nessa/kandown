@@ -17,13 +17,14 @@
  * @functions
  *  → getProjectRoot      — returns the project root (parent of .kandown/)
  *  → getTasksDir         — returns the project-root ./tasks/ absolute path
- *  → listTaskIds         — scans ./tasks/*.md and returns task ids
+ *  → listTaskIds         — scans ./tasks/*.md and ./tasks/archive/*.md
+ *  → findTaskPath        — resolves an active or archived task file
  *  → readBoard           — scans ./tasks/*.md and returns a ParsedBoard shape
  *  → readTask            — reads a task file by ID and returns a ParsedTask
  *  → readAgentDoc        — base rules (from the package) + global/project instructions.md layers
  *  → moveTaskToColumn    — updates a task frontmatter status
  *
- * @exports getProjectRoot, getTasksDir, listTaskIds, readBoard, readTask, readAgentDoc, moveTaskToColumn
+ * @exports getProjectRoot, getTasksDir, listTaskIds, findTaskPath, readBoard, readTask, readAgentDoc, moveTaskToColumn
  * @see src/lib/parser.ts — pure string parsers reused here
  */
 
@@ -57,11 +58,28 @@ export function getTasksDir(kandownDir: string): string {
 
 export function listTaskIds(kandownDir: string): string[] {
   const tasksDir = getTasksDir(kandownDir);
-  if (!existsSync(tasksDir)) return [];
-  return readdirSync(tasksDir)
-    .filter(name => name.endsWith('.md'))
-    .map(name => name.slice(0, -3))
-    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  const ids = new Set<string>();
+  for (const directory of [tasksDir, join(tasksDir, 'archive')]) {
+    if (!existsSync(directory)) continue;
+    for (const name of readdirSync(directory).filter(entry => entry.endsWith('.md'))) {
+      ids.add(name.slice(0, -3));
+    }
+  }
+  return [...ids].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+}
+
+/**
+ * 📖 Resolves a task id in the active directory first, then the archive. IDs
+ * are restricted to file-safe task identifiers so API routes cannot escape the
+ * project task directory through path traversal.
+ */
+export function findTaskPath(kandownDir: string, taskId: string): string | null {
+  if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return null;
+  const tasksDir = getTasksDir(kandownDir);
+  const activePath = join(tasksDir, `${taskId}.md`);
+  if (existsSync(activePath)) return activePath;
+  const archivedPath = join(tasksDir, 'archive', `${taskId}.md`);
+  return existsSync(archivedPath) ? archivedPath : null;
 }
 
 /**
@@ -103,8 +121,8 @@ export function readBoard(kandownDir: string): ParsedBoard {
  * Returns a minimal ParsedTask with just the id if the file doesn't exist.
  */
 export function readTask(kandownDir: string, taskId: string): ParsedTask {
-  const taskPath = join(getTasksDir(kandownDir), `${taskId}.md`);
-  if (!existsSync(taskPath)) {
+  const taskPath = findTaskPath(kandownDir, taskId);
+  if (!taskPath) {
     return {
       frontmatter: { id: taskId, title: `Task ${taskId}`, status: 'Backlog' },
       body: '',
@@ -194,8 +212,8 @@ export function moveTaskToColumn(
   taskId: string,
   targetColumn: string,
 ): boolean {
-  const taskPath = join(getTasksDir(kandownDir), `${taskId}.md`);
-  if (!existsSync(taskPath)) return false;
+  const taskPath = findTaskPath(kandownDir, taskId);
+  if (!taskPath) return false;
 
   try {
     const prevContent = readFileSync(taskPath, 'utf8');
@@ -330,8 +348,8 @@ export function createTaskInBoard(kandownDir: string, rawInput: string, status?:
 }
 
 export function deleteTaskInBoard(kandownDir: string, taskId: string): boolean {
-  const taskPath = join(getTasksDir(kandownDir), `${taskId}.md`);
-  if (!existsSync(taskPath)) return false;
+  const taskPath = findTaskPath(kandownDir, taskId);
+  if (!taskPath) return false;
   try {
     const prevContent = readFileSync(taskPath, 'utf8');
     unlinkSync(taskPath);

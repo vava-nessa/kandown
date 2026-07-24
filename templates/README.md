@@ -34,6 +34,8 @@ Open Settings from the app header to tune this project. Board columns are stored
 
 Everything is plain markdown. Edit files directly in your IDE, Obsidian, or vim. Click **Reload** in the app (or press `R`) to see changes.
 
+The task editor includes a markdown-backed subtask checklist. Add steps with **Add subtask**, press **Enter** to insert another step, and expand a step to edit its description or report. Changes are saved back to the task file automatically.
+
 ## For AI agents
 
 See `AGENT.md` and `AGENT_KANDOWN.md`. The key convention: each task file in `tasks/` is its own source of truth. Moving a task means editing the task's frontmatter `status`.

@@ -21,11 +21,18 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Box, Text } from 'ink';
 import { Settings } from './screens/settings.js';
 import { Board } from './screens/board.js';
+import { InitPrompt } from './screens/init-prompt.js';
+import { doInit } from './lib/init.js';
+import { startProjectDaemon } from './lib/daemon.js';
+import { openBrowser } from './lib/browser.js';
 
 interface AppProps {
   screen: string;
   kandownDir: string;
   version?: string;
+  /** 📖 False when `.kandown/kandown.json` didn't exist at TUI launch — shows
+   * the create-project confirmation screen instead of routing straight in. */
+  projectExists?: boolean;
 }
 
 function getTerminalRows(): number {
@@ -47,25 +54,47 @@ function useTerminalRows(): number {
   return rows;
 }
 
-export function App({ screen, kandownDir, version }: AppProps) {
+export function App({ screen, kandownDir, version, projectExists = true }: AppProps) {
   const rows = useTerminalRows();
+  const [created, setCreated] = useState(false);
 
   let content: ReactNode;
-  switch (screen) {
-    case 'settings':
-      content = <Settings kandownDir={kandownDir} version={version} />;
-      break;
-    case 'board':
-      content = <Board kandownDir={kandownDir} version={version} />;
-      break;
-    default:
-      content = (
-        <Box padding={2}>
-          <Text color="red" bold>
-            Unknown screen: {screen}
-          </Text>
-        </Box>
-      );
+  if (!projectExists && !created) {
+    content = (
+      <InitPrompt
+        kandownDir={kandownDir}
+        onConfirm={() => {
+          if (!doInit(kandownDir)) {
+            throw new Error(`Could not create project at ${kandownDir}`);
+          }
+          setCreated(true);
+          // 📖 Best-effort: mirrors the CLI's own bare `kandown` flow. Failures
+          // here never block the TUI — the user can still work from the board.
+          void startProjectDaemon(kandownDir)
+            .then(status => {
+              if (status.metadata?.url) openBrowser(status.metadata.url);
+            })
+            .catch(() => {});
+        }}
+      />
+    );
+  } else {
+    switch (screen) {
+      case 'settings':
+        content = <Settings kandownDir={kandownDir} version={version} />;
+        break;
+      case 'board':
+        content = <Board kandownDir={kandownDir} version={version} />;
+        break;
+      default:
+        content = (
+          <Box padding={2}>
+            <Text color="red" bold>
+              Unknown screen: {screen}
+            </Text>
+          </Box>
+        );
+    }
   }
 
   return (

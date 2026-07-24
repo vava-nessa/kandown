@@ -22,7 +22,7 @@ import { existsSync, readFileSync, unlinkSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { execFileSync, spawn } from 'node:child_process';
 import { createConnection } from 'node:net';
-import { getCurrentVersion } from './updater';
+import { getCurrentVersion, PKG_ROOT } from './updater';
 
 export interface DaemonMetadata {
   pid: number;
@@ -177,8 +177,11 @@ export async function startProjectDaemon(kandownDir: string, preferredPort?: num
     await stopProjectDaemon(kandownDir);
   }
 
-  const cliPath = process.argv[1];
-  if (!cliPath) throw new Error('Cannot locate kandown CLI entrypoint');
+  // 📖 Never trust process.argv[1] here — this runs from both the CLI process
+  // (bin/kandown.js) and the TUI child process (bin/tui.js) after an in-TUI
+  // project creation, and argv[1] would point at the wrong entrypoint there.
+  const cliPath = join(PKG_ROOT, 'bin', 'kandown.js');
+  if (!existsSync(cliPath)) throw new Error(`Cannot locate kandown CLI entrypoint at ${cliPath}`);
 
   const args = [
     cliPath,

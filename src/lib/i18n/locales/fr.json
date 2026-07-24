@@ -52,11 +52,18 @@
   "column": {
     "addTask": "Ajouter une tâche",
     "columnColor": "Couleur de la colonne",
-    "color": "Couleur"
+    "color": "Couleur",
+    "bulkActions": "Gérer les tâches",
+    "archiveAll": "Archiver toutes les tâches",
+    "deleteAll": "Supprimer toutes les tâches",
+    "archiveAllConfirm": "Archiver les {{count}} tâches de « {{column}} » ? Vous pourrez les restaurer plus tard.",
+    "deleteAllConfirm": "Supprimer définitivement les {{count}} tâches de « {{column}} » ? Cette action est irréversible." 
   },
   "card": {
     "delete": "Supprimer la tâche",
-    "confirmDelete": "Cliquez à nouveau pour supprimer"
+    "confirmDelete": "Cliquez à nouveau pour supprimer",
+    "archive": "Archiver la tâche",
+    "archiving": "Archivage…"
   },
   "drawer": {
     "close": "Fermer (Esc)",
@@ -85,6 +92,7 @@
     "reportPlaceholder": "La sortie IA apparaîtra ici...",
     "subtasks": "Sous-tâches",
     "addSubtask": "Ajouter une sous-tâche",
+    "subtasksProgress": "{{done}} sur {{total}} sous-tâches terminées",
     "deleteTask": "Supprimer",
     "archive": "Archiver",
     "restore": "Restaurer",
@@ -102,7 +110,11 @@
     "reportPlaceholder": "Ce qui a été fait, décisions prises, compromis...",
     "aiFillsThis": "L'IA remplit ceci après completion",
     "collapse": "Réduire",
-    "expand": "Développer"
+    "expand": "Développer",
+    "empty": "Aucune sous-tâche pour le moment.",
+    "markDone": "Marquer la sous-tâche comme terminée",
+    "markOpen": "Rouvrir la sous-tâche",
+    "remove": "Retirer la sous-tâche"
   },
   "commandPalette": {
     "placeholder": "Tapez une commande ou recherchez...",

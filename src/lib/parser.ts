@@ -220,20 +220,28 @@ export function extractSubtasks(body: string): { subtasks: Subtask[]; bodyWithou
       kept.push(line);
       continue;
     }
-    const m = line.match(/^\s*-\s+\[([ xX])\]\s+(.+)$/);
+    const m = line.match(/^\s*-\s+\[([ xX])\]\s*(.*)$/);
     if (m && inSubtaskSection) {
       const text = m[2]?.trim() ?? '';
       subtasks.push({ done: (m[1]?.toLowerCase() ?? '') === 'x', text });
       continue;
     }
-    const descMatch = line.match(/^\s*\[DESC\]\s*(.*)$/);
+    const descMatch = line.match(/^\s*\[DESC\]\s?(.*)$/);
     if (descMatch && subtasks.length > 0) {
-      subtasks[subtasks.length - 1].description = descMatch[1];
+      const subtask = subtasks[subtasks.length - 1];
+      const nextLine = descMatch[1] ?? '';
+      subtask.description = subtask.description === undefined
+        ? nextLine
+        : `${subtask.description}\n${nextLine}`;
       continue;
     }
-    const reportMatch = line.match(/^\s*\[REPORT\]\s*(.*)$/);
+    const reportMatch = line.match(/^\s*\[REPORT\]\s?(.*)$/);
     if (reportMatch && subtasks.length > 0) {
-      subtasks[subtasks.length - 1].report = reportMatch[1];
+      const subtask = subtasks[subtasks.length - 1];
+      const nextLine = reportMatch[1] ?? '';
+      subtask.report = subtask.report === undefined
+        ? nextLine
+        : `${subtask.report}\n${nextLine}`;
       continue;
     }
     // 📖 Legacy format (pre-canonical): `description:` / `report:` indented under a
@@ -245,12 +253,20 @@ export function extractSubtasks(body: string): { subtasks: Subtask[]; bodyWithou
     // "report:" or "description:".
     const legacyDescMatch = line.match(/^\s+description:\s*(.+)$/);
     if (legacyDescMatch && inSubtaskSection && subtasks.length > 0) {
-      subtasks[subtasks.length - 1].description = legacyDescMatch[1].trim();
+      const subtask = subtasks[subtasks.length - 1];
+      const nextLine = legacyDescMatch[1].trim();
+      subtask.description = subtask.description
+        ? `${subtask.description}\n${nextLine}`
+        : nextLine;
       continue;
     }
     const legacyReportMatch = line.match(/^\s+report:\s*(.+)$/);
     if (legacyReportMatch && inSubtaskSection && subtasks.length > 0) {
-      subtasks[subtasks.length - 1].report = legacyReportMatch[1].trim();
+      const subtask = subtasks[subtasks.length - 1];
+      const nextLine = legacyReportMatch[1].trim();
+      subtask.report = subtask.report
+        ? `${subtask.report}\n${nextLine}`
+        : nextLine;
       continue;
     }
     kept.push(line);
@@ -260,10 +276,9 @@ export function extractSubtasks(body: string): { subtasks: Subtask[]; bodyWithou
 }
 
 export function injectSubtasks(body: string, subtasks: Subtask[]): string {
-  if (!subtasks || subtasks.length === 0) return body ?? '';
-  if (!body || typeof body !== 'string') return body ?? '';
-
-  const lines = body.split('\n');
+  const safeBody = typeof body === 'string' ? body : '';
+  const safeSubtasks = Array.isArray(subtasks) ? subtasks : [];
+  const lines = safeBody.split('\n');
   let subtaskHeaderIdx = -1;
   for (let i = 0; i < lines.length; i++) {
     if (/^#{1,6}\s+(subtasks?|sous[- ]t[âa]ches?|crit[èe]res?)/i.test(lines[i] ?? '')) {
@@ -272,33 +287,59 @@ export function injectSubtasks(body: string, subtasks: Subtask[]): string {
     }
   }
 
-  const subtaskLines = subtasks.map(s => {
-    const lines: string[] = [];
-    lines.push(`- [${s.done ? 'x' : ' '}] ${s.text ?? ''}`);
-    if (s.description) lines.push(`  [DESC] ${s.description}`);
-    if (s.report) lines.push(`  [REPORT] ${s.report}`);
-    return lines.join('\n');
-  });
-  const combined = subtaskLines.join('\n');
+  const detailLines = (marker: 'DESC' | 'REPORT', value: string | undefined): string[] => {
+    if (typeof value !== 'string' || value.length === 0) return [];
+    return value
+      .replace(/\r\n?/g, '\n')
+      .split('\n')
+      .map(line => `  [${marker}] ${line}`);
+  };
+  const subtaskLines = safeSubtasks.flatMap(subtask => [
+    `- [${subtask.done ? 'x' : ' '}] ${(subtask.text ?? '').replace(/\r?\n/g, ' ')}`,
+    ...detailLines('DESC', subtask.description),
+    ...detailLines('REPORT', subtask.report),
+  ]);
 
   if (subtaskHeaderIdx === -1) {
-    const trimmed = body.trimEnd();
-    return trimmed + '\n\n## Subtasks\n\n' + combined + '\n';
+    if (subtaskLines.length === 0) return safeBody;
+    const prefix = safeBody.trimEnd();
+    return `${prefix ? `${prefix}\n\n` : ''}## Subtasks\n\n${subtaskLines.join('\n')}\n`;
   }
 
-  const before = lines.slice(0, subtaskHeaderIdx + 1);
-  let j = subtaskHeaderIdx + 1;
-  while (j < lines.length && (lines[j]?.trim() ?? '') === '') j++;
-  let k = j;
-  while (k < lines.length && !/^#{1,6}\s+/.test(lines[k] ?? '')) k++;
-  const after = lines.slice(k);
-  return (
-    before.join('\n') +
-    '\n\n' +
-    combined +
-    '\n' +
-    (after.length ? '\n' + after.join('\n') : '')
-  );
+  let sectionEndIdx = subtaskHeaderIdx + 1;
+  while (sectionEndIdx < lines.length && !/^#{1,6}\s+/.test(lines[sectionEndIdx] ?? '')) {
+    sectionEndIdx++;
+  }
+
+  // 📖 extractSubtasks removes checklist/detail marker lines but deliberately
+  // leaves unrelated prose in the section. Preserve that prose when rebuilding
+  // the checklist so opening and saving a task cannot erase hand-written notes.
+  const preservedSectionLines = lines
+    .slice(subtaskHeaderIdx + 1, sectionEndIdx)
+    .filter(line => (
+      !/^\s*-\s+\[([ xX])\]\s*/.test(line) &&
+      !/^\s*\[(DESC|REPORT)\]\s?/i.test(line) &&
+      !/^\s+(description|report):\s*/i.test(line)
+    ));
+  while (preservedSectionLines[0]?.trim() === '') preservedSectionLines.shift();
+  while (preservedSectionLines[preservedSectionLines.length - 1]?.trim() === '') preservedSectionLines.pop();
+
+  const suffixLines = lines.slice(sectionEndIdx);
+  while (suffixLines[0]?.trim() === '') suffixLines.shift();
+
+  if (subtaskLines.length === 0 && preservedSectionLines.length === 0) {
+    const prefix = lines.slice(0, subtaskHeaderIdx).join('\n').trimEnd();
+    const suffix = suffixLines.join('\n');
+    return `${prefix}${prefix && suffix ? '\n\n' : ''}${suffix}`;
+  }
+
+  const before = lines.slice(0, subtaskHeaderIdx + 1).join('\n');
+  const sectionParts = subtaskLines.length > 0
+    ? [subtaskLines.join('\n'), ...(preservedSectionLines.length > 0 ? [preservedSectionLines.join('\n')] : [])]
+    : [preservedSectionLines.join('\n')];
+  const section = sectionParts.filter(Boolean).join('\n\n');
+  const suffix = suffixLines.join('\n');
+  return `${before}\n\n${section}${suffix ? `\n\n${suffix}` : ''}`;
 }
 
 export function searchTaskContent(content: TaskContent, query: string): SearchMatch[] {

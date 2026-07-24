@@ -7,7 +7,7 @@ if (typeof globalThis.require === 'undefined') {
 // src/cli/cli.ts
 import { existsSync as existsSync8, readFileSync as readFileSync8, copyFileSync as copyFileSync3, mkdirSync as mkdirSync5, readdirSync as readdirSync4, statSync as statSync4 } from "fs";
 import { join as join8, resolve as resolve2, basename } from "path";
-import { spawn as spawn4, spawnSync } from "child_process";
+import { spawn as spawn5, spawnSync } from "child_process";
 
 // src/cli/lib/updater.ts
 import { existsSync, readFileSync, writeFileSync, unlinkSync, statSync, mkdirSync } from "fs";
@@ -16,7 +16,7 @@ import { spawn, execSync } from "child_process";
 import { homedir } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.33.5";
+var KANDOWN_VERSION = "0.34.0";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath } from "url";
@@ -428,30 +428,42 @@ function extractSubtasks(body) {
       kept.push(line);
       continue;
     }
-    const m = line.match(/^\s*-\s+\[([ xX])\]\s+(.+)$/);
+    const m = line.match(/^\s*-\s+\[([ xX])\]\s*(.*)$/);
     if (m && inSubtaskSection) {
       const text = m[2]?.trim() ?? "";
       subtasks.push({ done: (m[1]?.toLowerCase() ?? "") === "x", text });
       continue;
     }
-    const descMatch = line.match(/^\s*\[DESC\]\s*(.*)$/);
+    const descMatch = line.match(/^\s*\[DESC\]\s?(.*)$/);
     if (descMatch && subtasks.length > 0) {
-      subtasks[subtasks.length - 1].description = descMatch[1];
+      const subtask = subtasks[subtasks.length - 1];
+      const nextLine = descMatch[1] ?? "";
+      subtask.description = subtask.description === void 0 ? nextLine : `${subtask.description}
+${nextLine}`;
       continue;
     }
-    const reportMatch = line.match(/^\s*\[REPORT\]\s*(.*)$/);
+    const reportMatch = line.match(/^\s*\[REPORT\]\s?(.*)$/);
     if (reportMatch && subtasks.length > 0) {
-      subtasks[subtasks.length - 1].report = reportMatch[1];
+      const subtask = subtasks[subtasks.length - 1];
+      const nextLine = reportMatch[1] ?? "";
+      subtask.report = subtask.report === void 0 ? nextLine : `${subtask.report}
+${nextLine}`;
       continue;
     }
     const legacyDescMatch = line.match(/^\s+description:\s*(.+)$/);
     if (legacyDescMatch && inSubtaskSection && subtasks.length > 0) {
-      subtasks[subtasks.length - 1].description = legacyDescMatch[1].trim();
+      const subtask = subtasks[subtasks.length - 1];
+      const nextLine = legacyDescMatch[1].trim();
+      subtask.description = subtask.description ? `${subtask.description}
+${nextLine}` : nextLine;
       continue;
     }
     const legacyReportMatch = line.match(/^\s+report:\s*(.+)$/);
     if (legacyReportMatch && inSubtaskSection && subtasks.length > 0) {
-      subtasks[subtasks.length - 1].report = legacyReportMatch[1].trim();
+      const subtask = subtasks[subtasks.length - 1];
+      const nextLine = legacyReportMatch[1].trim();
+      subtask.report = subtask.report ? `${subtask.report}
+${nextLine}` : nextLine;
       continue;
     }
     kept.push(line);
@@ -562,8 +574,22 @@ function getTasksDir(kandownDir) {
 }
 function listTaskIds(kandownDir) {
   const tasksDir = getTasksDir(kandownDir);
-  if (!existsSync3(tasksDir)) return [];
-  return readdirSync2(tasksDir).filter((name) => name.endsWith(".md")).map((name) => name.slice(0, -3)).sort((a, b) => a.localeCompare(b, void 0, { numeric: true }));
+  const ids = /* @__PURE__ */ new Set();
+  for (const directory of [tasksDir, join3(tasksDir, "archive")]) {
+    if (!existsSync3(directory)) continue;
+    for (const name of readdirSync2(directory).filter((entry) => entry.endsWith(".md"))) {
+      ids.add(name.slice(0, -3));
+    }
+  }
+  return [...ids].sort((a, b) => a.localeCompare(b, void 0, { numeric: true }));
+}
+function findTaskPath(kandownDir, taskId) {
+  if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return null;
+  const tasksDir = getTasksDir(kandownDir);
+  const activePath = join3(tasksDir, `${taskId}.md`);
+  if (existsSync3(activePath)) return activePath;
+  const archivedPath = join3(tasksDir, "archive", `${taskId}.md`);
+  return existsSync3(archivedPath) ? archivedPath : null;
 }
 function readBoard(kandownDir) {
   const config = loadConfig(kandownDir);
@@ -591,8 +617,8 @@ function readBoard(kandownDir) {
   };
 }
 function readTask(kandownDir, taskId) {
-  const taskPath2 = join3(getTasksDir(kandownDir), `${taskId}.md`);
-  if (!existsSync3(taskPath2)) {
+  const taskPath2 = findTaskPath(kandownDir, taskId);
+  if (!taskPath2) {
     return {
       frontmatter: { id: taskId, title: `Task ${taskId}`, status: "Backlog" },
       body: ""
@@ -652,8 +678,8 @@ ${gitLog}
   return sections.filter(Boolean).join("\n\n---\n\n");
 }
 function moveTaskToColumn(kandownDir, taskId, targetColumn) {
-  const taskPath2 = join3(getTasksDir(kandownDir), `${taskId}.md`);
-  if (!existsSync3(taskPath2)) return false;
+  const taskPath2 = findTaskPath(kandownDir, taskId);
+  if (!taskPath2) return false;
   try {
     const prevContent = readFileSync3(taskPath2, "utf8");
     const parsed = readTask(kandownDir, taskId);
@@ -905,8 +931,8 @@ async function startProjectDaemon(kandownDir, preferredPort) {
     if (current.metadata?.version === getCurrentVersion()) return current;
     await stopProjectDaemon(kandownDir);
   }
-  const cliPath = process.argv[1];
-  if (!cliPath) throw new Error("Cannot locate kandown CLI entrypoint");
+  const cliPath = join4(PKG_ROOT, "bin", "kandown.js");
+  if (!existsSync4(cliPath)) throw new Error(`Cannot locate kandown CLI entrypoint at ${cliPath}`);
   const args = [
     cliPath,
     "--no-update-check",
@@ -1007,6 +1033,17 @@ function writeText(res, status, text) {
     "Access-Control-Allow-Origin": "*"
   });
   res.end(text);
+}
+function readRequestBody(req) {
+  return new Promise((resolveBody, rejectBody) => {
+    let body = "";
+    req.setEncoding("utf8");
+    req.on("data", (chunk) => {
+      body += chunk;
+    });
+    req.on("end", () => resolveBody(body));
+    req.on("error", rejectBody);
+  });
 }
 function syncProjectKandownHtml(kandownDir) {
   try {
@@ -1200,40 +1237,92 @@ async function handleApi(req, res, url, kandownDir) {
     return writeJson(res, 200, listTaskIds(kandownDir));
   }
   if (path.startsWith("/api/tasks/")) {
-    const taskId = decodeURIComponent(path.slice("/api/tasks/".length));
+    const routeParts = path.slice("/api/tasks/".length).split("/").filter(Boolean);
+    let taskId;
+    try {
+      taskId = decodeURIComponent(routeParts[0] ?? "");
+    } catch {
+      return writeText(res, 400, "Invalid task id");
+    }
+    if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return writeText(res, 400, "Invalid task id");
     const tasksDir = getTasksDir(kandownDir);
-    const taskPath2 = join5(tasksDir, `${taskId}.md`);
+    const archiveDir = join5(tasksDir, "archive");
+    const activePath = join5(tasksDir, `${taskId}.md`);
+    const archivedPath = join5(archiveDir, `${taskId}.md`);
+    const action = routeParts[1];
+    if (method === "POST" && (action === "archive" || action === "unarchive")) {
+      if (routeParts.length !== 2) return writeText(res, 400, "Invalid task route");
+      const archiving = action === "archive";
+      const source = archiving ? activePath : archivedPath;
+      const destination = archiving ? archivedPath : activePath;
+      if (!existsSync5(source) && !existsSync5(destination)) {
+        return writeText(res, 404, "Task not found");
+      }
+      try {
+        if (!existsSync5(tasksDir)) mkdirSync3(tasksDir, { recursive: true });
+        if (!existsSync5(archiveDir)) mkdirSync3(archiveDir, { recursive: true });
+        const body = await readRequestBody(req);
+        atomicWriteFileSync(destination, body);
+        if (source !== destination && existsSync5(source)) unlinkSync5(source);
+        broadcastSseEvent({ type: "task", id: taskId });
+        return writeJson(res, 200, { ok: true });
+      } catch (error) {
+        return writeJson(res, 500, {
+          error: `Failed to ${action} task: ${error instanceof Error ? error.message : String(error)}`
+        });
+      }
+    }
+    if (routeParts.length !== 1) return writeText(res, 404, "Route not found");
     if (method === "GET") {
-      if (!existsSync5(taskPath2)) return writeText(res, 404, "Task not found");
+      const taskPath2 = findTaskPath(kandownDir, taskId);
+      if (!taskPath2) return writeText(res, 404, "Task not found");
       return writeText(res, 200, readFileSync5(taskPath2, "utf8"));
     }
     if (method === "PUT") {
-      let body = "";
-      req.on("data", (chunk) => {
-        body += chunk;
-      });
-      req.on("end", () => {
+      try {
         if (!existsSync5(tasksDir)) mkdirSync3(tasksDir, { recursive: true });
+        const taskPath2 = findTaskPath(kandownDir, taskId) ?? activePath;
+        const body = await readRequestBody(req);
         atomicWriteFileSync(taskPath2, body);
         broadcastSseEvent({ type: "task", id: taskId });
-        writeJson(res, 200, { ok: true });
-      });
-      return;
+        return writeJson(res, 200, { ok: true });
+      } catch (error) {
+        return writeJson(res, 500, {
+          error: `Failed to write task: ${error instanceof Error ? error.message : String(error)}`
+        });
+      }
     }
     if (method === "DELETE") {
-      if (existsSync5(taskPath2)) unlinkSync5(taskPath2);
-      broadcastSseEvent({ type: "task_delete", id: taskId });
-      return writeJson(res, 200, { ok: true });
+      try {
+        if (existsSync5(activePath)) unlinkSync5(activePath);
+        if (existsSync5(archivedPath)) unlinkSync5(archivedPath);
+        broadcastSseEvent({ type: "task_delete", id: taskId });
+        return writeJson(res, 200, { ok: true });
+      } catch (error) {
+        return writeJson(res, 500, {
+          error: `Failed to delete task: ${error instanceof Error ? error.message : String(error)}`
+        });
+      }
     }
   }
   writeJson(res, 404, { error: "Route not found" });
+}
+function injectServerRoot(html, kandownDir) {
+  const marker = "</head>";
+  const markerIndex = html.toLowerCase().lastIndexOf(marker);
+  const safeRoot = JSON.stringify(kandownDir).replace(/</g, "\\u003c");
+  const script = `<script>window.__KANDOWN_ROOT__ = ${safeRoot};</script>
+`;
+  if (markerIndex === -1) return script + html;
+  return html.slice(0, markerIndex) + script + html.slice(markerIndex);
 }
 function serveApp(res, kandownDir) {
   syncProjectKandownHtml(kandownDir);
   const htmlPath = join5(kandownDir, "kandown.html");
   if (existsSync5(htmlPath)) {
+    const html = readFileSync5(htmlPath, "utf8");
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-    res.end(readFileSync5(htmlPath, "utf8"));
+    res.end(injectServerRoot(html, kandownDir));
   } else {
     writeText(res, 404, "kandown.html not found");
   }
@@ -1243,7 +1332,7 @@ function createServeServer(kandownDir) {
   return createServer((req, res) => {
     const url = new URL(req.url || "/", "http://localhost");
     if (req.method === "OPTIONS") return handleCors(res);
-    if (url.pathname === "/" || url.pathname === "/kandown.html") {
+    if (url.pathname === "/" || url.pathname === "/kandown.html" || !url.pathname.startsWith("/api/")) {
       return serveApp(res, kandownDir);
     }
     if (url.pathname.startsWith("/api/")) {
@@ -1557,6 +1646,16 @@ ${args.report.trim()}`) : task.body.trim() + reportSection;
   sendResponse(id, { error: { code: -32601, message: `Method not found: ${method}` } });
 }
 
+// src/cli/lib/browser.ts
+import { spawn as spawn4 } from "child_process";
+function openBrowser(target) {
+  const cmd = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
+  try {
+    spawn4(cmd, [target], { detached: true, stdio: "ignore" }).unref();
+  } catch {
+  }
+}
+
 // src/cli/cli.ts
 var c = {
   reset: "\x1B[0m",
@@ -1579,13 +1678,6 @@ function success(msg) {
 }
 function err(msg) {
   console.error(`${c.red}\u2717${c.reset}  ${msg}`);
-}
-function openBrowser(target) {
-  const cmd = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
-  try {
-    spawn4(cmd, [target], { detached: true, stdio: "ignore" }).unref();
-  } catch {
-  }
 }
 function parseArgs(args) {
   const flags = {};
@@ -1752,7 +1844,7 @@ async function cmdUpdate(rawArgs) {
   const current = getCurrentVersion();
   log(`${c.bold}kandown update${c.reset} ${c.dim}\u2014 v${current}${c.reset}`);
   const latest = await new Promise((resolve3) => {
-    const child = spawn4("npm", ["view", "kandown", "version"], {
+    const child = spawn5("npm", ["view", "kandown", "version"], {
       timeout: 6e3,
       stdio: ["pipe", "pipe", "pipe"],
       env: { ...process.env },
@@ -1895,7 +1987,7 @@ function resolveStatusArg(kandownDir, status) {
 function taskPath(kandownDir, id, archived = false) {
   return archived ? join8(getTasksDir(kandownDir), "archive", `${id}.md`) : join8(getTasksDir(kandownDir), `${id}.md`);
 }
-function findTaskPath(kandownDir, id) {
+function findTaskPath2(kandownDir, id) {
   const active = taskPath(kandownDir, id);
   if (existsSync8(active)) return active;
   const archived = taskPath(kandownDir, id, true);
@@ -1918,7 +2010,7 @@ function nextTaskId(kandownDir) {
   return `t${max + 1}`;
 }
 function readTaskFile(kandownDir, id) {
-  const path = findTaskPath(kandownDir, id);
+  const path = findTaskPath2(kandownDir, id);
   if (!path) return null;
   const parsed = parseTaskFile(readFileSync8(path, "utf8"));
   return {
@@ -2003,7 +2095,7 @@ function cmdShow(rawArgs) {
     err("Usage: kandown show <task-id>");
     process.exit(1);
   }
-  const path = findTaskPath(kandownDir, id);
+  const path = findTaskPath2(kandownDir, id);
   if (!path) {
     err(`Task not found: ${id}`);
     process.exit(1);
@@ -2023,7 +2115,7 @@ function cmdCreate(rawArgs) {
     err(`Invalid task id: ${id}`);
     process.exit(1);
   }
-  if (findTaskPath(kandownDir, id)) {
+  if (findTaskPath2(kandownDir, id)) {
     err(`Task already exists: ${id}`);
     process.exit(1);
   }
@@ -2134,7 +2226,7 @@ async function launchTui(screen, kandownDir) {
     process.exit(1);
   }
   await new Promise((resolveTui) => {
-    const child = spawn4(process.execPath, [tuiPath, screen, kandownDir, getCurrentVersion()], { stdio: "inherit" });
+    const child = spawn5(process.execPath, [tuiPath, screen, kandownDir, getCurrentVersion()], { stdio: "inherit" });
     child.on("close", (code) => {
       if (typeof code === "number" && code !== 0) process.exit(code);
       resolveTui();
@@ -2142,7 +2234,8 @@ async function launchTui(screen, kandownDir) {
   });
 }
 async function cmdTui(screen, rawArgs) {
-  const { kandownDir } = ensureKandownDir(rawArgs);
+  const args = parseArgs(rawArgs);
+  const kandownDir = resolveKandownDir(args.path, process.cwd());
   await launchTui(screen, kandownDir);
 }
 function cmdExport(rawArgs) {
@@ -2355,14 +2448,19 @@ async function main() {
     }
     case void 0: {
       const parsed = parseArgs(rest);
-      const { kandownDir } = ensureKandownDir(rest);
-      let status = await getDaemonStatus(kandownDir);
-      if (!status.running) {
-        status = await startProjectDaemon(kandownDir);
-      }
-      if (!parsed.flags["no-open"]) {
-        const urlToOpen = status.metadata?.url || join8(kandownDir, "kandown.html");
-        openBrowser(urlToOpen);
+      const kandownDir = resolveKandownDir(parsed.path, process.cwd());
+      if (existsSync8(kandownDir)) {
+        let status = await getDaemonStatus(kandownDir);
+        if (!status.running) {
+          status = await startProjectDaemon(kandownDir);
+        }
+        if (!parsed.flags["no-open"]) {
+          const urlToOpen = status.metadata?.url || join8(kandownDir, "kandown.html");
+          openBrowser(urlToOpen);
+        }
+      } else if (!process.stdin.isTTY) {
+        err(`No kandown project found at ${c.bold}${kandownDir}${c.reset} \u2014 run ${c.cyan}kandown init${c.reset} first.`);
+        process.exit(1);
       }
       await launchTui("board", kandownDir);
       break;

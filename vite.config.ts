@@ -44,6 +44,7 @@ function kandownDevPlugin() {
       server.middlewares.use(async (req, res, next) => {
         if (process.env.NODE_ENV === 'production') return next();
         const kandownPath = resolve(process.cwd(), '.kandown');
+        const tasksRoot = resolve(process.cwd(), 'tasks');
         if (!existsSync(kandownPath)) return next();
 
         if (!req.url?.startsWith('/api/')) return next();
@@ -107,7 +108,7 @@ function kandownDevPlugin() {
 
         if (resource === 'tasks') {
           if (req.method === 'GET' && !id) {
-            const tasksDir = join(kandownPath, 'tasks');
+            const tasksDir = resolve(process.cwd(), 'tasks');
             const archiveDir = join(tasksDir, 'archive');
             try {
               const { readdirSync } = await import('node:fs');
@@ -133,8 +134,8 @@ function kandownDevPlugin() {
           }
           if (req.method === 'GET' && id) {
             // 📖 Search active dir then archive/ so archived tasks stay readable.
-            const inTasks = join(kandownPath, 'tasks', `${id}.md`);
-            const inArchive = join(kandownPath, 'tasks', 'archive', `${id}.md`);
+            const inTasks = join(tasksRoot, `${id}.md`);
+            const inArchive = join(tasksRoot, 'archive', `${id}.md`);
             const taskPath = existsSync(inTasks) ? inTasks : existsSync(inArchive) ? inArchive : null;
             if (!taskPath) {
               res.writeHead(404, { 'Content-Type': 'text/plain' });
@@ -152,7 +153,7 @@ function kandownDevPlugin() {
             return;
           }
           if (req.method === 'PUT' && id) {
-            const tasksDir = join(kandownPath, 'tasks');
+            const tasksDir = tasksRoot;
             const archiveDir = join(tasksDir, 'archive');
             if (!existsSync(tasksDir)) {
               try {
@@ -182,8 +183,8 @@ function kandownDevPlugin() {
             return;
           }
           if (req.method === 'DELETE' && id) {
-            const inTasks = join(kandownPath, 'tasks', `${id}.md`);
-            const inArchive = join(kandownPath, 'tasks', 'archive', `${id}.md`);
+            const inTasks = join(tasksRoot, `${id}.md`);
+            const inArchive = join(tasksRoot, 'archive', `${id}.md`);
             try {
               const { unlinkSync } = await import('node:fs');
               if (existsSync(inTasks)) unlinkSync(inTasks);
@@ -201,7 +202,7 @@ function kandownDevPlugin() {
           // to the destination dir then unlink the source so the move is atomic.
           if (req.method === 'POST' && id && (parts[2] === 'archive' || parts[2] === 'unarchive')) {
             const archiving = parts[2] === 'archive';
-            const tasksDir = join(kandownPath, 'tasks');
+            const tasksDir = tasksRoot;
             const archiveDir = join(tasksDir, 'archive');
             const src = join(archiving ? tasksDir : archiveDir, `${id}.md`);
             const dst = join(archiving ? archiveDir : tasksDir, `${id}.md`);

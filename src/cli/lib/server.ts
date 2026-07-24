@@ -9,7 +9,7 @@ import { createServer, IncomingMessage, ServerResponse } from 'node:http';
 import { existsSync, readFileSync, copyFileSync, unlinkSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawn } from 'node:child_process';
-import { getTasksDir, readBoard, readTask, moveTaskToColumn, listTaskIds } from './board-reader';
+import { getTasksDir, findTaskPath, readBoard, readTask, moveTaskToColumn, listTaskIds } from './board-reader';
 import { loadConfig, saveConfig } from './config';
 import { getCurrentVersion, semverGt, performGlobalPackageUpdate, PKG_ROOT } from './updater';
 import { atomicWriteFileSync } from './atomic-write';
@@ -53,6 +53,17 @@ function writeText(res: ServerResponse, status: number, text: string): void {
     'Access-Control-Allow-Origin': '*',
   });
   res.end(text);
+}
+
+/** 📖 Reads a request body once for task writes and archive moves. */
+function readRequestBody(req: IncomingMessage): Promise<string> {
+  return new Promise((resolveBody, rejectBody) => {
+    let body = '';
+    req.setEncoding('utf8');
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => resolveBody(body));
+    req.on('error', rejectBody);
+  });
 }
 
 /**
@@ -274,43 +285,111 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
   }
 
   if (path.startsWith('/api/tasks/')) {
-    const taskId = decodeURIComponent(path.slice('/api/tasks/'.length));
+    const routeParts = path.slice('/api/tasks/'.length).split('/').filter(Boolean);
+    let taskId: string;
+    try {
+      taskId = decodeURIComponent(routeParts[0] ?? '');
+    } catch {
+      return writeText(res, 400, 'Invalid task id');
+    }
+    if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return writeText(res, 400, 'Invalid task id');
+
     const tasksDir = getTasksDir(kandownDir);
-    const taskPath = join(tasksDir, `${taskId}.md`);
+    const archiveDir = join(tasksDir, 'archive');
+    const activePath = join(tasksDir, `${taskId}.md`);
+    const archivedPath = join(archiveDir, `${taskId}.md`);
+    const action = routeParts[1];
+
+    // 📖 Archive and restore are explicit sub-resources. The client sends the
+    // complete serialized task so metadata and body survive the directory move.
+    if (method === 'POST' && (action === 'archive' || action === 'unarchive')) {
+      if (routeParts.length !== 2) return writeText(res, 400, 'Invalid task route');
+      const archiving = action === 'archive';
+      const source = archiving ? activePath : archivedPath;
+      const destination = archiving ? archivedPath : activePath;
+      if (!existsSync(source) && !existsSync(destination)) {
+        return writeText(res, 404, 'Task not found');
+      }
+      try {
+        if (!existsSync(tasksDir)) mkdirSync(tasksDir, { recursive: true });
+        if (!existsSync(archiveDir)) mkdirSync(archiveDir, { recursive: true });
+        const body = await readRequestBody(req);
+        atomicWriteFileSync(destination, body);
+        if (source !== destination && existsSync(source)) unlinkSync(source);
+        broadcastSseEvent({ type: 'task', id: taskId });
+        return writeJson(res, 200, { ok: true });
+      } catch (error) {
+        return writeJson(res, 500, {
+          error: `Failed to ${action} task: ${error instanceof Error ? error.message : String(error)}`,
+        });
+      }
+    }
+
+    if (routeParts.length !== 1) return writeText(res, 404, 'Route not found');
 
     if (method === 'GET') {
-      if (!existsSync(taskPath)) return writeText(res, 404, 'Task not found');
+      const taskPath = findTaskPath(kandownDir, taskId);
+      if (!taskPath) return writeText(res, 404, 'Task not found');
       return writeText(res, 200, readFileSync(taskPath, 'utf8'));
     }
 
     if (method === 'PUT') {
-      let body = '';
-      req.on('data', chunk => { body += chunk; });
-      req.on('end', () => {
+      try {
         if (!existsSync(tasksDir)) mkdirSync(tasksDir, { recursive: true });
+        // 📖 Preserve an archived task's location when autosave writes it.
+        const taskPath = findTaskPath(kandownDir, taskId) ?? activePath;
+        const body = await readRequestBody(req);
         atomicWriteFileSync(taskPath, body);
         broadcastSseEvent({ type: 'task', id: taskId });
-        writeJson(res, 200, { ok: true });
-      });
-      return;
+        return writeJson(res, 200, { ok: true });
+      } catch (error) {
+        return writeJson(res, 500, {
+          error: `Failed to write task: ${error instanceof Error ? error.message : String(error)}`,
+        });
+      }
     }
 
     if (method === 'DELETE') {
-      if (existsSync(taskPath)) unlinkSync(taskPath);
-      broadcastSseEvent({ type: 'task_delete', id: taskId });
-      return writeJson(res, 200, { ok: true });
+      try {
+        // 📖 Remove both locations defensively if a previous interrupted move
+        // left duplicate copies behind.
+        if (existsSync(activePath)) unlinkSync(activePath);
+        if (existsSync(archivedPath)) unlinkSync(archivedPath);
+        broadcastSseEvent({ type: 'task_delete', id: taskId });
+        return writeJson(res, 200, { ok: true });
+      } catch (error) {
+        return writeJson(res, 500, {
+          error: `Failed to delete task: ${error instanceof Error ? error.message : String(error)}`,
+        });
+      }
     }
   }
 
   writeJson(res, 404, { error: 'Route not found' });
 }
 
+/**
+ * 📖 The single-file Vite bundle can contain literal strings such as
+ * `</head>` from HTML parser libraries. Use the last closing head tag so the
+ * CLI does not inject server-mode globals into bundled JavaScript text.
+ */
+function injectServerRoot(html: string, kandownDir: string): string {
+  const marker = '</head>';
+  const markerIndex = html.toLowerCase().lastIndexOf(marker);
+  const safeRoot = JSON.stringify(kandownDir).replace(/</g, '\\u003c');
+  const script = `<script>window.__KANDOWN_ROOT__ = ${safeRoot};</script>\n`;
+
+  if (markerIndex === -1) return script + html;
+  return html.slice(0, markerIndex) + script + html.slice(markerIndex);
+}
+
 function serveApp(res: ServerResponse, kandownDir: string): void {
   syncProjectKandownHtml(kandownDir);
   const htmlPath = join(kandownDir, 'kandown.html');
   if (existsSync(htmlPath)) {
+    const html = readFileSync(htmlPath, 'utf8');
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    res.end(readFileSync(htmlPath, 'utf8'));
+    res.end(injectServerRoot(html, kandownDir));
   } else {
     writeText(res, 404, 'kandown.html not found');
   }
@@ -322,7 +401,7 @@ export function createServeServer(kandownDir: string) {
   return createServer((req, res) => {
     const url = new URL(req.url || '/', 'http://localhost');
     if (req.method === 'OPTIONS') return handleCors(res);
-    if (url.pathname === '/' || url.pathname === '/kandown.html') {
+    if (url.pathname === '/' || url.pathname === '/kandown.html' || !url.pathname.startsWith('/api/')) {
       return serveApp(res, kandownDir);
     }
     if (url.pathname.startsWith('/api/')) {

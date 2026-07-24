@@ -16,6 +16,8 @@
 
 import { render } from 'ink';
 import { fileURLToPath } from 'node:url';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { App } from './app.js';
 
 /**
@@ -32,7 +34,9 @@ export async function run(screen: string, kandownDir: string, version?: string):
     );
   }
 
-  const instance = render(<App screen={screen} kandownDir={kandownDir} version={version} />, {
+  const projectExists = existsSync(join(kandownDir, 'kandown.json'));
+
+  const instance = render(<App screen={screen} kandownDir={kandownDir} version={version} projectExists={projectExists} />, {
     exitOnCtrlC: true,
     interactive: true,
     alternateScreen: true,
