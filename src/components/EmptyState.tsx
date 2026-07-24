@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '../lib/store';
 import { KbdButton } from './KbdButton';
 import { supportsFileSystemAccess, isServerMode } from '../lib/filesystem';
+import { MOTION } from '../lib/motion-presets';
 import { LogoSvg } from './LogoSvg';
 
 export function EmptyState() {
@@ -78,36 +79,26 @@ export function EmptyState() {
       {serverMode ? (
         <>
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+            {...MOTION.heroStagger(2)}
             className="text-[14.5px] text-fg-dim max-w-[480px] leading-relaxed"
           >
-            {t('emptyState.serverModeDesc') ?? 'Kandown est lanc\u00e9 en mode serveur. Le projet va se charger automatiquement.'}
+            {t('emptyState.serverModeDesc') ?? 'Kandown est lancé en mode serveur. Le projet va se charger automatiquement.'}
           </motion.div>
         </>
       ) : (
         <>
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+            {...MOTION.heroStagger(2)}
             className="text-[14.5px] text-fg-dim max-w-[480px] leading-relaxed"
           >
             {t('app.tagline')}
           </motion.div>
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+            {...MOTION.heroStagger(3)}
             className="text-[14.5px] text-fg-dim max-w-[480px] leading-relaxed"
             dangerouslySetInnerHTML={{ __html: t('emptyState.selectFolderDesc') }}
           />
-          <motion.div
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-          >
+          <motion.div {...MOTION.heroStagger(4)}>
             <KbdButton
               variant="primary"
               label={t('common.selectFolder')}
@@ -122,9 +113,9 @@ export function EmptyState() {
 
       {recentProjects.length > 0 && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.25 }}
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, ease: MOTION.fade.transition.ease }}
           className="mt-4 flex flex-col items-center gap-2"
         >
           <div className="text-[11.5px] font-semibold uppercase tracking-wider text-fg-faint">

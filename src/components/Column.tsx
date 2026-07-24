@@ -22,7 +22,7 @@
  */
 
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { Card } from './Card';
 import { CardStack } from './CardStack';
@@ -157,17 +157,16 @@ export function Column({
           e.stopPropagation();
           onColumnDragEnd(e);
         }}
-        className={`h-full w-full cursor-grab transition-opacity duration-150 active:cursor-grabbing ${
+        className={`h-full w-full cursor-grab transition-opacity duration-200 ease-out active:cursor-grabbing ${
           draggedColIndex === columnIndex ? 'opacity-45' : ''
         }`}
       >
-        <motion.div
-          layout
+        <div
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           data-column={column.name}
-          className="flex flex-col items-center justify-center w-full h-full min-h-0 px-1 transition-all duration-150"
+          className="flex flex-col items-center justify-center w-full h-full min-h-0 px-1 transition-[background-color,opacity] duration-200 ease-out"
           style={{
             opacity: isOver ? 0.8 : 1,
             backgroundColor: isOver ? 'rgba(255,255,255,0.04)' : colBg,
@@ -177,7 +176,7 @@ export function Column({
           <span className="text-[11px] font-medium text-fg-muted text-center leading-tight max-w-full">
             {column.name}
           </span>
-        </motion.div>
+        </div>
       </div>
     );
   }
@@ -217,18 +216,18 @@ export function Column({
   };
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: [0.32, 0.72, 0.35, 1] }}
+    // 📖 Plain `<div>` (no Motion): column drop is HTML5-native, and the only
+    // animated value (drag-tint background) is just a CSS transition on
+    // background-color. Avoiding `motion.div layout` removes the 300ms spring
+    // pop the user reported when columns rearrange.
+    <div
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       data-column={column.name}
-      className={`group/column flex flex-col flex-none w-[320px] h-full rounded-xl border border-border transition-[background-color,opacity,transform,box-shadow] duration-150 ${
-        draggedColIndex === columnIndex ? 'opacity-45 scale-[0.985] shadow-sm' : ''
-      }`}
+      className={`group/column flex flex-col flex-none w-[320px] h-full rounded-xl border border-border
+        transition-[background-color,opacity,box-shadow,border-color] duration-200 ease-out
+        ${draggedColIndex === columnIndex ? 'opacity-45 shadow-sm' : ''}`}
       style={{ backgroundColor: isOver ? 'rgba(255,255,255,0.04)' : colBg }}
     >
       <div className="flex items-center justify-between px-3.5 pt-3 pb-2">
@@ -298,11 +297,7 @@ export function Column({
         <div className="flex flex-col gap-2 py-1">
           <AnimatePresence mode="popLayout">
             {columnItems.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex flex-col items-center justify-center py-10 px-4 text-center"
-              >
+              <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
                 <div className="w-10 h-10 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] flex items-center justify-center mb-3">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-fg-muted/50">
                     <path d="M9 11l3 3L22 4"/>
@@ -311,7 +306,7 @@ export function Column({
                 </div>
                 <p className="text-[13px] font-medium text-fg-muted/70">No tasks yet</p>
                 <p className="text-[12px] text-fg-muted/50 mt-0.5">Drag tasks here to get started.</p>
-              </motion.div>
+              </div>
             ) : (
               columnItems.map(item =>
                 item.type === 'single' ? (
@@ -355,6 +350,6 @@ export function Column({
           className="w-full justify-start px-2.5 py-1.5 h-auto text-[12.5px] text-fg-muted hover:text-fg rounded-lg hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
         />
       </div>
-    </motion.div>
+    </div>
   );
 }

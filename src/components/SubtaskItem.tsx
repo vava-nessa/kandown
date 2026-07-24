@@ -20,6 +20,7 @@ import { useRef, useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
 import { BlockNoteMarkdownEditor } from './ui/BlockNoteMarkdownEditor';
+import { MOTION } from '../lib/motion-presets';
 import type { Subtask } from '../lib/types';
 
 interface SubtaskItemProps {
@@ -107,11 +108,8 @@ export function SubtaskItem({
     >
       <motion.div
         layout
-        initial={{ opacity: 0, height: 0 }}
-        animate={{ opacity: 1, height: 'auto' }}
-        exit={{ opacity: 0, height: 0 }}
-        transition={{ duration: 0.18, ease: [0.32, 0.72, 0.35, 1] }}
-        className="group flex items-center gap-2 px-1.5 py-1 transition-colors"
+        {...MOTION.panel}
+        className="group flex items-center gap-2 px-1.5 py-1"
       >
         <button
           type="button"
@@ -154,8 +152,7 @@ export function SubtaskItem({
           } hover:bg-bg-3`}
         >
           <motion.div
-            animate={{ rotate: expanded ? 90 : 0 }}
-            transition={{ duration: 0.15 }}
+            {...MOTION.rotate(expanded)}
           >
             <Icon.ChevronDown size={12} />
           </motion.div>
@@ -173,10 +170,7 @@ export function SubtaskItem({
       <AnimatePresence initial={false}>
         {expanded && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.18, ease: [0.32, 0.72, 0.35, 1] }}
+            {...MOTION.panel}
             className="ml-6 mr-2 mb-1 flex flex-col gap-2"
           >
             <div className="flex flex-col gap-1">
@@ -193,10 +187,7 @@ export function SubtaskItem({
             <AnimatePresence initial={false}>
               {showReport && (
                 <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.15 }}
+                  {...MOTION.panel}
                   className="flex flex-col gap-1"
                 >
                   <label className="text-[11px] font-medium text-fg-muted uppercase tracking-wide">

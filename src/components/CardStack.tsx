@@ -24,7 +24,6 @@
  */
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { IconChevronDown, IconChevronUp, IconStack2 } from '@tabler/icons-react';
 import { Card } from './Card';
@@ -71,13 +70,7 @@ export function CardStack({
 
   if (expanded) {
     return (
-      <motion.div
-        layout
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.12 } }}
-        className="flex flex-col gap-2"
-      >
+      <div className="flex flex-col gap-2">
         {/* Expanded header: shows group key + collapse button */}
         <button
           type="button"
@@ -90,34 +83,27 @@ export function CardStack({
         </button>
 
         {/* Individual cards: fully interactive, draggable */}
-        <AnimatePresence mode="popLayout">
-          {group.tasks.map(task => (
-            <Card
-              key={task.id}
-              task={task}
-              searchMatches={searchMatches.get(task.id) || []}
-              density={density}
-              columnName={columnName}
-              doneTags={doneTags}
-              onDragStart={() => onCardDragStart(task.id, columnName)}
-              onDragEnd={onCardDragEnd}
-            />
-          ))}
-        </AnimatePresence>
-      </motion.div>
+        {group.tasks.map(task => (
+          <Card
+            key={task.id}
+            task={task}
+            searchMatches={searchMatches.get(task.id) || []}
+            density={density}
+            columnName={columnName}
+            doneTags={doneTags}
+            onDragStart={() => onCardDragStart(task.id, columnName)}
+            onDragEnd={onCardDragEnd}
+          />
+        ))}
+      </div>
     );
   }
 
   // Collapsed state: stacked card with shadow layers
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.12 } }}
-      transition={{ type: 'spring', stiffness: 500, damping: 40, mass: 0.8 }}
+    <div
       onClick={() => setExpanded(true)}
-      className="relative cursor-pointer pb-3"
+      className="relative cursor-pointer pb-3 group"
     >
       {/* Layer 2 (deepest): offset furthest, smallest scale */}
       {taskCount > 2 && (
@@ -133,12 +119,14 @@ export function CardStack({
         style={{ transform: 'translateY(4px) scale(0.97)', zIndex: 1 }}
       />
 
-      {/* Main card surface */}
-      <motion.div
-        whileHover={{ y: -1 }}
-        whileTap={{ scale: 0.99 }}
-        className="relative z-10 rounded-lg border border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all hover:border-border-strong hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
-      >
+      {/* Main card surface (plain <div> with Tailwind transitions — replaces
+       * the previous `motion.div whileHover whileTap` setup that produced a
+       * 250ms pop on every card. Now hover lift + tap scale are Tailwind
+       * transitions on the `transform` property only, not `all`. */}
+      <div className="relative z-10 rounded-lg border border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)]
+        transition-[border-color,box-shadow,transform] duration-200 ease-out
+        hover:border-border-strong hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:-translate-y-px
+        active:scale-[0.99] active:duration-75">
         <div className="px-3.5 pt-3 pb-2.5">
           {/* Header: stack icon + group key + task count */}
           <div className="flex items-center justify-between mb-1.5">
@@ -166,7 +154,7 @@ export function CardStack({
             )}
           </div>
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }

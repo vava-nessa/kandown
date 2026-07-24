@@ -28,6 +28,7 @@ import { ThemeSwitcher } from './ui/theme-switcher-1';
 import { useStore } from '../lib/store';
 import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
 import { KANDOWN_VERSION } from '../lib/version';
+import { MOTION } from '../lib/motion-presets';
 import type { OwnerType } from '../lib/types';
 import { LogoSvg } from './LogoSvg';
 
@@ -155,11 +156,8 @@ export function Header() {
               {bootShow ? (
                 <motion.span
                   key="boot"
+                  {...MOTION.headerCrossfade}
                   className="flex items-center gap-2"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.45 }}
                 >
                   <span className="text-[15px] font-semibold tracking-tight text-fg">kandown</span>
                   <span className="inline-flex items-center h-5 px-1.5 text-[10.5px] font-semibold text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-500/15 rounded-md">
@@ -169,11 +167,8 @@ export function Header() {
               ) : projectName ? (
                 <motion.span
                   key="project"
+                  {...MOTION.headerCrossfade}
                   className="text-[15px] font-semibold tracking-tight text-fg truncate max-w-[240px]"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.45 }}
                 >
                   {projectName}
                 </motion.span>
@@ -228,10 +223,7 @@ export function Header() {
                 {chips.map(chip => (
                   <motion.button
                     key={chip.type + chip.value}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.15 }}
+                    {...MOTION.chip}
                     onClick={() => setFilter(chip.type as never, null as never)}
                     className="inline-flex items-center gap-1 h-6 px-2.5 text-[12px] text-fg bg-black/[0.05] dark:bg-white/[0.1] border border-black/[0.08] dark:border-white/[0.12] rounded-lg hover:bg-black/[0.08] dark:hover:bg-white/[0.15] transition-colors"
                   >
@@ -282,10 +274,11 @@ export function Header() {
               <AnimatePresence>
                 {menuOpen && (
                   <motion.div
-                    initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                    {...MOTION.fade}
+                    initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -4, scale: 0.98 }}
-                    transition={{ duration: 0.12 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.12, ease: MOTION.fade.transition.ease }}
                     className="absolute top-full left-0 mt-2 min-w-[240px] glass rounded-xl shadow-[0_16px_48px_rgba(0,0,0,0.5)] overflow-hidden z-50"
                   >
                     <div className="py-1.5">
@@ -337,7 +330,7 @@ export function Header() {
           <>
             <div className="flex items-center gap-2 mr-2 text-[12.5px] text-fg-muted/70">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <motion.span className="tabular-nums font-medium">{displayCount}</motion.span>
+              <span className="tabular-nums font-medium transition-colors duration-200">{String(displayCount)}</span>
               <span>{t('header.tasks')}</span>
             </div>
 

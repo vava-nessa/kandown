@@ -293,10 +293,7 @@ export function Board() {
   const canShowDropGuide = (index: number): boolean => isColumnReordering && dropTargetIndex === index;
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.25 }}
+    <div
       onDragOver={handleBoardColumnDragOver}
       onDrop={handleBoardColumnDrop}
       onDragLeave={handleBoardDragLeave}
@@ -317,9 +314,9 @@ export function Board() {
               onDrop={(e) => handleColumnDrop(e, group.columnIndex)}
             >
               <ColumnDropGuide side="left" active={canShowDropGuide(group.columnIndex)} />
-              <motion.div {...animProps(i)} className="h-full">
+              <div className="h-full">
                 <Column column={group.column} filteredTasks={group.filtered} {...sharedColumnProps} columnIndex={group.columnIndex} />
-              </motion.div>
+              </div>
               <ColumnDropGuide side="right" active={canShowDropGuide(columns.length) && group.columnIndex === columns.length - 1} />
             </div>
           );
@@ -337,9 +334,9 @@ export function Board() {
               onDrop={(e) => handleColumnDrop(e, group.columnIndex)}
             >
               <ColumnDropGuide side="left" active={canShowDropGuide(group.columnIndex)} />
-              <motion.div {...animProps(i)} className="h-full w-[100px]">
+              <div className="h-full w-[100px]">
                 <Column column={group.column} filteredTasks={group.filtered} {...sharedColumnProps} isEmptyCompact columnIndex={group.columnIndex} />
-              </motion.div>
+              </div>
               <ColumnDropGuide side="right" active={canShowDropGuide(columns.length) && group.columnIndex === columns.length - 1} />
             </div>
           );
@@ -362,7 +359,7 @@ export function Board() {
             onDrop={(e) => handleColumnDrop(e, firstColumnIndex, lastColumnIndex + 1)}
           >
             <ColumnDropGuide side="left" active={canShowDropGuide(firstColumnIndex)} />
-            <motion.div {...animProps(i)} className="h-full">
+            <div className="h-full">
               <div className={`flex flex-col h-full w-[100px] ${columnBorder}`}>
                 {group.columns.map(({ column, filtered, columnIndex }, idx) => (
                   <div
@@ -379,7 +376,7 @@ export function Board() {
                   </div>
                 ))}
               </div>
-            </motion.div>
+            </div>
             <ColumnDropGuide side="right" active={canShowDropGuide(columns.length) && lastColumnIndex === columns.length - 1} />
           </div>
         );
@@ -391,6 +388,6 @@ export function Board() {
       >
         {t('column.createColumn')}
       </button>
-    </motion.div>
+    </div>
   );
 }

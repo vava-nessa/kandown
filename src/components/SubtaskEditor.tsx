@@ -23,6 +23,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { KbdButton } from './KbdButton';
 import { SubtaskItem } from './SubtaskItem';
+import { MOTION } from '../lib/motion-presets';
 import type { Subtask } from '../lib/types';
 
 interface SubtaskEditorProps {
@@ -119,9 +120,7 @@ export function SubtaskEditor({ subtasks, onSubtasksChange }: SubtaskEditorProps
           <motion.div
             className="h-full rounded-full"
             style={{ backgroundColor: done === total ? '#30a46c' : '#a1a1a1' }}
-            initial={false}
-            animate={{ width: `${progress}%` }}
-            transition={{ type: 'spring', stiffness: 160, damping: 22 }}
+            {...MOTION.progressBar(progress)}
           />
         </div>
       )}

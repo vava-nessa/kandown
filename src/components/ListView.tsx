@@ -21,7 +21,7 @@
  */
 
 import { useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../lib/store';
 import { Card } from './Card';
@@ -256,12 +256,7 @@ export function ListView() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.2 }}
-      className={`flex-1 min-h-0 overflow-y-auto ${isColumnReordering ? 'select-none' : ''}`}
-    >
+    <div className={`flex-1 min-h-0 overflow-y-auto ${isColumnReordering ? 'select-none' : ''}`}>
       <div className="w-full px-6 py-5 space-y-4">
         {(dueSummary.overdue.length > 0 || dueSummary.dueSoon.length > 0) && (
           <div className="p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-xs flex items-center gap-4">
@@ -347,13 +342,8 @@ export function ListView() {
                 onDragLeave={(e) => handleSectionDragLeave(e, column.name)}
               >
                 <SectionDropGuide side="top" active={canShowDropGuide(sectionIndex)} />
-                <motion.section
-                  layout
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ delay: Math.min(sectionIndex * 0.025, 0.18), duration: 0.2 }}
-                  className={`group/section overflow-hidden rounded-xl border transition-[border-color,background-color,opacity,transform,box-shadow] duration-150 ${
+                <section
+                  className={`group/section overflow-hidden rounded-xl border transition-[border-color,background-color,opacity,box-shadow] duration-200 ease-out ${
                     isTaskDropTarget
                       ? 'border-border-strong bg-bg-1 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]'
                       : 'border-border'
@@ -424,11 +414,7 @@ export function ListView() {
                     <div className="flex flex-col gap-2">
                       <AnimatePresence mode="popLayout">
                         {columnItems.length === 0 ? (
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="flex flex-col items-center justify-center py-8 px-4 text-center"
-                          >
+                          <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
                             <div className="w-10 h-10 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] flex items-center justify-center mb-3">
                               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-fg-muted/50">
                                 <path d="M9 11l3 3L22 4"/>
@@ -441,7 +427,7 @@ export function ListView() {
                                 : 'No tasks yet'}
                             </p>
                             <p className="text-[12px] text-fg-muted/50 mt-0.5">Drag tasks here to get started.</p>
-                          </motion.div>
+                          </div>
                         ) : (
                           columnItems.map(item =>
                             item.type === 'single' ? (
@@ -485,7 +471,7 @@ export function ListView() {
                       className="w-full justify-start px-2.5 py-1.5 h-auto text-[12.5px] text-fg-muted hover:text-fg rounded-lg hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
                     />
                   </div>
-                </motion.section>
+                </section>
                 <SectionDropGuide side="bottom" active={canShowDropGuide(columns.length) && sectionIndex === columns.length - 1} />
               </div>
             );
@@ -496,6 +482,6 @@ export function ListView() {
           <div className="py-20 text-center text-[13.5px] text-fg-muted">{t('listView.noMatchingTasks')}</div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }

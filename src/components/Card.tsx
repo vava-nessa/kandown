@@ -22,13 +22,11 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { IconTrash, IconTrashX } from '@tabler/icons-react';
 import { Icon } from './Icons';
 import type { BoardTask, Density, SearchMatch } from '../lib/types';
 import { useStore } from '../lib/store';
-
 const priorityColors: Record<string, string> = {
   P1: '#e5484d',
   P2: '#e9a23b',
@@ -235,17 +233,12 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
   const isSelected = selectedTaskIds?.includes(task.id) ?? false;
 
   return (
-    <motion.div
-      layout
-      layoutId={task.id}
-      transition={{ type: 'spring', stiffness: 500, damping: 40, mass: 0.8 }}
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.12 } }}
-      whileHover={{ y: -1 }}
-      whileTap={{ scale: 0.99 }}
-      draggable
-      {...dragHandlers}
+    // 📖 No `motion.div` here: drag uses native HTML5 events, and Tailwind
+    // transitions cover the hover/active feedback. Mixing `whileHover` /
+    // `whileTap` with Tailwind's `transition-all` produced a 500ms "pop" on
+    // every card (the user reported). Hover lift, tap scale, and shadow are
+    // all in the className now.
+    <div
       onClick={(e) => {
         if (e.metaKey || e.ctrlKey || e.shiftKey) {
           e.stopPropagation();
@@ -257,7 +250,11 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       onMouseLeave={() => setDeleteArmed(false)}
       data-task-id={task.id}
       data-col={columnName}
-      className={`group relative cursor-pointer rounded-lg border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-150 hover:border-border-strong hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] ${
+      className={`group relative cursor-pointer rounded-lg border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)]
+        transition-[border-color,box-shadow,background-color,transform] duration-200 ease-out
+        hover:border-border-strong hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:-translate-y-px
+        active:scale-[0.99] active:duration-75
+        ${
         isSelected ? 'border-primary ring-2 ring-primary/40 bg-primary/[0.03]' : 'border-border'
       } ${
         task.checked ? 'opacity-70' : ''
@@ -383,12 +380,12 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
         {!isCompact && task.progress && task.progress.total > 0 && (
           <div className={`mt-2.5 flex items-center gap-2 ${showPreview ? '' : ''}`}>
             <div className="flex-1 h-[3px] bg-black/[0.06] dark:bg-white/[0.1] rounded-full overflow-hidden">
-              <motion.div
-                className="h-full rounded-full"
-                style={{ backgroundColor: isComplete ? '#22c55e' : '#737078' }}
-                initial={false}
-                animate={{ width: `${progressPct}%` }}
-                transition={{ type: 'spring', stiffness: 160, damping: 22 }}
+              <div
+                className="h-full rounded-full transition-[width] duration-300 ease-out"
+                style={{
+                  width: `${progressPct}%`,
+                  backgroundColor: isComplete ? '#22c55e' : '#737078',
+                }}
               />
             </div>
             <span className="font-mono text-[11px] text-fg-muted tabular-nums">
@@ -399,6 +396,6 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
 
         <MetadataBlock frontmatter={task.frontmatter} hidden={showMetadata} />
       </div>
-    </motion.div>
+    </div>
   );
 }
