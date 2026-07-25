@@ -32,6 +32,7 @@ import { BoardMock } from '~/components/BoardMock'
 import { CodeWindow, Line } from '~/components/CodeWindow'
 import { INSTALL_COMMAND, site } from '~/lib/site'
 import HeroGeometric from '~/components/HeroGeometric'
+import { Logo } from '~/components/Logo'
 
 export const Route = createFileRoute('/')({
   component: Home,
@@ -59,7 +60,7 @@ function Hero() {
         <HeroGeometric color1="#0ce931" color2="#fff7ed" speed={3} className="w-full h-full min-h-[600px]" />
       </div>
       <Shell className="relative z-10">
-        <div className="py-16 sm:py-24">
+        <div className="py-16 sm:py-24 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-12">
           <div className="max-w-2xl">
             {/* 📖 A metadata line instead of a pill badge: same information,
                 stated rather than decorated. */}
@@ -125,6 +126,15 @@ function Hero() {
             </div>
           </div>
 
+          {/* 📖 Transparent block with Logo + "Kanban + Markdown" text to the right */}
+          <div className="animate-rise shrink-0 flex flex-col items-center justify-center p-8 sm:p-10 rounded-2xl bg-card/20 backdrop-blur-md border border-border/40 shadow-xl self-center lg:self-auto" style={{ animationDelay: '200ms' }}>
+            <Logo size={110} className="rounded-xl shadow-md" />
+            <span className="mt-4 text-[15px] font-medium tracking-tight text-fg font-mono">
+              Kanban + Markdown
+            </span>
+          </div>
+        </div>
+
           {/* 📖 Three facts as a full-width band above the demo, not a column
               beside the copy. Set beside it they left a large void at the top
               right; as a band they give the hero a horizontal beat and hand off
@@ -151,7 +161,6 @@ function Hero() {
           <div className="animate-rise mt-12" style={{ animationDelay: '300ms' }}>
             <HeroVideo />
           </div>
-        </div>
       </Shell>
     </section>
   )
