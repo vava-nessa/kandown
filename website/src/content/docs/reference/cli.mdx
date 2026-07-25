@@ -1,0 +1,123 @@
+---
+title: CLI reference
+section: Reference
+description: Every Kandown command, its flags, and the output contract that makes them safe to script.
+---
+
+## The output contract
+
+Before the commands, the rule that governs all of them:
+
+> **stdout carries data only** — ids, JSON, tables. Everything decorative (`✓ Created…`, warnings,
+> errors) goes to **stderr**. Exit code `0` on success, non-zero on failure.
+
+So `$(kandown create …)` captures exactly one id, and `--json | jq` never chokes on a checkmark.
+
+## Interactive
+
+| Command | Description |
+|---|---|
+| `kandown` | Web UI + terminal board |
+| `kandown init` | Initialize in the current project |
+| `kandown board` | Terminal UI only, no browser |
+| `kandown settings` | Terminal settings editor |
+| `kandown doctor` | Diagnose config, daemon, ports, task frontmatter |
+| `kandown help` | Full help |
+
+## Tasks
+
+Non-interactive, agent- and CI-friendly.
+
+| Command | Description |
+|---|---|
+| `kandown list` | List tasks |
+| `kandown show <id>` | Print a task file's raw content |
+| `kandown create "title"` | Create a task |
+| `kandown move <id> <status>` | Move to a column, or to `archived` |
+| `kandown assign <id> [name]` | Assign, or unassign by omitting the name |
+| `kandown commit [-m msg]` | `git add tasks/ .kandown/kandown.json` + commit |
+| `kandown export` | JSON or CSV out |
+| `kandown import` | Trello JSON or Markdown in |
+
+### `kandown list`
+
+```bash
+kandown list [-s status] [-a assignee] [-t tag] [-p priority] [--archived] [--json]
+```
+
+| Flag | Effect |
+|---|---|
+| `-s`, `--status` | Filter by column |
+| `-a`, `--assignee` | Filter by assignee |
+| `-t`, `--tag` | Filter by tag |
+| `-p`, `--priority` | Filter by `P1`–`P4` |
+| `--archived` | Include archived tasks |
+| `--json` | Emit JSON instead of a table |
+
+```bash
+kandown list --json | jq '.[] | select(.priority=="P1") | .title'
+```
+
+### `kandown create`
+
+```bash
+kandown create "title" [-p priority] [-a assignee] [-t tag …] [--to status] [--id custom-id] [--json]
+```
+
+| Flag | Effect |
+|---|---|
+| `-p`, `--priority` | `P1`–`P4` |
+| `-a`, `--assignee` | Assignee name |
+| `-t`, `--tag` | A tag; repeat for several |
+| `--to` | Target column (defaults to the first) |
+| `--id` | Use a specific id instead of generating one |
+| `--json` | Print the whole task object rather than just the id |
+
+```bash
+ID=$(kandown create "Refactor auth middleware" -p P1 -t backend -t security)
+```
+
+### `kandown move`
+
+```bash
+kandown move <id> <status>
+kandown move t14 archived     # archive
+```
+
+Moving to the terminal column fails, with a non-zero exit code, while any `depends_on` entry is
+unresolved. See [Tasks § dependencies](/docs/guides/tasks#dependencies).
+
+### `kandown work`
+
+Prints the full agent context — rules, project instructions, live board digest and the next
+actionable task — as Markdown on stdout. Documented in [For AI agents](/docs/agents/overview).
+
+### `kandown mcp`
+
+Starts the stdio MCP server. See [MCP server](/docs/agents/mcp).
+
+## Daemon & maintenance
+
+| Command | Description |
+|---|---|
+| `kandown daemon status` | Is this project's daemon running, and on what port |
+| `kandown daemon start` | Start it |
+| `kandown daemon stop` | Stop it |
+| `kandown daemon refresh-all` | Restart outdated daemons on the current CLI version |
+| `kandown projects` | List every open Kandown project on this machine |
+| `kandown update` | Update the CLI and the project's `kandown.html` |
+
+<Callout type="tip">
+`kandown doctor` is the first thing to run when something is off. It checks config, daemon state,
+port availability and every task's frontmatter, and tells you how to fix what it finds.
+</Callout>
+
+## Environment variables
+
+| Variable | Effect |
+|---|---|
+| `KANDOWN_NO_UPDATE=1` | Disable the background update check (recommended in CI) |
+| `KANDOWN_DEBUG=1` | Print full stack traces instead of a one-line summary |
+| `KANDOWN_AGENT_HOOK_URL` | Endpoint that receives tasks from *Send to Agent* / TUI <kbd>g</kbd> |
+| `KANDOWN_AGENT_HOOK_LABEL` | Custom label for the agent hook button |
+| `KANDOWN_AGENT_HOOK_HEADERS` | JSON object of extra headers for the hook request |

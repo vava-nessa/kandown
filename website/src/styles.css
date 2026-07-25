@@ -1,0 +1,562 @@
+@import 'tailwindcss';
+
+/**
+ * 📖 Typography.
+ *
+ * Geist and Geist Mono (SIL OFL, Vercel × basement.studio), self-hosted as two
+ * variable `woff2` files — ~70 KB each, covering every weight from 100 to 900.
+ * See `public/fonts/LICENSE.txt`.
+ *
+ * Self-hosted rather than loaded from a CDN for the same reason the product
+ * works offline: no third-party origin in the critical path, nothing to be
+ * blocked, nothing that can vanish. `font-display: swap` means text is readable
+ * from the first paint even on a cold cache, and `size-adjust` on the fallback
+ * keeps the reflow when Geist arrives close to imperceptible.
+ *
+ * The mono face is not decoration. Every label, eyebrow, column header, badge
+ * and piece of metadata on this site is set in it — that contrast between a
+ * neutral grotesque for prose and a mono for structure is what gives the page
+ * its voice, and it is honest to a product whose database is a folder of text
+ * files.
+ */
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/geist-variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/fonts/geist-mono-variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 📖 Metric-matched fallback: holds the layout while Geist loads so the swap
+   does not shift a whole page of text. Values measured against Geist's
+   cap-height and average character width. */
+@font-face {
+  font-family: 'Geist Fallback';
+  src: local('Helvetica Neue'), local('Arial'), local('sans-serif');
+  size-adjust: 100.4%;
+  ascent-override: 95%;
+  descent-override: 24%;
+  line-gap-override: 0%;
+}
+
+/**
+ * 📖 Design tokens.
+ *
+ * The palette is lifted straight from `logo.svg`: a deep green-black
+ * (`rgb(12,29,23)` → `rgb(24,41,35)`) for surfaces, and the arrow's lime
+ * (`rgb(136,225,56)`) as the single accent.
+ *
+ * 📖 On contrast. An earlier pass used very pale hairlines (`#e4e6e2` on white,
+ * `#1e372e` on the dark ground) which read as washed out and, worse, made the
+ * page look undesigned. Borders here are deliberately visible: this layout is
+ * built from rules rather than cards, so a rule that cannot be seen is a
+ * structure that cannot be read. Body text sits at ~8:1 against its ground and
+ * the faintest text still clears 4.5:1.
+ *
+ * 📖 How theming works, and why it is built this way.
+ *
+ * `@theme inline` is the important part: it makes every Tailwind utility emit
+ * `var(--kd-…)` rather than baking the colour value into the class. That is what
+ * lets the theme change at runtime — flip the `--kd-*` variables on `:root` and
+ * every `bg-bg`, `text-fg-muted` and `border-border` on the page follows in the
+ * same frame, with no re-render and no duplicated class set.
+ *
+ * The variables themselves are resolved in three layers, in this order:
+ *
+ *   1. `:root` holds the light values — the baseline.
+ *   2. `prefers-color-scheme: dark` overrides them, but only for a document that
+ *      has *not* been given an explicit `data-theme`. This is the first-visit
+ *      behaviour: follow the operating system.
+ *   3. `:root[data-theme="dark"|"light"]` wins outright. This is the visitor's
+ *      own choice, set by the toggle and persisted in localStorage.
+ *
+ * @see src/components/ThemeToggler.tsx — the control that sets `data-theme`
+ */
+@theme inline {
+  --font-sans: 'Geist', 'Geist Fallback', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-accent: var(--kd-accent);
+  --color-accent-soft: var(--kd-accent-soft);
+  --color-bg: var(--kd-bg);
+  --color-bg-subtle: var(--kd-bg-subtle);
+  --color-bg-raised: var(--kd-bg-raised);
+  --color-border: var(--kd-border);
+  --color-border-strong: var(--kd-border-strong);
+  --color-fg: var(--kd-fg);
+  --color-fg-muted: var(--kd-fg-muted);
+  --color-fg-faint: var(--kd-fg-faint);
+  --color-accent-fg: var(--kd-accent-fg);
+  --color-code-bg: var(--kd-code-bg);
+  --color-ink: var(--kd-ink);
+}
+
+/* Layer 1 — light, the baseline. */
+:root {
+  --kd-accent: #7ad12a;
+  --kd-accent-soft: #eaffd0;
+  --kd-bg: #ffffff;
+  --kd-bg-subtle: #f4f5f1;
+  --kd-bg-raised: #ffffff;
+  --kd-border: #d8dcd4;
+  --kd-border-strong: #a8b0a4;
+  --kd-fg: #0b1a14;
+  --kd-fg-muted: #4a5850;
+  --kd-fg-faint: #74807a;
+  --kd-accent-fg: #2c6410;
+  --kd-code-bg: #f7f8f5;
+  /* 📖 The near-black used for solid blocks — the accent's text colour, and the
+     ground the lime sits on. Constant across themes on purpose. */
+  --kd-ink: #0b1a14;
+  color-scheme: light;
+}
+
+/* 📖 Dark surfaces come from the logo's gradient, so the site and the product
+   share the same "deep forest" ground rather than a generic neutral grey.
+   Declared once as a custom property set, applied by layers 2 and 3. */
+@layer theme {
+  :root[data-theme='dark'],
+  :root:not([data-theme]) {
+    --kd-dark-accent: #88e138;
+    --kd-dark-accent-soft: #1d3a16;
+    --kd-dark-bg: #08150f;
+    --kd-dark-bg-subtle: #0e1f18;
+    --kd-dark-bg-raised: #12271f;
+    --kd-dark-border: #244136;
+    --kd-dark-border-strong: #3d6353;
+    --kd-dark-fg: #eef5ef;
+    --kd-dark-fg-muted: #a3b5aa;
+    --kd-dark-fg-faint: #7e8f86;
+    --kd-dark-accent-fg: #a8ec6d;
+    --kd-dark-code-bg: #0c1c15;
+  }
+}
+
+/* Layer 2 — the OS preference, for a visitor who has not chosen. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --kd-accent: var(--kd-dark-accent);
+    --kd-accent-soft: var(--kd-dark-accent-soft);
+    --kd-bg: var(--kd-dark-bg);
+    --kd-bg-subtle: var(--kd-dark-bg-subtle);
+    --kd-bg-raised: var(--kd-dark-bg-raised);
+    --kd-border: var(--kd-dark-border);
+    --kd-border-strong: var(--kd-dark-border-strong);
+    --kd-fg: var(--kd-dark-fg);
+    --kd-fg-muted: var(--kd-dark-fg-muted);
+    --kd-fg-faint: var(--kd-dark-fg-faint);
+    --kd-accent-fg: var(--kd-dark-accent-fg);
+    --kd-code-bg: var(--kd-dark-code-bg);
+    color-scheme: dark;
+  }
+}
+
+/* Layer 3 — the visitor's explicit choice, which beats the OS in both
+   directions. `data-theme="light"` must be able to force light on a machine set
+   to dark, which is exactly what the `:not([data-theme])` guard above allows. */
+:root[data-theme='dark'] {
+  --kd-accent: var(--kd-dark-accent);
+  --kd-accent-soft: var(--kd-dark-accent-soft);
+  --kd-bg: var(--kd-dark-bg);
+  --kd-bg-subtle: var(--kd-dark-bg-subtle);
+  --kd-bg-raised: var(--kd-dark-bg-raised);
+  --kd-border: var(--kd-dark-border);
+  --kd-border-strong: var(--kd-dark-border-strong);
+  --kd-fg: var(--kd-dark-fg);
+  --kd-fg-muted: var(--kd-dark-fg-muted);
+  --kd-fg-faint: var(--kd-dark-fg-faint);
+  --kd-accent-fg: var(--kd-dark-accent-fg);
+  --kd-code-bg: var(--kd-dark-code-bg);
+  color-scheme: dark;
+}
+
+@layer base {
+  :root {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+
+  html {
+    background-color: var(--color-bg);
+    color: var(--color-fg);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    /* 📖 Tabular figures everywhere: this page is full of counts, versions and
+       numbered rows, and proportional digits make columns of them wobble. */
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-ink);
+  }
+
+  /* 📖 Focus rings are accent-coloured, square-ish to match the rest of the
+     geometry, and only shown for keyboard users. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border-strong);
+    border: 4px solid var(--color-bg);
+    border-radius: 999px;
+  }
+}
+
+/* ── Structural utilities ─────────────────────────────────────────────────── */
+
+/* 📖 Mono label used for eyebrows, column headers and metadata. Uppercase with
+   wide tracking is what separates "structure" from "prose" at a glance. */
+.label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-fg-faint);
+}
+
+/* 📖 Section numbering (`01`, `02`…). Editorial layouts earn a lot of their
+   character from numbered sections; this is the whole cost of it. */
+.section-index {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--color-accent-fg);
+}
+
+/* ── Shiki ────────────────────────────────────────────────────────────────── */
+
+/**
+ * 📖 Shiki emits light colours inline and dark ones as `--shiki-dark*` custom
+ * properties (see `defaultColor: 'light'` in vite.config.ts). Swapping them is a
+ * pure CSS operation, so highlighting follows the theme with no JavaScript, no
+ * re-highlighting and no flash of the wrong colours on first paint.
+ *
+ * The selectors mirror the three token layers above — OS preference only when
+ * the visitor has not chosen, explicit `data-theme` otherwise — so a code block
+ * can never end up light-on-light after a toggle.
+ */
+.shiki {
+  background-color: var(--color-code-bg) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .shiki,
+  :root:not([data-theme]) .shiki span {
+    color: var(--shiki-dark) !important;
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+    text-decoration: var(--shiki-dark-text-decoration) !important;
+  }
+}
+
+:root[data-theme='dark'] .shiki,
+:root[data-theme='dark'] .shiki span {
+  color: var(--shiki-dark) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
+/* ── Prose ────────────────────────────────────────────────────────────────── */
+
+/**
+ * 📖 A hand-rolled prose scale instead of @tailwindcss/typography. The docs use
+ * a small, fixed set of elements and the plugin's defaults fight the token
+ * system above; explicit CSS is easier to reason about than overriding two
+ * hundred generated rules.
+ *
+ * 📖 Readability decisions, made on purpose:
+ *   · 16px body, not 15 — documentation is read for minutes at a time.
+ *   · Measure capped at 72ch. Past ~75 the eye loses the line return.
+ *   · Headings are set tight (-0.02em) and dark; body is one step lighter.
+ *     The contrast between the two is what creates hierarchy, not size alone.
+ *   · `h2` gets a full-width rule above it, matching the ruled layout of the
+ *     rest of the site rather than a rule underneath, which reads as a footer.
+ */
+.prose {
+  color: var(--color-fg-muted);
+  font-size: 1rem;
+  line-height: 1.72;
+  max-width: 72ch;
+}
+
+.prose > * + * {
+  margin-top: 1.1em;
+}
+
+/* 📖 The article header already ends in a rule. A page whose first block is an
+   `h2` would otherwise draw a second one right under it — two hairlines a few
+   pixels apart, which reads as a rendering bug. Suppress the leading rule and
+   its offset for the first child only. */
+.prose > :first-child {
+  margin-top: 0;
+}
+
+.prose > h2:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.prose h2,
+.prose h3,
+.prose h4 {
+  scroll-margin-top: 6rem;
+  color: var(--color-fg);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.prose h2 {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 1.5rem;
+}
+
+.prose h3 {
+  margin-top: 2.25rem;
+  font-size: 1.125rem;
+}
+
+.prose h4 {
+  margin-top: 1.75rem;
+  font-size: 0.9375rem;
+  color: var(--color-fg-muted);
+}
+
+/* 📖 rehype-autolink-headings wraps the heading text in an <a>. Keep it looking
+   like a heading until hover, then reveal the affordance with the accent. */
+.prose .heading-anchor {
+  color: inherit;
+  text-decoration: none;
+}
+.prose .heading-anchor:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+}
+
+.prose strong {
+  color: var(--color-fg);
+  font-weight: 600;
+}
+
+.prose a:not(.heading-anchor) {
+  color: var(--color-fg);
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--color-accent);
+  transition: background-color 0.12s ease;
+}
+.prose a:not(.heading-anchor):hover {
+  background-color: var(--color-accent-soft);
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.15rem;
+}
+.prose ul {
+  list-style: square;
+}
+.prose ol {
+  list-style: decimal;
+}
+.prose li::marker {
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+.prose li + li {
+  margin-top: 0.45rem;
+}
+.prose li > ul,
+.prose li > ol {
+  margin-top: 0.45rem;
+}
+
+/* 📖 Blockquotes carry the site's structural language: a solid accent rule and
+   the text stepped up to full contrast, because a pull quote that is quieter
+   than its surroundings defeats the purpose. */
+.prose blockquote {
+  border-left: 3px solid var(--color-accent);
+  padding: 0.25rem 0 0.25rem 1.15rem;
+  color: var(--color-fg);
+  font-size: 1.0625rem;
+}
+
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  margin: 2.5rem 0;
+}
+
+.prose :not(pre) > code {
+  font-family: var(--font-mono);
+  font-size: 0.8125em;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  color: var(--color-fg);
+  white-space: nowrap;
+}
+
+.prose pre {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  padding: 1.1rem 1.2rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  overflow-x: auto;
+  tab-size: 2;
+}
+
+.prose pre code {
+  font-family: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  white-space: pre;
+}
+
+/* 📖 Reference tables are the densest thing in the docs and often wider than
+   the measure, so each gets its own scroll container — the page body must never
+   scroll sideways. Headers are set in mono to match every other label. */
+.prose .table-scroll {
+  overflow-x: auto;
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--color-border-strong);
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.prose thead th {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+  color: var(--color-fg-faint);
+  padding: 0.6rem 1.25rem 0.6rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.prose tbody td {
+  padding: 0.65rem 1.25rem 0.65rem 0;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-fg-muted);
+  vertical-align: top;
+}
+
+.prose tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.prose tbody td:first-child {
+  color: var(--color-fg);
+  font-weight: 500;
+}
+
+.prose kbd {
+  font-family: var(--font-mono);
+  font-size: 0.75em;
+  padding: 0.15em 0.4em;
+  border: 1px solid var(--color-border-strong);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  background: var(--color-bg-subtle);
+  color: var(--color-fg);
+  white-space: nowrap;
+}
+
+.prose img {
+  max-width: 100%;
+  border: 1px solid var(--color-border);
+}
+
+/* ── Motion ───────────────────────────────────────────────────────────────── */
+
+/**
+ * 📖 View Transitions, used by the theme toggle.
+ *
+ * The browser's default cross-fade is suppressed on both snapshots so the two
+ * themes sit perfectly stacked; `ThemeToggler` then animates a `clip-path`
+ * circle on the *new* snapshot, wiping the incoming theme outward from the
+ * button. Leaving the default fade in place would muddy the two layers together
+ * and the reveal would read as a blur instead of a wipe.
+ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 0;
+}
+
+::view-transition-new(root) {
+  z-index: 1;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-rise {
+  animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    scroll-behavior: auto;
+  }
+  .animate-rise,
+  [class*='transition'] {
+    animation: none !important;
+    transition: none !important;
+  }
+}

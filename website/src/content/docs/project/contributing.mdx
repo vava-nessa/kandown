@@ -1,0 +1,111 @@
+---
+title: Contributing
+section: Project
+description: Setting up the repository, the build commands, the rules CI enforces, and where help is most useful.
+---
+
+Contributions are welcome. Kandown is MIT licensed and developed in the open at
+[github.com/vava-nessa/kandown](https://github.com/vava-nessa/kandown).
+
+## Setup
+
+```bash
+git clone https://github.com/vava-nessa/kandown.git
+cd kandown
+pnpm install          # also installs the git hooks
+pnpm dev              # web UI at localhost:5176
+```
+
+pnpm, not npm — the lockfile is pnpm's.
+
+## Read these first
+
+In this order, before your first change:
+
+| Document | What it gives you |
+|---|---|
+| `AGENTS.md` | The project's rules, including which files are generated |
+| `CODEMAP.md` | Every source file with a one-line summary — generated from JSDoc |
+| `docs/ARCHITECTURE.md` | How the pieces fit and which invariants not to break |
+| `docs/RELEASE.md` | The release runbook |
+
+Then run `kandown work` in the repository. It prints the current agent rules plus a live board
+digest and the next actionable task.
+
+## Commands
+
+| Script | Description |
+|---|---|
+| `pnpm dev` | Vite dev server for the web UI |
+| `pnpm dev:app` | Full build, then launch the CLI — the realistic dev loop |
+| `pnpm dev:cli` | Watch-mode build of the CLI/TUI bundles |
+| `pnpm build` | Version inject → agent-doc sync → typecheck → web → CLI |
+| `pnpm typecheck` | TypeScript, no emit |
+| `pnpm codemap` | Regenerate `CODEMAP.md` / `CODEMAP.json` |
+| `pnpm codemap:check` | Fail if the codemap is stale or a file lacks `@description` |
+| `pnpm sync:agent` | Propagate `templates/AGENT_KANDOWN.md` to the project root |
+
+Git hooks install themselves on `pnpm install`: pre-commit regenerates and stages the codemap,
+post-commit refreshes the local dependency graph. Neither can fail a commit.
+
+## The two rules that trip people up
+
+### Never edit a generated file
+
+They are committed because they ship, so editing one appears to work — until the next `pnpm build`
+silently erases it.
+
+| Never edit | Edit instead |
+|---|---|
+| `bin/kandown.js` | `src/cli/cli.ts` |
+| `bin/tui.js` | `src/cli/tui.tsx` |
+| `src/lib/version.ts` | `package.json` (version field) |
+| `AGENT_KANDOWN.md` (root) | `templates/AGENT_KANDOWN.md`, then `pnpm sync:agent` |
+| `CODEMAP.md`, `CODEMAP.json` | the JSDoc headers, then `pnpm codemap` |
+
+`CODEMAP.md` flags each of these inline, at the moment you go looking for it.
+
+### Every source file carries a JSDoc header
+
+`@file`, `@description`, and `@functions` / `@exports` where they help. This is not decoration:
+`CODEMAP.md` is built from these headers and `pnpm codemap:check` — run in CI — **fails** when a
+file has no `@description`. Coverage is at 100%; keep it there.
+
+Write the header *after* the feature works, not before. Explain **why** and **when it runs**, not
+just what it is.
+
+<Callout type="tip">
+The short version of both rules: `bin/*.js` are build output, not source. Edit `src/`.
+</Callout>
+
+## Commits
+
+Conventional commits, imperative mood, subject wrapped at 72 characters, one logical change per
+commit. The body explains *why* — the diff already shows what.
+
+```
+feat(board): add group-by epic
+
+The backlog grew past the point where priority grouping was useful.
+Epics were already in the data model but had no view.
+```
+
+Types: `feat`, `fix`, `chore`, `refactor`, `perf`, `style`, `docs`, `test`, `build`, `ci`,
+`revert`. Breaking changes go in a `BREAKING CHANGE:` footer.
+
+## Where help is most useful
+
+- **Translations.** 48 languages ship, and most were machine-assisted. A native speaker fixing
+  awkward wording in `src/lib/i18n/locales/` is a genuinely high-value change. English is the
+  source of truth — translate *from* it, never into it.
+- **Agent integrations.** New CLI agents in the launcher, or improvements to the `kandown work`
+  output for a client you use daily.
+- **Bug reports with a task file attached.** Since tasks are plain files, a reproduction is usually
+  one `.md` you can paste into an issue.
+
+## Documentation site
+
+This site lives in `website/` in the same repository, and every docs page has an
+**Edit this page on GitHub** link at the bottom. Content is MDX under
+`website/src/content/docs/`; adding a page means creating the file and adding a line to
+`website/src/content/nav.ts`.

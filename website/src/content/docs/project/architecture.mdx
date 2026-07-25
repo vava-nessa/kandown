@@ -1,0 +1,87 @@
+---
+title: Architecture
+section: Project
+description: How the pieces fit together — the shared core, three interfaces, the daemon, and the invariants that keep them honest.
+---
+
+This page is the map. The authoritative, always-current version lives in
+[`docs/ARCHITECTURE.md`](https://github.com/vava-nessa/kandown/blob/main/docs/ARCHITECTURE.md) in
+the repository; this is the version worth reading before you have cloned anything.
+
+## The shape
+
+```
+             ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+             │   Web UI     │  │ Terminal UI  │  │     CLI      │
+             │ (kandown.html)  │   (bin/tui)  │  │ (bin/kandown)│
+             └───────┬──────┘  └───────┬──────┘  └───────┬──────┘
+                     │                 │                 │
+                     └────────┬────────┴────────┬────────┘
+                              │                 │
+                        ┌─────▼─────┐     ┌─────▼─────┐
+                        │  daemon   │     │  shared   │
+                        │  module   │─────│   core    │
+                        └───────────┘     └─────┬─────┘
+                                                │
+                                          ┌─────▼─────┐
+                                          │ tasks/*.md│
+                                          └───────────┘
+```
+
+Three interfaces, one core, one storage layer that is the filesystem.
+
+## The shared core
+
+The task parser, the dependency gate and the daemon module **each exist exactly once**. Every
+interface calls the same implementation.
+
+This is the single most important structural decision in the project. It means:
+
+- the web board and `kandown move` cannot disagree about whether a move is legal,
+- a bug fixed in the gate is fixed in all three places,
+- there is one place to read when you want to know how something behaves.
+
+## The daemon
+
+A small per-project HTTP server. It serves `kandown.html`, exposes the task API, and outlives the
+terminal UI so closing your shell does not close your browser tab.
+
+It binds to `127.0.0.1`, mints a per-project token at startup, and requires that token on every
+route except a read-only identity check. See
+[Configuration § security](/docs/reference/configuration#security).
+
+## Storage
+
+`tasks/*.md`, and nothing else. No index, no cache, no manifest, no sidecar database.
+
+Every read walks the folder. On a board of a few hundred tasks that is fast enough to be
+unnoticeable, and the property it buys — that the directory is the state, with no way for a cache
+to be wrong — is worth far more than the microseconds.
+
+## Invariants
+
+The rules that must not be broken, restated from the repository:
+
+1. **Task state lives in `tasks/*.md` and nowhere else.** No second source of truth.
+2. **The gate, the parser and the daemon module exist once** and are shared by all three
+   interfaces.
+3. **Generated files are never edited by hand.** `bin/*.js`, `CODEMAP.md`, `src/lib/version.ts` and
+   the root `AGENT_KANDOWN.md` are build output; edit the source and regenerate.
+4. **UI text is authored in English.** Every other locale is translated *from* English, never into
+   it.
+5. **Every source file carries a JSDoc header** with `@file` and `@description`. `CODEMAP.md` is
+   generated from those headers and CI fails when one is missing.
+
+## Finding your way around the code
+
+The repository generates its own map:
+
+- **`CODEMAP.md`** — every source file with a one-line summary, generated from the JSDoc headers.
+  Read this before grepping.
+- **`CODEMAP.json`** — the same data, plus symbols. Look a symbol up here instead of searching.
+- **`graphify query "<question>"`** — asks what depends on what.
+
+## Next
+
+[Contributing](/docs/project/contributing) covers the workflow: setting up, the build commands, and
+what CI checks before it will accept a change.

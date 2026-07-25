@@ -3,7 +3,7 @@
   "files": [
     {
       "path": "bin/kandown.js",
-      "lines": 2502,
+      "lines": 2493,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
@@ -269,9 +269,9 @@
     },
     {
       "path": "src/cli/lib/cli-shared.ts",
-      "lines": 331,
+      "lines": 328,
       "title": "CLI shared utilities",
-      "summary": "Argument parsing, project-directory resolution, colored console output, and task-file path helpers shared across every `cmdX` command handler and the TUI launcher in src/cli/cli.ts.",
+      "summary": "Argument parsing, deterministic nearest-ancestor project resolution, colored console output, and task-file path helpers shared across every `cmdX` command handler and the TUI launcher in src/cli/cli.ts.",
       "functions": [
         {
           "name": "parseArgs",
@@ -283,7 +283,7 @@
         },
         {
           "name": "resolveKandownDir, ensureKandownDir",
-          "summary": "locates/auto-inits the project dir"
+          "summary": "locates the nearest ancestor project/auto-inits it"
         },
         {
           "name": "taskParseArgs, stringFlag, listFlag, addMultiFlag",

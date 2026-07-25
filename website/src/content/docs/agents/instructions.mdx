@@ -1,0 +1,77 @@
+---
+title: Project instructions
+section: AI agents
+description: Teaching agents your project's specifics through .kandown/instructions.md, and why it beats pasting rules into AGENTS.md.
+---
+
+`kandown work` serves the *generic* agent rules — how tasks work, what a report is, how the
+dependency gate behaves. What it cannot know is anything about **your** project.
+
+That is what `.kandown/instructions.md` is for.
+
+## The file
+
+```
+.kandown/
+└── instructions.md
+```
+
+Plain Markdown, created by `kandown init` and empty by default. Whatever you put in it is inserted
+into `kandown work` output as the **project instructions** block, between the base rules and the
+board digest.
+
+## What belongs in it
+
+Things an agent cannot infer from your code, and will otherwise get wrong:
+
+```markdown
+## Stack
+- pnpm, always. Never npm or yarn — the lockfile is pnpm's.
+- Vitest for tests: `pnpm test`. There is no jest config despite the old comments.
+
+## Conventions
+- Conventional commits, imperative mood, English.
+- No `any` in TypeScript. Use `unknown` plus a type guard.
+- UI strings are authored in English and translated from there.
+
+## Working style
+- Update the task file as you go, not at the end. Check off subtasks with a
+  `report:` line as each one lands.
+- Be token-efficient: do not re-read files you have already read this session.
+
+## Do not touch
+- `bin/*.js` and `CODEMAP.md` are build output. Edit `src/` and regenerate.
+```
+
+## What does not belong in it
+
+- **The generic Kandown rules.** They are already served by the CLI, and duplicating them means one
+  copy will drift.
+- **Anything derivable from the repository.** File structure, dependency lists and past fixes are
+  cheaper for the agent to read directly than for you to maintain in prose.
+- **Secrets.** This file is committed with the rest of `.kandown/`.
+
+## Why not just put it in AGENTS.md?
+
+You can, and for a lot of projects that is fine. Two reasons to prefer `instructions.md`:
+
+1. **It reaches every interface.** `kandown work`, the MCP server and the "launch an agent" flow
+   all include it. An agent invoked from the board gets your rules whether or not it was told to
+   read `AGENTS.md`.
+2. **It stays adjacent to the board.** Instructions about *how to work the board* live next to the
+   board, and travel with it.
+
+<Callout type="note">
+`kandown init` adds one line to your `AGENTS.md` / `CLAUDE.md` pointing at `kandown work`. Keep
+that line. It is what tells an agent the command exists in the first place.
+</Callout>
+
+## Checking what an agent will see
+
+```bash
+kandown work
+```
+
+Run it yourself. It is the exact text your agent receives — if it reads badly to you, it will read
+badly to the model. Trim it in Settings → Agent → `kandown work` output, where the estimated token
+count updates as you toggle blocks.

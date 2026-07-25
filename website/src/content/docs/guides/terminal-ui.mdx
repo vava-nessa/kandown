@@ -1,0 +1,63 @@
+---
+title: Terminal UI
+section: Using the board
+description: The keyboard-driven board that works over SSH, with no browser involved.
+---
+
+```bash
+kandown board
+```
+
+A full kanban board in your terminal. Same files, same dependency gate, same everything — it is not
+a reduced view of the web UI, it is a peer of it.
+
+It is the interface to reach for when you are on a remote machine, when you live in a terminal
+multiplexer, or when you simply do not want a browser tab open for a task list.
+
+## Keys
+
+| Key | Action |
+|---|---|
+| <kbd>j</kbd> / <kbd>k</kbd> | Move between tasks |
+| <kbd>h</kbd> / <kbd>l</kbd> | Move between columns |
+| <kbd>n</kbd> | New task |
+| <kbd>e</kbd> | Edit the task in `$EDITOR` |
+| <kbd>m</kbd> | Move to another column |
+| <kbd>/</kbd> | Fuzzy search |
+| <kbd>f</kbd> | Cycle filters |
+| <kbd>a</kbd> | Launch an agent on this task |
+| <kbd>g</kbd> | Send the task to your agent hook |
+| <kbd>x</kbd> | Archive |
+| <kbd>D</kbd> | Delete |
+| <kbd>d</kbd> | Toggle the web daemon |
+| <kbd>r</kbd> | Reload from disk |
+| <kbd>?</kbd> | Cheatsheet |
+
+<Callout type="tip">
+<kbd>e</kbd> opens the raw Markdown file in `$EDITOR`. Since the file *is* the task, anything your
+editor can do — macros, multiple cursors, a spell checker — works on your board.
+</Callout>
+
+## Mouse
+
+The TUI is mouse-aware where terminals allow it: click to select, and **drag a task between
+columns** to move it.
+
+## Over SSH
+
+Nothing about the terminal UI needs a local browser or a display server, so it works unchanged over
+SSH. The web daemon is separate and optional — toggle it with <kbd>d</kbd> if you also want the
+browser board, and forward the port if you want to reach it from your laptop:
+
+```bash
+ssh -L 5176:localhost:5176 you@server
+```
+
+## Settings
+
+```bash
+kandown settings
+```
+
+A terminal settings editor covering the same configuration as the web Settings page: columns,
+theme, notifications, agents and the `kandown work` output.

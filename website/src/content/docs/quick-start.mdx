@@ -1,0 +1,111 @@
+---
+title: Quick start
+section: Getting started
+description: From an empty project to a running board, a first task, and an agent that can pick it up.
+---
+
+Two minutes, four commands.
+
+## 1. Initialize
+
+```bash
+cd my-project
+kandown init
+```
+
+This creates two folders at your project root:
+
+```
+tasks/                # your tasks — the source of truth
+├── t1.md             # one Markdown file per task
+└── archive/          # archived tasks live here
+
+.kandown/             # config + web UI + agent docs
+├── kandown.json      # columns, theme, notifications, agents
+├── kandown.html      # the web app, one self-contained file
+├── instructions.md   # optional: your project's agent instructions
+└── AGENT*.md         # agent reference, kept in sync with the CLI
+```
+
+It also appends a single line to your `AGENTS.md` / `CLAUDE.md` pointing agents at
+`kandown work` — one line, not a block of rules that will go stale.
+
+<Callout type="note">
+Tasks live at the project root rather than inside `.kandown/` so that config and data stay
+cleanly separated. Upgrading from an older layout? The CLI moves them for you on first run.
+</Callout>
+
+## 2. Open the board
+
+```bash
+kandown
+```
+
+This starts a small local daemon, opens the **web board** in your browser and a **terminal UI** in
+your shell. Both are live views of the same files.
+
+The daemon outlives the terminal UI on purpose — quit the TUI and your browser tab keeps working.
+Stop it with <kbd>d</kbd> in the TUI, or:
+
+```bash
+kandown daemon stop
+```
+
+Prefer no browser at all? `kandown board` gives you the terminal UI only.
+
+## 3. Create a task
+
+From the web board, press <kbd>N</kbd>. From the terminal UI, press <kbd>n</kbd>. From a script:
+
+```bash
+kandown create "Refactor auth middleware" -p P1 -t backend -a chacha
+```
+
+That prints the new task's id — and nothing else — on stdout, so you can capture it:
+
+```bash
+ID=$(kandown create "Add rate limiting" -p P1)
+kandown move "$ID" "In progress"
+```
+
+The quick-add box in the UI parses the same information out of one line:
+
+```
+Fix login p1 #backend @chacha due:friday
+```
+
+## 4. Point an agent at it
+
+```bash
+kandown work
+```
+
+Everything an agent needs, as Markdown on stdout: the rules, your project instructions, a live
+board digest, and the next actionable task — computed as the unblocked task closest to done with
+the highest priority.
+
+Wire it into an MCP-capable client instead, if you prefer:
+
+```bash
+claude mcp add kandown -- kandown mcp
+```
+
+Or select a task in the terminal UI and press <kbd>a</kbd> to launch Claude Code, Codex, Gemini
+CLI, Goose, Aider or OpenCode directly on it.
+
+## 5. Commit
+
+Tasks are files, so they belong in your history:
+
+```bash
+kandown commit -m "tasks: plan the auth refactor"
+```
+
+That stages `tasks/` and `.kandown/kandown.json` and commits them. Plain `git add` works exactly as
+well — the command is a convenience, not a requirement.
+
+## Where to go next
+
+- [Tasks](/docs/guides/tasks) — fields, subtasks, dependencies, templates
+- [For AI agents](/docs/agents/overview) — the part that makes Kandown different
+- [CLI reference](/docs/reference/cli) — every command and flag

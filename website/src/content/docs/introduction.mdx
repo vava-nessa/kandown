@@ -1,0 +1,61 @@
+---
+title: Introduction
+section: Getting started
+description: What Kandown is, what it deliberately is not, and who it is for.
+---
+
+Kandown drops a `tasks/` folder into your project and gives you three ways to work with it: a
+polished web board, a full terminal UI, and a scriptable CLI. All three read and write the same
+plain Markdown files.
+
+There is no server to run, no database to migrate, no account to create and no sync service to
+trust. If you can read a folder of text files, you can read your board.
+
+## The three ideas
+
+### Your data is just files
+
+One `.md` file per task, one folder, versioned in git. Nothing to export because nothing was ever
+imported. Open a task in your editor, `grep` your backlog, write a shell script against it, hand
+the folder to a colleague — it is all the same operation on the same files.
+
+There is no index, no cache and no manifest. The directory *is* the state. Move a file between
+folders and the board moves with it; delete one and the task is gone. That constraint is enforced
+deliberately across the codebase — see [Architecture](/docs/project/architecture).
+
+### Agents are first-class users
+
+Most tools bolt AI on as an integration: an API key, a plugin, a webhook. Kandown assumes an agent
+is simply another user of the board, and gives it the same affordances as you.
+
+`kandown work` prints everything an agent needs — the rules, your project instructions, a live
+board digest, and the computed next actionable task — as Markdown on stdout. Every task command is
+non-interactive, JSON-capable and offline. See [For AI agents](/docs/agents/overview).
+
+### Local-first, actually
+
+The board runs from a small daemon bound to `127.0.0.1` with a per-project token. Task commands
+never touch the network. The web UI ships as a single self-contained HTML file you can open from
+anywhere, including from a USB stick on a machine with no internet.
+
+## What Kandown is not
+
+<Callout type="note">
+Being clear about the boundaries saves you evaluating it for the wrong job.
+</Callout>
+
+- **Not a team server.** There is no realtime multiplayer, no permissions model and no hosted
+  instance. Collaboration happens the way it does for the rest of your repo: through git.
+- **Not a project-management suite.** No burndown charts, no sprint ceremonies, no time tracking.
+- **Not a hosted service.** Nothing to sign up for, and nothing that can shut down and take your
+  data with it.
+
+## Who it is for
+
+Developers who already live in a repository and want their task list to live there too — and
+anyone running AI coding agents who needs a shared, durable place for those agents to pick up work,
+report on it, and hand it back.
+
+## Next
+
+Install it, then run through the [quick start](/docs/quick-start) — it takes about two minutes.

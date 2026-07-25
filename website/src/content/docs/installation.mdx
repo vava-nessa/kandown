@@ -1,0 +1,94 @@
+---
+title: Installation
+section: Getting started
+description: Requirements, install methods, and how Kandown keeps itself up to date.
+---
+
+## Requirements
+
+Node.js **18 or newer**. That is the entire list — no database, no runtime service, no global
+configuration.
+
+Check what you have:
+
+```bash
+node --version
+```
+
+## Install
+
+Kandown is published to npm as [`kandown`](https://www.npmjs.com/package/kandown).
+
+```bash
+npm install -g kandown
+```
+
+Any package manager works:
+
+```bash
+pnpm add -g kandown
+yarn global add kandown
+bun add -g kandown
+```
+
+### Without installing
+
+`npx` runs it directly, which is useful for trying it out or for one-off CI commands:
+
+```bash
+npx kandown init
+npx kandown list --json
+```
+
+<Callout type="tip">
+For day-to-day use, install globally. The `npx` path re-resolves the package on every call, which
+adds a noticeable delay to commands you run in a loop.
+</Callout>
+
+## Verify
+
+```bash
+kandown --version
+kandown doctor
+```
+
+`kandown doctor` is the one to reach for when something looks wrong. It checks your config file,
+the daemon state, port availability and the frontmatter of every task, and tells you what to do
+about each problem it finds.
+
+## Updates
+
+Interactive runs check npm for a newer version at most **once every 24 hours**, and install it
+silently when one is found. The check is skipped entirely:
+
+- for every task command (`list`, `create`, `move`, …),
+- for `kandown daemon`,
+- whenever stdout is not a terminal — so it never fires in CI or inside an agent loop.
+
+To turn it off completely:
+
+```bash
+export KANDOWN_NO_UPDATE=1
+```
+
+You can also update on demand. This refreshes both the CLI and the `kandown.html` bundled in the
+current project:
+
+```bash
+kandown update
+```
+
+If you have several projects open, bring their daemons onto the current version in one go:
+
+```bash
+kandown daemon refresh-all
+```
+
+## Uninstall
+
+```bash
+npm uninstall -g kandown
+```
+
+Your `tasks/` folder and `.kandown/` config stay exactly where they are — they are just files, and
+removing the tool does not touch them.

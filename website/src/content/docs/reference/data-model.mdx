@@ -1,0 +1,113 @@
+---
+title: Data model
+section: Reference
+description: The complete shape of a task file — frontmatter fields, body conventions, and the folder layout.
+---
+
+One task, one file, no index. This page is the full specification of that file.
+
+## Folder layout
+
+```
+tasks/                # the source of truth
+├── t1.md
+├── t14.md
+└── archive/          # archived tasks, still readable and in git
+    └── t3.md
+
+.kandown/
+├── kandown.json      # columns, theme, notifications, agents
+├── kandown.html      # the web app, one self-contained file
+├── instructions.md   # your project's agent instructions
+├── daemon.json       # runtime state + API token (gitignored)
+└── AGENT*.md         # agent reference, synced from the CLI
+```
+
+There is no index, cache or manifest anywhere. The directory listing *is* the board state.
+
+## A task file
+
+```markdown
+---
+id: t1
+title: Implement user auth
+status: Todo
+priority: P1
+tags: [backend, security]
+assignee: chacha
+depends_on: [t7]
+created: 2026-04-10
+---
+
+# Implement user auth
+
+## Context
+Why this task exists.
+
+## Subtasks
+- [x] Create user model
+  report: Added src/models/user.ts with the schema and migrations.
+- [ ] Set up OAuth provider
+```
+
+## Frontmatter fields
+
+| Field | Type | Meaning |
+|---|---|---|
+| `id` | string | Stable identifier. Validated before it touches the filesystem |
+| `title` | string | Task title |
+| `status` | string | Board column, from `board.columns` in `kandown.json` |
+| `order` | number | Sort position within the column |
+| `priority` | `P1`–`P4` | Highest to lowest |
+| `tags` | string[] | Free-form labels |
+| `assignee` | string | A username or an agent name |
+| `ownerType` | `human` \| `ai` | Drives owner filtering |
+| `due` | date | Due date; drives the due-date banner |
+| `epic` | string | Groups related tasks; available as a group-by |
+| `depends_on` | string[] | Ids of tasks blocking this one |
+| `created` | date | Creation date |
+| `report` | string | Completion summary in Markdown, shown prominently in the UI |
+
+Unknown keys are preserved rather than stripped, so you can carry your own metadata through
+Kandown without it being eaten on the next write.
+
+## Body conventions
+
+The body is ordinary Markdown. Two headings are given meaning:
+
+### `## Context`
+
+Prose explaining why the task exists. Rendered as the task description.
+
+### `## Subtasks`
+
+A Markdown checklist. Each item may carry an indented description and a `report:` line:
+
+```markdown
+## Subtasks
+- [x] Extract the token parser
+  The old middleware parsed tokens inline, which made it untestable.
+  report: Moved to src/auth/token.ts, added unit tests for expiry.
+- [ ] Cover the refresh path with tests
+```
+
+`report:` is the field that turns a completed task into a work log. Agents are expected to fill it
+in as they go — see [For AI agents](/docs/agents/overview#keeping-the-board-honest).
+
+## Invariants
+
+Three rules the codebase enforces, worth knowing if you script against the files:
+
+1. **Task state lives in `tasks/*.md` and nowhere else.** No second source of truth, ever.
+2. **The dependency gate, the parser and the daemon module each exist once** and are shared by the
+   web UI, the terminal UI and the CLI. All three behave identically.
+3. **Archiving is a move, not a deletion.** `tasks/archive/` is still git history you can read.
+
+## Editing files directly
+
+Entirely supported — it is the point. Kandown watches the folder, detects external changes and
+surfaces them rather than overwriting.
+
+If you write a task by hand, `id`, `title` and `status` are the only fields you need; everything
+else has a sensible default. Run `kandown doctor` afterwards to have the frontmatter of every task
+validated.

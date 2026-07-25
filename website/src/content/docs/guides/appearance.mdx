@@ -1,0 +1,68 @@
+---
+title: Appearance
+section: Using the board
+description: Themes, custom themes in JSON, density and motion tokens, fonts, languages and notifications.
+---
+
+## Themes
+
+38 themes ship built in, including Vercel, Linear, Claude, Apple, Stripe, Catppuccin, Dracula,
+Nord, Terminal and Synthwave. Each comes in **light**, **dark** and **auto** — auto following your
+operating system.
+
+### Custom themes
+
+A theme is a JSON object of design tokens, so you can define your own without touching the source:
+
+```json
+{
+  "name": "My theme",
+  "colors": {
+    "bg": "#0c1d17",
+    "surface": "#142a22",
+    "border": "#1e372e",
+    "text": "#e8f0ea",
+    "textMuted": "#96a89e",
+    "accent": "#88e138"
+  }
+}
+```
+
+Paste it into Settings → Appearance → Custom theme. It is stored in `.kandown/kandown.json`, so it
+travels with the project and lands in git with everything else.
+
+## Tokens
+
+Beyond colour, the look is driven by four tokenised scales you can set independently:
+
+| Token | Effect |
+|---|---|
+| Radius | Corner rounding across cards, inputs and panels |
+| Shadows | Elevation, from flat to pronounced |
+| Density | Vertical rhythm — compact fits considerably more on screen |
+| Motion | Animation intensity, down to none |
+
+Five font stacks are available, covering system UI, geometric sans and monospace-forward looks.
+
+<Callout type="note">
+Setting motion to none is also the right choice on a machine where the animated background costs
+you frames. Kandown additionally honours the OS-level `prefers-reduced-motion` setting.
+</Callout>
+
+## Animated background
+
+An optional WebGL background renders behind the board. It is off by default on low-power settings
+and can be disabled entirely in Settings.
+
+## Languages
+
+The interface is translated into **48 languages**. English is the source of truth; every other
+locale is translated from it.
+
+Missing or awkward wording in your language is a genuinely useful contribution — locale files are
+plain JSON under `src/lib/i18n/locales/`. See [Contributing](/docs/project/contributing).
+
+## Notifications
+
+Browser notifications and sounds can be enabled per project, for due dates and board changes. Both
+are off until you turn them on, and neither leaves your machine.

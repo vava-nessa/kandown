@@ -1,0 +1,82 @@
+---
+title: Configuration
+section: Reference
+description: kandown.json, environment variables, the update check, and the daemon's security model.
+---
+
+## `.kandown/kandown.json`
+
+Per-project configuration: columns, theme, notifications, agent settings and the `kandown work`
+output template. It is a plain JSON file, committed with your repository, so a colleague who clones
+the project gets your board setup with it.
+
+Edit it through **Settings** in the web board, `kandown settings` in the terminal, or by hand.
+
+### Columns
+
+Columns are free-form. Renaming one updates every task's `status` to match; reordering changes the
+board. The **last column is the terminal column** — the one the dependency gate protects.
+
+### Themes
+
+38 built-in themes plus custom themes defined as JSON, along with radius, shadow, density, motion
+and font-stack tokens. See [Appearance](/docs/guides/appearance).
+
+### Agent output
+
+The `kandown work` output is configurable block by block, with a concise token-efficient mode and a
+raw template using `{{baseRules}}`, `{{projectInstructions}}` and `{{boardDigest}}`. See
+[For AI agents](/docs/agents/overview#tuning-the-output).
+
+## `.kandown/instructions.md`
+
+Your project's agent instructions, injected into `kandown work`. See
+[Project instructions](/docs/agents/instructions).
+
+## Environment variables
+
+| Variable | Effect |
+|---|---|
+| `KANDOWN_NO_UPDATE=1` | Disable the background update check (recommended in CI) |
+| `KANDOWN_DEBUG=1` | Print full stack traces instead of a one-line summary |
+| `KANDOWN_AGENT_HOOK_URL` | Endpoint that receives tasks from *Send to Agent* / TUI <kbd>g</kbd> |
+| `KANDOWN_AGENT_HOOK_LABEL` | Custom label for the agent hook button |
+| `KANDOWN_AGENT_HOOK_HEADERS` | JSON object of extra headers for the hook request |
+
+## The update check
+
+Interactive runs check npm for a newer version at most once every 24 hours and install it silently
+when one is found. It is skipped:
+
+- for every task command,
+- for `kandown daemon`,
+- whenever stdout is not a terminal.
+
+In other words it cannot fire in CI or inside an agent loop. `KANDOWN_NO_UPDATE=1` removes it
+entirely.
+
+## Security
+
+The local daemon binds to **`127.0.0.1` only** and mints a random **per-project API token** at
+startup. The token is stored in the gitignored `.kandown/daemon.json` and injected into the page it
+serves.
+
+Every route except the read-only `GET /api/daemon` identity check requires that token, so an
+unrelated browser tab cannot reach your tasks by scanning localhost ports — a real attack against
+naive local servers. Task ids are validated before they touch the filesystem, which closes the path
+traversal that "id" parameters invite.
+
+<Callout type="warn">
+`.kandown/daemon.json` holds a live credential and is gitignored for that reason. If you have
+custom ignore rules, make sure it stays out of your commits.
+</Callout>
+
+## What leaves your machine
+
+Nothing, with exactly two exceptions, both of which you control:
+
+1. **The update check**, which contacts the npm registry — disabled with `KANDOWN_NO_UPDATE=1`.
+2. **The agent hook**, which posts a task to your own endpoint — only when you press the key, and
+   only to the URL you set.
+
+No telemetry, no analytics, no account, no sync.

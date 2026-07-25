@@ -5,5 +5,8 @@
 # from the CLI's.
 packages:
   - .
+# 📖 esbuild ships a platform binary and needs its postinstall script to run.
 allowBuilds:
-  esbuild: set this to true or false
+  esbuild: true
+onlyBuiltDependencies:
+  - esbuild

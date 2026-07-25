@@ -44,6 +44,10 @@ export default defineConfig({
         crawlLinks: true,
         failOnError: false,
       },
+      // 📖 `/404` matches no route, so it renders the router's NotFound
+      // component. Emitting it as `404.html` at the root is what lets a static
+      // host (Vercel included) serve our own 404 page instead of its default.
+      pages: [{ path: '/404', prerender: { enabled: true, outputPath: '/404.html' } }],
     }),
     {
       enforce: 'pre',

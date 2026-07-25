@@ -1,0 +1,58 @@
+---
+title: MCP server
+section: AI agents
+description: Exposing the board over the Model Context Protocol, and when to prefer it over plain CLI calls.
+---
+
+Kandown ships a Model Context Protocol server, so MCP-capable clients can read and modify the board
+as structured tools rather than by shelling out.
+
+## Running it
+
+```bash
+kandown mcp
+```
+
+The server speaks MCP over **stdio** — it is meant to be launched by a client, not run in a
+terminal by hand. It operates on the Kandown project of its working directory.
+
+## Registering it
+
+With Claude Code:
+
+```bash
+claude mcp add kandown -- kandown mcp
+```
+
+Other clients take a command and arguments in their own configuration format; the command is always
+`kandown` with the single argument `mcp`, launched from your project directory.
+
+## MCP or the CLI?
+
+Both drive the same core, so this is a question of which fits your client.
+
+**Prefer MCP when** your agent runs inside a client with native MCP support and benefits from typed
+tool schemas — the model gets argument validation and discoverability for free, instead of having
+to compose shell commands correctly.
+
+**Prefer the CLI when** you are scripting, running in CI, orchestrating agents yourself, or using a
+tool without MCP support. It is also the better choice for tight loops: a shell call with
+`--json` is about as cheap as an operation gets.
+
+<Callout type="note">
+There is no functional cliff between them. The parser, the dependency gate and the daemon module
+each exist once and are shared by every interface — anything the MCP server refuses, the CLI
+refuses too.
+</Callout>
+
+## Context first
+
+Whichever transport you use, start the session with the board context:
+
+```bash
+kandown work
+```
+
+MCP gives an agent the *ability* to act on the board. `kandown work` gives it the rules, your
+project instructions and the digest that tell it **what to act on** — see
+[For AI agents](/docs/agents/overview).
