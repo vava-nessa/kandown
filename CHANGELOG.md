@@ -356,8 +356,8 @@
 
 ## 0.15.0 — 2026-07-07 — "Boot Splash"
 
-- **Added**: **Boot splash** — au lancement du projet, le titre `kandown` + badge `v<version>` reste affiché pendant 5 secondes, puis fond en fade-out pour ne laisser que le logo. Le nom du projet ouvert prend ensuite sa place comme titre de page du header, avec une transition douce.
-- **Added**: **Document title dynamique** — l'onglet du navigateur reflète désormais le projet courant (`<Projet> · Kandown`) au lieu d'un titre statique.
+- **Added**: **Boot splash** — on project launch, the `kandown` title and a `v<version>` badge stay on screen for 5 seconds, then fade out to leave only the logo. The name of the open project then takes its place as the header's page title, with a soft transition.
+- **Added**: **Dynamic document title** — the browser tab now reflects the current project (`<Project> · Kandown`) instead of a static title.
 
 ## 0.14.1 — 2026-07-07 — "Resilience Pass"
 

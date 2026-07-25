@@ -82,7 +82,7 @@ export function EmptyState() {
             {...MOTION.heroStagger(2)}
             className="text-[14.5px] text-fg-dim max-w-[480px] leading-relaxed"
           >
-            {t('emptyState.serverModeDesc') ?? 'Kandown est lancé en mode serveur. Le projet va se charger automatiquement.'}
+            {t('emptyState.serverModeDesc') ?? 'Kandown is running in server mode. The project will load automatically.'}
           </motion.div>
         </>
       ) : (
