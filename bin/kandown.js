@@ -15,7 +15,7 @@ import { spawn, execSync } from "child_process";
 import { homedir } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.34.3";
+var KANDOWN_VERSION = "0.35.0";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath } from "url";
@@ -1206,8 +1206,8 @@ function openBrowser(target) {
 }
 
 // src/cli/lib/cli-shared.ts
-import { existsSync as existsSync7, readFileSync as readFileSync7, readdirSync as readdirSync4, statSync as statSync4 } from "fs";
-import { join as join7, resolve as resolve2, basename } from "path";
+import { existsSync as existsSync7, readFileSync as readFileSync7, readdirSync as readdirSync4 } from "fs";
+import { join as join7, resolve as resolve2, basename, dirname as dirname4 } from "path";
 import { spawn as spawn4 } from "child_process";
 
 // src/cli/lib/init.ts
@@ -1383,30 +1383,21 @@ function stripFirstPositional(args, value) {
   return result;
 }
 function resolveKandownDir(pathArg = ".kandown", cwd = process.cwd()) {
-  if (basename(cwd) === ".kandown" || existsSync7(join7(cwd, "kandown.json"))) {
-    return cwd;
-  }
   if (pathArg !== ".kandown") {
     return resolve2(cwd, pathArg);
   }
-  let entries;
-  try {
-    entries = readdirSync4(cwd);
-  } catch {
-    return resolve2(cwd, pathArg);
-  }
-  for (const name of entries) {
-    if (name.startsWith(".") || name === "node_modules" || name === "tasks") continue;
-    const subPath = join7(cwd, name);
-    let stat;
-    try {
-      stat = statSync4(subPath);
-    } catch {
-      continue;
+  let currentDir = resolve2(cwd);
+  while (true) {
+    if (basename(currentDir) === ".kandown" && existsSync7(join7(currentDir, "kandown.json"))) {
+      return currentDir;
     }
-    if (!stat.isDirectory()) continue;
-    const found = resolveKandownDir(pathArg, subPath);
-    if (existsSync7(found)) return found;
+    const candidate = join7(currentDir, ".kandown");
+    if (existsSync7(join7(candidate, "kandown.json"))) {
+      return candidate;
+    }
+    const parentDir = dirname4(currentDir);
+    if (parentDir === currentDir) break;
+    currentDir = parentDir;
   }
   return resolve2(cwd, pathArg);
 }

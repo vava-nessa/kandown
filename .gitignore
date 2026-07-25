@@ -165,3 +165,5 @@ vite.config.ts.timestamp-*
 # 📖 The demo build (pnpm build:demo). Generated on every website build from
 # these sources; committing it would let a stale bundle outlive the code.
 dist-demo/
+.vercel
+.env*

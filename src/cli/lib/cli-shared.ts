@@ -1,13 +1,13 @@
 /**
  * @file CLI shared utilities
- * @description Argument parsing, project-directory resolution, colored
- * console output, and task-file path helpers shared across every `cmdX`
- * command handler and the TUI launcher in src/cli/cli.ts.
+ * @description Argument parsing, deterministic nearest-ancestor project
+ * resolution, colored console output, and task-file path helpers shared across
+ * every `cmdX` command handler and the TUI launcher in src/cli/cli.ts.
  *
  * @functions
  *  → parseArgs — generic `--flag value` / `-f` CLI arg parser
  *  → splitCommand, stripFirstPositional — pulls the verb out of argv
- *  → resolveKandownDir, ensureKandownDir — locates/auto-inits the project dir
+ *  → resolveKandownDir, ensureKandownDir — locates the nearest ancestor project/auto-inits it
  *  → taskParseArgs, stringFlag, listFlag, addMultiFlag — task-command arg parsing
  *  → resolveStatusArg — case-insensitive column name lookup
  *  → taskPath, findTaskPath, nextTaskId, readTaskFile — task file path/read helpers
@@ -20,8 +20,8 @@
  *   printTaskCommandsHelp, launchTui
  */
 
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { join, resolve, basename } from 'node:path';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { join, resolve, basename, dirname } from 'node:path';
 import { spawn } from 'node:child_process';
 import { getCurrentVersion, PKG_ROOT } from './updater';
 import { getTasksDir, listTaskIds } from './board-reader';
@@ -107,34 +107,31 @@ export function stripFirstPositional(args: string[], value: string): string[] {
 }
 
 export function resolveKandownDir(pathArg = '.kandown', cwd = process.cwd()): string {
-  // 1. cwd itself is already a .kandown dir or contains its config directly
-  if (basename(cwd) === '.kandown' || existsSync(join(cwd, 'kandown.json'))) {
-    return cwd;
-  }
-  // 2. Explicit --path was given
   if (pathArg !== '.kandown') {
     return resolve(cwd, pathArg);
   }
-  // 3. Recurse into sub-directories to find the first .kandown/ or ./tasks
-  let entries: string[];
-  try {
-    entries = readdirSync(cwd);
-  } catch {
-    return resolve(cwd, pathArg);
-  }
-  for (const name of entries) {
-    if (name.startsWith('.') || name === 'node_modules' || name === 'tasks') continue;
-    const subPath = join(cwd, name);
-    let stat: ReturnType<typeof statSync>;
-    try {
-      stat = statSync(subPath);
-    } catch {
-      continue;
+
+  // 📖 Resolve upward from the caller instead of scanning child directories.
+  // A downward scan can select packaged starter assets such as
+  // `templates/kandown.json` while completely skipping the hidden root
+  // `.kandown/` directory. The nearest ancestor project is deterministic and
+  // also lets commands run naturally from nested paths such as `src/`.
+  let currentDir = resolve(cwd);
+  while (true) {
+    if (basename(currentDir) === '.kandown' && existsSync(join(currentDir, 'kandown.json'))) {
+      return currentDir;
     }
-    if (!stat.isDirectory()) continue;
-    const found = resolveKandownDir(pathArg, subPath);
-    if (existsSync(found)) return found;
+
+    const candidate = join(currentDir, '.kandown');
+    if (existsSync(join(candidate, 'kandown.json'))) {
+      return candidate;
+    }
+
+    const parentDir = dirname(currentDir);
+    if (parentDir === currentDir) break;
+    currentDir = parentDir;
   }
+
   return resolve(cwd, pathArg);
 }
 

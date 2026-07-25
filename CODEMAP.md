@@ -156,7 +156,7 @@ source to edit instead.
 - **`store.ts`** · 1856 lines — Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.
 - **`task-title-category.ts`** · 52 lines — Extracts single leading bracket category tags (e.g.
 - **`task-url.ts`** · 65 lines — Parses and writes deep-link URLs for task drawers.
-- **`theme.ts`** · 1526 lines — Manages customizable JSON themes, appearance tokens (--radius, --shadow-*, --font-display, --motion-scale), curated presets (Vercel, Linear, Claude, Apple, Stripe, Paper, Catppuccin, Terminal), and dynamic inheritance.
+- **`theme.ts`** · 1612 lines — Manages customizable JSON themes, appearance tokens (--radius, --shadow-*, --font-display, --motion-scale), curated presets (Vercel, Linear, Claude, Apple, Stripe, Paper, Catppuccin, Terminal), and dynamic inheritance.
 - **`types.ts`** · 336 lines — Defines the board, task, config, filter, search, and appearance types used by the Kandown web UI and persistence layer.
 - **`utils.ts`** · 24 lines — Provides `cn`, the single utility used across every web component to compose conditional class names.
 - **`version.ts`** · 9 lines · ⚠️ **GENERATED** by scripts/inject-version.js — edit `package.json` instead
@@ -193,7 +193,8 @@ source to edit instead.
 - **`figma.ts`** · 35 lines — Curated appearance/color-token preset for the theme gallery.
 - **`github.ts`** · 35 lines — Curated appearance/color-token preset for the theme gallery.
 - **`glacier.ts`** · 35 lines — Curated appearance/color-token preset for the theme gallery.
-- **`index.ts`** · 87 lines — Aggregates every curated theme preset into the THEME_PRESETS array consumed by the theme engine (src/lib/theme.ts).
+- **`index.ts`** · 90 lines — Aggregates every curated theme preset into the THEME_PRESETS array consumed by the theme engine (src/lib/theme.ts).
+- **`kandown.ts`** · 47 lines — Kandown's own appearance/color-token preset, built from the brand palette published on the website: #88E138 brand lime (logo arrow, primary actions), #7AD12A the contrast-adjusted lime used on light backgrounds, #0CE931 the hero/WebGL…
 - **`latte-macchiato.ts`** · 35 lines — Curated appearance/color-token preset for the theme gallery.
 - **`linear.ts`** · 78 lines — Curated appearance/color-token preset for the theme gallery.
 - **`midnight-tokyo.ts`** · 35 lines — Curated appearance/color-token preset for the theme gallery.
@@ -238,6 +239,6 @@ source to edit instead.
 
 ## Coverage
 
-148 of 148 eligible files carry an `@description` header.
+149 of 149 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

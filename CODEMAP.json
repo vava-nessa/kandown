@@ -1672,7 +1672,7 @@
     },
     {
       "path": "src/lib/theme.ts",
-      "lines": 1526,
+      "lines": 1612,
       "title": "Project theme engine (FABLE_UI)",
       "summary": "Manages customizable JSON themes, appearance tokens (--radius, --shadow-*, --font-display, --motion-scale), curated presets (Vercel, Linear, Claude, Apple, Stripe, Paper, Catppuccin, Terminal), and dynamic inheritance.",
       "functions": [
@@ -1785,9 +1785,15 @@
     },
     {
       "path": "src/lib/themes/index.ts",
-      "lines": 87,
+      "lines": 90,
       "title": "Theme preset registry",
       "summary": "Aggregates every curated theme preset into the THEME_PRESETS array consumed by the theme engine (src/lib/theme.ts)."
+    },
+    {
+      "path": "src/lib/themes/kandown.ts",
+      "lines": 47,
+      "title": "\"kandown\" theme preset — the house theme",
+      "summary": "Kandown's own appearance/color-token preset, built from the brand palette published on the website: #88E138 brand lime (logo arrow, primary actions), #7AD12A the contrast-adjusted lime used on light backgrounds, #0CE931 the hero/WebGL…"
     },
     {
       "path": "src/lib/themes/latte-macchiato.ts",
