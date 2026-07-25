@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- **Added**: **Demo mode** — a third backend for the web UI that answers the Kandown REST API from an in-memory `Map` instead of a disk, so the whole application can run in a browser tab with no CLI, no server and no storage. It plugs in at `apiFetch` (`src/lib/filesystem.ts`) via `registerDemoApi()`, which is why the board, drawer, editor, search, archive and drag-and-drop all work without knowing anything changed — nothing is mocked. Built with `pnpm build:demo`, which also drops `vite-plugin-singlefile` in favour of a normal chunked build. The entire feature is compiled out of the bundle `npx kandown` ships, behind the `__KANDOWN_DEMO_BUILD__` define.
+- **Fixed**: **Header task counter rendered `[object Object] tasks`** — `useAnimatedNumber` returns a Motion `MotionValue`, which has to be rendered by a `motion.*` component that subscribes to it; wrapping it in `String()` stringified the object itself. Every user of the web board saw this on every screen.
+- **Fixed**: **Repository root could open as a project named `templates`** — implicit project resolution now checks the current directory and walks upward for the nearest valid `.kandown/kandown.json` instead of recursively scanning child directories. This keeps the live board anchored to the canonical root `.kandown/` + `tasks/` layout, works from nested paths such as `src/`, and prevents packaged init assets under `templates/` from being mistaken for a project.
+- **Changed**: **Removed downward child-project auto-discovery** — launching Kandown from a directory above a project no longer guesses which descendant board to open. Run it inside the intended project (or one of its subdirectories), or pass an explicit `--path`, for deterministic selection.
+- **Cleaned**: Removed accidentally committed `templates/daemon.json` runtime state and `templates/kandown.html` generated output. The configuration, documentation, and welcome-task seeds required by `kandown init` remain in `templates/`.
+
 ## 0.34.3 — 2026-07-24 — "Motion Polish — Drag Fix"
 
 - **Fixed**: **Cards could not be dragged between columns after the v0.34.2 motion polish** — the `motion.div` → plain `<div>` replacement in `Card.tsx` accidentally dropped the `draggable` HTML5 attribute and the `{...dragHandlers}` spread that wire `onDragStart` / `onDragEnd` on each card. Without `draggable` the native HTML5 drag event never fired, so the board could not move tasks between columns even though the click-to-open drawer still worked. Restores `draggable` and `dragHandlers` on the card container; no other behavior changes.

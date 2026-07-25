@@ -330,7 +330,12 @@ export function Header() {
           <>
             <div className="flex items-center gap-2 mr-2 text-[12.5px] text-fg-muted/70">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span className="tabular-nums font-medium transition-colors duration-200">{String(displayCount)}</span>
+              {/* 📖 `displayCount` is a MotionValue, not a number: it has to be
+                  rendered by a motion component, which subscribes to it and
+                  writes the spring's output straight into the text node. A
+                  plain span stringifies the object itself — which is what this
+                  counter did, showing "[object Object] tasks" to everyone. */}
+              <motion.span className="tabular-nums font-medium transition-colors duration-200">{displayCount}</motion.span>
               <span>{t('header.tasks')}</span>
             </div>
 

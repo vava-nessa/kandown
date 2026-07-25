@@ -10,6 +10,11 @@ dist
 src/routeTree.gen.ts
 src/generated/
 
+# 📖 The interactive demo, rebuilt from the CLI sources by scripts/build-demo.mjs
+# on every build. Committing it would let a stale bundle outlive the code it is
+# supposed to demonstrate.
+public/demo/
+
 *.log
 .DS_Store
 .env

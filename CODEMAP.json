@@ -820,7 +820,7 @@
     },
     {
       "path": "src/components/Header.tsx",
-      "lines": 425,
+      "lines": 430,
       "title": "App header",
       "summary": "Top navigation bar for project switching, task search, filters, view mode, density, settings, command palette, reload, and task creation.",
       "functions": [
@@ -890,7 +890,7 @@
     },
     {
       "path": "src/components/OnboardingTour.tsx",
-      "lines": 111,
+      "lines": 117,
       "title": "Lightweight 3-step onboarding modal",
       "summary": "Quick guide on first launch introducing Kandown features.",
       "exports": "OnboardingTour"
@@ -1193,6 +1193,34 @@
       "exports": "columnIconsByName, getColumnIcon, COLUMN_COLOR_MAP, COLOR_SWATCHES"
     },
     {
+      "path": "src/lib/demoBackend.ts",
+      "lines": 267,
+      "title": "In-memory backend for the website demo",
+      "summary": "Implements the Kandown REST API against a `Map` instead of a disk, so the whole web UI can run in a browser tab with no CLI, no server and no storage.",
+      "functions": [
+        {
+          "name": "installDemoBackend",
+          "summary": "seeds the virtual FS and routes apiFetch into it"
+        },
+        {
+          "name": "demoApi",
+          "summary": "the request router; returns real Response objects"
+        },
+        {
+          "name": "isDemoBuild",
+          "summary": "narrow helper for UI code that hides CLI-only affordances"
+        }
+      ],
+      "exports": "installDemoBackend, demoApi, DEMO_SUPPORTED_ROUTES"
+    },
+    {
+      "path": "src/lib/demoSeed.ts",
+      "lines": 400,
+      "title": "Demo project seed data",
+      "summary": "The starting contents of the in-memory project served by {@link ./demoBackend.ts} when the app runs in demo mode on the website.",
+      "exports": "DEMO_PROJECT_NAME, DEMO_ROOT, DEMO_CONFIG_JSON, DEMO_INSTRUCTIONS, DEMO_BOARD_MD, DEMO_TASKS, DEMO_ARCHIVED_TASKS"
+    },
+    {
       "path": "src/lib/dependencies.ts",
       "lines": 142,
       "title": "Task dependency resolution and enforcement",
@@ -1272,7 +1300,7 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 879,
+      "lines": 953,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [
@@ -1282,7 +1310,15 @@
         },
         {
           "name": "isServerMode",
-          "summary": "returns true when serving via CLI (window.__KANDOWN_ROOT__ set)"
+          "summary": "returns true when a managed backend answers /api/* (CLI or demo)"
+        },
+        {
+          "name": "isDemoMode",
+          "summary": "returns true in the website demo build (no disk behind the app)"
+        },
+        {
+          "name": "registerDemoApi",
+          "summary": "routes apiFetch into an in-process backend"
         },
         {
           "name": "getServerRoot",
@@ -1349,7 +1385,7 @@
           "summary": "edits `.kandown/instructions.md`"
         }
       ],
-      "exports": "supportsFileSystemAccess, isServerMode, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverWriteTask, serverDeleteTask, serverMigrateTasks"
+      "exports": "supportsFileSystemAccess, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverWriteTask, serverDeleteTask, serverMigrateTasks"
     },
     {
       "path": "src/lib/globalErrors.ts",
@@ -1584,7 +1620,7 @@
     },
     {
       "path": "src/lib/store/watcherSlice.ts",
-      "lines": 223,
+      "lines": 229,
       "title": "Zustand store slice — file watcher wiring",
       "summary": "Starts either the browser file-system watcher or the server-mode REST polling loop, translates watcher events into board reloads / conflict detection / notifications, and exposes a manual restart for when the watcher auto-disables…"
     },
@@ -1955,7 +1991,7 @@
     },
     {
       "path": "src/main.tsx",
-      "lines": 37,
+      "lines": 55,
       "title": "Browser entry point",
       "summary": "Mounts the Kandown React app into the Vite-provided root node, initializes i18n, and imports the global Tailwind/CSS-variable theme layer.",
       "functions": [
@@ -1965,6 +2001,12 @@
         }
       ],
       "exports": "none"
+    },
+    {
+      "path": "src/types/build-flags.d.ts",
+      "lines": 20,
+      "title": "Build-time constants",
+      "summary": "Ambient declarations for the literals Vite substitutes via `define` at build time."
     },
     {
       "path": "src/types/three.d.ts",

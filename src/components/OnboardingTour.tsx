@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { IconLayoutBoard, IconSparkles, IconCommand, IconX, IconChevronRight } from '@tabler/icons-react';
+import { isDemoMode } from '../lib/filesystem';
 
 const STEPS = [
   {
@@ -34,6 +35,11 @@ export function OnboardingTour() {
   const [stepIndex, setStepIndex] = useState(0);
 
   useEffect(() => {
+    // 📖 Never in the demo. The "seen" flag is the only thing keeping this modal
+    // from being shown twice, and the demo deliberately persists nothing — so it
+    // would greet every visitor on every single reload, on top of a page that
+    // has already introduced the product. The demo's own chrome does this job.
+    if (isDemoMode()) return;
     const seen = localStorage.getItem(ONBOARDING_KEY);
     if (!seen) {
       setOpen(true);

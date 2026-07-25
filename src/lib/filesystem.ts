@@ -20,9 +20,16 @@
  * are routed through the CLI REST API instead of using FileSystemDirectoryHandle.
  * This allows the web app to work without user interaction.
  *
+ * 📖 There is a third backend, used only by the website demo: an in-memory
+ * implementation of the same REST API. It plugs in at `apiFetch` via
+ * {@link registerDemoApi}, which is why nothing else in the codebase needs to
+ * know the demo exists. See `src/lib/demoBackend.ts`.
+ *
  * @functions
  *  → supportsFileSystemAccess — detects compatible Chromium browsers
- *  → isServerMode — returns true when serving via CLI (window.__KANDOWN_ROOT__ set)
+ *  → isServerMode — returns true when a managed backend answers /api/* (CLI or demo)
+ *  → isDemoMode — returns true in the website demo build (no disk behind the app)
+ *  → registerDemoApi — routes apiFetch into an in-process backend
  *  → getServerRoot — returns window.__KANDOWN_ROOT__ path or null
  *  → pickDirectory — prompts for a writable project directory
  *  → pickProjectDirectory — opens the project root, derives `.kandown` and `tasks/`
@@ -40,7 +47,7 @@
  *  → serverMigrateTasks — triggers the legacy → new layout migration via REST
  *  → readProjectInstructions / writeProjectInstructions — edits `.kandown/instructions.md`
  *
- * @exports supportsFileSystemAccess, isServerMode, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverWriteTask, serverDeleteTask, serverMigrateTasks
+ * @exports supportsFileSystemAccess, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverWriteTask, serverDeleteTask, serverMigrateTasks
  * @see src/lib/store.ts
  * @see src/lib/parser.ts
  */
@@ -60,6 +67,10 @@ declare global {
     /** 📖 Per-daemon API auth token injected by the CLI server alongside the
      * root. Sent as `X-Kandown-Token` on every API call — see apiFetch. */
     __KANDOWN_TOKEN__?: string;
+    /** 📖 Set by the website demo build only. Marks a session with no disk
+     * behind it: the API is served from memory and nothing is persisted.
+     * @see src/lib/demoBackend.ts */
+    __KANDOWN_DEMO__?: boolean;
   }
   interface FileSystemDirectoryHandle {
     name: string;
@@ -86,11 +97,30 @@ export function supportsFileSystemAccess(): boolean {
 }
 
 /**
- * 📖 True when the CLI server is serving this page (window.__KANDOWN_ROOT__ is set).
- * Indicates the app is running in "server mode" — the CLI knows the project path.
+ * 📖 True when a managed backend answers `/api/*` and the project path is
+ * already known — i.e. no file picker is needed.
+ *
+ * 📖 Two things satisfy this. Normally it is the CLI server, which sets
+ * `window.__KANDOWN_ROOT__` to the real `.kandown/` path. In the website demo
+ * build it is the in-memory backend, which sets the same global to a synthetic
+ * path so the whole store boots through this one code path instead of growing a
+ * third set of branches. Read this predicate as "we have a backend", not
+ * literally "an HTTP server exists".
+ *
+ * @see src/lib/demoBackend.ts
  */
 export function isServerMode(): boolean {
   return typeof window !== 'undefined' && typeof window.__KANDOWN_ROOT__ === 'string' && window.__KANDOWN_ROOT__.length > 0;
+}
+
+/**
+ * 📖 True only in the website demo: the app is running with no disk behind it.
+ * Use this to hide affordances that cannot work without the CLI (the folder
+ * picker, the updater, the daemon panel) — never to change how data is read,
+ * which is the demo backend's job.
+ */
+export function isDemoMode(): boolean {
+  return typeof window !== 'undefined' && window.__KANDOWN_DEMO__ === true;
 }
 
 /**
@@ -108,12 +138,46 @@ export function getServerRoot(): string | null {
 const API_BASE = '';
 
 /**
+ * 📖 Signature of a backend that can answer Kandown API requests. Deliberately
+ * the same shape as `fetch` so the demo implementation is a drop-in.
+ */
+export type KandownApi = (path: string, options?: RequestInit) => Promise<Response>;
+
+/**
+ * 📖 Set by the demo backend at startup. When present, every API call is served
+ * from memory instead of the network. Null in every shipped CLI build — the
+ * demo backend is dead code there and never reaches the bundle.
+ * @see src/lib/demoBackend.ts
+ */
+let demoApiHandler: KandownApi | null = null;
+
+/**
+ * @description Points {@link apiFetch} at an in-process backend. Called once,
+ * before React mounts, by `installDemoBackend()`.
+ */
+export function registerDemoApi(handler: KandownApi): void {
+  demoApiHandler = handler;
+}
+
+/**
  * 📖 Central fetch wrapper for the Kandown REST API.
  * Throws with a descriptive message on non-OK responses.
  * Attaches the daemon auth token (`X-Kandown-Token`) injected by the CLI
  * server — every route except `GET /api/daemon` requires it.
+ *
+ * 📖 The demo short-circuits here, above the network. That single branch is why
+ * the demo needs no changes anywhere else: every server-mode call in the store
+ * already funnels through this function.
  */
 async function apiFetch(path: string, options?: RequestInit): Promise<Response> {
+  if (demoApiHandler) {
+    const res = await demoApiHandler(path, options);
+    if (!res.ok) {
+      const body = await res.clone().text().catch(() => '');
+      throw new Error(`API ${options?.method ?? 'GET'} ${path} → ${res.status}${body ? ': ' + body : ''}`);
+    }
+    return res;
+  }
   const token = typeof window !== 'undefined' && typeof window.__KANDOWN_TOKEN__ === 'string'
     ? window.__KANDOWN_TOKEN__
     : null;
@@ -803,7 +867,15 @@ function openDB(): Promise<IDBDatabase> {
   });
 }
 
+/**
+ * 📖 The recent-projects store is the one place the app writes to the visitor's
+ * browser rather than to the project folder. In the demo that would leave real
+ * data on the website's origin for a session the visitor was told is throwaway,
+ * so all three entry points become no-ops. Returning an empty list also routes
+ * demo startup straight into `openServerProject()`, which is what we want.
+ */
 export async function saveRecentProject(project: RecentProject): Promise<void> {
+  if (isDemoMode()) return;
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, 'readwrite');
@@ -814,6 +886,7 @@ export async function saveRecentProject(project: RecentProject): Promise<void> {
 }
 
 export async function listRecentProjects(): Promise<RecentProject[]> {
+  if (isDemoMode()) return [];
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, 'readonly');
@@ -828,6 +901,7 @@ export async function listRecentProjects(): Promise<RecentProject[]> {
 }
 
 export async function removeRecentProject(id: string): Promise<void> {
+  if (isDemoMode()) return;
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, 'readwrite');

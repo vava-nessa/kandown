@@ -66,6 +66,17 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
+          {/* 📖 Given its own accent dot rather than sitting flat among the docs
+              links: it is the only entry here that runs the product instead of
+              describing it, and it is what most first-time visitors want. */}
+          <Link
+            to="/demo"
+            className="label flex items-center gap-1.5 border-b-2 border-transparent py-1 transition-colors hover:text-fg"
+            activeProps={{ className: 'label flex items-center gap-1.5 border-b-2 border-accent py-1 text-fg' }}
+          >
+            <span aria-hidden="true" className="size-1.5 rounded-full bg-accent" />
+            Demo
+          </Link>
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
@@ -123,6 +134,14 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
+          <Link
+            to="/demo"
+            onClick={() => setOpen(false)}
+            className="label flex items-center gap-1.5 py-3 hover:text-fg"
+          >
+            <span aria-hidden="true" className="size-1.5 rounded-full bg-accent" />
+            Demo
+          </Link>
         </nav>
       )}
     </header>

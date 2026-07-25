@@ -41,6 +41,7 @@
     "dev:app": "pnpm build && node bin/kandown.js",
     "build": "node scripts/inject-version.js && node scripts/sync-agent-kandown.js && tsc -b && vite build && pnpm build:cli",
     "build:cli": "tsup",
+    "build:demo": "node scripts/inject-version.js && vite build --mode demo",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "sync:agent": "node scripts/sync-agent-kandown.js",

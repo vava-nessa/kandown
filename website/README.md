@@ -91,6 +91,44 @@ Recording notes: the frame is `16/10`, so record at **1920×1200** (or 2560×160
 
 ---
 
+## The interactive demo
+
+`/demo` embeds the **real Kandown application**, running on a project that lives
+in the browser's memory. Drag a card, edit a task, archive one — then reload and
+it is all back.
+
+It is built, not written. `scripts/build-demo.mjs` runs before every site build:
+it invokes `pnpm build:demo` in the repository root, copies the result into
+`public/demo/app/`, and stamps `src/generated/demo-meta.json` with the version it
+built. Both are gitignored — **never edit or commit them**. A demo that could
+outlive the code it demonstrates is worse than no demo, so a failure in that
+script fails the deploy rather than shipping a stale bundle.
+
+| Command | What it does |
+|---|---|
+| `pnpm demo` | Rebuild the demo now |
+| `KANDOWN_DEMO_SKIP=1 pnpm build` | Build the site without it (the page says so) |
+
+`pnpm dev` only builds it if it is missing, so day-to-day work on the docs does
+not pay for it. Delete `public/demo/` to force a rebuild.
+
+### How it works
+
+The application has one I/O choke point — `apiFetch` in `src/lib/filesystem.ts`
+— through which every call to the CLI's REST API passes. The demo build registers
+an in-memory implementation of that same API (`src/lib/demoBackend.ts`), so the
+board, drawer, editor, search and archive all work without knowing anything
+changed. Nothing is mocked, because there is nothing to mock.
+
+Memory rather than `localStorage` is deliberate: the reset is then free and
+total. Nothing is written to the visitor's browser at all — not even the theme
+preference or the onboarding flag.
+
+The whole demo is compiled out of the bundle `npx kandown` ships, behind the
+`__KANDOWN_DEMO_BUILD__` define.
+
+---
+
 ## Design
 
 **Direction: editorial / terminal.** The rules that keep it from drifting back into a template:
@@ -177,9 +215,11 @@ site's own 404 rather than the host's.
 website/
 ├── public/
 │   ├── fonts/               # Geist + Geist Mono, self-hosted (OFL)
+│   ├── demo/app/            # ← the built application (generated, gitignored)
 │   └── …                    # favicons, og-image, demo video (you supply)
 ├── scripts/
-│   └── build-search-index.mjs
+│   ├── build-search-index.mjs
+│   └── build-demo.mjs       # ← rebuilds the demo from the CLI sources
 ├── src/
 │   ├── components/          # header, footer, sidebar, search, landing pieces
 │   ├── content/

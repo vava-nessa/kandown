@@ -29,6 +29,24 @@ import './styles/globals.css';
 setupGlobalErrorHandlers();
 initI18n('en');
 
+/**
+ * 📖 Demo build only (`pnpm build:demo`, for the website's `/demo` page).
+ *
+ * `__KANDOWN_DEMO_BUILD__` is replaced at build time with a literal. In every
+ * CLI build it is `false`, so Rollup removes this whole block along with the
+ * dynamic import — the demo backend and its seed data never reach the bundle
+ * that `npx kandown` downloads.
+ *
+ * The import is awaited before `createRoot`, so the in-memory API is registered
+ * before any component can fire a request at it.
+ *
+ * @see src/lib/demoBackend.ts
+ */
+if (__KANDOWN_DEMO_BUILD__) {
+  const { installDemoBackend } = await import('./lib/demoBackend');
+  installDemoBackend();
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />

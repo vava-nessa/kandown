@@ -19,6 +19,7 @@ import {
   createRootRoute,
   HeadContent,
   Scripts,
+  useRouterState,
 } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 import { SiteHeader } from '~/components/SiteHeader'
@@ -85,6 +86,13 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
+  // 📖 Read from the router rather than passed down, because the shell renders
+  // above the route that would know. `startsWith` so any future `/demo/...`
+  // sub-route inherits the same full-bleed treatment.
+  const isDemoRoute = useRouterState({
+    select: (s) => s.location.pathname.startsWith('/demo'),
+  })
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -111,7 +119,11 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         </a>
         <SiteHeader />
         <main id="main">{children}</main>
-        <SiteFooter />
+        {/* 📖 The demo is a full-viewport application surface, so it owns the
+            space below the header outright. A site footer under an embedded app
+            would make the outer page scroll — two scrollbars, and the board's
+            own column scrolling becomes unusable. */}
+        {isDemoRoute ? null : <SiteFooter />}
         <Scripts />
       </body>
     </html>

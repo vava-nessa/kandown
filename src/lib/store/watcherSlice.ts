@@ -8,7 +8,7 @@
 
 import type { StateCreator } from 'zustand';
 import type { TaskFrontmatter } from '../types';
-import { readTaskFile as fsReadTaskFile, isServerMode } from '../filesystem';
+import { readTaskFile as fsReadTaskFile, isDemoMode, isServerMode } from '../filesystem';
 import { extractSubtasks } from '../parser';
 import { fileWatcher } from '../watcher';
 import type { ConflictType } from '../watcher';
@@ -31,6 +31,12 @@ export interface WatcherSlice {
 
 export const createWatcherSlice: StateCreator<State, [], [], WatcherSlice> = (set, get) => ({
   setupWatcher: () => {
+    // 📖 Demo mode — the "filesystem" is a Map inside this tab, so this store is
+    // the only writer that exists. Polling it would burn a full board reload
+    // every 2s to discover changes we made ourselves, and the re-render can
+    // land mid-drag. Nothing to watch, so we do not watch.
+    if (isDemoMode()) return;
+
     // 📖 Server mode — use REST API polling (no FileSystemDirectoryHandle available)
     if (isServerMode()) {
       if (serverPollInterval) clearInterval(serverPollInterval);

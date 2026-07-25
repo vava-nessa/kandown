@@ -8,6 +8,47 @@ const CLOSING_HEAD_TAG = '</head>';
 // 📖 Keep the local web UI dev server predictable so agents and humans can share the same URL.
 const DEFAULT_DEV_SERVER_PORT = 5176;
 
+/**
+ * 📖 Demo build (`vite build --mode demo`, i.e. `pnpm build:demo`).
+ *
+ * Produces the bundle the website embeds at `/demo`: the real app, backed by an
+ * in-memory implementation of the Kandown REST API instead of a disk. Three
+ * things differ from the normal build.
+ *
+ * 1. `__KANDOWN_DEMO_BUILD__` is `true`, which is the only reason
+ *    `src/lib/demoBackend.ts` and its seed dataset enter the module graph. In
+ *    the CLI build the constant is the literal `false`, so Rollup drops the
+ *    branch in `main.tsx` and neither module is bundled — `npx kandown` users
+ *    never download the demo.
+ * 2. `viteSingleFile` is off. Inlining everything into one HTML file exists so
+ *    the CLI can serve a single asset off disk; on the website we control
+ *    hosting, and a normal chunked, hash-named build loads far faster than a
+ *    6 MB inline document.
+ * 3. Output goes to `dist-demo/` under the `/demo/app/` base path, which is
+ *    where the website copies it from.
+ */
+const DEMO_BASE = '/demo/app/';
+const DEMO_PROJECT_ROOT = '/Kandown Demo/.kandown';
+
+/**
+ * 📖 Sets the two globals the app reads at startup. `__KANDOWN_DEMO__` switches
+ * on the memory backend; `__KANDOWN_ROOT__` is a path that resolves to nothing
+ * but makes `isServerMode()` true, so the store boots through its existing
+ * server-mode path rather than through a third set of demo-only branches.
+ * @see src/lib/demoBackend.ts
+ */
+function kandownDemoFlagPlugin() {
+  return {
+    name: 'kandown-demo-flag',
+    transformIndexHtml(html: string) {
+      return injectBeforeClosingHead(
+        html,
+        `<script>window.__KANDOWN_DEMO__ = true; window.__KANDOWN_ROOT__ = ${JSON.stringify(DEMO_PROJECT_ROOT)};</script>\n`,
+      );
+    },
+  };
+}
+
 function injectBeforeClosingHead(html: string, content: string): string {
   const markerIndex = html.toLowerCase().lastIndexOf(CLOSING_HEAD_TAG);
   if (markerIndex === -1) return content + html;
@@ -288,23 +329,47 @@ function kandownDevPlugin() {
   };
 }
 
-export default defineConfig({
-  plugins: [kandownDevPlugin(), react(), viteSingleFile(), kandownSingleFileRepairPlugin()],
-  server: {
-    port: DEFAULT_DEV_SERVER_PORT,
-  },
-  build: {
-    target: 'esnext',
-    assetsInlineLimit: 100_000_000,
-    chunkSizeWarningLimit: 100_000_000,
-    cssCodeSplit: false,
-    rollupOptions: {
-      output: {
-        inlineDynamicImports: true,
-        manualChunks: undefined,
-      },
+export default defineConfig(({ mode }) => {
+  const isDemo = mode === 'demo';
+
+  return {
+    base: isDemo ? DEMO_BASE : '/',
+    // 📖 The demo replaces the single-file pipeline with the flag injector; the
+    // repair plugin only exists to fix HTML-escaped regex literals produced by
+    // inlining, so it goes away with it.
+    plugins: isDemo
+      ? [react(), kandownDemoFlagPlugin()]
+      : [kandownDevPlugin(), react(), viteSingleFile(), kandownSingleFileRepairPlugin()],
+    // 📖 Compile-time switch, not a runtime check: Rollup folds the `false`
+    // literal and eliminates the demo backend from the CLI bundle entirely.
+    define: {
+      __KANDOWN_DEMO_BUILD__: JSON.stringify(isDemo),
     },
-    outDir: 'dist',
-    emptyOutDir: true,
-  },
+    server: {
+      port: DEFAULT_DEV_SERVER_PORT,
+    },
+    build: isDemo
+      ? {
+          target: 'esnext',
+          outDir: 'dist-demo',
+          emptyOutDir: true,
+          // 📖 Real code splitting here, unlike the CLI build: the demo is
+          // served over HTTP by a CDN that can stream chunks in parallel.
+          chunkSizeWarningLimit: 2_000,
+        }
+      : {
+          target: 'esnext',
+          assetsInlineLimit: 100_000_000,
+          chunkSizeWarningLimit: 100_000_000,
+          cssCodeSplit: false,
+          rollupOptions: {
+            output: {
+              inlineDynamicImports: true,
+              manualChunks: undefined,
+            },
+          },
+          outDir: 'dist',
+          emptyOutDir: true,
+        },
+  };
 });

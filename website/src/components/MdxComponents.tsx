@@ -70,6 +70,23 @@ function Anchor({ href = '', children, ...rest }: React.ComponentProps<'a'>) {
         </Link>
       )
     }
+    // 📖 The other routes that exist outside `/docs`. Listed rather than
+    // inferred, because `Link`'s `to` is checked against the route tree and a
+    // computed string would not type-check.
+    if (path === '/demo') {
+      return (
+        <Link to="/demo" hash={hash} {...rest}>
+          {children}
+        </Link>
+      )
+    }
+    if (path === '/') {
+      return (
+        <Link to="/" hash={hash} {...rest}>
+          {children}
+        </Link>
+      )
+    }
     return (
       <a href={href} {...rest}>
         {children}

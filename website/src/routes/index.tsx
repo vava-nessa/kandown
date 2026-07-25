@@ -97,15 +97,26 @@ function Hero() {
               style={{ animationDelay: '180ms' }}
             >
               <CopyCommand command={INSTALL_COMMAND} className="sm:min-w-[19rem]" />
+              {/* 📖 The demo is offered next to the install command rather than
+                  below the fold: "try it without installing" answers the same
+                  question the install command does, one step earlier. It is a
+                  plain link, not a second solid button — two competing filled
+                  buttons is the cliché the rest of this page avoids. */}
               <Link
-                to="/docs/$"
-                params={{ _splat: 'quick-start' }}
+                to="/demo"
                 className="group inline-flex items-center gap-2 self-start border-b-2 border-accent py-1 text-[14px] font-medium text-fg"
               >
-                Quick start
+                Try it in the browser
                 <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">
                   →
                 </span>
+              </Link>
+              <Link
+                to="/docs/$"
+                params={{ _splat: 'quick-start' }}
+                className="group inline-flex items-center gap-2 self-start py-1 text-[14px] font-medium text-fg-muted transition-colors hover:text-fg"
+              >
+                Quick start
               </Link>
             </div>
           </div>
