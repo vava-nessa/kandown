@@ -163,6 +163,8 @@ Edge cases, gotchas.
 
 ---
 
-## Stack
+## Stack & Deployment
 
-React, Motion, Tailwind, Vite, Zustand, TypeScript, Node.js ESM CLI.
+- **Stack**: React, Motion, Tailwind, Vite, Zustand, TypeScript, Node.js ESM CLI.
+- **Website deployment (Vercel)**: Whenever you commit and push changes for the website (`website/` folder), **ALWAYS** verify the Vercel deployment status (`cd website && vercel ls` / `vercel inspect`). Ensure the deployment builds and reaches `● Ready` without any error.
+

@@ -97,11 +97,10 @@ source to edit instead.
 - **`ConflictModal.tsx`** · 170 lines — Shown when drawer has unsaved changes AND the underlying task file was modified externally with conflicting changes.
 - **`DependenciesHeaderMenu.tsx`** · 248 lines — Compact hoverable & clickable popover menu in the task header for managing dependencies with autocompletion.
 - **`Drawer.tsx`** · 476 lines — Full-height task detail editor for title, description, subtasks, report, save/close, autosave, and deletion.
-- **`EmptyState.tsx`** · 144 lines — Renders the first-run project picker, unsupported-browser copy, and recent project shortcuts before a `.kandown` folder is open.
+- **`EmptyState.tsx`** · 140 lines — Renders the first-run project picker, unsupported-browser copy, and recent project shortcuts before a `.kandown` folder is open.
 - **`ErrorBoundary.tsx`** · 164 lines — Catches render-time errors in the child tree and displays a recoverable fallback instead of letting React unmount the whole app to a blank page.
 - **`FilterBar.tsx`** · 125 lines — Renders global task filters for text search, owner type, and active filter chips that can be cleared individually.
 - **`Header.tsx`** · 430 lines — Top navigation bar for project switching, task search, filters, view mode, density, settings, command palette, reload, and task creation.
-- **`HeroGeometric.tsx`** · 278 lines — A geometric hero section background featuring a custom WebGL shader background with Simplex noise for fluid, organic movement.
 - **`Icons.tsx`** · 182 lines — Centralizes small stroke icons used by the Kandown web UI.
 - **`KbdButton.tsx`** · 109 lines — A unified button component that handles icons, labels, and keyboard shortcuts with consistent styling and improved visibility.
 - **`ListView.tsx`** · 488 lines — Renders board columns as vertically stacked horizontal sections, with dense task rows, filter/search previews, task drops between sections, and vertical section reordering.
@@ -239,6 +238,6 @@ source to edit instead.
 
 ## Coverage
 
-149 of 149 eligible files carry an `@description` header.
+148 of 148 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

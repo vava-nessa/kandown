@@ -31,6 +31,7 @@ import { HeroVideo } from '~/components/HeroVideo'
 import { BoardMock } from '~/components/BoardMock'
 import { CodeWindow, Line } from '~/components/CodeWindow'
 import { INSTALL_COMMAND, site } from '~/lib/site'
+import HeroGeometric from '~/components/HeroGeometric'
 
 export const Route = createFileRoute('/')({
   component: Home,
@@ -53,8 +54,11 @@ function Home() {
 
 function Hero() {
   return (
-    <section className="border-b border-border">
-      <Shell>
+    <section className="relative border-b border-border overflow-hidden">
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <HeroGeometric color1="#3B82F6" color2="#60A5FA" speed={0.8} className="h-full min-h-full" />
+      </div>
+      <Shell className="relative z-10">
         <div className="py-16 sm:py-24">
           <div className="max-w-2xl">
             {/* 📖 A metadata line instead of a pill badge: same information,
