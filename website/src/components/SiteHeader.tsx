@@ -103,9 +103,9 @@ export function SiteHeader() {
             target="_blank"
             rel="noreferrer noopener"
             aria-label="Kandown on npm"
-            className="p-2 text-fg-muted transition-colors hover:text-fg"
+            className="p-2 text-fg-muted transition-colors hover:text-fg flex items-center"
           >
-            <svg width="20" height="17" viewBox="0 0 18 7" fill="currentColor" aria-hidden="true">
+            <svg width="28" height="12" viewBox="0 0 18 7" fill="currentColor" aria-hidden="true">
               <path d="M0 0v6.5h4.5v-5h1.5v5h3v-6.5h-9zM10.5 0v6.5h3v-1.5h1.5v-5h-4.5zM13.5 3.5h-1.5v-2h1.5v2z" />
             </svg>
           </a>
