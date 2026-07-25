@@ -103,10 +103,12 @@ export function SiteHeader() {
             target="_blank"
             rel="noreferrer noopener"
             aria-label="Kandown on npm"
-            className="p-2 text-fg-muted transition-colors hover:text-fg flex items-center"
+            className="p-1.5 transition-opacity hover:opacity-80 flex items-center"
           >
-            <svg width="28" height="12" viewBox="0 0 18 7" fill="currentColor" aria-hidden="true">
-              <path d="M0 0v6.5h4.5v-5h1.5v5h3v-6.5h-9zM10.5 0v6.5h3v-1.5h1.5v-5h-4.5zM13.5 3.5h-1.5v-2h1.5v2z" />
+            <svg width="32" height="14" viewBox="0 0 256 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path fill="#CB3837" d="M0 0v100h100V0H0zm81.25 81.25h-12.5v-50h-12.5v50h-37.5v-62.5h62.5v62.5z"/>
+              <path fill="#FFFFFF" d="M156.25 0v81.25h-31.25v18.75h-25V0h56.25zm-18.75 62.5v-43.75h-18.75v43.75h18.75z"/>
+              <path fill="#CB3837" d="M256 0v81.25h-31.25v18.75h-25V0H256zm-18.75 62.5v-43.75h-18.75v43.75h18.75zM175 0v100h25V0h-25z"/>
             </svg>
           </a>
 
