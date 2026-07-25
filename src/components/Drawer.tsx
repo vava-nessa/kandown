@@ -27,6 +27,8 @@ import { useTranslation } from 'react-i18next';
 import { KbdButton } from './KbdButton';
 import { SubtaskEditor } from './SubtaskEditor';
 import { BlockNoteMarkdownEditor } from './ui/BlockNoteMarkdownEditor';
+import { DependenciesHeaderMenu } from './DependenciesHeaderMenu';
+import { parseTaskTitle, updateTitleCategory } from '../lib/task-title-category';
 import { useStore } from '../lib/store';
 import { buildTaskUrl } from '../lib/task-url';
 import type { Subtask } from '../lib/types';
@@ -52,8 +54,6 @@ export function Drawer() {
   const markDrawerDirty = useStore(s => s.markDrawerDirty);
   const forceCloseDrawer = useStore(s => s.forceCloseDrawer);
 
-  // 📖 archived flag is read as either boolean or the string "true" (parseSimpleYaml
-  // keeps scalars as strings). Computed early so handlers and JSX share it.
   const isTaskArchived = String(drawerData?.frontmatter.archived) === 'true';
   const updateDrawerData = useStore(s => s.updateDrawerData);
 
@@ -63,10 +63,8 @@ export function Drawer() {
 
   const isOpen = !!drawerTaskId && !!drawerData;
   const [isDesktop, setIsDesktop] = useState(() => window.matchMedia('(min-width: 768px)').matches);
+  const [isEditingCategory, setIsEditingCategory] = useState(false);
 
-  // 📖 Desktop task editing is now handled by TaskWorkspace. Keep this modal
-  // mounted only on small screens so mobile keeps the familiar full-screen
-  // overlay while desktop gets the split-pane workspace below the header.
   useEffect(() => {
     const query = window.matchMedia('(min-width: 768px)');
     const update = () => setIsDesktop(query.matches);
@@ -106,12 +104,6 @@ export function Drawer() {
     await saveDrawer();
   }, [flushAutoSave, saveDrawer]);
 
-  /**
-   * 📖 Close guard (t110): if there are unsaved edits OR a known save error,
-   * prompt before discarding. Choosing "discard" stashes the edits into the
-   * recovery buffer (via forceCloseDrawer) so they can be restored when the
-   * same task is reopened; choosing "cancel" keeps the drawer open.
-   */
   const handleProtectedClose = useCallback(async () => {
     if (hasUnsavedDrawerEdits || lastSaveError) {
       const msg = lastSaveError
@@ -136,8 +128,6 @@ export function Drawer() {
     await safeCloseDrawer();
   }, [safeCloseDrawer, deleteTask, drawerTaskId, t]);
 
-  // 📖 Archive/restore toggle. Flushes pending autosave first so no edit is
-  // lost when the file is moved to tasks/archive/.
   const handleArchiveToggle = useCallback(async () => {
     if (!drawerTaskId) return;
     if (isTaskArchived) {
@@ -148,15 +138,10 @@ export function Drawer() {
     }
   }, [drawerTaskId, isTaskArchived, archiveTask, unarchiveTask, flushAutoSave]);
 
-  // Get current column for status display
   const currentCol = drawerTaskId
     ? columns.find(c => c.tasks.some(t => t.id === drawerTaskId))?.name
     : null;
 
-  // 📖 Agent hook button is only rendered when the daemon is configured with
-  // KANDOWN_AGENT_HOOK_URL. The button is intentionally in the footer next to
-  // the destructive actions — sending a task to an agent is a "go" action, not
-  // an edit, so it deserves a visible slot.
   const handleSendToAgent = useCallback(() => {
     if (!drawerTaskId) return;
     void sendTaskToAgent(drawerTaskId);
@@ -173,9 +158,6 @@ export function Drawer() {
     }
   }, [drawerTaskId, projectName, toast]);
 
-  // 📖 Build a depId → { exists, resolved } map for the dependency chips.
-  // "Resolved" = in terminal status OR archived OR unknown (typos never
-  // block — see src/lib/dependencies.ts for the rationale).
   const depResolution = useMemo(() => {
     const map = new Map<string, { exists: boolean; resolved: boolean }>();
     const terminal = (config.board.columns[config.board.columns.length - 1] || 'Done').toLowerCase();
@@ -254,6 +236,26 @@ export function Drawer() {
     triggerAutoSave();
   };
 
+  const rawTitle = (drawerData.frontmatter.title as string) || '';
+  const parsedTitle = parseTaskTitle(rawTitle);
+
+  const handleCleanTitleChange = (newCleanTitle: string) => {
+    const nextFullTitle = parsedTitle.category
+      ? `[${parsedTitle.category}] ${newCleanTitle}`
+      : newCleanTitle;
+    updateField('title', nextFullTitle);
+  };
+
+  const handleCategorySubmit = (newCat: string) => {
+    const nextFullTitle = updateTitleCategory(rawTitle, newCat);
+    updateField('title', nextFullTitle);
+    setIsEditingCategory(false);
+  };
+
+  const currentDependsOn = Array.isArray(drawerData.frontmatter.depends_on)
+    ? drawerData.frontmatter.depends_on.filter((d): d is string => typeof d === 'string')
+    : [];
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -275,11 +277,46 @@ export function Drawer() {
           >
             <div className="w-[80vw] max-w-[1200px] h-[80vh] pointer-events-auto flex flex-col glass rounded-2xl shadow-2xl">
               {/* Header */}
-              <div className="flex items-center justify-between px-5 py-3 border-b border-border rounded-t-2xl">
-                <div className="flex items-center gap-2.5">
+              <div className="flex items-center justify-between px-5 py-3 border-b border-border rounded-t-2xl flex-wrap gap-y-2">
+                <div className="flex items-center gap-2.5 flex-wrap">
                   <span className="font-mono text-[12.5px] text-fg-muted px-1.5 py-0.5 bg-bg-2 border border-border rounded-[4px]">
                     {drawerTaskId?.toUpperCase()}
                   </span>
+
+                  {/* Category Tag on header line */}
+                  {isEditingCategory ? (
+                    <input
+                      type="text"
+                      autoFocus
+                      defaultValue={parsedTitle.category || ''}
+                      placeholder="CATEGORY"
+                      onBlur={e => handleCategorySubmit(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') handleCategorySubmit(e.currentTarget.value);
+                        if (e.key === 'Escape') setIsEditingCategory(false);
+                      }}
+                      className="font-mono text-[12px] uppercase px-1.5 py-0.5 bg-accent/15 border border-accent/40 rounded text-accent font-semibold outline-none w-28"
+                    />
+                  ) : parsedTitle.category ? (
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingCategory(true)}
+                      className="font-mono text-[12px] uppercase px-1.5 py-0.5 bg-accent/15 border border-accent/30 hover:border-accent/60 rounded text-accent font-semibold transition-colors"
+                      title="Click to edit category"
+                    >
+                      [{parsedTitle.category}]
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingCategory(true)}
+                      className="text-[11.5px] text-fg-faint hover:text-fg-muted border border-dashed border-border px-1.5 py-0.5 rounded transition-colors"
+                      title="Add category tag"
+                    >
+                      + Category
+                    </button>
+                  )}
+
                   {currentCol && (
                     <span className="text-[12.5px] text-fg-dim">· {currentCol}</span>
                   )}
@@ -296,6 +333,16 @@ export function Drawer() {
                   >
                     Copy URL
                   </button>
+
+                  {/* Compact Header Dependencies Hoverable Menu */}
+                  <DependenciesHeaderMenu
+                    currentTaskId={drawerTaskId || ''}
+                    dependsOn={currentDependsOn}
+                    depResolution={depResolution}
+                    onUpdateDependencies={nextDeps => {
+                      updateField('depends_on', nextDeps.length > 0 ? nextDeps : undefined);
+                    }}
+                  />
                 </div>
                 <KbdButton
                   variant="icon"
@@ -308,83 +355,15 @@ export function Drawer() {
             {/* Body */}
             <div className="flex-1 overflow-y-auto px-5 py-5">
               <div className="flex flex-col gap-5">
-                {/* Title */}
+                {/* Naked Title Input */}
                 <textarea
                   ref={titleInputRef}
-                  value={(drawerData.frontmatter.title as string) || ''}
-                  onChange={e => updateField('title', e.target.value)}
+                  value={parsedTitle.cleanTitle}
+                  onChange={e => handleCleanTitleChange(e.target.value)}
                   placeholder={t('drawer.taskTitle')}
                   rows={1}
                   className="w-full bg-transparent border-none outline-none text-fg text-[22px] font-semibold tracking-tight leading-tight resize-none placeholder:text-fg-faint"
                 />
-
-                <div className="h-px bg-border -mx-5" />
-
-                {/* Dependencies — task ids this one is blocked by. Comma-
-                 * separated input with chip rendering. Editable in place; the
-                 * store enforces the terminal-status gate on save/move. */}
-                <div>
-                  <div className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted mb-2">
-                    {t('dependencies.label')}
-                  </div>
-                  <div className="flex flex-wrap gap-1.5 mb-2">
-                    {(Array.isArray(drawerData.frontmatter.depends_on)
-                      ? drawerData.frontmatter.depends_on.filter((d): d is string => typeof d === 'string')
-                      : []
-                    ).map((depId, i) => {
-                      const isResolved = depResolution.get(depId)?.resolved ?? false;
-                      const exists = depResolution.get(depId)?.exists ?? true;
-                      return (
-                        <span
-                          key={i}
-                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[12px] font-mono border ${
-                            !exists
-                              ? 'border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300'
-                              : isResolved
-                                ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-                                : 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300'
-                          }`}
-                          title={!exists ? t('dependencies.unknown') : isResolved ? t('dependencies.resolved') : t('dependencies.unresolved')}
-                        >
-                          {depId}
-                          <button
-                            type="button"
-                            aria-label={t('dependencies.remove')}
-                            onClick={() => {
-                              const next = (Array.isArray(drawerData.frontmatter.depends_on)
-                                ? drawerData.frontmatter.depends_on
-                                : []
-                              ).filter((_, idx) => idx !== i);
-                              updateField('depends_on', next.length > 0 ? next : undefined);
-                            }}
-                            className="text-current opacity-60 hover:opacity-100"
-                          >×</button>
-                        </span>
-                      );
-                    })}
-                  </div>
-                  <input
-                    type="text"
-                    className="w-full bg-bg-2 border border-border rounded px-2 py-1.5 text-[13px] text-fg placeholder:text-fg-faint focus:outline-none focus:border-border-strong"
-                    placeholder={t('dependencies.addPlaceholder')}
-                    onKeyDown={e => {
-                      if (e.key !== 'Enter') return;
-                      e.preventDefault();
-                      const raw = (e.currentTarget.value || '').trim();
-                      if (!raw) return;
-                      const cleaned = raw.replace(/^#/, '').trim();
-                      const current = Array.isArray(drawerData.frontmatter.depends_on)
-                        ? drawerData.frontmatter.depends_on.filter((d): d is string => typeof d === 'string')
-                        : [];
-                      if (current.includes(cleaned) || cleaned === drawerData.frontmatter.id) {
-                        e.currentTarget.value = '';
-                        return;
-                      }
-                      updateField('depends_on', [...current, cleaned]);
-                      e.currentTarget.value = '';
-                    }}
-                  />
-                </div>
 
                 <div className="h-px bg-border -mx-5" />
 

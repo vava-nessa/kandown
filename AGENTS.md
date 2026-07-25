@@ -19,6 +19,15 @@ Read the README.md file for more information.
 
 ---
 
+## 🖥️ UI Development & Dev Server (Herdr)
+
+- Whenever working on UI features or web application changes, **ALWAYS** launch/reuse the dev server using **Herdr** in the `kandown` space (`workspace_id: wE`).
+- Tab name: **`dev-server`** (check if tab exists with `herdr tab list` / `herdr pane list`, create via `herdr tab create --workspace wE --cwd <path> --label "dev-server" --focus` if missing).
+- Execute the dev command: `herdr pane send-text <PANE_ID> "pnpm dev:app"` + `herdr pane send-keys <PANE_ID> "Enter"`.
+- **ALWAYS** provide a clickable URL link (e.g. `http://localhost:5176/` or `http://localhost:5173/`) to vava so she can test progress interactively.
+
+---
+
 ## AGENT_KANDOWN.md Sync System (For Kandown Developers)
 
 If you're working on **Kandown itself** (not just using it):

@@ -14,7 +14,11 @@
       "baseRulesMode": "full",
       "includeProjectInstructions": true,
       "includeBoardDigest": true,
-      "sectionOrder": ["baseRules", "projectInstructions", "boardDigest"],
+      "sectionOrder": [
+        "baseRules",
+        "projectInstructions",
+        "boardDigest"
+      ],
       "rawTemplate": "{{baseRules}}\n\n---\n\n{{projectInstructions}}\n\n---\n\n{{boardDigest}}",
       "boardDigest": {
         "showColumnCounts": true,
@@ -27,10 +31,19 @@
     }
   },
   "board": {
-    "columns": ["Backlog", "Todo", "In Progress", "Review", "Done"],
+    "columns": [
+      "Backlog",
+      "Todo",
+      "In Progress",
+      "Review",
+      "Done"
+    ],
     "defaultPriority": "P3",
     "defaultOwnerType": "human",
-    "stackDefaultState": "collapsed"
+    "stackDefaultState": "collapsed",
+    "columnColors": {
+      "done": "yellow"
+    }
   },
   "fields": {
     "priority": false,
