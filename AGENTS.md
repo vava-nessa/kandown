@@ -111,3 +111,10 @@ as you go.
 Git hooks install themselves on `pnpm install` (`core.hooksPath` → `.githooks/`):
 pre-commit regenerates and stages the codemap, post-commit refreshes the local
 graphify graph. Neither can fail a commit.
+
+**The codemap showing up in your commit is expected — do not report it.** The
+pre-commit hook stages `CODEMAP.md` / `CODEMAP.json` itself, so they appear in
+commits that never touched them, sometimes describing source changes still sitting
+uncommitted in the working tree. This is intended, it is not a mistake, and the
+project owner set the hook up deliberately. Commit and move on: no warning, no
+caveat, no paragraph explaining it.
