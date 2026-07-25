@@ -126,10 +126,10 @@ function Hero() {
             </div>
           </div>
 
-          {/* 📖 Darker translucent glass block with LogoMark + "Kanban + Markdown" text */}
-          <div className="animate-rise shrink-0 flex flex-col items-center justify-center p-12 sm:p-14 rounded-3xl bg-black/60 backdrop-blur-xl border border-white/10 shadow-2xl self-center lg:self-auto" style={{ animationDelay: '200ms' }}>
-            <LogoMark size={160} />
-            <span className="mt-6 text-[17px] font-semibold tracking-wide text-white/90 font-mono">
+          {/* 📖 Ultra-dark translucent glass block with large LogoMark + "Kanban + Markdown" text */}
+          <div className="animate-rise shrink-0 flex flex-col items-center justify-center p-14 sm:p-16 rounded-3xl bg-black/85 backdrop-blur-2xl border border-white/15 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] self-center lg:self-auto" style={{ animationDelay: '200ms' }}>
+            <LogoMark size={220} />
+            <span className="mt-7 text-[19px] font-semibold tracking-wider text-white font-mono">
               Kanban + Markdown
             </span>
           </div>
