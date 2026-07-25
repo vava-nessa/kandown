@@ -32,7 +32,7 @@ import { BoardMock } from '~/components/BoardMock'
 import { CodeWindow, Line } from '~/components/CodeWindow'
 import { INSTALL_COMMAND, site } from '~/lib/site'
 import HeroGeometric from '~/components/HeroGeometric'
-import { Logo } from '~/components/Logo'
+import { LogoMark } from '~/components/Logo'
 
 export const Route = createFileRoute('/')({
   component: Home,
@@ -126,10 +126,10 @@ function Hero() {
             </div>
           </div>
 
-          {/* 📖 Transparent block with Logo + "Kanban + Markdown" text to the right */}
-          <div className="animate-rise shrink-0 flex flex-col items-center justify-center p-8 sm:p-10 rounded-2xl bg-card/20 backdrop-blur-md border border-border/40 shadow-xl self-center lg:self-auto" style={{ animationDelay: '200ms' }}>
-            <Logo size={110} className="rounded-xl shadow-md" />
-            <span className="mt-4 text-[15px] font-medium tracking-tight text-fg font-mono">
+          {/* 📖 Darker translucent glass block with LogoMark + "Kanban + Markdown" text */}
+          <div className="animate-rise shrink-0 flex flex-col items-center justify-center p-12 sm:p-14 rounded-3xl bg-black/60 backdrop-blur-xl border border-white/10 shadow-2xl self-center lg:self-auto" style={{ animationDelay: '200ms' }}>
+            <LogoMark size={160} />
+            <span className="mt-6 text-[17px] font-semibold tracking-wide text-white/90 font-mono">
               Kanban + Markdown
             </span>
           </div>
