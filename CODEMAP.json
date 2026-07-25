@@ -89,7 +89,7 @@
     },
     {
       "path": "src/App.tsx",
-      "lines": 241,
+      "lines": 255,
       "title": "Web application shell",
       "summary": "Composes the Kandown web UI, hydrates recent projects from the URL, and owns global keyboard shortcuts for board navigation, creation, reload, search focus, and command palette access.",
       "functions": [
@@ -820,7 +820,7 @@
     },
     {
       "path": "src/components/Header.tsx",
-      "lines": 430,
+      "lines": 446,
       "title": "App header",
       "summary": "Top navigation bar for project switching, task search, filters, view mode, density, settings, command palette, reload, and task creation.",
       "functions": [
@@ -1215,7 +1215,7 @@
     },
     {
       "path": "src/lib/demoSeed.ts",
-      "lines": 400,
+      "lines": 446,
       "title": "Demo project seed data",
       "summary": "The starting contents of the in-memory project served by {@link ./demoBackend.ts} when the app runs in demo mode on the website.",
       "exports": "DEMO_PROJECT_NAME, DEMO_ROOT, DEMO_CONFIG_JSON, DEMO_INSTRUCTIONS, DEMO_BOARD_MD, DEMO_TASKS, DEMO_ARCHIVED_TASKS"
@@ -1300,13 +1300,21 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 953,
+      "lines": 977,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [
         {
           "name": "supportsFileSystemAccess",
-          "summary": "detects compatible Chromium browsers"
+          "summary": "detects any available Kandown backend"
+        },
+        {
+          "name": "supportsLocalFileSystemAccess",
+          "summary": "detects direct local-folder access"
+        },
+        {
+          "name": "switchDemoToLocalFileSystem",
+          "summary": "disconnects the sample backend after folder selection"
         },
         {
           "name": "isServerMode",
@@ -1385,7 +1393,7 @@
           "summary": "edits `.kandown/instructions.md`"
         }
       ],
-      "exports": "supportsFileSystemAccess, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverWriteTask, serverDeleteTask, serverMigrateTasks"
+      "exports": "supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverWriteTask, serverDeleteTask, serverMigrateTasks"
     },
     {
       "path": "src/lib/globalErrors.ts",
@@ -1545,7 +1553,7 @@
     },
     {
       "path": "src/lib/store.ts",
-      "lines": 1856,
+      "lines": 1863,
       "title": "Kandown Zustand store",
       "summary": "Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.",
       "functions": [
