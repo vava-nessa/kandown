@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.35.1 — 2026-07-26 — "Light Identity"
+
+### Added
+
+- **Homepage video storyboard**: Replaced the hand-built board and terminal mocks with black recording frames that specify the exact scenario, duration, aspect ratio, and filename for six real product clips: the hero workflow, a two-agent handoff, Markdown-to-board synchronization, and dedicated Web, TUI, and CLI demonstrations. The three interface briefs share one interactive tabbed stage so the final page will never autoplay three videos at once.
+
+### Changed
+
+- **Agent-first homepage narrative**: Reordered and rewrote the landing page around long-running work that survives agent sessions, durable Markdown ownership, completion reports, handoffs, and one shared board across the Web UI, TUI, and CLI. The feature grid, final call to action, shared metadata, footer, and recording documentation now follow the same product promise.
+- **One permanent light website identity**: The marketing and documentation website now uses a single warm light palette regardless of the device preference. Native controls declare `color-scheme: light`, browser chrome uses a fixed white theme color, syntax highlighting emits only the GitHub Light palette, and the animated hero shader uses one documented color path.
+- **Light embedded demo**: The in-browser demo project now starts explicitly in light mode rather than inheriting `prefers-color-scheme`, keeping the transition from the website into the real Kandown application visually consistent while installed projects retain the full product theme system.
+- **Video production guide**: Expanded the website README with the six expected WebM filenames, target durations, 16:10 recording dimensions, loop guidance, and the exact actions to capture in every clip.
+
+### Removed
+
+- **Website dark-mode runtime**: Removed the header theme toggle, localStorage preference, pre-paint theme script, OS dark-mode listeners, `data-theme` selectors, dark CSS tokens, dual Shiki palette, shader theme observer, and View Transition wipe. A device can no longer select a different visual identity for the site.
+
 ## 0.35.0 — 2026-07-25 — "House Green"
 
 - **Added**: **Kandown finally has its own theme, and it is the default** — a `kandown` preset built from the brand palette registered on the website: `#88E138` brand lime (the logo arrow) as the dark-mode primary, `#7AD12A` as its light-background variant, `#0CE931` (the hero shader green) reused as the `success` token, `#F1FFB8` for accent surfaces and `#EBEBEB` for neutral borders, on 4px radius to match the website. Because lime cannot carry white text at any usable contrast, `primary-foreground` is a near-black green in both modes (7.9:1 light, 11.2:1 dark) rather than the usual white. Every other foreground/background pair passes WCAG AA in both modes.

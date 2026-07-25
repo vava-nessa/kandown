@@ -18,7 +18,6 @@ import { useEffect, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { Wordmark } from './Logo'
 import { SearchTrigger } from './DocSearch'
-import { ThemeToggler } from './ThemeToggler'
 import { site } from '~/lib/site'
 
 // 📖 Every docs page is served by the `/docs/$` splat route, so links are
@@ -80,8 +79,6 @@ export function SiteHeader() {
           <div className="hidden sm:block">
             <SearchTrigger />
           </div>
-
-          <ThemeToggler />
 
           <a
             href={site.repo}

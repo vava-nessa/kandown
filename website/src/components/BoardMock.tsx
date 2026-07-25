@@ -66,8 +66,8 @@ const COLUMNS: { name: string; cards: Card[] }[] = [
  */
 const PRIORITY_STYLE: Record<string, string> = {
   P1: 'text-red-500 border-red-500',
-  P2: 'text-amber-600 border-amber-500 dark:text-amber-400',
-  P3: 'text-sky-600 border-sky-500 dark:text-sky-400',
+  P2: 'text-amber-600 border-amber-500',
+  P3: 'text-sky-600 border-sky-500',
 }
 
 export function BoardMock() {

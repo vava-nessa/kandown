@@ -25,7 +25,6 @@ import type { ReactNode } from 'react'
 import { SiteHeader } from '~/components/SiteHeader'
 import { SiteFooter } from '~/components/SiteFooter'
 import { site } from '~/lib/site'
-import { THEME_INIT_SCRIPT } from '~/lib/theme'
 import appCss from '~/styles.css?url'
 
 export const Route = createRootRoute({
@@ -35,9 +34,7 @@ export const Route = createRootRoute({
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { title: `${site.name} — ${site.tagline}` },
       { name: 'description', content: site.description },
-      // 📖 `theme-color` is intentionally absent here — see RootDocument. The
-      // head manager dedupes meta by `name`, which would collapse the two
-      // media-scoped variants into one.
+      { name: 'theme-color', content: '#ffffff' },
       { property: 'og:type', content: 'website' },
       { property: 'og:site_name', content: site.name },
       { property: 'og:title', content: `${site.name} — ${site.tagline}` },
@@ -94,20 +91,8 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   })
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <head>
-        {/* 📖 Must run before the first paint and before any bundle: it stamps
-            `data-theme` on <html> from localStorage so a visitor who chose light
-            on a dark machine never sees a flash of the wrong theme. Rendered
-            ahead of the stylesheet for the same reason.
-            @see src/lib/theme.ts */}
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
-        {/* 📖 Written as raw tags rather than through the route's `meta` array:
-            the head manager dedupes by `name`, so two media-scoped theme-colors
-            declared there would collapse into one and the browser chrome would
-            be wrong in one of the two themes. */}
-        <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#0c1d17" media="(prefers-color-scheme: dark)" />
         <HeadContent />
       </head>
       <body className="bg-bg text-fg antialiased">

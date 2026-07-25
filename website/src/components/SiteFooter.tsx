@@ -21,7 +21,8 @@ export function SiteFooter() {
             <span className="text-[15px] font-semibold tracking-[-0.02em]">kandown</span>
           </div>
           <p className="mt-3 max-w-xs text-[13px] leading-relaxed text-fg-muted">
-            A local-first Kanban board where every task is a Markdown file you own forever.
+            A local Kanban for long-running agent work. Every task stays in your project as
+            Markdown.
           </p>
         </div>
 

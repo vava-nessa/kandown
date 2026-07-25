@@ -73,21 +73,28 @@ Adding a page is two steps:
 
 ---
 
-## The hero video
+## Homepage video storyboard
 
-The hero renders `<video>` from `public/`. To add the demo:
+The homepage uses black storyboard frames until the real product recordings are ready. Each frame
+contains its own scenario, duration, aspect ratio, and expected filename, so the deployed page also
+acts as the current recording brief.
 
-| File | Purpose |
-|---|---|
-| `public/demo.webm` | Preferred source — smaller, better quality per byte |
-| `public/demo.mp4` | Fallback for Safari and older browsers |
-| `public/demo-poster.png` | Still frame shown before playback and on reduced-motion |
+Record every clip at **1920×1200** or **2560×1600** in a 16:10 aspect ratio. Keep movements slow
+enough to understand without narration, hide unrelated notifications, and end looped clips on a
+frame that can cut cleanly back to the beginning.
 
-Nothing else needs changing. Until those files exist the component falls back to the animated
-`BoardMock`, so the hero is never an empty rectangle.
+| File in `public/` | Length | Recording brief |
+|---|---:|---|
+| `demo.webm` | 12 to 15 sec | Create a task in the web board, add subtasks, assign an agent, move it into progress, save a completion report, and finish in Done. |
+| `agent-handoff.webm` | 10 to 12 sec | Start a task with Codex in the TUI, save partial progress and a report, then launch Claude on the same task and finish it from the saved context. |
+| `markdown-sync.webm` | 8 to 10 sec | Show a real task file beside the real board while title, priority, assignee, checklist, and status edits appear in Kandown. |
+| `interface-web.webm` | 6 to 8 sec | Create, drag, open, edit, and search for a task in the web board. |
+| `interface-tui.webm` | 6 to 8 sec | Navigate, inspect, move, and launch an agent from the terminal UI. |
+| `interface-cli.webm` | 5 to 6 sec | Create a task, run `kandown work`, move the task to Done, and show the same result on the board. |
 
-Recording notes: the frame is `16/10`, so record at **1920×1200** (or 2560×1600). Keep it under
-~20 seconds and loop-friendly — it autoplays muted and repeats.
+Use WebM as the primary delivery format. A poster frame and MP4 fallback can be added during the
+integration pass once the recordings exist. Avoid GIFs because they are larger, look worse, and
+cannot respect reduced-motion preferences.
 
 ---
 
@@ -186,9 +193,9 @@ The whole demo is compiled out of the bundle `npx kandown` ships, behind the
   nav items, kbd — all mono, uppercase, wide-tracked. That split is the page's voice, and it is
   honest to a product whose database is a folder of text files.
 
-Palette from `logo.svg`: deep green-black surfaces (`#08150f` → `#12271f`) and the arrow's lime
-(`#88e138`) as the single accent. Borders are deliberately visible — a layout built from rules
-needs rules you can see.
+Palette from `logo.svg`: warm white surfaces, deep green-black ink (`#0b1a14`), and the arrow's lime
+as the single accent. Black video frames create the strongest contrast on the page. Borders are
+deliberately visible because a layout built from rules needs rules you can see.
 
 ### Typography
 
@@ -198,36 +205,17 @@ same reason the product works offline. Both are preloaded in `<head>`, so there 
 fallback on a cold load, and a metric-matched `@font-face` fallback holds the layout in the
 meantime.
 
-### Theming
+### Light-only identity
 
-Three layers, resolved in `src/styles.css` in this order:
+The website deliberately has one appearance. It does not read `prefers-color-scheme`, set a
+`data-theme` attribute, persist a theme in `localStorage`, or expose a toggle. A device configured
+for dark mode still receives the exact same light Kandown identity.
 
-1. `:root` holds the **light** values — the baseline.
-2. `prefers-color-scheme: dark` overrides them for a document with no explicit `data-theme`. This
-   is the first-visit behaviour: follow the OS.
-3. `:root[data-theme="dark"|"light"]` wins outright — the visitor's own choice, set by the header
-   toggle and persisted in `localStorage` under `kandown-theme`.
-
-The mechanism is `@theme inline`, which makes every Tailwind utility emit `var(--kd-…)` instead of
-baking in the colour. Flipping the variables on `:root` re-themes the whole page in one frame, with
-no re-render. Shiki's dual themes are swapped by the same selectors, so highlighting follows along
-with zero JavaScript.
-
-Only the *choice* is stored, never the resolved appearance — a visitor on `system` keeps following
-their OS, including live at sunset.
-
-### The toggle
-
-`src/components/ThemeToggler.tsx`, ported from
-[vanessadepraute.dev](https://vanessadepraute.dev) and rebuilt without framer-motion or lucide. It
-uses the **View Transitions API**: `flushSync` applies the theme inside
-`document.startViewTransition`, then a `clip-path` circle animates on
-`::view-transition-new(root)`, wiping the incoming theme outward from the button. The radius is
-computed to the furthest viewport corner so the wipe always covers the screen.
-
-Degrades three ways: browsers without View Transitions swap instantly, `prefers-reduced-motion`
-skips the animation, and `src/lib/theme.ts` exports a blocking init script rendered in `<head>` so
-a stored choice never flashes the wrong theme on load.
+`@theme inline` maps Tailwind utilities such as `bg-bg`, `text-fg-muted`, and `border-border` onto
+the single token set declared on `:root`. `color-scheme: light` keeps native controls light, the
+browser `theme-color` is always white, and Shiki generates only its `github-light` palette. This is
+an identity decision rather than a missing preference: the warm light ground is what gives the
+black product recordings and lime accent their contrast.
 
 ---
 

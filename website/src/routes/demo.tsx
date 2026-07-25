@@ -141,7 +141,7 @@ function DemoSkeleton() {
 function DemoOverlay() {
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-3 z-50 flex justify-center px-3 min-[1520px]:inset-x-auto min-[1520px]:bottom-auto min-[1520px]:top-2.5 min-[1520px]:left-[11.5rem] min-[1520px]:justify-start min-[1520px]:px-0">
-      <div className="pointer-events-auto flex max-w-full items-center gap-2.5 rounded-full border border-black/10 bg-bg/85 p-1 pr-3 shadow-lg backdrop-blur-md dark:border-white/10">
+      <div className="pointer-events-auto flex max-w-full items-center gap-2.5 rounded-full border border-black/10 bg-bg/85 p-1 pr-3 shadow-lg backdrop-blur-md">
         <Link
           to="/"
           className="label group flex shrink-0 items-center gap-1.5 rounded-full bg-accent px-3 py-1.5 text-ink transition-opacity hover:opacity-90"

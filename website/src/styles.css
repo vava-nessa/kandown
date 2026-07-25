@@ -50,9 +50,10 @@
 /**
  * 📖 Design tokens.
  *
- * The palette is lifted straight from `logo.svg`: a deep green-black
- * (`rgb(12,29,23)` → `rgb(24,41,35)`) for surfaces, and the arrow's lime
- * (`rgb(136,225,56)`) as the single accent.
+ * The palette is lifted straight from `logo.svg`: warm white surfaces, a deep
+ * green-black ink, and the arrow's lime (`rgb(136,225,56)`) as the single
+ * accent. The site is intentionally light-only so the identity never changes
+ * with an operating-system preference.
  *
  * 📖 On contrast. An earlier pass used very pale hairlines (`#e4e6e2` on white,
  * `#1e372e` on the dark ground) which read as washed out and, worse, made the
@@ -61,24 +62,13 @@
  * structure that cannot be read. Body text sits at ~8:1 against its ground and
  * the faintest text still clears 4.5:1.
  *
- * 📖 How theming works, and why it is built this way.
+ * 📖 How the colour tokens work.
  *
  * `@theme inline` is the important part: it makes every Tailwind utility emit
  * `var(--kd-…)` rather than baking the colour value into the class. That is what
- * lets the theme change at runtime — flip the `--kd-*` variables on `:root` and
- * every `bg-bg`, `text-fg-muted` and `border-border` on the page follows in the
- * same frame, with no re-render and no duplicated class set.
- *
- * The variables themselves are resolved in three layers, in this order:
- *
- *   1. `:root` holds the light values — the baseline.
- *   2. `prefers-color-scheme: dark` overrides them, but only for a document that
- *      has *not* been given an explicit `data-theme`. This is the first-visit
- *      behaviour: follow the operating system.
- *   3. `:root[data-theme="dark"|"light"]` wins outright. This is the visitor's
- *      own choice, set by the toggle and persisted in localStorage.
- *
- * @see src/components/ThemeToggler.tsx — the control that sets `data-theme`
+ * keeps semantic utilities such as `bg-bg`, `text-fg-muted`, and
+ * `border-border` connected to one documented palette instead of scattering
+ * literal colours through components.
  */
 @theme inline {
   --font-sans: 'Geist', 'Geist Fallback', ui-sans-serif, system-ui, sans-serif;
@@ -99,7 +89,8 @@
   --color-ink: var(--kd-ink);
 }
 
-/* Layer 1 — light, the baseline. */
+/* 📖 The only website palette. `color-scheme: light` also keeps native controls
+   and browser-rendered form UI light on devices configured for dark mode. */
 :root {
   --kd-accent: #7ad12a;
   --kd-accent-soft: #eaffd0;
@@ -117,65 +108,6 @@
      ground the lime sits on. Constant across themes on purpose. */
   --kd-ink: #0b1a14;
   color-scheme: light;
-}
-
-/* 📖 Dark surfaces come from the logo's gradient, so the site and the product
-   share the same "deep forest" ground rather than a generic neutral grey.
-   Declared once as a custom property set, applied by layers 2 and 3. */
-@layer theme {
-  :root[data-theme='dark'],
-  :root:not([data-theme]) {
-    --kd-dark-accent: #88e138;
-    --kd-dark-accent-soft: #1d3a16;
-    --kd-dark-bg: #08150f;
-    --kd-dark-bg-subtle: #0e1f18;
-    --kd-dark-bg-raised: #12271f;
-    --kd-dark-border: #244136;
-    --kd-dark-border-strong: #3d6353;
-    --kd-dark-fg: #eef5ef;
-    --kd-dark-fg-muted: #a3b5aa;
-    --kd-dark-fg-faint: #7e8f86;
-    --kd-dark-accent-fg: #a8ec6d;
-    --kd-dark-code-bg: #0c1c15;
-  }
-}
-
-/* Layer 2 — the OS preference, for a visitor who has not chosen. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    --kd-accent: var(--kd-dark-accent);
-    --kd-accent-soft: var(--kd-dark-accent-soft);
-    --kd-bg: var(--kd-dark-bg);
-    --kd-bg-subtle: var(--kd-dark-bg-subtle);
-    --kd-bg-raised: var(--kd-dark-bg-raised);
-    --kd-border: var(--kd-dark-border);
-    --kd-border-strong: var(--kd-dark-border-strong);
-    --kd-fg: var(--kd-dark-fg);
-    --kd-fg-muted: var(--kd-dark-fg-muted);
-    --kd-fg-faint: var(--kd-dark-fg-faint);
-    --kd-accent-fg: var(--kd-dark-accent-fg);
-    --kd-code-bg: var(--kd-dark-code-bg);
-    color-scheme: dark;
-  }
-}
-
-/* Layer 3 — the visitor's explicit choice, which beats the OS in both
-   directions. `data-theme="light"` must be able to force light on a machine set
-   to dark, which is exactly what the `:not([data-theme])` guard above allows. */
-:root[data-theme='dark'] {
-  --kd-accent: var(--kd-dark-accent);
-  --kd-accent-soft: var(--kd-dark-accent-soft);
-  --kd-bg: var(--kd-dark-bg);
-  --kd-bg-subtle: var(--kd-dark-bg-subtle);
-  --kd-bg-raised: var(--kd-dark-bg-raised);
-  --kd-border: var(--kd-dark-border);
-  --kd-border-strong: var(--kd-dark-border-strong);
-  --kd-fg: var(--kd-dark-fg);
-  --kd-fg-muted: var(--kd-dark-fg-muted);
-  --kd-fg-faint: var(--kd-dark-fg-faint);
-  --kd-accent-fg: var(--kd-dark-accent-fg);
-  --kd-code-bg: var(--kd-dark-code-bg);
-  color-scheme: dark;
 }
 
 @layer base {
@@ -261,36 +193,9 @@
 
 /* ── Shiki ────────────────────────────────────────────────────────────────── */
 
-/**
- * 📖 Shiki emits light colours inline and dark ones as `--shiki-dark*` custom
- * properties (see `defaultColor: 'light'` in vite.config.ts). Swapping them is a
- * pure CSS operation, so highlighting follows the theme with no JavaScript, no
- * re-highlighting and no flash of the wrong colours on first paint.
- *
- * The selectors mirror the three token layers above — OS preference only when
- * the visitor has not chosen, explicit `data-theme` otherwise — so a code block
- * can never end up light-on-light after a toggle.
- */
+/** 📖 Shiki emits one light palette from `vite.config.ts`. */
 .shiki {
   background-color: var(--color-code-bg) !important;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .shiki,
-  :root:not([data-theme]) .shiki span {
-    color: var(--shiki-dark) !important;
-    font-style: var(--shiki-dark-font-style) !important;
-    font-weight: var(--shiki-dark-font-weight) !important;
-    text-decoration: var(--shiki-dark-text-decoration) !important;
-  }
-}
-
-:root[data-theme='dark'] .shiki,
-:root[data-theme='dark'] .shiki span {
-  color: var(--shiki-dark) !important;
-  font-style: var(--shiki-dark-font-style) !important;
-  font-weight: var(--shiki-dark-font-weight) !important;
-  text-decoration: var(--shiki-dark-text-decoration) !important;
 }
 
 /* ── Prose ────────────────────────────────────────────────────────────────── */
@@ -522,29 +427,6 @@
 }
 
 /* ── Motion ───────────────────────────────────────────────────────────────── */
-
-/**
- * 📖 View Transitions, used by the theme toggle.
- *
- * The browser's default cross-fade is suppressed on both snapshots so the two
- * themes sit perfectly stacked; `ThemeToggler` then animates a `clip-path`
- * circle on the *new* snapshot, wiping the incoming theme outward from the
- * button. Leaving the default fade in place would muddy the two layers together
- * and the reveal would read as a blur instead of a wipe.
- */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: none;
-  mix-blend-mode: normal;
-}
-
-::view-transition-old(root) {
-  z-index: 0;
-}
-
-::view-transition-new(root) {
-  z-index: 1;
-}
 
 @keyframes rise {
   from {

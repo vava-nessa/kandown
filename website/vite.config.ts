@@ -66,12 +66,9 @@ export default defineConfig({
           [
             rehypeShiki,
             {
-              // 📖 Dual themes: Shiki emits the light colours inline and the dark
-              // ones as `--shiki-dark` CSS variables. `styles.css` swaps them
-              // under `prefers-color-scheme: dark`, so highlighting follows the
-              // OS theme with zero JavaScript.
-              themes: { light: 'github-light', dark: 'github-dark-default' },
-              defaultColor: 'light',
+              // 📖 The site has one deliberate light identity, so highlighted
+              // code uses one palette regardless of the device preference.
+              theme: 'github-light',
             },
           ],
         ],

@@ -44,7 +44,7 @@ export const DEMO_CONFIG_JSON = JSON.stringify(
   {
     ui: {
       language: 'en',
-      theme: 'auto',
+      theme: 'light',
       skin: 'kandown',
       font: 'inter',
       background: 'solid',
