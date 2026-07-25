@@ -21,7 +21,6 @@ import { KbdButton } from './KbdButton';
 import { supportsFileSystemAccess, isServerMode } from '../lib/filesystem';
 import { MOTION } from '../lib/motion-presets';
 import { LogoSvg } from './LogoSvg';
-import HeroGeometric from './HeroGeometric';
 
 export function EmptyState() {
   const { t } = useTranslation();
@@ -55,89 +54,86 @@ export function EmptyState() {
   }
 
   return (
-    <HeroGeometric className="flex-1 min-h-[calc(100vh-56px)] pt-16">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="flex-1 flex flex-col items-center justify-start pt-32 gap-5 px-10 text-center board-bg relative"
+    >
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="flex flex-col items-center justify-start gap-5 text-center relative z-10"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
       >
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-        >
-          <LogoSvg className="w-36 h-36 dark:text-white text-black" />
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="text-[32px] font-bold tracking-tight text-fg"
-        >
-          {t('app.name')}
-        </motion.div>
-
-        {serverMode ? (
-          <>
-            <motion.div
-              {...MOTION.heroStagger(2)}
-              className="text-[15px] text-fg-dim max-w-[480px] leading-relaxed"
-            >
-              {t('emptyState.serverModeDesc') ?? 'Kandown is running in server mode. The project will load automatically.'}
-            </motion.div>
-          </>
-        ) : (
-          <>
-            <motion.div
-              {...MOTION.heroStagger(2)}
-              className="text-[16px] text-fg-dim max-w-[480px] leading-relaxed font-medium"
-            >
-              {t('app.tagline')}
-            </motion.div>
-            <motion.div
-              {...MOTION.heroStagger(3)}
-              className="text-[14.5px] text-fg-dim max-w-[480px] leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: t('emptyState.selectFolderDesc') }}
-            />
-            <motion.div {...MOTION.heroStagger(4)}>
-              <KbdButton
-                variant="primary"
-                label={t('common.selectFolder')}
-                onClick={openFolder}
-                className="h-11 px-7 text-[16px] shadow-lg shadow-primary/20"
-                iconSize={20}
-                icon="Folder"
-              />
-            </motion.div>
-          </>
-        )}
-
-        {recentProjects.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, ease: MOTION.fade.transition.ease }}
-            className="mt-6 flex flex-col items-center gap-2"
-          >
-            <div className="text-[11.5px] font-semibold uppercase tracking-wider text-fg-faint">
-              {t('common.recent')}
-            </div>
-            <div className="flex flex-col gap-1 min-w-[220px]">
-              {recentProjects.slice(0, 5).map(p => (
-                <button
-                  key={p.id}
-                  onClick={() => openRecentProject(p)}
-                  className="px-3.5 py-1.5 text-[13.5px] text-fg-dim hover:text-fg hover:bg-bg-2/80 rounded-[6px] transition-colors backdrop-blur-sm"
-                >
-                  {p.name}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
+        <LogoSvg className="w-40 h-40 dark:text-white text-black" />
       </motion.div>
-    </HeroGeometric>
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
+        className="text-[26px] font-semibold tracking-tight text-fg"
+      >
+        {t('app.name')}
+      </motion.div>
+
+      {serverMode ? (
+        <>
+          <motion.div
+            {...MOTION.heroStagger(2)}
+            className="text-[14.5px] text-fg-dim max-w-[480px] leading-relaxed"
+          >
+            {t('emptyState.serverModeDesc') ?? 'Kandown is running in server mode. The project will load automatically.'}
+          </motion.div>
+        </>
+      ) : (
+        <>
+          <motion.div
+            {...MOTION.heroStagger(2)}
+            className="text-[14.5px] text-fg-dim max-w-[480px] leading-relaxed"
+          >
+            {t('app.tagline')}
+          </motion.div>
+          <motion.div
+            {...MOTION.heroStagger(3)}
+            className="text-[14.5px] text-fg-dim max-w-[480px] leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: t('emptyState.selectFolderDesc') }}
+          />
+          <motion.div {...MOTION.heroStagger(4)}>
+            <KbdButton
+              variant="primary"
+              label={t('common.selectFolder')}
+              onClick={openFolder}
+              className="h-10 px-6 text-[16px]"
+              iconSize={20}
+              icon="Folder"
+            />
+          </motion.div>
+        </>
+      )}
+
+      {recentProjects.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, ease: MOTION.fade.transition.ease }}
+          className="mt-4 flex flex-col items-center gap-2"
+        >
+          <div className="text-[11.5px] font-semibold uppercase tracking-wider text-fg-faint">
+            {t('common.recent')}
+          </div>
+          <div className="flex flex-col gap-1 min-w-[220px]">
+            {recentProjects.slice(0, 5).map(p => (
+              <button
+                key={p.id}
+                onClick={() => openRecentProject(p)}
+                className="px-3 py-1.5 text-[13.5px] text-fg-dim hover:text-fg hover:bg-bg-2 rounded-[6px] transition-colors"
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
+        </motion.div>
+      )}
+    </motion.div>
   );
 }
-
