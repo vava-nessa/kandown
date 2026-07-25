@@ -54,9 +54,9 @@ function Home() {
 
 function Hero() {
   return (
-    <section className="relative border-b border-border overflow-hidden">
+    <section className="relative border-b border-border min-h-[480px] sm:min-h-[560px] overflow-hidden">
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <HeroGeometric color1="#0ce931" color2="#fff7ed" speed={3.0} className="h-full min-h-full" />
+        <HeroGeometric color1="#0ce931" color2="#fff7ed" speed={3.0} className="w-full h-full absolute inset-0" />
       </div>
       <Shell className="relative z-10">
         <div className="py-16 sm:py-24">

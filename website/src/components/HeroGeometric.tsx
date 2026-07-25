@@ -203,14 +203,16 @@ export default function HeroGeometric({
             style={{ containerType: "size" }}
         >
             {/* Background Shader */}
-            <div className="absolute top-0 left-0 w-full h-full z-0 pointer-events-none opacity-75 dark:opacity-60">
+            <div className="absolute inset-0 z-0 pointer-events-none w-full h-full">
                 <Canvas
                     camera={{ position: [0, 0, 1] }}
-                    dpr={[1, 1]}
+                    dpr={Math.min(typeof window !== 'undefined' ? window.devicePixelRatio : 1, 2)}
                     gl={{
                         antialias: false,
                         alpha: true,
+                        powerPreference: "high-performance"
                     }}
+                    style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
                 >
                     <GradientPlane color1={color1} color2={color2} speed={speed} />
                 </Canvas>
