@@ -1,3 +1,20 @@
+/**
+ * @file Text input primitive
+ * @description A thin, themed wrapper around `<input>` following the shadcn
+ * pattern — it forwards its ref and every native prop, and only contributes
+ * styling plus a consistent focus ring.
+ *
+ * 📖 It exists so that inputs look identical everywhere and restyle with the theme,
+ * since the border, ring and placeholder colours all come from tokens. Ad-hoc
+ * `<input className="...">` usage still exists in `Drawer.tsx` and
+ * `SettingsPage.tsx` and is being migrated onto this component.
+ *
+ * @functions
+ *  → Input — forwardRef input accepting every native input prop
+ *
+ * @exports Input, InputProps
+ */
+
 import * as React from "react"
 import { cn } from "../../lib/utils"
 

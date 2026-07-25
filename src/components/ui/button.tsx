@@ -1,3 +1,23 @@
+/**
+ * @file Button primitive
+ * @description The shared button component for the web UI, built on the shadcn
+ * pattern: a `cva` recipe defines the variant/size matrix, and `cn` merges the
+ * result with any caller-supplied classes so overrides win.
+ *
+ * 📖 Every variant is styled through theme tokens (`bg-primary`, `text-fg-dim`,
+ * `border-border-strong`, `outline-ring`) rather than fixed colours — that is what
+ * lets all 39 themes restyle buttons without touching this file.
+ *
+ * 📖 `asChild` renders through Radix's `Slot`, so a link or a menu trigger can wear
+ * the button styling without nesting an extra element.
+ *
+ * @functions
+ *  → Button — forwardRef button accepting `variant`, `size`, `asChild`
+ *  → buttonVariants — the cva recipe, for composing button styling elsewhere
+ *
+ * @exports Button, buttonVariants, ButtonProps
+ */
+
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";

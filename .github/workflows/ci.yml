@@ -1,0 +1,44 @@
+# 📖 Quality gate for every change that targets main.
+#
+# Until this existed, nothing verified a change before it landed — publish.yml only
+# fires on a v* tag, so a broken typecheck or build surfaced at release time, which
+# is the most expensive moment to find it.
+#
+# The codemap step is what keeps the generated documentation honest: the pre-commit
+# hook regenerates CODEMAP.md/.json locally, but hooks can be skipped (--no-verify,
+# a fresh clone that never ran pnpm install, a web edit). `--check` re-renders the
+# map and fails on any drift, so a stale index cannot reach main. It also fails when
+# a source file has no @description header, which is what holds coverage at 100%.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Codemap is current and every file is documented
+        run: pnpm codemap:check
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build

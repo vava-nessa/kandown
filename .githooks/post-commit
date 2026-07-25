@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# 📖 Refreshes the local graphify dependency graph after each commit.
+#
+# Why post-commit and not pre-commit: graphify's incremental update works out what
+# changed from `git diff HEAD~1`, so it needs the commit to exist. That is fine
+# because graphify-out/ is gitignored — the graph is a local query index, not a
+# committed artefact, so it does not need to be inside the commit.
+#
+# `graphify update` is AST-only: deterministic, no LLM, no network, no token cost.
+# The full /graphify pipeline (which does use an LLM for docs and images) is never
+# run from here — only ever by hand.
+#
+# Entirely optional: if graphify is not installed, this exits quietly. It also runs
+# detached and never fails the commit, since a graph refresh must not be able to
+# break someone's git workflow.
+#
+# Installed by scripts/install-hooks.js via core.hooksPath (runs on pnpm install).
+
+if [ "$KANDOWN_NO_GRAPHIFY" = "1" ]; then exit 0; fi
+if ! command -v graphify >/dev/null 2>&1; then exit 0; fi
+if [ ! -d graphify-out ]; then exit 0; fi
+
+(graphify update . >/dev/null 2>&1 &) || true
+exit 0

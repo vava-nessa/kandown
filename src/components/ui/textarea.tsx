@@ -1,3 +1,18 @@
+/**
+ * @file Textarea primitive
+ * @description The multi-line counterpart to `Input` — same shadcn pattern, same
+ * token-driven styling and focus ring, with a minimum height so an empty field
+ * still reads as multi-line.
+ *
+ * 📖 Used for plain free-text fields only. The task body is *not* edited here: it
+ * goes through `BlockNoteMarkdownEditor`, which round-trips markdown safely.
+ *
+ * @functions
+ *  → Textarea — forwardRef textarea accepting every native textarea prop
+ *
+ * @exports Textarea, TextareaProps
+ */
+
 import * as React from "react"
 import { cn } from "../../lib/utils"
 

@@ -43,7 +43,10 @@
     "build:cli": "tsup",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "sync:agent": "node scripts/sync-agent-kandown.js"
+    "sync:agent": "node scripts/sync-agent-kandown.js",
+    "codemap": "node scripts/build-codemap.js",
+    "codemap:check": "node scripts/build-codemap.js --check",
+    "prepare": "node scripts/install-hooks.js"
   },
   "devDependencies": {
     "@tabler/icons-react": "3.41.1",

@@ -1,0 +1,24 @@
+# 📖 What graphify must not index.
+#
+# The graph answers "what depends on what". Feeding it generated output poisons that
+# answer: bin/kandown.js and bin/tui.js are tsup bundles of src/cli/, so every symbol
+# in src/cli/ would appear twice and `graphify explain` would point at the bundle
+# rather than the file you can actually edit.
+#
+# See docs/ARCHITECTURE.md § the dependency graph.
+
+# Generated CLI bundles — the real source is src/cli/cli.ts and src/cli/tui.tsx
+bin/kandown.js
+bin/tui.js
+
+# Build output
+dist/
+graphify-out/
+
+# 48 near-identical translation catalogues — pure noise in a dependency graph
+src/lib/i18n/locales/
+
+# Generated documentation artefacts (their source is the JSDoc headers)
+CODEMAP.md
+CODEMAP.json
+AGENT_KANDOWN.md

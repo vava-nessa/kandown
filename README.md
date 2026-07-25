@@ -6,8 +6,8 @@
 
 <p align="center">
   <strong>Too Many Ideas, Not Enough Agents.</strong><br>
-  Kandown helps you queue tasks in an elegant and clever way — file-based Kanban backed by plain Markdown.<br>
-  Zero backend · Zero database · No account · AI-agent friendly
+  A local-first Kanban board where every task is a Markdown file you own forever.<br>
+  Zero backend · Zero database · No account · Built for working alongside AI agents
 </p>
 
 <p align="center">
@@ -17,230 +17,224 @@
   <img src="https://img.shields.io/badge/local--first-100%25-orange" alt="100% local-first">
 </p>
 
----
-
-## Description
-
-Kandown is a **local-first Kanban board** where your tasks live as plain Markdown files. No cloud, no account, no vendor lock-in — just a `.kandown/` folder in your project that you own forever.
-
-- **Your data is portable** — tasks are `.md` files versioned with git, readable by any text editor or AI agent
-- **AI-agent friendly** — Claude, Codex, Gemini, Goose, Aider, and OpenCode can read and update tasks directly
-- **Dual interface** — a polished web UI + a full terminal TUI, both running entirely offline
-- **Single-file deployment** — `kandown.html` is a self-contained app you can open in any browser
+<p align="center">
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#for-ai-agents">For AI agents</a> ·
+  <a href="#cli-reference">CLI</a> ·
+  <a href="#features">Features</a> ·
+  <a href="#contributing">Contributing</a>
+</p>
 
 ---
 
-## Installation
+## What it is
+
+Kandown drops a `tasks/` folder into your project and gives you three ways to work
+with it: a polished web board, a full terminal UI, and a scriptable CLI. All three
+read and write the same plain Markdown files.
+
+- **Your data is just files.** One `.md` per task, versioned in git, readable by any
+  editor, any script, any AI agent. Nothing to export, nothing to lose.
+- **Agents are first-class users**, not an integration. Claude Code, Codex, Gemini
+  CLI, Goose, Aider and OpenCode all drive the board directly.
+- **Fully offline.** No account, no cloud, no telemetry. The web UI is one
+  self-contained HTML file you can open anywhere.
+
+---
+
+## Quick start
 
 ```bash
-npm install -g kandown
-```
-
-**Requirements:** Node.js 18+
-
----
-
-## Usage
-
-### Initialize in any project
-
-```bash
+npm install -g kandown     # Node.js 18+
 cd my-project
 kandown init
-```
-
-This creates two folders at your project root:
-
-```
-.kandown/             # config + web UI + agent docs
-├── kandown.html      # Single-file web app
-├── kandown.json      # Project config (columns, appearance)
-├── AGENT.md          # AI-agent quick reference
-└── AGENT_KANDOWN.md  # Full agent reference
-
-tasks/                # Task files (source of truth)
-├── t1.md             # One .md file per task
-└── archive/          # Archived tasks live here
-```
-
-> **Layout note:** tasks live at the project root in `./tasks/`, not inside
-> `.kandown/`. This keeps config and data cleanly separated. If you're
-> upgrading from an older version with tasks in `.kandown/tasks/`, the CLI
-> will move them automatically the first time you run it — nothing to do.
-
-### Launch the board
-
-```bash
 kandown
 ```
 
-This starts a per-project local web daemon, then opens:
-- A **web UI** in your browser (board view, list view, task editor)
-- A **terminal TUI** for keyboard-driven workflow (works over SSH, no browser needed)
+`kandown init` creates two folders at your project root:
 
-The web daemon stays alive after you quit the TUI so the browser keeps working. Stop or restart it anytime from the TUI with `d`, or from the CLI with `kandown daemon stop`.
+```
+tasks/                # your tasks — the source of truth
+├── t1.md             # one Markdown file per task
+└── archive/          # archived tasks live here
 
-### CLI Commands
+.kandown/             # config + web UI + agent docs
+├── kandown.json      # columns, theme, notifications, agents
+├── kandown.html      # the web app, one self-contained file
+├── instructions.md   # optional: your project's agent instructions
+└── AGENT*.md         # agent reference, kept in sync with the CLI
+```
+
+`kandown` then starts a small local daemon and opens both a **web board** in your
+browser and a **terminal UI** in your shell. The daemon outlives the TUI, so the
+browser keeps working after you quit — stop it with `d` in the TUI or
+`kandown daemon stop`.
+
+Tasks live at your project root rather than inside `.kandown/` so that config and
+data stay cleanly separated. Upgrading from an older layout? The CLI moves them for
+you on first run.
+
+---
+
+## For AI agents
+
+This is the part that makes kandown different, so it is worth two minutes.
+
+### One command for context
+
+```bash
+kandown work
+```
+
+That prints, as plain Markdown on stdout:
+
+1. **The agent rules** — served from the installed CLI, so they are never a stale
+   copy frozen into your repo at init time.
+2. **Your project instructions** — optional, from `.kandown/instructions.md`. Stack
+   quirks, "always use pnpm", commit-message language, token-efficiency
+   preferences.
+3. **A live board digest** — column counts, tasks per column with blocked-by
+   annotations, and a computed **next actionable task** (unblocked, closest to done,
+   highest priority).
+
+One call, full context. `kandown init` adds a single line to your `AGENTS.md` /
+`CLAUDE.md` pointing at it — no block of rules copied in to go stale.
+
+The Settings page has an **Agent → `kandown work` output** configurator: toggle each
+block, switch to a concise token-efficient mode, hide digest fields, see an
+estimated token count, or take full control with a raw template using
+`{{baseRules}}`, `{{projectInstructions}}` and `{{boardDigest}}`.
+
+### Scriptable, composable, offline
+
+```bash
+kandown list --json | jq '.[] | select(.priority=="P1")'
+ID=$(kandown create "Refactor auth middleware" -p P1 -t backend)
+kandown move "$ID" Done
+kandown commit -m "tasks: add auth refactor"
+```
+
+**Output contract:** stdout carries data only — ids, JSON, tables. Everything
+decorative (`✓ Created…`, warnings, errors) goes to stderr. So `$(kandown create
+…)` captures exactly one id, and `--json | jq` never chokes on a checkmark. Exit
+code `0` on success, non-zero on failure.
+
+**No network, ever.** The task commands and `kandown daemon` never contact the npm
+registry, so they stay instant and work offline — ideal for CI and for agents in a
+loop.
+
+### MCP
+
+```bash
+kandown mcp                          # stdio MCP server
+claude mcp add kandown -- kandown mcp
+```
+
+### Launching agents from the board
+
+Press `a` on any task in the terminal UI to hand it to an agent:
+
+| Agent | Binary | Launch mode |
+|---|---|---|
+| Claude Code | `claude` | interactive session |
+| OpenAI Codex | `codex` | interactive session |
+| Gemini CLI | `gemini` | `-p` initial prompt |
+| Goose | `goose` | `run --text`, non-interactive |
+| Aider | `aider` | `--message` initial prompt |
+| OpenCode | `opencode` | TUI, context written to `/tmp` |
+
+Or point kandown at your own tooling with `KANDOWN_AGENT_HOOK_URL` and let any
+IDE, bot or webhook receive tasks.
+
+---
+
+## CLI reference
+
+### Interactive
 
 | Command | Description |
 |---|---|
-| `kandown` | Launch web UI + board TUI |
-| `kandown init` | Initialize in current project |
-| `kandown board` | TUI only (no browser) |
+| `kandown` | Web UI + terminal board |
+| `kandown init` | Initialize in the current project |
+| `kandown board` | Terminal UI only, no browser |
 | `kandown settings` | Terminal settings editor |
-| `kandown daemon status` | Show this project's web daemon status |
-| `kandown daemon start` | Start/reconnect this project's web daemon |
-| `kandown daemon stop` | Stop this project's web daemon |
-| `kandown daemon refresh-all` | Refresh open projects and restart outdated daemons with the current CLI version |
-| `kandown update` | Update `kandown.html` to latest |
-| `kandown list` \| `show` \| `create` \| `move` \| `assign` \| `commit` | One-shot task commands (see below) |
-| `kandown tasks` | Full help for the one-shot task commands |
-| `kandown work` | **For AI agents:** print the agent rules + a live board digest (see below) |
-| `kandown help` | CLI help |
+| `kandown doctor` | Diagnose config, daemon, ports, task frontmatter |
+| `kandown help` | Full help |
 
-### One-shot task commands (scriptable, agent-friendly)
-
-Top-level, non-interactive commands for scripting, CI, and AI agents — no wrapper prefix, just `kandown <command>`. Every command auto-inits `.kandown/` on first use, same as the interactive CLI.
+### Tasks — non-interactive, agent- and CI-friendly
 
 | Command | Description |
 |---|---|
 | `kandown list` | List tasks — `[-s status] [-a assignee] [-t tag] [-p priority] [--archived] [--json]` |
 | `kandown show <id>` | Print a task file's raw content |
-| `kandown create "title"` | Create a task — `[-p priority] [-a assignee] [-t tag ...] [--to status] [--id custom-id] [--json]` |
-| `kandown move <id> <status>` | Move a task — `<status>` is a column name or `"archived"` |
-| `kandown assign <id> [name]` | Assign a task (omit name to unassign) |
-| `kandown commit [-m "message"]` | `git add tasks/ .kandown/kandown.json` + `git commit` |
+| `kandown create "title"` | Create — `[-p priority] [-a assignee] [-t tag …] [--to status] [--id custom-id] [--json]` |
+| `kandown move <id> <status>` | Move to a column, or to `archived` |
+| `kandown assign <id> [name]` | Assign, or unassign by omitting the name |
+| `kandown commit [-m msg]` | `git add tasks/ .kandown/kandown.json` + commit |
+| `kandown export` / `import` | JSON / CSV out, Trello JSON or Markdown in |
 
-```bash
-kandown list --json | jq '.[] | select(.priority=="P1")'
-kandown create "Refactor auth middleware" -p P1 -t backend
-kandown move t42 Done
-kandown assign t42 alice
-kandown commit -m "tasks: add auth refactor"
-```
+### Daemon & maintenance
 
-**Output contract:** stdout carries data only (task ids, JSON, tables) — everything decorative (`✓ Created…`, warnings, errors) goes to stderr. This keeps `ID=$(kandown create "...")` and `kandown list --json | jq ...` clean and composable. Exit code `0` on success, non-zero on error — safe to check in scripts.
-
-**No update checks:** the task commands and `kandown daemon` never touch the npm registry, so they stay fast and fully offline-capable — ideal for CI and for AI agents driving the board directly.
-
-### `kandown work` — the agent entrypoint
-
-`kandown init` no longer copies a block of rules into your `AGENTS.md`/`CLAUDE.md` — it appends a single line instead:
-
-> This project uses **kandown** for task management. **Always run `kandown work` when starting a new task** — it prints the current rules and board state, kept in sync with the installed CLI version.
-
-Running `kandown work` prints, as plain markdown on stdout:
-
-1. **The agent rules** — always fresh, served straight from the installed CLI version instead of a copy that goes stale the moment the package updates.
-2. **Project instructions** (optional) — `.kandown/instructions.md`, this project only (stack quirks, "always use pnpm", commit message language, token-efficient agent preferences, etc).
-3. **A live board digest** — column counts, tasks per column with blocked-by annotations, and a computed **"next actionable task"** (closest to done, unblocked, highest priority) — so the agent gets its context in the same call.
-
-The Settings page includes an **Agent → kandown work output** configurator. You can toggle each generated block, switch the base rules to a concise token-efficient mode, hide detailed digest fields, see an estimated token count, or use **Raw template** mode to control the complete output with `{{baseRules}}`, `{{projectInstructions}}`, and `{{boardDigest}}` variables.
-
-Kandown keeps generated agent reference docs inside `.kandown/` only. If `.kandown/AGENT_KANDOWN.md` is missing, malformed, or an outdated generated copy, the CLI recreates it from the installed package template. Custom behavior belongs in `.kandown/instructions.md` and `.kandown/kandown.json`, not in project-root agent files.
-
-This removes the drift problem of a rules block frozen into every project's `AGENTS.md` at init time, keeps the injected footprint to one line, and lets you layer project instructions without touching the agent file at all.
-
-> **Upgrading from before v0.18.0?** `kandown shell <cmd>` was removed (no alias) — the commands are now top-level: `kandown list/show/create/move/assign/commit`. Existing projects keep their old `AGENTS.md`/`CLAUDE.md` block until you re-run `kandown init`. The CLI prints a one-time notice about this the next time you run an interactive command after updating — see [Environment variables](#environment-variables) if you want to silence version-check output entirely.
-
----
-
-## Environment variables
-
-| Variable | Effect |
+| Command | Description |
 |---|---|
-| `KANDOWN_NO_UPDATE=1` | Disable the background auto-update check entirely (recommended for CI) |
-| `KANDOWN_DEBUG=1` | Print full stack traces on unexpected errors instead of a one-line summary |
-| `KANDOWN_AGENT_HOOK_URL` | POST endpoint that receives tasks sent via the "Send to Agent" button / TUI `g` key |
-| `KANDOWN_AGENT_HOOK_LABEL` | Custom label for the agent hook button (default: `Agent`) |
-| `KANDOWN_AGENT_HOOK_HEADERS` | JSON object of extra HTTP headers to send with the agent hook request |
-
-Interactive runs of `kandown` check npm for updates at most once every 24 hours (never for the task commands or `daemon`, never when stdout isn't a terminal) and auto-install silently when one is found.
-
----
-
-## Security notes
-
-- The local web daemon binds to `127.0.0.1` only and issues a random per-project API token on startup (stored in the gitignored `.kandown/daemon.json`, injected into the served page). Every API route except the read-only `GET /api/daemon` identity check requires it — a stray browser tab on another site can't read or write your tasks through it.
-- `.kandown/daemon.json` and `.kandown/daemon.lock` are runtime-only files; `kandown init` adds them to `.kandown/.gitignore` automatically.
+| `kandown daemon status\|start\|stop` | Manage this project's web daemon |
+| `kandown daemon refresh-all` | Restart outdated daemons on the current CLI version |
+| `kandown projects` | List every open kandown project on this machine |
+| `kandown update` | Update the CLI and the project's `kandown.html` |
 
 ---
 
 ## Features
 
-### Board & Views
+### Board & views
 
-| Feature | Description |
+Horizontal kanban with drag-and-drop · sectioned list view with filters and search ·
+full-text search across titles, bodies, subtasks, tags, assignee and priority ·
+command palette (`⌘K`) · freely editable columns · group-by
+(priority / assignee / epic) · due-date banner · guarded double-click deletion ·
+bulk archive or delete of a whole column.
+
+### Tasks
+
+WYSIWYG Markdown editor · subtask checklists with per-step descriptions, reports and
+keyboard reordering · priority, assignee, tags, due date, epic, owner type ·
+`depends_on` dependencies with a gate that refuses to close a blocked task ·
+human/agent owner filtering · quick-add syntax
+(`Fix login p1 #backend @chacha due:friday`) · task templates ·
+external-change detection.
+
+### Appearance
+
+**38 built-in themes** (Vercel, Linear, Claude, Apple, Stripe, Catppuccin, Dracula,
+Nord, Terminal, Synthwave and more) plus custom themes defined in JSON · light /
+dark / auto · tokenised radius, shadows, density and motion · 5 font stacks ·
+animated WebGL background · **48 languages** · browser and sound notifications.
+
+### Terminal UI
+
+Keyboard-driven and mouse-aware, works over SSH with no browser.
+
+| Key | Action |
 |---|---|
-| Board view | Horizontal kanban with drag-and-drop |
-| List view | Sectioned vertical list with filters, search, and drag-and-drop between statuses |
-| Content search | Search titles, body, subtasks, tags, assignee, priority |
-| Command palette | `⌘K` / `Ctrl+K` for quick actions |
-| Custom columns | Add, rename, delete columns freely |
-| Guarded deletion | Double-click to delete — no accidents |
-| Terminal bulk actions | Archive or permanently delete every task in the terminal column with confirmation |
+| `j`/`k`, `h`/`l` | Navigate tasks / columns |
+| `n` · `e` · `m` | New task · edit in `$EDITOR` · move |
+| `/` · `f` | Fuzzy search · cycle filters |
+| `a` · `g` | Launch an agent · send to agent hook |
+| `x` · `D` | Archive · delete |
+| `d` · `r` · `?` | Toggle daemon · reload · cheatsheet |
 
-### Task Management
+Drag a task with the mouse to move it between columns.
 
-| Feature | Description |
-|---|---|
-| Rich task drawer | WYSIWYG markdown editor for title, metadata, subtasks, body |
-| Subtasks | Full checklist with progress tracking on cards |
-| Subtask editor | Add, reorder-by-keyboard, check off, remove, and edit per-step descriptions and reports |
-| Metadata fields | Priority, assignee, tags, due date, owner type |
-| Owner filtering | Filter human vs AI-agent tasks separately |
-| External-change detection | Warns when files are modified outside the app |
+### Web shortcuts
 
-### Appearance & UX
+`⌘K` palette · `⌘1`/`⌘2` board/list · `N` new · `R` reload · `/` search ·
+`⌘S` save · `⌘⌫` delete · `Esc` close.
 
-| Feature | Description |
-|---|---|
-| 5 built-in skins | Kandown, Graphite, Sage, Cobalt, Rose |
-| Theme modes | Auto (system), Light, Dark |
-| 5 font stacks | Inter, System, Serif, Mono, Rounded |
-| Animated backgrounds | WebGL fluid simulation (LiquidEther) |
-| 48 languages | Full i18n support |
-| Notifications | Browser + sound alerts for status changes, edits, completions |
+---
 
-### AI Agent Integration
+## The data model
 
-Press `a` in the board TUI to launch an AI agent on any task. Supported agents:
-
-| Agent | Binary | Launch mode |
-|---|---|---|
-| Claude Code | `claude` | Interactive session |
-| OpenAI Codex | `codex` | Interactive session |
-| Gemini CLI | `gemini` | `-p` flag for initial prompt |
-| Goose | `goose` | `run --text` for non-interactive |
-| Aider | `aider` | `--message` for initial prompt |
-| OpenCode | `opencode` | TUI, context written to `/tmp` |
-
-### Keyboard Shortcuts
-
-| Shortcut | Action |
-|---|---|
-| `⌘K` / `Ctrl+K` | Command palette |
-| `⌘1` / `Ctrl+1` | Board view |
-| `⌘2` / `Ctrl+2` | List view |
-| `N` | New task |
-| `R` | Reload from disk |
-| `/` | Focus search |
-| `Esc` | Close drawer / palette |
-| `⌘S` / `Ctrl+S` | Save task |
-| `⌘⌫` / `Ctrl+Backspace` | Delete task (with confirmation) |
-
-### TUI extras
-
-| Shortcut / gesture | Action |
-|---|---|
-| `d` | Start/stop the per-project web daemon |
-| Mouse drag task | Move a task between columns in the terminal |
-| `m` | Open the focused task context menu |
-| `r` | Reload board from disk |
-
-### Data Model
-
-Each task is a standalone Markdown file:
+One task, one file, no index:
 
 ```markdown
 ---
@@ -250,6 +244,7 @@ status: Todo
 priority: P1
 tags: [backend, security]
 assignee: chacha
+depends_on: [t7]
 created: 2026-04-10
 ---
 
@@ -259,50 +254,85 @@ created: 2026-04-10
 Why this task exists.
 
 ## Subtasks
-- [ ] Set up OAuth provider
 - [x] Create user model
-- [ ] Add session middleware
+  report: Added src/models/user.ts with the schema and migrations.
+- [ ] Set up OAuth provider
 ```
+
+| Field | Meaning |
+|---|---|
+| `status` | Board column, from `board.columns` in `kandown.json` |
+| `order` | Sort position within the column |
+| `priority` | `P1`–`P4` |
+| `tags`, `assignee` | Free-form labels, username or agent name |
+| `ownerType` | `human` or `ai` — drives owner filtering |
+| `depends_on` | Task ids blocking this one; moving to the terminal column is refused while any is unresolved |
+| `report` | Completion summary in Markdown, shown prominently in the UI |
+
+---
+
+## Configuration
+
+### Environment variables
+
+| Variable | Effect |
+|---|---|
+| `KANDOWN_NO_UPDATE=1` | Disable the background update check (recommended in CI) |
+| `KANDOWN_DEBUG=1` | Print full stack traces instead of a one-line summary |
+| `KANDOWN_AGENT_HOOK_URL` | Endpoint that receives tasks from "Send to Agent" / TUI `g` |
+| `KANDOWN_AGENT_HOOK_LABEL` | Custom label for the agent hook button |
+| `KANDOWN_AGENT_HOOK_HEADERS` | JSON object of extra headers for the hook request |
+
+Interactive runs check npm for updates at most once every 24 hours — never for the
+task commands, never for `daemon`, never when stdout is not a terminal — and install
+silently when one is found.
+
+### Security
+
+The local daemon binds to `127.0.0.1` only and mints a random per-project API token
+at startup, stored in the gitignored `.kandown/daemon.json` and injected into the
+page it serves. Every route except the read-only `GET /api/daemon` identity check
+requires it, so an unrelated browser tab cannot reach your tasks by scanning
+localhost ports. Task ids are validated before they touch the filesystem.
 
 ---
 
 ## Contributing
 
-Contributions are welcome! Please read the existing code style and conventions before submitting PRs.
-
-### Development Setup
+Contributions are welcome.
 
 ```bash
 git clone https://github.com/vava-nessa/kandown.git
 cd kandown
-pnpm install
-pnpm dev          # Web UI at localhost:5176
+pnpm install          # also installs the git hooks
+pnpm dev              # web UI at localhost:5176
 ```
 
-### Scripts
+Before your first change, read — in this order:
+
+| Document | What it gives you |
+|---|---|
+| [`AGENTS.md`](AGENTS.md) | The project's rules, including which files are generated |
+| [`CODEMAP.md`](CODEMAP.md) | Every source file with a one-line summary — generated from JSDoc |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How the pieces fit and which invariants not to break |
+| [`docs/RELEASE.md`](docs/RELEASE.md) | The release runbook |
+
+The short version: **`bin/*.js` are build output, not source** — edit `src/cli/`
+instead. Every source file carries a JSDoc `@file` / `@description` header, `CODEMAP.md`
+is generated from them on every commit, and CI fails if either drifts.
 
 | Script | Description |
 |---|---|
-| `pnpm dev` | Vite dev server for web UI |
-| `pnpm dev:cli` | Watch-mode build for CLI TUI |
-| `pnpm build` | Full build: typecheck → web app → CLI |
-| `pnpm build:cli` | CLI TUI build only |
-| `pnpm preview` | Preview production build |
-| `pnpm typecheck` | TypeScript check |
+| `pnpm dev` | Vite dev server for the web UI |
+| `pnpm dev:app` | Full build, then launch the CLI |
+| `pnpm dev:cli` | Watch-mode build of the CLI bundles |
+| `pnpm build` | Version inject → agent-doc sync → typecheck → web → CLI |
+| `pnpm typecheck` | TypeScript, no emit |
+| `pnpm codemap` | Regenerate `CODEMAP.md` / `CODEMAP.json` |
 
 ---
 
-## License & credits
+## License
 
-[MIT](LICENSE) © 2026 [Vanessa Depraute](https://vanessadepraute.dev) — GitHub: [vava-nessa](https://github.com/vava-nessa).
-
-Created and maintained by [Vanessa Depraute](https://vanessadepraute.dev).
-
----
-
-<p align="center">
-  <a href="#-quick-start">Quick Start</a> ·
-  <a href="#-features">Features</a> ·
-  <a href="#-cli-commands">CLI</a> ·
-  <a href="#-ai-agent-integration">AI Agents</a>
-</p>
+[MIT](LICENSE) © 2026 [Vanessa Depraute](https://vanessadepraute.dev) —
+GitHub: [vava-nessa](https://github.com/vava-nessa)

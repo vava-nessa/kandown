@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# 📖 Keeps CODEMAP.md / CODEMAP.json in the same commit as the code they describe.
+#
+# The generator is deterministic and takes ~50ms, so it runs unconditionally rather
+# than trying to guess whether this commit touched source. If it produced changes,
+# they are staged into this commit — the map can never lag the code by a commit.
+#
+# Missing @description headers only warn here. Blocking a work-in-progress commit
+# over a docstring is the fastest way to get a hook disabled; CI runs the same
+# script with --check and blocks there instead. See docs/ARCHITECTURE.md.
+#
+# Installed by scripts/install-hooks.js via core.hooksPath (runs on pnpm install).
+
+set -e
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "pre-commit: node not found, skipping codemap" >&2
+  exit 0
+fi
+
+node scripts/build-codemap.js || exit 0
+git add CODEMAP.md CODEMAP.json 2>/dev/null || true

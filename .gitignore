@@ -1,3 +1,12 @@
+# graphify — local dependency graph, rebuilt by the post-commit hook.
+# Deliberately not committed: it is a large generated JSON that would conflict on
+# every merge, and it is cheap to rebuild. See docs/ARCHITECTURE.md.
+graphify-out/
+
+# Affinity Designer lock files (created while a document is open, not source).
+# 📖 `logo.af` itself IS source — the logo master — so never ignore *.af.
+*~lock~
+
 # Logs
 logs
 *.log
