@@ -97,6 +97,14 @@ Recording notes: the frame is `16/10`, so record at **1920×1200** (or 2560×160
 in the browser's memory. Drag a card, edit a task, archive one — then reload and
 it is all back.
 
+The route drops the site header and footer entirely: an application framed by a
+marketing bar reads as a widget, and the two navigations would compete for the
+same corner. In their place a single floating pill carries the way back *and*
+the demo's status, because with no site chrome it is the only thing on screen
+telling a visitor their work is disposable. It sits beside the app's own logo
+above 1520px and moves to the bottom of the screen below that — a measured
+threshold, not a guess: under it the app's toolbar reaches the same space.
+
 It is built, not written. `scripts/build-demo.mjs` runs before every site build:
 it invokes `pnpm build:demo` in the repository root, copies the result into
 `public/demo/app/`, and stamps `src/generated/demo-meta.json` with the version it

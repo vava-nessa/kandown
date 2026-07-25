@@ -17,12 +17,15 @@
  * possible, and it costs nothing here because the frame is same-origin and
  * static.
  *
- * 📖 **Why it loads on click.** The bundle is measured in megabytes. Someone who
- * lands on `/demo` has asked for it; someone who is reading the docs has not, so
- * nothing on this page is preloaded from elsewhere on the site.
+ * 📖 **It loads immediately.** The bundle is megabytes, but arriving at `/demo`
+ * *is* the request for it — an interstitial asking "do you really want the thing
+ * you just clicked?" only adds a step. Nothing anywhere else on the site
+ * preloads this route, so the cost is paid by exactly the people who asked.
+ * A skeleton holds the frame until the app has booted.
  *
  * @functions
- *  → DemoPage — the route component: chrome, launcher, iframe
+ *  → DemoPage — the route component: the iframe, its skeleton, and the way back
+ *  → DemoOverlay — the floating exit and status bar over the running app
  *  → DemoUnavailable — honest fallback when the demo build did not run
  *
  * @exports Route
@@ -61,109 +64,118 @@ export const Route = createFileRoute('/demo')({
 })
 
 function DemoPage() {
-  const [launched, setLaunched] = useState(false)
-  const available = demoMeta.available === true
+  const [loaded, setLoaded] = useState(false)
 
-  // 📖 Once launched the page becomes a window onto the app: the site header
-  // (3.5rem) and the demo strip (~2.75rem) are the only chrome, and the iframe
-  // takes the rest exactly. Without pinning the height the app renders at its
-  // natural size and the *outer* page scrolls, which puts two scrollbars in
-  // play and makes the board's own column scrolling unusable.
-  return (
-    <div
-      className={`flex flex-col ${launched ? 'h-[calc(100dvh-3.5rem)] overflow-hidden' : 'min-h-[calc(100dvh-3.5rem)]'}`}
-    >
-      {/* 📖 A status strip, not a banner. It states three facts a visitor needs
-          before they touch anything: this is a demo, this is the version, this
-          is where it goes when you leave. */}
-      <div className="border-b border-border bg-bg-subtle">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-5 py-2.5 sm:px-8">
-          <span className="label bg-accent px-1.5 py-0.5 text-ink">Demo</span>
-          <span className="text-[13px] text-fg-muted">
-            Nothing is saved. Reload the page and it resets.
-          </span>
-          {available && demoMeta.version ? (
-            <span className="label ml-auto hidden sm:block">
-              Running v{demoMeta.version}
-            </span>
-          ) : null}
-        </div>
-      </div>
-
-      {!available ? (
+  if (demoMeta.available !== true) {
+    return (
+      <div className="flex min-h-dvh flex-col">
         <DemoUnavailable />
-      ) : launched ? (
-        // 📖 `allow-same-origin` is required, not lax: the app reads its own
-        // origin for the History API and its theme storage. It is our own build
-        // on our own origin, so this grants it nothing it would not already
-        // have if it were served at the top level.
-        <iframe
-          src={DEMO_APP_URL}
-          title="Kandown interactive demo"
-          className="w-full min-h-0 flex-1 border-0 bg-bg"
-          sandbox="allow-scripts allow-same-origin allow-popups allow-downloads"
-        />
-      ) : (
-        <Launcher onLaunch={() => setLaunched(true)} version={demoMeta.version} />
-      )}
+      </div>
+    )
+  }
+
+  // 📖 The site header and footer are suppressed on this route (see
+  // __root.tsx), so the app gets the whole viewport and looks like the
+  // application it is rather than a widget parked in a page. The way back is
+  // the floating bar, not a nav the app has to share a screen with.
+  return (
+    <div className="relative h-dvh w-full overflow-hidden">
+      {/* 📖 `allow-same-origin` is required, not lax: the app reads its own
+          origin for the History API. It is our own build on our own origin, so
+          this grants it nothing it would not already have if it were served at
+          the top level. */}
+      <iframe
+        src={DEMO_APP_URL}
+        title="Kandown interactive demo"
+        onLoad={() => setLoaded(true)}
+        className="h-full w-full border-0 bg-bg"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-downloads"
+      />
+      {loaded ? null : <DemoSkeleton />}
+      <DemoOverlay />
     </div>
   )
 }
 
-/* ── Launcher ───────────────────────────────────────────────────────────── */
+/* ── Loading ────────────────────────────────────────────────────────────── */
 
-function Launcher({ onLaunch, version }: { onLaunch: () => void; version: string | null }) {
+/**
+ * 📖 Covers the frame until the app's document has loaded. Deliberately plain:
+ * a spinner over a blank page for several megabytes reads as broken, whereas a
+ * named thing that is loading reads as working. It is removed on the iframe's
+ * `load` event, which fires slightly before React inside has painted — the
+ * fade covers that gap rather than pretending it does not exist.
+ */
+function DemoSkeleton() {
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-5 py-20 sm:px-8">
-      <p className="label text-accent-fg">Interactive</p>
-      <h1 className="mt-3 text-[2.25rem] leading-[1.05] font-semibold tracking-[-0.035em] sm:text-[3rem]">
-        Drive the real thing.
-      </h1>
-      <p className="mt-6 max-w-xl text-[1.0625rem] leading-relaxed text-fg-muted">
-        This is Kandown{version ? ` ${version}` : ''} — the same build the CLI serves — running on a
-        project that lives in your browser's memory instead of on a disk. Drag cards, edit tasks,
-        search, archive. Nothing is written anywhere, and a reload puts it all back.
-      </p>
+    <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-4 bg-bg">
+      <span className="label animate-pulse text-accent-fg">Loading Kandown</span>
+      <span className="text-[13px] text-fg-muted">
+        The real application, a few megabytes of it.
+      </span>
+    </div>
+  )
+}
 
-      <button
-        type="button"
-        onClick={onLaunch}
-        className="mt-9 inline-flex w-full items-center justify-center gap-2 self-start bg-accent px-6 py-3 text-[14px] font-medium text-ink transition-opacity hover:opacity-90 sm:w-auto"
-      >
-        Launch the demo
-        <span aria-hidden="true">→</span>
-      </button>
-      <p className="mt-3 text-[12.5px] text-fg-muted">
-        Loads a few megabytes of application — that is why it waits for a click.
-      </p>
+/* ── The floating way out ───────────────────────────────────────────────── */
 
-      <dl className="mt-14 grid gap-px border-y border-border bg-border sm:grid-cols-3">
-        {[
-          ['In memory', 'No storage is touched. Not even localStorage.'],
-          ['Resets on reload', 'Every visitor gets the same starting board.'],
-          ['Really the app', 'Built from the CLI sources on every deploy.'],
-        ].map(([term, detail]) => (
-          <div key={term} className="bg-bg py-5 sm:px-5 sm:first:pl-0">
-            <dt className="label text-accent-fg">{term}</dt>
-            <dd className="mt-1.5 text-[13.5px] leading-relaxed text-fg-muted">{detail}</dd>
-          </div>
-        ))}
-      </dl>
-
-      <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-center">
-        <CopyCommand command={INSTALL_COMMAND} className="sm:min-w-[19rem]" />
+/**
+ * 📖 Sits over the running application, level with its header and just to the
+ * right of its logo — the one strip of the app's own chrome that is empty at
+ * every width above the mobile breakpoint.
+ *
+ * 📖 It carries the demo's status as well as the exit, because with the site
+ * header gone this is the *only* thing on screen that says the session is
+ * disposable. A visitor who lands here from a shared link would otherwise have
+ * no way to know their work evaporates on reload, and would rightly be annoyed
+ * when it does.
+ *
+ * 📖 The 1520px threshold is measured, not guessed. The app's own toolbar (view
+ * toggle, archive, settings, search) is pushed left as the window narrows, and
+ * it reaches this bar's right edge just below that width — at 1520px the bar
+ * ends at 675px and the nearest control starts at 759px. Sitting on top of
+ * working controls is worse than sitting somewhere less elegant, so under
+ * 1520px the bar drops to the bottom of the screen, where the board has nothing
+ * but its own "Add task" row. Re-measure if the app's header layout changes.
+ */
+function DemoOverlay() {
+  return (
+    <div className="pointer-events-none fixed inset-x-0 bottom-3 z-50 flex justify-center px-3 min-[1520px]:inset-x-auto min-[1520px]:bottom-auto min-[1520px]:top-2.5 min-[1520px]:left-[11.5rem] min-[1520px]:justify-start min-[1520px]:px-0">
+      <div className="pointer-events-auto flex max-w-full items-center gap-2.5 rounded-full border border-black/10 bg-bg/85 p-1 pr-3 shadow-lg backdrop-blur-md dark:border-white/10">
         <Link
-          to="/docs/$"
-          params={{ _splat: 'quick-start' }}
-          className="group inline-flex items-center gap-2 self-start border-b-2 border-accent py-1 text-[14px] font-medium text-fg"
+          to="/"
+          className="label group flex shrink-0 items-center gap-1.5 rounded-full bg-accent px-3 py-1.5 text-ink transition-opacity hover:opacity-90"
         >
-          Quick start
-          <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">
-            →
+          <span aria-hidden="true" className="transition-transform group-hover:-translate-x-0.5">
+            ←
           </span>
+          Back to kandown website
         </Link>
+        <span className="label hidden truncate text-fg-faint sm:inline">
+          Demo · nothing is saved{demoMeta.version ? ` · v${demoMeta.version}` : ''}
+        </span>
+        <span className="label truncate text-fg-faint sm:hidden">Nothing is saved</span>
       </div>
     </div>
+  )
+}
+
+/**
+ * 📖 The fallback screen has no site header either, so it carries its own way
+ * back. Quieter than the overlay: a wayfinding link on a normal page, rather
+ * than the only exit from a full-screen application.
+ */
+function BackLink() {
+  return (
+    <Link
+      to="/"
+      className="label group inline-flex items-center gap-1.5 self-start transition-colors hover:text-fg"
+    >
+      <span aria-hidden="true" className="transition-transform group-hover:-translate-x-0.5">
+        ←
+      </span>
+      Back to kandown website
+    </Link>
   )
 }
 
@@ -177,7 +189,8 @@ function Launcher({ onLaunch, version }: { onLaunch: () => void; version: string
 function DemoUnavailable() {
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-5 py-24 sm:px-8">
-      <p className="label text-accent-fg">Unavailable</p>
+      <BackLink />
+      <p className="label mt-14 text-accent-fg">Unavailable</p>
       <h1 className="mt-3 text-[2rem] leading-[1.1] font-semibold tracking-[-0.035em]">
         The demo did not ship with this build
       </h1>

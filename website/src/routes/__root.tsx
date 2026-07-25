@@ -117,12 +117,14 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         >
           Skip to content
         </a>
-        <SiteHeader />
+        {/* 📖 The demo gets the whole viewport, with no site chrome at all: an
+            application framed by a marketing header reads as a widget, and the
+            two navigations compete for the same corner of the screen. The route
+            renders its own floating way back instead — and, because that bar is
+            then the only thing saying the session is disposable, it carries the
+            demo's status too. */}
+        {isDemoRoute ? null : <SiteHeader />}
         <main id="main">{children}</main>
-        {/* 📖 The demo is a full-viewport application surface, so it owns the
-            space below the header outright. A site footer under an embedded app
-            would make the outer page scroll — two scrollbars, and the board's
-            own column scrolling becomes unusable. */}
         {isDemoRoute ? null : <SiteFooter />}
         <Scripts />
       </body>
