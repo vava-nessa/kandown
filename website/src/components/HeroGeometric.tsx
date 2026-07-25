@@ -140,6 +140,8 @@ const GradientPlane = ({
     speed?: number
 }) => {
     const meshRef = useRef<THREE.Mesh>(null);
+    const materialRef = useRef<THREE.ShaderMaterial>(null);
+
     const uniforms = useMemo(
         () => ({
             uTime: { value: 0 },
@@ -147,21 +149,32 @@ const GradientPlane = ({
             uColor1: { value: new THREE.Color(color1) },
             uColor2: { value: new THREE.Color(color2) },
         }),
-        [color1, color2]
+        []
     );
 
     useFrame((state) => {
         const { clock, size } = state;
-        uniforms.uTime.value = clock.getElapsedTime() * speed;
-        uniforms.uResolution.value.set(size.width, size.height);
-        uniforms.uColor1.value.set(color1);
-        uniforms.uColor2.value.set(color2);
+        if (materialRef.current?.uniforms) {
+            if (materialRef.current.uniforms.uTime) {
+                materialRef.current.uniforms.uTime.value = clock.getElapsedTime() * speed;
+            }
+            if (materialRef.current.uniforms.uResolution) {
+                materialRef.current.uniforms.uResolution.value.set(size.width, size.height);
+            }
+            if (materialRef.current.uniforms.uColor1) {
+                materialRef.current.uniforms.uColor1.value.set(color1);
+            }
+            if (materialRef.current.uniforms.uColor2) {
+                materialRef.current.uniforms.uColor2.value.set(color2);
+            }
+        }
     });
 
     return (
         <mesh ref={meshRef} scale={[2, 2, 1]}>
             <planeGeometry args={[2, 2]} />
             <shaderMaterial
+                ref={materialRef}
                 vertexShader={vertexShader}
                 fragmentShader={fragmentShader}
                 uniforms={uniforms}
