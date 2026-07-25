@@ -103,6 +103,90 @@ const sharedDark = {
 /** 📖 8 Curated Presets from FABLE_UI spec */
 export const THEME_PRESETS: KandownTheme[] = [
   {
+    // 📖 The house theme, and the default one: it is THEME_PRESETS[0], so it is also
+    // what resolveTheme()/normalizeSkinId() fall back to for an unknown skin id.
+    // Colors come straight from the brand palette used on the website:
+    //   #88E138 brand lime (logo arrow, primary actions) — dark mode primary
+    //   #7AD12A contrast-adjusted lime for light backgrounds — light mode primary
+    //   #0CE931 hero/WebGL shader green — reused as the `success` token
+    //   #F1FFB8 pale lime (accent surfaces) · #EBEBEB neutral border grey
+    // Lime is far too bright to carry white text, so `primary-foreground` is a
+    // near-black green in both modes instead of the usual white.
+    id: 'kandown',
+    name: 'Kandown',
+    author: 'Kandown',
+    description: 'The house theme: brand lime (#88E138) on near-neutral surfaces, pale lime accents, 4px radius.',
+    appearance: {
+      radius: '4px',
+      borderWidth: '1px',
+      shadows: 'soft',
+      density: 'comfortable',
+      glass: true,
+      motion: 'subtle',
+    },
+    fonts: {
+      sans: "'Inter var', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      display: "'Inter Tight', 'Inter var', Inter, sans-serif",
+      mono: "'SF Mono', Menlo, Monaco, Consolas, monospace",
+    },
+    light: {
+      ...sharedLight,
+      'background': '80 40% 99%',
+      'foreground': '120 10% 10%',
+      'card': '0 0% 100%',
+      'card-foreground': '120 10% 10%',
+      'popover': '0 0% 100%',
+      'popover-foreground': '120 10% 10%',
+      'primary': '91 67% 47%',
+      'primary-foreground': '96 55% 9%',
+      'secondary': '75 45% 94%',
+      'secondary-foreground': '96 40% 18%',
+      'muted': '75 12% 95%',
+      'muted-foreground': '120 5% 40%',
+      'accent': '72 100% 90%',
+      'accent-foreground': '96 50% 18%',
+      'border': '0 0% 92%',
+      'border-strong': '0 0% 85%',
+      'border-focus': '91 67% 47%',
+      'input': '0 0% 90%',
+      'ring': '91 67% 47%',
+      // 📖 The shader green (#0CE931) darkened: `success` is rendered as *text*
+      // (text-success), so it needs 4.5:1 on the light background — 4.57:1 here.
+      'success': '130 90% 28%',
+      'grid': '92 40% 20% / 0.05',
+      'grid-strong': '92 40% 20% / 0.09',
+      'glass': '0 0% 100% / 0.78',
+      'glass-border': '75 30% 88% / 0.85',
+    },
+    dark: {
+      ...sharedDark,
+      'background': '120 8% 7%',
+      'foreground': '80 15% 93%',
+      'card': '120 7% 10%',
+      'card-foreground': '80 15% 93%',
+      'popover': '120 7% 11%',
+      'popover-foreground': '80 15% 93%',
+      'primary': '92 74% 55%',
+      'primary-foreground': '120 30% 7%',
+      'secondary': '120 6% 16%',
+      'secondary-foreground': '80 15% 93%',
+      'muted': '120 6% 14%',
+      'muted-foreground': '90 6% 60%',
+      'accent': '92 30% 18%',
+      'accent-foreground': '92 74% 70%',
+      'border': '120 6% 18%',
+      'border-strong': '120 6% 26%',
+      'border-focus': '92 74% 55%',
+      'input': '120 6% 18%',
+      'ring': '92 74% 55%',
+      'success': '130 90% 48%',
+      'grid': '92 60% 60% / 0.03',
+      'grid-strong': '92 60% 60% / 0.06',
+      'glass': '120 7% 10% / 0.78',
+      'glass-border': '92 20% 24% / 0.8',
+    },
+  },
+  {
     id: 'vercel',
     name: 'Vercel',
     author: 'Geist Design',
@@ -1362,8 +1446,10 @@ export const THEME_PRESETS: KandownTheme[] = [
 
 
 /** 📖 Legacy SkinId mapping for backwards compatibility with older kandown.json configs */
+// 📖 Pre-FABLE_UI skin ids kept alive so old .kandown/config.json files still resolve.
+// `kandown` used to be an alias for `vercel`; it is now a real preset, so it is no
+// longer mapped here — an alias would shadow the theme of the same name.
 const LEGACY_SKIN_MAP: Record<string, string> = {
-  kandown: 'vercel',
   graphite: 'paper',
   sage: 'claude',
   cobalt: 'linear',
@@ -1428,10 +1514,10 @@ export function normalizeThemeMode(value: unknown): ThemeMode {
 }
 
 export function normalizeSkinId(value: unknown): SkinId {
-  if (typeof value !== 'string') return 'vercel';
+  if (typeof value !== 'string') return 'kandown';
   const all = getAllThemes();
   const target = LEGACY_SKIN_MAP[value] ?? value;
-  return all.some(t => t.id === target) ? target : 'vercel';
+  return all.some(t => t.id === target) ? target : 'kandown';
 }
 
 export function normalizeFontId(value: unknown): FontId {

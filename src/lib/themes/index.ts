@@ -5,6 +5,7 @@
  */
 
 import type { KandownTheme } from '../types';
+import { kandownTheme } from './kandown';
 import { vercelTheme } from './vercel';
 import { linearTheme } from './linear';
 import { claudeTheme } from './claude';
@@ -45,6 +46,8 @@ import { synthgoldTheme } from './synth-gold';
 import { vaporwaveTheme } from './vaporwave';
 
 export const THEME_PRESETS: KandownTheme[] = [
+  // 📖 kandown first: it is the default skin and the [0] fallback for unknown ids.
+  kandownTheme,
   vercelTheme,
   linearTheme,
   claudeTheme,
