@@ -26,8 +26,6 @@ import { site } from '~/lib/site'
 // That keeps them type-checked against the route tree.
 const NAV = [
   { slug: 'introduction', label: 'Docs' },
-  { slug: 'agents/overview', label: 'For agents' },
-  { slug: 'reference/cli', label: 'CLI' },
 ] as const
 
 export function SiteHeader() {
