@@ -1,22 +1,21 @@
-/**
- * @file HeroGeometric component for marketing site
- * @description A geometric hero section background featuring a custom WebGL shader
- * background with Simplex noise for fluid, organic movement.
- *
- * @functions
- *  → GradientPlane - Renders the WebGL plane with custom vertex and fragment shaders
- *  → HeroGeometric - Main wrapper component containing the WebGL canvas and overlay content
- *
- * @exports HeroGeometric
- * @see website/src/routes/index.tsx
- */
+"use client";
 
 /* eslint-disable react/no-unknown-property */
 import { useRef, useMemo } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, type ThreeElements } from "@react-three/fiber";
 import * as THREE from "three";
 import { motion } from "framer-motion";
+
 import { cn } from "../lib/utils";
+
+/* eslint-disable @typescript-eslint/no-namespace */
+declare module "react" {
+    namespace JSX {
+        // eslint-disable-next-line @typescript-eslint/no-empty-interface
+        interface IntrinsicElements extends ThreeElements { }
+    }
+}
+/* eslint-enable @typescript-eslint/no-namespace */
 
 // --- Shader Code ---
 const vertexShader = `
@@ -79,24 +78,53 @@ void main() {
     vec2 uv = vUv;
     vec2 coord = gl_FragCoord.xy;
     
-    // Dynamic noise animation
-    float noise = snoise(uv * 2.0 + vec2(uTime * 0.15, uTime * 0.10)) * 0.35;
+    // Enhanced noise with time
+    float noise = snoise(uv * 1.5 + vec2(uTime * 0.05, uTime * 0.03)) * 0.25;
     
-    // Diagonal gradient
+    // Diagonal gradient from bottom-left to top-right
     float diagonal = (uv.x + uv.y) * 0.5;
-    float gradient = clamp(diagonal * 1.2 + noise, 0.0, 1.0);
     
-    vec3 color1 = uColor1;
-    vec3 color2 = uColor2;
-    vec3 color = mix(color1, color2, gradient);
+    // Combine for gradient - emphasize corners
+    float gradient = diagonal * 1.2 + noise;
     
-    // Subtle Bayer dithering
-    float dither = (bayerDither4x4(coord) - 0.5) * 0.08;
-    color = clamp(color + vec3(dither), 0.0, 1.0);
+    // Interpolate colors based on gradient
+    vec3 deepBlue = uColor1;
+    vec3 paleBlue = uColor2;
+    vec3 softBlue = mix(deepBlue, paleBlue, 0.33);
+    vec3 lightBlue = mix(deepBlue, paleBlue, 0.66);
     
-    // Smooth vignette
-    float vignette = smoothstep(1.3, 0.2, length(uv - 0.5));
-    color = mix(color * 0.9, color, vignette);
+    // Map to colors with more distinct steps
+    vec3 color;
+    if (gradient < 0.3) {
+        color = deepBlue;
+    } else if (gradient < 0.55) {
+        color = softBlue;
+    } else if (gradient < 0.8) {
+        color = lightBlue;
+    } else {
+        color = paleBlue;
+    }
+    
+    // Enhanced dithering at boundaries
+    float dither = bayerDither4x4(coord);
+    float threshold = fract(gradient * 4.0);
+    
+    if (gradient < 0.3 && threshold > dither * 0.5) {
+        color = softBlue;
+    } else if (gradient >= 0.3 && gradient < 0.55 && threshold > dither * 0.5) {
+        color = lightBlue;
+    } else if (gradient >= 0.55 && gradient < 0.8 && threshold > dither * 0.5) {
+        color = paleBlue;
+    }
+    
+    // Softer fade to white - only at extreme bottom-left
+    vec2 cornerDist = vec2(uv.x, uv.y);
+    float fadeMask = smoothstep(0.0, 0.25, length(cornerDist));
+    color = mix(vec3(1.0), color, fadeMask);
+    
+    // Add subtle vignette to emphasize corners
+    float vignette = smoothstep(1.2, 0.3, length(uv - 0.5));
+    color = mix(color, color * 0.95, (1.0 - vignette) * 0.3);
     
     gl_FragColor = vec4(color, 1.0);
 }
@@ -112,8 +140,6 @@ const GradientPlane = ({
     speed?: number
 }) => {
     const meshRef = useRef<THREE.Mesh>(null);
-    const materialRef = useRef<THREE.ShaderMaterial>(null);
-
     const uniforms = useMemo(
         () => ({
             uTime: { value: 0 },
@@ -121,24 +147,21 @@ const GradientPlane = ({
             uColor1: { value: new THREE.Color(color1) },
             uColor2: { value: new THREE.Color(color2) },
         }),
-        []
+        [color1, color2]
     );
 
     useFrame((state) => {
         const { clock, size } = state;
-        if (materialRef.current?.uniforms) {
-            if (materialRef.current.uniforms.uTime) materialRef.current.uniforms.uTime.value = clock.getElapsedTime() * speed;
-            if (materialRef.current.uniforms.uResolution) materialRef.current.uniforms.uResolution.value.set(size.width, size.height);
-            if (materialRef.current.uniforms.uColor1) materialRef.current.uniforms.uColor1.value.set(color1);
-            if (materialRef.current.uniforms.uColor2) materialRef.current.uniforms.uColor2.value.set(color2);
-        }
+        uniforms.uTime.value = clock.getElapsedTime() * speed;
+        uniforms.uResolution.value.set(size.width, size.height);
+        uniforms.uColor1.value.set(color1);
+        uniforms.uColor2.value.set(color2);
     });
 
     return (
         <mesh ref={meshRef} scale={[2, 2, 1]}>
             <planeGeometry args={[2, 2]} />
             <shaderMaterial
-                ref={materialRef}
                 vertexShader={vertexShader}
                 fragmentShader={fragmentShader}
                 uniforms={uniforms}
@@ -152,11 +175,11 @@ const GradientPlane = ({
 
 // --- Main Component ---
 
-export interface HeroGeometricProps {
+interface HeroGeometricProps {
     title1?: string;
     title2?: string;
     description?: string;
-    className?: string;
+    className?: string; // Explicitly included
     color1?: string;
     color2?: string;
     speed?: number;
@@ -167,28 +190,26 @@ export default function HeroGeometric({
     title1,
     title2,
     description,
-    color1 = "#3B82F6",
-    color2 = "#F0F9FF",
+    color1 = "#3B82F6", // Default soft blue
+    color2 = "#F0F9FF", // Default pale blue
     speed = 1,
     className,
     children,
 }: HeroGeometricProps) {
     return (
         <div
-            className={cn("relative w-full flex flex-col items-center overflow-hidden bg-transparent text-black", className)}
+            className={cn("relative w-full min-h-screen flex flex-col items-center overflow-hidden bg-white text-black", className)}
             style={{ containerType: "size" }}
         >
             {/* Background Shader */}
-            <div className="absolute inset-0 z-0 pointer-events-none w-full h-full">
+            <div className="absolute top-0 left-0 w-full h-full z-0 pointer-events-none">
                 <Canvas
                     camera={{ position: [0, 0, 1] }}
-                    dpr={Math.min(typeof window !== 'undefined' ? window.devicePixelRatio : 1, 2)}
+                    dpr={[1, 1]}
                     gl={{
                         antialias: false,
                         alpha: true,
-                        powerPreference: "high-performance"
                     }}
-                    style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
                 >
                     <GradientPlane color1={color1} color2={color2} speed={speed} />
                 </Canvas>
@@ -206,9 +227,9 @@ export default function HeroGeometric({
                                         initial={{ y: "100%", opacity: 0 }}
                                         animate={{ y: "0%", opacity: 1 }}
                                         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
-                                        className="text-[12cqi] md:text-[8cqi] lg:text-[6cqi] leading-[0.9] tracking-tighter text-[#131313] dark:text-white"
+                                        className="text-[12cqi] md:text-[8cqi] lg:text-[6cqi] leading-[0.9] tracking-tighter text-[#131313]"
                                     >
-                                        <span className="font-serif italic font-light text-[#1a1a1a] dark:text-neutral-200">
+                                        <span className="font-serif italic font-light text-[#1a1a1a]">
                                             {title1}
                                         </span>
                                     </motion.h1>
@@ -220,7 +241,7 @@ export default function HeroGeometric({
                                         initial={{ y: "100%", opacity: 0 }}
                                         animate={{ y: "0%", opacity: 1 }}
                                         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.35 }}
-                                        className="text-[12cqi] md:text-[8cqi] lg:text-[6cqi] leading-[0.9] tracking-tighter font-bold text-black dark:text-white"
+                                        className="text-[12cqi] md:text-[8cqi] lg:text-[6cqi] leading-[0.9] tracking-tighter font-bold text-black"
                                     >
                                         {title2}
                                     </motion.h1>
@@ -235,7 +256,7 @@ export default function HeroGeometric({
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-                                    className="text-lg md:text-[1.35rem] leading-relaxed text-neutral-600 dark:text-neutral-300 font-normal"
+                                    className="text-lg md:text-[1.35rem] leading-relaxed text-neutral-600 font-normal"
                                 >
                                     {description}
                                 </motion.p>
