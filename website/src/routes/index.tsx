@@ -57,7 +57,7 @@ function Hero() {
   return (
     <section className="relative border-b border-border overflow-hidden">
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <HeroGeometric color1="#0ce931" color2="#fff7ed" speed={3} className="w-full h-full min-h-[600px]" />
+        <HeroGeometric color1="#88E138" color2="#F1FFB8" speed={3} className="w-full h-full min-h-[600px]" />
       </div>
       <Shell className="relative z-10">
         <div className="py-16 sm:py-24 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-12">

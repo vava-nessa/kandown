@@ -168,3 +168,12 @@ Edge cases, gotchas.
 - **Stack**: React, Motion, Tailwind, Vite, Zustand, TypeScript, Node.js ESM CLI.
 - **Website deployment (Vercel)**: Whenever you commit and push changes for the website (`website/` folder), **ALWAYS** verify the Vercel deployment status (`cd website && vercel ls` / `vercel inspect`). Ensure the deployment builds and reaches `● Ready` without any error.
 
+---
+
+## Brand Colors
+
+Kandown has 3 primary brand colors for UI, WebGL backgrounds, and marketing assets:
+- **`#EBEBEB`** (Off-white / Slate light) — Neutral base / secondary highlight
+- **`#F1FFB8`** (Light Lime / Pale Yellow) — Secondary accent / subtle highlight
+- **`#88E138`** (Kandown Green) — Primary product accent / vibrant brand green
+
