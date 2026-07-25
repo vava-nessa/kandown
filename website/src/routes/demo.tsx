@@ -37,9 +37,12 @@ import demoMeta from '~/generated/demo-meta.json'
 
 /**
  * 📖 Path of the embedded build, relative to the site root. Written by
- * scripts/build-demo.mjs. Deliberately the directory and not `index.html`:
- * `cleanUrls` in vercel.json would 308 the explicit filename, costing the iframe
- * an extra round trip before it can even start downloading the app.
+ * scripts/build-demo.mjs.
+ *
+ * 📖 The directory rather than `index.html`, because `cleanUrls` in vercel.json
+ * 308s the explicit filename. In production `trailingSlash: false` then 308s
+ * this form too — one cheap redirect either way — but this is the spelling the
+ * dev server also resolves, so the same URL works in both.
  */
 const DEMO_APP_URL = '/demo/app/'
 
