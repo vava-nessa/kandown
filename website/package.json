@@ -1,0 +1,42 @@
+{
+  "name": "kandown-website",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Marketing site and documentation for Kandown.",
+  "scripts": {
+    "predev": "node scripts/build-search-index.mjs",
+    "dev": "vite dev --port 4321",
+    "prebuild": "node scripts/build-search-index.mjs",
+    "build": "vite build",
+    "start": "node .output/server/index.mjs",
+    "search-index": "node scripts/build-search-index.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mdx-js/react": "^3.1.0",
+    "@tanstack/react-router": "^1.132.0",
+    "@tanstack/react-start": "^1.132.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@mdx-js/rollup": "^3.1.0",
+    "@shikijs/rehype": "^3.0.0",
+    "@tailwindcss/vite": "^4.1.0",
+    "@types/mdx": "^2.0.13",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "gray-matter": "^4.0.3",
+    "rehype-autolink-headings": "^7.1.0",
+    "rehype-slug": "^6.0.0",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-mdx-frontmatter": "^5.2.0",
+    "shiki": "^3.0.0",
+    "tailwindcss": "^4.1.0",
+    "typescript": "^5.9.0",
+    "vite": "^7.0.0"
+  }
+}
