@@ -21,3 +21,10 @@ public/demo/
 .env.*
 !.env.example
 .env*
+
+# 📖 The machine-readable twin of the documentation, generated from the same MDX
+# by scripts/build-llms.mjs on every build. Never edit or commit: the MDX is the
+# only source of truth.
+public/docs/
+public/llms.txt
+public/llms-full.txt

@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# The documentation is also published as plain Markdown, generated from the same
+# source as the pages themselves. Append .md to any /docs/ URL to get it.
+#
+#   /llms.txt        index, install command, linked table of contents
+#   /llms-full.txt   the whole documentation as a single file
+#
+# The demo application under /demo/app/ is a build artifact, not content.
+Disallow: /demo/app/

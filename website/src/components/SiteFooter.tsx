@@ -35,8 +35,11 @@ export function SiteFooter() {
         <FooterColumn title="Agents">
           <FooterLink slug="agents/overview">kandown work</FooterLink>
           <FooterLink slug="agents/instructions">Project instructions</FooterLink>
-          <FooterLink slug="agents/launching">Launching agents</FooterLink>
           <FooterLink slug="agents/mcp">MCP server</FooterLink>
+          {/* 📖 The one link on the site aimed at a reader that is not a person.
+              `llms.txt` is where an agent sent here by "install kandown" should
+              land: the whole corpus, indexed, in plain text. */}
+          <FooterExternal href="/llms.txt">llms.txt</FooterExternal>
         </FooterColumn>
 
         <FooterColumn title="Project">

@@ -85,6 +85,20 @@ A board an agent writes to is only useful if what it writes is true. Two mechani
 - **The dependency gate** refuses to move a blocked task to the terminal column, from any
   interface. An agent cannot mark work done that depends on work that is not.
 
+## Reading these docs as an agent
+
+This documentation is published as plain Markdown as well as HTML, so an agent
+does not have to parse a React page to follow an instruction.
+
+| URL | What you get |
+|---|---|
+| `/llms.txt` | The install command and a linked index of every page |
+| `/llms-full.txt` | The entire documentation in one request |
+| any docs URL + `.md` | That page's Markdown source — `/docs/agents/mcp` → `/docs/agents/mcp.md` |
+
+All three are generated from the same source as the pages themselves on every
+deploy, so they cannot fall behind what the site says.
+
 ## Where to go next
 
 - [Project instructions](/docs/agents/instructions) — teaching agents your project's specifics

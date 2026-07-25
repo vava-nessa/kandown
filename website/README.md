@@ -91,6 +91,41 @@ Recording notes: the frame is `16/10`, so record at **1920×1200** (or 2560×160
 
 ---
 
+## The documentation, for machines
+
+Every page is published twice: as the React page you are looking at, and as
+plain Markdown at the same URL with `.md` appended —
+`/docs/agents/mcp` → `/docs/agents/mcp.md`. Two index files sit at the root:
+
+| File | For |
+|---|---|
+| `/llms.txt` | The tagline, the install command, and a linked table of contents. Small enough for an agent to read in full before deciding. |
+| `/llms-full.txt` | The entire corpus in one request. |
+
+This exists because of what the product claims. Kandown's pitch is that agents
+are first-class users; a documentation site only humans can parse would be the
+product contradicting itself on its own homepage. Someone tells their agent
+"install kandown", the agent fetches this site, and it should get instructions
+rather than a wall of `<div class="prose">`.
+
+**There is exactly one source of truth: the MDX.** `scripts/build-llms.mjs`
+generates all of it on every build from `src/content/docs/`, in the order
+`src/content/nav.ts` defines, and the output is gitignored — so it cannot be
+edited into disagreement with the site. The index carries **no hand-written
+prose at all**: its tagline and install command come from `src/lib/site.ts`, and
+every one-line summary is a page's own `description` frontmatter. A summary
+typed into that script would be a second copy of the docs, owned by nobody, and
+wrong within a week. If a line in `llms.txt` looks stale, fix the MDX.
+
+Each docs page also carries a `<link rel="alternate" type="text/markdown">` and
+a **Copy as Markdown** button, which fetches the generated file rather than
+scraping the DOM — scraping loses code fences, tables and link targets, which
+are the parts somebody pasting into a chat needs most.
+
+Run it alone with `pnpm llms`.
+
+---
+
 ## The interactive demo
 
 `/demo` embeds the **real Kandown application**, running on a project that lives
@@ -227,6 +262,7 @@ website/
 │   └── …                    # favicons, og-image, demo video (you supply)
 ├── scripts/
 │   ├── build-search-index.mjs
+│   ├── build-llms.mjs       # ← the Markdown twin + llms.txt (generated)
 │   └── build-demo.mjs       # ← rebuilds the demo from the CLI sources
 ├── src/
 │   ├── components/          # header, footer, sidebar, search, landing pieces

@@ -769,7 +769,7 @@
     },
     {
       "path": "src/components/EmptyState.tsx",
-      "lines": 140,
+      "lines": 144,
       "title": "Empty project state",
       "summary": "Renders the first-run project picker, unsupported-browser copy, and recent project shortcuts before a `.kandown` folder is open.",
       "functions": [
@@ -834,6 +834,23 @@
         }
       ],
       "exports": "Header"
+    },
+    {
+      "path": "src/components/HeroGeometric.tsx",
+      "lines": 278,
+      "title": "Geometric WebGL hero background component",
+      "summary": "A geometric hero section background featuring a custom WebGL shader background with Simplex noise for fluid, organic movement.",
+      "functions": [
+        {
+          "name": "GradientPlane - Renders the WebGL plane with custom vertex and fragment shaders",
+          "summary": null
+        },
+        {
+          "name": "HeroGeometric - Main wrapper component containing the WebGL canvas and overlay content",
+          "summary": null
+        }
+      ],
+      "exports": "HeroGeometric"
     },
     {
       "path": "src/components/Icons.tsx",
