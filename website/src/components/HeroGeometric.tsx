@@ -79,53 +79,24 @@ void main() {
     vec2 uv = vUv;
     vec2 coord = gl_FragCoord.xy;
     
-    // Enhanced noise with time
-    float noise = snoise(uv * 1.5 + vec2(uTime * 0.05, uTime * 0.03)) * 0.25;
+    // Dynamic noise animation
+    float noise = snoise(uv * 2.0 + vec2(uTime * 0.15, uTime * 0.10)) * 0.35;
     
-    // Diagonal gradient from bottom-left to top-right
+    // Diagonal gradient
     float diagonal = (uv.x + uv.y) * 0.5;
+    float gradient = clamp(diagonal * 1.2 + noise, 0.0, 1.0);
     
-    // Combine for gradient - emphasize corners
-    float gradient = diagonal * 1.2 + noise;
+    vec3 color1 = uColor1;
+    vec3 color2 = uColor2;
+    vec3 color = mix(color1, color2, gradient);
     
-    // Interpolate colors based on gradient
-    vec3 deepBlue = uColor1;
-    vec3 paleBlue = uColor2;
-    vec3 softBlue = mix(deepBlue, paleBlue, 0.33);
-    vec3 lightBlue = mix(deepBlue, paleBlue, 0.66);
+    // Subtle Bayer dithering
+    float dither = (bayerDither4x4(coord) - 0.5) * 0.08;
+    color = clamp(color + vec3(dither), 0.0, 1.0);
     
-    // Map to colors with more distinct steps
-    vec3 color;
-    if (gradient < 0.3) {
-        color = deepBlue;
-    } else if (gradient < 0.55) {
-        color = softBlue;
-    } else if (gradient < 0.8) {
-        color = lightBlue;
-    } else {
-        color = paleBlue;
-    }
-    
-    // Enhanced dithering at boundaries
-    float dither = bayerDither4x4(coord);
-    float threshold = fract(gradient * 4.0);
-    
-    if (gradient < 0.3 && threshold > dither * 0.5) {
-        color = softBlue;
-    } else if (gradient >= 0.3 && gradient < 0.55 && threshold > dither * 0.5) {
-        color = lightBlue;
-    } else if (gradient >= 0.55 && gradient < 0.8 && threshold > dither * 0.5) {
-        color = paleBlue;
-    }
-    
-    // Softer fade to white - only at extreme bottom-left
-    vec2 cornerDist = vec2(uv.x, uv.y);
-    float fadeMask = smoothstep(0.0, 0.25, length(cornerDist));
-    color = mix(vec3(1.0), color, fadeMask);
-    
-    // Add subtle vignette to emphasize corners
-    float vignette = smoothstep(1.2, 0.3, length(uv - 0.5));
-    color = mix(color, color * 0.95, (1.0 - vignette) * 0.3);
+    // Smooth vignette
+    float vignette = smoothstep(1.3, 0.2, length(uv - 0.5));
+    color = mix(color * 0.9, color, vignette);
     
     gl_FragColor = vec4(color, 1.0);
 }
@@ -141,6 +112,8 @@ const GradientPlane = ({
     speed?: number
 }) => {
     const meshRef = useRef<THREE.Mesh>(null);
+    const materialRef = useRef<THREE.ShaderMaterial>(null);
+
     const uniforms = useMemo(
         () => ({
             uTime: { value: 0 },
@@ -148,21 +121,24 @@ const GradientPlane = ({
             uColor1: { value: new THREE.Color(color1) },
             uColor2: { value: new THREE.Color(color2) },
         }),
-        [color1, color2]
+        []
     );
 
     useFrame((state) => {
         const { clock, size } = state;
-        uniforms.uTime.value = clock.getElapsedTime() * speed;
-        uniforms.uResolution.value.set(size.width, size.height);
-        uniforms.uColor1.value.set(color1);
-        uniforms.uColor2.value.set(color2);
+        if (materialRef.current?.uniforms) {
+            if (materialRef.current.uniforms.uTime) materialRef.current.uniforms.uTime.value = clock.getElapsedTime() * speed;
+            if (materialRef.current.uniforms.uResolution) materialRef.current.uniforms.uResolution.value.set(size.width, size.height);
+            if (materialRef.current.uniforms.uColor1) materialRef.current.uniforms.uColor1.value.set(color1);
+            if (materialRef.current.uniforms.uColor2) materialRef.current.uniforms.uColor2.value.set(color2);
+        }
     });
 
     return (
         <mesh ref={meshRef} scale={[2, 2, 1]}>
             <planeGeometry args={[2, 2]} />
             <shaderMaterial
+                ref={materialRef}
                 vertexShader={vertexShader}
                 fragmentShader={fragmentShader}
                 uniforms={uniforms}
