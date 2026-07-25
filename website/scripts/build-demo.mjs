@@ -1,7 +1,7 @@
 /**
  * @file website/scripts/build-demo.mjs
- * @description Builds the interactive demo from the real Kandown application
- * and copies it into `public/demo/app/`, where the `/demo` route embeds it.
+ * @description Builds the website app from the real Kandown application and
+ * copies it into `public/demo/app/`, where the public `/app` route embeds it.
  *
  * 📖 **Why this is a build step and not a checked-in artifact.** The demo's one
  * job is to be honest: what a visitor drags around must be the same code
@@ -34,7 +34,7 @@
  *  → run — spawns a command, inheriting stdio, rejecting on non-zero exit
  *  → writeMeta — records what was built for the demo page to display
  *
- * @see website/src/routes/demo.tsx
+ * @see website/src/routes/app.tsx
  * @see vite.config.ts (the `demo` mode this script invokes)
  */
 

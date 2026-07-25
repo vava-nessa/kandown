@@ -51,6 +51,9 @@ import {
   removeRecentProject,
   verifyPermission,
   isServerMode,
+  isDemoMode,
+  supportsLocalFileSystemAccess,
+  switchDemoToLocalFileSystem,
   getServerRoot,
   serverReadBoard,
   serverReadConfig,
@@ -596,7 +599,7 @@ export const useStore = create<State>((set, get) => ({
     // window.showDirectoryPicker on Firefox/Safari throws a TypeError that
     // would otherwise bubble up as an unhandled rejection. The empty-state
     // screen also gates this, but the store stays defensive.
-    if (!supportsFileSystemAccess()) {
+    if (!supportsFileSystemAccess() || (isDemoMode() && !supportsLocalFileSystemAccess())) {
       const browser = navigator.userAgent || 'this browser';
       get().toast(new BrowserNotSupportedError(browser).message, 'error', 8000);
       return;
@@ -614,6 +617,10 @@ export const useStore = create<State>((set, get) => ({
     }
     if (!result) return;
     const { projectHandle, kandownHandle, tasksHandle } = result;
+    if (isDemoMode()) {
+      switchDemoToLocalFileSystem(projectHandle.name);
+      set({ toasts: [] });
+    }
     const projectName = projectHandle.name;
     // 📖 Layout (v0.12+): `dirHandle` is `.kandown/` (for kandown.json);
     // `tasksDirHandle` is the project-root `./tasks/` (sibling of `.kandown/`).

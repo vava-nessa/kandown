@@ -204,7 +204,7 @@ async function main() {
     '',
     '## Links',
     '',
-    `- [Interactive demo](${BASE}/demo) — the real app in the browser, nothing installed`,
+    `- [Web app](${BASE}/app) | the real app in the browser, free and without a login`,
     `- [Source](${site.repo})`,
     `- [npm](${site.npm})`,
     '',

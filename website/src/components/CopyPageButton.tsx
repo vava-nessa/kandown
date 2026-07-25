@@ -11,12 +11,12 @@
  *
  * 📖 The fetch happens on click rather than on mount: most readers never press
  * this, and a docs page should not pull a second copy of itself down just in
- * case. The result is cached for the lifetime of the component, so a second
- * press is instant.
+ * case. The result is cached with its URL, not just as a string, because the
+ * component survives client-side navigation between documentation pages.
  *
- * 📖 `navigator.clipboard` is unavailable on insecure origins and can be denied
- * outright. Both cases fall back to the "View raw" link that is already next to
- * the button, and the button says what went wrong rather than doing nothing.
+ * 📖 Clipboard writes use the same bounded modern attempt and textarea fallback
+ * as command-copy buttons. This also recovers from browser implementations that
+ * leave a Clipboard API promise pending after client-side navigation.
  *
  * @functions
  *  → CopyPageButton — the copy control plus its raw-file link
@@ -24,7 +24,8 @@
  * @exports CopyPageButton
  * @see website/scripts/build-llms.mjs — writes the file this fetches
  */
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { copyTextToClipboard } from '~/lib/clipboard'
 
 type Status = 'idle' | 'working' | 'copied' | 'failed'
 
@@ -37,20 +38,25 @@ const LABEL: Record<Status, string> = {
 
 export function CopyPageButton({ slug }: { slug: string }) {
   const [status, setStatus] = useState<Status>('idle')
-  const cached = useRef<string | null>(null)
+  const cached = useRef<{ url: string; text: string } | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const rawUrl = `/docs/${slug}.md`
+
+  useEffect(() => () => {
+    if (timer.current) clearTimeout(timer.current)
+  }, [])
 
   const copy = useCallback(async () => {
     if (timer.current) clearTimeout(timer.current)
     setStatus('working')
     try {
-      if (cached.current === null) {
+      if (cached.current?.url !== rawUrl) {
         const res = await fetch(rawUrl)
         if (!res.ok) throw new Error(`${res.status}`)
-        cached.current = await res.text()
+        cached.current = { url: rawUrl, text: await res.text() }
       }
-      await navigator.clipboard.writeText(cached.current)
+      const copied = await copyTextToClipboard(cached.current.text)
+      if (!copied) throw new Error('Clipboard write failed')
       setStatus('copied')
     } catch {
       setStatus('failed')

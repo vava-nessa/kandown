@@ -54,6 +54,7 @@
     }
   ],
   "redirects": [
+    { "source": "/demo", "destination": "/app", "permanent": true },
     { "source": "/documentation", "destination": "/docs", "permanent": true },
     { "source": "/docs/cli", "destination": "/docs/reference/cli", "permanent": true },
     { "source": "/docs/agents", "destination": "/docs/agents/overview", "permanent": true },

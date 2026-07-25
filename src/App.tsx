@@ -40,6 +40,7 @@ import { UpdateNotificationBanner } from './components/UpdateNotificationBanner'
 
 
 import { useStore } from './lib/store';
+import { isDemoMode } from './lib/filesystem';
 import { getProjectSlugFromLocation, getTaskIdFromLocation } from './lib/task-url';
 import { changeLanguage, SUPPORTED_LANGUAGES, type SupportedLanguage } from './lib/i18n';
 import i18n from './lib/i18n';
@@ -56,6 +57,7 @@ export function App() {
   const cheatsheetOpen = useStore(s => s.cheatsheetOpen);
   const setCheatsheetOpen = useStore(s => s.setCheatsheetOpen);
   const createTask = useStore(s => s.createTask);
+  const toast = useStore(s => s.toast);
   const { t } = useTranslation();
   const reloadBoard = useStore(s => s.reloadBoard);
   const openDrawer = useStore(s => s.openDrawer);
@@ -69,6 +71,18 @@ export function App() {
   const setShowMetadata = useStore(s => s.setShowMetadata);
   const config = useStore(s => s.config);
   const [urlTaskId, setUrlTaskId] = useState(() => getTaskIdFromLocation(window.location));
+
+  useEffect(() => {
+    if (!isDemoMode()) return;
+    const timer = window.setTimeout(() => {
+      toast(
+        'This is a sample project. Nothing is saved. Open a local project whenever you are ready.',
+        'info',
+        10000,
+      );
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
 
   // Sync language from config to i18n
   useEffect(() => {

@@ -443,6 +443,76 @@
   animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* 📖 The brand equation holds a fixed line box while its two readings trade
+   places, so neither the logo nor install control jumps during the loop. The
+   small blur and scale change suggest one phrase resolving into the other
+   without turning the lockup into a loud word carousel. */
+.brand-loop {
+  position: relative;
+  height: 2.5rem;
+}
+
+.brand-loop__equation,
+.brand-loop__name {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: opacity, transform, filter;
+}
+
+.brand-loop__equation {
+  font-size: 1.1875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  animation: brand-equation 6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.brand-loop__name {
+  font-family: var(--font-sans);
+  font-size: 2rem;
+  font-weight: 850;
+  letter-spacing: -0.045em;
+  animation: brand-name 6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@keyframes brand-equation {
+  0%, 34%, 100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+  43%, 86% {
+    opacity: 0;
+    transform: scale(0.82);
+    filter: blur(5px);
+  }
+  95% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes brand-name {
+  0%, 34%, 95%, 100% {
+    opacity: 0;
+    transform: scale(0.76);
+    filter: blur(5px);
+  }
+  45%, 82% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+  86% {
+    opacity: 0;
+    transform: scale(1.08);
+    filter: blur(5px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root {
     scroll-behavior: auto;
@@ -451,5 +521,16 @@
   [class*='transition'] {
     animation: none !important;
     transition: none !important;
+  }
+
+  .brand-loop__equation {
+    display: none;
+  }
+
+  .brand-loop__name {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
   }
 }

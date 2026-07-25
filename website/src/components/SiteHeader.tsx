@@ -19,6 +19,7 @@ import { Link } from '@tanstack/react-router'
 import { Wordmark } from './Logo'
 import { SearchTrigger } from './DocSearch'
 import { site } from '~/lib/site'
+import npmLogoUrl from '../../../npmjs.svg?url'
 
 // 📖 Every docs page is served by the `/docs/$` splat route, so links are
 // expressed as a slug passed through `params._splat` rather than a raw path.
@@ -67,11 +68,11 @@ export function SiteHeader() {
               links: it is the only entry here that runs the product instead of
               describing it, and it is what most first-time visitors want. */}
           <Link
-            to="/demo"
+            to="/app"
             className="rounded-[4px] bg-[#88E138] px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-wider text-ink transition-opacity hover:opacity-90"
             activeProps={{ className: 'rounded-[4px] bg-[#88E138] px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-wider text-ink ring-2 ring-accent' }}
           >
-            Demo
+            App
           </Link>
         </nav>
 
@@ -99,9 +100,7 @@ export function SiteHeader() {
             aria-label="Kandown on npm"
             className="p-1.5 transition-opacity hover:opacity-80 flex items-center"
           >
-            <svg width="34" height="13" viewBox="0 0 18 7" aria-hidden="true">
-              <path fillRule="evenodd" clipRule="evenodd" d="M0 0v7h18V0H0zm1.5 5.5v-4h4.5v4H4.5v-2.5H3v2.5H1.5zm6 0v-4h4.5v4H10.5v-1.5H12v-2.5H7.5zm1.5-1.5H10.5v-1.5H9v1.5zm4.5 1.5v-4h4.5v4H16.5v-2.5H15v2.5H13.5z" fill="#CB3837" />
-            </svg>
+            <img src={npmLogoUrl} width="34" height="13" alt="" aria-hidden="true" />
           </a>
 
           <button
@@ -132,11 +131,11 @@ export function SiteHeader() {
             </Link>
           ))}
           <Link
-            to="/demo"
+            to="/app"
             onClick={() => setOpen(false)}
             className="mt-3 block text-center rounded-[4px] bg-[#88E138] py-2 font-mono text-[12px] font-semibold uppercase tracking-wider text-ink"
           >
-            Demo
+            App
           </Link>
         </nav>
       )}

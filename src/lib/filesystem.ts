@@ -26,7 +26,9 @@
  * know the demo exists. See `src/lib/demoBackend.ts`.
  *
  * @functions
- *  → supportsFileSystemAccess — detects compatible Chromium browsers
+ *  → supportsFileSystemAccess — detects any available Kandown backend
+ *  → supportsLocalFileSystemAccess — detects direct local-folder access
+ *  → switchDemoToLocalFileSystem — disconnects the sample backend after folder selection
  *  → isServerMode — returns true when a managed backend answers /api/* (CLI or demo)
  *  → isDemoMode — returns true in the website demo build (no disk behind the app)
  *  → registerDemoApi — routes apiFetch into an in-process backend
@@ -47,7 +49,7 @@
  *  → serverMigrateTasks — triggers the legacy → new layout migration via REST
  *  → readProjectInstructions / writeProjectInstructions — edits `.kandown/instructions.md`
  *
- * @exports supportsFileSystemAccess, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverWriteTask, serverDeleteTask, serverMigrateTasks
+ * @exports supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverWriteTask, serverDeleteTask, serverMigrateTasks
  * @see src/lib/store.ts
  * @see src/lib/parser.ts
  */
@@ -93,7 +95,11 @@ declare global {
 
 export function supportsFileSystemAccess(): boolean {
   if (isServerMode()) return true;
-  return 'showDirectoryPicker' in window;
+  return supportsLocalFileSystemAccess();
+}
+
+export function supportsLocalFileSystemAccess(): boolean {
+  return typeof window !== 'undefined' && typeof window.showDirectoryPicker === 'function';
 }
 
 /**
@@ -157,6 +163,25 @@ let demoApiHandler: KandownApi | null = null;
  */
 export function registerDemoApi(handler: KandownApi): void {
   demoApiHandler = handler;
+}
+
+/**
+ * @description Leaves the disposable sample backend after the visitor has
+ * selected a real folder. The picker runs first, so cancelling it keeps the
+ * sample project intact. Every later read and write then follows the existing
+ * File System Access path with the handles stored by `openFolder`.
+ */
+export function switchDemoToLocalFileSystem(projectName: string): void {
+  demoApiHandler = null;
+  delete window.__KANDOWN_DEMO__;
+  delete window.__KANDOWN_ROOT__;
+  delete window.__KANDOWN_TOKEN__;
+  if (window.parent !== window) {
+    window.parent.postMessage(
+      { type: 'kandown:local-project-opened', projectName },
+      window.location.origin,
+    );
+  }
 }
 
 /**
@@ -949,4 +974,3 @@ export async function serverApplyUpdate(): Promise<{ ok: boolean; version?: stri
     return null;
   }
 }
-

@@ -1,7 +1,8 @@
 /**
- * @file src/routes/demo.tsx
- * @description The interactive demo: the real Kandown application, running in an
- * iframe, backed by an in-memory filesystem that resets on reload.
+ * @file src/routes/app.tsx
+ * @description The Kandown web app, running the real application in an iframe.
+ * It opens on a disposable sample project and lets compatible browsers switch
+ * to a real local project without an account or server.
  *
  * 📖 **What is embedded.** Not a mock or a recording — `public/demo/app/` is a
  * build of the actual CLI application, produced by `scripts/build-demo.mjs` on
@@ -17,22 +18,22 @@
  * possible, and it costs nothing here because the frame is same-origin and
  * static.
  *
- * 📖 **It loads immediately.** The bundle is megabytes, but arriving at `/demo`
+ * 📖 **It loads immediately.** The bundle is megabytes, but arriving at `/app`
  * *is* the request for it — an interstitial asking "do you really want the thing
  * you just clicked?" only adds a step. Nothing anywhere else on the site
  * preloads this route, so the cost is paid by exactly the people who asked.
  * A skeleton holds the frame until the app has booted.
  *
  * @functions
- *  → DemoPage — the route component: the iframe, its skeleton, and the way back
- *  → DemoOverlay — the floating exit and status bar over the running app
- *  → DemoUnavailable — honest fallback when the demo build did not run
+ *  → AppPage — the route component: the iframe, its skeleton, and the way back
+ *  → AppOverlay — the floating exit and sample-project status bar
+ *  → AppUnavailable — honest fallback when the app build did not run
  *
  * @exports Route
  * @see website/scripts/build-demo.mjs
  * @see src/lib/demoBackend.ts (in the Kandown repository root)
  */
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { CopyCommand } from '~/components/CopyCommand'
 import { INSTALL_COMMAND, site } from '~/lib/site'
@@ -42,34 +43,74 @@ import demoMeta from '~/generated/demo-meta.json'
  * 📖 Path of the embedded build, relative to the site root. Written by
  * scripts/build-demo.mjs.
  *
- * 📖 The directory rather than `index.html`, because `cleanUrls` in vercel.json
- * 308s the explicit filename. In production `trailingSlash: false` then 308s
- * this form too — one cheap redirect either way — but this is the spelling the
- * dev server also resolves, so the same URL works in both.
+ * 📖 Vercel serves the directory URL in production. Vite's development server
+ * redirects that spelling through the website router, so local development
+ * points at the explicit index file instead.
  */
-const DEMO_APP_URL = '/demo/app/'
+const DEMO_APP_URL = import.meta.env.DEV ? '/demo/app/index.html' : '/demo/app/'
 
-export const Route = createFileRoute('/demo')({
-  component: DemoPage,
+interface LocalProjectMessage {
+  type: 'kandown:local-project-opened'
+  projectName: string
+}
+
+function isLocalProjectMessage(value: unknown): value is LocalProjectMessage {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'type' in value &&
+    value.type === 'kandown:local-project-opened' &&
+    'projectName' in value &&
+    typeof value.projectName === 'string'
+  )
+}
+
+export const Route = createFileRoute('/app')({
+  component: AppPage,
   head: () => ({
     meta: [
-      { title: `Demo — ${site.name}` },
+      { title: `Web app | ${site.name}` },
       {
         name: 'description',
         content:
-          'Try Kandown in your browser. The real application, running on an in-memory project that resets when you reload. No install, no account, nothing saved.',
+          'Open the free Kandown web app with no login. Explore the sample project or work directly with a local Kandown folder.',
       },
     ],
   }),
 })
 
-function DemoPage() {
+function AppPage() {
   const [loaded, setLoaded] = useState(false)
+  const [localProjectName, setLocalProjectName] = useState<string | null>(null)
+  const frameRef = useRef<HTMLIFrameElement>(null)
+
+  useEffect(() => {
+    const frame = frameRef.current
+    if (!frame) return
+
+    const markLoaded = () => setLoaded(true)
+    frame.addEventListener('load', markLoaded)
+    if (frame.contentDocument?.readyState === 'complete') markLoaded()
+
+    return () => frame.removeEventListener('load', markLoaded)
+  }, [])
+
+  useEffect(() => {
+    const receiveProjectMode = (event: MessageEvent<unknown>) => {
+      if (event.origin !== window.location.origin) return
+      if (event.source !== frameRef.current?.contentWindow) return
+      if (!isLocalProjectMessage(event.data)) return
+      setLocalProjectName(event.data.projectName)
+    }
+
+    window.addEventListener('message', receiveProjectMode)
+    return () => window.removeEventListener('message', receiveProjectMode)
+  }, [])
 
   if (demoMeta.available !== true) {
     return (
       <div className="flex min-h-dvh flex-col">
-        <DemoUnavailable />
+        <AppUnavailable />
       </div>
     )
   }
@@ -82,17 +123,17 @@ function DemoPage() {
     <div className="relative h-dvh w-full overflow-hidden">
       {/* 📖 `allow-same-origin` is required, not lax: the app reads its own
           origin for the History API. It is our own build on our own origin, so
-          this grants it nothing it would not already have if it were served at
-          the top level. */}
+          this also lets the user-granted local folder picker run from the
+          embedded app. */}
       <iframe
+        ref={frameRef}
         src={DEMO_APP_URL}
-        title="Kandown interactive demo"
-        onLoad={() => setLoaded(true)}
+        title="Kandown web app"
         className="h-full w-full border-0 bg-bg"
         sandbox="allow-scripts allow-same-origin allow-popups allow-downloads"
       />
-      {loaded ? null : <DemoSkeleton />}
-      <DemoOverlay />
+      {loaded ? null : <AppSkeleton />}
+      <AppOverlay localProjectName={localProjectName} />
     </div>
   )
 }
@@ -106,7 +147,7 @@ function DemoPage() {
  * `load` event, which fires slightly before React inside has painted — the
  * fade covers that gap rather than pretending it does not exist.
  */
-function DemoSkeleton() {
+function AppSkeleton() {
   return (
     <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-4 bg-bg">
       <span className="label animate-pulse text-accent-fg">Loading Kandown</span>
@@ -138,7 +179,7 @@ function DemoSkeleton() {
  * 1520px the bar drops to the bottom of the screen, where the board has nothing
  * but its own "Add task" row. Re-measure if the app's header layout changes.
  */
-function DemoOverlay() {
+function AppOverlay({ localProjectName }: { localProjectName: string | null }) {
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-3 z-50 flex justify-center px-3 min-[1520px]:inset-x-auto min-[1520px]:bottom-auto min-[1520px]:top-2.5 min-[1520px]:left-[11.5rem] min-[1520px]:justify-start min-[1520px]:px-0">
       <div className="pointer-events-auto flex max-w-full items-center gap-2.5 rounded-full border border-black/10 bg-bg/85 p-1 pr-3 shadow-lg backdrop-blur-md">
@@ -152,9 +193,13 @@ function DemoOverlay() {
           Back to kandown website
         </Link>
         <span className="label hidden truncate text-fg-faint sm:inline">
-          Demo · nothing is saved{demoMeta.version ? ` · v${demoMeta.version}` : ''}
+          {localProjectName
+            ? `${localProjectName} · local project · saving directly to your folder`
+            : `Sample project · changes reset on reload${demoMeta.version ? ` · v${demoMeta.version}` : ''}`}
         </span>
-        <span className="label truncate text-fg-faint sm:hidden">Nothing is saved</span>
+        <span className="label truncate text-fg-faint sm:hidden">
+          {localProjectName ? `${localProjectName} · local` : 'Nothing is saved'}
+        </span>
       </div>
     </div>
   )
@@ -186,13 +231,13 @@ function BackLink() {
  * rather than rendering an iframe at a URL that does not exist — a broken demo
  * reads as a broken product.
  */
-function DemoUnavailable() {
+function AppUnavailable() {
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-5 py-24 sm:px-8">
       <BackLink />
       <p className="label mt-14 text-accent-fg">Unavailable</p>
       <h1 className="mt-3 text-[2rem] leading-[1.1] font-semibold tracking-[-0.035em]">
-        The demo did not ship with this build
+        The web app did not ship with this build
       </h1>
       <p className="mt-4 text-[15px] leading-relaxed text-fg-muted">
         It is generated from the application sources on every deploy, and that step did not run.

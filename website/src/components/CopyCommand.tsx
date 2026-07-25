@@ -3,41 +3,16 @@
  * @description A terminal-styled command with a copy button — the primary call to
  * action in the hero, reused wherever a shell one-liner is offered.
  *
- * 📖 `navigator.clipboard` is unavailable on insecure origins and in some
- * embedded browsers, so a failed write falls back to the legacy
- * `document.execCommand('copy')` path instead of silently doing nothing. The
- * confirmation state resets after 2s and the timer is cleared on unmount.
+ * 📖 Clipboard behavior is shared with the documentation copy button so both
+ * controls recover from unavailable, rejected, or indefinitely pending modern
+ * clipboard writes in exactly the same way. The confirmation state resets after
+ * 2s and the timer is cleared on unmount.
  *
  * @functions copyToClipboard → best-effort copy, resolving to whether it worked
  * @exports CopyCommand
  */
 import { useEffect, useRef, useState } from 'react'
-
-async function copyToClipboard(text: string): Promise<boolean> {
-  try {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(text)
-      return true
-    }
-  } catch {
-    /* falls through to the legacy path below */
-  }
-
-  try {
-    const area = document.createElement('textarea')
-    area.value = text
-    area.setAttribute('readonly', '')
-    area.style.position = 'fixed'
-    area.style.opacity = '0'
-    document.body.appendChild(area)
-    area.select()
-    const ok = document.execCommand('copy')
-    document.body.removeChild(area)
-    return ok
-  } catch {
-    return false
-  }
-}
+import { copyTextToClipboard } from '~/lib/clipboard'
 
 export function CopyCommand({ command, className = '' }: { command: string; className?: string }) {
   const [copied, setCopied] = useState(false)
@@ -46,7 +21,7 @@ export function CopyCommand({ command, className = '' }: { command: string; clas
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
 
   const onCopy = async () => {
-    const ok = await copyToClipboard(command)
+    const ok = await copyTextToClipboard(command)
     if (!ok) return
     setCopied(true)
     if (timer.current) clearTimeout(timer.current)

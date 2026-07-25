@@ -1,8 +1,13 @@
 /**
  * @file src/routes/index.tsx
- * @description The landing page. Six numbered sections move from the product
- * promise and hero recording into durable agent handoffs, Markdown ownership,
- * the three interfaces, the supporting feature set, and the install CTA.
+ * @description The landing page. Five numbered sections move from the product
+ * promise and hero recording into durable agent handoffs, choosing a workflow,
+ * Markdown ownership, the three interfaces, the supporting feature set, and the
+ * install CTA.
+ *
+ * ⚠️ The section numbers (`01`–`05`) are hand-written strings, not derived.
+ * Inserting a section means renumbering the ones after it, or the page starts
+ * counting `01, 02, 02` and nobody notices for a month.
  *
  * 📖 The layout is editorial rather than promotional, and the rules it follows
  * are worth stating because they are what keep it from drifting back into a
@@ -19,12 +24,14 @@
  *     Geist. That split is the page's voice.
  *
  * The page prerenders to HTML. JavaScript is limited to copy buttons, shared
- * site chrome, theme controls, and the Web/TUI/CLI storyboard selector.
+ * site chrome, and the Web/TUI/CLI storyboard selector; the brand lockup loop
+ * is CSS-only and respects reduced-motion preferences.
  *
  * @exports Route
  */
 import { useState, type ReactNode } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { CodeWindow, Line } from '~/components/CodeWindow'
 import { CopyCommand } from '~/components/CopyCommand'
 import { INSTALL_COMMAND, site } from '~/lib/site'
 import HeroGeometric from '~/components/HeroGeometric'
@@ -39,6 +46,7 @@ function Home() {
     <>
       <Hero />
       <Agents />
+      <Workflows />
       <Files />
       <Interfaces />
       <Features />
@@ -88,17 +96,14 @@ function Hero() {
               className="animate-rise mt-9 flex flex-col gap-4 sm:flex-row sm:items-center"
               style={{ animationDelay: '180ms' }}
             >
-              <CopyCommand command={INSTALL_COMMAND} className="sm:min-w-[19rem]" />
-              {/* 📖 The demo is offered next to the install command rather than
-                  below the fold: "try it without installing" answers the same
-                  question the install command does, one step earlier. It is a
-                  plain link, not a second solid button — two competing filled
-                  buttons is the cliché the rest of this page avoids. */}
+              {/* 📖 These stay with the pitch while installation moves into the
+                  product lockup. The card now reads as one complete object:
+                  identity, promise, then the command that gets it. */}
               <Link
-                to="/demo"
-                className="group inline-flex items-center gap-2 self-start border-b-2 border-accent py-1 text-[14px] font-medium text-fg"
+                to="/app"
+                className="group inline-flex items-center gap-2 self-start rounded-md bg-accent px-4 py-2.5 text-[14px] font-semibold text-ink transition-transform hover:-translate-y-0.5"
               >
-                Try it in the browser
+                Try Kandown Web
                 <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">
                   →
                 </span>
@@ -111,14 +116,26 @@ function Hero() {
                 Quick start
               </Link>
             </div>
+            <div
+              className="animate-rise mt-4 max-w-xl border-l-2 border-accent pl-3 text-[12.5px] leading-relaxed text-fg-muted"
+              style={{ animationDelay: '220ms' }}
+            >
+              <p className="font-medium text-fg">Free · no login · your project stays local</p>
+              <p className="mt-1">
+                The web app is the lightweight experience for trying Kandown or checking a board.
+                Use the TUI and CLI for agents, automation, and the full workflow.
+              </p>
+            </div>
           </div>
 
-          {/* 📖 Ultra-dark translucent glass block with large LogoMark + "Kanban + Markdown" text */}
-          <div className="animate-rise shrink-0 flex flex-col items-center justify-center p-14 sm:p-16 rounded-3xl bg-black/85 backdrop-blur-2xl border border-white/15 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] self-center lg:self-auto" style={{ animationDelay: '200ms' }}>
-            <LogoMark size={220} />
-            <span className="mt-7 text-[19px] font-semibold tracking-wider text-white font-mono">
-              Kanban + Markdown
-            </span>
+          {/* 📖 The whole product lockup lives in one dark frame: mark, the
+              equation resolving into the name, then the install action. */}
+          <div className="animate-rise w-full max-w-[27rem] shrink-0 self-center rounded-3xl border border-white/15 bg-black/85 p-10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] backdrop-blur-2xl sm:p-14 lg:self-auto" style={{ animationDelay: '200ms' }}>
+            <div className="flex flex-col items-center justify-center">
+              <LogoMark size={220} />
+              <BrandLoop />
+            </div>
+            <CopyCommand command={INSTALL_COMMAND} className="mt-7 w-full border-white/20 bg-white text-black" />
           </div>
         </div>
 
@@ -160,13 +177,89 @@ function Hero() {
   )
 }
 
+function BrandLoop() {
+  return (
+    <div
+      className="brand-loop mt-7 w-full text-center font-mono text-white"
+      aria-label="Kanban plus Markdown becomes Kandown"
+    >
+      <span className="brand-loop__equation" aria-hidden="true">
+        Kanban + Markdown
+      </span>
+      <span className="brand-loop__name" aria-hidden="true">
+        Kandown
+      </span>
+    </div>
+  )
+}
+
+/* ── Workflows ──────────────────────────────────────────────────────────── */
+
+/**
+ * 📖 The workflow story, placed straight after the agent section because it is
+ * the same subject one level up: not "how does an agent read the board" but
+ * "whose method does it follow".
+ *
+ * ⚠️ This describes work that is designed but not shipped (see tasks t258, t259,
+ * t260). The `Planned` marker in the eyebrow is what keeps the page honest —
+ * remove it when workflow selection actually lands, and not before.
+ */
+function Workflows() {
+  return (
+    <>
+      <Section
+        index="02"
+        eyebrow="Workflows · Planned"
+        title="Choose your workflow"
+        lead="Kandown ships one opinion about how agents should work: plan, take one task, check off subtasks, write a report. It is a good opinion, and it should still be a choice. Workflow selection is being designed now and lands before 1.0."
+      >
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-start">
+          <div className="border-t border-border">
+            <StoryPoint title="Pick a method, not a religion">
+              A PRD-first flow, strict TDD, a research loop, or almost no ceremony. Choose one and
+              every agent on the project follows the same plan, the same review checkpoints, and the
+              same definition of done.
+            </StoryPoint>
+            <StoryPoint title="Today's protocol becomes one entry">
+              The rules Kandown ships stay the default. They stop being the only option, and nothing
+              changes for a project that never picks anything else.
+            </StoryPoint>
+            <StoryPoint title="Some rules are not opinions">
+              Dependency gating, the Markdown round-trip, and how archiving works are the data model,
+              not a method. Every workflow inherits those and none can override them.
+            </StoryPoint>
+            <StoryPoint title="Bring your own, or install one">
+              A workflow is Markdown and a manifest. Fork one, adapt it to your team, keep it in the
+              repo, or install one written by somebody else.
+            </StoryPoint>
+          </div>
+
+          <CodeWindow title="Planned interface" className="border border-border">
+            <Line tone="prompt">$ kandown workflow list</Line>
+            <Line tone="value"> default · plan, one task, subtask reports</Line>
+            <Line tone="output"> ai-dev-tasks · PRD, then tasks, one at a time</Line>
+            <Line tone="output"> tdd · red, green, refactor, per subtask</Line>
+            <Line> </Line>
+            <Line tone="prompt">$ kandown workflow use ai-dev-tasks</Line>
+            <Line tone="output"> Workflow set for this project.</Line>
+            <Line> </Line>
+            <Line tone="muted"># Instructions come from the CLI, never a file</Line>
+            <Line tone="muted"># in your repo that can drift out of date.</Line>
+          </CodeWindow>
+        </div>
+      </Section>
+      <Rule />
+    </>
+  )
+}
+
 /* ── Files ──────────────────────────────────────────────────────────────── */
 
 function Files() {
   return (
     <>
       <Section
-        index="02"
+        index="03"
         eyebrow="Plain files"
         title="Your board lives in your project"
         lead="Every task is a Markdown file you can open, edit, search, and commit with git. Kandown turns those files into a visual board without hiding them in a database."
@@ -272,7 +365,7 @@ function Interfaces() {
   return (
     <>
       <Section
-        index="03"
+        index="04"
         eyebrow="Work your way"
         title="One board, wherever you work"
         lead="Plan in the browser, manage tasks from the terminal, or automate everything from scripts. Every interface reads and writes the same Markdown files, so your board never drifts."
@@ -316,7 +409,7 @@ const FEATURES = [
 function Features() {
   return (
     <>
-      <Section index="04" eyebrow="Built for the long run" title="Structure that survives the work">
+      <Section index="05" eyebrow="Built for the long run" title="Structure that survives the work">
         <div className="grid gap-px border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((feature, i) => (
             <div key={feature.title} className="bg-bg p-6">
@@ -349,6 +442,18 @@ function Cta() {
           </p>
         </div>
         <div className="space-y-2.5">
+          <Link
+            to="/app"
+            className="group flex min-h-12 items-center justify-between rounded-md bg-accent px-4 py-3 text-[14px] font-semibold text-ink transition-transform hover:-translate-y-0.5"
+          >
+            <span>Open Kandown Web</span>
+            <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">→</span>
+          </Link>
+          <p className="pb-2 text-[12px] leading-relaxed text-fg-muted">
+            No install or login. Opens on a sample board, then works directly with local projects
+            in compatible browsers. TUI and agent launching are not available on the web.
+          </p>
+          <p className="label pt-1 text-fg-faint">Full local experience</p>
           <CopyCommand command={INSTALL_COMMAND} />
           <CopyCommand command="kandown init && kandown" />
           <Link

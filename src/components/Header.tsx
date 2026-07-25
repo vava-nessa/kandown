@@ -31,6 +31,7 @@ import { KANDOWN_VERSION } from '../lib/version';
 import { MOTION } from '../lib/motion-presets';
 import type { OwnerType } from '../lib/types';
 import { LogoSvg } from './LogoSvg';
+import { isDemoMode } from '../lib/filesystem';
 
 export function Header() {
   const { t } = useTranslation();
@@ -85,6 +86,7 @@ export function Header() {
   ];
 
   const hasFilters = chips.length > 0 || filters.search || (fields.ownerType && filters.ownerType);
+  const demoMode = isDemoMode();
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -326,6 +328,20 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-2 flex-shrink-0">
+        {demoMode && (
+          <button
+            type="button"
+            onClick={() => { void openFolder(); }}
+            className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-3.5 text-[13px] font-semibold text-primary-foreground shadow-sm transition-transform hover:-translate-y-0.5 hover:shadow-md sm:px-4"
+            title="Open a local Kandown project. Free, private, and no login required."
+          >
+            <Icon.Folder size={16} />
+            <span>Open project</span>
+            <span className="hidden text-[11px] font-medium opacity-70 2xl:inline">
+              Local · no login
+            </span>
+          </button>
+        )}
         {(isOpen || dirHandle) ? (
           <>
             <div className="flex items-center gap-2 mr-2 text-[12.5px] text-fg-muted/70">

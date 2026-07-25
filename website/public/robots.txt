@@ -7,5 +7,5 @@ Allow: /
 #   /llms.txt        index, install command, linked table of contents
 #   /llms-full.txt   the whole documentation as a single file
 #
-# The demo application under /demo/app/ is a build artifact, not content.
+# The web application bundle under /demo/app/ is a build artifact, not content.
 Disallow: /demo/app/

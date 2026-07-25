@@ -25,7 +25,7 @@
  */
 
 /** 📖 Shown in the sidebar as the open project. */
-export const DEMO_PROJECT_NAME = 'Kandown Demo';
+export const DEMO_PROJECT_NAME = 'Kandown Guide';
 
 /**
  * 📖 A fake absolute path assigned to `window.__KANDOWN_ROOT__` in the demo
@@ -75,7 +75,7 @@ export const DEMO_CONFIG_JSON = JSON.stringify(
       defaultPriority: 'P3',
       defaultOwnerType: 'human',
       columnColors: { 'in progress': 'lime', review: 'fuchsia', done: 'slate' },
-      stackDefaultState: 'collapsed',
+      stackDefaultState: 'expanded',
     },
     fields: {
       priority: true,
@@ -102,14 +102,15 @@ export const DEMO_CONFIG_JSON = JSON.stringify(
 /** 📖 `.kandown/instructions.md` — the project-scoped prose `kandown work` prints to an agent. */
 export const DEMO_INSTRUCTIONS = `# Project instructions
 
-This is the demo board for Kandown. It runs entirely in your browser: there is
-no server, no account, and nothing is written anywhere. Reload the page and it
-comes back exactly as you found it.
+This sample board is a hands-on guide to Kandown. It runs entirely in your
+browser: no server, no account, and nothing written to disk. Reload the page and
+every experiment resets. Open a local project when you want changes to persist.
 
 ## Conventions
 
 - Tasks are one Markdown file each, under \`tasks/\`.
-- Move a card and the file's \`status:\` changes. Nothing else does.
+- Tags group the guide into basics, Markdown, agents, workflows, and interfaces.
+- Move a card and the file's \`status:\` changes. Nothing mysterious happens.
 - An agent reads this file plus the board digest when you run \`kandown work\`.
 `;
 
@@ -123,242 +124,286 @@ export const DEMO_BOARD_MD = `# Project Kanban\n`;
 export const DEMO_TASKS: Readonly<Record<string, string>> = {
   t1: `---
 id: t1
-title: Move this card to Todo
+title: "[Basics] Start here: Kandown in 60 seconds 👋"
 status: Backlog
 order: 0
-priority: P2
-tags: [start-here]
+priority: P1
+tags: [start-here, basics]
 assignee: you
 created: 2026-07-20
 ownerType: human
 ---
 
-# Move this card to Todo
+# Start here: Kandown in 60 seconds 👋
 
 ## Context
 
-Drag this card into the **Todo** column. On a real project that single gesture
-rewrites one line in \`tasks/t1.md\`:
+Kandown turns a folder of Markdown tasks into a Kanban board for humans and AI
+agents. No account, no database, no mysterious cloud workspace.
+
+Drag this card into **Todo**. In a real project, that gesture only changes one
+line in \`tasks/t1.md\`:
 
 \`\`\`diff
 - status: Backlog
 + status: Todo
 \`\`\`
 
-That is the whole storage layer. No database, no sync engine, no \`.lock\` file —
-a folder of Markdown you can grep, diff, and commit alongside the code the tasks
-describe.
+That is the storage layer. Very boring. Extremely useful. ✨
 
 ## Subtasks
 
 - [ ] Drag this card to Todo.
-- [ ] Open it (click the card) and edit this text.
+- [ ] Open it and edit this text.
 - [ ] Press \`?\` to see every keyboard shortcut.
 `,
 
   t2: `---
 id: t2
-title: Write the onboarding email sequence
+title: "[Basics] Markdown is the database 📁"
 status: Backlog
 order: 1
-priority: P3
-tags: [content, growth]
-assignee: sam
-created: 2026-07-21
-ownerType: human
-depends_on: [t5]
----
-
-# Write the onboarding email sequence
-
-## Context
-
-This card carries \`depends_on: [t5]\`, so the board shows a **↪** chip on it and
-refuses to let it reach the terminal column while t5 is unfinished. Other moves
-stay free — the gate is only on the last hop, the way GitHub, Linear and Jira
-treat blocking relations.
-
-Try it: drag this card straight to **Done** and watch it bounce.
-
-## Subtasks
-
-- [ ] Draft the welcome mail.
-- [ ] Draft the day-3 activation nudge.
-- [ ] Decide whether day-7 is a mail or an in-app hint.
-`,
-
-  t3: `---
-id: t3
-title: Audit the empty states
-status: Todo
-order: 0
-priority: P3
-tags: [ui, polish]
+priority: P2
+tags: [basics, markdown, local-first]
 assignee: you
 created: 2026-07-21
 ownerType: human
 ---
 
-# Audit the empty states
+# Markdown is the database 📁
 
 ## Context
 
-Three screens still render a bare rectangle when there is nothing to show. Each
-one is a moment where a new user decides whether the product is finished.
+Every card is one readable file under \`tasks/\`. Open it in VS Code, change it
+with a shell script, let an agent update it, or commit it with Git. Kandown shows
+the same file instead of importing it into a private format.
+
+\`\`\`text
+tasks/
+├── t1.md
+├── t2.md
+└── archive/
+\`\`\`
+
+Your project remains useful even if Kandown is closed. Revolutionary concept:
+your files still belong to you. 😌
 
 ## Subtasks
 
-- [x] List every empty state in the app.
-  report: Found four, not three — the archive view has one too.
-- [ ] Write copy for each.
-- [ ] Decide if any of them deserves an illustration.
+- [ ] Open this task and inspect its frontmatter.
+- [ ] Change its priority or tags.
+- [ ] Imagine trying to review a binary database in a pull request. Done laughing?
+`,
+
+  t3: `---
+id: t3
+title: "[Markdown] Format a task like a tiny project brief"
+status: Todo
+order: 0
+priority: P2
+tags: [markdown, formatting]
+assignee: you
+created: 2026-07-21
+ownerType: human
+---
+
+# Format a task like a tiny project brief
+
+## Context
+
+Task bodies support normal Markdown. Use them for enough context to resume work
+tomorrow, next month, or after another agent takes over.
+
+### Useful ingredients
+
+- **Bold** for decisions
+- \`inline code\` for symbols and commands
+- [Links](https://kandown.dev/docs/guides/tasks) for source material
+- Fenced code blocks for examples
+- Checklists for work that can actually finish
+
+> A task should explain why the work matters, not only what button to press.
+
+\`\`\`bash
+kandown show t3
+kandown move t3 "In Progress"
+\`\`\`
+
+## Subtasks
+
+- [x] Add enough context to restart without archaeology.
+  report: Included formatting examples and the reason behind them.
+- [ ] Add one link to the relevant design or issue.
+- [ ] Write the next concrete action.
 `,
 
   t4: `---
 id: t4
-title: Cache the parsed task index
+title: "[Agents] Keep long-running agent work alive 🤖"
 status: In Progress
 order: 0
 priority: P1
-tags: [performance, core]
+tags: [agents, long-runs, reports]
 assignee: claude
 created: 2026-07-22
 ownerType: ai
 report: |
   ## Changes
-  - Added an in-memory index keyed by file mtime so unchanged tasks skip the parser.
-  - Invalidation hangs off the existing watcher event rather than a second stat loop.
+  - Investigated the failing build and recorded the actual cause.
+  - Completed the parser fix without changing unrelated files.
 
-  ## Validation
-  - Cold board load on 400 tasks: 1.9s → 240ms.
-  - No change on boards under ~30 tasks, as expected.
+  ## Next
+  - Run the full build and attach the result before moving to Review.
 ---
 
-# Cache the parsed task index
+# Keep long-running agent work alive 🤖
 
 ## Context
 
-Boards over a few hundred tasks re-parse every file on each reload. The parse
-itself is cheap; doing it 400 times on every keystroke-triggered refresh is not.
+Long-running work survives chat windows because the plan, checked subtasks, and
+reports live in the task file. An agent can stop. Another one can continue. No
+one needs to reconstruct the plot from 84 messages and a hopeful guess.
 
-This card is owned by an AI agent — note the \`ownerType: ai\` marker on it. The
-\`report:\` block in the frontmatter is written by the agent as it works, and it
-renders in the drawer when you open the card. That block is the contract: an
-agent that moves a task to Done without one has not finished the task.
+Run \`kandown work\` and the agent receives project instructions, the live board,
+blockers, priorities, and the next actionable task in one response.
 
 ## Subtasks
 
-- [x] Measure where the time actually goes.
-  report: 78% in frontmatter parsing, 14% in the Markdown body pass, rest is I/O.
-- [x] Key the cache on mtime rather than content hash.
-  report: Hashing meant reading the file anyway, which defeated the point.
-- [ ] Decide whether to persist the index between runs.
+- [x] Record the investigation result.
+  report: The task now contains enough context for a different agent to resume.
+- [x] Implement the focused change.
+  report: Kept the diff inside the parser module.
+- [ ] Validate the build and write the final completion report.
 `,
 
   t5: `---
 id: t5
-title: Ship the pricing page
+title: "[Agents] Hand work from one agent to another"
 status: Review
 order: 0
 priority: P2
-tags: [web]
-assignee: sam
+tags: [agents, handoff, context]
+assignee: codex
 created: 2026-07-19
-ownerType: human
+ownerType: ai
 ---
 
-# Ship the pricing page
+# Hand work from one agent to another
 
 ## Context
 
-Copy is signed off, layout is built, the annual toggle works. Blocking t2 until
-this lands, because the onboarding sequence links to it.
+Codex can start a task, Claude can continue it, and a human can review the same
+Markdown file. Kandown does not care which agent you use. Good tools should not
+be jealous. 🙂
 
-Move this card to **Done** and t2 unblocks.
+The useful handoff is simple:
+
+1. Check completed subtasks.
+2. Add a short \`report:\` under each result.
+3. Leave the task in the honest column.
+4. Let the next worker read before touching anything.
 
 ## Subtasks
 
-- [x] Final copy pass.
-- [x] Annual / monthly toggle.
-- [ ] Proofread the FAQ.
+- [x] Save the completed decisions.
+- [x] Explain what remains.
+- [ ] Review the final diff and move this task to Done.
 `,
 
   t6: `---
 id: t6
-title: Replace the settings modal with a real page
+title: "[Interfaces] Use Kanban, TUI, and CLI together"
 status: Done
 order: 0
 priority: P3
-tags: [ui]
+tags: [interfaces, tui, cli]
 assignee: you
 created: 2026-07-15
 ownerType: human
 ---
 
-# Replace the settings modal with a real page
+# Use Kanban, TUI, and CLI together
 
 ## Context
 
-The modal could not be linked to, could not be deep-linked into a section, and
-trapped focus badly on mobile. It is a page now.
+The board is one view, not the source of truth. Use the web app for planning,
+the full TUI when you live in a terminal, and the CLI for scripts and agents.
+
+\`\`\`bash
+kandown work
+kandown next
+kandown show t6
+\`\`\`
+
+The website app is intentionally the lightweight option. It cannot launch your
+terminal agents or replace the TUI, but it is excellent for checking a board,
+editing tasks, and getting unstuck from another machine.
 
 ## Subtasks
 
-- [x] Move each section to its own route.
-- [x] Keep the old modal URL redirecting.
+- [x] Plan visually in the web app.
+- [x] Work quickly from the TUI.
+- [x] Give agents structured context through the CLI.
 `,
 
   t7: `---
 id: t7
-title: Use search to find this card
-status: Backlog
-order: 2
-priority: P4
-tags: [start-here]
-assignee: you
+title: "[Workflow] Let dependencies stop fake progress"
+status: Todo
+order: 1
+priority: P2
+tags: [workflow, dependencies]
+assignee: agent
 created: 2026-07-20
-ownerType: human
+ownerType: ai
+depends_on: [t4]
 ---
 
-# Use search to find this card
+# Let dependencies stop fake progress
 
 ## Context
 
-Press \`/\` — or \`⌘K\` for the command palette — and type **marmalade**. Search
-reads the body of every task, not just titles, so it finds this card by a word
-that appears nowhere in its title.
+This task carries \`depends_on: [t4]\`. Try moving it directly to **Done** while
+t4 is unfinished. Kandown refuses the final move but still allows honest
+progress through the other columns.
 
-marmalade
+It is a tiny guardrail against the ancient project-management technique known
+as "move everything to Done and hope nobody asks questions". 🪄
 
 ## Subtasks
 
-- [ ] Find this card by searching for that word.
-- [ ] Clear the search and watch the board come back.
+- [ ] Try the blocked move.
+- [ ] Finish t4.
+- [ ] Move this task to Done once the dependency is real.
 `,
 
   t8: `---
 id: t8
-title: Decide on the mobile breakpoint
-status: Todo
-order: 1
+title: "[Basics] Search bodies, tags, and metadata"
+status: Backlog
+order: 2
 priority: P4
-tags: [ui, undecided]
-assignee: unassigned
+tags: [search, shortcuts, basics]
+assignee: you
 created: 2026-07-23
 ownerType: human
 ---
 
-# Decide on the mobile breakpoint
+# Search bodies, tags, and metadata
 
 ## Context
 
-The board is unusable below roughly 700px, and we have never decided whether
-that is worth fixing or whether the phone case is read-only by nature.
+Press \`/\` or open the command palette with \`⌘K\`, then search for
+**marmalade**. Kandown searches task bodies too, so this card appears even
+though that very serious engineering term is absent from its title.
+
+marmalade 🍊
 
 ## Subtasks
 
-- [ ] Look at what share of traffic is actually phone-sized.
-- [ ] Prototype the read-only variant before committing to the full one.
+- [ ] Find this card using its secret word.
+- [ ] Search for the \`agents\` category.
+- [ ] Clear the search and bring the whole guide back.
 `,
 };
 
@@ -370,7 +415,7 @@ that is worth fixing or whether the phone case is read-only by nature.
 export const DEMO_ARCHIVED_TASKS: Readonly<Record<string, string>> = {
   t9: `---
 id: t9
-title: Evaluate moving tasks into a SQLite file
+title: Put every task in one clever database
 status: Done
 order: 0
 priority: P3
@@ -381,15 +426,16 @@ ownerType: human
 archived: true
 ---
 
-# Evaluate moving tasks into a SQLite file
+# Put every task in one clever database
 
 ## Context
 
-Considered and rejected. A single binary file would have made querying trivial
-and made every other property of the project worse: no \`git diff\` that a human
-can read, no editing a task from a text editor, no grep, no merge resolution.
+Considered and rejected. A single binary file would make querying easy and make
+everything else worse: no readable \`git diff\`, no editing from a text editor,
+no grep, and unpleasant merge conflicts.
 
-Archived rather than deleted, because this decision will be proposed again.
+Archived rather than deleted because this brilliant idea will return wearing a
+different hat in six months. 🥸
 
 ## Subtasks
 
