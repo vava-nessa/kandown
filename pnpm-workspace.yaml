@@ -1,8 +1,18 @@
-allowBuilds:
-  esbuild: set this to true or false
+# 📖 Nothing in this repository depends on the `kandown` package, so the
+# `overrides: kandown: 'link:'` that used to live here resolved nothing. It did
+# cause damage: pnpm 10+ reads overrides from this file, pnpm 9 does not, and CI
+# pins pnpm 9. Once the lockfile was regenerated with 9 (commit 1173225), every
+# local `pnpm run` on 11 saw a manifest/lockfile mismatch and demanded a full
+# reinstall. Do not reintroduce it without checking both versions.
 packages:
   - .
+# 📖 esbuild needs its postinstall to fetch a platform binary, or vite build
+# fails. Both keys say the same thing to two pnpm generations: `allowBuilds` is
+# what 10+ reads, `onlyBuiltDependencies` is what 9 reads. pnpm rewrites the
+# `allowBuilds` value to a "set this to true or false" placeholder whenever a
+# build is ignored — if you see that string here again, it means an install ran
+# without approving esbuild, and the binary is probably missing.
+allowBuilds:
+  esbuild: true
 onlyBuiltDependencies:
   - esbuild
-overrides:
-  kandown: 'link:'
