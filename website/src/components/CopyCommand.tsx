@@ -55,7 +55,7 @@ export function CopyCommand({ command, className = '' }: { command: string; clas
 
   return (
     <div
-      className={`flex items-center gap-3 border border-border bg-bg-subtle py-2.5 pr-2 pl-3.5 font-mono text-[13.5px] ${className}`}
+      className={`flex items-center gap-3 rounded-[4px] border border-border bg-bg-subtle py-2.5 pr-2 pl-3.5 font-mono text-[13.5px] ${className}`}
     >
       <span aria-hidden="true" className="text-accent-fg select-none">
         $
@@ -65,7 +65,7 @@ export function CopyCommand({ command, className = '' }: { command: string; clas
         type="button"
         onClick={onCopy}
         aria-label={copied ? 'Copied' : `Copy "${command}" to clipboard`}
-        className="p-1.5 text-fg-faint transition-colors hover:bg-bg hover:text-fg"
+        className="rounded-[4px] p-1.5 text-fg-faint transition-colors hover:bg-bg hover:text-fg"
       >
         {copied ? (
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="text-accent-fg" aria-hidden="true">

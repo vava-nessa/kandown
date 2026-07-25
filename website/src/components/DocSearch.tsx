@@ -90,7 +90,7 @@ export function SearchTrigger({ full = false }: { full?: boolean }) {
     <button
       type="button"
       onClick={openSearch}
-      className={`group flex items-center gap-2 border border-border bg-bg-subtle text-[13px] text-fg-faint transition-colors hover:border-border-strong hover:text-fg-muted ${
+      className={`group flex items-center gap-2 rounded-[4px] border border-border bg-bg-subtle text-[13px] text-fg-faint transition-colors hover:border-border-strong hover:text-fg-muted ${
         full ? 'w-full px-3 py-2' : 'px-3 py-1.5'
       }`}
     >
@@ -99,7 +99,7 @@ export function SearchTrigger({ full = false }: { full?: boolean }) {
         <path d="m20 20-3.5-3.5" />
       </svg>
       <span>Search docs</span>
-      <kbd className="ml-auto border border-border bg-bg px-1.5 py-0.5 font-mono text-[10.5px] text-fg-faint">
+      <kbd className="ml-auto rounded-[4px] border border-border bg-bg px-1.5 py-0.5 font-mono text-[10.5px] text-fg-faint">
         ⌘K
       </kbd>
     </button>
@@ -189,7 +189,7 @@ export function SearchDialog() {
         role="dialog"
         aria-modal="true"
         aria-label="Search documentation"
-        className="w-full max-w-xl overflow-hidden border border-border-strong bg-bg-raised shadow-2xl"
+        className="w-full max-w-xl overflow-hidden rounded-[4px] border border-border-strong bg-bg-raised shadow-2xl"
         onKeyDown={(event) => {
           if (event.key === 'Escape') {
             event.preventDefault()
@@ -223,7 +223,7 @@ export function SearchDialog() {
           <button
             type="button"
             onClick={close}
-            className="border border-border px-1.5 py-0.5 font-mono text-[10.5px] text-fg-faint transition-colors hover:text-fg-muted"
+            className="rounded-[4px] border border-border px-1.5 py-0.5 font-mono text-[10.5px] text-fg-faint transition-colors hover:text-fg-muted"
           >
             Esc
           </button>
@@ -242,7 +242,7 @@ export function SearchDialog() {
                   type="button"
                   onMouseEnter={() => setActive(i)}
                   onClick={() => go(entry)}
-                  className={`block w-full border-l-2 px-3 py-2.5 text-left transition-colors ${
+                  className={`block w-full rounded-[4px] border-l-2 px-3 py-2.5 text-left transition-colors ${
                     i === active ? 'border-accent bg-bg-subtle' : 'border-transparent'
                   }`}
                 >
@@ -288,7 +288,7 @@ export function SearchDialog() {
 
 function Key({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="mr-1 inline-block border border-border bg-bg px-1 py-px font-mono text-[10px]">
+    <kbd className="mr-1 inline-block rounded-[4px] border border-border bg-bg px-1 py-px font-mono text-[10px]">
       {children}
     </kbd>
   )

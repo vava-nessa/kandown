@@ -129,7 +129,7 @@ export function ThemeToggler({ className = '' }: { className?: string }) {
       tabIndex={mounted ? 0 : -1}
       aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
       title={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
-      className={`relative grid h-8 w-8 place-items-center rounded-md text-fg-muted transition-colors hover:bg-bg-subtle hover:text-fg active:scale-95 ${
+      className={`relative grid h-8 w-8 place-items-center rounded-[4px] text-fg-muted transition-colors hover:bg-bg-subtle hover:text-fg active:scale-95 ${
         mounted ? 'opacity-100' : 'pointer-events-none opacity-0'
       } ${className}`}
     >
