@@ -69,10 +69,9 @@ export function SiteHeader() {
               describing it, and it is what most first-time visitors want. */}
           <Link
             to="/demo"
-            className="label flex items-center gap-1.5 border-b-2 border-transparent py-1 transition-colors hover:text-fg"
-            activeProps={{ className: 'label flex items-center gap-1.5 border-b-2 border-accent py-1 text-fg' }}
+            className="rounded-[4px] bg-[#88E138] px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-wider text-ink transition-opacity hover:opacity-90"
+            activeProps={{ className: 'rounded-[4px] bg-[#88E138] px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-wider text-ink ring-2 ring-accent' }}
           >
-            <span aria-hidden="true" className="size-1.5 rounded-full bg-accent" />
             Demo
           </Link>
         </nav>
@@ -138,9 +137,8 @@ export function SiteHeader() {
           <Link
             to="/demo"
             onClick={() => setOpen(false)}
-            className="label flex items-center gap-1.5 py-3 hover:text-fg"
+            className="mt-3 block text-center rounded-[4px] bg-[#88E138] py-2 font-mono text-[12px] font-semibold uppercase tracking-wider text-ink"
           >
-            <span aria-hidden="true" className="size-1.5 rounded-full bg-accent" />
             Demo
           </Link>
         </nav>
