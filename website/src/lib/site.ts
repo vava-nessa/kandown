@@ -10,9 +10,9 @@
 
 export const site = {
   name: 'Kandown',
-  tagline: 'Too many ideas, not enough agents.',
+  tagline: 'Markdown tasks, built for AI agents.',
   description:
-    'A local-first Kanban board where every task is a Markdown file you own forever. Zero backend, zero database, no account — built for working alongside AI agents.',
+    'A free, open-source, local Kanban for long-running AI agent work. Every task is a Markdown file, managed from the web, TUI, or CLI.',
   url: 'https://kandown.dev',
   repo: 'https://github.com/vava-nessa/kandown',
   npm: 'https://www.npmjs.com/package/kandown',

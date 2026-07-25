@@ -30,7 +30,7 @@ import { CopyCommand } from '~/components/CopyCommand'
 import { HeroVideo } from '~/components/HeroVideo'
 import { BoardMock } from '~/components/BoardMock'
 import { CodeWindow, Line } from '~/components/CodeWindow'
-import { INSTALL_COMMAND, site } from '~/lib/site'
+import { INSTALL_COMMAND } from '~/lib/site'
 import HeroGeometric from '~/components/HeroGeometric'
 import { LogoMark } from '~/components/Logo'
 
@@ -57,32 +57,24 @@ function Hero() {
   return (
     <section className="relative border-b border-border overflow-hidden">
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <HeroGeometric color1="#0ce931" color2="#fff7ed" speed={3} className="w-full h-full min-h-[600px]" />
+        <HeroGeometric color1="#0ce931" color2="#fff7ed" color2Dark="#08150f" speed={3} className="w-full h-full min-h-[600px]" />
       </div>
       <Shell className="relative z-10">
         <div className="py-16 sm:py-24 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-12">
           <div className="max-w-2xl">
-            {/* 📖 A metadata line instead of a pill badge: same information,
-                stated rather than decorated. */}
-            <p className="label animate-rise flex flex-wrap items-center gap-x-3 gap-y-1">
-              <span className="text-accent-fg">Local-first</span>
-              <span aria-hidden="true">/</span>
-              <span>MIT</span>
-              <span aria-hidden="true">/</span>
-              <span>Node 18+</span>
-              <span aria-hidden="true">/</span>
-              <a href={site.npm} target="_blank" rel="noreferrer noopener" className="hover:text-fg">
-                npm
-              </a>
+            {/* 📖 Lead with the ownership model, not package requirements. The
+                install command below already answers the technical question. */}
+            <p className="label animate-rise text-fg">
+              Free and open source. Local by design.
             </p>
 
             <h1
               className="animate-rise mt-6 text-[2.75rem] leading-[0.98] font-semibold tracking-[-0.035em] text-balance sm:text-[4.25rem]"
               style={{ animationDelay: '60ms' }}
             >
-              Too many ideas,
+              Markdown tasks,
               <br />
-              not enough{' '}
+              built for AI{' '}
               {/* 📖 The one place the accent is used as a solid block. It lands
                   on the word the whole product is about. */}
               <span className="bg-accent px-2 text-ink">agents</span>.
@@ -92,9 +84,8 @@ function Hero() {
               className="animate-rise mt-7 max-w-xl text-[1.0625rem] leading-relaxed text-fg-muted"
               style={{ animationDelay: '120ms' }}
             >
-              A Kanban board whose entire database is a folder of Markdown files you own forever.
-              No backend, no account, no sync service — and AI agents are first-class users, not an
-              integration.
+              Plan long-running work on a local Kanban board. Each task is a Markdown file your
+              agents can read and update from the web app, TUI, or CLI.
             </p>
 
             <div

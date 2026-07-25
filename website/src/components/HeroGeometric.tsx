@@ -1,7 +1,20 @@
+/**
+ * @file website/src/components/HeroGeometric.tsx
+ * @description Animated WebGL shader background for the landing page hero section.
+ * Supports light and dark mode dynamic color interpolation.
+ *
+ * 📖 The shader computes a dithering gradient using 2D Simplex noise and Bayer dithering.
+ * In dark mode, color2 dynamically switches to a dark surface tone to prevent light halos.
+ *
+ * @functions
+ *   HeroGeometric -> Main hero background component
+ *   GradientPlane -> WebGL mesh plane with custom shader material
+ * @exports HeroGeometric
+ */
 "use client";
 
 /* eslint-disable react/no-unknown-property */
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useState, useEffect } from "react";
 import { Canvas, useFrame, type ThreeElements } from "@react-three/fiber";
 import * as THREE from "three";
 import { motion } from "framer-motion";
@@ -16,6 +29,38 @@ declare module "react" {
     }
 }
 /* eslint-enable @typescript-eslint/no-namespace */
+
+function useResolvedTheme(): "light" | "dark" {
+    const [theme, setTheme] = useState<"light" | "dark">("dark");
+
+    useEffect(() => {
+        const updateTheme = () => {
+            const isDark =
+                document.documentElement.getAttribute("data-theme") === "dark" ||
+                (!document.documentElement.hasAttribute("data-theme") &&
+                    window.matchMedia("(prefers-color-scheme: dark)").matches);
+            setTheme(isDark ? "dark" : "light");
+        };
+
+        updateTheme();
+
+        const observer = new MutationObserver(updateTheme);
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ["data-theme"],
+        });
+
+        const match = window.matchMedia("(prefers-color-scheme: dark)");
+        match.addEventListener("change", updateTheme);
+
+        return () => {
+            observer.disconnect();
+            match.removeEventListener("change", updateTheme);
+        };
+    }, []);
+
+    return theme;
+}
 
 // --- Shader Code ---
 const vertexShader = `
@@ -117,10 +162,10 @@ void main() {
         color = paleBlue;
     }
     
-    // Softer fade to white - only at extreme bottom-left
+    // Softer fade to uColor2 - only at extreme bottom-left
     vec2 cornerDist = vec2(uv.x, uv.y);
     float fadeMask = smoothstep(0.0, 0.25, length(cornerDist));
-    color = mix(vec3(1.0), color, fadeMask);
+    color = mix(uColor2, color, fadeMask);
     
     // Add subtle vignette to emphasize corners
     float vignette = smoothstep(1.2, 0.3, length(uv - 0.5));
@@ -195,6 +240,8 @@ interface HeroGeometricProps {
     className?: string; // Explicitly included
     color1?: string;
     color2?: string;
+    color1Dark?: string;
+    color2Dark?: string;
     speed?: number;
     children?: React.ReactNode;
 }
@@ -203,15 +250,23 @@ export default function HeroGeometric({
     title1,
     title2,
     description,
-    color1 = "#3B82F6", // Default soft blue
-    color2 = "#F0F9FF", // Default pale blue
+    color1 = "#0ce931",
+    color2 = "#fff7ed",
+    color1Dark,
+    color2Dark = "#08150f",
     speed = 1,
     className,
     children,
 }: HeroGeometricProps) {
+    const theme = useResolvedTheme();
+    const isDark = theme === "dark";
+
+    const activeColor1 = isDark ? (color1Dark || color1) : color1;
+    const activeColor2 = isDark ? color2Dark : color2;
+
     return (
         <div
-            className={cn("relative w-full min-h-screen flex flex-col items-center overflow-hidden bg-white text-black", className)}
+            className={cn("relative w-full min-h-screen flex flex-col items-center overflow-hidden bg-transparent", className)}
             style={{ containerType: "size" }}
         >
             {/* Background Shader */}
@@ -224,7 +279,7 @@ export default function HeroGeometric({
                         alpha: true,
                     }}
                 >
-                    <GradientPlane color1={color1} color2={color2} speed={speed} />
+                    <GradientPlane color1={activeColor1} color2={activeColor2} speed={speed} />
                 </Canvas>
             </div>
 
@@ -283,3 +338,4 @@ export default function HeroGeometric({
         </div>
     );
 }
+
