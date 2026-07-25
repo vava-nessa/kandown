@@ -105,10 +105,8 @@ export function SiteHeader() {
             aria-label="Kandown on npm"
             className="p-1.5 transition-opacity hover:opacity-80 flex items-center"
           >
-            <svg width="32" height="14" viewBox="0 0 256 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path fill="#CB3837" d="M0 0v100h100V0H0zm81.25 81.25h-12.5v-50h-12.5v50h-37.5v-62.5h62.5v62.5z"/>
-              <path fill="#FFFFFF" d="M156.25 0v81.25h-31.25v18.75h-25V0h56.25zm-18.75 62.5v-43.75h-18.75v43.75h18.75z"/>
-              <path fill="#CB3837" d="M256 0v81.25h-31.25v18.75h-25V0H256zm-18.75 62.5v-43.75h-18.75v43.75h18.75zM175 0v100h25V0h-25z"/>
+            <svg width="34" height="13" viewBox="0 0 18 7" aria-hidden="true">
+              <path fillRule="evenodd" clipRule="evenodd" d="M0 0v7h18V0H0zm1.5 5.5v-4h4.5v4H4.5v-2.5H3v2.5H1.5zm6 0v-4h4.5v4H10.5v-1.5H12v-2.5H7.5zm1.5-1.5H10.5v-1.5H9v1.5zm4.5 1.5v-4h4.5v4H16.5v-2.5H15v2.5H13.5z" fill="#CB3837" />
             </svg>
           </a>
 
