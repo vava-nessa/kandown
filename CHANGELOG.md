@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.36.0 — 2026-07-26 — "Local Web App"
+
+### Added
+
+- **The website demo became a real web app, and it can open your actual project.** `/demo` is gone (permanently redirected to `/app`) and the separate demo concept with it. The app opens on a disposable sample board that says so, and on browsers that support the File System Access API a prominent **Open project** action hands the session over to a real Kandown project on disk — no account, no server, no upload. The sample-to-local switch only activates once a folder has actually been selected, so cancelling the picker never destroys the sample session, and the iframe reports the selected project back to the website shell so the status bar can never claim that local changes are disposable when they are not. The sample board itself was rewritten as a categorized interactive guide to Markdown tasks, agents, handoffs, dependencies, search and the three interfaces.
+- **"Choose your workflow" on the landing page** — a new section stating the direction the agent protocol is taking: today's rules become one selectable workflow among several rather than the only one, with the non-negotiable parts (dependency gating, the Markdown round-trip, archiving) inherited by every workflow. **Marked `Planned` on the page**, because it is designed and not yet shipped — see tasks t258, t259 and t260.
+
+### Changed
+
+- **The hero is one product lockup.** The install command moved inside the dark frame, under the mark, so identity, promise and the command that gets it read as a single object instead of three neighbours. "Kanban + Markdown" now animates into the Kandown wordmark on a layout-stable CSS loop, and devices asking for reduced motion get the wordmark with no animation at all. The header's npm link uses the real npm asset instead of a second hand-drawn approximation of it.
+
+### Fixed
+
+- **Documentation copy buttons failed wherever the Clipboard API is unavailable or denied.** The command-copy buttons already had a legacy fallback; the docs button called `navigator.clipboard` directly, so every docs copy silently failed in affected browsers and embedded webviews — including a path where the promise never settles and the button sits on "Copying" forever. Both button types now share one bounded clipboard helper with a textarea fallback. Cached Markdown is also keyed by its raw page URL, so a docs button that stays mounted across client-side navigation refetches the right content instead of copying the previous page.
+
+### Cleaned
+
+- `.kandown/.undo/` — the mutation journal's runtime directory — is now ignored rather than tracked. Runtime state does not belong in a commit.
+
 ## 0.35.1 — 2026-07-26 — "Light Identity"
 
 ### Added
