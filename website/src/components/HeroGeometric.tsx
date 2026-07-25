@@ -203,7 +203,7 @@ export default function HeroGeometric({
             style={{ containerType: "size" }}
         >
             {/* Background Shader */}
-            <div className="absolute top-0 left-0 w-full h-full z-0 pointer-events-none opacity-40 dark:opacity-30">
+            <div className="absolute top-0 left-0 w-full h-full z-0 pointer-events-none opacity-75 dark:opacity-60">
                 <Canvas
                     camera={{ position: [0, 0, 1] }}
                     dpr={[1, 1]}
