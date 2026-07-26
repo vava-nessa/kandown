@@ -1,23 +1,31 @@
 #!/bin/sh
 #
-# 📖 Keeps CODEMAP.md / CODEMAP.json in the same commit as the code they describe.
+# 📖 Keeps the two generated indexes in the same commit as the content they describe:
 #
-# The generator is deterministic and takes ~50ms, so it runs unconditionally rather
-# than trying to guess whether this commit touched source. If it produced changes,
-# they are staged into this commit — the map can never lag the code by a commit.
+#   - CODEMAP.md / CODEMAP.json — built from the JSDoc headers of every source file
+#   - CHANGELOG.md              — built from the per-version files in changelogs/
 #
-# Missing @description headers only warn here. Blocking a work-in-progress commit
-# over a docstring is the fastest way to get a hook disabled; CI runs the same
-# script with --check and blocks there instead. See docs/ARCHITECTURE.md.
+# Both generators are deterministic and take ~50ms, so they run unconditionally
+# rather than trying to guess whether this commit touched source or a changelog.
+# Whatever they produce is staged into this commit — neither index can lag the
+# thing it indexes by a commit, which is the whole reason they are generated.
+#
+# Nothing here blocks. Missing @description headers and a stale changelog only
+# warn: blocking a work-in-progress commit over a docstring is the fastest way to
+# get a hook disabled. CI runs `pnpm codemap:check` and `pnpm changelog:check`
+# and blocks there instead. See docs/ARCHITECTURE.md.
 #
 # Installed by scripts/install-hooks.js via core.hooksPath (runs on pnpm install).
 
 set -e
 
 if ! command -v node >/dev/null 2>&1; then
-  echo "pre-commit: node not found, skipping codemap" >&2
+  echo "pre-commit: node not found, skipping generated indexes" >&2
   exit 0
 fi
 
 node scripts/build-codemap.js || exit 0
 git add CODEMAP.md CODEMAP.json 2>/dev/null || true
+
+node scripts/build-changelog.js || exit 0
+git add CHANGELOG.md 2>/dev/null || true

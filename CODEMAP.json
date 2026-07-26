@@ -3,17 +3,37 @@
   "files": [
     {
       "path": "bin/kandown.js",
-      "lines": 2493,
+      "lines": 2522,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 59138,
+      "lines": 59862,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
+    },
+    {
+      "path": "scripts/build-changelog.js",
+      "lines": 174,
+      "title": "Changelog index generator",
+      "summary": "Rebuilds the root `CHANGELOG.md` from the per-version files in `changelogs/`.",
+      "functions": [
+        {
+          "name": "parseVersionFile",
+          "summary": "one changelogs/*.md → its heading fields + change counts"
+        },
+        {
+          "name": "compareVersions",
+          "summary": "numeric semver descending comparator"
+        },
+        {
+          "name": "buildIndex",
+          "summary": "the rendered CHANGELOG.md string"
+        }
+      ]
     },
     {
       "path": "scripts/build-codemap.js",
@@ -143,7 +163,7 @@
     },
     {
       "path": "src/cli/commands/tasks.ts",
-      "lines": 301,
+      "lines": 302,
       "title": "CLI commands — task CRUD & board data",
       "summary": "Handlers for `kandown list/show/create/move/assign/commit` plus `export`/`import`/`projects`.",
       "exports": "cmdList, cmdShow, cmdCreate, cmdMove, cmdAssign, cmdCommit, cmdExport, cmdProjects, cmdImport"
@@ -163,7 +183,7 @@
     },
     {
       "path": "src/cli/hooks/use-mouse.ts",
-      "lines": 128,
+      "lines": 134,
       "title": "Mouse support utilities for Ink-based TUI",
       "summary": "Provides terminal mouse tracking enable/disable and a parser for SGR mouse sequences.",
       "functions": [
@@ -222,7 +242,7 @@
     },
     {
       "path": "src/cli/lib/board-reader.ts",
-      "lines": 416,
+      "lines": 420,
       "title": "Node.js task reader and mutator",
       "summary": "Provides filesystem-based reading and writing of Kandown task files for the CLI.",
       "functions": [
@@ -306,7 +326,7 @@
     },
     {
       "path": "src/cli/lib/config.ts",
-      "lines": 234,
+      "lines": 250,
       "title": "Config reader/writer for kandown.json",
       "summary": "Handles loading, saving, and accessing the kandown project configuration.",
       "functions": [
@@ -404,7 +424,7 @@
     },
     {
       "path": "src/cli/lib/mcp.ts",
-      "lines": 236,
+      "lines": 237,
       "title": "Stdio MCP server for Kandown",
       "summary": "Exposes Kandown task operations to MCP hosts (Claude Desktop, VSCode, etc.) via JSON-RPC 2.0 over stdin/stdout.",
       "functions": [
@@ -473,9 +493,9 @@
     },
     {
       "path": "src/cli/screens/board.tsx",
-      "lines": 1204,
+      "lines": 1572,
       "title": "TUI Board Screen",
-      "summary": "Interactive kanban board for the Kandown CLI.",
+      "summary": "The Kandown CLI's main screen.",
       "functions": [
         {
           "name": "Board",
@@ -553,6 +573,80 @@
         }
       ],
       "exports": "TASKS_START_Y, truncate, terminalHyperlink, webLinkLabel, pad, termWidth, calcColWidth, RE_HEADER, RE_SUBTASK, RE_DONE, RE_BRACKET_TAG, columnAccentColor, getTitleCategory, computeScrollIdx"
+    },
+    {
+      "path": "src/cli/screens/board/list-helpers.ts",
+      "lines": 370,
+      "title": "List view — pure data & layout helpers",
+      "summary": "Everything the flat list view needs that is not React: turning the column-shaped board into one ordered list of rows, the search/filter pipeline shared with the kanban view, the sort orders, the adaptive column layout, and word wrapping…",
+      "functions": [
+        {
+          "name": "normalizeOwner",
+          "summary": "collapses ownerType spellings (`agent`/`ai`, `user`/`human`)"
+        },
+        {
+          "name": "matchesSearch",
+          "summary": "case-insensitive substring match over id/title/tags/assignee"
+        },
+        {
+          "name": "matchesFilter",
+          "summary": "the `f` key's filter modes"
+        },
+        {
+          "name": "sortRows",
+          "summary": "applies a ListSort in place-safe fashion"
+        },
+        {
+          "name": "buildListRows",
+          "summary": "board → filtered, sorted flat rows"
+        },
+        {
+          "name": "computeListLayout",
+          "summary": "terminal width → per-column widths + visibility"
+        },
+        {
+          "name": "wrapText",
+          "summary": "greedy word wrap for the expanded selected row"
+        },
+        {
+          "name": "priorityColor / priorityRank",
+          "summary": "shared priority presentation & ordering"
+        }
+      ],
+      "exports": "ListRow, ListSort, FilterMode, ListLayout, LIST_SORTS, FILTER_MODES, normalizeOwner, matchesSearch, matchesFilter, sortRows, buildListRows, computeListLayout, wrapText, priorityColor, priorityRank, ownerGlyph"
+    },
+    {
+      "path": "src/cli/screens/board/list-view.tsx",
+      "lines": 449,
+      "title": "List view — presentational components",
+      "summary": "The flat, one-task-per-line view that the TUI opens on, plus the Name/Value detail pane pinned beneath it.",
+      "functions": [
+        {
+          "name": "computeListWindow",
+          "summary": "which rows are visible, given selection and height"
+        },
+        {
+          "name": "ListHeaderRow",
+          "summary": "the column header + rule"
+        },
+        {
+          "name": "TaskListRow",
+          "summary": "one task line (+ wrapped continuation lines when selected)"
+        },
+        {
+          "name": "ListFooter",
+          "summary": "scroll position, counts, active sort and filter"
+        },
+        {
+          "name": "TaskListView",
+          "summary": "composes the three above over a window of rows"
+        },
+        {
+          "name": "TaskDetailPane",
+          "summary": "Name/Value pane that follows the selection"
+        }
+      ],
+      "exports": "DETAIL_PANE_HEIGHT, LIST_START_Y, computeListWindow, TaskListView, TaskDetailPane"
     },
     {
       "path": "src/cli/screens/init-prompt.tsx",
@@ -1300,7 +1394,7 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 977,
+      "lines": 984,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [
@@ -1483,7 +1577,7 @@
     },
     {
       "path": "src/lib/parser.ts",
-      "lines": 371,
+      "lines": 380,
       "title": "Markdown parser utilities",
       "summary": "Parses Kandown task markdown into typed structures, builds board columns from task frontmatter, extracts editable subtasks, reinjects them on save, and performs lightweight cached task-content search for the web UI.",
       "functions": [
@@ -1553,7 +1647,7 @@
     },
     {
       "path": "src/lib/store.ts",
-      "lines": 1863,
+      "lines": 1866,
       "title": "Kandown Zustand store",
       "summary": "Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.",
       "functions": [
@@ -1592,7 +1686,7 @@
     },
     {
       "path": "src/lib/store/boardSlice.ts",
-      "lines": 571,
+      "lines": 574,
       "title": "Zustand store slice — board mutations",
       "summary": "Column CRUD, task move/reorder/create/delete/archive, task selection, and bulk operations."
     },
@@ -1631,6 +1725,35 @@
       "lines": 229,
       "title": "Zustand store slice — file watcher wiring",
       "summary": "Starts either the browser file-system watcher or the server-mode REST polling loop, translates watcher events into board reloads / conflict detection / notifications, and exposes a manual restart for when the watcher auto-disables…"
+    },
+    {
+      "path": "src/lib/task-meta.ts",
+      "lines": 129,
+      "title": "Task recency metadata",
+      "summary": "Owns the `updated:` frontmatter field — the single source of truth for \"when did this task last change\" — and the compact relative-age formatting the TUI list view renders in its `Age` column.",
+      "functions": [
+        {
+          "name": "nowStamp",
+          "summary": "current UTC instant, second precision, no milliseconds"
+        },
+        {
+          "name": "stampUpdated",
+          "summary": "returns a copy of the frontmatter with `updated` set to now"
+        },
+        {
+          "name": "taskTimestamp",
+          "summary": "resolves a task's effective \"last activity\" epoch ms"
+        },
+        {
+          "name": "formatAge",
+          "summary": "epoch ms → compact ≤5 char label (`3s`, `12min`, `4h`, `2d`, `4y`)"
+        },
+        {
+          "name": "formatAgeOf",
+          "summary": "convenience: frontmatter → age label, `—` when unknown"
+        }
+      ],
+      "exports": "nowStamp, stampUpdated, taskTimestamp, formatAge, formatAgeOf"
     },
     {
       "path": "src/lib/task-title-category.ts",
@@ -1955,7 +2078,7 @@
     },
     {
       "path": "src/lib/types.ts",
-      "lines": 336,
+      "lines": 347,
       "title": "Shared domain types",
       "summary": "Defines the board, task, config, filter, search, and appearance types used by the Kandown web UI and persistence layer.",
       "exports": "Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, KandownConfig, DEFAULT_COLUMNS, DEFAULT_CONFIG"

@@ -37,6 +37,9 @@ jobs:
       - name: Codemap is current and every file is documented
         run: pnpm codemap:check
 
+      - name: Changelog index is current
+        run: pnpm changelog:check
+
       - name: Typecheck
         run: pnpm typecheck
 

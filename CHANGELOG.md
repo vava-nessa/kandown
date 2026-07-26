@@ -1,772 +1,100 @@
 # Changelog
 
-## 0.36.0 — 2026-07-26 — "Local Web App"
-
-### Added
-
-- **The website demo became a real web app, and it can open your actual project.** `/demo` is gone (permanently redirected to `/app`) and the separate demo concept with it. The app opens on a disposable sample board that says so, and on browsers that support the File System Access API a prominent **Open project** action hands the session over to a real Kandown project on disk — no account, no server, no upload. The sample-to-local switch only activates once a folder has actually been selected, so cancelling the picker never destroys the sample session, and the iframe reports the selected project back to the website shell so the status bar can never claim that local changes are disposable when they are not. The sample board itself was rewritten as a categorized interactive guide to Markdown tasks, agents, handoffs, dependencies, search and the three interfaces.
-- **"Choose your workflow" on the landing page** — a new section stating the direction the agent protocol is taking: today's rules become one selectable workflow among several rather than the only one, with the non-negotiable parts (dependency gating, the Markdown round-trip, archiving) inherited by every workflow. **Marked `Planned` on the page**, because it is designed and not yet shipped — see tasks t258, t259 and t260.
-
-### Changed
-
-- **The hero is one product lockup.** The install command moved inside the dark frame, under the mark, so identity, promise and the command that gets it read as a single object instead of three neighbours. "Kanban + Markdown" now animates into the Kandown wordmark on a layout-stable CSS loop, and devices asking for reduced motion get the wordmark with no animation at all. The header's npm link uses the real npm asset instead of a second hand-drawn approximation of it.
-
-### Fixed
-
-- **Documentation copy buttons failed wherever the Clipboard API is unavailable or denied.** The command-copy buttons already had a legacy fallback; the docs button called `navigator.clipboard` directly, so every docs copy silently failed in affected browsers and embedded webviews — including a path where the promise never settles and the button sits on "Copying" forever. Both button types now share one bounded clipboard helper with a textarea fallback. Cached Markdown is also keyed by its raw page URL, so a docs button that stays mounted across client-side navigation refetches the right content instead of copying the previous page.
-
-### Cleaned
-
-- `.kandown/.undo/` — the mutation journal's runtime directory — is now ignored rather than tracked. Runtime state does not belong in a commit.
-
-## 0.35.1 — 2026-07-26 — "Light Identity"
-
-### Added
-
-- **Homepage video storyboard**: Replaced the hand-built board and terminal mocks with black recording frames that specify the exact scenario, duration, aspect ratio, and filename for six real product clips: the hero workflow, a two-agent handoff, Markdown-to-board synchronization, and dedicated Web, TUI, and CLI demonstrations. The three interface briefs share one interactive tabbed stage so the final page will never autoplay three videos at once.
-
-### Changed
-
-- **Agent-first homepage narrative**: Reordered and rewrote the landing page around long-running work that survives agent sessions, durable Markdown ownership, completion reports, handoffs, and one shared board across the Web UI, TUI, and CLI. The feature grid, final call to action, shared metadata, footer, and recording documentation now follow the same product promise.
-- **One permanent light website identity**: The marketing and documentation website now uses a single warm light palette regardless of the device preference. Native controls declare `color-scheme: light`, browser chrome uses a fixed white theme color, syntax highlighting emits only the GitHub Light palette, and the animated hero shader uses one documented color path.
-- **Light embedded demo**: The in-browser demo project now starts explicitly in light mode rather than inheriting `prefers-color-scheme`, keeping the transition from the website into the real Kandown application visually consistent while installed projects retain the full product theme system.
-- **Video production guide**: Expanded the website README with the six expected WebM filenames, target durations, 16:10 recording dimensions, loop guidance, and the exact actions to capture in every clip.
-
-### Removed
-
-- **Website dark-mode runtime**: Removed the header theme toggle, localStorage preference, pre-paint theme script, OS dark-mode listeners, `data-theme` selectors, dark CSS tokens, dual Shiki palette, shader theme observer, and View Transition wipe. A device can no longer select a different visual identity for the site.
-
-## 0.35.0 — 2026-07-25 — "House Green"
-
-- **Added**: **Kandown finally has its own theme, and it is the default** — a `kandown` preset built from the brand palette registered on the website: `#88E138` brand lime (the logo arrow) as the dark-mode primary, `#7AD12A` as its light-background variant, `#0CE931` (the hero shader green) reused as the `success` token, `#F1FFB8` for accent surfaces and `#EBEBEB` for neutral borders, on 4px radius to match the website. Because lime cannot carry white text at any usable contrast, `primary-foreground` is a near-black green in both modes (7.9:1 light, 11.2:1 dark) rather than the usual white. Every other foreground/background pair passes WCAG AA in both modes.
-- **Fixed**: **The default skin silently resolved to Vercel** — `DEFAULT_CONFIG.ui.skin` already read `'kandown'`, but `LEGACY_SKIN_MAP` still aliased `kandown` to `vercel` from before the FABLE_UI theme system, so every fresh project opened in monochrome instead of the brand colors. The alias is gone, the preset now sits first in `THEME_PRESETS` (and is therefore the `[0]` fallback for an unknown id), and `normalizeSkinId` falls back to `kandown` instead of `vercel`.
-- **Changed**: **Website hero rewritten** — the technical breadcrumb (Local-first / MIT / Node / npm) is replaced by a short free, open-source, local promise, and the headline is reframed around Markdown tasks built for AI agents, long-running work, and the web/TUI/CLI trio. The shared tagline and description used for SEO and machine-readable docs were aligned with it.
-- **Added**: **Demo mode** — a third backend for the web UI that answers the Kandown REST API from an in-memory `Map` instead of a disk, so the whole application can run in a browser tab with no CLI, no server and no storage. It plugs in at `apiFetch` (`src/lib/filesystem.ts`) via `registerDemoApi()`, which is why the board, drawer, editor, search, archive and drag-and-drop all work without knowing anything changed — nothing is mocked. Built with `pnpm build:demo`, which also drops `vite-plugin-singlefile` in favour of a normal chunked build. The entire feature is compiled out of the bundle `npx kandown` ships, behind the `__KANDOWN_DEMO_BUILD__` define.
-- **Fixed**: **Header task counter rendered `[object Object] tasks`** — `useAnimatedNumber` returns a Motion `MotionValue`, which has to be rendered by a `motion.*` component that subscribes to it; wrapping it in `String()` stringified the object itself. Every user of the web board saw this on every screen.
-- **Fixed**: **Repository root could open as a project named `templates`** — implicit project resolution now checks the current directory and walks upward for the nearest valid `.kandown/kandown.json` instead of recursively scanning child directories. This keeps the live board anchored to the canonical root `.kandown/` + `tasks/` layout, works from nested paths such as `src/`, and prevents packaged init assets under `templates/` from being mistaken for a project.
-- **Changed**: **Removed downward child-project auto-discovery** — launching Kandown from a directory above a project no longer guesses which descendant board to open. Run it inside the intended project (or one of its subdirectories), or pass an explicit `--path`, for deterministic selection.
-- **Cleaned**: Removed accidentally committed `templates/daemon.json` runtime state and `templates/kandown.html` generated output. The configuration, documentation, and welcome-task seeds required by `kandown init` remain in `templates/`.
-
-## 0.34.3 — 2026-07-24 — "Motion Polish — Drag Fix"
-
-- **Fixed**: **Cards could not be dragged between columns after the v0.34.2 motion polish** — the `motion.div` → plain `<div>` replacement in `Card.tsx` accidentally dropped the `draggable` HTML5 attribute and the `{...dragHandlers}` spread that wire `onDragStart` / `onDragEnd` on each card. Without `draggable` the native HTML5 drag event never fired, so the board could not move tasks between columns even though the click-to-open drawer still worked. Restores `draggable` and `dragHandlers` on the card container; no other behavior changes.
-
-## 0.34.2 — 2026-07-24 — "Motion Polish"
-
-- **Fixed**: **0.5s pop on card hover, click, and rearrange** — `Card`, `Column`, and `CardStack` were animating through Framer Motion springs (`whileHover={{ y: -1 }}`, `whileTap={{ scale: 0.99 }}` with stiffness 500) AND Tailwind `transition-all duration-150` at the same time, on the same `transform` property. The result was the half-second scale snap the user reported on every interaction. Replaced with a hybrid system:
-  - `src/lib/motion-presets.ts` defines a single source of truth (`EASE_OUT`, `EASE_SPRING`, `MOTION.fade / toast / progressBar / heroStagger / headerCrossfade / panel / rotate / chip`) for every `motion.*` and `AnimatePresence` in the project.
-  - `Card`, `Column`, `CardStack` (collapsed + expanded), `Board` wrapper, and `ListView` sections are now plain `<div>` / `<section>`. Drag is HTML5-native, so `layout` animation was unused and the spring was just overhead.
-  - Hover/active feedback is now Tailwind only: `hover:-translate-y-px active:scale-[0.99] active:duration-75` with `transition-[border-color,box-shadow,transform] duration-200 ease-out`. CSS, no overshoot, no animation on `all`.
-  - Motion is reserved for what actually needs an enter/exit curve: `Toaster`, `EmptyState` hero, `Header` boot cross-fade, `SubtaskEditor` progress bar (no more spring on `width` — it jittered), `SubtaskItem` panel expand/collapse + chevron rotate, and `Header` filter chips. Every site uses the corresponding `MOTION.*` token.
-
-## 0.34.1 — 2026-07-24 — "CLI Modular Refactor"
-
-- **Fixed**: **Web UI no longer opens to the project picker** — running `kandown` inside a project directory now auto-opens both the TUI and the Web UI directly into that project again. The regression was a missing `window.__KANDOWN_ROOT__` injection into the served HTML (lost during an earlier partial refactor); the web app now correctly detects server mode and skips the manual folder-picker screen.
-- **Added**: **"Create project" confirmation screen in the TUI** — launching `kandown` inside a directory with no `.kandown/` project now shows an inline confirmation prompt (Enter to create, Esc to quit) instead of failing silently. Confirming scaffolds the project, starts the local web daemon, and opens the browser automatically.
-- **Fixed**: **Daemon spawn using the wrong entrypoint when launched from the TUI** — `startProjectDaemon` resolved its own CLI path from `process.argv[1]`, which pointed at the TUI's own entrypoint when called from inside the Ink process (e.g. the "create project" flow, or pressing `d` on the board). It now resolves the CLI entrypoint from the package root instead, fixing daemon start failures triggered from within the TUI.
-- **Changed**: **Large source files split into focused modules** — five files that had grown past 1500–3500 lines during a previous rushed refactor were mechanically split into smaller, single-purpose modules with no behavior change (verified via `tsc`, full builds, and byte-level diffs against the pre-split code):
-  - `src/lib/theme.ts` (1525 → 267 lines): 38 built-in theme presets extracted to individual files under `src/lib/themes/`.
-  - `src/lib/store.ts` (1774 → 120 lines): the Zustand store split into six slices (`project`, `board`, `drawer`, `ui`, `agentSearch`, `watcher`) under `src/lib/store/`.
-  - `src/cli/screens/board.tsx` (1647 → 1203 lines): pure layout helpers and presentational components extracted to `src/cli/screens/board/helpers.ts` and `board/components.tsx`.
-  - `src/components/SettingsPage.tsx` (2038 → 347 lines): setting schema/metadata, the language dropdown, search results, setting rows, the `kandown work` output configurator, and the About/version card each moved to their own file under `src/components/settings/`.
-  - `src/cli/cli.ts` (905 → ~160 lines): argument-parsing and path-resolution helpers moved to `src/cli/lib/cli-shared.ts`; command handlers grouped into `src/cli/commands/project.ts`, `commands/tasks.ts`, and `commands/daemon.ts`.
-
-## 0.34.0 — 2026-07-24 — "Quick-Wins Collection"
-
-- **Added**: **Quick archive button on every card** — task cards in the board and list views now expose a one-click **archive** action next to the existing guarded delete button. Archiving is reversible from the archive view and reuses the existing store `archiveTask` action so files, watchers, and broadcasts stay consistent.
-- **Added**: **Terminal-column bulk actions** — the column whose name matches the configured terminal status now shows a dedicated **Manage tasks** menu with **Archive all** and **Delete all** entries. Both confirm the exact task count and column name before mutating anything; deletions are permanent, archive operations can be undone from the archive view.
-- **Added**: **Robust bulk task actions** — `bulkArchiveTasks(ids)` and `bulkDeleteTasks(ids?)` use `Promise.allSettled` over strict task reads so a single failed file cannot abort the batch. An in-flight guard prevents two destructive runs from racing each other. `nextTaskId` now considers archived ids so new tasks cannot reuse a number that already lives in `tasks/archive/`.
-- **Added**: **Subtask editor in the task drawer and workspace** — both surfaces re-mount the original checklist editor (toggle, edit, enter-to-insert, backspace-to-remove, expand description/report) that was previously removed. `SubtaskEditor` owns the section UI while the drawer/workspace persists edits through the existing `saveDrawer` autosave path.
-- **Fixed**: **Subtask markdown round-trip preserves hand-written prose** — `extractSubtasks` and `injectSubtasks` now preserve unrelated lines that share the `## Subtasks` section, support multi-line `[DESC]`/`[REPORT]` markers, and treat `- [ ]` (empty text) as a valid checklist row so a fresh row can be created without immediately supplying text.
-- **Fixed**: **Subtask editor stays above hooks** — the SubtaskEditor handler is defined before the desktop/media-query guard in both `Drawer` and `TaskWorkspace`, restoring the React rules-of-hooks order and eliminating a mobile-drawer crash.
-- **Fixed**: **Server-mode archive round-trip** — the production daemon's `/api/tasks/:id` routes now read from and write to the `tasks/archive/` directory, accept `POST /api/tasks/:id/archive` and `…/unarchive`, validate task ids, and remove both the active and archived files on `DELETE`. The dev middleware in `vite.config.ts` resolves tasks at the project-root `tasks/` directory (the canonical location since v0.12) and exposes the same archive routes.
-- **Fixed**: **SPA fallback for deep links** — the daemon now serves the single-file app for any non-API path, so refreshing on a deep task URL (e.g. `/2?p=project`) keeps the client routing intact.
-- **Changed**: **File watcher covers the archive directory** — the CLI content-hash watcher also tracks `tasks/archive/*.md`, so archived task updates still trigger board reloads and notifications.
-- **Changed**: **Card action group and a11y** — the card's right-corner actions now live in a flex group that reveals both archive and delete on hover or keyboard focus, with `aria-label` and `aria-haspopup` attributes on the new menu, and a `Card isMountedRef` reset so React StrictMode double-mount doesn't disable the buttons.
-- **Changed**: **i18n strings** — English and French locales gain new keys for archive/delete-all prompts, subtask a11y labels, and progress messages. English remains the source of truth; untranslated keys fall back automatically.
-
-## 0.33.6 — 2026-07-24 — "Subdirectory Project Discovery"
-
-- **Fixed**: **Auto-detect `.kandown/` in sub-directories from parent folder** — when running `kandown` from a parent directory that contains a sub-directory with a `.kandown/` folder, the CLI now recursively searches sub-directories (skipping `node_modules`, hidden dirs, and `tasks/`) to find it automatically. This restores the expected behaviour where `kandown` opens the child project without requiring an explicit `--path` argument.
-
-## 0.33.5 — 2026-07-24 — "Sidebar Task Switch Fix"
-
-- **Fixed**: **BlockNote Editor Not Refreshing on Sidebar Task Switch** — the BlockNote markdown editor now properly reloads when switching between tasks via the sidebar explorer. Previously, the editor body kept showing the previous task's content because the `useEffect` only ran once on mount. The fix compares the editor's current markdown (normalized) against the incoming `value` prop and only calls `replaceBlocks` when they differ. This makes the editor reactive to external value changes (task switch) while preserving cursor/focus during the user's own typing sessions.
-- **Changed**: **Agent Work Rules Default Output Mode** — the agent work output base rules mode changed from `verbose` to `full` for more complete context generation.
-- **Changed**: **UI Theme** — updated default skin from `kandown` to `linear` for a more modern appearance.
-- **Added**: **Stack Default State** — new `stackDefaultState: collapsed` configuration option for the UI.
-
-## 0.33.4 — 2026-07-21 — "Daemon Update Recovery"
-
-- **Fixed**: **Default `kandown` Launch Reusing Stale Daemons** — running `kandown` now validates the already-running project daemon version before reusing it. If the daemon is missing a version or is running a different CLI version than the current command, Kandown safely stops it and starts a fresh daemon from the active CLI so the browser opens the current web app instead of stale in-memory code.
-- **Fixed**: **Web UI Auto-Update Not Taking Effect Immediately** — successful `/api/update/apply` calls now schedule a detached daemon restart after the HTTP success response is sent. This makes one-click Web UI updates actually switch the local server process to the newly installed package instead of requiring a manual daemon stop/start.
-- **Fixed**: **Auto-Updater False Success Across Multiple Node Prefixes** — global package update attempts now verify the resolved `kandown --version` after each package-manager install command. If `npm`, `pnpm`, `yarn`, or `bun` updates a different global prefix than the executable on PATH, the updater keeps trying fallbacks and no longer reports success while the active command remains stale.
-- **Changed**: **Daemon Health Metadata** — daemon status checks now read and propagate the remote daemon version from `/api/daemon`, keeping CLI-side restart decisions aligned with the process that is actually serving the project.
-- **Changed**: **Update Route Messaging** — the update API success message now explicitly says the daemon is restarting, making the expected short reconnect window clearer for the Web UI.
-
-## 0.33.3 — 2026-07-21 — "CLI Recovery"
-
-- **Fixed**: **Default `kandown` Launch Regression** — restored the pre-split zero-setup startup flow where running `kandown` inside any project automatically initializes `.kandown/` when needed, refreshes the web bundle, starts the per-project daemon, and enters the normal board launch path.
-- **Fixed**: **Global Flag Command Parsing** — repaired CLI dispatch so global flags such as `--no-update-check`, `--no-open`, `--path`, and `--port` no longer get mistaken for commands. This fixes the auto-updater restart path and the daemon spawn path that launches `--no-update-check daemon run` internally.
-- **Fixed**: **Missing `init` Command After Modularization** — restored `kandown init` by adding the initializer module back to the source tree, copying the shipped HTML/config/agent templates, and creating project-root `tasks/` exactly as documented.
-- **Fixed**: **One-Shot Task Commands** — restored the scriptable task command surface that had been partially lost during the split: `kandown list`, `show`, `create`/`new`, `move`, `assign`, `commit`, and `tasks`. JSON output and command-substitution output are clean again because decorative messages are emitted on stderr.
-- **Fixed**: **Daemon Command Surface** — restored `kandown daemon start`, `status`, `restart`, `stop`, `run`, and `refresh-all` handling, including preferred port parsing for explicit daemon runs.
-- **Fixed**: **TUI Command Entrypoints** — restored `kandown board` and `kandown settings`, and made the bundled `bin/tui.js` executable directly so the parent CLI can spawn the terminal interface reliably.
-- **Fixed**: **MCP Stdout Contract** — restored `kandown mcp` dispatch while keeping stdout JSON-only, with initialization and status notices sent to stderr so MCP hosts and shell pipelines can parse responses safely.
-- **Fixed**: **Unsafe Global Symlink Rewrites** — removed the daemon-side behavior that attempted to rewrite global `kandown` symlinks from a bundle-relative path. Package managers now remain the source of truth for the executable, preventing the web daemon from bricking the command.
-- **Fixed**: **Project HTML Refresh Path Resolution** — refreshed `.kandown/kandown.html` from the resolved package root instead of an incorrect `import.meta.url` relative path, ensuring project web bundles are updated from the installed package.
-- **Changed**: **Auto-Updater Global Install Targeting** — hardened the auto-updater to prefer the `npm`/`pnpm` executable living next to the active `kandown` binary. This prevents machines with multiple Node prefixes from updating a different global install than the command the user actually launched.
-- **Added**: **Basic Import Recovery Command** — restored `kandown import <file.json>` for list-shaped JSON and Kandown export-shaped JSON, allowing task files to be recreated from exported data during CLI recovery workflows.
-
-## 0.33.2 — 2026-07-21 — "Fix CJS Require Shim & Path Resolution"
-
-- **Fixed**: **TUI Require Shim Error (`Dynamic require of "module"`)** — added `createRequire` global banner shim in `tsup.config.ts` so Ink and React CJS dependencies inside `bin/tui.js` execute natively under Node ESM without dynamic require errors.
-- **Fixed**: **Package Root Path Resolution (`PKG_ROOT`)** — updated `getPackageRoot()` to detect whether execution happens inside `bin/` or `src/cli/`, resolving `PKG_ROOT` to the exact installed package directory in all global installation modes.
-
-## 0.33.1 — 2026-07-21 — "Instant TUI & Browser Launcher Fix"
-
-- **Fixed**: **CLI Default Command Execution (`kandown`)** — fixed `bin/tui.js` path resolution in global installation so running `kandown` with no arguments instantly opens both the browser AND the interactive terminal board UI (TUI), eliminating the fallback message `Open kandown.html in browser`.
-- **Fixed**: **Automatic Browser Launch** — `kandown` now automatically invokes `open` (macOS), `xdg-open` (Linux), or `start` (Windows) on launch unless `--no-open` is specified.
-
-## 0.33.0 — 2026-07-21 — "Universal Auto-Updater & Web UI Prompt Engine"
-
-- **Added**: **Daemon HTTP Server Module (`src/cli/lib/server.ts`)** — re-introduced and modernized full REST API server & SSE live-reload for daemon mode (`/api/daemon`, `/api/board`, `/api/config`, `/api/tasks`, `/api/update/check`, `/api/update/apply`).
-- **Added**: **Web UI Update Notification Banner (`UpdateNotificationBanner.tsx`)** — non-intrusive floating prompt banner that notifies users when a new Kandown version is published on npm with a 1-click **"Update Now"** action.
-- **Added**: **1-Click Web UI Settings Update Button** — added interactive `Update to vX.Y.Z` button in the Settings page version card, allowing users to upgrade Kandown directly from the web browser.
-- **Added**: **Automated `.kandown/kandown.html` Bundle Auto-Refresh** — project HTML files are automatically synced with the CLI's latest singlefile bundle on daemon boot and whenever an update is applied, preventing project HTML files from being stuck on older releases.
-- **Added**: **Global PATH Symlink Syncing** — automatically synchronizes symlinks at `~/.local/bin/kandown`, `~/Library/pnpm/bin/kandown`, and nvm directories so all PATH executables point to the latest CLI version.
-
-## 0.32.2 — 2026-07-21 — "Reliable Auto-Updater Engine"
-
-- **Fixed**: **Auto-Updater Execution Gate** — removed command filtering logic in CLI main router that previously bypassed update checks for scripted commands like `kandown work`, `kandown list`, and `kandown doctor`.
-- **Fixed**: **Home Directory Update Cache** — moved `.update-check.json` and `.update.lock` out of project/package directories to user homedir `~/.kandown/` so permissions and working directories never block registry checks.
-- **Fixed**: **Compiled Version Token Precedence** — updated `getCurrentVersion()` to prioritize `KANDOWN_VERSION` over reading random `package.json` files in `CWD`, preventing false version match evaluation during auto-updates.
-
-## 0.32.1 — 2026-07-21 — "CLI Modularization & Updater Speed"
-
-- **Fixed**: **Auto-Updater Check Throttle** — reduced update check throttle from 24h to 10 minutes (`UPDATE_CHECK_INTERVAL_MS = 10m`) and prioritized global `npm install -g kandown --force` for npm setups so release updates trigger promptly when launching Kandown.
-- **Added**: **`kandown upgrade` Command Alias** — added `upgrade` as an alias for `kandown update`.
-- **Refactored**: **CLI Modular Architecture** — refactored monolithic `bin/kandown.js` (3,500+ lines) into clean, modular TypeScript files in `src/cli/` (`cli.ts`, `lib/updater.ts`, `lib/board-reader.ts`, `lib/daemon.ts`). Built automatically into `bin/kandown.js` via `tsup`.
-
-## 0.32.0 — 2026-07-21 — "38 Modern Fable UI Themes Collection"
-
-- **Added**: **30 New Curated Fable UI Theme Presets** — expanded Kandown's built-in theme library from 8 to **38 distinct, ultra-crafted modern themes** inspired by iconic tech products, design movements, nature, elements, and luxury aesthetics:
-  - **Tech & Tools**: 🐙 **GitHub Primer**, ❄️ **Nordic Polar**, 🧛 **Dracula Pro**, 🌈 **Arc Prism**, ⚡ **Raycast Crimson**, 🎨 **Figma Studio**, 🎵 **Spotify OLED**, ⚡ **Supabase Emerald**, 🔳 **Shadcn Neutral**, 📄 **Notion Dark**.
-  - **Nature & Elements**: 🎍 **Kyoto Bamboo**, 🌸 **Tokyo Sakura**, 🏜️ **Sahara Dune**, 🌊 **Abyssal Ocean**, 🌌 **Aurora Borealis**, 🌋 **Volcanic Magma**, 🧊 **Icelandic Glacier**, 🌲 **Deep Moss Forest**, 🌅 **Golden Hour**, 🌠 **Cosmic Nebula**.
-  - **Aesthetics & Movements**: 🤖 **Cyberpunk 2077**, 🌆 **80s Synthwave**, 📐 **Bauhaus Studio**, 🗿 **Brutalist Monolith**, 💎 **Luxe Emerald**, 🌧️ **Shinjuku Rain**, ⚙️ **Brushed Copper**, ☕ **Espresso Latte**, 👑 **Black Tie Gold**, 🔮 **Lo-Fi Vaporwave**.
-- **Added**: **Extended Signature Typography Imports** — integrated `Chakra Petch`, `Cinzel`, `DM Sans`, `Orbitron`, `Playfair Display`, and `Sora` into `globals.css` so each of the 38 themes renders with its own bespoke signature display and body fonts.
-
-## 0.31.0 — 2026-07-21 — "Fable UI Themes Overhaul"
-
-- **Added**: **Google Fonts Signature Typography Integration** — imported web font packages (`Inter Tight`, `Plus Jakarta Sans`, `Newsreader`, `SF Pro Display`, `Syne`, `Space Grotesk`, `JetBrains Mono`, `Fira Code`, `VT323`) so every theme preset features a distinct signature typography stack.
-- **Added**: **Full-Width Theme Gallery & Grid Layout** — refactored `SettingsPage.tsx` so the theme selector is no longer squished into a narrow 190px right column. It now occupies 100% of the settings container width with a responsive 4-column desktop grid.
-- **Changed**: **Signature Typography & Visual Personalities for 8 Presets**:
-  - ⚡ **Vercel**: Geist / Inter Tight font, radical monochrome `#000` / `#FFF`, sharp 6px radius, zero shadows.
-  - 📐 **Linear**: Plus Jakarta Sans font, electric violet accent `#5E6AD2`, dark-first surface `#08090A`, 8px radius.
-  - 🧡 **Claude**: Newsreader serif display headings, oat crème background `#F5F1EA`, terracotta accent `#D97757`, 12px radius.
-  - 🍎 **Apple**: SF Pro Display typography, translucent backdrop blur, system blue `#0A84FF`, 14px squircle radius.
-  - 💳 **Stripe**: Syne & Space Grotesk display, indigo night `#0A0A23`, blurple accent `#635BFF`, elevated shadows.
-  - 📄 **Paper**: Newsreader serif display, warm studio paper background `#F7F6F3`, flat cards, 4px radius.
-  - 🧛 **Catppuccin**: JetBrains Mono & Fira Code monospaced display, official Mocha `#1E1E2E` mauve `#CBA6F7` & Latte.
-  - 🖥️ **Terminal**: VT323 retro CRT mono font, pitch black `#0C0C0C`, phosphor neon green `#33FF66`, 0px radius.
-- **Changed**: **Live Mini-Board Preview Cards (`ThemePreviewCard`)** — added live signature font banners (`Aa ✦ <FontName>`), real text task cards ("Refactor Auth", "Theme Engine", "CLI Doctor"), and font signature rendering inside previews.
-
-## 0.30.1 — 2026-07-21 — "Fix Auto-Updater Crash"
-
-- **Fixed**: **`performGlobalPackageUpdate` missing function error** — added the missing `performGlobalPackageUpdate` definition in `bin/kandown.js`, fixing a runtime `ReferenceError` crash during automatic background CLI updates and `kandown update`.
-
-## 0.30.0 — 2026-07-21 — "Fable UI Themes"
-
-- **Added**: **Customizable JSON Theme Engine (`KandownTheme`)** — upgraded Kandown's skin system from 5 hardcoded HSL presets to an open, JSON-driven theme engine with dynamic inheritance (`base`), fallback safety, and runtime custom theme registration (`registerCustomThemes`).
-- **Added**: **8 Curated Built-in Presets** — introduced 8 design presets in `src/lib/theme.ts`:
-  - ⚡ **Vercel**: Monochrome contrast, tight typography, 6px radius, sharp 1px borders, zero shadows.
-  - 📐 **Linear**: Dark-first (`#08090A`), electric violet (`#5E6AD2`), 8px radius, glass header, soft popover shadows.
-  - 🧡 **Claude**: Editorial warmth, oat crème (`#F5F1EA`), terracotta accent (`#D97757`), Charter serif display font, 12px radius, soft diffuse shadows.
-  - 🍎 **Apple**: Translucent materials (`rgba(255,255,255,0.72)` + backdrop blur), SF system font, 14px squircle radius, multi-layer elevated shadows.
-  - 💳 **Stripe**: Indigo night (`#0A0A23`), blurple accent (`#635BFF`), 8px radius, soft colored glow shadows.
-  - 📄 **Paper**: Notion-style calm studio, `#F7F6F3` light, `#191919` dark, pastel tags, 4px radius, no shadows.
-  - 🧛 **Catppuccin**: Official Mocha (`#1E1E2E` mauve `#CBA6F7`) and Latte palettes.
-  - 🖥️ **Terminal**: CRT homage to TUI, `#0C0C0C` background, `#33FF66` phosphor green text, SF Mono everywhere, 0px radius.
-- **Added**: **Theme Gallery with Live Mini-Board Previews** — replaced static color swatches in Settings with an interactive gallery of `ThemePreviewCard` components rendering isolated live 3-column kanban board previews using each theme's unique HSL tokens, radius, fonts, and shadows.
-- **Added**: **Visual Theme Editor Modal (`ThemeCustomizerModal`)** — added a visual customization drawer for creating and tweaking custom JSON themes with sliders for border radius (0–24px), shadow elevation levels (`none`, `soft`, `elevated`, `dramatic`), density, motion scale, glassmorphism, and live HSL token pickers.
-- **Added**: **Live WCAG 2.1 Contrast Ratio Calculator** — added real-time relative luminance calculation in the theme editor showing an active WCAG AA contrast ratio badge (warning when ratio < 4.5:1).
-- **Added**: **JSON Import & Export** — added direct theme JSON view/edit panel with 1-click clipboard copy for sharing and storing custom themes.
-- **Added**: **`ui.customThemes` Config Support** — custom user themes are automatically persisted in `kandown.json` under `ui.customThemes` and loaded seamlessly on startup.
-- **Changed**: **Appearance CSS Tokens & Design Refinements** — introduced `--radius`, `--shadow-*`, `--font-display`, `--motion-scale`, `--card-blur` variables into `:root` and mapped them to `tailwind.config.js` (`borderRadius`, `fontFamily.display`). Refined base body typography scale to 15px, unified focus rings (`:focus-visible`), and added smooth light/dark root transitions.
-
-## 0.29.0 — 2026-07-20 — "Global Daemon Refresh"
-
-- **Added**: **Global daemon refresh command** — added `kandown daemon refresh-all`, which scans every active local Kandown daemon across the configured port range, refreshes each open project's `.kandown/kandown.html`, and restarts any daemon running an older CLI version.
-- **Added**: **Forced daemon reboot aliases** — added `kandown daemon restart-all` and `kandown daemon refresh-all --force` for cases where every open Kandown daemon should be restarted, even when versions already match.
-- **Changed**: **Safer post-update refresh flow** — refactored the existing auto-update refresh path to reuse the same daemon scan/restart helper, keeping automatic package-update behavior aligned with the new explicit global command.
-- **Changed**: **Daemon CLI documentation** — updated CLI help and the README command table to surface `daemon refresh-all` as the recommended fix when old project sessions remain open after a global update.
-- **Fixed**: **Outdated open project daemons after global updates** — users no longer need to manually find and restart each project when a global Kandown update succeeds but already-running daemons continue serving older code in memory.
-
-## 0.28.1 — 2026-07-20 — "Robust Global Auto-Updater"
-
-- **Fixed**: **Global package manager auto-update commands** — updated `checkForUpdate()` and `cmdUpdate()` to run `pnpm add -g kandown@latest` (instead of `pnpm install -g kandown`), with fallback chain across `pnpm`, `npm`, `yarn`, and `bun`.
-- **Fixed**: **`kandown update` command behavior** — `kandown update` now queries the npm registry for the latest release, updates the global CLI package using the active package manager, and refreshes project `.kandown/kandown.html` files.
-- **Fixed**: **Terminal & tmux auto-update compatibility** — fixed `checkForUpdate()` invocation so interactive terminal sessions (including tmux and iTerm) automatically detect and offer updates.
-
-## 0.28.0 — 2026-07-20 — "Agent Instruction Modes & CLI Reference"
-
-- **Added**: **3 Base Agent Rule Modes (Verbose, Optimized, Caveman)** — redesigned the Agent instructions settings into 3 distinct rule density modes. Users can choose between **Verbose** (full reference guide), **Optimized** (concise, high-density structured rules tailored for LLMs), and **Caveman** (ultra-compact minimal token rules).
-- **Added**: **Quick CLI Commands Reference in Agent Rules** — added a concise CLI cheatsheet table (`kandown work`, `kandown list`, `kandown show`, `kandown create`, `kandown move`, `kandown assign`, `kandown commit`) right at the top of base rules across all modes so AI agents immediately know the native CLI commands available to interact with the board.
-- **Added**: **3-Step Numbered Layout for Agent Settings** — reorganized the Agent Instructions settings page into 3 clear numbered step cards: Step 1 (Base Rules mode & density), Step 2 (Project Guidelines stored in `.kandown/instructions.md`), and Step 3 (Live Board State data filters).
-- **Added**: **Quick Preset Instruction Chips** — added 1-click template insertion chips (`📦 pnpm`, `🧪 Test rule`, `🌳 Git rule`, `⚡ Task log`) below the project instructions editor for adding repository rules instantly.
-- **Added**: **Terminal-Style Sticky Live Preview Panel** — added an independent sticky preview panel on the right with window dot indicators, token estimation badge, layer legend badges (🟢 Step 1, 🟡 Step 2, 🔵 Step 3), 1-click Copy button, and real-time interactive color highlighting when hovering over options.
-
-## 0.27.1 — 2026-07-20 — "Auto-Updater & Daemon Process Upgrade"
-
-- **Fixed**: **Environment inheritance during background auto-update** — cleaned inherited `npm_config_*` and `npm_*` environment variables when spawning `npm install -g kandown` in `checkForUpdate()`. Previously, if Kandown was run via `npx` or `npm run`, inherited local prefix overrides could cause global background updates to fail or target a temporary cache.
-- **Fixed**: **Binary path resolution for system PATH and `~/.local/bin`** — updated `resolveKandownBin()` to check `which kandown`, `command -v kandown`, and `~/.local/bin/kandown` before checking package manager prefixes, ensuring custom global PATH installations are detected accurately.
-- **Fixed**: **Live daemon process upgrade on CLI update** — updated `refreshRunningProjectHtml()` so that background project daemon processes in RAM running older code are automatically stopped and relaunched with the newly updated CLI binary.
-
-## 0.27.0 — 2026-07-20 — "Unified Views"
-
-- **Added**: **Full Component Parity between Board and List Views** — unified the List view (`ListView.tsx`) and Board view (`Column.tsx`) so that List view sections and task items share the exact same components, column background color tints, icons, and action options as Board columns.
-- **Added**: **Guarded Delete Button & Card Actions in List View** — task items in List view are now rendered with `<Card>` (and `<CardStack>` for tag-grouped tasks). Hovering over a task row in List view now reveals the guarded delete button (`IconTrash`/`IconTrashX`) with double-click confirmation, multi-task selection (`⌘/Ctrl/Shift + Click`), tag/epic/report/blocked-by badges, subtask progress bars, search-preview snippets, and frontmatter metadata blocks.
-- **Added**: **Shared Column Header Actions & Color Picker** — added `<ColumnHeaderActions>` and `<ColumnColorMenu>` to List view section headers. Users can pick column accent colors, rename columns (`✎`), delete columns (`×`), create tasks (`+`), and add unconfigured columns to project settings directly from List view.
-- **Added**: **Section Footers in List View** — each section in List view now includes the `+ Add task` (`KbdButton`) footer at the bottom of the section container.
-- **Changed**: **100% Viewport Width for List View** — removed the fixed `max-w-[1200px]` width constraint so List view occupies 100% of the viewport width, allowing task titles and metadata to expand flexibly across wider displays.
-
-## 0.26.0 — 2026-07-20 — "Task Workspace"
-
-- **Added**: **Desktop opened-task workspace** — opening a task on desktop now replaces the modal overlay with a split workspace below the sticky header. The left pane lists tasks grouped by board status, while the right pane keeps the full task editor available in a large three-quarter-width panel.
-- **Added**: **Collapsible status navigation for open tasks** — the workspace task list groups every active task under its Kandown column, shows per-section counts, lets sections collapse, highlights the currently open task, and makes switching between tasks much faster than returning to the board after every edit.
-- **Added**: **Header back control for task focus mode** — when a task is open on desktop, a visible Back button appears beside the Kandown logo. It saves and closes the current task so users can return to their existing board or list view without hunting for the editor footer.
-- **Changed**: **Responsive task-opening behavior** — desktop now uses the new workspace, while small screens keep the existing modal drawer so mobile editing stays familiar and does not squeeze a two-column layout into a narrow viewport.
-- **Changed**: **Task editor reuse** — the desktop workspace reuses the existing drawer store state, save paths, URL copy action, dependency chips, archive/delete actions, agent hook button, conflict state, and recovery draft behavior instead of creating a second persistence model.
-- **Fixed**: **Safer quick task switching** — switching tasks from the workspace navigator now guards against unsaved edits and stores discarded drafts in the existing recovery buffer, avoiding silent data loss during rapid navigation.
-- **Fixed**: **Logo close behavior while editing** — clicking the header logo while a task is open now saves and closes through the drawer workflow instead of force-closing the task state directly.
-
-## 0.25.1 — 2026-07-20 — "Stale Daemon Refresh"
-
-- **Fixed**: **Deep-link refreshes after existing daemon sessions** — Kandown now detects when a project daemon was started by an older CLI version and restarts it when the current CLI is newer. This matters because URL refresh handling for paths like `/058?p=suzu` lives in the daemon process itself; refreshing `kandown.html` alone cannot teach an already-running old daemon to serve task deep-link routes.
-- **Fixed**: **Direct task URLs no longer require manual daemon restarts after updates** — running `kandown` or `kandown daemon start` now upgrades stale daemon processes automatically, so newly published routing behavior becomes active for existing projects without users needing to hunt for old PIDs.
-- **Changed**: **Daemon reconnect behavior** — reconnecting to a same-project daemon still reuses compatible current/newer daemons, but older or unknown-version daemons are stopped and relaunched with the current CLI before returning the daemon URL.
-
-## 0.25.0 — 2026-07-20 — "Task Deep Links"
-
-- **Added**: **Shareable task deep links** — opening a task drawer now updates the browser URL to a copy-pasteable route such as `/210?p=kandown`, where numeric task segments are normalized to Kandown task ids like `t210`. This makes it possible to send a direct link to a specific task instead of asking someone to find it manually on the board.
-- **Added**: **Direct URL hydration for task drawers** — pasted links are parsed on web app startup and after browser navigation. Kandown now accepts the canonical `/210?p=kandown` format plus tolerant alternatives such as `/t210?p=kandown`, `?task=210`, and `?p=kandown/210`, then opens the matching drawer once the project is loaded.
-- **Added**: **Browser history support for task navigation** — drawer open and close actions now synchronize with `pushState`/`replaceState`, and Kandown listens for `popstate` so browser Back and Forward switch between board-only and task-focused URLs instead of leaving stale drawer state behind.
-- **Added**: **Copy URL action in the task drawer** — the opened task header now includes a lightweight Copy URL control that writes the absolute task link to the clipboard, with a toast fallback that displays the URL if clipboard access is denied.
-- **Fixed**: **Daemon routing for deep links** — the local web daemon now serves the single-page app for safe one-segment task paths like `/210`, preventing direct task URLs from returning `404 Not found` before React has a chance to hydrate and open the drawer.
-- **Changed**: **Project URL handling** — board/project URLs now go through shared URL helpers so project-only navigation keeps `/?p=<project>` while task navigation cleanly adds or removes the task path segment.
-- **Changed**: **Board housekeeping** — completed Kandown task files were archived or removed from the active task set, new backlog tasks were added for upcoming archive/subtask/opened-task redesign work, and local board config/runtime ignore files were updated to match the current project workflow.
-
-## 0.24.0 — 2026-07-20 — "Work Output Configurator"
-
-- **Added**: **`kandown work` Output Configurator** — added a new Settings panel under Agent configuration that lets each project control the markdown emitted by `kandown work`. Users can enable or disable the base rules, project instructions, and live board digest blocks without editing generated files by hand.
-- **Added**: **Raw Template Mode for Agent Context** — added an advanced raw editor for the complete `kandown work` output with `{{baseRules}}`, `{{projectInstructions}}`, and `{{boardDigest}}` variables. This gives power users full control over the final prompt while keeping the source of truth in `.kandown/kandown.json`.
-- **Added**: **Token-Efficient Concise Rules Mode** — added a compact Kandown rules preset for `kandown work` that keeps the essential task-management contract while dramatically reducing prompt size for cost-sensitive or context-limited agents.
-- **Added**: **Estimated Token Counter and Output Preview** — the Settings configurator now previews the generated `kandown work` markdown and displays an approximate token estimate so users can tune the output before handing it to an agent.
-- **Added**: **Project Instructions Editor** — added authenticated web/server helpers and UI editing for `.kandown/instructions.md`, keeping custom project behavior inside `.kandown/` instead of polluting project-root agent files.
-- **Changed**: **Project-Scoped Work Output Storage** — added `agent.workOutput` to `.kandown/kandown.json` and the default template config, including section toggles, section ordering, digest detail toggles, base-rule verbosity, and raw template content.
-- **Changed**: **Configurable Board Digest Detail** — the generated board digest can now hide column counts, task lists, priorities, assignees, blocked-by annotations, and next-actionable-task output independently to minimize tokens when desired.
-- **Fixed**: **Safe `.kandown/AGENT_KANDOWN.md` Healing** — Kandown now recreates `.kandown/AGENT_KANDOWN.md` when missing and overwrites malformed or stale generated copies from the package template, while keeping all generated reference docs inside `.kandown/` only.
-
-## 0.23.0 — 2026-07-20 — "Theme Switcher & Auto Update"
-
-- **Added**: **Animated Theme Switcher** — added a shadcn-style three-option theme switcher under `src/components/ui/theme-switcher-1.tsx` with system, light, and dark choices, lucide icons, and Motion layout animation.
-- **Changed**: **Theme Mode UX** — replaced the Appearance settings theme dropdown and the old header two-state toggle with the new animated switcher. The component keeps Kandown's existing `auto`, `light`, and `dark` config values so existing `.kandown/kandown.json` files remain compatible.
-- **Changed**: **Framework Integration** — adapted the provided `next-themes` component to Kandown's Vite/Zustand theme pipeline instead of adding a Next.js-only provider. Theme changes continue to persist through the existing project config and apply via the local CSS token engine.
-- **Fixed**: **Auto-Updater Retry Blocking** — failed auto-update installs are no longer cached as a successful update check. Previously, if npm answered the registry but the install failed, Kandown could suppress retries for 24 hours, making auto-update feel blocked across open projects.
-- **Fixed**: **Multi-Project Auto-Update Refresh** — after a successful in-place global update, Kandown now scans active local daemons and refreshes `kandown.html` for every open project, so two simultaneously open boards do not remain stuck on different web UI bundles.
-- **Fixed**: **Installed Version Verification** — the auto-updater now verifies the installed Kandown CLI version instead of only checking the npm registry version, making successful restart decisions based on the actual local binary.
-
-## 0.22.0 — 2026-07-20 — "Sectioned List View"
-
-- **Added**: **Sectioned List View** — rebuilt the web List view so board columns such as Backlog, Todo, In Progress, Review, and Done are displayed as horizontal task sections stacked vertically. This keeps the dense list/table workflow while making the List view match the mental model of the Kanban board in the opposite orientation.
-- **Added**: **Vertical Section Drag-and-Drop** — added gripper-based drag-and-drop for List view sections. Reordering sections persists through the existing `reorderColumns` store action, so the same column order is shared by Board view, List view, config, and future reloads.
-- **Added**: **Task Drag-and-Drop Between List Sections** — task rows in List view can now be dragged between sections to change their status. Drops reuse the existing `moveTask` persistence path, including dependency gates, optimistic updates, rollback behavior, and markdown frontmatter writes.
-- **Changed**: **List View Layout** — replaced the previous single flat table with per-column section headers, task counts, repeated metadata headers, section drop guides, and empty-section drop targets. Search, filters, due-date summaries, metadata columns, drawer opening, and search-preview snippets continue to work inside the new sectioned layout.
-- **Fixed**: **Scripted CLI Commands Exit Cleanly** — one-shot commands such as `kandown doctor` and `kandown list --json` now terminate explicitly after their handler finishes. This prevents passive bundled dependency handles from keeping scripted commands alive after successful output, preserving reliable CI and agent pipeline behavior.
-
-## 0.21.7 — 2026-07-20 — "Web UI Vector Logo & CLI Changelog Fix"
-
-- **Added**: **Vector Brand Logo Component (`LogoSvg.tsx`)** — unified header and empty state UI components to render the official multi-color brand vector logo from `logo.svg`.
-- **Fixed**: **CLI Changelog Display on Update & First Run** — fixed `checkVersionSeenNotices()` in `bin/kandown.js` so release changelogs render cleanly whenever a new version is detected or installed, ensuring version notices and changelogs are printed reliably in the terminal during updates.
-
-## 0.21.6 — 2026-07-20 — "Favicons & CI Workflow Fix"
-
-- **Added**: **Official Favicon Suite from `logo.svg`** — generated multi-format favicons (`favicon.svg`, inline base64 SVG data URI, `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `favicon-48x48.png`, `favicon-96x96.png`), `apple-touch-icon.png` (180x180), `android-chrome-192x192.png`, `android-chrome-512x512.png`, and Web Manifests (`manifest.json`, `site.webmanifest`).
-- **Added**: **Daemon Static Asset Handler** — added `serveStaticAsset` in `bin/kandown.js` so web daemons serve app favicons and manifests directly.
-- **Fixed**: **CI Publish Workflow** — updated `.github/workflows/publish.yml` to use `pnpm install --no-frozen-lockfile` to prevent lockfile version mismatch failures across runner environments.
-
-## 0.21.3 — 2026-07-20 — "Editor Text Colors & Highlights"
-
-- **Fixed**: **Editor Text & Highlight Color Persistence** — enabled `textColor` and `backgroundColor` specs in BlockNote schema (`src/components/ui/BlockNoteMarkdownEditor.tsx`) so inline text colors and background highlights added in the web task description editor serialize to HTML inline tags and persist cleanly across reloads and markdown round-trips.
-
-## 0.21.2 — 2026-07-20 — "Pre-Bump Manual Validation"
-
-- **Added**: **Mandatory Pre-Bump Testing Rule in `AGENTS.md`** — formal rule requiring agents to manually launch and test `kandown` CLI and web daemon before executing a release bump to catch runtime errors.
-- **Fixed**: **Closing brace syntax in `cmdProjects`** — resolved missing `}` in `cmdProjects` that caused a `SyntaxError` on CLI startup.
-
-## 0.21.1 — 2026-07-20 — "CLI Live Changelog"
-
-- **Added**: **CLI Live Changelog Display** — the CLI automatically parses and displays formatted release changelogs from `CHANGELOG.md` directly in the terminal during auto-updates, `kandown update`, and version notice popups.
-- **Added**: **Release Guidelines in `AGENTS.md`** — mandatory rule requiring every release to include a comprehensive, detailed English changelog in `CHANGELOG.md` and attached to the release commit body.
-- **Changed**: Included `CHANGELOG.md` in published npm package `files` array so terminal displays have access to release notes in production installs.
-
-## 0.21.0 — 2026-07-20 — "Fable Features & Integrated MCP"
-
-- **Added**: **Integrated MCP Server (`kandown mcp`)** — stdio JSON-RPC 2.0 server for MCP hosts (Claude Desktop, VSCode, Glama, etc.) exposing `list_tasks`, `get_task`, `create_task`, `move_task`, `update_task`, `add_report`, `list_columns`.
-- **Added**: **Full TUI CRUD & Workflow (`kandown board`)** — interactive creation (`n` with inline syntax), editing in `$EDITOR` (`e`), archiving (`x`), deletion with prompt (`D`), fuzzy search (`/`), filter cycling (`f`), cheatsheet modal overlay (`?`), and undo (`u`).
-- **Added**: **Diagnostic command `kandown doctor [--fix]`** — checks CLI/HTML version alignment, daemon liveness, port status, `kandown.json` validity, frontmatter syntax, and auto-resolves duplicate task files.
-- **Added**: **Multi-project Manager (`kandown projects`)** — scans active localhost daemons (ports 2048-2150) and lists running instances with PID, port, and project paths (`--json` supported).
-- **Added**: **Real-Time SSE (`GET /api/events`)** — Server-Sent Events endpoint backed by `chokidar` file watcher for instant live updates in the web UI when agents or CLI edit task files.
-- **Added**: **Quick-Add Inline Parser** — parse `#tag`, `@assignee`, `p1-p4`, `due:date`, `+t12` directly from title strings across web UI, TUI, and `kandown create`.
-- **Added**: **Web Multi-Selection & Floating Action Bar (`BulkActionBar`)** — select multiple tasks with `Cmd`/`Ctrl`/`Shift` click or checkboxes to bulk move or delete tasks in one click.
-- **Added**: **WIP Limits & Visual Indicators** — column limits (`board.wipLimits`) with warning badges when limits are exceeded.
-- **Added**: **Swimlanes & Group By Selector** — filter bar dropdown to group board tasks by Priority, Assignee, or Epic.
-- **Added**: **Épics (`epic: <id>`) & Task Templates** — frontmatter `epic` tracking with card badges, and `.kandown/templates/*.md` card template loading.
-- **Added**: **Due Dates & Calendar View** — overdue and upcoming due-date summary banner in ListView.
-- **Added**: **Import & Export (`kandown export` / `kandown import`)** — export board to JSON or CSV, and import from Trello JSON exports or Markdown headers.
-- **Added**: **Git Task Timeline API (`GET /api/git/history`)** — endpoint serving task modification history (`git log --follow`).
-- **Added**: **Outgoing Webhooks (`notifications.webhookUrl`)** — POST JSON notifications on status changes to Slack, Discord, or n8n.
-- **Added**: **Enriched Agent Context & Config** — `readAgentDoc` automatically injects recent task git commits into agent instructions, and `agent.extraArgs` is configurable in Web & CLI Settings.
-- **Changed**: TUI move context menu proposes the next column to the right by default for natural left-to-right Kanban flow.
-
-## 0.20.0 — 2026-07-19 — "No More Stale Copies"
-
-- **Changed**: **`kandown init` no longer copies `AGENT.md`/`AGENT_KANDOWN.md` into new projects** — both `kandown work` and the TUI's agent launcher (`a` key) now read the rules straight from the installed package's `templates/AGENT_KANDOWN.md` at call time, so there's no per-project snapshot left to go stale. Existing projects with an old copy are left untouched — nothing is auto-deleted.
-- **Changed**: **The TUI's agent launcher now uses the same layered rules as `kandown work`** — base rules from the package, plus optional `~/.kandown/instructions.md` (global) and `.kandown/instructions.md` (project). Previously it read a project-local `AGENT_KANDOWN.md`/`AGENT.md` copy that could silently drift from what `kandown work` printed; the two entry points can no longer disagree.
-- **Changed**: **`kandown init`'s injected `AGENTS.md`/`CLAUDE.md` line no longer promises a local fallback file** — dropped "if you can't run the CLI, read `.kandown/AGENT_KANDOWN.md` instead" since that file is no longer shipped and the scenario (an agent that can follow `AGENTS.md` but can't run a shell command) is effectively nonexistent.
-
-## 0.19.1 — 2026-07-19 — "Migration Fixes"
-
-- **Fixed**: **False "conflict" on legacy task migration** — `migrateTasksToTopLevel` reported `.kandown/tasks/` and `./tasks/` as conflicting (and silently left an old install un-migrated) whenever `.kandown/tasks/` existed but was actually empty, even though there was nothing to protect. It now checks the legacy folder's real content first and only defers to the "don't clobber" guard when there's genuinely something to migrate.
-- **Fixed**: **Legacy folder cleanup never actually ran** — `cleanupLegacyTasksDir` called `fs.rmSync(dir, { recursive: false })` on an already-confirmed-empty directory, which throws `EISDIR` (Node's `rmSync` requires `recursive: true` to remove a directory at all, even an empty one — introduced by the earlier `rmdirSync` → `rmSync` cleanup in v0.19.0). Found by testing this release's migration fix against kandown's own dev install before shipping.
-
-## 0.19.0 — 2026-07-19 — "Upgrade Notices"
-
-- **Added**: **Breaking-change migration notices** — when an interactive `kandown` command detects it just crossed a release with user-facing changes (starting with v0.18.0's `shell` removal), it prints a one-time notice explaining what changed and how to adapt. Fires right after a successful auto-update, and also via a lightweight version-seen tracker (`.version-seen.json` next to the install) that catches upgrades made outside the auto-updater — manual `npm install -g kandown`, pnpm/yarn/bun, etc. TTY-only and never fires for scripted/one-shot commands.
-- **Changed**: **New tagline** — "Too Many Ideas, Not Enough Agents." Kandown helps you queue tasks in an elegant and clever way.
-- **Fixed**: A `const` array referencing the CLI's color palette was declared before that palette existed in module load order, which would have crashed every single `kandown` invocation the moment the migration-notice feature above was exercised. Caught by testing before release — moved the declaration after the palette.
-
-## 0.18.0 — 2026-07-19 — "Agent Workflow"
-
-- **Added**: **`kandown work` — the agent entrypoint** — a single command that prints the full agent rules (served fresh from the installed CLI version, never a stale per-project copy) plus a live board digest: column counts, tasks per column with blocked-by annotations, and a computed "next actionable task" (closest to done, unblocked, highest priority). One call gives an AI agent both its rules and its context.
-- **Added**: **Layered instructions** — optional `~/.kandown/instructions.md` (applies to every kandown project on this machine) and `.kandown/instructions.md` (this project only) are appended after the base rules in `kandown work` output, letting users customize agent behavior globally or per project without touching the agent file.
-- **Changed**: **`kandown init` no longer injects a rules block into `AGENTS.md`/`CLAUDE.md`** — it appends a single line pointing the agent at `kandown work` instead. Removes the drift problem of a rules copy going stale the moment the package updates, and cuts the injected footprint from a paragraph to one line.
-- **Changed**: **Task commands promoted to top-level, `shell` prefix removed entirely** — `kandown list/show/create/move/assign/commit` (previously `kandown shell <cmd>`, no alias kept). These are the most basic operations of the product; nesting them under a wrapper word only added friction for the scripts and AI agents they're built for. New `kandown tasks` prints the cheatsheet for this group.
-- **Fixed**: internal function names and comments across `bin/kandown.js` no longer reference the removed `shell` wrapper.
-
-## 0.17.2 — 2026-07-19 — "CLI Hardening"
-
-- **Added**: **CLI/daemon hardening pass** — daemon routes now use per-daemon `X-Kandown-Token` auth, remove wildcard CORS, cap request bodies at 10MB, and keep the daemon alive after recoverable fatal handlers.
-- **Added**: **Safer persistence** — task, config, board, and daemon metadata writes now use atomic temp-file renames, with a daemon spawn lock to avoid duplicate startup races.
-- **Fixed**: **CLI update policy** — update checks are skipped for daemon/shell/non-TTY flows, throttled for 24h, and handle prerelease semver comparisons safely.
-- **Fixed**: **stdout/stderr contract** — machine-readable shell output stays clean on stdout while UI decorations and status logs go to stderr.
-- **Fixed**: **Board/TUI resilience** — daemon startup, board scrolling, and move-target UX received stability fixes from the FABLE CLI pass.
-- **Changed**: **Credits and package metadata** — license, package author, Settings links, and README credits now point to Vanessa Depraute, GitHub `vava-nessa`, and `vanessadepraute.dev`.
-
-## 0.17.1 — 2026-07-08 — "Column Reorder"
-
-- **Fixed**: **Column reorder drag feedback** — dragging a column now shows a clear vertical insertion line between columns, including the final slot after the last column, so the destination is obvious before dropping.
-- **Changed**: **Column reorder gesture handling** — normal columns only start reordering from the gripper handle, preventing card drag and column drag from fighting for the same gesture.
-- **Changed**: **Column order persistence** — reordered columns are saved from the visible board order, so status-derived columns cannot corrupt config indices.
-
-## 0.17.0 — 2026-07-08 — "Column Reorder"
-
-- **Added**: **Native HTML5 drag-and-drop column reordering** — grip columns by the 6-dot gripper icon (left of column name) and drag to a new position. Columns snap, config updates and persists automatically.
-- **Fixed**: **Column drag-and-drop handler signature** — `handleColumnDragOver` now works correctly with HTML5 native drag events (removed unnecessary target index param).
-
-## 0.16.0 — 2026-07-08 — "Compact Mode"
-
-- **Added**: **Compact board density** — column density can now use a space-saving layout where empty columns collapse into a thin strip (100px wide) or stack vertically when multiple consecutive columns are empty. Normal columns keep their full width. In compact mode the empty-column cards show only an icon + name, minimizing wasted space for boards with many columns.
-- **Added**: **`isEmptyCompact` column prop** — `Column.tsx` now renders a minimal icon+label placeholder when there are no tasks and the compact density is active.
-- **Changed**: **Board layout refactored through `columnGroups`** — the board now groups consecutive empty columns into `compact-single` (one column strip) or `compact-stack` (vertical stack), improving density for task-heavy boards.
-- **Removed**: **Task placeholder t119** — removed unfinished placeholder task file.
-
-## 0.15.4 — 2026-07-08 — "Update Animation"
-
-- **Added**: **Animated spinner + progress bar with percentage for the auto-updater** — the `npm install` phase now shows a real-time filling bar (`████░░░ 45%`) with a Braille spinner, giving visual feedback during the 10–30s update. Falls back to plain text when stdout is piped.
-- **Fixed**: **Column CSS `group` conflict** — changed `group` to `group/column` to prevent style collisions when columns are nested inside other `group` containers.
-
-## 0.15.3 — 2026-07-08 — "Cosmetic Change"
-
-- **Changed**: **Category tag moved next to task ID in cards** — the `[bracket]` category tag previously displayed below the title now sits inline to the right of the task number (`#102 [optimization]`), keeping the card header compact and scannable.
-
-## 0.15.2 — 2026-07-07 — "Safe Ports"
-
-- **Fixed**: **2nd concurrent project looked dead in the browser** — when running `kandown` in a second project folder, the daemon correctly moved to port **2049**, but Chrome/Firefox/Safari refuse to load it (`net::ERR_UNSAFE_PORT`) because 2049 is the well-known **NFS** port. The server answered fine (curl worked) yet the browser showed an error page. Port allocation now skips every port in the browsers' restricted-ports list (`BROWSER_UNSAFE_PORTS`, sourced from Chromium's `net/base/port_util.cc`), so the 2nd project lands on a browser-loadable port (2050) instead. The default 2048 stays safe and stable for the primary project. `--port <n>` pointing at an unsafe port is now rejected with a clear message.
-
-## 0.15.1 — 2026-07-07 — "Parallel Daemons"
-
-- **Fixed**: **Multi-project daemon port clash** — launching `kandown` from a second project folder no longer kills the first project's web daemon and steals its port. Each project now gets its own daemon on an auto-allocated port (A=2048, B=2049, C=2050, …), so multiple kandown boards can finally run in parallel.
-  - Root cause #1: `listenOnAvailablePort()` unconditionally killed whatever kandown sat on the default port — even when it belonged to a *different* project. The preemptive stale check now only reclaims same-project zombies; other-project daemons fall through to the port-scan loop (which already skips them).
-  - Root cause #2: the parent↔child startup handshake deleted the freshly-written daemon metadata on any transient HTTP fetch failure. Node's `fetch` (undici) doesn't recover from the initial `ECONNREFUSED` window and reported healthy local daemons as down for seconds, orphaning them with a spurious "Daemon failed to start". `getDaemonStatus()` is now non-destructive on transient fetch failures (metadata is removed only on a *real* conflict), and startup detection uses a dependency-free TCP probe (`net.createConnection`) instead of HTTP.
-  - Port range widened 2048–2060 → **2048–2150** (103 slots); startup timeout 5s → 8s.
-
-## 0.15.0 — 2026-07-07 — "Boot Splash"
-
-- **Added**: **Boot splash** — on project launch, the `kandown` title and a `v<version>` badge stay on screen for 5 seconds, then fade out to leave only the logo. The name of the open project then takes its place as the header's page title, with a soft transition.
-- **Added**: **Dynamic document title** — the browser tab now reflects the current project (`<Project> · Kandown`) instead of a static title.
-
-## 0.14.1 — 2026-07-07 — "Resilience Pass"
-
-- **Added**: **Typed error hierarchy** (`src/lib/errors.ts`) — `KandownError` base with `BrowserNotSupported`, `PermissionDenied`, `DiskFull`, `Corrupted`, `FileRead` subclasses, plus a `Result<T>` discriminated union and `isRetryableError`. One shared vocabulary for the whole web UI.
-- **Added**: **Retry with exponential backoff** (`src/lib/retry.ts`) — `withRetry()` wraps fallible async operations and retries only transient failures (disk full, network). Used by every store write path so a user freeing space between attempts recovers automatically.
-- **Added**: **React error boundary** (`src/components/ErrorBoundary.tsx`). A top-level boundary catches whole-app crashes with Retry + Copy-report; a granular boundary around the board means a malformed task crashing the render no longer takes down the drawer (unsaved edits stay safe).
-- **Added**: **Global error handlers** (`src/lib/globalErrors.ts`) — `window.onerror` + `unhandledrejection` listeners installed before React mount, with throttled toasts (max 3 per 5s, dedup) so a tight rejection loop can't flood the UI.
-- **Added**: **Browser support gating** (t100) — `openFolder` checks `supportsFileSystemAccess()` first and shows an actionable toast on Firefox/Safari instead of crashing with `TypeError: showDirectoryPicker is not a function`.
-- **Fixed**: **Ghost-task silent corruption** (t102) — `readTaskFileStrict()` returns a typed `TaskReadResult` distinguishing not-found (benign) from permission/corrupted (actionable). `readAllTasks` migrated so unreadable files are dropped + reported via `failedTaskIds` and an "N tasks could not be loaded" warning instead of returning empty ghost tasks.
-- **Fixed**: **Store rollback completeness** (t104) — every mutating action now captures `columns` + `taskContents` + `searchMatches` and restores all three on failure. `persistColumnOrder` returns `{ failedIds }` via `Promise.allSettled` and partial-failure callers warn + reload from disk.
-- **Fixed**: **Disk full / quota handling** (t105) — filesystem writes map `QuotaExceededError` to a typed `DiskFullError` and close streams in a `finally`. Toast reads "Disk is full — <action> was not saved. Free up space and try again." (8s).
-- **Fixed**: **reloadBoard preserves previous state** (t106) — adds `isReloading`, `lastReloadError`, `failedTaskIds` state. Hard failure keeps the previous board visible + warning; partial failure keeps readable tasks and warns.
-- **Fixed**: **File watcher silent failures** (t107) — watcher callbacks wrapped in try/catch; per-task reads guarded so one bad file doesn't abort the tick. Auto-disables after 5 consecutive tick failures and emits a `watcherError` event; Header shows an amber banner with "Restart watcher" + "Reload" buttons.
-- **Fixed**: **IndexedDB unhandled rejection at startup** (t108) — module-level `listRecentProjects()` has `.catch()`; `openFolder`/`openRecentProject` wrap IDB calls so private browsing never blocks project opening.
-- **Fixed**: **Revoked-handle recovery** (t109) — `verifyPermission()` swallows internal throws; `openRecentProject` is transactional (captures + rolls back state) and auto-removes dead entries from recent projects with a clear warning.
-- **Fixed**: **Drawer data loss on save failure** (t110) — unsaved edits are stashed into a per-task recovery buffer when the drawer is force-closed, and restored on next open. Close guard prompts before discarding; footer shows "Retry save" + "● unsaved" indicator when there's a pending error.
-- **Fixed**: **Silent config corruption** (t111) — `readConfigFileStrict()` distinguishes not-found (silent) from corrupted (warn + back up to `kandown.json.backup`). Null-safe spreading means `"board": null` no longer crashes with `TypeError`. CLI `loadConfig` mirrors the fix and warns to stderr.
-- **Fixed**: **`Promise.all` → `Promise.allSettled`** (t116) — `readAllTasks`, `persistColumnOrder`, `renameColumn`, `deleteColumn` all tolerate per-task failures instead of failing the whole batch.
-- **Fixed**: **CLI agent launch error handling** (t112) — `board-reader.ts` per-task guards; `launcher.ts` step-by-step guarded launch with task-status rollback if the agent fails to spawn (tmux missing, binary not found). `child.on('error')` no longer crashes the TUI.
-- **Fixed**: **CLI `copyRecursive` crash + HTTP error leaks** (t113) — `copyRecursive` returns per-file errors; `appendAgentReference` TOCTOU-safe; `serveApp` 500 no longer leaks paths to HTTP clients; `listenOnAvailablePort` treats `EACCES` like `EADDRINUSE`.
-- **Fixed**: **TUI error handling** (t114) — board.tsx adds `boardError` state with a recoverable "Press r to retry, q to quit" view; `openDetail`/`persistConfig` wrapped; empty agent-picker shows a hint instead of an empty box.
-- **Added**: **Toast `warning` severity** with longer duration (6s) for actionable messages, rendered in amber.
-
-## 0.14.0 — 2026-06-26 — "Task Groups"
-
-- **Added**: **User preference for default task group state** (`board.stackDefaultState`). Until now, when several tasks shared the same `[bracket]` or `#hashtag` title tag, they always rendered as a single collapsible stack (click to expand). The new setting in **Settings → Board → Task groups** lets users pick:
-  - **Collapsed (stacked)** — default, current behavior. One summary card per group with a count and a preview line; click to expand.
-  - **Expanded (all visible)** — every task in the group is rendered inline as its own card, identical to how untagged tasks display. Useful when the board is mainly used as a flat list rather than a high-density overview.
-  - The active search filter still forces expansion regardless of the setting, so search match highlights always remain visible. Per-stack collapse / expand toggles on click still work in both modes.
-- **Added**: **CLI parity** — the same `board.stackDefaultState` setting is now configurable from the TUI settings screen (under the **Board** section), so terminal-only users can toggle it without opening the web UI.
-- **Added**: **New `board.stackDefaultState` key in `templates/kandown.json`** so fresh installs (`kandown init`) ship with the field explicitly set to `'collapsed'`. Existing projects without the key inherit `'collapsed'` through the existing deep-merge in `readConfigFile` / `loadConfig` — no migration needed.
-- **Added**: **English + French translations** for the new setting: `stackDefaultState` ("Task groups" / "Groupes de tâches"), `stackDefaultStateDesc`, `stackCollapsed` ("Collapsed (stacked)" / "Pliées (empilées)"), `stackExpanded` ("Expanded (all visible)" / "Dépliées (toutes visibles)"). Other locales fall back to English until they're updated.
-- **Changed**: **`Column.tsx` now combines the user preference with the search filter** when computing `CardStack`'s `defaultExpanded` prop: `config.board.stackDefaultState === 'expanded' || !!filters.search`. Previously the prop only reflected the search state.
-
-
-## 0.13.1 — 2026-06-20 — "Transparent Favicon"
-
-- **Fixed**: **Favicon had a solid dark surface that disappeared on dark browser tabs.** The 0.13.0 favicon used a `#0a0a0a` rounded background that blended with Chrome's `#202124` tab strip and Safari's dark chrome, leaving a near-invisible blob. The new \`public/favicon.svg\` has a transparent background and recolors the K via \`@media (prefers-color-scheme: dark)\` so the contrast holds in both light and dark browser themes. The lime slash (\`#cef867\`) is the constant brand element on top. \`favicon-{16,32,48}.png\` and \`favicon.ico\` are regenerated with transparent backgrounds. PWA / OS-launcher icons (apple-touch-icon, android-chrome-192/-512, mstile-150, og-image) keep their dark surface — they live on home screens, app drawers, Windows tiles, and social cards where a solid background is required by the platform.
-
-## 0.13.0 — 2026-06-20 — "TUI Agents"
-
-- **Added**: **Agent hook HTTP for IDE / Electron integration** (`c5ce628`). The CLI daemon now forwards a task to a host process (IDE, Electron main, custom server) over plain HTTP. Wire format is JSON: `{ action, task, context }` POSTed to a URL configured via `KANDOWN_AGENT_HOOK_URL`. The web UI surfaces a "Send to Agent" button in the task drawer; the TUI binds `g` to the same action. Both are strictly opt-in — hidden / no-op unless the env var is set on the daemon.
-- **Fixed**: **Agent launch pre-fills the task prompt** (t117, `4ce2281`). Pressing `A` on a task and picking **opencode** previously launched a blank TUI because `opencode [project]` takes a project *path* as its positional, not a message. Now uses `opencode --prompt "<message>"` so the default TUI command opens with the task context already in the composer. Bonus fix: **gemini** now uses `--prompt-interactive` (`-i`) instead of `-p/--prompt` (which Gemini's help describes as non-interactive headless) so the TUI stays interactive after the prompt runs. The tmux split-window path also forwards `KANDOWN_CONTEXT_FILE`/`KANDOWN_TASK_ID`/`KANDOWN_DIR` to the new pane (a tmux pane inherits the *server's* env, not this process's overrides).
-- **Added**: **Task `depends_on` with terminal-status gate** (`40c26c6`). New `depends_on: [T-001, T-007]` frontmatter field on tasks. `moveTask(id, "done")` is rejected at the store level if any dependency isn't yet in a terminal status, with a descriptive error that surfaces in both the web and TUI UIs. The web cards show a `↪N` chip on blocked tasks; the TUI mirrors the same chip and blocks drag/drop into the terminal column with an inline `Blocked: tX ← tA, tB` message. The task detail view (web + TUI) lists the raw dependency IDs.
-- **Added**: **Shellable CLI task commands** (`506b65f`). `kandown task list`, `kandown task show <id>`, `kandown task create <id>`, `kandown task move <id> <col>`, `kandown task assign <id> <agent>`, and `kandown task commit` — all JSON-stable and pipe-friendly, so agents and shell scripts can drive the board without touching the TUI.
-- **Added**: **Keyboard shortcuts cheatsheet modal** (`afaac2c`). Press `?` in the TUI to open a modal listing every keybinding (board navigation, agent launch, daemon control, drag/drop, etc.). Closes on any key.
-- **Added**: **Brand refresh — full favicon / app-icon set** (`2469f1b`). The new Kandown mark (white K crossed by a lime `#cef867` diagonal slash on a dark surface) replaces the old single-color QuiverAI favicon. Ships as `favicon.svg` (1.2 KB vector), PNG fallbacks at 16/32/48 px, a multi-size `favicon.ico`, `apple-touch-icon` (180), `android-chrome-192`/`512` (PWA manifest, with `purpose: "any maskable"`), `mstile-150` (Windows tile), and an `og-image` (1200×630) for social previews. The `kandownlogo.png` source is committed at the project root; the cropped/padded version is in `public/`. Vite's single-file build inlines the whole set into the bundle — no extra wiring.
-- **Fixed**: **`bin/tui.js` rebuild gap.** Commit `40c26c6` shipped depends_on TUI features in source but didn't rebuild `bin/tui.js`, so v0.12.0 users running the bundled CLI wouldn't have gotten the new `↪N` chips, the `depends on:` detail line, or the move-gate. The `4ce2281` commit's `pnpm build:cli` step regenerates the bundle and closes that gap. No source change is required.
-
-## 0.12.0 — 2026-06-18 — "Top-Level Tasks"
-
-- **Changed**: **Tasks moved to the project root.** Task files (and `./tasks/archive/`) now live at the project root in `./tasks/`, while `.kandown/` only holds config (`kandown.json`), the web UI (`kandown.html`), agent docs (`AGENT.md`, `AGENT_KANDOWN.md`), and daemon runtime metadata. The previous layout (`.kandown/tasks/*.md`) is no longer supported.
-- **Added**: Silent one-time migration. The first time a project is opened after this change, any `.kandown/tasks/*.md` is moved to `./tasks/` (plus the `archive/` subfolder). The legacy `.kandown/tasks/` directory is removed if it ends up empty. No user action required — the migration runs in the background on startup and logs a single line to the CLI.
-- **Changed**: `kandown init` now creates `tasks/` at the project root instead of inside `.kandown/`. The init banner shows the new layout explicitly.
-- **Changed**: The web app (File System Access mode) now asks the user to pick the **project root** (the parent of `.kandown/`) rather than `.kandown/` directly. The app derives both `.kandown/` (config) and `./tasks/` (tasks) from it. Server mode already routes through the CLI REST API, so only the server-side path needed updating.
-- **Added**: New `POST /api/migrate-tasks` endpoint and `serverMigrateTasks()` browser helper. The web app calls it on startup in server mode before reading tasks, so the legacy → new layout move happens transparently.
-- **Added**: `bin/kandown.js → getProjectRoot(kandownDir)`, `getTasksDir(kandownDir)`, `migrateTasksToTopLevel(kandownDir)`, plus the matching helpers in `src/cli/lib/board-reader.ts` (`getTasksDir`). All previous `kandownDir + 'tasks'` paths are now `getTasksDir(kandownDir)`.
-- **Fixed**: `archiveTask` / `unarchiveTask` REST endpoints were referenced in the route handler but never defined (would 404 on every archive action). Implemented them on the new tasks path.
-- **Changed**: All 48 i18n locales — `emptyState.selectFolderDesc` now tells the user to pick the project root and references both folders.
-- **Changed**: `templates/AGENT.md`, `templates/AGENT_KANDOWN.md`, and `templates/README.md` document the new layout. The legacy `templates/.kandown/tasks/` (empty) is removed; sample tasks already lived at `templates/tasks/` at the top level.
-- **Changed**: Default Empty State text and CLI init banner updated to reflect the new layout.
-
-## 0.11.2 — 2026-06-17 — "TUI Category Cards"
-
-- **Fixed**: Category task rows now use a proper dark background (`#222`) instead of the too-light ANSI `gray`. All task text (ID, title) is white for full readability on the dark block. Category tag remains magenta.
-
-## 0.11.1 — 2026-06-17 — "TUI Category Cards"
-
-- **Changed**: TUI board now renders tasks with a `[category]` bracket tag or `#hashtag` in their title as a **3-line dark-gray block**: task ID on line 1, category on line 2, clean title on line 3. Tasks without a category render as a single line, unchanged. A separator line (`───`) is inserted between all tasks for improved readability.
-- **Added**: New `CategoryTaskRow` component for the 3-line category block; `SingleTaskRow` preserves the original single-line layout for untagged tasks.
-- **Added**: `getTitleCategory()` helper — extracts bracket tags and hashtags from task titles to determine which row type to use.
-- **Changed**: `KanbanColumn` now dynamically selects the row component per task and injects separator lines automatically.
-- **Changed**: Dragging state colors (`yellow` background) now apply to the entire `CategoryTaskRow` block consistently.
-
-## 0.11.0 — 2026-06-16 — "Lean Drawer"
-
-- **Removed**: The subtask editor in the task drawer (add/remove/check subtasks and the per-subtask description/report fields). The subtask data model is untouched — tasks still keep their `- [ ]` / `- [x]` checklist in the .md file, and the per-card progress bar on the board still shows `done/total`. Editing subtasks just happens in the task file directly now, not in the drawer.
-- **Changed**: The drawer body is now strictly stacked: title → DESCRIPTION (full width) → REPORT (full width, below description). The previous side-by-side 7/3 grid is gone, so each editor gets full room to breathe and feels closer to a writing surface than a form.
-- **Removed**: The header subtask count chip (`done/total doneSubtasks`) — no more subtasks in the drawer header.
-- **Removed**: The `focusedSubtaskIdx` state and the `toggleSubtask` / `changeSubtask` / `removeSubtask` / `addSubtask` / `insertSubtaskAfter` / `handleDescriptionChange` / `handleReportChange` handlers — all dead code now that the subtask editor is gone. The `SubtaskItem` import is gone too (the component file is left in the tree since the data model still uses `Subtask`).
-
-## 0.10.1 — 2026-06-16 — "Clean Drawer"
-
-- **Removed**: The metadata edit block (Priority, Assignee, Tags, Due, Owner, Tools) at the top of the task editor drawer. The drawer is now strictly title + description + report + subtasks. Frontmatter metadata is still managed in the task `.md` file directly, or surfaced on the board via the per-card "Show metadata" toggle. The unused `FieldRow` helper, the `tagsValue` derived string, the `Priority`/`OwnerType` type imports, and the `fields` selector are gone too.
-
-## 0.10.0 — 2026-06-16 — "Linear Look"
-
-- **Changed**: The board got a full Linear-style relook — pure black background in dark mode, off-white in light, with a refined two-layer dot grid (the "taches") that adapts to the theme. Default columns are now neutral; any per-column tints you set via the 3-dot menu use a restrained 6% opacity.
-- **Changed**: The default "kandown" skin is rebuilt around Linear tokens — pure black background (`0 0% 0%`), cards at `0 0% 6%` with very subtle borders in dark; off-white background with white cards in light. The 4 colored skins (Graphite, Sage, Cobalt, Rose) were also retuned to match — darker bases, more restrained hues.
-- **Changed**: Cards and card stacks are now `rounded-lg` with a lighter, hand-tuned shadow that lifts on hover. No more heavy `shadow-sm/md` defaults.
-- **Changed**: Column headers are tighter and more refined — smaller icons, lighter typography, more breathing room. The Add task button at the bottom of each column blends in better.
-- **Removed**: The SVG noise-overlay grain (Board + EmptyState + CSS) — it was making the board feel noisy and the CSS class is gone.
-- **Fixed**: The `class="dark"` attribute was hardcoded in `index.html`, blocking the `theme: "auto"` mode from working. The hardcoded class is removed so the OS preference drives the theme.
-- **Fixed**: `kandown.json` is now set to `theme: "auto"` and `columnColors: {}` by default, so a fresh install starts in Linear neutral mode without the previously-saved saturated column tints.
-
-## 0.9.0 — 2026-06-16 — "Archive & Markdown"
-
-- **Added**: Archive folder and view — tasks can now be archived via a button in the drawer, which moves the file to `.kandown/tasks/archive/`, sets `archived: true` in the frontmatter, and hides it from the active board. A new header button toggles a dedicated Archive view listing all archived tasks with a one-click Restore action.
-- **Added**: `archive` and `restore` actions on the store, plus matching CLI server endpoints (`POST /api/tasks/:id/archive` and `…/unarchive`) and dev-mode vite middleware routes so the feature works in browser and server modes.
-- **Changed**: Unified markdown editor across the drawer — the task Report field and all subtask descriptions/reports now use the same BlockNote editor as the task description body, with the same slash menu, block types, and markdown round-trip guarantees. Wysimark and its `marked`-based preview have been removed entirely.
-- **Removed**: `src/components/ui/MarkdownEditor.tsx` (Wysimark), all wysimark CSS rules, and the `@wysimark/react` + `marked` dependencies.
-- **Fixed**: Legacy subtask `report:` / `description:` indented lines are now recognized by `extractSubtasks` and migrated to the canonical `[REPORT]` / `[DESC]` markers on the first open+save. Previously these lines were silently dropped on save, causing silent loss of subtask reports in older task files.
-- **Fixed**: YAML block scalar serializer no longer pads truly empty lines with two spaces, so the frontmatter `report: |` block stays byte-stable across open/save round-trips (no cosmetic git diff noise).
-
-## 0.8.0 — 2026-06-04 — "Project Daemon"
-
-- **Added**: Per-project web daemon — `kandown` now starts/reconnects a background server by default so the browser keeps working after quitting the TUI.
-- **Added**: `kandown daemon start|stop|status` commands for explicit daemon lifecycle control.
-- **Added**: TUI daemon status and `d` shortcut to start/stop the current project's web daemon without leaving the board.
-- **Changed**: The board TUI has a more colorful, user-friendly header, column accents, daemon status pill, and clearer status/hint area.
-- **Changed**: New `.kandown/` installs ignore daemon runtime metadata via `.kandown/.gitignore`.
-- **Fixed**: Restarting the daemon from the TUI preserves the last custom port used by the project.
-
-## 0.7.5 — 2026-06-04 — "TUI Drag"
-
-- **Added**: Real terminal drag-and-drop in the TUI board — press a task, drag over another column, and release to move it.
-- **Fixed**: TUI rendering now uses Ink's managed alternate screen with a fixed-height root frame, preventing duplicated/glitchy scrollback redraws.
-- **Fixed**: TUI mouse control sequences are now written through Ink's stdout helper and button-motion tracking is enabled for drag events.
-- **Changed**: TUI board mouse handling now follows the Herdr-style press → drag → hover target → release commit flow while keeping click menus and keyboard moves as fallbacks.
-
-## 0.7.4 — 2026-06-04 — "Move Sync"
-
-- **Fixed**: Web drag-and-drop in CLI server mode now persists task moves to `tasks/*.md` instead of only updating optimistic UI state.
-- **Fixed**: Web ↔ TUI sync after task moves — moved tasks now keep their new status after server polling reloads the board.
-- **Changed**: Column order persistence now uses the shared filesystem adapter in both browser File System Access mode and CLI REST server mode.
-
-## 0.7.3 — 2026-06-04 — "Port Reclaim"
-
-- **Added**: Stale process detection — when `kandown` detects its preferred port (2048) is already occupied by another kandown process for the same project, it automatically kills the zombie and reclaims the port instead of silently moving to 2049.
-- **Added**: Cross-project awareness — if the port is occupied by a kandown from a *different* project, the port is skipped and the next available port is used (no interference between projects).
-- **Added**: Non-kandown processes on the target port are left untouched — only kandown zombies are auto-cleaned.
-- **Changed**: `listenOnAvailablePort()` now includes a `detectStaleKandown()` pre-check that inspects the process command line and working directory before attempting to listen.
-
-## 0.7.2 — 2026-06-04 — "Live Sync"
-
-- **Fixed**: CLI TUI watcher — `persistent: true` removed (obsolete in chokidar v4, could prevent events), `stabilityThreshold` 50→25ms, `alwaysStat: true` added for reliable change detection.
-- **Fixed**: CLI TUI polling fallback tightened from 500ms to 300ms for faster external change detection.
-- **Fixed**: Web app `reloadBoard()` was a dead no-op in local File System Access API mode — `if (!isServerMode()) return;` blocked all watcher-driven refreshes. Added full local-mode path that reads from `FileSystemDirectoryHandle` and rebuilds the board.
-- **Fixed**: Web app server mode (when served via `npx kandown`) had no file watcher at all — `setupWatcher()` was never called. Added REST API polling every 2 seconds so the board stays in sync with external edits.
-- **Changed**: Browser-side `FileWatcher` polling interval 500→300ms, debounce delay 200→150ms for snappier sync.
-- **Changed**: `openServerProject()` now calls `setupWatcher()` to activate server-mode polling on open.
-
-## 0.7.1 — 2026-06-04 — "Mouse v2"
-
-- **Fixed**: Complete rewrite of mouse support — no more stdin interception (fragile with Ink). Mouse sequences are now detected directly inside Ink's `useInput` handler.
-- **Fixed**: Context menu now renders INLINE within the column, directly under the task that was clicked — not at a calculated global offset.
-- **Fixed**: Mouse click detection now correctly accounts for Ink stripping the ESC prefix from sequences.
-- **Added**: `m` key opens context menu on the focused task (full keyboard support for all mouse features).
-- **Added**: `useMouseMode()` hook — simply enables terminal mouse tracking via ANSI codes, no stdin interception.
-- **Added**: `parseMouseInput()` — parses SGR mouse coordinates from Ink's useInput `input` string.
-- **Added**: `InlineContextMenu` component — compact 2-line menu rendered inside the column flow.
-- **Changed**: Menu options navigable with j/k + Enter (same as all other TUI interactions).
-- **Changed**: Header hint updates dynamically: shows mode-specific instructions (browse, context-menu, move-target).
-- **Changed**: Version displayed in TUI header (auto-read from package.json).
-
-## 0.7.0 — 2026-06-04 — "Mouse & Move"
-
-- **Added**: Full mouse support in the TUI board — click on tasks, menus, and move placeholders using SGR extended mouse mode (\x1b[?1006h) with X10 fallback.
-- **Added**: Context menu on task click — small, sober popup with "Open task" and "Move task" options (keyboard + mouse).
-- **Added**: Move-task flow — select "Move task" from context menu, then click a yellow ↓ placeholder in any other column to move the task there (drag-and-drop alternative for TUI).
-- **Added**: `useMouse` React hook (`src/cli/hooks/use-mouse.ts`) — enables terminal mouse tracking, parses SGR/X10 click events, passes keyboard data through to Ink.
-- **Added**: `TaskContextMenu` component (`src/cli/components/task-context-menu.tsx`) — reusable inline popup with j/k/Enter/Escape + click support.
-- **Added**: Version number displayed in TUI header next to KANDOWN logo (auto-read from package.json on every launch).
-- **Added**: Move-target placeholder component with yellow highlight, keyboard navigation (←/→), and click-to-move.
-- **Added**: Click-outside-to-cancel for context menu and move mode.
-- **Changed**: Board header hint dynamically updates based on current mode (browse, context-menu, move-target).
-- **Changed**: Board screen refactored to 5 modes: browse, detail, agent-picker, context-menu, move-target.
-
-## 0.6.1 — 2026-06-04 — "Server Mode Fixes"
-
-- **Fixed**: Dark/light mode toggle was broken in CLI server mode — `updateConfig` and `loadConfig` silently returned when `dirHandle` was null.
-- **Fixed**: Settings button appeared to quit the project in server mode — `SettingsPage` refused to render without a `dirHandle`.
-- **Fixed**: Server-mode project name displayed `.kandown` instead of the actual project name (`kandown`).
-- **Changed**: Dev server default port moved from 5173 to 5176.
-
-## 0.6.0 — 2026-06-03 — "Auto-Updater v2"
-
-- **Added**: Non-blocking auto-updater using async `spawn` instead of `execSync` — CLI no longer freezes during update checks.
-- **Added**: Lock file (`.update.lock`) with 60s auto-expiry to prevent concurrent update races.
-- **Added**: pnpm fallback — tries `pnpm install -g` if `npm install -g` fails.
-- **Added**: Post-install version verification — confirms the update actually landed before respawning.
-- **Added**: `--no-update-check` flag — respawned children skip the update loop.
-- **Added**: `resolveKandownBin()` — resolves the global kandown binary across npm/pnpm installs.
-- **Added**: `semverGt()` — proper semver comparison replacing string equality checks.
-- **Changed**: Graceful fallback on every failure point — update failure never crashes the CLI, current version continues normally.
-- **Changed**: Removed dead code (unused `isMacos` variable, unnecessary `--experimental-vm-modules` injection).
-- **Fixed**: Respawn logic now works for both global installs and npx.
-
-## 0.5.0 — 2026-06-03 — "Minor Update"
-
-- **Added**: Graph visualization output directory with cache, metadata, and an HTML viewer.
-- **Added**: DESIGN_IMPROVEMENTS.md documentation file.
-- **Audit**: Source code analysis audit added.
-- **Chore**: Refreshed generated graph output.
-
-## 0.4.0 — 2026-05-04 — "CLI Launch Fix"
-
-- **Added**: BlockNote now powers task description editing with a markdown-native schema and anti-pollution guards.
-- **Added**: Syntax-highlighted code blocks in the BlockNote editor.
-- **Added**: Premium semantic design system updates, refreshed header components, and Cobalt as the default skin.
-- **Added**: Tags now render with strikethrough when every task using that tag is Done.
-- **Fixed**: `kandown` server mode no longer injects `window.__KANDOWN_ROOT__` into bundled JavaScript when parser strings contain literal `</head>`.
-- **Fixed**: Single-file HTML builds now repair escaped regex lookbehind openers from inlined Shiki grammars, preventing browser syntax crashes on launch.
-- **Fixed**: Dark-mode readability across UI components and BlockNote code blocks.
-- **Changed**: Component styling now consistently uses semantic color variables.
-- **Changed**: Embed output was simplified for cleaner markdown.
-- **Removed**: Obsolete placeholder project-board tasks.
-
-## 0.3.5 — 2026-04-25 — "Server Mode Task CRUD Fix"
-
-- **Fixed**: Task creation, deletion, drawer save, and board reload now work in server mode (`kandown` CLI) — all mutations go through the REST API instead of requiring `tasksDirHandle`.
-- **Changed**: Server-mode store actions no longer require `tasksDirHandle` — they pass `null` to `filesystem.ts` helpers which bypass it when `isServerMode()` is true.
-- **Changed**: `moveTask` and `reorderInColumn` skip file persistence in server mode (full reload handles sync).
-- **Added**: `readAllTasksServer()` — reads all tasks via the REST API for board reload in server mode.
-- **Changed**: README now strongly recommends `npm install -g kandown` over `npx`.
-
-## 0.3.4 — 2026-04-25 — "Browser Ready Check"
-
-- **Fixed**: `openInBrowser()` now waits up to 2s for the server to be ready (via HTTP HEAD probe) before opening the URL, preventing `ERR_UNSAFE_PORT` and race conditions when multiple instances start simultaneously.
-- **Fixed**: Port range scan improved — always starts from 2048 when no explicit port is set.
-
-## 0.3.3 — 2026-04-25 — "Auto-update Loop Fix"
-
-- **Fixed**: Auto-update now spawns the newly installed global binary directly (via `npm prefix`), preventing `npx` from re-resolving the old cached version and causing an infinite update loop.
-- **Fixed**: `npx kandown` now auto-refreshes `kandown.html` on every serve, so CLI upgrades propagate to the web UI without needing a separate `kandown update`.
-
-## 0.3.0 — 2026-04-25 — "Server Mode"
-
-- **Added**: Full REST API server in `bin/kandown.js` for all file operations (`GET/PUT /api/config`, `/api/board`, `/api/tasks`, `/api/tasks/:id`)
-- **Added**: `src/lib/filesystem.ts` server-mode helpers that proxy all file operations to the CLI REST API via `fetch()`
-- **Added**: `openServerProject()` store action — auto-loads the project on mount with zero user interaction when served via `npx kandown`
-- **Added**: `isServerMode()` detection and `getServerRoot()` path accessor
-- **Changed**: Board now renders when `isOpen` is true (server mode) OR `dirHandle` is set (file mode)
-- **Changed**: CLI HTTP server routes `/api/*` to `handleApi()` with full CRUD for config, board, and tasks
-- **Changed**: EmptyState shows loading spinner during server-mode auto-load, then a passive message (no button needed)
-- **Fixed**: Command palette is now exactly centered in the middle of the screen
-- **Fixed**: When a new task is created, the title and description are now empty by default, and the editor drawer opens natively focusing the title
-
-## 0.2.3 — 2026-04-20 — "EmptyState Server Mode Fix"
-
-- **Fixed**: When served via `npx kandown`, the web app now detects server mode and shows a contextual "Open this project" button instead of the generic select-folder UI. User grants folder access once, browser remembers it for next time.
-
-## 0.2.2 — 2026-04-20 — "Header Version Badge"
-
-- **Added**: Version badge (`v0.2.2`) displayed in red in the web app header, top-left, next to the logo.
-
-## 0.2.1 — 2026-04-20 — "Auto-Open Fix"
-
-- **Fixed**: `npx kandown` now auto-opens the correct project in the web UI instead of showing the empty "Select a project" screen. The CLI injects `window.__KANDOWN_ROOT__` and the app tries to match it against previously granted folder permissions on mount.
-
-## 0.2.0 — 2026-04-20 — "Version Display + Auto-Update"
-
-- **Added**: `kandown -v` / `--version` flag — prints the current CLI version.
-- **Added**: Version displayed in CLI help banner, TUI settings header, and web app Settings "About" section.
-- **Added**: Web app Settings now has an "About" section showing current version and a manual update check against the npm registry.
-- **Changed**: CLI auto-update now runs before **every** command (not just `kandown` with no args). If a new version is found, runs `npm install -g kandown` and respawns — no prompt, no ask.
-- **Changed**: `kandown help` shows the current version in the banner.
-- **Added**: Bracket tags (e.g. `[optimization]`) in task titles are now rendered bold next to the task ID on board cards.
-- **Added**: `scripts/inject-version.js` — generates `src/lib/version.ts` at build time from `package.json` version. `package.json` is the single source of truth for version.
-
-## 0.1.5 — 2026-04-20 — "Live Reload + Auto-Update"
-
-- **Added**: CLI checks for a newer npm version on startup (non-blocking, background check). Warns if the user is outdated.
-- **Added**: Live file watching in the TUI — board auto-reloads when task files or `kandown.json` change. No need to press `r`.
-- **Changed**: `npx kandown` now auto-inits `.kandown/` if not found — zero manual setup required.
-- **Fixed**: TUI crashed on fresh install with `Cannot find package 'react-devtools-core'`.
-- **Fixed**: TUI crashed with `Dynamic require of "assert" is not supported` in Node.js ESM context.
-- **Fixed**: `self is not defined` error — added self/window polyfills and `DEV=false` to prevent Ink from loading react-devtools-core.
-- Added `chokidar` and `signal-exit` as explicit runtime dependencies.
-
-## 0.1.3 — 2026-04-20 — "CLI Launch Fix"
-
-- **Fixed**: TUI crashed on fresh install with `Cannot find package 'react-devtools-core'` — promoted `react-devtools-core` from optional peer dep to regular dependency so npm installs it for users.
-
-## 0.1.2 — 2026-04-19 — "Zero Deps"
-
-- **Fixed**: `npx kandown init` was hanging because npm had to install 11 runtime dependencies (React, Three.js, Ink, etc.) before running the CLI. All dependencies are now bundled into the CLI binary — the published package has zero runtime deps.
-- Moved all dependencies to devDependencies — the web app and TUI are fully pre-built.
-- Added auto-bump rule to AGENTS.md for critical bug fixes.
-
-## 0.1.1 — 2026-04-19 — "Release Pipeline"
-
-- Added pre-release warning banner in README.
-- Fixed `package.json` bin path and repository URL normalization (`npm pkg fix`).
-- Added GitHub Actions workflow for automated npm publishing on version tags.
-- Added version name system and changelog-in-commit-body requirement to bump instructions.
-
-## 0.1.0 — 2026-04-19 — "Pre-Alpha"
-
-First release. File-based Kanban engine backed by plain markdown — zero backend, zero database, no account, AI-agent friendly.
-
-### Core
-
-- Task files (`tasks/*.md`) are the single source of truth — title, status, order, priority, tags, assignee, subtasks, notes, and completion reports all live in one markdown file per task.
-- Board columns derived from task frontmatter `status` field, with custom columns stored in `kandown.json`.
-- Unknown task statuses appear as temporary columns in the UI until explicitly added to settings.
-- Drag-and-drop between columns with optimistic file writes and automatic rollback on failure.
-- Reorder tasks within a column by drag.
-- Task drawer for editing title, metadata fields, subtasks, and body content with 150ms debounced autosave.
-- Subtask progress tracking on board cards (checkbox count).
-- Guarded card deletion — hover trash icon, first click arms, second click confirms.
-- Keyboard shortcut `⌘⌫` / `Ctrl+Backspace` to delete current task from the drawer after confirmation.
-
-### Web Application
-
-- Single-file web app (`kandown.html`) built with React 19, Vite, Tailwind CSS, and Zustand.
-- Uses the browser File System Access API — no server needed, works offline.
-- Board view and list view, toggled with `⌘1` / `⌘2`.
-- Command palette (`⌘K`) for quick actions and task search.
-- Content search across titles, IDs, task body, subtasks, tags, assignee, and priority with highlighted preview snippets on cards.
-- Owner type filtering (human vs AI-agent tasks).
-- Filter bar with search input, active chips, and clear action.
-- Recent projects stored in IndexedDB for quick reopening.
-- Animated task counts with spring transitions.
-
-### Appearance
-
-- Project-level theme modes: `auto` (follows system), `light`, `dark`.
-- 5 built-in skins: Kandown (default), Graphite, Sage, Cobalt, Rose — all using shadcn-compatible CSS tokens.
-- 5 font presets: Inter, System, Serif, Mono, Rounded.
-- Column color accents with expanded translucent backgrounds including black variants.
-- Cards blend into colored columns (50% white in light mode, 50% black in dark mode).
-- Tabler icons on board column headers for status visual scanning.
-
-### Settings
-
-- Dense settings sidebar with search, compact controls, and contextual hover help.
-- Configurable task metadata fields (priority, assignee, tags, due date, owner type, tools) — disabled fields hide across drawer, cards, list view, and filters.
-- Configurable notifications: browser alerts, in-page sound cues, status-change alerts, debounced edit alerts, subtask-completion alerts.
-
-### Internationalization
-
-- 33+ languages supported, including: English, French, Chinese, Japanese, Korean, Spanish, Portuguese, German, Italian, Russian, Arabic, Hindi, Thai, Malay, Tamil, Telugu, and more.
-- Localized UI labels, settings descriptions, and filter controls.
-
-### CLI
-
-- `npx kandown init` — scaffolds `.kandown/` with web app, config, templates, and AI-agent documentation.
-- `npx kandown` — starts a zero-dependency local HTTP server + opens the browser + launches the board TUI.
-- `npx kandown board` — interactive kanban board TUI only (Ink / React for terminals).
-- `npx kandown update` — replaces installed `kandown.html` with latest package build.
-- `npx kandown settings` — terminal settings editor for `kandown.json`.
-- Automatic port fallback from 2048 to 2060, or `--port <n>` for a specific port.
-- `--path`, `--force`, `--no-agents` init flags.
-
-### Board TUI
-
-- Full-screen terminal kanban built with Ink — renders the same columns and tasks as the web UI.
-- Vim-style navigation (`h/j/k/l`) and arrow keys.
-- Task detail view with scrollable content (`Enter`).
-- Agent picker (`a` key) — auto-detects installed AI agents (Claude Code, Codex, Gemini CLI, Goose, Aider, OpenCode).
-- Sets task to "In Progress" and injects system prompt from `AGENT_KANDOWN_COMPACT.md`.
-- tmux integration: opens agent in a split pane if inside tmux, otherwise hands over the terminal.
-
-### AI-Agent Integration
-
-- `AGENT_KANDOWN.md` — full agent instructions shipped with `kandown init`, teaches AI agents how to create, move, and complete tasks.
-- `AGENT_KANDOWN_COMPACT.md` — condensed version injected into CLI agent prompts.
-- Task files designed for AI readability — one file per task, frontmatter-based state, no index synchronization needed.
-
-### Infrastructure
-
-- GitHub Actions workflow for automated npm publishing on version tags (`v*`).
-- Annotated release tags with version names.
-- Changelog-based GitHub Releases.
+<!-- Generated by `pnpm changelog` from ./changelogs/ — do not edit by hand. -->
+
+Every release has its own file in [`changelogs/`](changelogs/). This page is
+the index; click a version for the full notes.
+
+## Unreleased
+
+**[Two Views](changelogs/unreleased.md)** — 2 fixed · 4 changed
+
+## 2026
+
+| Version | Date | Release | Changes |
+|---|---|---|---|
+| [0.36.0](changelogs/v0.36.0.md) | 2026-07-26 | Local Web App | 2 added · 1 fixed · 1 changed · 1 cleaned |
+| [0.35.1](changelogs/v0.35.1.md) | 2026-07-26 | Light Identity | 1 added · 4 changed · 1 removed |
+| [0.35.0](changelogs/v0.35.0.md) | 2026-07-25 | House Green | 2 added · 3 fixed · 2 changed · 1 cleaned |
+| [0.34.3](changelogs/v0.34.3.md) | 2026-07-24 | Motion Polish — Drag Fix | 1 fixed |
+| [0.34.2](changelogs/v0.34.2.md) | 2026-07-24 | Motion Polish | 1 fixed |
+| [0.34.1](changelogs/v0.34.1.md) | 2026-07-24 | CLI Modular Refactor | 1 added · 2 fixed · 1 changed |
+| [0.34.0](changelogs/v0.34.0.md) | 2026-07-24 | Quick-Wins Collection | 4 added · 4 fixed · 3 changed |
+| [0.33.6](changelogs/v0.33.6.md) | 2026-07-24 | Subdirectory Project Discovery | 1 fixed |
+| [0.33.5](changelogs/v0.33.5.md) | 2026-07-24 | Sidebar Task Switch Fix | 1 added · 1 fixed · 2 changed |
+| [0.33.4](changelogs/v0.33.4.md) | 2026-07-21 | Daemon Update Recovery | 3 fixed · 2 changed |
+| [0.33.3](changelogs/v0.33.3.md) | 2026-07-21 | CLI Recovery | 1 added · 9 fixed · 1 changed |
+| [0.33.2](changelogs/v0.33.2.md) | 2026-07-21 | Fix CJS Require Shim & Path Resolution | 2 fixed |
+| [0.33.1](changelogs/v0.33.1.md) | 2026-07-21 | Instant TUI & Browser Launcher Fix | 2 fixed |
+| [0.33.0](changelogs/v0.33.0.md) | 2026-07-21 | Universal Auto-Updater & Web UI Prompt Engine | 5 added |
+| [0.32.2](changelogs/v0.32.2.md) | 2026-07-21 | Reliable Auto-Updater Engine | 3 fixed |
+| [0.32.1](changelogs/v0.32.1.md) | 2026-07-21 | CLI Modularization & Updater Speed | 1 added · 1 fixed |
+| [0.32.0](changelogs/v0.32.0.md) | 2026-07-21 | 38 Modern Fable UI Themes Collection | 2 added |
+| [0.31.0](changelogs/v0.31.0.md) | 2026-07-21 | Fable UI Themes Overhaul | 2 added · 2 changed |
+| [0.30.1](changelogs/v0.30.1.md) | 2026-07-21 | Fix Auto-Updater Crash | 1 fixed |
+| [0.30.0](changelogs/v0.30.0.md) | 2026-07-21 | Fable UI Themes | 7 added · 1 changed |
+| [0.29.0](changelogs/v0.29.0.md) | 2026-07-20 | Global Daemon Refresh | 2 added · 1 fixed · 2 changed |
+| [0.28.1](changelogs/v0.28.1.md) | 2026-07-20 | Robust Global Auto-Updater | 3 fixed |
+| [0.28.0](changelogs/v0.28.0.md) | 2026-07-20 | Agent Instruction Modes & CLI Reference | 5 added |
+| [0.27.1](changelogs/v0.27.1.md) | 2026-07-20 | Auto-Updater & Daemon Process Upgrade | 3 fixed |
+| [0.27.0](changelogs/v0.27.0.md) | 2026-07-20 | Unified Views | 4 added · 1 changed |
+| [0.26.0](changelogs/v0.26.0.md) | 2026-07-20 | Task Workspace | 3 added · 2 fixed · 2 changed |
+| [0.25.1](changelogs/v0.25.1.md) | 2026-07-20 | Stale Daemon Refresh | 2 fixed · 1 changed |
+| [0.25.0](changelogs/v0.25.0.md) | 2026-07-20 | Task Deep Links | 4 added · 1 fixed · 2 changed |
+| [0.24.0](changelogs/v0.24.0.md) | 2026-07-20 | Work Output Configurator | 5 added · 1 fixed · 2 changed |
+| [0.23.0](changelogs/v0.23.0.md) | 2026-07-20 | Theme Switcher & Auto Update | 1 added · 3 fixed · 2 changed |
+| [0.22.0](changelogs/v0.22.0.md) | 2026-07-20 | Sectioned List View | 3 added · 1 fixed · 1 changed |
+| [0.21.7](changelogs/v0.21.7.md) | 2026-07-20 | Web UI Vector Logo & CLI Changelog Fix | 1 added · 1 fixed |
+| [0.21.6](changelogs/v0.21.6.md) | 2026-07-20 | Favicons & CI Workflow Fix | 2 added · 1 fixed |
+| [0.21.3](changelogs/v0.21.3.md) | 2026-07-20 | Editor Text Colors & Highlights | 1 fixed |
+| [0.21.2](changelogs/v0.21.2.md) | 2026-07-20 | Pre-Bump Manual Validation | 1 added · 1 fixed |
+| [0.21.1](changelogs/v0.21.1.md) | 2026-07-20 | CLI Live Changelog | 2 added · 1 changed |
+| [0.21.0](changelogs/v0.21.0.md) | 2026-07-20 | Fable Features & Integrated MCP | 15 added · 1 changed |
+| [0.20.0](changelogs/v0.20.0.md) | 2026-07-19 | No More Stale Copies | 3 changed |
+| [0.19.1](changelogs/v0.19.1.md) | 2026-07-19 | Migration Fixes | 2 fixed |
+| [0.19.0](changelogs/v0.19.0.md) | 2026-07-19 | Upgrade Notices | 1 added · 1 fixed · 1 changed |
+| [0.18.0](changelogs/v0.18.0.md) | 2026-07-19 | Agent Workflow | 2 added · 1 fixed · 2 changed |
+| [0.17.2](changelogs/v0.17.2.md) | 2026-07-19 | CLI Hardening | 2 added · 3 fixed · 1 changed |
+| [0.17.1](changelogs/v0.17.1.md) | 2026-07-08 | Column Reorder | 1 fixed · 2 changed |
+| [0.17.0](changelogs/v0.17.0.md) | 2026-07-08 | Column Reorder | 1 added · 1 fixed |
+| [0.16.0](changelogs/v0.16.0.md) | 2026-07-08 | Compact Mode | 2 added · 1 changed · 1 removed |
+| [0.15.4](changelogs/v0.15.4.md) | 2026-07-08 | Update Animation | 1 added · 1 fixed |
+| [0.15.3](changelogs/v0.15.3.md) | 2026-07-08 | Cosmetic Change | 1 changed |
+| [0.15.2](changelogs/v0.15.2.md) | 2026-07-07 | Safe Ports | 1 fixed |
+| [0.15.1](changelogs/v0.15.1.md) | 2026-07-07 | Parallel Daemons | 1 fixed |
+| [0.15.0](changelogs/v0.15.0.md) | 2026-07-07 | Boot Splash | 2 added |
+| [0.14.1](changelogs/v0.14.1.md) | 2026-07-07 | Resilience Pass | 6 added · 13 fixed |
+| [0.14.0](changelogs/v0.14.0.md) | 2026-06-26 | Task Groups | 4 added · 1 changed |
+| [0.13.1](changelogs/v0.13.1.md) | 2026-06-20 | Transparent Favicon | 1 fixed |
+| [0.13.0](changelogs/v0.13.0.md) | 2026-06-20 | TUI Agents | 5 added · 2 fixed |
+| [0.12.0](changelogs/v0.12.0.md) | 2026-06-18 | Top-Level Tasks | 3 added · 1 fixed · 6 changed |
+| [0.11.2](changelogs/v0.11.2.md) | 2026-06-17 | TUI Category Cards | 1 fixed |
+| [0.11.1](changelogs/v0.11.1.md) | 2026-06-17 | TUI Category Cards | 2 added · 3 changed |
+| [0.11.0](changelogs/v0.11.0.md) | 2026-06-16 | Lean Drawer | 1 changed · 3 removed |
+| [0.10.1](changelogs/v0.10.1.md) | 2026-06-16 | Clean Drawer | 1 removed |
+| [0.10.0](changelogs/v0.10.0.md) | 2026-06-16 | Linear Look | 2 fixed · 4 changed · 1 removed |
+| [0.9.0](changelogs/v0.9.0.md) | 2026-06-16 | Archive & Markdown | 2 added · 2 fixed · 1 changed · 1 removed |
+| [0.8.0](changelogs/v0.8.0.md) | 2026-06-04 | Project Daemon | 3 added · 1 fixed · 2 changed |
+| [0.7.5](changelogs/v0.7.5.md) | 2026-06-04 | TUI Drag | 1 added · 2 fixed · 1 changed |
+| [0.7.4](changelogs/v0.7.4.md) | 2026-06-04 | Move Sync | 2 fixed · 1 changed |
+| [0.7.3](changelogs/v0.7.3.md) | 2026-06-04 | Port Reclaim | 3 added · 1 changed |
+| [0.7.2](changelogs/v0.7.2.md) | 2026-06-04 | Live Sync | 4 fixed · 2 changed |
+| [0.7.1](changelogs/v0.7.1.md) | 2026-06-04 | Mouse v2 | 4 added · 3 fixed · 3 changed |
+| [0.7.0](changelogs/v0.7.0.md) | 2026-06-04 | Mouse & Move | 8 added · 2 changed |
+| [0.6.1](changelogs/v0.6.1.md) | 2026-06-04 | Server Mode Fixes | 3 fixed · 1 changed |
+| [0.6.0](changelogs/v0.6.0.md) | 2026-06-03 | Auto-Updater v2 | 7 added · 1 fixed · 2 changed |
+| [0.5.0](changelogs/v0.5.0.md) | 2026-06-03 | Minor Update | 2 added |
+| [0.4.0](changelogs/v0.4.0.md) | 2026-05-04 | CLI Launch Fix | 4 added · 3 fixed · 2 changed · 1 removed |
+| [0.3.5](changelogs/v0.3.5.md) | 2026-04-25 | Server Mode Task CRUD Fix | 1 added · 1 fixed · 3 changed |
+| [0.3.4](changelogs/v0.3.4.md) | 2026-04-25 | Browser Ready Check | 2 fixed |
+| [0.3.3](changelogs/v0.3.3.md) | 2026-04-25 | Auto-update Loop Fix | 2 fixed |
+| [0.3.0](changelogs/v0.3.0.md) | 2026-04-25 | Server Mode | 4 added · 2 fixed · 3 changed |
+| [0.2.3](changelogs/v0.2.3.md) | 2026-04-20 | EmptyState Server Mode Fix | 1 fixed |
+| [0.2.2](changelogs/v0.2.2.md) | 2026-04-20 | Header Version Badge | 1 added |
+| [0.2.1](changelogs/v0.2.1.md) | 2026-04-20 | Auto-Open Fix | 1 fixed |
+| [0.2.0](changelogs/v0.2.0.md) | 2026-04-20 | Version Display + Auto-Update | 5 added · 2 changed |
+| [0.1.5](changelogs/v0.1.5.md) | 2026-04-20 | Live Reload + Auto-Update | 2 added · 3 fixed · 1 changed |
+| [0.1.3](changelogs/v0.1.3.md) | 2026-04-20 | CLI Launch Fix | 1 fixed |
+| [0.1.2](changelogs/v0.1.2.md) | 2026-04-19 | Zero Deps | 1 fixed |
+| [0.1.1](changelogs/v0.1.1.md) | 2026-04-19 | Release Pipeline | — |
+| [0.1.0](changelogs/v0.1.0.md) | 2026-04-19 | Pre-Alpha | — |

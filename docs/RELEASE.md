@@ -69,23 +69,35 @@ If it is genuinely ambiguous, ask: "patch, minor, or major?"
 Every release carries a short **name** — one to three words capturing the main
 change ("Pre-Alpha", "Content Search", "TUI Agents", "Motion Polish").
 
-If the user gave one, use it verbatim. If they forgot, suggest one based on the
-largest change and ask for confirmation. The name appears in the changelog heading
-and the tag annotation.
+**Pick it yourself and move on. Do not ask for confirmation.** If the user
+supplied a name, use it verbatim; otherwise name the release after its largest
+change and keep going. This is an explicit instruction from the project owner —
+stopping the release to validate a two-word label wastes a round trip on a
+decision that has never needed one. The name appears in the changelog heading and
+the tag annotation.
 
 ---
 
 ## 2. Write the changelog
 
-Add a new section at the top of `CHANGELOG.md`, directly below `# Changelog`:
+**One file per release.** Create `changelogs/v<version>.md` — never edit
+`CHANGELOG.md`, which is a generated index (see below).
 
 ```markdown
-## <version> — <YYYY-MM-DD> — "<name>"
+# <version> — <YYYY-MM-DD> — "<name>"
+
+## Added
+
+- …
 ```
 
-**In English, always** — regardless of the language of the conversation. The CLI
-parses this file and prints it in the terminal during auto-updates, `kandown
-update` and version notices, so it is read by every user in every locale.
+The `# ` heading is parsed by `scripts/build-changelog.js`, so its shape matters:
+`# <version> — <YYYY-MM-DD> — "<name>"`, em dashes, straight quotes around the
+name. `pnpm changelog:check` fails on anything else, and so does CI.
+
+**In English, always** — regardless of the language of the conversation. These
+notes ship in the npm package, become the GitHub release body, and are read by
+every user in every locale.
 
 Group the entries by type:
 
@@ -96,6 +108,23 @@ Group the entries by type:
 
 Describe each change with enough context to be understood by someone who did not
 write it. Never list bare filenames, and never omit an item because it seems small.
+
+If a `changelogs/unreleased.md` exists, it holds work already written up but not
+yet shipped: rename it to `changelogs/v<version>.md`, replace its
+`# Unreleased — "<name>"` heading with the released form, and fold anything new
+into it rather than creating a second file for the same release.
+
+### The index is generated
+
+`CHANGELOG.md` at the repository root is **built from `changelogs/`** by
+`scripts/build-changelog.js`. Do not hand-edit it — the pre-commit hook
+regenerates and stages it on every commit, so a manual edit is erased on the next
+one. Regenerate on demand with:
+
+```bash
+pnpm changelog          # rewrite the index
+pnpm changelog:check    # verify it is current (what CI runs)
+```
 
 ---
 
@@ -114,11 +143,11 @@ push, so a local failure is a guaranteed release failure.
 
 ```bash
 npm version <patch|minor|major> --no-git-tag-version
-git add package.json CHANGELOG.md
+git add package.json changelogs/ CHANGELOG.md
 git commit -m "$(cat <<'EOF'
 release: v<NEW_VERSION> — <NAME>
 
-<the full changelog section for this version, without the ## heading>
+<the full changelog file for this version, without the # heading>
 EOF
 )"
 git tag -a v<NEW_VERSION> -m "v<NEW_VERSION> — <NAME>"

@@ -316,6 +316,7 @@ Before your first change, read — in this order:
 | [`CODEMAP.md`](CODEMAP.md) | Every source file with a one-line summary — generated from JSDoc |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How the pieces fit and which invariants not to break |
 | [`docs/RELEASE.md`](docs/RELEASE.md) | The release runbook |
+| [`CHANGELOG.md`](CHANGELOG.md) | Index of every release — full notes live in [`changelogs/`](changelogs/) |
 
 The short version: **`bin/*.js` are build output, not source** — edit `src/cli/`
 instead. Every source file carries a JSDoc `@file` / `@description` header, `CODEMAP.md`
@@ -329,6 +330,16 @@ is generated from them on every commit, and CI fails if either drifts.
 | `pnpm build` | Version inject → agent-doc sync → typecheck → web → CLI |
 | `pnpm typecheck` | TypeScript, no emit |
 | `pnpm codemap` | Regenerate `CODEMAP.md` / `CODEMAP.json` |
+| `pnpm changelog` | Regenerate the `CHANGELOG.md` index from `changelogs/` |
+
+---
+
+## Changelog
+
+Every release has its own file in **[`changelogs/`](changelogs/)** —
+[`v0.36.0.md`](changelogs/v0.36.0.md), [`v0.35.1.md`](changelogs/v0.35.1.md), and so
+on back to `v0.1.0`. **[`CHANGELOG.md`](CHANGELOG.md)** is the generated index:
+every version with its date, release name and change counts.
 
 ---
 

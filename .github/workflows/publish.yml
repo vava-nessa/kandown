@@ -46,7 +46,10 @@ jobs:
             exit 0
           fi
           VERSION="${GITHUB_REF_NAME#v}"
-          NOTES=$(awk "/^## ${VERSION}/,/^## [0-9]/" CHANGELOG.md | head -n -1)
+          # 📖 One file per release (changelogs/vX.Y.Z.md) — read it directly
+          # instead of slicing a range out of the index. `tail -n +2` drops the
+          # `# 0.36.1 — … — "Name"` heading, which the release title repeats.
+          NOTES=$(tail -n +2 "changelogs/v${VERSION}.md")
           gh release create "$GITHUB_REF_NAME" \
             --title "v${VERSION}" \
             --notes "$NOTES"
