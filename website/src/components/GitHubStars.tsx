@@ -9,11 +9,6 @@
  * the repository twice in a row. Both are now inside one anchor, so the whole
  * group highlights and activates as the single thing it always was.
  *
- * 📖 **The border is gone on purpose.** A pill outline around the count boxed
- * it off from the mark next to it and made two controls out of one. Without it
- * the four parts read left to right as a single phrase, and the header's other
- * items (search, npm, menu) are unboxed too, so it now matches them.
- *
  * 📖 **The star is GitHub's own icon**, taken from Octicons at its native
  * 16×16 viewBox rather than redrawn — a hand-made star next to a real one reads
  * as slightly wrong without the viewer being able to say why. It inherits
@@ -21,32 +16,27 @@
  * is how GitHub renders it too; a gold star would pull the eye to the icon and
  * break the link into two visual pieces again.
  *
- * 📖 **SSR contract.** `useGithubStars` returns `count: null` and
- * `loading: true` on the first render, so both the server and the first client
- * render emit the same `—` placeholder and hydration finds matching markup. The
- * placeholder is deliberately narrow: `tabular-nums` plus a fixed minimum width
- * keeps the header from shifting when the real number lands.
+ * 📖 Layout, spacing and the loading placeholder come from `HeaderCountLink`,
+ * shared with the npm counterpart so the two cannot drift apart.
  *
  * @exports GitHubStars
- * @see website/src/components/SiteHeader.tsx — the only caller
+ * @see website/src/components/NpmDownloads.tsx — its twin
  */
 import { useGithubStars, formatStars } from '~/lib/githubStars'
+import { HeaderCountLink } from './HeaderCountLink'
 
 export function GitHubStars({ href }: { href: string }) {
   const { count, loading } = useGithubStars()
   const text = loading || count === null ? '—' : formatStars(count)
 
   return (
-    <a
+    <HeaderCountLink
       href={href}
-      target="_blank"
-      rel="noreferrer noopener"
-      aria-label={count === null ? 'Kandown on GitHub' : `Kandown on GitHub, ${count} stars`}
-      className="flex items-center gap-1.5 px-1.5 py-1 text-[12.5px] text-fg-muted transition-colors hover:text-fg"
+      ariaLabel={count === null ? 'Kandown on GitHub' : `Kandown on GitHub, ${count} stars`}
+      title="Stars on GitHub"
+      count={text}
     >
-      {/* 📖 The Octocat mark, kept from the standalone link this component
-          absorbed — it is what makes the destination recognisable before the
-          word is read. Now inside the anchor rather than beside it. */}
+      {/* 📖 Octicon `mark-github`, 16×16, verbatim. */}
       <svg
         width="16"
         height="16"
@@ -69,9 +59,6 @@ export function GitHubStars({ href }: { href: string }) {
       >
         <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z" />
       </svg>
-      {/* 📖 `min-w` reserves the width of a four-character count so the npm logo
-          to the right does not jump when `—` is replaced by the real figure. */}
-      <span className="min-w-[2.25ch] font-mono tabular-nums">{text}</span>
-    </a>
+    </HeaderCountLink>
   )
 }

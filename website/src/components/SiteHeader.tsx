@@ -19,8 +19,8 @@ import { Link } from '@tanstack/react-router'
 import { Wordmark } from './Logo'
 import { SearchTrigger } from './DocSearch'
 import { GitHubStars } from './GitHubStars'
+import { NpmDownloads } from './NpmDownloads'
 import { site } from '~/lib/site'
-import npmLogoUrl from '../../../npmjs.svg?url'
 
 // 📖 Every docs page is served by the `/docs/$` splat route, so links are
 // expressed as a slug passed through `params._splat` rather than a raw path.
@@ -88,15 +88,11 @@ export function SiteHeader() {
               repository announced twice by a screen reader. */}
           <GitHubStars href={site.repo} />
 
-          <a
-            href={site.npm}
-            target="_blank"
-            rel="noreferrer noopener"
-            aria-label="Kandown on npm"
-            className="p-1.5 transition-opacity hover:opacity-80 flex items-center"
-          >
-            <img src={npmLogoUrl} width="34" height="13" alt="" aria-hidden="true" />
-          </a>
+          {/* 📖 The npm wordmark used to be a bare link. It now carries the
+              download count in the same shape as the GitHub link beside it —
+              two numbers, read the same way, telling a visitor how used the
+              project is before they have to go looking. */}
+          <NpmDownloads href={site.npm} />
 
           <button
             type="button"
