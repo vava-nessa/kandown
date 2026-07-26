@@ -26,6 +26,8 @@ inside `website/`.
 | `pnpm build` | Build the search index, then build + prerender every page |
 | `pnpm start` | Serve the production build |
 | `pnpm search-index` | Rebuild the search index alone (after editing content mid-session) |
+| `pnpm llms` | Rebuild the `llms.txt` index and per-page Markdown twins |
+| `pnpm changelogs` | Rebuild the `/changelogs` assets from `<repo>/changelogs/` |
 | `pnpm typecheck` | TypeScript, no emit |
 
 ---
@@ -95,6 +97,41 @@ frame that can cut cleanly back to the beginning.
 Use WebM as the primary delivery format. A poster frame and MP4 fallback can be added during the
 integration pass once the recordings exist. Avoid GIFs because they are larger, look worse, and
 cannot respect reduced-motion preferences.
+
+---
+
+## The changelog page
+
+`/changelogs` exposes the per-release Markdown files that already ship with the
+Kandown package (`<repo>/changelogs/vX.Y.Z.md`). The site reads them, so a new
+release file in the repo becomes a new URL — `/changelogs/v0.37.0` —
+automatically, with no further wiring.
+
+Adding a release is therefore one step:
+
+1. Drop a `vX.Y.Z.md` file in `<repo>/changelogs/` whose H1 matches
+   `# 0.X.Y — YYYY-MM-DD — "Name"`. The build script rejects anything else.
+
+`scripts/build-changelogs.mjs` then parses every file, runs the body through the
+same `remark + rehype-shiki` pipeline the docs use, and emits three things under
+`public/changelogs/`:
+
+| File | Used by |
+|---|---|
+| `index.json` | The sidebar — year-grouped list of `{ slug, version, date, name }`. |
+| `vX.Y.Z.html` | The article body for one release, prerendered with Shiki highlighting. |
+| `vX.Y.Z/index.html` | The full React page, prerendered for the static host. |
+
+The sidebar and the rendered article are derived from the same parse, so the
+two cannot disagree about a version's date or codename. Like `llms.txt`, this
+directory is gitignored: edit a release file and the next `pnpm dev` /
+`pnpm build` regenerates everything.
+
+The route itself is a TanStack splat: `/changelogs` redirects to the latest
+release, and `/changelogs/$` serves every other slug with the same page
+component. Load data is split between `changelogs.ts` (the loader the browser
+uses) and `changelogs.server.ts` (a sibling module that reads from disk during
+prerender) — the client bundle therefore never imports `node:fs`.
 
 ---
 

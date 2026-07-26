@@ -534,3 +534,32 @@
     filter: none;
   }
 }
+
+/* ── Changelog body ───────────────────────────────────────────────────────── */
+
+/**
+ * 📖 Changelogs are denser than docs: long bullet lists grouped under short
+ * headings. The default `.prose` measure is fine, but the leading between
+ * bullets inside one section is too loose — 0.45rem turns a 12-bullet list
+ * into a scroll the visitor did not sign up for. The override keeps the
+ * outer rhythm of the docs while pulling bullets closer together.
+ */
+.changelog-body > h2 {
+  font-size: 1.25rem;
+  margin-top: 2.25rem;
+  padding-top: 1.25rem;
+}
+
+.changelog-body > h2:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.changelog-body li + li {
+  margin-top: 0.35rem;
+}
+
+.changelog-body > p {
+  margin-top: 0.9em;
+}

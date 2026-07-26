@@ -29,3 +29,8 @@ public/demo/
 public/docs/
 public/llms.txt
 public/llms-full.txt
+
+# 📖 The /changelogs page, generated from the per-release Markdown in
+# <repo>/changelogs/ by scripts/build-changelogs.mjs on every build. Source of
+# truth lives in the repo root, never here.
+public/changelogs/

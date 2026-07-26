@@ -1,15 +1,27 @@
 /**
  * @file src/components/SiteFooter.tsx
- * @description The site footer: wordmark, three link columns, licence line.
+ * @description The site footer: wordmark, three link columns, licence line,
+ * and a discreet changelog line at the very bottom.
  *
  * 📖 The docs columns mirror the top of `docsNav` rather than hard-coding a
  * second list, so a renamed page cannot leave a dead link down here.
+ *
+ * 📖 The bottom-row changelog line is the most discreet link on the site —
+ * no column header, no border, just `Changelog · vX.Y.Z` next to the MIT
+ * bar. Two reasons: it should not compete with the GitHub/npm/Issues links
+ * in the `Project` column, and the changelog is a *reference*, not a
+ * destination the visitor is being pushed toward.
  *
  * @exports SiteFooter
  */
 import { Link } from '@tanstack/react-router'
 import { Logo } from './Logo'
 import { site } from '~/lib/site'
+
+// 📖 Pinned to the latest release so the footer's "Changelog · vX.Y.Z" reads
+// as current. Update on release; a stale version is a small thing, but a
+// footer claiming the current release when it isn't would look like a bug.
+const LATEST_VERSION = '0.38.0'
 
 export function SiteFooter() {
   return (
@@ -48,6 +60,10 @@ export function SiteFooter() {
           <FooterExternal href={site.npm}>npm</FooterExternal>
           <FooterExternal href={site.issues}>Issues</FooterExternal>
           <FooterLink slug="project/contributing">Contributing</FooterLink>
+          {/* 📖 Same shape as the docs links above, but pointing at the
+              splat route. Lands on `/changelogs/v0.37.0` because the index
+              route redirects to the latest version. */}
+          <FooterChangelogLink>Changelog</FooterChangelogLink>
         </FooterColumn>
       </div>
 
@@ -64,7 +80,21 @@ export function SiteFooter() {
               {site.author}
             </a>
           </p>
-          <p>Zero backend · Zero database · No account · No telemetry</p>
+          {/* 📖 The most discreet link on the whole site: a single mono line
+              next to the licence and the product tagline, no label, no border.
+              Version is pinned at the top of the file so it stays one search
+              away when a release ships. */}
+          <p className="flex items-center gap-3">
+            <span>Zero backend · Zero database · No account · No telemetry</span>
+            <span aria-hidden="true">·</span>
+            <Link
+              to="/changelogs/$"
+              params={{ _splat: `v${LATEST_VERSION}` }}
+              className="transition-colors hover:text-fg"
+            >
+              Changelog · v{LATEST_VERSION}
+            </Link>
+          </p>
         </div>
       </div>
     </footer>
@@ -105,6 +135,23 @@ function FooterExternal({ href, children }: { href: string; children: React.Reac
       >
         {children}
       </a>
+    </li>
+  )
+}
+
+/** 📖 Points at the latest release — the splat route is the only one that
+ *  exists under `/changelogs/*`, so we redirect through it with the pinned
+ *  version rather than landing on a `notFound()`. */
+function FooterChangelogLink({ children }: { children: React.ReactNode }) {
+  return (
+    <li>
+      <Link
+        to="/changelogs/$"
+        params={{ _splat: `v${LATEST_VERSION}` }}
+        className="text-fg-muted transition-colors hover:text-fg"
+      >
+        {children}
+      </Link>
     </li>
   )
 }
