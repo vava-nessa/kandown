@@ -1,20 +1,25 @@
 /**
  * @file src/components/NpmDownloads.tsx
- * @description The `npm ⤓ 15k` link in the site header — the npm wordmark, a
- * download icon and the download count, as one anchor pointing at the package.
+ * @description The npm link in the site header — the wordmark and the word
+ * "npm" on the centre line, the download count hanging underneath, all one
+ * anchor pointing at the package.
  *
  * 📖 **The twin of `GitHubStars`.** Same anchor, same spacing, same loading
  * placeholder, all inherited from `HeaderCountLink`. The two sit next to each
  * other and any difference between them would read as a mistake rather than a
  * distinction.
  *
- * 📖 **Red, because the wordmark already is.** The npm logo is `#CB3837`, so a
- * muted grey count beside it looked like two unrelated things that happened to
- * touch. Colouring the icon and number to match binds them into one object and
- * tells you which ecosystem the number belongs to before you read it — the
- * GitHub link stays neutral for exactly the same reason, since GitHub's own
- * mark is monochrome. Hover deepens the red rather than switching hue, so the
- * feedback matches the grey link's behaviour without changing identity.
+ * 📖 **Neutral, not npm red.** The wordmark keeps its own colour because it is
+ * an image, but the download icon and the number are grey like their GitHub
+ * counterparts. Tinting each count to its service put two saturated marks in
+ * the quietest corner of the header and made the numbers louder than the logos
+ * above them, which is backwards.
+ *
+ * 📖 **The word "npm" is set beside the wordmark** even though the wordmark
+ * already reads "npm". At this size the logo works as a shape rather than as
+ * text, and the GitHub link next to it names itself in words — without the
+ * label the two links were not built the same way and the row looked
+ * accidental.
  *
  * 📖 **The wordmark is an `<img>`, not inline SVG**, because it is a registered
  * logo used verbatim and shared with the README badge — a copy pasted into this
@@ -45,25 +50,27 @@ export function NpmDownloads({ href }: { href: string }) {
       href={href}
       ariaLabel={count === null ? 'Kandown on npm' : `Kandown on npm, ${count} ${noun}`}
       title={`npm ${noun}`}
-      metricClassName="text-[#CB3837]"
       count={text}
       brand={
-        <img
-          src={npmLogoUrl}
-          width="34"
-          height="13"
-          alt=""
-          aria-hidden="true"
-          className="shrink-0"
-        />
+        <>
+          <img
+            src={npmLogoUrl}
+            width="26"
+            height="10"
+            alt=""
+            aria-hidden="true"
+            className="shrink-0"
+          />
+          <span>npm</span>
+        </>
       }
       metric={
         // 📖 Octicon `download`, 16×16, verbatim — the same source as the star
         // on the GitHub link, so the two icons share a weight and a corner
         // radius.
         <svg
-          width="10"
-          height="10"
+          width="8"
+          height="8"
           viewBox="0 0 16 16"
           fill="currentColor"
           aria-hidden="true"

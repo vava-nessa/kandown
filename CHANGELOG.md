@@ -9,6 +9,7 @@ the index; click a version for the full notes.
 
 | Version | Date | Release | Changes |
 |---|---|---|---|
+| [0.39.8](changelogs/v0.39.8.md) | 2026-07-26 | Under The Mark | 4 changed |
 | [0.39.7](changelogs/v0.39.7.md) | 2026-07-26 | Quieter Counts | 5 changed |
 | [0.39.6](changelogs/v0.39.6.md) | 2026-07-26 | Two Numbers | 1 added · 2 changed |
 | [0.39.5](changelogs/v0.39.5.md) | 2026-07-26 | One Link | 3 changed |

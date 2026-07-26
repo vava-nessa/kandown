@@ -1,7 +1,8 @@
 /**
  * @file src/components/GitHubStars.tsx
- * @description The `⬤ GitHub ★ 1.2k` link in the site header — mark, word, star
- * and count are one single anchor pointing at the repository.
+ * @description The GitHub link in the site header — the Octocat and the word
+ * "GitHub" on the centre line, the star count hanging underneath, all one anchor
+ * pointing at the repository.
  *
  * 📖 **One link, not two.** The header used to carry an Octocat mark and a
  * bordered star pill side by side: two separate anchors with the same `href`,
@@ -11,10 +12,9 @@
  *
  * 📖 **The star is GitHub's own icon**, taken from Octicons at its native
  * 16×16 viewBox rather than redrawn — a hand-made star next to a real one reads
- * as slightly wrong without the viewer being able to say why. It inherits
- * `currentColor` so the whole link lights up as a single unit on hover, which
- * is how GitHub renders it too; a gold star would pull the eye to the icon and
- * break the link into two visual pieces again.
+ * as slightly wrong without the viewer being able to say why. It is grey rather
+ * than gold: the number under the mark is supporting detail, and a coloured
+ * icon there pulls the eye away from the logo it belongs to.
  *
  * 📖 Layout, spacing and the loading placeholder come from `HeaderCountLink`,
  * shared with the npm counterpart so the two cannot drift apart.
@@ -34,7 +34,6 @@ export function GitHubStars({ href }: { href: string }) {
       href={href}
       ariaLabel={count === null ? 'Kandown on GitHub' : `Kandown on GitHub, ${count} stars`}
       title="Stars on GitHub"
-      metricClassName="text-[#B45309]"
       count={text}
       brand={
         <>
@@ -55,8 +54,8 @@ export function GitHubStars({ href }: { href: string }) {
       metric={
         // 📖 Octicon `star-fill`, 16×16, verbatim.
         <svg
-          width="10"
-          height="10"
+          width="8"
+          height="8"
           viewBox="0 0 16 16"
           fill="currentColor"
           aria-hidden="true"
