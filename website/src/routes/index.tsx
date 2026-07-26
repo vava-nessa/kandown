@@ -38,6 +38,7 @@ import HeroGeometric from '~/components/HeroGeometric'
 import { LogoMark } from '~/components/Logo'
 import { MorphingText } from '~/components/MorphingText'
 import { HomeStructuredData } from '~/components/StructuredData'
+import { CometCard } from '~/components/ui/comet-card'
 
 export const Route = createFileRoute('/')({
   component: Home,
@@ -132,13 +133,23 @@ function Hero() {
           </div>
 
           {/* 📖 The whole product lockup lives in one dark frame: mark, the
-              equation resolving into the name, then the install action. */}
-          <div className="animate-rise w-full max-w-[27rem] shrink-0 self-center rounded-3xl border border-white/15 bg-black/85 p-10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] backdrop-blur-2xl sm:p-14 lg:self-auto" style={{ animationDelay: '200ms' }}>
-            <div className="flex flex-col items-center justify-center">
-              <LogoMark size={220} />
-              <BrandLoop />
-            </div>
-            <CopyCommand command={INSTALL_COMMAND} className="mt-7 w-full border-white/20 bg-white text-black" />
+              equation resolving into the name, then the install action. The
+              frame is now a CometCard — a 3D-tilted interactive surface that
+              rotates toward the cursor and lights up with a soft glare on
+              hover, replacing the static rounded panel. The dark card itself
+              (background, border, padding, install command) sits inside the
+              CometCard so the CometCard owns the perspective and the inner
+              div owns the surface. */}
+          <div className="animate-rise w-full max-w-[27rem] shrink-0 self-center lg:self-auto" style={{ animationDelay: '200ms' }}>
+            <CometCard className="w-full">
+              <div className="rounded-2xl border border-white/15 bg-black/85 p-10 backdrop-blur-2xl sm:p-14">
+                <div className="flex flex-col items-center justify-center">
+                  <LogoMark size={220} />
+                  <BrandLoop />
+                </div>
+                <CopyCommand command={INSTALL_COMMAND} className="mt-7 w-full border-black/5 bg-[#f7ffd5]! text-black" />
+              </div>
+            </CometCard>
           </div>
         </div>
 
