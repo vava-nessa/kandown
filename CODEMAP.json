@@ -995,10 +995,17 @@
     },
     {
       "path": "src/components/settings/AboutVersionCard.tsx",
-      "lines": 139,
+      "lines": 197,
       "title": "Settings — About section version/update card",
       "summary": "Shows the running version, checks npm for a newer release, and can trigger the server-side self-update (serverApplyUpdate) followed by a page reload once the daemon confirms it restarted on the new build.",
       "exports": "AboutVersionCard"
+    },
+    {
+      "path": "src/components/settings/GitHubStarsRow.tsx",
+      "lines": 51,
+      "title": "src/components/settings/GitHubStarsRow.tsx",
+      "summary": "One row in the *About* section: a star + the live GitHub star count, the whole row linking to the repo.",
+      "exports": "GitHubStarsRow"
     },
     {
       "path": "src/components/settings/LanguageDropdown.tsx",
@@ -1492,6 +1499,13 @@
         }
       ],
       "exports": "supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverWriteTask, serverDeleteTask, serverMigrateTasks"
+    },
+    {
+      "path": "src/lib/githubStars.ts",
+      "lines": 122,
+      "title": "src/lib/githubStars.ts",
+      "summary": "Client-side GitHub star count for the Kandown web app, with a localStorage cache.",
+      "exports": "useGithubStars → hook returning `{ count, loading }` formatStars → compact formatter (\"1.2k\", \"12k\", \"1.2M\")"
     },
     {
       "path": "src/lib/globalErrors.ts",
