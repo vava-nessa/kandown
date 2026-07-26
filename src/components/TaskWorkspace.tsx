@@ -91,6 +91,7 @@ function TaskSection({ column, collapsed, activeTaskId, onToggle, onSelectTask }
                     columnName={column.name}
                     isActive={task.id === activeTaskId}
                     onSelect={onSelectTask}
+                    inline
                   />
                 ))}
               </div>

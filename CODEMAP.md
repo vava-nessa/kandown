@@ -105,14 +105,14 @@ source to edit instead.
 - **`Header.tsx`** · 462 lines — Top navigation bar for project switching, task search, filters, view mode, density, settings, command palette, reload, and task creation.
 - **`Icons.tsx`** · 182 lines — Centralizes small stroke icons used by the Kandown web UI.
 - **`KbdButton.tsx`** · 109 lines — A unified button component that handles icons, labels, and keyboard shortcuts with consistent styling and improved visibility.
-- **`ListRow.tsx`** · 490 lines — Renders a single task as a compact, Linear-style list item for the list view, with priority indicators, title, status, metadata badges, inline subtask progress slider, and hover quick actions.
+- **`ListRow.tsx`** · 711 lines — Renders a single task as a compact, Linear-style list item for the list view, with priority indicators, title, status, metadata badges, inline subtask progress slider, and hover quick actions.
 - **`ListView.tsx`** · 490 lines — Renders board columns as vertically stacked horizontal sections, with dense task rows, filter/search previews, task drops between sections, and vertical section reordering.
 - **`LogoSvg.tsx`** · 54 lines — Renders the official Kandown vector logo from logo.svg.
 - **`OnboardingTour.tsx`** · 117 lines — Quick guide on first launch introducing Kandown features.
 - **`SettingsPage.tsx`** · 348 lines — Dense settings workspace with an iOS-style sidebar, global option search, section navigation, and compact controls for kandown.json.
 - **`SubtaskEditor.tsx`** · 164 lines — Reusable checklist editor rendered below a task description in both the mobile drawer and desktop workspace.
 - **`SubtaskItem.tsx`** · 228 lines — Editable row for one markdown checklist item inside the task drawer, with toggle, text edit, enter-to-add, empty-backspace removal, and an expandable panel for per-subtask description and report notes.
-- **`TaskWorkspace.tsx`** · 559 lines — Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…
+- **`TaskWorkspace.tsx`** · 560 lines — Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…
 - **`ThemeCustomizerModal.tsx`** · 470 lines — Provides a visual editor for creating and tweaking custom JSON themes, adjusting HSL tokens, radius, shadows, glass, motion, and checking live WCAG 2.1 contrast compliance with JSON import/export capabilities.
 - **`ThemePreviewCard.tsx`** · 212 lines — Renders a live preview of a KandownTheme with isolated HSL tokens in a mini 3-column kanban board layout.
 - **`ThemeToggle.tsx`** · 83 lines — Light/dark mode switcher for the app header.

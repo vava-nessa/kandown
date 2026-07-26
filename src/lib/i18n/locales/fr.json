@@ -50,6 +50,7 @@
     "ownerAI": "🤖 IA"
   },
   "column": {
+    "noColumns": "Aucune colonne disponible.",
     "addTask": "Ajouter une tâche",
     "columnColor": "Couleur de la colonne",
     "color": "Couleur",
@@ -63,7 +64,9 @@
     "delete": "Supprimer la tâche",
     "confirmDelete": "Cliquez à nouveau pour supprimer",
     "archive": "Archiver la tâche",
-    "archiving": "Archivage…"
+    "archiving": "Archivage…",
+    "move": "Déplacer vers une liste",
+    "moving": "Déplacement…"
   },
   "drawer": {
     "close": "Fermer (Esc)",
