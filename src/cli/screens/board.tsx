@@ -89,6 +89,7 @@ import {
   FILTER_MODES,
   LIST_SORTS,
   type FilterMode,
+  type ListColumnPrefs,
   type ListSort,
   applyBoardFilter,
   buildListRows,
@@ -200,6 +201,11 @@ export function Board({ kandownDir, version }: BoardProps) {
   const [view, setView] = useState<'list' | 'board'>(() => loadConfig(kandownDir).tui.defaultView);
   const [showDetailPane, setShowDetailPane] = useState(() => loadConfig(kandownDir).tui.showDetailPane);
   const [listSort, setListSort] = useState<ListSort>(() => loadConfig(kandownDir).tui.listSort);
+  /** 📖 Which optional list columns to draw, from `tui.columns`. Re-read
+   * whenever kandown.json changes on disk (see the watcher below), so toggling
+   * a column in `kandown settings` is reflected in an already-open board
+   * without a restart. */
+  const [listColumns, setListColumns] = useState<ListColumnPrefs>(() => loadConfig(kandownDir).tui.columns);
   const [listIndex, setListIndex] = useState(0);
   const [listScroll, setListScroll] = useState(0);
   /** 📖 Re-select this task id once the rows have been rebuilt. Set by any
@@ -276,8 +282,8 @@ export function Board({ kandownDir, version }: BoardProps) {
 
   /** 📖 Shared by the renderer and the click handler — see computeListGeometry. */
   const listGeometry = useMemo(
-    () => computeListGeometry(listRows, listIndex, listScroll, listMaxHeight, termWidth()),
-    [listRows, listIndex, listScroll, listMaxHeight],
+    () => computeListGeometry(listRows, listIndex, listScroll, listMaxHeight, termWidth(), listColumns),
+    [listRows, listIndex, listScroll, listMaxHeight, listColumns],
   );
 
   // 📖 The geometry resolves the scroll offset; mirror it back into state so
@@ -409,6 +415,13 @@ export function Board({ kandownDir, version }: BoardProps) {
     });
     watcher.on('configChanged', () => {
       loadBoardInto();
+      // 📖 `kandown settings` writes the same file, so a column toggle there
+      // reaches an open board through the watcher rather than needing a restart.
+      try {
+        setListColumns(loadConfig(kandownDir).tui.columns);
+      } catch {
+        // Non-fatal — keep the columns we already have.
+      }
     });
     watcher.start(kandownDir);
     return () => { watcher.stop(); };

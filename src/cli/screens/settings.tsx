@@ -3,6 +3,11 @@
  * @description Interactive settings editor for kandown.json. Renders a navigable list
  * of all configuration options grouped by section. Auto-saves on every change.
  *
+ * 📖 The list is longer than a typical terminal, so it scrolls: the rendered
+ * window follows the focused row and the footer reports how many settings sit
+ * above and below it. Without this the trailing sections are clipped by the
+ * fixed-height frame in `app.tsx` with no indication that they exist.
+ *
  * 📖 Keyboard controls:
  *  ↑↓ — navigate between settings
  *  ←→ — cycle select/number values
@@ -127,6 +132,31 @@ const SETTINGS: SettingDef[] = [
   { key: 'fields.ownerType', label: 'Owner type', section: 'Fields', type: 'toggle' },
   { key: 'fields.tools', label: 'Tools', section: 'Fields', type: 'toggle' },
 
+  // Terminal UI
+  {
+    key: 'tui.defaultView',
+    label: 'Default view',
+    section: 'Terminal UI',
+    type: 'select',
+    options: ['list', 'board'],
+  },
+  { key: 'tui.showDetailPane', label: 'Detail pane under list', section: 'Terminal UI', type: 'toggle' },
+  {
+    key: 'tui.listSort',
+    label: 'List sort',
+    section: 'Terminal UI',
+    type: 'select',
+    options: ['status', 'age', 'priority', 'id'],
+  },
+  // 📖 List columns. ID and Description are deliberately absent: they are what
+  // makes a row identifiable, so they are not switchable. Everything else is.
+  { key: 'tui.columns.age', label: 'Column: Age', section: 'Terminal UI', type: 'toggle' },
+  { key: 'tui.columns.status', label: 'Column: Status', section: 'Terminal UI', type: 'toggle' },
+  { key: 'tui.columns.priority', label: 'Column: Priority', section: 'Terminal UI', type: 'toggle' },
+  { key: 'tui.columns.owner', label: 'Column: Owner', section: 'Terminal UI', type: 'toggle' },
+  { key: 'tui.columns.deps', label: 'Column: Dependencies', section: 'Terminal UI', type: 'toggle' },
+  { key: 'tui.columns.tags', label: 'Column: Tags', section: 'Terminal UI', type: 'toggle' },
+
   // Notifications
   { key: 'notifications.browser', label: 'Browser notifications', section: 'Notifications', type: 'toggle' },
   { key: 'notifications.statusChanges', label: 'Status changes', section: 'Notifications', type: 'toggle' },
@@ -143,7 +173,7 @@ const SETTINGS: SettingDef[] = [
 ];
 
 // 📖 Ordered sections for rendering — determines visual grouping
-const SECTIONS = ['Appearance', 'Agent', 'Board', 'Fields', 'Notifications'];
+const SECTIONS = ['Appearance', 'Agent', 'Board', 'Fields', 'Terminal UI', 'Notifications'];
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -156,6 +186,7 @@ const SECTION_ICONS: Record<string, string> = {
   Agent: '🤖',
   Board: '📋',
   Fields: '📝',
+  'Terminal UI': '⌨️',
   Notifications: '🔔',
 };
 
@@ -281,6 +312,42 @@ export function Settings({ kandownDir, version }: SettingsProps) {
 
   const showSaved = savedAt !== null;
 
+  // 📖 The settings list is taller than most terminals, and Ink clips whatever
+  // overflows the fixed-height frame in App — silently, with no scrollbar. So we
+  // window it ourselves around the focused row, otherwise the last sections are
+  // simply unreachable on a normal 40-row terminal.
+  //
+  // Budget: 2 lines of header, 2 of footer, and 3 per rendered section (title,
+  // rule, trailing margin). We assume every section could be on screen, which
+  // under-fills slightly rather than overflowing — the failure mode we can see
+  // is better than the one we cannot.
+  const termRows = process.stdout.rows || 24;
+  const scrollFor = (capacity: number) =>
+    Math.max(0, Math.min(focusIndex - Math.floor(capacity / 2), SETTINGS.length - capacity));
+
+  // 📖 Section chrome costs 3 lines (title, rule, trailing margin) but only for
+  // the sections actually on screen — reserving it for all of them would waste
+  // ~18 lines and shrink a 24-row terminal to three visible settings. The window
+  // size therefore depends on its own contents, so we iterate to a fixed point.
+  // Three passes is plenty: each one can only shrink the window, so it converges
+  // fast, and the `Math.max(3, …)` floor guarantees it terminates regardless.
+  let capacity = Math.max(3, termRows - 6);
+  for (let pass = 0; pass < 3; pass++) {
+    const start = scrollFor(capacity);
+    const slice = SETTINGS.slice(start, start + capacity);
+    const sectionCount = new Set(slice.map(item => item.section)).size;
+    const next = Math.max(3, termRows - 6 - sectionCount * 3);
+    if (next === capacity) break;
+    capacity = next;
+  }
+
+  const scroll = scrollFor(capacity);
+  const windowEnd = Math.min(SETTINGS.length, scroll + capacity);
+  const visible = new Set<number>();
+  for (let i = scroll; i < windowEnd; i++) visible.add(i);
+  const hiddenAbove = scroll;
+  const hiddenBelow = SETTINGS.length - windowEnd;
+
   return (
     <Box flexDirection="column" paddingX={2} paddingY={1}>
       {/* Header */}
@@ -313,13 +380,22 @@ export function Settings({ kandownDir, version }: SettingsProps) {
         </Box>
       </Box>
 
-      {/* Settings grouped by section */}
+      {/* Settings grouped by section, windowed to what the terminal can show */}
       {SECTIONS.map((section) => {
-        const items = SETTINGS.filter((s) => s.section === section);
+        const items = SETTINGS.filter(
+          (s) => s.section === section && visible.has(SETTINGS.indexOf(s)),
+        );
+        if (items.length === 0) return null;
         const icon = SECTION_ICONS[section] ?? '•';
 
+        // 📖 flexShrink={0}: the root frame in app.tsx has a fixed height and
+        // `overflow: hidden`, and Yoga's default is to *shrink* children that
+        // overflow rather than clip them — which silently ate one row out of the
+        // middle of a section instead of dropping the tail. (That is how "Skin"
+        // vanished from Appearance while later sections rendered fine.) Refusing
+        // to shrink turns it into honest clipping, which the ▼ counter reports.
         return (
-          <Box key={section} flexDirection="column" marginBottom={1}>
+          <Box key={section} flexDirection="column" marginBottom={1} flexShrink={0}>
             {/* Section header */}
             <Box>
               <Text color="cyan" bold>
@@ -350,10 +426,14 @@ export function Settings({ kandownDir, version }: SettingsProps) {
         );
       })}
 
-      {/* Footer — keyboard shortcuts */}
+      {/* Footer — scroll position + keyboard shortcuts */}
       <Box marginTop={1}>
         <Text dimColor>
-          {'  ↑↓ navigate   Space toggle   ←→ change   Q quit'}
+          {'  '}
+          {hiddenAbove > 0 ? `▲ ${hiddenAbove}   ` : ''}
+          {hiddenBelow > 0 ? `▼ ${hiddenBelow}   ` : ''}
+          {`${focusIndex + 1}/${SETTINGS.length}   `}
+          {'↑↓ navigate   Space toggle   ←→ change   Q quit'}
         </Text>
       </Box>
     </Box>

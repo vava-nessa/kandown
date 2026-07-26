@@ -53,6 +53,22 @@ export interface KandownConfig {
     showDetailPane: boolean;
     /** Sort order of the flat list view, cycled with `s`. */
     listSort: 'status' | 'age' | 'priority' | 'id';
+    /** 📖 Which optional columns the list view draws. Every column here can be
+     * turned off; `ID` and `Description` are not listed because they are the
+     * two that make a row identifiable at all, so they are always drawn.
+     *
+     * Turning a column off is not the same as the layout dropping it: this is
+     * a hard "never show me this", checked before `computeListLayout` starts
+     * fitting things, whereas the automatic drop only kicks in when the
+     * terminal is too narrow for everything you asked for. */
+    columns: {
+      age: boolean;
+      status: boolean;
+      priority: boolean;
+      owner: boolean;
+      deps: boolean;
+      tags: boolean;
+    };
   };
   fields: {
     priority: boolean;
@@ -90,7 +106,15 @@ const DEFAULT_CONFIG: KandownConfig = {
     defaultOwnerType: 'human',
     stackDefaultState: 'collapsed',
   },
-  tui: { defaultView: 'list', showDetailPane: true, listSort: 'status' },
+  tui: {
+    defaultView: 'list',
+    showDetailPane: true,
+    listSort: 'status',
+    // 📖 Tags default to off: they are the widest optional column and the one
+    // most projects leave empty, so on by default it mostly reserved 14 cells
+    // of description width to render blanks. Turn it on in `kandown settings`.
+    columns: { age: true, status: true, priority: true, owner: true, deps: true, tags: false },
+  },
   fields: {
     priority: false,
     assignee: false,
@@ -196,7 +220,18 @@ export function loadConfig(kandownDir: string): KandownConfig {
         ? boardRaw.columns.filter((name: unknown): name is string => typeof name === 'string' && name.trim().length > 0)
         : DEFAULT_CONFIG.board.columns,
     },
-    tui: { ...DEFAULT_CONFIG.tui, ...safeObj(obj.tui) },
+    // 📖 `columns` is merged one level deeper than the rest: a config that only
+    // pins `{"tui":{"columns":{"tags":true}}}` must keep the defaults for every
+    // other column instead of having them come back `undefined` (falsy — which
+    // would silently blank the whole row).
+    tui: {
+      ...DEFAULT_CONFIG.tui,
+      ...safeObj(obj.tui),
+      columns: {
+        ...DEFAULT_CONFIG.tui.columns,
+        ...safeObj(safeObj<Record<string, unknown>>(obj.tui).columns),
+      },
+    },
     fields: { ...DEFAULT_CONFIG.fields, ...safeObj(obj.fields) },
     notifications: { ...DEFAULT_CONFIG.notifications, ...safeObj(obj.notifications) },
   };

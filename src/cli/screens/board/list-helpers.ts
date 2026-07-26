@@ -33,7 +33,8 @@
  *  → wrapText — greedy word wrap for the expanded selected row
  *  → priorityColor / priorityRank — shared priority presentation & ordering
  *
- * @exports ListRow, ListSort, FilterMode, ListLayout, LIST_SORTS, FILTER_MODES,
+ * @exports ListRow, ListSort, FilterMode, ListLayout, ListColumnPrefs,
+ *   ALL_LIST_COLUMNS, LIST_SORTS, FILTER_MODES,
  *   normalizeOwner, matchesSearch, matchesFilter, sortRows, buildListRows,
  *   computeListLayout, wrapText, priorityColor, priorityRank, ownerGlyph
  * @see src/cli/screens/board/list-view.tsx — the renderer that consumes these
@@ -273,6 +274,29 @@ const GAP = 1;
  * what moved recently, and where it sits on the board.
  */
 type DroppableColumn = 'tags' | 'deps' | 'owner' | 'priority' | 'age' | 'status';
+
+/**
+ * 📖 Which optional columns the user wants at all, from `tui.columns` in
+ * kandown.json. `ID` and `Description` are absent on purpose — they are what
+ * makes a row identifiable, so they are never optional.
+ *
+ * This is a different mechanism from the automatic narrowing drop below: a
+ * column turned off here is never drawn at any width, while the drop only
+ * removes columns you did ask for, and only when they genuinely do not fit.
+ */
+export interface ListColumnPrefs {
+  age: boolean;
+  status: boolean;
+  priority: boolean;
+  owner: boolean;
+  deps: boolean;
+  tags: boolean;
+}
+
+/** 📖 Fallback when no preference is supplied (tests, direct calls). */
+export const ALL_LIST_COLUMNS: ListColumnPrefs = {
+  age: true, status: true, priority: true, owner: true, deps: true, tags: true,
+};
 const DROP_ORDER: DroppableColumn[] = ['tags', 'deps', 'owner', 'priority', 'age', 'status'];
 
 /**
@@ -283,21 +307,29 @@ const DROP_ORDER: DroppableColumn[] = ['tags', 'deps', 'owner', 'priority', 'age
  * reserve six characters, and a project with a "Waiting on review" column is
  * not truncated to "Waiting …" while three columns of slack sit unused.
  */
-export function computeListLayout(rows: ListRow[], width: number = termWidth()): ListLayout {
+export function computeListLayout(
+  rows: ListRow[],
+  width: number = termWidth(),
+  prefs: ListColumnPrefs = ALL_LIST_COLUMNS,
+): ListLayout {
   const longestId = rows.reduce((max, row) => Math.max(max, row.task.id.length), 2);
   const longestStatus = rows.reduce((max, row) => Math.max(max, row.status.length), 6);
 
+  // 📖 A disabled column starts at width 0, which every downstream consumer
+  // already reads as "hidden" — the drop loop, `used()`, the header row and the
+  // task row all key off `> 0`. Switching a column off therefore needs no extra
+  // branch anywhere: it simply enters the layout already collapsed.
   const layout: ListLayout = {
     // 📖 One cell for the ▸ / ✓ marker; the inter-column gap supplies the space
     // that separates it from the id.
     cursor: 1,
     id: Math.min(longestId, 8),
-    age: 5,
-    status: Math.min(longestStatus, 13),
-    priority: 2,
-    owner: 1,
-    deps: 3,
-    tags: 14,
+    age: prefs.age ? 5 : 0,
+    status: prefs.status ? Math.min(longestStatus, 13) : 0,
+    priority: prefs.priority ? 2 : 0,
+    owner: prefs.owner ? 1 : 0,
+    deps: prefs.deps ? 3 : 0,
+    tags: prefs.tags ? 14 : 0,
     desc: 0,
     descOffset: 0,
     total: 0,

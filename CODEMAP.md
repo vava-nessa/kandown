@@ -26,8 +26,8 @@ source to edit instead.
 
 ## `bin/` — Published CLI entrypoints — GENERATED, never edit
 
-- **`kandown.js`** · 2522 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
-- **`tui.js`** · 59862 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
+- **`kandown.js`** · 2555 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
+- **`tui.js`** · 59945 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
 
 ## `src/` — Web app root
 
@@ -61,28 +61,28 @@ source to edit instead.
 - **`board-reader.ts`** · 420 lines — Provides filesystem-based reading and writing of Kandown task files for the CLI.
 - **`browser.ts`** · 26 lines — Resolves and spawns the platform default browser for the given URL.
 - **`cli-shared.ts`** · 328 lines — Argument parsing, deterministic nearest-ancestor project resolution, colored console output, and task-file path helpers shared across every `cmdX` command handler and the TUI launcher in src/cli/cli.ts.
-- **`config.ts`** · 250 lines — Handles loading, saving, and accessing the kandown project configuration.
+- **`config.ts`** · 285 lines — Handles loading, saving, and accessing the kandown project configuration.
 - **`daemon.ts`** · 265 lines — Reads and controls the per-project web daemon from the terminal UI.
 - **`file-watcher.ts`** · 309 lines — Uses chokidar for filesystem events and SHA-256 content hashing to detect actual content changes.
 - **`init.ts`** · 90 lines — Creates .kandown/ configuration, copies singlefile HTML bundle, initializes project-root ./tasks/ with welcome templates, and creates AGENT_KANDOWN.md.
 - **`launcher.ts`** · 225 lines — Orchestrates the full task launch flow: read context, build prompt, auto-move task to In Progress, and spawn the chosen AI agent — either in a new tmux pane (if inside tmux) or by replacing the current process (exec).
 - **`mcp.ts`** · 237 lines — Exposes Kandown task operations to MCP hosts (Claude Desktop, VSCode, etc.) via JSON-RPC 2.0 over stdin/stdout.
-- **`server.ts`** · 444 lines — Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application.
-- **`updater.ts`** · 290 lines — Manages npm registry version checks, global package updates, PATH binary resolution, and update throttling.
+- **`server.ts`** · 456 lines — Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application.
+- **`updater.ts`** · 321 lines — Manages npm registry version checks, global package updates, PATH binary resolution, and update throttling.
 
 ## `src/cli/screens/` — Full-screen TUI views
 
 - **`agent-picker.tsx`** · 110 lines — Modal-style overlay for selecting an AI agent to launch a task.
-- **`board.tsx`** · 1572 lines — The Kandown CLI's main screen.
+- **`board.tsx`** · 1585 lines — The Kandown CLI's main screen.
 - **`init-prompt.tsx`** · 54 lines — Shown when `kandown` is launched inside a directory that does not yet have a `.kandown/` config.
-- **`settings.tsx`** · 463 lines — Interactive settings editor for kandown.json.
+- **`settings.tsx`** · 543 lines — Interactive settings editor for kandown.json.
 
 ## `src/cli/screens/board/` — Board view internals
 
 - **`components.tsx`** · 370 lines — Stateless render pieces for the Kanban board: task rows, the move placeholder, a column (with its own scroll window), the header, the status bar, and the full-screen task detail view. board.tsx composes these around its stateful…
 - **`helpers.ts`** · 133 lines — Text layout (truncate/pad/hyperlink), terminal geometry, and the scroll-window computation shared between the render path (KanbanColumn) and mouse hit-testing (taskHitAt / handleMouseClick) in board.tsx so the two can never diverge.
-- **`list-helpers.ts`** · 370 lines — Everything the flat list view needs that is not React: turning the column-shaped board into one ordered list of rows, the search/filter pipeline shared with the kanban view, the sort orders, the adaptive column layout, and word wrapping…
-- **`list-view.tsx`** · 449 lines — The flat, one-task-per-line view that the TUI opens on, plus the Name/Value detail pane pinned beneath it.
+- **`list-helpers.ts`** · 402 lines — Everything the flat list view needs that is not React: turning the column-shaped board into one ordered list of rows, the search/filter pipeline shared with the kanban view, the sort orders, the adaptive column layout, and word wrapping…
+- **`list-view.tsx`** · 452 lines — The flat, one-task-per-line view that the TUI opens on, plus the Name/Value detail pane pinned beneath it.
 
 ## `src/components/` — Web UI components
 
@@ -116,7 +116,7 @@ source to edit instead.
 - **`ThemePreviewCard.tsx`** · 212 lines — Renders a live preview of a KandownTheme with isolated HSL tokens in a mini 3-column kanban board layout.
 - **`ThemeToggle.tsx`** · 83 lines — Light/dark mode switcher for the app header.
 - **`Toaster.tsx`** · 47 lines — Renders transient success, info, and error messages emitted by store actions such as saving, creating, deleting, and permission failures.
-- **`UpdateNotificationBanner.tsx`** · 124 lines — Non-intrusive, floating update notification banner and 1-click installer prompt for the Web UI.
+- **`UpdateNotificationBanner.tsx`** · 147 lines — Non-intrusive, floating update notification banner and 1-click installer prompt for the Web UI.
 
 ## `src/components/settings/` — Settings page sections
 
@@ -146,7 +146,7 @@ source to edit instead.
 - **`demoSeed.ts`** · 446 lines — The starting contents of the in-memory project served by {@link ./demoBackend.ts} when the app runs in demo mode on the website.
 - **`dependencies.ts`** · 142 lines — Resolves `depends_on` references between tasks and enforces the terminal-status gate: a task cannot be moved to the last board column (default: "Done") while any of its dependencies is not yet in the terminal status.
 - **`errors.ts`** · 138 lines — Typed errors used across the web UI to distinguish failure modes (browser support, permissions, disk full, corruption, parse errors) instead of relying on generic `Error` + string matching.
-- **`filesystem.ts`** · 984 lines — Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.
+- **`filesystem.ts`** · 992 lines — Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.
 - **`globalErrors.ts`** · 108 lines — Last-resort safety net that catches uncaught JavaScript errors and unhandled promise rejections, logs them, and shows a throttled toast so the user is informed without being spammed.
 - **`grouping.ts`** · 128 lines — Pure functions that group board tasks by shared `[bracket]` tags or `#hashtag` markers in their titles.
 - **`motion-presets.ts`** · 81 lines — Single source of truth for every `motion.*` and `AnimatePresence` in the project.

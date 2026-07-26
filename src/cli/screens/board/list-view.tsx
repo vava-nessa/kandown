@@ -55,6 +55,8 @@ import {
   type ListLayout,
   type ListRow,
   type ListSort,
+  type ListColumnPrefs,
+  ALL_LIST_COLUMNS,
   computeListLayout,
   normalizeOwner,
   ownerGlyph,
@@ -166,8 +168,9 @@ export function computeListGeometry(
   previousScroll: number,
   maxHeight: number,
   width: number,
+  columns: ListColumnPrefs = ALL_LIST_COLUMNS,
 ): ListGeometry {
-  const layout = computeListLayout(rows, width);
+  const layout = computeListLayout(rows, width, columns);
   // 📖 −1 for the always-present footer line (see the file header).
   const viewport = Math.max(1, maxHeight - 1);
   const selected = rows[selectedIndex] ?? rows[0];

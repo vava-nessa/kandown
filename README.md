@@ -218,12 +218,12 @@ default) and the **kanban columns**. The choice is remembered per project in
 `.kandown/kandown.json` under `tui`.
 
 ```
-  ID   Age   Status       Pr O Dep Tags        Description
- ─────────────────────────────────────────────────────────────────────
-   t12  3s    Backlog      P2 A     infra       Wire up the local daemon
- ▸ t264 12min In Progress  P1 A ↪2  tui,ux      Refactor the TUI — list view
-                                                by default, Tab toggles views
-   t99  4d    Done         P3 H     docs        Rewrite the README intro
+  ID   Age   Status       Pr O Dep Description
+ ─────────────────────────────────────────────────────────────────
+   t12  3s    Backlog      P2 A     Wire up the local daemon
+ ▸ t264 12min In Progress  P1 A ↪2  Refactor the TUI — list view by
+                                    default, Tab toggles views
+   t99  4d    Done         P3 H     Rewrite the README intro
 ```
 
 The list gives every task the full terminal width, so titles stay readable where
@@ -231,6 +231,12 @@ five kanban columns would truncate them to noise. The selected row expands
 downward to show its whole title; every other row stays exactly one line. A live
 detail pane under the list follows the selection (`z` hides it), and columns drop
 themselves as the terminal narrows, description last.
+
+**Every column except `ID` and `Description` can be switched off** in
+`kandown settings` → *Terminal UI*, saved to `tui.columns` in
+`.kandown/kandown.json`. `Tags` is off by default — it is the widest optional
+column and most projects leave it empty, so on by default it mostly reserved
+description width to render blanks.
 
 | Key | Action |
 |---|---|

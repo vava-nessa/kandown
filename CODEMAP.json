@@ -3,14 +3,14 @@
   "files": [
     {
       "path": "bin/kandown.js",
-      "lines": 2522,
+      "lines": 2555,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 59862,
+      "lines": 59945,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -326,7 +326,7 @@
     },
     {
       "path": "src/cli/lib/config.ts",
-      "lines": 250,
+      "lines": 285,
       "title": "Config reader/writer for kandown.json",
       "summary": "Handles loading, saving, and accessing the kandown project configuration.",
       "functions": [
@@ -437,19 +437,23 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 444,
+      "lines": 456,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
     {
       "path": "src/cli/lib/updater.ts",
-      "lines": 290,
+      "lines": 321,
       "title": "CLI Auto-updater & Versioning Module",
       "summary": "Manages npm registry version checks, global package updates, PATH binary resolution, and update throttling.",
       "functions": [
         {
           "name": "getCurrentVersion",
-          "summary": "returns the compiled KANDOWN_VERSION"
+          "summary": "returns the compiled KANDOWN_VERSION (what is running)"
+        },
+        {
+          "name": "getInstalledVersion",
+          "summary": "reads package.json on disk (what is installed)"
         },
         {
           "name": "semverGt",
@@ -476,7 +480,7 @@
           "summary": "background updater with reliable registry checks"
         }
       ],
-      "exports": "getCurrentVersion, semverGt, resolveKandownBin, readInstalledKandownVersion, performGlobalPackageUpdate, checkForUpdate"
+      "exports": "getCurrentVersion, getInstalledVersion, semverGt, resolveKandownBin, readInstalledKandownVersion, performGlobalPackageUpdate, checkForUpdate"
     },
     {
       "path": "src/cli/screens/agent-picker.tsx",
@@ -493,7 +497,7 @@
     },
     {
       "path": "src/cli/screens/board.tsx",
-      "lines": 1572,
+      "lines": 1585,
       "title": "TUI Board Screen",
       "summary": "The Kandown CLI's main screen.",
       "functions": [
@@ -576,7 +580,7 @@
     },
     {
       "path": "src/cli/screens/board/list-helpers.ts",
-      "lines": 370,
+      "lines": 402,
       "title": "List view — pure data & layout helpers",
       "summary": "Everything the flat list view needs that is not React: turning the column-shaped board into one ordered list of rows, the search/filter pipeline shared with the kanban view, the sort orders, the adaptive column layout, and word wrapping…",
       "functions": [
@@ -613,11 +617,11 @@
           "summary": "shared priority presentation & ordering"
         }
       ],
-      "exports": "ListRow, ListSort, FilterMode, ListLayout, LIST_SORTS, FILTER_MODES, normalizeOwner, matchesSearch, matchesFilter, sortRows, buildListRows, computeListLayout, wrapText, priorityColor, priorityRank, ownerGlyph"
+      "exports": "ListRow, ListSort, FilterMode, ListLayout, ListColumnPrefs, ALL_LIST_COLUMNS, LIST_SORTS, FILTER_MODES, normalizeOwner, matchesSearch, matchesFilter, sortRows, buildListRows, computeListLayout, wrapText, priorityColor, priorityRank, ownerGlyph"
     },
     {
       "path": "src/cli/screens/board/list-view.tsx",
-      "lines": 449,
+      "lines": 452,
       "title": "List view — presentational components",
       "summary": "The flat, one-task-per-line view that the TUI opens on, plus the Name/Value detail pane pinned beneath it.",
       "functions": [
@@ -656,7 +660,7 @@
     },
     {
       "path": "src/cli/screens/settings.tsx",
-      "lines": 463,
+      "lines": 543,
       "title": "Full-screen settings TUI screen",
       "summary": "Interactive settings editor for kandown.json.",
       "functions": [
@@ -1262,7 +1266,7 @@
     },
     {
       "path": "src/components/UpdateNotificationBanner.tsx",
-      "lines": 124,
+      "lines": 147,
       "title": "Update Notification Banner & Modal",
       "summary": "Non-intrusive, floating update notification banner and 1-click installer prompt for the Web UI."
     },
@@ -1394,7 +1398,7 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 984,
+      "lines": 992,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [
