@@ -51,6 +51,10 @@
     {
       "source": "/:file(.+).(webm|mp4|png|svg|ico|woff2)",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/changelogs/:version(v.+).html",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }]
     }
   ],
   "redirects": [

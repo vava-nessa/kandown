@@ -34,3 +34,10 @@ public/llms-full.txt
 # <repo>/changelogs/ by scripts/build-changelogs.mjs on every build. Source of
 # truth lives in the repo root, never here.
 public/changelogs/
+
+# 📖 Both written by scripts/build-sitemap.mjs on every build. robots.txt is
+# generated rather than committed because it has to name the sitemap by absolute
+# URL, and the domain belongs in src/lib/site.ts only — a committed copy would
+# outlive the next domain change and keep pointing crawlers at the old host.
+public/sitemap.xml
+public/robots.txt

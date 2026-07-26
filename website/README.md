@@ -301,6 +301,53 @@ apex, and the old `kandown.vercel.app` alias keeps working so historical links n
 
 ---
 
+## How the site is indexed
+
+Everything below is derived from content that already exists. None of it is a place to write copy —
+titles and descriptions live in route `head()` functions and MDX frontmatter, and the domain lives
+in `src/lib/site.ts`.
+
+**`sitemap.xml` and `robots.txt` are generated** by [`scripts/build-sitemap.mjs`](scripts/build-sitemap.mjs)
+on every build, and both are gitignored. The URL list comes from `src/content/nav.ts` and the
+changelog index, so a page cannot exist on the site and be missing from the sitemap. `robots.txt` is
+generated rather than committed for one reason: it has to name the sitemap by absolute URL, and a
+committed copy would survive the next domain change still pointing at the old host.
+
+`lastmod` is honest or absent. Release pages carry the date they shipped; every other page carries
+the date of the latest release, because the site is rebuilt and redeployed with each one. File
+mtimes are deliberately not used — a CI checkout stamps every file with the clone time, which would
+make every page claim to have changed on every build. `changefreq` and `priority` are omitted: both
+are in the spec, both are ignored by Google.
+
+**Canonical URLs** are emitted once, in [`src/routes/__root.tsx`](src/routes/__root.tsx), built from
+`site.url` plus the current path. Doing it per route would mean a route that forgot one silently
+became a duplicate. The `vercel.json` host redirects already fold `www` and `kandown.vercel.app`
+into the apex, but a redirect only catches a crawler that asks for the wrong host — the canonical
+tag also covers URLs with tracking parameters appended and pages someone mirrored. `/404` gets no
+canonical at all, since pairing one with its `noindex` would be a contradiction.
+
+**Structured data** lives in [`src/components/StructuredData.tsx`](src/components/StructuredData.tsx)
+and renders on the homepage only — a `WebSite` / `Person` / `SoftwareApplication` graph built from
+the same `site` constants as the meta tags. It states category, platform, licence and a price of
+zero, all verifiable. There is no `aggregateRating`, because there are no ratings.
+
+Two duplicate-content traps are already closed:
+
+- **`/changelogs`** is not in the sitemap. It resolves to the newest release rather than holding
+  content of its own, so it canonicalises to `/changelogs/<latest>`, which the sitemap already
+  lists.
+- **`/changelogs/v*.html`** are the raw HTML fragments the changelog route fetches on client-side
+  navigation — an implementation detail that happens to be publicly reachable, and a near-duplicate
+  of each rendered release page. `vercel.json` serves them with `X-Robots-Tag: noindex`. A
+  `robots.txt` disallow would have worked too, but blocking the fetch risks breaking rendering for a
+  crawler that executes JavaScript; a header keeps the file readable and merely unindexed.
+
+The Markdown twins under `/docs/*.md` are **not** excluded. They duplicate the documentation pages
+by design — that is the whole `llms.txt` contract — and each page points at its own twin with
+`rel="alternate" type="text/markdown"`.
+
+---
+
 ## Layout
 
 ```

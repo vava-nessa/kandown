@@ -41,6 +41,14 @@ export const Route = createRootRoute({
       { property: 'og:title', content: `${site.name} — ${site.tagline}` },
       { property: 'og:description', content: site.description },
       { property: 'og:image', content: `${site.url}/og-image.png` },
+      // 📖 Dimensions let a chat client reserve the right box before the image
+      // arrives, so a shared link renders at full size immediately instead of
+      // reflowing from a thumbnail. `og:image:alt` is what a screen reader
+      // announces for the card in that same client.
+      { property: 'og:image:width', content: '1200' },
+      { property: 'og:image:height', content: '630' },
+      { property: 'og:image:alt', content: `${site.name} — ${site.tagline}` },
+      { property: 'og:locale', content: 'en_US' },
       { name: 'twitter:card', content: 'summary_large_image' },
       { name: 'twitter:title', content: `${site.name} — ${site.tagline}` },
       { name: 'twitter:description', content: site.description },
@@ -87,14 +95,44 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   // 📖 Read from the router rather than passed down, because the shell renders
   // above the route that would know. `startsWith` so any future `/app/...`
   // sub-route inherits the same full-bleed treatment.
-  const isAppRoute = useRouterState({
-    select: (s) => s.location.pathname.startsWith('/app'),
-  })
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const isAppRoute = pathname.startsWith('/app')
+
+  // 📖 The canonical URL of the page currently rendering. Declared here rather
+  // than in each route's `head()` because it is mechanical — origin plus path —
+  // and a route that forgot it would silently become a duplicate rather than
+  // fail. One definition also means it cannot drift between pages.
+  //
+  // 📖 It matters even though the redirects in `vercel.json` already fold `www`
+  // and the old `.vercel.app` host into this domain: a redirect only helps a
+  // crawler that requests the wrong host, while a canonical tag also covers the
+  // copies a redirect never sees — a URL with a tracking parameter appended, an
+  // scraper that mirrored the page, or a preview deployment someone linked. It
+  // is built from `site.url`, never from the live request, so every copy points
+  // back at the one address that should rank.
+  //
+  // 📖 The trailing slash is stripped for the homepage because `vercel.json`
+  // sets `trailingSlash: false`: `https://kandown.dev/` and
+  // `https://kandown.dev` would otherwise be two URLs for one page, which is
+  // exactly what this tag exists to prevent.
+  const canonical = pathname === '/' ? site.url : `${site.url}${pathname.replace(/\/$/, '')}`
+
+  // 📖 The 404 page declares `noindex` in its own `head()`, and a page that is
+  // both `noindex` and self-canonical sends a crawler two contradictory
+  // instructions: do not index this, and treat this as the preferred version of
+  // itself. Emitting neither tag there is the unambiguous option.
+  const isNotFound = pathname === '/404'
 
   return (
     <html lang="en">
       <head>
         <HeadContent />
+        {isNotFound ? null : (
+          <>
+            <link rel="canonical" href={canonical} />
+            <meta property="og:url" content={canonical} />
+          </>
+        )}
       </head>
       <body className="bg-bg text-fg antialiased">
         <a

@@ -36,6 +36,7 @@ import { CopyCommand } from '~/components/CopyCommand'
 import { INSTALL_COMMAND, site } from '~/lib/site'
 import HeroGeometric from '~/components/HeroGeometric'
 import { LogoMark } from '~/components/Logo'
+import { HomeStructuredData } from '~/components/StructuredData'
 
 export const Route = createFileRoute('/')({
   component: Home,
@@ -44,6 +45,7 @@ export const Route = createFileRoute('/')({
 function Home() {
   return (
     <>
+      <HomeStructuredData />
       <Hero />
       <Agents />
       <Workflows />

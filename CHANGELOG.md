@@ -9,6 +9,7 @@ the index; click a version for the full notes.
 
 | Version | Date | Release | Changes |
 |---|---|---|---|
+| [0.39.3](changelogs/v0.39.3.md) | 2026-07-26 | Crawlable | 5 added · 3 fixed |
 | [0.39.2](changelogs/v0.39.2.md) | 2026-07-26 | Own Domain | 1 added · 4 changed |
 | [0.39.1](changelogs/v0.39.1.md) | 2026-07-26 | Polished Links | 2 fixed |
 | [0.39.0](changelogs/v0.39.0.md) | 2026-07-26 | Public History | 5 added · 2 changed |
