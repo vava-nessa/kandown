@@ -54,6 +54,18 @@
     }
   ],
   "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "www.kandown.dev" }],
+      "destination": "https://kandown.dev/$1",
+      "permanent": true
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "kandown.vercel.app" }],
+      "destination": "https://kandown.dev/$1",
+      "permanent": true
+    },
     { "source": "/demo", "destination": "/app", "permanent": true },
     { "source": "/documentation", "destination": "/docs", "permanent": true },
     { "source": "/docs/cli", "destination": "/docs/reference/cli", "permanent": true },

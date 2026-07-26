@@ -1,6 +1,6 @@
 {
   "name": "kandown",
-  "version": "0.39.1",
+  "version": "0.39.2",
   "description": "File-based Kanban engine backed by Markdown. Zero backend, AI-agent friendly.",
   "type": "module",
   "bin": {
@@ -31,7 +31,7 @@
     "type": "git",
     "url": "git+https://github.com/vava-nessa/kandown.git"
   },
-  "homepage": "https://github.com/vava-nessa/kandown#readme",
+  "homepage": "https://kandown.dev",
   "bugs": {
     "url": "https://github.com/vava-nessa/kandown/issues"
   },

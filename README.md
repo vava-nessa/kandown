@@ -18,6 +18,12 @@
 </p>
 
 <p align="center">
+  <a href="https://kandown.dev"><strong>kandown.dev</strong></a> ·
+  <a href="https://kandown.dev/docs">Documentation</a> ·
+  <a href="https://kandown.dev/changelogs">Changelog</a>
+</p>
+
+<p align="center">
   <a href="#quick-start">Quick start</a> ·
   <a href="#for-ai-agents">For AI agents</a> ·
   <a href="#cli-reference">CLI</a> ·

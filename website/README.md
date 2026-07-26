@@ -275,6 +275,30 @@ site's own 404 rather than the host's.
 (HSTS, `nosniff`, `DENY` framing, a restrictive `Permissions-Policy`), and a few short redirects
 (`/github`, `/npm`, `/documentation`).
 
+### Domain
+
+The canonical domain is **`kandown.dev`**, declared once in
+[`src/lib/site.ts`](src/lib/site.ts) as `site.url` — every canonical tag, OG URL, sitemap entry and
+`llms.txt` link derives from that constant, so a domain change is a one-line edit followed by
+`pnpm build`.
+
+The domain is registered at **Cloudflare Registrar**, with DNS also served by Cloudflare (the
+nameservers stay at Cloudflare — the domain is *not* delegated to `ns1/ns2.vercel-dns.com`). Two
+records point it at Vercel:
+
+| Type | Name | Value | Proxy |
+|---|---|---|---|
+| `A` | `@` | `216.198.79.1` | **DNS only** (grey cloud) |
+| `CNAME` | `www` | `cname.vercel-dns.com` | **DNS only** (grey cloud) |
+
+⚠️ Both records **must** stay unproxied. Cloudflare's orange-cloud proxy terminates TLS itself,
+which blocks Vercel's ACME challenge — the certificate silently fails to issue or renew and the
+site starts serving `ERR_SSL_VERSION_OR_CIPHER_MISMATCH`. Vercel already fronts the site with its
+own CDN, so the proxy would buy nothing anyway.
+
+Both `kandown.dev` and `www.kandown.dev` are attached to the Vercel project; `www` redirects to the
+apex, and the old `kandown.vercel.app` alias keeps working so historical links never break.
+
 ---
 
 ## Layout
