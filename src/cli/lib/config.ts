@@ -40,6 +40,20 @@ export interface KandownConfig {
      * card, `'expanded'` always renders the individual cards inline. */
     stackDefaultState: 'collapsed' | 'expanded';
   };
+  /** 📖 Terminal-UI preferences. These are written back by the TUI itself when
+   * the user toggles a view (`Tab`) or the detail pane (`z`), so the layout you
+   * left the board in is the one you get next launch — per project, since it
+   * lives in that project's `.kandown/kandown.json`. */
+  tui: {
+    /** Which view the TUI opens on. `'list'` is the default: one task per line
+     * with Age/Status/Tags columns, which stays readable on narrow terminals
+     * where 5 kanban columns leave ~15 usable characters per card. */
+    defaultView: 'list' | 'board';
+    /** Whether the Name/Value detail pane is pinned under the list view. */
+    showDetailPane: boolean;
+    /** Sort order of the flat list view, cycled with `s`. */
+    listSort: 'status' | 'age' | 'priority' | 'id';
+  };
   fields: {
     priority: boolean;
     assignee: boolean;
@@ -76,6 +90,7 @@ const DEFAULT_CONFIG: KandownConfig = {
     defaultOwnerType: 'human',
     stackDefaultState: 'collapsed',
   },
+  tui: { defaultView: 'list', showDetailPane: true, listSort: 'status' },
   fields: {
     priority: false,
     assignee: false,
@@ -181,6 +196,7 @@ export function loadConfig(kandownDir: string): KandownConfig {
         ? boardRaw.columns.filter((name: unknown): name is string => typeof name === 'string' && name.trim().length > 0)
         : DEFAULT_CONFIG.board.columns,
     },
+    tui: { ...DEFAULT_CONFIG.tui, ...safeObj(obj.tui) },
     fields: { ...DEFAULT_CONFIG.fields, ...safeObj(obj.fields) },
     notifications: { ...DEFAULT_CONFIG.notifications, ...safeObj(obj.notifications) },
   };

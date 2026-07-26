@@ -212,18 +212,46 @@ animated WebGL background · **48 languages** · browser and sound notifications
 
 ### Terminal UI
 
-Keyboard-driven and mouse-aware, works over SSH with no browser.
+Keyboard-driven and mouse-aware, works over SSH with no browser. **Two views over
+the same board, swapped with `Tab`** — a dense one-task-per-line **list** (the
+default) and the **kanban columns**. The choice is remembered per project in
+`.kandown/kandown.json` under `tui`.
+
+```
+  ID   Age   Status       Pr O Dep Tags        Description
+ ─────────────────────────────────────────────────────────────────────
+   t12  3s    Backlog      P2 A     infra       Wire up the local daemon
+ ▸ t264 12min In Progress  P1 A ↪2  tui,ux      Refactor the TUI — list view
+                                                by default, Tab toggles views
+   t99  4d    Done         P3 H     docs        Rewrite the README intro
+```
+
+The list gives every task the full terminal width, so titles stay readable where
+five kanban columns would truncate them to noise. The selected row expands
+downward to show its whole title; every other row stays exactly one line. A live
+detail pane under the list follows the selection (`z` hides it), and columns drop
+themselves as the terminal narrows, description last.
 
 | Key | Action |
 |---|---|
-| `j`/`k`, `h`/`l` | Navigate tasks / columns |
-| `n` · `e` · `m` | New task · edit in `$EDITOR` · move |
-| `/` · `f` | Fuzzy search · cycle filters |
+| `Tab` | Switch list ⇄ board |
+| `j`/`k` | Move the selection |
+| `h`/`l` | **List:** move the task between columns · **board:** change column |
+| `s` · `z` | Cycle sort (status, age, priority, id) · toggle the detail pane |
+| `n` · `e` · `m` | New task · edit in `$EDITOR` · move menu (board) |
+| `/` · `f` | Search id/title/tags/assignee · cycle filters (P1, AI, human, blocked) |
 | `a` · `g` | Launch an agent · send to agent hook |
-| `x` · `D` | Archive · delete |
+| `x` · `D` · `u` | Archive · delete · undo |
 | `d` · `r` · `?` | Toggle daemon · reload · cheatsheet |
+| `Esc` | Clear search and filter, or quit when neither is active |
 
-Drag a task with the mouse to move it between columns.
+Drag a task with the mouse to move it between columns in the board view; in the
+list, click to select, click again to open, and scroll with the wheel.
+
+The `Age` column reads the `updated:` frontmatter timestamp, which every kandown
+write stamps — CLI, MCP and web alike. It is deliberately not the file mtime:
+`git clone` resets mtime, which would make every task on a fresh checkout report
+the same age.
 
 ### Web shortcuts
 
@@ -337,7 +365,7 @@ is generated from them on every commit, and CI fails if either drifts.
 ## Changelog
 
 Every release has its own file in **[`changelogs/`](changelogs/)** —
-[`v0.36.0.md`](changelogs/v0.36.0.md), [`v0.35.1.md`](changelogs/v0.35.1.md), and so
+[`v0.36.1.md`](changelogs/v0.36.1.md), [`v0.36.0.md`](changelogs/v0.36.0.md), and so
 on back to `v0.1.0`. **[`CHANGELOG.md`](CHANGELOG.md)** is the generated index:
 every version with its date, release name and change counts.
 

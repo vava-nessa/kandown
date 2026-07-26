@@ -37,6 +37,10 @@ export interface MouseInputEvent {
   button: number;
   /** Press, drag, release, hover move, or wheel scroll. */
   action: 'press' | 'drag' | 'release' | 'move' | 'scroll';
+  /** 📖 Wheel direction, set only when `action === 'scroll'`. SGR encodes the
+   * wheel as buttons 4 (up) and 5 (down); `button` itself is clamped to 0-2 for
+   * click handling, so the direction would otherwise be unrecoverable. */
+  wheel?: 'up' | 'down';
 }
 
 // ─── ANSI sequences ──────────────────────────────────────────────────────────
@@ -80,6 +84,8 @@ export function parseMouseInput(input: string): MouseInputEvent | null {
     y: cy,
     button: buttonNumber <= 2 ? buttonNumber : 0,
     action,
+    // 📖 4 = wheel up, 5 = wheel down (6/7 are horizontal tilt — ignored).
+    ...(action === 'scroll' ? { wheel: buttonNumber === 4 ? 'up' as const : 'down' as const } : {}),
   };
 }
 

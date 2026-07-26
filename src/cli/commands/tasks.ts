@@ -17,6 +17,7 @@ import { loadConfig } from '../lib/config';
 import { atomicWriteFileSync } from '../lib/atomic-write';
 import { parseTaskFile } from '../../lib/parser';
 import { serializeTaskFile } from '../../lib/serializer';
+import { stampUpdated } from '../../lib/task-meta';
 import type { TaskFrontmatter } from '../../lib/types';
 import {
   c, log, info, success, err,
@@ -139,12 +140,12 @@ export function cmdCreate(rawArgs: string[]) {
     process.exit(1);
   }
 
-  const fm: TaskFrontmatter = {
+  const fm: TaskFrontmatter = stampUpdated({
     id,
     title,
     status,
     created: new Date().toISOString().slice(0, 10),
-  };
+  });
   const priority = stringFlag(args.flags, 'priority')?.toUpperCase();
   const assignee = stringFlag(args.flags, 'assignee');
   const tags = listFlag(args.flags, 'tag');
@@ -207,7 +208,7 @@ export function cmdAssign(rawArgs: string[]) {
   const frontmatter: TaskFrontmatter = { ...task.frontmatter, id };
   if (assignee) frontmatter.assignee = assignee;
   else delete frontmatter.assignee;
-  atomicWriteFileSync(task.path, serializeTaskFile(frontmatter, task.body));
+  atomicWriteFileSync(task.path, serializeTaskFile(stampUpdated(frontmatter), task.body));
   success(assignee ? `Assigned ${id} → ${assignee}` : `Unassigned ${id}`);
 }
 
@@ -293,7 +294,7 @@ export function cmdImport(rawArgs: string[]): void {
     if (typeof row.priority === 'string') fm.priority = row.priority;
     if (typeof row.assignee === 'string') fm.assignee = row.assignee;
     if (Array.isArray(row.tags)) fm.tags = row.tags.map(String);
-    atomicWriteFileSync(path, serializeTaskFile(fm, typeof row.body === 'string' ? row.body : ''));
+    atomicWriteFileSync(path, serializeTaskFile(stampUpdated(fm), typeof row.body === 'string' ? row.body : ''));
     imported++;
   }
   success(`Imported ${imported} task${imported === 1 ? '' : 's'}`);

@@ -1226,6 +1226,9 @@ export const useStore = create<State>((set, get) => ({
       id,
       title: parsed?.title || '',
       checked: false,
+      // 📖 Optimistic card for a task being created right now, so its age is
+      // "just now" until the write lands and the real `updated:` is parsed back.
+      updatedAt: Date.now(),
       dependsOn: parsed?.depends_on || [],
       tags: parsed?.tags || [],
       assignee: parsed?.assignee || null,

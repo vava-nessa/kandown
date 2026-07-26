@@ -33,6 +33,7 @@ import type {
   TaskContent,
 } from './types';
 import { DEFAULT_COLUMNS } from './types';
+import { taskTimestamp } from './task-meta';
 
 export function parseSimpleYaml(yaml: string): Record<string, unknown> {
   const obj: Record<string, unknown> = {};
@@ -135,7 +136,11 @@ export function taskToBoardTask(task: ParsedTask): BoardTask {
   // field the user adds) without the card knowing the field list up-front.
   // Structural fields (id, title, status, order, created, archived) and the
   // heavy `report` body are dropped here so they don't pollute the metadata view.
-  const { id: _id, title: _title, status: _status, order: _order, created: _created, archived: _archived, report: _report, ...metadata } = frontmatter;
+  // 📖 `updated` joins the structural set: it is machine-written on every save
+  // (src/lib/task-meta.ts), so leaving it in `metadata` would print a raw ISO
+  // timestamp in the card's metadata block on every card. It is surfaced as the
+  // dedicated `updatedAt` field below instead, which the TUI Age column reads.
+  const { id: _id, title: _title, status: _status, order: _order, created: _created, updated: _updated, archived: _archived, report: _report, ...metadata } = frontmatter;
 
   return {
     id: frontmatter.id || '',
@@ -146,6 +151,10 @@ export function taskToBoardTask(task: ParsedTask): BoardTask {
     priority: normalizePriority(frontmatter.priority),
     ownerType: normalizeOwnerType(frontmatter.ownerType),
     progress: total > 0 ? { done, total } : null,
+    // 📖 Effective last-activity epoch ms — `updated` when present, `created`
+    // otherwise, null on a task carrying neither. Resolved once here so every
+    // consumer (Age column, age sort) agrees on the same fallback chain.
+    updatedAt: taskTimestamp(frontmatter),
     dependsOn: Array.isArray(frontmatter.depends_on)
       ? frontmatter.depends_on.filter((d): d is string => typeof d === 'string' && d.trim().length > 0)
       : [],

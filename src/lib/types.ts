@@ -36,6 +36,11 @@ export interface BoardTask {
   priority: Priority | null;
   ownerType: OwnerType;
   progress: TaskProgress | null;
+  /** 📖 Effective last-activity moment as epoch ms, resolved by
+   * `taskTimestamp` from `updated` → `created` → null. Drives the TUI list
+   * view's `Age` column and its age sort. Null when the task file carries
+   * neither timestamp. */
+  updatedAt: number | null;
   /** 📖 Other task ids this task is blocked by. Surfaced as a `↪N` chip on
    * the card (N = unresolved dependency count) and as a "Blocked by" panel
    * in the task drawer. The store enforces a gate on terminal status
@@ -67,6 +72,12 @@ export interface TaskFrontmatter {
   tags?: string[];
   assignee?: string;
   created?: string;
+  /** 📖 ISO 8601 UTC instant (second precision) of the last mutation, stamped
+   * by `stampUpdated` on every write path — CLI, MCP and web alike. Powers the
+   * TUI list view's `Age` column. Preferred over the file mtime because mtime
+   * does not survive a `git clone`. Absent on tasks created before the field
+   * existed; readers fall back to `created`. See src/lib/task-meta.ts. */
+  updated?: string;
   due?: string;
   ownerType?: OwnerType;
   tools?: string;

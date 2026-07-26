@@ -15,6 +15,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { atomicWriteFileSync } from './atomic-write.js';
 import { serializeTaskFile } from '../../lib/serializer.js';
+import { stampUpdated } from '../../lib/task-meta.js';
 
 interface JsonRpcRequest {
   jsonrpc: string;
@@ -191,7 +192,7 @@ function handleJsonRpc(kandownDir: string, req: JsonRpcRequest): void {
         };
         const body = args.body ? (task.body + '\n\n' + args.body).trim() : task.body;
         const taskPath = join(getTasksDir(kandownDir), `${newId}.md`);
-        atomicWriteFileSync(taskPath, serializeTaskFile(fm, body));
+        atomicWriteFileSync(taskPath, serializeTaskFile(stampUpdated(fm), body));
       }
       sendResponse(id, { result: { content: [{ type: 'text', text: `Created task ${newId}` }] } });
       return;
@@ -214,7 +215,7 @@ function handleJsonRpc(kandownDir: string, req: JsonRpcRequest): void {
       const newBody = task.body.includes('## Report')
         ? task.body.replace(/## Report[\s\S]*/, `## Report\n\n${args.report.trim()}`)
         : task.body.trim() + reportSection;
-      atomicWriteFileSync(taskPath, serializeTaskFile(task.frontmatter, newBody));
+      atomicWriteFileSync(taskPath, serializeTaskFile(stampUpdated(task.frontmatter), newBody));
       sendResponse(id, { result: { content: [{ type: 'text', text: `Appended report to ${args.id}` }] } });
       return;
     }

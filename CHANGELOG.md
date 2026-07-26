@@ -5,14 +5,11 @@
 Every release has its own file in [`changelogs/`](changelogs/). This page is
 the index; click a version for the full notes.
 
-## Unreleased
-
-**[Two Views](changelogs/unreleased.md)** — 2 fixed · 4 changed
-
 ## 2026
 
 | Version | Date | Release | Changes |
 |---|---|---|---|
+| [0.37.0](changelogs/v0.37.0.md) | 2026-07-26 | Two Views | 6 added · 4 fixed · 4 changed |
 | [0.36.0](changelogs/v0.36.0.md) | 2026-07-26 | Local Web App | 2 added · 1 fixed · 1 changed · 1 cleaned |
 | [0.35.1](changelogs/v0.35.1.md) | 2026-07-26 | Light Identity | 1 added · 4 changed · 1 removed |
 | [0.35.0](changelogs/v0.35.0.md) | 2026-07-25 | House Green | 2 added · 3 fixed · 2 changed · 1 cleaned |

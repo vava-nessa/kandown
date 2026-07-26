@@ -57,6 +57,7 @@
 import type { KandownConfig, TaskFrontmatter, ParsedTask } from './types';
 import { DEFAULT_CONFIG, DEFAULT_WORK_OUTPUT } from './types';
 import { serializeTaskFile } from './serializer';
+import { stampUpdated } from './task-meta';
 import { parseTaskFile } from './parser';
 import { normalizeFontId, normalizeSkinId, normalizeThemeMode } from './theme';
 import { PermissionDeniedError, DiskFullError, CorruptedDataError, FileReadError } from './errors';
@@ -756,7 +757,9 @@ export async function writeTaskFile(
   frontmatter: TaskFrontmatter,
   body: string
 ): Promise<void> {
-  const content = serializeTaskFile(frontmatter, body);
+  // 📖 Every web write stamps `updated:` too, so the TUI Age column stays
+  // honest whichever interface touched the task last (see task-meta.ts).
+  const content = serializeTaskFile(stampUpdated(frontmatter), body);
   if (isServerMode()) return serverWriteTask(id, content);
   try {
     // 📖 Write in place: an archived task stays inside archive/ on save so its
@@ -817,7 +820,9 @@ export async function archiveTaskFile(
   frontmatter: TaskFrontmatter,
   body: string
 ): Promise<void> {
-  const content = serializeTaskFile(frontmatter, body);
+  // 📖 Every web write stamps `updated:` too, so the TUI Age column stays
+  // honest whichever interface touched the task last (see task-meta.ts).
+  const content = serializeTaskFile(stampUpdated(frontmatter), body);
   if (isServerMode()) return serverArchiveTask(id, content);
   try {
     const archiveDir = (await getArchiveDirHandle(_tasksDir!, true))!;
@@ -844,7 +849,9 @@ export async function unarchiveTaskFile(
   frontmatter: TaskFrontmatter,
   body: string
 ): Promise<void> {
-  const content = serializeTaskFile(frontmatter, body);
+  // 📖 Every web write stamps `updated:` too, so the TUI Age column stays
+  // honest whichever interface touched the task last (see task-meta.ts).
+  const content = serializeTaskFile(stampUpdated(frontmatter), body);
   if (isServerMode()) return serverUnarchiveTask(id, content);
   try {
     const h = await _tasksDir!.getFileHandle(`${id}.md`, { create: true });

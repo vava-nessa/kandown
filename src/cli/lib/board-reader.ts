@@ -36,6 +36,7 @@ import { execFileSync } from 'node:child_process';
 import { atomicWriteFileSync } from './atomic-write.js';
 import { buildColumnsFromTasks, parseTaskFile } from '../../lib/parser.js';
 import { serializeTaskFile } from '../../lib/serializer.js';
+import { stampUpdated } from '../../lib/task-meta.js';
 import type { ParsedBoard, ParsedTask, TaskFrontmatter } from '../../lib/types.js';
 import { loadConfig } from './config.js';
 
@@ -218,11 +219,11 @@ export function moveTaskToColumn(
   try {
     const prevContent = readFileSync(taskPath, 'utf8');
     const parsed = readTask(kandownDir, taskId);
-    const newContent = serializeTaskFile({
+    const newContent = serializeTaskFile(stampUpdated({
       ...parsed.frontmatter,
       id: taskId,
       status: targetColumn,
-    }, parsed.body);
+    }), parsed.body);
     atomicWriteFileSync(taskPath, newContent);
     pushUndo(kandownDir, {
       type: 'move',
@@ -321,12 +322,15 @@ export function createTaskInBoard(kandownDir: string, rawInput: string, status?:
   text = text.replace(/(?:^|\s)\+([a-zA-Z0-9_-]+)/g, (_, depId) => { depends_on.push(depId); return ' '; });
   const title = text.replace(/\s+/g, ' ').trim() || rawInput;
 
-  const fm: TaskFrontmatter = {
+  // 📖 A brand-new task is "updated" at creation time too, so the Age column
+  // reads its real age from second one instead of falling back to the
+  // day-precision `created` date.
+  const fm: TaskFrontmatter = stampUpdated({
     id: newId,
     title,
     status: targetStatus,
     created: new Date().toISOString().slice(0, 10),
-  };
+  });
   if (priority) fm.priority = priority;
   if (assignee) fm.assignee = assignee;
   if (tags.length > 0) fm.tags = tags;
@@ -376,11 +380,11 @@ export function archiveTaskInBoard(kandownDir: string, taskId: string): boolean 
     const archiveDir = join(tasksDir, 'archive');
     if (!existsSync(archiveDir)) mkdirSync(archiveDir, { recursive: true });
     const parsed = readTask(kandownDir, taskId);
-    const newContent = serializeTaskFile({
+    const newContent = serializeTaskFile(stampUpdated({
       ...parsed.frontmatter,
       id: taskId,
       archived: true,
-    }, parsed.body);
+    }), parsed.body);
     const destPath = join(archiveDir, `${taskId}.md`);
     atomicWriteFileSync(destPath, newContent);
     unlinkSync(taskPath);

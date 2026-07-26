@@ -45,6 +45,11 @@
       "done": "yellow"
     }
   },
+  "tui": {
+    "defaultView": "list",
+    "showDetailPane": true,
+    "listSort": "status"
+  },
   "fields": {
     "priority": false,
     "assignee": false,
