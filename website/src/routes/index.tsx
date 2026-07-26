@@ -142,7 +142,7 @@ function Hero() {
               div owns the surface. */}
           <div className="animate-rise w-full max-w-[27rem] shrink-0 self-center lg:self-auto" style={{ animationDelay: '200ms' }}>
             <CometCard className="w-full">
-              <div className="rounded-2xl border border-white/15 bg-black/85 p-10 backdrop-blur-2xl sm:p-14">
+              <div className="rounded-2xl border border-white/15 bg-black/70! p-10 backdrop-blur-[3px] sm:p-14">
                 <div className="flex flex-col items-center justify-center">
                   <LogoMark size={220} />
                   <BrandLoop />
