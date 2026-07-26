@@ -30,7 +30,7 @@ function ChangelogsLayout() {
 
   return (
     <div className="mx-auto max-w-6xl px-5 sm:px-8">
-      <div className="lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-12">
+      <div className="grid gap-0 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-12">
         <aside className="hidden lg:block lg:border-r lg:border-border">
           <div className="sticky top-14 max-h-[calc(100vh-3.5rem)] overflow-y-auto py-8 pr-6">
             <ChangelogSidebar entries={entries} />
@@ -54,7 +54,9 @@ function ChangelogsLayout() {
           </span>
         </div>
 
-        <Outlet />
+        <div className="min-w-0 lg:col-start-2">
+          <Outlet />
+        </div>
       </div>
 
       <MobileChangelogSidebar
