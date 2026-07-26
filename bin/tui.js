@@ -54024,7 +54024,15 @@ var DEFAULT_CONFIG = {
     defaultOwnerType: "human",
     stackDefaultState: "collapsed"
   },
-  tui: { defaultView: "list", showDetailPane: true, listSort: "status" },
+  tui: {
+    defaultView: "list",
+    showDetailPane: true,
+    listSort: "status",
+    // 📖 Tags default to off: they are the widest optional column and the one
+    // most projects leave empty, so on by default it mostly reserved 14 cells
+    // of description width to render blanks. Turn it on in `kandown settings`.
+    columns: { age: true, status: true, priority: true, owner: true, deps: true, tags: false }
+  },
   fields: {
     priority: false,
     assignee: false,
@@ -54070,7 +54078,18 @@ function loadConfig(kandownDir) {
       ...boardRaw,
       columns: Array.isArray(boardRaw.columns) && boardRaw.columns.length > 0 ? boardRaw.columns.filter((name) => typeof name === "string" && name.trim().length > 0) : DEFAULT_CONFIG.board.columns
     },
-    tui: { ...DEFAULT_CONFIG.tui, ...safeObj(obj.tui) },
+    // 📖 `columns` is merged one level deeper than the rest: a config that only
+    // pins `{"tui":{"columns":{"tags":true}}}` must keep the defaults for every
+    // other column instead of having them come back `undefined` (falsy — which
+    // would silently blank the whole row).
+    tui: {
+      ...DEFAULT_CONFIG.tui,
+      ...safeObj(obj.tui),
+      columns: {
+        ...DEFAULT_CONFIG.tui.columns,
+        ...safeObj(safeObj(obj.tui).columns)
+      }
+    },
     fields: { ...DEFAULT_CONFIG.fields, ...safeObj(obj.fields) },
     notifications: { ...DEFAULT_CONFIG.notifications, ...safeObj(obj.notifications) }
   };
@@ -54229,6 +54248,30 @@ var SETTINGS = [
   { key: "fields.dueDate", label: "Due date", section: "Fields", type: "toggle" },
   { key: "fields.ownerType", label: "Owner type", section: "Fields", type: "toggle" },
   { key: "fields.tools", label: "Tools", section: "Fields", type: "toggle" },
+  // Terminal UI
+  {
+    key: "tui.defaultView",
+    label: "Default view",
+    section: "Terminal UI",
+    type: "select",
+    options: ["list", "board"]
+  },
+  { key: "tui.showDetailPane", label: "Detail pane under list", section: "Terminal UI", type: "toggle" },
+  {
+    key: "tui.listSort",
+    label: "List sort",
+    section: "Terminal UI",
+    type: "select",
+    options: ["status", "age", "priority", "id"]
+  },
+  // 📖 List columns. ID and Description are deliberately absent: they are what
+  // makes a row identifiable, so they are not switchable. Everything else is.
+  { key: "tui.columns.age", label: "Column: Age", section: "Terminal UI", type: "toggle" },
+  { key: "tui.columns.status", label: "Column: Status", section: "Terminal UI", type: "toggle" },
+  { key: "tui.columns.priority", label: "Column: Priority", section: "Terminal UI", type: "toggle" },
+  { key: "tui.columns.owner", label: "Column: Owner", section: "Terminal UI", type: "toggle" },
+  { key: "tui.columns.deps", label: "Column: Dependencies", section: "Terminal UI", type: "toggle" },
+  { key: "tui.columns.tags", label: "Column: Tags", section: "Terminal UI", type: "toggle" },
   // Notifications
   { key: "notifications.browser", label: "Browser notifications", section: "Notifications", type: "toggle" },
   { key: "notifications.statusChanges", label: "Status changes", section: "Notifications", type: "toggle" },
@@ -54243,7 +54286,7 @@ var SETTINGS = [
     options: ["soft", "chime", "ping", "pop"]
   }
 ];
-var SECTIONS = ["Appearance", "Agent", "Board", "Fields", "Notifications"];
+var SECTIONS = ["Appearance", "Agent", "Board", "Fields", "Terminal UI", "Notifications"];
 var LABEL_WIDTH = 30;
 var VALUE_WIDTH = 20;
 var SECTION_ICONS = {
@@ -54251,6 +54294,7 @@ var SECTION_ICONS = {
   Agent: "\u{1F916}",
   Board: "\u{1F4CB}",
   Fields: "\u{1F4DD}",
+  "Terminal UI": "\u2328\uFE0F",
   Notifications: "\u{1F514}"
 };
 function Settings({ kandownDir, version }) {
@@ -54332,6 +54376,23 @@ function Settings({ kandownDir, version }) {
     return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Box_default, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { dimColor: true, children: "Loading\u2026" }) });
   }
   const showSaved = savedAt !== null;
+  const termRows = process.stdout.rows || 24;
+  const scrollFor = (capacity2) => Math.max(0, Math.min(focusIndex - Math.floor(capacity2 / 2), SETTINGS.length - capacity2));
+  let capacity = Math.max(3, termRows - 6);
+  for (let pass = 0; pass < 3; pass++) {
+    const start = scrollFor(capacity);
+    const slice = SETTINGS.slice(start, start + capacity);
+    const sectionCount = new Set(slice.map((item) => item.section)).size;
+    const next = Math.max(3, termRows - 6 - sectionCount * 3);
+    if (next === capacity) break;
+    capacity = next;
+  }
+  const scroll = scrollFor(capacity);
+  const windowEnd = Math.min(SETTINGS.length, scroll + capacity);
+  const visible = /* @__PURE__ */ new Set();
+  for (let i = scroll; i < windowEnd; i++) visible.add(i);
+  const hiddenAbove = scroll;
+  const hiddenBelow = SETTINGS.length - windowEnd;
   return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Box_default, { flexDirection: "column", paddingX: 2, paddingY: 1, children: [
     /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Box_default, { justifyContent: "space-between", marginBottom: 1, children: [
       /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Box_default, { children: [
@@ -54356,9 +54417,12 @@ function Settings({ kandownDir, version }) {
       ] })
     ] }),
     SECTIONS.map((section) => {
-      const items = SETTINGS.filter((s) => s.section === section);
+      const items = SETTINGS.filter(
+        (s) => s.section === section && visible.has(SETTINGS.indexOf(s))
+      );
+      if (items.length === 0) return null;
       const icon = SECTION_ICONS[section] ?? "\u2022";
-      return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Box_default, { flexDirection: "column", marginBottom: 1, children: [
+      return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Box_default, { flexDirection: "column", marginBottom: 1, flexShrink: 0, children: [
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Box_default, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Text, { color: "cyan", bold: true, children: [
           "  ",
           icon,
@@ -54382,7 +54446,13 @@ function Settings({ kandownDir, version }) {
         })
       ] }, section);
     }),
-    /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { dimColor: true, children: "  \u2191\u2193 navigate   Space toggle   \u2190\u2192 change   Q quit" }) })
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Text, { dimColor: true, children: [
+      "  ",
+      hiddenAbove > 0 ? `\u25B2 ${hiddenAbove}   ` : "",
+      hiddenBelow > 0 ? `\u25BC ${hiddenBelow}   ` : "",
+      `${focusIndex + 1}/${SETTINGS.length}   `,
+      "\u2191\u2193 navigate   Space toggle   \u2190\u2192 change   Q quit"
+    ] }) })
   ] });
 }
 function SettingRow({ setting, value, focused }) {
@@ -55003,7 +55073,7 @@ import { spawn, execSync } from "child_process";
 import { homedir as homedir2 } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.37.0";
+var KANDOWN_VERSION = "0.38.0";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath as fileURLToPath2 } from "url";
@@ -57970,8 +58040,16 @@ function applyBoardFilter(board, search, filter) {
 }
 var MIN_DESC = 24;
 var GAP = 1;
+var ALL_LIST_COLUMNS = {
+  age: true,
+  status: true,
+  priority: true,
+  owner: true,
+  deps: true,
+  tags: true
+};
 var DROP_ORDER = ["tags", "deps", "owner", "priority", "age", "status"];
-function computeListLayout(rows, width = termWidth()) {
+function computeListLayout(rows, width = termWidth(), prefs = ALL_LIST_COLUMNS) {
   const longestId = rows.reduce((max, row) => Math.max(max, row.task.id.length), 2);
   const longestStatus = rows.reduce((max, row) => Math.max(max, row.status.length), 6);
   const layout = {
@@ -57979,12 +58057,12 @@ function computeListLayout(rows, width = termWidth()) {
     // that separates it from the id.
     cursor: 1,
     id: Math.min(longestId, 8),
-    age: 5,
-    status: Math.min(longestStatus, 13),
-    priority: 2,
-    owner: 1,
-    deps: 3,
-    tags: 14,
+    age: prefs.age ? 5 : 0,
+    status: prefs.status ? Math.min(longestStatus, 13) : 0,
+    priority: prefs.priority ? 2 : 0,
+    owner: prefs.owner ? 1 : 0,
+    deps: prefs.deps ? 3 : 0,
+    tags: prefs.tags ? 14 : 0,
     desc: 0,
     descOffset: 0,
     total: 0
@@ -58062,8 +58140,8 @@ function computeListWindow(previousScroll, selectedIndex, selHeight, total, view
 function rowHeight(row, layout) {
   return wrapText2(row.task.title, layout.desc, MAX_WRAP_LINES).length || 1;
 }
-function computeListGeometry(rows, selectedIndex, previousScroll, maxHeight, width) {
-  const layout = computeListLayout(rows, width);
+function computeListGeometry(rows, selectedIndex, previousScroll, maxHeight, width, columns = ALL_LIST_COLUMNS) {
+  const layout = computeListLayout(rows, width, columns);
   const viewport = Math.max(1, maxHeight - 1);
   const selected = rows[selectedIndex] ?? rows[0];
   const selHeight = selected ? rowHeight(selected, layout) : 1;
@@ -58316,6 +58394,7 @@ function Board({ kandownDir, version }) {
   const [view, setView] = (0, import_react37.useState)(() => loadConfig(kandownDir).tui.defaultView);
   const [showDetailPane, setShowDetailPane] = (0, import_react37.useState)(() => loadConfig(kandownDir).tui.showDetailPane);
   const [listSort, setListSort] = (0, import_react37.useState)(() => loadConfig(kandownDir).tui.listSort);
+  const [listColumns, setListColumns] = (0, import_react37.useState)(() => loadConfig(kandownDir).tui.columns);
   const [listIndex, setListIndex] = (0, import_react37.useState)(0);
   const [listScroll, setListScroll] = (0, import_react37.useState)(0);
   const [pendingFocusId, setPendingFocusId] = (0, import_react37.useState)(null);
@@ -58356,8 +58435,8 @@ function Board({ kandownDir, version }) {
     (process.stdout.rows || 24) - LIST_START_Y - 3 - (showDetailPane ? DETAIL_PANE_HEIGHT : 0)
   );
   const listGeometry = (0, import_react37.useMemo)(
-    () => computeListGeometry(listRows, listIndex, listScroll, listMaxHeight, termWidth()),
-    [listRows, listIndex, listScroll, listMaxHeight]
+    () => computeListGeometry(listRows, listIndex, listScroll, listMaxHeight, termWidth(), listColumns),
+    [listRows, listIndex, listScroll, listMaxHeight, listColumns]
   );
   (0, import_react37.useEffect)(() => {
     if (listGeometry.window.scroll !== listScroll) setListScroll(listGeometry.window.scroll);
@@ -58453,6 +58532,10 @@ function Board({ kandownDir, version }) {
     });
     watcher.on("configChanged", () => {
       loadBoardInto();
+      try {
+        setListColumns(loadConfig(kandownDir).tui.columns);
+      } catch {
+      }
     });
     watcher.start(kandownDir);
     return () => {

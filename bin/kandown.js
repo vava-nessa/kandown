@@ -15,7 +15,7 @@ import { spawn, execSync } from "child_process";
 import { homedir } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.37.0";
+var KANDOWN_VERSION = "0.38.0";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath } from "url";
@@ -35,6 +35,16 @@ var PKG_ROOT = getPackageRoot();
 var CACHE_DIR = join(homedir(), ".kandown");
 var UPDATE_CHECK_CACHE = join(CACHE_DIR, ".update-check.json");
 var UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1e3;
+function getInstalledVersion() {
+  try {
+    const pkgPath = join(PKG_ROOT, "package.json");
+    if (!existsSync(pkgPath)) return null;
+    const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
+    return typeof pkg.version === "string" && pkg.version ? pkg.version : null;
+  } catch {
+    return null;
+  }
+}
 function getCurrentVersion() {
   if (KANDOWN_VERSION && KANDOWN_VERSION !== "0.0.0-dev") {
     return KANDOWN_VERSION;
@@ -710,7 +720,15 @@ var DEFAULT_CONFIG = {
     defaultOwnerType: "human",
     stackDefaultState: "collapsed"
   },
-  tui: { defaultView: "list", showDetailPane: true, listSort: "status" },
+  tui: {
+    defaultView: "list",
+    showDetailPane: true,
+    listSort: "status",
+    // 📖 Tags default to off: they are the widest optional column and the one
+    // most projects leave empty, so on by default it mostly reserved 14 cells
+    // of description width to render blanks. Turn it on in `kandown settings`.
+    columns: { age: true, status: true, priority: true, owner: true, deps: true, tags: false }
+  },
   fields: {
     priority: false,
     assignee: false,
@@ -756,7 +774,18 @@ function loadConfig(kandownDir) {
       ...boardRaw,
       columns: Array.isArray(boardRaw.columns) && boardRaw.columns.length > 0 ? boardRaw.columns.filter((name) => typeof name === "string" && name.trim().length > 0) : DEFAULT_CONFIG.board.columns
     },
-    tui: { ...DEFAULT_CONFIG.tui, ...safeObj(obj.tui) },
+    // 📖 `columns` is merged one level deeper than the rest: a config that only
+    // pins `{"tui":{"columns":{"tags":true}}}` must keep the defaults for every
+    // other column instead of having them come back `undefined` (falsy — which
+    // would silently blank the whole row).
+    tui: {
+      ...DEFAULT_CONFIG.tui,
+      ...safeObj(obj.tui),
+      columns: {
+        ...DEFAULT_CONFIG.tui.columns,
+        ...safeObj(safeObj(obj.tui).columns)
+      }
+    },
     fields: { ...DEFAULT_CONFIG.fields, ...safeObj(obj.fields) },
     notifications: { ...DEFAULT_CONFIG.notifications, ...safeObj(obj.notifications) }
   };
@@ -2110,11 +2139,15 @@ async function handleApi(req, res, url, kandownDir) {
         resolve5(stdout.trim().replace(/^"|"$/g, "") || null);
       });
     });
-    const updateAvailable = latest ? semverGt(latest, current) > 0 : false;
+    const installed = getInstalledVersion() ?? current;
+    const updateAvailable = latest ? semverGt(latest, installed) > 0 : false;
+    const restartRequired = semverGt(installed, current) > 0;
     return writeJson(res, 200, {
-      current,
-      latest: latest || current,
-      updateAvailable
+      current: installed,
+      running: current,
+      latest: latest || installed,
+      updateAvailable,
+      restartRequired
     });
   }
   if (path === "/api/update/apply" && method === "POST") {
