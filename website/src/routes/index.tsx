@@ -36,6 +36,7 @@ import { CopyCommand } from '~/components/CopyCommand'
 import { INSTALL_COMMAND, site } from '~/lib/site'
 import HeroGeometric from '~/components/HeroGeometric'
 import { LogoMark } from '~/components/Logo'
+import { MorphingText } from '~/components/MorphingText'
 import { HomeStructuredData } from '~/components/StructuredData'
 
 export const Route = createFileRoute('/')({
@@ -182,15 +183,13 @@ function Hero() {
 function BrandLoop() {
   return (
     <div
-      className="brand-loop mt-7 w-full text-center font-mono text-white"
+      className="mt-7 w-full text-center"
       aria-label="Kanban plus Markdown becomes Kandown"
     >
-      <span className="brand-loop__equation" aria-hidden="true">
-        Kanban + Markdown
-      </span>
-      <span className="brand-loop__name" aria-hidden="true">
-        Kandown
-      </span>
+      <MorphingText
+        texts={['Kanban + Markdown', 'Kandown']}
+        className="h-10 text-xl font-bold font-mono text-white tracking-wide"
+      />
     </div>
   )
 }
