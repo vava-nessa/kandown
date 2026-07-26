@@ -187,8 +187,16 @@ function BrandLoop() {
       aria-label="Kanban plus Markdown becomes Kandown"
     >
       <MorphingText
-        texts={['Kanban + Markdown', 'Kandown']}
-        className="h-10 text-xl font-bold font-mono text-white tracking-wide"
+        items={[
+          {
+            text: 'Kanban + Markdown',
+            className: 'font-mono text-[1.1875rem] font-semibold tracking-[0.08em] text-white',
+          },
+          {
+            text: 'Kandown',
+            className: 'font-sans text-[2rem] font-black tracking-[-0.045em] text-white',
+          },
+        ]}
       />
     </div>
   )
