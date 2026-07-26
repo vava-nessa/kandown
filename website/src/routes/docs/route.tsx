@@ -1,23 +1,25 @@
 /**
  * @file src/routes/docs/route.tsx
- * @description The documentation shell: sticky left sidebar, article outlet, and
- * the single mounted instance of the search dialog.
+ * @description The documentation shell: sticky left sidebar and article outlet.
  *
  * 📖 This is a *layout* route (`route.tsx`), so it wraps every `/docs/*` page and
  * survives navigation between them. That matters: the sidebar keeps its scroll
- * position and the search index is parsed once for the whole session instead of
- * on every page change.
+ * position across page changes.
  *
  * 📖 The grid is `sidebar | article | toc`. The right-hand outline column is
  * declared by the page itself (see `docs/$.tsx`) rather than here, because the
  * docs index has no headings to outline.
+ *
+ * 📖 The search dialog itself is mounted once in the root layout (`__root.tsx`)
+ * so the `SearchTrigger` button in the global header — and ⌘K — work on every
+ * page, not just `/docs/*`.
  *
  * @exports Route
  */
 import { useState } from 'react'
 import { createFileRoute, Outlet } from '@tanstack/react-router'
 import { DocsSidebar, MobileSidebar } from '~/components/DocsSidebar'
-import { SearchDialog, SearchTrigger } from '~/components/DocSearch'
+import { SearchTrigger } from '~/components/DocSearch'
 
 export const Route = createFileRoute('/docs')({
   component: DocsLayout,
@@ -63,7 +65,6 @@ function DocsLayout() {
       </div>
 
       <MobileSidebar open={navOpen} onClose={() => setNavOpen(false)} />
-      <SearchDialog />
     </div>
   )
 }

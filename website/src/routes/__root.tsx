@@ -24,6 +24,7 @@ import {
 import type { ReactNode } from 'react'
 import { SiteHeader } from '~/components/SiteHeader'
 import { SiteFooter } from '~/components/SiteFooter'
+import { SearchDialog } from '~/components/DocSearch'
 import { site } from '~/lib/site'
 import appCss from '~/styles.css?url'
 
@@ -111,6 +112,11 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         {isAppRoute ? null : <SiteHeader />}
         <main id="main">{children}</main>
         {isAppRoute ? null : <SiteFooter />}
+        {/* 📖 Mounted at the root so the site-wide `SearchTrigger` button and
+            the global ⌘K shortcut can open the dialog from every page, not
+            only `/docs/*`. The dialog is `position: fixed` so its DOM location
+            does not affect layout. */}
+        <SearchDialog />
         <Scripts />
       </body>
     </html>

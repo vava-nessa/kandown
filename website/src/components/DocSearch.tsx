@@ -14,13 +14,18 @@
  * any component can open the dialog without prop-drilling state through the
  * layout.
  *
+ * 📖 `SearchDialog` is mounted once in the root layout (`__root.tsx`), not in
+ * the docs layout, because the button appears in the global `SiteHeader` and
+ * ⌘K is a global shortcut. Keeping the mount in a route subtree would leave
+ * every non-docs page unable to open it.
+ *
  * Keyboard: `⌘K`/`Ctrl+K` opens, `↑`/`↓` move, `↵` navigates, `Esc` closes.
  *
  * @functions
  *   score          → relevance of one index entry against a query
  *   openSearch     → imperatively open the dialog from anywhere
  *   SearchTrigger  → the header button
- *   SearchDialog   → the overlay, mounted once in the docs layout
+ *   SearchDialog   → the overlay, mounted once in the root layout
  * @exports SearchTrigger, SearchDialog, openSearch
  * @see scripts/build-search-index.mjs — how the index is produced
  */
