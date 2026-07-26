@@ -1,0 +1,17 @@
+fix(website): dial back hero card transparency
+
+The dark inner card inside the hero CometCard drops from
+`bg-black/85` + `backdrop-blur-2xl` to `bg-black/70!` +
+`backdrop-blur-[3px]`, so the HeroGeometric backdrop shows through
+slightly while the card still reads as solid dark. The
+`!` important modifier is needed because Tailwind v4 emits
+`bg-bg-subtle` after the arbitrary class in source order, which would
+otherwise win.
+
+Earlier attempt used `bg-black/10!` (fully transparent), which let the
+backdrop bleed straight through and lost the panel. 70% black keeps
+the frosted-glass hint without losing the lockup.
+
+The Kandown mark, brand morph and cream install tile stay fully
+legible; the CometCard 3D tilt, hover lift and cursor-tracking glare
+are unchanged.

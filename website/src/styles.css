@@ -563,3 +563,11 @@
 .changelog-body > p {
   margin-top: 0.9em;
 }
+
+/* 📖 Hero product lockup surface. The semi-transparent green tint sits inside
+   the CometCard so the card owns the perspective and this class owns the
+   color. `!important` keeps it from being clobbered by Tailwind's `bg-*`
+   utilities generated from the same element. */
+.hero-card-surface {
+  background-color: color-mix(in oklab, #367000cf 70%, transparent) !important;
+}

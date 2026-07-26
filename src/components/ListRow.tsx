@@ -8,15 +8,22 @@
  * stacked without extra borders, margins, or double separators.
  * 📖 The title grows with its content — no `truncate`, no `line-clamp`. A 1-line
  * title produces a tight row, a 3-line title produces a taller row.
- * 📖 Left-edge chip group: drag handle, priority, #, bracket tag — all stay
- * flex-none and top-aligned. Title block sits next to them and wraps freely.
- * Meta + actions live in a sub-row below, wrapping on overflow.
+ * 📖 Title row layout (left → right): drag handle, priority, #ID, title
+ * (flex-1), then a right-aligned chip cluster holding the subtask progress
+ * and tags. Both chip groups live on the title line so progress and
+ * categorisation are readable in a single horizontal glance.
+ * 📖 Meta sub-row below holds the secondary chips (epic, report, deps,
+ * assignee, due) plus hover action buttons pinned right.
+ * 📖 Two modes: `list` (default, draggable, archive/delete buttons) and
+ * `archive` (not draggable, restore/delete buttons). Both modes share one
+ * renderer — see `ArchiveView`.
  *
  * @functions
  *  → ListRow — modern linear-style list row component
  *
  * @exports ListRow
  * @see src/components/ListView.tsx
+ * @see src/components/ArchiveView.tsx
  * @see src/components/Card.tsx
  */
 
@@ -103,7 +110,7 @@ function MetadataBlock({ frontmatter, hidden }: { frontmatter: Record<string, un
   });
   if (entries.length === 0) return null;
   return (
-    <div className="mt-1.5 pt-1.5 border-t border-border/30 space-y-1 pl-[60px]">
+    <div className="mt-1.5 pt-1.5 border-t border-border/60 space-y-1 pl-[60px]">
       {entries.map(([key, value]) => (
         <div key={key} className="flex items-start gap-2 text-[11px] leading-tight">
           <span className="text-fg-muted font-medium flex-shrink-0 min-w-[60px]">{labelFor(key)}</span>
@@ -140,6 +147,14 @@ interface ListRowProps {
   doneTags?: Set<string>;
   onSelect?: (taskId: string) => void;
   isActive?: boolean;
+  /**
+   * Rendering mode.
+   * - `list` (default): drag handle, archive + delete actions.
+   * - `archive`: no drag handle, no archive button (already archived), show
+   *   a Restore button that calls `unarchiveTask` instead. Used by
+   *   `ArchiveView` so archived and active boards share one renderer.
+   */
+  mode?: 'list' | 'archive';
 }
 
 export function ListRow({
@@ -152,11 +167,13 @@ export function ListRow({
   doneTags,
   onSelect,
   isActive = false,
+  mode = 'list',
 }: ListRowProps) {
   const { t } = useTranslation();
   const openDrawer = useStore(s => s.openDrawer);
   const deleteTask = useStore(s => s.deleteTask);
   const archiveTask = useStore(s => s.archiveTask);
+  const unarchiveTask = useStore(s => s.unarchiveTask);
   const showMetadata = useStore(s => s.showMetadata);
   const selectedTaskIds = useStore(s => s.selectedTaskIds);
   const toggleTaskSelection = useStore(s => s.toggleTaskSelection);
@@ -164,6 +181,7 @@ export function ListRow({
   const [deleteArmed, setDeleteArmed] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
   const isMountedRef = useRef(true);
 
   const isCompact = density === 'compact';
@@ -223,6 +241,16 @@ export function ListRow({
     if (isMountedRef.current) setIsArchiving(false);
   };
 
+  const handleRestoreClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (isDeleting || isRestoring) return;
+
+    setIsRestoring(true);
+    await unarchiveTask(task.id);
+    if (isMountedRef.current) setIsRestoring(false);
+  };
+
   return (
     <div
       draggable={!!onDragStart}
@@ -240,7 +268,7 @@ export function ListRow({
       onMouseLeave={() => setDeleteArmed(false)}
       data-task-id={task.id}
       data-col={columnName}
-      className={`group relative px-3 transition-colors duration-150 ease-out border-b border-border/30 last:border-b-0 cursor-pointer ${
+      className={`group relative px-3 transition-colors duration-150 ease-out border-b border-border/60 last:border-b-0 cursor-pointer ${
         isCompact ? 'py-1.5' : 'py-2.5'
       } ${
         isSelected
@@ -248,21 +276,25 @@ export function ListRow({
           : 'hover:bg-black/[0.03] dark:hover:bg-white/[0.04]'
       } ${task.checked ? 'opacity-60' : ''}`}
     >
-      {/* Title row: drag handle | priority | # | bracket tag | title (wraps).
-          Right side holds absolutely-positioned hover actions so the title
-          can grow with long content without being pushed around. */}
+      {/* Title row: drag handle | priority | # | title (flex-1) | tags + subtasks (right).
+          The right block sits on the SAME line as the title and is pushed
+          there by being the last flex child after the flex-1 title block.
+          Hidden in archive mode (no drag handle) and the tags wrap below
+          gracefully when the title runs long. */}
       <div className="flex items-start gap-2">
         {/* Drag handle */}
-        <div className="flex-none pt-[2px] opacity-0 group-hover:opacity-40 transition-opacity cursor-grab active:cursor-grabbing">
-          <svg width="8" height="14" viewBox="0 0 8 14" fill="currentColor" className="text-fg-muted">
-            <circle cx="2" cy="2" r="1.2"/>
-            <circle cx="6" cy="2" r="1.2"/>
-            <circle cx="2" cy="7" r="1.2"/>
-            <circle cx="6" cy="7" r="1.2"/>
-            <circle cx="2" cy="12" r="1.2"/>
-            <circle cx="6" cy="12" r="1.2"/>
-          </svg>
-        </div>
+        {mode === 'list' && (
+          <div className="flex-none pt-[2px] opacity-0 group-hover:opacity-40 transition-opacity cursor-grab active:cursor-grabbing">
+            <svg width="8" height="14" viewBox="0 0 8 14" fill="currentColor" className="text-fg-muted">
+              <circle cx="2" cy="2" r="1.2"/>
+              <circle cx="6" cy="2" r="1.2"/>
+              <circle cx="2" cy="7" r="1.2"/>
+              <circle cx="6" cy="7" r="1.2"/>
+              <circle cx="2" cy="12" r="1.2"/>
+              <circle cx="6" cy="12" r="1.2"/>
+            </svg>
+          </div>
+        )}
 
         {/* Priority indicator badge */}
         <span
@@ -291,6 +323,53 @@ export function ListRow({
             {titleWithoutTag}
           </div>
         </div>
+
+        {/* Right-aligned chips: tags first, then subtask counter (last).
+            Both live on the title line so a glance across the board
+            shows categorisation + progress without scanning the meta sub-row.
+            The subtask counter sits LAST and uses a fixed width so columns of
+            subtask counters line up vertically regardless of the digit count. */}
+        {((task.progress && task.progress.total > 0) ||
+          (task.tags && task.tags.length > 0)) && (
+          <div className="flex items-center gap-1.5 flex-none mt-[1px]">
+            {/* Tags */}
+            {task.tags && task.tags.length > 0 && (
+              <span className="hidden sm:inline-flex items-center gap-1">
+                {task.tags.slice(0, 2).map((t, i) => (
+                  <span
+                    key={i}
+                    className="inline-flex items-center h-[16px] px-1.5 text-[10px] font-medium text-fg-muted rounded bg-black/[0.04] dark:bg-white/[0.06]"
+                  >
+                    #{t}
+                  </span>
+                ))}
+              </span>
+            )}
+
+            {/* Subtasks counter — always LAST, always the same width.
+               w-[64px] + justify-center + whitespace-nowrap keeps it
+               visually aligned across rows even when "0/5" and "12/47"
+               share a column. The progress bar inside still grows with the
+               percent done. */}
+            {task.progress && task.progress.total > 0 && (
+              <div
+                className="inline-flex items-center justify-center gap-1.5 px-2 py-0.5 rounded bg-black/[0.04] dark:bg-white/[0.06] border border-border/50 text-[10.5px] font-mono text-fg-muted w-[64px] flex-none"
+                title={`Subtasks: ${task.progress.done}/${task.progress.total}`}
+              >
+                <div className="w-8 h-1 rounded-full bg-black/10 dark:bg-white/15 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{
+                      width: `${Math.round((task.progress.done / task.progress.total) * 100)}%`,
+                      backgroundColor: task.progress.done === task.progress.total ? '#22c55e' : 'var(--primary, #3b82f6)',
+                    }}
+                  />
+                </div>
+                <span className="tabular-nums font-semibold text-[10px] whitespace-nowrap">{task.progress.done}/{task.progress.total}</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Meta + actions sub-row. Wraps on overflow; actions pinned right on hover. */}
@@ -325,44 +404,11 @@ export function ListRow({
             </span>
           )}
 
-          {/* Tags */}
-          {task.tags && task.tags.length > 0 && (
-            <span className="hidden sm:inline-flex items-center gap-1">
-              {task.tags.slice(0, 2).map((t, i) => (
-                <span
-                  key={i}
-                  className="inline-flex items-center h-[16px] px-1.5 text-[10px] font-medium text-fg-muted rounded bg-black/[0.04] dark:bg-white/[0.06]"
-                >
-                  #{t}
-                </span>
-              ))}
-            </span>
-          )}
-
           {/* Assignee */}
           {task.assignee && (
             <span className="inline-flex items-center h-[18px] px-1.5 text-[10.5px] font-medium text-fg-muted rounded bg-black/[0.04] dark:bg-white/[0.06]">
               @{task.assignee}
             </span>
-          )}
-
-          {/* Subtasks Progress Slider - Inline & compact */}
-          {task.progress && task.progress.total > 0 && (
-            <div
-              className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded bg-black/[0.04] dark:bg-white/[0.06] border border-border/50 text-[10.5px] font-mono text-fg-muted"
-              title={`Subtasks: ${task.progress.done}/${task.progress.total}`}
-            >
-              <div className="w-7 h-1 rounded-full bg-black/10 dark:bg-white/15 overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-300"
-                  style={{
-                    width: `${Math.round((task.progress.done / task.progress.total) * 100)}%`,
-                    backgroundColor: task.progress.done === task.progress.total ? '#22c55e' : 'var(--primary, #3b82f6)',
-                  }}
-                />
-              </div>
-              <span className="tabular-nums font-semibold text-[10px]">{task.progress.done}/{task.progress.total}</span>
-            </div>
           )}
 
           {/* Due Date */}
@@ -374,25 +420,42 @@ export function ListRow({
 
           {/* Hover Action Buttons — pushed to the right end of the meta row */}
           <div className="flex items-center gap-1 ml-auto opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
-            <button
-              type="button"
-              aria-label={t('card.archive')}
-              title={t(isArchiving ? 'card.archiving' : 'card.archive')}
-              disabled={isDeleting || isArchiving}
-              onClick={handleArchiveClick}
-              className={`inline-flex h-5 w-5 items-center justify-center rounded border transition-all ${
-                isArchiving
-                  ? 'border-accent bg-accent/15 text-accent opacity-100'
-                  : 'border-border/60 bg-card/80 text-fg-muted hover:border-accent/60 hover:text-accent'
-              }`}
-            >
-              <Icon.Archive size={12} strokeWidth={1.8} />
-            </button>
+            {mode === 'archive' ? (
+              <button
+                type="button"
+                aria-label={t('drawer.restore')}
+                title={t(isRestoring ? 'card.archiving' : 'drawer.restore')}
+                disabled={isDeleting || isRestoring}
+                onClick={handleRestoreClick}
+                className={`inline-flex h-5 w-5 items-center justify-center rounded border transition-all ${
+                  isRestoring
+                    ? 'border-accent bg-accent/15 text-accent opacity-100'
+                    : 'border-border/60 bg-card/80 text-fg-muted hover:border-accent/60 hover:text-accent'
+                }`}
+              >
+                <Icon.ArchiveRestore size={12} strokeWidth={1.8} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                aria-label={t('card.archive')}
+                title={t(isArchiving ? 'card.archiving' : 'card.archive')}
+                disabled={isDeleting || isArchiving}
+                onClick={handleArchiveClick}
+                className={`inline-flex h-5 w-5 items-center justify-center rounded border transition-all ${
+                  isArchiving
+                    ? 'border-accent bg-accent/15 text-accent opacity-100'
+                    : 'border-border/60 bg-card/80 text-fg-muted hover:border-accent/60 hover:text-accent'
+                }`}
+              >
+                <Icon.Archive size={12} strokeWidth={1.8} />
+              </button>
+            )}
             <button
               type="button"
               aria-label={deleteArmed ? t('card.confirmDelete') : t('card.delete')}
               title={deleteArmed ? t('card.confirmDelete') : t('card.delete')}
-              disabled={isDeleting || isArchiving}
+              disabled={isDeleting || (mode === 'archive' ? isRestoring : isArchiving)}
               onClick={handleDeleteClick}
               onBlur={() => setDeleteArmed(false)}
               className={`inline-flex h-5 w-5 items-center justify-center rounded border transition-all ${

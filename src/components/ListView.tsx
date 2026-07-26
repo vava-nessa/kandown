@@ -25,6 +25,7 @@ import { AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../lib/store';
 import { Card } from './Card';
+import { ListRow } from './ListRow';
 import { CardStack } from './CardStack';
 import { KbdButton } from './KbdButton';
 import { groupTasksByTag, extractGroupKey } from '../lib/grouping';
@@ -257,9 +258,9 @@ export function ListView() {
 
   return (
     <div className={`flex-1 min-h-0 overflow-y-auto ${isColumnReordering ? 'select-none' : ''}`}>
-      <div className="w-full px-6 py-5 space-y-4">
+      <div className="w-full px-4 py-3 space-y-3">
         {(dueSummary.overdue.length > 0 || dueSummary.dueSoon.length > 0) && (
-          <div className="p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-xs flex items-center gap-4">
+          <div className="p-2.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-xs flex items-center gap-4">
             <span className="font-semibold text-amber-500">📅 Due Dates & Calendar:</span>
             {dueSummary.overdue.length > 0 && (
               <span className="text-red-400 font-medium">{dueSummary.overdue.length} Overdue</span>
@@ -343,14 +344,14 @@ export function ListView() {
               >
                 <SectionDropGuide side="top" active={canShowDropGuide(sectionIndex)} />
                 <section
-                  className={`group/section overflow-hidden rounded-xl border transition-[border-color,background-color,opacity,box-shadow] duration-200 ease-out ${
+                  className={`group/section overflow-hidden rounded-lg border transition-[border-color,background-color,opacity] duration-150 ease-out ${
                     isTaskDropTarget
                       ? 'border-border-strong bg-bg-1 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]'
-                      : 'border-border'
+                      : 'border-border/60'
                   } ${draggedColIndex === sectionIndex ? 'opacity-45 scale-[0.995]' : ''}`}
                   style={{ backgroundColor: isTaskDropTarget ? undefined : colBg }}
                 >
-                  <header className="flex items-center justify-between gap-3 border-b border-border bg-bg-1/40 px-4 py-3">
+                  <header className="flex items-center justify-between gap-2.5 border-b border-border/40 bg-bg-1/60 px-3 py-2">
                     <div className="flex min-w-0 items-center gap-2.5">
                       <div
                         draggable
@@ -410,28 +411,28 @@ export function ListView() {
                     </div>
                   </header>
 
-                  <div className="p-3">
-                    <div className="flex flex-col gap-2">
-                      <AnimatePresence mode="popLayout">
-                        {columnItems.length === 0 ? (
-                          <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
-                            <div className="w-10 h-10 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] flex items-center justify-center mb-3">
-                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-fg-muted/50">
-                                <path d="M9 11l3 3L22 4"/>
-                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                              </svg>
-                            </div>
-                            <p className="text-[13px] font-medium text-fg-muted/70">
-                              {filters.search || filters.priority || filters.tag || filters.assignee || filters.ownerType
-                                ? t('listView.noMatchingTasks')
-                                : 'No tasks yet'}
-                            </p>
-                            <p className="text-[12px] text-fg-muted/50 mt-0.5">Drag tasks here to get started.</p>
+                  <div className="bg-bg/40">
+                    <AnimatePresence mode="popLayout">
+                      {columnItems.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-6 px-4 text-center">
+                          <div className="w-8 h-8 rounded-lg bg-black/[0.04] dark:bg-white/[0.08] flex items-center justify-center mb-2">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-fg-muted/50">
+                              <path d="M9 11l3 3L22 4"/>
+                              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                            </svg>
                           </div>
-                        ) : (
-                          columnItems.map(item =>
+                          <p className="text-[12.5px] font-medium text-fg-muted/70">
+                            {filters.search || filters.priority || filters.tag || filters.assignee || filters.ownerType
+                              ? t('listView.noMatchingTasks')
+                              : 'No tasks yet'}
+                          </p>
+                          <p className="text-[11.5px] text-fg-muted/50 mt-0.5">Drag tasks here to get started.</p>
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-border/30">
+                          {columnItems.map(item =>
                             item.type === 'single' ? (
-                              <Card
+                              <ListRow
                                 key={item.task.id}
                                 task={item.task}
                                 searchMatches={searchMatches.get(item.task.id) || []}
@@ -449,6 +450,7 @@ export function ListView() {
                                 density={density}
                                 columnName={column.name}
                                 doneTags={doneTags}
+                                viewMode="list"
                                 onCardDragStart={(taskId, fromCol) => handleTaskDragStart({} as React.DragEvent, taskId, fromCol)}
                                 onCardDragEnd={handleTaskDragEnd}
                                 defaultExpanded={
@@ -456,19 +458,19 @@ export function ListView() {
                                 }
                               />
                             )
-                          )
-                        )}
-                      </AnimatePresence>
-                    </div>
+                          )}
+                        </div>
+                      )}
+                    </AnimatePresence>
                   </div>
 
-                  <div className="flex-none px-3 pb-3 pt-1">
+                  <div className="flex-none px-3 py-1.5 border-t border-border/30 bg-bg-1/20">
                     <KbdButton
                       variant="ghost"
                       icon="Plus"
                       label={t('column.addTask')}
                       onClick={() => createTask(column.name)}
-                      className="w-full justify-start px-2.5 py-1.5 h-auto text-[12.5px] text-fg-muted hover:text-fg rounded-lg hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
+                      className="w-full justify-start px-2 py-1 h-auto text-[12px] text-fg-muted hover:text-fg rounded-md hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
                     />
                   </div>
                 </section>

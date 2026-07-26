@@ -132,7 +132,7 @@ function MetadataBlock({ frontmatter, hidden }: { frontmatter: Record<string, un
   });
   if (entries.length === 0) return null;
   return (
-    <div className="mt-2.5 pt-2 border-t border-border/30 space-y-1">
+    <div className="mt-2.5 pt-2 border-t border-border/60 space-y-1">
       {entries.map(([key, value]) => (
         <div key={key} className="flex items-start gap-2 text-[11.5px] leading-snug">
           <span className="text-fg-muted/80 font-medium flex-shrink-0 min-w-[64px]">{labelFor(key)}</span>
@@ -282,7 +282,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       onMouseLeave={() => setDeleteArmed(false)}
       data-task-id={task.id}
       data-col={columnName}
-      className={`group relative cursor-pointer border-b border-border/30 transition-colors duration-150 ease-out
+      className={`group relative cursor-pointer border-b border-border/60 bg-white/25 transition-colors duration-150 ease-out
         ${containerPadding}
         ${
         isSelected

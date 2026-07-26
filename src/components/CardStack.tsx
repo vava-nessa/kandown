@@ -119,7 +119,7 @@ export function CardStack({
     return (
       <div
         onClick={() => setExpanded(true)}
-        className="group relative flex items-center justify-between px-3 py-2 border-b border-border/30 hover:bg-black/[0.03] dark:hover:bg-white/[0.04] cursor-pointer transition-colors"
+        className="group relative flex items-center justify-between px-3 py-2 border-b border-border/60 hover:bg-black/[0.03] dark:hover:bg-white/[0.04] cursor-pointer transition-colors"
       >
         <div className="flex items-center gap-2 min-w-0">
           <IconStack2 size={13} stroke={1.8} className="text-fg-muted/70 flex-none" />

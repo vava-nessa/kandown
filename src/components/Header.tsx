@@ -25,6 +25,7 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
 import { KbdButton } from './KbdButton';
 import { ThemeSwitcher } from './ui/theme-switcher-1';
+import { Tooltip } from './ui/tooltip-card';
 import { useStore } from '../lib/store';
 import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
 import { KANDOWN_VERSION } from '../lib/version';
@@ -357,79 +358,94 @@ export function Header() {
 
             {/* View mode toggle */}
             <div className="flex items-center bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.1] rounded-xl p-0.5 h-10">
-              <button
-                onClick={() => setViewMode('board')}
-                className={`w-9 h-9 inline-flex items-center justify-center rounded-lg transition-all ${
-                  viewMode === 'board'
-                    ? 'bg-card text-fg shadow-sm'
-                    : 'text-fg-muted/70 hover:text-fg'
-                }`}
-                title={t('common.board')}
-              >
-                <Icon.LayoutBoard size={18} />
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`w-9 h-9 inline-flex items-center justify-center rounded-lg transition-all ${
-                  viewMode === 'list'
-                    ? 'bg-card text-fg shadow-sm'
-                    : 'text-fg-muted/70 hover:text-fg'
-                }`}
-                title={t('common.list')}
-              >
-                <Icon.LayoutList size={18} />
-              </button>
+              <Tooltip content={t('common.board')}>
+                <button
+                  onClick={() => setViewMode('board')}
+                  className={`w-9 h-9 inline-flex items-center justify-center rounded-lg transition-all ${
+                    viewMode === 'board'
+                      ? 'bg-card text-fg shadow-sm'
+                      : 'text-fg-muted/70 hover:text-fg'
+                  }`}
+                  aria-label={t('common.board')}
+                >
+                  <Icon.LayoutBoard size={18} />
+                </button>
+              </Tooltip>
+              <Tooltip content={t('common.list')}>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`w-9 h-9 inline-flex items-center justify-center rounded-lg transition-all ${
+                    viewMode === 'list'
+                      ? 'bg-card text-fg shadow-sm'
+                      : 'text-fg-muted/70 hover:text-fg'
+                  }`}
+                  aria-label={t('common.list')}
+                >
+                  <Icon.LayoutList size={18} />
+                </button>
+              </Tooltip>
             </div>
 
-            <KbdButton
-              variant="icon"
-              icon="Archive"
-              onClick={() => setShowArchives(!showArchives)}
-              title={showArchives ? t('header.backToBoard') : `${t('header.archives')} (${archivedCount})`}
-              className={showArchives ? 'text-accent' : ''}
-            />
+            <Tooltip content={showArchives ? t('header.backToBoard') : `${t('header.archives')} (${archivedCount})`}>
+              <KbdButton
+                variant="icon"
+                icon="Archive"
+                onClick={() => setShowArchives(!showArchives)}
+                className={showArchives ? 'text-accent' : ''}
+              />
+            </Tooltip>
 
-            <KbdButton
-              variant="icon"
-              icon="Density"
-              onClick={() => setDensity(density === 'compact' ? 'comfortable' : 'compact')}
-              title={`Density: ${density}`}
-            />
+            <Tooltip content={`Densité: ${density === 'compact' ? 'Compacte' : 'Confortable'}`}>
+              <KbdButton
+                variant="icon"
+                icon="Density"
+                onClick={() => setDensity(density === 'compact' ? 'comfortable' : 'compact')}
+              />
+            </Tooltip>
 
-            <KbdButton
-              variant="icon"
-              icon="Settings"
-              onClick={() => setCurrentPage('settings')}
-              title={t('common.settings')}
-            />
+            <Tooltip content={t('common.settings')}>
+              <KbdButton
+                variant="icon"
+                icon="Settings"
+                onClick={() => setCurrentPage('settings')}
+              />
+            </Tooltip>
 
-            <ThemeSwitcher />
+            <Tooltip content="Changer de thème">
+              <div>
+                <ThemeSwitcher />
+              </div>
+            </Tooltip>
 
             <div className="w-px h-5 bg-black/[0.08] dark:bg-white/[0.08] mx-1" />
 
-            <KbdButton
-              variant="secondary"
-              icon="Search"
-              label={t('common.search')}
-              shortcut="⌘K"
-              onClick={() => setCommandOpen(true)}
-              title="Command palette (⌘K)"
-            />
+            <Tooltip content="Palette de commandes (⌘K)">
+              <KbdButton
+                variant="secondary"
+                icon="Search"
+                label={t('common.search')}
+                shortcut="⌘K"
+                onClick={() => setCommandOpen(true)}
+              />
+            </Tooltip>
 
-            <KbdButton
-              variant="icon"
-              icon="Refresh"
-              onClick={reloadBoard}
-              title={`${t('common.reload')} (R)`}
-            />
+            <Tooltip content={`${t('common.reload')} (R)`}>
+              <KbdButton
+                variant="icon"
+                icon="Refresh"
+                onClick={reloadBoard}
+              />
+            </Tooltip>
 
-            <KbdButton
-              variant="primary"
-              icon="Plus"
-              label={t('common.newTask')}
-              shortcut="N"
-              onClick={() => createTask()}
-            />
+            <Tooltip content="Créer une nouvelle tâche (N)">
+              <KbdButton
+                variant="primary"
+                icon="Plus"
+                label={t('common.newTask')}
+                shortcut="N"
+                onClick={() => createTask()}
+              />
+            </Tooltip>
           </>
         ) : (
           <KbdButton

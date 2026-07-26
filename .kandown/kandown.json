@@ -1,9 +1,9 @@
 {
   "ui": {
     "language": "en",
-    "theme": "auto",
+    "theme": "light",
     "skin": "claude",
-    "font": "system",
+    "font": "inter",
     "background": "solid"
   },
   "agent": {
@@ -34,10 +34,9 @@
   "board": {
     "columns": [
       "Backlog",
-      "In Progress",
-      "Doing 🟢",
-      "Review",
       "Todo",
+      "In Progress",
+      "Review",
       "Done"
     ],
     "defaultPriority": "P3",
@@ -45,8 +44,7 @@
     "columnColors": {
       "in progress": "fuchsia",
       "backlog": "lime",
-      "todo": "red",
-      "doing 🟢": "slate"
+      "todo": "red"
     },
     "stackDefaultState": "collapsed"
   },

@@ -65,7 +65,7 @@ function Hero() {
   return (
     <section className="relative border-b border-border overflow-hidden">
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <HeroGeometric color1="#0ce931" color2="#fff7ed" speed={3} className="w-full h-full min-h-[600px]" />
+        <HeroGeometric color1="#0ce931" color2="#fff7ed" speed={1.7} className="w-full h-full min-h-[600px]" />
       </div>
       <Shell className="relative z-10">
         <div className="py-16 sm:py-24 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-12">
@@ -142,7 +142,7 @@ function Hero() {
               div owns the surface. */}
           <div className="animate-rise w-full max-w-[27rem] shrink-0 self-center lg:self-auto" style={{ animationDelay: '200ms' }}>
             <CometCard className="w-full">
-              <div className="rounded-2xl border border-white/15 bg-black/70! p-10 backdrop-blur-[3px] sm:p-14">
+              <div className="hero-card-surface rounded-2xl border border-white/15 p-10 backdrop-blur-[3px] sm:p-14">
                 <div className="flex flex-col items-center justify-center">
                   <LogoMark size={220} />
                   <BrandLoop />

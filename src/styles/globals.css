@@ -46,7 +46,6 @@
     --ring: 0 0% 64%;
     --success: 151 55% 42%;
     --warning: 38 82% 57%;
-    --grid: 0 0% 100% / 0.035;
     --glass: 0 0% 9% / 0.74;
     --glass-border: 0 0% 16% / 0.82;
   }
@@ -85,17 +84,10 @@
     outline-offset: 2px;
   }
 
-  /* 📖 Linear-style subtle dot grid. Two-layer radial gradient:
-   *   1. Fine 1px dots at 22px (the visible "tache" texture)
-   *   2. Wider 1px dots at 88px (a quieter secondary pattern for depth)
-   * Token-driven so light and dark modes adapt automatically. */
-  .board-bg {
-    background-image:
-      radial-gradient(circle at 1px 1px, hsl(var(--grid-strong)) 1px, transparent 0),
-      radial-gradient(circle at 1px 1px, hsl(var(--grid)) 1px, transparent 0);
-    background-size: 22px 22px, 88px 88px;
-    background-position: 0 0, 11px 11px;
-  }
+  /* 📖 Dot grid removed — the textured background fought with the card
+   * separators and made the board read as busy. The `.board-bg` class
+   * stays as a no-op hook so the conditional `board-bg` classNames in
+   * Board.tsx, TaskWorkspace.tsx and EmptyState.tsx keep working. */
 
   /* Scrollbars */
   ::-webkit-scrollbar {

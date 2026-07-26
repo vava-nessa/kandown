@@ -1,84 +1,89 @@
 /**
  * @file Archive view
  * @description Lists every archived task (frontmatter `archived: true`, files
- * living under `tasks/archive/` at the project root) as a flat, read-only list
- * with a one-click "Restore" action. Shown when the user toggles the archive
- * button in the header, instead of the active board.
+ * living under `tasks/archive/` at the project root) as a flat list. Shown when
+ * the user toggles the archive button in the header, instead of the active
+ * board.
+ *
+ * 📖 Visual contract: the wrapper, section frame, header, body, and empty
+ * state are byte-for-byte identical to a ListView column. The only intentional
+ * differences are the icon (Archive instead of a column icon), no drag handle
+ * on the column reorder, no `#N` section index badge, and a "Back to board"
+ * button on the right where `ColumnHeaderActions` normally sits.
  *
  * 📖 Archived tasks are hidden from the board (see buildColumnsFromTasks) and
  * surface only here. Restoring a task moves its file back to tasks/ and drops
  * the flag via the store's unarchiveTask action.
  *
  * @functions
- *  → ArchiveView — scrollable list of archived tasks with restore + open
+ *  → ArchiveView — scrollable list of archived tasks rendered with ListRow
  *
  * @exports ArchiveView
+ * @see src/components/ListRow.tsx (renderer, mode="archive")
+ * @see src/components/ListView.tsx (visual template this view mirrors)
  * @see src/lib/store.ts (archivedTasks, unarchiveTask)
  */
 
 import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
 import { KbdButton } from './KbdButton';
+import { ListRow } from './ListRow';
 import { useStore } from '../lib/store';
 
 export function ArchiveView() {
   const { t } = useTranslation();
   const archivedTasks = useStore(s => s.archivedTasks);
-  const unarchiveTask = useStore(s => s.unarchiveTask);
   const setShowArchives = useStore(s => s.setShowArchives);
-  const openDrawer = useStore(s => s.openDrawer);
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto px-[5vw] py-6">
-      <div className="flex items-center justify-between mb-5 max-w-5xl w-full">
-        <div className="flex items-center gap-2">
-          <Icon.Archive size={18} className="text-fg-muted" />
-          <h2 className="text-[18px] font-semibold tracking-tight">{t('header.archives')}</h2>
-          <span className="text-[13px] text-fg-muted tabular-nums">{archivedTasks.length}</span>
-        </div>
-        <KbdButton
-          variant="secondary"
-          icon="ArrowLeft"
-          label={t('header.backToBoard')}
-          onClick={() => setShowArchives(false)}
-        />
-      </div>
-
-      {archivedTasks.length === 0 ? (
-        <div className="text-fg-muted text-[14px] italic px-2 py-8">
-          {t('archive.empty')}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-1 max-w-3xl">
-          {archivedTasks.map(task => (
-            <div
-              key={task.id}
-              className="group flex items-center gap-3 px-3 py-2 rounded-[6px] hover:bg-bg-3/80 dark:hover:bg-bg-1/60 transition-colors"
-            >
-              <button
-                onClick={() => {
-                  setShowArchives(false);
-                  void openDrawer(task.id);
-                }}
-                className="flex-1 text-left min-w-0"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[11.5px] text-fg-muted flex-shrink-0">
-                    {task.id.toUpperCase()}
-                  </span>
-                  <span className="text-[14px] text-fg truncate">{task.title}</span>
-                </div>
-              </button>
+    <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="w-full px-4 py-3 space-y-3">
+        <section className="group/section overflow-hidden rounded-lg border border-border/60">
+          <header className="flex items-center justify-between gap-2.5 border-b border-border/40 bg-bg-1/60 px-3 py-2">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <Icon.Archive size={16} className="flex-none text-fg-muted" />
+              <div className="min-w-0">
+                <h2 className="truncate text-[13px] font-semibold tracking-tight text-fg">
+                  {t('header.archives')}
+                </h2>
+                <p className="text-[11.5px] text-fg-muted">
+                  {archivedTasks.length} {t('header.tasks')}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
               <KbdButton
-                variant="ghost"
-                icon="ArchiveRestore"
-                label={t('drawer.restore')}
-                onClick={() => void unarchiveTask(task.id)}
+                variant="secondary"
+                icon="ArrowLeft"
+                label={t('header.backToBoard')}
+                onClick={() => setShowArchives(false)}
               />
             </div>
-          ))}
-        </div>
-      )}
+          </header>
+
+          <div className="bg-bg/40">
+            {archivedTasks.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-6 px-4 text-center">
+                <div className="w-8 h-8 rounded-lg bg-black/[0.04] dark:bg-white/[0.08] flex items-center justify-center mb-2">
+                  <Icon.Archive size={18} className="text-fg-muted/50" />
+                </div>
+                <p className="text-[12.5px] font-medium text-fg-muted/70">{t('archive.empty')}</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-border/30">
+                {archivedTasks.map(task => (
+                  <ListRow
+                    key={task.id}
+                    task={task}
+                    columnName="Archive"
+                    mode="archive"
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

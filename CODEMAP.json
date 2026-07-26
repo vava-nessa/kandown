@@ -686,13 +686,13 @@
     },
     {
       "path": "src/components/ArchiveView.tsx",
-      "lines": 85,
+      "lines": 89,
       "title": "Archive view",
-      "summary": "Lists every archived task (frontmatter `archived: true`, files living under `tasks/archive/` at the project root) as a flat, read-only list with a one-click \"Restore\" action.",
+      "summary": "Lists every archived task (frontmatter `archived: true`, files living under `tasks/archive/` at the project root) as a flat list.",
       "functions": [
         {
           "name": "ArchiveView",
-          "summary": "scrollable list of archived tasks with restore + open"
+          "summary": "scrollable list of archived tasks rendered with ListRow"
         }
       ],
       "exports": "ArchiveView"
@@ -954,7 +954,7 @@
     },
     {
       "path": "src/components/ListRow.tsx",
-      "lines": 427,
+      "lines": 490,
       "title": "List row component",
       "summary": "Renders a single task as a compact, Linear-style list item for the list view, with priority indicators, title, status, metadata badges, inline subtask progress slider, and hover quick actions.",
       "functions": [

@@ -26,6 +26,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
 import { KbdButton } from './KbdButton';
+import { ListRow } from './ListRow';
 import { SubtaskEditor } from './SubtaskEditor';
 import { BlockNoteMarkdownEditor } from './ui/BlockNoteMarkdownEditor';
 import { DependenciesHeaderMenu } from './DependenciesHeaderMenu';
@@ -33,23 +34,6 @@ import { parseTaskTitle, updateTitleCategory } from '../lib/task-title-category'
 import { useStore } from '../lib/store';
 import { buildTaskUrl } from '../lib/task-url';
 import type { BoardTask, Column, Subtask } from '../lib/types';
-
-const priorityColors: Record<string, string> = {
-  P1: '#e5484d',
-  P2: '#e9a23b',
-  P3: '#3e63dd',
-  P4: '#6e6e6e',
-};
-
-function taskSummary(task: BoardTask): string {
-  const parts = [
-    task.priority || null,
-    task.assignee ? `@${task.assignee}` : null,
-    task.progress ? `${task.progress.done}/${task.progress.total}` : null,
-  ].filter((part): part is string => !!part);
-
-  return parts.join(' · ');
-}
 
 function ToggleIcon({ collapsed }: { collapsed: boolean }) {
   return (
@@ -72,17 +56,17 @@ interface TaskSectionProps {
 
 function TaskSection({ column, collapsed, activeTaskId, onToggle, onSelectTask }: TaskSectionProps) {
   return (
-    <section className="overflow-hidden rounded-xl border border-border bg-bg/45">
+    <section className="overflow-hidden rounded-lg border border-border/60 bg-card/40 shadow-none">
       <button
         type="button"
         onClick={() => onToggle(column.name)}
-        className="flex w-full items-center justify-between gap-3 border-b border-border bg-bg-1/70 px-3 py-2.5 text-left hover:bg-bg-2 transition-colors"
+        className="flex w-full items-center justify-between gap-2.5 border-b border-border/40 bg-bg-1/60 px-3 py-2 text-left hover:bg-bg-2 transition-colors"
       >
         <span className="flex min-w-0 items-center gap-2">
           <ToggleIcon collapsed={collapsed} />
-          <span className="truncate text-[13px] font-semibold text-fg">{column.name}</span>
+          <span className="truncate text-[12.5px] font-semibold text-fg">{column.name}</span>
         </span>
-        <span className="rounded-full border border-border bg-bg px-2 py-0.5 font-mono text-[11px] text-fg-muted">
+        <span className="rounded-full border border-border/60 bg-bg px-2 py-0.5 font-mono text-[10.5px] text-fg-muted">
           {column.tasks.length}
         </span>
       </button>
@@ -94,50 +78,21 @@ function TaskSection({ column, collapsed, activeTaskId, onToggle, onSelectTask }
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.16 }}
-            className="overflow-hidden"
+            className="overflow-hidden bg-bg/30"
           >
             {column.tasks.length === 0 ? (
-              <div className="px-3 py-4 text-[12.5px] text-fg-muted">No tasks in this status.</div>
+              <div className="px-3 py-3 text-[11.5px] text-fg-muted">No tasks in this status.</div>
             ) : (
-              <div className="py-1.5">
-                {column.tasks.map(task => {
-                  const active = task.id === activeTaskId;
-                  const summary = taskSummary(task);
-                  return (
-                    <button
-                      key={task.id}
-                      type="button"
-                      onClick={() => onSelectTask(task.id)}
-                      className={`group flex w-full items-start gap-2.5 px-3 py-2.5 text-left transition-colors ${
-                        active
-                          ? 'bg-accent/15 text-fg'
-                          : 'text-fg-muted hover:bg-bg-2 hover:text-fg'
-                      }`}
-                    >
-                      <span className={`mt-0.5 rounded border px-1.5 py-0.5 font-mono text-[11px] ${
-                        active ? 'border-accent/40 bg-accent/15 text-accent' : 'border-border bg-bg text-fg-muted'
-                      }`}>
-                        {task.id.replace(/^t/, '')}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className={`block truncate text-[13px] font-medium ${task.checked ? 'line-through opacity-70' : ''}`}>
-                          {task.title}
-                        </span>
-                        {summary && (
-                          <span className="mt-0.5 flex items-center gap-1.5 truncate text-[11.5px] text-fg-faint">
-                            {task.priority && (
-                              <span
-                                className="inline-block h-1.5 w-1.5 rounded-full"
-                                style={{ backgroundColor: priorityColors[task.priority] }}
-                              />
-                            )}
-                            {summary}
-                          </span>
-                        )}
-                      </span>
-                    </button>
-                  );
-                })}
+              <div className="divide-y divide-border/30">
+                {column.tasks.map(task => (
+                  <ListRow
+                    key={task.id}
+                    task={task}
+                    columnName={column.name}
+                    isActive={task.id === activeTaskId}
+                    onSelect={onSelectTask}
+                  />
+                ))}
               </div>
             )}
           </motion.div>
