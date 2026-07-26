@@ -47,7 +47,13 @@
  * follows the chip's own font size instead of needing to be retuned whenever
  * that size changes.
  *
- * 📖 **Hover grows the whole link to 1.2× over 200ms** and brings the chip to
+ * 📖 **The count rests at 50% opacity.** Small grey type was already quiet, but
+ * at full strength two numbers still read as a second row of content under the
+ * marks. Half-strength puts them below the threshold where the eye stops on
+ * them, so the row scans as two logos with something attached rather than as
+ * four items.
+ *
+ * 📖 **Hover grows the whole link to 1.2× over 200ms** and brings the count to
  * full opacity — one gesture, two channels, so the feedback is unmissable on a
  * control this small. Scaling does not affect layout, so the link grows over
  * its neighbours instead of pushing them and the header does not jitter as the
@@ -99,7 +105,7 @@ export function HeaderCountLink({
       className="group relative flex items-center gap-1.5 px-1.5 text-[12.5px] leading-none text-fg-muted transition-[color,scale] duration-200 ease-out hover:scale-[1.2] hover:text-fg motion-reduce:transition-none motion-reduce:hover:scale-100"
     >
       {brand}
-      <span className="absolute top-full left-1/2 mt-[3px] flex -translate-x-1/2 items-center gap-[3px] text-[8.5px] leading-none text-fg-muted opacity-80 transition-opacity duration-200 ease-out group-hover:opacity-100">
+      <span className="absolute top-full left-1/2 mt-[3px] flex -translate-x-1/2 items-center gap-[3px] text-[8.5px] leading-none text-fg-muted opacity-50 transition-opacity duration-200 ease-out group-hover:opacity-100">
         {metric}
         <span className="min-w-[2.5ch] text-center font-mono tabular-nums">{count}</span>
       </span>
