@@ -959,9 +959,17 @@ export async function verifyPermission(
 }
 
 export interface UpdateCheckResult {
+  /** 📖 The version installed on disk — what you get on the next launch. */
   current: string;
+  /** 📖 The version the daemon process is actually running. Differs from
+   * `current` when the package was updated underneath a live daemon. */
+  running?: string;
   latest: string;
+  /** 📖 True only when the registry has something newer than what is installed. */
   updateAvailable: boolean;
+  /** 📖 True when `current` is ahead of `running`: already updated, but the
+   * daemon still serves the old code and needs a restart to pick it up. */
+  restartRequired?: boolean;
 }
 
 export async function serverCheckUpdate(): Promise<UpdateCheckResult | null> {

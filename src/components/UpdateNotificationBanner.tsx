@@ -4,7 +4,7 @@
  * prompt for the Web UI.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles, RefreshCw, CheckCircle2, AlertCircle, X, Download } from 'lucide-react';
 import { serverCheckUpdate, serverApplyUpdate, UpdateCheckResult } from '../lib/filesystem';
 
@@ -14,14 +14,22 @@ export const UpdateNotificationBanner: React.FC = () => {
   const [updating, setUpdating] = useState(false);
   const [statusText, setStatusText] = useState('');
   const [errorText, setErrorText] = useState('');
+  /** 📖 Which `latest` the user dismissed, so a newer one re-opens the banner. */
+  const dismissedFor = useRef<string | null>(null);
 
   useEffect(() => {
     let active = true;
     const check = async () => {
       const result = await serverCheckUpdate();
-      if (active && result && result.updateAvailable) {
-        setUpdateInfo(result);
-      }
+      if (!active || !result) return;
+      // 📖 Always store the result, including when nothing is pending: keeping
+      // the last "update available" payload around was what left the banner on
+      // screen after the update had already been installed.
+      setUpdateInfo(result);
+      // 📖 A dismissal applies to the state that was dismissed, not forever. If
+      // a newer version ships later, or the daemon falls behind, say so again.
+      setDismissed(prev => (prev && result.latest === dismissedFor.current ? true : false));
+      dismissedFor.current = result.latest;
     };
     check();
     const interval = setInterval(check, 10 * 60 * 1000); // 10 minutes
@@ -31,9 +39,14 @@ export const UpdateNotificationBanner: React.FC = () => {
     };
   }, []);
 
-  if (!updateInfo || !updateInfo.updateAvailable || dismissed) {
-    return null;
-  }
+  if (!updateInfo || dismissed) return null;
+
+  // 📖 Two distinct states, and conflating them is what made the banner nag:
+  //  - updateAvailable — the registry has something newer than what is on disk.
+  //  - restartRequired — already installed, but this daemon process still runs
+  //    the old bundle. Re-downloading would change nothing; only a restart will.
+  const { updateAvailable, restartRequired } = updateInfo;
+  if (!updateAvailable && !restartRequired) return null;
 
   const handleApplyUpdate = async () => {
     setUpdating(true);
@@ -62,10 +75,14 @@ export const UpdateNotificationBanner: React.FC = () => {
             </div>
             <div>
               <h4 className="text-sm font-semibold tracking-tight flex items-center gap-1.5">
-                Kandown v{updateInfo.latest} is available
+                {updateAvailable
+                  ? `Kandown v${updateInfo.latest} is available`
+                  : `Kandown v${updateInfo.current} is installed`}
               </h4>
               <p className="text-xs text-muted-foreground">
-                Current: v{updateInfo.current} — Get the latest features & fixes.
+                {updateAvailable
+                  ? `Current: v${updateInfo.current} — Get the latest features & fixes.`
+                  : `This server is still running v${updateInfo.running ?? '?'}. Restart kandown to finish.`}
               </p>
             </div>
           </div>
@@ -86,6 +103,11 @@ export const UpdateNotificationBanner: React.FC = () => {
         )}
 
         <div className="flex items-center gap-2 mt-1">
+          {!updateAvailable ? (
+            <code className="flex-1 px-3 py-2 text-xs font-mono bg-secondary/60 rounded-lg text-foreground/90 select-all">
+              kandown daemon refresh-all
+            </code>
+          ) : (
           <button
             onClick={handleApplyUpdate}
             disabled={updating}
@@ -103,12 +125,13 @@ export const UpdateNotificationBanner: React.FC = () => {
               </>
             )}
           </button>
+          )}
           <button
             onClick={() => setDismissed(true)}
             disabled={updating}
             className="px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
           >
-            Later
+            {updateAvailable ? 'Later' : 'Dismiss'}
           </button>
         </div>
 

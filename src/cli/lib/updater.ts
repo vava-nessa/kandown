@@ -4,7 +4,8 @@
  * PATH binary resolution, and update throttling.
  *
  * @functions
- *  → getCurrentVersion — returns the compiled KANDOWN_VERSION
+ *  → getCurrentVersion — returns the compiled KANDOWN_VERSION (what is running)
+ *  → getInstalledVersion — reads package.json on disk (what is installed)
  *  → semverGt — semver version comparison helper
  *  → resolveKandownBin — resolves installed global kandown binary path
  *  → readInstalledKandownVersion — queries version of installed binary
@@ -12,7 +13,7 @@
  *  → performGlobalPackageUpdate — installs package globally via npm/pnpm/yarn/bun
  *  → checkForUpdate — background updater with reliable registry checks
  *
- * @exports getCurrentVersion, semverGt, resolveKandownBin, readInstalledKandownVersion,
+ * @exports getCurrentVersion, getInstalledVersion, semverGt, resolveKandownBin, readInstalledKandownVersion,
  *          performGlobalPackageUpdate, checkForUpdate
  */
 
@@ -43,6 +44,36 @@ const UPDATE_CHECK_CACHE = join(CACHE_DIR, '.update-check.json');
 
 const UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes throttle
 
+
+/**
+ * 📖 The version **installed on disk right now**, read fresh from the package
+ * root's package.json on every call.
+ *
+ * This is deliberately different from `getCurrentVersion()`, which returns
+ * `KANDOWN_VERSION` — a constant baked into the running bundle at build time.
+ * For a short-lived CLI invocation the two always agree. For the **daemon**,
+ * which is a long-lived process, they diverge the moment the package is
+ * updated underneath it: the files on disk become 0.37.0 while the running
+ * process keeps reporting the 0.36.0 it was compiled as, forever.
+ *
+ * That divergence was the "update available" banner that never went away after
+ * updating (the daemon compared the freshly published version against its own
+ * frozen constant). Anything answering "am I up to date?" must use this;
+ * `getCurrentVersion()` remains the right answer to "what code is running?".
+ *
+ * Returns null when the package.json cannot be read, so callers can fall back
+ * to the compiled constant rather than inventing a version.
+ */
+export function getInstalledVersion(): string | null {
+  try {
+    const pkgPath = join(PKG_ROOT, 'package.json');
+    if (!existsSync(pkgPath)) return null;
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
+    return typeof pkg.version === 'string' && pkg.version ? pkg.version : null;
+  } catch {
+    return null;
+  }
+}
 
 export function getCurrentVersion(): string {
   if (KANDOWN_VERSION && (KANDOWN_VERSION as string) !== '0.0.0-dev') {

@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { spawn } from 'node:child_process';
 import { getTasksDir, findTaskPath, readBoard, readTask, moveTaskToColumn, listTaskIds } from './board-reader';
 import { loadConfig, saveConfig } from './config';
-import { getCurrentVersion, semverGt, performGlobalPackageUpdate, PKG_ROOT } from './updater';
+import { getCurrentVersion, getInstalledVersion, semverGt, performGlobalPackageUpdate, PKG_ROOT } from './updater';
 import { atomicWriteFileSync } from './atomic-write';
 
 const START_PORT_RANGE = 2050;
@@ -185,11 +185,23 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       });
     });
 
-    const updateAvailable = latest ? semverGt(latest, current) > 0 : false;
+    // 📖 "Am I up to date?" is a question about the package **on disk**, not
+    // about this process. The daemon is long-lived: once an update lands, the
+    // files become 0.37.0 while this process keeps reporting the 0.36.0 it was
+    // compiled as. Comparing the registry against the compiled constant is what
+    // made the banner reappear forever after a successful update.
+    const installed = getInstalledVersion() ?? current;
+    const updateAvailable = latest ? semverGt(latest, installed) > 0 : false;
+    // 📖 Installed ahead of running = updated underneath us; the fix is a daemon
+    // restart, not another download. Surfaced separately so the UI can say so
+    // instead of nagging the user to re-install what they already have.
+    const restartRequired = semverGt(installed, current) > 0;
     return writeJson(res, 200, {
-      current,
-      latest: latest || current,
+      current: installed,
+      running: current,
+      latest: latest || installed,
       updateAvailable,
+      restartRequired,
     });
   }
 
