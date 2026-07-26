@@ -336,11 +336,19 @@ Two duplicate-content traps are already closed:
 - **`/changelogs`** is not in the sitemap. It resolves to the newest release rather than holding
   content of its own, so it canonicalises to `/changelogs/<latest>`, which the sitemap already
   lists.
-- **`/changelogs/v*.html`** are the raw HTML fragments the changelog route fetches on client-side
+- **`/changelogs/v*.frag`** are the raw HTML fragments the changelog route fetches on client-side
   navigation — an implementation detail that happens to be publicly reachable, and a near-duplicate
   of each rendered release page. `vercel.json` serves them with `X-Robots-Tag: noindex`. A
   `robots.txt` disallow would have worked too, but blocking the fetch risks breaking rendering for a
   crawler that executes JavaScript; a header keeps the file readable and merely unindexed.
+
+  ⚠️ **Their extension is load-bearing.** They sit in `public/changelogs/`, the same public
+  directory the `/changelogs/<version>` route prerenders into. Named `.html`, a fragment claims the
+  page's own URL: with `cleanUrls` on, Vercel resolves `/changelogs/v0.39.1` to
+  `changelogs/v0.39.1.html` — the fragment — and never looks at `changelogs/v0.39.1/index.html`
+  below it. Every release link then serves 500 bytes of bare `<h2>` with no shell and no meta tags,
+  and it looks perfectly fine in `pnpm dev`, where Vite serves the route rather than the file. This
+  shipped that way and was only caught by reading the deployed HTML. Do not rename them back.
 
 The Markdown twins under `/docs/*.md` are **not** excluded. They duplicate the documentation pages
 by design — that is the whole `llms.txt` contract — and each page points at its own twin with

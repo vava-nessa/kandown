@@ -16,9 +16,21 @@
  *   - `index.json` — `{ entries: [{ slug, version, date, name, file }] }`,
  *     newest first by semver, with `Unreleased` pinned on top when present.
  *     The React sidebar reads this to render its year-grouped tree.
- *   - `vX.Y.Z.html` — one prerendered HTML fragment per release: title,
+ *   - `vX.Y.Z.frag` — one prerendered HTML fragment per release: title,
  *     date, codename, then the Markdown body run through the same remark
  *     pipeline as the docs (gfm + rehype-slug + shiki + stringify).
+ *
+ * ⚠️ **The `.frag` extension is load-bearing — do not "fix" it to `.html`.**
+ * These fragments sit in `public/changelogs/`, and the site has a route at
+ * `/changelogs/<version>` that prerenders to `changelogs/<version>/index.html`.
+ * Naming a fragment `v0.39.1.html` puts a second file at the same public path:
+ * with `cleanUrls` enabled, Vercel resolves `/changelogs/v0.39.1` to
+ * `changelogs/v0.39.1.html` — the fragment — *before* it ever looks at the
+ * prerendered directory. The fragment wins, and every release deep link serves
+ * 500 bytes of bare `<h2>` with no `<html>`, no site chrome and no meta tags,
+ * while the real page sits unreachable one directory below. It looks fine in
+ * dev, where Vite serves the route rather than the file. An extension the
+ * static host does not map to a route is what keeps the two apart.
  *
  * 📖 **Sidebar data is built from the same parse** as the HTML, so the
  * sidebar and the rendered page cannot disagree about a release's date or
@@ -137,7 +149,7 @@ async function main() {
 
   // ── per-release HTML fragments ──────────────────────────────────────────
   for (const entry of parsed) {
-    const out = join(OUT_DIR, `${entry.slug}.html`)
+    const out = join(OUT_DIR, `${entry.slug}.frag`)
     await mkdir(dirname(out), { recursive: true })
     await writeFile(out, entry.html, 'utf8')
   }

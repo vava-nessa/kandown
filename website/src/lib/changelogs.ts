@@ -64,7 +64,7 @@ export function loadChangelogIndex(): Promise<ChangelogIndex> {
       ? import('./changelogs.server').then((m) =>
           m.readChangelogFile('index.json', (text) => JSON.parse(text) as ChangelogIndex),
         )
-      : fetchFromUrl('/changelogs/index.json', (text) => JSON.parse(text) as ChangelogIndex)
+      : fetchFromUrl(`${SERVER_DIR}/index.json`, (text) => JSON.parse(text) as ChangelogIndex)
 
     indexPromise = source.catch((error) => {
       // 📖 Reset so the next call retries — otherwise a transient failure
@@ -78,12 +78,21 @@ export function loadChangelogIndex(): Promise<ChangelogIndex> {
 
 const htmlCache = new Map<string, Promise<string>>()
 
+/**
+ * 📖 The `.frag` extension is not cosmetic. These files live in
+ * `public/changelogs/`, alongside the prerendered output of the
+ * `/changelogs/<version>` route. Named `.html`, a fragment would occupy the
+ * same public path as the page — `cleanUrls` resolves `/changelogs/v0.39.1` to
+ * `changelogs/v0.39.1.html` before it looks at `changelogs/v0.39.1/index.html`
+ * — and every release link would serve the bare fragment instead of the page.
+ * See the warning at the top of `scripts/build-changelogs.mjs`.
+ */
 export function loadChangelogHtml(slug: string): Promise<string> {
   const cached = htmlCache.get(slug)
   if (cached) return cached
   const source = import.meta.env.SSR
-    ? import('./changelogs.server').then((m) => m.readChangelogFile(`${slug}.html`, (text) => text))
-    : fetchFromUrl(`/changelogs/${slug}.html`, (text) => text)
+    ? import('./changelogs.server').then((m) => m.readChangelogFile(`${slug}.frag`, (text) => text))
+    : fetchFromUrl(`${SERVER_DIR}/${slug}.frag`, (text) => text)
 
   const promise = source.catch((error) => {
     htmlCache.delete(slug)
