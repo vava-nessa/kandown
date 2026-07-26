@@ -77,7 +77,11 @@ export function SiteHeader() {
           </Link>
         </nav>
 
-        <div className="ml-auto flex items-center gap-2">
+        {/* 📖 `gap-4` rather than `gap-2`: each social link is now four elements
+            wide (mark, word, icon, chip), and at the tighter spacing the npm
+            wordmark sat close enough to the GitHub count to read as part of the
+            same group. */}
+        <div className="ml-auto flex items-center gap-4">
           <div className="hidden sm:block">
             <SearchTrigger />
           </div>

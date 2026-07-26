@@ -45,23 +45,34 @@ export function NpmDownloads({ href }: { href: string }) {
       href={href}
       ariaLabel={count === null ? 'Kandown on npm' : `Kandown on npm, ${count} ${noun}`}
       title={`npm ${noun}`}
-      className="text-[#CB3837] hover:text-[#A82B2A]"
+      metricClassName="text-[#CB3837]"
       count={text}
-    >
-      <img src={npmLogoUrl} width="34" height="13" alt="" aria-hidden="true" className="shrink-0" />
-      {/* 📖 Octicon `download`, 16×16, verbatim — the same source as the star on
-          the GitHub link, so the two icons share a weight and a corner radius. */}
-      <svg
-        width="13"
-        height="13"
-        viewBox="0 0 16 16"
-        fill="currentColor"
-        aria-hidden="true"
-        className="shrink-0"
-      >
-        <path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z" />
-        <path d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.97a.75.75 0 1 1 1.06 1.06L8.53 10.03a.75.75 0 0 1-1.06 0L4.22 6.78a.75.75 0 1 1 1.06-1.06l1.97 1.97Z" />
-      </svg>
-    </HeaderCountLink>
+      brand={
+        <img
+          src={npmLogoUrl}
+          width="34"
+          height="13"
+          alt=""
+          aria-hidden="true"
+          className="shrink-0"
+        />
+      }
+      metric={
+        // 📖 Octicon `download`, 16×16, verbatim — the same source as the star
+        // on the GitHub link, so the two icons share a weight and a corner
+        // radius.
+        <svg
+          width="10"
+          height="10"
+          viewBox="0 0 16 16"
+          fill="currentColor"
+          aria-hidden="true"
+          className="shrink-0"
+        >
+          <path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z" />
+          <path d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.97a.75.75 0 1 1 1.06 1.06L8.53 10.03a.75.75 0 0 1-1.06 0L4.22 6.78a.75.75 0 1 1 1.06-1.06l1.97 1.97Z" />
+        </svg>
+      }
+    />
   )
 }
