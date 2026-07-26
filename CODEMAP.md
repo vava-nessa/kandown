@@ -90,7 +90,7 @@ source to edit instead.
 - **`Board.tsx`** · 394 lines — Renders the horizontal kanban board, filters tasks per column, wires drag-and-drop state, and forwards content-search matches to cards.
 - **`BulkActionBar.tsx`** · 65 lines — Appears when one or more tasks are selected in the web UI.
 - **`Card.tsx`** · 407 lines — Displays one board task with priority, progress, tags, assignee, drag handlers, optional highlighted search-preview snippets, and guarded hover archive/delete actions.
-- **`CardStack.tsx`** · 161 lines — Renders a group of 2+ cards that share the same `[bracket]` or `#hashtag` title tag as a visually stacked card.
+- **`CardStack.tsx`** · 203 lines — Renders a group of 2+ cards that share the same `[bracket]` or `#hashtag` title tag as a visually stacked card.
 - **`Cheatsheet.tsx`** · 181 lines — Centered modal that lists every keyboard shortcut in Kandown, grouped by context (Global, Board, Drawer, Command Palette).
 - **`Column.tsx`** · 356 lines — Renders a single kanban column, accepts dropped cards, shows the filtered task count, and creates new tasks directly in the column.
 - **`ColumnColorMenu.tsx`** · 97 lines — 3-dot dropdown menu for selecting column background tint color.
@@ -102,16 +102,17 @@ source to edit instead.
 - **`EmptyState.tsx`** · 140 lines — Renders the first-run project picker, unsupported-browser copy, and recent project shortcuts before a `.kandown` folder is open.
 - **`ErrorBoundary.tsx`** · 164 lines — Catches render-time errors in the child tree and displays a recoverable fallback instead of letting React unmount the whole app to a blank page.
 - **`FilterBar.tsx`** · 125 lines — Renders global task filters for text search, owner type, and active filter chips that can be cleared individually.
-- **`Header.tsx`** · 446 lines — Top navigation bar for project switching, task search, filters, view mode, density, settings, command palette, reload, and task creation.
+- **`Header.tsx`** · 462 lines — Top navigation bar for project switching, task search, filters, view mode, density, settings, command palette, reload, and task creation.
 - **`Icons.tsx`** · 182 lines — Centralizes small stroke icons used by the Kandown web UI.
 - **`KbdButton.tsx`** · 109 lines — A unified button component that handles icons, labels, and keyboard shortcuts with consistent styling and improved visibility.
-- **`ListView.tsx`** · 488 lines — Renders board columns as vertically stacked horizontal sections, with dense task rows, filter/search previews, task drops between sections, and vertical section reordering.
+- **`ListRow.tsx`** · 419 lines — Renders a single task as a compact, Linear-style list item for the list view, with priority indicators, title, status, metadata badges, inline subtask progress slider, and hover quick actions.
+- **`ListView.tsx`** · 490 lines — Renders board columns as vertically stacked horizontal sections, with dense task rows, filter/search previews, task drops between sections, and vertical section reordering.
 - **`LogoSvg.tsx`** · 54 lines — Renders the official Kandown vector logo from logo.svg.
 - **`OnboardingTour.tsx`** · 117 lines — Quick guide on first launch introducing Kandown features.
 - **`SettingsPage.tsx`** · 348 lines — Dense settings workspace with an iOS-style sidebar, global option search, section navigation, and compact controls for kandown.json.
 - **`SubtaskEditor.tsx`** · 164 lines — Reusable checklist editor rendered below a task description in both the mobile drawer and desktop workspace.
 - **`SubtaskItem.tsx`** · 228 lines — Editable row for one markdown checklist item inside the task drawer, with toggle, text edit, enter-to-add, empty-backspace removal, and an expandable panel for per-subtask description and report notes.
-- **`TaskWorkspace.tsx`** · 604 lines — Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…
+- **`TaskWorkspace.tsx`** · 559 lines — Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…
 - **`ThemeCustomizerModal.tsx`** · 470 lines — Provides a visual editor for creating and tweaking custom JSON themes, adjusting HSL tokens, radius, shadows, glass, motion, and checking live WCAG 2.1 contrast compliance with JSON import/export capabilities.
 - **`ThemePreviewCard.tsx`** · 212 lines — Renders a live preview of a KandownTheme with isolated HSL tokens in a mini 3-column kanban board layout.
 - **`ThemeToggle.tsx`** · 83 lines — Light/dark mode switcher for the app header.
@@ -122,10 +123,10 @@ source to edit instead.
 
 - **`AboutVersionCard.tsx`** · 197 lines — Shows the running version, checks npm for a newer release, and can trigger the server-side self-update (serverApplyUpdate) followed by a page reload once the daemon confirms it restarted on the new build.
 - **`GitHubStarsRow.tsx`** · 51 lines — One row in the *About* section: a star + the live GitHub star count, the whole row linking to the repo.
-- **`LanguageDropdown.tsx`** · 142 lines — Searchable flag+name dropdown over ORDERED_LANGUAGES, with arrow-key navigation and Enter-to-select.
+- **`LanguageDropdown.tsx`** · 141 lines — Searchable flag+name dropdown over ORDERED_LANGUAGES, with arrow-key navigation and Enter-to-select.
 - **`schema.ts`** · 418 lines — Declarative metadata describing every setting (section, type, description, keywords) plus pure functions for reading/writing dotted config paths and building the sidebar search index.
 - **`SearchResults.tsx`** · 50 lines — Shown in the sidebar below the section nav once the user types a query; lists matching settings across all sections regardless of which section is currently active.
-- **`SettingRow.tsx`** · 222 lines — Renders one SettingDef as either a dense toggle row or, for the 'skin' type, a full-width theme gallery grid.
+- **`SettingRow.tsx`** · 294 lines — Renders one SettingDef as either a dense toggle row, a full-width theme gallery (for the 'skin' type), or one of the secondary controls — select dropdown, number stepper, text input, language picker, theme mode switcher, or notification…
 - **`WorkOutputConfigurator.tsx`** · 846 lines — The Agent section's biggest feature: lets the user shape exactly what `kandown work` prints to an AI agent's terminal — base rules density, project instructions (.kandown/instructions.md), and a live board digest — with a live…
 
 ## `src/components/ui/` — Primitive UI components
@@ -135,6 +136,7 @@ source to edit instead.
 - **`input.tsx`** · 42 lines — A thin, themed wrapper around `<input>` following the shadcn pattern — it forwards its ref and every native prop, and only contributes styling plus a consistent focus ring.
 - **`textarea.tsx`** · 39 lines — The multi-line counterpart to `Input` — same shadcn pattern, same token-driven styling and focus ring, with a minimum height so an empty field still reads as multi-line.
 - **`theme-switcher-1.tsx`** · 156 lines — Three-option light/system/dark theme selector adapted from the provided shadcn-style component for Kandown's Vite/Zustand theme system.
+- **`tooltip-card.tsx`** · 188 lines — Floating animated tooltip component with dynamic mouse cursor tracking, spring motion transitions, auto-positioning, and touch device fallback.
 
 ## `src/hooks/` — Web React hooks
 
@@ -245,6 +247,6 @@ source to edit instead.
 
 ## Coverage
 
-155 of 155 eligible files carry an `@description` header.
+157 of 157 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

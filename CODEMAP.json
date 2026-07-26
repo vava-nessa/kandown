@@ -746,7 +746,7 @@
     },
     {
       "path": "src/components/CardStack.tsx",
-      "lines": 161,
+      "lines": 203,
       "title": "Collapsible card stack component",
       "summary": "Renders a group of 2+ cards that share the same `[bracket]` or `#hashtag` title tag as a visually stacked card.",
       "functions": [
@@ -918,7 +918,7 @@
     },
     {
       "path": "src/components/Header.tsx",
-      "lines": 446,
+      "lines": 462,
       "title": "App header",
       "summary": "Top navigation bar for project switching, task search, filters, view mode, density, settings, command palette, reload, and task creation.",
       "functions": [
@@ -953,8 +953,21 @@
       "summary": "A unified button component that handles icons, labels, and keyboard shortcuts with consistent styling and improved visibility."
     },
     {
+      "path": "src/components/ListRow.tsx",
+      "lines": 419,
+      "title": "List row component",
+      "summary": "Renders a single task as a compact, Linear-style list item for the list view, with priority indicators, title, status, metadata badges, inline subtask progress slider, and hover quick actions.",
+      "functions": [
+        {
+          "name": "ListRow",
+          "summary": "modern linear-style list row component"
+        }
+      ],
+      "exports": "ListRow"
+    },
+    {
       "path": "src/components/ListView.tsx",
-      "lines": 488,
+      "lines": 490,
       "title": "List view",
       "summary": "Renders board columns as vertically stacked horizontal sections, with dense task rows, filter/search previews, task drops between sections, and vertical section reordering.",
       "functions": [
@@ -1009,7 +1022,7 @@
     },
     {
       "path": "src/components/settings/LanguageDropdown.tsx",
-      "lines": 142,
+      "lines": 141,
       "title": "Settings — language picker dropdown",
       "summary": "Searchable flag+name dropdown over ORDERED_LANGUAGES, with arrow-key navigation and Enter-to-select.",
       "exports": "LanguageDropdown"
@@ -1048,9 +1061,9 @@
     },
     {
       "path": "src/components/settings/SettingRow.tsx",
-      "lines": 222,
+      "lines": 294,
       "title": "Settings — single setting row + theme gallery",
-      "summary": "Renders one SettingDef as either a dense toggle row or, for the 'skin' type, a full-width theme gallery grid.",
+      "summary": "Renders one SettingDef as either a dense toggle row, a full-width theme gallery (for the 'skin' type), or one of the secondary controls — select dropdown, number stepper, text input, language picker, theme mode switcher, or notification…",
       "exports": "SettingRow, ThemeGalleryPicker"
     },
     {
@@ -1131,7 +1144,7 @@
     },
     {
       "path": "src/components/TaskWorkspace.tsx",
-      "lines": 604,
+      "lines": 559,
       "title": "Desktop opened-task workspace",
       "summary": "Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…",
       "functions": [
@@ -1270,6 +1283,19 @@
         }
       ],
       "exports": "ThemeSwitcher"
+    },
+    {
+      "path": "src/components/ui/tooltip-card.tsx",
+      "lines": 188,
+      "title": "Tooltip card component",
+      "summary": "Floating animated tooltip component with dynamic mouse cursor tracking, spring motion transitions, auto-positioning, and touch device fallback.",
+      "functions": [
+        {
+          "name": "Tooltip",
+          "summary": "floating animated tooltip wrapper component"
+        }
+      ],
+      "exports": "Tooltip"
     },
     {
       "path": "src/components/UpdateNotificationBanner.tsx",

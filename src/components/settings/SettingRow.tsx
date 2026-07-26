@@ -1,9 +1,16 @@
 /**
  * @file Settings — single setting row + theme gallery
- * @description Renders one SettingDef as either a dense toggle row or,
- * for the 'skin' type, a full-width theme gallery grid. ThemeGalleryPicker
- * owns the custom-theme create/edit/duplicate flow through
- * ThemeCustomizerModal.
+ * @description Renders one SettingDef as either a dense toggle row, a
+ * full-width theme gallery (for the 'skin' type), or one of the
+ * secondary controls — select dropdown, number stepper, text input,
+ * language picker, theme mode switcher, or notification permission
+ * button. ThemeGalleryPicker owns the custom-theme create/edit/duplicate
+ * flow through ThemeCustomizerModal.
+ *
+ * 📖 Every SettingType defined in schema.ts must have a control here.
+ * Anything not wired renders an empty right-hand column (bug source:
+ * the v0.30.0 Fable UI Themes release replaced SkinPicker with
+ * ThemeGalleryPicker and accidentally dropped the other branches).
  *
  * @exports SettingRow, ThemeGalleryPicker
  */
@@ -15,7 +22,9 @@ import { useStore } from '../../lib/store';
 import { getAllThemes, registerCustomThemes, applyProjectTheme, THEME_PRESETS } from '../../lib/theme';
 import { ThemePreviewCard } from '../ThemePreviewCard';
 import { ThemeCustomizerModal } from '../ThemeCustomizerModal';
-import type { KandownTheme } from '../../lib/types';
+import { ThemeSwitcher } from '../ui/theme-switcher-1';
+import { LanguageDropdown } from './LanguageDropdown';
+import type { KandownTheme, ThemeMode } from '../../lib/types';
 import type { BrowserNotificationPermission } from '../../lib/notifications';
 import { SECTIONS, type SettingDef } from './schema';
 
@@ -111,6 +120,69 @@ export function SettingRow({
             <span className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
               value ? 'translate-x-[21px]' : 'translate-x-1'
             }`} />
+          </button>
+        )}
+
+        {setting.type === 'theme' && (
+          <ThemeSwitcher value={String(value) as ThemeMode} onChange={onChange as (value: ThemeMode) => void} />
+        )}
+
+        {setting.type === 'select' && setting.options && (
+          <select
+            value={String(value)}
+            onChange={e => onChange(e.target.value)}
+            className="h-8 w-full rounded-[7px] border border-border bg-bg-2 px-2.5 text-[13.5px] text-fg outline-none transition-colors focus:border-border-focus focus:bg-bg-3 md:w-[168px]"
+          >
+            {setting.options.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        )}
+
+        {setting.type === 'language' && (
+          <LanguageDropdown value={String(value)} onChange={v => onChange(v)} />
+        )}
+
+        {setting.type === 'text' && (
+          <input
+            value={String(value ?? '')}
+            onChange={e => onChange(e.target.value.trim())}
+            placeholder={setting.placeholder}
+            className="h-8 w-full rounded-[7px] border border-border bg-bg-2 px-2.5 text-[13.5px] text-fg outline-none transition-colors placeholder:text-fg-faint focus:border-border-focus focus:bg-bg-3 md:w-[168px]"
+          />
+        )}
+
+        {setting.type === 'number' && (
+          <div className="inline-flex h-8 items-center overflow-hidden rounded-[7px] border border-border bg-bg-2">
+            <button
+              type="button"
+              onClick={() => handleNumberChange(-1)}
+              className="h-8 w-8 text-[15px] text-fg-muted transition-colors hover:bg-bg-3 hover:text-fg"
+            >
+              -
+            </button>
+            <span className="w-9 text-center text-[13.5px] text-fg tabular-nums">{String(value)}</span>
+            <button
+              type="button"
+              onClick={() => handleNumberChange(1)}
+              className="h-8 w-8 text-[15px] text-fg-muted transition-colors hover:bg-bg-3 hover:text-fg"
+            >
+              +
+            </button>
+          </div>
+        )}
+
+        {setting.type === 'permission' && (
+          <button
+            type="button"
+            onClick={onRequestNotificationPermission}
+            disabled={notificationPermission === 'granted' || notificationPermission === 'unsupported'}
+            className="h-8 rounded-[7px] border border-border bg-bg-2 px-2.5 text-[13px] text-fg transition-colors hover:bg-bg-3 disabled:cursor-default disabled:text-fg-muted disabled:hover:bg-bg-2"
+          >
+            {notificationPermission === 'granted' && t('settings.permissionGranted')}
+            {notificationPermission === 'denied' && t('settings.permissionDenied')}
+            {notificationPermission === 'default' && t('settings.permissionAsk')}
+            {notificationPermission === 'unsupported' && t('settings.permissionUnsupported')}
           </button>
         )}
       </div>

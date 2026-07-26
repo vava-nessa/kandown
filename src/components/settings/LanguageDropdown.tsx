@@ -1,9 +1,8 @@
 /**
  * @file Settings — language picker dropdown
  * @description Searchable flag+name dropdown over ORDERED_LANGUAGES, with
- * arrow-key navigation and Enter-to-select. Extracted from SettingsPage.tsx
- * as-is; not currently wired into any SettingRow render path (the language
- * setting type has no consumer yet), kept for parity with the pre-split file.
+ * arrow-key navigation and Enter-to-select. Rendered by SettingRow when the
+ * `ui.language` setting is visible in the appearance section.
  *
  * @exports LanguageDropdown
  */
