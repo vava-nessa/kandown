@@ -27,6 +27,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconChevronDown, IconChevronUp, IconStack2 } from '@tabler/icons-react';
 import { Card } from './Card';
+import { ListRow } from './ListRow';
 import type { TaskGroup } from '../lib/grouping';
 import type { Density, SearchMatch } from '../lib/types';
 
@@ -39,6 +40,7 @@ interface CardStackProps {
   onCardDragEnd: () => void;
   defaultExpanded?: boolean;
   doneTags?: Set<string>;
+  viewMode?: 'board' | 'list';
 }
 
 export function CardStack({
@@ -50,6 +52,7 @@ export function CardStack({
   onCardDragEnd,
   defaultExpanded = false,
   doneTags,
+  viewMode = 'board',
 }: CardStackProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(defaultExpanded);
@@ -70,31 +73,70 @@ export function CardStack({
 
   if (expanded) {
     return (
-      <div className="flex flex-col gap-2">
+      <div className={viewMode === 'list' ? 'divide-y divide-border/30' : 'flex flex-col'}>
         {/* Expanded header: shows group key + collapse button */}
         <button
           type="button"
           onClick={() => setExpanded(false)}
-          className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-semibold text-fg-muted/70 uppercase tracking-wide hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors w-fit"
+          className="flex items-center gap-1.5 px-2 py-1 my-1 rounded-md text-[11px] font-semibold text-fg-muted/70 uppercase tracking-wide hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors w-fit"
         >
           <IconChevronUp size={13} stroke={2} />
           <span>{group.displayKey}</span>
           <span className="font-normal text-fg-muted/40">{taskCount}</span>
         </button>
 
-        {/* Individual cards: fully interactive, draggable */}
-        {group.tasks.map(task => (
-          <Card
-            key={task.id}
-            task={task}
-            searchMatches={searchMatches.get(task.id) || []}
-            density={density}
-            columnName={columnName}
-            doneTags={doneTags}
-            onDragStart={() => onCardDragStart(task.id, columnName)}
-            onDragEnd={onCardDragEnd}
-          />
-        ))}
+        {/* Individual cards/rows: fully interactive, draggable */}
+        {group.tasks.map(task =>
+          viewMode === 'list' ? (
+            <ListRow
+              key={task.id}
+              task={task}
+              searchMatches={searchMatches.get(task.id) || []}
+              density={density}
+              columnName={columnName}
+              doneTags={doneTags}
+              onDragStart={() => onCardDragStart(task.id, columnName)}
+              onDragEnd={onCardDragEnd}
+            />
+          ) : (
+            <Card
+              key={task.id}
+              task={task}
+              searchMatches={searchMatches.get(task.id) || []}
+              density={density}
+              columnName={columnName}
+              doneTags={doneTags}
+              onDragStart={() => onCardDragStart(task.id, columnName)}
+              onDragEnd={onCardDragEnd}
+            />
+          )
+        )}
+      </div>
+    );
+  }
+
+  if (viewMode === 'list') {
+    return (
+      <div
+        onClick={() => setExpanded(true)}
+        className="group relative flex items-center justify-between px-3 py-2 border-b border-border/30 hover:bg-black/[0.03] dark:hover:bg-white/[0.04] cursor-pointer transition-colors"
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <IconStack2 size={13} stroke={1.8} className="text-fg-muted/70 flex-none" />
+          <span className="text-[11px] font-semibold tracking-wide text-fg-muted uppercase flex-none">
+            {group.displayKey}
+          </span>
+          <span className="text-[13px] font-medium text-fg truncate">
+            {previewTitle}
+            {taskCount > 1 && <span className="text-fg-muted/50 ml-1.5">+{taskCount - 1}</span>}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 flex-none">
+          <span className="inline-flex items-center h-[18px] px-1.5 text-[10.5px] font-medium rounded-md bg-black/[0.04] dark:bg-white/[0.06] text-fg-muted tabular-nums">
+            {taskCount}
+          </span>
+          <IconChevronDown size={13} stroke={2} className="text-fg-muted/50" />
+        </div>
       </div>
     );
   }

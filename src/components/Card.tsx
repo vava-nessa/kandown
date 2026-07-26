@@ -1,20 +1,34 @@
 /**
- * @file Task card component
- * @description Displays one board task with priority, progress, tags, assignee,
- * drag handlers, optional highlighted search-preview snippets, and guarded
- * hover archive/delete actions.
+ * @file Task card row
+ * @description Displays one board task as a single dense row inside a column.
+ * The card has no border, no shadow, no rounded corners: cards are separated
+ * only by a single 1px hairline so the board never shows the double-border
+ * "crado" effect (card border + gap + card border).
+ *
+ * 📖 Layout (top → bottom):
+ *   - Title row: `#` on the left, the title text fills the rest of the line
+ *     and wraps freely. Hover-revealed archive / delete / drag-handle actions
+ *     sit absolutely positioned in the top-right corner so they never push
+ *     the title around.
+ *   - Meta row: bracket tag, epic, report, dependency count — only when at
+ *     least one badge is present. Sits directly below the title, no separator.
+ *   - Optional block (non-compact only, when applicable): progress bar,
+ *     search-match snippets, full metadata block.
+ *
+ * 📖 The card height grows with its content. There is no `line-clamp` on the
+ * title: a 1-line title produces a compact row, a 3-line title produces a
+ * taller row. Compact and non-compact differ in vertical padding and title
+ * font size — not in truncation.
  *
  * 📖 Cards are intentionally view-only. Clicking opens the drawer through the
  * store, while mutations such as moving, editing, and deleting stay centralized.
  * 📖 The hover delete control requires two clicks: first arm, then confirm.
  * This keeps fast board scanning safe while avoiding a modal confirmation for
  * every card delete.
- * 📖 Priority, tags, and assignee badges respect `config.fields` so disabled
- * metadata stays out of the front even if it exists in old task files.
  *
  * @functions
  *  → HighlightedText — highlights a matched keyword inside preview text
- *  → Card — animated task card used by the board columns
+ *  → Card — single dense row used by the board columns
  *
  * @exports Card
  * @see src/components/Column.tsx
@@ -27,6 +41,7 @@ import { IconTrash, IconTrashX } from '@tabler/icons-react';
 import { Icon } from './Icons';
 import type { BoardTask, Density, SearchMatch } from '../lib/types';
 import { useStore } from '../lib/store';
+
 const priorityColors: Record<string, string> = {
   P1: '#e5484d',
   P2: '#e9a23b',
@@ -76,7 +91,6 @@ function renderValue(key: string, value: unknown) {
     );
   }
   if (typeof value === 'string') {
-    // Dates (the `due` field or any ISO-860ish string) get a locale format.
     if (key === 'due' || isIsoDate(value)) {
       const d = new Date(value);
       if (!isNaN(d.getTime())) {
@@ -118,7 +132,7 @@ function MetadataBlock({ frontmatter, hidden }: { frontmatter: Record<string, un
   });
   if (entries.length === 0) return null;
   return (
-    <div className="mt-2.5 pt-2 border-t border-border/60 space-y-1">
+    <div className="mt-2.5 pt-2 border-t border-border/30 space-y-1">
       {entries.map(([key, value]) => (
         <div key={key} className="flex items-start gap-2 text-[11.5px] leading-snug">
           <span className="text-fg-muted/80 font-medium flex-shrink-0 min-w-[64px]">{labelFor(key)}</span>
@@ -185,6 +199,13 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
   const titleWithoutTag = tagMatch ? task.title.slice(tagMatch[0].length) : task.title;
 
   const showPreview = searchMatches.length > 0 && !isCompact;
+  const hasMetaBadges = Boolean(
+    bracketTag ||
+      task.frontmatter.epic ||
+      task.frontmatter.report ||
+      task.frontmatter.agentReport ||
+      (task.dependsOn && task.dependsOn.length > 0)
+  );
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -232,15 +253,21 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
   const toggleTaskSelection = useStore(s => s.toggleTaskSelection);
   const isSelected = selectedTaskIds?.includes(task.id) ?? false;
 
+  // 📖 Density drives vertical padding + title size, never truncation. Both
+  // modes grow freely with the title length.
+  const containerPadding = isCompact ? 'px-3 py-1.5' : 'px-3.5 py-2.5';
+  const titleSize = isCompact ? 'text-[13.5px]' : 'text-[15px]';
+  const metaGap = isCompact ? 'mt-1' : 'mt-1.5';
+
   return (
     // 📖 No `motion.div` here: drag uses native HTML5 events, and Tailwind
     // transitions cover the hover/active feedback. Mixing `whileHover` /
     // `whileTap` with Tailwind's `transition-all` produced a 500ms "pop" on
     // every card (the user reported). Hover lift, tap scale, and shadow are
     // all in the className now.
-    // `draggable` + the spread `dragHandlers` are kept because they wire the
-    // native HTML5 drag-and-drop events (`onDragStart`, `onDragEnd`) the
-    // board uses to move tasks between columns.
+    // 📖 The card has no border, no rounded corners, no card background —
+    // a single `border-b` separates it from the next card. The Column
+    // owns the outer border; the Card is a row, not a card.
     <div
       draggable
       {...dragHandlers}
@@ -255,33 +282,118 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       onMouseLeave={() => setDeleteArmed(false)}
       data-task-id={task.id}
       data-col={columnName}
-      className={`group relative cursor-pointer rounded-lg border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)]
-        transition-[border-color,box-shadow,background-color,transform] duration-200 ease-out
-        hover:border-border-strong hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:-translate-y-px
-        active:scale-[0.99] active:duration-75
+      className={`group relative cursor-pointer border-b border-border/30 transition-colors duration-150 ease-out
+        ${containerPadding}
         ${
-        isSelected ? 'border-primary ring-2 ring-primary/40 bg-primary/[0.03]' : 'border-border'
-      } ${
-        task.checked ? 'opacity-70' : ''
-      }`}
+        isSelected
+          ? 'bg-primary/[0.08]'
+          : 'hover:bg-black/[0.03] dark:hover:bg-white/[0.04]'
+      } ${task.checked ? 'opacity-70' : ''}`}
     >
-      {/* Drag handle */}
-      <div className="absolute left-1.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-40 transition-opacity cursor-grab active:cursor-grabbing">
-        <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor" className="text-fg-muted">
-          <circle cx="3" cy="2" r="1.5"/>
-          <circle cx="7" cy="2" r="1.5"/>
-          <circle cx="3" cy="8" r="1.5"/>
-          <circle cx="7" cy="8" r="1.5"/>
-          <circle cx="3" cy="14" r="1.5"/>
-          <circle cx="7" cy="14" r="1.5"/>
-        </svg>
+      {/* Title row: # left of title, actions absolutely positioned top-right.
+          The title grows with its content — no line-clamp, no truncation. */}
+      <div className="flex items-start gap-2">
+        <span className="font-mono text-[11.5px] font-medium text-fg-faint tabular-nums flex-none pt-[2px]">
+          {task.id.replace(/^t/, '#')}
+        </span>
+        <div className="flex-1 min-w-0">
+          <div
+            className={`${titleSize} leading-snug font-medium break-words ${
+              task.checked ? 'line-through text-fg-muted' : 'text-fg'
+            }`}
+          >
+            {bracketTag && (
+              <span className="inline-flex items-center h-[16px] px-1.5 mr-1.5 align-baseline text-[10px] font-semibold tracking-wide text-fg-muted uppercase rounded bg-black/[0.04] dark:bg-white/10">
+                {bracketTag}
+              </span>
+            )}
+            {titleWithoutTag}
+          </div>
+
+          {hasMetaBadges && (
+            <div className={`${metaGap} flex items-center gap-1.5 flex-wrap`}>
+              {task.frontmatter.epic ? (
+                <span
+                  className="inline-flex items-center h-[16px] px-1.5 text-[10px] font-semibold text-sky-700 dark:text-sky-300 bg-sky-500/10 border border-sky-500/20 rounded"
+                  title={`Epic: ${task.frontmatter.epic}`}
+                >
+                  ⚡ {String(task.frontmatter.epic)}
+                </span>
+              ) : null}
+              {task.frontmatter.report || task.frontmatter.agentReport ? (
+                <span
+                  className="inline-flex items-center h-[16px] px-1.5 text-[10px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-500/10 border border-purple-500/20 rounded"
+                  title="Agent report ready"
+                >
+                  🤖 report
+                </span>
+              ) : null}
+              {task.dependsOn && task.dependsOn.length > 0 && (
+                <span
+                  className="inline-flex items-center gap-0.5 px-1.5 h-[16px] rounded text-[10.5px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20"
+                  title={t('card.blockedBy', { ids: task.dependsOn.join(', ') })}
+                  aria-label={t('card.blockedBy', { ids: task.dependsOn.join(', ') })}
+                >
+                  ↪{task.dependsOn.length}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
+      {/* Search preview — non-compact only (compact already shows the badge in the meta row). */}
+      {showPreview && (
+        <div className="mt-2.5 space-y-1">
+          {searchMatches.slice(0, 2).map((match, i) => (
+            <div key={i} className="text-[12px] text-fg-dim bg-black/[0.03] dark:bg-white/[0.04] rounded-lg px-2.5 py-1.5 border border-black/[0.05] dark:border-white/[0.08]">
+              <span className="text-[10px] font-semibold text-fg-muted uppercase tracking-wide mr-1.5">
+                {t(`sectionLabels.${match.section}`) || match.section}
+              </span>
+              <HighlightedText text={match.snippet} keyword={match.keyword} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!isCompact && task.progress && task.progress.total > 0 && (
+        <div className={`mt-2.5 flex items-center gap-2`}>
+          <div className="flex-1 h-[3px] bg-black/[0.06] dark:bg-white/[0.1] rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-[width] duration-300 ease-out"
+              style={{
+                width: `${progressPct}%`,
+                backgroundColor: isComplete ? '#22c55e' : '#737078',
+              }}
+            />
+          </div>
+          <span className="font-mono text-[11px] text-fg-muted tabular-nums">
+            {task.progress.done}/{task.progress.total}
+          </span>
+        </div>
+      )}
+
+      <MetadataBlock frontmatter={task.frontmatter} hidden={showMetadata} />
+
+      {/* Hover actions — absolutely positioned so the title row keeps its
+          natural height. Drag handle, archive, delete. */}
       <div
-        className="absolute right-2 top-2 z-10 flex items-center gap-1"
+        className={`absolute right-2 top-1.5 z-10 flex items-center gap-1 ${
+          isCompact ? 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100' : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
+        }`}
         onPointerDown={e => e.stopPropagation()}
         draggable={false}
       >
+        <div className="opacity-50 hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing px-1" title="Drag">
+          <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor" className="text-fg-muted">
+            <circle cx="3" cy="2" r="1.5"/>
+            <circle cx="7" cy="2" r="1.5"/>
+            <circle cx="3" cy="8" r="1.5"/>
+            <circle cx="7" cy="8" r="1.5"/>
+            <circle cx="3" cy="14" r="1.5"/>
+            <circle cx="7" cy="14" r="1.5"/>
+          </svg>
+        </div>
         <button
           type="button"
           draggable={false}
@@ -292,7 +404,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
           className={`inline-flex h-6 w-6 items-center justify-center rounded-md border transition-all ${
             isArchiving
               ? 'border-accent bg-accent/15 text-accent opacity-100'
-              : 'border-border bg-card/80 text-fg-muted opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hover:border-accent/60 hover:bg-card hover:text-accent'
+              : 'border-border bg-card text-fg-muted hover:border-accent/60 hover:bg-card hover:text-accent'
           } ${isDeleting ? 'pointer-events-none opacity-40' : ''}`}
         >
           <Icon.Archive size={14} strokeWidth={1.8} />
@@ -309,97 +421,11 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
           className={`inline-flex h-6 w-6 items-center justify-center rounded-md border transition-all ${
             deleteArmed
               ? 'border-red-500 bg-red-500 text-white opacity-100 shadow-sm'
-              : 'border-border bg-card/80 text-fg-muted opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hover:border-red-500/60 hover:bg-card hover:text-red-500'
+              : 'border-border bg-card text-fg-muted hover:border-red-500/60 hover:bg-card hover:text-red-500'
           } ${isDeleting || isArchiving ? 'pointer-events-none opacity-60' : ''}`}
         >
           {deleteArmed ? <IconTrashX size={14} stroke={1.9} /> : <IconTrash size={14} stroke={1.8} />}
         </button>
-      </div>
-
-      {/* Subtle priority edge indicator — removed; priority now lives in the
-       * metadata block (revealed via the global showMetadata toggle). */}
-
-      <div className="px-3.5 pt-3 pb-1.5 flex items-center gap-1.5 flex-wrap">
-        <span className="font-mono text-[11.5px] font-medium text-fg-faint tabular-nums">
-          {task.id.replace(/^t/, '#')}
-        </span>
-        {bracketTag && (
-          <span className="inline-flex items-center h-[16px] px-1.5 text-[10px] font-semibold tracking-wide text-fg-muted uppercase rounded bg-black/[0.04] dark:bg-white/10">
-            {bracketTag}
-          </span>
-        )}
-        {task.frontmatter.epic ? (
-          <span
-            className="inline-flex items-center h-[16px] px-1.5 text-[10px] font-semibold text-sky-700 dark:text-sky-300 bg-sky-500/10 border border-sky-500/20 rounded"
-            title={`Epic: ${task.frontmatter.epic}`}
-          >
-            ⚡ {String(task.frontmatter.epic)}
-          </span>
-        ) : null}
-        {task.frontmatter.report || task.frontmatter.agentReport ? (
-          <span
-            className="inline-flex items-center h-[16px] px-1.5 text-[10px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-500/10 border border-purple-500/20 rounded"
-            title="Agent report ready"
-          >
-            🤖 report
-          </span>
-        ) : null}
-        {task.dependsOn && task.dependsOn.length > 0 && (
-          // 📖 Dep chip: surfaces the task's `depends_on` count next to the id
-          // so blocked work is visible at a glance on the board. Hover shows
-          // the full id list — the drawer has the "Blocked by" panel for the
-          // unresolved/resolved breakdown.
-          <span
-            className="ml-auto inline-flex items-center gap-0.5 px-1.5 h-[16px] rounded text-[10.5px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20"
-            title={t('card.blockedBy', { ids: task.dependsOn.join(', ') })}
-            aria-label={t('card.blockedBy', { ids: task.dependsOn.join(', ') })}
-          >
-            ↪{task.dependsOn.length}
-          </span>
-        )}
-      </div>
-
-      <div className="px-3.5 pb-1.5">
-        <div
-          className={`text-[13.5px] leading-snug font-medium ${
-            task.checked ? 'line-through text-fg-muted' : 'text-fg'
-          } ${isCompact ? 'line-clamp-1' : 'line-clamp-2'}`}
-        >
-          {titleWithoutTag}
-        </div>
-
-        {/* Search preview */}
-        {showPreview && (
-          <div className="mt-2.5 space-y-1">
-            {searchMatches.slice(0, 2).map((match, i) => (
-              <div key={i} className="text-[12px] text-fg-dim bg-black/[0.03] dark:bg-white/[0.04] rounded-lg px-2.5 py-1.5 border border-black/[0.05] dark:border-white/[0.08]">
-                <span className="text-[10px] font-semibold text-fg-muted uppercase tracking-wide mr-1.5">
-                  {t(`sectionLabels.${match.section}`) || match.section}
-                </span>
-                <HighlightedText text={match.snippet} keyword={match.keyword} />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {!isCompact && task.progress && task.progress.total > 0 && (
-          <div className={`mt-2.5 flex items-center gap-2 ${showPreview ? '' : ''}`}>
-            <div className="flex-1 h-[3px] bg-black/[0.06] dark:bg-white/[0.1] rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-[width] duration-300 ease-out"
-                style={{
-                  width: `${progressPct}%`,
-                  backgroundColor: isComplete ? '#22c55e' : '#737078',
-                }}
-              />
-            </div>
-            <span className="font-mono text-[11px] text-fg-muted tabular-nums">
-              {task.progress.done}/{task.progress.total}
-            </span>
-          </div>
-        )}
-
-        <MetadataBlock frontmatter={task.frontmatter} hidden={showMetadata} />
       </div>
     </div>
   );

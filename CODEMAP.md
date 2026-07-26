@@ -89,10 +89,10 @@ source to edit instead.
 - **`ArchiveView.tsx`** · 85 lines — Lists every archived task (frontmatter `archived: true`, files living under `tasks/archive/` at the project root) as a flat, read-only list with a one-click "Restore" action.
 - **`Board.tsx`** · 394 lines — Renders the horizontal kanban board, filters tasks per column, wires drag-and-drop state, and forwards content-search matches to cards.
 - **`BulkActionBar.tsx`** · 65 lines — Appears when one or more tasks are selected in the web UI.
-- **`Card.tsx`** · 407 lines — Displays one board task with priority, progress, tags, assignee, drag handlers, optional highlighted search-preview snippets, and guarded hover archive/delete actions.
+- **`Card.tsx`** · 433 lines — Displays one board task as a single dense row inside a column.
 - **`CardStack.tsx`** · 203 lines — Renders a group of 2+ cards that share the same `[bracket]` or `#hashtag` title tag as a visually stacked card.
 - **`Cheatsheet.tsx`** · 181 lines — Centered modal that lists every keyboard shortcut in Kandown, grouped by context (Global, Board, Drawer, Command Palette).
-- **`Column.tsx`** · 356 lines — Renders a single kanban column, accepts dropped cards, shows the filtered task count, and creates new tasks directly in the column.
+- **`Column.tsx`** · 359 lines — Renders a single kanban column, accepts dropped cards, shows the filtered task count, and creates new tasks directly in the column.
 - **`ColumnColorMenu.tsx`** · 97 lines — 3-dot dropdown menu for selecting column background tint color.
 - **`ColumnHeaderActions.tsx`** · 165 lines — Standardized action buttons (Add Task, Color Picker, Rename, Delete, bulk terminal-task actions, Add to Settings) shared across Board and List view column headers.
 - **`CommandPalette.tsx`** · 363 lines — Provides global quick actions, view switching, task lookup, and content-aware task search with highlighted snippets.
@@ -105,7 +105,7 @@ source to edit instead.
 - **`Header.tsx`** · 462 lines — Top navigation bar for project switching, task search, filters, view mode, density, settings, command palette, reload, and task creation.
 - **`Icons.tsx`** · 182 lines — Centralizes small stroke icons used by the Kandown web UI.
 - **`KbdButton.tsx`** · 109 lines — A unified button component that handles icons, labels, and keyboard shortcuts with consistent styling and improved visibility.
-- **`ListRow.tsx`** · 419 lines — Renders a single task as a compact, Linear-style list item for the list view, with priority indicators, title, status, metadata badges, inline subtask progress slider, and hover quick actions.
+- **`ListRow.tsx`** · 427 lines — Renders a single task as a compact, Linear-style list item for the list view, with priority indicators, title, status, metadata badges, inline subtask progress slider, and hover quick actions.
 - **`ListView.tsx`** · 490 lines — Renders board columns as vertically stacked horizontal sections, with dense task rows, filter/search previews, task drops between sections, and vertical section reordering.
 - **`LogoSvg.tsx`** · 54 lines — Renders the official Kandown vector logo from logo.svg.
 - **`OnboardingTour.tsx`** · 117 lines — Quick guide on first launch introducing Kandown features.

@@ -729,9 +729,9 @@
     },
     {
       "path": "src/components/Card.tsx",
-      "lines": 407,
-      "title": "Task card component",
-      "summary": "Displays one board task with priority, progress, tags, assignee, drag handlers, optional highlighted search-preview snippets, and guarded hover archive/delete actions.",
+      "lines": 433,
+      "title": "Task card row",
+      "summary": "Displays one board task as a single dense row inside a column.",
       "functions": [
         {
           "name": "HighlightedText",
@@ -739,7 +739,7 @@
         },
         {
           "name": "Card",
-          "summary": "animated task card used by the board columns"
+          "summary": "single dense row used by the board columns"
         }
       ],
       "exports": "Card"
@@ -772,7 +772,7 @@
     },
     {
       "path": "src/components/Column.tsx",
-      "lines": 356,
+      "lines": 359,
       "title": "Board column component",
       "summary": "Renders a single kanban column, accepts dropped cards, shows the filtered task count, and creates new tasks directly in the column.",
       "functions": [
@@ -954,7 +954,7 @@
     },
     {
       "path": "src/components/ListRow.tsx",
-      "lines": 419,
+      "lines": 427,
       "title": "List row component",
       "summary": "Renders a single task as a compact, Linear-style list item for the list view, with priority indicators, title, status, metadata badges, inline subtask progress slider, and hover quick actions.",
       "functions": [

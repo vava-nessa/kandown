@@ -294,7 +294,10 @@ export function Column({
         className="flex-1 min-h-0 px-2.5 scrollbar-always"
         style={{ overflowY: 'scroll' }}
       >
-        <div className="flex flex-col gap-2 py-1">
+        {/* 📖 No gap here — each Card owns its own `border-b` separator, so the
+            column renders as a single hairline-separated stack (no double
+            border, no card margin). Padding is on the Card itself. */}
+        <div className="flex flex-col">
           <AnimatePresence mode="popLayout">
             {columnItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
