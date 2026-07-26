@@ -27946,7 +27946,7 @@ var require_backend = __commonJS({
                       dispatcherHookName: "InsertionEffect"
                     });
                   },
-                  useMemo: function useMemo5(nextCreate) {
+                  useMemo: function useMemo6(nextCreate) {
                     var hook = nextHook();
                     nextCreate = null !== hook ? hook.memoizedState[0] : nextCreate();
                     hookLog.push({
@@ -37337,7 +37337,7 @@ var require_backend = __commonJS({
                 var symbolOrNumber = renderer_typeof(type) === "object" && type !== null ? type.$$typeof : type;
                 return renderer_typeof(symbolOrNumber) === "symbol" ? symbolOrNumber.toString() : symbolOrNumber;
               }
-              var _ReactTypeOfWork = ReactTypeOfWork, CacheComponent = _ReactTypeOfWork.CacheComponent, ClassComponent = _ReactTypeOfWork.ClassComponent, IncompleteClassComponent = _ReactTypeOfWork.IncompleteClassComponent, IncompleteFunctionComponent = _ReactTypeOfWork.IncompleteFunctionComponent, FunctionComponent = _ReactTypeOfWork.FunctionComponent, IndeterminateComponent = _ReactTypeOfWork.IndeterminateComponent, ForwardRef = _ReactTypeOfWork.ForwardRef, HostRoot = _ReactTypeOfWork.HostRoot, HostHoistable = _ReactTypeOfWork.HostHoistable, HostSingleton = _ReactTypeOfWork.HostSingleton, HostComponent = _ReactTypeOfWork.HostComponent, HostPortal = _ReactTypeOfWork.HostPortal, HostText = _ReactTypeOfWork.HostText, Fragment = _ReactTypeOfWork.Fragment, LazyComponent = _ReactTypeOfWork.LazyComponent, LegacyHiddenComponent = _ReactTypeOfWork.LegacyHiddenComponent, MemoComponent = _ReactTypeOfWork.MemoComponent, OffscreenComponent = _ReactTypeOfWork.OffscreenComponent, Profiler = _ReactTypeOfWork.Profiler, ScopeComponent = _ReactTypeOfWork.ScopeComponent, SimpleMemoComponent = _ReactTypeOfWork.SimpleMemoComponent, SuspenseComponent = _ReactTypeOfWork.SuspenseComponent, SuspenseListComponent = _ReactTypeOfWork.SuspenseListComponent, TracingMarkerComponent = _ReactTypeOfWork.TracingMarkerComponent, Throw = _ReactTypeOfWork.Throw, ViewTransitionComponent = _ReactTypeOfWork.ViewTransitionComponent, ActivityComponent = _ReactTypeOfWork.ActivityComponent;
+              var _ReactTypeOfWork = ReactTypeOfWork, CacheComponent = _ReactTypeOfWork.CacheComponent, ClassComponent = _ReactTypeOfWork.ClassComponent, IncompleteClassComponent = _ReactTypeOfWork.IncompleteClassComponent, IncompleteFunctionComponent = _ReactTypeOfWork.IncompleteFunctionComponent, FunctionComponent = _ReactTypeOfWork.FunctionComponent, IndeterminateComponent = _ReactTypeOfWork.IndeterminateComponent, ForwardRef = _ReactTypeOfWork.ForwardRef, HostRoot = _ReactTypeOfWork.HostRoot, HostHoistable = _ReactTypeOfWork.HostHoistable, HostSingleton = _ReactTypeOfWork.HostSingleton, HostComponent = _ReactTypeOfWork.HostComponent, HostPortal = _ReactTypeOfWork.HostPortal, HostText = _ReactTypeOfWork.HostText, Fragment2 = _ReactTypeOfWork.Fragment, LazyComponent = _ReactTypeOfWork.LazyComponent, LegacyHiddenComponent = _ReactTypeOfWork.LegacyHiddenComponent, MemoComponent = _ReactTypeOfWork.MemoComponent, OffscreenComponent = _ReactTypeOfWork.OffscreenComponent, Profiler = _ReactTypeOfWork.Profiler, ScopeComponent = _ReactTypeOfWork.ScopeComponent, SimpleMemoComponent = _ReactTypeOfWork.SimpleMemoComponent, SuspenseComponent = _ReactTypeOfWork.SuspenseComponent, SuspenseListComponent = _ReactTypeOfWork.SuspenseListComponent, TracingMarkerComponent = _ReactTypeOfWork.TracingMarkerComponent, Throw = _ReactTypeOfWork.Throw, ViewTransitionComponent = _ReactTypeOfWork.ViewTransitionComponent, ActivityComponent = _ReactTypeOfWork.ActivityComponent;
               function resolveFiberType(type) {
                 var typeSymbol = getTypeSymbol(type);
                 switch (typeSymbol) {
@@ -37393,7 +37393,7 @@ var require_backend = __commonJS({
                   case HostPortal:
                   case HostText:
                     return null;
-                  case Fragment:
+                  case Fragment2:
                     return "Fragment";
                   case LazyComponent:
                     return "Lazy";
@@ -37548,7 +37548,7 @@ var require_backend = __commonJS({
             function renderer_attach(hook, rendererID, renderer2, global, shouldStartProfilingNow, profilingSettings) {
               var version = renderer2.reconcilerVersion || renderer2.version;
               var _getInternalReactCons = getInternalReactConstants(version), getDisplayNameForFiber = _getInternalReactCons.getDisplayNameForFiber, getTypeSymbol = _getInternalReactCons.getTypeSymbol, ReactPriorityLevels = _getInternalReactCons.ReactPriorityLevels, ReactTypeOfWork = _getInternalReactCons.ReactTypeOfWork, StrictModeBits = _getInternalReactCons.StrictModeBits, SuspenseyImagesMode = _getInternalReactCons.SuspenseyImagesMode;
-              var ActivityComponent = ReactTypeOfWork.ActivityComponent, ClassComponent = ReactTypeOfWork.ClassComponent, ContextConsumer = ReactTypeOfWork.ContextConsumer, DehydratedSuspenseComponent = ReactTypeOfWork.DehydratedSuspenseComponent, ForwardRef = ReactTypeOfWork.ForwardRef, Fragment = ReactTypeOfWork.Fragment, FunctionComponent = ReactTypeOfWork.FunctionComponent, HostRoot = ReactTypeOfWork.HostRoot, HostHoistable = ReactTypeOfWork.HostHoistable, HostSingleton = ReactTypeOfWork.HostSingleton, HostPortal = ReactTypeOfWork.HostPortal, HostComponent = ReactTypeOfWork.HostComponent, HostText = ReactTypeOfWork.HostText, IncompleteClassComponent = ReactTypeOfWork.IncompleteClassComponent, IncompleteFunctionComponent = ReactTypeOfWork.IncompleteFunctionComponent, IndeterminateComponent = ReactTypeOfWork.IndeterminateComponent, LegacyHiddenComponent = ReactTypeOfWork.LegacyHiddenComponent, MemoComponent = ReactTypeOfWork.MemoComponent, OffscreenComponent = ReactTypeOfWork.OffscreenComponent, SimpleMemoComponent = ReactTypeOfWork.SimpleMemoComponent, SuspenseComponent = ReactTypeOfWork.SuspenseComponent, SuspenseListComponent = ReactTypeOfWork.SuspenseListComponent, TracingMarkerComponent = ReactTypeOfWork.TracingMarkerComponent, Throw = ReactTypeOfWork.Throw, ViewTransitionComponent = ReactTypeOfWork.ViewTransitionComponent;
+              var ActivityComponent = ReactTypeOfWork.ActivityComponent, ClassComponent = ReactTypeOfWork.ClassComponent, ContextConsumer = ReactTypeOfWork.ContextConsumer, DehydratedSuspenseComponent = ReactTypeOfWork.DehydratedSuspenseComponent, ForwardRef = ReactTypeOfWork.ForwardRef, Fragment2 = ReactTypeOfWork.Fragment, FunctionComponent = ReactTypeOfWork.FunctionComponent, HostRoot = ReactTypeOfWork.HostRoot, HostHoistable = ReactTypeOfWork.HostHoistable, HostSingleton = ReactTypeOfWork.HostSingleton, HostPortal = ReactTypeOfWork.HostPortal, HostComponent = ReactTypeOfWork.HostComponent, HostText = ReactTypeOfWork.HostText, IncompleteClassComponent = ReactTypeOfWork.IncompleteClassComponent, IncompleteFunctionComponent = ReactTypeOfWork.IncompleteFunctionComponent, IndeterminateComponent = ReactTypeOfWork.IndeterminateComponent, LegacyHiddenComponent = ReactTypeOfWork.LegacyHiddenComponent, MemoComponent = ReactTypeOfWork.MemoComponent, OffscreenComponent = ReactTypeOfWork.OffscreenComponent, SimpleMemoComponent = ReactTypeOfWork.SimpleMemoComponent, SuspenseComponent = ReactTypeOfWork.SuspenseComponent, SuspenseListComponent = ReactTypeOfWork.SuspenseListComponent, TracingMarkerComponent = ReactTypeOfWork.TracingMarkerComponent, Throw = ReactTypeOfWork.Throw, ViewTransitionComponent = ReactTypeOfWork.ViewTransitionComponent;
               var ImmediatePriority = ReactPriorityLevels.ImmediatePriority, UserBlockingPriority = ReactPriorityLevels.UserBlockingPriority, NormalPriority = ReactPriorityLevels.NormalPriority, LowPriority = ReactPriorityLevels.LowPriority, IdlePriority = ReactPriorityLevels.IdlePriority, NoPriority = ReactPriorityLevels.NoPriority;
               var getLaneLabelMap = renderer2.getLaneLabelMap, injectProfilingHooks = renderer2.injectProfilingHooks, overrideHookState = renderer2.overrideHookState, overrideHookStateDeletePath = renderer2.overrideHookStateDeletePath, overrideHookStateRenamePath = renderer2.overrideHookStateRenamePath, overrideProps = renderer2.overrideProps, overridePropsDeletePath = renderer2.overridePropsDeletePath, overridePropsRenamePath = renderer2.overridePropsRenamePath, scheduleRefresh = renderer2.scheduleRefresh, setErrorHandler = renderer2.setErrorHandler, setSuspenseHandler = renderer2.setSuspenseHandler, scheduleUpdate = renderer2.scheduleUpdate, scheduleRetry = renderer2.scheduleRetry, getCurrentFiber = renderer2.getCurrentFiber;
               var supportsTogglingError = typeof setErrorHandler === "function" && typeof scheduleUpdate === "function";
@@ -37909,7 +37909,7 @@ var require_backend = __commonJS({
                     return true;
                   case HostRoot:
                     return false;
-                  case Fragment:
+                  case Fragment2:
                     return key === null;
                   default:
                     var typeSymbol = getTypeSymbol(type);
@@ -37983,7 +37983,7 @@ var require_backend = __commonJS({
                     return ElementTypeHostComponent;
                   case HostPortal:
                   case HostText:
-                  case Fragment:
+                  case Fragment2:
                     return ElementTypeOtherOrUnknown;
                   case MemoComponent:
                   case SimpleMemoComponent:
@@ -54024,6 +54024,7 @@ var DEFAULT_CONFIG = {
     defaultOwnerType: "human",
     stackDefaultState: "collapsed"
   },
+  tui: { defaultView: "list", showDetailPane: true, listSort: "status" },
   fields: {
     priority: false,
     assignee: false,
@@ -54069,6 +54070,7 @@ function loadConfig(kandownDir) {
       ...boardRaw,
       columns: Array.isArray(boardRaw.columns) && boardRaw.columns.length > 0 ? boardRaw.columns.filter((name) => typeof name === "string" && name.trim().length > 0) : DEFAULT_CONFIG.board.columns
     },
+    tui: { ...DEFAULT_CONFIG.tui, ...safeObj(obj.tui) },
     fields: { ...DEFAULT_CONFIG.fields, ...safeObj(obj.fields) },
     notifications: { ...DEFAULT_CONFIG.notifications, ...safeObj(obj.notifications) }
   };
@@ -54448,6 +54450,40 @@ import { execFileSync as execFileSync2 } from "child_process";
 // src/lib/types.ts
 var DEFAULT_COLUMNS = ["Backlog", "Todo", "In Progress", "Review", "Done"];
 
+// src/lib/task-meta.ts
+function nowStamp() {
+  return (/* @__PURE__ */ new Date()).toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+function stampUpdated(frontmatter) {
+  return { ...frontmatter, updated: nowStamp() };
+}
+function taskTimestamp(frontmatter, mtimeMs) {
+  for (const raw of [frontmatter?.updated, frontmatter?.created]) {
+    if (typeof raw !== "string" || raw.trim() === "") continue;
+    const parsed = Date.parse(raw.trim());
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  if (typeof mtimeMs === "number" && Number.isFinite(mtimeMs) && mtimeMs > 0) return mtimeMs;
+  return null;
+}
+var MINUTE = 6e4;
+var HOUR = 60 * MINUTE;
+var DAY = 24 * HOUR;
+var WEEK = 7 * DAY;
+var MONTH = 30 * DAY;
+var YEAR = 365 * DAY;
+function formatAge(timestampMs, now = Date.now()) {
+  if (timestampMs === null || !Number.isFinite(timestampMs)) return "\u2014";
+  const delta = Math.max(0, now - timestampMs);
+  if (delta < MINUTE) return `${Math.floor(delta / 1e3)}s`;
+  if (delta < HOUR) return `${Math.floor(delta / MINUTE)}min`;
+  if (delta < DAY) return `${Math.floor(delta / HOUR)}h`;
+  if (delta < WEEK) return `${Math.floor(delta / DAY)}d`;
+  if (delta < MONTH) return `${Math.floor(delta / WEEK)}w`;
+  if (delta < YEAR) return `${Math.floor(delta / MONTH)}mo`;
+  return `${Math.floor(delta / YEAR)}y`;
+}
+
 // src/lib/parser.ts
 function parseSimpleYaml(yaml) {
   const obj = {};
@@ -54529,7 +54565,7 @@ function taskToBoardTask(task) {
   const total = subtasks.length;
   const status = normalizeStatus(frontmatter.status);
   const tags = Array.isArray(frontmatter.tags) ? frontmatter.tags.filter((tag) => typeof tag === "string" && tag.trim().length > 0) : [];
-  const { id: _id, title: _title, status: _status, order: _order, created: _created, archived: _archived, report: _report, ...metadata } = frontmatter;
+  const { id: _id, title: _title, status: _status, order: _order, created: _created, updated: _updated, archived: _archived, report: _report, ...metadata } = frontmatter;
   return {
     id: frontmatter.id || "",
     title: frontmatter.title || frontmatter.id || "Untitled task",
@@ -54539,6 +54575,10 @@ function taskToBoardTask(task) {
     priority: normalizePriority(frontmatter.priority),
     ownerType: normalizeOwnerType(frontmatter.ownerType),
     progress: total > 0 ? { done, total } : null,
+    // 📖 Effective last-activity epoch ms — `updated` when present, `created`
+    // otherwise, null on a task carrying neither. Resolved once here so every
+    // consumer (Age column, age sort) agrees on the same fallback chain.
+    updatedAt: taskTimestamp(frontmatter),
     dependsOn: Array.isArray(frontmatter.depends_on) ? frontmatter.depends_on.filter((d) => typeof d === "string" && d.trim().length > 0) : [],
     frontmatter: metadata
   };
@@ -54771,11 +54811,11 @@ function moveTaskToColumn(kandownDir, taskId, targetColumn) {
   try {
     const prevContent = readFileSync3(taskPath, "utf8");
     const parsed = readTask(kandownDir, taskId);
-    const newContent = serializeTaskFile({
+    const newContent = serializeTaskFile(stampUpdated({
       ...parsed.frontmatter,
       id: taskId,
       status: targetColumn
-    }, parsed.body);
+    }), parsed.body);
     atomicWriteFileSync(taskPath, newContent);
     pushUndo(kandownDir, {
       type: "move",
@@ -54876,12 +54916,12 @@ function createTaskInBoard(kandownDir, rawInput, status) {
     return " ";
   });
   const title = text.replace(/\s+/g, " ").trim() || rawInput;
-  const fm = {
+  const fm = stampUpdated({
     id: newId,
     title,
     status: targetStatus,
     created: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10)
-  };
+  });
   if (priority) fm.priority = priority;
   if (assignee) fm.assignee = assignee;
   if (tags.length > 0) fm.tags = tags;
@@ -54928,11 +54968,11 @@ function archiveTaskInBoard(kandownDir, taskId) {
     const archiveDir = join2(tasksDir, "archive");
     if (!existsSync3(archiveDir)) mkdirSync(archiveDir, { recursive: true });
     const parsed = readTask(kandownDir, taskId);
-    const newContent = serializeTaskFile({
+    const newContent = serializeTaskFile(stampUpdated({
       ...parsed.frontmatter,
       id: taskId,
       archived: true
-    }, parsed.body);
+    }), parsed.body);
     const destPath = join2(archiveDir, `${taskId}.md`);
     atomicWriteFileSync(destPath, newContent);
     unlinkSync2(taskPath);
@@ -54963,7 +55003,7 @@ import { spawn, execSync } from "child_process";
 import { homedir as homedir2 } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.36.0";
+var KANDOWN_VERSION = "0.37.0";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath as fileURLToPath2 } from "url";
@@ -57421,7 +57461,9 @@ function parseMouseInput(input) {
     x: cx,
     y: cy,
     button: buttonNumber <= 2 ? buttonNumber : 0,
-    action
+    action,
+    // 📖 4 = wheel up, 5 = wheel down (6/7 are horizontal tilt — ignored).
+    ...action === "scroll" ? { wheel: buttonNumber === 4 ? "up" : "down" } : {}
   };
 }
 function isMouseInput(input) {
@@ -57819,11 +57861,421 @@ function TaskDetail({ task, taskId, scrollOffset }) {
   ] });
 }
 
-// src/cli/screens/board.tsx
+// src/cli/screens/board/list-helpers.ts
+var LIST_SORTS = ["status", "age", "priority", "id"];
+var FILTER_MODES = ["all", "priority-p1", "owner-ai", "owner-human", "blocked"];
+function normalizeOwner(task) {
+  const raw = String(task.ownerType || task.frontmatter?.ownerType || "").toLowerCase().trim();
+  if (raw === "ai" || raw === "agent" || raw === "bot") return "ai";
+  if (raw === "human" || raw === "user" || raw === "me") return "human";
+  return "";
+}
+function ownerGlyph(task) {
+  const owner = normalizeOwner(task);
+  return owner === "ai" ? "A" : owner === "human" ? "H" : " ";
+}
+function priorityRank(task) {
+  const match = String(task.priority || "").match(/^P([1-4])$/i);
+  return match ? Number(match[1]) : 9;
+}
+function priorityColor(priority) {
+  switch (String(priority || "").toUpperCase()) {
+    case "P1":
+      return "red";
+    case "P2":
+      return "yellow";
+    case "P3":
+      return "cyan";
+    case "P4":
+      return "gray";
+    default:
+      return "gray";
+  }
+}
+function matchesSearch(task, query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  if (task.id.toLowerCase().includes(q)) return true;
+  if (task.title.toLowerCase().includes(q)) return true;
+  if (task.tags.some((tag) => tag.toLowerCase().includes(q))) return true;
+  if (task.assignee && task.assignee.toLowerCase().includes(q)) return true;
+  return false;
+}
+function matchesFilter(task, mode) {
+  switch (mode) {
+    case "priority-p1":
+      return priorityRank(task) === 1;
+    case "owner-ai":
+      return normalizeOwner(task) === "ai";
+    case "owner-human":
+      return normalizeOwner(task) === "human";
+    case "blocked":
+      return task.dependsOn.length > 0;
+    case "all":
+    default:
+      return true;
+  }
+}
+function sortRows(rows, sort) {
+  const indexOf = /* @__PURE__ */ new Map();
+  rows.forEach((row, i) => indexOf.set(row, i));
+  const tiebreak = (a, b) => (indexOf.get(a) ?? 0) - (indexOf.get(b) ?? 0);
+  const sorted = [...rows];
+  switch (sort) {
+    case "age":
+      sorted.sort((a, b) => {
+        const ta = a.task.updatedAt;
+        const tb = b.task.updatedAt;
+        if (ta === null && tb === null) return tiebreak(a, b);
+        if (ta === null) return 1;
+        if (tb === null) return -1;
+        return tb - ta || tiebreak(a, b);
+      });
+      break;
+    case "priority":
+      sorted.sort((a, b) => priorityRank(a.task) - priorityRank(b.task) || tiebreak(a, b));
+      break;
+    case "id":
+      sorted.sort((a, b) => a.task.id.localeCompare(b.task.id, void 0, { numeric: true }));
+      break;
+    case "status":
+    default:
+      break;
+  }
+  return sorted;
+}
+function buildListRows(board, options = {}) {
+  if (!board) return [];
+  const { search = "", filter = "all", sort = "status" } = options;
+  const rows = [];
+  board.columns.forEach((column, colIndex) => {
+    for (const task of column.tasks) {
+      if (!matchesFilter(task, filter)) continue;
+      if (!matchesSearch(task, search)) continue;
+      rows.push({ task, status: column.name, colIndex });
+    }
+  });
+  return sortRows(rows, sort);
+}
+function applyBoardFilter(board, search, filter) {
+  if (!board) return null;
+  if (!search.trim() && filter === "all") return board;
+  return {
+    ...board,
+    columns: board.columns.map((column) => ({
+      ...column,
+      tasks: column.tasks.filter((task) => matchesFilter(task, filter) && matchesSearch(task, search))
+    }))
+  };
+}
+var MIN_DESC = 24;
+var GAP = 1;
+var DROP_ORDER = ["tags", "deps", "owner", "priority", "age", "status"];
+function computeListLayout(rows, width = termWidth()) {
+  const longestId = rows.reduce((max, row) => Math.max(max, row.task.id.length), 2);
+  const longestStatus = rows.reduce((max, row) => Math.max(max, row.status.length), 6);
+  const layout = {
+    // 📖 One cell for the ▸ / ✓ marker; the inter-column gap supplies the space
+    // that separates it from the id.
+    cursor: 1,
+    id: Math.min(longestId, 8),
+    age: 5,
+    status: Math.min(longestStatus, 13),
+    priority: 2,
+    owner: 1,
+    deps: 3,
+    tags: 14,
+    desc: 0,
+    descOffset: 0,
+    total: 0
+  };
+  const visible = ["cursor", "id", "age", "status", "priority", "owner", "deps", "tags"];
+  const used = () => visible.reduce((sum, key) => sum + layout[key] + (layout[key] > 0 ? GAP : 0), 0);
+  for (const key of DROP_ORDER) {
+    if (width - used() >= MIN_DESC) break;
+    layout[key] = 0;
+  }
+  layout.descOffset = used();
+  layout.desc = Math.max(8, width - layout.descOffset);
+  layout.total = Math.min(width, layout.descOffset + layout.desc);
+  return layout;
+}
+function wrapText2(text, width, maxLines = 4) {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (width <= 0) return [];
+  if (clean.length <= width) return [clean];
+  const lines = [];
+  let current = "";
+  for (const word of clean.split(" ")) {
+    if (current === "" && word.length > width) {
+      for (let i = 0; i < word.length; i += width) {
+        if (lines.length >= maxLines) break;
+        lines.push(word.slice(i, i + width));
+      }
+      current = "";
+      continue;
+    }
+    const candidate = current ? `${current} ${word}` : word;
+    if (candidate.length <= width) {
+      current = candidate;
+      continue;
+    }
+    lines.push(current);
+    if (lines.length >= maxLines) {
+      current = "";
+      break;
+    }
+    current = word;
+  }
+  if (current && lines.length < maxLines) lines.push(current);
+  const consumed = lines.join(" ").length;
+  if (consumed < clean.length && lines.length > 0) {
+    lines[lines.length - 1] = truncate(lines[lines.length - 1] + " \u2026", width);
+  }
+  return lines;
+}
+
+// src/cli/screens/board/list-view.tsx
 var import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
+var LIST_START_Y = 5;
+var DETAIL_PANE_HEIGHT = 11;
+var MAX_WRAP_LINES = 4;
+function computeListWindow(previousScroll, selectedIndex, selHeight, total, viewport) {
+  if (total <= 0 || viewport <= 0) return { scroll: 0, end: 0 };
+  let scroll = Math.min(Math.max(0, previousScroll), Math.max(0, total - viewport));
+  if (selectedIndex < scroll) scroll = selectedIndex;
+  if (selectedIndex - scroll + selHeight > viewport) {
+    scroll = selectedIndex + selHeight - viewport;
+  }
+  scroll = Math.max(0, Math.min(scroll, selectedIndex));
+  let used = 0;
+  let end = scroll;
+  while (end < total) {
+    const height = end === selectedIndex ? selHeight : 1;
+    if (used + height > viewport) break;
+    used += height;
+    end++;
+  }
+  if (end === scroll) end = Math.min(total, scroll + 1);
+  return { scroll, end };
+}
+function rowHeight(row, layout) {
+  return wrapText2(row.task.title, layout.desc, MAX_WRAP_LINES).length || 1;
+}
+function computeListGeometry(rows, selectedIndex, previousScroll, maxHeight, width) {
+  const layout = computeListLayout(rows, width);
+  const viewport = Math.max(1, maxHeight - 1);
+  const selected = rows[selectedIndex] ?? rows[0];
+  const selHeight = selected ? rowHeight(selected, layout) : 1;
+  const window2 = computeListWindow(previousScroll, selectedIndex, selHeight, rows.length, viewport);
+  return { layout, window: window2, selHeight, viewport };
+}
+function listRowAtY(geometry, selectedIndex, y) {
+  let currentY = LIST_START_Y;
+  for (let idx = geometry.window.scroll; idx < geometry.window.end; idx++) {
+    const height = idx === selectedIndex ? geometry.selHeight : 1;
+    if (y >= currentY && y < currentY + height) return idx;
+    currentY += height;
+  }
+  return null;
+}
+function ListHeaderRow({ layout }) {
+  const cells = [pad("", layout.cursor)];
+  if (layout.id) cells.push(pad("ID", layout.id));
+  if (layout.age) cells.push(pad("Age", layout.age));
+  if (layout.status) cells.push(pad("Status", layout.status));
+  if (layout.priority) cells.push(pad("Pr", layout.priority));
+  if (layout.owner) cells.push(pad("O", layout.owner));
+  if (layout.deps) cells.push(pad("Dep", layout.deps));
+  if (layout.tags) cells.push(pad("Tags", layout.tags));
+  cells.push("Description");
+  return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { bold: true, color: "cyan", children: cells.join(" ") }),
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", dimColor: true, children: "\u2500".repeat(layout.total) })
+  ] });
+}
+function TaskListRow({ row, selected, layout, now }) {
+  const { task } = row;
+  const bg = selected ? "cyan" : void 0;
+  const fg = selected ? "black" : void 0;
+  const dim = (color) => selected ? "black" : color;
+  const titleLines = selected ? wrapText2(task.title, layout.desc, MAX_WRAP_LINES) : [truncate(task.title.replace(/\s+/g, " ").trim(), layout.desc)];
+  const tagLabel = task.tags.length > 0 ? task.tags.join(",") : "";
+  return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { backgroundColor: bg, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: selected ? "black" : "cyan", bold: true, children: [
+        pad(selected ? "\u25B8" : task.checked ? "\u2713" : " ", layout.cursor),
+        " "
+      ] }),
+      layout.id > 0 && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: fg ?? (task.checked ? "green" : "yellow"), bold: selected, children: [
+        pad(task.id, layout.id),
+        " "
+      ] }),
+      layout.age > 0 && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: dim("gray"), children: [
+        pad(formatAge(task.updatedAt, now), layout.age),
+        " "
+      ] }),
+      layout.status > 0 && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: selected ? "black" : columnAccentColor(row.status), bold: !selected, children: [
+        pad(row.status, layout.status),
+        " "
+      ] }),
+      layout.priority > 0 && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: dim(priorityColor(task.priority)), bold: true, children: [
+        pad(task.priority || "", layout.priority),
+        " "
+      ] }),
+      layout.owner > 0 && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: dim(normalizeOwner(task) === "ai" ? "magenta" : "blue"), children: [
+        pad(ownerGlyph(task), layout.owner),
+        " "
+      ] }),
+      layout.deps > 0 && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: dim("yellow"), children: [
+        pad(task.dependsOn.length > 0 ? `\u21AA${task.dependsOn.length}` : "", layout.deps),
+        " "
+      ] }),
+      layout.tags > 0 && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: dim("magenta"), children: [
+        pad(tagLabel, layout.tags),
+        " "
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: fg ?? (task.checked ? "gray" : "white"), bold: selected, strikethrough: !selected && task.checked, children: pad(titleLines[0] ?? "", layout.desc) })
+    ] }),
+    titleLines.slice(1).map((line, idx) => /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { backgroundColor: bg, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: fg, bold: true, children: [
+      pad("", layout.descOffset),
+      pad(line, layout.desc)
+    ] }) }, idx))
+  ] });
+}
+function ListFooter({ scroll, end, total, selectedIndex, sort, filter, search, width }) {
+  const parts = [];
+  if (scroll > 0) parts.push(`\u25B2 ${scroll}`);
+  if (end < total) parts.push(`\u25BC ${total - end}`);
+  parts.push(total > 0 ? `${selectedIndex + 1}/${total}` : "0/0");
+  parts.push(`sort ${sort}`);
+  if (filter !== "all") parts.push(`filter ${filter}`);
+  if (search) parts.push(`/${search}`);
+  return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "gray", dimColor: true, children: [
+    "  ",
+    truncate(parts.join(" \xB7 "), Math.max(0, width - 2))
+  ] });
+}
+function TaskListView({ rows, selectedIndex, geometry, sort, filter, search, width, now = Date.now() }) {
+  const { layout, window: window2 } = geometry;
+  if (rows.length === 0) {
+    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(ListHeaderRow, { layout }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "gray", dimColor: true, children: [
+        "  ",
+        search || filter !== "all" ? "No task matches the current search / filter \u2014 press Esc to clear the search, f to cycle the filter." : "No tasks yet \u2014 press n to create one."
+      ] })
+    ] });
+  }
+  const visible = [];
+  for (let idx = window2.scroll; idx < window2.end; idx++) {
+    const row = rows[idx];
+    visible.push(
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+        TaskListRow,
+        {
+          row,
+          selected: idx === selectedIndex,
+          layout,
+          now
+        },
+        row.task.id
+      )
+    );
+  }
+  return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(ListHeaderRow, { layout }),
+    visible,
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+      ListFooter,
+      {
+        scroll: window2.scroll,
+        end: window2.end,
+        total: rows.length,
+        selectedIndex,
+        sort,
+        filter,
+        search,
+        width
+      }
+    )
+  ] });
+}
+function DetailRow({ name, children, labelWidth }) {
+  return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { children: [
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "gray", children: [
+      "  ",
+      pad(name, labelWidth)
+    ] }),
+    children
+  ] });
+}
+function TaskDetailPane({ row, filePath, width, now = Date.now() }) {
+  const labelWidth = 11;
+  const valueWidth = Math.max(10, width - labelWidth - 4);
+  if (!row) {
+    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", marginTop: 1, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", dimColor: true, children: "\u2500".repeat(width) }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "gray", dimColor: true, children: [
+        "  ",
+        "No task selected."
+      ] })
+    ] });
+  }
+  const task = row.task;
+  const owner = normalizeOwner(task);
+  const updatedIso = typeof task.frontmatter?.updated === "string" ? task.frontmatter.updated : null;
+  return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", marginTop: 1, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", dimColor: true, children: "\u2500".repeat(width) }),
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(DetailRow, { name: "ID", labelWidth, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: task.id }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "gray", children: [
+        "  ",
+        task.checked ? "\u2713 done" : "\u25CB open"
+      ] })
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(DetailRow, { name: "Title", labelWidth, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "white", children: truncate(task.title, valueWidth) }) }),
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(DetailRow, { name: "Status", labelWidth, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: columnAccentColor(row.status), bold: true, children: row.status }),
+      task.priority && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: priorityColor(task.priority), bold: true, children: [
+        "   ",
+        task.priority
+      ] }),
+      owner && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: owner === "ai" ? "magenta" : "blue", children: [
+        "   ",
+        owner
+      ] }),
+      task.assignee && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "cyan", children: [
+        "   @",
+        task.assignee
+      ] })
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(DetailRow, { name: "Tags", labelWidth, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: task.tags.length ? "magenta" : "gray", children: task.tags.length ? truncate(task.tags.join(", "), valueWidth) : "\u2014" }) }),
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(DetailRow, { name: "Blocked by", labelWidth, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: task.dependsOn.length ? "yellow" : "gray", children: task.dependsOn.length ? truncate(task.dependsOn.join(", "), valueWidth) : "\u2014" }) }),
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(DetailRow, { name: "Checklist", labelWidth, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: task.progress ? task.progress.done === task.progress.total ? "green" : "white" : "gray", children: task.progress ? `${task.progress.done}/${task.progress.total}` : "\u2014" }) }),
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(DetailRow, { name: "Updated", labelWidth, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "white", children: [
+        formatAge(task.updatedAt, now),
+        " ago"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "gray", dimColor: true, children: [
+        "   ",
+        truncate(updatedIso ?? "no `updated:` field yet", valueWidth - 12)
+      ] })
+    ] }),
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(DetailRow, { name: "File", labelWidth, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", dimColor: true, children: truncate(filePath ?? "\u2014", valueWidth) }) }),
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "gray", dimColor: true, children: [
+      "  ",
+      truncate("Enter open \xB7 Tab board view \xB7 z hide pane \xB7 ? help", width - 2)
+    ] })
+  ] });
+}
+
+// src/cli/screens/board.tsx
+var import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
 function Board({ kandownDir, version }) {
   const { exit } = use_app_default();
-  const [board, setBoard] = (0, import_react37.useState)(null);
+  const [rawBoard, setBoard] = (0, import_react37.useState)(null);
   const [colIndex, setColIndex] = (0, import_react37.useState)(0);
   const [rowIndex, setRowIndex] = (0, import_react37.useState)(0);
   const [mode, setMode] = (0, import_react37.useState)("browse");
@@ -57861,7 +58313,55 @@ function Board({ kandownDir, version }) {
   const [createInput, setCreateInput] = (0, import_react37.useState)("");
   const [searchQuery, setSearchQuery] = (0, import_react37.useState)("");
   const [filterMode, setFilterMode] = (0, import_react37.useState)("all");
+  const [view, setView] = (0, import_react37.useState)(() => loadConfig(kandownDir).tui.defaultView);
+  const [showDetailPane, setShowDetailPane] = (0, import_react37.useState)(() => loadConfig(kandownDir).tui.showDetailPane);
+  const [listSort, setListSort] = (0, import_react37.useState)(() => loadConfig(kandownDir).tui.listSort);
+  const [listIndex, setListIndex] = (0, import_react37.useState)(0);
+  const [listScroll, setListScroll] = (0, import_react37.useState)(0);
+  const [pendingFocusId, setPendingFocusId] = (0, import_react37.useState)(null);
+  const persistTuiPref = (0, import_react37.useCallback)((key, value) => {
+    try {
+      saveConfig(kandownDir, setConfigValue(loadConfig(kandownDir), `tui.${key}`, value));
+    } catch {
+    }
+  }, [kandownDir]);
   const inTmux = isInTmux();
+  const board = (0, import_react37.useMemo)(
+    () => applyBoardFilter(rawBoard, searchQuery, filterMode),
+    [rawBoard, searchQuery, filterMode]
+  );
+  const listRows = (0, import_react37.useMemo)(
+    () => buildListRows(board, { search: "", filter: "all", sort: listSort }),
+    [board, listSort]
+  );
+  const selectedRow = listRows[Math.min(listIndex, Math.max(0, listRows.length - 1))] ?? null;
+  (0, import_react37.useEffect)(() => {
+    setListIndex((i) => Math.max(0, Math.min(i, listRows.length - 1)));
+  }, [listRows.length]);
+  (0, import_react37.useEffect)(() => {
+    if (!board) return;
+    const maxCol = Math.max(0, board.columns.length - 1);
+    setColIndex((c) => Math.min(c, maxCol));
+    const tasks = board.columns[Math.min(colIndex, maxCol)]?.tasks.length ?? 0;
+    setRowIndex((r) => Math.max(0, Math.min(r, tasks - 1)));
+  }, [board, colIndex]);
+  (0, import_react37.useEffect)(() => {
+    if (!pendingFocusId) return;
+    const idx = listRows.findIndex((row) => row.task.id === pendingFocusId);
+    if (idx >= 0) setListIndex(idx);
+    setPendingFocusId(null);
+  }, [pendingFocusId, listRows]);
+  const listMaxHeight = Math.max(
+    3,
+    (process.stdout.rows || 24) - LIST_START_Y - 3 - (showDetailPane ? DETAIL_PANE_HEIGHT : 0)
+  );
+  const listGeometry = (0, import_react37.useMemo)(
+    () => computeListGeometry(listRows, listIndex, listScroll, listMaxHeight, termWidth()),
+    [listRows, listIndex, listScroll, listMaxHeight]
+  );
+  (0, import_react37.useEffect)(() => {
+    if (listGeometry.window.scroll !== listScroll) setListScroll(listGeometry.window.scroll);
+  }, [listGeometry.window.scroll, listScroll]);
   const columnAtX = (0, import_react37.useCallback)((x) => {
     if (!board) return -1;
     const numCols = board.columns.length;
@@ -58001,20 +58501,21 @@ function Board({ kandownDir, version }) {
     }
   }, [daemonBusy, kandownDir, preferredDaemonPort, showStatus]);
   const tryMoveWithGate = (0, import_react37.useCallback)((taskId, targetCol) => {
-    if (!board) return false;
+    const board2 = rawBoard;
+    if (!board2) return false;
     const cfg = loadConfig(kandownDir);
     const cols = cfg.board.columns;
     const terminalLower = (cols[cols.length - 1] || "Done").toLowerCase();
     const isTerminal = targetCol.toLowerCase() === terminalLower;
     if (!isTerminal) return true;
     const resolved = /* @__PURE__ */ new Map();
-    for (const col of board.columns) {
+    for (const col of board2.columns) {
       for (const t of col.tasks) {
         const isArch = t.frontmatter && (t.frontmatter.archived === true || t.frontmatter.archived === "true");
         resolved.set(t.id, isArch || col.name.toLowerCase() === terminalLower);
       }
     }
-    const movingTask = board.columns.flatMap((c) => c.tasks).find((t) => t.id === taskId);
+    const movingTask = board2.columns.flatMap((c) => c.tasks).find((t) => t.id === taskId);
     if (!movingTask) return true;
     const deps = Array.isArray(movingTask.dependsOn) ? movingTask.dependsOn : [];
     const blocked = [];
@@ -58029,7 +58530,7 @@ function Board({ kandownDir, version }) {
       return false;
     }
     return true;
-  }, [board, kandownDir, showStatus]);
+  }, [rawBoard, kandownDir, showStatus]);
   const sendTaskToAgentHook = (0, import_react37.useCallback)(async (taskId) => {
     const status = await getDaemonStatus(kandownDir);
     if (!status.running || !status.metadata) {
@@ -58054,12 +58555,74 @@ function Board({ kandownDir, version }) {
       showStatus(`Agent hook failed: ${error instanceof Error ? error.message : String(error)}`, 3e3);
     }
   }, [kandownDir, showStatus]);
+  const closeContextMenu = (0, import_react37.useCallback)(() => {
+    setCtxMenuRow(-1);
+    setCtxMenuCursor(0);
+  }, []);
   const getFocusedTask = (0, import_react37.useCallback)(() => {
+    if (view === "list") return selectedRow?.task ?? null;
     if (!board) return null;
     const col = board.columns[colIndex];
     if (!col || col.tasks.length === 0) return null;
     return col.tasks[Math.min(rowIndex, col.tasks.length - 1)] ?? null;
-  }, [board, colIndex, rowIndex]);
+  }, [view, selectedRow, board, colIndex, rowIndex]);
+  const toggleView = (0, import_react37.useCallback)(() => {
+    const focusedId = getFocusedTask()?.id ?? null;
+    const next = view === "list" ? "board" : "list";
+    if (next === "board" && focusedId && board) {
+      let found = false;
+      for (let c = 0; c < board.columns.length && !found; c++) {
+        const r = board.columns[c].tasks.findIndex((t) => t.id === focusedId);
+        if (r >= 0) {
+          setColIndex(c);
+          setRowIndex(r);
+          found = true;
+        }
+      }
+      if (!found) {
+        setColIndex(0);
+        setRowIndex(0);
+      }
+    } else if (next === "list" && focusedId) {
+      const idx = listRows.findIndex((r) => r.task.id === focusedId);
+      setListIndex(idx >= 0 ? idx : 0);
+    }
+    closeContextMenu();
+    setMoveTaskId(null);
+    setTaskDrag(null);
+    setMousePress(null);
+    setMode("browse");
+    setView(next);
+    persistTuiPref("defaultView", next);
+  }, [view, board, listRows, getFocusedTask, closeContextMenu, persistTuiPref]);
+  const shiftSelectedTask = (0, import_react37.useCallback)((direction) => {
+    if (!board || !selectedRow) return;
+    const target = selectedRow.colIndex + direction;
+    if (target < 0 || target >= board.columns.length) return;
+    const targetName = board.columns[target].name;
+    const taskId = selectedRow.task.id;
+    if (!tryMoveWithGate(taskId, targetName)) return;
+    if (!moveTaskToColumn(kandownDir, taskId, targetName)) {
+      showStatus(`Move failed: ${taskId}`, 2500);
+      return;
+    }
+    loadBoardInto();
+    showStatus(`${taskId} \u2192 ${targetName}`, 2e3);
+    setPendingFocusId(taskId);
+  }, [board, selectedRow, kandownDir, tryMoveWithGate, loadBoardInto, showStatus]);
+  const cycleSort = (0, import_react37.useCallback)(() => {
+    const next = LIST_SORTS[(LIST_SORTS.indexOf(listSort) + 1) % LIST_SORTS.length];
+    setListSort(next);
+    persistTuiPref("listSort", next);
+    showStatus(`Sort: ${next}`, 1800);
+    setPendingFocusId(selectedRow?.task.id ?? null);
+  }, [listSort, persistTuiPref, showStatus, selectedRow]);
+  const toggleDetailPane = (0, import_react37.useCallback)(() => {
+    setShowDetailPane((prev) => {
+      persistTuiPref("showDetailPane", !prev);
+      return !prev;
+    });
+  }, [persistTuiPref]);
   const openDetail = (0, import_react37.useCallback)((taskId) => {
     try {
       const task = readTask(kandownDir, taskId);
@@ -58071,10 +58634,6 @@ function Board({ kandownDir, version }) {
       showStatus(`Error opening task: ${e instanceof Error ? e.message : String(e)}`, 4e3);
     }
   }, [kandownDir, showStatus]);
-  const closeContextMenu = (0, import_react37.useCallback)(() => {
-    setCtxMenuRow(-1);
-    setCtxMenuCursor(0);
-  }, []);
   const handleAgentSelect = (0, import_react37.useCallback)((agentId) => {
     const task = getFocusedTask();
     const taskId = mode === "detail" ? detailTaskId : task?.id;
@@ -58330,10 +58889,28 @@ function Board({ kandownDir, version }) {
       handleMouseClick(mouse.x, mouse.y);
     }
   }, [board, mode, mousePress, taskDrag, taskHitAt, columnAtX, closeContextMenu, handleMouseClick, kandownDir]);
+  const handleListMouse = (0, import_react37.useCallback)((mouse) => {
+    if (mouse.action === "scroll") {
+      const delta = mouse.wheel === "up" ? -3 : 3;
+      setListScroll((s) => Math.max(0, Math.min(s + delta, Math.max(0, listRows.length - 1))));
+      return;
+    }
+    if (mouse.action !== "press" || mouse.button !== 0) return;
+    const hit = listRowAtY(listGeometry, listIndex, mouse.y);
+    if (hit === null) return;
+    if (hit === listIndex) {
+      const task = listRows[hit]?.task;
+      if (task) openDetail(task.id);
+      return;
+    }
+    setListIndex(hit);
+  }, [listRows, listGeometry, listIndex, openDetail]);
   use_input_default((input, key) => {
     if (isMouseInput(input)) {
       const mouse = parseMouseInput(input);
-      if (mouse) handleMouseEvent(mouse);
+      if (!mouse) return;
+      if (view === "list" && mode === "browse") handleListMouse(mouse);
+      else handleMouseEvent(mouse);
       return;
     }
     if (mode === "create-task") {
@@ -58344,7 +58921,7 @@ function Board({ kandownDir, version }) {
       }
       if (key.return) {
         if (createInput.trim()) {
-          const colName = board?.columns[colIndex]?.name;
+          const colName = view === "list" ? selectedRow?.status ?? board?.columns[0]?.name : board?.columns[colIndex]?.name;
           const newId = createTaskInBoard(kandownDir, createInput.trim(), colName);
           loadBoardInto();
           showStatus(`Created task ${newId}`, 2500);
@@ -58408,7 +58985,21 @@ function Board({ kandownDir, version }) {
       return;
     }
     if (mode === "browse") {
-      if (input === "q" || key.escape) {
+      if (key.tab) {
+        toggleView();
+        return;
+      }
+      if (input === "q") {
+        exit();
+        return;
+      }
+      if (key.escape) {
+        if (searchQuery || filterMode !== "all") {
+          setSearchQuery("");
+          setFilterMode("all");
+          showStatus("Search and filter cleared", 1800);
+          return;
+        }
         exit();
         return;
       }
@@ -58474,11 +59065,75 @@ function Board({ kandownDir, version }) {
         return;
       }
       if (input === "f") {
-        const modes = ["all", "priority-p1", "owner-ai", "owner-human"];
-        const nextIdx = (modes.indexOf(filterMode) + 1) % modes.length;
-        const nextMode = modes[nextIdx];
+        const nextMode = FILTER_MODES[(FILTER_MODES.indexOf(filterMode) + 1) % FILTER_MODES.length];
         setFilterMode(nextMode);
         showStatus(`Filter: ${nextMode}`, 2e3);
+        return;
+      }
+      if (view === "list") {
+        const last = Math.max(0, listRows.length - 1);
+        if (input === "j" || key.downArrow) {
+          setListIndex((i) => Math.min(i + 1, last));
+          return;
+        }
+        if (input === "k" || key.upArrow) {
+          setListIndex((i) => Math.max(i - 1, 0));
+          return;
+        }
+        if (key.pageDown) {
+          setListIndex((i) => Math.min(i + listGeometry.viewport, last));
+          return;
+        }
+        if (key.pageUp) {
+          setListIndex((i) => Math.max(i - listGeometry.viewport, 0));
+          return;
+        }
+        if (input === "[") {
+          setListIndex(0);
+          return;
+        }
+        if (input === "]") {
+          setListIndex(last);
+          return;
+        }
+        if (input === "l" || key.rightArrow) {
+          shiftSelectedTask(1);
+          return;
+        }
+        if (input === "h" || key.leftArrow) {
+          shiftSelectedTask(-1);
+          return;
+        }
+        if (input === "s") {
+          cycleSort();
+          return;
+        }
+        if (input === "z") {
+          toggleDetailPane();
+          return;
+        }
+        if (input === "m") {
+          showStatus("In list view: h/l move the task between columns", 2500);
+          return;
+        }
+        if (key.return) {
+          const task = selectedRow?.task;
+          if (task) openDetail(task.id);
+          return;
+        }
+        if (input === "a") {
+          if (installedAgents.length === 0) {
+            showStatus("No AI agents found in PATH", 3e3);
+            return;
+          }
+          if (!selectedRow) return;
+          setMode("agent-picker");
+          return;
+        }
+        if (input === "g") {
+          if (selectedRow) void sendTaskToAgentHook(selectedRow.task.id);
+          return;
+        }
         return;
       }
       if (input === "l" || key.rightArrow) {
@@ -58640,24 +59295,24 @@ function Board({ kandownDir, version }) {
     }
   });
   if (boardError) {
-    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", padding: 2, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "red", bold: true, children: "Error loading board" }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "red", children: boardError }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", children: "Press 'r' to retry or 'q' to quit." })
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Box_default, { flexDirection: "column", padding: 2, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "red", bold: true, children: "Error loading board" }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "red", children: boardError }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "gray", children: "Press 'r' to retry or 'q' to quit." })
     ] });
   }
   if (!board) {
-    return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { padding: 2, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", children: "Loading board\u2026" }) });
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Box_default, { padding: 2, children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "gray", children: "Loading board\u2026" }) });
   }
   if (board.columns.length === 0) {
-    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", padding: 2, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "red", bold: true, children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Box_default, { flexDirection: "column", padding: 2, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { color: "red", bold: true, children: [
         "No board found at ",
         kandownDir
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "gray", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { color: "gray", children: [
         "Run ",
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "cyan", children: "kandown init" }),
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "cyan", children: "kandown init" }),
         " to set up."
       ] })
     ] });
@@ -58673,80 +59328,109 @@ function Board({ kandownDir, version }) {
     modeHint = "drag over target column \xB7 release to drop \xB7 Esc cancel";
   }
   if (mode === "cheatsheet") {
-    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", borderStyle: "round", borderColor: "cyan", paddingX: 2, paddingY: 1, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "cyan", bold: true, children: "Kandown TUI Cheatsheet (Press Esc or ? to return)" }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", children: "\u2500".repeat(60) }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "n         " }),
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Box_default, { flexDirection: "column", borderStyle: "round", borderColor: "cyan", paddingX: 2, paddingY: 1, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "cyan", bold: true, children: "Kandown TUI Cheatsheet (Press Esc or ? to return)" }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "gray", children: "\u2500".repeat(64) }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "cyan", bold: true, children: "Both views" }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "Tab       " }),
+        "Switch list \u21C4 board (remembered per project)"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "n         " }),
         "Create new task (inline: #tag @user p1 due:date +t12)"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "e         " }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "e         " }),
         "Edit task file in $EDITOR"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "x         " }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "x         " }),
         "Archive focused task"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "D         " }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "D         " }),
         "Delete focused task (with confirmation)"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "/         " }),
-        "Search / fuzzy filter tasks"
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "/         " }),
+        "Search id, title, tags, assignee"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "f         " }),
-        "Cycle filter mode (All, P1, AI owner, Human owner)"
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "f         " }),
+        "Cycle filter (all, P1, AI, human, blocked)"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "u         " }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "u         " }),
         "Undo last action"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "m         " }),
-        "Open move context menu"
-      ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "a         " }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "a         " }),
         "Launch AI agent on task"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "g         " }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "g         " }),
         "Send task to agent hook"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "d         " }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "d         " }),
         "Toggle local web daemon"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "r         " }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "r         " }),
         "Reload board from disk"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "h/l \u2190/\u2192  " }),
-        "Navigate columns"
-      ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "j/k \u2191/\u2193  " }),
-        "Navigate tasks"
-      ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "Enter    " }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "Enter     " }),
         "Open task details"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: "q / Esc  " }),
-        "Quit / Cancel"
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "q         " }),
+        "Quit  \xB7  ",
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "Esc" }),
+        " clear search/filter, else quit"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { children: " " }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "cyan", bold: true, children: "List view" }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "j/k \u2191/\u2193   " }),
+        "Move selection  \xB7  ",
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "PgUp/PgDn" }),
+        " page  \xB7  ",
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "[ ]" }),
+        " top/bottom"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "h/l \u2190/\u2192   " }),
+        "Move the task one column left / right"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "s         " }),
+        "Cycle sort (status, age, priority, id)"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "z         " }),
+        "Show / hide the detail pane"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { children: " " }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "cyan", bold: true, children: "Board view" }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "h/l \u2190/\u2192   " }),
+        "Navigate columns  \xB7  ",
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "j/k \u2191/\u2193" }),
+        " navigate tasks"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "m         " }),
+        "Open move context menu  \xB7  drag a card to move it"
       ] })
     ] });
   }
   if (mode === "agent-picker") {
     const taskId = detailTaskId || focusedTask?.id || "";
-    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(BoardHeader, { title: board.title, inTmux, version, daemonStatus, daemonBusy }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Box_default, { flexDirection: "column", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(BoardHeader, { title: board.title, inTmux, version, daemonStatus, daemonBusy }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
         AgentPicker,
         {
           agents: installedAgents,
@@ -58758,21 +59442,77 @@ function Board({ kandownDir, version }) {
     ] });
   }
   if (mode === "detail" && detailTask) {
-    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { marginBottom: 1, justifyContent: "space-between", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", children: "Esc back \xB7 a agent \xB7 j/k scroll" }),
-        daemonStatus.running && daemonStatus.metadata ? /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "blue", underline: true, children: terminalHyperlink(webLinkLabel(daemonStatus.metadata.url), daemonStatus.metadata.url) }) : /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "gray", dimColor: true, children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Box_default, { flexDirection: "column", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Box_default, { marginBottom: 1, justifyContent: "space-between", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "gray", children: "Esc back \xB7 a agent \xB7 j/k scroll" }),
+        daemonStatus.running && daemonStatus.metadata ? /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "blue", underline: true, children: terminalHyperlink(webLinkLabel(daemonStatus.metadata.url), daemonStatus.metadata.url) }) : /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { color: "gray", dimColor: true, children: [
           "KANDOWN  ",
           board.title
         ] })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(TaskDetail, { task: detailTask, taskId: detailTaskId, scrollOffset: detailScroll }),
-      statusMsg && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", children: statusMsg }) })
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(TaskDetail, { task: detailTask, taskId: detailTaskId, scrollOffset: detailScroll }),
+      statusMsg && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", children: statusMsg }) })
     ] });
   }
-  return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(BoardHeader, { title: board.title, inTmux, modeHint, version, daemonStatus, daemonBusy }),
-    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { flexDirection: "row", children: board.columns.map((col, cIdx) => /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+  const overlays = /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(import_jsx_runtime6.Fragment, { children: [
+    mode === "create-task" && /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Box_default, { marginTop: 1, borderStyle: "single", borderColor: "green", paddingX: 1, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "green", bold: true, children: "New Task: " }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { children: createInput }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "gray", children: " \u2588 (Enter create \xB7 Esc cancel)" })
+    ] }),
+    mode === "confirm-delete" && focusedTask && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Box_default, { marginTop: 1, borderStyle: "single", borderColor: "red", paddingX: 1, children: /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { color: "red", bold: true, children: [
+      "Delete task ",
+      focusedTask.id,
+      " (",
+      truncate(focusedTask.title, 30),
+      ")? [y/N] "
+    ] }) }),
+    mode === "search" && /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Box_default, { marginTop: 1, borderStyle: "single", borderColor: "cyan", paddingX: 1, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "cyan", bold: true, children: "Search: " }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { children: searchQuery }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "gray", children: " \u2588 (Enter done \xB7 Esc clear)" })
+    ] })
+  ] });
+  if (view === "list") {
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Box_default, { flexDirection: "column", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+        BoardHeader,
+        {
+          title: board.title,
+          inTmux,
+          modeHint: modeHint ?? "Tab board \xB7 j/k select \xB7 h/l move \xB7 s sort \xB7 z pane \xB7 ? help",
+          version,
+          daemonStatus,
+          daemonBusy
+        }
+      ),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+        TaskListView,
+        {
+          rows: listRows,
+          selectedIndex: listIndex,
+          geometry: listGeometry,
+          sort: listSort,
+          filter: filterMode,
+          search: searchQuery,
+          width: termWidth()
+        }
+      ),
+      showDetailPane && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+        TaskDetailPane,
+        {
+          row: selectedRow,
+          filePath: selectedRow ? `tasks/${selectedRow.task.id}.md` : null,
+          width: termWidth()
+        }
+      ),
+      overlays,
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(StatusBar, { message: statusMsg, task: focusedTask, daemonStatus })
+    ] });
+  }
+  return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Box_default, { flexDirection: "column", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(BoardHeader, { title: board.title, inTmux, modeHint, version, daemonStatus, daemonBusy }),
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Box_default, { flexDirection: "row", children: board.columns.map((col, cIdx) => /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
       KanbanColumn,
       {
         name: col.name,
@@ -58789,37 +59529,21 @@ function Board({ kandownDir, version }) {
       },
       col.name
     )) }),
-    mode === "create-task" && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { marginTop: 1, borderStyle: "single", borderColor: "green", paddingX: 1, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "green", bold: true, children: "New Task: " }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { children: createInput }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", children: " \u2588 (Enter create \xB7 Esc cancel)" })
-    ] }),
-    mode === "confirm-delete" && focusedTask && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { marginTop: 1, borderStyle: "single", borderColor: "red", paddingX: 1, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "red", bold: true, children: [
-      "Delete task ",
-      focusedTask.id,
-      " (",
-      truncate(focusedTask.title, 30),
-      ")? [y/N] "
-    ] }) }),
-    mode === "search" && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { marginTop: 1, borderStyle: "single", borderColor: "cyan", paddingX: 1, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "cyan", bold: true, children: "Search: " }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { children: searchQuery }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", children: " \u2588 (Enter done \xB7 Esc clear)" })
-    ] }),
-    (mode === "move-target" || mode === "dragging") && moveTaskId && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "yellow", bold: true, children: [
+    overlays,
+    (mode === "move-target" || mode === "dragging") && moveTaskId && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { color: "yellow", bold: true, children: [
       "Moving ",
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "cyan", children: moveTaskId }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", children: " \u2014 " }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "yellow", bold: true, children: mode === "dragging" ? "release over a column" : "click a column" }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", children: mode === "dragging" ? " \xB7 Esc cancel" : " or \u2190/\u2192 + Enter" })
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "cyan", children: moveTaskId }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "gray", children: " \u2014 " }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: mode === "dragging" ? "release over a column" : "click a column" }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "gray", children: mode === "dragging" ? " \xB7 Esc cancel" : " or \u2190/\u2192 + Enter" })
     ] }) }),
-    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(StatusBar, { message: statusMsg, task: focusedTask, daemonStatus })
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(StatusBar, { message: statusMsg, task: focusedTask, daemonStatus })
   ] });
 }
 
 // src/cli/screens/init-prompt.tsx
 var import_react38 = __toESM(require_react(), 1);
-var import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
+var import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
 function InitPrompt({ kandownDir, onConfirm }) {
   const [pressed, setPressed] = (0, import_react38.useState)(false);
   const { exit } = use_app_default();
@@ -58831,14 +59555,14 @@ function InitPrompt({ kandownDir, onConfirm }) {
       exit();
     }
   });
-  return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Box_default, { flexDirection: "column", padding: 1, borderStyle: "round", borderColor: "yellow", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { bold: true, color: "yellow", children: "No .kandown/ project found" }),
-    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { children: `Create one at ${kandownDir} and start the web daemon?` }),
-    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { dimColor: true, children: "Press Enter to create, Esc to quit." }),
-    /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Box_default, { marginTop: 1, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { inverse: !pressed, color: pressed ? "gray" : "green", children: ` Create (Enter) ` }),
-      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { children: "  " }),
-      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { inverse: pressed, color: pressed ? "red" : "gray", children: ` Quit (Esc) ` })
+  return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(Box_default, { flexDirection: "column", padding: 1, borderStyle: "round", borderColor: "yellow", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Text, { bold: true, color: "yellow", children: "No .kandown/ project found" }),
+    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Text, { children: `Create one at ${kandownDir} and start the web daemon?` }),
+    /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Text, { dimColor: true, children: "Press Enter to create, Esc to quit." }),
+    /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(Box_default, { marginTop: 1, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Text, { inverse: !pressed, color: pressed ? "gray" : "green", children: ` Create (Enter) ` }),
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Text, { children: "  " }),
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Text, { inverse: pressed, color: pressed ? "red" : "gray", children: ` Quit (Esc) ` })
     ] })
   ] });
 }
@@ -58929,7 +59653,7 @@ function openBrowser(target) {
 }
 
 // src/cli/app.tsx
-var import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
+var import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
 function getTerminalRows() {
   const rows = process.stdout.rows;
   return typeof rows === "number" && Number.isFinite(rows) && rows > 0 ? rows : 24;
@@ -58950,7 +59674,7 @@ function App2({ screen, kandownDir, version, projectExists = true }) {
   const [created, setCreated] = (0, import_react39.useState)(false);
   let content;
   if (!projectExists && !created) {
-    content = /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+    content = /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
       InitPrompt,
       {
         kandownDir,
@@ -58969,23 +59693,23 @@ function App2({ screen, kandownDir, version, projectExists = true }) {
   } else {
     switch (screen) {
       case "settings":
-        content = /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Settings, { kandownDir, version });
+        content = /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(Settings, { kandownDir, version });
         break;
       case "board":
-        content = /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Board, { kandownDir, version });
+        content = /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(Board, { kandownDir, version });
         break;
       default:
-        content = /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Box_default, { padding: 2, children: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(Text, { color: "red", bold: true, children: [
+        content = /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(Box_default, { padding: 2, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(Text, { color: "red", bold: true, children: [
           "Unknown screen: ",
           screen
         ] }) });
     }
   }
-  return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Box_default, { flexDirection: "column", height: rows, overflow: "hidden", children: content });
+  return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(Box_default, { flexDirection: "column", height: rows, overflow: "hidden", children: content });
 }
 
 // src/cli/tui.tsx
-var import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
+var import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
 async function run(screen, kandownDir, version) {
   if (!process.stdin.isTTY) {
     throw new Error(
@@ -58993,7 +59717,7 @@ async function run(screen, kandownDir, version) {
     );
   }
   const projectExists = existsSync8(join11(kandownDir, "kandown.json"));
-  const instance = render_default(/* @__PURE__ */ (0, import_jsx_runtime8.jsx)(App2, { screen, kandownDir, version, projectExists }), {
+  const instance = render_default(/* @__PURE__ */ (0, import_jsx_runtime9.jsx)(App2, { screen, kandownDir, version, projectExists }), {
     exitOnCtrlC: true,
     interactive: true,
     alternateScreen: true,

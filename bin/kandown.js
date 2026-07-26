@@ -15,7 +15,7 @@ import { spawn, execSync } from "child_process";
 import { homedir } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.36.0";
+var KANDOWN_VERSION = "0.37.0";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath } from "url";
@@ -466,6 +466,29 @@ function atomicWriteFileSync(path, content) {
 // src/lib/types.ts
 var DEFAULT_COLUMNS = ["Backlog", "Todo", "In Progress", "Review", "Done"];
 
+// src/lib/task-meta.ts
+function nowStamp() {
+  return (/* @__PURE__ */ new Date()).toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+function stampUpdated(frontmatter) {
+  return { ...frontmatter, updated: nowStamp() };
+}
+function taskTimestamp(frontmatter, mtimeMs) {
+  for (const raw of [frontmatter?.updated, frontmatter?.created]) {
+    if (typeof raw !== "string" || raw.trim() === "") continue;
+    const parsed = Date.parse(raw.trim());
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  if (typeof mtimeMs === "number" && Number.isFinite(mtimeMs) && mtimeMs > 0) return mtimeMs;
+  return null;
+}
+var MINUTE = 6e4;
+var HOUR = 60 * MINUTE;
+var DAY = 24 * HOUR;
+var WEEK = 7 * DAY;
+var MONTH = 30 * DAY;
+var YEAR = 365 * DAY;
+
 // src/lib/parser.ts
 function parseSimpleYaml(yaml) {
   const obj = {};
@@ -547,7 +570,7 @@ function taskToBoardTask(task) {
   const total = subtasks.length;
   const status = normalizeStatus(frontmatter.status);
   const tags = Array.isArray(frontmatter.tags) ? frontmatter.tags.filter((tag) => typeof tag === "string" && tag.trim().length > 0) : [];
-  const { id: _id, title: _title, status: _status, order: _order, created: _created, archived: _archived, report: _report, ...metadata } = frontmatter;
+  const { id: _id, title: _title, status: _status, order: _order, created: _created, updated: _updated, archived: _archived, report: _report, ...metadata } = frontmatter;
   return {
     id: frontmatter.id || "",
     title: frontmatter.title || frontmatter.id || "Untitled task",
@@ -557,6 +580,10 @@ function taskToBoardTask(task) {
     priority: normalizePriority(frontmatter.priority),
     ownerType: normalizeOwnerType(frontmatter.ownerType),
     progress: total > 0 ? { done, total } : null,
+    // 📖 Effective last-activity epoch ms — `updated` when present, `created`
+    // otherwise, null on a task carrying neither. Resolved once here so every
+    // consumer (Age column, age sort) agrees on the same fallback chain.
+    updatedAt: taskTimestamp(frontmatter),
     dependsOn: Array.isArray(frontmatter.depends_on) ? frontmatter.depends_on.filter((d) => typeof d === "string" && d.trim().length > 0) : [],
     frontmatter: metadata
   };
@@ -683,6 +710,7 @@ var DEFAULT_CONFIG = {
     defaultOwnerType: "human",
     stackDefaultState: "collapsed"
   },
+  tui: { defaultView: "list", showDetailPane: true, listSort: "status" },
   fields: {
     priority: false,
     assignee: false,
@@ -728,6 +756,7 @@ function loadConfig(kandownDir) {
       ...boardRaw,
       columns: Array.isArray(boardRaw.columns) && boardRaw.columns.length > 0 ? boardRaw.columns.filter((name) => typeof name === "string" && name.trim().length > 0) : DEFAULT_CONFIG.board.columns
     },
+    tui: { ...DEFAULT_CONFIG.tui, ...safeObj(obj.tui) },
     fields: { ...DEFAULT_CONFIG.fields, ...safeObj(obj.fields) },
     notifications: { ...DEFAULT_CONFIG.notifications, ...safeObj(obj.notifications) }
   };
@@ -859,11 +888,11 @@ function moveTaskToColumn(kandownDir, taskId, targetColumn) {
   try {
     const prevContent = readFileSync4(taskPath2, "utf8");
     const parsed = readTask(kandownDir, taskId);
-    const newContent = serializeTaskFile({
+    const newContent = serializeTaskFile(stampUpdated({
       ...parsed.frontmatter,
       id: taskId,
       status: targetColumn
-    }, parsed.body);
+    }), parsed.body);
     atomicWriteFileSync(taskPath2, newContent);
     pushUndo(kandownDir, {
       type: "move",
@@ -940,12 +969,12 @@ function createTaskInBoard(kandownDir, rawInput, status) {
     return " ";
   });
   const title = text.replace(/\s+/g, " ").trim() || rawInput;
-  const fm = {
+  const fm = stampUpdated({
     id: newId,
     title,
     status: targetStatus,
     created: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10)
-  };
+  });
   if (priority) fm.priority = priority;
   if (assignee) fm.assignee = assignee;
   if (tags.length > 0) fm.tags = tags;
@@ -973,11 +1002,11 @@ function archiveTaskInBoard(kandownDir, taskId) {
     const archiveDir = join4(tasksDir, "archive");
     if (!existsSync4(archiveDir)) mkdirSync2(archiveDir, { recursive: true });
     const parsed = readTask(kandownDir, taskId);
-    const newContent = serializeTaskFile({
+    const newContent = serializeTaskFile(stampUpdated({
       ...parsed.frontmatter,
       id: taskId,
       archived: true
-    }, parsed.body);
+    }), parsed.body);
     const destPath = join4(archiveDir, `${taskId}.md`);
     atomicWriteFileSync(destPath, newContent);
     unlinkSync4(taskPath2);
@@ -1153,7 +1182,7 @@ function handleJsonRpc(kandownDir, req) {
         };
         const body = args.body ? (task.body + "\n\n" + args.body).trim() : task.body;
         const taskPath2 = join5(getTasksDir(kandownDir), `${newId}.md`);
-        atomicWriteFileSync(taskPath2, serializeTaskFile(fm, body));
+        atomicWriteFileSync(taskPath2, serializeTaskFile(stampUpdated(fm), body));
       }
       sendResponse(id, { result: { content: [{ type: "text", text: `Created task ${newId}` }] } });
       return;
@@ -1178,7 +1207,7 @@ ${args.report.trim()}`;
       const newBody = task.body.includes("## Report") ? task.body.replace(/## Report[\s\S]*/, `## Report
 
 ${args.report.trim()}`) : task.body.trim() + reportSection;
-      atomicWriteFileSync(taskPath2, serializeTaskFile(task.frontmatter, newBody));
+      atomicWriteFileSync(taskPath2, serializeTaskFile(stampUpdated(task.frontmatter), newBody));
       sendResponse(id, { result: { content: [{ type: "text", text: `Appended report to ${args.id}` }] } });
       return;
     }
@@ -1786,12 +1815,12 @@ function cmdCreate(rawArgs) {
     err(`Unknown status: ${rawStatus}`);
     process.exit(1);
   }
-  const fm = {
+  const fm = stampUpdated({
     id,
     title,
     status,
     created: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10)
-  };
+  });
   const priority = stringFlag(args.flags, "priority")?.toUpperCase();
   const assignee = stringFlag(args.flags, "assignee");
   const tags = listFlag(args.flags, "tag");
@@ -1851,7 +1880,7 @@ function cmdAssign(rawArgs) {
   const frontmatter = { ...task.frontmatter, id };
   if (assignee) frontmatter.assignee = assignee;
   else delete frontmatter.assignee;
-  atomicWriteFileSync(task.path, serializeTaskFile(frontmatter, task.body));
+  atomicWriteFileSync(task.path, serializeTaskFile(stampUpdated(frontmatter), task.body));
   success(assignee ? `Assigned ${id} \u2192 ${assignee}` : `Unassigned ${id}`);
 }
 function cmdCommit(rawArgs) {
@@ -1929,7 +1958,7 @@ function cmdImport(rawArgs) {
     if (typeof row.priority === "string") fm.priority = row.priority;
     if (typeof row.assignee === "string") fm.assignee = row.assignee;
     if (Array.isArray(row.tags)) fm.tags = row.tags.map(String);
-    atomicWriteFileSync(path, serializeTaskFile(fm, typeof row.body === "string" ? row.body : ""));
+    atomicWriteFileSync(path, serializeTaskFile(stampUpdated(fm), typeof row.body === "string" ? row.body : ""));
     imported++;
   }
   success(`Imported ${imported} task${imported === 1 ? "" : "s"}`);
