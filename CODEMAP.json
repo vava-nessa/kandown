@@ -230,7 +230,7 @@
     },
     {
       "path": "src/cli/lib/__tests__/board-reader.spec.ts",
-      "lines": 85,
+      "lines": 125,
       "title": "Integration tests for the gate funneled through board-reader",
       "summary": "Spawns bin/kandown.js (the published CLI bundle) in a tmpdir, seeds two tasks with a dependency edge, and asserts that: - `kandown move` succeeds when the dependency is already in the terminal column."
     },

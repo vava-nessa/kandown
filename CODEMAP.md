@@ -76,7 +76,7 @@ source to edit instead.
 
 ## `src/cli/lib/__tests__/`
 
-- **`board-reader.spec.ts`** · 85 lines — Spawns bin/kandown.js (the published CLI bundle) in a tmpdir, seeds two tasks with a dependency edge, and asserts that: - `kandown move` succeeds when the dependency is already in the terminal column.
+- **`board-reader.spec.ts`** · 125 lines — Spawns bin/kandown.js (the published CLI bundle) in a tmpdir, seeds two tasks with a dependency edge, and asserts that: - `kandown move` succeeds when the dependency is already in the terminal column.
 
 ## `src/cli/screens/` — Full-screen TUI views
 

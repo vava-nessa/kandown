@@ -82,4 +82,44 @@ describe('kandown move + dependency gate', () => {
     expect(res2.stderr).toMatch(/Moved t1/);
     expect(res2.stderr).toMatch(/Done/);
   });
+
+  it('lets an archived dependency resolve the gate', () => {
+    const res = run(dir, ['move', 't2', 'archived']);
+    expect(res.status, `stdout=${JSON.stringify(res.stdout)}\nstderr=${JSON.stringify(res.stderr)}`).toBe(0);
+    const res2 = run(dir, ['move', 't1', 'Done']);
+    expect(res2.status, `stdout=${JSON.stringify(res2.stdout)}\nstderr=${JSON.stringify(res2.stderr)}`).toBe(0);
+    expect(res2.stderr).toMatch(/Moved t1/);
+  });
+
+  it('treats an unknown dependency id as resolved (typo never blocks)', () => {
+    const dir2 = setupProject([
+      { id: 't1', status: 'In Progress', depends_on: ['ghost-id'] },
+    ]);
+    try {
+      const res = run(dir2, ['move', 't1', 'Done']);
+      expect(res.status, `stdout=${JSON.stringify(res.stdout)}\nstderr=${JSON.stringify(res.stderr)}`).toBe(0);
+      expect(res.stderr).toMatch(/Moved t1/);
+    } finally {
+      rmSync(dir2, { recursive: true, force: true });
+    }
+  });
+
+  it('ignores self-references', () => {
+    const dir2 = setupProject([
+      { id: 't1', status: 'In Progress', depends_on: ['t1'] },
+    ]);
+    try {
+      const res = run(dir2, ['move', 't1', 'Done']);
+      expect(res.status, `stdout=${JSON.stringify(res.stdout)}\nstderr=${JSON.stringify(res.stderr)}`).toBe(0);
+      expect(res.stderr).toMatch(/Moved t1/);
+    } finally {
+      rmSync(dir2, { recursive: true, force: true });
+    }
+  });
+
+  it('free moves between non-terminal columns bypass the gate', () => {
+    const res = run(dir, ['move', 't1', 'Review']);
+    expect(res.status, `stdout=${JSON.stringify(res.stdout)}\nstderr=${JSON.stringify(res.stderr)}`).toBe(0);
+    expect(res.stderr).toMatch(/Moved t1/);
+  });
 });
