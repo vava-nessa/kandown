@@ -85,16 +85,6 @@
     "saveClose": "Opslaan & Sluiten",
     "cancel": "Annuleren"
   },
-  "subtask": {
-    "placeholder": "Subtaak...",
-    "description": "Beschrijving",
-    "descriptionPlaceholder": "Voeg context, links of notities toe voor deze stap...",
-    "report": "Rapport",
-    "reportPlaceholder": "Wat is gedaan, beslissingen genomen, afwegingen...",
-    "aiFillsThis": "AI vult dit in na voltooiing",
-    "collapse": "Inklappen",
-    "expand": "Uitklappen"
-  },
   "commandPalette": {
     "placeholder": "Typ een commando of zoek...",
     "actions": "Acties",
@@ -120,6 +110,83 @@
     "assignee": "Toegewezen aan",
     "progress": "Voortgang",
     "noMatchingTasks": "Geen overeenkomende taken"
+  },
+  "conflict": {
+    "detected": "Conflict Gedetecteerd",
+    "detectedDesc": "Deze taak is extern gewijzigd terwijl je aan het bewerken was.",
+    "conflictingChanges": "Taak <code>{{taskId}}</code> heeft tegenstrijdige wijzigingen. Kies hoe op te lossen:",
+    "yourVersion": "Jouw versie (lokaal)",
+    "diskVersion": "Schijfversie (extern)",
+    "cancel": "Annuleren",
+    "reloadFromDisk": "Herladen van schijf",
+    "keepMyVersion": "Houd mijn versie",
+    "title": "Titel",
+    "priority": "Prioriteit",
+    "body": "Inhoud",
+    "subtasks": "Subtaken",
+    "none": "(geen)"
+  },
+  "languageNames": {
+    "en": "Engels",
+    "fr": "Frans",
+    "zh": "Chinees",
+    "es": "Spaans",
+    "pt": "Portugees",
+    "hi": "Hindi",
+    "de": "Duits",
+    "it": "Italiaans",
+    "nl": "Nederlands",
+    "pl": "Pools",
+    "uk": "Oekraïens",
+    "ro": "Roemeens"
+  },
+  "bulk": {
+    "selectedOne": "geselecteerd",
+    "selectedMany": "geselecteerd",
+    "priority": "Prioriteit",
+    "assignee": "Toegewezen aan",
+    "assignNew": "Toewijzen aan @{{name}}",
+    "dueDate": "Vervaldatum",
+    "clearDue": "Vervaldatum wissen",
+    "tags": "Tags",
+    "add": "Toevoegen",
+    "remove": "Verwijderen",
+    "tagPlaceholder": "tag naam",
+    "addTag": "#{{name}} toevoegen",
+    "move": "Verplaatsen",
+    "unassign": "Toewijzing opheffen",
+    "archive": "Archiveren",
+    "delete": "Verwijderen",
+    "confirmDelete": "Verwijderen bevestigen",
+    "selectAll": "Alles selecteren",
+    "selectAllHint": "Alles selecteren (zichtbare)",
+    "clear": "Selectie wissen"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — niet koppelbaar vanuit kandown (app/desktop, alleen label)"
+  },
+  "onboarding": {
+    "stepLabel": "Stap {{current}} van {{total}}",
+    "back": "Terug",
+    "next": "Volgende",
+    "getStarted": "Aan de slag",
+    "close": "Sluiten",
+    "step1Title": "Welkom bij Kandown",
+    "step1Desc": "Je local-first Kanban-bord met gewone Markdown-bestanden in ./tasks/. Geen database, geen lock-in, versioneer met git.",
+    "step2Title": "Eenvoudig taakbeheer",
+    "step2Desc": "Sleep taken tussen kolommen, volg de voortgang van checklists en gebruik inline-syntaxis zoals #tag, @assignee of p1 bij het aanmaken.",
+    "step3Title": "Toetsenbord en AI",
+    "step3Desc": "Druk op elk moment op Cmd/Ctrl + K voor het opdrachtenpalet. Start AI-agenten direct op taken."
+  },
+  "subtask": {
+    "placeholder": "Subtaak...",
+    "description": "Beschrijving",
+    "descriptionPlaceholder": "Voeg context, links of notities toe voor deze stap...",
+    "report": "Rapport",
+    "reportPlaceholder": "Wat is gedaan, beslissingen genomen, afwegingen...",
+    "aiFillsThis": "AI vult dit in na voltooiing",
+    "collapse": "Inklappen",
+    "expand": "Uitklappen"
   },
   "settings": {
     "noProjectOpen": "Geen project geopend",
@@ -184,21 +251,6 @@
     "kickerIdentifiers": "Identificatoren",
     "kickerMetadata": "Metagegevens"
   },
-  "conflict": {
-    "detected": "Conflict Gedetecteerd",
-    "detectedDesc": "Deze taak is extern gewijzigd terwijl je aan het bewerken was.",
-    "conflictingChanges": "Taak <code>{{taskId}}</code> heeft tegenstrijdige wijzigingen. Kies hoe op te lossen:",
-    "yourVersion": "Jouw versie (lokaal)",
-    "diskVersion": "Schijfversie (extern)",
-    "cancel": "Annuleren",
-    "reloadFromDisk": "Herladen van schijf",
-    "keepMyVersion": "Houd mijn versie",
-    "title": "Titel",
-    "priority": "Prioriteit",
-    "body": "Inhoud",
-    "subtasks": "Subtaken",
-    "none": "(geen)"
-  },
   "sectionLabels": {
     "title": "Titel",
     "subtasks": "Subtaak",
@@ -211,44 +263,5 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Instellingen extern bijgewerkt — herladen"
-  },
-  "languageNames": {
-    "en": "Engels",
-    "fr": "Frans",
-    "zh": "Chinees",
-    "es": "Spaans",
-    "pt": "Portugees",
-    "hi": "Hindi",
-    "de": "Duits",
-    "it": "Italiaans",
-    "nl": "Nederlands",
-    "pl": "Pools",
-    "uk": "Oekraïens",
-    "ro": "Roemeens"
-  },
-  "bulk": {
-    "selectedOne": "geselecteerd",
-    "selectedMany": "geselecteerd",
-    "priority": "Prioriteit",
-    "assignee": "Toegewezen aan",
-    "assignNew": "Toewijzen aan @{{name}}",
-    "dueDate": "Vervaldatum",
-    "clearDue": "Vervaldatum wissen",
-    "tags": "Tags",
-    "add": "Toevoegen",
-    "remove": "Verwijderen",
-    "tagPlaceholder": "tag naam",
-    "addTag": "#{{name}} toevoegen",
-    "move": "Verplaatsen",
-    "unassign": "Toewijzing opheffen",
-    "archive": "Archiveren",
-    "delete": "Verwijderen",
-    "confirmDelete": "Verwijderen bevestigen",
-    "selectAll": "Alles selecteren",
-    "selectAllHint": "Alles selecteren (zichtbare)",
-    "clear": "Selectie wissen"
-  },
-  "agent": {
-    "desktopTooltip": "{{name}} — niet koppelbaar vanuit kandown (app/desktop, alleen label)"
   }
 }

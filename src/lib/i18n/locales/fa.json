@@ -85,16 +85,6 @@
     "saveClose": "ذخیره و بستن",
     "cancel": "انصراف"
   },
-  "subtask": {
-    "placeholder": "زیرکار...",
-    "description": "توضیحات",
-    "descriptionPlaceholder": "زمینه، پیوندها یا یادداشت‌ها برای این مرحله اضافه کنید...",
-    "report": "گزارش",
-    "reportPlaceholder": "چه کاری انجام شد، چه تصمیماتی گرفته شد، مصالحه‌ها...",
-    "aiFillsThis": "AI پس از تکمیل این را پر می‌کند",
-    "collapse": "جمع کردن",
-    "expand": "گسترش"
-  },
   "commandPalette": {
     "placeholder": "دستور تایپ کنید یا جستجو کنید...",
     "actions": "اقدامات",
@@ -120,6 +110,69 @@
     "assignee": "مسئول",
     "progress": "پیشرفت",
     "noMatchingTasks": "کار منطبقی وجود ندارد"
+  },
+  "conflict": {
+    "detected": "تعارض تشخیص داده شد",
+    "detectedDesc": "این کار در حین ویرایش خارجاً تغییر یافته است.",
+    "conflictingChanges": "کار <code>{{taskId}}</code> تغییرات متعارض دارد. انتخاب کنید چگونه حل شود:",
+    "yourVersion": "نسخه شما (محلی)",
+    "diskVersion": "نسخه دیسک (راه دور)",
+    "cancel": "انصراف",
+    "reloadFromDisk": "بارگذاری مجدد از دیسک",
+    "keepMyVersion": "نسخه من را نگه دار",
+    "title": "عنوان",
+    "priority": "اولویت",
+    "body": "بدنه",
+    "subtasks": "زیرکارها",
+    "none": "(هیچ)"
+  },
+  "bulk": {
+    "priority": "اولویت",
+    "assignee": "محول شده به",
+    "dueDate": "سررسید",
+    "tags": "برچسب‌ها",
+    "unassign": "لغو تخصیص",
+    "move": "انتقال",
+    "archive": "بایگانی",
+    "delete": "حذف",
+    "confirmDelete": "تأیید حذف",
+    "selectAll": "انتخاب همه",
+    "clear": "پاک کردن انتخاب",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+  },
+  "onboarding": {
+    "stepLabel": "‏مرحله {{current}} از {{total}}‏",
+    "back": "بازگشت",
+    "next": "بعدی",
+    "getStarted": "شروع",
+    "close": "بستن",
+    "step1Title": "به Kandown خوش آمدید",
+    "step1Desc": "تخته Kanban محلی شما با فایل‌های ساده Markdown در ./tasks/. بدون پایگاه داده، بدون وابستگی، نسخه‌بندی با git.",
+    "step2Title": "مدیریت آسان وظایف",
+    "step2Desc": "وظایف را بین ستون‌ها بکشید و رها کنید، پیشرفت چک‌لیست‌ها را دنبال کنید و از نحو #tag، @assignee یا p1 در ساخت استفاده کنید.",
+    "step3Title": "صفحه‌کلید و هوش مصنوعی",
+    "step3Desc": "هر زمان Cmd/Ctrl + K را برای فرمان‌پالت بزنید. عامل‌های هوش مصنوعی را مستقیماً روی وظایف اجرا کنید."
+  },
+  "subtask": {
+    "placeholder": "زیرکار...",
+    "description": "توضیحات",
+    "descriptionPlaceholder": "زمینه، پیوندها یا یادداشت‌ها برای این مرحله اضافه کنید...",
+    "report": "گزارش",
+    "reportPlaceholder": "چه کاری انجام شد، چه تصمیماتی گرفته شد، مصالحه‌ها...",
+    "aiFillsThis": "AI پس از تکمیل این را پر می‌کند",
+    "collapse": "جمع کردن",
+    "expand": "گسترش"
   },
   "settings": {
     "noProjectOpen": "پروژه بازی باز نشده است",
@@ -180,21 +233,6 @@
     "matches": "تطابق‌ها",
     "settingsTitle": "تنظیمات"
   },
-  "conflict": {
-    "detected": "تعارض تشخیص داده شد",
-    "detectedDesc": "این کار در حین ویرایش خارجاً تغییر یافته است.",
-    "conflictingChanges": "کار <code>{{taskId}}</code> تغییرات متعارض دارد. انتخاب کنید چگونه حل شود:",
-    "yourVersion": "نسخه شما (محلی)",
-    "diskVersion": "نسخه دیسک (راه دور)",
-    "cancel": "انصراف",
-    "reloadFromDisk": "بارگذاری مجدد از دیسک",
-    "keepMyVersion": "نسخه من را نگه دار",
-    "title": "عنوان",
-    "priority": "اولویت",
-    "body": "بدنه",
-    "subtasks": "زیرکارها",
-    "none": "(هیچ)"
-  },
   "sectionLabels": {
     "title": "عنوان",
     "subtasks": "زیرکار",
@@ -207,30 +245,5 @@
   },
   "toast": {
     "settingsUpdatedExternally": "تنظیمات خارجاً به‌روزرسانی شد — بارگذاری مجدد شد"
-  },
-  "bulk": {
-    "priority": "اولویت",
-    "assignee": "محول شده به",
-    "dueDate": "سررسید",
-    "tags": "برچسب‌ها",
-    "unassign": "لغو تخصیص",
-    "move": "انتقال",
-    "archive": "بایگانی",
-    "delete": "حذف",
-    "confirmDelete": "تأیید حذف",
-    "selectAll": "انتخاب همه",
-    "clear": "پاک کردن انتخاب",
-    "selectedOne": "selected",
-    "selectedMany": "selected",
-    "assignNew": "Assign @{{name}}",
-    "clearDue": "Clear due date",
-    "add": "Add",
-    "remove": "Remove",
-    "tagPlaceholder": "tag name",
-    "addTag": "Add #{{name}}",
-    "selectAllHint": "Select all (visible)"
-  },
-  "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

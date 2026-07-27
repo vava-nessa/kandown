@@ -85,16 +85,6 @@
     "saveClose": "محفوظ کریں اور بند کریں",
     "cancel": "منسوخ"
   },
-  "subtask": {
-    "placeholder": "ذیلی ٹاسک...",
-    "description": "تفصیل",
-    "descriptionPlaceholder": "اس مرحلے کے لیے سیاق و سباق، لنکس، یا نوٹس شامل کریں...",
-    "report": "رپورٹ",
-    "reportPlaceholder": "کیا کیا گیا، کون سے فیصلے ہوئے، trade-offs...",
-    "aiFillsThis": "AI مکمل کرنے کے بعد یہ بھرتا ہے",
-    "collapse": "سکیڑیں",
-    "expand": "پھیلائیں"
-  },
   "commandPalette": {
     "placeholder": "کمانڈ ٹائپ کریں یا تلاش کریں...",
     "actions": "ایکشنز",
@@ -120,6 +110,69 @@
     "assignee": "مقرر",
     "progress": "ترقی",
     "noMatchingTasks": "کوئی مماثل ٹاسک نہیں"
+  },
+  "conflict": {
+    "detected": "تنازعہ کا پتہ چلا",
+    "detectedDesc": "یہ ٹاسک باہر سے ترمیم ہو گیا جب آپ ترمیم کر رہے تھے۔",
+    "conflictingChanges": "ٹاسک <code>{{taskId}}</code> میں متصادم تبدیلیاں ہیں۔ حل کیسے کریں:",
+    "yourVersion": "آپ کا ورژن (لوکل)",
+    "diskVersion": "ڈسک ورژن (ریموٹ)",
+    "cancel": "منسوخ",
+    "reloadFromDisk": "ڈسک سے ری لوڈ کریں",
+    "keepMyVersion": "میرا ورژن رکھیں",
+    "title": "عنوان",
+    "priority": "ترجیح",
+    "body": "بڈی",
+    "subtasks": "ذیلی ٹاسک",
+    "none": "(کچھ نہیں)"
+  },
+  "bulk": {
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "priority": "Priority",
+    "assignee": "Assignee",
+    "assignNew": "Assign @{{name}}",
+    "dueDate": "Due date",
+    "clearDue": "Clear due date",
+    "tags": "Tags",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "move": "Move",
+    "unassign": "Unassign",
+    "archive": "Archive",
+    "delete": "Delete",
+    "confirmDelete": "Confirm delete",
+    "selectAll": "Select all",
+    "selectAllHint": "Select all (visible)",
+    "clear": "Clear selection"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+  },
+  "onboarding": {
+    "stepLabel": "‏مرحلہ {{current}} از {{total}}‏",
+    "back": "واپس",
+    "next": "اگلا",
+    "getStarted": "شروع کریں",
+    "close": "بند کریں",
+    "step1Title": "Kandown میں خوش آمدید",
+    "step1Desc": "آپ کا لوکل-فرسٹ کانبن بورڈ جو ./tasks/ میں سادہ Markdown فائلوں پر مبنی ہے۔ نہ ڈیٹا بیس، نہ لاک اِن، git کے ساتھ ورژن۔",
+    "step2Title": "آسان کام کا انتظام",
+    "step2Desc": "کاموں کو کالمز کے درمیان گھسیٹیں اور چھوڑیں، چیک لسٹ کی پیش رفت ٹریک کریں، اور بناتے وقت #tag، @assignee یا p1 جیسی نحو استعمال کریں۔",
+    "step3Title": "کی بورڈ اور AI",
+    "step3Desc": "کمانڈ پیلیٹ کے لیے کسی بھی وقت Cmd/Ctrl + K دبائیں۔ AI ایجنٹوں کو کاموں پر براہ راست چلائیں۔"
+  },
+  "subtask": {
+    "placeholder": "ذیلی ٹاسک...",
+    "description": "تفصیل",
+    "descriptionPlaceholder": "اس مرحلے کے لیے سیاق و سباق، لنکس، یا نوٹس شامل کریں...",
+    "report": "رپورٹ",
+    "reportPlaceholder": "کیا کیا گیا، کون سے فیصلے ہوئے، trade-offs...",
+    "aiFillsThis": "AI مکمل کرنے کے بعد یہ بھرتا ہے",
+    "collapse": "سکیڑیں",
+    "expand": "پھیلائیں"
   },
   "settings": {
     "noProjectOpen": "کوئی پروجیکٹ کھلا نہیں",
@@ -180,21 +233,6 @@
     "matches": "مطابقت",
     "settingsTitle": "ترتیبات"
   },
-  "conflict": {
-    "detected": "تنازعہ کا پتہ چلا",
-    "detectedDesc": "یہ ٹاسک باہر سے ترمیم ہو گیا جب آپ ترمیم کر رہے تھے۔",
-    "conflictingChanges": "ٹاسک <code>{{taskId}}</code> میں متصادم تبدیلیاں ہیں۔ حل کیسے کریں:",
-    "yourVersion": "آپ کا ورژن (لوکل)",
-    "diskVersion": "ڈسک ورژن (ریموٹ)",
-    "cancel": "منسوخ",
-    "reloadFromDisk": "ڈسک سے ری لوڈ کریں",
-    "keepMyVersion": "میرا ورژن رکھیں",
-    "title": "عنوان",
-    "priority": "ترجیح",
-    "body": "بڈی",
-    "subtasks": "ذیلی ٹاسک",
-    "none": "(کچھ نہیں)"
-  },
   "sectionLabels": {
     "title": "عنوان",
     "subtasks": "ذیلی ٹاسک",
@@ -207,30 +245,5 @@
   },
   "toast": {
     "settingsUpdatedExternally": "ترتیبات باہر سے اپ ڈیٹ ہوئیں — ری لوڈ ہو گئیں"
-  },
-  "bulk": {
-    "selectedOne": "selected",
-    "selectedMany": "selected",
-    "priority": "Priority",
-    "assignee": "Assignee",
-    "assignNew": "Assign @{{name}}",
-    "dueDate": "Due date",
-    "clearDue": "Clear due date",
-    "tags": "Tags",
-    "add": "Add",
-    "remove": "Remove",
-    "tagPlaceholder": "tag name",
-    "addTag": "Add #{{name}}",
-    "move": "Move",
-    "unassign": "Unassign",
-    "archive": "Archive",
-    "delete": "Delete",
-    "confirmDelete": "Confirm delete",
-    "selectAll": "Select all",
-    "selectAllHint": "Select all (visible)",
-    "clear": "Clear selection"
-  },
-  "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

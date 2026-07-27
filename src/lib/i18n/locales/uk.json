@@ -85,16 +85,6 @@
     "saveClose": "Save & Close",
     "cancel": "Cancel"
   },
-  "subtask": {
-    "placeholder": "Subtask...",
-    "description": "Description",
-    "descriptionPlaceholder": "Add context, links, or notes for this step...",
-    "report": "Report",
-    "reportPlaceholder": "What was done, decisions made, trade-offs...",
-    "aiFillsThis": "AI fills this after completing",
-    "collapse": "Collapse",
-    "expand": "Expand"
-  },
   "commandPalette": {
     "placeholder": "Type a command or search...",
     "actions": "Actions",
@@ -120,6 +110,83 @@
     "assignee": "Assignee",
     "progress": "Progress",
     "noMatchingTasks": "No matching tasks"
+  },
+  "conflict": {
+    "detected": "Conflict Detected",
+    "detectedDesc": "This task was modified externally while you were editing.",
+    "conflictingChanges": "Task <code>{{taskId}}</code> has conflicting changes. Choose how to resolve:",
+    "yourVersion": "Your version (local)",
+    "diskVersion": "Disk version (remote)",
+    "cancel": "Cancel",
+    "reloadFromDisk": "Reload from disk",
+    "keepMyVersion": "Keep my version",
+    "title": "Title",
+    "priority": "Priority",
+    "body": "Body",
+    "subtasks": "Subtasks",
+    "none": "(none)"
+  },
+  "languageNames": {
+    "en": "Англійська",
+    "fr": "Французька",
+    "zh": "Китайська",
+    "es": "Іспанська",
+    "pt": "Португальська",
+    "hi": "Хінді",
+    "de": "Німецька",
+    "it": "Італійська",
+    "nl": "Нідерландська",
+    "pl": "Польська",
+    "uk": "Українська",
+    "ro": "Румунська"
+  },
+  "bulk": {
+    "priority": "Пріоритет",
+    "assignee": "Виконавець",
+    "dueDate": "Термін",
+    "tags": "Теги",
+    "unassign": "Зняти призначення",
+    "move": "Перемістити",
+    "archive": "Архівувати",
+    "delete": "Видалити",
+    "confirmDelete": "Підтвердити видалення",
+    "selectAll": "Вибрати все",
+    "clear": "Очистити вибір",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+  },
+  "onboarding": {
+    "stepLabel": "Крок {{current}} з {{total}}",
+    "back": "Назад",
+    "next": "Далі",
+    "getStarted": "Почати",
+    "close": "Закрити",
+    "step1Title": "Ласкаво просимо до Kandown",
+    "step1Desc": "Ваш локальний Kanban на звичайних Markdown-файлах у ./tasks/. Без баз даних і прив'язок, версіонується через git.",
+    "step2Title": "Просте керування задачами",
+    "step2Desc": "Перетягуйте задачі між колонками, відстежуйте прогрес чек-лістів і використовуйте синтаксис #tag, @assignee або p1 під час створення.",
+    "step3Title": "Клавіатура та ШІ",
+    "step3Desc": "Натисніть Cmd/Ctrl + K у будь-який момент, щоб відкрити командну палітру. Запускайте ШІ-агентів прямо на задачах."
+  },
+  "subtask": {
+    "placeholder": "Subtask...",
+    "description": "Description",
+    "descriptionPlaceholder": "Add context, links, or notes for this step...",
+    "report": "Report",
+    "reportPlaceholder": "What was done, decisions made, trade-offs...",
+    "aiFillsThis": "AI fills this after completing",
+    "collapse": "Collapse",
+    "expand": "Expand"
   },
   "settings": {
     "noProjectOpen": "No project open",
@@ -184,21 +251,6 @@
     "kickerIdentifiers": "Identifiers",
     "kickerMetadata": "Metadata"
   },
-  "conflict": {
-    "detected": "Conflict Detected",
-    "detectedDesc": "This task was modified externally while you were editing.",
-    "conflictingChanges": "Task <code>{{taskId}}</code> has conflicting changes. Choose how to resolve:",
-    "yourVersion": "Your version (local)",
-    "diskVersion": "Disk version (remote)",
-    "cancel": "Cancel",
-    "reloadFromDisk": "Reload from disk",
-    "keepMyVersion": "Keep my version",
-    "title": "Title",
-    "priority": "Priority",
-    "body": "Body",
-    "subtasks": "Subtasks",
-    "none": "(none)"
-  },
   "sectionLabels": {
     "title": "Title",
     "subtasks": "Subtask",
@@ -211,44 +263,5 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
-  },
-  "languageNames": {
-    "en": "Англійська",
-    "fr": "Французька",
-    "zh": "Китайська",
-    "es": "Іспанська",
-    "pt": "Португальська",
-    "hi": "Хінді",
-    "de": "Німецька",
-    "it": "Італійська",
-    "nl": "Нідерландська",
-    "pl": "Польська",
-    "uk": "Українська",
-    "ro": "Румунська"
-  },
-  "bulk": {
-    "priority": "Пріоритет",
-    "assignee": "Виконавець",
-    "dueDate": "Термін",
-    "tags": "Теги",
-    "unassign": "Зняти призначення",
-    "move": "Перемістити",
-    "archive": "Архівувати",
-    "delete": "Видалити",
-    "confirmDelete": "Підтвердити видалення",
-    "selectAll": "Вибрати все",
-    "clear": "Очистити вибір",
-    "selectedOne": "selected",
-    "selectedMany": "selected",
-    "assignNew": "Assign @{{name}}",
-    "clearDue": "Clear due date",
-    "add": "Add",
-    "remove": "Remove",
-    "tagPlaceholder": "tag name",
-    "addTag": "Add #{{name}}",
-    "selectAllHint": "Select all (visible)"
-  },
-  "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

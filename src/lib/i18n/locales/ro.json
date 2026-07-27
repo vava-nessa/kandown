@@ -85,16 +85,6 @@
     "saveClose": "Save & Close",
     "cancel": "Cancel"
   },
-  "subtask": {
-    "placeholder": "Subtask...",
-    "description": "Description",
-    "descriptionPlaceholder": "Add context, links, or notes for this step...",
-    "report": "Report",
-    "reportPlaceholder": "What was done, decisions made, trade-offs...",
-    "aiFillsThis": "AI fills this after completing",
-    "collapse": "Collapse",
-    "expand": "Expand"
-  },
   "commandPalette": {
     "placeholder": "Type a command or search...",
     "actions": "Actions",
@@ -120,6 +110,83 @@
     "assignee": "Assignee",
     "progress": "Progress",
     "noMatchingTasks": "No matching tasks"
+  },
+  "conflict": {
+    "detected": "Conflict Detected",
+    "detectedDesc": "This task was modified externally while you were editing.",
+    "conflictingChanges": "Task <code>{{taskId}}</code> has conflicting changes. Choose how to resolve:",
+    "yourVersion": "Your version (local)",
+    "diskVersion": "Disk version (remote)",
+    "cancel": "Cancel",
+    "reloadFromDisk": "Reload from disk",
+    "keepMyVersion": "Keep my version",
+    "title": "Title",
+    "priority": "Priority",
+    "body": "Body",
+    "subtasks": "Subtasks",
+    "none": "(none)"
+  },
+  "languageNames": {
+    "en": "Engleză",
+    "fr": "Franceză",
+    "zh": "Chineză",
+    "es": "Spaniolă",
+    "pt": "Portugheză",
+    "hi": "Hindi",
+    "de": "Germană",
+    "it": "Italiană",
+    "nl": "Olandeză",
+    "pl": "Poloneză",
+    "uk": "Ucraineană",
+    "ro": "Română"
+  },
+  "bulk": {
+    "priority": "Prioritate",
+    "assignee": "Atribuit",
+    "dueDate": "Termen",
+    "tags": "Etichete",
+    "unassign": "Anulează atribuirea",
+    "move": "Mută",
+    "archive": "Arhivează",
+    "delete": "Șterge",
+    "confirmDelete": "Confirmă ștergerea",
+    "selectAll": "Selectează tot",
+    "clear": "Șterge selecția",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+  },
+  "onboarding": {
+    "stepLabel": "Pasul {{current}} din {{total}}",
+    "back": "Înapoi",
+    "next": "Înainte",
+    "getStarted": "Începe",
+    "close": "Închide",
+    "step1Title": "Bun venit la Kandown",
+    "step1Desc": "Tabloul tău Kanban local-first, susținut de fișiere Markdown simple în ./tasks/. Fără bază de date, fără blocaj, versionat cu git.",
+    "step2Title": "Gestionare ușoară a sarcinilor",
+    "step2Desc": "Trage și plasează sarcini între coloane, urmărește progresul checklist-urilor și folosește sintaxa #tag, @assignee sau p1 la creare.",
+    "step3Title": "Tastatură și AI",
+    "step3Desc": "Apasă Cmd/Ctrl + K oricând pentru paleta de comenzi. Lansează agenți AI direct pe sarcini."
+  },
+  "subtask": {
+    "placeholder": "Subtask...",
+    "description": "Description",
+    "descriptionPlaceholder": "Add context, links, or notes for this step...",
+    "report": "Report",
+    "reportPlaceholder": "What was done, decisions made, trade-offs...",
+    "aiFillsThis": "AI fills this after completing",
+    "collapse": "Collapse",
+    "expand": "Expand"
   },
   "settings": {
     "noProjectOpen": "No project open",
@@ -184,21 +251,6 @@
     "kickerIdentifiers": "Identifiers",
     "kickerMetadata": "Metadata"
   },
-  "conflict": {
-    "detected": "Conflict Detected",
-    "detectedDesc": "This task was modified externally while you were editing.",
-    "conflictingChanges": "Task <code>{{taskId}}</code> has conflicting changes. Choose how to resolve:",
-    "yourVersion": "Your version (local)",
-    "diskVersion": "Disk version (remote)",
-    "cancel": "Cancel",
-    "reloadFromDisk": "Reload from disk",
-    "keepMyVersion": "Keep my version",
-    "title": "Title",
-    "priority": "Priority",
-    "body": "Body",
-    "subtasks": "Subtasks",
-    "none": "(none)"
-  },
   "sectionLabels": {
     "title": "Title",
     "subtasks": "Subtask",
@@ -211,44 +263,5 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
-  },
-  "languageNames": {
-    "en": "Engleză",
-    "fr": "Franceză",
-    "zh": "Chineză",
-    "es": "Spaniolă",
-    "pt": "Portugheză",
-    "hi": "Hindi",
-    "de": "Germană",
-    "it": "Italiană",
-    "nl": "Olandeză",
-    "pl": "Poloneză",
-    "uk": "Ucraineană",
-    "ro": "Română"
-  },
-  "bulk": {
-    "priority": "Prioritate",
-    "assignee": "Atribuit",
-    "dueDate": "Termen",
-    "tags": "Etichete",
-    "unassign": "Anulează atribuirea",
-    "move": "Mută",
-    "archive": "Arhivează",
-    "delete": "Șterge",
-    "confirmDelete": "Confirmă ștergerea",
-    "selectAll": "Selectează tot",
-    "clear": "Șterge selecția",
-    "selectedOne": "selected",
-    "selectedMany": "selected",
-    "assignNew": "Assign @{{name}}",
-    "clearDue": "Clear due date",
-    "add": "Add",
-    "remove": "Remove",
-    "tagPlaceholder": "tag name",
-    "addTag": "Add #{{name}}",
-    "selectAllHint": "Select all (visible)"
-  },
-  "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

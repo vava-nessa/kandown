@@ -85,16 +85,6 @@
     "saveClose": "저장 및 닫기",
     "cancel": "취소"
   },
-  "subtask": {
-    "placeholder": "하위 작업...",
-    "description": "설명",
-    "descriptionPlaceholder": "이 단계에 대한 컨텍스트, 링크 또는 메모를 추가하세요...",
-    "report": "보고서",
-    "reportPlaceholder": "무엇이 완료되었는지, 어떤 결정이 내려졌는지, 트레이드오프...",
-    "aiFillsThis": "AI가 완료 후 이를 입력합니다",
-    "collapse": "접기",
-    "expand": "펼치기"
-  },
   "commandPalette": {
     "placeholder": "명령어를 입력하거나 검색하세요...",
     "actions": "작업",
@@ -120,6 +110,69 @@
     "assignee": "담당자",
     "progress": "진행률",
     "noMatchingTasks": "일치하는 작업 없음"
+  },
+  "conflict": {
+    "detected": "충돌 감지됨",
+    "detectedDesc": "이 작업은 편집 중에 외부에서 수정되었습니다.",
+    "conflictingChanges": "작업 <code>{{taskId}}</code>에 충돌하는 변경 사항이 있습니다. 해결 방법 선택:",
+    "yourVersion": "내 버전 (로컬)",
+    "diskVersion": "디스크 버전 (원격)",
+    "cancel": "취소",
+    "reloadFromDisk": "디스크에서 다시 로드",
+    "keepMyVersion": "내 버전 유지",
+    "title": "제목",
+    "priority": "우선순위",
+    "body": "본문",
+    "subtasks": "하위 작업",
+    "none": "(없음)"
+  },
+  "bulk": {
+    "priority": "우선순위",
+    "assignee": "담당자",
+    "assignNew": "@{{name}} 에게 할당",
+    "dueDate": "마감일",
+    "clearDue": "마감일 지우기",
+    "tags": "태그",
+    "add": "추가",
+    "remove": "제거",
+    "tagPlaceholder": "태그 이름",
+    "addTag": "#{{name}} 추가",
+    "move": "이동",
+    "unassign": "할당 해제",
+    "archive": "보관",
+    "delete": "삭제",
+    "confirmDelete": "삭제 확인",
+    "selectAll": "모두 선택",
+    "selectAllHint": "모두 선택 (보이는 항목)",
+    "clear": "선택 해제",
+    "selectedOne": "selected",
+    "selectedMany": "selected"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — kandown 에서 호출할 수 없음 (앱 / 데스크톱, 라벨 전용)"
+  },
+  "onboarding": {
+    "stepLabel": "{{total}}단계 중 {{current}}단계",
+    "back": "뒤로",
+    "next": "다음",
+    "getStarted": "시작하기",
+    "close": "닫기",
+    "step1Title": "Kandown에 오신 것을 환영합니다",
+    "step1Desc": "./tasks/의 평범한 Markdown 파일로 동작하는 로컬 우선 칸반 보드입니다. 데이터베이스도, 락인도 없고 git으로 버전 관리됩니다.",
+    "step2Title": "손쉬운 작업 관리",
+    "step2Desc": "작업을 열 간에 드래그 앤 드롭하고, 체크리스트 진행 상황을 추적하며, 생성 시 #tag, @assignee, p1 같은 인라인 구문을 사용하세요.",
+    "step3Title": "키보드와 AI",
+    "step3Desc": "언제든지 Cmd/Ctrl + K로 명령 팔레트를 여세요. 작업에 AI 에이전트를 직접 실행할 수 있습니다."
+  },
+  "subtask": {
+    "placeholder": "하위 작업...",
+    "description": "설명",
+    "descriptionPlaceholder": "이 단계에 대한 컨텍스트, 링크 또는 메모를 추가하세요...",
+    "report": "보고서",
+    "reportPlaceholder": "무엇이 완료되었는지, 어떤 결정이 내려졌는지, 트레이드오프...",
+    "aiFillsThis": "AI가 완료 후 이를 입력합니다",
+    "collapse": "접기",
+    "expand": "펼치기"
   },
   "settings": {
     "noProjectOpen": "열린 프로젝트 없음",
@@ -180,21 +233,6 @@
     "matches": "일치",
     "settingsTitle": "설정"
   },
-  "conflict": {
-    "detected": "충돌 감지됨",
-    "detectedDesc": "이 작업은 편집 중에 외부에서 수정되었습니다.",
-    "conflictingChanges": "작업 <code>{{taskId}}</code>에 충돌하는 변경 사항이 있습니다. 해결 방법 선택:",
-    "yourVersion": "내 버전 (로컬)",
-    "diskVersion": "디스크 버전 (원격)",
-    "cancel": "취소",
-    "reloadFromDisk": "디스크에서 다시 로드",
-    "keepMyVersion": "내 버전 유지",
-    "title": "제목",
-    "priority": "우선순위",
-    "body": "본문",
-    "subtasks": "하위 작업",
-    "none": "(없음)"
-  },
   "sectionLabels": {
     "title": "제목",
     "subtasks": "하위 작업",
@@ -207,30 +245,5 @@
   },
   "toast": {
     "settingsUpdatedExternally": "설정이 외부에서 업데이트되었습니다 — 다시 로드됨"
-  },
-  "bulk": {
-    "priority": "우선순위",
-    "assignee": "담당자",
-    "assignNew": "@{{name}} 에게 할당",
-    "dueDate": "마감일",
-    "clearDue": "마감일 지우기",
-    "tags": "태그",
-    "add": "추가",
-    "remove": "제거",
-    "tagPlaceholder": "태그 이름",
-    "addTag": "#{{name}} 추가",
-    "move": "이동",
-    "unassign": "할당 해제",
-    "archive": "보관",
-    "delete": "삭제",
-    "confirmDelete": "삭제 확인",
-    "selectAll": "모두 선택",
-    "selectAllHint": "모두 선택 (보이는 항목)",
-    "clear": "선택 해제",
-    "selectedOne": "selected",
-    "selectedMany": "selected"
-  },
-  "agent": {
-    "desktopTooltip": "{{name}} — kandown 에서 호출할 수 없음 (앱 / 데스크톱, 라벨 전용)"
   }
 }

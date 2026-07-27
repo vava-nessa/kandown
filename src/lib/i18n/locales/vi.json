@@ -85,16 +85,6 @@
     "saveClose": "Lưu và đóng",
     "cancel": "Hủy"
   },
-  "subtask": {
-    "placeholder": "Công việc con...",
-    "description": "Mô tả",
-    "descriptionPlaceholder": "Thêm ngữ cảnh, liên kết hoặc ghi chú cho bước này...",
-    "report": "Báo cáo",
-    "reportPlaceholder": "Đã làm gì, quyết định gì, thỏa hiệp...",
-    "aiFillsThis": "AI điền vào đây sau khi hoàn thành",
-    "collapse": "Thu gọn",
-    "expand": "Mở rộng"
-  },
   "commandPalette": {
     "placeholder": "Nhập lệnh hoặc tìm kiếm...",
     "actions": "Hành động",
@@ -120,6 +110,69 @@
     "assignee": "Người được giao",
     "progress": "Tiến độ",
     "noMatchingTasks": "Không có công việc phù hợp"
+  },
+  "conflict": {
+    "detected": "Phát hiện xung đột",
+    "detectedDesc": "Công việc này đã được sửa đổi bên ngoài trong khi bạn đang chỉnh sửa.",
+    "conflictingChanges": "Công việc <code>{{taskId}}</code> có các thay đổi xung đột. Chọn cách giải quyết:",
+    "yourVersion": "Phiên bản của bạn (cục bộ)",
+    "diskVersion": "Phiên bản đĩa (từ xa)",
+    "cancel": "Hủy",
+    "reloadFromDisk": "Tải lại từ đĩa",
+    "keepMyVersion": "Giữ phiên bản của tôi",
+    "title": "Tiêu đề",
+    "priority": "Ưu tiên",
+    "body": "Nội dung",
+    "subtasks": "Công việc con",
+    "none": "(không)"
+  },
+  "bulk": {
+    "priority": "Ưu tiên",
+    "assignee": "Phân công",
+    "dueDate": "Hạn chót",
+    "tags": "Thẻ",
+    "unassign": "Bỏ phân công",
+    "move": "Chuyển",
+    "archive": "Lưu trữ",
+    "delete": "Xoá",
+    "confirmDelete": "Xác nhận xoá",
+    "selectAll": "Chọn tất cả",
+    "clear": "Xoá lựa chọn",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+  },
+  "onboarding": {
+    "stepLabel": "Bước {{current}} / {{total}}",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "getStarted": "Bắt đầu",
+    "close": "Đóng",
+    "step1Title": "Chào mừng đến với Kandown",
+    "step1Desc": "Bảng Kanban local-first của bạn, lưu bằng các tệp Markdown đơn giản trong ./tasks/. Không cơ sở dữ liệu, không khóa nhà cung cấp, phiên bản hóa bằng git.",
+    "step2Title": "Quản lý tác vụ dễ dàng",
+    "step2Desc": "Kéo và thả tác vụ giữa các cột, theo dõi tiến độ checklist và dùng cú pháp như #tag, @assignee hoặc p1 khi tạo.",
+    "step3Title": "Bàn phím và AI",
+    "step3Desc": "Nhấn Cmd/Ctrl + K bất kỳ lúc nào để mở bảng lệnh. Khởi chạy các tác nhân AI trực tiếp trên tác vụ."
+  },
+  "subtask": {
+    "placeholder": "Công việc con...",
+    "description": "Mô tả",
+    "descriptionPlaceholder": "Thêm ngữ cảnh, liên kết hoặc ghi chú cho bước này...",
+    "report": "Báo cáo",
+    "reportPlaceholder": "Đã làm gì, quyết định gì, thỏa hiệp...",
+    "aiFillsThis": "AI điền vào đây sau khi hoàn thành",
+    "collapse": "Thu gọn",
+    "expand": "Mở rộng"
   },
   "settings": {
     "noProjectOpen": "Không có dự án mở",
@@ -180,21 +233,6 @@
     "matches": "Kết quả phù hợp",
     "settingsTitle": "Cài đặt"
   },
-  "conflict": {
-    "detected": "Phát hiện xung đột",
-    "detectedDesc": "Công việc này đã được sửa đổi bên ngoài trong khi bạn đang chỉnh sửa.",
-    "conflictingChanges": "Công việc <code>{{taskId}}</code> có các thay đổi xung đột. Chọn cách giải quyết:",
-    "yourVersion": "Phiên bản của bạn (cục bộ)",
-    "diskVersion": "Phiên bản đĩa (từ xa)",
-    "cancel": "Hủy",
-    "reloadFromDisk": "Tải lại từ đĩa",
-    "keepMyVersion": "Giữ phiên bản của tôi",
-    "title": "Tiêu đề",
-    "priority": "Ưu tiên",
-    "body": "Nội dung",
-    "subtasks": "Công việc con",
-    "none": "(không)"
-  },
   "sectionLabels": {
     "title": "Tiêu đề",
     "subtasks": "Công việc con",
@@ -207,30 +245,5 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Cài đặt đã được cập nhật bên ngoài — đã tải lại"
-  },
-  "bulk": {
-    "priority": "Ưu tiên",
-    "assignee": "Phân công",
-    "dueDate": "Hạn chót",
-    "tags": "Thẻ",
-    "unassign": "Bỏ phân công",
-    "move": "Chuyển",
-    "archive": "Lưu trữ",
-    "delete": "Xoá",
-    "confirmDelete": "Xác nhận xoá",
-    "selectAll": "Chọn tất cả",
-    "clear": "Xoá lựa chọn",
-    "selectedOne": "selected",
-    "selectedMany": "selected",
-    "assignNew": "Assign @{{name}}",
-    "clearDue": "Clear due date",
-    "add": "Add",
-    "remove": "Remove",
-    "tagPlaceholder": "tag name",
-    "addTag": "Add #{{name}}",
-    "selectAllHint": "Select all (visible)"
-  },
-  "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

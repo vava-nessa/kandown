@@ -85,16 +85,6 @@
     "saveClose": "Simpan & Tutup",
     "cancel": "Batal"
   },
-  "subtask": {
-    "placeholder": "Subtugas...",
-    "description": "Deskripsi",
-    "descriptionPlaceholder": "Tambahkan konteks, tautan, atau catatan untuk langkah ini...",
-    "report": "Laporan",
-    "reportPlaceholder": "Apa yang dilakukan, keputusan yang dibuat, kompromi...",
-    "aiFillsThis": "AI mengisi ini setelah menyelesaikan",
-    "collapse": "Runtuhkan",
-    "expand": "Perluas"
-  },
   "commandPalette": {
     "placeholder": "Ketik perintah atau cari...",
     "actions": "Tindakan",
@@ -120,6 +110,69 @@
     "assignee": "Penanggung jawab",
     "progress": "Kemajuan",
     "noMatchingTasks": "Tidak ada tugas yang cocok"
+  },
+  "conflict": {
+    "detected": "Konflik Terdeteksi",
+    "detectedDesc": "Tugas ini dimodifikasi secara eksternal saat Anda mengedit.",
+    "conflictingChanges": "Tugas <code>{{taskId}}</code> memiliki perubahan yang berkonflik. Pilih cara menyelesaikan:",
+    "yourVersion": "Versi Anda (lokal)",
+    "diskVersion": "Versi disk (jarak jauh)",
+    "cancel": "Batal",
+    "reloadFromDisk": "Muat ulang dari disk",
+    "keepMyVersion": "Simpan versi saya",
+    "title": "Judul",
+    "priority": "Prioritas",
+    "body": "Isi",
+    "subtasks": "Subtugas",
+    "none": "(tidak ada)"
+  },
+  "bulk": {
+    "priority": "Prioritas",
+    "assignee": "Ditugaskan ke",
+    "dueDate": "Tenggat",
+    "tags": "Tag",
+    "unassign": "Batalkan tugas",
+    "move": "Pindahkan",
+    "archive": "Arsipkan",
+    "delete": "Hapus",
+    "confirmDelete": "Konfirmasi hapus",
+    "selectAll": "Pilih semua",
+    "clear": "Bersihkan pilihan",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+  },
+  "onboarding": {
+    "stepLabel": "Langkah {{current}} dari {{total}}",
+    "back": "Kembali",
+    "next": "Berikutnya",
+    "getStarted": "Mulai",
+    "close": "Tutup",
+    "step1Title": "Selamat datang di Kandown",
+    "step1Desc": "Papan Kanban lokal-pertama Anda yang ditopang oleh file Markdown biasa di ./tasks/. Tanpa basis data, tanpa lock-in, diverisikan dengan git.",
+    "step2Title": "Manajemen tugas mudah",
+    "step2Desc": "Tarik dan lepas tugas antar kolom, lacak progres checklist, dan gunakan sintaksis seperti #tag, @assignee, atau p1 saat membuat.",
+    "step3Title": "Papan kunci dan AI",
+    "step3Desc": "Tekan Cmd/Ctrl + K kapan saja untuk palet perintah. Luncurkan agen AI langsung pada tugas."
+  },
+  "subtask": {
+    "placeholder": "Subtugas...",
+    "description": "Deskripsi",
+    "descriptionPlaceholder": "Tambahkan konteks, tautan, atau catatan untuk langkah ini...",
+    "report": "Laporan",
+    "reportPlaceholder": "Apa yang dilakukan, keputusan yang dibuat, kompromi...",
+    "aiFillsThis": "AI mengisi ini setelah menyelesaikan",
+    "collapse": "Runtuhkan",
+    "expand": "Perluas"
   },
   "settings": {
     "noProjectOpen": "Tidak ada proyek terbuka",
@@ -180,21 +233,6 @@
     "matches": "Kecocokan",
     "settingsTitle": "Pengaturan"
   },
-  "conflict": {
-    "detected": "Konflik Terdeteksi",
-    "detectedDesc": "Tugas ini dimodifikasi secara eksternal saat Anda mengedit.",
-    "conflictingChanges": "Tugas <code>{{taskId}}</code> memiliki perubahan yang berkonflik. Pilih cara menyelesaikan:",
-    "yourVersion": "Versi Anda (lokal)",
-    "diskVersion": "Versi disk (jarak jauh)",
-    "cancel": "Batal",
-    "reloadFromDisk": "Muat ulang dari disk",
-    "keepMyVersion": "Simpan versi saya",
-    "title": "Judul",
-    "priority": "Prioritas",
-    "body": "Isi",
-    "subtasks": "Subtugas",
-    "none": "(tidak ada)"
-  },
   "sectionLabels": {
     "title": "Judul",
     "subtasks": "Subtugas",
@@ -207,30 +245,5 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Pengaturan diperbarui secara eksternal — dimuat ulang"
-  },
-  "bulk": {
-    "priority": "Prioritas",
-    "assignee": "Ditugaskan ke",
-    "dueDate": "Tenggat",
-    "tags": "Tag",
-    "unassign": "Batalkan tugas",
-    "move": "Pindahkan",
-    "archive": "Arsipkan",
-    "delete": "Hapus",
-    "confirmDelete": "Konfirmasi hapus",
-    "selectAll": "Pilih semua",
-    "clear": "Bersihkan pilihan",
-    "selectedOne": "selected",
-    "selectedMany": "selected",
-    "assignNew": "Assign @{{name}}",
-    "clearDue": "Clear due date",
-    "add": "Add",
-    "remove": "Remove",
-    "tagPlaceholder": "tag name",
-    "addTag": "Add #{{name}}",
-    "selectAllHint": "Select all (visible)"
-  },
-  "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

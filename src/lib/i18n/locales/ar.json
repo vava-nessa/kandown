@@ -85,16 +85,6 @@
     "saveClose": "حفظ وإغلاق",
     "cancel": "إلغاء"
   },
-  "subtask": {
-    "placeholder": "مهمة فرعية...",
-    "description": "الوصف",
-    "descriptionPlaceholder": "أضف سياقًا أو روابط أو ملاحظات لهذه الخطوة...",
-    "report": "التقرير",
-    "reportPlaceholder": "ما تم إنجازه والقرارات والتسويات...",
-    "aiFillsThis": "AI يملأ هذا بعد الانتهاء",
-    "collapse": "طي",
-    "expand": "توسيع"
-  },
   "commandPalette": {
     "placeholder": "اكتب أمرًا أو ابحث...",
     "actions": "الإجراءات",
@@ -120,6 +110,69 @@
     "assignee": "المكلف",
     "progress": "التقدم",
     "noMatchingTasks": "لا توجد مهام مطابقة"
+  },
+  "conflict": {
+    "detected": "تم اكتشاف تعارض",
+    "detectedDesc": "تم تعديل هذه المهمة خارجيًا أثناء التحرير.",
+    "conflictingChanges": "المهمة <code>{{taskId}}</code> تحتوي على تغييرات متناقضة. اختر كيفية الحل:",
+    "yourVersion": "نسختك (محلية)",
+    "diskVersion": "نسخة القرص (بعيدة)",
+    "cancel": "إلغاء",
+    "reloadFromDisk": "إعادة التحميل من القرص",
+    "keepMyVersion": "الاحتفاظ بنسختي",
+    "title": "العنوان",
+    "priority": "الأولوية",
+    "body": "المحتوى",
+    "subtasks": "المهام الفرعية",
+    "none": "(لا شيء)"
+  },
+  "bulk": {
+    "selectedOne": "محدد",
+    "selectedMany": "محدد",
+    "priority": "الأولوية",
+    "assignee": "المسؤول",
+    "assignNew": "تعيين @{{name}}",
+    "dueDate": "تاريخ الاستحقاق",
+    "clearDue": "مسح تاريخ الاستحقاق",
+    "tags": "الوسوم",
+    "add": "إضافة",
+    "remove": "إزالة",
+    "tagPlaceholder": "اسم الوسم",
+    "addTag": "إضافة #{{name}}",
+    "move": "نقل",
+    "unassign": "إلغاء التعيين",
+    "archive": "أرشفة",
+    "delete": "حذف",
+    "confirmDelete": "تأكيد الحذف",
+    "selectAll": "تحديد الكل",
+    "selectAllHint": "تحديد الكل (المرئي)",
+    "clear": "مسح التحديد"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — غير قابل للتشغيل من kandown (تطبيق/سطح مكتب، تسمية فقط)"
+  },
+  "onboarding": {
+    "stepLabel": "‏الخطوة {{current}} من {{total}}‏",
+    "back": "رجوع",
+    "next": "التالي",
+    "getStarted": "ابدأ الآن",
+    "close": "إغلاق",
+    "step1Title": "مرحباً بك في Kandown",
+    "step1Desc": "لوحة كانبان محلية بالكامل تعمل بملفات Markdown عادية في ./tasks/. بدون قاعدة بيانات، بدون قفل، قابلة للتتبع عبر git.",
+    "step2Title": "إدارة مهام سهلة",
+    "step2Desc": "اسحب وأفلت المهام بين الأعمدة، وتابع تقدم القوائم، واستخدم صيغاً مثل #tag أو @assignee أو p1 عند الإنشاء.",
+    "step3Title": "لوحة مفاتيح وذكاء اصطناعي",
+    "step3Desc": "اضغط Cmd/Ctrl + K في أي وقت لفتح لوحة الأوامر. شغّل وكلاء الذكاء الاصطناعي مباشرة على المهام لأتمتة سير عملك."
+  },
+  "subtask": {
+    "placeholder": "مهمة فرعية...",
+    "description": "الوصف",
+    "descriptionPlaceholder": "أضف سياقًا أو روابط أو ملاحظات لهذه الخطوة...",
+    "report": "التقرير",
+    "reportPlaceholder": "ما تم إنجازه والقرارات والتسويات...",
+    "aiFillsThis": "AI يملأ هذا بعد الانتهاء",
+    "collapse": "طي",
+    "expand": "توسيع"
   },
   "settings": {
     "noProjectOpen": "لا مشروع مفتوح",
@@ -180,21 +233,6 @@
     "matches": "التطابقات",
     "settingsTitle": "الإعدادات"
   },
-  "conflict": {
-    "detected": "تم اكتشاف تعارض",
-    "detectedDesc": "تم تعديل هذه المهمة خارجيًا أثناء التحرير.",
-    "conflictingChanges": "المهمة <code>{{taskId}}</code> تحتوي على تغييرات متناقضة. اختر كيفية الحل:",
-    "yourVersion": "نسختك (محلية)",
-    "diskVersion": "نسخة القرص (بعيدة)",
-    "cancel": "إلغاء",
-    "reloadFromDisk": "إعادة التحميل من القرص",
-    "keepMyVersion": "الاحتفاظ بنسختي",
-    "title": "العنوان",
-    "priority": "الأولوية",
-    "body": "المحتوى",
-    "subtasks": "المهام الفرعية",
-    "none": "(لا شيء)"
-  },
   "sectionLabels": {
     "title": "العنوان",
     "subtasks": "المهمة الفرعية",
@@ -207,30 +245,5 @@
   },
   "toast": {
     "settingsUpdatedExternally": "تم تحديث الإعدادات خارجيًا - تم إعادة التحميل"
-  },
-  "bulk": {
-    "selectedOne": "محدد",
-    "selectedMany": "محدد",
-    "priority": "الأولوية",
-    "assignee": "المسؤول",
-    "assignNew": "تعيين @{{name}}",
-    "dueDate": "تاريخ الاستحقاق",
-    "clearDue": "مسح تاريخ الاستحقاق",
-    "tags": "الوسوم",
-    "add": "إضافة",
-    "remove": "إزالة",
-    "tagPlaceholder": "اسم الوسم",
-    "addTag": "إضافة #{{name}}",
-    "move": "نقل",
-    "unassign": "إلغاء التعيين",
-    "archive": "أرشفة",
-    "delete": "حذف",
-    "confirmDelete": "تأكيد الحذف",
-    "selectAll": "تحديد الكل",
-    "selectAllHint": "تحديد الكل (المرئي)",
-    "clear": "مسح التحديد"
-  },
-  "agent": {
-    "desktopTooltip": "{{name}} — غير قابل للتشغيل من kandown (تطبيق/سطح مكتب، تسمية فقط)"
   }
 }

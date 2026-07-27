@@ -85,16 +85,6 @@
     "saveClose": "保存して閉じる",
     "cancel": "キャンセル"
   },
-  "subtask": {
-    "placeholder": "サブタスク...",
-    "description": "説明",
-    "descriptionPlaceholder": "このステップのコンテキスト、リンク、メモを追加...",
-    "report": "レポート",
-    "reportPlaceholder": "何をしたか、どのような決定をしたか、トレードオフ...",
-    "aiFillsThis": "AIは完了後にこれを記入します",
-    "collapse": "折りたたむ",
-    "expand": "展開"
-  },
   "commandPalette": {
     "placeholder": "コマンドを入力または検索...",
     "actions": "アクション",
@@ -120,6 +110,69 @@
     "assignee": "担当者",
     "progress": "進捗",
     "noMatchingTasks": "一致するタスクがありません"
+  },
+  "conflict": {
+    "detected": "競合が検出されました",
+    "detectedDesc": "このタスクは編集中に外部で変更されました。",
+    "conflictingChanges": "タスク <code>{{taskId}}</code> に競合する変更があります。解決方法を選択：",
+    "yourVersion": "あなたのバージョン（ローカル）",
+    "diskVersion": "ディスクバージョン（リモート）",
+    "cancel": "キャンセル",
+    "reloadFromDisk": "ディスクから再読み込み",
+    "keepMyVersion": "私のバージョンを維持",
+    "title": "タイトル",
+    "priority": "優先度",
+    "body": "ボディ",
+    "subtasks": "サブタスク",
+    "none": "(なし)"
+  },
+  "bulk": {
+    "priority": "優先度",
+    "assignee": "担当者",
+    "assignNew": "@{{name}} に割り当て",
+    "dueDate": "期限",
+    "clearDue": "期限をクリア",
+    "tags": "タグ",
+    "add": "追加",
+    "remove": "削除",
+    "tagPlaceholder": "タグ名",
+    "addTag": "#{{name}} を追加",
+    "move": "移動",
+    "unassign": "担当を外す",
+    "archive": "アーカイブ",
+    "delete": "削除",
+    "confirmDelete": "削除を確認",
+    "selectAll": "すべて選択",
+    "selectAllHint": "すべて選択 (表示中)",
+    "clear": "選択をクリア",
+    "selectedOne": "selected",
+    "selectedMany": "selected"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — kandown から起動できません（アプリ / デスクトップ、ラベルのみ）"
+  },
+  "onboarding": {
+    "stepLabel": "ステップ {{current}} / {{total}}",
+    "back": "戻る",
+    "next": "次へ",
+    "getStarted": "はじめる",
+    "close": "閉じる",
+    "step1Title": "Kandownへようこそ",
+    "step1Desc": "./tasks/ のMarkdownファイルだけで動くローカルファーストのカンバンボード。データベースもロックインも不要、gitでバージョン管理されます。",
+    "step2Title": "かんたんなタスク管理",
+    "step2Desc": "タスクをカラム間でドラッグ&ドロップし、チェックリストの進捗を追跡。作成時には #tag・@assignee・p1 のようなインライン構文が使えます。",
+    "step3Title": "キーボードとAI",
+    "step3Desc": "コマンドパレットは Cmd/Ctrl + K でいつでも開けます。タスクに対してAIエージェントを直接起動できます。"
+  },
+  "subtask": {
+    "placeholder": "サブタスク...",
+    "description": "説明",
+    "descriptionPlaceholder": "このステップのコンテキスト、リンク、メモを追加...",
+    "report": "レポート",
+    "reportPlaceholder": "何をしたか、どのような決定をしたか、トレードオフ...",
+    "aiFillsThis": "AIは完了後にこれを記入します",
+    "collapse": "折りたたむ",
+    "expand": "展開"
   },
   "settings": {
     "noProjectOpen": "プロジェクトが開かれていません",
@@ -180,21 +233,6 @@
     "matches": "一致",
     "settingsTitle": "設定"
   },
-  "conflict": {
-    "detected": "競合が検出されました",
-    "detectedDesc": "このタスクは編集中に外部で変更されました。",
-    "conflictingChanges": "タスク <code>{{taskId}}</code> に競合する変更があります。解決方法を選択：",
-    "yourVersion": "あなたのバージョン（ローカル）",
-    "diskVersion": "ディスクバージョン（リモート）",
-    "cancel": "キャンセル",
-    "reloadFromDisk": "ディスクから再読み込み",
-    "keepMyVersion": "私のバージョンを維持",
-    "title": "タイトル",
-    "priority": "優先度",
-    "body": "ボディ",
-    "subtasks": "サブタスク",
-    "none": "(なし)"
-  },
   "sectionLabels": {
     "title": "タイトル",
     "subtasks": "サブタスク",
@@ -207,30 +245,5 @@
   },
   "toast": {
     "settingsUpdatedExternally": "設定が外部で更新されました — 再読み込みしました"
-  },
-  "bulk": {
-    "priority": "優先度",
-    "assignee": "担当者",
-    "assignNew": "@{{name}} に割り当て",
-    "dueDate": "期限",
-    "clearDue": "期限をクリア",
-    "tags": "タグ",
-    "add": "追加",
-    "remove": "削除",
-    "tagPlaceholder": "タグ名",
-    "addTag": "#{{name}} を追加",
-    "move": "移動",
-    "unassign": "担当を外す",
-    "archive": "アーカイブ",
-    "delete": "削除",
-    "confirmDelete": "削除を確認",
-    "selectAll": "すべて選択",
-    "selectAllHint": "すべて選択 (表示中)",
-    "clear": "選択をクリア",
-    "selectedOne": "selected",
-    "selectedMany": "selected"
-  },
-  "agent": {
-    "desktopTooltip": "{{name}} — kandown から起動できません（アプリ / デスクトップ、ラベルのみ）"
   }
 }

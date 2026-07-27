@@ -85,16 +85,6 @@
     "saveClose": "সংরক্ষণ ও বন্ধ",
     "cancel": "বাতিল"
   },
-  "subtask": {
-    "placeholder": "সাবটাস্ক...",
-    "description": "বিবরণ",
-    "descriptionPlaceholder": "এই ধাপে প্রসঙ্গ, লিঙ্ক বা নোট যোগ করুন...",
-    "report": "রিপোর্ট",
-    "reportPlaceholder": "কী করা হয়েছে, কী সিদ্ধান্ত নেওয়া হয়েছে, বাণিজ্যিক সিদ্ধান্ত...",
-    "aiFillsThis": "AI সম্পন্ন করার পরে এটি পূরণ করে",
-    "collapse": "ভাঁজ করুন",
-    "expand": "প্রসারিত করুন"
-  },
   "commandPalette": {
     "placeholder": "একটি কমান্ড লিখুন বা অনুসন্ধান করুন...",
     "actions": "অ্যাকশন",
@@ -120,6 +110,69 @@
     "assignee": "দায়িত্বপ্রাপ্ত",
     "progress": "অগ্রগতি",
     "noMatchingTasks": "কোনো মিলে যাওয়া টাস্ক নেই"
+  },
+  "conflict": {
+    "detected": "দ্বন্দ্ব সনাক্ত হয়েছে",
+    "detectedDesc": "আপনি সম্পাদনা করার সময় এই টাস্কটি বাহ্যিকভাবে পরিবর্তিত হয়েছে।",
+    "conflictingChanges": "টাস্ক <code>{{taskId}}</code>-এ দ্বন্দ্বপূর্ণ পরিবর্তন রয়েছে। কীভাবে সমাধান করবেন তা বেছে নিন:",
+    "yourVersion": "আপনার সংস্করণ (লোকাল)",
+    "diskVersion": "ডিস্ক সংস্করণ (রিমোট)",
+    "cancel": "বাতিল",
+    "reloadFromDisk": "ডিস্ক থেকে পুনরায় লোড করুন",
+    "keepMyVersion": "আমার সংস্করণ রাখুন",
+    "title": "শিরোনাম",
+    "priority": "প্রাধান্য",
+    "body": "বডি",
+    "subtasks": "সাবটাস্ক",
+    "none": "(কিছু নয়)"
+  },
+  "bulk": {
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "priority": "Priority",
+    "assignee": "Assignee",
+    "assignNew": "Assign @{{name}}",
+    "dueDate": "Due date",
+    "clearDue": "Clear due date",
+    "tags": "Tags",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "move": "Move",
+    "unassign": "Unassign",
+    "archive": "Archive",
+    "delete": "Delete",
+    "confirmDelete": "Confirm delete",
+    "selectAll": "Select all",
+    "selectAllHint": "Select all (visible)",
+    "clear": "Clear selection"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+  },
+  "onboarding": {
+    "stepLabel": "ধাপ {{current}}/{{total}}",
+    "back": "পেছনে",
+    "next": "পরবর্তী",
+    "getStarted": "শুরু করুন",
+    "close": "বন্ধ করুন",
+    "step1Title": "Kandown-এ স্বাগতম",
+    "step1Desc": "সাধারণ Markdown ফাইলে তৈরি একটি লোকাল-ফার্স্ট কানবান বোর্ড, যা ./tasks/-এ থাকে। কোনো ডাটাবেস নেই, কোনো লক-ইন নেই, git দিয়ে সংস্করণযুক্ত।",
+    "step2Title": "সহজ কাজ ব্যবস্থাপনা",
+    "step2Desc": "কলামের মধ্যে কাজ টানুন ও ফেলুন, চেকলিস্টের অগ্রগতি দেখুন, এবং তৈরির সময় #tag, @assignee বা p1 এর মতো সিনট্যাক্স ব্যবহার করুন।",
+    "step3Title": "কীবোর্ড ও AI চালিত",
+    "step3Desc": "যেকোনো সময় Cmd/Ctrl + K চাপুন কমান্ড প্যালেটের জন্য। কাজের উপর সরাসরি AI এজেন্ট চালু করুন।"
+  },
+  "subtask": {
+    "placeholder": "সাবটাস্ক...",
+    "description": "বিবরণ",
+    "descriptionPlaceholder": "এই ধাপে প্রসঙ্গ, লিঙ্ক বা নোট যোগ করুন...",
+    "report": "রিপোর্ট",
+    "reportPlaceholder": "কী করা হয়েছে, কী সিদ্ধান্ত নেওয়া হয়েছে, বাণিজ্যিক সিদ্ধান্ত...",
+    "aiFillsThis": "AI সম্পন্ন করার পরে এটি পূরণ করে",
+    "collapse": "ভাঁজ করুন",
+    "expand": "প্রসারিত করুন"
   },
   "settings": {
     "noProjectOpen": "কোনো প্রজেক্ট খোলা নেই",
@@ -180,21 +233,6 @@
     "matches": "ম্যাচ",
     "settingsTitle": "সেটিংস"
   },
-  "conflict": {
-    "detected": "দ্বন্দ্ব সনাক্ত হয়েছে",
-    "detectedDesc": "আপনি সম্পাদনা করার সময় এই টাস্কটি বাহ্যিকভাবে পরিবর্তিত হয়েছে।",
-    "conflictingChanges": "টাস্ক <code>{{taskId}}</code>-এ দ্বন্দ্বপূর্ণ পরিবর্তন রয়েছে। কীভাবে সমাধান করবেন তা বেছে নিন:",
-    "yourVersion": "আপনার সংস্করণ (লোকাল)",
-    "diskVersion": "ডিস্ক সংস্করণ (রিমোট)",
-    "cancel": "বাতিল",
-    "reloadFromDisk": "ডিস্ক থেকে পুনরায় লোড করুন",
-    "keepMyVersion": "আমার সংস্করণ রাখুন",
-    "title": "শিরোনাম",
-    "priority": "প্রাধান্য",
-    "body": "বডি",
-    "subtasks": "সাবটাস্ক",
-    "none": "(কিছু নয়)"
-  },
   "sectionLabels": {
     "title": "শিরোনাম",
     "subtasks": "সাবটাস্ক",
@@ -207,30 +245,5 @@
   },
   "toast": {
     "settingsUpdatedExternally": "সেটিংস বাহ্যিকভাবে আপডেট হয়েছে — পুনরায় লোড হয়েছে"
-  },
-  "bulk": {
-    "selectedOne": "selected",
-    "selectedMany": "selected",
-    "priority": "Priority",
-    "assignee": "Assignee",
-    "assignNew": "Assign @{{name}}",
-    "dueDate": "Due date",
-    "clearDue": "Clear due date",
-    "tags": "Tags",
-    "add": "Add",
-    "remove": "Remove",
-    "tagPlaceholder": "tag name",
-    "addTag": "Add #{{name}}",
-    "move": "Move",
-    "unassign": "Unassign",
-    "archive": "Archive",
-    "delete": "Delete",
-    "confirmDelete": "Confirm delete",
-    "selectAll": "Select all",
-    "selectAllHint": "Select all (visible)",
-    "clear": "Clear selection"
-  },
-  "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

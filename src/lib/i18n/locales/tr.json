@@ -85,16 +85,6 @@
     "saveClose": "Kaydet ve kapat",
     "cancel": "İptal"
   },
-  "subtask": {
-    "placeholder": "Alt görev...",
-    "description": "Açıklama",
-    "descriptionPlaceholder": "Bu adım için bağlam, bağlantı veya notlar ekle...",
-    "report": "Rapor",
-    "reportPlaceholder": "Ne yapıldı, hangi kararlar alındı, ödünler...",
-    "aiFillsThis": "AI bunu tamamladıktan sonra doldurur",
-    "collapse": "Daralt",
-    "expand": "Genişlet"
-  },
   "commandPalette": {
     "placeholder": "Bir komut yazın veya arayın...",
     "actions": "Eylemler",
@@ -120,6 +110,69 @@
     "assignee": "Atanan",
     "progress": "İlerleme",
     "noMatchingTasks": "Eşleşen görev yok"
+  },
+  "conflict": {
+    "detected": "Çakışma Tespit Edildi",
+    "detectedDesc": "Bu görev, düzenlerken dışarıdan değiştirildi.",
+    "conflictingChanges": "Görev <code>{{taskId}}</code> çakışan değişikliklere sahip. Nasıl çözüleceğini seçin:",
+    "yourVersion": "Sürümünüz (yerel)",
+    "diskVersion": "Disk sürümü (uzak)",
+    "cancel": "İptal",
+    "reloadFromDisk": "Diskten yeniden yükle",
+    "keepMyVersion": "Sürümümü koru",
+    "title": "Başlık",
+    "priority": "Öncelik",
+    "body": "İçerik",
+    "subtasks": "Alt görevler",
+    "none": "(yok)"
+  },
+  "bulk": {
+    "priority": "Öncelik",
+    "assignee": "Atanan",
+    "dueDate": "Bitiş tarihi",
+    "tags": "Etiketler",
+    "unassign": "Atamayı kaldır",
+    "move": "Taşı",
+    "archive": "Arşivle",
+    "delete": "Sil",
+    "confirmDelete": "Silmeyi onayla",
+    "selectAll": "Tümünü seç",
+    "clear": "Seçimi temizle",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+  },
+  "onboarding": {
+    "stepLabel": "Adım {{current}} / {{total}}",
+    "back": "Geri",
+    "next": "İleri",
+    "getStarted": "Başla",
+    "close": "Kapat",
+    "step1Title": "Kandown'a hoş geldiniz",
+    "step1Desc": "./tasks/ içindeki sade Markdown dosyalarıyla çalışan yerel öncelikli Kanban panonuz. Veritabanı yok, kilitlenme yok, git ile sürümlenmiş.",
+    "step2Title": "Kolay görev yönetimi",
+    "step2Desc": "Görevleri sütunlar arasında sürükleyip bırakın, checklist ilerlemesini takip edin ve oluştururken #tag, @assignee veya p1 gibi satır içi sözdizimi kullanın.",
+    "step3Title": "Klavye ve yapay zeka",
+    "step3Desc": "Komut paleti için istediğiniz zaman Cmd/Ctrl + K tuşlarına basın. Yapay zeka ajanlarını doğrudan görevler üzerinde başlatın."
+  },
+  "subtask": {
+    "placeholder": "Alt görev...",
+    "description": "Açıklama",
+    "descriptionPlaceholder": "Bu adım için bağlam, bağlantı veya notlar ekle...",
+    "report": "Rapor",
+    "reportPlaceholder": "Ne yapıldı, hangi kararlar alındı, ödünler...",
+    "aiFillsThis": "AI bunu tamamladıktan sonra doldurur",
+    "collapse": "Daralt",
+    "expand": "Genişlet"
   },
   "settings": {
     "noProjectOpen": "Açık proje yok",
@@ -180,21 +233,6 @@
     "matches": "Eşleşmeler",
     "settingsTitle": "Ayarlar"
   },
-  "conflict": {
-    "detected": "Çakışma Tespit Edildi",
-    "detectedDesc": "Bu görev, düzenlerken dışarıdan değiştirildi.",
-    "conflictingChanges": "Görev <code>{{taskId}}</code> çakışan değişikliklere sahip. Nasıl çözüleceğini seçin:",
-    "yourVersion": "Sürümünüz (yerel)",
-    "diskVersion": "Disk sürümü (uzak)",
-    "cancel": "İptal",
-    "reloadFromDisk": "Diskten yeniden yükle",
-    "keepMyVersion": "Sürümümü koru",
-    "title": "Başlık",
-    "priority": "Öncelik",
-    "body": "İçerik",
-    "subtasks": "Alt görevler",
-    "none": "(yok)"
-  },
   "sectionLabels": {
     "title": "Başlık",
     "subtasks": "Alt görev",
@@ -207,30 +245,5 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Ayarlar dışarıdan güncellendi — yeniden yüklendi"
-  },
-  "bulk": {
-    "priority": "Öncelik",
-    "assignee": "Atanan",
-    "dueDate": "Bitiş tarihi",
-    "tags": "Etiketler",
-    "unassign": "Atamayı kaldır",
-    "move": "Taşı",
-    "archive": "Arşivle",
-    "delete": "Sil",
-    "confirmDelete": "Silmeyi onayla",
-    "selectAll": "Tümünü seç",
-    "clear": "Seçimi temizle",
-    "selectedOne": "selected",
-    "selectedMany": "selected",
-    "assignNew": "Assign @{{name}}",
-    "clearDue": "Clear due date",
-    "add": "Add",
-    "remove": "Remove",
-    "tagPlaceholder": "tag name",
-    "addTag": "Add #{{name}}",
-    "selectAllHint": "Select all (visible)"
-  },
-  "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }
