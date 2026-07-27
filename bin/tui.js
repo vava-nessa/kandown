@@ -55242,7 +55242,7 @@ import { spawn, execSync } from "child_process";
 import { homedir as homedir2 } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.41.0";
+var KANDOWN_VERSION = "0.41.1";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath as fileURLToPath2 } from "url";
