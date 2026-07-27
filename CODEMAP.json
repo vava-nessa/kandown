@@ -1447,6 +1447,12 @@
       "exports": "useDetectedAgents"
     },
     {
+      "path": "src/lib/__tests__/dependencies.spec.ts",
+      "lines": 254,
+      "title": "dependency-gate behavior matrix",
+      "summary": "Vitest suite that locks the policy decisions into tests (see docs/ARCHITECTURE.md invariant #2)."
+    },
+    {
       "path": "src/lib/agent-aliases.ts",
       "lines": 223,
       "title": "Agent alias resolver (shared, framework-agnostic)",
@@ -1504,36 +1510,48 @@
     },
     {
       "path": "src/lib/dependencies.ts",
-      "lines": 142,
-      "title": "Task dependency resolution and enforcement",
-      "summary": "Resolves `depends_on` references between tasks and enforces the terminal-status gate: a task cannot be moved to the last board column (default: \"Done\") while any of its dependencies is not yet in the terminal status.",
+      "lines": 332,
+      "title": "Task dependency resolution and transition gate",
+      "summary": "Pure module that owns the single rule for moving tasks between board columns: a task may only enter the configured terminal status (and be archived) when every blocking dependency is resolved.",
       "functions": [
         {
-          "name": "resolveDependencyStatus",
-          "summary": "full map of dep id → is it resolved?"
+          "name": "resolveTransition",
+          "summary": "pure verdict for one move / archive"
         },
         {
-          "name": "unresolvedDependencyIds",
-          "summary": "list of unresolved dep ids for one task"
-        },
-        {
-          "name": "countUnresolvedDependencies",
-          "summary": "number N for the `↪N` chip"
+          "name": "assertTransitionAllowed",
+          "summary": "same verdict, throws DependencyGateError"
         },
         {
           "name": "checkTerminalStatusGate",
-          "summary": "throws if a task can't move to terminal status"
+          "summary": "legacy alias kept for one release"
+        },
+        {
+          "name": "resolveDependencyStatus",
+          "summary": "full dep map (sort chip + cascade planning)"
+        },
+        {
+          "name": "unresolvedDependencyIds",
+          "summary": "list of unresolved ids for one task"
+        },
+        {
+          "name": "countUnresolvedDependencies",
+          "summary": "N for the `↪N` chip"
         },
         {
           "name": "terminalStatus",
-          "summary": "getter for the configured terminal status"
+          "summary": "getter for the configured terminal column name"
         },
         {
-          "name": "isTerminalStatus",
-          "summary": "predicate: is this status the configured terminal one?"
+          "name": "isTerminalStatus / isArchivedStatus",
+          "summary": "predicates"
+        },
+        {
+          "name": "movesIntoArchived",
+          "summary": "small helper used by callers that archive"
         }
       ],
-      "exports": "resolveDependencyStatus, unresolvedDependencyIds, countUnresolvedDependencies, checkTerminalStatusGate, terminalStatus, isTerminalStatus, DependencyGateError"
+      "exports": "DependencyGateError, TransitionVerdict, TransitionTaskInput, resolveTransition, assertTransitionAllowed, checkTerminalStatusGate, resolveDependencyStatus, unresolvedDependencyIds, countUnresolvedDependencies, terminalStatus, isTerminalStatus, isArchivedStatus, movesIntoArchived"
     },
     {
       "path": "src/lib/errors.ts",

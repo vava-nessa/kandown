@@ -154,7 +154,7 @@ source to edit instead.
 - **`columnUtils.ts`** · 97 lines — Provides column color maps, color swatches, and tabler icon resolvers shared across Board and List views.
 - **`demoBackend.ts`** · 267 lines — Implements the Kandown REST API against a `Map` instead of a disk, so the whole web UI can run in a browser tab with no CLI, no server and no storage.
 - **`demoSeed.ts`** · 446 lines — The starting contents of the in-memory project served by {@link ./demoBackend.ts} when the app runs in demo mode on the website.
-- **`dependencies.ts`** · 142 lines — Resolves `depends_on` references between tasks and enforces the terminal-status gate: a task cannot be moved to the last board column (default: "Done") while any of its dependencies is not yet in the terminal status.
+- **`dependencies.ts`** · 332 lines — Pure module that owns the single rule for moving tasks between board columns: a task may only enter the configured terminal status (and be archived) when every blocking dependency is resolved.
 - **`errors.ts`** · 138 lines — Typed errors used across the web UI to distinguish failure modes (browser support, permissions, disk full, corruption, parse errors) instead of relying on generic `Error` + string matching.
 - **`filesystem.ts`** · 1010 lines — Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.
 - **`githubStars.ts`** · 122 lines — Client-side GitHub star count for the Kandown web app, with a localStorage cache.
@@ -175,6 +175,10 @@ source to edit instead.
 - **`utils.ts`** · 24 lines — Provides `cn`, the single utility used across every web component to compose conditional class names.
 - **`version.ts`** · 9 lines · ⚠️ **GENERATED** by scripts/inject-version.js — edit `package.json` instead
 - **`watcher.ts`** · 306 lines — 500ms polling watcher using content hashing (SHA-256).
+
+## `src/lib/__tests__/`
+
+- **`dependencies.spec.ts`** · 254 lines — Vitest suite that locks the policy decisions into tests (see docs/ARCHITECTURE.md invariant #2).
 
 ## `src/lib/i18n/` — Internationalisation setup
 
@@ -254,6 +258,6 @@ source to edit instead.
 
 ## Coverage
 
-164 of 164 eligible files carry an `@description` header.
+165 of 165 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

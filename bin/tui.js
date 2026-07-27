@@ -57354,6 +57354,83 @@ var AGENTS = [
     interactive: true,
     aliases: ["pi", "piearendil", "picodingagent"],
     buildCommand: (opts) => ["pi", combinedPrompt(opts)]
+  },
+  // 📖 Wide-compat push (mode-chasse / exa) — every entry here must also
+  // exist in src/lib/agent-aliases.ts (alias table) and src/components/
+  // agentIcons.tsx (brand glyph / kind). The `which <bin>` check happens
+  // implicitly via isAgentInstalled — entries that aren't on PATH simply
+  // don't show in the picker.
+  {
+    id: "crush",
+    name: "Crush",
+    bin: "crush",
+    description: "Charmbracelet Crush (Glamourous agentic TUI)",
+    interactive: true,
+    aliases: ["crush", "charmbraceletcrush"],
+    buildCommand: (opts) => ["crush", combinedPrompt(opts)]
+  },
+  {
+    id: "openclaw",
+    name: "OpenClaw",
+    bin: "openclaw",
+    description: "OpenClaw Foundation personal AI assistant",
+    interactive: true,
+    aliases: ["openclaw", "openclawfoundation", "claw"],
+    buildCommand: (opts) => ["openclaw", combinedPrompt(opts)]
+  },
+  {
+    id: "kimi",
+    name: "Kimi Code CLI",
+    bin: "kimi",
+    description: "Moonshot Kimi Code CLI (terminal coding agent)",
+    interactive: true,
+    aliases: ["kimi", "moonshot", "moonshotai", "kimicode"],
+    buildCommand: (opts) => ["kimi", combinedPrompt(opts)]
+  },
+  {
+    id: "qwen",
+    name: "Qwen Code",
+    bin: "qwen",
+    description: "Alibaba Qwen3-Coder CLI (QwenLM/qwen-code)",
+    interactive: true,
+    aliases: ["qwen", "qwencode", "qwenlm", "alibabaqwen"],
+    buildCommand: (opts) => ["qwen", combinedPrompt(opts)]
+  },
+  {
+    id: "vibe",
+    name: "Mistral Vibe",
+    bin: "vibe",
+    description: "Mistral Vibe CLI (Devstral-powered)",
+    interactive: true,
+    aliases: ["vibe", "mistralvibe"],
+    buildCommand: (opts) => ["vibe", combinedPrompt(opts)]
+  },
+  {
+    id: "grok",
+    name: "Grok Build",
+    bin: "grok",
+    description: "xAI Grok Build (terminal coding agent, pow. by Grok 4.5)",
+    interactive: true,
+    aliases: ["grok", "grokbuild", "xaigrok", "xai"],
+    buildCommand: (opts) => ["grok", combinedPrompt(opts)]
+  },
+  {
+    id: "openhands",
+    name: "OpenHands",
+    bin: "openhands",
+    description: "OpenHands CLI (Python; multi-agent)",
+    interactive: true,
+    aliases: ["openhands", "openhandscli", "openhand"],
+    buildCommand: (opts) => ["openhands", combinedPrompt(opts)]
+  },
+  {
+    id: "pplx",
+    name: "Perplexity CLI",
+    bin: "pplx",
+    description: "Perplexity pplx CLI (search + agent capabilities)",
+    interactive: true,
+    aliases: ["pplx", "pplxcli", "perplexitycli", "perplexity"],
+    buildCommand: (opts) => ["pplx", combinedPrompt(opts)]
   }
 ];
 function getProjectCwd(kandownDir) {
