@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Architecture review — Suzu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: "neutral",
+        securityLevel: "loose",
+        flowchart: { curve: "basis", htmlLabels: true },
+        themeVariables: {
+          fontFamily: "ui-sans-serif, system-ui, sans-serif",
+          primaryColor: "#f8fafc",
+          primaryBorderColor: "#cbd5e1",
+          lineColor: "#64748b"
+        }
+      });
+    </script>
+    <style>
+      html { scroll-behavior: smooth; }
+      body { background-image: radial-gradient(circle at 12% 0%, rgba(136,225,56,.11), transparent 28rem); }
+      .seam-line { border-top: 2px dashed #94a3b8; }
+      .deep { background: linear-gradient(145deg, #0f172a, #1e293b); color: white; }
+      .leak { border-color: #ef4444 !important; box-shadow: inset 0 0 0 1px rgba(239,68,68,.12); }
+      .mass-shadow { box-shadow: 7px 7px 0 #dbe3eb; }
+      .arrow { color: #64748b; font-size: 1.35rem; line-height: 1; }
+      .metric { font-variant-numeric: tabular-nums; }
+      .mermaid { min-height: 245px; display: grid; place-items: center; }
+      code { overflow-wrap: anywhere; }
+      .toprec { background: radial-gradient(circle at 0% 0%, rgba(16,185,129,.16), transparent 55%), linear-gradient(145deg,#022c22,#064e3b); color: #ecfdf5; }
+      .toprec a, .toprec h2, .toprec p { color: inherit; }
+      .pill-strong { background:#d1fae5; color:#065f46; }
+      .pill-worth { background:#fef3c7; color:#92400e; }
+      .pill-explore { background:#e0e7ff; color:#3730a3; }
+      .pill-in { background:#e0e7ff; color:#3730a3; }
+      .pill-port { background:#fce7f3; color:#9d174d; }
+      .pill-mock { background:#fee2e2; color:#991b1b; }
+      @media print {
+        body { background: white; }
+        article { break-inside: avoid; }
+      }
+    </style>
+  </head>
+  <body class="bg-stone-50 text-slate-900 font-sans antialiased">
+    <main class="max-w-6xl mx-auto px-5 sm:px-8 py-12 space-y-12">
+
+      <header class="border-b border-slate-300 pb-8">
+        <div class="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p class="text-xs uppercase tracking-[.24em] text-emerald-700 font-semibold">Architecture review · Suzu</p>
+            <h1 class="mt-2 text-4xl sm:text-5xl font-semibold tracking-tight">Suzu</h1>
+            <p class="mt-3 text-slate-600">Project: <b>Suzu</b> · scope: current hot spots across <code>app/</code>, <code>crates/</code>, <code>settings-ui/</code>, <code>quota-fetcher/</code> · vocabulary: <code>/codebase-design</code>.</p>
+          </div>
+          <div class="flex flex-wrap gap-2 text-xs">
+            <span class="rounded-full border border-slate-300 bg-white px-3 py-1.5">~120 commits sampled</span>
+            <span class="rounded-full border border-rose-200 bg-rose-50 text-rose-700 px-3 py-1.5">Critical Swift tests gap (t101)</span>
+            <span class="rounded-full border border-slate-300 bg-white px-3 py-1.5">ADRs respected · no draft interfaces proposed</span>
+          </div>
+        </div>
+
+        <section class="mt-7 grid sm:grid-cols-2 gap-4">
+          <div class="rounded-xl border border-slate-200 bg-white p-5">
+            <p class="text-xs uppercase tracking-wider font-bold text-slate-500">Recent hot-spot evidence</p>
+            <ul class="mt-3 text-sm space-y-1.5 text-slate-700">
+              <li><b>app/Suzu</b> · <code>GenerationPipeline.swift</code>, <code>AppCoordinator.swift</code> (1.8k lines) keep absorbing TTS, playback, settings and quota flow.</li>
+              <li><b>app/Suzu/Settings</b> · snapshot/controller/model + WebKit bridge carry parallel decode/validate knowledge.</li>
+              <li><b>crates/suzu-tts-orchestrator</b> · queue/chunker/cache primitives exist but <code>GenerationPipeline.swift</code> still owns the policy.</li>
+              <li><b>crates/suzu-daemon/src/state.rs</b> · 1.3k lines mixing message lifecycle, persistence, SSE, sessions, asks, tailing, and a deferred-fallback timer.</li>
+              <li><b>quota-fetcher/src/providers</b> · <code>bedrock.rs</code> +537, <code>cursor.rs</code> +414, <code>augment.rs</code> +64 (10-commit window).</li>
+              <li><b>settings-ui/src</b> · Select dropdown rework + 18-locale backfill added churn across all bridge files.</li>
+            </ul>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-white p-5">
+            <p class="text-xs uppercase tracking-wider font-bold text-slate-500">Canonical ADRs reviewed</p>
+            <ul class="mt-3 text-sm space-y-1.5 text-slate-700">
+              <li><b>tech.adr.daemon-owns-state</b> · daemon is the single state owner; shells project.</li>
+              <li><b>tech.adr.rust-first-freeze</b> · new portable logic starts in Rust; Swift stays a thin shell.</li>
+              <li><b>tech.adr.transport-uds-tcp</b> · UDS primary, TCP <code>6188</code> for compatibility.</li>
+              <li><b>tech.adr.http-keep-alive</b> · daemon keeps HTTP/1.1 keep-alive for the shell.</li>
+              <li><b>tech.adr.quota-fetcher-subprocess</b> · quota fetcher stays a subprocess; do not embed.</li>
+              <li><b>tech.adr.pending-ask-registry</b> · one pending-ask registry, not many.</li>
+              <li><b>tech.adr.webhook-fire-and-forget</b> · webhooks are fire-and-forget.</li>
+              <li><b>tech.adr.cloud-tts-non-macos</b> · TTS cloud-first on non-macOS shells; MLX stays macOS.</li>
+              <li><b>tech.adr.ureq-blocking-http</b> · <code>ureq</code> for CLI/daemon HTTP; no tokio here.</li>
+            </ul>
+          </div>
+        </section>
+
+        <div class="mt-7 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-slate-600">
+          <div class="flex items-center gap-2"><span class="h-6 w-9 rounded border-2 border-slate-400 bg-white"></span>module</div>
+          <div class="flex items-center gap-2"><span class="w-10 seam-line"></span>seam</div>
+          <div class="flex items-center gap-2"><span class="text-rose-600 text-lg">⟶</span>leakage</div>
+          <div class="flex items-center gap-2"><span class="h-6 w-9 rounded deep"></span>deep module</div>
+        </div>
+      </header>
+
+      <section id="candidates" class="space-y-12">
+
+        <article id="speech-lifecycle" class="rounded-2xl border border-emerald-300 bg-emerald-50/30 p-6 sm:p-8 shadow-sm ring-1 ring-emerald-200">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p class="text-xs uppercase tracking-[.2em] text-emerald-700">01 · Speech lifecycle · TOP RECOMMENDATION</p>
+              <h2 class="mt-1 text-2xl font-semibold">Move the speech lifecycle into a Rust deep module</h2>
+              <p class="mt-2 text-sm text-slate-600">Domain: <b>TTS Engine</b> ([[features/feat_tts-engine]]) · tasks: <b>t089</b> ownership flip, <b>t091</b> Swift-shell audit.</p>
+            </div>
+            <div class="flex gap-2 text-xs font-semibold">
+              <span class="rounded-full pill-strong px-3 py-1">Strong</span>
+              <span class="rounded-full pill-port px-3 py-1">ports &amp; adapters</span>
+            </div>
+          </div>
+
+          <div class="mt-5 rounded-lg bg-white px-4 py-3 font-mono text-xs text-slate-700 border border-slate-200">
+            app/Suzu/GenerationPipeline.swift · app/SuzuTTS/MLXTTSEngine.swift · app/SuzuTTS/SystemSpeechEngine.swift · crates/suzu-tts-orchestrator/src/lib.rs · crates/suzu-tts-orchestrator/src/queue.rs · crates/suzu-tts-orchestrator/src/backend.rs · crates/suzu-daemon/src/state.rs
+          </div>
+
+          <div class="mt-7 grid md:grid-cols-2 gap-5">
+            <section class="rounded-xl border border-rose-200 bg-rose-50/40 p-5 min-h-[340px]">
+              <p class="text-xs uppercase tracking-wider font-bold text-rose-700">Before · policy forks between Swift and Rust</p>
+              <pre class="mermaid">
+flowchart TB
+  subgraph SHELL["Swift shell (app/Suzu)"]
+    GP[GenerationPipeline.swift<br>owns queue + chunker + cache hits]
+    MLX[MLXTTSEngine adapter]
+    SYS[SystemSpeechEngine adapter]
+    GP --> MLX
+    GP --> SYS
+  end
+  subgraph RUST["Rust core (crates/suzu-tts-orchestrator)"]
+    ORC[backend.rs / queue.rs<br>primitives · not wired]
+  end
+  SHELL -. 'parallel state' .-> RUST
+  classDef leak stroke:#ef4444,stroke-width:2px,fill:#fff7f7;
+  class GP,ORC leak;
+              </pre>
+              <p class="mt-2 text-xs text-rose-700 text-center">Two implementations of the same speech lifecycle; only one is exercised by the live shell.</p>
+            </section>
+
+            <section class="rounded-xl border border-emerald-200 bg-emerald-50/30 p-5 min-h-[340px]">
+              <p class="text-xs uppercase tracking-wider font-bold text-emerald-800">After · one deep module, two real adapters</p>
+              <pre class="mermaid">
+flowchart TB
+  subgraph DEEP["Deep module · Rust"]
+    LIFE[Speech lifecycle<br>queue · chunks · cache hits · language fallback · caps · cancellation]
+  end
+  subgraph ADP["Adapters"]
+    MLX2[Swift MLX adapter]
+    SYS2[Swift system adapter]
+  end
+  LIFE --> MLX2
+  LIFE --> SYS2
+  classDef deep fill:#0f172a,color:#fff,stroke:#0f172a,stroke-width:3px;
+  class LIFE deep;
+              </pre>
+              <p class="mt-2 text-xs text-emerald-800 text-center">Policy concentrates in Rust. MLX and system remain Swift adapters (ADR cloud-tts-non-macos honored).</p>
+            </section>
+          </div>
+
+          <div class="mt-6 grid lg:grid-cols-3 gap-5 text-sm">
+            <div>
+              <p class="font-semibold">Problem</p>
+              <p class="mt-1 text-slate-600"><code>GenerationPipeline.swift</code> hosts the canonical lifecycle (enqueue, chunk, cache lookups, language fallback, cap enforcement, cancel propagation) while <code>suzu-tts-orchestrator</code> already has queue/chunker/backend primitives in Rust but does not run. Two implementations drift; t089 cannot complete because the live policy lives outside the daemon.</p>
+            </div>
+            <div>
+              <p class="font-semibold">Solution (plain English)</p>
+              <p class="mt-1 text-slate-600">Move the speech lifecycle into one deep Rust module whose interface is the seam. Keep the MLX inference worker and AVSpeechSynthesizer adapter inside the Swift shell — they remain the only places that touch Metal and <code>AVFoundation</code>. macOS still runs MLX locally; non-macOS shells plug their backend behind the same seam, as ADR <code>tech.adr.cloud-tts-non-macos</code> already predicts.</p>
+            </div>
+            <div>
+              <p class="font-semibold">Benefits</p>
+              <ul class="mt-1 text-slate-600 space-y-1.5">
+                <li><b>Locality</b> · caps, cache hits and language fallback live next to the message store.</li>
+                <li><b>Leverage</b> · every voice backend inherits the same lifecycle without rewriting it.</li>
+                <li><b>Depth</b> · the shell adapter becomes shallow (talk to one interface); the deep module becomes the only test surface.</li>
+                <li><b>Deletion test</b> · deleting the orchestration block from <code>GenerationPipeline.swift</code> changes no observable behaviour because that knowledge now lives behind the seam.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="mt-5 grid md:grid-cols-3 gap-3 text-xs">
+            <div class="rounded-lg border border-slate-200 bg-white px-4 py-3">
+              <p class="font-semibold uppercase tracking-wider text-slate-500">Dependency category</p>
+              <p class="mt-1"><b>Ports &amp; adapters</b> · MLX and system voice are real local adapters; future cloud backends are remote-but-owned. Two adapters justify a port, per seam discipline.</p>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-white px-4 py-3">
+              <p class="font-semibold uppercase tracking-wider text-slate-500">Deletion test</p>
+              <p class="mt-1">Removing the duplicated orchestration from <code>GenerationPipeline.swift</code> is non-breaking once the seam exists — the implementation moves, behaviour does not.</p>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-white px-4 py-3">
+              <p class="font-semibold uppercase tracking-wider text-slate-500">ADR status</p>
+              <p class="mt-1">Aligned with <code>tech.adr.rust-first-freeze</code> and <code>tech.adr.cloud-tts-non-macos</code>. No conflict with current code; this is the planned finish of t089.</p>
+            </div>
+          </div>
+        </article>
+
+        <article id="settings-action-snapshot" class="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p class="text-xs uppercase tracking-[.2em] text-slate-500">02 · Settings pipeline</p>
+              <h2 class="mt-1 text-2xl font-semibold">Concentrate the Settings action/snapshot decode &amp; validate</h2>
+              <p class="mt-2 text-sm text-slate-600">Domain: <b>Settings Web Migration</b> ([[tech/tech_settings-web-migration]]).</p>
+            </div>
+            <div class="flex gap-2 text-xs font-semibold">
+              <span class="rounded-full pill-strong px-3 py-1">Strong</span>
+              <span class="rounded-full pill-port px-3 py-1">ports &amp; adapters</span>
+            </div>
+          </div>
+
+          <div class="mt-5 rounded-lg bg-slate-50 px-4 py-3 font-mono text-xs text-slate-700">
+            app/Suzu/Settings/SettingsSnapshot.swift · app/Suzu/Settings/SettingsWebController.swift · app/Suzu/Settings/AppSettingsModel.swift · app/Suzu/Settings/AppSettingsController.swift · settings-ui/src/bridge/types.ts · settings-ui/src/bridge/mock.ts · settings-ui/src/bridge/index.ts · settings-ui/src/bridge/transport.ts · settings-ui/src/bridge/webkit.ts · settings-ui/src/store.ts
+          </div>
+
+          <div class="mt-7 grid md:grid-cols-2 gap-5">
+            <section class="rounded-xl border border-rose-200 bg-rose-50/30 p-5 min-h-[340px]">
+              <p class="text-xs uppercase tracking-wider font-bold text-rose-700">Before · decode scattered across adapters</p>
+              <pre class="mermaid">
+flowchart TB
+  subgraph SEAM["External seam (WKWebView)"]
+    WK[webkit.ts]
+  end
+  subgraph TS["TS side"]
+    T1[types.ts<br>~103 action shapes]
+    MOCK[mock.ts<br>~70 forwarders]
+    IDX[index.ts]
+  end
+  subgraph SW["Swift side"]
+    SWC[SettingsWebController.swift<br>~105 switch cases]
+    SS[SettingsSnapshot.swift<br>decoders]
+    MOD[AppSettingsModel.swift<br>~69 callbacks]
+    CTL[AppSettingsController.swift<br>~69 forwarders]
+  end
+  WK --> SWC
+  SWC --> SS
+  SWC --> MOD
+  MOD --> CTL
+  T1 -. duplicated decode .-> SWC
+  MOCK -. duplicated validation .-> IDX
+  classDef leak stroke:#ef4444,stroke-width:2px,fill:#fff7f7;
+  class T1,MOCK,SS,SWC,MOD leak;
+              </pre>
+              <p class="mt-2 text-xs text-rose-700 text-center">Same knowledge encoded four times across the bridge.</p>
+            </section>
+
+            <section class="rounded-xl border border-emerald-200 bg-emerald-50/30 p-5 min-h-[340px]">
+              <p class="text-xs uppercase tracking-wider font-bold text-emerald-800">After · one deep module, two real adapters</p>
+              <pre class="mermaid">
+flowchart TB
+  subgraph DEEP["Deep module · Settings pipeline"]
+    CORE[decode · validate · state contribution · error report]
+  end
+  CORE --> WK2[WKWebView adapter · Swift side]
+  CORE --> MK2[Mock adapter · TS side]
+  classDef deep fill:#0f172a,color:#fff,stroke:#0f172a,stroke-width-3px;
+  class CORE deep;
+              </pre>
+              <p class="mt-2 text-xs text-emerald-800 text-center">Decode lives once; WKWebView and mock are the two adapters that justify the seam.</p>
+            </section>
+          </div>
+
+          <div class="mt-6 grid lg:grid-cols-3 gap-5 text-sm">
+            <div>
+              <p class="font-semibold">Problem</p>
+              <p class="mt-1 text-slate-600">Action shape, validation, and state contribution are re-encoded across <code>SettingsSnapshot.swift</code>, <code>SettingsWebController.swift</code>, <code>AppSettingsModel.swift</code>, <code>AppSettingsController.swift</code>, <code>types.ts</code> and <code>mock.ts</code>. The same 103+ action types live in two languages; one change ripples into four files, and no Settings contract test guards the seam.</p>
+            </div>
+            <div>
+              <p class="font-semibold">Solution (plain English)</p>
+              <p class="mt-1 text-slate-600">One deep module owns the action vocabulary, the decode/validate rules, the state contribution, and the error report. The WKWebView side becomes an adapter that forwards raw messages to the module and applies its result to the snapshot. The TS side keeps its <code>mock.ts</code> adapter and renders using only the deep module's outcome.</p>
+            </div>
+            <div>
+              <p class="font-semibold">Benefits</p>
+              <ul class="mt-1 text-slate-600 space-y-1.5">
+                <li><b>Locality</b> · one owner per action shape; one validator; one error format.</li>
+                <li><b>Depth</b> · the bridge loses its parallel state; tests target the seam, not the switch.</li>
+                <li><b>Leverage</b> · the mock adapter becomes a real test surface for the deep module instead of duplicating rules.</li>
+                <li><b>Deletion test</b> · delete <code>AppSettingsController</code>'s forwarding or <code>mock.ts</code>'s validators — the deep module still answers, only the adapters thin out.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="mt-5 grid md:grid-cols-3 gap-3 text-xs">
+            <div class="rounded-lg border border-slate-200 bg-white px-4 py-3">
+              <p class="font-semibold uppercase tracking-wider text-slate-500">Dependency category</p>
+              <p class="mt-1"><b>Ports &amp; adapters</b> · WKWebView (production) + mock (dev/test) are the two adapters that justify the seam.</p>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-white px-4 py-3">
+              <p class="font-semibold uppercase tracking-wider text-slate-500">Deletion test</p>
+              <p class="mt-1">Removing <code>AppSettingsController</code> forwarders or the mock validators does not lose any decode rule — the deep module is the only place it lives.</p>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-white px-4 py-3">
+              <p class="font-semibold uppercase tracking-wider text-slate-500">ADR status</p>
+              <p class="mt-1">Aligned with <code>tech.adr.daemon-owns-state</code>: shells project state, deep module projects nothing of its own.</p>
+            </div>
+          </div>
+        </article>
+
+        <article id="quota-reporting" class="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p class="text-xs uppercase tracking-[.2em] text-slate-500">03 · Quota pipeline</p>
+              <h2 class="mt-1 text-2xl font-semibold">Centralize quota reporting &amp; per-family aggregation in Rust</h2>
+              <p class="mt-2 text-sm text-slate-600">Domain: <b>Quota Monitor</b> ([[features/feat_quota-monitor]]) · preserves the subprocess seam.</p>
+            </div>
+            <div class="flex gap-2 text-xs font-semibold">
+              <span class="rounded-full pill-strong px-3 py-1">Strong</span>
+              <span class="rounded-full pill-port px-3 py-1">ports &amp; adapters</span>
+            </div>
+          </div>
+
+          <div class="mt-5 rounded-lg bg-slate-50 px-4 py-3 font-mono text-xs text-slate-700">
+            quota-fetcher/src/main.rs · quota-fetcher/src/providers/mod.rs · quota-fetcher/src/providers/bedrock.rs · quota-fetcher/src/providers/cursor.rs · quota-fetcher/src/providers/augment.rs · quota-fetcher/src/output.rs · quota-fetcher/src/subprocess.rs · app/SuzuQuota/QuotaProviderScanner.swift · app/SuzuQuota/QuotaFetcher.swift · app/SuzuQuota/QuotaMonitor.swift · app/Suzu/Settings/SettingsSnapshot.swift
+          </div>
+
+          <div class="mt-7 grid md:grid-cols-2 gap-5">
+            <section class="rounded-xl border border-rose-200 bg-rose-50/30 p-5 min-h-[340px]">
+              <p class="text-xs uppercase tracking-wider font-bold text-rose-700">Before · catalog duplicated, aggregation near the adapters</p>
+              <pre class="mermaid">
+flowchart TB
+  subgraph RUST["quota-fetcher (subprocess)"]
+    REG[providers/mod.rs<br>catalog]
+    BD[bedrock.rs · 537 lines]
+    CR[cursor.rs · 414 lines]
+    AUG[augment.rs · 64 lines]
+  end
+  subgraph SW["Swift shell"]
+    SCAN[QuotaProviderScanner.allKnown<br>18 entries]
+    FET[QuotaFetcher.swift]
+    MON[QuotaMonitor.swift]
+  end
+  subgraph UI["Settings UI"]
+    MOCK[mock.ts · allKnownProviders]
+  end
+  REG -. duplicated .-> SCAN
+  REG -. duplicated .-> MOCK
+  MON --> FET
+  classDef leak stroke:#ef4444,stroke-width:2px,fill:#fff7f7;
+  class SCAN,MOCK leak;
+              </pre>
+              <p class="mt-2 text-xs text-rose-700 text-center">Provider catalog lives in three places; aggregation is shared with the adapter band.</p>
+            </section>
+
+            <section class="rounded-xl border border-emerald-200 bg-emerald-50/30 p-5 min-h-[340px]">
+              <p class="text-xs uppercase tracking-wider font-bold text-emerald-800">After · one deep module behind the subprocess seam</p>
+              <pre class="mermaid">
+flowchart TB
+  subgraph DEEP["Deep module · quota reporting (Rust)"]
+    CAT[provider catalog · single source]
+    FAM[per-family aggregation<br>windowed · used · reset_at]
+  end
+  CAT --> FAM
+  FAM --> SUB[Subprocess adapter · keeps ADR quota-fetcher-subprocess]
+  SUB --> SH[Swift adapter · QuotaFetcher/QuotaMonitor]
+  classDef deep fill:#0f172a,color:#fff,stroke:#0f172a,stroke-width:3px;
+  class CAT,FAM deep;
+              </pre>
+              <p class="mt-2 text-xs text-emerald-800 text-center">One catalog, one aggregator; the subprocess stays the port (ADR preserved).</p>
+            </section>
+          </div>
+
+          <div class="mt-6 grid lg:grid-cols-3 gap-5 text-sm">
+            <div>
+              <p class="font-semibold">Problem</p>
+              <p class="mt-1 text-slate-600">The 18-entry provider catalog is hand-mirrored in <code>QuotaProviderScanner.allKnown</code> and the TS <code>mock.ts</code>'s <code>allKnownProviders</code>. Per-family aggregation logic sits next to the subprocess adapters rather than next to the catalog. New providers (Bedrock, Cursor, Augment just landed) cause three file edits and silent drift if one is missed.</p>
+            </div>
+            <div>
+              <p class="font-semibold">Solution (plain English)</p>
+              <p class="mt-1 text-slate-600">Promote the catalog and the per-family aggregator into one deep module behind the subprocess seam. The shell adapter exposes only the aggregator's output to Settings and the menubar gauge. The subprocess stays exactly where ADR <code>tech.adr.quota-fetcher-subprocess</code> requires it.</p>
+            </div>
+            <div>
+              <p class="font-semibold">Benefits</p>
+              <ul class="mt-1 text-slate-600 space-y-1.5">
+                <li><b>Locality</b> · catalog and aggregation sit together; new providers touch one file.</li>
+                <li><b>Leverage</b> · both the menubar gauge and the Settings pane consume the same aggregated output.</li>
+                <li><b>Depth</b> · the Swift and TS adapter ends become shallow projections.</li>
+                <li><b>Deletion test</b> · deleting <code>QuotaProviderScanner.allKnown</code> or the mock catalog leaves Settings correct because the daemon now owns the canonical list.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="mt-5 grid md:grid-cols-3 gap-3 text-xs">
+            <div class="rounded-lg border border-slate-200 bg-white px-4 py-3">
+              <p class="font-semibold uppercase tracking-wider text-slate-500">Dependency category</p>
+              <p class="mt-1"><b>Ports &amp; adapters</b> · the subprocess is the port (ADR-protected). Swift and TS are adapters; Rust holds the implementation.</p>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-white px-4 py-3">
+              <p class="font-semibold uppercase tracking-wider text-slate-500">Deletion test</p>
+              <p class="mt-1">Removing the duplicated catalogs (<code>allKnown</code>, <code>allKnownProviders</code>) is non-breaking because the deep module supplies the canonical list.</p>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-white px-4 py-3">
+              <p class="font-semibold uppercase tracking-wider text-slate-500">ADR status</p>
+              <p class="mt-1">Aligned with <code>tech.adr.quota-fetcher-subprocess</code> · the seam stays a subprocess, never embedded. Aligned with <code>tech.adr.rust-first-freeze</code>.</p>
+            </div>
+          </div>
+        </article>
+
+        <article id="session-registry-fallback" class="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p class="text-xs uppercase tracking-[.2em] text-slate-500">04 · Daemon sessions</p>
+              <h2 class="mt-1 text-2xl font-semibold">Absorb the deferred-fallback lifecycle into the SessionRegistry</h2>
+              <p class="mt-2 text-sm text-slate-600">Domain: <b>Pending ask registry</b> ([[tech/decisions/tech_adr-pending-ask-registry]]).</p>
+            </div>
+            <div class="flex gap-2 text-xs font-semibold">
+              <span class="rounded-full pill-worth px-3 py-1">Worth exploring</span>
+              <span class="rounded-full pill-in px-3 py-1">in-process</span>
+            </div>
+          </div>
+
+          <div class="mt-5 rounded-lg bg-slate-50 px-4 py-3 font-mono text-xs text-slate-700">
+            crates/suzu-daemon/src/state.rs · crates/suzu-daemon/src/sessions.rs · crates/suzu-daemon/src/pending.rs
+          </div>
+
+          <div class="mt-7 grid md:grid-cols-2 gap-5">
+            <section class="rounded-xl border border-rose-200 bg-rose-50/30 p-5 min-h-[340px]">
+              <p class="text-xs uppercase tracking-wider font-bold text-rose-700">Before · timer leaks into state.rs</p>
+              <pre class="mermaid">
+flowchart TB
+  S[state.rs<br>1.3k lines<br>messages · persistence · SSE · sessions · asks · tailing · frontmost-app]
+  S -. owns .-> T[Deferred-fallback timer<br>lifecycle for sessions]
+  S -. leaks .-> SR[sessions.rs<br>848 lines]
+  S -. leaks .-> P[pending.rs]
+  classDef leak stroke:#ef4444,stroke-width:2px,fill:#fff7f7;
+  class S,T leak;
+              </pre>
+              <p class="mt-2 text-xs text-rose-700 text-center">The timer policy lives in a file that also persists JSON and runs the SSE pump.</p>
+            </section>
+
+            <section class="rounded-xl border border-emerald-200 bg-emerald-50/30 p-5 min-h-[340px]">
+              <p class="text-xs uppercase tracking-wider font-bold text-emerald-800">After · timer folded into the SessionRegistry</p>
+              <pre class="mermaid">
+flowchart TB
+  SR[sessions.rs<br>SessionRegistry · owns the deferred-fallback lifecycle]
+  P[pending.rs · single pending-ask registry · ADR]
+  S2[state.rs<br>narrow · persistence + SSE only]
+  SR --> P
+  S2 --> SR
+  classDef deep fill:#0f172a,color:#fff,stroke:#0f172a,stroke-width:3px;
+  class SR deep;
+              </pre>
+              <p class="mt-2 text-xs text-emerald-800 text-center">state.rs shrinks; the timer is no longer a leak from a foreign module.</p>
+            </section>
+          </div>
+
+          <div class="mt-6 grid lg:grid-cols-3 gap-5 text-sm">
+            <div>
+              <p class="font-semibold">Problem</p>
+              <p class="mt-1 text-slate-600"><code>state.rs</code> (1.3k lines) holds the deferred-fallback timer whose lifecycle belongs to the session registry. <code>sessions.rs</code> and <code>pending.rs</code> cannot answer "what happens to a session when the user takes too long?" without paging through the global state file. Splitting <code>state.rs</code> by file is not the fix — the timer is the wrong owner.</p>
+            </div>
+            <div>
+              <p class="font-semibold">Solution (plain English)</p>
+              <p class="mt-1 text-slate-600">Move the deferred-fallback timer into <code>sessions.rs</code> next to the rest of the session lifecycle. The pending-ask registry stays single, as ADR <code>tech.adr.pending-ask-registry</code> requires. <code>state.rs</code> keeps persistence and SSE plumbing and stops carrying session-timer state.</p>
+            </div>
+            <div>
+              <p class="font-semibold">Benefits</p>
+              <ul class="mt-1 text-slate-600 space-y-1.5">
+                <li><b>Locality</b> · the timer sits next to the sessions whose policy it implements.</li>
+                <li><b>Depth</b> · <code>state.rs</code> becomes a small coordination module instead of a god-module.</li>
+                <li><b>Deletion test</b> · deleting the timer block from <code>state.rs</code> no longer risks losing the fallback rule, because the rule lives behind the sessions seam.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="mt-5 grid md:grid-cols-3 gap-3 text-xs">
+            <div class="rounded-lg border border-slate-200 bg-white px-4 py-3">
+              <p class="font-semibold uppercase tracking-wider text-slate-500">Dependency category</p>
+              <p class="mt-1"><b>In-process</b> · pure lifecycle logic, no I/O. Direct test through the new interface.</p>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-white px-4 py-3">
+              <p class="font-semibold uppercase tracking-wider text-slate-500">Deletion test</p>
+              <p class="mt-1">Removing the timer from <code>state.rs</code> while keeping the behaviour in <code>sessions.rs</code> changes no observable outcome.</p>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-white px-4 py-3">
+              <p class="font-semibold uppercase tracking-wider text-slate-500">ADR status</p>
+              <p class="mt-1">Aligned with <code>tech.adr.pending-ask-registry</code> · one registry remains. Aligned with <code>tech.adr.daemon-owns-state</code> · no state moves out of the daemon.</p>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section id="top-recommendation" class="rounded-3xl toprec p-7 sm:p-10 shadow-lg ring-1 ring-emerald-700/40">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div class="max-w-3xl">
+            <p class="text-xs uppercase tracking-[.24em] text-emerald-200">Top recommendation</p>
+            <h2 class="mt-2 text-3xl sm:text-4xl font-semibold tracking-tight">Move the speech lifecycle into a Rust deep module — keep MLX &amp; system as Swift adapters.</h2>
+            <p class="mt-3 text-sm text-emerald-100/90">This is the candidate with the strongest fit to the documented ADRs (<code>tech.adr.rust-first-freeze</code>, <code>tech.adr.cloud-tts-non-macos</code>, <code>tech.adr.daemon-owns-state</code>) and the one that unblocks both <b>t089</b> and <b>t091</b>. The other three are real wins, but they become safer to ship after the speech lifecycle is owned in one place.</p>
+          </div>
+          <div class="flex flex-col gap-2 text-xs font-semibold">
+            <span class="rounded-full bg-emerald-200 text-emerald-900 px-3 py-1.5 self-start">Strong</span>
+            <span class="rounded-full bg-pink-200 text-pink-900 px-3 py-1.5 self-start">Ports &amp; adapters</span>
+            <span class="rounded-full bg-amber-200 text-amber-900 px-3 py-1.5 self-start">Unblocks t089 + t091</span>
+          </div>
+        </div>
+
+        <div class="mt-7 grid sm:grid-cols-3 gap-3 text-sm">
+          <div class="rounded-xl bg-emerald-900/40 border border-emerald-500/30 p-4">
+            <p class="font-semibold text-emerald-200">Locality</p>
+            <p class="mt-1 text-emerald-50/90">Caps, cache hits and language fallback sit next to the message store.</p>
+          </div>
+          <div class="rounded-xl bg-emerald-900/40 border border-emerald-500/30 p-4">
+            <p class="font-semibold text-emerald-200">Depth</p>
+            <p class="mt-1 text-emerald-50/90">Shell adapter becomes shallow; the deep module is the single test surface.</p>
+          </div>
+          <div class="rounded-xl bg-emerald-900/40 border border-emerald-500/30 p-4">
+            <p class="font-semibold text-emerald-200">Leverage</p>
+            <p class="mt-1 text-emerald-50/90">Future cloud backends inherit the lifecycle without rewriting it.</p>
+          </div>
+        </div>
+
+        <div class="mt-8 rounded-2xl bg-emerald-50 text-emerald-950 p-6 text-center">
+          <p class="text-xs uppercase tracking-[.24em] text-emerald-700">Next step</p>
+          <p class="mt-2 text-2xl sm:text-3xl font-semibold">Which of these would you like to explore?</p>
+        </div>
+      </section>
+
+      <footer class="pt-4 pb-10 text-center text-xs text-slate-500">
+        Generated as a read-only architecture review · vocabulary strictly from <code>/codebase-design</code> · no draft interfaces or signatures proposed · ADRs respected.
+      </footer>
+    </main>
+  </body>
+</html>

@@ -5,7 +5,7 @@ description: Creating tasks, the fields they carry, subtasks with reports, depen
 ---
 
 A task is a single Markdown file in `tasks/`. Everything below is a description of what goes in
-that file — the UI, the terminal and the CLI are three editors for the same thing.
+that file: the UI, the terminal and the CLI are three editors for the same thing.
 
 ## Creating a task
 
@@ -21,7 +21,7 @@ Fix login p1 #backend #security @chacha due:friday
 | Token | Sets |
 |---|---|
 | `p1` … `p4` | Priority |
-| `#tag` | A tag — repeat for several |
+| `#tag` | A tag (repeat for several) |
 | `@name` | Assignee |
 | `due:friday`, `due:2026-08-01` | Due date, natural language or ISO |
 
@@ -51,7 +51,7 @@ Add `--json` if you want the whole task object back.
 | `priority` | `P1`–`P4`, highest to lowest |
 | `tags` | Free-form labels |
 | `assignee` | A username or an agent name |
-| `ownerType` | `human` or `ai` — drives owner filtering |
+| `ownerType` | `human` or `ai`, drives owner filtering |
 | `due` | Due date; drives the due-date banner |
 | `epic` | Groups related tasks; available as a group-by |
 | `depends_on` | Ids of tasks blocking this one |
@@ -72,9 +72,9 @@ Subtasks are a plain Markdown checklist under a `## Subtasks` heading:
 
 Two things make them more than a checklist:
 
-- **Per-step descriptions** — indented prose under a step, for context that does not belong in the
+- **Per-step descriptions**: indented prose under a step, for context that does not belong in the
   title.
-- **`report:` lines** — what actually happened when the step was completed. This is the field that
+- **`report:` lines**: what actually happened when the step was completed. This is the field that
   turns a finished task into a work log rather than a row of green ticks, and it is where agents
   are expected to write their results.
 
@@ -89,7 +89,7 @@ depends_on: [t7, t12]
 
 A task with unresolved dependencies **cannot be moved to the terminal column**. The gate lives in
 the shared core, so the refusal is identical whether the move comes from a drag in the browser, an
-`m` in the terminal UI, or `kandown move` in a script — the CLI cannot route around what the UI
+`m` in the terminal UI, or `kandown move` in a script; the CLI cannot route around what the UI
 refuses.
 
 Blocked tasks are annotated as such in the board digest that agents read, so an agent picking up
@@ -102,7 +102,7 @@ Every task is owned by a `human` or an `ai`. It is a filter, not a permission: i
 
 ## Templates
 
-Recurring shapes — a bug report, a release checklist, a spike — can be saved as templates and
+Recurring shapes (a bug report, a release checklist, a spike) can be saved as templates and
 applied when creating a task, so the subtask list and default fields come pre-filled.
 
 ## Archiving and deleting

@@ -1,7 +1,7 @@
 ---
 title: Architecture
 section: Project
-description: How the pieces fit together — the shared core, three interfaces, the daemon, and the invariants that keep them honest.
+description: How the pieces fit together: the shared core, three interfaces, the daemon, and the invariants that keep them honest.
 ---
 
 This page is the map. The authoritative, always-current version lives in
@@ -55,8 +55,8 @@ route except a read-only identity check. See
 `tasks/*.md`, and nothing else. No index, no cache, no manifest, no sidecar database.
 
 Every read walks the folder. On a board of a few hundred tasks that is fast enough to be
-unnoticeable, and the property it buys — that the directory is the state, with no way for a cache
-to be wrong — is worth far more than the microseconds.
+unnoticeable, and the property it buys (that the directory is the state, with no way for a cache
+to be wrong) is worth far more than the microseconds.
 
 ## Invariants
 
@@ -76,10 +76,10 @@ The rules that must not be broken, restated from the repository:
 
 The repository generates its own map:
 
-- **`CODEMAP.md`** — every source file with a one-line summary, generated from the JSDoc headers.
+- **`CODEMAP.md`**: every source file with a one-line summary, generated from the JSDoc headers.
   Read this before grepping.
-- **`CODEMAP.json`** — the same data, plus symbols. Look a symbol up here instead of searching.
-- **`graphify query "<question>"`** — asks what depends on what.
+- **`CODEMAP.json`**: the same data, plus symbols. Look a symbol up here instead of searching.
+- **`graphify query "<question>"`**: asks what depends on what.
 
 ## Next
 

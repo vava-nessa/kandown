@@ -6,7 +6,7 @@ description: Requirements, install methods, and how Kandown keeps itself up to d
 
 ## Requirements
 
-Node.js **18 or newer**. That is the entire list — no database, no runtime service, no global
+Node.js **18 or newer**. That is the entire list: no database, no runtime service, no global
 configuration.
 
 Check what you have:
@@ -63,7 +63,7 @@ silently when one is found. The check is skipped entirely:
 
 - for every task command (`list`, `create`, `move`, …),
 - for `kandown daemon`,
-- whenever stdout is not a terminal — so it never fires in CI or inside an agent loop.
+- whenever stdout is not a terminal, so it never fires in CI or inside an agent loop.
 
 To turn it off completely:
 
@@ -90,5 +90,5 @@ kandown daemon refresh-all
 npm uninstall -g kandown
 ```
 
-Your `tasks/` folder and `.kandown/` config stay exactly where they are — they are just files, and
+Your `tasks/` folder and `.kandown/` config stay exactly where they are; they are just files, and
 removing the tool does not touch them.

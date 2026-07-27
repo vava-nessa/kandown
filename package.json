@@ -50,6 +50,9 @@
     "codemap:check": "node scripts/build-codemap.js --check",
     "changelog": "node scripts/build-changelog.js",
     "changelog:check": "node scripts/build-changelog.js --check",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "prepare": "node scripts/install-hooks.js"
   },
   "devDependencies": {
@@ -73,6 +76,8 @@
     "typescript": "^5.7.3",
     "vite": "^6.0.7",
     "vite-plugin-singlefile": "^2.1.0",
+    "vitest": "^2.1.9",
+    "@vitest/coverage-v8": "^2.1.9",
     "zustand": "^5.0.0"
   },
   "dependencies": {

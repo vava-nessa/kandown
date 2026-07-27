@@ -1,7 +1,7 @@
 ---
 title: Launching agents
 section: AI agents
-description: Handing a task to Claude Code, Codex, Gemini CLI, Goose, Aider or OpenCode — and wiring your own tooling through the agent hook.
+description: Handing a task to Claude Code, Codex, Gemini CLI, Goose, Aider or OpenCode, and wiring your own tooling through the agent hook.
 ---
 
 ## From the board
@@ -18,13 +18,13 @@ launches the agent you choose on it.
 | Aider | `aider` | `--message` initial prompt |
 | OpenCode | `opencode` | TUI, context written to `/tmp` |
 
-Each entry launches differently because each CLI expects a different shape of input — an
-interactive session where that is the natural mode, a one-shot prompt where it is not. Only agents
+Each entry launches differently because each CLI expects a different shape of input (an
+interactive session where that is the natural mode, a one-shot prompt where it is not). Only agents
 whose binary is on your `PATH` are offered.
 
 ## Your own tooling
 
-Anything else — an IDE, a bot, an internal queue, a webhook into your own orchestrator — connects
+Anything else (an IDE, a bot, an internal queue, a webhook into your own orchestrator) connects
 through the **agent hook**. Press <kbd>g</kbd> in the terminal UI (or use *Send to Agent* in the
 web board) and Kandown posts the task to your endpoint.
 
@@ -42,7 +42,7 @@ export KANDOWN_AGENT_HOOK_HEADERS='{"Authorization":"Bearer $TOKEN"}'
 
 <Callout type="warn">
 The hook is the one part of Kandown that makes an outbound network request, and it does so only
-when you press the key. Point it somewhere you trust — the task body goes with it.
+when you press the key. Point it somewhere you trust; the task body goes with it.
 </Callout>
 
 ## In a loop, without the UI
@@ -66,5 +66,5 @@ Work on task $NEXT. Update the task file as you go."
 ```
 
 Two properties make this reliable: task commands never touch the network, and stdout is data-only,
-so the `$( … )` captures above hold exactly what you expect. See
+so the `$( … )` captures above hold exactly what you expect (see
 [the output contract](/docs/agents/overview#the-output-contract).

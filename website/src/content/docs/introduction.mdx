@@ -23,19 +23,19 @@ browser, choose **Open project** to work directly with a local Kandown folder.
 
 One `.md` file per task, one folder, versioned in git. Nothing to export because nothing was ever
 imported. Open a task in your editor, `grep` your backlog, write a shell script against it, hand
-the folder to a colleague — it is all the same operation on the same files.
+the folder to a colleague; it is all the same operation on the same files.
 
 There is no index, no cache and no manifest. The directory *is* the state. Move a file between
 folders and the board moves with it; delete one and the task is gone. That constraint is enforced
-deliberately across the codebase — see [Architecture](/docs/project/architecture).
+deliberately across the codebase (see [Architecture](/docs/project/architecture)).
 
 ### Agents are first-class users
 
 Most tools bolt AI on as an integration: an API key, a plugin, a webhook. Kandown assumes an agent
 is simply another user of the board, and gives it the same affordances as you.
 
-`kandown work` prints everything an agent needs — the rules, your project instructions, a live
-board digest, and the computed next actionable task — as Markdown on stdout. Every task command is
+`kandown work` prints everything an agent needs: the rules, your project instructions, a live
+board digest, and the computed next actionable task, as Markdown on stdout. Every task command is
 non-interactive, JSON-capable and offline. See [For AI agents](/docs/agents/overview).
 
 ### Local-first, actually
@@ -58,10 +58,10 @@ Being clear about the boundaries saves you evaluating it for the wrong job.
 
 ## Who it is for
 
-Developers who already live in a repository and want their task list to live there too — and
+Developers who already live in a repository and want their task list to live there too, and
 anyone running AI coding agents who needs a shared, durable place for those agents to pick up work,
 report on it, and hand it back.
 
 ## Next
 
-Install it, then run through the [quick start](/docs/quick-start) — it takes about two minutes.
+Install it, then run through the [quick start](/docs/quick-start); it takes about two minutes.

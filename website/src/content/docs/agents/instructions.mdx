@@ -4,7 +4,7 @@ section: AI agents
 description: Teaching agents your project's specifics through .kandown/instructions.md, and why it beats pasting rules into AGENTS.md.
 ---
 
-`kandown work` serves the *generic* agent rules — how tasks work, what a report is, how the
+`kandown work` serves the *generic* agent rules: how tasks work, what a report is, how the
 dependency gate behaves. What it cannot know is anything about **your** project.
 
 That is what `.kandown/instructions.md` is for.
@@ -26,7 +26,7 @@ Things an agent cannot infer from your code, and will otherwise get wrong:
 
 ```markdown
 ## Stack
-- pnpm, always. Never npm or yarn — the lockfile is pnpm's.
+- pnpm, always. Never npm or yarn; the lockfile is pnpm's.
 - Vitest for tests: `pnpm test`. There is no jest config despite the old comments.
 
 ## Conventions
@@ -72,6 +72,6 @@ that line. It is what tells an agent the command exists in the first place.
 kandown work
 ```
 
-Run it yourself. It is the exact text your agent receives — if it reads badly to you, it will read
+Run it yourself. It is the exact text your agent receives. If it reads badly to you, it will read
 badly to the model. Trim it in Settings → Agent → `kandown work` output, where the estimated token
 count updates as you toggle blocks.

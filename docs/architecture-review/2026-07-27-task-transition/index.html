@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Architecture review — Kandown</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: "neutral",
+        securityLevel: "loose",
+        flowchart: { curve: "basis", htmlLabels: true },
+        themeVariables: {
+          fontFamily: "ui-sans-serif, system-ui, sans-serif",
+          primaryColor: "#f8fafc",
+          primaryBorderColor: "#cbd5e1",
+          lineColor: "#64748b"
+        }
+      });
+    </script>
+    <style>
+      html { scroll-behavior: smooth; }
+      body { background-image: radial-gradient(circle at 12% 0%, rgba(136,225,56,.11), transparent 28rem); }
+      .seam-line { border-top: 2px dashed #94a3b8; }
+      .deep { background: linear-gradient(145deg, #0f172a, #1e293b); color: white; }
+      .leak { border-color: #ef4444 !important; box-shadow: inset 0 0 0 1px rgba(239,68,68,.12); }
+      .mass-shadow { box-shadow: 7px 7px 0 #dbe3eb; }
+      .arrow { color: #64748b; font-size: 1.35rem; line-height: 1; }
+      .metric { font-variant-numeric: tabular-nums; }
+      .mermaid { min-height: 245px; display: grid; place-items: center; }
+      code { overflow-wrap: anywhere; }
+      @media print {
+        body { background: white; }
+        article { break-inside: avoid; }
+      }
+    </style>
+  </head>
+  <body class="bg-stone-50 text-slate-900 font-sans antialiased">
+    <main class="max-w-6xl mx-auto px-5 sm:px-8 py-12 space-y-12">
+      <header class="border-b border-slate-300 pb-8">
+        <div class="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p class="text-xs uppercase tracking-[.24em] text-emerald-700 font-semibold">Architecture review · 2026-07-27</p>
+            <h1 class="mt-2 text-4xl sm:text-5xl font-semibold tracking-tight">Kandown</h1>
+            <p class="mt-3 text-slate-600">Scope: recent hot spots, current worktree, six deepening candidates.</p>
+          </div>
+          <div class="flex flex-wrap gap-2 text-xs">
+            <span class="rounded-full border border-slate-300 bg-white px-3 py-1.5">120 commits sampled</span>
+            <span class="rounded-full border border-rose-200 bg-rose-50 text-rose-700 px-3 py-1.5">0 tracked tests</span>
+            <span class="rounded-full border border-slate-300 bg-white px-3 py-1.5">No CONTEXT.md / ADRs found</span>
+          </div>
+        </div>
+        <div class="mt-7 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-slate-600">
+          <div class="flex items-center gap-2"><span class="h-6 w-9 rounded border-2 border-slate-400 bg-white"></span>module</div>
+          <div class="flex items-center gap-2"><span class="w-10 seam-line"></span>seam</div>
+          <div class="flex items-center gap-2"><span class="text-rose-600 text-lg">⟶</span>leakage</div>
+          <div class="flex items-center gap-2"><span class="h-6 w-9 rounded deep"></span>deep module</div>
+        </div>
+      </header>
+
+      <section id="candidates" class="space-y-12">
+        <article id="transition-policy" class="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p class="text-xs uppercase tracking-[.2em] text-slate-500">01 · Shared task core</p>
+              <h2 class="mt-1 text-2xl font-semibold">Deepen the Task transition policy</h2>
+            </div>
+            <div class="flex gap-2 text-xs font-semibold">
+              <span class="rounded-full bg-emerald-100 text-emerald-800 px-3 py-1">Strong</span>
+              <span class="rounded-full bg-indigo-100 text-indigo-800 px-3 py-1">in-process</span>
+            </div>
+          </div>
+          <div class="mt-5 rounded-lg bg-slate-50 px-4 py-3 font-mono text-xs text-slate-700">
+            src/lib/dependencies.ts · src/lib/store.ts · src/lib/store/boardSlice.ts · src/cli/lib/board-reader.ts · src/cli/commands/tasks.ts · src/cli/lib/mcp.ts · src/cli/screens/board.tsx
+          </div>
+
+          <div class="mt-7 grid md:grid-cols-2 gap-5">
+            <section class="rounded-xl border border-rose-200 bg-rose-50/40 p-5 min-h-[320px]">
+              <p class="text-xs uppercase tracking-wider font-bold text-rose-700">Before · policy forks</p>
+              <div class="mt-5 space-y-3 text-sm">
+                <div class="rounded-lg border-2 border-dashed border-slate-300 bg-white p-3 text-center text-slate-500">
+                  <b>dependencies.ts</b><br><span class="text-xs">canonical gate · zero mutation callers</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="rounded-lg border-2 leak bg-white p-3 text-center"><b>Web store</b><br><span class="text-xs text-rose-700">copied gate</span></div>
+                  <div class="rounded-lg border-2 leak bg-white p-3 text-center"><b>TUI</b><br><span class="text-xs text-rose-700">copied gate × 4 paths</span></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="rounded-lg border-2 leak bg-white p-3 text-center"><b>CLI</b><br><span class="text-xs text-rose-700">no gate</span></div>
+                  <div class="rounded-lg border-2 leak bg-white p-3 text-center"><b>MCP</b><br><span class="text-xs text-rose-700">no gate</span></div>
+                </div>
+                <p class="text-center text-xs text-rose-700">Unknown and archived dependencies already disagree.</p>
+              </div>
+            </section>
+            <section class="rounded-xl border border-emerald-200 bg-emerald-50/40 p-5 min-h-[320px]">
+              <p class="text-xs uppercase tracking-wider font-bold text-emerald-800">After · one deep policy</p>
+              <div class="mt-8 mx-auto max-w-sm">
+                <div class="deep rounded-xl p-6 text-center mass-shadow">
+                  <p class="text-xs uppercase tracking-wider text-emerald-300">Deep module</p>
+                  <p class="mt-2 text-lg font-semibold">Task transition policy</p>
+                  <p class="mt-2 text-xs text-slate-300">terminal column · archived · unknown · self-reference</p>
+                </div>
+                <div class="h-8 border-l-2 border-slate-400 mx-auto w-0"></div>
+                <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                  <div class="rounded border bg-white p-3">Web adapter</div>
+                  <div class="rounded border bg-white p-3">Node adapter<br>TUI + CLI</div>
+                  <div class="rounded border bg-white p-3">MCP adapter</div>
+                </div>
+              </div>
+            </section>
+          </div>
+          <div class="mt-6 grid lg:grid-cols-[1fr_1fr_auto] gap-5 text-sm">
+            <div><p class="font-semibold">Problem</p><p class="mt-1 text-slate-600">The intended deep module is bypassed; callers leak and contradict its policy.</p></div>
+            <div><p class="font-semibold">Solution</p><p class="mt-1 text-slate-600">Put every terminal transition through the canonical policy before persistence.</p></div>
+            <div><p class="font-semibold">Wins</p><ul class="mt-1 text-slate-600 space-y-1"><li>Locality: one rule owner</li><li>Leverage: every entry point</li><li>Tests hit one interface</li></ul></div>
+          </div>
+          <div class="mt-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"><b>Architecture conflict:</b> current behavior violates invariant #2, “one rule, one implementation.”</div>
+        </article>
+
+        <article id="instruction-assembly" class="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p class="text-xs uppercase tracking-[.2em] text-slate-500">02 · Agent workflow</p>
+              <h2 class="mt-1 text-2xl font-semibold">Collapse Agent instruction assembly</h2>
+            </div>
+            <div class="flex gap-2 text-xs font-semibold">
+              <span class="rounded-full bg-emerald-100 text-emerald-800 px-3 py-1">Strong</span>
+              <span class="rounded-full bg-indigo-100 text-indigo-800 px-3 py-1">in-process</span>
+            </div>
+          </div>
+          <div class="mt-5 rounded-lg bg-slate-50 px-4 py-3 font-mono text-xs text-slate-700">
+            src/cli/lib/board-reader.ts · src/cli/commands/project.ts · src/cli/lib/agents.ts · src/components/settings/WorkOutputConfigurator.tsx · src/lib/types.ts
+          </div>
+          <div class="mt-7 grid md:grid-cols-2 gap-5">
+            <div class="rounded-xl border border-rose-200 bg-rose-50/30 p-4">
+              <p class="text-xs uppercase tracking-wider font-bold text-rose-700 mb-2">Before · preview is parallel</p>
+              <pre class="mermaid">
+flowchart TB
+  R[Packaged rules] --> D[readAgentDoc]
+  D --> W[cmdWork]
+  W --> B[Separate digest]
+  D --> L[Launcher]
+  L --> P[buildPrompt workflow text]
+  C[WorkOutputConfig] --> V[Web preview only]
+  classDef leak stroke:#ef4444,stroke-width:2px,fill:#fff7f7;
+  class B,P,V leak;
+              </pre>
+            </div>
+            <div class="rounded-xl border border-emerald-200 bg-emerald-50/30 p-4">
+              <p class="text-xs uppercase tracking-wider font-bold text-emerald-800 mb-2">After · one assembly module</p>
+              <pre class="mermaid">
+flowchart TB
+  I[Core facts · workflow · layers · context] --> M[Deep Agent instruction assembly]
+  M --> W[kandown work adapter]
+  M --> L[Launch adapter]
+  M --> V[Web preview adapter]
+  classDef deep fill:#0f172a,color:#fff,stroke:#0f172a,stroke-width:3px;
+  class M deep;
+              </pre>
+            </div>
+          </div>
+          <div class="mt-6 grid lg:grid-cols-[1fr_1fr_auto] gap-5 text-sm">
+            <div><p class="font-semibold">Problem</p><p class="mt-1 text-slate-600">The configured preview does not govern runtime output; launch text adds separate workflow opinions.</p></div>
+            <div><p class="font-semibold">Solution</p><p class="mt-1 text-slate-600">One deep assembly module owns core facts, workflow, layering, digest, task, and handoff text.</p></div>
+            <div><p class="font-semibold">Wins</p><ul class="mt-1 text-slate-600 space-y-1"><li>Locality: policy concentrates</li><li>Leverage: three adapters</li><li>Preview equals runtime</li></ul></div>
+          </div>
+          <div class="mt-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"><b>Architecture conflict:</b> instruction policy currently has several implementations, again contradicting invariant #2.</div>
+        </article>
+
+        <article id="store-split" class="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p class="text-xs uppercase tracking-[.2em] text-slate-500">03 · Web state</p>
+              <h2 class="mt-1 text-2xl font-semibold">Finish the Board store deepening</h2>
+            </div>
+            <div class="flex gap-2 text-xs font-semibold">
+              <span class="rounded-full bg-emerald-100 text-emerald-800 px-3 py-1">Strong</span>
+              <span class="rounded-full bg-indigo-100 text-indigo-800 px-3 py-1">in-process</span>
+            </div>
+          </div>
+          <div class="mt-5 rounded-lg bg-slate-50 px-4 py-3 font-mono text-xs text-slate-700">
+            src/lib/store.ts · src/lib/store/boardSlice.ts · drawerSlice.ts · projectSlice.ts · uiSlice.ts · agentSearchSlice.ts · watcherSlice.ts · helpers.ts · types.ts
+          </div>
+          <div class="mt-7 grid md:grid-cols-2 gap-5">
+            <section class="rounded-xl border border-rose-200 bg-rose-50/30 p-5 min-h-[320px]">
+              <p class="text-xs uppercase tracking-wider font-bold text-rose-700">Before · mirrored implementation</p>
+              <div class="mt-7 space-y-5">
+                <div>
+                  <div class="flex justify-between text-xs mb-1"><span>Live store.ts</span><span class="metric">1,979 lines</span></div>
+                  <div class="h-24 rounded-lg border-2 border-slate-600 bg-slate-700 text-white grid place-items-center font-semibold">47 active actions</div>
+                </div>
+                <div>
+                  <div class="flex justify-between text-xs mb-1"><span>Six unused slice factories</span><span class="metric">47 / 47 copied actions</span></div>
+                  <div class="h-24 rounded-lg border-2 leak bg-white grid place-items-center text-center"><span><b>Dead mirror</b><br><small class="text-rose-700">already drifting</small></span></div>
+                </div>
+              </div>
+            </section>
+            <section class="rounded-xl border border-emerald-200 bg-emerald-50/30 p-5 min-h-[320px]">
+              <p class="text-xs uppercase tracking-wider font-bold text-emerald-800">After · replace, don’t layer</p>
+              <div class="mt-7 rounded-xl border-2 border-slate-700 overflow-hidden mass-shadow">
+                <div class="bg-white px-4 py-3 text-center text-sm font-semibold">Small <code>useStore</code> seam</div>
+                <div class="deep p-5">
+                  <p class="text-xs uppercase tracking-wider text-emerald-300 text-center">Deep implementation</p>
+                  <div class="mt-4 grid grid-cols-2 gap-2 text-xs text-center">
+                    <div class="rounded bg-slate-700 p-3">Project</div><div class="rounded bg-slate-700 p-3">Board mutation</div>
+                    <div class="rounded bg-slate-700 p-3">Editor</div><div class="rounded bg-slate-700 p-3">Search + Agent</div>
+                    <div class="rounded bg-slate-700 p-3">Watcher</div><div class="rounded bg-slate-700 p-3">UI state</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+          <div class="mt-6 grid lg:grid-cols-[1fr_1fr_auto] gap-5 text-sm">
+            <div><p class="font-semibold">Problem</p><p class="mt-1 text-slate-600">The intended modules are unused near-copies; deleting them changes no runtime behavior.</p></div>
+            <div><p class="font-semibold">Solution</p><p class="mt-1 text-slate-600">Make the slices the sole implementation, then delete the monolithic action bodies.</p></div>
+            <div><p class="font-semibold">Wins</p><ul class="mt-1 text-slate-600 space-y-1"><li>Locality: one mutation owner</li><li>Leverage: stable store seam</li><li>Delete the dead mirror</li></ul></div>
+          </div>
+        </article>
+
+        <article id="kanban-geometry" class="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p class="text-xs uppercase tracking-[.2em] text-slate-500">04 · Terminal board</p>
+              <h2 class="mt-1 text-2xl font-semibold">Deepen Kanban geometry</h2>
+            </div>
+            <div class="flex gap-2 text-xs font-semibold">
+              <span class="rounded-full bg-emerald-100 text-emerald-800 px-3 py-1">Strong</span>
+              <span class="rounded-full bg-indigo-100 text-indigo-800 px-3 py-1">in-process</span>
+            </div>
+          </div>
+          <div class="mt-5 rounded-lg bg-slate-50 px-4 py-3 font-mono text-xs text-slate-700">
+            src/cli/screens/board/helpers.ts · src/cli/screens/board/components.tsx · src/cli/screens/board.tsx · src/cli/screens/board/list-view.tsx
+          </div>
+          <div class="mt-7 grid md:grid-cols-2 gap-5">
+            <section class="rounded-xl border border-rose-200 bg-rose-50/30 p-5 min-h-[320px]">
+              <p class="text-xs uppercase tracking-wider font-bold text-rose-700">Before · partial sharing</p>
+              <div class="mt-6 flex items-center justify-center gap-3 text-center text-xs">
+                <div class="rounded-lg border bg-white p-3">compute<br>ScrollIdx</div><span class="arrow">→</span>
+                <div class="space-y-2">
+                  <div class="rounded-lg border-2 leak bg-white p-3">Renderer<br><b>row spans A</b></div>
+                  <div class="rounded-lg border-2 leak bg-white p-3">Drag hit-test<br><b>row spans B</b></div>
+                  <div class="rounded-lg border-2 leak bg-white p-3">Click hit-test<br><b>row spans C</b></div>
+                </div>
+              </div>
+              <p class="mt-6 text-center text-xs text-rose-700">Context-menu height is counted differently today.</p>
+            </section>
+            <section class="rounded-xl border border-emerald-200 bg-emerald-50/30 p-5 min-h-[320px]">
+              <p class="text-xs uppercase tracking-wider font-bold text-emerald-800">After · one geometry plan</p>
+              <div class="mt-7 mx-auto max-w-sm">
+                <div class="text-center text-xs rounded border bg-white p-3">Board · focus · mode · terminal size</div>
+                <div class="h-6 border-l-2 border-slate-400 mx-auto w-0"></div>
+                <div class="deep rounded-xl p-5 text-center mass-shadow">
+                  <p class="text-xs uppercase tracking-wider text-emerald-300">Deep module</p>
+                  <p class="mt-2 font-semibold">Kanban geometry plan</p>
+                  <p class="mt-2 text-xs text-slate-300">rows · spans · menus · indicators · drop zones</p>
+                </div>
+                <div class="h-6 border-l-2 border-slate-400 mx-auto w-0"></div>
+                <div class="grid grid-cols-2 gap-3 text-center text-xs"><div class="rounded border bg-white p-3">Renderer</div><div class="rounded border bg-white p-3">Hit-test</div></div>
+              </div>
+            </section>
+          </div>
+          <div class="mt-6 grid lg:grid-cols-[1fr_1fr_auto] gap-5 text-sm">
+            <div><p class="font-semibold">Problem</p><p class="mt-1 text-slate-600">A shallow scroll helper leaves variable-height placement duplicated three times.</p></div>
+            <div><p class="font-semibold">Solution</p><p class="mt-1 text-slate-600">One pure geometry module computes the plan consumed by rendering and input.</p></div>
+            <div><p class="font-semibold">Wins</p><ul class="mt-1 text-slate-600 space-y-1"><li>Locality: placement together</li><li>Leverage: render + input</li><li>Pure geometry tests</li></ul></div>
+          </div>
+        </article>
+
+        <article id="editor-session" class="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p class="text-xs uppercase tracking-[.2em] text-slate-500">05 · Task editing</p>
+              <h2 class="mt-1 text-2xl font-semibold">Collapse the Task editor session</h2>
+            </div>
+            <div class="flex gap-2 text-xs font-semibold">
+              <span class="rounded-full bg-amber-100 text-amber-800 px-3 py-1">Worth exploring</span>
+              <span class="rounded-full bg-indigo-100 text-indigo-800 px-3 py-1">in-process</span>
+            </div>
+          </div>
+          <div class="mt-5 rounded-lg bg-slate-50 px-4 py-3 font-mono text-xs text-slate-700">
+            src/components/Drawer.tsx · src/components/TaskWorkspace.tsx · src/components/Header.tsx · src/App.tsx · src/lib/store.ts
+          </div>
+          <div class="mt-7 grid md:grid-cols-2 gap-5">
+            <section class="rounded-xl border border-rose-200 bg-rose-50/30 p-5 min-h-[320px]">
+              <p class="text-xs uppercase tracking-wider font-bold text-rose-700">Before · two editor workflows</p>
+              <div class="mt-5 grid grid-cols-2 gap-4">
+                <div class="rounded-xl border-2 leak bg-white overflow-hidden">
+                  <div class="border-b p-3 text-center font-semibold">Mobile Drawer</div>
+                  <div class="p-3 text-xs space-y-2 text-slate-600"><p>autosave timer</p><p>save / close / discard</p><p>dirty tracking</p><p>commands + shortcuts</p></div>
+                </div>
+                <div class="rounded-xl border-2 leak bg-white overflow-hidden">
+                  <div class="border-b p-3 text-center font-semibold">Desktop Workspace</div>
+                  <div class="p-3 text-xs space-y-2 text-slate-600"><p>autosave timer</p><p>save / close / discard</p><p>dirty tracking</p><p>commands + shortcuts</p></div>
+                </div>
+              </div>
+              <div class="mt-4 grid grid-cols-2 gap-3 text-center text-xs"><div class="rounded border-2 leak bg-white p-3">Header leaks save</div><div class="rounded border-2 leak bg-white p-3">URL path bypasses close policy</div></div>
+            </section>
+            <section class="rounded-xl border border-emerald-200 bg-emerald-50/30 p-5 min-h-[320px]">
+              <p class="text-xs uppercase tracking-wider font-bold text-emerald-800">After · workflow behind one seam</p>
+              <div class="mt-6 deep rounded-xl overflow-hidden mass-shadow">
+                <div class="p-5 text-center">
+                  <p class="text-xs uppercase tracking-wider text-emerald-300">Deep module</p>
+                  <p class="mt-2 font-semibold">Task editor session</p>
+                </div>
+                <div class="border-t border-slate-600 p-4 grid grid-cols-2 gap-2 text-center text-xs text-slate-200">
+                  <div>editing lifecycle</div><div>autosave + flush</div><div>close + switch policy</div><div>task commands</div>
+                </div>
+              </div>
+              <div class="h-7 border-l-2 border-slate-400 mx-auto w-0"></div>
+              <div class="grid grid-cols-3 gap-2 text-center text-xs"><div class="rounded border bg-white p-3">Mobile adapter</div><div class="rounded border bg-white p-3">Desktop adapter</div><div class="rounded border bg-white p-3">Navigation adapter</div></div>
+            </section>
+          </div>
+          <div class="mt-6 grid lg:grid-cols-[1fr_1fr_auto] gap-5 text-sm">
+            <div><p class="font-semibold">Problem</p><p class="mt-1 text-slate-600">Two 475–559 line render modules repeat the same session behavior and leak it into navigation.</p></div>
+            <div><p class="font-semibold">Solution</p><p class="mt-1 text-slate-600">Concentrate the editing lifecycle and shared surface in one deep module; keep real presentation adapters.</p></div>
+            <div><p class="font-semibold">Wins</p><ul class="mt-1 text-slate-600 space-y-1"><li>Locality: close policy once</li><li>Leverage: three adapters</li><li>Lifecycle is test surface</li></ul></div>
+          </div>
+        </article>
+
+        <article id="agent-catalog" class="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p class="text-xs uppercase tracking-[.2em] text-slate-500">06 · Agent identity</p>
+              <h2 class="mt-1 text-2xl font-semibold">Make the Agent catalog canonical</h2>
+            </div>
+            <div class="flex gap-2 text-xs font-semibold">
+              <span class="rounded-full bg-emerald-100 text-emerald-800 px-3 py-1">Strong</span>
+              <span class="rounded-full bg-cyan-100 text-cyan-800 px-3 py-1">local-substitutable</span>
+            </div>
+          </div>
+          <div class="mt-5 rounded-lg bg-slate-50 px-4 py-3 font-mono text-xs text-slate-700">
+            src/cli/lib/agents.ts · src/cli/lib/agents-config.ts · src/lib/agent-aliases.ts · templates/agents.json · src/lib/types.ts · src/components/agentIcons.tsx
+          </div>
+          <div class="mt-7 grid md:grid-cols-2 gap-5">
+            <div class="rounded-xl border border-rose-200 bg-rose-50/30 p-4">
+              <p class="text-xs uppercase tracking-wider font-bold text-rose-700 mb-2">Before · synchronized by hand</p>
+              <pre class="mermaid">
+flowchart TB
+  A[AGENTS · 16 ids] --> C[CLI]
+  D[default config · 8 ids] --> C
+  T[template · 8 ids] --> C
+  X[alias table + chainable ids] --> W[Web]
+  R[CLI-local resolver] --> C
+  Y[Mirrored transport shapes] --> W
+  classDef leak stroke:#ef4444,stroke-width:2px,fill:#fff7f7;
+  class A,D,T,X,R,Y leak;
+              </pre>
+            </div>
+            <div class="rounded-xl border border-emerald-200 bg-emerald-50/30 p-4">
+              <p class="text-xs uppercase tracking-wider font-bold text-emerald-800 mb-2">After · metadata has one owner</p>
+              <pre class="mermaid">
+flowchart TB
+  M[Deep identity + capability metadata] --> P[Project catalog overlay adapter]
+  M --> B[Built-in command adapters]
+  P --> O[Resolved catalog]
+  B --> O
+  O --> C[CLI + TUI]
+  O --> J[Server JSON projection]
+  J --> W[Web presentation]
+  classDef deep fill:#0f172a,color:#fff,stroke:#0f172a,stroke-width:3px;
+  class M deep;
+              </pre>
+            </div>
+          </div>
+          <div class="mt-6 grid lg:grid-cols-[1fr_1fr_auto] gap-5 text-sm">
+            <div><p class="font-semibold">Problem</p><p class="mt-1 text-slate-600">Identity, aliases, chainability, defaults, and transport shapes drift across six locations.</p></div>
+            <div><p class="font-semibold">Solution</p><p class="mt-1 text-slate-600">One deep catalog owns identity and capability; command and project overlays remain real adapters.</p></div>
+            <div><p class="font-semibold">Wins</p><ul class="mt-1 text-slate-600 space-y-1"><li>Locality: metadata once</li><li>Leverage: CLI + web</li><li>Catalog is test surface</li></ul></div>
+          </div>
+          <div class="mt-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"><b>Documentation drift:</b> Architecture does not yet name <code>.kandown/agents.json</code> as an on-disk owner.</div>
+        </article>
+      </section>
+
+      <section id="top-recommendation" class="rounded-2xl deep p-7 sm:p-9 shadow-xl">
+        <p class="text-xs uppercase tracking-[.22em] text-emerald-300 font-semibold">Top recommendation</p>
+        <div class="mt-3 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 class="text-3xl font-semibold">Deepen the Task transition policy first.</h2>
+            <p class="mt-3 max-w-3xl text-slate-300">It repairs a shipped invariant, removes two divergent copies, closes CLI and MCP bypasses, and creates the smallest high-leverage test surface.</p>
+          </div>
+          <a href="#transition-policy" class="shrink-0 rounded-lg bg-[#88E138] px-5 py-3 text-sm font-bold text-slate-950 hover:bg-[#9bea50]">View candidate ↑</a>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

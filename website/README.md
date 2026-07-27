@@ -5,7 +5,7 @@ The marketing site and documentation for [Kandown](https://github.com/vava-nessa
 
 Built with **TanStack Start** (React 19, Vite 7), **Tailwind v4**, and an MDX content pipeline with
 **Shiki** highlighting. Every page is prerendered to static HTML at build time, so the deployed
-site is a folder of files — the same promise the product makes.
+site is a folder of files, the same promise the product makes.
 
 ---
 
@@ -57,7 +57,7 @@ Adding a page is two steps:
 - **Syntax highlighting** on fenced code blocks, at build time, via Shiki with paired light/dark
   themes.
 - **Heading anchors** on every `##` and `###`, and an automatic "On this page" outline.
-- **Search** — the page is indexed section by section on the next `pnpm dev` / `pnpm build`.
+- **Search**: the page is indexed section by section on the next `pnpm dev` / `pnpm build`.
 - **Internal links** written as plain markdown (`[CLI](/docs/reference/cli)`) become client-side
   router links automatically.
 - **`<Callout>`**, usable directly in MDX without importing it:
@@ -71,7 +71,7 @@ Adding a page is two steps:
   `type` is `note` (default), `tip` or `warn`.
 
 <!-- prettier-ignore -->
-> Restart `pnpm dev` — or run `pnpm search-index` — after adding a page, so search picks it up.
+> Restart `pnpm dev`, or run `pnpm search-index`, after adding a page, so search picks it up.
 
 ---
 
@@ -104,13 +104,13 @@ cannot respect reduced-motion preferences.
 
 `/changelogs` exposes the per-release Markdown files that already ship with the
 Kandown package (`<repo>/changelogs/vX.Y.Z.md`). The site reads them, so a new
-release file in the repo becomes a new URL — `/changelogs/v0.37.0` —
+release file in the repo becomes a new URL (`/changelogs/v0.37.0`),
 automatically, with no further wiring.
 
 Adding a release is therefore one step:
 
 1. Drop a `vX.Y.Z.md` file in `<repo>/changelogs/` whose H1 matches
-   `# 0.X.Y — YYYY-MM-DD — "Name"`. The build script rejects anything else.
+   `# 0.X.Y - YYYY-MM-DD - "Name"`. The build script rejects anything else.
 
 `scripts/build-changelogs.mjs` then parses every file, runs the body through the
 same `remark + rehype-shiki` pipeline the docs use, and emits three things under
@@ -118,7 +118,7 @@ same `remark + rehype-shiki` pipeline the docs use, and emits three things under
 
 | File | Used by |
 |---|---|
-| `index.json` | The sidebar — year-grouped list of `{ slug, version, date, name }`. |
+| `index.json` | The sidebar, year-grouped list of `{ slug, version, date, name }`. |
 | `vX.Y.Z.html` | The article body for one release, prerendered with Shiki highlighting. |
 | `vX.Y.Z/index.html` | The full React page, prerendered for the static host. |
 
@@ -131,15 +131,15 @@ The route itself is a TanStack splat: `/changelogs` redirects to the latest
 release, and `/changelogs/$` serves every other slug with the same page
 component. Load data is split between `changelogs.ts` (the loader the browser
 uses) and `changelogs.server.ts` (a sibling module that reads from disk during
-prerender) — the client bundle therefore never imports `node:fs`.
+prerender), so the client bundle therefore never imports `node:fs`.
 
 ---
 
 ## The documentation, for machines
 
 Every page is published twice: as the React page you are looking at, and as
-plain Markdown at the same URL with `.md` appended —
-`/docs/agents/mcp` → `/docs/agents/mcp.md`. Two index files sit at the root:
+plain Markdown at the same URL with `.md` appended
+(`/docs/agents/mcp` → `/docs/agents/mcp.md`). Two index files sit at the root:
 
 | File | For |
 |---|---|
@@ -154,7 +154,7 @@ rather than a wall of `<div class="prose">`.
 
 **There is exactly one source of truth: the MDX.** `scripts/build-llms.mjs`
 generates all of it on every build from `src/content/docs/`, in the order
-`src/content/nav.ts` defines, and the output is gitignored — so it cannot be
+`src/content/nav.ts` defines, and the output is gitignored, so it cannot be
 edited into disagreement with the site. The index carries **no hand-written
 prose at all**: its tagline and install command come from `src/lib/site.ts`, and
 every one-line summary is a page's own `description` frontmatter. A summary
@@ -163,7 +163,7 @@ wrong within a week. If a line in `llms.txt` looks stale, fix the MDX.
 
 Each docs page also carries a `<link rel="alternate" type="text/markdown">` and
 a **Copy as Markdown** button, which fetches the generated file rather than
-scraping the DOM — scraping loses code fences, tables and link targets, which
+scraping the DOM, because scraping loses code fences, tables and link targets, which
 are the parts somebody pasting into a chat needs most.
 
 Run it alone with `pnpm llms`.
@@ -173,7 +173,7 @@ Run it alone with `pnpm llms`.
 ## The interactive demo
 
 `/demo` embeds the **real Kandown application**, running on a project that lives
-in the browser's memory. Drag a card, edit a task, archive one — then reload and
+in the browser's memory. Drag a card, edit a task, archive one, then reload and
 it is all back.
 
 The route drops the site header and footer entirely: an application framed by a
@@ -181,13 +181,13 @@ marketing bar reads as a widget, and the two navigations would compete for the
 same corner. In their place a single floating pill carries the way back *and*
 the demo's status, because with no site chrome it is the only thing on screen
 telling a visitor their work is disposable. It sits beside the app's own logo
-above 1520px and moves to the bottom of the screen below that — a measured
+above 1520px and moves to the bottom of the screen below that, a measured
 threshold, not a guess: under it the app's toolbar reaches the same space.
 
 It is built, not written. `scripts/build-demo.mjs` runs before every site build:
 it invokes `pnpm build:demo` in the repository root, copies the result into
 `public/demo/app/`, and stamps `src/generated/demo-meta.json` with the version it
-built. Both are gitignored — **never edit or commit them**. A demo that could
+built. Both are gitignored, **never edit or commit them**. A demo that could
 outlive the code it demonstrates is worse than no demo, so a failure in that
 script fails the deploy rather than shipping a stale bundle.
 
@@ -201,14 +201,14 @@ not pay for it. Delete `public/demo/` to force a rebuild.
 
 ### How it works
 
-The application has one I/O choke point — `apiFetch` in `src/lib/filesystem.ts`
-— through which every call to the CLI's REST API passes. The demo build registers
+The application has one I/O choke point (`apiFetch` in `src/lib/filesystem.ts`)
+through which every call to the CLI's REST API passes. The demo build registers
 an in-memory implementation of that same API (`src/lib/demoBackend.ts`), so the
 board, drawer, editor, search and archive all work without knowing anything
 changed. Nothing is mocked, because there is nothing to mock.
 
 Memory rather than `localStorage` is deliberate: the reset is then free and
-total. Nothing is written to the visitor's browser at all — not even the theme
+total. Nothing is written to the visitor's browser at all, not even the theme
 preference or the onboarding flag.
 
 The whole demo is compiled out of the bundle `npx kandown` ships, behind the
@@ -227,7 +227,7 @@ The whole demo is compiled out of the bundle `npx kandown` ships, behind the
 - **No glow, no gradient mesh, no floating pill badge.** The only solid use of the accent is the
   highlight behind one word in the `h1`.
 - **Prose is Geist, every label is Geist Mono.** Eyebrows, column headers, counts, table headers,
-  nav items, kbd — all mono, uppercase, wide-tracked. That split is the page's voice, and it is
+  nav items, kbd, all mono, uppercase, wide-tracked. That split is the page's voice, and it is
   honest to a product whose database is a folder of text files.
 
 Palette from `logo.svg`: warm white surfaces, deep green-black ink (`#0b1a14`), and the arrow's lime
@@ -236,7 +236,7 @@ deliberately visible because a layout built from rules needs rules you can see.
 
 ### Typography
 
-Geist and Geist Mono (SIL OFL — see `public/fonts/LICENSE.txt`), self-hosted as two variable
+Geist and Geist Mono (SIL OFL, see `public/fonts/LICENSE.txt`), self-hosted as two variable
 `woff2` files of ~70 KB each, covering every weight. Self-hosted rather than CDN-loaded for the
 same reason the product works offline. Both are preloaded in `<head>`, so there is no flash of the
 fallback on a cold load, and a metric-matched `@font-face` fallback holds the layout in the
@@ -267,7 +267,7 @@ committed config supplies everything else:
 | Build | `pnpm build` |
 | Output | `dist/client` |
 
-Because every page prerenders, the deployment is **fully static** — no serverless function, no
+Because every page prerenders, the deployment is **fully static**: no serverless function, no
 cold start. `dist/client/404.html` is emitted from `src/routes/404.tsx` so unmatched paths get the
 site's own 404 rather than the host's.
 
@@ -278,12 +278,12 @@ site's own 404 rather than the host's.
 ### Domain
 
 The canonical domain is **`kandown.dev`**, declared once in
-[`src/lib/site.ts`](src/lib/site.ts) as `site.url` — every canonical tag, OG URL, sitemap entry and
+[`src/lib/site.ts`](src/lib/site.ts) as `site.url`: every canonical tag, OG URL, sitemap entry and
 `llms.txt` link derives from that constant, so a domain change is a one-line edit followed by
 `pnpm build`.
 
 The domain is registered at **Cloudflare Registrar**, with DNS also served by Cloudflare (the
-nameservers stay at Cloudflare — the domain is *not* delegated to `ns1/ns2.vercel-dns.com`). Two
+nameservers stay at Cloudflare, the domain is *not* delegated to `ns1/ns2.vercel-dns.com`). Two
 records point it at Vercel:
 
 | Type | Name | Value | Proxy |
@@ -292,7 +292,7 @@ records point it at Vercel:
 | `CNAME` | `www` | `cname.vercel-dns.com` | **DNS only** (grey cloud) |
 
 ⚠️ Both records **must** stay unproxied. Cloudflare's orange-cloud proxy terminates TLS itself,
-which blocks Vercel's ACME challenge — the certificate silently fails to issue or renew and the
+which blocks Vercel's ACME challenge, so the certificate silently fails to issue or renew and the
 site starts serving `ERR_SSL_VERSION_OR_CIPHER_MISMATCH`. Vercel already fronts the site with its
 own CDN, so the proxy would buy nothing anyway.
 
@@ -303,7 +303,7 @@ apex, and the old `kandown.vercel.app` alias keeps working so historical links n
 
 ## How the site is indexed
 
-Everything below is derived from content that already exists. None of it is a place to write copy —
+Everything below is derived from content that already exists. None of it is a place to write copy,
 titles and descriptions live in route `head()` functions and MDX frontmatter, and the domain lives
 in `src/lib/site.ts`.
 
@@ -315,19 +315,19 @@ committed copy would survive the next domain change still pointing at the old ho
 
 `lastmod` is honest or absent. Release pages carry the date they shipped; every other page carries
 the date of the latest release, because the site is rebuilt and redeployed with each one. File
-mtimes are deliberately not used — a CI checkout stamps every file with the clone time, which would
+mtimes are deliberately not used, because a CI checkout stamps every file with the clone time, which would
 make every page claim to have changed on every build. `changefreq` and `priority` are omitted: both
 are in the spec, both are ignored by Google.
 
 **Canonical URLs** are emitted once, in [`src/routes/__root.tsx`](src/routes/__root.tsx), built from
 `site.url` plus the current path. Doing it per route would mean a route that forgot one silently
 became a duplicate. The `vercel.json` host redirects already fold `www` and `kandown.vercel.app`
-into the apex, but a redirect only catches a crawler that asks for the wrong host — the canonical
+into the apex, but a redirect only catches a crawler that asks for the wrong host, so the canonical
 tag also covers URLs with tracking parameters appended and pages someone mirrored. `/404` gets no
 canonical at all, since pairing one with its `noindex` would be a contradiction.
 
 **Structured data** lives in [`src/components/StructuredData.tsx`](src/components/StructuredData.tsx)
-and renders on the homepage only — a `WebSite` / `Person` / `SoftwareApplication` graph built from
+and renders on the homepage only, a `WebSite` / `Person` / `SoftwareApplication` graph built from
 the same `site` constants as the meta tags. It states category, platform, licence and a price of
 zero, all verifiable. There is no `aggregateRating`, because there are no ratings.
 
@@ -337,7 +337,7 @@ Two duplicate-content traps are already closed:
   content of its own, so it canonicalises to `/changelogs/<latest>`, which the sitemap already
   lists.
 - **`/changelogs/v*.frag`** are the raw HTML fragments the changelog route fetches on client-side
-  navigation — an implementation detail that happens to be publicly reachable, and a near-duplicate
+  navigation, an implementation detail that happens to be publicly reachable, and a near-duplicate
   of each rendered release page. `vercel.json` serves them with `X-Robots-Tag: noindex`. A
   `robots.txt` disallow would have worked too, but blocking the fetch risks breaking rendering for a
   crawler that executes JavaScript; a header keeps the file readable and merely unindexed.
@@ -345,13 +345,13 @@ Two duplicate-content traps are already closed:
   ⚠️ **Their extension is load-bearing.** They sit in `public/changelogs/`, the same public
   directory the `/changelogs/<version>` route prerenders into. Named `.html`, a fragment claims the
   page's own URL: with `cleanUrls` on, Vercel resolves `/changelogs/v0.39.1` to
-  `changelogs/v0.39.1.html` — the fragment — and never looks at `changelogs/v0.39.1/index.html`
+  `changelogs/v0.39.1.html` (the fragment), and never looks at `changelogs/v0.39.1/index.html`
   below it. Every release link then serves 500 bytes of bare `<h2>` with no shell and no meta tags,
   and it looks perfectly fine in `pnpm dev`, where Vite serves the route rather than the file. This
   shipped that way and was only caught by reading the deployed HTML. Do not rename them back.
 
 The Markdown twins under `/docs/*.md` are **not** excluded. They duplicate the documentation pages
-by design — that is the whole `llms.txt` contract — and each page points at its own twin with
+by design, that is the whole `llms.txt` contract, and each page points at its own twin with
 `rel="alternate" type="text/markdown"`.
 
 ---

@@ -13,7 +13,7 @@ as structured tools rather than by shelling out.
 kandown mcp
 ```
 
-The server speaks MCP over **stdio** — it is meant to be launched by a client, not run in a
+The server speaks MCP over **stdio**: it is meant to be launched by a client, not run in a
 terminal by hand. It operates on the Kandown project of its working directory.
 
 ## Registering it
@@ -32,8 +32,8 @@ Other clients take a command and arguments in their own configuration format; th
 Both drive the same core, so this is a question of which fits your client.
 
 **Prefer MCP when** your agent runs inside a client with native MCP support and benefits from typed
-tool schemas — the model gets argument validation and discoverability for free, instead of having
-to compose shell commands correctly.
+tool schemas (the model gets argument validation and discoverability for free, instead of having
+to compose shell commands correctly).
 
 **Prefer the CLI when** you are scripting, running in CI, orchestrating agents yourself, or using a
 tool without MCP support. It is also the better choice for tight loops: a shell call with
@@ -41,7 +41,7 @@ tool without MCP support. It is also the better choice for tight loops: a shell 
 
 <Callout type="note">
 There is no functional cliff between them. The parser, the dependency gate and the daemon module
-each exist once and are shared by every interface — anything the MCP server refuses, the CLI
+each exist once and are shared by every interface; anything the MCP server refuses, the CLI
 refuses too.
 </Callout>
 
@@ -54,5 +54,5 @@ kandown work
 ```
 
 MCP gives an agent the *ability* to act on the board. `kandown work` gives it the rules, your
-project instructions and the digest that tell it **what to act on** — see
+project instructions and the digest that tell it **what to act on** (see
 [For AI agents](/docs/agents/overview).
