@@ -262,6 +262,14 @@ export interface KandownConfig {
     font: FontId;
     background: BackgroundId;
     customThemes?: KandownTheme[];
+    /** 📖 Per-project flag that gates the onboarding modal. Stored in
+     * `.kandown/kandown.json` so each project gets its own "have I already
+     * shown the tour to this user" state. Defaults to `false` in
+     * `DEFAULT_CONFIG`, so new projects (and projects that never wrote the
+     * key) see the tour once on first open. Set to `true` on any dismissal
+     * (X, Esc, Next → last step, "Get Started"). The Settings UI can flip
+     * it back to `false` to re-open the tour. */
+    onboardingCompleted: boolean;
   };
   agent: {
     suggestFollowUp: boolean;
@@ -327,7 +335,7 @@ export const DEFAULT_WORK_OUTPUT: WorkOutputConfig = {
 };
 
 export const DEFAULT_CONFIG: KandownConfig = {
-  ui: { language: 'en', theme: 'auto', skin: 'kandown', font: 'inter', background: 'solid' },
+  ui: { language: 'en', theme: 'auto', skin: 'kandown', font: 'inter', background: 'solid', onboardingCompleted: false },
   agent: { suggestFollowUp: false, maxSuggestions: 3, workOutput: DEFAULT_WORK_OUTPUT },
   board: {
     columns: DEFAULT_COLUMNS,

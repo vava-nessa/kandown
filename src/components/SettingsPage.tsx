@@ -152,6 +152,17 @@ export function SettingsPage() {
     }
   };
 
+  // 📖 Button-type settings have no value to read or write — they trigger an
+  // action. Today the only one is the "Re-open onboarding tour" button under
+  // Appearance; it dispatches the same window event `OnboardingTour` listens
+  // for, so the modal can be re-opened from Settings without coupling the
+  // page to the modal's component state.
+  const handleSettingAction = (actionKey: string) => {
+    if (actionKey === 'showOnboarding') {
+      window.dispatchEvent(new CustomEvent('kandown:showOnboarding'));
+    }
+  };
+
   if (!dirHandle && !isOpen) {
     return (
       <div className="flex flex-1 items-center justify-center">
@@ -333,6 +344,7 @@ export function SettingsPage() {
                       nested={Boolean(setting.parentKey)}
                       notificationPermission={notificationPermission}
                       onRequestNotificationPermission={handleRequestNotificationPermission}
+                      onAction={handleSettingAction}
                     />
                   ))}
                 </div>

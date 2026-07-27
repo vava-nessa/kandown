@@ -1,14 +1,27 @@
 /**
  * @file Lightweight 3-step onboarding modal
  * @description Quick guide on first launch introducing Kandown features.
+ * Mounts only when the project config reports `ui.onboardingCompleted = false`
+ * (defaults to false in `DEFAULT_CONFIG`), so each project sees the tour
+ * once and never again unless the user re-opens it from Settings.
+ *
+ * 📖 State strategy. The persistent "have I shown the tour" flag lives in
+ * the project config (`config.ui.onboardingCompleted`). The transient
+ * "show me right now" flag stays in component state — it is flipped on by
+ * (a) the first-render auto-show when the persistent flag is false, and
+ * (b) a `kandown:showOnboarding` window event dispatched by the Settings
+ * UI button. The demo build still never shows it (nothing to persist).
  *
  * @exports OnboardingTour
+ * @see src/components/SettingsPage.tsx
+ * @see src/lib/types.ts (KandownConfig.ui.onboardingCompleted)
  */
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { IconLayoutBoard, IconSparkles, IconCommand, IconX, IconChevronRight } from '@tabler/icons-react';
 import { isDemoMode } from '../lib/filesystem';
+import { useStore } from '../lib/store';
 
 const STEPS = [
   {
@@ -28,26 +41,49 @@ const STEPS = [
   },
 ];
 
-const ONBOARDING_KEY = 'kandown_onboarding_seen';
-
 export function OnboardingTour() {
   const [open, setOpen] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
 
+  const onboardingCompleted = useStore(s => s.config.ui.onboardingCompleted);
+  const updateConfig = useStore(s => s.updateConfig);
+
   useEffect(() => {
-    // 📖 Never in the demo. The "seen" flag is the only thing keeping this modal
-    // from being shown twice, and the demo deliberately persists nothing — so it
-    // would greet every visitor on every single reload, on top of a page that
-    // has already introduced the product. The demo's own chrome does this job.
+    // 📖 Never in the demo. The demo deliberately persists nothing — so the
+    // persistent "completed" flag would never flip to true and the modal
+    // would greet every visitor on every reload. The demo's own chrome does
+    // the introduction job. Same guard as before, just rewritten around the
+    // new project-scoped flag.
     if (isDemoMode()) return;
-    const seen = localStorage.getItem(ONBOARDING_KEY);
-    if (!seen) {
+    if (!onboardingCompleted && !open) {
       setOpen(true);
     }
+  }, [onboardingCompleted, open]);
+
+  // 📖 External trigger from the Settings UI ("Re-open onboarding tour"
+  // button). The store is locked behind the dependency-gate refactor, so
+  // the Settings page dispatches a window event and we react here. Decouples
+  // the modal from any specific store action without dragging the modal's
+  // open state into a shared slice.
+  useEffect(() => {
+    const handler = () => {
+      if (isDemoMode()) return;
+      setStepIndex(0);
+      setOpen(true);
+    };
+    window.addEventListener('kandown:showOnboarding', handler);
+    return () => window.removeEventListener('kandown:showOnboarding', handler);
   }, []);
 
   const handleClose = () => {
-    localStorage.setItem(ONBOARDING_KEY, 'true');
+    // 📖 Persist immediately so a refresh before the next config write
+    // doesn't resurrect the modal. The merge in `readConfigFileStrict`
+    // already defaults a missing key to `false`, so a project that never
+    // wrote this flag still gets the tour once.
+    void updateConfig(current => ({
+      ...current,
+      ui: { ...current.ui, onboardingCompleted: true },
+    }));
     setOpen(false);
   };
 

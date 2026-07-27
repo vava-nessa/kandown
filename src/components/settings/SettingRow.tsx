@@ -37,6 +37,10 @@ interface SettingRowProps {
   nested: boolean;
   notificationPermission: BrowserNotificationPermission;
   onRequestNotificationPermission: () => void;
+  /** 📖 For type `'button'`: invoked with `setting.actionKey` when the row's
+   * button is clicked. SettingsPage owns the action dispatch so the schema
+   * stays declarative and the renderer stays generic. */
+  onAction?: (actionKey: string) => void;
 }
 
 export function SettingRow({
@@ -48,6 +52,7 @@ export function SettingRow({
   nested,
   notificationPermission,
   onRequestNotificationPermission,
+  onAction,
 }: SettingRowProps) {
   const { t } = useTranslation();
   const handleToggle = () => {
@@ -183,6 +188,16 @@ export function SettingRow({
             {notificationPermission === 'denied' && t('settings.permissionDenied')}
             {notificationPermission === 'default' && t('settings.permissionAsk')}
             {notificationPermission === 'unsupported' && t('settings.permissionUnsupported')}
+          </button>
+        )}
+
+        {setting.type === 'button' && (
+          <button
+            type="button"
+            onClick={() => setting.actionKey && onAction?.(setting.actionKey)}
+            className="h-8 rounded-[7px] border border-border bg-bg-2 px-2.5 text-[13px] text-fg transition-colors hover:bg-bg-3"
+          >
+            {setting.buttonLabel ?? t('common.run')}
           </button>
         )}
       </div>

@@ -32,7 +32,7 @@ import { BACKGROUND_OPTIONS, FONT_OPTIONS, SKIN_OPTIONS } from '../../lib/theme'
 import { SUPPORTED_LANGUAGES, LANGUAGE_LABELS } from '../../lib/i18n';
 import type { KandownConfig } from '../../lib/types';
 
-export type SettingType = 'toggle' | 'select' | 'number' | 'text' | 'skin' | 'theme' | 'language' | 'permission';
+export type SettingType = 'toggle' | 'select' | 'number' | 'text' | 'skin' | 'theme' | 'language' | 'permission' | 'button';
 export type SettingsSectionId = 'appearance' | 'agent' | 'board' | 'fields' | 'notifications' | 'about';
 
 export interface SettingOption {
@@ -60,6 +60,12 @@ export interface SettingDef {
   placeholder?: string;
   keywords?: string[];
   parentKey?: string;
+  /** 📖 For type `'button'`: the visible label of the trigger button. */
+  buttonLabel?: string;
+  /** 📖 For type `'button'`: a stable string the parent (SettingsPage) maps
+   * to an action. Keeping it as a plain string keeps the schema declarative —
+   * the renderer stays generic and the page decides which action fires. */
+  actionKey?: string;
 }
 
 export const LANGUAGE_FLAG_EMOJI: Record<string, string> = {
@@ -180,6 +186,21 @@ export const getSETTINGS = (t: ReturnType<typeof useTranslation>['t']): SettingD
     description: t('settings.fontDesc'),
     options: FONT_OPTIONS.map(font => ({ value: font.id, label: font.label })),
     keywords: ['typography', 'text'],
+  },
+  {
+    // 📖 Action row: re-opens the onboarding modal. The `key` is a synthetic
+    // search-only identifier (the search index reads it via `getSettingSearchText`
+    // but the value column is never read from config — it has no setting
+    // bound to it). SettingsPage maps `actionKey: 'showOnboarding'` to a
+    // `kandown:showOnboarding` window event that `OnboardingTour` listens for.
+    key: 'ui.onboardingCompleted',
+    label: t('settings.onboardingTour'),
+    section: 'appearance',
+    type: 'button',
+    description: t('settings.onboardingTourDesc'),
+    buttonLabel: t('settings.showOnboardingTour'),
+    actionKey: 'showOnboarding',
+    keywords: ['tour', 'guide', 'intro', 'welcome', 'help', 'first time'],
   },
   {
     key: 'agent.suggestFollowUp',

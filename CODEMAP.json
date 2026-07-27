@@ -1124,7 +1124,7 @@
     },
     {
       "path": "src/components/OnboardingTour.tsx",
-      "lines": 117,
+      "lines": 153,
       "title": "Lightweight 3-step onboarding modal",
       "summary": "Quick guide on first launch introducing Kandown features.",
       "exports": "OnboardingTour"
@@ -1152,7 +1152,7 @@
     },
     {
       "path": "src/components/settings/schema.ts",
-      "lines": 418,
+      "lines": 439,
       "title": "Settings page — schema & config helpers",
       "summary": "Declarative metadata describing every setting (section, type, description, keywords) plus pure functions for reading/writing dotted config paths and building the sidebar search index.",
       "functions": [
@@ -1184,7 +1184,7 @@
     },
     {
       "path": "src/components/settings/SettingRow.tsx",
-      "lines": 294,
+      "lines": 309,
       "title": "Settings — single setting row + theme gallery",
       "summary": "Renders one SettingDef as either a dense toggle row, a full-width theme gallery (for the 'skin' type), or one of the secondary controls — select dropdown, number stepper, text input, language picker, theme mode switcher, or notification…",
       "exports": "SettingRow, ThemeGalleryPicker"
@@ -1216,7 +1216,7 @@
     },
     {
       "path": "src/components/SettingsPage.tsx",
-      "lines": 348,
+      "lines": 360,
       "title": "Settings page for the web app",
       "summary": "Dense settings workspace with an iOS-style sidebar, global option search, section navigation, and compact controls for kandown.json.",
       "functions": [
@@ -2297,7 +2297,7 @@
     },
     {
       "path": "src/lib/types.ts",
-      "lines": 363,
+      "lines": 371,
       "title": "Shared domain types",
       "summary": "Defines the board, task, config, filter, search, and appearance types used by the Kandown web UI and persistence layer.",
       "exports": "Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, KandownConfig, DEFAULT_COLUMNS, DEFAULT_CONFIG"
