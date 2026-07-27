@@ -4,5 +4,5 @@
  * Do not edit manually — it is overwritten every build.
  */
 
-export const KANDOWN_VERSION = "0.41.3";
-export const KANDOWN_BUILD_TIME = "2026-07-27T15:34:33.295Z";
+export const KANDOWN_VERSION = "0.42.0";
+export const KANDOWN_BUILD_TIME = "2026-07-27T19:55:01.181Z";
