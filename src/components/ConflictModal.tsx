@@ -17,7 +17,7 @@
  */
 
 import { AnimatePresence, motion } from 'motion/react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
 import { useStore } from '../lib/store';
 import type { ConflictState } from '../lib/store';
@@ -66,7 +66,14 @@ export function ConflictModal() {
 
               {/* Body */}
               <div className="px-5 py-4 space-y-3">
-                <p className="text-[13.5px] text-fg" dangerouslySetInnerHTML={{ __html: t('conflict.conflictingChanges', { taskId: conflictState.taskId.toUpperCase() }) }} />
+                <p className="text-[13.5px] text-fg">
+                  <Trans
+                    i18nKey="conflict.conflictingChanges"
+                    values={{ taskId: conflictState.taskId.toUpperCase() }}
+                  >
+                    Task <code>{'{{taskId}}'}</code> has conflicting changes. Choose how to resolve:
+                  </Trans>
+                </p>
 
                 <div className="grid grid-cols-2 gap-3">
                   <ConflictVersion

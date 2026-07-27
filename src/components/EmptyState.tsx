@@ -15,7 +15,7 @@
  */
 
 import { motion } from 'motion/react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { useStore } from '../lib/store';
 import { KbdButton } from './KbdButton';
 import { supportsFileSystemAccess, isServerMode } from '../lib/filesystem';
@@ -35,7 +35,11 @@ export function EmptyState() {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-4 px-10 text-center">
         <div className="text-[22px] font-semibold tracking-tight text-fg">{t('emptyState.unsupportedBrowser')}</div>
-        <div className="text-[14px] text-fg-dim max-w-[440px] leading-relaxed" dangerouslySetInnerHTML={{ __html: t('emptyState.unsupportedBrowserDesc') }} />
+        <div className="text-[14px] text-fg-dim max-w-[440px] leading-relaxed">
+          <Trans i18nKey="emptyState.unsupportedBrowserDesc">
+            This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.
+          </Trans>
+        </div>
       </div>
     );
   }
@@ -96,8 +100,11 @@ export function EmptyState() {
           <motion.div
             {...MOTION.heroStagger(3)}
             className="text-[14.5px] text-fg-dim max-w-[480px] leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: t('emptyState.selectFolderDesc') }}
-          />
+          >
+            <Trans i18nKey="emptyState.selectFolderDesc">
+              Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.
+            </Trans>
+          </motion.div>
           <motion.div {...MOTION.heroStagger(4)}>
             <KbdButton
               variant="primary"
