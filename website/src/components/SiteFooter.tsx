@@ -6,8 +6,8 @@
  * 📖 The docs columns mirror the top of `docsNav` rather than hard-coding a
  * second list, so a renamed page cannot leave a dead link down here.
  *
- * 📖 The bottom-row changelog line is the most discreet link on the site —
- * no column header, no border, just `Changelog · vX.Y.Z` next to the MIT
+ * 📖 The bottom-row changelog line is the most discreet link on the site.
+ * No column header, no border, just `Changelog · vX.Y.Z` next to the MIT
  * bar. Two reasons: it should not compete with the GitHub/npm/Issues links
  * in the `Project` column, and the changelog is a *reference*, not a
  * destination the visitor is being pushed toward.
@@ -140,7 +140,7 @@ function FooterExternal({ href, children }: { href: string; children: React.Reac
   )
 }
 
-/** 📖 Points at the latest release — the splat route is the only one that
+/** 📖 Points at the latest release. The splat route is the only one that
  *  exists under `/changelogs/*`, so we redirect through it with the pinned
  *  version rather than landing on a `notFound()`. */
 function FooterChangelogLink({ children }: { children: React.ReactNode }) {

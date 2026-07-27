@@ -9,9 +9,9 @@
  * nothing. Adding a page is therefore two steps: drop the `.mdx` file in, add a
  * line here.
  *
- * @exports docsNav — grouped sidebar structure
- * @exports flatDocs — the same pages, flattened, in reading order (prev/next)
- * @exports findDoc — look a page up by slug
+ * @exports docsNav. Grouped sidebar structure.
+ * @exports flatDocs. The same pages, flattened, in reading order (prev/next).
+ * @exports findDoc. Look a page up by slug.
  */
 
 export type DocLink = {

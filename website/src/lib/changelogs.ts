@@ -7,7 +7,7 @@
  * fragments are prerendered static files emitted by the build, not React
  * modules. Vite would still import the JSON as a static asset, but pulling the
  * file at runtime lets the prerendered HTML be served as plain bytes and
- * trimmed out of the client bundle — the same trade-off the docs route makes
+ * trimmed out of the client bundle, which is the same trade-off the docs route makes
  * for its MDX, just for the simpler case where no JSX is allowed in source.
  *
  * 📖 **SSR reads from the filesystem**, the browser fetches by URL. TanStack
@@ -17,7 +17,7 @@
  * `public/changelogs/` directly during prerender.
  *
  * 📖 **Cache is module-level** because every consumer needs the same entries
- * list and one fetch per page would be wasteful — the index is 7 KB and never
+ * list and one fetch per page would be wasteful, since the index is 7 KB and never
  * changes within a session.
  *
  * @exports
@@ -26,7 +26,7 @@
  *   groupByYear        → year-grouped entries for the sidebar tree
  *   findEntry          → entry lookup by slug
  *
- * @see scripts/build-changelogs.mjs — the build that produces these files
+ * @see scripts/build-changelogs.mjs. The build that produces these files.
  */
 
 export type ChangelogEntry = {
@@ -56,7 +56,7 @@ export function loadChangelogIndex(): Promise<ChangelogIndex> {
   if (!indexPromise) {
     // 📖 **SSR reads from disk, the browser fetches.** TanStack Start runs
     // loaders inside Node during prerender, where `fetch('/changelogs/...')`
-    // throws because Node has no base URL — and during a production build the
+    // throws because Node has no base URL. During a production build the
     // relative path would have to be served by an HTTP server we do not own.
     // The browser hits the URL directly because the assets are copied into
     // `dist/client/changelogs/` by Vite, served as plain static files.
@@ -67,7 +67,7 @@ export function loadChangelogIndex(): Promise<ChangelogIndex> {
       : fetchFromUrl(`${SERVER_DIR}/index.json`, (text) => JSON.parse(text) as ChangelogIndex)
 
     indexPromise = source.catch((error) => {
-      // 📖 Reset so the next call retries — otherwise a transient failure
+      // 📖 Reset so the next call retries. Otherwise a transient failure
       // (offline, first build) would lock the loader to rejection.
       indexPromise = null
       throw error
@@ -82,9 +82,9 @@ const htmlCache = new Map<string, Promise<string>>()
  * 📖 The `.frag` extension is not cosmetic. These files live in
  * `public/changelogs/`, alongside the prerendered output of the
  * `/changelogs/<version>` route. Named `.html`, a fragment would occupy the
- * same public path as the page — `cleanUrls` resolves `/changelogs/v0.39.1` to
- * `changelogs/v0.39.1.html` before it looks at `changelogs/v0.39.1/index.html`
- * — and every release link would serve the bare fragment instead of the page.
+ * same public path as the page. `cleanUrls` resolves `/changelogs/v0.39.1` to
+ * `changelogs/v0.39.1.html` before it looks at `changelogs/v0.39.1/index.html`,
+ * and every release link would serve the bare fragment instead of the page.
  * See the warning at the top of `scripts/build-changelogs.mjs`.
  */
 export function loadChangelogHtml(slug: string): Promise<string> {
@@ -105,7 +105,7 @@ export function loadChangelogHtml(slug: string): Promise<string> {
 /**
  * 📖 Buckets every entry under its release year, keeping the index's
  * newest-first ordering inside each group. `Unreleased` and entries with no
- * date land in a synthetic `_` bucket at the top — never under a real year
+ * date land in a synthetic `_` bucket at the top (never under a real year),
  * so a single hand-written file does not pollute the calendar grid.
  */
 export function groupByYear(entries: ChangelogEntry[]): { year: string; items: ChangelogEntry[] }[] {

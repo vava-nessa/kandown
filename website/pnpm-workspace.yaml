@@ -1,6 +1,6 @@
 # 📖 Standalone workspace root.
 # Without this file, pnpm walks up and finds the kandown workspace at the repo
-# root, which does not list `website` as a package — installs would fail. This
+# root, which does not list `website` as a package, so installs would fail. This
 # stops the walk here and keeps the site's dependency tree fully independent
 # from the CLI's.
 packages:

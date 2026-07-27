@@ -2,9 +2,9 @@
  * @file src/lib/githubStars.ts
  * @description The GitHub star count shown in the site header.
  *
- * 📖 All of the interesting behaviour — the daily `localStorage` cache, the
+ * 📖 All of the interesting behaviour: the daily `localStorage` cache, the
  * decision to fetch in the browser rather than at build time, and the SSR
- * contract that keeps hydration quiet — lives in `cachedCount.ts` and is
+ * contract that keeps hydration quiet, lives in `cachedCount.ts` and is
  * documented there. What remains here is the part specific to GitHub: one URL,
  * one field, one shape check.
  *
@@ -17,8 +17,8 @@
  *   useGithubStars → hook returning `{ count, loading }`
  *
  * @exports useGithubStars, formatStars
- * @see website/src/lib/cachedCount.ts — the caching and SSR behaviour
- * @see website/src/components/GitHubStars.tsx — the only caller
+ * @see website/src/lib/cachedCount.ts. The caching and SSR behaviour.
+ * @see website/src/components/GitHubStars.tsx. The only caller.
  */
 import { useCachedValue, formatCompact } from './cachedCount'
 

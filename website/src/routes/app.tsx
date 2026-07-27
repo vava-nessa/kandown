@@ -4,7 +4,7 @@
  * It opens on a disposable sample project and lets compatible browsers switch
  * to a real local project without an account or server.
  *
- * 📖 **What is embedded.** Not a mock or a recording — `public/demo/app/` is a
+ * 📖 **What is embedded.** Not a mock or a recording; `public/demo/app/` is a
  * build of the actual CLI application, produced by `scripts/build-demo.mjs` on
  * every site build from the sources in the parent directory. The version it was
  * built from is stamped into `src/generated/demo-meta.json` and displayed in the
@@ -19,15 +19,15 @@
  * static.
  *
  * 📖 **It loads immediately.** The bundle is megabytes, but arriving at `/app`
- * *is* the request for it — an interstitial asking "do you really want the thing
+ * *is* the request for it. An interstitial asking "do you really want the thing
  * you just clicked?" only adds a step. Nothing anywhere else on the site
  * preloads this route, so the cost is paid by exactly the people who asked.
  * A skeleton holds the frame until the app has booted.
  *
  * @functions
- *  → AppPage — the route component: the iframe, its skeleton, and the way back
- *  → AppOverlay — the floating exit and sample-project status bar
- *  → AppUnavailable — honest fallback when the app build did not run
+ *  → AppPage. The route component: the iframe, its skeleton, and the way back.
+ *  → AppOverlay. The floating exit and sample-project status bar.
+ *  → AppUnavailable. Honest fallback when the app build did not run.
  *
  * @exports Route
  * @see website/scripts/build-demo.mjs
@@ -144,7 +144,7 @@ function AppPage() {
  * 📖 Covers the frame until the app's document has loaded. Deliberately plain:
  * a spinner over a blank page for several megabytes reads as broken, whereas a
  * named thing that is loading reads as working. It is removed on the iframe's
- * `load` event, which fires slightly before React inside has painted — the
+ * `load` event, which fires slightly before React inside has painted; the
  * fade covers that gap rather than pretending it does not exist.
  */
 function AppSkeleton() {
@@ -162,7 +162,7 @@ function AppSkeleton() {
 
 /**
  * 📖 Sits over the running application, level with its header and just to the
- * right of its logo — the one strip of the app's own chrome that is empty at
+ * right of its logo (the one strip of the app's own chrome that is empty at
  * every width above the mobile breakpoint.
  *
  * 📖 It carries the demo's status as well as the exit, because with the site
@@ -173,7 +173,7 @@ function AppSkeleton() {
  *
  * 📖 The 1520px threshold is measured, not guessed. The app's own toolbar (view
  * toggle, archive, settings, search) is pushed left as the window narrows, and
- * it reaches this bar's right edge just below that width — at 1520px the bar
+ * it reaches this bar's right edge just below that width (at 1520px the bar
  * ends at 675px and the nearest control starts at 759px. Sitting on top of
  * working controls is worse than sitting somewhere less elegant, so under
  * 1520px the bar drops to the bottom of the screen, where the board has nothing
@@ -228,7 +228,7 @@ function BackLink() {
 
 /**
  * 📖 Reached when `build-demo.mjs` marked the demo unavailable. Says so plainly
- * rather than rendering an iframe at a URL that does not exist — a broken demo
+ * rather than rendering an iframe at a URL that does not exist. A broken demo
  * reads as a broken product.
  */
 function AppUnavailable() {

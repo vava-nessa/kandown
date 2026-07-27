@@ -8,7 +8,7 @@ description: Every Kandown command, its flags, and the output contract that make
 
 Before the commands, the rule that governs all of them:
 
-> **stdout carries data only** — ids, JSON, tables. Everything decorative (`✓ Created…`, warnings,
+> **stdout carries data only** (ids, JSON, tables). Everything decorative (`✓ Created…`, warnings,
 > errors) goes to **stderr**. Exit code `0` on success, non-zero on failure.
 
 So `$(kandown create …)` captures exactly one id, and `--json | jq` never chokes on a checkmark.
@@ -50,7 +50,7 @@ kandown list [-s status] [-a assignee] [-t tag] [-p priority] [--archived] [--js
 | `-s`, `--status` | Filter by column |
 | `-a`, `--assignee` | Filter by assignee |
 | `-t`, `--tag` | Filter by tag |
-| `-p`, `--priority` | Filter by `P1`–`P4` |
+| `-p`, `--priority` | Filter by `P1`-`P4` |
 | `--archived` | Include archived tasks |
 | `--json` | Emit JSON instead of a table |
 
@@ -66,7 +66,7 @@ kandown create "title" [-p priority] [-a assignee] [-t tag …] [--to status] [-
 
 | Flag | Effect |
 |---|---|
-| `-p`, `--priority` | `P1`–`P4` |
+| `-p`, `--priority` | `P1`-`P4` |
 | `-a`, `--assignee` | Assignee name |
 | `-t`, `--tag` | A tag; repeat for several |
 | `--to` | Target column (defaults to the first) |
@@ -89,8 +89,8 @@ unresolved. See [Tasks § dependencies](/docs/guides/tasks#dependencies).
 
 ### `kandown work`
 
-Prints the full agent context — rules, project instructions, live board digest and the next
-actionable task — as Markdown on stdout. Documented in [For AI agents](/docs/agents/overview).
+Prints the full agent context (rules, project instructions, live board digest and the next
+actionable task) as Markdown on stdout. Documented in [For AI agents](/docs/agents/overview).
 
 ### `kandown mcp`
 

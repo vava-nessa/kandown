@@ -6,8 +6,8 @@
  *
  * 📖 **Why a shared shell.** `GitHubStars` and `NpmDownloads` are the same
  * control pointing at different places. Kept as two independent components they
- * would drift on exactly the details that must not drift — the stack spacing,
- * the chip fill, the hover, the width reserved for the number — and the header
+ * would drift on exactly the details that must not drift: the stack spacing,
+ * the chip fill, the hover, the width reserved for the number, and the header
  * would slowly stop looking deliberate. Everything that must match is here;
  * everything that differs is passed in.
  *
@@ -23,7 +23,7 @@
  *
  * ⚠️ **The chip is positioned, not stacked in flow, and that is the whole
  * point.** As a second flex row it would make the anchor twice as tall, and the
- * header centres its items — so both logos would ride up by half the chip's
+ * header centres its items, so both logos would ride up by half the chip's
  * height and stop lining up with the search field and the App button beside
  * them. The row would look subtly crooked without it being obvious why. Taking
  * the chip out of flow with `absolute top-full` means the anchor is exactly as
@@ -35,13 +35,13 @@
  * and both made the corner louder than it should be: a filled chip drew a box
  * around the quietest element in the header, and tinting each count to its
  * service put two saturated marks under two logos and made the numbers read
- * before the marks — backwards, since the logo identifies the link and the
+ * before the marks (backwards, since the logo identifies the link and the
  * number is supporting detail. Small grey type on the header's own background
  * is enough. Grey also means the two counts read as one kind of thing rather
  * than as two unrelated badges.
  *
  * 📖 **The number's width is reserved.** `min-w` holds the space of a
- * three-character count so the chip does not resize when the `—` placeholder is
+ * three-character count so the chip does not resize when the `…` placeholder is
  * replaced by the real figure a moment after load, and `tabular-nums` keeps
  * digits from shifting it as the value changes. The width is in `ch`, so it
  * follows the chip's own font size instead of needing to be retuned whenever
@@ -54,7 +54,7 @@
  * four items.
  *
  * 📖 **Hover grows the whole link to 1.2× over 200ms** and brings the count to
- * full opacity — one gesture, two channels, so the feedback is unmissable on a
+ * full opacity (one gesture, two channels), so the feedback is unmissable on a
  * control this small. Scaling does not affect layout, so the link grows over
  * its neighbours instead of pushing them and the header does not jitter as the
  * pointer crosses it. Under `prefers-reduced-motion` the scale is dropped; the
@@ -63,7 +63,7 @@
  * ⚠️ The property list names **`scale`, not `transform`**. Tailwind v4 compiles
  * `scale-[1.2]` to the standalone CSS `scale: 1.2` property, not to
  * `transform: scale(1.2)`, so an arbitrary `transition-[…,transform]` does not
- * observe it and the link snaps to its new size with no animation — close
+ * observe it and the link snaps to its new size with no animation; close
  * enough to correct in passing that it is easy to miss. (Tailwind's own
  * `transition-transform` utility does cover it, because it expands to
  * `transform,translate,scale,rotate`; only the hand-written property list has
@@ -84,7 +84,7 @@ export function HeaderCountLink({
   count,
 }: {
   href: string
-  /** What a screen reader announces — include the number when it is known. */
+  /** What a screen reader announces; include the number when it is known. */
   ariaLabel: string
   /** Native tooltip spelling out what the number counts. */
   title: string
@@ -92,7 +92,7 @@ export function HeaderCountLink({
   brand: ReactNode
   /** The icon saying what is being counted. Sits in the chip with the number. */
   metric: ReactNode
-  /** Already formatted, or `—` while loading. */
+  /** Already formatted, or `…` while loading. */
   count: string
 }) {
   return (

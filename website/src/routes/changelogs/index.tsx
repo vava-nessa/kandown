@@ -1,6 +1,6 @@
 /**
  * @file src/routes/changelogs/index.tsx
- * @description `/changelogs` itself — redirects to the latest release so the
+ * @description `/changelogs` itself: redirects to the latest release so the
  * URL is always pointing at something, even when somebody pastes it
  * somewhere unmaintained (an old blog post, a bookmark from a year ago).
  *
@@ -27,7 +27,7 @@ export const Route = createFileRoute('/changelogs/')({
   },
   head: () => ({
     meta: [
-      { title: 'Changelog — Kandown' },
+      { title: 'Changelog · Kandown' },
       {
         name: 'description',
         content:
@@ -39,7 +39,7 @@ export const Route = createFileRoute('/changelogs/')({
 })
 
 function ChangelogIndex() {
-  // 📖 Rendered only when the loader had nothing to redirect to — a defensive
+  // 📖 Rendered only when the loader had nothing to redirect to, a defensive
   // state the prerenderer should never actually bake, but worth handling
   // rather than showing a blank page during local dev with an empty source.
   return (

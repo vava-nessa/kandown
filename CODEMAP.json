@@ -3,14 +3,14 @@
   "files": [
     {
       "path": "bin/kandown.js",
-      "lines": 3484,
+      "lines": 3561,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 60155,
+      "lines": 60232,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"

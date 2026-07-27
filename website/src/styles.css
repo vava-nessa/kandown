@@ -4,7 +4,7 @@
  * 📖 Typography.
  *
  * Geist and Geist Mono (SIL OFL, Vercel × basement.studio), self-hosted as two
- * variable `woff2` files — ~70 KB each, covering every weight from 100 to 900.
+ * variable `woff2` files, ~70 KB each, covering every weight from 100 to 900.
  * See `public/fonts/LICENSE.txt`.
  *
  * Self-hosted rather than loaded from a CDN for the same reason the product
@@ -14,7 +14,7 @@
  * keeps the reflow when Geist arrives close to imperceptible.
  *
  * The mono face is not decoration. Every label, eyebrow, column header, badge
- * and piece of metadata on this site is set in it — that contrast between a
+ * and piece of metadata on this site is set in it, so that contrast between a
  * neutral grotesque for prose and a mono for structure is what gives the page
  * its voice, and it is honest to a product whose database is a folder of text
  * files.
@@ -104,7 +104,7 @@
   --kd-fg-faint: #74807a;
   --kd-accent-fg: #2c6410;
   --kd-code-bg: #f7f8f5;
-  /* 📖 The near-black used for solid blocks — the accent's text colour, and the
+  /* 📖 The near-black used for solid blocks, the accent's text colour, and the
      ground the lime sits on. Constant across themes on purpose. */
   --kd-ink: #0b1a14;
   color-scheme: light;
@@ -207,7 +207,7 @@
  * hundred generated rules.
  *
  * 📖 Readability decisions, made on purpose:
- *   · 16px body, not 15 — documentation is read for minutes at a time.
+ *   · 16px body, not 15, because documentation is read for minutes at a time.
  *   · Measure capped at 72ch. Past ~75 the eye loses the line return.
  *   · Headings are set tight (-0.02em) and dark; body is one step lighter.
  *     The contrast between the two is what creates hierarchy, not size alone.
@@ -226,7 +226,7 @@
 }
 
 /* 📖 The article header already ends in a rule. A page whose first block is an
-   `h2` would otherwise draw a second one right under it — two hairlines a few
+   `h2` would otherwise draw a second one right under it, two hairlines a few
    pixels apart, which reads as a rendering bug. Suppress the leading rule and
    its offset for the first child only. */
 .prose > :first-child {
@@ -366,7 +366,7 @@
 }
 
 /* 📖 Reference tables are the densest thing in the docs and often wider than
-   the measure, so each gets its own scroll container — the page body must never
+   the measure, so each gets its own scroll container: the page body must never
    scroll sideways. Headers are set in mono to match every other label. */
 .prose .table-scroll {
   overflow-x: auto;
@@ -540,7 +540,7 @@
 /**
  * 📖 Changelogs are denser than docs: long bullet lists grouped under short
  * headings. The default `.prose` measure is fine, but the leading between
- * bullets inside one section is too loose — 0.45rem turns a 12-bullet list
+ * bullets inside one section is too loose. 0.45rem turns a 12-bullet list
  * into a scroll the visitor did not sign up for. The override keeps the
  * outer rhythm of the docs while pulling bullets closer together.
  */

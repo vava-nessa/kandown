@@ -4,7 +4,7 @@
  * a docs search trigger, and the GitHub / npm links.
  *
  * 📖 The bar is translucent with a backdrop blur only once the page has been
- * scrolled — flat and borderless at the top of the hero so the header does not
+ * scrolled: flat and borderless at the top of the hero so the header does not
  * cut a line across it. The `scrolled` state is the only piece of client state
  * in the component; everything else is static markup.
  *
@@ -87,13 +87,13 @@ export function SiteHeader() {
           </div>
 
           {/* 📖 Octocat, word, star and count are a single anchor. They were
-              previously two anchors with the same href — the mark, then a
-              bordered star pill — which meant two hover targets and the
+              previously two anchors with the same href (the mark, then a
+              bordered star pill), which meant two hover targets and the
               repository announced twice by a screen reader. */}
           <GitHubStars href={site.repo} />
 
           {/* 📖 The npm wordmark used to be a bare link. It now carries the
-              download count in the same shape as the GitHub link beside it —
+              download count in the same shape as the GitHub link beside it:
               two numbers, read the same way, telling a visitor how used the
               project is before they have to go looking. */}
           <NpmDownloads href={site.npm} />

@@ -7,14 +7,14 @@
  * (`[CLI](/docs/reference/cli)`) would do a full page load; `a` is swapped for a
  * router `Link` when the href is internal, so docs navigation stays client-side
  * and preloads on hover. Second, reference tables are wide, so every `table` is
- * wrapped in its own horizontal scroll container — the page body itself must
+ * wrapped in its own horizontal scroll container, so the page body itself must
  * never scroll sideways.
  *
  * 📖 `Callout` is exported for use directly inside MDX (`<Callout type="warn">`),
  * which is why the content files can use it without importing anything.
  *
- * @exports mdxComponents — the component map
- * @exports Callout — note / warning / tip box, usable from MDX
+ * @exports mdxComponents. The component map.
+ * @exports Callout. Note / warning / tip box, usable from MDX.
  */
 import type { ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
@@ -29,7 +29,7 @@ export function Callout({
   children: ReactNode
 }) {
   // 📖 A solid 3px rule on the left instead of a tinted rounded box. The rule
-  // carries the colour, the body stays on the page ground — which keeps a
+  // carries the colour, the body stays on the page ground, which keeps a
   // callout readable and stops three of them in a row from looking like a
   // stack of alerts.
   const styles = {

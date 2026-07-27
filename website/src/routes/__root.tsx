@@ -8,11 +8,11 @@
  * `title` and `description`; the OpenGraph and favicon tags below are inherited
  * by every page.
  *
- * 📖 Fonts are loaded from a self-hosted `@font-face`-free stack — the CSS falls
+ * 📖 Fonts are loaded from a self-hosted `@font-face`-free stack: the CSS falls
  * back to the system UI font, so there is no render-blocking font request and no
  * third-party origin in the critical path.
  *
- * @exports Route — the root route definition
+ * @exports Route. The root route definition.
  */
 import {
   Outlet,
@@ -33,12 +33,12 @@ export const Route = createRootRoute({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: `${site.name} — ${site.tagline}` },
+      { title: `${site.name} · ${site.tagline}` },
       { name: 'description', content: site.description },
       { name: 'theme-color', content: '#ffffff' },
       { property: 'og:type', content: 'website' },
       { property: 'og:site_name', content: site.name },
-      { property: 'og:title', content: `${site.name} — ${site.tagline}` },
+      { property: 'og:title', content: `${site.name} · ${site.tagline}` },
       { property: 'og:description', content: site.description },
       { property: 'og:image', content: `${site.url}/og-image.png` },
       // 📖 Dimensions let a chat client reserve the right box before the image
@@ -47,10 +47,10 @@ export const Route = createRootRoute({
       // announces for the card in that same client.
       { property: 'og:image:width', content: '1200' },
       { property: 'og:image:height', content: '630' },
-      { property: 'og:image:alt', content: `${site.name} — ${site.tagline}` },
+      { property: 'og:image:alt', content: `${site.name} · ${site.tagline}` },
       { property: 'og:locale', content: 'en_US' },
       { name: 'twitter:card', content: 'summary_large_image' },
-      { name: 'twitter:title', content: `${site.name} — ${site.tagline}` },
+      { name: 'twitter:title', content: `${site.name} · ${site.tagline}` },
       { name: 'twitter:description', content: site.description },
       { name: 'twitter:image', content: `${site.url}/og-image.png` },
     ],
@@ -99,14 +99,14 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   const isAppRoute = pathname.startsWith('/app')
 
   // 📖 The canonical URL of the page currently rendering. Declared here rather
-  // than in each route's `head()` because it is mechanical — origin plus path —
+  // than in each route's `head()` because it is mechanical: origin plus path
   // and a route that forgot it would silently become a duplicate rather than
   // fail. One definition also means it cannot drift between pages.
   //
   // 📖 It matters even though the redirects in `vercel.json` already fold `www`
   // and the old `.vercel.app` host into this domain: a redirect only helps a
   // crawler that requests the wrong host, while a canonical tag also covers the
-  // copies a redirect never sees — a URL with a tracking parameter appended, an
+  // copies a redirect never sees (a URL with a tracking parameter appended, an
   // scraper that mirrored the page, or a preview deployment someone linked. It
   // is built from `site.url`, never from the live request, so every copy points
   // back at the one address that should rank.

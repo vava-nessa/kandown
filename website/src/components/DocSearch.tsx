@@ -27,7 +27,7 @@
  *   SearchTrigger  → the header button
  *   SearchDialog   → the overlay, mounted once in the root layout
  * @exports SearchTrigger, SearchDialog, openSearch
- * @see scripts/build-search-index.mjs — how the index is produced
+ * @see scripts/build-search-index.mjs. How the index is produced.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
@@ -44,7 +44,7 @@ type Entry = {
 const INDEX = rawIndex as Entry[]
 const MAX_RESULTS = 8
 
-/** 📖 Module-level listener set — the dialog subscribes, triggers publish. */
+/** 📖 Module-level listener set; the dialog subscribes, triggers publish. */
 const listeners = new Set<() => void>()
 export function openSearch() {
   listeners.forEach((fn) => fn())
@@ -284,7 +284,7 @@ export function SearchDialog() {
           <span>
             <Key>↵</Key> open
           </span>
-          <span className="ml-auto">Indexed at build time — no network</span>
+          <span className="ml-auto">Indexed at build time, no network</span>
         </div>
       </div>
     </div>

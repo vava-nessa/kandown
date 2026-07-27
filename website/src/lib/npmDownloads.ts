@@ -5,7 +5,7 @@
  *
  * 📖 **npm has no "total downloads" endpoint.** The registry's download API
  * answers for a date range, and it silently clamps any range longer than
- * **18 months** — ask it for everything since 2015 and it returns a number for
+ * **18 months**, so ask it for everything since 2015 and it returns a number for
  * the last 18 months while quietly rewriting `start` in its own reply. Nothing
  * about the response says it was truncated; a caller that ignores `start` will
  * happily print a year-and-a-half figure under the word "total" and never know.
@@ -14,12 +14,12 @@
  * over-wide range and compare the `start` we get back against the date the
  * package was first published. If the window reaches back that far, the number
  * genuinely is every download the package has ever had, and the link says so.
- * Once Kandown is older than 18 months that stops being true — and on that day
+ * Once Kandown is older than 18 months that stops being true, and on that day
  * the label changes by itself, with nothing to remember and nothing to edit.
  *
  * 📖 `FIRST_PUBLISH` is a constant rather than a lookup because the alternative
  * is fetching the full packument from `registry.npmjs.org`, which is over
- * 270 KB — every version, every dist tag, every shasum — to read one date that
+ * 270 KB (every version, every dist tag, every shasum) to read one date that
  * cannot change. The value is the publish date of v0.1.0, visible in the
  * changelog and in `npm view kandown time.created`.
  *
@@ -28,8 +28,8 @@
  *   useNpmDownloads  → hook returning `{ count, isLifetime, loading }`
  *
  * @exports useNpmDownloads
- * @see website/src/lib/cachedCount.ts — the caching and SSR behaviour
- * @see website/src/components/NpmDownloads.tsx — the only caller
+ * @see website/src/lib/cachedCount.ts. The caching and SSR behaviour.
+ * @see website/src/components/NpmDownloads.tsx. The only caller.
  */
 import { useCachedValue } from './cachedCount'
 
@@ -67,7 +67,7 @@ async function fetchDownloads(): Promise<Downloads> {
   if (typeof data.downloads !== 'number') throw new Error('npm downloads: malformed response')
 
   // 📖 String comparison is exact for ISO dates, which sort lexicographically.
-  // A missing `start` is treated as "not lifetime" — the cautious reading, and
+  // A missing `start` is treated as "not lifetime", the cautious reading, and
   // the one that cannot overstate the number.
   const isLifetime = typeof data.start === 'string' && data.start <= FIRST_PUBLISH
 

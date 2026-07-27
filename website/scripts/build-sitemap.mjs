@@ -4,14 +4,14 @@
  * anything else: `public/sitemap.xml` and `public/robots.txt`.
  *
  * 📖 **Why a sitemap at all, on a site this small.** Crawlers find pages by
- * following links, and most of this site is reachable that way — but not all of
+ * following links, and most of this site is reachable that way, but not all of
  * it evenly. The changelog is ninety pages deep behind a sidebar, and a crawler
  * that gives up after the first twenty never learns the rest exist. A sitemap
  * hands over the complete list in one request, with a `lastmod` per URL so a
  * return visit can skip everything that has not moved.
  *
  * 📖 **Why robots.txt is generated too.** It has to name the sitemap by
- * *absolute* URL — that is the one place in the file a domain appears. Leaving
+ * *absolute* URL, that is the one place in the file a domain appears. Leaving
  * it hand-written would plant a second copy of the domain outside
  * `src/lib/site.ts`, and the day the domain moves, the stale one keeps pointing
  * crawlers at a host nobody owns any more. Generating it means the URL derives
@@ -19,12 +19,12 @@
  * because it is the file's only home.
  *
  * 📖 **What is deliberately absent: `changefreq` and `priority`.** Both are part
- * of the sitemap spec and both are ignored by Google — they were advisory
+ * of the sitemap spec and both are ignored by Google: they were advisory
  * fields that every site set to `daily`/`1.0` until they carried no signal.
  * Emitting them would add a column of noise that has to be kept plausible
  * forever in exchange for nothing.
  *
- * 📖 **How `lastmod` is decided**, since a wrong date is worse than none — a
+ * 📖 **How `lastmod` is decided**, since a wrong date is worse than none. A
  * crawler that learns the dates lie stops reading them:
  *
  *   - **Changelog pages** carry their own release date. It is exact and it never
@@ -37,14 +37,14 @@
  *     on every build.
  *
  * 📖 **The URL list is derived, never typed.** Documentation pages come from
- * `src/content/nav.ts` — the same module that builds the sidebar — and release
+ * `src/content/nav.ts` (the same module that builds the sidebar) and release
  * pages from the changelog index this build already produced. A page cannot
  * therefore exist on the site and be missing from the sitemap: adding it to the
  * nav adds it here. The only hand-written entries are the four static routes,
  * which have no generated source to read.
  *
  * 📖 `/404` is excluded (it is `noindex` anyway) and so is `/demo/app/`, the
- * demo's build artifact — a bundle, not content, and `robots.txt` disallows it.
+ * demo's build artifact, a bundle, not content, and `robots.txt` disallows it.
  *
  * Runs from `predev` / `prebuild`, after `build-changelogs.mjs` whose index it
  * reads; run it alone with `pnpm sitemap`.
@@ -55,8 +55,8 @@
  *   urlEntry       → one <url> element
  *   main           → write sitemap.xml and robots.txt
  *
- * @see website/scripts/build-llms.mjs — the same derive-everything rule, for agents
- * @see website/src/lib/site.ts — where the domain is defined, once
+ * @see website/scripts/build-llms.mjs: the same derive-everything rule, for agents
+ * @see website/src/lib/site.ts: where the domain is defined, once
  */
 import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -99,7 +99,7 @@ async function readChangelogs() {
     const entries = JSON.parse(raw).entries ?? []
     return entries.filter((entry) => entry.slug)
   } catch {
-    console.warn('[sitemap] no changelog index yet — run build-changelogs.mjs first')
+    console.warn('[sitemap] no changelog index yet, run build-changelogs.mjs first')
     return []
   }
 }
@@ -124,7 +124,7 @@ async function main() {
 
   // 📖 `/changelogs` is deliberately absent. It resolves to the newest release
   // rather than having content of its own, so its canonical tag points at
-  // `/changelogs/<latest>` — which is already listed below. Submitting a URL
+  // `/changelogs/<latest>`, which is already listed below. Submitting a URL
   // that canonicalises to a different one asks a crawler to fetch a page in
   // order to be told to ignore it.
   const paths = [

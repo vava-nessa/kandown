@@ -1,6 +1,6 @@
 /**
  * @file src/components/GitHubStars.tsx
- * @description The GitHub link in the site header — the Octocat and the word
+ * @description The GitHub link in the site header, with the Octocat and the word
  * "GitHub" on the centre line, the star count hanging underneath, all one anchor
  * pointing at the repository.
  *
@@ -11,7 +11,7 @@
  * group highlights and activates as the single thing it always was.
  *
  * 📖 **The star is GitHub's own icon**, taken from Octicons at its native
- * 16×16 viewBox rather than redrawn — a hand-made star next to a real one reads
+ * 16×16 viewBox rather than redrawn (a hand-made star next to a real one reads
  * as slightly wrong without the viewer being able to say why. It is grey rather
  * than gold: the number under the mark is supporting detail, and a coloured
  * icon there pulls the eye away from the logo it belongs to.
@@ -20,14 +20,14 @@
  * shared with the npm counterpart so the two cannot drift apart.
  *
  * @exports GitHubStars
- * @see website/src/components/NpmDownloads.tsx — its twin
+ * @see website/src/components/NpmDownloads.tsx. Its twin.
  */
 import { useGithubStars, formatStars } from '~/lib/githubStars'
 import { HeaderCountLink } from './HeaderCountLink'
 
 export function GitHubStars({ href }: { href: string }) {
   const { count, loading } = useGithubStars()
-  const text = loading || count === null ? '—' : formatStars(count)
+  const text = loading || count === null ? '…' : formatStars(count)
 
   return (
     <HeaderCountLink

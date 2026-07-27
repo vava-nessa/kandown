@@ -11,8 +11,8 @@
  * full width on small screens. The disclosure trigger lives on the page's
  * mobile toolbar.
  *
- * @exports ChangelogSidebar — the nav tree
- * @exports MobileChangelogSidebar — the slide-over wrapper for small screens
+ * @exports ChangelogSidebar. The nav tree.
+ * @exports MobileChangelogSidebar. The slide-over wrapper for small screens.
  */
 import { useEffect } from 'react'
 import { Link, useRouterState } from '@tanstack/react-router'
@@ -37,7 +37,7 @@ export function ChangelogSidebar({
           className="mb-6 border-t border-border pt-4 first:border-t-0 first:pt-0"
         >
           {/* 📖 `Unreleased` deserves a real label rather than the literal
-              underscore — the bucket name is implementation detail. */}
+              underscore; the bucket name is implementation detail. */}
           <h2 className="label mb-2.5">
             {group.year === '_' ? 'Unreleased' : group.year}
           </h2>

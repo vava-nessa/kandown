@@ -4,7 +4,7 @@
  * into the static assets the `/changelogs` route renders from.
  *
  * 📖 **Why a build step.** Every release already lives at
- * `changelogs/vX.Y.Z.md` — that is the single source of truth, and the npm
+ * `changelogs/vX.Y.Z.md`, that is the single source of truth, and the npm
  * package ships the directory verbatim. Re-parsing Markdown in the browser
  * would force the site to ship a Markdown engine for what is currently 90+
  * small files; shipping prerendered HTML keeps the client bundle unchanged
@@ -13,19 +13,19 @@
  * 📖 **What it produces**, all under `public/changelogs/` so the prerenderer
  * treats them as plain static files:
  *
- *   - `index.json` — `{ entries: [{ slug, version, date, name, file }] }`,
+ *   - `index.json`: `{ entries: [{ slug, version, date, name, file }] }`,
  *     newest first by semver, with `Unreleased` pinned on top when present.
  *     The React sidebar reads this to render its year-grouped tree.
- *   - `vX.Y.Z.frag` — one prerendered HTML fragment per release: title,
+ *   - `vX.Y.Z.frag`: one prerendered HTML fragment per release: title,
  *     date, codename, then the Markdown body run through the same remark
  *     pipeline as the docs (gfm + rehype-slug + shiki + stringify).
  *
- * ⚠️ **The `.frag` extension is load-bearing — do not "fix" it to `.html`.**
+ * ⚠️ **The `.frag` extension is load-bearing: do not "fix" it to `.html`.**
  * These fragments sit in `public/changelogs/`, and the site has a route at
  * `/changelogs/<version>` that prerenders to `changelogs/<version>/index.html`.
  * Naming a fragment `v0.39.1.html` puts a second file at the same public path:
  * with `cleanUrls` enabled, Vercel resolves `/changelogs/v0.39.1` to
- * `changelogs/v0.39.1.html` — the fragment — *before* it ever looks at the
+ * `changelogs/v0.39.1.html` (the fragment) *before* it ever looks at the
  * prerendered directory. The fragment wins, and every release deep link serves
  * 500 bytes of bare `<h2>` with no `<html>`, no site chrome and no meta tags,
  * while the real page sits unreachable one directory below. It looks fine in
@@ -44,8 +44,8 @@
  *   compare        → numeric semver descending comparator
  *   main           → write every HTML fragment and the sidebar index
  *
- * @see scripts/build-llms.mjs — the same shape for the documentation
- * @see scripts/build-changelog.js — the CLI-side index generator (different
+ * @see scripts/build-llms.mjs: the same shape for the documentation
+ * @see scripts/build-changelog.js: the CLI-side index generator (different
  *   output, same parsing convention)
  */
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
@@ -70,7 +70,8 @@ const SOURCE_DIR = join(REPO_ROOT, 'changelogs')
 const OUT_DIR = join(WEBSITE, 'public', 'changelogs')
 
 /**
- * 📖 The release heading used by every file: `# 0.36.1 — 2026-07-26 — "Name"`.
+ * 📖 The release heading used by every file: version, date and codename. The exact
+ * regex is `RE_TITLE` below.
  * `Unreleased` replaces the version/date pair when work is in flight. Mirrors
  * the regex in `scripts/build-changelog.js` so the two indexes stay aligned.
  */
@@ -124,7 +125,7 @@ async function parseChangelog(filename) {
   }
 }
 
-/** 📖 Newest first, comparing each numeric segment — not the string. */
+/** 📖 Newest first, comparing each numeric segment, not the string. */
 function compare(a, b) {
   if (a.version === 'Unreleased') return -1
   if (b.version === 'Unreleased') return 1
@@ -141,7 +142,7 @@ async function main() {
   try {
     files = (await readdir(SOURCE_DIR)).filter((name) => name.endsWith('.md'))
   } catch (error) {
-    console.warn(`[changelogs] no source at ${SOURCE_DIR} — writing an empty index`)
+    console.warn(`[changelogs] no source at ${SOURCE_DIR}, writing an empty index`)
   }
 
   const parsed = await Promise.all(files.map(parseChangelog))

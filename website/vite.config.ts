@@ -7,14 +7,14 @@
  *
  * 📖 Why MDX at build time rather than a markdown renderer at runtime: every
  * docs page is known at build time, so parsing, highlighting and slugging all
- * happen once during `vite build`. The shipped page is plain HTML — no markdown
+ * happen once during `vite build`. The shipped page is plain HTML, no markdown
  * parser or highlighter in the client bundle.
  *
  * 📖 Plugin order matters. `@mdx-js/rollup` must run with `enforce: 'pre'` so it
  * transforms `.mdx` before anything else looks at it, and the React plugin must
  * come after the Start plugin (a documented TanStack Start requirement).
  *
- * @exports default — the Vite config
+ * @exports default: the Vite config
  */
 import { defineConfig } from 'vite'
 import { fileURLToPath } from 'node:url'

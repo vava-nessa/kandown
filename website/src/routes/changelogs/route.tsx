@@ -3,7 +3,7 @@
  * @description The `/changelogs` layout: the sticky version sidebar on the
  * left, the article outlet on the right.
  *
- * 📖 Mirrors `docs/route.tsx`'s layout so the two pages read as one product —
+ * 📖 Mirrors `docs/route.tsx`'s layout so the two pages read as one product,
  * same ruled column, same mobile toolbar, same backdrop blur. The sidebar
  * keeps its scroll position across page changes because this is a layout
  * route, just like the docs.
@@ -37,7 +37,7 @@ function ChangelogsLayout() {
           </div>
         </aside>
 
-        {/* 📖 Mobile toolbar — the only way to reach the version picker below lg. */}
+        {/* 📖 Mobile toolbar, the only way to reach the version picker below lg. */}
         <div className="sticky top-14 z-40 -mx-5 mb-2 flex items-center gap-3 border-b border-border bg-bg/85 px-5 py-2.5 backdrop-blur-xl sm:-mx-8 sm:px-8 lg:hidden">
           <button
             type="button"

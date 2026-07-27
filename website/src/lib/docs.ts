@@ -5,13 +5,13 @@
  * 📖 `import.meta.glob(..., { eager: true })` is the whole loader. Vite expands
  * it at build time into static imports of every `.mdx` file under
  * `src/content/docs`, so the router never touches the filesystem and the
- * prerenderer can render any page without a data fetch. The trade-off — all
- * pages end up in one chunk — is the right one here: the entire corpus is
+ * prerenderer can render any page without a data fetch. The trade-off is that all
+ * pages end up in one chunk, which is the right call here since the entire corpus is
  * smaller than a single hero image.
  *
  * @functions getDoc → `{ Content, frontmatter }` for a slug, or `null`
  * @exports getDoc, docSlugs
- * @see src/content/nav.ts — the sidebar order, which must agree with these files
+ * @see src/content/nav.ts. The sidebar order, which must agree with these files.
  */
 import type { ComponentType } from 'react'
 

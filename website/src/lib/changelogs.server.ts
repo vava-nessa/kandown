@@ -2,7 +2,7 @@
  * @file src/lib/changelogs.server.ts
  * @description SSR-only filesystem reader for the prerendered changelog
  * assets. Kept in a separate file so Vite's client bundler never imports it
- * — the changelog loaders only reach this code when `import.meta.env.SSR`
+ * : the changelog loaders only reach this code when `import.meta.env.SSR`
  * is true, and the client graph can therefore drop it entirely.
  *
  * 📖 **Why a separate file.** `changelog.ts` is the loader every consumer
@@ -17,12 +17,12 @@
  * `new URL('../../public/changelogs/', import.meta.url)` resolves to a path
  * that does not exist (Vite copies `public/` into `dist/client/`, not next
  * to the SSR bundle). `process.cwd()` is the project's `website/` directory
- * in every environment we run in — the Vite dev server, the TanStack Start
- * prerender worker, and the deployed Node runtime — so the path is stable
+ * in every environment we run in (the Vite dev server, the TanStack Start
+ * prerender worker, and the deployed Node runtime), so the path is stable
  * and the file reads are correct.
  *
- * @see scripts/build-changelogs.mjs — the build that produces these files
- * @see src/lib/changelogs.ts — the loader the rest of the app uses
+ * @see scripts/build-changelogs.mjs. The build that produces these files.
+ * @see src/lib/changelogs.ts. The loader the rest of the app uses.
  */
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'

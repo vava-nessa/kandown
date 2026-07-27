@@ -7,8 +7,8 @@
  * Below `lg` the same tree is reused inside a slide-over panel opened from the
  * docs toolbar, so there is one nav definition and one component for both.
  *
- * @exports DocsSidebar — the nav tree
- * @exports MobileSidebar — the slide-over wrapper for small screens
+ * @exports DocsSidebar. The nav tree.
+ * @exports MobileSidebar. The slide-over wrapper for small screens.
  */
 import { useEffect } from 'react'
 import { Link, useRouterState } from '@tanstack/react-router'
@@ -20,7 +20,7 @@ export function DocsSidebar({ onNavigate }: { onNavigate?: () => void }) {
     <nav aria-label="Documentation">
       {/* 📖 Groups are separated by a rule and their titles set in mono, so the
           sidebar reads as an index rather than a stack of buttons. The active
-          item is marked by a solid accent rule on the left — the same device
+          item is marked by a solid accent rule on the left (the same device
           used for the current nav item in the header. */}
       {docsNav.map((group) => (
         <div key={group.title} className="mb-6 border-t border-border pt-4 first:border-t-0 first:pt-0">

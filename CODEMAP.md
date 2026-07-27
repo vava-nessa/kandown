@@ -26,8 +26,8 @@ source to edit instead.
 
 ## `bin/` — Published CLI entrypoints — GENERATED, never edit
 
-- **`kandown.js`** · 3484 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
-- **`tui.js`** · 60155 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
+- **`kandown.js`** · 3561 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
+- **`tui.js`** · 60232 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
 
 ## `src/` — Web app root
 

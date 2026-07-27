@@ -6,10 +6,10 @@
  * 📖 Why inline: the logo appears in the header of every page and in the hero.
  * As an `<img>` it costs a request and flashes on first paint; as JSX it ships
  * inside the already-critical HTML. The paths are a faithful copy of
- * `logo.svg` at the repo root — if that file changes, update this one too.
+ * `logo.svg` at the repo root. If that file changes, update this one too.
  *
- * @exports Logo — the rounded-square mark, sized by the `size` prop
- * @exports Wordmark — mark + "Kandown" lockup used in the header and footer
+ * @exports Logo. The rounded-square mark, sized by the `size` prop.
+ * @exports Wordmark. Mark + "Kandown" lockup used in the header and footer.
  */
 
 export function Logo({ size = 32, className }: { size?: number; className?: string }) {

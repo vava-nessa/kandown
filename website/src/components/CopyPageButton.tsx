@@ -3,7 +3,7 @@
  * @description Copies the current documentation page to the clipboard as clean
  * Markdown, and offers the raw file as a link.
  *
- * 📖 The Markdown is not reconstructed from the DOM — it is fetched from
+ * 📖 The Markdown is not reconstructed from the DOM; it is fetched from
  * `/docs/<slug>.md`, the file `scripts/build-llms.mjs` generated from the same
  * MDX source the page was rendered from. Scraping `innerText` would silently
  * drop code fences, tables and link targets, which are exactly the parts
@@ -19,10 +19,10 @@
  * leave a Clipboard API promise pending after client-side navigation.
  *
  * @functions
- *  → CopyPageButton — the copy control plus its raw-file link
+ *  → CopyPageButton. The copy control plus its raw-file link.
  *
  * @exports CopyPageButton
- * @see website/scripts/build-llms.mjs — writes the file this fetches
+ * @see website/scripts/build-llms.mjs. Writes the file this fetches.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { copyTextToClipboard } from '~/lib/clipboard'

@@ -5,14 +5,14 @@
  *
  * 📖 Drop-in contract for the video file. Put `demo.webm` and/or `demo.mp4` in
  * `website/public/` and a still frame at `public/demo-poster.png`. Nothing else
- * needs to change — until those files exist the component renders the poster,
+ * needs to change. Until those files exist the component renders the poster,
  * and if the poster is missing too it falls back to a static board mock so the
  * hero is never a grey rectangle.
  *
  * 📖 Autoplay only survives if the video is `muted` *and* `playsInline`; Safari
  * on iOS blocks it otherwise. `preload="metadata"` keeps the initial payload
  * small, and the whole element is skipped for visitors who asked for reduced
- * motion — they get the poster image instead.
+ * motion; they get the poster image instead.
  *
  * @functions HeroVideo → the framed player with graceful degradation
  * @exports HeroVideo
@@ -62,7 +62,7 @@ export function HeroVideo() {
           filler that every screenshot frame on the web already has, and they say
           nothing about a tool that runs on your own machine. */}
       <div className="flex items-center justify-between gap-4 border-b border-border px-4 py-2.5">
-        <span className="label truncate">localhost:5176 — kandown</span>
+        <span className="label truncate">localhost:5176 · kandown</span>
         <span className="label hidden shrink-0 text-accent-fg sm:block">live demo</span>
       </div>
 

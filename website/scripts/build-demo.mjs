@@ -6,7 +6,7 @@
  * 📖 **Why this is a build step and not a checked-in artifact.** The demo's one
  * job is to be honest: what a visitor drags around must be the same code
  * `npx kandown` runs, at the version this site is describing. A committed bundle
- * would be a snapshot that silently rots — and a demo that misrepresents the
+ * would be a snapshot that silently rots, and a demo that misrepresents the
  * product is worse than no demo. So the site cannot be built without rebuilding
  * the app, and a failure here fails the deploy rather than shipping a stale one.
  *
@@ -14,12 +14,12 @@
  * root. Vercel clones the whole repo and only changes the working directory to
  * `website/`, so the CLI sources are present in CI exactly as they are locally.
  * The parent has its own pnpm workspace, so its dependencies are installed
- * separately — that install is the slow part of this script and is skipped when
+ * separately, that install is the slow part of this script and is skipped when
  * `node_modules` is already there.
  *
  * 📖 **What it writes.** Two things:
- *   - `public/demo/app/` — the chunked demo build (gitignored)
- *   - `src/generated/demo-meta.json` — `{ version, builtAt, available }`, so the
+ *   - `public/demo/app/`: the chunked demo build (gitignored)
+ *   - `src/generated/demo-meta.json`: `{ version, builtAt, available }`, so the
  *     page can state which version is running instead of implying "latest"
  *
  * Usage:
@@ -27,12 +27,12 @@
  *   node scripts/build-demo.mjs --if-missing # skip when already built (dev)
  *
  * Environment:
- *   KANDOWN_DEMO_SKIP=1  — skip entirely and mark the demo unavailable
+ *   KANDOWN_DEMO_SKIP=1: skip entirely and mark the demo unavailable
  *
  * @functions
- *  → main — orchestrates resolve → install → build → copy → stamp
- *  → run — spawns a command, inheriting stdio, rejecting on non-zero exit
- *  → writeMeta — records what was built for the demo page to display
+ *  → main: orchestrates resolve, install, build, copy, stamp
+ *  → run: spawns a command, inheriting stdio, rejecting on non-zero exit
+ *  → writeMeta: records what was built for the demo page to display
  *
  * @see website/src/routes/app.tsx
  * @see vite.config.ts (the `demo` mode this script invokes)
@@ -59,7 +59,7 @@ async function exists(path) {
   }
 }
 
-/** 📖 Inherit stdio so pnpm's own progress output is the build log — wrapping it adds nothing. */
+/** 📖 Inherit stdio so pnpm's own progress output is the build log, wrapping it adds nothing. */
 function run(command, args, cwd) {
   return new Promise((resolvePromise, reject) => {
     const child = spawn(command, args, { cwd, stdio: 'inherit', shell: process.platform === 'win32' });
@@ -83,13 +83,13 @@ async function writeMeta(meta) {
 
 async function main() {
   if (process.env.KANDOWN_DEMO_SKIP === '1') {
-    console.log('[demo] KANDOWN_DEMO_SKIP=1 — skipping the demo build.');
+    console.log('[demo] KANDOWN_DEMO_SKIP=1, skipping the demo build.');
     await writeMeta({ available: false, reason: 'skipped', version: null, builtAt: null });
     return;
   }
 
   if (ifMissing && (await exists(join(demoOut, 'index.html')))) {
-    console.log('[demo] Already built — skipping. Delete public/demo/ to force a rebuild.');
+    console.log('[demo] Already built, skipping. Delete public/demo/ to force a rebuild.');
     return;
   }
 
@@ -107,7 +107,7 @@ async function main() {
   }
 
   // 📖 The parent workspace is independent of this one. Installing it is by far
-  // the slowest step, so skip it when the tree is already there — which is the
+  // the slowest step, so skip it when the tree is already there, which is the
   // normal case locally and never the case on a cold CI build.
   if (!(await exists(join(repoRoot, 'node_modules')))) {
     console.log('[demo] Installing the app dependencies…');
@@ -134,7 +134,7 @@ async function main() {
     builtAt: new Date().toISOString(),
   });
 
-  console.log(`[demo] Ready — kandown@${pkg.version} → public/demo/app/`);
+  console.log(`[demo] Ready: kandown@${pkg.version} → public/demo/app/`);
 }
 
 main().catch(async (error) => {

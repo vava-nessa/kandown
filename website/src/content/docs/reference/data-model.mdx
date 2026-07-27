@@ -1,7 +1,7 @@
 ---
 title: Data model
 section: Reference
-description: The complete shape of a task file — frontmatter fields, body conventions, and the folder layout.
+description: "The complete shape of a task file: frontmatter fields, body conventions, and the folder layout."
 ---
 
 One task, one file, no index. This page is the full specification of that file.
@@ -58,7 +58,7 @@ Why this task exists.
 | `title` | string | Task title |
 | `status` | string | Board column, from `board.columns` in `kandown.json` |
 | `order` | number | Sort position within the column |
-| `priority` | `P1`–`P4` | Highest to lowest |
+| `priority` | `P1`-`P4` | Highest to lowest |
 | `tags` | string[] | Free-form labels |
 | `assignee` | string | A username or an agent name |
 | `ownerType` | `human` \| `ai` | Drives owner filtering |
@@ -92,7 +92,7 @@ A Markdown checklist. Each item may carry an indented description and a `report:
 ```
 
 `report:` is the field that turns a completed task into a work log. Agents are expected to fill it
-in as they go — see [For AI agents](/docs/agents/overview#keeping-the-board-honest).
+in as they go (see [For AI agents](/docs/agents/overview#keeping-the-board-honest)).
 
 ## Invariants
 
@@ -105,7 +105,7 @@ Three rules the codebase enforces, worth knowing if you script against the files
 
 ## Editing files directly
 
-Entirely supported — it is the point. Kandown watches the folder, detects external changes and
+Entirely supported; it is the point. Kandown watches the folder, detects external changes and
 surfaces them rather than overwriting.
 
 If you write a task by hand, `id`, `title` and `status` are the only fields you need; everything

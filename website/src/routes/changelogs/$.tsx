@@ -11,7 +11,7 @@
  * from our own build step on our own Markdown source.
  *
  * 📖 An unknown slug calls `notFound()` from the loader so the prerenderer
- * bakes the same 404 the runtime would — important because TanStack Start
+ * bakes the same 404 the runtime would, important because TanStack Start
  * happily emits a blank page for a splat that resolved to nothing.
  *
  * 📖 Prev/next links walk the *same* list the sidebar shows, so the footer
@@ -31,17 +31,17 @@ export const Route = createFileRoute('/changelogs/$')({
     const entry = findEntry(index.entries, slug)
     if (!entry) throw notFound()
     // 📖 Prefetch the HTML so the article renders synchronously inside the
-    // loader's `Promise.all` — the suspense boundary never flashes empty.
+    // loader's `Promise.all`; the suspense boundary never flashes empty.
     const html = await loadChangelogHtml(slug)
     return { slug, entry, html, all: index.entries }
   },
   head: ({ loaderData }) => ({
     meta: loaderData
       ? [
-          { title: `${loaderData.entry.version} — ${loaderData.entry.name} · Kandown changelog` },
+          { title: `${loaderData.entry.version} · ${loaderData.entry.name} · Kandown changelog` },
           {
             name: 'description',
-            content: `Release notes for Kandown ${loaderData.entry.version} — ${loaderData.entry.name}.`,
+            content: `Release notes for Kandown ${loaderData.entry.version} (${loaderData.entry.name}).`,
           },
         ]
       : [],
@@ -71,7 +71,7 @@ function ChangelogPage() {
           <span className="font-mono text-[1.25rem] tracking-tight text-fg-muted sm:text-[1.5rem]">
             v{entry.version}
           </span>
-          <span className="ml-3">— {entry.name}</span>
+          <span className="ml-3">· {entry.name}</span>
         </h1>
       </header>
 
@@ -89,7 +89,7 @@ function ChangelogPage() {
           >
             <span className="label">Newer</span>
             <span className="mt-1 block text-[14px] font-medium text-fg-muted transition-colors group-hover:text-fg">
-              ← v{prev.version} — {prev.name}
+              ← v{prev.version} · {prev.name}
             </span>
           </Link>
         ) : (
@@ -103,7 +103,7 @@ function ChangelogPage() {
           >
             <span className="label">Older</span>
             <span className="mt-1 block text-[14px] font-medium text-fg-muted transition-colors group-hover:text-fg">
-              v{next.version} — {next.name} →
+              v{next.version} · {next.name} →
             </span>
           </Link>
         )}

@@ -5,7 +5,7 @@
  * in response to cursor position and renders a soft radial highlight through
  * `mix-blend-overlay` on top.
  *
- * 📖 The card has no opinion about its content — it accepts `children` and
+ * 📖 The card has no opinion about its content. It accepts `children` and
  * applies the perspective, rotation springs, scale-on-hover and glare on top.
  * The intent is that anything styled with its own background and padding
  * (logo blocks, image cards, call-to-action panels) can be dropped in and
@@ -20,7 +20,7 @@
  * `mix-blend-overlay` so it reads as a light highlight rather than a tinted
  * veil.
  *
- * 📖 `framer-motion` and `motion` are the same library — `motion` is the
+ * 📖 `framer-motion` and `motion` are the same library; `motion` is the
  * newer package name for the rebrand, but `framer-motion` is what this
  * project depends on. Imports use `framer-motion` so we do not pull a second
  * copy of the library into the website bundle.

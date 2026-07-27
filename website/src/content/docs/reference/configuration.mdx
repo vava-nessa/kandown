@@ -15,7 +15,7 @@ Edit it through **Settings** in the web board, `kandown settings` in the termina
 ### Columns
 
 Columns are free-form. Renaming one updates every task's `status` to match; reordering changes the
-board. The **last column is the terminal column** — the one the dependency gate protects.
+board. The **last column is the terminal column**, the one the dependency gate protects.
 
 ### Themes
 
@@ -62,7 +62,7 @@ startup. The token is stored in the gitignored `.kandown/daemon.json` and inject
 serves.
 
 Every route except the read-only `GET /api/daemon` identity check requires that token, so an
-unrelated browser tab cannot reach your tasks by scanning localhost ports — a real attack against
+unrelated browser tab cannot reach your tasks by scanning localhost ports (a real attack against
 naive local servers. Task ids are validated before they touch the filesystem, which closes the path
 traversal that "id" parameters invite.
 
@@ -75,8 +75,8 @@ custom ignore rules, make sure it stays out of your commits.
 
 Nothing, with exactly two exceptions, both of which you control:
 
-1. **The update check**, which contacts the npm registry — disabled with `KANDOWN_NO_UPDATE=1`.
-2. **The agent hook**, which posts a task to your own endpoint — only when you press the key, and
+1. **The update check**, which contacts the npm registry (disabled with `KANDOWN_NO_UPDATE=1`).
+2. **The agent hook**, which posts a task to your own endpoint (only when you press the key, and
    only to the URL you set.
 
 No telemetry, no analytics, no account, no sync.

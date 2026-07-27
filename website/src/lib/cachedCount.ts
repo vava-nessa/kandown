@@ -5,7 +5,7 @@
  * it to a component without ever blocking a render.
  *
  * 📖 **Why this exists separately.** The GitHub star count and the npm download
- * count are the same problem twice — a number from a third-party API, on a
+ * count are the same problem twice: a number from a third-party API, on a
  * fully static site, that must not break the header when the network does.
  * Written twice they would drift: one would grow a retry, the other a different
  * TTL, and a bug fixed in one would survive in the other. The API-specific part
@@ -20,15 +20,15 @@
  * someone clicking a button on github.com.
  *
  * 📖 **Why the last known value survives an error.** These APIs are reliable but
- * not perfect — a rate limit, a flaky network, a DNS hiccup. A value from a few
+ * not perfect, so a rate limit, a flaky network, or a DNS hiccup can all happen. A value from a few
  * hours ago still describes reality; an error state inside what is meant to be
  * a quiet decoration does not. Failures are therefore swallowed and the cached
  * value stays on screen.
  *
  * 📖 **The SSR contract every caller depends on.** The first render must return
  * the same thing on the server and in the browser, or hydration warns and React
- * throws the markup away. So the initial state is always `null` — never the
- * cached value, tempting as that is — and the cache is only consulted inside
+ * throws the markup away. So the initial state is always `null` (never the
+ * cached value, tempting as that is), and the cache is only consulted inside
  * `useEffect`, which does not run during prerender. Each caller renders a
  * placeholder for `null`, the server bakes that placeholder, and the real
  * number replaces it a moment later.
@@ -38,8 +38,8 @@
  *   formatCompact  → 1234 → "1.2k", 12345 → "12k", 1200000 → "1.2M"
  *
  * @exports useCachedValue, formatCompact
- * @see website/src/lib/githubStars.ts — stars
- * @see website/src/lib/npmDownloads.ts — downloads
+ * @see website/src/lib/githubStars.ts. Stars.
+ * @see website/src/lib/npmDownloads.ts. Downloads.
  */
 import { useEffect, useState } from 'react'
 
@@ -49,7 +49,7 @@ type Cached<T> = { value: T; fetchedAt: number }
 
 /**
  * 📖 `fetchedAt` is wall-clock time. Comparing it against `Date.now()` is safe
- * here because the TTL is a full day — clock drift between tabs, or a machine
+ * here because the TTL is a full day, so clock drift between tabs, or a machine
  * waking from sleep, cannot meaningfully change the outcome.
  */
 function readCache<T>(storageKey: string, isValid: (value: unknown) => value is T): Cached<T> | null {
@@ -63,7 +63,7 @@ function readCache<T>(storageKey: string, isValid: (value: unknown) => value is 
     if (typeof fetchedAt !== 'number' || !isValid(value)) return null
     return { value, fetchedAt }
   } catch {
-    // 📖 Unreadable or malformed cache — from an older key shape, a truncated
+    // 📖 Unreadable or malformed cache: from an older key shape, a truncated
     // write, or a browser that just denied access. Treat it as absent and
     // refetch rather than trying to repair it.
     return null
@@ -103,7 +103,7 @@ export function useCachedValue<T>(options: {
 }): { value: T | null; loading: boolean } {
   const { storageKey, fetcher, isValid } = options
 
-  // 📖 Always `null` on the first render — see the SSR contract above.
+  // 📖 Always `null` on the first render, see the SSR contract above.
   const [value, setValue] = useState<T | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -143,7 +143,7 @@ export function useCachedValue<T>(options: {
 }
 
 /**
- * 📖 `1.2k`, `12k`, `1.2M` — the compact form GitHub and npm both use. Keeping
+ * 📖 `1.2k`, `12k`, `1.2M`: the compact form GitHub and npm both use. Keeping
  * it under five characters is what stops a growing number from reflowing the
  * header the day the project gets popular.
  */

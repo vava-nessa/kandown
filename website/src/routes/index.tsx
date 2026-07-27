@@ -5,7 +5,7 @@
  * Markdown ownership, the three interfaces, the supporting feature set, and the
  * install CTA.
  *
- * ⚠️ The section numbers (`01`–`05`) are hand-written strings, not derived.
+ * ⚠️ The section numbers (`01`-`05`) are hand-written strings, not derived.
  * Inserting a section means renumbering the ones after it, or the page starts
  * counting `01, 02, 02` and nobody notices for a month.
  *
@@ -17,7 +17,7 @@
  *     under it is the single most recognisable landing-page cliché; an
  *     asymmetric measure reads as designed and is easier to scan.
  *   · Structure is drawn with 1px rules, not cards. Sections are separated by
- *     full-bleed hairlines and numbered `01`–`06` in mono.
+ *     full-bleed hairlines and numbered `01`-`06` in mono.
  *   · There is no glow, no gradient mesh and no floating badge. The only
  *     decorative element is the column lattice, which echoes a kanban board.
  *   · Every label, count and piece of metadata is set in Geist Mono. Prose is
@@ -148,7 +148,7 @@ function Hero() {
 
           {/* 📖 The whole product lockup lives in one dark frame: mark, the
               equation resolving into the name, then the install action. The
-              frame is now a CometCard — a 3D-tilted interactive surface that
+              frame is now a CometCard, a 3D-tilted interactive surface that
               rotates toward the cursor and lights up with a soft glare on
               hover, replacing the static rounded panel. The dark card itself
               (background, border, padding, install command) sits inside the
@@ -235,7 +235,7 @@ function BrandLoop() {
  * "whose method does it follow".
  *
  * ⚠️ This describes work that is designed but not shipped (see tasks t258, t259,
- * t260). The `Planned` marker in the eyebrow is what keeps the page honest —
+ * t260). The `Planned` marker in the eyebrow is what keeps the page honest,
  * remove it when workflow selection actually lands, and not before.
  */
 function Workflows() {
@@ -636,7 +636,7 @@ function Shell({ children, className = '' }: { children: ReactNode; className?: 
   return <div className={`mx-auto max-w-6xl px-5 sm:px-8 ${className}`}>{children}</div>
 }
 
-/** 📖 Full-bleed hairline between sections — the layout's main punctuation. */
+/** 📖 Full-bleed hairline between sections, the layout's main punctuation. */
 function Rule() {
   return <div className="border-b border-border" />
 }

@@ -11,7 +11,7 @@
  * button stuck on its loading label with no recovery path.
  *
  * @functions
- *  → copyTextToClipboard — copies text with a bounded modern attempt and a DOM fallback
+ *  → copyTextToClipboard. Copies text with a bounded modern attempt and a DOM fallback.
  *
  * @exports copyTextToClipboard
  */

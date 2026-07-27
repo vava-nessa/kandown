@@ -3,7 +3,7 @@
  * @description Creates the TanStack Router instance for the site.
  *
  * 📖 TanStack Start calls `getRouter()` once per request on the server and once
- * on the client during hydration, so it must return a *fresh* router each time —
+ * on the client during hydration, so it must return a *fresh* router each time:
  * a module-level singleton would leak state between server-rendered requests.
  *
  * @functions getRouter → a configured router instance

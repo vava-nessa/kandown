@@ -1,11 +1,11 @@
 /**
  * @file src/lib/site.ts
- * @description Site-wide constants — the one place to change a URL, a tagline or
+ * @description Site-wide constants. The one place to change a URL, a tagline or
  * the advertised install command. Everything user-visible that appears in more
  * than one component lives here rather than being retyped in each.
  *
- * @exports site — name, tagline, canonical URL, external links
- * @exports INSTALL_COMMAND — the command shown in the hero and the docs
+ * @exports site. Name, tagline, canonical URL, external links.
+ * @exports INSTALL_COMMAND. The command shown in the hero and the docs.
  */
 
 export const site = {

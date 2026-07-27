@@ -1,6 +1,6 @@
 /**
  * @file src/components/CopyCommand.tsx
- * @description A terminal-styled command with a copy button — the primary call to
+ * @description A terminal-styled command with a copy button, the primary call to
  * action in the hero, reused wherever a shell one-liner is offered.
  *
  * 📖 The button shows a short label next to the icon (`Copy` idle, `Copied`

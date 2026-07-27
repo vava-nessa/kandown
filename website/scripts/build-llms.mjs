@@ -13,24 +13,24 @@
  *
  * 📖 **What it produces**, all under `public/` so they are plain static files:
  *
- *   - `docs/<slug>.md` — every page as clean Markdown. Because the routes live
+ *   - `docs/<slug>.md`: every page as clean Markdown. Because the routes live
  *     at `/docs/<slug>`, this means **appending `.md` to any documentation URL
  *     returns its source**. That is the convention agents already probe for.
- *   - `llms.txt` — the index: what Kandown is, how to install it, and a linked
+ *   - `llms.txt`: the index, what Kandown is, how to install it, and a linked
  *     table of contents. Small enough to read in full before deciding.
- *   - `llms-full.txt` — the entire corpus concatenated, for an agent that would
+ *   - `llms-full.txt`: the entire corpus concatenated, for an agent that would
  *     rather make one request than seventeen.
  *
  * 📖 **There is exactly one source of truth: the MDX.** These files are derived
  * on every build and gitignored, so they cannot be edited into disagreement with
- * the site — change a page and its Markdown twin changes with it. The same rule
+ * the site, so change a page and its Markdown twin changes with it. The same rule
  * governs the index: `llms.txt` contains no hand-written prose at all. Its
  * tagline and install command come from `src/lib/site.ts` (the constants the
  * hero and the meta tags already use) and every one-line summary is a page's own
  * `description` frontmatter. A summary typed into this script would be a second
  * copy of the documentation, owned by nobody, wrong within a week.
  *
- * 📖 **Ordering comes from `src/content/nav.ts`**, imported directly — Node
+ * 📖 **Ordering comes from `src/content/nav.ts`**, imported directly. Node
  * strips the types natively, so the sidebar, the prev/next links and these files
  * cannot disagree about what the documentation contains or what order it is in.
  *
@@ -46,7 +46,7 @@
  *   readDoc      → load and normalise one page
  *   main         → write the per-page files and both indexes
  *
- * @see website/src/components/CopyPageButton.tsx — the human-facing half
+ * @see website/src/components/CopyPageButton.tsx, the human-facing half
  */
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
@@ -61,7 +61,7 @@ const { docsNav, flatDocs } = await import(join(ROOT, 'src', 'content', 'nav.ts'
 const { site, INSTALL_COMMAND } = await import(join(ROOT, 'src', 'lib', 'site.ts'))
 
 /**
- * 📖 Absolute URLs are part of the llms.txt convention — an agent may have the
+ * 📖 Absolute URLs are part of the llms.txt convention. An agent may have the
  * file without knowing where it came from. Prefer an explicit `SITE_URL`, then
  * the production domain Vercel injects at build time (which follows a custom
  * domain once one is attached), and fall back to the canonical URL in site.ts.
@@ -83,7 +83,7 @@ const BASE = baseUrl()
  * 📖 Only two constructs need handling, because the content deliberately stays
  * close to plain Markdown: `<Callout>` becomes a blockquote with its type as a
  * bold lead-in, and any stray JSX tag is dropped rather than shown as literal
- * angle brackets. Fenced code blocks pass through untouched — they are the part
+ * angle brackets. Fenced code blocks pass through untouched, because they are the part
  * an agent is most likely to want verbatim.
  */
 function toMarkdown(body, { absolute }) {
@@ -133,7 +133,7 @@ function pageFile(doc) {
   const head = [
     `# ${doc.title}`,
     doc.description ? `\n${doc.description}` : '',
-    `\n> Kandown documentation — ${BASE}/docs/${doc.slug}`,
+    `\n> Kandown documentation, ${BASE}/docs/${doc.slug}`,
   ]
     .filter(Boolean)
     .join('\n')
@@ -155,7 +155,7 @@ async function main() {
   // 📖 **No prose is written here.** Every line below is derived: the tagline and
   // the install command from `src/lib/site.ts` (the same constants the hero and
   // the meta tags use), and every summary from a page's own `description`
-  // frontmatter. That is deliberate and load-bearing — a hand-written summary in
+  // frontmatter. That is deliberate and load-bearing: a hand-written summary in
   // this file would be a second copy of the documentation, maintained by nobody,
   // rotting from the first edit onwards. If a sentence here looks wrong, the fix
   // is in the MDX or in site.ts, never in this script.
@@ -173,7 +173,7 @@ async function main() {
     INSTALL_COMMAND,
     '```',
     '',
-    installEntry ? `${installEntry.description} — ${BASE}/docs/installation.md` : '',
+    installEntry ? `${installEntry.description}, ${BASE}/docs/installation.md` : '',
     '',
     '## For agents',
     '',
@@ -214,11 +214,11 @@ async function main() {
 
   // ── llms-full.txt: the whole corpus ───────────────────────────────────────
   const full = [
-    `# ${site.name} — complete documentation`,
+    `# ${site.name}, complete documentation`,
     '',
     `> ${site.description}`,
     '',
-    `Generated from ${BASE} — ${docs.length} pages.`,
+    `Generated from ${BASE}: ${docs.length} pages.`,
     '',
     '---',
     '',
@@ -227,7 +227,7 @@ async function main() {
     full.push(
       `# ${doc.title}`,
       '',
-      doc.section ? `*${doc.section} — ${BASE}/docs/${doc.slug}*` : `*${BASE}/docs/${doc.slug}*`,
+      doc.section ? `*${doc.section}, ${BASE}/docs/${doc.slug}*` : `*${BASE}/docs/${doc.slug}*`,
       '',
       doc.description,
       '',

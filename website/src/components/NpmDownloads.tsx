@@ -1,6 +1,6 @@
 /**
  * @file src/components/NpmDownloads.tsx
- * @description The npm link in the site header — the wordmark and the word
+ * @description The npm link in the site header, with the wordmark and the word
  * "npm" on the centre line, the download count hanging underneath, all one
  * anchor pointing at the package.
  *
@@ -17,12 +17,12 @@
  *
  * 📖 **The word "npm" is set beside the wordmark** even though the wordmark
  * already reads "npm". At this size the logo works as a shape rather than as
- * text, and the GitHub link next to it names itself in words — without the
+ * text, and the GitHub link next to it names itself in words, so without the
  * label the two links were not built the same way and the row looked
  * accidental.
  *
  * 📖 **The wordmark is an `<img>`, not inline SVG**, because it is a registered
- * logo used verbatim and shared with the README badge — a copy pasted into this
+ * logo used verbatim and shared with the README badge. A copy pasted into this
  * file would be a second version to keep in step. It is `aria-hidden` since the
  * anchor's own label already names the destination.
  *
@@ -33,7 +33,7 @@
  * doing so, the wording changes on its own. See `~/lib/npmDownloads`.
  *
  * @exports NpmDownloads
- * @see website/src/components/GitHubStars.tsx — its twin
+ * @see website/src/components/GitHubStars.tsx. Its twin.
  */
 import { useNpmDownloads } from '~/lib/npmDownloads'
 import { formatCompact } from '~/lib/cachedCount'
@@ -42,7 +42,7 @@ import npmLogoUrl from '../../../npmjs.svg?url'
 
 export function NpmDownloads({ href }: { href: string }) {
   const { count, isLifetime, loading } = useNpmDownloads()
-  const text = loading || count === null ? '—' : formatCompact(count)
+  const text = loading || count === null ? '…' : formatCompact(count)
   const noun = isLifetime ? 'total downloads' : 'downloads in the last 18 months'
 
   return (
@@ -65,7 +65,7 @@ export function NpmDownloads({ href }: { href: string }) {
         </>
       }
       metric={
-        // 📖 Octicon `download`, 16×16, verbatim — the same source as the star
+        // 📖 Octicon `download`, 16×16, verbatim. The same source as the star
         // on the GitHub link, so the two icons share a weight and a corner
         // radius.
         <svg

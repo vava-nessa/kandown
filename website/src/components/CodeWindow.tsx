@@ -7,8 +7,8 @@
  * short excerpts, `Line` accepts a `tone` and the snippets colour themselves.
  * It is less clever than real tokenisation and about 40 KB lighter.
  *
- * @exports CodeWindow — titled frame
- * @exports Line — one line of code, tinted by role
+ * @exports CodeWindow. Titled frame.
+ * @exports Line. One line of code, tinted by role.
  */
 import type { ReactNode } from 'react'
 
@@ -40,7 +40,7 @@ const TONES = {
   output: 'text-fg-muted',
   /** Comments and annotations. */
   muted: 'text-fg-faint',
-  /** Frontmatter keys, headings — the structural bits. */
+  /** Frontmatter keys and headings, the structural bits. */
   key: 'text-fg',
   /** String and scalar values. */
   value: 'text-accent-fg',

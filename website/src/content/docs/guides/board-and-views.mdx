@@ -1,7 +1,7 @@
 ---
 title: Board & views
 section: Using the board
-description: The web interface — kanban and list views, filtering, search, the command palette and keyboard shortcuts.
+description: "The web interface: kanban and list views, filtering, search, the command palette and keyboard shortcuts."
 ---
 
 Running `kandown` opens the web board at `http://localhost:5176` (the port is configurable). It is
@@ -11,7 +11,7 @@ served by a local daemon as a single self-contained HTML file.
 
 ### Board
 
-The default: a horizontal kanban with drag-and-drop between columns. Columns are freely editable —
+The default: a horizontal kanban with drag-and-drop between columns. Columns are freely editable:
 rename them, reorder them, add or remove them in Settings, and every task's `status` follows.
 
 The last column is the **terminal column**. Moving a task there is what triggers the dependency
@@ -25,7 +25,7 @@ Switch with <kbd>⌘</kbd><kbd>1</kbd> and <kbd>⌘</kbd><kbd>2</kbd>.
 ## Finding things
 
 **Search** (<kbd>/</kbd>) is full-text across titles, bodies, subtasks, tags, assignee and
-priority — not just titles.
+priority, not just titles.
 
 **Filters** narrow by status, tag, assignee, priority and owner type. Owner filtering is the one
 worth remembering on a shared board: it separates your work from your agents' at a glance.
@@ -38,7 +38,7 @@ task creation and navigation.
 ## Editing a task
 
 Opening a task gives you a WYSIWYG Markdown editor for the body, with structured controls for the
-fields alongside it. The `report` field is rendered prominently — on a board that agents write to,
+fields alongside it. The `report` field is rendered prominently on a board that agents write to,
 the completion report is usually the thing you actually want to read.
 
 ## Due dates
@@ -76,5 +76,5 @@ kandown daemon stop
 kandown projects        # every open kandown project on this machine
 ```
 
-It binds to `127.0.0.1` only and mints a random per-project API token at startup — see
+It binds to `127.0.0.1` only and mints a random per-project API token at startup (see
 [Configuration § security](/docs/reference/configuration#security).

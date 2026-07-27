@@ -5,7 +5,7 @@
  * 📖 Why a build step rather than a runtime search service: the whole corpus is
  * a few dozen kilobytes of prose. Indexing it at build time and shipping one
  * JSON file means search works offline, needs no API key, no server and no
- * third-party script — the same promise the product itself makes.
+ * third-party script, the same promise the product itself makes.
  *
  * 📖 What it produces. Each MDX file is split at its `##` and `###` headings into
  * *sections*, so a hit deep-links to `/docs/<slug>#<heading-id>` instead of
@@ -33,7 +33,7 @@ const OUT_FILE = join(ROOT, 'src', 'generated', 'search-index.json')
 /**
  * 📖 Mirrors `rehype-slug` (which uses github-slugger): lowercase, strip
  * anything that is not a word character/space/hyphen, spaces to hyphens. If the
- * two ever disagree, search links land on the page but not the section — so keep
+ * two ever disagree, search links land on the page but not the section, so keep
  * this in step with the rehype plugin.
  */
 function slugify(text) {
@@ -117,7 +117,7 @@ async function main() {
   try {
     files = await walk(CONTENT_DIR)
   } catch {
-    console.warn(`[search-index] no content at ${CONTENT_DIR} — writing an empty index`)
+    console.warn(`[search-index] no content at ${CONTENT_DIR}, writing an empty index`)
   }
 
   const index = []
