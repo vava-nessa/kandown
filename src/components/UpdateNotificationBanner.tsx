@@ -2,11 +2,36 @@
  * @file Update Notification Banner & Modal
  * @description Non-intrusive, floating update notification banner and 1-click installer
  * prompt for the Web UI.
+ *
+ * 📖 **Source of truth = this web bundle, not the daemon's `/api/update/check`.**
+ * The daemon is a long-lived Node process; its compiled `KANDOWN_VERSION` lags
+ * behind the package on disk by one global install. An older daemon can happily
+ * report `updateAvailable: true` for a version the user is already on (because
+ * it compares the registry against its own frozen constant). The banner trusts
+ * `KANDOWN_VERSION` instead and only treats the daemon payload as a hint, so a
+ * stale daemon cannot nag a user who is already up to date.
  */
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles, RefreshCw, CheckCircle2, AlertCircle, X, Download } from 'lucide-react';
 import { serverCheckUpdate, serverApplyUpdate, UpdateCheckResult } from '../lib/filesystem';
+import { KANDOWN_VERSION } from '../lib/version';
+
+/** 📖 Returns 1 if a > b, -1 if a < b, 0 if equal. Prerelease is ignored; the
+ * project's versions are plain `MAJOR.MINOR.PATCH`. */
+function compareSemver(a: string, b: string): number {
+  const parse = (v: string): number[] =>
+    String(v).replace(/^v/, '').split('-')[0].split('.').map(n => Number(n) || 0);
+  const pa = parse(a);
+  const pb = parse(b);
+  for (let i = 0; i < 3; i++) {
+    const av = pa[i] || 0;
+    const bv = pb[i] || 0;
+    if (av > bv) return 1;
+    if (av < bv) return -1;
+  }
+  return 0;
+}
 
 export const UpdateNotificationBanner: React.FC = () => {
   const [updateInfo, setUpdateInfo] = useState<UpdateCheckResult | null>(null);
@@ -42,11 +67,26 @@ export const UpdateNotificationBanner: React.FC = () => {
   if (!updateInfo || dismissed) return null;
 
   // 📖 Two distinct states, and conflating them is what made the banner nag:
-  //  - updateAvailable — the registry has something newer than what is on disk.
-  //  - restartRequired — already installed, but this daemon process still runs
-  //    the old bundle. Re-downloading would change nothing; only a restart will.
-  const { updateAvailable, restartRequired } = updateInfo;
-  if (!updateAvailable && !restartRequired) return null;
+  //  - trulyAvailable, the registry has something newer than the version this
+  //    web bundle ships with. Real upgrade: click "Update Now".
+  //  - daemonIsStale, this web bundle is newer than the daemon process serving
+  //    it (running / current). The npm install already landed, only the long-
+  //    lived daemon process is stuck on its old compiled code. Re-downloading
+  //    would change nothing; only a `kandown daemon refresh-all` will.
+  //
+  // We do NOT trust the daemon's `updateAvailable` flag as the primary signal:
+  // a daemon that was launched before a package upgrade still compares the
+  // registry against its own frozen `KANDOWN_VERSION` and reports a phantom
+  // update. `KANDOWN_VERSION` (compiled into this very web bundle) is the
+  // ground truth for "what version is the user actually on?".
+  const reportedRunning = updateInfo.running ?? updateInfo.current;
+  const trulyAvailable =
+    !!updateInfo.updateAvailable && !!updateInfo.latest &&
+    compareSemver(updateInfo.latest, KANDOWN_VERSION) > 0;
+  const daemonIsStale =
+    !!reportedRunning &&
+    compareSemver(KANDOWN_VERSION, reportedRunning) > 0;
+  if (!trulyAvailable && !daemonIsStale) return null;
 
   const handleApplyUpdate = async () => {
     setUpdating(true);
@@ -75,14 +115,14 @@ export const UpdateNotificationBanner: React.FC = () => {
             </div>
             <div>
               <h4 className="text-sm font-semibold tracking-tight flex items-center gap-1.5">
-                {updateAvailable
+                {trulyAvailable
                   ? `Kandown v${updateInfo.latest} is available`
-                  : `Kandown v${updateInfo.current} is installed`}
+                  : `Daemon is running v${reportedRunning}`}
               </h4>
               <p className="text-xs text-muted-foreground">
-                {updateAvailable
-                  ? `Current: v${updateInfo.current} — Get the latest features & fixes.`
-                  : `This server is still running v${updateInfo.running ?? '?'}. Restart kandown to finish.`}
+                {trulyAvailable
+                  ? `Current: v${KANDOWN_VERSION}. Get the latest features & fixes.`
+                  : `The installed package is v${KANDOWN_VERSION}, but this server is still on v${reportedRunning}. Restart the daemon to finish the upgrade.`}
               </p>
             </div>
           </div>
@@ -103,7 +143,7 @@ export const UpdateNotificationBanner: React.FC = () => {
         )}
 
         <div className="flex items-center gap-2 mt-1">
-          {!updateAvailable ? (
+          {!trulyAvailable ? (
             <code className="flex-1 px-3 py-2 text-xs font-mono bg-secondary/60 rounded-lg text-foreground/90 select-all">
               kandown daemon refresh-all
             </code>
@@ -131,7 +171,7 @@ export const UpdateNotificationBanner: React.FC = () => {
             disabled={updating}
             className="px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
           >
-            {updateAvailable ? 'Later' : 'Dismiss'}
+            {trulyAvailable ? 'Later' : 'Dismiss'}
           </button>
         </div>
 

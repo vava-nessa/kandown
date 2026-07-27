@@ -1422,7 +1422,7 @@
     },
     {
       "path": "src/components/UpdateNotificationBanner.tsx",
-      "lines": 147,
+      "lines": 187,
       "title": "Update Notification Banner & Modal",
       "summary": "Non-intrusive, floating update notification banner and 1-click installer prompt for the Web UI."
     },

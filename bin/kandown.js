@@ -477,7 +477,7 @@ var DEFAULT_WORK_OUTPUT = {
   }
 };
 var DEFAULT_CONFIG = {
-  ui: { language: "en", theme: "auto", skin: "kandown", font: "inter", background: "solid" },
+  ui: { language: "en", theme: "auto", skin: "kandown", font: "inter", background: "solid", onboardingCompleted: false },
   agent: { suggestFollowUp: false, maxSuggestions: 3, workOutput: DEFAULT_WORK_OUTPUT },
   board: {
     columns: DEFAULT_COLUMNS,

@@ -126,7 +126,7 @@ source to edit instead.
 - **`ThemePreviewCard.tsx`** · 212 lines — Renders a live preview of a KandownTheme with isolated HSL tokens in a mini 3-column kanban board layout.
 - **`ThemeToggle.tsx`** · 83 lines — Light/dark mode switcher for the app header.
 - **`Toaster.tsx`** · 47 lines — Renders transient success, info, and error messages emitted by store actions such as saving, creating, deleting, and permission failures.
-- **`UpdateNotificationBanner.tsx`** · 147 lines — Non-intrusive, floating update notification banner and 1-click installer prompt for the Web UI.
+- **`UpdateNotificationBanner.tsx`** · 187 lines — Non-intrusive, floating update notification banner and 1-click installer prompt for the Web UI.
 
 ## `src/components/settings/` — Settings page sections
 
