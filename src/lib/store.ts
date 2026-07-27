@@ -184,6 +184,14 @@ interface State {
 
   // Project config
   config: KandownConfig;
+  /** 📖 Flips to `true` after `loadConfig()` resolves with the persisted
+   * `kandown.json` (or after a corrupted/empty file falls back to
+   * `DEFAULT_CONFIG`). Until then, any component that reads
+   * `config.ui.*` is looking at the DEFAULT placeholder, not the user's
+   * real preferences. Used by the onboarding modal to avoid auto-showing
+   * itself with the default `onboardingCompleted: false` while the real
+   * value is still in flight. */
+  configLoaded: boolean;
 
   // Recent projects
   recentProjects: RecentProject[];
@@ -494,6 +502,7 @@ export const useStore = create<State>((set, get) => ({
   currentPage: 'board',
 
   config: DEFAULT_CONFIG,
+  configLoaded: false,
 
   recentProjects: [],
   toasts: [],
@@ -870,6 +879,7 @@ export const useStore = create<State>((set, get) => ({
         loading: false,
         isOpen: true,
         config,
+        configLoaded: true,
         columns,
         archivedTasks,
         boardTitle: 'Project Kanban',
@@ -928,7 +938,7 @@ export const useStore = create<State>((set, get) => ({
     try {
       const result = await readConfigFileStrict(dirHandle);
       if (result.ok) {
-        set({ config: result.config });
+        set({ config: result.config, configLoaded: true });
         applyConfigTheme(result.config);
         return;
       }
@@ -956,10 +966,10 @@ export const useStore = create<State>((set, get) => ({
           10000,
         );
       }
-      set({ config: DEFAULT_CONFIG });
+      set({ config: DEFAULT_CONFIG, configLoaded: true });
       applyConfigTheme(DEFAULT_CONFIG);
     } catch (e) {
-      set({ config: DEFAULT_CONFIG });
+      set({ config: DEFAULT_CONFIG, configLoaded: true });
       applyConfigTheme(DEFAULT_CONFIG);
     }
   },

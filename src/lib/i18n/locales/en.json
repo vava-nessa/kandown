@@ -212,6 +212,19 @@
     "progress": "Progress",
     "noMatchingTasks": "No matching tasks"
   },
+  "onboarding": {
+    "stepLabel": "Step {{current}} of {{total}}",
+    "back": "Back",
+    "next": "Next",
+    "getStarted": "Get Started",
+    "close": "Close onboarding",
+    "step1Title": "Welcome to Kandown",
+    "step1Desc": "Your local-first Kanban board backed by plain Markdown files in ./tasks/. Zero database, zero lock-in, versioned with git.",
+    "step2Title": "Easy task management",
+    "step2Desc": "Drag and drop tasks between columns, track checklist progress, and use inline syntax like #tag, @assignee, or p1 on creation.",
+    "step3Title": "Keyboard and AI driven",
+    "step3Desc": "Press Cmd/Ctrl + K anytime for the Command Palette. Launch AI agents directly on tasks to automate your workflow."
+  },
   "settings": {
     "noProjectOpen": "No project open",
     "appearance": "Appearance",

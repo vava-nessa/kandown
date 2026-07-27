@@ -1,91 +1,100 @@
 /**
- * @file Lightweight 3-step onboarding modal
- * @description Quick guide on first launch introducing Kandown features.
- * Mounts only when the project config reports `ui.onboardingCompleted = false`
- * (defaults to false in `DEFAULT_CONFIG`), so each project sees the tour
- * once and never again unless the user re-opens it from Settings.
+ * @file 3-step first-visit onboarding modal
+ * @description Centered dialog that introduces Kandown the first time a user
+ * opens a project, then disappears for good on that project. Triggered
+ * automatically when `ui.onboardingCompleted = false` in the project config
+ * (default for fresh projects), and re-openable from Settings via the
+ * `kandown:showOnboarding` window event.
  *
  * 📖 State strategy. The persistent "have I shown the tour" flag lives in
- * the project config (`config.ui.onboardingCompleted`). The transient
- * "show me right now" flag stays in component state — it is flipped on by
- * (a) the first-render auto-show when the persistent flag is false, and
- * (b) a `kandown:showOnboarding` window event dispatched by the Settings
- * UI button. The demo build still never shows it (nothing to persist).
+ * the project config (`config.ui.onboardingCompleted`) so each project
+ * remembers independently. The transient "show me right now" flag stays in
+ * component state. A `userHasClosed` ref guards the auto-open effect
+ * against re-firing after a manual close, since `setOpen(false)` and the
+ * async `updateConfig` write otherwise race and can briefly look like
+ * "open: false, completed: false" again, re-opening the modal in a flash.
+ *
+ * 📖 A11y. The modal exposes `role="dialog"`, `aria-modal="true"`,
+ * `aria-labelledby` (title) and `aria-describedby` (description). Focus
+ * is trapped inside the panel (Tab/Shift+Tab cycle) and restored to the
+ * previously-focused element on close. `Escape` and backdrop click both
+ * dismiss. A polite live region announces the current step to screen
+ * readers without stealing focus.
+ *
+ * 📖 i18n. Every visible string comes from `useTranslation()` under the
+ * `onboarding.*` namespace. Locales fall back to English when a key is
+ * missing.
  *
  * @exports OnboardingTour
  * @see src/components/SettingsPage.tsx
  * @see src/lib/types.ts (KandownConfig.ui.onboardingCompleted)
  */
 
-import { useState, useEffect } from 'react';
+import { useEffect, useId, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { IconLayoutBoard, IconSparkles, IconCommand, IconX, IconChevronRight } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
+import { IconLayoutBoard, IconSparkles, IconCommand, IconX, IconChevronRight, IconChevronLeft } from '@tabler/icons-react';
 import { isDemoMode } from '../lib/filesystem';
 import { useStore } from '../lib/store';
 
-const STEPS = [
+interface Step {
+  Icon: typeof IconLayoutBoard;
+  titleKey: string;
+  descriptionKey: string;
+}
+
+const STEPS: Step[] = [
   {
-    icon: IconLayoutBoard,
-    title: 'Welcome to Kandown',
-    description: 'Your local-first Kanban board backed by plain Markdown files in ./tasks/. Zero database, zero lock-in, versioned with git.',
+    Icon: IconLayoutBoard,
+    titleKey: 'onboarding.step1Title',
+    descriptionKey: 'onboarding.step1Desc',
   },
   {
-    icon: IconSparkles,
-    title: 'Easy Task Management',
-    description: 'Drag & drop tasks between columns, track checklist progress, and use inline syntax like `#tag`, `@assignee`, or `p1` on creation.',
+    Icon: IconSparkles,
+    titleKey: 'onboarding.step2Title',
+    descriptionKey: 'onboarding.step2Desc',
   },
   {
-    icon: IconCommand,
-    title: 'Keyboard & AI Driven',
-    description: 'Press ⌘K / Ctrl+K anytime for the Command Palette. Launch AI agents directly on tasks to automate your workflow.',
+    Icon: IconCommand,
+    titleKey: 'onboarding.step3Title',
+    descriptionKey: 'onboarding.step3Desc',
   },
 ];
 
 export function OnboardingTour() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
 
   const onboardingCompleted = useStore(s => s.config.ui.onboardingCompleted);
+  const configLoaded = useStore(s => s.configLoaded);
   const updateConfig = useStore(s => s.updateConfig);
 
-  useEffect(() => {
-    // 📖 Never in the demo. The demo deliberately persists nothing — so the
-    // persistent "completed" flag would never flip to true and the modal
-    // would greet every visitor on every reload. The demo's own chrome does
-    // the introduction job. Same guard as before, just rewritten around the
-    // new project-scoped flag.
-    if (isDemoMode()) return;
-    if (!onboardingCompleted && !open) {
-      setOpen(true);
-    }
-  }, [onboardingCompleted, open]);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+  // 📖 Stays true after the user dismisses the modal until either (a) the
+  // `kandown:showOnboarding` event reopens it from Settings, or (b) the
+  // app remounts. Without this guard, `setOpen(false)` and the async
+  // `updateConfig` write can race and the auto-open effect briefly sees
+  // `open: false, onboardingCompleted: false` again, re-opening the modal
+  // for a single frame.
+  const userHasClosedRef = useRef(false);
 
-  // 📖 External trigger from the Settings UI ("Re-open onboarding tour"
-  // button). The store is locked behind the dependency-gate refactor, so
-  // the Settings page dispatches a window event and we react here. Decouples
-  // the modal from any specific store action without dragging the modal's
-  // open state into a shared slice.
-  useEffect(() => {
-    const handler = () => {
-      if (isDemoMode()) return;
-      setStepIndex(0);
-      setOpen(true);
-    };
-    window.addEventListener('kandown:showOnboarding', handler);
-    return () => window.removeEventListener('kandown:showOnboarding', handler);
-  }, []);
+  const titleId = useId();
+  const descriptionId = useId();
 
-  const handleClose = () => {
-    // 📖 Persist immediately so a refresh before the next config write
-    // doesn't resurrect the modal. The merge in `readConfigFileStrict`
-    // already defaults a missing key to `false`, so a project that never
-    // wrote this flag still gets the tour once.
+  // 📖 Stable close handler so the focus-trap effect below can depend on
+  // it without re-running on every parent render. Always persists
+  // `onboardingCompleted: true` so a refresh before the next config write
+  // doesn't resurrect the modal.
+  const handleClose = useCallback(() => {
+    userHasClosedRef.current = true;
     void updateConfig(current => ({
       ...current,
       ui: { ...current.ui, onboardingCompleted: true },
     }));
     setOpen(false);
-  };
+  }, [updateConfig]);
 
   const handleNext = () => {
     if (stepIndex < STEPS.length - 1) {
@@ -95,58 +104,190 @@ export function OnboardingTour() {
     }
   };
 
-  if (!open) return null;
+  const handleBack = () => {
+    if (stepIndex > 0) setStepIndex(stepIndex - 1);
+  };
 
-  const current = STEPS[stepIndex];
-  const StepIcon = current.icon;
+  // 📖 First-visit auto-show. Only fires when the persistent flag is
+  // false AND the user hasn't manually closed it during this mount.
+  // `configLoaded` ensures we wait for the real persisted value instead
+  // of acting on the `DEFAULT_CONFIG` placeholder (`onboardingCompleted:
+  // false`) that the store starts with before `loadConfig()` resolves.
+  useEffect(() => {
+    if (isDemoMode()) return;
+    if (!configLoaded) return;
+    if (!onboardingCompleted && !userHasClosedRef.current) {
+      setOpen(true);
+    }
+  }, [onboardingCompleted, configLoaded]);
+
+  // 📖 External trigger from the Settings UI ("Re-open onboarding tour"
+  // button). Resets the close guard so the auto-open effect does not
+  // immediately close it again on the next render.
+  useEffect(() => {
+    const handler = () => {
+      if (isDemoMode()) return;
+      userHasClosedRef.current = false;
+      setStepIndex(0);
+      setOpen(true);
+    };
+    window.addEventListener('kandown:showOnboarding', handler);
+    return () => window.removeEventListener('kandown:showOnboarding', handler);
+  }, []);
+
+  // 📖 Focus trap + keyboard dismissal. Snap focus to the first focusable
+  // element on open, cycle Tab/Shift+Tab inside the panel, restore focus
+  // to the previously-focused element on close. `Escape` dismisses.
+  useEffect(() => {
+    if (!open) return;
+    const panel = panelRef.current;
+    if (!panel) return;
+
+    previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
+
+    const focusableSelector =
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    const focusables = () =>
+      Array.from(panel.querySelectorAll<HTMLElement>(focusableSelector));
+
+    // 📖 Defer the initial focus to the next tick so the AnimatePresence
+    // exit/enter has a chance to mount the panel before we query it.
+    const focusTimer = window.setTimeout(() => {
+      focusables()[0]?.focus();
+    }, 0);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        handleClose();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const items = focusables();
+      if (items.length === 0) {
+        e.preventDefault();
+        return;
+      }
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || !panel.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (active === last || !panel.contains(active))) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.clearTimeout(focusTimer);
+      window.removeEventListener('keydown', handleKeyDown);
+      // 📖 Restore focus to whatever was focused before the modal opened
+      // (typically a body or a Settings button when triggered from there).
+      const previouslyFocused = previouslyFocusedRef.current;
+      if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
+        previouslyFocused.focus();
+      }
+    };
+  }, [open, handleClose]);
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          className="relative w-full max-w-md rounded-xl border border-border bg-bg-1 p-6 shadow-2xl"
-        >
-          <button
-            type="button"
+      {open && (
+        <>
+          <motion.div
+            key="onboarding-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
             onClick={handleClose}
-            className="absolute right-4 top-4 text-fg-muted hover:text-fg"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200]"
+            aria-hidden="true"
+          />
+          <motion.div
+            key="onboarding-panel"
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            aria-describedby={descriptionId}
+            initial={{ opacity: 0, scale: 0.97, y: -8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.97, y: -8 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 32, mass: 0.8 }}
+            className="fixed inset-0 m-auto h-fit w-[min(480px,92vw)] z-[201] rounded-xl border border-border bg-bg-1 p-6 shadow-2xl flex flex-col"
           >
-            <IconX size={18} />
-          </button>
-
-          <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg border border-border bg-bg-2 text-fg">
-            <StepIcon size={24} />
-          </div>
-
-          <h2 className="mb-2 text-lg font-bold text-fg">{current.title}</h2>
-          <p className="mb-6 text-sm text-fg-muted leading-relaxed">{current.description}</p>
-
-          <div className="flex items-center justify-between">
-            <div className="flex gap-1.5">
-              {STEPS.map((_, idx) => (
-                <div
-                  key={idx}
-                  className={`h-1.5 rounded-full transition-all ${
-                    idx === stepIndex ? 'w-6 bg-fg' : 'w-1.5 bg-fg-faint'
-                  }`}
-                />
-              ))}
-            </div>
-
             <button
               type="button"
-              onClick={handleNext}
-              className="flex items-center gap-1.5 rounded-md bg-fg px-3 py-1.5 text-xs font-medium text-bg hover:opacity-90 transition-opacity"
+              onClick={handleClose}
+              aria-label={t('onboarding.close')}
+              className="absolute right-4 top-4 text-fg-muted hover:text-fg"
             >
-              <span>{stepIndex === STEPS.length - 1 ? 'Get Started' : 'Next'}</span>
-              <IconChevronRight size={14} />
+              <IconX size={18} />
             </button>
-          </div>
-        </motion.div>
-      </div>
+
+            <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg border border-border bg-bg-2 text-fg">
+              {(() => {
+                const StepIcon = STEPS[stepIndex].Icon;
+                return <StepIcon size={24} aria-hidden="true" />;
+              })()}
+            </div>
+
+            <h2 id={titleId} className="mb-2 text-lg font-bold text-fg">
+              {t(STEPS[stepIndex].titleKey)}
+            </h2>
+            <p id={descriptionId} className="mb-6 text-sm text-fg-muted leading-relaxed">
+              {t(STEPS[stepIndex].descriptionKey)}
+            </p>
+
+            {/* 📖 Screen-reader announcement of step transitions. Visually
+             * hidden but still in the accessibility tree, with `aria-live`
+             * set to `polite` so it does not interrupt the current
+             * announcement. */}
+            <div aria-live="polite" aria-atomic="true" className="sr-only">
+              {t('onboarding.stepLabel', { current: stepIndex + 1, total: STEPS.length })}
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex gap-1.5" aria-hidden="true">
+                {STEPS.map((_, idx) => (
+                  <div
+                    key={idx}
+                    className={`h-1.5 rounded-full transition-all ${
+                      idx === stepIndex ? 'w-6 bg-fg' : 'w-1.5 bg-fg-faint'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2">
+                {stepIndex > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    className="flex items-center gap-1.5 rounded-md border border-border bg-bg-2 px-3 py-1.5 text-xs font-medium text-fg hover:bg-bg-3 transition-colors"
+                  >
+                    <IconChevronLeft size={14} />
+                    <span>{t('onboarding.back')}</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="flex items-center gap-1.5 rounded-md bg-fg px-3 py-1.5 text-xs font-medium text-bg hover:opacity-90 transition-opacity"
+                >
+                  <span>{stepIndex === STEPS.length - 1 ? t('onboarding.getStarted') : t('onboarding.next')}</span>
+                  <IconChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
     </AnimatePresence>
   );
 }

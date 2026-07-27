@@ -1130,9 +1130,9 @@
     },
     {
       "path": "src/components/OnboardingTour.tsx",
-      "lines": 153,
-      "title": "Lightweight 3-step onboarding modal",
-      "summary": "Quick guide on first launch introducing Kandown features.",
+      "lines": 293,
+      "title": "3-step first-visit onboarding modal",
+      "summary": "Centered dialog that introduces Kandown the first time a user opens a project, then disappears for good on that project.",
       "exports": "OnboardingTour"
     },
     {
@@ -1872,7 +1872,7 @@
     },
     {
       "path": "src/lib/store.ts",
-      "lines": 1978,
+      "lines": 1988,
       "title": "Kandown Zustand store",
       "summary": "Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.",
       "functions": [
