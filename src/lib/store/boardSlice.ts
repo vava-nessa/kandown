@@ -17,7 +17,7 @@ import {
   readTaskFileStrict,
   isServerMode,
 } from '../filesystem';
-import { isTerminalStatus, terminalStatus } from '../dependencies';
+import { isTerminalStatus, terminalStatus, resolveTransition, resolveDependencyStatus } from '../dependencies';
 import { DiskFullError } from '../errors';
 import { withRetry } from '../retry';
 import { parseQuickAddInput } from '../quick-add-parser';
@@ -178,30 +178,28 @@ export const createBoardSlice: StateCreator<State, [], [], BoardSlice> = (set, g
     // column (default "Done") and the task has unresolved dependencies, refuse
     // the move before any optimistic state change. Other transitions stay
     // free — the gate is only on the final hop, matching how GitHub / Linear
-    // / Jira treat blocking relations.
-    if (isTerminalStatus(toCol, config)) {
-      const depStatus = new Map<string, { exists: boolean; resolved: boolean }>();
-      const terminalLower = terminalStatus(config).toLowerCase();
-      for (const col of columns) {
-        for (const t of col.tasks) {
-          const isArch = t.frontmatter && (t.frontmatter.archived === true || t.frontmatter.archived === 'true');
-          depStatus.set(t.id, {
-            exists: true,
-            resolved: isArch || (t.id === taskId) || col.name.toLowerCase() === terminalLower,
-          });
-        }
-      }
-      // 📖 Self-references and unknown ids are ignored (file header note).
-      const blocked: string[] = [];
-      for (const dep of movingTask.dependsOn) {
-        if (typeof dep !== 'string' || !dep.trim() || dep === taskId) continue;
-        const r = depStatus.get(dep);
-        if (!r || !r.resolved) blocked.push(dep);
-      }
-      if (blocked.length > 0) {
-        const list = blocked.length === 1
-          ? blocked[0]
-          : `${blocked.slice(0, -1).join(', ')} and ${blocked[blocked.length - 1]}`;
+    // / Jira treat blocking relations. The decision lives in
+    // src/lib/dependencies.ts so the TUI, CLI, and MCP paths agree (invariant
+    // #2). Archived tasks must be included in the snapshot for archived
+    // dependencies to count as resolved.
+    if (isTerminalStatus(toCol, config) || /archived/i.test(toCol)) {
+      const allTasks = columns.flatMap((col) => col.tasks.map((t) => ({
+        id: t.id,
+        status: typeof t.frontmatter?.status === 'string' ? t.frontmatter.status : col.name,
+        depends_on: Array.isArray(t.frontmatter?.depends_on) ? t.frontmatter.depends_on : [],
+        archived: t.frontmatter?.archived === true || t.frontmatter?.archived === 'true',
+      })));
+      const snap = resolveDependencyStatus(allTasks, config);
+      const verdict = resolveTransition(
+        { id: taskId, status: fromCol, depends_on: movingTask.dependsOn },
+        toCol,
+        snap,
+        config,
+      );
+      if (!verdict.allowed) {
+        const list = verdict.blockedBy.length === 1
+          ? verdict.blockedBy[0]
+          : `${verdict.blockedBy.slice(0, -1).join(', ')} and ${verdict.blockedBy[verdict.blockedBy.length - 1]}`;
         get().toast(`Cannot move ${taskId} to ${toCol}: blocked by ${list}`, 'error');
         return;
       }

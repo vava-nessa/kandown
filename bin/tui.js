@@ -54519,6 +54519,158 @@ import { execFileSync as execFileSync2 } from "child_process";
 
 // src/lib/types.ts
 var DEFAULT_COLUMNS = ["Backlog", "Todo", "In Progress", "Review", "Done"];
+var DEFAULT_WORK_OUTPUT = {
+  mode: "blocks",
+  includeBaseRules: true,
+  baseRulesMode: "full",
+  includeProjectInstructions: true,
+  includeBoardDigest: true,
+  sectionOrder: ["baseRules", "projectInstructions", "boardDigest"],
+  rawTemplate: "{{baseRules}}\n\n---\n\n{{projectInstructions}}\n\n---\n\n{{boardDigest}}",
+  boardDigest: {
+    showColumnCounts: true,
+    showTasks: true,
+    showPriority: true,
+    showAssignee: true,
+    showBlockedBy: true,
+    showNextActionable: true
+  }
+};
+var DEFAULT_CONFIG2 = {
+  ui: { language: "en", theme: "auto", skin: "kandown", font: "inter", background: "solid" },
+  agent: { suggestFollowUp: false, maxSuggestions: 3, workOutput: DEFAULT_WORK_OUTPUT },
+  board: {
+    columns: DEFAULT_COLUMNS,
+    defaultPriority: "P3",
+    defaultOwnerType: "human",
+    columnColors: {
+      backlog: "red",
+      todo: "blue",
+      "in progress": "orange",
+      review: "violet",
+      done: "green"
+    },
+    stackDefaultState: "collapsed"
+  },
+  fields: {
+    priority: false,
+    assignee: false,
+    tags: false,
+    dueDate: false,
+    ownerType: false,
+    tools: false
+  },
+  notifications: {
+    browser: false,
+    sound: false,
+    soundId: "soft",
+    statusChanges: true,
+    taskEdits: true,
+    subtaskCompletions: true,
+    editDebounceMs: 2e3
+  }
+};
+
+// src/lib/dependencies.ts
+function terminalStatus(config = DEFAULT_CONFIG2) {
+  const cols = config.board.columns;
+  return cols[cols.length - 1] ?? "Done";
+}
+function isTerminalStatus(status, config = DEFAULT_CONFIG2) {
+  return status === terminalStatus(config) || status.toLowerCase() === terminalStatus(config).toLowerCase() || isArchivedStatus(status);
+}
+function isArchivedStatus(taskOrStatus, config) {
+  if (typeof taskOrStatus === "string") return taskOrStatus.toLowerCase() === "archived";
+  if (taskOrStatus && typeof taskOrStatus === "object") {
+    const arch = taskOrStatus.archived;
+    if (arch === true || arch === "true") return true;
+    const st = typeof taskOrStatus.status === "string" ? taskOrStatus.status : "";
+    if (st && st.toLowerCase() === "archived") return true;
+  }
+  return false;
+}
+function movesIntoArchived(targetStatus) {
+  return targetStatus.toLowerCase() === "archived";
+}
+function normalizeDeps(task, taskId) {
+  const raw = readDeps(task);
+  const arr = Array.isArray(raw) ? raw : typeof raw === "string" && raw.trim() ? [raw] : [];
+  const out = [];
+  for (const dep of arr) {
+    if (typeof dep !== "string" || !dep.trim()) continue;
+    if (dep === taskId) continue;
+    out.push(dep);
+  }
+  return out;
+}
+function readStatus(task) {
+  if (typeof task.status === "string") {
+    return task.status;
+  }
+  const fm = task.frontmatter;
+  return typeof fm?.status === "string" ? fm.status : "Backlog";
+}
+function readDeps(task) {
+  if (task.depends_on !== void 0) {
+    return task.depends_on;
+  }
+  return task.frontmatter?.depends_on;
+}
+function resolveDependencyStatus(tasks, config = DEFAULT_CONFIG2) {
+  const byId = /* @__PURE__ */ new Map();
+  for (const t of tasks) {
+    const id = t && (t.id ?? t.frontmatter?.id);
+    if (id) byId.set(id, t);
+  }
+  const terminal = terminalStatus(config).toLowerCase();
+  const out = /* @__PURE__ */ new Map();
+  for (const [id, task] of byId) {
+    const status = readStatus(task).toLowerCase();
+    const isArch = isArchivedStatus(task);
+    const fm = task.frontmatter;
+    const fmArchived = fm ? fm.archived === true : false;
+    out.set(id, {
+      exists: true,
+      resolved: isArch || fmArchived || status === terminal,
+      title: null
+    });
+  }
+  for (const task of byId.values()) {
+    const taskId = task.id ?? task.frontmatter?.id ?? "";
+    const deps = normalizeDeps(task, taskId);
+    for (const dep of deps) {
+      if (!out.has(dep)) {
+        out.set(dep, { exists: false, resolved: true, title: null });
+      }
+    }
+  }
+  return out;
+}
+function unresolvedDependencyIds(task, resolution) {
+  const id = task && task.id || task.frontmatter?.id || "";
+  const deps = normalizeDeps(task, id);
+  const out = [];
+  for (const dep of deps) {
+    const r = resolution.get(dep);
+    if (!r || !r.resolved) out.push(dep);
+  }
+  return out;
+}
+function resolveTransition(task, targetStatus, snapshot, config = DEFAULT_CONFIG2) {
+  const id = task && task.id || task.frontmatter?.id || "";
+  if (typeof targetStatus !== "string" || !targetStatus) {
+    return { allowed: true, reason: "not-implemented" };
+  }
+  const gated = isTerminalStatus(targetStatus, config) || movesIntoArchived(targetStatus);
+  if (!gated) {
+    return { allowed: true, reason: "not-implemented" };
+  }
+  const blocked = unresolvedDependencyIds(task, snapshot);
+  if (blocked.length > 0) {
+    return { allowed: false, reason: "unresolved-dependency", blockedBy: blocked };
+  }
+  return { allowed: true, reason: "allowed" };
+}
 
 // src/lib/task-meta.ts
 function nowStamp() {
@@ -54879,8 +55031,25 @@ function moveTaskToColumn(kandownDir, taskId, targetColumn) {
   const taskPath = findTaskPath(kandownDir, taskId);
   if (!taskPath) return false;
   try {
-    const prevContent = readFileSync3(taskPath, "utf8");
     const parsed = readTask(kandownDir, taskId);
+    const cfg = loadConfig(kandownDir);
+    const ids = listTaskIds(kandownDir);
+    const allTasks = ids.map((id) => {
+      try {
+        return readTask(kandownDir, id);
+      } catch {
+        return null;
+      }
+    }).filter((t) => t !== null);
+    const snap = resolveDependencyStatus(allTasks, cfg);
+    const verdict = resolveTransition(parsed, targetColumn, snap, cfg);
+    if (!verdict.allowed) {
+      console.error(
+        `[kandown] Cannot move ${taskId} to ${targetColumn}: blocked by ${verdict.blockedBy.join(", ")}`
+      );
+      return false;
+    }
+    const prevContent = readFileSync3(taskPath, "utf8");
     const newContent = serializeTaskFile(stampUpdated({
       ...parsed.frontmatter,
       id: taskId,

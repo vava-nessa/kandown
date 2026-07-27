@@ -33,6 +33,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
 import { execFileSync } from 'node:child_process';
+import { resolveDependencyStatus, resolveTransition } from '../../lib/dependencies.js';
 import { atomicWriteFileSync } from './atomic-write.js';
 import { buildColumnsFromTasks, parseTaskFile } from '../../lib/parser.js';
 import { serializeTaskFile } from '../../lib/serializer.js';
@@ -217,8 +218,25 @@ export function moveTaskToColumn(
   if (!taskPath) return false;
 
   try {
-    const prevContent = readFileSync(taskPath, 'utf8');
     const parsed = readTask(kandownDir, taskId);
+    // 📖 Funnel through the canonical dependency gate. The board snapshot is
+    // the full task list (active + archived) so an archived dep counts as
+    // resolved — matching the rule every other interface now honors.
+    const cfg = loadConfig(kandownDir);
+    const ids = listTaskIds(kandownDir);
+    const allTasks = ids.map((id) => {
+      try { return readTask(kandownDir, id); } catch { return null; }
+    }).filter((t): t is NonNullable<typeof t> => t !== null);
+    const snap = resolveDependencyStatus(allTasks, cfg);
+    const verdict = resolveTransition(parsed, targetColumn, snap, cfg);
+    if (!verdict.allowed) {
+      console.error(
+        `[kandown] Cannot move ${taskId} to ${targetColumn}: blocked by ${verdict.blockedBy.join(', ')}`,
+      );
+      return false;
+    }
+
+    const prevContent = readFileSync(taskPath, 'utf8');
     const newContent = serializeTaskFile(stampUpdated({
       ...parsed.frontmatter,
       id: taskId,

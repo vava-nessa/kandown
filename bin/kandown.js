@@ -457,22 +457,6 @@ import { fileURLToPath as fileURLToPath2 } from "url";
 import { homedir as homedir2 } from "os";
 import { execFileSync as execFileSync2 } from "child_process";
 
-// src/cli/lib/atomic-write.ts
-import { renameSync, unlinkSync as unlinkSync3, writeFileSync as writeFileSync2 } from "fs";
-function atomicWriteFileSync(path, content) {
-  const tmp = `${path}.${process.pid}.tmp`;
-  try {
-    writeFileSync2(tmp, content, "utf8");
-    renameSync(tmp, path);
-  } catch (e) {
-    try {
-      unlinkSync3(tmp);
-    } catch {
-    }
-    throw e;
-  }
-}
-
 // src/lib/types.ts
 var DEFAULT_COLUMNS = ["Backlog", "Todo", "In Progress", "Review", "Done"];
 var DEFAULT_WORK_OUTPUT = {
@@ -526,6 +510,123 @@ var DEFAULT_CONFIG = {
     editDebounceMs: 2e3
   }
 };
+
+// src/lib/dependencies.ts
+function terminalStatus(config = DEFAULT_CONFIG) {
+  const cols = config.board.columns;
+  return cols[cols.length - 1] ?? "Done";
+}
+function isTerminalStatus(status, config = DEFAULT_CONFIG) {
+  return status === terminalStatus(config) || status.toLowerCase() === terminalStatus(config).toLowerCase() || isArchivedStatus(status);
+}
+function isArchivedStatus(taskOrStatus, config) {
+  if (typeof taskOrStatus === "string") return taskOrStatus.toLowerCase() === "archived";
+  if (taskOrStatus && typeof taskOrStatus === "object") {
+    const arch = taskOrStatus.archived;
+    if (arch === true || arch === "true") return true;
+    const st = typeof taskOrStatus.status === "string" ? taskOrStatus.status : "";
+    if (st && st.toLowerCase() === "archived") return true;
+  }
+  return false;
+}
+function movesIntoArchived(targetStatus) {
+  return targetStatus.toLowerCase() === "archived";
+}
+function normalizeDeps(task, taskId) {
+  const raw = readDeps(task);
+  const arr = Array.isArray(raw) ? raw : typeof raw === "string" && raw.trim() ? [raw] : [];
+  const out = [];
+  for (const dep of arr) {
+    if (typeof dep !== "string" || !dep.trim()) continue;
+    if (dep === taskId) continue;
+    out.push(dep);
+  }
+  return out;
+}
+function readStatus(task) {
+  if (typeof task.status === "string") {
+    return task.status;
+  }
+  const fm = task.frontmatter;
+  return typeof fm?.status === "string" ? fm.status : "Backlog";
+}
+function readDeps(task) {
+  if (task.depends_on !== void 0) {
+    return task.depends_on;
+  }
+  return task.frontmatter?.depends_on;
+}
+function resolveDependencyStatus(tasks, config = DEFAULT_CONFIG) {
+  const byId = /* @__PURE__ */ new Map();
+  for (const t of tasks) {
+    const id = t && (t.id ?? t.frontmatter?.id);
+    if (id) byId.set(id, t);
+  }
+  const terminal = terminalStatus(config).toLowerCase();
+  const out = /* @__PURE__ */ new Map();
+  for (const [id, task] of byId) {
+    const status = readStatus(task).toLowerCase();
+    const isArch = isArchivedStatus(task);
+    const fm = task.frontmatter;
+    const fmArchived = fm ? fm.archived === true : false;
+    out.set(id, {
+      exists: true,
+      resolved: isArch || fmArchived || status === terminal,
+      title: null
+    });
+  }
+  for (const task of byId.values()) {
+    const taskId = task.id ?? task.frontmatter?.id ?? "";
+    const deps = normalizeDeps(task, taskId);
+    for (const dep of deps) {
+      if (!out.has(dep)) {
+        out.set(dep, { exists: false, resolved: true, title: null });
+      }
+    }
+  }
+  return out;
+}
+function unresolvedDependencyIds(task, resolution) {
+  const id = task && task.id || task.frontmatter?.id || "";
+  const deps = normalizeDeps(task, id);
+  const out = [];
+  for (const dep of deps) {
+    const r = resolution.get(dep);
+    if (!r || !r.resolved) out.push(dep);
+  }
+  return out;
+}
+function resolveTransition(task, targetStatus, snapshot, config = DEFAULT_CONFIG) {
+  const id = task && task.id || task.frontmatter?.id || "";
+  if (typeof targetStatus !== "string" || !targetStatus) {
+    return { allowed: true, reason: "not-implemented" };
+  }
+  const gated = isTerminalStatus(targetStatus, config) || movesIntoArchived(targetStatus);
+  if (!gated) {
+    return { allowed: true, reason: "not-implemented" };
+  }
+  const blocked = unresolvedDependencyIds(task, snapshot);
+  if (blocked.length > 0) {
+    return { allowed: false, reason: "unresolved-dependency", blockedBy: blocked };
+  }
+  return { allowed: true, reason: "allowed" };
+}
+
+// src/cli/lib/atomic-write.ts
+import { renameSync, unlinkSync as unlinkSync3, writeFileSync as writeFileSync2 } from "fs";
+function atomicWriteFileSync(path, content) {
+  const tmp = `${path}.${process.pid}.tmp`;
+  try {
+    writeFileSync2(tmp, content, "utf8");
+    renameSync(tmp, path);
+  } catch (e) {
+    try {
+      unlinkSync3(tmp);
+    } catch {
+    }
+    throw e;
+  }
+}
 
 // src/lib/task-meta.ts
 function nowStamp() {
@@ -966,8 +1067,25 @@ function moveTaskToColumn(kandownDir, taskId, targetColumn) {
   const taskPath2 = findTaskPath(kandownDir, taskId);
   if (!taskPath2) return false;
   try {
-    const prevContent = readFileSync4(taskPath2, "utf8");
     const parsed = readTask(kandownDir, taskId);
+    const cfg = loadConfig(kandownDir);
+    const ids = listTaskIds(kandownDir);
+    const allTasks = ids.map((id) => {
+      try {
+        return readTask(kandownDir, id);
+      } catch {
+        return null;
+      }
+    }).filter((t) => t !== null);
+    const snap = resolveDependencyStatus(allTasks, cfg);
+    const verdict = resolveTransition(parsed, targetColumn, snap, cfg);
+    if (!verdict.allowed) {
+      console.error(
+        `[kandown] Cannot move ${taskId} to ${targetColumn}: blocked by ${verdict.blockedBy.join(", ")}`
+      );
+      return false;
+    }
+    const prevContent = readFileSync4(taskPath2, "utf8");
     const newContent = serializeTaskFile(stampUpdated({
       ...parsed.frontmatter,
       id: taskId,
@@ -1269,7 +1387,10 @@ function handleJsonRpc(kandownDir, req) {
     }
     if (name === "move_task") {
       const ok = moveTaskToColumn(kandownDir, args.id, args.status);
-      sendResponse(id, { result: { content: [{ type: "text", text: ok ? `Moved ${args.id} to ${args.status}` : `Failed to move ${args.id}` }] } });
+      sendResponse(
+        id,
+        ok ? { result: { content: [{ type: "text", text: `Moved ${args.id} to ${args.status}` }] } } : { error: { code: -32602, message: `Cannot move ${args.id} to ${args.status} (gate refused or file missing)` } }
+      );
       return;
     }
     if (name === "add_report") {
@@ -3018,49 +3139,6 @@ function rollbackTaskStatus(kandownDir, taskId, originalStatus) {
   if (!ok) {
     console.warn(`[kandown] Could not roll back task ${taskId} to ${originalStatus} \u2014 update it manually.`);
   }
-}
-
-// src/lib/dependencies.ts
-function terminalStatus(config = DEFAULT_CONFIG) {
-  const cols = config.board.columns;
-  return cols[cols.length - 1] ?? "Done";
-}
-function resolveDependencyStatus(tasks, config = DEFAULT_CONFIG) {
-  const byId = /* @__PURE__ */ new Map();
-  for (const t of tasks) {
-    const id = t.frontmatter && t.frontmatter.id || "";
-    if (id) byId.set(id, t);
-  }
-  const terminal = terminalStatus(config).toLowerCase();
-  const out = /* @__PURE__ */ new Map();
-  for (const [id, task] of byId) {
-    const status = (task.frontmatter.status || "Backlog").toLowerCase();
-    const isArchived2 = String(task.frontmatter.archived) === "true";
-    out.set(id, {
-      exists: true,
-      resolved: isArchived2 || typeof status === "string" && status === terminal,
-      title: typeof task.frontmatter.title === "string" ? task.frontmatter.title : null
-    });
-  }
-  for (const t of tasks) {
-    const deps = Array.isArray(t.frontmatter.depends_on) ? t.frontmatter.depends_on : [];
-    for (const dep of deps) {
-      if (typeof dep !== "string" || !dep.trim()) continue;
-      if (!out.has(dep)) out.set(dep, { exists: false, resolved: true, title: null });
-    }
-  }
-  return out;
-}
-function unresolvedDependencyIds(task, resolution) {
-  const deps = Array.isArray(task.frontmatter.depends_on) ? task.frontmatter.depends_on : [];
-  const out = [];
-  for (const dep of deps) {
-    if (typeof dep !== "string" || !dep.trim()) continue;
-    if (dep === task.frontmatter.id) continue;
-    const r = resolution.get(dep);
-    if (!r || !r.resolved) out.push(dep);
-  }
-  return out;
 }
 
 // src/cli/lib/cascade.ts

@@ -200,7 +200,10 @@ function handleJsonRpc(kandownDir: string, req: JsonRpcRequest): void {
 
     if (name === 'move_task') {
       const ok = moveTaskToColumn(kandownDir, args.id, args.status);
-      sendResponse(id, { result: { content: [{ type: 'text', text: ok ? `Moved ${args.id} to ${args.status}` : `Failed to move ${args.id}` }] } });
+      sendResponse(id, ok
+        ? { result: { content: [{ type: 'text', text: `Moved ${args.id} to ${args.status}` }] } }
+        : { error: { code: -32602, message: `Cannot move ${args.id} to ${args.status} (gate refused or file missing)` } },
+      );
       return;
     }
 
