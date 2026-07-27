@@ -21,6 +21,7 @@
  */
 
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { join, resolve, basename, dirname } from 'node:path';
 import { spawn } from 'node:child_process';
 import { getCurrentVersion, PKG_ROOT } from './updater';
@@ -116,16 +117,38 @@ export function resolveKandownDir(pathArg = '.kandown', cwd = process.cwd()): st
   // `templates/kandown.json` while completely skipping the hidden root
   // `.kandown/` directory. The nearest ancestor project is deterministic and
   // also lets commands run naturally from nested paths such as `src/`.
-  let currentDir = resolve(cwd);
+  //
+  // 📖 The walk is bounded on purpose. It stops after checking the git
+  // repository root (a kandown project belongs to its repo; crossing the
+  // boundary would attach to a foreign project), and it never accepts
+  // `$HOME` itself unless the walk STARTED there: `~/.kandown/` doubles as
+  // the updater cache directory and may hold a personal home board, so
+  // resolving it from a random subdirectory would silently hijack the bare
+  // `kandown` init prompt. Without those bounds, the TUI "create project?"
+  // confirmation would never appear anywhere under `$HOME`.
+  const startDir = resolve(cwd);
+  const homeDir = homedir();
+  let currentDir = startDir;
   while (true) {
-    if (basename(currentDir) === '.kandown' && existsSync(join(currentDir, 'kandown.json'))) {
-      return currentDir;
+    // 📖 $HOME is only a valid project root when the user is standing in it.
+    const isHomeBoundary = currentDir === homeDir && currentDir !== startDir;
+    if (!isHomeBoundary) {
+      if (basename(currentDir) === '.kandown' && existsSync(join(currentDir, 'kandown.json'))) {
+        return currentDir;
+      }
+
+      const candidate = join(currentDir, '.kandown');
+      if (existsSync(join(candidate, 'kandown.json'))) {
+        return candidate;
+      }
     }
 
-    const candidate = join(currentDir, '.kandown');
-    if (existsSync(join(candidate, 'kandown.json'))) {
-      return candidate;
-    }
+    // 📖 Stop conditions, checked AFTER the directory's own candidate so a
+    // project sitting exactly at the git root (or at $HOME when started
+    // there) is still found. `.git` may be a directory or a worktree file,
+    // existsSync covers both.
+    if (currentDir === homeDir) break;
+    if (existsSync(join(currentDir, '.git'))) break;
 
     const parentDir = dirname(currentDir);
     if (parentDir === currentDir) break;

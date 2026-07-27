@@ -3,7 +3,7 @@
   "files": [
     {
       "path": "bin/kandown.js",
-      "lines": 3639,
+      "lines": 3647,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
@@ -143,7 +143,7 @@
     },
     {
       "path": "src/cli/cli.ts",
-      "lines": 182,
+      "lines": 184,
       "title": "Main Kandown CLI Entrypoint",
       "summary": "Entrypoint for the kandown command line tool."
     },
@@ -233,6 +233,12 @@
       "lines": 125,
       "title": "Integration tests for the gate funneled through board-reader",
       "summary": "Spawns bin/kandown.js (the published CLI bundle) in a tmpdir, seeds two tasks with a dependency edge, and asserts that: - `kandown move` succeeds when the dependency is already in the terminal column."
+    },
+    {
+      "path": "src/cli/lib/__tests__/resolve-kandown-dir.spec.ts",
+      "lines": 127,
+      "title": "Regression tests for resolveKandownDir boundary rules",
+      "summary": "Pins down the three behaviors that prevent bare `kandown` from silently attaching to a foreign project: 1."
     },
     {
       "path": "src/cli/lib/agents-config.ts",
@@ -379,7 +385,7 @@
     },
     {
       "path": "src/cli/lib/cli-shared.ts",
-      "lines": 330,
+      "lines": 353,
       "title": "CLI shared utilities",
       "summary": "Argument parsing, deterministic nearest-ancestor project resolution, colored console output, and task-file path helpers shared across every `cmdX` command handler and the TUI launcher in src/cli/cli.ts.",
       "functions": [

@@ -26,7 +26,7 @@ source to edit instead.
 
 ## `bin/` — Published CLI entrypoints — GENERATED, never edit
 
-- **`kandown.js`** · 3639 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
+- **`kandown.js`** · 3647 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
 - **`tui.js`** · 60401 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
 
 ## `src/` — Web app root
@@ -37,7 +37,7 @@ source to edit instead.
 ## `src/cli/` — CLI + terminal UI (source of the bin/ bundles)
 
 - **`app.tsx`** · 106 lines — Routes to the correct screen based on the `screen` prop and wraps every screen in a fixed-height fullscreen frame.
-- **`cli.ts`** · 182 lines — Entrypoint for the kandown command line tool.
+- **`cli.ts`** · 184 lines — Entrypoint for the kandown command line tool.
 - **`tui.tsx`** · 64 lines — Launches the fixed-screen terminal UI using Ink (React for CLI).
 
 ## `src/cli/commands/` — One-shot CLI commands
@@ -64,7 +64,7 @@ source to edit instead.
 - **`board-reader.ts`** · 438 lines — Provides filesystem-based reading and writing of Kandown task files for the CLI.
 - **`browser.ts`** · 26 lines — Resolves and spawns the platform default browser for the given URL.
 - **`cascade.ts`** · 463 lines — The synchronous task-cascade engine.
-- **`cli-shared.ts`** · 330 lines — Argument parsing, deterministic nearest-ancestor project resolution, colored console output, and task-file path helpers shared across every `cmdX` command handler and the TUI launcher in src/cli/cli.ts.
+- **`cli-shared.ts`** · 353 lines — Argument parsing, deterministic nearest-ancestor project resolution, colored console output, and task-file path helpers shared across every `cmdX` command handler and the TUI launcher in src/cli/cli.ts.
 - **`config.ts`** · 285 lines — Handles loading, saving, and accessing the kandown project configuration.
 - **`daemon.ts`** · 265 lines — Reads and controls the per-project web daemon from the terminal UI.
 - **`file-watcher.ts`** · 309 lines — Uses chokidar for filesystem events and SHA-256 content hashing to detect actual content changes.
@@ -77,6 +77,7 @@ source to edit instead.
 ## `src/cli/lib/__tests__/`
 
 - **`board-reader.spec.ts`** · 125 lines — Spawns bin/kandown.js (the published CLI bundle) in a tmpdir, seeds two tasks with a dependency edge, and asserts that: - `kandown move` succeeds when the dependency is already in the terminal column.
+- **`resolve-kandown-dir.spec.ts`** · 127 lines — Pins down the three behaviors that prevent bare `kandown` from silently attaching to a foreign project: 1.
 
 ## `src/cli/screens/` — Full-screen TUI views
 
@@ -262,6 +263,6 @@ source to edit instead.
 
 ## Coverage
 
-166 of 166 eligible files carry an `@description` header.
+167 of 167 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

@@ -9,6 +9,7 @@ the index; click a version for the full notes.
 
 | Version | Date | Release | Changes |
 |---|---|---|---|
+| [0.41.2](changelogs/v0.41.2.md) | 2026-07-27 | Prompt Fires | 1 added · 2 fixed |
 | [0.41.1](changelogs/v0.41.1.md) | 2026-07-27 | Onboarding Gate | 4 added · 2 fixed |
 | [0.41.0](changelogs/v0.41.0.md) | 2026-07-26 | Move Picker | 4 added · 2 fixed · 6 changed |
 | [0.40.1](changelogs/v0.40.1.md) | 2026-07-26 | Frosted Lockup | 1 fixed |

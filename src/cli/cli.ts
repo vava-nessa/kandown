@@ -147,9 +147,11 @@ async function main() {
       const kandownDir = resolveKandownDir(parsed.path, process.cwd());
 
       // 📖 Only start the daemon & open the browser if the project already
-      // exists. If it doesn't, the TUI shows a confirmation prompt first —
+      // exists. If it doesn't, the TUI shows a confirmation prompt first,
       // it starts the daemon and opens the browser itself once created.
-      if (existsSync(kandownDir)) {
+      // The check mirrors the TUI's own gate: a bare `.kandown/` directory
+      // without `kandown.json` is a partial init, not a project.
+      if (existsSync(join(kandownDir, 'kandown.json'))) {
         let status = await getDaemonStatus(kandownDir);
         if (!status.running) {
           status = await startProjectDaemon(kandownDir);

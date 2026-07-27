@@ -15,7 +15,7 @@ import { spawn, execSync } from "child_process";
 import { homedir } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.41.1";
+var KANDOWN_VERSION = "0.41.2";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath } from "url";
@@ -1437,6 +1437,7 @@ function openBrowser(target) {
 
 // src/cli/lib/cli-shared.ts
 import { existsSync as existsSync7, readFileSync as readFileSync7, readdirSync as readdirSync4 } from "fs";
+import { homedir as homedir3 } from "os";
 import { join as join7, resolve as resolve2, basename, dirname as dirname4 } from "path";
 import { spawn as spawn4 } from "child_process";
 
@@ -1621,15 +1622,22 @@ function resolveKandownDir(pathArg = ".kandown", cwd = process.cwd()) {
   if (pathArg !== ".kandown") {
     return resolve2(cwd, pathArg);
   }
-  let currentDir = resolve2(cwd);
+  const startDir = resolve2(cwd);
+  const homeDir = homedir3();
+  let currentDir = startDir;
   while (true) {
-    if (basename(currentDir) === ".kandown" && existsSync7(join7(currentDir, "kandown.json"))) {
-      return currentDir;
+    const isHomeBoundary = currentDir === homeDir && currentDir !== startDir;
+    if (!isHomeBoundary) {
+      if (basename(currentDir) === ".kandown" && existsSync7(join7(currentDir, "kandown.json"))) {
+        return currentDir;
+      }
+      const candidate = join7(currentDir, ".kandown");
+      if (existsSync7(join7(candidate, "kandown.json"))) {
+        return candidate;
+      }
     }
-    const candidate = join7(currentDir, ".kandown");
-    if (existsSync7(join7(candidate, "kandown.json"))) {
-      return candidate;
-    }
+    if (currentDir === homeDir) break;
+    if (existsSync7(join7(currentDir, ".git"))) break;
     const parentDir = dirname4(currentDir);
     if (parentDir === currentDir) break;
     currentDir = parentDir;
@@ -3609,7 +3617,7 @@ async function main() {
     case void 0: {
       const parsed = parseArgs(rest);
       const kandownDir = resolveKandownDir(parsed.path, process.cwd());
-      if (existsSync13(kandownDir)) {
+      if (existsSync13(join15(kandownDir, "kandown.json"))) {
         let status = await getDaemonStatus(kandownDir);
         if (!status.running) {
           status = await startProjectDaemon(kandownDir);
