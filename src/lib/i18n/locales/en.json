@@ -406,5 +406,30 @@
     "si": "Sinhala",
     "my": "Burmese",
     "km": "Khmer"
+  },
+  "bulk": {
+    "unassign": "Unassign",
+    "selectAllHint": "Select all (visible)",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "priority": "Priority",
+    "assignee": "Assignee",
+    "assignNew": "Assign @{{name}}",
+    "dueDate": "Due date",
+    "clearDue": "Clear due date",
+    "tags": "Tags",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "move": "Move",
+    "archive": "Archive",
+    "delete": "Delete",
+    "confirmDelete": "Confirm delete",
+    "selectAll": "Select all",
+    "clear": "Clear selection"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

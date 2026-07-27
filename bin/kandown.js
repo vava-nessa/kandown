@@ -5,8 +5,8 @@ if (typeof globalThis.require === 'undefined') {
 }
 
 // src/cli/cli.ts
-import { existsSync as existsSync11 } from "fs";
-import { join as join12 } from "path";
+import { existsSync as existsSync13 } from "fs";
+import { join as join15 } from "path";
 
 // src/cli/lib/updater.ts
 import { existsSync, readFileSync, writeFileSync, unlinkSync, statSync, mkdirSync } from "fs";
@@ -475,6 +475,57 @@ function atomicWriteFileSync(path, content) {
 
 // src/lib/types.ts
 var DEFAULT_COLUMNS = ["Backlog", "Todo", "In Progress", "Review", "Done"];
+var DEFAULT_WORK_OUTPUT = {
+  mode: "blocks",
+  includeBaseRules: true,
+  baseRulesMode: "full",
+  includeProjectInstructions: true,
+  includeBoardDigest: true,
+  sectionOrder: ["baseRules", "projectInstructions", "boardDigest"],
+  rawTemplate: "{{baseRules}}\n\n---\n\n{{projectInstructions}}\n\n---\n\n{{boardDigest}}",
+  boardDigest: {
+    showColumnCounts: true,
+    showTasks: true,
+    showPriority: true,
+    showAssignee: true,
+    showBlockedBy: true,
+    showNextActionable: true
+  }
+};
+var DEFAULT_CONFIG = {
+  ui: { language: "en", theme: "auto", skin: "kandown", font: "inter", background: "solid" },
+  agent: { suggestFollowUp: false, maxSuggestions: 3, workOutput: DEFAULT_WORK_OUTPUT },
+  board: {
+    columns: DEFAULT_COLUMNS,
+    defaultPriority: "P3",
+    defaultOwnerType: "human",
+    columnColors: {
+      backlog: "red",
+      todo: "blue",
+      "in progress": "orange",
+      review: "violet",
+      done: "green"
+    },
+    stackDefaultState: "collapsed"
+  },
+  fields: {
+    priority: false,
+    assignee: false,
+    tags: false,
+    dueDate: false,
+    ownerType: false,
+    tools: false
+  },
+  notifications: {
+    browser: false,
+    sound: false,
+    soundId: "soft",
+    statusChanges: true,
+    taskEdits: true,
+    subtaskCompletions: true,
+    editDebounceMs: 2e3
+  }
+};
 
 // src/lib/task-meta.ts
 function nowStamp() {
@@ -711,7 +762,7 @@ function serializeTaskFile(frontmatter, body) {
 // src/cli/lib/config.ts
 import { readFileSync as readFileSync3, existsSync as existsSync3, readdirSync, statSync as statSync2 } from "fs";
 import { join as join3 } from "path";
-var DEFAULT_CONFIG = {
+var DEFAULT_CONFIG2 = {
   ui: { language: "en", theme: "auto", skin: "kandown", font: "inter" },
   agent: { suggestFollowUp: false, maxSuggestions: 3 },
   board: {
@@ -749,45 +800,45 @@ var DEFAULT_CONFIG = {
 };
 function loadConfig(kandownDir) {
   const configPath = join3(kandownDir, "kandown.json");
-  if (!existsSync3(configPath)) return structuredClone(DEFAULT_CONFIG);
+  if (!existsSync3(configPath)) return structuredClone(DEFAULT_CONFIG2);
   let raw;
   try {
     raw = JSON.parse(readFileSync3(configPath, "utf8"));
   } catch (e) {
-    const err2 = e;
-    if (err2.code === "ENOENT") return structuredClone(DEFAULT_CONFIG);
+    const err3 = e;
+    if (err3.code === "ENOENT") return structuredClone(DEFAULT_CONFIG2);
     console.warn(`[kandown] kandown.json is corrupted, using defaults: ${e.message}`);
-    return structuredClone(DEFAULT_CONFIG);
+    return structuredClone(DEFAULT_CONFIG2);
   }
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
     console.warn("[kandown] kandown.json must be a JSON object, using defaults.");
-    return structuredClone(DEFAULT_CONFIG);
+    return structuredClone(DEFAULT_CONFIG2);
   }
   const obj = raw;
   const safeObj = (v) => v && typeof v === "object" && !Array.isArray(v) ? v : {};
   const boardRaw = safeObj(obj.board);
   const merged = {
-    ui: { ...DEFAULT_CONFIG.ui, ...safeObj(obj.ui) },
-    agent: { ...DEFAULT_CONFIG.agent, ...safeObj(obj.agent) },
+    ui: { ...DEFAULT_CONFIG2.ui, ...safeObj(obj.ui) },
+    agent: { ...DEFAULT_CONFIG2.agent, ...safeObj(obj.agent) },
     board: {
-      ...DEFAULT_CONFIG.board,
+      ...DEFAULT_CONFIG2.board,
       ...boardRaw,
-      columns: Array.isArray(boardRaw.columns) && boardRaw.columns.length > 0 ? boardRaw.columns.filter((name) => typeof name === "string" && name.trim().length > 0) : DEFAULT_CONFIG.board.columns
+      columns: Array.isArray(boardRaw.columns) && boardRaw.columns.length > 0 ? boardRaw.columns.filter((name) => typeof name === "string" && name.trim().length > 0) : DEFAULT_CONFIG2.board.columns
     },
     // 📖 `columns` is merged one level deeper than the rest: a config that only
     // pins `{"tui":{"columns":{"tags":true}}}` must keep the defaults for every
     // other column instead of having them come back `undefined` (falsy — which
     // would silently blank the whole row).
     tui: {
-      ...DEFAULT_CONFIG.tui,
+      ...DEFAULT_CONFIG2.tui,
       ...safeObj(obj.tui),
       columns: {
-        ...DEFAULT_CONFIG.tui.columns,
+        ...DEFAULT_CONFIG2.tui.columns,
         ...safeObj(safeObj(obj.tui).columns)
       }
     },
-    fields: { ...DEFAULT_CONFIG.fields, ...safeObj(obj.fields) },
-    notifications: { ...DEFAULT_CONFIG.notifications, ...safeObj(obj.notifications) }
+    fields: { ...DEFAULT_CONFIG2.fields, ...safeObj(obj.fields) },
+    notifications: { ...DEFAULT_CONFIG2.notifications, ...safeObj(obj.notifications) }
   };
   if (obj.agents && typeof obj.agents === "object") {
     merged.agents = obj.agents;
@@ -1335,6 +1386,9 @@ function doInit(kandownDir) {
       if (!existsSync6(join6(kandownDir, "kandown.json")) && existsSync6(join6(templatesDir, "kandown.json"))) {
         copyFileSync(join6(templatesDir, "kandown.json"), join6(kandownDir, "kandown.json"));
       }
+      if (!existsSync6(join6(kandownDir, "agents.json")) && existsSync6(join6(templatesDir, "agents.json"))) {
+        copyFileSync(join6(templatesDir, "agents.json"), join6(kandownDir, "agents.json"));
+      }
     }
     return true;
   } catch (error) {
@@ -1411,7 +1465,9 @@ var COMMANDS = /* @__PURE__ */ new Set([
   "export",
   "import",
   "mcp",
-  "version"
+  "version",
+  "run",
+  "agents"
 ]);
 function splitCommand(args) {
   const withoutGlobalFlags = args.filter((arg) => arg !== "--no-update-check");
@@ -1488,7 +1544,9 @@ ${c.bold}COMMANDS:${c.reset}
   show <id>           Display task details
   create "<title>"    Create new task (alias: new)
   move <id> <status>  Move task column
-  assign <id> <user>  Assign task
+  assign <id> <agent> Assign task to an agent (e.g. claude)
+  run [id]            Cascade: run ready tasks via assigned agents (DAG chain)
+  agents              List detected AI agents + catalog (.kandown/agents.json)
   commit              Commit task changes to git
   update              Update kandown CLI to latest version (alias: upgrade)
   doctor              Run environment & board diagnostics
@@ -1735,9 +1793,366 @@ async function cmdWork(rawArgs) {
 }
 
 // src/cli/commands/tasks.ts
-import { existsSync as existsSync9, readFileSync as readFileSync9, mkdirSync as mkdirSync4, readdirSync as readdirSync5 } from "fs";
-import { join as join9, resolve as resolve4 } from "path";
+import { existsSync as existsSync10, readFileSync as readFileSync10, mkdirSync as mkdirSync4, readdirSync as readdirSync5 } from "fs";
+import { join as join10, resolve as resolve4 } from "path";
 import { spawnSync } from "child_process";
+
+// src/cli/lib/agents.ts
+import { execFileSync as execFileSync3 } from "child_process";
+
+// src/cli/lib/agents-config.ts
+import { existsSync as existsSync9, readFileSync as readFileSync9 } from "fs";
+import { join as join9 } from "path";
+var AGENTS_CONFIG_VERSION = 1;
+var DEFAULT_CASCADE = {
+  unassignedBehavior: "skip",
+  sameSessionChain: false
+};
+function defaultAgentsConfig() {
+  return {
+    version: AGENTS_CONFIG_VERSION,
+    preferred: "claude",
+    cascade: { ...DEFAULT_CASCADE },
+    agents: [
+      { id: "claude", name: "Claude Code", bin: "claude", interactive: true, description: "Anthropic Claude (interactive session)", aliases: ["claude", "claudecode", "anthropic", "claudeai"] },
+      { id: "codex", name: "OpenAI Codex", bin: "codex", interactive: true, description: "OpenAI Codex CLI", aliases: ["codex", "openaicodex"] },
+      { id: "gemini", name: "Gemini CLI", bin: "gemini", interactive: true, description: "Google Gemini CLI", aliases: ["gemini", "geminicli", "googlegemini"] },
+      { id: "goose", name: "Goose", bin: "goose", interactive: false, description: "Block open-source AI agent", aliases: ["goose", "blockgoose"] },
+      { id: "aider", name: "Aider", bin: "aider", interactive: true, description: "Git-aware AI pair programmer", aliases: ["aider"] },
+      { id: "opencode", name: "OpenCode", bin: "opencode", interactive: true, description: "SST AI coding TUI", aliases: ["opencode", "sstopencode"] },
+      { id: "cursor", name: "Cursor", bin: "cursor", interactive: true, description: "Cursor IDE (opens project; paste prompt)", aliases: ["cursor"] },
+      { id: "pi", name: "Pi", bin: "pi", interactive: true, description: "Earendil Works pi coding agent", aliases: ["pi", "piearendil", "picodingagent"] }
+    ]
+  };
+}
+function loadAgentsConfig(kandownDir) {
+  const path = join9(kandownDir, "agents.json");
+  if (!existsSync9(path)) return defaultAgentsConfig();
+  let raw;
+  try {
+    raw = JSON.parse(readFileSync9(path, "utf8"));
+  } catch (e) {
+    const err3 = e;
+    if (err3.code === "ENOENT") return defaultAgentsConfig();
+    console.warn(`[kandown] agents.json is corrupted, using defaults: ${e.message}`);
+    return defaultAgentsConfig();
+  }
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+    console.warn("[kandown] agents.json must be a JSON object, using defaults.");
+    return defaultAgentsConfig();
+  }
+  const obj = raw;
+  const base = defaultAgentsConfig();
+  const agentsRaw = Array.isArray(obj.agents) ? obj.agents : [];
+  const agents = agentsRaw.filter((a) => !!a && typeof a === "object" && !Array.isArray(a)).filter((a) => typeof a.id === "string" && typeof a.bin === "string").map((a) => ({
+    id: String(a.id),
+    name: typeof a.name === "string" ? a.name : String(a.id),
+    bin: String(a.bin),
+    ...Array.isArray(a.aliases) ? { aliases: a.aliases.map(String) } : {},
+    ...typeof a.interactive === "boolean" ? { interactive: a.interactive } : {},
+    ...typeof a.description === "string" ? { description: a.description } : {},
+    ...Array.isArray(a.extraArgs) ? { extraArgs: a.extraArgs.map(String) } : {},
+    ...typeof a.launchMode === "string" ? { launchMode: a.launchMode } : {},
+    ...typeof a.promptFlag === "string" ? { promptFlag: a.promptFlag } : {}
+  }));
+  return {
+    version: typeof obj.version === "number" ? obj.version : base.version,
+    ...typeof obj.preferred === "string" ? { preferred: obj.preferred } : { preferred: base.preferred },
+    cascade: resolveCascade(obj.cascade),
+    agents: agents.length > 0 ? agents : base.agents
+  };
+}
+function resolveCascade(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { ...DEFAULT_CASCADE };
+  const c2 = raw;
+  const ub = c2.unassignedBehavior;
+  const ssc = c2.sameSessionChain;
+  return {
+    unassignedBehavior: ub === "preferred" ? "preferred" : ub === "skip" ? "skip" : DEFAULT_CASCADE.unassignedBehavior,
+    sameSessionChain: typeof ssc === "boolean" ? ssc : DEFAULT_CASCADE.sameSessionChain
+  };
+}
+function saveAgentsConfig(kandownDir, config) {
+  const path = join9(kandownDir, "agents.json");
+  atomicWriteFileSync(path, JSON.stringify(config, null, 2) + "\n");
+}
+
+// src/cli/lib/agents.ts
+function combinedPrompt(opts) {
+  return `${opts.systemPrompt}
+
+---
+
+${opts.taskPrompt}`;
+}
+var AGENTS = [
+  {
+    id: "claude",
+    name: "Claude Code",
+    bin: "claude",
+    description: "Anthropic Claude (interactive session)",
+    interactive: true,
+    aliases: ["claude", "claudecode", "anthropic", "claudeai"],
+    buildCommand: (opts) => ["claude", combinedPrompt(opts)]
+  },
+  {
+    id: "codex",
+    name: "OpenAI Codex",
+    bin: "codex",
+    description: "OpenAI Codex CLI",
+    interactive: true,
+    aliases: ["codex", "openaicodex"],
+    buildCommand: (opts) => ["codex", combinedPrompt(opts)]
+  },
+  {
+    id: "gemini",
+    name: "Gemini CLI",
+    bin: "gemini",
+    description: "Google Gemini CLI",
+    interactive: true,
+    aliases: ["gemini", "geminicli", "googlegemini"],
+    buildCommand: (opts) => {
+      return ["gemini", "--prompt-interactive", combinedPrompt(opts)];
+    }
+  },
+  {
+    id: "goose",
+    name: "Goose",
+    bin: "goose",
+    description: "Block open-source AI agent",
+    interactive: false,
+    aliases: ["goose", "blockgoose"],
+    buildCommand: (opts) => ["goose", "run", "--text", combinedPrompt(opts)]
+  },
+  {
+    id: "aider",
+    name: "Aider",
+    bin: "aider",
+    description: "Git-aware AI pair programmer",
+    interactive: true,
+    aliases: ["aider"],
+    buildCommand: (opts) => ["aider", "--message", combinedPrompt(opts)]
+  },
+  {
+    id: "opencode",
+    name: "OpenCode",
+    bin: "opencode",
+    description: "SST AI coding TUI",
+    interactive: true,
+    aliases: ["opencode", "sstopencode"],
+    buildCommand: (opts) => {
+      return ["opencode", "--prompt", combinedPrompt(opts)];
+    }
+  },
+  {
+    id: "cursor",
+    name: "Cursor",
+    bin: "cursor",
+    description: "Cursor IDE (opens project; paste prompt)",
+    interactive: true,
+    aliases: ["cursor"],
+    // 📖 Cursor is an IDE, not a prompt-taking CLI: there is no documented flag
+    // to inject a task prompt, so we open the project root and rely on the
+    // KANDOWN_CONTEXT_FILE env var (set by the launcher) + the prompt printed
+    // to the terminal for the user to paste into Cursor's agent panel.
+    buildCommand: (opts) => ["cursor", getProjectCwd(opts.kandownDir)]
+  },
+  {
+    id: "pi",
+    name: "Pi",
+    bin: "pi",
+    description: "Earendil Works pi coding agent",
+    interactive: true,
+    aliases: ["pi", "piearendil", "picodingagent"],
+    buildCommand: (opts) => ["pi", combinedPrompt(opts)]
+  }
+];
+function getProjectCwd(kandownDir) {
+  const m = kandownDir.replace(/\/(\.kandown|kandown)$/, "");
+  return m && m !== kandownDir ? m : process.cwd();
+}
+var installCache = /* @__PURE__ */ new Map();
+function detectCatalogJSON(kandownDir) {
+  const catalog = loadCatalog(kandownDir);
+  const preferred = kandownDir ? loadAgentsConfig(kandownDir).preferred : void 0;
+  return {
+    ...preferred ? { preferred } : {},
+    agents: catalog.map((a) => ({
+      id: a.id,
+      name: a.name,
+      bin: a.bin,
+      installed: isAgentInstalled(a.bin),
+      interactive: a.interactive,
+      description: a.description,
+      aliases: a.aliases ?? [],
+      ...preferred === a.id ? { preferred: true } : {}
+    }))
+  };
+}
+function isAgentInstalled(bin) {
+  if (installCache.has(bin)) return installCache.get(bin);
+  try {
+    execFileSync3("which", [bin], { stdio: "ignore" });
+    installCache.set(bin, true);
+    return true;
+  } catch {
+    installCache.set(bin, false);
+    return false;
+  }
+}
+function warmupDetection(catalog) {
+  for (const agent of catalog) {
+    if (!installCache.has(agent.bin)) isAgentInstalled(agent.bin);
+  }
+}
+function loadCatalog(kandownDir) {
+  const builtins = AGENTS;
+  if (!kandownDir) return builtins.map(cloneDef);
+  const cfg = loadAgentsConfig(kandownDir);
+  const byId = /* @__PURE__ */ new Map();
+  for (const b of builtins) byId.set(b.id, cloneDef(b));
+  const custom = [];
+  for (const entry of cfg.agents) {
+    const existing = byId.get(entry.id);
+    if (existing) {
+      existing.name = entry.name ?? existing.name;
+      existing.bin = entry.bin ?? existing.bin;
+      existing.description = entry.description ?? existing.description;
+      if (typeof entry.interactive === "boolean") existing.interactive = entry.interactive;
+      if (entry.aliases) existing.aliases = entry.aliases;
+      if (entry.extraArgs) existing.extraArgs = entry.extraArgs;
+    } else {
+      custom.push(catalogEntryToDef(entry));
+    }
+  }
+  return [...builtins.map((b) => byId.get(b.id)), ...custom];
+}
+function cloneDef(d) {
+  const { buildCommand, ...rest } = d;
+  const copy = { ...rest, interactive: d.interactive };
+  if (buildCommand) copy.buildCommand = buildCommand;
+  if (d.aliases) copy.aliases = [...d.aliases];
+  if (d.extraArgs) copy.extraArgs = [...d.extraArgs];
+  return copy;
+}
+function catalogEntryToDef(entry) {
+  return {
+    id: entry.id,
+    name: entry.name,
+    bin: entry.bin,
+    interactive: entry.interactive ?? true,
+    description: entry.description ?? `${entry.name} (custom)`,
+    ...entry.aliases ? { aliases: [...entry.aliases] } : {},
+    ...entry.extraArgs ? { extraArgs: [...entry.extraArgs] } : {},
+    ...entry.launchMode ? { launchMode: entry.launchMode } : {},
+    ...entry.promptFlag ? { promptFlag: entry.promptFlag } : {}
+  };
+}
+function detectInstalledAgents(kandownDir) {
+  const catalog = loadCatalog(kandownDir);
+  return catalog.filter((agent) => isAgentInstalled(agent.bin));
+}
+function getAgentById(id, kandownDir) {
+  return loadCatalog(kandownDir).find((a) => a.id === id);
+}
+function normAlias(s) {
+  return s.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+function resolveAgentEntry(assignee, kandownDir) {
+  if (!assignee) return void 0;
+  const norm = normAlias(assignee);
+  if (!norm) return void 0;
+  const catalog = loadCatalog(kandownDir);
+  for (const agent of catalog) {
+    if (normAlias(agent.id) === norm) return agent;
+    if (agent.aliases?.some((a) => normAlias(a) === norm)) return agent;
+  }
+  return void 0;
+}
+function buildAgentCommand(agent, opts) {
+  let base;
+  if (agent.buildCommand) {
+    base = agent.buildCommand(opts);
+  } else {
+    base = genericCommand(agent, opts);
+  }
+  if (agent.extraArgs && agent.extraArgs.length > 0) {
+    base = [...base, ...agent.extraArgs];
+  }
+  return base;
+}
+function genericCommand(agent, opts) {
+  const prompt = combinedPrompt(opts);
+  switch (agent.launchMode ?? "positional") {
+    case "prompt-flag":
+      return [agent.bin, agent.promptFlag ?? "--prompt", prompt];
+    case "message-flag":
+      return [agent.bin, agent.promptFlag ?? "--message", prompt];
+    case "text-flag":
+      return [agent.bin, agent.promptFlag ?? "--text", prompt];
+    case "positional":
+    default:
+      return [agent.bin, prompt];
+  }
+}
+function getCascadeConfig(kandownDir) {
+  const cfg = loadAgentsConfig(kandownDir);
+  const cascade = resolveCascade(cfg.cascade);
+  return {
+    unassignedBehavior: cascade.unassignedBehavior,
+    sameSessionChain: cascade.sameSessionChain,
+    ...typeof cfg.preferred === "string" ? { preferred: cfg.preferred } : {}
+  };
+}
+function buildPrompt(agentDoc, taskContent, taskId, kandownDir, handoff, queue) {
+  const handoffBlock = handoff && handoff.length > 0 ? [
+    "## Context from upstream tasks (cascade handoff)",
+    "",
+    ...handoff.flatMap((h) => [
+      `### ${h.taskId} \u2014 ${h.title}`,
+      h.report?.trim() ? h.report.trim() : "_(no completion report written)_",
+      ""
+    ]),
+    "Use the above as prior context. Do not redo work that is already done; build on it.",
+    "",
+    "---",
+    ""
+  ].join("\n") : "";
+  const queueBlock = queue && queue.length > 0 ? [
+    "## Your queue (same-session cascade)",
+    "",
+    'Work through these tasks strictly in order. For each one: set its status to "In Progress", do the work, update the task file as you go, then set it to "Done" with a completion report before starting the next.',
+    "",
+    ...queue.map((q, i) => `${i + 1}. ${q.id} \u2014 ${q.title}`),
+    "",
+    "When the whole queue is Done, stop.",
+    "",
+    "---",
+    ""
+  ].join("\n") : "";
+  const systemPrompt = agentDoc.trim();
+  const taskPrompt = [
+    queueBlock,
+    handoffBlock,
+    `## Your Task: ${taskId}`,
+    "",
+    taskContent.trim(),
+    "",
+    "---",
+    "",
+    `**Start working on task ${taskId} now.**`,
+    "",
+    `The kandown directory is at: \`${kandownDir}\``,
+    "",
+    "Before anything else:",
+    `1. Set task ${taskId} frontmatter status to "In Progress" (it may already be there \u2014 that's fine)`,
+    "2. Work through each subtask, checking them off and adding reports as you go",
+    '3. When done, write the completion report and set the task status to "Done"'
+  ].join("\n");
+  return { systemPrompt, taskPrompt };
+}
+
+// src/cli/commands/tasks.ts
 function cmdList(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
   const args = taskParseArgs(rawArgs);
@@ -1760,11 +2175,11 @@ function cmdList(rawArgs) {
     });
   }
   if (includeArchived) {
-    const archiveDir = join9(getTasksDir(kandownDir), "archive");
-    if (existsSync9(archiveDir)) {
+    const archiveDir = join10(getTasksDir(kandownDir), "archive");
+    if (existsSync10(archiveDir)) {
       for (const file of readdirSync5(archiveDir).filter((name) => name.endsWith(".md"))) {
         const id = file.slice(0, -3);
-        const parsed = parseTaskFile(readFileSync9(join9(archiveDir, file), "utf8"));
+        const parsed = parseTaskFile(readFileSync10(join10(archiveDir, file), "utf8"));
         rows.push({
           id,
           title: parsed.frontmatter.title || id,
@@ -1818,7 +2233,7 @@ function cmdShow(rawArgs) {
     err(`Task not found: ${id}`);
     process.exit(1);
   }
-  process.stdout.write(readFileSync9(path, "utf8"));
+  process.stdout.write(readFileSync10(path, "utf8"));
 }
 function cmdCreate(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
@@ -1857,7 +2272,7 @@ function cmdCreate(rawArgs) {
   if (assignee) fm.assignee = assignee;
   if (tags.length > 0) fm.tags = tags;
   const tasksDir = getTasksDir(kandownDir);
-  if (!existsSync9(tasksDir)) mkdirSync4(tasksDir, { recursive: true });
+  if (!existsSync10(tasksDir)) mkdirSync4(tasksDir, { recursive: true });
   const path = taskPath(kandownDir, id);
   atomicWriteFileSync(path, serializeTaskFile(fm, ""));
   process.stderr.write(`${c.green}\u2713${c.reset} Created ${c.bold}${id}${c.reset} \u2192 ${status}
@@ -1907,10 +2322,14 @@ function cmdAssign(rawArgs) {
     process.exit(1);
   }
   const frontmatter = { ...task.frontmatter, id };
-  if (assignee) frontmatter.assignee = assignee;
-  else delete frontmatter.assignee;
+  if (assignee) {
+    const resolved = resolveAgentEntry(assignee, kandownDir);
+    frontmatter.assignee = resolved ? resolved.id : assignee;
+  } else {
+    delete frontmatter.assignee;
+  }
   atomicWriteFileSync(task.path, serializeTaskFile(stampUpdated(frontmatter), task.body));
-  success(assignee ? `Assigned ${id} \u2192 ${assignee}` : `Unassigned ${id}`);
+  success(assignee ? `Assigned ${id} \u2192 ${frontmatter.assignee ?? assignee}` : `Unassigned ${id}`);
 }
 function cmdCommit(rawArgs) {
   ensureKandownDir(rawArgs);
@@ -1928,12 +2347,12 @@ function cmdExport(rawArgs) {
 }
 function cmdProjects(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
-  const metadataPath2 = join9(kandownDir, "daemon.json");
-  if (!existsSync9(metadataPath2)) {
+  const metadataPath2 = join10(kandownDir, "daemon.json");
+  if (!existsSync10(metadataPath2)) {
     info("No daemon metadata for this project.");
     return;
   }
-  process.stdout.write(readFileSync9(metadataPath2, "utf8").trim() + "\n");
+  process.stdout.write(readFileSync10(metadataPath2, "utf8").trim() + "\n");
 }
 function cmdImport(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
@@ -1944,13 +2363,13 @@ function cmdImport(rawArgs) {
     process.exit(1);
   }
   const importPath = resolve4(process.cwd(), file);
-  if (!existsSync9(importPath)) {
+  if (!existsSync10(importPath)) {
     err(`Import file not found: ${file}`);
     process.exit(1);
   }
   let raw;
   try {
-    raw = JSON.parse(readFileSync9(importPath, "utf8"));
+    raw = JSON.parse(readFileSync10(importPath, "utf8"));
   } catch (error) {
     err(`Import file must be JSON: ${error instanceof Error ? error.message : String(error)}`);
     process.exit(1);
@@ -1973,12 +2392,12 @@ function cmdImport(rawArgs) {
     process.exit(1);
   }
   const tasksDir = getTasksDir(kandownDir);
-  if (!existsSync9(tasksDir)) mkdirSync4(tasksDir, { recursive: true });
+  if (!existsSync10(tasksDir)) mkdirSync4(tasksDir, { recursive: true });
   let imported = 0;
   for (const row of rows) {
     const id = typeof row.id === "string" && /^[a-zA-Z0-9_-]+$/.test(row.id) ? row.id : nextTaskId(kandownDir);
     const path = taskPath(kandownDir, id);
-    if (existsSync9(path) && args.flags.overwrite !== true) continue;
+    if (existsSync10(path) && args.flags.overwrite !== true) continue;
     const fm = {
       id,
       title: typeof row.title === "string" && row.title ? row.title : id,
@@ -1994,12 +2413,12 @@ function cmdImport(rawArgs) {
 }
 
 // src/cli/commands/daemon.ts
-import { join as join11 } from "path";
+import { join as join12 } from "path";
 
 // src/cli/lib/server.ts
 import { createServer } from "http";
-import { existsSync as existsSync10, readFileSync as readFileSync10, copyFileSync as copyFileSync3, unlinkSync as unlinkSync5, mkdirSync as mkdirSync5 } from "fs";
-import { join as join10 } from "path";
+import { existsSync as existsSync11, readFileSync as readFileSync11, copyFileSync as copyFileSync3, unlinkSync as unlinkSync5, mkdirSync as mkdirSync5 } from "fs";
+import { join as join11 } from "path";
 import { spawn as spawn6 } from "child_process";
 var START_PORT_RANGE = 2050;
 var END_PORT_RANGE = 2099;
@@ -2047,15 +2466,15 @@ function readRequestBody(req) {
 }
 function syncProjectKandownHtml(kandownDir) {
   try {
-    const projectHtml = join10(kandownDir, "kandown.html");
-    const distHtml = join10(PKG_ROOT, "dist", "index.html");
-    if (!existsSync10(distHtml)) return false;
-    if (!existsSync10(projectHtml)) {
+    const projectHtml = join11(kandownDir, "kandown.html");
+    const distHtml = join11(PKG_ROOT, "dist", "index.html");
+    if (!existsSync11(distHtml)) return false;
+    if (!existsSync11(projectHtml)) {
       copyFileSync3(distHtml, projectHtml);
       return true;
     }
-    const currentContent = readFileSync10(projectHtml, "utf8");
-    const newContent = readFileSync10(distHtml, "utf8");
+    const currentContent = readFileSync11(projectHtml, "utf8");
+    const newContent = readFileSync11(distHtml, "utf8");
     if (currentContent !== newContent) {
       atomicWriteFileSync(projectHtml, newContent);
       return true;
@@ -2066,7 +2485,7 @@ function syncProjectKandownHtml(kandownDir) {
 }
 function readDaemonPort(kandownDir) {
   try {
-    const raw = JSON.parse(readFileSync10(join10(kandownDir, "daemon.json"), "utf8"));
+    const raw = JSON.parse(readFileSync11(join11(kandownDir, "daemon.json"), "utf8"));
     return typeof raw.port === "number" && Number.isInteger(raw.port) ? raw.port : null;
   } catch {
     return null;
@@ -2196,8 +2615,8 @@ async function handleApi(req, res, url, kandownDir) {
   if (path === "/api/board") {
     if (method === "GET") {
       const tasksDir = getTasksDir(kandownDir);
-      const boardPath = join10(tasksDir, "board.md");
-      const text = existsSync10(boardPath) ? readFileSync10(boardPath, "utf8") : "";
+      const boardPath = join11(tasksDir, "board.md");
+      const text = existsSync11(boardPath) ? readFileSync11(boardPath, "utf8") : "";
       return writeText(res, 200, text);
     }
     if (method === "PUT") {
@@ -2207,8 +2626,8 @@ async function handleApi(req, res, url, kandownDir) {
       });
       req.on("end", () => {
         const tasksDir = getTasksDir(kandownDir);
-        if (!existsSync10(tasksDir)) mkdirSync5(tasksDir, { recursive: true });
-        atomicWriteFileSync(join10(tasksDir, "board.md"), body);
+        if (!existsSync11(tasksDir)) mkdirSync5(tasksDir, { recursive: true });
+        atomicWriteFileSync(join11(tasksDir, "board.md"), body);
         broadcastSseEvent({ type: "board" });
         writeJson(res, 200, { ok: true });
       });
@@ -2240,6 +2659,9 @@ async function handleApi(req, res, url, kandownDir) {
   if (path === "/api/tasks" && method === "GET") {
     return writeJson(res, 200, listTaskIds(kandownDir));
   }
+  if (path === "/api/agents" && method === "GET") {
+    return writeJson(res, 200, detectCatalogJSON(kandownDir));
+  }
   if (path.startsWith("/api/tasks/")) {
     const routeParts = path.slice("/api/tasks/".length).split("/").filter(Boolean);
     let taskId;
@@ -2250,24 +2672,24 @@ async function handleApi(req, res, url, kandownDir) {
     }
     if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return writeText(res, 400, "Invalid task id");
     const tasksDir = getTasksDir(kandownDir);
-    const archiveDir = join10(tasksDir, "archive");
-    const activePath = join10(tasksDir, `${taskId}.md`);
-    const archivedPath = join10(archiveDir, `${taskId}.md`);
+    const archiveDir = join11(tasksDir, "archive");
+    const activePath = join11(tasksDir, `${taskId}.md`);
+    const archivedPath = join11(archiveDir, `${taskId}.md`);
     const action = routeParts[1];
     if (method === "POST" && (action === "archive" || action === "unarchive")) {
       if (routeParts.length !== 2) return writeText(res, 400, "Invalid task route");
       const archiving = action === "archive";
       const source = archiving ? activePath : archivedPath;
       const destination = archiving ? archivedPath : activePath;
-      if (!existsSync10(source) && !existsSync10(destination)) {
+      if (!existsSync11(source) && !existsSync11(destination)) {
         return writeText(res, 404, "Task not found");
       }
       try {
-        if (!existsSync10(tasksDir)) mkdirSync5(tasksDir, { recursive: true });
-        if (!existsSync10(archiveDir)) mkdirSync5(archiveDir, { recursive: true });
+        if (!existsSync11(tasksDir)) mkdirSync5(tasksDir, { recursive: true });
+        if (!existsSync11(archiveDir)) mkdirSync5(archiveDir, { recursive: true });
         const body = await readRequestBody(req);
         atomicWriteFileSync(destination, body);
-        if (source !== destination && existsSync10(source)) unlinkSync5(source);
+        if (source !== destination && existsSync11(source)) unlinkSync5(source);
         broadcastSseEvent({ type: "task", id: taskId });
         return writeJson(res, 200, { ok: true });
       } catch (error) {
@@ -2280,11 +2702,11 @@ async function handleApi(req, res, url, kandownDir) {
     if (method === "GET") {
       const taskPath2 = findTaskPath(kandownDir, taskId);
       if (!taskPath2) return writeText(res, 404, "Task not found");
-      return writeText(res, 200, readFileSync10(taskPath2, "utf8"));
+      return writeText(res, 200, readFileSync11(taskPath2, "utf8"));
     }
     if (method === "PUT") {
       try {
-        if (!existsSync10(tasksDir)) mkdirSync5(tasksDir, { recursive: true });
+        if (!existsSync11(tasksDir)) mkdirSync5(tasksDir, { recursive: true });
         const taskPath2 = findTaskPath(kandownDir, taskId) ?? activePath;
         const body = await readRequestBody(req);
         atomicWriteFileSync(taskPath2, body);
@@ -2298,8 +2720,8 @@ async function handleApi(req, res, url, kandownDir) {
     }
     if (method === "DELETE") {
       try {
-        if (existsSync10(activePath)) unlinkSync5(activePath);
-        if (existsSync10(archivedPath)) unlinkSync5(archivedPath);
+        if (existsSync11(activePath)) unlinkSync5(activePath);
+        if (existsSync11(archivedPath)) unlinkSync5(archivedPath);
         broadcastSseEvent({ type: "task_delete", id: taskId });
         return writeJson(res, 200, { ok: true });
       } catch (error) {
@@ -2322,9 +2744,9 @@ function injectServerRoot(html, kandownDir) {
 }
 function serveApp(res, kandownDir) {
   syncProjectKandownHtml(kandownDir);
-  const htmlPath = join10(kandownDir, "kandown.html");
-  if (existsSync10(htmlPath)) {
-    const html = readFileSync10(htmlPath, "utf8");
+  const htmlPath = join11(kandownDir, "kandown.html");
+  if (existsSync11(htmlPath)) {
+    const html = readFileSync11(htmlPath, "utf8");
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
     res.end(injectServerRoot(html, kandownDir));
   } else {
@@ -2386,7 +2808,7 @@ async function cmdDaemon(rest) {
     const preferredPort = typeof daemonOptions.flags.port === "string" ? Number(daemonOptions.flags.port) : null;
     const { port } = await listenOnAvailablePort(kandownDir, Number.isInteger(preferredPort) ? preferredPort : null);
     const url = `http://localhost:${port}`;
-    const metadataPath2 = join11(kandownDir, "daemon.json");
+    const metadataPath2 = join12(kandownDir, "daemon.json");
     atomicWriteFileSync(metadataPath2, JSON.stringify({
       pid: process.pid,
       port,
@@ -2438,6 +2860,507 @@ async function cmdDaemon(rest) {
     log(`  Use ${c.cyan}kandown daemon start|stop|restart|status|refresh-all${c.reset}`);
     process.exit(1);
   }
+}
+
+// src/cli/lib/launcher.ts
+import { execSync as execSync2, spawn as spawn7 } from "child_process";
+import { writeFileSync as writeFileSync3 } from "fs";
+import { join as join13 } from "path";
+import { tmpdir } from "os";
+function prepareLaunch(opts) {
+  const { taskId, agentId, kandownDir, handoff, queue } = opts;
+  const agentDef = getAgentById(agentId, kandownDir);
+  if (!agentDef) {
+    throw new Error(`Unknown agent: ${agentId}`);
+  }
+  let task;
+  try {
+    task = readTask(kandownDir, taskId);
+  } catch (e) {
+    throw new Error(`Failed to read task ${taskId}: ${e.message}`);
+  }
+  const originalStatus = task.frontmatter.status || "Backlog";
+  const agentDoc = readAgentDoc(kandownDir);
+  const taskFileContent = [
+    `---`,
+    `id: ${task.frontmatter.id}`,
+    `title: ${task.frontmatter.title}`,
+    `status: ${task.frontmatter.status ?? "unknown"}`,
+    `---`,
+    "",
+    task.body.trim()
+  ].join("\n");
+  const { systemPrompt, taskPrompt } = buildPrompt(agentDoc, taskFileContent, taskId, kandownDir, handoff, queue);
+  const taskMoved = moveTaskToColumn(kandownDir, taskId, "In Progress");
+  if (!taskMoved) {
+    throw new Error(`Could not move task ${taskId} to In Progress \u2014 task file missing or unwritable.`);
+  }
+  const contextFile = join13(tmpdir(), `kandown-${taskId}-context.md`);
+  try {
+    writeFileSync3(contextFile, `${systemPrompt}
+
+---
+
+${taskPrompt}`, "utf8");
+  } catch (e) {
+    console.warn(`[kandown] Failed to write context file (${e.message}); launching anyway.`);
+  }
+  const launchOpts = { systemPrompt, taskPrompt, kandownDir, taskId };
+  const [binary, ...args] = buildAgentCommand(agentDef, launchOpts);
+  if (!binary) {
+    rollbackTaskStatus(kandownDir, taskId, originalStatus);
+    throw new Error(`Agent ${agentId} returned an empty command`);
+  }
+  return { agentName: agentDef.name, binary, args, contextFile, originalStatus, taskMoved };
+}
+function launchEnv(contextFile, taskId, kandownDir) {
+  return {
+    ...process.env,
+    KANDOWN_CONTEXT_FILE: contextFile,
+    KANDOWN_TASK_ID: taskId,
+    KANDOWN_DIR: kandownDir
+  };
+}
+function runAgentSync(opts) {
+  const { taskId, kandownDir } = opts;
+  const prepared = prepareLaunch(opts);
+  const { binary, args, contextFile, originalStatus, agentName } = prepared;
+  return new Promise((resolve5, reject) => {
+    const child = spawn7(binary, args, { stdio: "inherit", env: launchEnv(contextFile, taskId, kandownDir) });
+    child.on("error", (e) => {
+      rollbackTaskStatus(kandownDir, taskId, originalStatus);
+      reject(new Error(`Failed to launch ${agentName}: ${e.message}`));
+    });
+    child.on("exit", (code) => {
+      resolve5({ exitCode: code ?? 0 });
+    });
+  });
+}
+function rollbackTaskStatus(kandownDir, taskId, originalStatus) {
+  const ok = moveTaskToColumn(kandownDir, taskId, originalStatus);
+  if (!ok) {
+    console.warn(`[kandown] Could not roll back task ${taskId} to ${originalStatus} \u2014 update it manually.`);
+  }
+}
+
+// src/lib/dependencies.ts
+function terminalStatus(config = DEFAULT_CONFIG) {
+  const cols = config.board.columns;
+  return cols[cols.length - 1] ?? "Done";
+}
+function resolveDependencyStatus(tasks, config = DEFAULT_CONFIG) {
+  const byId = /* @__PURE__ */ new Map();
+  for (const t of tasks) {
+    const id = t.frontmatter && t.frontmatter.id || "";
+    if (id) byId.set(id, t);
+  }
+  const terminal = terminalStatus(config).toLowerCase();
+  const out = /* @__PURE__ */ new Map();
+  for (const [id, task] of byId) {
+    const status = (task.frontmatter.status || "Backlog").toLowerCase();
+    const isArchived2 = String(task.frontmatter.archived) === "true";
+    out.set(id, {
+      exists: true,
+      resolved: isArchived2 || typeof status === "string" && status === terminal,
+      title: typeof task.frontmatter.title === "string" ? task.frontmatter.title : null
+    });
+  }
+  for (const t of tasks) {
+    const deps = Array.isArray(t.frontmatter.depends_on) ? t.frontmatter.depends_on : [];
+    for (const dep of deps) {
+      if (typeof dep !== "string" || !dep.trim()) continue;
+      if (!out.has(dep)) out.set(dep, { exists: false, resolved: true, title: null });
+    }
+  }
+  return out;
+}
+function unresolvedDependencyIds(task, resolution) {
+  const deps = Array.isArray(task.frontmatter.depends_on) ? task.frontmatter.depends_on : [];
+  const out = [];
+  for (const dep of deps) {
+    if (typeof dep !== "string" || !dep.trim()) continue;
+    if (dep === task.frontmatter.id) continue;
+    const r = resolution.get(dep);
+    if (!r || !r.resolved) out.push(dep);
+  }
+  return out;
+}
+
+// src/cli/lib/cascade.ts
+function loadAllTasks(kandownDir) {
+  const tasks = [];
+  for (const id of listTaskIds(kandownDir)) {
+    try {
+      const t = readTask(kandownDir, id);
+      const archived = String(t.frontmatter.archived) === "true";
+      if (archived) continue;
+      tasks.push({ ...t, frontmatter: { ...t.frontmatter, id: t.frontmatter.id || id } });
+    } catch (e) {
+      console.error(`[kandown] Skipping unreadable task ${id}:`, e.message);
+    }
+  }
+  return tasks;
+}
+var PRIORITY_RANK = { P1: 1, P2: 2, P3: 3, P4: 4 };
+function reachedTerminal(status, cfg) {
+  const s = (status || "").trim().toLowerCase();
+  if (!s) return false;
+  if (s === "archived") return true;
+  return s === terminalStatus(cfg).trim().toLowerCase();
+}
+function priorityAndIdKey(t) {
+  const rank = PRIORITY_RANK[String(t.priority ?? "").toUpperCase()] ?? 99;
+  return `${rank.toString().padStart(2, "0")}	${t.id.padStart(6, "0")}`;
+}
+function downstreamClosure(all, startId) {
+  const depsOf = /* @__PURE__ */ new Map();
+  for (const t of all) depsOf.set(t.frontmatter.id || "", Array.isArray(t.frontmatter.depends_on) ? t.frontmatter.depends_on.filter((d) => typeof d === "string") : []);
+  const closure = /* @__PURE__ */ new Set([startId]);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const t of all) {
+      const id = t.frontmatter.id || "";
+      if (closure.has(id)) continue;
+      const deps = depsOf.get(id) ?? [];
+      if (deps.some((d) => closure.has(d))) {
+        closure.add(id);
+        changed = true;
+      }
+    }
+  }
+  return closure;
+}
+function buildCascadePlan(kandownDir, opts = {}) {
+  const cfg = loadConfig(kandownDir);
+  const all = loadAllTasks(kandownDir);
+  const scope = opts.startTaskId ? downstreamClosure(all, opts.startTaskId) : null;
+  const resolution = resolveDependencyStatus(all, cfg);
+  const candidates = [];
+  for (const t of all) {
+    const id = t.frontmatter.id || "";
+    if (scope && !scope.has(id)) continue;
+    const status = t.frontmatter.status || "Backlog";
+    if (reachedTerminal(status, cfg)) continue;
+    if (status.toLowerCase() === "in progress" && !opts.includeInProgress) continue;
+    candidates.push(toCascadeTask(t));
+  }
+  const candidateIds = new Set(candidates.map((c2) => c2.id));
+  const orderable = [];
+  const blocked = [];
+  for (const t of candidates) {
+    const stuckOn = t.dependsOn.find((d) => {
+      const r = resolution.get(d);
+      const resolved = !r || r.resolved;
+      return !resolved && !candidateIds.has(d);
+    });
+    if (stuckOn) blocked.push(t);
+    else orderable.push(t);
+  }
+  const orderableIds = new Set(orderable.map((r) => r.id));
+  const depsWithin = /* @__PURE__ */ new Map();
+  for (const r of orderable) {
+    depsWithin.set(r.id, r.dependsOn.filter((d) => orderableIds.has(d)));
+  }
+  const orderedIds = topoSort([...orderableIds], depsWithin, orderable);
+  const ordered = orderedIds.map((id) => orderable.find((r) => r.id === id)).filter(Boolean);
+  const cascadeCfg = getCascadeConfig(kandownDir);
+  const skippedNoAgent = [];
+  const withAgent = [];
+  for (const t of ordered) {
+    if (resolveAgentFor(t, opts.agentOverride, cascadeCfg.preferred, kandownDir)) {
+      withAgent.push(t);
+    } else {
+      skippedNoAgent.push(t);
+    }
+  }
+  return { order: withAgent, skippedNoAgent, blocked };
+}
+function resolveAgentFor(task, override, preferred, kandownDir) {
+  if (override) {
+    return isAgentInstalled(getBinFor(override, kandownDir)) ? override : void 0;
+  }
+  const byAssignee = task.assignee ? resolveAgentEntry(task.assignee, kandownDir) : void 0;
+  if (byAssignee && isAgentInstalled(byAssignee.bin)) return byAssignee.id;
+  if (!task.assignee) {
+    const cascadeCfg = getCascadeConfig(kandownDir);
+    if (cascadeCfg.unassignedBehavior === "preferred" && preferred) {
+      return isAgentInstalled(getBinFor(preferred, kandownDir)) ? preferred : void 0;
+    }
+  }
+  return void 0;
+}
+function getBinFor(agentId, kandownDir) {
+  return getAgentById(agentId, kandownDir)?.bin ?? agentId;
+}
+function toCascadeTask(t) {
+  return {
+    id: t.frontmatter.id || "",
+    title: typeof t.frontmatter.title === "string" ? t.frontmatter.title : "",
+    status: t.frontmatter.status || "Backlog",
+    ...typeof t.frontmatter.assignee === "string" ? { assignee: t.frontmatter.assignee } : {},
+    ...typeof t.frontmatter.priority === "string" ? { priority: t.frontmatter.priority } : {},
+    dependsOn: Array.isArray(t.frontmatter.depends_on) ? t.frontmatter.depends_on.filter((d) => typeof d === "string") : []
+  };
+}
+function topoSort(ids, depsWithin, ready) {
+  const inDegree = /* @__PURE__ */ new Map();
+  const dependents = /* @__PURE__ */ new Map();
+  for (const id of ids) {
+    inDegree.set(id, 0);
+    dependents.set(id, []);
+  }
+  for (const id of ids) {
+    for (const dep of depsWithin.get(id) ?? []) {
+      if (!ids.includes(dep)) continue;
+      inDegree.set(id, (inDegree.get(id) ?? 0) + 1);
+      dependents.get(dep).push(id);
+    }
+  }
+  const byTask = new Map(ready.map((r) => [r.id, r]));
+  const remaining = new Set(ids);
+  const out = [];
+  while (remaining.size > 0) {
+    const freed = [...remaining].filter((id) => (inDegree.get(id) ?? 0) === 0);
+    if (freed.length === 0) break;
+    freed.sort((a, b) => priorityAndIdKey(byTask.get(a)).localeCompare(priorityAndIdKey(byTask.get(b))));
+    const pick = freed[0];
+    out.push(pick);
+    remaining.delete(pick);
+    for (const d of dependents.get(pick) ?? []) inDegree.set(d, (inDegree.get(d) ?? 0) - 1);
+  }
+  if (remaining.size > 0) {
+    out.push(...[...remaining].sort((a, b) => priorityAndIdKey(byTask.get(a)).localeCompare(priorityAndIdKey(byTask.get(b)))));
+  }
+  return out;
+}
+async function runCascade(kandownDir, opts = {}) {
+  warmupDetection(loadCatalog(kandownDir));
+  const plan = buildCascadePlan(kandownDir, opts);
+  if (opts.dryRun) {
+    return { mode: "multi-agent", steps: plan.order.map((t) => ({ taskId: t.id, outcome: "skipped", note: "dry-run" })), completed: [], incomplete: [] };
+  }
+  const cascadeCfg = getCascadeConfig(kandownDir);
+  const sameSession = opts.sameSession ?? cascadeCfg.sameSessionChain;
+  if (plan.order.length === 0) {
+    return { mode: sameSession ? "same-session" : "multi-agent", steps: [], completed: [], incomplete: [] };
+  }
+  if (sameSession) {
+    return runSameSession(kandownDir, plan, opts);
+  }
+  return runMultiAgent(kandownDir, plan, opts);
+}
+async function runMultiAgent(kandownDir, plan, opts) {
+  const cascadeCfg = getCascadeConfig(kandownDir);
+  const cfg = loadConfig(kandownDir);
+  const steps = [];
+  const completed = [];
+  const incomplete = [];
+  const handoff = [];
+  for (const task of plan.order) {
+    const fresh = loadAllTasks(kandownDir);
+    const freshRes = resolveDependencyStatus(fresh, cfg);
+    const tp = fresh.find((x) => (x.frontmatter.id || "") === task.id);
+    if (tp) {
+      const status = tp.frontmatter.status || "";
+      if (reachedTerminal(status, cfg)) {
+        steps.push({ taskId: task.id, outcome: "done", note: "already terminal" });
+        completed.push(task.id);
+        const report = typeof tp.frontmatter.report === "string" ? tp.frontmatter.report : "";
+        handoff.push({ taskId: task.id, title: task.title, report });
+        continue;
+      }
+      if (unresolvedDependencyIds(tp, freshRes).length > 0) {
+        steps.push({ taskId: task.id, outcome: "skipped", note: "dependency not done" });
+        incomplete.push(task.id);
+        continue;
+      }
+    }
+    const agentId = resolveAgentFor(task, opts.agentOverride, cascadeCfg.preferred, kandownDir);
+    if (!agentId) {
+      steps.push({ taskId: task.id, outcome: "skipped", note: "no resolvable agent" });
+      continue;
+    }
+    try {
+      const { exitCode } = await runAgentSync({
+        taskId: task.id,
+        agentId,
+        kandownDir,
+        handoff: handoff.length > 0 ? handoff : void 0
+      });
+      const after = readTask(kandownDir, task.id);
+      const afterStatus = after.frontmatter.status || "";
+      const done = reachedTerminal(afterStatus, cfg);
+      const report = typeof after.frontmatter.report === "string" ? after.frontmatter.report : "";
+      if (done) {
+        steps.push({ taskId: task.id, agentId, outcome: "done", exitCode });
+        completed.push(task.id);
+        handoff.push({ taskId: task.id, title: task.title, report });
+      } else {
+        steps.push({ taskId: task.id, agentId, outcome: "not-done", exitCode, note: `status is "${afterStatus || "unknown"}", expected terminal` });
+        incomplete.push(task.id);
+        break;
+      }
+    } catch (e) {
+      steps.push({ taskId: task.id, agentId, outcome: "failed", note: e.message });
+      incomplete.push(task.id);
+      break;
+    }
+  }
+  return { mode: "multi-agent", steps, completed, incomplete };
+}
+async function runSameSession(kandownDir, plan, opts) {
+  const cascadeCfg = getCascadeConfig(kandownDir);
+  const first = plan.order[0];
+  const agentId = opts.agentOverride ?? resolveAgentFor(first, void 0, cascadeCfg.preferred, kandownDir) ?? cascadeCfg.preferred;
+  if (!agentId) {
+    return { mode: "same-session", steps: plan.order.map((t) => ({ taskId: t.id, outcome: "skipped", note: "no agent for queue" })), completed: [], incomplete: plan.order.map((t) => t.id) };
+  }
+  const queue = plan.order.map((t) => ({ id: t.id, title: t.title }));
+  try {
+    const { exitCode } = await runAgentSync({
+      taskId: first.id,
+      agentId,
+      kandownDir,
+      queue
+    });
+    const cfg = loadConfig(kandownDir);
+    const steps = [];
+    const completed = [];
+    const incomplete = [];
+    for (const t of plan.order) {
+      const after = readTask(kandownDir, t.id);
+      const status = after.frontmatter.status || "";
+      if (reachedTerminal(status, cfg)) {
+        steps.push({ taskId: t.id, agentId, outcome: "done", exitCode });
+        completed.push(t.id);
+      } else {
+        steps.push({ taskId: t.id, agentId, outcome: "not-done", exitCode, note: `status is "${status || "unknown"}"` });
+        incomplete.push(t.id);
+      }
+    }
+    return { mode: "same-session", steps, completed, incomplete };
+  } catch (e) {
+    return { mode: "same-session", steps: [{ taskId: first.id, agentId, outcome: "failed", note: e.message }], completed: [], incomplete: plan.order.map((t) => t.id) };
+  }
+}
+
+// src/cli/commands/run.ts
+async function cmdRun(rawArgs) {
+  const args = parseArgs(rawArgs);
+  const kandownDir = resolveKandownDir(args.path, process.cwd());
+  const opts = {
+    startTaskId: args.positional[0],
+    agentOverride: typeof args.flags["agent"] === "string" ? args.flags["agent"] : void 0,
+    includeInProgress: args.flags["resume"] === true,
+    sameSession: args.flags["same-session"] === true,
+    dryRun: args.flags["dry-run"] === true
+  };
+  if (opts.agentOverride) {
+    const def = loadCatalog(kandownDir).find((a) => a.id === opts.agentOverride);
+    if (!def) {
+      err(`Unknown agent: ${opts.agentOverride}`);
+      log(`  Available: ${loadCatalog(kandownDir).map((a) => a.id).join(", ")}`);
+      process.exit(1);
+    }
+    if (!isAgentInstalled(def.bin)) {
+      err(`Agent ${opts.agentOverride} (${def.bin}) is not installed in your $PATH.`);
+      process.exit(1);
+    }
+  }
+  const plan = buildCascadePlan(kandownDir, opts);
+  const mode = opts.sameSession ? "same-session" : "multi-agent";
+  log("");
+  log(`${c.bold}Cascade plan${c.reset} ${c.dim}(${mode})${c.reset}`);
+  if (opts.startTaskId) log(`${c.dim}scoped to ${opts.startTaskId} + downstream dependents${c.reset}`);
+  log("");
+  if (plan.order.length === 0) {
+    info("No ready tasks with a resolvable agent. Nothing to run.");
+    if (plan.blocked.length > 0) {
+      log(`${c.dim}  Blocked (unresolved deps): ${plan.blocked.map((t) => t.id).join(", ") || "\u2014"}${c.reset}`);
+    }
+    if (plan.skippedNoAgent.length > 0) {
+      log(`${c.dim}  Skipped (no agent): ${plan.skippedNoAgent.map((t) => `${t.id}${t.assignee ? `(@${t.assignee})` : ""}`).join(", ")}${c.reset}`);
+    }
+    log("");
+    return;
+  }
+  for (let i = 0; i < plan.order.length; i++) {
+    const t = plan.order[i];
+    const agent = opts.agentOverride ?? t.assignee ?? "(preferred)";
+    log(`  ${c.cyan}${i + 1}.${c.reset} ${c.bold}${t.id}${c.reset} ${t.title}`);
+    log(`     ${c.dim}agent: ${agent} \xB7 status: ${t.status}${t.priority ? ` \xB7 ${t.priority}` : ""}${t.dependsOn.length ? ` \xB7 after ${t.dependsOn.join(",")}` : ""}${c.reset}`);
+  }
+  if (plan.skippedNoAgent.length > 0) {
+    log("");
+    log(`${c.dim}Skipping (no agent assigned): ${plan.skippedNoAgent.map((t) => t.id).join(", ")}${c.reset}`);
+  }
+  log("");
+  if (opts.dryRun) {
+    info("Dry run \u2014 nothing launched.");
+    return;
+  }
+  const result = await runCascade(kandownDir, opts);
+  log("");
+  log(`${c.bold}Cascade result${c.reset} ${c.dim}(${result.mode})${c.reset}`);
+  for (const step of result.steps) {
+    const mark = step.outcome === "done" ? `${c.green}\u2713${c.reset}` : step.outcome === "not-done" ? `${c.yellow}~${c.reset}` : step.outcome === "failed" ? `${c.red}\u2717${c.reset}` : `${c.dim}\xB7${c.reset}`;
+    const tail = step.agentId ? ` ${c.dim}via ${step.agentId}${c.reset}` : "";
+    const note = step.note ? ` ${c.dim}\u2014 ${step.note}${c.reset}` : "";
+    log(`  ${mark} ${step.taskId}${tail}${note}`);
+  }
+  log("");
+  if (result.incomplete.length === 0 && result.completed.length > 0) {
+    success(`All ${result.completed.length} task(s) reached Done.`);
+  } else if (result.completed.length > 0) {
+    info(`${result.completed.length} done, ${result.incomplete.length} not done. Chain stopped at the first non-done task.`);
+  } else {
+    err("No tasks completed.");
+  }
+}
+
+// src/cli/commands/agents.ts
+import { existsSync as existsSync12 } from "fs";
+import { join as join14 } from "path";
+function cmdAgents(rawArgs) {
+  const args = parseArgs(rawArgs);
+  const kandownDir = resolveKandownDir(args.path, process.cwd());
+  const sub = args.positional[0];
+  if (sub === "init") {
+    const target = join14(kandownDir, "agents.json");
+    if (existsSync12(target)) {
+      info(`${c.bold}agents.json${c.reset} already exists at ${target}`);
+      return;
+    }
+    saveAgentsConfig(kandownDir, defaultAgentsConfig());
+    success(`Wrote default ${c.bold}agents.json${c.reset} to ${target}`);
+    log(`${c.dim}  Commit it so your team shares the same agent catalog + aliases.${c.reset}`);
+    return;
+  }
+  warmupDetection(loadCatalog(kandownDir));
+  const catalog = loadCatalog(kandownDir);
+  const installed = detectInstalledAgents(kandownDir);
+  const cascade = getCascadeConfig(kandownDir);
+  const agentsFile = join14(kandownDir, "agents.json");
+  log("");
+  log(`${c.bold}Agent catalog${c.reset} ${c.dim}(${installed.length}/${catalog.length} installed)${c.reset}`);
+  log(`${c.dim}catalog: ${existsSync12(agentsFile) ? agentsFile : "built-in defaults (run `kandown agents init` to commit one)"}${c.reset}`);
+  log("");
+  for (const a of catalog) {
+    const ok = isAgentInstalled(a.bin);
+    const mark = ok ? `${c.green}\u2713${c.reset}` : `${c.dim}\xB7${c.reset}`;
+    const interactive = a.interactive ? "" : `${c.dim} (one-shot)${c.reset}`;
+    const preferred = cascade.preferred === a.id ? ` ${c.cyan}[preferred]${c.reset}` : "";
+    log(`  ${mark} ${c.bold}${a.id.padEnd(10)}${c.reset} ${a.name}${preferred}${interactive}`);
+    log(`     ${c.dim}${a.bin}${a.aliases && a.aliases.length ? ` \xB7 aliases: ${a.aliases.join(", ")}` : ""}${c.reset}`);
+    if (a.extraArgs && a.extraArgs.length) {
+      log(`     ${c.dim}extraArgs: ${a.extraArgs.join(" ")}${c.reset}`);
+    }
+  }
+  log("");
+  log(`${c.dim}cascade: unassignedBehavior=${cascade.unassignedBehavior} \xB7 sameSessionChain=${cascade.sameSessionChain}${c.reset}`);
+  log(`${c.dim}assign a task with: kandown assign <id> <agent>   \xB7   run a chain with: kandown run${c.reset}`);
+  log("");
 }
 
 // src/cli/cli.ts
@@ -2497,6 +3420,12 @@ async function main() {
     case "commit":
       cmdCommit(rest);
       break;
+    case "run":
+      await cmdRun(rest);
+      break;
+    case "agents":
+      cmdAgents(rest);
+      break;
     case "tasks":
       printTaskCommandsHelp();
       break;
@@ -2525,13 +3454,13 @@ async function main() {
     case void 0: {
       const parsed = parseArgs(rest);
       const kandownDir = resolveKandownDir(parsed.path, process.cwd());
-      if (existsSync11(kandownDir)) {
+      if (existsSync13(kandownDir)) {
         let status = await getDaemonStatus(kandownDir);
         if (!status.running) {
           status = await startProjectDaemon(kandownDir);
         }
         if (!parsed.flags["no-open"]) {
-          const urlToOpen = status.metadata?.url || join12(kandownDir, "kandown.html");
+          const urlToOpen = status.metadata?.url || join15(kandownDir, "kandown.html");
           openBrowser(urlToOpen);
         }
       } else if (!process.stdin.isTTY) {

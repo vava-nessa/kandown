@@ -13,6 +13,7 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/kandown"><img src="https://img.shields.io/npm/v/kandown?color=cb3837&label=npm" alt="npm version"></a>
   <a href="https://www.npmjs.com/package/kandown"><img src="https://img.shields.io/npm/dm/kandown?color=blue" alt="npm downloads"></a>
+  <a href="https://www.reddit.com/r/kandown/"><img src="https://img.shields.io/badge/Reddit-r%2Fkandown-FF4500?logo=reddit&logoColor=white" alt="Reddit r/kandown"></a>
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License">
   <img src="https://img.shields.io/badge/local--first-100%25-orange" alt="100% local-first">
 </p>
@@ -20,7 +21,8 @@
 <p align="center">
   <a href="https://kandown.dev"><strong>kandown.dev</strong></a> ·
   <a href="https://kandown.dev/docs">Documentation</a> ·
-  <a href="https://kandown.dev/changelogs">Changelog</a>
+  <a href="https://kandown.dev/changelogs">Changelog</a> ·
+  <a href="https://www.reddit.com/r/kandown/">Reddit (r/kandown)</a>
 </p>
 
 <p align="center">
@@ -144,10 +146,16 @@ Press `a` on any task in the terminal UI to hand it to an agent:
 |---|---|---|
 | Claude Code | `claude` | interactive session |
 | OpenAI Codex | `codex` | interactive session |
-| Gemini CLI | `gemini` | `-p` initial prompt |
+| Gemini CLI | `gemini` | `-i` prompt-interactive |
 | Goose | `goose` | `run --text`, non-interactive |
 | Aider | `aider` | `--message` initial prompt |
-| OpenCode | `opencode` | TUI, context written to `/tmp` |
+| OpenCode | `opencode` | TUI, `--prompt` initial message |
+| Cursor | `cursor` | IDE opens the project (paste prompt) |
+| Pi | `pi` | interactive session |
+
+The catalog is the committed `.kandown/agents.json` — override binaries, add
+aliases, pin team-wide `extraArgs`, or declare a fully custom agent with a
+[launch mode](#). Run `kandown agents` to see what's installed.
 
 Or point kandown at your own tooling with `KANDOWN_AGENT_HOOK_URL` and let any
 IDE, bot or webhook receive tasks.
@@ -175,7 +183,9 @@ IDE, bot or webhook receive tasks.
 | `kandown show <id>` | Print a task file's raw content |
 | `kandown create "title"` | Create — `[-p priority] [-a assignee] [-t tag …] [--to status] [--id custom-id] [--json]` |
 | `kandown move <id> <status>` | Move to a column, or to `archived` |
-| `kandown assign <id> [name]` | Assign, or unassign by omitting the name |
+| `kandown assign <id> [name]` | Assign, or unassign by omitting the name. Use an agent id/alias (`claude`, `codex`, …) and pressing `a` in the TUI launches it directly |
+| `kandown run [id]` | **Cascade** — run ready tasks via their assigned agents in dependency order, handing each completion report to the next. Flags: `--dry-run`, `--agent <id>`, `--resume`, `--same-session` |
+| `kandown agents` | List detected AI agents + the `.kandown/agents.json` catalog. `kandown agents init` writes a default one |
 | `kandown commit [-m msg]` | `git add tasks/ .kandown/kandown.json` + commit |
 | `kandown export` / `import` | JSON / CSV out, Trello JSON or Markdown in |
 
@@ -339,7 +349,7 @@ localhost ports. Task ids are validated before they touch the filesystem.
 
 ## Contributing
 
-Contributions are welcome.
+Contributions are welcome. Join our community on [Reddit (r/kandown)](https://www.reddit.com/r/kandown/) to share ideas, workflows, and feedback!
 
 ```bash
 git clone https://github.com/vava-nessa/kandown.git

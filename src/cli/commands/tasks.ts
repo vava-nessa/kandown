@@ -14,6 +14,7 @@ import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { archiveTaskInBoard, getTasksDir, readBoard, readTask, moveTaskToColumn, listTaskIds } from '../lib/board-reader';
 import { loadConfig } from '../lib/config';
+import { resolveAgentEntry } from '../lib/agents';
 import { atomicWriteFileSync } from '../lib/atomic-write';
 import { parseTaskFile } from '../../lib/parser';
 import { serializeTaskFile } from '../../lib/serializer';
@@ -206,10 +207,16 @@ export function cmdAssign(rawArgs: string[]) {
     process.exit(1);
   }
   const frontmatter: TaskFrontmatter = { ...task.frontmatter, id };
-  if (assignee) frontmatter.assignee = assignee;
-  else delete frontmatter.assignee;
+  if (assignee) {
+    // 📖 Canonicalise agent aliases so `assign t1 claude-code` stores `claude`.
+    // Humans and unknown values pass through unchanged.
+    const resolved = resolveAgentEntry(assignee, kandownDir);
+    frontmatter.assignee = resolved ? resolved.id : assignee;
+  } else {
+    delete frontmatter.assignee;
+  }
   atomicWriteFileSync(task.path, serializeTaskFile(stampUpdated(frontmatter), task.body));
-  success(assignee ? `Assigned ${id} → ${assignee}` : `Unassigned ${id}`);
+  success(assignee ? `Assigned ${id} → ${frontmatter.assignee ?? assignee}` : `Unassigned ${id}`);
 }
 
 export function cmdCommit(rawArgs: string[]) {

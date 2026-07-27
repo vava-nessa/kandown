@@ -110,6 +110,9 @@ export function ListView() {
   const bulkDeleteTasks = useStore(s => s.bulkDeleteTasks);
   const addColumn = useStore(s => s.addColumn);
   const density = useStore(s => s.density);
+  const selectedTaskIds = useStore(s => s.selectedTaskIds);
+  const setTaskSelection = useStore(s => s.setTaskSelection);
+  const toggleTaskSelection = useStore(s => s.toggleTaskSelection);
 
   const doneTags = useMemo(() => {
     const tagToTasks = new Map<string, BoardTask[]>();
@@ -156,6 +159,35 @@ export function ListView() {
   const totalVisibleRows = useMemo(() => {
     return filteredColumns.reduce((sum, { filtered }) => sum + filtered.length, 0);
   }, [filteredColumns]);
+
+  // 📖 Flat, in-display-order list of every visible task id. Used by
+  // shift-range selection: shift-clicking a row extends the selection to
+  // cover every row between the clicked one and the last selected row.
+  const flatVisibleIds = useMemo(
+    () => filteredColumns.flatMap(({ filtered }) => filtered.map(t => t.id)),
+    [filteredColumns],
+  );
+
+  const handleShiftSelect = (taskId: string) => {
+    const ids = flatVisibleIds;
+    const selected = selectedTaskIds ?? [];
+    // 📖 Anchor = the most recently selected row that is still visible. If the
+    // user shift-clicks with nothing selected yet, behave like a plain toggle.
+    const lastSelected = [...selected].reverse().find(x => ids.includes(x));
+    if (!lastSelected) {
+      toggleTaskSelection(taskId);
+      return;
+    }
+    const a = ids.indexOf(lastSelected);
+    const b = ids.indexOf(taskId);
+    if (a === -1 || b === -1) {
+      toggleTaskSelection(taskId);
+      return;
+    }
+    const [lo, hi] = a < b ? [a, b] : [b, a];
+    const range = ids.slice(lo, hi + 1);
+    setTaskSelection(Array.from(new Set([...selected, ...range])));
+  };
 
   const dueSummary = useMemo(() => {
     const now = new Date().toISOString().slice(0, 10);
@@ -439,6 +471,7 @@ export function ListView() {
                                 density={density}
                                 columnName={column.name}
                                 doneTags={doneTags}
+                                onShiftSelect={handleShiftSelect}
                                 onDragStart={(e) => handleTaskDragStart(e, item.task.id, column.name)}
                                 onDragEnd={handleTaskDragEnd}
                               />

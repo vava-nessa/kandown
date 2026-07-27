@@ -72,7 +72,7 @@ export function parseArgs(args: string[]) {
 export const COMMANDS = new Set([
   'init', 'update', 'upgrade', 'doctor', 'work', 'list', 'ls', 'show', 'move',
   'help', 'daemon', 'board', 'settings', 'tasks', 'create', 'new', 'assign',
-  'commit', 'projects', 'export', 'import', 'mcp', 'version',
+  'commit', 'projects', 'export', 'import', 'mcp', 'version', 'run', 'agents',
 ]);
 
 export function splitCommand(args: string[]): { cmd: string | undefined; rest: string[] } {
@@ -166,7 +166,9 @@ ${c.bold}COMMANDS:${c.reset}
   show <id>           Display task details
   create "<title>"    Create new task (alias: new)
   move <id> <status>  Move task column
-  assign <id> <user>  Assign task
+  assign <id> <agent> Assign task to an agent (e.g. claude)
+  run [id]            Cascade: run ready tasks via assigned agents (DAG chain)
+  agents              List detected AI agents + catalog (.kandown/agents.json)
   commit              Commit task changes to git
   update              Update kandown CLI to latest version (alias: upgrade)
   doctor              Run environment & board diagnostics

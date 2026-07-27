@@ -240,5 +240,30 @@
     "el": "Görög",
     "he": "Héber",
     "uk": "Ukrán"
+  },
+  "bulk": {
+    "priority": "Prioritás",
+    "assignee": "Hozzárendelve",
+    "dueDate": "Határidő",
+    "tags": "Címkék",
+    "unassign": "Hozzárendelés törlése",
+    "move": "Áthelyezés",
+    "archive": "Archiválás",
+    "delete": "Törlés",
+    "confirmDelete": "Törlés megerősítése",
+    "selectAll": "Mind kijelölése",
+    "clear": "Kijelölés törlése",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

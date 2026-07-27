@@ -240,5 +240,30 @@
     "el": "Griechisch",
     "he": "Hebräisch",
     "uk": "Ukrainisch"
+  },
+  "bulk": {
+    "priority": "Priorität",
+    "assignee": "Zuständig",
+    "assignNew": "@{{name}} zuweisen",
+    "dueDate": "Fällig",
+    "clearDue": "Fälligkeit löschen",
+    "tags": "Schlagwörter",
+    "add": "Hinzufügen",
+    "remove": "Entfernen",
+    "tagPlaceholder": "Schlagwort",
+    "addTag": "#{{name}} hinzufügen",
+    "move": "Verschieben",
+    "unassign": "Zuweisung entfernen",
+    "archive": "Archivieren",
+    "delete": "Löschen",
+    "confirmDelete": "Löschen bestätigen",
+    "selectAll": "Alle auswählen",
+    "selectAllHint": "Alle auswählen (sichtbare)",
+    "clear": "Auswahl aufheben",
+    "selectedOne": "selected",
+    "selectedMany": "selected"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — nicht verkettbar aus kandown (App/Desktop, nur Label)"
   }
 }

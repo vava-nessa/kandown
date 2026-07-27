@@ -240,5 +240,30 @@
     "ko": "Korea",
     "zh": "Kiina",
     "ar": "Arabia"
+  },
+  "bulk": {
+    "priority": "Prioriteetti",
+    "assignee": "Vastuuhenkilö",
+    "dueDate": "Eräpäivä",
+    "tags": "Tagit",
+    "unassign": "Poista vastuuhenkilö",
+    "move": "Siirrä",
+    "archive": "Arkistoi",
+    "delete": "Poista",
+    "confirmDelete": "Vahvista poisto",
+    "selectAll": "Valitse kaikki",
+    "clear": "Tyhjennä valinta",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

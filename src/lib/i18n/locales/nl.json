@@ -225,5 +225,30 @@
     "pl": "Pools",
     "uk": "Oekraïens",
     "ro": "Roemeens"
+  },
+  "bulk": {
+    "selectedOne": "geselecteerd",
+    "selectedMany": "geselecteerd",
+    "priority": "Prioriteit",
+    "assignee": "Toegewezen aan",
+    "assignNew": "Toewijzen aan @{{name}}",
+    "dueDate": "Vervaldatum",
+    "clearDue": "Vervaldatum wissen",
+    "tags": "Tags",
+    "add": "Toevoegen",
+    "remove": "Verwijderen",
+    "tagPlaceholder": "tag naam",
+    "addTag": "#{{name}} toevoegen",
+    "move": "Verplaatsen",
+    "unassign": "Toewijzing opheffen",
+    "archive": "Archiveren",
+    "delete": "Verwijderen",
+    "confirmDelete": "Verwijderen bevestigen",
+    "selectAll": "Alles selecteren",
+    "selectAllHint": "Alles selecteren (zichtbare)",
+    "clear": "Selectie wissen"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — niet koppelbaar vanuit kandown (app/desktop, alleen label)"
   }
 }

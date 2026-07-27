@@ -16,6 +16,7 @@ export const site = {
   url: 'https://kandown.dev',
   repo: 'https://github.com/vava-nessa/kandown',
   npm: 'https://www.npmjs.com/package/kandown',
+  reddit: 'https://www.reddit.com/r/kandown/',
   issues: 'https://github.com/vava-nessa/kandown/issues',
   author: 'Vanessa Depraute',
   authorUrl: 'https://vanessadepraute.dev',

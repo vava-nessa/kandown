@@ -207,5 +207,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "설정이 외부에서 업데이트되었습니다 — 다시 로드됨"
+  },
+  "bulk": {
+    "priority": "우선순위",
+    "assignee": "담당자",
+    "assignNew": "@{{name}} 에게 할당",
+    "dueDate": "마감일",
+    "clearDue": "마감일 지우기",
+    "tags": "태그",
+    "add": "추가",
+    "remove": "제거",
+    "tagPlaceholder": "태그 이름",
+    "addTag": "#{{name}} 추가",
+    "move": "이동",
+    "unassign": "할당 해제",
+    "archive": "보관",
+    "delete": "삭제",
+    "confirmDelete": "삭제 확인",
+    "selectAll": "모두 선택",
+    "selectAllHint": "모두 선택 (보이는 항목)",
+    "clear": "선택 해제",
+    "selectedOne": "selected",
+    "selectedMany": "selected"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — kandown 에서 호출할 수 없음 (앱 / 데스크톱, 라벨 전용)"
   }
 }

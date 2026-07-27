@@ -240,5 +240,30 @@
     "el": "Ελληνικά",
     "he": "Εβραϊκά",
     "uk": "Ουκρανικά"
+  },
+  "bulk": {
+    "priority": "Προτεραιότητα",
+    "assignee": "Ανατεθειμένο",
+    "dueDate": "Προθεσμία",
+    "tags": "Ετικέτες",
+    "unassign": "Αφαίρεση ανάθεσης",
+    "move": "Μετακίνηση",
+    "archive": "Αρχειοθέτηση",
+    "delete": "Διαγραφή",
+    "confirmDelete": "Επιβεβαίωση διαγραφής",
+    "selectAll": "Επιλογή όλων",
+    "clear": "Καθαρισμός επιλογής",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

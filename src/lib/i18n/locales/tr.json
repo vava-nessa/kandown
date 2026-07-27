@@ -207,5 +207,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Ayarlar dışarıdan güncellendi — yeniden yüklendi"
+  },
+  "bulk": {
+    "priority": "Öncelik",
+    "assignee": "Atanan",
+    "dueDate": "Bitiş tarihi",
+    "tags": "Etiketler",
+    "unassign": "Atamayı kaldır",
+    "move": "Taşı",
+    "archive": "Arşivle",
+    "delete": "Sil",
+    "confirmDelete": "Silmeyi onayla",
+    "selectAll": "Tümünü seç",
+    "clear": "Seçimi temizle",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

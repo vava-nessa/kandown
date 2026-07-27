@@ -54,7 +54,7 @@
  * @see src/lib/parser.ts
  */
 
-import type { KandownConfig, TaskFrontmatter, ParsedTask } from './types';
+import type { KandownConfig, TaskFrontmatter, ParsedTask, DetectedAgent } from './types';
 import { DEFAULT_CONFIG, DEFAULT_WORK_OUTPUT } from './types';
 import { serializeTaskFile } from './serializer';
 import { stampUpdated } from './task-meta';
@@ -257,6 +257,24 @@ async function serverReadProjectInstructions(): Promise<string> {
 
 async function serverWriteProjectInstructions(content: string): Promise<void> {
   await apiFetch('/api/instructions', { method: 'PUT', body: content, headers: { 'Content-Type': 'text/plain' } });
+}
+
+/**
+ * 📖 Fetches the detected agent catalog from the backend (`/api/agents`). The
+ * browser can't run `which`, so detection always happens server-side (daemon
+ * or Vite dev middleware). Returns `null` when not in server mode or the
+ * route is unavailable, so callers can gracefully fall back to a plain
+ * free-text assignee field. */
+export async function fetchDetectedAgents(): Promise<DetectedAgent[] | null> {
+  if (!isServerMode()) return null;
+  try {
+    const res = await apiFetch('/api/agents');
+    if (!res.ok) return null;
+    const data = await res.json() as { agents?: DetectedAgent[] };
+    return data.agents ?? null;
+  } catch {
+    return null;
+  }
 }
 
 /**

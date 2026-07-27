@@ -251,5 +251,30 @@
     "ko": "韩语",
     "fa": "波斯语",
     "pcm": "尼日利亚皮钦语"
+  },
+  "bulk": {
+    "priority": "优先级",
+    "assignee": "负责人",
+    "assignNew": "指派给 @{{name}}",
+    "dueDate": "截止日期",
+    "clearDue": "清除截止日期",
+    "tags": "标签",
+    "add": "添加",
+    "remove": "移除",
+    "tagPlaceholder": "标签名称",
+    "addTag": "添加 #{{name}}",
+    "move": "移动",
+    "unassign": "取消分配",
+    "archive": "归档",
+    "delete": "删除",
+    "confirmDelete": "确认删除",
+    "selectAll": "全选",
+    "selectAllHint": "全选 (可见的)",
+    "clear": "清除选择",
+    "selectedOne": "selected",
+    "selectedMany": "selected"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — 无法从 kandown 调用（应用 / 桌面，仅作显示标签）"
   }
 }

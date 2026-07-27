@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "preferred": "claude",
+  "cascade": {
+    "unassignedBehavior": "skip",
+    "sameSessionChain": false
+  },
+  "agents": [
+    {
+      "id": "claude",
+      "name": "Claude Code",
+      "bin": "claude",
+      "interactive": true,
+      "description": "Anthropic Claude (interactive session)",
+      "aliases": ["claude", "claudecode", "anthropic", "claudeai"]
+    },
+    {
+      "id": "codex",
+      "name": "OpenAI Codex",
+      "bin": "codex",
+      "interactive": true,
+      "description": "OpenAI Codex CLI",
+      "aliases": ["codex", "openaicodex"]
+    },
+    {
+      "id": "gemini",
+      "name": "Gemini CLI",
+      "bin": "gemini",
+      "interactive": true,
+      "description": "Google Gemini CLI",
+      "aliases": ["gemini", "geminicli", "googlegemini"]
+    },
+    {
+      "id": "goose",
+      "name": "Goose",
+      "bin": "goose",
+      "interactive": false,
+      "description": "Block open-source AI agent",
+      "aliases": ["goose", "blockgoose"]
+    },
+    {
+      "id": "aider",
+      "name": "Aider",
+      "bin": "aider",
+      "interactive": true,
+      "description": "Git-aware AI pair programmer",
+      "aliases": ["aider"]
+    },
+    {
+      "id": "opencode",
+      "name": "OpenCode",
+      "bin": "opencode",
+      "interactive": true,
+      "description": "SST AI coding TUI",
+      "aliases": ["opencode", "sstopencode"]
+    },
+    {
+      "id": "cursor",
+      "name": "Cursor",
+      "bin": "cursor",
+      "interactive": true,
+      "description": "Cursor IDE (opens project; paste prompt)",
+      "aliases": ["cursor"]
+    },
+    {
+      "id": "pi",
+      "name": "Pi",
+      "bin": "pi",
+      "interactive": true,
+      "description": "Earendil Works pi coding agent",
+      "aliases": ["pi", "piearendil", "picodingagent"]
+    }
+  ]
+}

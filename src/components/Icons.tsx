@@ -178,4 +178,42 @@ export const Icon = {
       <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M10 14h4" />
     </svg>
   ),
+  Square: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <rect x="3" y="3" width="18" height="18" rx="4" />
+    </svg>
+  ),
+  Flag: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+      <line x1="4" y1="22" x2="4" y2="15" />
+    </svg>
+  ),
+  User: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  ),
+  UserMinus: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <line x1="22" y1="11" x2="16" y2="11" />
+    </svg>
+  ),
+  Calendar: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  ),
+  Tag: ({ size = 14, ...p }: IconProps) => (
+    <svg {...defaults} width={size} height={size} {...p}>
+      <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+      <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
+    </svg>
+  ),
 };

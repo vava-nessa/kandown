@@ -240,5 +240,30 @@
     "el": "Greek",
     "he": "Hebrew",
     "uk": "Ukrainian"
+  },
+  "bulk": {
+    "priority": "प्राथमिकता",
+    "assignee": "असाइनी",
+    "dueDate": "नियत तिथि",
+    "tags": "टैग",
+    "unassign": "असाइन हटाएँ",
+    "move": "स्थानांतरित",
+    "archive": "पुरालेख",
+    "delete": "मिटाएँ",
+    "confirmDelete": "मिटाने की पुष्टि",
+    "selectAll": "सब चुनें",
+    "clear": "चयन हटाएँ",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

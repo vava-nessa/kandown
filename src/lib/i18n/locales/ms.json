@@ -262,5 +262,30 @@
     "si": "Sinhala",
     "my": "Burmese",
     "km": "Khmer"
+  },
+  "bulk": {
+    "priority": "Keutamaan",
+    "assignee": "Ditugaskan kepada",
+    "dueDate": "Tarikh akhir",
+    "tags": "Tag",
+    "unassign": "Buang tugasan",
+    "move": "Alihkan",
+    "archive": "Arkib",
+    "delete": "Padam",
+    "confirmDelete": "Sah padam",
+    "selectAll": "Pilih semua",
+    "clear": "Kosongkan pilihan",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

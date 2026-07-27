@@ -77,7 +77,7 @@ import {
 import { loadConfig, saveConfig, setConfigValue } from '../lib/config.js';
 import { getDaemonStatus, startProjectDaemon, stopProjectDaemon, type DaemonStatus } from '../lib/daemon.js';
 import { createWatcher } from '../lib/file-watcher.js';
-import { detectInstalledAgents, type AgentDef } from '../lib/agents.js';
+import { detectInstalledAgents, resolveAgentEntry, isAgentInstalled, warmupDetection, loadCatalog, type AgentDef } from '../lib/agents.js';
 import { launchAgent, isInTmux } from '../lib/launcher.js';
 import type { ParsedBoard, BoardTask, ParsedTask } from '../../lib/types.js';
 import { AgentPicker } from './agent-picker.js';
@@ -401,7 +401,10 @@ export function Board({ kandownDir, version }: BoardProps) {
 
   useEffect(() => {
     loadBoardInto();
-    setInstalledAgents(detectInstalledAgents());
+    // 📖 Warm the install cache for the whole merged catalog up front so the
+    // first agent-picker open (and any assignee auto-launch) is instant.
+    warmupDetection(loadCatalog(kandownDir));
+    setInstalledAgents(detectInstalledAgents(kandownDir));
   }, [kandownDir, loadBoardInto]);
 
   useEffect(() => {
@@ -656,10 +659,10 @@ export function Board({ kandownDir, version }: BoardProps) {
     }
   }, [kandownDir, showStatus]);
 
-  const handleAgentSelect = useCallback((agentId: string) => {
-    const task = getFocusedTask();
-    const taskId = mode === 'detail' ? detailTaskId : task?.id;
-    if (!taskId) return;
+  // 📖 Core launch: move to browse, status, then spawn the agent. Shared by
+  // the picker confirmation and the assignee auto-launch path so both behave
+  // identically (rollback, tmux split, status messages).
+  const launchTaskWithAgent = useCallback((taskId: string, agentId: string) => {
     setMode('browse');
     showStatus(`Launching ${agentId} for ${taskId}…`, 5000);
     setTimeout(() => {
@@ -671,7 +674,36 @@ export function Board({ kandownDir, version }: BoardProps) {
         showStatus(`Error: ${err instanceof Error ? err.message : String(err)}`, 4000);
       }
     }, 50);
-  }, [mode, detailTaskId, getFocusedTask, kandownDir, exit, reloadBoard, showStatus]);
+  }, [kandownDir, exit, reloadBoard, showStatus, setMode]);
+
+  const handleAgentSelect = useCallback((agentId: string) => {
+    const task = getFocusedTask();
+    const taskId = mode === 'detail' ? detailTaskId : task?.id;
+    if (!taskId) return;
+    launchTaskWithAgent(taskId, agentId);
+  }, [mode, detailTaskId, getFocusedTask, launchTaskWithAgent]);
+
+  // 📖 `a` key entry point. If the task's `assignee:` resolves to an installed
+  // agent, skip the picker and launch it directly (subtask 3 — assignee field
+  // is now an agent selector). Otherwise fall back to the picker as before.
+  const requestAgentLaunch = useCallback((taskId: string) => {
+    if (installedAgents.length === 0) {
+      showStatus('No AI agents found in PATH', 3000);
+      return;
+    }
+    try {
+      const t = readTask(kandownDir, taskId);
+      const assignee = typeof t.frontmatter.assignee === 'string' ? t.frontmatter.assignee : null;
+      const resolved = assignee ? resolveAgentEntry(assignee, kandownDir) : undefined;
+      if (resolved && isAgentInstalled(resolved.bin)) {
+        launchTaskWithAgent(taskId, resolved.id);
+        return;
+      }
+    } catch {
+      // unreadable task — fall through to the picker
+    }
+    setMode('agent-picker');
+  }, [installedAgents, kandownDir, launchTaskWithAgent, showStatus, setMode]);
 
   // ─── Mouse mode ───────────────────────────────────────────────────────────
 
@@ -1170,9 +1202,8 @@ export function Board({ kandownDir, version }: BoardProps) {
           return;
         }
         if (input === 'a') {
-          if (installedAgents.length === 0) { showStatus('No AI agents found in PATH', 3000); return; }
           if (!selectedRow) return;
-          setMode('agent-picker');
+          requestAgentLaunch(selectedRow.task.id);
           return;
         }
         if (input === 'g') {
@@ -1223,13 +1254,9 @@ export function Board({ kandownDir, version }: BoardProps) {
       }
 
       if (input === 'a') {
-        if (installedAgents.length === 0) {
-          showStatus('No AI agents found in PATH', 3000);
-          return;
-        }
         const task = getFocusedTask();
         if (!task) return;
-        setMode('agent-picker');
+        requestAgentLaunch(task.id);
         return;
       }
 
@@ -1346,11 +1373,8 @@ export function Board({ kandownDir, version }: BoardProps) {
       }
       if (input === 'k' || key.upArrow) { setDetailScroll(s => Math.max(0, s - 1)); return; }
       if (input === 'a') {
-        if (installedAgents.length === 0) {
-          showStatus('No AI agents found in PATH', 3000);
-          return;
-        }
-        setMode('agent-picker');
+        if (!detailTaskId) return;
+        requestAgentLaunch(detailTaskId);
         return;
       }
     }

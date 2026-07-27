@@ -105,6 +105,24 @@ function kandownDevPlugin() {
         const resource = parts[0];
         const id = parts[1];
 
+        // 📖 Detected agent catalog for the web UI in DEV mode. The Vite dev
+        // server is Node, so it can run `which` — detection is impossible in a
+        // pure browser, but here we ARE the backend. Loaded through Vite's
+        // SSR module loader so the shared CLI detection logic (and the project
+        // .kandown/agents.json overrides) is reused without duplication.
+        if (resource === 'agents' && req.method === 'GET') {
+          try {
+            const mod = await server.ssrLoadModule('/src/cli/lib/agents.ts');
+            const payload = mod.detectCatalogJSON(kandownPath);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(payload));
+          } catch (e) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: `Failed to detect agents: ${e.message}` }));
+          }
+          return;
+        }
+
         if (resource === 'config') {
           if (req.method === 'GET') {
             const configPath = join(kandownPath, 'kandown.json');

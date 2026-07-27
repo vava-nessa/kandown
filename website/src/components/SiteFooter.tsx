@@ -58,6 +58,7 @@ export function SiteFooter() {
         <FooterColumn title="Project">
           <FooterExternal href={site.repo}>GitHub</FooterExternal>
           <FooterExternal href={site.npm}>npm</FooterExternal>
+          <FooterExternal href={site.reddit}>Reddit (r/kandown)</FooterExternal>
           <FooterExternal href={site.issues}>Issues</FooterExternal>
           <FooterLink slug="project/contributing">Contributing</FooterLink>
           {/* 📖 Same shape as the docs links above, but pointing at the

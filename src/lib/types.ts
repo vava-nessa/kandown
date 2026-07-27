@@ -27,6 +27,23 @@ export interface TaskProgress {
   total: number;
 }
 
+/** 📖 One detected AI agent, as returned by the `/api/agents` backend route.
+ *  The browser cannot run `which` itself, so the daemon (or the Vite dev
+ *  middleware, both Node) performs detection and hands this JSON to the web
+ *  UI. Mirrors `AgentDetectionJSON` in src/cli/lib/agents.ts — keep them in
+ *  sync. */
+export interface DetectedAgent {
+  id: string;
+  name: string;
+  bin: string;
+  /** Whether the binary was found in $PATH by the backend's `which` check. */
+  installed: boolean;
+  interactive: boolean;
+  description: string;
+  aliases: string[];
+  preferred?: boolean;
+}
+
 export interface BoardTask {
   id: string;
   title: string;
@@ -102,7 +119,6 @@ export interface ParsedTask {
 }
 
 export type SearchMatchSection = 'title' | 'subtasks' | 'context' | 'notes' | 'whatWasDone' | 'tags' | 'assignee' | 'priority';
-
 export interface SearchMatch {
   section: SearchMatchSection;
   snippet: string;

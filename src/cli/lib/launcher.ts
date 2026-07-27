@@ -1,24 +1,38 @@
 /**
  * @file CLI agent launcher
- * @description Orchestrates the full task launch flow: read context, build prompt,
- * auto-move task to In Progress, and spawn the chosen AI agent — either in a new
- * tmux pane (if inside tmux) or by replacing the current process (exec).
+ * @description Orchestrates the full task launch flow: read context, build
+ * prompt, auto-move task to In Progress, and spawn the chosen AI agent. Two
+ * entry points share the same preparation core:
  *
- * 📖 Launch strategy (in priority order):
+ *   - `launchAgent`     — interactive TUI launch. Either splits a tmux pane
+ *     (TUI stays visible) or exec-replaces the current process (terminal
+ *     becomes the agent's).
+ *   - `runAgentSync`    — blocking cascade launch. Spawns the agent with
+ *     inherited stdio and resolves a promise on exit, so the DAG orchestrator
+ *     can wait for completion, read back the task status, and chain the next
+ *     task with a report handoff.
+ *
+ * 📖 Launch strategy for `launchAgent` (in priority order):
  *   1. tmux split-pane: if `$TMUX` is set, the kandown TUI stays visible in the
  *      left pane and the agent opens in a new right pane (50% width).
- *   2. Direct exec: exit the TUI (Ink's exit() + process exit), then exec the agent
- *      as a child process with inherited stdio. The terminal becomes the agent's.
+ *   2. Direct exec: exit the TUI (Ink's exit() + process exit), then exec the
+ *      agent as a child process with inherited stdio.
  *
- * The caller (board.tsx) is responsible for calling Ink's `exit()` before calling
- * `launchAgent` when NOT in tmux, so the alternate screen buffer is restored first.
+ * The caller (board.tsx) is responsible for calling Ink's `exit()` before
+ * calling `launchAgent` when NOT in tmux, so the alternate screen buffer is
+ * restored first.
+ *
+ * 📖 Failure handling: when the agent fails to spawn AFTER the task was moved
+ * to "In Progress", the task is rolled back to its original column (t112) so
+ * the board never lies about a running agent.
  *
  * @functions
  *  → isInTmux       — detects if we're running inside a tmux session
- *  → launchAgent    — full launch orchestration
+ *  → launchAgent    — interactive TUI launch (tmux split or exec-replace)
+ *  → runAgentSync   — blocking launch for the cascade orchestrator
  *  → buildShellCmd  — constructs a safe shell-escaped command string for tmux
  *
- * @exports isInTmux, launchAgent, LaunchAgentOpts
+ * @exports isInTmux, launchAgent, runAgentSync, LaunchAgentOpts
  */
 
 import { execSync, spawn } from 'node:child_process';
@@ -26,9 +40,9 @@ import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { readTask, readAgentDoc, moveTaskToColumn } from './board-reader.js';
-import { getAgentById, buildPrompt } from './agents.js';
+import { getAgentById, buildPrompt, buildAgentCommand, type LaunchOpts } from './agents.js';
 
-// 📖 Options for the launchAgent function
+// 📖 Options shared by both entry points. The cascade adds handoff/queue.
 export interface LaunchAgentOpts {
   /** Task ID, e.g. 't-019' */
   taskId: string;
@@ -37,10 +51,29 @@ export interface LaunchAgentOpts {
   /** Absolute path to the .kandown/ directory */
   kandownDir: string;
   /**
-   * Called just before the process is replaced (non-tmux path).
+   * Called just before the process is replaced (non-tmux interactive path).
    * Use this to call Ink's exit() and restore the terminal.
    */
   onBeforeExec?: () => void;
+  /** 📖 Cascade handoff: completion reports from upstream tasks, prepended to
+   *  the prompt so this agent inherits prior context. */
+  handoff?: { taskId: string; title: string; report: string }[];
+  /** 📖 Same-session cascade: the ordered queue of tasks this one agent must
+   *  work through. When set, the prompt becomes a self-driving loop. */
+  queue?: { id: string; title: string }[];
+}
+
+/** 📖 Prepared launch artefacts, produced once and consumed by whichever spawn
+ *  strategy the caller picked. Centralising it keeps the two entry points from
+ *  drifting apart on prompt/command construction. */
+interface PreparedLaunch {
+  agentName: string;
+  binary: string;
+  args: string[];
+  contextFile: string;
+  originalStatus: string;
+  /** Whether the task was successfully moved to "In Progress". */
+  taskMoved: boolean;
 }
 
 /**
@@ -52,30 +85,20 @@ export function isInTmux(): boolean {
 }
 
 /**
- * 📖 Main entry point. Orchestrates the full launch:
- *   1. Reads the task file and agent doc
- *   2. Builds the prompt (system + task instruction)
- *   3. Auto-moves the task to "In Progress" in its task frontmatter
- *   4. Writes a context file to /tmp for reference
- *   5. Spawns the agent in tmux split or direct exec
- *
- * Each step is guarded so a failure produces a clear error instead of crashing
- * the TUI. When the agent fails to spawn AFTER the task was moved to In
- * Progress, the task is rolled back to its original column (t112).
- *
- * @throws if the agent ID is not recognized or a critical step fails
+ * 📖 Shared preparation: resolve the agent, read the task + agent doc, build the
+ * (handoff/queue-aware) prompt, move the task to "In Progress", write the
+ * context temp file, and assemble the final command. Throws on unknown agent
+ * or read failure; rolls back status if the move succeeded but a later step
+ * throws. The caller owns the spawn strategy.
  */
-export function launchAgent(opts: LaunchAgentOpts): void {
-  const { taskId, agentId, kandownDir, onBeforeExec } = opts;
+function prepareLaunch(opts: LaunchAgentOpts): PreparedLaunch {
+  const { taskId, agentId, kandownDir, handoff, queue } = opts;
 
-  // 📖 Step 1: Resolve agent definition
-  const agentDef = getAgentById(agentId);
+  const agentDef = getAgentById(agentId, kandownDir);
   if (!agentDef) {
     throw new Error(`Unknown agent: ${agentId}`);
   }
 
-  // 📖 Step 2: Read task file. readTask returns a minimal placeholder when the
-  // file is missing, so this only throws on a genuine fs error.
   let task;
   try {
     task = readTask(kandownDir, taskId);
@@ -83,11 +106,8 @@ export function launchAgent(opts: LaunchAgentOpts): void {
     throw new Error(`Failed to read task ${taskId}: ${(e as Error).message}`);
   }
   const originalStatus = task.frontmatter.status || 'Backlog';
-
-  // 📖 Step 3: Read agent docs (non-critical — agent can launch without them).
   const agentDoc = readAgentDoc(kandownDir);
 
-  // 📖 Step 4: Build the prompt strings
   const taskFileContent = [
     `---`,
     `id: ${task.frontmatter.id}`,
@@ -98,18 +118,14 @@ export function launchAgent(opts: LaunchAgentOpts): void {
     task.body.trim(),
   ].join('\n');
 
-  const { systemPrompt, taskPrompt } = buildPrompt(agentDoc, taskFileContent, taskId, kandownDir);
+  const { systemPrompt, taskPrompt } = buildPrompt(agentDoc, taskFileContent, taskId, kandownDir, handoff, queue);
 
-  // 📖 Step 5: Auto-move to In Progress before launching. Track success so we
-  // can roll back if the agent fails to spawn (t112).
   const taskMoved = moveTaskToColumn(kandownDir, taskId, 'In Progress');
   if (!taskMoved) {
     throw new Error(`Could not move task ${taskId} to In Progress — task file missing or unwritable.`);
   }
 
-  // 📖 Step 6: Write the full context to a temp file. Non-critical: the agent
-  // gets its prompt directly as a CLI arg, this file is only a safety net for
-  // very large prompts that hit the argv-length limit (t112).
+  // 📖 Safety net for very large prompts that hit the argv-length limit.
   const contextFile = join(tmpdir(), `kandown-${taskId}-context.md`);
   try {
     writeFileSync(contextFile, `${systemPrompt}\n\n---\n\n${taskPrompt}`, 'utf8');
@@ -117,23 +133,42 @@ export function launchAgent(opts: LaunchAgentOpts): void {
     console.warn(`[kandown] Failed to write context file (${(e as Error).message}); launching anyway.`);
   }
 
-  // 📖 Build the command array from the agent definition
-  const launchOpts = { systemPrompt, taskPrompt, kandownDir, taskId };
-  const [binary, ...args] = agentDef.buildCommand(launchOpts);
-
+  const launchOpts: LaunchOpts = { systemPrompt, taskPrompt, kandownDir, taskId };
+  const [binary, ...args] = buildAgentCommand(agentDef, launchOpts);
   if (!binary) {
     rollbackTaskStatus(kandownDir, taskId, originalStatus);
     throw new Error(`Agent ${agentId} returned an empty command`);
   }
 
+  return { agentName: agentDef.name, binary, args, contextFile, originalStatus, taskMoved };
+}
+
+/** 📖 Shared env extras forwarded to the agent process in every spawn path. */
+function launchEnv(contextFile: string, taskId: string, kandownDir: string): NodeJS.ProcessEnv {
+  return {
+    ...process.env,
+    KANDOWN_CONTEXT_FILE: contextFile,
+    KANDOWN_TASK_ID: taskId,
+    KANDOWN_DIR: kandownDir,
+  };
+}
+
+/**
+ * 📖 Interactive TUI launch. Orchestrates the full launch and then either opens
+ * a tmux split pane (TUI stays visible) or exec-replaces the current process.
+ *
+ * @throws if the agent ID is not recognized or a critical step fails
+ */
+export function launchAgent(opts: LaunchAgentOpts): void {
+  const { taskId, kandownDir, onBeforeExec } = opts;
+  const prepared = prepareLaunch(opts);
+  const { agentName, binary, args, contextFile, originalStatus } = prepared;
+
   if (isInTmux()) {
     // 📖 tmux path: open a new 50%-wide right pane, TUI stays in the left pane.
-    // We build a shell command string from the binary + args.
-    //
     // A new tmux pane inherits the tmux *server's* environment, NOT this
     // process's env overrides, so execSync's `env` option alone won't reach
-    // the agent. We prefix `env VAR=val ...` to forward KANDOWN_* vars into
-    // the pane, keeping parity with the direct-exec path below.
+    // the agent. We prefix `env VAR=val ...` to forward KANDOWN_* vars.
     const shellCmd = buildShellCmd(binary, args);
     const envPrefix = [
       `KANDOWN_CONTEXT_FILE=${shellescape(contextFile)}`,
@@ -145,9 +180,7 @@ export function launchAgent(opts: LaunchAgentOpts): void {
         stdio: 'inherit',
       });
     } catch (e) {
-      // tmux not installed, session gone, or split failed. Roll back the task
-      // status and surface a clear error instead of leaving the task in
-      // "In Progress" with no agent running (t112).
+      // tmux not installed, session gone, or split failed. Roll back + surface.
       rollbackTaskStatus(kandownDir, taskId, originalStatus);
       throw new Error(`Failed to open agent pane in tmux: ${(e as Error).message}. Is tmux installed and the session valid?`);
     }
@@ -156,39 +189,59 @@ export function launchAgent(opts: LaunchAgentOpts): void {
     // then spawn the agent with inherited stdio.
     try {
       onBeforeExec?.();
-      const child = spawn(binary, args, {
-        stdio: 'inherit',
-        env: {
-          ...process.env,
-          // 📖 Expose the context file path so agents that support env vars can use it
-          KANDOWN_CONTEXT_FILE: contextFile,
-          KANDOWN_TASK_ID: taskId,
-          KANDOWN_DIR: kandownDir,
-        },
-      });
+      const child = spawn(binary, args, { stdio: 'inherit', env: launchEnv(contextFile, taskId, kandownDir) });
 
       child.on('error', e => {
-        // Spawn failed (binary missing, etc.). Roll back + tell the user.
         rollbackTaskStatus(kandownDir, taskId, originalStatus);
-        console.error(`[kandown] Failed to launch ${agentDef.name}: ${e.message}`);
+        console.error(`[kandown] Failed to launch ${agentName}: ${e.message}`);
         process.exit(1);
       });
 
       child.on('exit', code => {
-        // 📖 Non-zero / null exit = agent crashed or was killed. We no longer
-        // call process.exit unconditionally on crash — instead let the TUI
-        // recover when possible. In direct-exec mode we typically want to
-        // return control to the shell, so exit with the agent's code only on
-        // clean exit; on crash, exit non-zero so scripts can detect it (t112).
+        // 📖 Clean exit (0) → return control to the shell. Null = killed by
+        // signal → don't override. Non-zero → exit non-zero so scripts detect
+        // it (t112). We never auto-rollback here: a non-zero exit may still
+        // mean the agent did real work and the user will review the task.
         if (code === 0) process.exit(0);
-        if (code === null) return; // process killed by signal — don't override
+        if (code === null) return;
         process.exit(code);
       });
     } catch (e) {
       rollbackTaskStatus(kandownDir, taskId, originalStatus);
-      throw new Error(`Failed to launch ${agentDef.name}: ${(e as Error).message}`);
+      throw new Error(`Failed to launch ${agentName}: ${(e as Error).message}`);
     }
   }
+}
+
+/**
+ * 📖 Blocking launch for the cascade orchestrator. Spawns the agent with
+ * inherited stdio (the terminal becomes the agent's for the duration), awaits
+ * its exit, and resolves with the exit code. No tmux split, no exec-replace —
+ * the caller (`kandown run`) stays alive to read the task status afterwards
+ * and decide whether to chain the next task.
+ *
+ * On spawn `error` (binary missing etc.) the promise rejects and the task is
+ * rolled back to its original status. A non-zero / null *exit* does NOT reject
+ * — the agent may have crashed after doing useful work, so the orchestrator
+ * re-reads the task and decides.
+ */
+export function runAgentSync(opts: LaunchAgentOpts): Promise<{ exitCode: number }> {
+  const { taskId, kandownDir } = opts;
+  const prepared = prepareLaunch(opts);
+  const { binary, args, contextFile, originalStatus, agentName } = prepared;
+
+  return new Promise((resolve, reject) => {
+    const child = spawn(binary, args, { stdio: 'inherit', env: launchEnv(contextFile, taskId, kandownDir) });
+
+    child.on('error', e => {
+      rollbackTaskStatus(kandownDir, taskId, originalStatus);
+      reject(new Error(`Failed to launch ${agentName}: ${e.message}`));
+    });
+
+    child.on('exit', code => {
+      resolve({ exitCode: code ?? 0 });
+    });
+  });
 }
 
 /**

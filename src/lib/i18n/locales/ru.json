@@ -207,5 +207,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Настройки были обновлены извне — перезагружено"
+  },
+  "bulk": {
+    "priority": "Приоритет",
+    "assignee": "Исполнитель",
+    "assignNew": "Назначить @{{name}}",
+    "dueDate": "Срок",
+    "clearDue": "Убрать срок",
+    "tags": "Теги",
+    "add": "Добавить",
+    "remove": "Удалить",
+    "tagPlaceholder": "имя тега",
+    "addTag": "Добавить #{{name}}",
+    "move": "Переместить",
+    "unassign": "Снять назначение",
+    "archive": "Архив",
+    "delete": "Удалить",
+    "confirmDelete": "Подтвердить удаление",
+    "selectAll": "Выбрать все",
+    "selectAllHint": "Выбрать все (видимые)",
+    "clear": "Снять выбор",
+    "selectedOne": "selected",
+    "selectedMany": "selected"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — не запускается из kandown (приложение/десктоп, только подпись)"
   }
 }

@@ -240,5 +240,30 @@
     "ko": "Korejiešu",
     "zh": "Ķīniešu",
     "ar": "Arābu"
+  },
+  "bulk": {
+    "priority": "Prioritāte",
+    "assignee": "Piešķirts",
+    "dueDate": "Termiņš",
+    "tags": "Tags",
+    "unassign": "Noņemt piešķīrumu",
+    "move": "Pārvietot",
+    "archive": "Arhivēt",
+    "delete": "Dzēst",
+    "confirmDelete": "Apstiprināt dzēšanu",
+    "selectAll": "Atlasīt visus",
+    "clear": "Notīrīt atlasi",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

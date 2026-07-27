@@ -3,14 +3,14 @@
   "files": [
     {
       "path": "bin/kandown.js",
-      "lines": 2555,
+      "lines": 3484,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 59945,
+      "lines": 60155,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -109,7 +109,7 @@
     },
     {
       "path": "src/App.tsx",
-      "lines": 255,
+      "lines": 287,
       "title": "Web application shell",
       "summary": "Composes the Kandown web UI, hydrates recent projects from the URL, and owns global keyboard shortcuts for board navigation, creation, reload, search focus, and command palette access.",
       "functions": [
@@ -143,9 +143,22 @@
     },
     {
       "path": "src/cli/cli.ts",
-      "lines": 172,
+      "lines": 182,
       "title": "Main Kandown CLI Entrypoint",
       "summary": "Entrypoint for the kandown command line tool."
+    },
+    {
+      "path": "src/cli/commands/agents.ts",
+      "lines": 72,
+      "title": "`kandown agents` command handler — agent catalog & detection",
+      "summary": "Lists every agent in the merged catalog (built-ins + `.kandown/agents.json`) with a live `which`-installed checkmark, and can seed/refresh the committed catalog file.",
+      "functions": [
+        {
+          "name": "cmdAgents",
+          "summary": "the command handler invoked from cli.ts"
+        }
+      ],
+      "exports": "cmdAgents"
     },
     {
       "path": "src/cli/commands/daemon.ts",
@@ -162,8 +175,21 @@
       "exports": "cmdInit, cmdUpdate, cmdDoctor, cmdWork"
     },
     {
+      "path": "src/cli/commands/run.ts",
+      "lines": 115,
+      "title": "`kandown run` command handler — cascade launcher",
+      "summary": "Parses flags, prints the cascade plan (always, so the user sees what is about to happen), then drives the orchestrator in `src/cli/lib/cascade.ts` and prints a per-task summary.",
+      "functions": [
+        {
+          "name": "cmdRun",
+          "summary": "the command handler invoked from cli.ts"
+        }
+      ],
+      "exports": "cmdRun"
+    },
+    {
       "path": "src/cli/commands/tasks.ts",
-      "lines": 302,
+      "lines": 309,
       "title": "CLI commands — task CRUD & board data",
       "summary": "Handlers for `kandown list/show/create/move/assign/commit` plus `export`/`import`/`projects`.",
       "exports": "cmdList, cmdShow, cmdCreate, cmdMove, cmdAssign, cmdCommit, cmdExport, cmdProjects, cmdImport"
@@ -203,29 +229,70 @@
       "exports": "useMouseMode, parseMouseInput, MouseInputEvent"
     },
     {
-      "path": "src/cli/lib/agents.ts",
-      "lines": 217,
-      "title": "AI agent registry for the CLI task launcher",
-      "summary": "Defines all supported AI coding agents, detects which are installed on the current system, and builds the shell command to launch each one with a task context + system prompt.",
+      "path": "src/cli/lib/agents-config.ts",
+      "lines": 203,
+      "title": "Persistent, versioned agent catalog (`.kandown/agents.json`)",
+      "summary": "The committed team contract for which AI coding agents a project supports: their binary, aliases, launch mode, and per-agent extra CLI args, plus project-wide cascade preferences (preferred agent, unassigned-task behaviour, same-session…",
       "functions": [
         {
-          "name": "getAgentById",
-          "summary": "returns agent definition by ID"
+          "name": "loadAgentsConfig",
+          "summary": "read + default-merge `.kandown/agents.json`"
+        },
+        {
+          "name": "saveAgentsConfig",
+          "summary": "write it back (atomic)"
+        },
+        {
+          "name": "defaultAgentsConfig",
+          "summary": "the shipped snapshot (used by `kandown init`)"
+        },
+        {
+          "name": "resolveCascade",
+          "summary": "fill cascade defaults"
+        }
+      ],
+      "exports": "AgentCatalogEntry, CascadeConfig, AgentsConfig, AGENTS_CONFIG_VERSION, DEFAULT_CASCADE, loadAgentsConfig, saveAgentsConfig, defaultAgentsConfig, resolveCascade"
+    },
+    {
+      "path": "src/cli/lib/agents.ts",
+      "lines": 580,
+      "title": "AI agent registry for the CLI task launcher",
+      "summary": "Defines the built-in AI coding agents the CLI knows how to launch, merges them with the versioned team catalog (`.kandown/agents.json`), detects which binaries are installed on the current machine, and builds the shell command — plus…",
+      "functions": [
+        {
+          "name": "loadCatalog",
+          "summary": "built-ins overridden + extended by agents.json"
         },
         {
           "name": "detectInstalledAgents",
-          "summary": "returns only agents whose binary is in PATH"
+          "summary": "only catalog agents whose binary is in PATH"
+        },
+        {
+          "name": "warmupDetection",
+          "summary": "pre-seed the install cache (startup scan)"
+        },
+        {
+          "name": "getAgentById",
+          "summary": "find a catalog entry by id"
+        },
+        {
+          "name": "resolveAgentEntry",
+          "summary": "resolve a frontmatter `assignee:` to a catalog entry"
         },
         {
           "name": "isAgentInstalled",
-          "summary": "checks a single agent"
+          "summary": "single-binary PATH check (cached)"
+        },
+        {
+          "name": "buildAgentCommand",
+          "summary": "[binary, ...args] for any entry (built-in or custom)"
         },
         {
           "name": "buildPrompt",
-          "summary": "constructs the full prompt string to inject"
+          "summary": "system + task prompt, optionally with handoff/queue"
         }
       ],
-      "exports": "AgentDef, LaunchOpts, AGENTS, getAgentById, detectInstalledAgents, isAgentInstalled, buildPrompt"
+      "exports": "AgentDef, LaunchOpts, AGENTS, loadCatalog, detectInstalledAgents, warmupDetection, getAgentById, resolveAgentEntry, isAgentInstalled, buildAgentCommand, buildPrompt"
     },
     {
       "path": "src/cli/lib/atomic-write.ts",
@@ -288,8 +355,25 @@
       "summary": "Resolves and spawns the platform default browser for the given URL."
     },
     {
+      "path": "src/cli/lib/cascade.ts",
+      "lines": 463,
+      "title": "Cascade DAG orchestrator (`kandown run`)",
+      "summary": "The synchronous task-cascade engine.",
+      "functions": [
+        {
+          "name": "buildCascadePlan",
+          "summary": "compute ordered ready tasks + skipped/no-agent lists"
+        },
+        {
+          "name": "runCascade",
+          "summary": "execute the plan (multi-agent or same-session)"
+        }
+      ],
+      "exports": "CascadeTask, CascadePlan, CascadeRunResult, buildCascadePlan, runCascade"
+    },
+    {
       "path": "src/cli/lib/cli-shared.ts",
-      "lines": 328,
+      "lines": 330,
       "title": "CLI shared utilities",
       "summary": "Argument parsing, deterministic nearest-ancestor project resolution, colored console output, and task-file path helpers shared across every `cmdX` command handler and the TUI launcher in src/cli/cli.ts.",
       "functions": [
@@ -397,15 +481,15 @@
     },
     {
       "path": "src/cli/lib/init.ts",
-      "lines": 90,
+      "lines": 98,
       "title": "Kandown Project Initializer Module",
       "summary": "Creates .kandown/ configuration, copies singlefile HTML bundle, initializes project-root ./tasks/ with welcome templates, and creates AGENT_KANDOWN.md."
     },
     {
       "path": "src/cli/lib/launcher.ts",
-      "lines": 225,
+      "lines": 278,
       "title": "CLI agent launcher",
-      "summary": "Orchestrates the full task launch flow: read context, build prompt, auto-move task to In Progress, and spawn the chosen AI agent — either in a new tmux pane (if inside tmux) or by replacing the current process (exec).",
+      "summary": "Orchestrates the full task launch flow: read context, build prompt, auto-move task to In Progress, and spawn the chosen AI agent.",
       "functions": [
         {
           "name": "isInTmux",
@@ -413,14 +497,18 @@
         },
         {
           "name": "launchAgent",
-          "summary": "full launch orchestration"
+          "summary": "interactive TUI launch (tmux split or exec-replace)"
+        },
+        {
+          "name": "runAgentSync",
+          "summary": "blocking launch for the cascade orchestrator"
         },
         {
           "name": "buildShellCmd",
           "summary": "constructs a safe shell-escaped command string for tmux"
         }
       ],
-      "exports": "isInTmux, launchAgent, LaunchAgentOpts"
+      "exports": "isInTmux, launchAgent, runAgentSync, LaunchAgentOpts"
     },
     {
       "path": "src/cli/lib/mcp.ts",
@@ -437,7 +525,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 456,
+      "lines": 463,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
@@ -497,7 +585,7 @@
     },
     {
       "path": "src/cli/screens/board.tsx",
-      "lines": 1585,
+      "lines": 1609,
       "title": "TUI Board Screen",
       "summary": "The Kandown CLI's main screen.",
       "functions": [
@@ -685,6 +773,27 @@
       "exports": "run"
     },
     {
+      "path": "src/components/agentIcons.tsx",
+      "lines": 289,
+      "title": "AI agent brand icons (sourced from LobeHub) + assignee→avatar resolver",
+      "summary": "Local, self-contained brand glyphs for the coding agents kandown can assign tasks to, plus the resolver that turns a task's `assignee` string into either a branded agent logo or a human fallback avatar.",
+      "functions": [
+        {
+          "name": "AgentGlyph",
+          "summary": "branded logo for a known agent id"
+        },
+        {
+          "name": "AgentAvatar",
+          "summary": "branded logo for a known agent"
+        },
+        {
+          "name": "AssigneeAvatar",
+          "summary": "logo or human fallback, driven by the assignee string"
+        }
+      ],
+      "exports": "resolveAgent (re-exported), AgentAvatar, AssigneeAvatar"
+    },
+    {
       "path": "src/components/ArchiveView.tsx",
       "lines": 89,
       "title": "Archive view",
@@ -716,20 +825,28 @@
     },
     {
       "path": "src/components/BulkActionBar.tsx",
-      "lines": 65,
+      "lines": 537,
       "title": "Floating Bulk Action Bar component",
-      "summary": "Appears when one or more tasks are selected in the web UI.",
+      "summary": "Appears when one or more tasks are selected in the web UI and behaves like Linear's selection bar: a floating pill at the bottom of the screen that exposes every action that makes sense for a group of tasks — change priority, assign,…",
       "functions": [
         {
           "name": "BulkActionBar",
           "summary": "floating action bar at bottom of screen"
+        },
+        {
+          "name": "Pill",
+          "summary": "small action button that opens a popover"
+        },
+        {
+          "name": "Popover",
+          "summary": "anchored dropdown with an outside-click backdrop"
         }
       ],
       "exports": "BulkActionBar"
     },
     {
       "path": "src/components/Card.tsx",
-      "lines": 433,
+      "lines": 356,
       "title": "Task card row",
       "summary": "Displays one board task as a single dense row inside a column.",
       "functions": [
@@ -746,7 +863,7 @@
     },
     {
       "path": "src/components/CardStack.tsx",
-      "lines": 203,
+      "lines": 257,
       "title": "Collapsible card stack component",
       "summary": "Renders a group of 2+ cards that share the same `[bracket]` or `#hashtag` title tag as a visually stacked card.",
       "functions": [
@@ -935,7 +1052,7 @@
     },
     {
       "path": "src/components/Icons.tsx",
-      "lines": 182,
+      "lines": 220,
       "title": "Inline SVG icon set",
       "summary": "Centralizes small stroke icons used by the Kandown web UI.",
       "functions": [
@@ -954,7 +1071,7 @@
     },
     {
       "path": "src/components/ListRow.tsx",
-      "lines": 711,
+      "lines": 503,
       "title": "List row component",
       "summary": "Renders a single task as a compact, Linear-style list item for the list view, with priority indicators, title, status, metadata badges, inline subtask progress slider, and hover quick actions.",
       "functions": [
@@ -967,7 +1084,7 @@
     },
     {
       "path": "src/components/ListView.tsx",
-      "lines": 490,
+      "lines": 523,
       "title": "List view",
       "summary": "Renders board columns as vertically stacked horizontal sections, with dense task rows, filter/search previews, task drops between sections, and vertical section reordering.",
       "functions": [
@@ -1008,7 +1125,7 @@
     },
     {
       "path": "src/components/settings/AboutVersionCard.tsx",
-      "lines": 197,
+      "lines": 205,
       "title": "Settings — About section version/update card",
       "summary": "Shows the running version, checks npm for a newer release, and can trigger the server-side self-update (serverApplyUpdate) followed by a page reload once the daemon confirms it restarted on the new build.",
       "exports": "AboutVersionCard"
@@ -1317,6 +1434,40 @@
       "exports": "useAnimatedNumber"
     },
     {
+      "path": "src/hooks/useDetectedAgents.ts",
+      "lines": 61,
+      "title": "useDetectedAgents — web UI hook for the detected agent catalog",
+      "summary": "Loads the AI agents detected by the backend (`/api/agents`) and caches them for the session.",
+      "functions": [
+        {
+          "name": "useDetectedAgents",
+          "summary": "the hook"
+        }
+      ],
+      "exports": "useDetectedAgents"
+    },
+    {
+      "path": "src/lib/agent-aliases.ts",
+      "lines": 223,
+      "title": "Agent alias resolver (shared, framework-agnostic)",
+      "summary": "The single source of truth for mapping a free-form assignee string (as typed in a task's `assignee:` frontmatter or quick-add `@token`) to a canonical agent id.",
+      "functions": [
+        {
+          "name": "normalizeAlias",
+          "summary": "lowercase + strip non-alphanumerics"
+        },
+        {
+          "name": "resolveAgent",
+          "summary": "assignee string → canonical agent id, or null (human)"
+        },
+        {
+          "name": "knownAgentIds",
+          "summary": "the set of canonical ids the table can produce"
+        }
+      ],
+      "exports": "ALIAS_TO_AGENT, normalizeAlias, resolveAgent, knownAgentIds"
+    },
+    {
       "path": "src/lib/columnUtils.ts",
       "lines": 97,
       "title": "Shared column utilities",
@@ -1431,7 +1582,7 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 992,
+      "lines": 1010,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [
@@ -1691,7 +1842,7 @@
     },
     {
       "path": "src/lib/store.ts",
-      "lines": 1866,
+      "lines": 1980,
       "title": "Kandown Zustand store",
       "summary": "Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.",
       "functions": [
@@ -2122,7 +2273,7 @@
     },
     {
       "path": "src/lib/types.ts",
-      "lines": 347,
+      "lines": 363,
       "title": "Shared domain types",
       "summary": "Defines the board, task, config, filter, search, and appearance types used by the Kandown web UI and persistence layer.",
       "exports": "Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, KandownConfig, DEFAULT_COLUMNS, DEFAULT_CONFIG"

@@ -225,5 +225,30 @@
     "pl": "Poloneză",
     "uk": "Ucraineană",
     "ro": "Română"
+  },
+  "bulk": {
+    "priority": "Prioritate",
+    "assignee": "Atribuit",
+    "dueDate": "Termen",
+    "tags": "Etichete",
+    "unassign": "Anulează atribuirea",
+    "move": "Mută",
+    "archive": "Arhivează",
+    "delete": "Șterge",
+    "confirmDelete": "Confirmă ștergerea",
+    "selectAll": "Selectează tot",
+    "clear": "Șterge selecția",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

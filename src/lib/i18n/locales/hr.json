@@ -240,5 +240,30 @@
     "ko": "Korejski",
     "zh": "Kineski",
     "ar": "Arapski"
+  },
+  "bulk": {
+    "priority": "Prioritet",
+    "assignee": "Dodijeljeno",
+    "dueDate": "Rok",
+    "tags": "Oznake",
+    "unassign": "Ukloni dodjelu",
+    "move": "Premjesti",
+    "archive": "Arhiviraj",
+    "delete": "Izbriši",
+    "confirmDelete": "Potvrdi brisanje",
+    "selectAll": "Odaberi sve",
+    "clear": "Očisti odabir",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

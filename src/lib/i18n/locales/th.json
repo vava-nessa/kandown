@@ -262,5 +262,30 @@
     "si": "Sinhala",
     "my": "Burmese",
     "km": "Khmer"
+  },
+  "bulk": {
+    "priority": "ลำดับความสำคัญ",
+    "assignee": "ผู้รับผิดชอบ",
+    "dueDate": "กำหนดส่ง",
+    "tags": "แท็ก",
+    "unassign": "ยกเลิกการมอบหมาย",
+    "move": "ย้าย",
+    "archive": "เก็บถาวร",
+    "delete": "ลบ",
+    "confirmDelete": "ยืนยันการลบ",
+    "selectAll": "เลือกทั้งหมด",
+    "clear": "ล้างการเลือก",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

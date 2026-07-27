@@ -225,5 +225,30 @@
     "pl": "Польська",
     "uk": "Українська",
     "ro": "Румунська"
+  },
+  "bulk": {
+    "priority": "Пріоритет",
+    "assignee": "Виконавець",
+    "dueDate": "Термін",
+    "tags": "Теги",
+    "unassign": "Зняти призначення",
+    "move": "Перемістити",
+    "archive": "Архівувати",
+    "delete": "Видалити",
+    "confirmDelete": "Підтвердити видалення",
+    "selectAll": "Вибрати все",
+    "clear": "Очистити вибір",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

@@ -240,5 +240,30 @@
     "ko": "Корейски",
     "zh": "Китайски",
     "ar": "Арабски"
+  },
+  "bulk": {
+    "priority": "Приоритет",
+    "assignee": "Възложено на",
+    "dueDate": "Краен срок",
+    "tags": "Етикети",
+    "unassign": "Премахване",
+    "move": "Преместване",
+    "archive": "Архивиране",
+    "delete": "Изтриване",
+    "confirmDelete": "Потвърдете изтриване",
+    "selectAll": "Избери всички",
+    "clear": "Изчисти избора",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

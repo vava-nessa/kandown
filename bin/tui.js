@@ -53985,8 +53985,8 @@ var import_react33 = __toESM(require_react(), 1);
 
 // src/cli/tui.tsx
 import { fileURLToPath as fileURLToPath3 } from "url";
-import { existsSync as existsSync8 } from "fs";
-import { join as join11 } from "path";
+import { existsSync as existsSync9 } from "fs";
+import { join as join12 } from "path";
 
 // src/cli/app.tsx
 var import_react39 = __toESM(require_react(), 1);
@@ -54508,7 +54508,7 @@ function ValueDisplay({ setting, value, focused }) {
 // src/cli/screens/board.tsx
 var import_react37 = __toESM(require_react(), 1);
 import { spawnSync } from "child_process";
-import { join as join9 } from "path";
+import { join as join10 } from "path";
 
 // src/cli/lib/board-reader.ts
 import { existsSync as existsSync3, readdirSync as readdirSync2, readFileSync as readFileSync3, mkdirSync, unlinkSync as unlinkSync2 } from "fs";
@@ -57192,6 +57192,88 @@ function createWatcher() {
 
 // src/cli/lib/agents.ts
 import { execFileSync as execFileSync4 } from "child_process";
+
+// src/cli/lib/agents-config.ts
+import { existsSync as existsSync7, readFileSync as readFileSync6 } from "fs";
+import { join as join8 } from "path";
+var AGENTS_CONFIG_VERSION = 1;
+var DEFAULT_CASCADE = {
+  unassignedBehavior: "skip",
+  sameSessionChain: false
+};
+function defaultAgentsConfig() {
+  return {
+    version: AGENTS_CONFIG_VERSION,
+    preferred: "claude",
+    cascade: { ...DEFAULT_CASCADE },
+    agents: [
+      { id: "claude", name: "Claude Code", bin: "claude", interactive: true, description: "Anthropic Claude (interactive session)", aliases: ["claude", "claudecode", "anthropic", "claudeai"] },
+      { id: "codex", name: "OpenAI Codex", bin: "codex", interactive: true, description: "OpenAI Codex CLI", aliases: ["codex", "openaicodex"] },
+      { id: "gemini", name: "Gemini CLI", bin: "gemini", interactive: true, description: "Google Gemini CLI", aliases: ["gemini", "geminicli", "googlegemini"] },
+      { id: "goose", name: "Goose", bin: "goose", interactive: false, description: "Block open-source AI agent", aliases: ["goose", "blockgoose"] },
+      { id: "aider", name: "Aider", bin: "aider", interactive: true, description: "Git-aware AI pair programmer", aliases: ["aider"] },
+      { id: "opencode", name: "OpenCode", bin: "opencode", interactive: true, description: "SST AI coding TUI", aliases: ["opencode", "sstopencode"] },
+      { id: "cursor", name: "Cursor", bin: "cursor", interactive: true, description: "Cursor IDE (opens project; paste prompt)", aliases: ["cursor"] },
+      { id: "pi", name: "Pi", bin: "pi", interactive: true, description: "Earendil Works pi coding agent", aliases: ["pi", "piearendil", "picodingagent"] }
+    ]
+  };
+}
+function loadAgentsConfig(kandownDir) {
+  const path = join8(kandownDir, "agents.json");
+  if (!existsSync7(path)) return defaultAgentsConfig();
+  let raw;
+  try {
+    raw = JSON.parse(readFileSync6(path, "utf8"));
+  } catch (e) {
+    const err = e;
+    if (err.code === "ENOENT") return defaultAgentsConfig();
+    console.warn(`[kandown] agents.json is corrupted, using defaults: ${e.message}`);
+    return defaultAgentsConfig();
+  }
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+    console.warn("[kandown] agents.json must be a JSON object, using defaults.");
+    return defaultAgentsConfig();
+  }
+  const obj = raw;
+  const base = defaultAgentsConfig();
+  const agentsRaw = Array.isArray(obj.agents) ? obj.agents : [];
+  const agents = agentsRaw.filter((a) => !!a && typeof a === "object" && !Array.isArray(a)).filter((a) => typeof a.id === "string" && typeof a.bin === "string").map((a) => ({
+    id: String(a.id),
+    name: typeof a.name === "string" ? a.name : String(a.id),
+    bin: String(a.bin),
+    ...Array.isArray(a.aliases) ? { aliases: a.aliases.map(String) } : {},
+    ...typeof a.interactive === "boolean" ? { interactive: a.interactive } : {},
+    ...typeof a.description === "string" ? { description: a.description } : {},
+    ...Array.isArray(a.extraArgs) ? { extraArgs: a.extraArgs.map(String) } : {},
+    ...typeof a.launchMode === "string" ? { launchMode: a.launchMode } : {},
+    ...typeof a.promptFlag === "string" ? { promptFlag: a.promptFlag } : {}
+  }));
+  return {
+    version: typeof obj.version === "number" ? obj.version : base.version,
+    ...typeof obj.preferred === "string" ? { preferred: obj.preferred } : { preferred: base.preferred },
+    cascade: resolveCascade(obj.cascade),
+    agents: agents.length > 0 ? agents : base.agents
+  };
+}
+function resolveCascade(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { ...DEFAULT_CASCADE };
+  const c = raw;
+  const ub = c.unassignedBehavior;
+  const ssc = c.sameSessionChain;
+  return {
+    unassignedBehavior: ub === "preferred" ? "preferred" : ub === "skip" ? "skip" : DEFAULT_CASCADE.unassignedBehavior,
+    sameSessionChain: typeof ssc === "boolean" ? ssc : DEFAULT_CASCADE.sameSessionChain
+  };
+}
+
+// src/cli/lib/agents.ts
+function combinedPrompt(opts) {
+  return `${opts.systemPrompt}
+
+---
+
+${opts.taskPrompt}`;
+}
 var AGENTS = [
   {
     id: "claude",
@@ -57199,14 +57281,8 @@ var AGENTS = [
     bin: "claude",
     description: "Anthropic Claude (interactive session)",
     interactive: true,
-    buildCommand: ({ systemPrompt, taskPrompt }) => {
-      const combined = `${systemPrompt}
-
----
-
-${taskPrompt}`;
-      return ["claude", combined];
-    }
+    aliases: ["claude", "claudecode", "anthropic", "claudeai"],
+    buildCommand: (opts) => ["claude", combinedPrompt(opts)]
   },
   {
     id: "codex",
@@ -57214,14 +57290,8 @@ ${taskPrompt}`;
     bin: "codex",
     description: "OpenAI Codex CLI",
     interactive: true,
-    buildCommand: ({ systemPrompt, taskPrompt }) => {
-      const combined = `${systemPrompt}
-
----
-
-${taskPrompt}`;
-      return ["codex", combined];
-    }
+    aliases: ["codex", "openaicodex"],
+    buildCommand: (opts) => ["codex", combinedPrompt(opts)]
   },
   {
     id: "gemini",
@@ -57229,13 +57299,9 @@ ${taskPrompt}`;
     bin: "gemini",
     description: "Google Gemini CLI",
     interactive: true,
-    buildCommand: ({ systemPrompt, taskPrompt }) => {
-      const combined = `${systemPrompt}
-
----
-
-${taskPrompt}`;
-      return ["gemini", "--prompt-interactive", combined];
+    aliases: ["gemini", "geminicli", "googlegemini"],
+    buildCommand: (opts) => {
+      return ["gemini", "--prompt-interactive", combinedPrompt(opts)];
     }
   },
   {
@@ -57244,14 +57310,8 @@ ${taskPrompt}`;
     bin: "goose",
     description: "Block open-source AI agent",
     interactive: false,
-    buildCommand: ({ systemPrompt, taskPrompt }) => {
-      const combined = `${systemPrompt}
-
----
-
-${taskPrompt}`;
-      return ["goose", "run", "--text", combined];
-    }
+    aliases: ["goose", "blockgoose"],
+    buildCommand: (opts) => ["goose", "run", "--text", combinedPrompt(opts)]
   },
   {
     id: "aider",
@@ -57259,14 +57319,8 @@ ${taskPrompt}`;
     bin: "aider",
     description: "Git-aware AI pair programmer",
     interactive: true,
-    buildCommand: ({ systemPrompt, taskPrompt }) => {
-      const combined = `${systemPrompt}
-
----
-
-${taskPrompt}`;
-      return ["aider", "--message", combined];
-    }
+    aliases: ["aider"],
+    buildCommand: (opts) => ["aider", "--message", combinedPrompt(opts)]
   },
   {
     id: "opencode",
@@ -57274,16 +57328,38 @@ ${taskPrompt}`;
     bin: "opencode",
     description: "SST AI coding TUI",
     interactive: true,
-    buildCommand: ({ systemPrompt, taskPrompt }) => {
-      const combined = `${systemPrompt}
-
----
-
-${taskPrompt}`;
-      return ["opencode", "--prompt", combined];
+    aliases: ["opencode", "sstopencode"],
+    buildCommand: (opts) => {
+      return ["opencode", "--prompt", combinedPrompt(opts)];
     }
+  },
+  {
+    id: "cursor",
+    name: "Cursor",
+    bin: "cursor",
+    description: "Cursor IDE (opens project; paste prompt)",
+    interactive: true,
+    aliases: ["cursor"],
+    // 📖 Cursor is an IDE, not a prompt-taking CLI: there is no documented flag
+    // to inject a task prompt, so we open the project root and rely on the
+    // KANDOWN_CONTEXT_FILE env var (set by the launcher) + the prompt printed
+    // to the terminal for the user to paste into Cursor's agent panel.
+    buildCommand: (opts) => ["cursor", getProjectCwd(opts.kandownDir)]
+  },
+  {
+    id: "pi",
+    name: "Pi",
+    bin: "pi",
+    description: "Earendil Works pi coding agent",
+    interactive: true,
+    aliases: ["pi", "piearendil", "picodingagent"],
+    buildCommand: (opts) => ["pi", combinedPrompt(opts)]
   }
 ];
+function getProjectCwd(kandownDir) {
+  const m = kandownDir.replace(/\/(\.kandown|kandown)$/, "");
+  return m && m !== kandownDir ? m : process.cwd();
+}
 var installCache = /* @__PURE__ */ new Map();
 function isAgentInstalled(bin) {
   if (installCache.has(bin)) return installCache.get(bin);
@@ -57296,15 +57372,131 @@ function isAgentInstalled(bin) {
     return false;
   }
 }
-function detectInstalledAgents() {
-  return AGENTS.filter((agent) => isAgentInstalled(agent.bin));
+function warmupDetection(catalog) {
+  for (const agent of catalog) {
+    if (!installCache.has(agent.bin)) isAgentInstalled(agent.bin);
+  }
 }
-function getAgentById(id) {
-  return AGENTS.find((a) => a.id === id);
+function loadCatalog(kandownDir) {
+  const builtins = AGENTS;
+  if (!kandownDir) return builtins.map(cloneDef);
+  const cfg = loadAgentsConfig(kandownDir);
+  const byId = /* @__PURE__ */ new Map();
+  for (const b of builtins) byId.set(b.id, cloneDef(b));
+  const custom = [];
+  for (const entry of cfg.agents) {
+    const existing = byId.get(entry.id);
+    if (existing) {
+      existing.name = entry.name ?? existing.name;
+      existing.bin = entry.bin ?? existing.bin;
+      existing.description = entry.description ?? existing.description;
+      if (typeof entry.interactive === "boolean") existing.interactive = entry.interactive;
+      if (entry.aliases) existing.aliases = entry.aliases;
+      if (entry.extraArgs) existing.extraArgs = entry.extraArgs;
+    } else {
+      custom.push(catalogEntryToDef(entry));
+    }
+  }
+  return [...builtins.map((b) => byId.get(b.id)), ...custom];
 }
-function buildPrompt(agentDoc, taskContent, taskId, kandownDir) {
+function cloneDef(d) {
+  const { buildCommand, ...rest } = d;
+  const copy = { ...rest, interactive: d.interactive };
+  if (buildCommand) copy.buildCommand = buildCommand;
+  if (d.aliases) copy.aliases = [...d.aliases];
+  if (d.extraArgs) copy.extraArgs = [...d.extraArgs];
+  return copy;
+}
+function catalogEntryToDef(entry) {
+  return {
+    id: entry.id,
+    name: entry.name,
+    bin: entry.bin,
+    interactive: entry.interactive ?? true,
+    description: entry.description ?? `${entry.name} (custom)`,
+    ...entry.aliases ? { aliases: [...entry.aliases] } : {},
+    ...entry.extraArgs ? { extraArgs: [...entry.extraArgs] } : {},
+    ...entry.launchMode ? { launchMode: entry.launchMode } : {},
+    ...entry.promptFlag ? { promptFlag: entry.promptFlag } : {}
+  };
+}
+function detectInstalledAgents(kandownDir) {
+  const catalog = loadCatalog(kandownDir);
+  return catalog.filter((agent) => isAgentInstalled(agent.bin));
+}
+function getAgentById(id, kandownDir) {
+  return loadCatalog(kandownDir).find((a) => a.id === id);
+}
+function normAlias(s) {
+  return s.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+function resolveAgentEntry(assignee, kandownDir) {
+  if (!assignee) return void 0;
+  const norm = normAlias(assignee);
+  if (!norm) return void 0;
+  const catalog = loadCatalog(kandownDir);
+  for (const agent of catalog) {
+    if (normAlias(agent.id) === norm) return agent;
+    if (agent.aliases?.some((a) => normAlias(a) === norm)) return agent;
+  }
+  return void 0;
+}
+function buildAgentCommand(agent, opts) {
+  let base;
+  if (agent.buildCommand) {
+    base = agent.buildCommand(opts);
+  } else {
+    base = genericCommand(agent, opts);
+  }
+  if (agent.extraArgs && agent.extraArgs.length > 0) {
+    base = [...base, ...agent.extraArgs];
+  }
+  return base;
+}
+function genericCommand(agent, opts) {
+  const prompt = combinedPrompt(opts);
+  switch (agent.launchMode ?? "positional") {
+    case "prompt-flag":
+      return [agent.bin, agent.promptFlag ?? "--prompt", prompt];
+    case "message-flag":
+      return [agent.bin, agent.promptFlag ?? "--message", prompt];
+    case "text-flag":
+      return [agent.bin, agent.promptFlag ?? "--text", prompt];
+    case "positional":
+    default:
+      return [agent.bin, prompt];
+  }
+}
+function buildPrompt(agentDoc, taskContent, taskId, kandownDir, handoff, queue) {
+  const handoffBlock = handoff && handoff.length > 0 ? [
+    "## Context from upstream tasks (cascade handoff)",
+    "",
+    ...handoff.flatMap((h) => [
+      `### ${h.taskId} \u2014 ${h.title}`,
+      h.report?.trim() ? h.report.trim() : "_(no completion report written)_",
+      ""
+    ]),
+    "Use the above as prior context. Do not redo work that is already done; build on it.",
+    "",
+    "---",
+    ""
+  ].join("\n") : "";
+  const queueBlock = queue && queue.length > 0 ? [
+    "## Your queue (same-session cascade)",
+    "",
+    'Work through these tasks strictly in order. For each one: set its status to "In Progress", do the work, update the task file as you go, then set it to "Done" with a completion report before starting the next.',
+    "",
+    ...queue.map((q, i) => `${i + 1}. ${q.id} \u2014 ${q.title}`),
+    "",
+    "When the whole queue is Done, stop.",
+    "",
+    "---",
+    ""
+  ].join("\n") : "";
   const systemPrompt = agentDoc.trim();
   const taskPrompt = [
+    queueBlock,
+    handoffBlock,
     `## Your Task: ${taskId}`,
     "",
     taskContent.trim(),
@@ -57326,14 +57518,14 @@ function buildPrompt(agentDoc, taskContent, taskId, kandownDir) {
 // src/cli/lib/launcher.ts
 import { execSync as execSync2, spawn as spawn3 } from "child_process";
 import { writeFileSync as writeFileSync3 } from "fs";
-import { join as join8 } from "path";
+import { join as join9 } from "path";
 import { tmpdir } from "os";
 function isInTmux() {
   return !!process.env.TMUX;
 }
-function launchAgent(opts) {
-  const { taskId, agentId, kandownDir, onBeforeExec } = opts;
-  const agentDef = getAgentById(agentId);
+function prepareLaunch(opts) {
+  const { taskId, agentId, kandownDir, handoff, queue } = opts;
+  const agentDef = getAgentById(agentId, kandownDir);
   if (!agentDef) {
     throw new Error(`Unknown agent: ${agentId}`);
   }
@@ -57354,12 +57546,12 @@ function launchAgent(opts) {
     "",
     task.body.trim()
   ].join("\n");
-  const { systemPrompt, taskPrompt } = buildPrompt(agentDoc, taskFileContent, taskId, kandownDir);
+  const { systemPrompt, taskPrompt } = buildPrompt(agentDoc, taskFileContent, taskId, kandownDir, handoff, queue);
   const taskMoved = moveTaskToColumn(kandownDir, taskId, "In Progress");
   if (!taskMoved) {
     throw new Error(`Could not move task ${taskId} to In Progress \u2014 task file missing or unwritable.`);
   }
-  const contextFile = join8(tmpdir(), `kandown-${taskId}-context.md`);
+  const contextFile = join9(tmpdir(), `kandown-${taskId}-context.md`);
   try {
     writeFileSync3(contextFile, `${systemPrompt}
 
@@ -57370,11 +57562,25 @@ ${taskPrompt}`, "utf8");
     console.warn(`[kandown] Failed to write context file (${e.message}); launching anyway.`);
   }
   const launchOpts = { systemPrompt, taskPrompt, kandownDir, taskId };
-  const [binary, ...args] = agentDef.buildCommand(launchOpts);
+  const [binary, ...args] = buildAgentCommand(agentDef, launchOpts);
   if (!binary) {
     rollbackTaskStatus(kandownDir, taskId, originalStatus);
     throw new Error(`Agent ${agentId} returned an empty command`);
   }
+  return { agentName: agentDef.name, binary, args, contextFile, originalStatus, taskMoved };
+}
+function launchEnv(contextFile, taskId, kandownDir) {
+  return {
+    ...process.env,
+    KANDOWN_CONTEXT_FILE: contextFile,
+    KANDOWN_TASK_ID: taskId,
+    KANDOWN_DIR: kandownDir
+  };
+}
+function launchAgent(opts) {
+  const { taskId, kandownDir, onBeforeExec } = opts;
+  const prepared = prepareLaunch(opts);
+  const { agentName, binary, args, contextFile, originalStatus } = prepared;
   if (isInTmux()) {
     const shellCmd = buildShellCmd(binary, args);
     const envPrefix = [
@@ -57393,19 +57599,10 @@ ${taskPrompt}`, "utf8");
   } else {
     try {
       onBeforeExec?.();
-      const child = spawn3(binary, args, {
-        stdio: "inherit",
-        env: {
-          ...process.env,
-          // 📖 Expose the context file path so agents that support env vars can use it
-          KANDOWN_CONTEXT_FILE: contextFile,
-          KANDOWN_TASK_ID: taskId,
-          KANDOWN_DIR: kandownDir
-        }
-      });
+      const child = spawn3(binary, args, { stdio: "inherit", env: launchEnv(contextFile, taskId, kandownDir) });
       child.on("error", (e) => {
         rollbackTaskStatus(kandownDir, taskId, originalStatus);
-        console.error(`[kandown] Failed to launch ${agentDef.name}: ${e.message}`);
+        console.error(`[kandown] Failed to launch ${agentName}: ${e.message}`);
         process.exit(1);
       });
       child.on("exit", (code) => {
@@ -57415,7 +57612,7 @@ ${taskPrompt}`, "utf8");
       });
     } catch (e) {
       rollbackTaskStatus(kandownDir, taskId, originalStatus);
-      throw new Error(`Failed to launch ${agentDef.name}: ${e.message}`);
+      throw new Error(`Failed to launch ${agentName}: ${e.message}`);
     }
   }
 }
@@ -58519,7 +58716,8 @@ function Board({ kandownDir, version }) {
   }, [kandownDir]);
   (0, import_react37.useEffect)(() => {
     loadBoardInto();
-    setInstalledAgents(detectInstalledAgents());
+    warmupDetection(loadCatalog(kandownDir));
+    setInstalledAgents(detectInstalledAgents(kandownDir));
   }, [kandownDir, loadBoardInto]);
   (0, import_react37.useEffect)(() => {
     const watcher = createWatcher();
@@ -58717,10 +58915,7 @@ function Board({ kandownDir, version }) {
       showStatus(`Error opening task: ${e instanceof Error ? e.message : String(e)}`, 4e3);
     }
   }, [kandownDir, showStatus]);
-  const handleAgentSelect = (0, import_react37.useCallback)((agentId) => {
-    const task = getFocusedTask();
-    const taskId = mode === "detail" ? detailTaskId : task?.id;
-    if (!taskId) return;
+  const launchTaskWithAgent = (0, import_react37.useCallback)((taskId, agentId) => {
     setMode("browse");
     showStatus(`Launching ${agentId} for ${taskId}\u2026`, 5e3);
     setTimeout(() => {
@@ -58732,7 +58927,30 @@ function Board({ kandownDir, version }) {
         showStatus(`Error: ${err instanceof Error ? err.message : String(err)}`, 4e3);
       }
     }, 50);
-  }, [mode, detailTaskId, getFocusedTask, kandownDir, exit, reloadBoard, showStatus]);
+  }, [kandownDir, exit, reloadBoard, showStatus, setMode]);
+  const handleAgentSelect = (0, import_react37.useCallback)((agentId) => {
+    const task = getFocusedTask();
+    const taskId = mode === "detail" ? detailTaskId : task?.id;
+    if (!taskId) return;
+    launchTaskWithAgent(taskId, agentId);
+  }, [mode, detailTaskId, getFocusedTask, launchTaskWithAgent]);
+  const requestAgentLaunch = (0, import_react37.useCallback)((taskId) => {
+    if (installedAgents.length === 0) {
+      showStatus("No AI agents found in PATH", 3e3);
+      return;
+    }
+    try {
+      const t = readTask(kandownDir, taskId);
+      const assignee = typeof t.frontmatter.assignee === "string" ? t.frontmatter.assignee : null;
+      const resolved = assignee ? resolveAgentEntry(assignee, kandownDir) : void 0;
+      if (resolved && isAgentInstalled(resolved.bin)) {
+        launchTaskWithAgent(taskId, resolved.id);
+        return;
+      }
+    } catch {
+    }
+    setMode("agent-picker");
+  }, [installedAgents, kandownDir, launchTaskWithAgent, showStatus, setMode]);
   useMouseMode(mode !== "agent-picker");
   const handleMouseClick = (0, import_react37.useCallback)((x, y) => {
     if (!board) return;
@@ -59120,7 +59338,7 @@ function Board({ kandownDir, version }) {
       if (input === "e") {
         const task = getFocusedTask();
         if (task) {
-          const taskPath = join9(getTasksDir(kandownDir), `${task.id}.md`);
+          const taskPath = join10(getTasksDir(kandownDir), `${task.id}.md`);
           const editor = process.env.EDITOR || "nano";
           try {
             spawnSync(editor, [taskPath], { stdio: "inherit" });
@@ -59205,12 +59423,8 @@ function Board({ kandownDir, version }) {
           return;
         }
         if (input === "a") {
-          if (installedAgents.length === 0) {
-            showStatus("No AI agents found in PATH", 3e3);
-            return;
-          }
           if (!selectedRow) return;
-          setMode("agent-picker");
+          requestAgentLaunch(selectedRow.task.id);
           return;
         }
         if (input === "g") {
@@ -59255,13 +59469,9 @@ function Board({ kandownDir, version }) {
         return;
       }
       if (input === "a") {
-        if (installedAgents.length === 0) {
-          showStatus("No AI agents found in PATH", 3e3);
-          return;
-        }
         const task = getFocusedTask();
         if (!task) return;
-        setMode("agent-picker");
+        requestAgentLaunch(task.id);
         return;
       }
       if (input === "g") {
@@ -59368,11 +59578,8 @@ function Board({ kandownDir, version }) {
         return;
       }
       if (input === "a") {
-        if (installedAgents.length === 0) {
-          showStatus("No AI agents found in PATH", 3e3);
-          return;
-        }
-        setMode("agent-picker");
+        if (!detailTaskId) return;
+        requestAgentLaunch(detailTaskId);
         return;
       }
     }
@@ -59651,20 +59858,20 @@ function InitPrompt({ kandownDir, onConfirm }) {
 }
 
 // src/cli/lib/init.ts
-import { existsSync as existsSync7, readFileSync as readFileSync6, mkdirSync as mkdirSync3, copyFileSync, readdirSync as readdirSync3, statSync as statSync4 } from "fs";
-import { join as join10 } from "path";
+import { existsSync as existsSync8, readFileSync as readFileSync7, mkdirSync as mkdirSync3, copyFileSync, readdirSync as readdirSync3, statSync as statSync4 } from "fs";
+import { join as join11 } from "path";
 function copyRecursive(src, dest) {
   const errors = [];
   try {
-    if (!existsSync7(dest)) mkdirSync3(dest, { recursive: true });
+    if (!existsSync8(dest)) mkdirSync3(dest, { recursive: true });
     const entries = readdirSync3(src);
     for (const entry of entries) {
-      const srcPath = join10(src, entry);
-      const destPath = join10(dest, entry);
+      const srcPath = join11(src, entry);
+      const destPath = join11(dest, entry);
       try {
         if (statSync4(srcPath).isDirectory()) {
           errors.push(...copyRecursive(srcPath, destPath));
-        } else if (!existsSync7(destPath)) {
+        } else if (!existsSync8(destPath)) {
           copyFileSync(srcPath, destPath);
         }
       } catch (error) {
@@ -59677,12 +59884,12 @@ function copyRecursive(src, dest) {
   return errors;
 }
 function syncKandownAgentDoc(kandownDir) {
-  const source = join10(PKG_ROOT2, "templates", "AGENT_KANDOWN.md");
-  const target = join10(kandownDir, "AGENT_KANDOWN.md");
-  if (!existsSync7(source)) return false;
+  const source = join11(PKG_ROOT2, "templates", "AGENT_KANDOWN.md");
+  const target = join11(kandownDir, "AGENT_KANDOWN.md");
+  if (!existsSync8(source)) return false;
   try {
-    const expected = readFileSync6(source, "utf8");
-    const existing = existsSync7(target) ? readFileSync6(target, "utf8") : null;
+    const expected = readFileSync7(source, "utf8");
+    const existing = existsSync8(target) ? readFileSync7(target, "utf8") : null;
     if (existing === null || !existing.includes("# Kandown")) {
       atomicWriteFileSync(target, expected.endsWith("\n") ? expected : `${expected}
 `);
@@ -59695,27 +59902,30 @@ function syncKandownAgentDoc(kandownDir) {
 function doInit(kandownDir) {
   try {
     mkdirSync3(kandownDir, { recursive: true });
-    const htmlSrc = join10(PKG_ROOT2, "dist", "index.html");
-    const htmlDest = join10(kandownDir, "kandown.html");
-    if (existsSync7(htmlSrc)) {
+    const htmlSrc = join11(PKG_ROOT2, "dist", "index.html");
+    const htmlDest = join11(kandownDir, "kandown.html");
+    if (existsSync8(htmlSrc)) {
       copyFileSync(htmlSrc, htmlDest);
     }
     syncKandownAgentDoc(kandownDir);
-    const templatesDir = join10(PKG_ROOT2, "templates");
-    if (existsSync7(templatesDir)) {
-      if (!existsSync7(join10(kandownDir, "README.md")) && existsSync7(join10(templatesDir, "README.md"))) {
-        copyFileSync(join10(templatesDir, "README.md"), join10(kandownDir, "README.md"));
+    const templatesDir = join11(PKG_ROOT2, "templates");
+    if (existsSync8(templatesDir)) {
+      if (!existsSync8(join11(kandownDir, "README.md")) && existsSync8(join11(templatesDir, "README.md"))) {
+        copyFileSync(join11(templatesDir, "README.md"), join11(kandownDir, "README.md"));
       }
-      if (!existsSync7(join10(kandownDir, "AGENT.md")) && existsSync7(join10(templatesDir, "AGENT.md"))) {
-        copyFileSync(join10(templatesDir, "AGENT.md"), join10(kandownDir, "AGENT.md"));
+      if (!existsSync8(join11(kandownDir, "AGENT.md")) && existsSync8(join11(templatesDir, "AGENT.md"))) {
+        copyFileSync(join11(templatesDir, "AGENT.md"), join11(kandownDir, "AGENT.md"));
       }
-      const tasksSrc = join10(templatesDir, "tasks");
+      const tasksSrc = join11(templatesDir, "tasks");
       const tasksDest = getTasksDir(kandownDir);
-      if (!existsSync7(tasksDest) && existsSync7(tasksSrc)) {
+      if (!existsSync8(tasksDest) && existsSync8(tasksSrc)) {
         copyRecursive(tasksSrc, tasksDest);
       }
-      if (!existsSync7(join10(kandownDir, "kandown.json")) && existsSync7(join10(templatesDir, "kandown.json"))) {
-        copyFileSync(join10(templatesDir, "kandown.json"), join10(kandownDir, "kandown.json"));
+      if (!existsSync8(join11(kandownDir, "kandown.json")) && existsSync8(join11(templatesDir, "kandown.json"))) {
+        copyFileSync(join11(templatesDir, "kandown.json"), join11(kandownDir, "kandown.json"));
+      }
+      if (!existsSync8(join11(kandownDir, "agents.json")) && existsSync8(join11(templatesDir, "agents.json"))) {
+        copyFileSync(join11(templatesDir, "agents.json"), join11(kandownDir, "agents.json"));
       }
     }
     return true;
@@ -59799,7 +60009,7 @@ async function run(screen, kandownDir, version) {
       "kandown TUI requires an interactive terminal. Run this command directly in your terminal."
     );
   }
-  const projectExists = existsSync8(join11(kandownDir, "kandown.json"));
+  const projectExists = existsSync9(join12(kandownDir, "kandown.json"));
   const instance = render_default(/* @__PURE__ */ (0, import_jsx_runtime9.jsx)(App2, { screen, kandownDir, version, projectExists }), {
     exitOnCtrlC: true,
     interactive: true,

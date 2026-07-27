@@ -69,6 +69,8 @@ export function App() {
   const showArchives = useStore(s => s.showArchives);
   const showMetadata = useStore(s => s.showMetadata);
   const setShowMetadata = useStore(s => s.setShowMetadata);
+  const clearTaskSelection = useStore(s => s.clearTaskSelection);
+  const setTaskSelection = useStore(s => s.setTaskSelection);
   const config = useStore(s => s.config);
   const [urlTaskId, setUrlTaskId] = useState(() => getTaskIdFromLocation(window.location));
 
@@ -158,6 +160,36 @@ export function App() {
         return;
       }
 
+      // 📖 Esc clears the multi-selection before anything else (Linear parity).
+      // Only when the drawer / palette are closed so we never steal Esc from
+      // them, and never while typing.
+      if (e.key === 'Escape' && !isTyping && !drawerTaskId && !commandOpen) {
+        if ((useStore.getState().selectedTaskIds?.length ?? 0) > 0) {
+          e.preventDefault();
+          clearTaskSelection();
+          return;
+        }
+      }
+
+      // 📖 Cmd/Ctrl+A toggles "select all": if every visible task is already
+      // selected we clear the selection (lets the user escape a fat-finger
+      // select-all without hunting for the × button), otherwise we fill it.
+      // Disabled while typing (would hijack text selection).
+      if ((e.metaKey || e.ctrlKey) && e.key === 'a' && !isTyping && !drawerTaskId && !commandOpen && (isOpen || dirHandle)) {
+        const state = useStore.getState();
+        const ids = state.columns.flatMap(c => c.tasks.map(t => t.id));
+        if (ids.length > 0) {
+          e.preventDefault();
+          const allSelected = ids.every(id => state.selectedTaskIds.includes(id));
+          if (allSelected) {
+            state.clearTaskSelection();
+          } else {
+            setTaskSelection(ids);
+          }
+        }
+        return;
+      }
+
       if ((e.metaKey || e.ctrlKey) && e.key === '1') {
         e.preventDefault();
         setViewMode('board');
@@ -190,7 +222,7 @@ export function App() {
 
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [isOpen, dirHandle, commandOpen, cheatsheetOpen, drawerTaskId, setCommandOpen, setCheatsheetOpen, setViewMode, createTask, reloadBoard]);
+  }, [isOpen, dirHandle, commandOpen, cheatsheetOpen, drawerTaskId, setCommandOpen, setCheatsheetOpen, setViewMode, createTask, reloadBoard, clearTaskSelection, setTaskSelection]);
 
   return (
     <ErrorBoundary>

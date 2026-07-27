@@ -207,5 +207,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "設定が外部で更新されました — 再読み込みしました"
+  },
+  "bulk": {
+    "priority": "優先度",
+    "assignee": "担当者",
+    "assignNew": "@{{name}} に割り当て",
+    "dueDate": "期限",
+    "clearDue": "期限をクリア",
+    "tags": "タグ",
+    "add": "追加",
+    "remove": "削除",
+    "tagPlaceholder": "タグ名",
+    "addTag": "#{{name}} を追加",
+    "move": "移動",
+    "unassign": "担当を外す",
+    "archive": "アーカイブ",
+    "delete": "削除",
+    "confirmDelete": "削除を確認",
+    "selectAll": "すべて選択",
+    "selectAllHint": "すべて選択 (表示中)",
+    "clear": "選択をクリア",
+    "selectedOne": "selected",
+    "selectedMany": "selected"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — kandown から起動できません（アプリ / デスクトップ、ラベルのみ）"
   }
 }

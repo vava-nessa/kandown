@@ -135,6 +135,20 @@ export interface ConflictState {
   remote: { frontmatter: TaskFrontmatter; body: string; subtasks: Subtask[] };
 }
 
+/** 📖 A metadata change applied in bulk to one or more tasks. Each field is
+ * optional — only the provided ones are merged into each task's frontmatter.
+ * - `priority` / `assignee` / `due`: overwrite the value (pass `''` to clear).
+ * - `tags.add`: union new tags onto the existing list (dedup, preserve order).
+ * - `tags.remove`: subtract the given tags.
+ * Tags are intentionally add/remove deltas instead of a full overwrite so a
+ * bulk "add #backend" never clobbers tags the tasks already had. */
+export interface BulkMetadataPatch {
+  priority?: string;
+  assignee?: string;
+  due?: string;
+  tags?: { add?: string[]; remove?: string[] };
+}
+
 interface State {
   isOpen: boolean;
   loading: boolean;
@@ -234,10 +248,25 @@ interface State {
 
   selectedTaskIds: string[];
   toggleTaskSelection: (id: string) => void;
+  /** Replaces the whole selection with the given ids (used by select-all and
+   * shift-range selection in the list/board views). */
+  setTaskSelection: (ids: string[]) => void;
+  /** Adds `ids` to the current selection (set union, dedup). Lets a parent
+   *  checkbox on a collapsed CardStack select the whole group without
+   *  clobbering whatever else the user already had selected. */
+  selectTasks: (ids: string[]) => void;
+  /** Removes `ids` from the current selection. Mirror of `selectTasks` for
+   *  the "uncheck the stack" case. */
+  deselectTasks: (ids: string[]) => void;
   clearTaskSelection: () => void;
   bulkMoveTasks: (targetColumn: string) => Promise<void>;
   bulkDeleteTasks: (taskIds?: string[]) => Promise<void>;
   bulkArchiveTasks: (taskIds: string[]) => Promise<void>;
+  /** Applies a metadata patch (priority, assignee, due date, tag add/remove)
+   * to every selected task — or to `taskIds` when explicitly provided. Reads
+   * each file strictly, merges the frontmatter, persists with retry, and
+   * tolerates per-task failures so one locked file never aborts the batch. */
+  bulkUpdateMetadata: (patch: BulkMetadataPatch, taskIds?: string[]) => Promise<void>;
 
   openDrawer: (taskId: string, options?: { syncUrl?: boolean; replace?: boolean }) => Promise<void>;
   closeDrawer: (options?: { syncUrl?: boolean; replace?: boolean }) => void;
@@ -489,6 +518,23 @@ export const useStore = create<State>((set, get) => ({
     });
   },
 
+  // 📖 Replaces the whole selection with the given ids. Used by select-all and
+  // shift-range selection in the list/board views.
+  setTaskSelection: (ids: string[]) => set({ selectedTaskIds: Array.from(new Set(ids)) }),
+
+  // 📖 Adds `ids` to the current selection (set union, dedup). Use when picking
+  // a whole group — e.g. select every task in a CardStack — without
+  // clobbering whatever else is already selected.
+  selectTasks: (ids: string[]) => set(state => ({
+    selectedTaskIds: Array.from(new Set([...state.selectedTaskIds, ...ids])),
+  })),
+
+  // 📖 Removes `ids` from the current selection. Mirrors `selectTasks` for the
+  // deselect-the-group case (uncheck the parent stack checkbox).
+  deselectTasks: (ids: string[]) => set(state => ({
+    selectedTaskIds: state.selectedTaskIds.filter(i => !ids.includes(i)),
+  })),
+
   clearTaskSelection: () => set({ selectedTaskIds: [] }),
 
   bulkMoveTasks: async (targetColumn: string) => {
@@ -584,6 +630,74 @@ export const useStore = create<State>((set, get) => ({
         get().toast(`${succeededIds.length} archived, ${failedIds.length} could not be archived`, 'warning', 8000);
       } else {
         get().toast(`Archived ${succeededIds.length} task${succeededIds.length === 1 ? '' : 's'}`);
+      }
+    } finally {
+      bulkMutationInFlight = false;
+    }
+  },
+
+  bulkUpdateMetadata: async (patch: BulkMetadataPatch, taskIds?: string[]) => {
+    const { selectedTaskIds, tasksDirHandle } = get();
+    const ids = uniqueTaskIds(taskIds ?? selectedTaskIds);
+    if (ids.length === 0 || (!tasksDirHandle && !isServerMode())) return;
+    if (bulkMutationInFlight) {
+      get().toast('Another bulk action is already running', 'warning');
+      return;
+    }
+
+    // 📖 Pre-compute the tag delta once. `add` is a unique set, `remove` is a
+    // set for O(1) lookups. Empty deltas mean "no tag change".
+    const addTags = patch.tags?.add ? Array.from(new Set(patch.tags.add.map(s => s.trim()).filter(Boolean))) : [];
+    const removeTags = patch.tags?.remove ? new Set(patch.tags.remove.map(s => s.trim()).filter(Boolean)) : new Set<string>();
+    const hasTagChange = addTags.length > 0 || removeTags.size > 0;
+
+    bulkMutationInFlight = true;
+    try {
+      const settled = await Promise.allSettled(ids.map(async id => {
+        // 📖 Strict reads prevent a failed read from turning into an empty
+        // placeholder task that could overwrite real data during the merge.
+        const result = await readTaskFileStrict(tasksDirHandle || null, id);
+        if (!result.ok) {
+          throw new Error(`Task ${id} could not be read (${result.reason})`);
+        }
+        const fm = { ...result.task.frontmatter, id };
+
+        if (patch.priority !== undefined) fm.priority = patch.priority;
+        if (patch.assignee !== undefined) fm.assignee = patch.assignee;
+        if (patch.due !== undefined) fm.due = patch.due;
+
+        if (hasTagChange) {
+          // 📖 Preserve existing tags, append the new ones, drop removed ones.
+          // The parser keeps tags as a string[] in frontmatter; fall back to []
+          // for tasks that never had any.
+          const current: string[] = Array.isArray(fm.tags) ? [...fm.tags] : [];
+          let next = current.filter(t => !removeTags.has(t));
+          for (const add of addTags) {
+            if (!next.includes(add)) next.push(add);
+          }
+          fm.tags = next;
+        }
+
+        // 📖 Only persist fields the project actually has enabled, matching the
+        // single-task drawer behaviour. We still keep already-present values
+        // so we never strip data on projects that disabled a field later.
+        await withRetry(
+          () => fsWriteTaskFile(tasksDirHandle || null, id, fm, result.task.body),
+          { maxAttempts: 3 },
+        );
+      }));
+      const succeededIds = ids.filter((_, index) => settled[index]?.status === 'fulfilled');
+      const failedIds = ids.filter((_, index) => settled[index]?.status === 'rejected');
+
+      set(state => ({
+        selectedTaskIds: state.selectedTaskIds, // keep selection so follow-up edits are easy
+      }));
+      await get().reloadBoard();
+
+      if (failedIds.length > 0) {
+        get().toast(`Updated ${succeededIds.length}, ${failedIds.length} could not be updated`, 'warning', 8000);
+      } else {
+        get().toast(`Updated ${succeededIds.length} task${succeededIds.length === 1 ? '' : 's'}`);
       }
     } finally {
       bulkMutationInFlight = false;

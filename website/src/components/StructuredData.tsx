@@ -72,6 +72,7 @@ const graph = {
       downloadUrl: site.npm,
       installUrl: site.npm,
       codeRepository: site.repo,
+      sameAs: [site.repo, site.npm, site.reddit],
       license: 'https://opensource.org/licenses/MIT',
       isAccessibleForFree: true,
       author: { '@id': `${site.url}/#author` },

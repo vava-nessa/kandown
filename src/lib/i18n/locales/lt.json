@@ -240,5 +240,30 @@
     "ko": "Korėjiečių",
     "zh": "Kinų",
     "ar": "Arabų"
+  },
+  "bulk": {
+    "priority": "Prioritetas",
+    "assignee": "Paskirtas",
+    "dueDate": "Terminas",
+    "tags": "Žymės",
+    "unassign": "Atšaukti priskyrimą",
+    "move": "Perkelti",
+    "archive": "Archyvuoti",
+    "delete": "Ištrinti",
+    "confirmDelete": "Patvirtinti šalinimą",
+    "selectAll": "Pasirinkti visus",
+    "clear": "Išvalyti pasirinkimą",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

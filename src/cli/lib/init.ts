@@ -80,6 +80,14 @@ export function doInit(kandownDir: string): boolean {
       if (!existsSync(join(kandownDir, 'kandown.json')) && existsSync(join(templatesDir, 'kandown.json'))) {
         copyFileSync(join(templatesDir, 'kandown.json'), join(kandownDir, 'kandown.json'));
       }
+
+      // 📖 agents.json: the committed team agent catalog (aliases + extra args +
+      // cascade prefs). Seeded from the template so a fresh project shares the
+      // same launch commands as the rest of the team. Not overwritten if it
+      // already exists (idempotent re-init).
+      if (!existsSync(join(kandownDir, 'agents.json')) && existsSync(join(templatesDir, 'agents.json'))) {
+        copyFileSync(join(templatesDir, 'agents.json'), join(kandownDir, 'agents.json'));
+      }
     }
     return true;
   } catch (error) {

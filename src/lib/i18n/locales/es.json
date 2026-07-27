@@ -251,5 +251,30 @@
     "ko": "Coreano",
     "fa": "Persa",
     "pcm": "Pidgin nigeriano"
+  },
+  "bulk": {
+    "selectedOne": "seleccionada",
+    "selectedMany": "seleccionadas",
+    "priority": "Prioridad",
+    "assignee": "Asignado",
+    "assignNew": "Asignar a @{{name}}",
+    "dueDate": "Fecha límite",
+    "clearDue": "Borrar fecha límite",
+    "tags": "Etiquetas",
+    "add": "Añadir",
+    "remove": "Quitar",
+    "tagPlaceholder": "nombre de etiqueta",
+    "addTag": "Añadir #{{name}}",
+    "move": "Mover",
+    "unassign": "Desasignar",
+    "archive": "Archivar",
+    "delete": "Eliminar",
+    "confirmDelete": "Confirmar eliminación",
+    "selectAll": "Seleccionar todo",
+    "selectAllHint": "Seleccionar todo (visibles)",
+    "clear": "Borrar selección"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — no enlazable desde kandown (app/escritorio, solo etiqueta)"
   }
 }

@@ -25,6 +25,8 @@ import {
   cmdExport, cmdProjects, cmdImport,
 } from './commands/tasks';
 import { cmdDaemon } from './commands/daemon';
+import { cmdRun } from './commands/run';
+import { cmdAgents } from './commands/agents';
 
 async function cmdTui(screen: 'board' | 'settings', rawArgs: string[]): Promise<void> {
   const args = parseArgs(rawArgs);
@@ -98,6 +100,14 @@ async function main() {
 
     case 'commit':
       cmdCommit(rest);
+      break;
+
+    case 'run':
+      await cmdRun(rest);
+      break;
+
+    case 'agents':
+      cmdAgents(rest);
       break;
 
     case 'tasks':

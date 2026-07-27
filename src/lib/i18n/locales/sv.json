@@ -240,5 +240,30 @@
     "el": "Grekiska",
     "he": "Hebreiska",
     "uk": "Ukrainska"
+  },
+  "bulk": {
+    "priority": "Prioritet",
+    "assignee": "Tilldelad",
+    "dueDate": "Förfallodag",
+    "tags": "Taggar",
+    "unassign": "Ta bort tilldelning",
+    "move": "Flytta",
+    "archive": "Arkivera",
+    "delete": "Ta bort",
+    "confirmDelete": "Bekräfta borttagning",
+    "selectAll": "Markera alla",
+    "clear": "Rensa val",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

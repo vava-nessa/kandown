@@ -240,5 +240,30 @@
     "el": "Řečtina",
     "he": "Hebrejština",
     "uk": "Ukrajinština"
+  },
+  "bulk": {
+    "priority": "Priorita",
+    "assignee": "Přiřazeno",
+    "dueDate": "Termín",
+    "tags": "Štítky",
+    "unassign": "Zrušit přiřazení",
+    "move": "Přesunout",
+    "archive": "Archivovat",
+    "delete": "Smazat",
+    "confirmDelete": "Potvrdit smazání",
+    "selectAll": "Vybrat vše",
+    "clear": "Vymazat výběr",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

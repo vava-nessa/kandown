@@ -240,5 +240,30 @@
     "el": "Grego",
     "he": "Hebraico",
     "uk": "Ucraniano"
+  },
+  "bulk": {
+    "selectedOne": "selecionada",
+    "selectedMany": "selecionadas",
+    "priority": "Prioridade",
+    "assignee": "Responsável",
+    "assignNew": "Atribuir a @{{name}}",
+    "dueDate": "Prazo",
+    "clearDue": "Limpar prazo",
+    "tags": "Tags",
+    "add": "Adicionar",
+    "remove": "Remover",
+    "tagPlaceholder": "nome da tag",
+    "addTag": "Adicionar #{{name}}",
+    "move": "Mover",
+    "unassign": "Remover atribuição",
+    "archive": "Arquivar",
+    "delete": "Excluir",
+    "confirmDelete": "Confirmar exclusão",
+    "selectAll": "Selecionar tudo",
+    "selectAllHint": "Selecionar tudo (visíveis)",
+    "clear": "Limpar seleção"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — não encadeável pelo kandown (app/desktop, apenas rótulo)"
   }
 }

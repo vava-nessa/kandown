@@ -11,6 +11,7 @@ import { join } from 'node:path';
 import { spawn } from 'node:child_process';
 import { getTasksDir, findTaskPath, readBoard, readTask, moveTaskToColumn, listTaskIds } from './board-reader';
 import { loadConfig, saveConfig } from './config';
+import { detectCatalogJSON } from './agents';
 import { getCurrentVersion, getInstalledVersion, semverGt, performGlobalPackageUpdate, PKG_ROOT } from './updater';
 import { atomicWriteFileSync } from './atomic-write';
 
@@ -294,6 +295,12 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
 
   if (path === '/api/tasks' && method === 'GET') {
     return writeJson(res, 200, listTaskIds(kandownDir));
+  }
+
+  // 📖 Detected agent catalog for the web UI. Detection (`which`) runs here in
+  // the daemon (Node) — the browser can't see $PATH, so it asks the backend.
+  if (path === '/api/agents' && method === 'GET') {
+    return writeJson(res, 200, detectCatalogJSON(kandownDir));
   }
 
   if (path.startsWith('/api/tasks/')) {

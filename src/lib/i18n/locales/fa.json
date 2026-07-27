@@ -207,5 +207,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "تنظیمات خارجاً به‌روزرسانی شد — بارگذاری مجدد شد"
+  },
+  "bulk": {
+    "priority": "اولویت",
+    "assignee": "محول شده به",
+    "dueDate": "سررسید",
+    "tags": "برچسب‌ها",
+    "unassign": "لغو تخصیص",
+    "move": "انتقال",
+    "archive": "بایگانی",
+    "delete": "حذف",
+    "confirmDelete": "تأیید حذف",
+    "selectAll": "انتخاب همه",
+    "clear": "پاک کردن انتخاب",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

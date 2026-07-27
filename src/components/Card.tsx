@@ -35,10 +35,9 @@
  * @see src/components/Drawer.tsx
  */
 
-import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconTrash, IconTrashX } from '@tabler/icons-react';
 import { Icon } from './Icons';
+import { AssigneeAvatar } from './agentIcons';
 import type { BoardTask, Density, SearchMatch } from '../lib/types';
 import { useStore } from '../lib/store';
 
@@ -172,13 +171,7 @@ interface CardProps {
 export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd, columnName, doneTags }: CardProps) {
   const { t } = useTranslation();
   const openDrawer = useStore(s => s.openDrawer);
-  const deleteTask = useStore(s => s.deleteTask);
-  const archiveTask = useStore(s => s.archiveTask);
   const showMetadata = useStore(s => s.showMetadata);
-  const [deleteArmed, setDeleteArmed] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isArchiving, setIsArchiving] = useState(false);
-  const isMountedRef = useRef(true);
 
   const isCompact = density === 'compact';
 
@@ -204,50 +197,9 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       task.frontmatter.epic ||
       task.frontmatter.report ||
       task.frontmatter.agentReport ||
-      (task.dependsOn && task.dependsOn.length > 0)
+      (task.dependsOn && task.dependsOn.length > 0) ||
+      task.assignee
   );
-
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!deleteArmed) return;
-
-    const timer = window.setTimeout(() => setDeleteArmed(false), 2400);
-    return () => window.clearTimeout(timer);
-  }, [deleteArmed]);
-
-  const handleDeleteClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (isDeleting || isArchiving) return;
-
-    if (!deleteArmed) {
-      setDeleteArmed(true);
-      return;
-    }
-
-    setIsDeleting(true);
-    await deleteTask(task.id);
-    if (isMountedRef.current) {
-      setIsDeleting(false);
-      setDeleteArmed(false);
-    }
-  };
-
-  const handleArchiveClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (isDeleting || isArchiving) return;
-
-    setIsArchiving(true);
-    await archiveTask(task.id);
-    if (isMountedRef.current) setIsArchiving(false);
-  };
 
   const selectedTaskIds = useStore(s => s.selectedTaskIds);
   const toggleTaskSelection = useStore(s => s.toggleTaskSelection);
@@ -279,7 +231,6 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
           openDrawer(task.id);
         }
       }}
-      onMouseLeave={() => setDeleteArmed(false)}
       data-task-id={task.id}
       data-col={columnName}
       className={`group relative cursor-pointer border-b border-border/60 bg-white/25 transition-colors duration-150 ease-out
@@ -290,9 +241,30 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
           : 'hover:bg-black/[0.03] dark:hover:bg-white/[0.04]'
       } ${task.checked ? 'opacity-70' : ''}`}
     >
-      {/* Title row: # left of title, actions absolutely positioned top-right.
-          The title grows with its content — no line-clamp, no truncation. */}
+      {/* Title row: checkbox (hover) | # | title. The title grows with its
+          content — no line-clamp, no truncation. */}
       <div className="flex items-start gap-2">
+        {/* 📖 Linear-style selection checkbox. Mirrors ListRow: appears on
+            hover, stays visible for every card once any task is selected. */}
+        <button
+          type="button"
+          aria-label={isSelected ? t('bulk.deselect') : t('bulk.select')}
+          aria-pressed={isSelected}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleTaskSelection(task.id);
+          }}
+          onPointerDown={e => e.stopPropagation()}
+          className={`flex-none mt-[2px] flex items-center justify-center h-[18px] w-[18px] rounded-[5px] border transition-colors cursor-pointer ${
+            isSelected
+              ? 'bg-primary border-primary text-primary-foreground'
+              : `border-border/70 text-transparent hover:border-primary/60 hover:bg-primary/5 ${
+                  (selectedTaskIds?.length ?? 0) > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100'
+                }`
+          }`}
+        >
+          <Icon.Check size={12} strokeWidth={3} />
+        </button>
         <span className="font-mono text-[11.5px] font-medium text-fg-faint tabular-nums flex-none pt-[2px]">
           {task.id.replace(/^t/, '#')}
         </span>
@@ -312,6 +284,10 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
 
           {hasMetaBadges && (
             <div className={`${metaGap} flex items-center gap-1.5 flex-wrap`}>
+              {/* Assignee — branded agent logo (LobeHub) or human initial avatar */}
+              {task.assignee && (
+                <AssigneeAvatar assignee={task.assignee} size={16} withLabel />
+              )}
               {task.frontmatter.epic ? (
                 <span
                   className="inline-flex items-center h-[16px] px-1.5 text-[10px] font-semibold text-sky-700 dark:text-sky-300 bg-sky-500/10 border border-sky-500/20 rounded"
@@ -374,59 +350,6 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       )}
 
       <MetadataBlock frontmatter={task.frontmatter} hidden={showMetadata} />
-
-      {/* Hover actions — absolutely positioned so the title row keeps its
-          natural height. Drag handle, archive, delete. */}
-      <div
-        className={`absolute right-2 top-1.5 z-10 flex items-center gap-1 ${
-          isCompact ? 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100' : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
-        }`}
-        onPointerDown={e => e.stopPropagation()}
-        draggable={false}
-      >
-        <div className="opacity-50 hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing px-1" title="Drag">
-          <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor" className="text-fg-muted">
-            <circle cx="3" cy="2" r="1.5"/>
-            <circle cx="7" cy="2" r="1.5"/>
-            <circle cx="3" cy="8" r="1.5"/>
-            <circle cx="7" cy="8" r="1.5"/>
-            <circle cx="3" cy="14" r="1.5"/>
-            <circle cx="7" cy="14" r="1.5"/>
-          </svg>
-        </div>
-        <button
-          type="button"
-          draggable={false}
-          aria-label={t('card.archive')}
-          title={t(isArchiving ? 'card.archiving' : 'card.archive')}
-          disabled={isDeleting || isArchiving}
-          onClick={handleArchiveClick}
-          className={`inline-flex h-6 w-6 items-center justify-center rounded-md border transition-all ${
-            isArchiving
-              ? 'border-accent bg-accent/15 text-accent opacity-100'
-              : 'border-border bg-card text-fg-muted hover:border-accent/60 hover:bg-card hover:text-accent'
-          } ${isDeleting ? 'pointer-events-none opacity-40' : ''}`}
-        >
-          <Icon.Archive size={14} strokeWidth={1.8} />
-        </button>
-        <button
-          type="button"
-          draggable={false}
-          aria-label={deleteArmed ? t('card.confirmDelete') : t('card.delete')}
-          title={deleteArmed ? t('card.confirmDelete') : t('card.delete')}
-          disabled={isDeleting || isArchiving}
-          onClick={handleDeleteClick}
-          onPointerDown={e => e.stopPropagation()}
-          onBlur={() => setDeleteArmed(false)}
-          className={`inline-flex h-6 w-6 items-center justify-center rounded-md border transition-all ${
-            deleteArmed
-              ? 'border-red-500 bg-red-500 text-white opacity-100 shadow-sm'
-              : 'border-border bg-card text-fg-muted hover:border-red-500/60 hover:bg-card hover:text-red-500'
-          } ${isDeleting || isArchiving ? 'pointer-events-none opacity-60' : ''}`}
-        >
-          {deleteArmed ? <IconTrashX size={14} stroke={1.9} /> : <IconTrash size={14} stroke={1.8} />}
-        </button>
-      </div>
     </div>
   );
 }

@@ -240,5 +240,30 @@
     "ko": "Korea",
     "zh": "Hiina",
     "ar": "Araabia"
+  },
+  "bulk": {
+    "priority": "Prioriteet",
+    "assignee": "Määratud",
+    "dueDate": "Tähtaeg",
+    "tags": "Sildid",
+    "unassign": "Eemalda määramine",
+    "move": "Teisalda",
+    "archive": "Arhiveeri",
+    "delete": "Kustuta",
+    "confirmDelete": "Kinnita kustutamine",
+    "selectAll": "Vali kõik",
+    "clear": "Tühjenda valik",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

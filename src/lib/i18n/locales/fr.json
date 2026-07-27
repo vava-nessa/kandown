@@ -58,7 +58,7 @@
     "archiveAll": "Archiver toutes les tâches",
     "deleteAll": "Supprimer toutes les tâches",
     "archiveAllConfirm": "Archiver les {{count}} tâches de « {{column}} » ? Vous pourrez les restaurer plus tard.",
-    "deleteAllConfirm": "Supprimer définitivement les {{count}} tâches de « {{column}} » ? Cette action est irréversible." 
+    "deleteAllConfirm": "Supprimer définitivement les {{count}} tâches de « {{column}} » ? Cette action est irréversible."
   },
   "card": {
     "delete": "Supprimer la tâche",
@@ -281,5 +281,30 @@
     "ko": "Coréen",
     "fa": "Perse",
     "pcm": "Pidgin nigérian"
+  },
+  "bulk": {
+    "unassign": "Désassigner",
+    "selectAllHint": "Tout sélectionner (visibles)",
+    "selectedOne": "sélectionnée",
+    "selectedMany": "sélectionnées",
+    "priority": "Priorité",
+    "assignee": "Assignée",
+    "assignNew": "Assigner @{{name}}",
+    "dueDate": "Échéance",
+    "clearDue": "Effacer l'échéance",
+    "tags": "Tags",
+    "add": "Ajouter",
+    "remove": "Retirer",
+    "tagPlaceholder": "nom du tag",
+    "addTag": "Ajouter #{{name}}",
+    "move": "Déplacer",
+    "archive": "Archiver",
+    "delete": "Supprimer",
+    "confirmDelete": "Confirmer la suppression",
+    "selectAll": "Tout sélectionner",
+    "clear": "Effacer la sélection"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non chainable depuis kandown (app/desktop, libellé uniquement)"
   }
 }

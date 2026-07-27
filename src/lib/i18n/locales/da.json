@@ -240,5 +240,30 @@
     "ko": "Koreansk",
     "zh": "Kinesisk",
     "ar": "Arabisk"
+  },
+  "bulk": {
+    "priority": "Prioritet",
+    "assignee": "Tildelt",
+    "dueDate": "Forfaldsdato",
+    "tags": "Tags",
+    "unassign": "Fjern tildeling",
+    "move": "Flyt",
+    "archive": "Arkiver",
+    "delete": "Slet",
+    "confirmDelete": "Bekræft sletning",
+    "selectAll": "Vælg alle",
+    "clear": "Ryd valg",
+    "selectedOne": "selected",
+    "selectedMany": "selected",
+    "assignNew": "Assign @{{name}}",
+    "clearDue": "Clear due date",
+    "add": "Add",
+    "remove": "Remove",
+    "tagPlaceholder": "tag name",
+    "addTag": "Add #{{name}}",
+    "selectAllHint": "Select all (visible)"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
   }
 }

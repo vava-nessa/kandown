@@ -17,8 +17,10 @@
  *      assignee, due) collapses into a single compact sub-row below the
  *      title. Used by `TaskWorkspace` sidebar (narrow ~300px column) so a
  *      1-line title with ellipsis beats a 12-line vertical word stack.
- * 📖 Two modes: `list` (default, draggable, archive/delete buttons) and
- * `archive` (not draggable, restore/delete buttons). Both modes share one
+ * 📖 Two modes: `list` (default, draggable, Linear-style selection — a
+ * checkbox appears on hover, or stays visible for every row once any task is
+ * selected, so multi-select + bulk actions feel like Linear) and `archive`
+ * (not draggable, shows a Restore button on hover). Both modes share one
  * renderer — see `ArchiveView`.
  *
  * @functions
@@ -30,10 +32,10 @@
  * @see src/components/Card.tsx
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconArrowsMove, IconTrash, IconTrashX } from '@tabler/icons-react';
 import { Icon } from './Icons';
+import { AssigneeAvatar } from './agentIcons';
 import type { BoardTask, Density, SearchMatch } from '../lib/types';
 import { useStore } from '../lib/store';
 
@@ -149,6 +151,10 @@ interface ListRowProps {
   columnName: string;
   doneTags?: Set<string>;
   onSelect?: (taskId: string) => void;
+  /** Shift-range selection handler. When provided (list view), shift-clicking
+ * the row selects every task between the last anchor and this one. Omitted in
+ * archive/inline contexts where range selection does not apply. */
+  onShiftSelect?: (taskId: string) => void;
   isActive?: boolean;
   /**
    * Rendering mode.
@@ -180,37 +186,27 @@ export function ListRow({
   columnName,
   doneTags,
   onSelect,
+  onShiftSelect,
   isActive = false,
   mode = 'list',
   inline = false,
 }: ListRowProps) {
   const { t } = useTranslation();
   const openDrawer = useStore(s => s.openDrawer);
-  const deleteTask = useStore(s => s.deleteTask);
-  const archiveTask = useStore(s => s.archiveTask);
   const unarchiveTask = useStore(s => s.unarchiveTask);
-  const moveTask = useStore(s => s.moveTask);
-  const columns = useStore(s => s.columns);
   const showMetadata = useStore(s => s.showMetadata);
   const selectedTaskIds = useStore(s => s.selectedTaskIds);
   const toggleTaskSelection = useStore(s => s.toggleTaskSelection);
 
-  const [deleteArmed, setDeleteArmed] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isArchiving, setIsArchiving] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
-  // 📖 Move modal state. Per-row so only one modal is open at a time across
-  // the rendered list — opening one resets the others.
-  const [showMoveModal, setShowMoveModal] = useState(false);
-  const [moveTargetIndex, setMoveTargetIndex] = useState(0);
   const isMountedRef = useRef(true);
-
-  // 📖 Columns the user can move TO. Archive mode keeps them all visible so
-  // restore-via-move and direct move share the same picker.
-  const movableColumns = useMemo(() => columns, [columns]);
 
   const isCompact = density === 'compact';
   const isSelected = isActive || (selectedTaskIds?.includes(task.id) ?? false);
+  // 📖 Linear behaviour: once any task is selected, every row reveals its
+  // checkbox so the user can keep adding to the selection without hunting
+  // for the hover target.
+  const anySelected = (selectedTaskIds?.length ?? 0) > 0;
 
   const dragHandlers = {
     onDragStart,
@@ -232,77 +228,14 @@ export function ListRow({
     };
   }, []);
 
-  useEffect(() => {
-    if (!deleteArmed) return;
-    const timer = window.setTimeout(() => setDeleteArmed(false), 2400);
-    return () => window.clearTimeout(timer);
-  }, [deleteArmed]);
-
-  const handleDeleteClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (isDeleting || isArchiving) return;
-
-    if (!deleteArmed) {
-      setDeleteArmed(true);
-      return;
-    }
-
-    setIsDeleting(true);
-    await deleteTask(task.id);
-    if (isMountedRef.current) {
-      setIsDeleting(false);
-      setDeleteArmed(false);
-    }
-  };
-
-  const handleArchiveClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (isDeleting || isArchiving) return;
-
-    setIsArchiving(true);
-    await archiveTask(task.id);
-    if (isMountedRef.current) setIsArchiving(false);
-  };
-
   const handleRestoreClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     e.preventDefault();
-    if (isDeleting || isRestoring) return;
+    if (isRestoring) return;
 
     setIsRestoring(true);
     await unarchiveTask(task.id);
     if (isMountedRef.current) setIsRestoring(false);
-  };
-
-  const openMoveModal = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (isDeleting || isArchiving || isRestoring) return;
-    // 📖 Pre-select the column right after the current one so the most likely
-    // next move is the default. Falls back to 0 if we're already last.
-    const currentIdx = movableColumns.findIndex(c => c.name === columnName);
-    const nextIdx = currentIdx >= 0 && currentIdx < movableColumns.length - 1
-      ? currentIdx + 1
-      : 0;
-    setMoveTargetIndex(Math.max(0, nextIdx));
-    setShowMoveModal(true);
-  };
-
-  const closeMoveModal = () => setShowMoveModal(false);
-
-  const confirmMove = async (toCol: string) => {
-    if (toCol === columnName) {
-      setShowMoveModal(false);
-      return;
-    }
-    setShowMoveModal(false);
-    try {
-      await moveTask(task.id, columnName, toCol);
-    } catch {
-      // store surfaces a toast on failure — swallow here.
-    }
   };
 
   return (
@@ -310,7 +243,11 @@ export function ListRow({
       draggable={!!onDragStart}
       {...dragHandlers}
       onClick={(e) => {
-        if (e.metaKey || e.ctrlKey || e.shiftKey) {
+        if (e.shiftKey) {
+          e.stopPropagation();
+          if (onShiftSelect) onShiftSelect(task.id);
+          else toggleTaskSelection(task.id);
+        } else if (e.metaKey || e.ctrlKey) {
           e.stopPropagation();
           toggleTaskSelection(task.id);
         } else if (onSelect) {
@@ -319,7 +256,6 @@ export function ListRow({
           openDrawer(task.id);
         }
       }}
-      onMouseLeave={() => setDeleteArmed(false)}
       data-task-id={task.id}
       data-col={columnName}
       className={`group relative px-3 transition-colors duration-150 ease-out border-b border-border/60 last:border-b-0 cursor-pointer ${
@@ -337,18 +273,35 @@ export function ListRow({
             full available width and shows ellipsis on overflow. Right chips
             move to the meta sub-row below. */}
       <div className={`flex ${inline ? 'items-center' : 'items-start'} gap-2`}>
-        {/* Drag handle */}
+        {/* 📖 Linear-style selection checkbox. Appears on hover, but stays
+            visible for EVERY row once at least one task is selected, so the
+            user can keep adding to the selection. Only shown in list mode —
+            archive rows are not selectable. Clicking it toggles selection
+            without opening the drawer. */}
         {mode === 'list' && (
-          <div className="flex-none pt-[2px] opacity-0 group-hover:opacity-40 transition-opacity cursor-grab active:cursor-grabbing">
-            <svg width="8" height="14" viewBox="0 0 8 14" fill="currentColor" className="text-fg-muted">
-              <circle cx="2" cy="2" r="1.2"/>
-              <circle cx="6" cy="2" r="1.2"/>
-              <circle cx="2" cy="7" r="1.2"/>
-              <circle cx="6" cy="7" r="1.2"/>
-              <circle cx="2" cy="12" r="1.2"/>
-              <circle cx="6" cy="12" r="1.2"/>
-            </svg>
-          </div>
+          <button
+            type="button"
+            aria-label={isSelected ? t('bulk.deselect') : t('bulk.select')}
+            aria-pressed={isSelected}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (e.shiftKey && onShiftSelect) {
+                onShiftSelect(task.id);
+                return;
+              }
+              toggleTaskSelection(task.id);
+            }}
+            onPointerDown={e => e.stopPropagation()}
+            className={`flex-none mt-[1px] flex items-center justify-center h-[18px] w-[18px] rounded-[5px] border transition-colors cursor-pointer ${
+              isSelected
+                ? 'bg-primary border-primary text-primary-foreground'
+                : `border-border/70 text-transparent hover:border-primary/60 hover:bg-primary/5 ${
+                    anySelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100'
+                  }`
+            }`}
+          >
+            <Icon.Check size={12} strokeWidth={3} />
+          </button>
         )}
 
         {/* Priority indicator badge */}
@@ -492,11 +445,9 @@ export function ListRow({
             </span>
           )}
 
-          {/* Assignee */}
+          {/* Assignee — branded agent logo (LobeHub) or human initial avatar */}
           {task.assignee && (
-            <span className="inline-flex items-center h-[18px] px-1.5 text-[10.5px] font-medium text-fg-muted rounded bg-black/[0.04] dark:bg-white/[0.06]">
-              @{task.assignee}
-            </span>
+            <AssigneeAvatar assignee={task.assignee} size={16} withLabel />
           )}
 
           {/* Due Date */}
@@ -508,60 +459,27 @@ export function ListRow({
         </div>
       )}
 
-      {/* 📖 Hover action overlay. Absolutely positioned, vertically centered
-          on the row, fading in on hover or focus-within. Archive + Delete are
-          red so the destructive actions read as destructive even before the
-          user commits; Move stays neutral because it is not destructive.
-          In archive mode the Archive button is swapped for Restore (which
-          also calls Move through the picker — opening the modal lets the
-          user pick the target column instead of going back to the default
-          column). */}
-      <div
-        className="absolute right-2 top-1/2 -translate-y-1/2 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity"
-        onPointerDown={e => e.stopPropagation()}
-      >
-        {mode === 'list' && (
+      {/* 📖 Archive-mode only: a hover Restore button. Active-board rows no
+          longer carry per-row action buttons — archive/move/delete all live in
+          the floating bulk bar once selected (Linear-style). Archive rows are
+          not selectable, so they keep their own restore affordance. */}
+      {mode === 'archive' && (
+        <div
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity"
+          onPointerDown={e => e.stopPropagation()}
+        >
           <button
             type="button"
-            aria-label={t('card.archive')}
-            title={t(isArchiving ? 'card.archiving' : 'card.archive')}
-            disabled={isDeleting || isArchiving}
-            onClick={handleArchiveClick}
-            className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition-all ${
-              isArchiving
-                ? 'border-red-500 bg-red-500/20 text-red-500 opacity-100'
-                : 'border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 hover:border-red-500/60'
-            }`}
+            aria-label={t('drawer.restore')}
+            title={t(isRestoring ? 'card.archiving' : 'drawer.restore')}
+            disabled={isRestoring}
+            onClick={handleRestoreClick}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border/60 bg-bg-1/80 text-fg-muted transition-all hover:border-accent/60 hover:text-accent hover:bg-accent/10"
           >
-            <Icon.Archive size={14} strokeWidth={1.8} />
+            <Icon.ArchiveRestore size={14} strokeWidth={1.8} />
           </button>
-        )}
-        <button
-          type="button"
-          aria-label={mode === 'archive' ? t('drawer.restore') : t('card.move')}
-          title={mode === 'archive' ? t(isRestoring ? 'card.archiving' : 'drawer.restore') : t('card.move')}
-          disabled={isDeleting || isArchiving || isRestoring}
-          onClick={mode === 'archive' ? handleRestoreClick : openMoveModal}
-          className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border/60 bg-bg-1/80 text-fg-muted transition-all hover:border-accent/60 hover:text-accent hover:bg-accent/10"
-        >
-          {mode === 'archive' ? <Icon.ArchiveRestore size={14} strokeWidth={1.8} /> : <IconArrowsMove size={14} stroke={1.8} />}
-        </button>
-        <button
-          type="button"
-          aria-label={deleteArmed ? t('card.confirmDelete') : t('card.delete')}
-          title={deleteArmed ? t('card.confirmDelete') : t('card.delete')}
-          disabled={isDeleting || isArchiving || isRestoring}
-          onClick={handleDeleteClick}
-          onBlur={() => setDeleteArmed(false)}
-          className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition-all ${
-            deleteArmed
-              ? 'border-red-500 bg-red-500 text-white opacity-100 shadow-sm'
-              : 'border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white hover:border-red-500'
-          }`}
-        >
-          {deleteArmed ? <IconTrashX size={14} stroke={1.9} /> : <IconTrash size={14} stroke={1.8} />}
-        </button>
-      </div>
+        </div>
+      )}
 
       {/* Search match previews */}
       {showPreview && (
@@ -578,133 +496,7 @@ export function ListRow({
       )}
 
       <MetadataBlock frontmatter={task.frontmatter} hidden={showMetadata} />
-
-      {showMoveModal && (
-        <MoveModal
-          columns={movableColumns}
-          currentColumn={columnName}
-          selectedIndex={moveTargetIndex}
-          onSelectIndex={setMoveTargetIndex}
-          onConfirm={confirmMove}
-          onClose={closeMoveModal}
-        />
-      )}
     </div>
   );
 }
 
-/**
- * 📖 Move picker. Keyboard-first: ArrowUp/ArrowDown move the highlight,
- * Enter confirms, Esc closes. Mouse clicks also work. The current column is
- * shown but greyed out so users can see context, and confirming it is a
- * no-op (the row doesn't visibly change).
- */
-function MoveModal({
-  columns,
-  currentColumn,
-  selectedIndex,
-  onSelectIndex,
-  onConfirm,
-  onClose,
-}: {
-  columns: { name: string; tasks: BoardTask[] }[];
-  currentColumn: string;
-  selectedIndex: number;
-  onSelectIndex: (i: number) => void;
-  onConfirm: (colName: string) => void;
-  onClose: () => void;
-}) {
-  const { t } = useTranslation();
-
-  // 📖 Clamp the selected index when columns change so we never point past
-  // the end of the list. Re-runs whenever the prop changes.
-  useEffect(() => {
-    if (selectedIndex >= columns.length) onSelectIndex(Math.max(0, columns.length - 1));
-  }, [columns.length, selectedIndex, onSelectIndex]);
-
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      onClose();
-      return;
-    }
-    if (e.key === 'ArrowDown' || (e.shiftKey && e.key === 'Tab')) {
-      e.preventDefault();
-      onSelectIndex((selectedIndex + 1) % columns.length);
-      return;
-    }
-    if (e.key === 'ArrowUp' || e.key === 'Tab') {
-      e.preventDefault();
-      onSelectIndex((selectedIndex - 1 + columns.length) % columns.length);
-      return;
-    }
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const target = columns[selectedIndex];
-      if (target) onConfirm(target.name);
-    }
-  };
-
-  return (
-    <div
-      className="fixed inset-0 z-[300] flex items-center justify-center p-4"
-      onClick={onClose}
-      onKeyDown={onKeyDown}
-      role="dialog"
-      aria-modal="true"
-      aria-label={t('card.move')}
-      tabIndex={-1}
-      ref={el => el?.focus()}
-    >
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-[3px]" />
-      <div
-        className="relative w-[min(360px,92vw)] max-h-[70vh] overflow-hidden rounded-xl border border-border bg-card shadow-2xl"
-        onClick={e => e.stopPropagation()}
-      >
-        <header className="flex items-center justify-between gap-2 px-4 h-11 border-b border-border/60 bg-bg-1/60">
-          <div className="flex items-center gap-2 text-[13px] font-semibold tracking-tight">
-            <IconArrowsMove size={14} stroke={1.8} className="text-fg-muted" />
-            {t('card.move')}
-          </div>
-          <span className="kbd">esc</span>
-        </header>
-        <ul className="max-h-[60vh] overflow-y-auto py-1" role="listbox">
-          {columns.length === 0 ? (
-            <li className="px-4 py-3 text-[13px] text-fg-muted italic">
-              {t('column.noColumns')}
-            </li>
-          ) : (
-            columns.map((col, i) => {
-              const isCurrent = col.name === currentColumn;
-              const isSelected = i === selectedIndex;
-              return (
-                <li
-                  key={col.name}
-                  role="option"
-                  aria-selected={isSelected}
-                  onMouseEnter={() => onSelectIndex(i)}
-                  onClick={() => onConfirm(col.name)}
-                  className={`flex items-center justify-between gap-3 px-4 py-2 text-[13.5px] cursor-pointer transition-colors ${
-                    isSelected ? 'bg-accent text-accent-foreground' : 'text-fg hover:bg-bg-1'
-                  } ${isCurrent ? 'opacity-60' : ''}`}
-                >
-                  <span className="truncate font-medium">{col.name}</span>
-                  <span className="flex items-center gap-2 flex-none">
-                    <span className={`font-mono text-[11px] ${isSelected ? 'text-accent-foreground/70' : 'text-fg-muted'}`}>
-                      {col.tasks.length}
-                    </span>
-                    {isCurrent && (
-                      <span className={`font-mono text-[10px] uppercase tracking-wide ${isSelected ? 'text-accent-foreground/70' : 'text-fg-faint'}`}>
-                        current
-                      </span>
-                    )}
-                  </span>
-                </li>
-              );
-            })
-          )}
-        </ul>
-      </div>
-    </div>
-  );
-}

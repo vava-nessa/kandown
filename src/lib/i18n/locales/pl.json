@@ -225,5 +225,30 @@
     "pl": "Polski",
     "uk": "Ukraiński",
     "ro": "Rumuński"
+  },
+  "bulk": {
+    "priority": "Priorytet",
+    "assignee": "Przypisany",
+    "assignNew": "Przypisz do @{{name}}",
+    "dueDate": "Termin",
+    "clearDue": "Wyczyść termin",
+    "tags": "Tagi",
+    "add": "Dodaj",
+    "remove": "Usuń",
+    "tagPlaceholder": "nazwa tagu",
+    "addTag": "Dodaj #{{name}}",
+    "move": "Przenieś",
+    "unassign": "Cofnij przypisanie",
+    "archive": "Archiwizuj",
+    "delete": "Usuń",
+    "confirmDelete": "Potwierdź usunięcie",
+    "selectAll": "Zaznacz wszystko",
+    "selectAllHint": "Zaznacz wszystko (widoczne)",
+    "clear": "Wyczyść zaznaczenie",
+    "selectedOne": "selected",
+    "selectedMany": "selected"
+  },
+  "agent": {
+    "desktopTooltip": "{{name}} — nie można połączyć z kandown (aplikacja/desktop, tylko etykieta)"
   }
 }

@@ -175,6 +175,14 @@ export function AboutVersionCard({ currentVersion, updateStatus, latestVersion, 
         >
           npm
         </a>
+        <a
+          href="https://www.reddit.com/r/kandown/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[13px] text-fg underline underline-offset-2 hover:text-fg-muted"
+        >
+          Reddit: r/kandown
+        </a>
         {/* 📖 Full changelog index lives next to the npm link. The version
             link further up only opens one release; this is the entry point
             for someone browsing the whole history. */}
