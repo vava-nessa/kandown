@@ -5,11 +5,14 @@
  * assets so the prerendered `/extensions` route can load it as a static file.
  *
  * 📖 The canonical home of the index is `registry/extensions.json` in the
- * kandown repo. In production we fetch it from
- * `raw.githubusercontent.com/vava-nessa/kandown/main/registry/extensions.json`
- * (the same URL the daemon serves). In local development — or when the
- * network is unavailable — the script falls back to reading the file directly
- * from disk so `pnpm dev` never breaks.
+ * kandown repo. This build script runs **inside the same repo**, so the local
+ * copy on disk is the freshest source available — we read it first. In
+ * practice Node's `fetch` and `curl` can hit different CDN edges for the same
+ * `raw.githubusercontent.com` URL (we observed one caching the pre-update
+ * payload while the other saw the latest), so trusting the remote at build
+ * time is a foot-gun. Remote fetch is kept as a fallback so a checkout that
+ * lacks `registry/extensions.json` (e.g. an unusual clone) still produces
+ * something usable, with a warning.
  *
  * 📖 **Why a build step.** The route is prerendered, so the data must exist
  * before the page is generated. Bundling a 3 KB JSON at build is cheaper than
@@ -55,38 +58,42 @@ function collectTags(entries) {
 }
 
 async function main() {
-  /** { entries, url, source: 'remote'|'local', generatedAt, tags } */
-  let payload
+  // 📖 Local first: this script ships in the same repo as the registry, so
+  // the file on disk is always the freshest authoritative source. Remote is a
+  // fallback for an unusual checkout.
+  let entries
+  let source
+  let url
   try {
-    const entries = await fetchRemote(REGISTRY_REMOTE)
-    payload = {
-      entries: Array.isArray(entries) ? entries : entries.entries ?? [],
-      url: REGISTRY_REMOTE,
-      source: 'remote',
+    entries = await readLocal()
+    source = 'local'
+    url = REGISTRY_LOCAL
+  } catch (localError) {
+    console.warn(`[extensions] local read failed (${localError.message}), falling back to remote`)
+    try {
+      entries = await fetchRemote(REGISTRY_REMOTE)
+      source = 'remote'
+      url = REGISTRY_REMOTE
+    } catch (remoteError) {
+      throw new Error(
+        `neither local (${REGISTRY_LOCAL}) nor remote (${REGISTRY_REMOTE}) worked: ` +
+          `${localError.message} / ${remoteError.message}`,
+      )
     }
-  } catch (error) {
-    const entries = await readLocal()
-    payload = {
-      entries,
-      url: REGISTRY_LOCAL,
-      source: 'local',
-      fallbackReason: error instanceof Error ? error.message : String(error),
-    }
-    console.warn(`[extensions] remote fetch failed (${payload.fallbackReason}), using local file`)
   }
 
   const out = {
     generatedAt: new Date().toISOString(),
-    url: payload.url,
-    source: payload.source,
-    tags: collectTags(payload.entries),
-    entries: payload.entries,
+    url,
+    source,
+    tags: collectTags(entries),
+    entries,
   }
 
   await mkdir(OUT_DIR, { recursive: true })
   await writeFile(join(OUT_DIR, 'index.json'), `${JSON.stringify(out, null, 2)}\n`, 'utf8')
 
-  console.log(`[extensions] ${out.entries.length} entries, ${out.tags.length} tags → public/extensions/`)
+  console.log(`[extensions] ${out.entries.length} entries, ${out.tags.length} tags → public/extensions/ (source: ${source})`)
 }
 
 main().catch((error) => {
