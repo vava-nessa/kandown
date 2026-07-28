@@ -38,7 +38,6 @@
 import { useNpmDownloads } from '~/lib/npmDownloads'
 import { formatCompact } from '~/lib/cachedCount'
 import { HeaderCountLink } from './HeaderCountLink'
-import npmLogoUrl from '../../../npmjs.svg?url'
 
 export function NpmDownloads({ href }: { href: string }) {
   const { count, isLifetime, loading } = useNpmDownloads()
@@ -53,14 +52,9 @@ export function NpmDownloads({ href }: { href: string }) {
       count={text}
       brand={
         <>
-          <img
-            src={npmLogoUrl}
-            width="26"
-            height="10"
-            alt=""
-            aria-hidden="true"
-            className="shrink-0"
-          />
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="shrink-0 text-[#CB3837]">
+            <path d="M0 0v24h24V0H0zm19.2 19.2H12v-9.6H9.6v9.6H4.8V4.8h14.4v14.4z" />
+          </svg>
           <span>npm</span>
         </>
       }
