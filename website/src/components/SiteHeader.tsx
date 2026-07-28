@@ -27,6 +27,7 @@ import { site } from '~/lib/site'
 // That keeps them type-checked against the route tree.
 const NAV = [
   { slug: 'introduction', label: 'Docs' },
+  { to: '/extensions', label: 'Extensions' },
 ] as const
 
 export function SiteHeader() {
@@ -56,9 +57,9 @@ export function SiteHeader() {
         <nav className="hidden items-center gap-6 md:flex">
           {NAV.map((item) => (
             <Link
-              key={item.slug}
-              to="/docs/$"
-              params={{ _splat: item.slug }}
+              key={'slug' in item ? item.slug : item.to}
+              to={'slug' in item ? '/docs/$' : item.to}
+              params={'slug' in item ? { _splat: item.slug } : undefined}
               className="label border-b-2 border-transparent py-1 transition-colors hover:text-fg"
               activeProps={{ className: 'label border-b-2 border-accent py-1 text-fg' }}
             >
@@ -131,9 +132,9 @@ export function SiteHeader() {
         <nav className="border-t border-border bg-bg px-5 py-3 md:hidden">
           {NAV.map((item) => (
             <Link
-              key={item.slug}
-              to="/docs/$"
-              params={{ _splat: item.slug }}
+              key={'slug' in item ? item.slug : item.to}
+              to={'slug' in item ? '/docs/$' : item.to}
+              params={'slug' in item ? { _splat: item.slug } : undefined}
               onClick={() => setOpen(false)}
               className="label block border-b border-border py-3 hover:text-fg"
             >
