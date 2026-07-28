@@ -300,6 +300,31 @@ kind.
 
 ---
 
+## Extensions
+
+kandown has an extension system: custom task fields, web panels, CLI commands,
+transition gates and sync integrations. It is designed so a broken or malicious
+extension cannot break the core. The full reference is
+[`EXTENSIONS.md`](EXTENSIONS.md), and the decision behind it is
+[`adr/0002-extensions-system.md`](adr/0002-extensions-system.md).
+
+Two things carry from here into the extension design:
+
+- **Extension data is opaque to the core.** It lives under a reserved
+  `plugins.<id>.*` frontmatter namespace that the parser and serializer
+  round-trip without interpreting. This is invariant #1 (the round-trip) extended
+  to third-party data, and it is why extensions are forward-compatible by
+  construction.
+- **One gate, still one implementation.** Extension gates compose with the
+  dependency gate from a shared call site; the rule itself is never copied into a
+  new surface (see ADR 0001).
+
+Because extensions persist data inside the task file, they inherit every
+invariant above for free, and they add one of their own: a failing extension is
+isolated (disabled or quarantined) and never takes the board down with it.
+
+---
+
 ## Where to go next
 
 | You want to | Go to |
@@ -309,4 +334,5 @@ kind.
 | Know what depends on what | `graphify query "…"` |
 | Cut a release | [`RELEASE.md`](RELEASE.md) |
 | Know the project's rules | [`AGENTS.md`](../AGENTS.md) |
+| Extend kandown (plugins, fields, panels) | [`EXTENSIONS.md`](EXTENSIONS.md) |
 | See what needs doing | `kandown work` |

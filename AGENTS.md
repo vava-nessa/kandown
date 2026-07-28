@@ -18,6 +18,7 @@ Markdown, installed into other projects with `npx kandown init`.
 | 4 | `AGENT_KANDOWN.md` | Any task, backlog or board work |
 | 5 | [`docs/RELEASE.md`](docs/RELEASE.md) | On "bump" / cutting a release |
 | 6 | [`README.md`](README.md) | For the user-facing feature surface |
+| 7 | [`docs/EXTENSIONS.md`](docs/EXTENSIONS.md) | Before touching the extension/plugin system, or anything under `plugins.*` |
 
 Then run **`kandown work`**: it prints the current agent rules plus a live board
 digest and the next actionable task.
@@ -111,6 +112,25 @@ Same goes for en-dashes (`–`, U+2013) when used as a pause.
 
 **Do not** save em-dashes to disk. Writing one and then "fixing the prose later" is
 not a workflow; the prose is the deliverable.
+
+### 8. The extension system has a spec; read it before extending
+
+kandown has an extension system (custom fields, web panels, CLI commands, gates,
+sync). Before adding a contribution point, writing an extension, or touching
+anything under the `plugins.*` frontmatter namespace, read
+[`docs/EXTENSIONS.md`](docs/EXTENSIONS.md) and
+[`docs/adr/0002-extensions-system.md`](docs/adr/0002-extensions-system.md).
+
+Two non-negotiables from that spec:
+
+- Extension data lives **only** under `plugins.<id>.*`, opaque to the core. Never
+  add a second file or a side index for extension state (that is rule #6 again).
+- A broken extension must never break the core. Every contribution point is
+  wrapped at the boundary: an extension that throws on load is disabled, one that
+  throws while rendering is quarantined. Preserve that when you add a point.
+
+The serializer must round-trip nested objects under `plugins.*` before the nested
+data shape ships (see the spec's data-model section).
 
 ---
 
