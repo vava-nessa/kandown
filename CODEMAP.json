@@ -241,6 +241,12 @@
       "summary": "Pins down the three behaviors that prevent bare `kandown` from silently attaching to a foreign project: 1."
     },
     {
+      "path": "src/cli/lib/__tests__/task-move.spec.ts",
+      "lines": 110,
+      "title": "Managed backend task move integration tests",
+      "summary": "Exercises the Node move coordinator against real task files and a real jiti-loaded extension."
+    },
+    {
       "path": "src/cli/lib/agents-config.ts",
       "lines": 203,
       "title": "Persistent, versioned agent catalog (`.kandown/agents.json`)",
@@ -906,7 +912,7 @@
     },
     {
       "path": "src/components/Card.tsx",
-      "lines": 356,
+      "lines": 369,
       "title": "Task card row",
       "summary": "Displays one board task as a single dense row inside a column.",
       "functions": [
@@ -1031,7 +1037,7 @@
     },
     {
       "path": "src/components/Drawer.tsx",
-      "lines": 476,
+      "lines": 481,
       "title": "Task drawer editor",
       "summary": "Full-height task detail editor for title, description, subtasks, report, save/close, autosave, and deletion.",
       "functions": [
@@ -1343,8 +1349,21 @@
       "exports": "SubtaskItem"
     },
     {
+      "path": "src/components/TaskExtensionSurface.tsx",
+      "lines": 354,
+      "title": "Task extension surface",
+      "summary": "Shared mobile and desktop task-editor section for contributed fields and web panels.",
+      "functions": [
+        {
+          "name": "TaskExtensionSurface",
+          "summary": "fields followed by collapsible extension panels"
+        }
+      ],
+      "exports": "TaskExtensionSurface"
+    },
+    {
       "path": "src/components/TaskWorkspace.tsx",
-      "lines": 560,
+      "lines": 565,
       "title": "Desktop opened-task workspace",
       "summary": "Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…",
       "functions": [
@@ -1537,6 +1556,12 @@
       "exports": "useDetectedAgents"
     },
     {
+      "path": "src/lib/__tests__/demoBackend.spec.ts",
+      "lines": 62,
+      "title": "Website demo move endpoint tests",
+      "summary": "Locks the in-memory backend to the managed move protocol."
+    },
+    {
       "path": "src/lib/__tests__/dependencies.spec.ts",
       "lines": 254,
       "title": "dependency-gate behavior matrix",
@@ -1584,7 +1609,7 @@
     },
     {
       "path": "src/lib/demoBackend.ts",
-      "lines": 267,
+      "lines": 393,
       "title": "In-memory backend for the website demo",
       "summary": "Implements the Kandown REST API against a `Map` instead of a disk, so the whole web UI can run in a browser tab with no CLI, no server and no storage.",
       "functions": [
@@ -1702,7 +1727,7 @@
     },
     {
       "path": "src/lib/extensions/browser-runtime.ts",
-      "lines": 369,
+      "lines": 370,
       "title": "Browser extension runtime",
       "summary": "Loads project-local bundled extension entries through Blob URLs for standalone File System Access mode, registers browser-safe fields, badges and panels, and computes card badges without a daemon.",
       "functions": [
@@ -1870,7 +1895,7 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 1128,
+      "lines": 1123,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [
@@ -1955,8 +1980,8 @@
           "summary": "task CRUD via REST"
         },
         {
-          "name": "serverMoveTask",
-          "summary": "asks the managed backend to gate and persist a task move"
+          "name": "serverMoveTask - asks the managed backend to gate and persist a task move",
+          "summary": null
         },
         {
           "name": "serverMigrateTasks",

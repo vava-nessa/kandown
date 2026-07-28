@@ -100,14 +100,15 @@ export function SiteFooter() {
         </div>
       </div>
       <GradualBlur
-        target="parent"
+        target="page"
         position="bottom"
-        height="6rem"
-        strength={2}
-        divCount={5}
+        height="7rem"
+        strength={3}
+        divCount={6}
         curve="bezier"
         exponential={true}
         opacity={1}
+        zIndex={40}
       />
     </footer>
   )

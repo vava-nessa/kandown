@@ -81,6 +81,7 @@ source to edit instead.
 
 - **`board-reader.spec.ts`** · 125 lines — Spawns bin/kandown.js (the published CLI bundle) in a tmpdir, seeds two tasks with a dependency edge, and asserts that: - `kandown move` succeeds when the dependency is already in the terminal column.
 - **`resolve-kandown-dir.spec.ts`** · 127 lines — Pins down the three behaviors that prevent bare `kandown` from silently attaching to a foreign project: 1.
+- **`task-move.spec.ts`** · 110 lines — Exercises the Node move coordinator against real task files and a real jiti-loaded extension.
 
 ## `src/cli/screens/` — Full-screen TUI views
 
@@ -102,7 +103,7 @@ source to edit instead.
 - **`ArchiveView.tsx`** · 89 lines — Lists every archived task (frontmatter `archived: true`, files living under `tasks/archive/` at the project root) as a flat list.
 - **`Board.tsx`** · 394 lines — Renders the horizontal kanban board, filters tasks per column, wires drag-and-drop state, and forwards content-search matches to cards.
 - **`BulkActionBar.tsx`** · 537 lines — Appears when one or more tasks are selected in the web UI and behaves like Linear's selection bar: a floating pill at the bottom of the screen that exposes every action that makes sense for a group of tasks — change priority, assign,…
-- **`Card.tsx`** · 356 lines — Displays one board task as a single dense row inside a column.
+- **`Card.tsx`** · 369 lines — Displays one board task as a single dense row inside a column.
 - **`CardStack.tsx`** · 257 lines — Renders a group of 2+ cards that share the same `[bracket]` or `#hashtag` title tag as a visually stacked card.
 - **`Cheatsheet.tsx`** · 181 lines — Centered modal that lists every keyboard shortcut in Kandown, grouped by context (Global, Board, Drawer, Command Palette).
 - **`Column.tsx`** · 359 lines — Renders a single kanban column, accepts dropped cards, shows the filtered task count, and creates new tasks directly in the column.
@@ -111,7 +112,7 @@ source to edit instead.
 - **`CommandPalette.tsx`** · 363 lines — Provides global quick actions, view switching, task lookup, and content-aware task search with highlighted snippets.
 - **`ConflictModal.tsx`** · 177 lines — Shown when drawer has unsaved changes AND the underlying task file was modified externally with conflicting changes.
 - **`DependenciesHeaderMenu.tsx`** · 248 lines — Compact hoverable & clickable popover menu in the task header for managing dependencies with autocompletion.
-- **`Drawer.tsx`** · 476 lines — Full-height task detail editor for title, description, subtasks, report, save/close, autosave, and deletion.
+- **`Drawer.tsx`** · 481 lines — Full-height task detail editor for title, description, subtasks, report, save/close, autosave, and deletion.
 - **`EmptyState.tsx`** · 147 lines — Renders the first-run project picker, unsupported-browser copy, and recent project shortcuts before a `.kandown` folder is open.
 - **`ErrorBoundary.tsx`** · 164 lines — Catches render-time errors in the child tree and displays a recoverable fallback instead of letting React unmount the whole app to a blank page.
 - **`ExtensionRuntimeProvider.tsx`** · 161 lines — Hydrates one project-wide extension snapshot for fields, panels and card badges.
@@ -126,7 +127,8 @@ source to edit instead.
 - **`SettingsPage.tsx`** · 363 lines — Dense settings workspace with an iOS-style sidebar, global option search, section navigation, and compact controls for kandown.json.
 - **`SubtaskEditor.tsx`** · 164 lines — Reusable checklist editor rendered below a task description in both the mobile drawer and desktop workspace.
 - **`SubtaskItem.tsx`** · 228 lines — Editable row for one markdown checklist item inside the task drawer, with toggle, text edit, enter-to-add, empty-backspace removal, and an expandable panel for per-subtask description and report notes.
-- **`TaskWorkspace.tsx`** · 560 lines — Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…
+- **`TaskExtensionSurface.tsx`** · 354 lines — Shared mobile and desktop task-editor section for contributed fields and web panels.
+- **`TaskWorkspace.tsx`** · 565 lines — Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…
 - **`ThemeCustomizerModal.tsx`** · 470 lines — Provides a visual editor for creating and tweaking custom JSON themes, adjusting HSL tokens, radius, shadows, glass, motion, and checking live WCAG 2.1 contrast compliance with JSON import/export capabilities.
 - **`ThemePreviewCard.tsx`** · 212 lines — Renders a live preview of a KandownTheme with isolated HSL tokens in a mini 3-column kanban board layout.
 - **`ThemeToggle.tsx`** · 83 lines — Light/dark mode switcher for the app header.
@@ -163,11 +165,11 @@ source to edit instead.
 
 - **`agent-aliases.ts`** · 223 lines — The single source of truth for mapping a free-form assignee string (as typed in a task's `assignee:` frontmatter or quick-add `@token`) to a canonical agent id.
 - **`columnUtils.ts`** · 97 lines — Provides column color maps, color swatches, and tabler icon resolvers shared across Board and List views.
-- **`demoBackend.ts`** · 267 lines — Implements the Kandown REST API against a `Map` instead of a disk, so the whole web UI can run in a browser tab with no CLI, no server and no storage.
+- **`demoBackend.ts`** · 393 lines — Implements the Kandown REST API against a `Map` instead of a disk, so the whole web UI can run in a browser tab with no CLI, no server and no storage.
 - **`demoSeed.ts`** · 446 lines — The starting contents of the in-memory project served by {@link ./demoBackend.ts} when the app runs in demo mode on the website.
 - **`dependencies.ts`** · 332 lines — Pure module that owns the single rule for moving tasks between board columns: a task may only enter the configured terminal status (and be archived) when every blocking dependency is resolved.
 - **`errors.ts`** · 138 lines — Typed errors used across the web UI to distinguish failure modes (browser support, permissions, disk full, corruption, parse errors) instead of relying on generic `Error` + string matching.
-- **`filesystem.ts`** · 1128 lines — Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.
+- **`filesystem.ts`** · 1123 lines — Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.
 - **`githubStars.ts`** · 122 lines — Client-side GitHub star count for the Kandown web app, with a localStorage cache.
 - **`globalErrors.ts`** · 108 lines — Last-resort safety net that catches uncaught JavaScript errors and unhandled promise rejections, logs them, and shows a throttled toast so the user is informed without being spammed.
 - **`grouping.ts`** · 128 lines — Pure functions that group board tasks by shared `[bracket]` tags or `#hashtag` markers in their titles.
@@ -189,13 +191,14 @@ source to edit instead.
 
 ## `src/lib/__tests__/`
 
+- **`demoBackend.spec.ts`** · 62 lines — Locks the in-memory backend to the managed move protocol.
 - **`dependencies.spec.ts`** · 254 lines — Vitest suite that locks the policy decisions into tests (see docs/ARCHITECTURE.md invariant #2).
 - **`extensions-host.spec.ts`** · 195 lines — Vitest suite that loads real extensions from a temp project dir via jiti and locks the host contract: discovery, restricted mode + project trust, gate composition with block reasons, command dispatch, and the core invariant that a…
 - **`parser-serializer.spec.ts`** · 159 lines — Vitest suite locking the `parseSimpleYaml` / `parseTaskFile` ↔ `serializeTaskFile` round-trip.
 
 ## `src/lib/extensions/`
 
-- **`browser-runtime.ts`** · 369 lines — Loads project-local bundled extension entries through Blob URLs for standalone File System Access mode, registers browser-safe fields, badges and panels, and computes card badges without a daemon.
+- **`browser-runtime.ts`** · 370 lines — Loads project-local bundled extension entries through Blob URLs for standalone File System Access mode, registers browser-safe fields, badges and panels, and computes card badges without a daemon.
 - **`host.ts`** · 500 lines — The orchestrator that loads extensions, manages their health, and dispatches contributions (gates, syncs, commands, lifecycle) with per-contribution fail policies.
 - **`loader.ts`** · 87 lines — Scans the global (`~/.kandown/extensions`) and project (`.kandown/extensions`) locations for extension directories, reading and parsing each one's `manifest.json`.
 - **`manifest.ts`** · 77 lines — Validates a raw JSON object into a typed `ExtensionManifest`, and checks version compatibility against the running kandown.
@@ -284,6 +287,6 @@ source to edit instead.
 
 ## Coverage
 
-185 of 185 eligible files carry an `@description` header.
+188 of 188 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.
