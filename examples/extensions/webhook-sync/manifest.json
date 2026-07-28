@@ -1,0 +1,11 @@
+{
+  "id": "webhook-sync",
+  "name": "Webhook Sync",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "minKandownVersion": "0.42.0",
+  "author": "kandown",
+  "description": "Fire a webhook when a task reaches Done. Demonstrates the sync contribution point and the net permission.",
+  "permissions": ["net:*", "read:tasks"],
+  "contributes": { "syncs": ["task:afterMove"], "commands": ["webhook-sync"] }
+}

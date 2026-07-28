@@ -1,0 +1,11 @@
+{
+  "id": "labels",
+  "name": "Labels",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "minKandownVersion": "0.42.0",
+  "author": "kandown",
+  "description": "A select label field with emoji badges, plus a gate requiring a label before Done. Demonstrates select fields, badges and gate composition with other extensions.",
+  "permissions": ["read:tasks", "write:field:plugins.labels.*"],
+  "contributes": { "fields": ["label"], "gates": ["task:beforeMove"] }
+}

@@ -19,6 +19,7 @@ Markdown, installed into other projects with `npx kandown init`.
 | 5 | [`docs/RELEASE.md`](docs/RELEASE.md) | On "bump" / cutting a release |
 | 6 | [`README.md`](README.md) | For the user-facing feature surface |
 | 7 | [`docs/EXTENSIONS.md`](docs/EXTENSIONS.md) | Before touching the extension/plugin system, or anything under `plugins.*` |
+| 8 | [`docs/EXTENSIONS-AUTHORING.md`](docs/EXTENSIONS-AUTHORING.md) | When building or scaffolding an extension |
 
 Then run **`kandown work`**: it prints the current agent rules plus a live board
 digest and the next actionable task.

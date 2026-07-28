@@ -530,6 +530,10 @@ project, after the trust prompt.
 
 ## Authoring extensions (for agents and humans)
 
+📖 The step-by-step, copy-paste guide lives in
+[`EXTENSIONS-AUTHORING.md`](EXTENSIONS-AUTHORING.md). The summary below is the
+short version; read the guide to actually build one.
+
 The goal is that a coding agent (pi, claude, codex) can produce a working
 kandown extension as easily as it produces a pi extension. Three levers make that
 true:
