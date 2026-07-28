@@ -9,6 +9,7 @@ the index; click a version for the full notes.
 
 | Version | Date | Release | Changes |
 |---|---|---|---|
+| [0.45.0](changelogs/v0.45.0.md) | 2026-07-28 | Theme Store | 6 added · 3 changed |
 | [0.44.0](changelogs/v0.44.0.md) | 2026-07-28 | Assign and Launch | 7 added · 3 fixed · 4 changed |
 | [0.43.0](changelogs/v0.43.0.md) | 2026-07-28 | Extension Ecosystem | 6 added · 4 fixed · 2 changed |
 | [0.42.0](changelogs/v0.42.0.md) | 2026-07-27 | Onboarding Tour | 4 added · 2 changed |

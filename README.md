@@ -232,6 +232,17 @@ IDE, bot or webhook receive tasks.
 
 Browse community extensions at [kandown.dev/extensions](https://kandown.dev/extensions).
 
+### Themes
+
+| Command | Description |
+|---|---|
+| `kandown theme list` | Show installed community themes |
+| `kandown theme install <path-or-github-url>` | Install from a registry entry or a GitHub repo |
+| `kandown theme create <kebab-name>` | Scaffold a starter theme JSON in `.kandown/themes/` |
+| `kandown theme publish <theme.json> [--github-user <name>]` | Print the prefilled PR URL to propose the theme to the registry |
+
+Browse community themes at [kandown.dev/themes](https://kandown.dev/themes).
+
 ---
 
 ## Features
@@ -264,11 +275,26 @@ persistent quarantine after repeated failures.
 Extension data stays inside the task file under `plugins.<id>.*`; uninstall keeps
 that data until an explicit purge. No extension becomes a second source of truth.
 
+### Themes
+
+Community store with the same one-click and paste-URL flow as extensions
+(curated claude / linear / notion plus community submissions from
+`registry/themes.json`) · single-file install under `.kandown/themes/<id>.json` ·
+floating editor with Visual, Advanced, JSON and Publish tabs · live preview via
+the surrounding app (changes apply as you tweak) · Download JSON + Propose on
+GitHub (zero-backend submission, the button opens a prefilled PR URL) · per-theme
+advanced overrides (glass intensity, border width, per-level shadow strings,
+display font) for power users.
+
 ### Appearance
 
-**38 built-in themes** (Vercel, Linear, Claude, Apple, Stripe, Catppuccin, Dracula,
-Nord, Terminal, Synthwave and more) plus custom themes defined in JSON · light /
-dark / auto · tokenised radius, shadows, density and motion · 5 font stacks ·
+**1 house theme + a community store** — only `kandown` ships with the package;
+curated (claude, linear, notion) and community themes come from
+`registry/themes.json` and install as single JSON files under
+`.kandown/themes/`. **Floating, draggable, minimizable editor** with Visual,
+Advanced, JSON and Publish tabs (Download JSON + Propose on GitHub).
+Tokenised radius, shadows, density, motion, glass and border width · custom
+shadow overrides per level · 5 font stacks · light / dark / auto ·
 animated WebGL background · **48 languages** · browser and sound notifications.
 
 ### Terminal UI
