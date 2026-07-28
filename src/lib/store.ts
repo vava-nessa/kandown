@@ -59,6 +59,7 @@ import {
   serverReadConfig,
   serverListTasks,
   serverReadTaskFile,
+  serverMoveTask,
   serverMigrateTasks,
   serverGetDaemonInfo,
   serverSendTaskToAgent,
@@ -66,7 +67,7 @@ import {
   type RecentProject,
 } from './filesystem';
 import { buildColumnsFromTasks, extractSubtasks, injectSubtasks, searchTaskContent, extractArchivedTasks } from './parser';
-import { isTerminalStatus, terminalStatus, DependencyGateError, resolveTransition, resolveDependencyStatus } from './dependencies';
+import { resolveTransition, resolveDependencyStatus } from './dependencies';
 import { applyProjectTheme } from './theme';
 import { fileWatcher } from './watcher';
 import { emitKandownNotification } from './notifications';
@@ -1070,7 +1071,7 @@ export const useStore = create<State>((set, get) => ({
   },
 
   moveTask: async (taskId, fromCol, toCol, toIndex) => {
-    const { columns, config, taskContents, searchMatches } = get();
+    const { columns, config, taskContents, searchMatches, archivedTasks } = get();
     const isServer = isServerMode();
     if (!isServer && !get().tasksDirHandle) return;
     const fromColObj = columns.find(c => c.name === fromCol);
@@ -1081,26 +1082,25 @@ export const useStore = create<State>((set, get) => ({
     const movingTask = fromColObj.tasks[taskIdx];
     if (!movingTask) return;
 
-    // 📖 Terminal-status gate: if the target column is the last configured
-    // column (default "Done") and the task has unresolved dependencies, refuse
-    // the move before any optimistic state change. Other transitions stay
-    // free — the gate is only on the final hop, matching how GitHub / Linear
-    // / Jira treat blocking relations. The decision lives in
-    // src/lib/dependencies.ts so the TUI, CLI, and MCP paths agree (invariant
-    // #2). Archived tasks must be included in the snapshot for archived
-    // dependencies to count as resolved.
-    if (isTerminalStatus(toCol, config) || /archived/i.test(toCol)) {
-      const allTasks = columns.flatMap((col) => col.tasks.map((t) => ({
-        id: t.id,
-        status: typeof t.frontmatter?.status === 'string' ? t.frontmatter.status : col.name,
-        depends_on: Array.isArray(t.frontmatter?.depends_on) ? t.frontmatter.depends_on : [],
-        archived: t.frontmatter?.archived === true || t.frontmatter?.archived === 'true',
+    // 📖 Standalone mode has no Node extension host. Keep the pure dependency
+    // policy locally, including archived tasks, and let extension gates degrade
+    // open as documented. Managed backends run both gate layers authoritatively.
+    if (!isServer) {
+      const activeTasks = columns.flatMap((col) => col.tasks.map((task) => ({
+        id: task.id,
+        status: col.name,
+        depends_on: task.dependsOn,
       })));
-      const snap = resolveDependencyStatus(allTasks, config);
+      const archived = archivedTasks.map((task) => ({
+        id: task.id,
+        status: 'archived',
+        depends_on: task.dependsOn,
+        archived: true,
+      }));
       const verdict = resolveTransition(
         { id: taskId, status: fromCol, depends_on: movingTask.dependsOn },
         toCol,
-        snap,
+        resolveDependencyStatus([...activeTasks, ...archived], config),
         config,
       );
       if (!verdict.allowed) {
@@ -1115,32 +1115,44 @@ export const useStore = create<State>((set, get) => ({
     const newColumns = columns.map(c => ({ ...c, tasks: [...c.tasks] }));
     const newFrom = newColumns.find(c => c.name === fromCol)!;
     const newTo = newColumns.find(c => c.name === toCol)!;
-    const [task] = newFrom.tasks.splice(taskIdx, 1);
-    if (/done|termin|closed|complet/i.test(toCol)) task.checked = true;
-    else task.checked = false;
+    const [removedTask] = newFrom.tasks.splice(taskIdx, 1);
+    if (!removedTask) return;
+    // 📖 Clone the task object too. Mutating the shared object made a rollback
+    // restore the old columns while keeping the optimistic checked value.
+    const task = { ...removedTask, checked: /done|termin|closed|complet/i.test(toCol) };
     if (toIndex !== undefined) newTo.tasks.splice(toIndex, 0, task);
     else newTo.tasks.push(task);
 
-    // Optimistic
     set({ columns: newColumns });
     try {
+      if (isServer) {
+        const result = await serverMoveTask(taskId, toCol, toIndex);
+        if (!result.ok) {
+          get().toast(result.reason, 'error', 8000);
+          set({ columns, taskContents, searchMatches });
+          return;
+        }
+        if (result.failedIds.length > 0) {
+          const msg = result.failedIds.length === 1
+            ? `Could not save order for ${result.failedIds[0]}`
+            : `${result.failedIds.length} task orders could not be saved`;
+          get().toast(msg, 'warning', 8000);
+          await get().reloadBoard();
+        }
+        return;
+      }
+
       const { tasksDirHandle } = get();
-      if (!tasksDirHandle && !isServer) return;
+      if (!tasksDirHandle) return;
       const affected = fromCol === toCol
         ? newColumns.filter(c => c.name === toCol)
         : newColumns.filter(c => c.name === fromCol || c.name === toCol);
-      // 📖 Retry transient failures (disk full may resolve between attempts)
-      // before rolling back. Non-retryable errors (permission denied, etc.)
-      // bubble up immediately to the catch below (t105).
       const { failedIds } = await withRetry(
-        () => persistColumnOrder(tasksDirHandle ?? null, affected, config.board.columns),
+        () => persistColumnOrder(tasksDirHandle, affected, config.board.columns),
         { maxAttempts: 3 },
       );
 
       if (failedIds.length > 0) {
-        // 📖 Partial persistence failure: some tasks moved on disk, others did
-        // not. Best-effort recovery is to reload from disk so the board
-        // reflects reality, plus warn the user (t104/t116).
         const msg = failedIds.length === 1
           ? `Could not save move for ${failedIds[0]}`
           : `${failedIds.length} tasks could not be moved`;
@@ -1150,13 +1162,10 @@ export const useStore = create<State>((set, get) => ({
     } catch (e) {
       const err = e as Error;
       if (err instanceof DiskFullError) {
-        get().toast('Disk is full — move was not saved. Free up space and try again.', 'error', 8000);
+        get().toast('Disk is full: move was not saved. Free up space and try again.', 'error', 8000);
       } else {
         get().toast('Failed to save: ' + err.message, 'error');
       }
-      // 📖 Full rollback of the optimistic update. We restore columns AND the
-      // taskContents / searchMatches caches captured before mutation so the
-      // store stays internally consistent (t104).
       set({ columns, taskContents, searchMatches });
     }
   },

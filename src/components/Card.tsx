@@ -40,6 +40,7 @@ import { Icon } from './Icons';
 import { AssigneeAvatar } from './agentIcons';
 import type { BoardTask, Density, SearchMatch } from '../lib/types';
 import { useStore } from '../lib/store';
+import { useExtensionRuntime } from './ExtensionRuntimeProvider';
 
 const priorityColors: Record<string, string> = {
   P1: '#e5484d',
@@ -61,7 +62,7 @@ const FIELD_LABELS: Record<string, string> = {
 };
 
 // Defensive: never render these even if they ever leak into frontmatter.
-const EXCLUDED_KEYS = new Set(['report']);
+const EXCLUDED_KEYS = new Set(['report', 'plugins']);
 
 function labelFor(key: string): string {
   return FIELD_LABELS[key] ?? key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
@@ -172,6 +173,8 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
   const { t } = useTranslation();
   const openDrawer = useStore(s => s.openDrawer);
   const showMetadata = useStore(s => s.showMetadata);
+  const { badges } = useExtensionRuntime();
+  const extensionBadges = badges[task.id] ?? [];
 
   const isCompact = density === 'compact';
 
@@ -198,7 +201,8 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       task.frontmatter.report ||
       task.frontmatter.agentReport ||
       (task.dependsOn && task.dependsOn.length > 0) ||
-      task.assignee
+      task.assignee ||
+      extensionBadges.length > 0
   );
 
   const selectedTaskIds = useStore(s => s.selectedTaskIds);
@@ -304,6 +308,15 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
                   🤖 report
                 </span>
               ) : null}
+              {extensionBadges.map((badge) => (
+                <span
+                  key={`${badge.extId}.${badge.fieldKey}`}
+                  className="inline-flex items-center h-[16px] px-1.5 text-[10.5px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 rounded"
+                  title={`${badge.extId}.${badge.fieldKey}`}
+                >
+                  {badge.text}
+                </span>
+              ))}
               {task.dependsOn && task.dependsOn.length > 0 && (
                 <span
                   className="inline-flex items-center gap-0.5 px-1.5 h-[16px] rounded text-[10.5px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20"

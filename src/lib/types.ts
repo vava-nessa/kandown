@@ -6,7 +6,7 @@
  * 📖 Keep cross-module contracts here so parser, serializer, store, and React
  * components agree on the same task-file-backed domain model.
  *
- * @exports Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, KandownConfig, DEFAULT_COLUMNS, DEFAULT_CONFIG
+ * @exports Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, KandownConfig, DEFAULT_COLUMNS, DEFAULT_CONFIG
  * @see src/lib/parser.ts
  * @see src/lib/store.ts
  */
@@ -117,6 +117,16 @@ export interface ParsedTask {
   frontmatter: TaskFrontmatter;
   body: string;
 }
+
+/** Result returned by the authoritative managed-backend move operation. */
+export type MoveTaskResult =
+  | { ok: true; from: string; to: string; failedIds: string[] }
+  | {
+      ok: false;
+      kind: 'dependency' | 'extension' | 'not-found' | 'invalid-target' | 'write';
+      reason: string;
+      blockedBy?: string[];
+    };
 
 export type SearchMatchSection = 'title' | 'subtasks' | 'context' | 'notes' | 'whatWasDone' | 'tags' | 'assignee' | 'priority';
 export interface SearchMatch {

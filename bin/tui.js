@@ -54033,6 +54033,7 @@ var DEFAULT_CONFIG = {
     // of description width to render blanks. Turn it on in `kandown settings`.
     columns: { age: true, status: true, priority: true, owner: true, deps: true, tags: false }
   },
+  extensions: { restricted: true },
   fields: {
     priority: false,
     assignee: false,
@@ -54091,6 +54092,7 @@ function loadConfig(kandownDir) {
       }
     },
     fields: { ...DEFAULT_CONFIG.fields, ...safeObj(obj.fields) },
+    extensions: { ...DEFAULT_CONFIG.extensions, ...safeObj(obj.extensions) },
     notifications: { ...DEFAULT_CONFIG.notifications, ...safeObj(obj.notifications) }
   };
   if (obj.agents && typeof obj.agents === "object") {
@@ -54631,7 +54633,7 @@ function resolveDependencyStatus(tasks, config = DEFAULT_CONFIG2) {
     const status = readStatus(task).toLowerCase();
     const isArch = isArchivedStatus(task);
     const fm = task.frontmatter;
-    const fmArchived = fm ? fm.archived === true : false;
+    const fmArchived = fm ? isArchivedStatus({ archived: fm.archived, status: fm.status }) : false;
     out.set(id, {
       exists: true,
       resolved: isArch || fmArchived || status === terminal,

@@ -37,6 +37,7 @@ import { ErrorBoundary, BoardErrorFallback } from './components/ErrorBoundary';
 import { BulkActionBar } from './components/BulkActionBar';
 import { OnboardingTour } from './components/OnboardingTour';
 import { UpdateNotificationBanner } from './components/UpdateNotificationBanner';
+import { ExtensionRuntimeProvider } from './components/ExtensionRuntimeProvider';
 
 
 import { useStore } from './lib/store';
@@ -226,7 +227,8 @@ export function App() {
 
   return (
     <ErrorBoundary>
-      <div className="flex flex-col h-screen">
+      <ExtensionRuntimeProvider>
+        <div className="flex flex-col h-screen">
         <Header />
         <UpdateNotificationBanner />
         {currentPage === 'settings' ? (
@@ -280,7 +282,8 @@ export function App() {
         <ConflictModal />
         <OnboardingTour />
         <BulkActionBar />
-      </div>
+        </div>
+      </ExtensionRuntimeProvider>
     </ErrorBoundary>
   );
 }

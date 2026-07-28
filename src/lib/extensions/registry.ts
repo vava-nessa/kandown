@@ -50,8 +50,9 @@ export class ContributionRegistry {
   }
 
   registerPanel(extId: string, def: WebPanelContribution): boolean {
-    if (this.panels.has(def.id)) return false;
-    this.panels.set(def.id, { extId, def });
+    const key = `${extId}.${def.id}`;
+    if (this.panels.has(key)) return false;
+    this.panels.set(key, { extId, def });
     return true;
   }
 
@@ -89,9 +90,14 @@ export class ContributionRegistry {
     }
   }
 
-  /** Fields belonging to `extId`, as [key, def]. */
+  /** Fields belonging to `extId`. */
   fieldsFor(extId: string): FieldContribution[] {
-    return [...this.fields.values()].filter((f) => f.extId === extId).map((f) => f.def);
+    return [...this.fields.values()].filter((field) => field.extId === extId).map((field) => field.def);
+  }
+
+  /** Panels belonging to `extId`. */
+  panelsFor(extId: string): WebPanelContribution[] {
+    return [...this.panels.values()].filter((panel) => panel.extId === extId).map((panel) => panel.def);
   }
 
   reset(): void {

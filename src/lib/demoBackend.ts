@@ -46,6 +46,11 @@
  */
 
 import { registerDemoApi } from './filesystem';
+import { DependencyGateError, resolveDependencyStatus, resolveTransition } from './dependencies';
+import { buildColumnsFromTasks, parseTaskFile } from './parser';
+import { serializeTaskFile } from './serializer';
+import { stampUpdated } from './task-meta';
+import type { KandownConfig, MoveTaskResult, ParsedTask } from './types';
 import {
   DEMO_ARCHIVED_TASKS,
   DEMO_BOARD_MD,
@@ -96,6 +101,7 @@ export const DEMO_SUPPORTED_ROUTES = [
   'GET/PUT /api/instructions',
   'GET /api/tasks',
   'GET/PUT/DELETE /api/tasks/:id',
+  'POST /api/tasks/:id/move',
   'POST /api/tasks/:id/archive',
   'POST /api/tasks/:id/unarchive',
   'POST /api/migrate-tasks',
@@ -194,6 +200,126 @@ export async function demoApi(path: string, options?: RequestInit): Promise<Resp
       const ids = [...new Set([...store.tasks.keys(), ...store.archived.keys()])];
       ids.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
       return json(ids);
+    }
+
+    if (method === 'POST' && id && sub === 'move') {
+      let input: { to?: unknown; toIndex?: unknown };
+      try {
+        input = JSON.parse(await readBody(options)) as { to?: unknown; toIndex?: unknown };
+      } catch (error) {
+        const result: MoveTaskResult = {
+          ok: false,
+          kind: 'invalid-target',
+          reason: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}`,
+        };
+        return json(result, 400);
+      }
+      if (typeof input.to !== 'string' || !input.to.trim()) {
+        const result: MoveTaskResult = {
+          ok: false,
+          kind: 'invalid-target',
+          reason: 'Move target is required',
+        };
+        return json(result, 400);
+      }
+      if (input.toIndex !== undefined && (typeof input.toIndex !== 'number' || !Number.isFinite(input.toIndex))) {
+        const result: MoveTaskResult = {
+          ok: false,
+          kind: 'invalid-target',
+          reason: 'Move target index must be a finite number',
+        };
+        return json(result, 400);
+      }
+
+      const targetStatus = input.to.trim();
+      const targetIndex = typeof input.toIndex === 'number' ? input.toIndex : undefined;
+      const raw = store.tasks.get(id);
+      if (raw === undefined) {
+        const result: MoveTaskResult = { ok: false, kind: 'not-found', reason: `Task not found: ${id}` };
+        return json(result, 404);
+      }
+      const config = JSON.parse(store.config) as KandownConfig;
+      const toParsedTask = (taskId: string, content: string, archived: boolean): ParsedTask => {
+        const parsed = parseTaskFile(content);
+        return {
+          ...parsed,
+          frontmatter: {
+            ...parsed.frontmatter,
+            id: parsed.frontmatter.id || taskId,
+            status: parsed.frontmatter.status || 'Backlog',
+            ...(archived ? { archived: true } : {}),
+          },
+        };
+      };
+      const activeTasks = [...store.tasks.entries()].map(([taskId, content]) => toParsedTask(taskId, content, false));
+      const archivedTasks = [...store.archived.entries()].map(([taskId, content]) => toParsedTask(taskId, content, true));
+      const columns = buildColumnsFromTasks([...activeTasks, ...archivedTasks], config.board.columns);
+      const sourceColumn = columns.find((column) => column.tasks.some((task) => task.id === id));
+      const targetColumn = columns.find((column) => column.name.toLowerCase() === targetStatus.toLowerCase());
+      if (!sourceColumn || !targetColumn) {
+        const result: MoveTaskResult = {
+          ok: false,
+          kind: 'invalid-target',
+          reason: sourceColumn ? `Unknown status: ${targetStatus}` : `Task is not active: ${id}`,
+        };
+        return json(result, 400);
+      }
+
+      const parsed = parseTaskFile(raw);
+      const from = typeof parsed.frontmatter.status === 'string' ? parsed.frontmatter.status : sourceColumn.name;
+      const dependencyVerdict = resolveTransition(
+        parsed,
+        targetColumn.name,
+        resolveDependencyStatus([...activeTasks, ...archivedTasks], config),
+        config,
+      );
+      if (!dependencyVerdict.allowed) {
+        const error = new DependencyGateError(id, targetColumn.name, dependencyVerdict.blockedBy);
+        const result: MoveTaskResult = {
+          ok: false,
+          kind: 'dependency',
+          reason: error.message,
+          blockedBy: dependencyVerdict.blockedBy,
+        };
+        return json(result, 409);
+      }
+
+      // 📖 The demo has no Node extension host. Core dependency policy remains
+      // active while extension gates intentionally degrade open.
+      const sourceIds = sourceColumn.tasks.map((task) => task.id).filter((taskId) => taskId !== id);
+      const targetIds = sourceColumn === targetColumn
+        ? sourceIds
+        : targetColumn.tasks.map((task) => task.id).filter((taskId) => taskId !== id);
+      const insertionIndex = targetIndex === undefined
+        ? targetIds.length
+        : Math.max(0, Math.min(Math.trunc(targetIndex), targetIds.length));
+      targetIds.splice(insertionIndex, 0, id);
+      const layouts = sourceColumn === targetColumn
+        ? [{ status: targetColumn.name, ids: targetIds }]
+        : [
+            { status: sourceColumn.name, ids: sourceIds },
+            { status: targetColumn.name, ids: targetIds },
+          ];
+      for (const layout of layouts) {
+        layout.ids.forEach((taskId, order) => {
+          const currentRaw = store.tasks.get(taskId);
+          if (currentRaw === undefined) return;
+          const current = parseTaskFile(currentRaw);
+          store.tasks.set(taskId, serializeTaskFile(stampUpdated({
+            ...current.frontmatter,
+            id: taskId,
+            status: layout.status,
+            order,
+          }), current.body));
+        });
+      }
+      const result: MoveTaskResult = {
+        ok: true,
+        from,
+        to: targetColumn.name,
+        failedIds: [],
+      };
+      return json(result);
     }
 
     if (id && !sub) {

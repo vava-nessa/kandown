@@ -10,7 +10,7 @@
  * `*`) are supported. See docs/EXTENSIONS.md § "Security model".
  *
  * @functions
- *  → isAllowed — does a declared list cover a requested permission?
+ *  → isAllowed: does a declared list cover a requested permission?
  * @exports isAllowed
  */
 
@@ -20,8 +20,9 @@ export function isAllowed(declared: string[] | undefined, permission: string): b
   for (const entry of declared) {
     if (entry === permission) return true;
     if (entry === '*') return true;
-    // `net:*` covers `net:https://...`; `write:field:plugins.burndown.*` covers the namespace.
-    if (entry.endsWith(':*') && permission.startsWith(entry.slice(0, -1))) return true;
+    // `net:*` covers `net:https://...`; `write:field:plugins.burndown.*`
+    // covers every key in that extension namespace.
+    if (entry.endsWith('*') && permission.startsWith(entry.slice(0, -1))) return true;
   }
   return false;
 }

@@ -44,17 +44,24 @@
  *  → verifyPermission — requests persisted read/write access
  *  → serverReadBoard / serverWriteBoard — board.md via REST
  *  → serverReadConfig / serverWriteConfig — kandown.json via REST
- *  → serverListTasks — list task IDs via REST
- *  → serverReadTask / serverWriteTask / serverDeleteTask — task CRUD via REST
- *  → serverMigrateTasks — triggers the legacy → new layout migration via REST
+ *  → serverListTasks: list task IDs via REST
+ *  → serverReadTask / serverWriteTask / serverDeleteTask: task CRUD via REST
+ *  → serverMoveTask: authoritative managed move intent
+ *  → serverLoadExtensionRuntime: field/panel defs and batched badges
+ *  → serverSetExtensionField: persist one host-validated plugins field
+ *  → serverReadExtensionFile: authenticated source read for Blob import
+ *  → serverReportExtensionOutcome: persistent browser failure health
+ *  → serverMigrateTasks: triggers the legacy to new layout migration via REST
  *  → readProjectInstructions / writeProjectInstructions — edits `.kandown/instructions.md`
  *
- * @exports supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverWriteTask, serverDeleteTask, serverMigrateTasks
+ * @exports supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks
  * @see src/lib/store.ts
  * @see src/lib/parser.ts
  */
 
-import type { KandownConfig, TaskFrontmatter, ParsedTask, DetectedAgent } from './types';
+import type { KandownConfig, TaskFrontmatter, ParsedTask, DetectedAgent, MoveTaskResult } from './types';
+import type { ExtensionHealth, ExtensionRuntimePayload, ExtensionRuntimeSummary } from './extensions/types';
+export type { MoveTaskResult } from './types';
 import { DEFAULT_CONFIG, DEFAULT_WORK_OUTPUT } from './types';
 import { serializeTaskFile } from './serializer';
 import { stampUpdated } from './task-meta';
@@ -186,24 +193,13 @@ export function switchDemoToLocalFileSystem(projectName: string): void {
 }
 
 /**
- * 📖 Central fetch wrapper for the Kandown REST API.
- * Throws with a descriptive message on non-OK responses.
- * Attaches the daemon auth token (`X-Kandown-Token`) injected by the CLI
- * server — every route except `GET /api/daemon` requires it.
- *
- * 📖 The demo short-circuits here, above the network. That single branch is why
- * the demo needs no changes anywhere else: every server-mode call in the store
- * already funnels through this function.
+ * 📖 Raw transport for Kandown API calls. It attaches the daemon token and
+ * routes demo requests in-process, but leaves HTTP status handling to callers.
+ * `apiFetch` below preserves the usual throw-on-error contract.
  */
-async function apiFetch(path: string, options?: RequestInit): Promise<Response> {
-  if (demoApiHandler) {
-    const res = await demoApiHandler(path, options);
-    if (!res.ok) {
-      const body = await res.clone().text().catch(() => '');
-      throw new Error(`API ${options?.method ?? 'GET'} ${path} → ${res.status}${body ? ': ' + body : ''}`);
-    }
-    return res;
-  }
+async function rawApiFetch(path: string, options?: RequestInit): Promise<Response> {
+  if (demoApiHandler) return demoApiHandler(path, options);
+
   const token = typeof window !== 'undefined' && typeof window.__KANDOWN_TOKEN__ === 'string'
     ? window.__KANDOWN_TOKEN__
     : null;
@@ -211,10 +207,14 @@ async function apiFetch(path: string, options?: RequestInit): Promise<Response> 
     ...(options?.headers as Record<string, string> | undefined),
     ...(token ? { 'X-Kandown-Token': token } : {}),
   };
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  return fetch(`${API_BASE}${path}`, { ...options, headers });
+}
+
+async function apiFetch(path: string, options?: RequestInit): Promise<Response> {
+  const res = await rawApiFetch(path, options);
   if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(`API ${options?.method ?? 'GET'} ${path} → ${res.status}${text ? ': ' + text : ''}`);
+    const body = await res.clone().text().catch(() => '');
+    throw new Error(`API ${options?.method ?? 'GET'} ${path} → ${res.status}${body ? ': ' + body : ''}`);
   }
   return res;
 }
@@ -285,33 +285,27 @@ export async function serverListTasks(): Promise<string[]> {
   return res.json() as Promise<string[]>;
 }
 
-/** Summary of one installed extension, mirroring the daemon's /api/extensions shape. */
-export interface ExtensionSummary {
-  id: string;
-  name: string;
-  version: string;
-  source: 'global' | 'project';
-  health: string;
-  error?: string;
-  fields: string[];
-  panels: string[];
-  commands: string[];
-  gates: number;
-  syncs: number;
-}
+/** Browser-safe installed summary shared with the extension runtime. */
+export type ExtensionSummary = ExtensionRuntimeSummary;
 
-/** 📖 Lists installed extensions via the daemon. Returns null outside server mode
- *  (standalone File System Access and demo modes have no extension host). */
-export async function serverListExtensions(): Promise<ExtensionSummary[] | null> {
+/** Loads fields, panels and Node-computed badges in one request. */
+export async function serverLoadExtensionRuntime(): Promise<ExtensionRuntimePayload | null> {
   if (!isServerMode() || isDemoMode()) return null;
   try {
     const res = await apiFetch('/api/extensions');
-    if (!res.ok) return null;
-    const data = (await res.json()) as { extensions?: ExtensionSummary[] };
-    return data.extensions ?? [];
+    const data = (await res.json()) as Partial<ExtensionRuntimePayload>;
+    return {
+      extensions: Array.isArray(data.extensions) ? data.extensions : [],
+      badges: data.badges && typeof data.badges === 'object' ? data.badges : {},
+    };
   } catch {
     return null;
   }
+}
+
+/** 📖 Lists installed extensions via the daemon. Returns null outside server mode. */
+export async function serverListExtensions(): Promise<ExtensionSummary[] | null> {
+  return (await serverLoadExtensionRuntime())?.extensions ?? null;
 }
 
 /** 📖 Enables an extension by id; returns the refreshed summaries, or null on failure. */
@@ -320,6 +314,7 @@ export async function serverEnableExtension(id: string): Promise<ExtensionSummar
   const res = await apiFetch(`/api/extensions/${encodeURIComponent(id)}/enable`, { method: 'POST' });
   if (!res.ok) return null;
   const data = (await res.json()) as { summary?: ExtensionSummary[] };
+  window.dispatchEvent(new Event('kandown:extensions-changed'));
   return data.summary ?? null;
 }
 
@@ -327,7 +322,32 @@ export async function serverEnableExtension(id: string): Promise<ExtensionSummar
 export async function serverDisableExtension(id: string): Promise<boolean> {
   if (!isServerMode() || isDemoMode()) return false;
   const res = await apiFetch(`/api/extensions/${encodeURIComponent(id)}/disable`, { method: 'POST' });
+  window.dispatchEvent(new Event('kandown:extensions-changed'));
   return res.ok;
+}
+
+/** Reads an extension asset through authenticated fetch before Blob import. */
+export async function serverReadExtensionFile(extId: string, relativePath: string): Promise<string> {
+  const path = relativePath.replace(/^\.\//, '').split('/').filter(Boolean);
+  if (path.length === 0 || path.some((part) => part === '..')) throw new Error('invalid extension file path');
+  const encoded = path.map(encodeURIComponent).join('/');
+  const res = await apiFetch(`/api/extensions/${encodeURIComponent(extId)}/files/${encoded}`);
+  return res.text();
+}
+
+/** Reports browser panel health so the host can persist consecutive failures. */
+export async function serverReportExtensionOutcome(
+  extId: string,
+  outcome: 'success' | 'failure',
+  message?: string,
+): Promise<{ health: ExtensionHealth; failures: number; error?: string } | null> {
+  if (!isServerMode() || isDemoMode()) return null;
+  const res = await apiFetch(`/api/extensions/${encodeURIComponent(extId)}/health`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ outcome, surface: 'webPanel', message }),
+  });
+  return res.json() as Promise<{ health: ExtensionHealth; failures: number; error?: string }>;
 }
 
 /** A community extension registry entry. */
@@ -375,7 +395,24 @@ export async function serverInstallExtension(input: { entry?: RegistryEntry; url
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
-  return (await res.json()) as InstallResult;
+  const result = (await res.json()) as InstallResult;
+  if (result.ok) window.dispatchEvent(new Event('kandown:extensions-changed'));
+  return result;
+}
+
+/** Persists one registered extension field through the authoritative host. */
+export async function serverSetExtensionField(
+  taskId: string,
+  extId: string,
+  key: string,
+  value: unknown,
+): Promise<{ plugins?: Record<string, unknown> }> {
+  const res = await apiFetch(`/api/tasks/${encodeURIComponent(taskId)}/field`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ extId, key, value }),
+  });
+  return res.json() as Promise<{ plugins?: Record<string, unknown> }>;
 }
 
 /**
@@ -394,6 +431,31 @@ export async function serverReadTaskFile(id: string) {
 export async function serverReadTask(id: string): Promise<string> {
   const res = await apiFetch(`/api/tasks/${encodeURIComponent(id)}`);
   return res.text();
+}
+
+/** 📖 Sends a move intent to the managed backend. Gate refusals are domain
+ * results rather than thrown transport errors, so the store can roll back its
+ * optimistic state and show the exact reason. */
+export async function serverMoveTask(
+  id: string,
+  to: string,
+  toIndex?: number,
+): Promise<MoveTaskResult> {
+  const res = await rawApiFetch(`/api/tasks/${encodeURIComponent(id)}/move`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ to, ...(toIndex === undefined ? {} : { toIndex }) }),
+  });
+  let result: MoveTaskResult;
+  try {
+    result = await res.json() as MoveTaskResult;
+  } catch {
+    throw new Error(`Move API returned ${res.status} without a JSON result`);
+  }
+  if (typeof result !== 'object' || result === null || typeof result.ok !== 'boolean') {
+    throw new Error(`Move API returned an invalid result (${res.status})`);
+  }
+  return result;
 }
 
 /**

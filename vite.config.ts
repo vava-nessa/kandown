@@ -3,6 +3,7 @@ import { resolve, join } from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { viteSingleFile } from 'vite-plugin-singlefile';
+import type { ExtensionHost } from './src/lib/extensions/host';
 
 const CLOSING_HEAD_TAG = '</head>';
 // 📖 Keep the local web UI dev server predictable so agents and humans can share the same URL.
@@ -79,6 +80,8 @@ function kandownSingleFileRepairPlugin() {
 }
 
 function kandownDevPlugin() {
+  let extensionHost: ExtensionHost | null = null;
+
   return {
     name: 'kandown-dev-api',
     configureServer(server) {
@@ -123,6 +126,79 @@ function kandownDevPlugin() {
           return;
         }
 
+        if (resource === 'extensions') {
+          try {
+            const extensionModule = await server.ssrLoadModule('/src/cli/lib/extensions-cli.ts') as typeof import('./src/cli/lib/extensions-cli');
+            if (!extensionHost) extensionHost = await extensionModule.loadExtensionHost(kandownPath);
+
+            if (req.method === 'GET' && !id) {
+              const badges = await extensionHost.renderBadges();
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ extensions: extensionHost.installedSummary(), badges }));
+              return;
+            }
+
+            const action = parts[2];
+            if (req.method === 'POST' && id && (action === 'enable' || action === 'disable')) {
+              const ok = action === 'enable'
+                ? await extensionHost.enable(decodeURIComponent(id))
+                : extensionHost.disable(decodeURIComponent(id));
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ ok, summary: extensionHost.installedSummary() }));
+              return;
+            }
+
+            if (req.method === 'POST' && id && action === 'health') {
+              const chunks: Buffer[] = [];
+              await new Promise<void>((resolveBody, rejectBody) => {
+                req.on('data', chunk => chunks.push(chunk));
+                req.on('end', resolveBody);
+                req.on('error', rejectBody);
+              });
+              const body = JSON.parse(Buffer.concat(chunks).toString('utf8')) as { outcome?: unknown; message?: unknown };
+              if (body.outcome !== 'success' && body.outcome !== 'failure') {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'outcome must be success or failure' }));
+                return;
+              }
+              const extension = body.outcome === 'success'
+                ? extensionHost.reportSuccess(decodeURIComponent(id))
+                : extensionHost.reportFailure(decodeURIComponent(id), typeof body.message === 'string' ? body.message : 'web panel failed');
+              if (!extension) {
+                res.writeHead(404, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Extension not found' }));
+                return;
+              }
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ health: extension.health, failures: extension.failures, error: extension.error }));
+              return;
+            }
+
+            if (req.method === 'GET' && id && action === 'files') {
+              const extension = extensionHost.get(decodeURIComponent(id));
+              const relativePath = parts.slice(3).map(decodeURIComponent).join('/');
+              if (!extension || !relativePath || relativePath.includes('..') || !/^[a-zA-Z0-9._\/-]+$/.test(relativePath)) {
+                res.writeHead(extension ? 400 : 404, { 'Content-Type': 'text/plain' });
+                res.end(extension ? 'Bad path' : 'Extension not found');
+                return;
+              }
+              const file = join(extension.dir, relativePath);
+              if (!existsSync(file)) {
+                res.writeHead(404, { 'Content-Type': 'text/plain' });
+                res.end('File not found');
+                return;
+              }
+              res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+              res.end(readFileSync(file, 'utf8'));
+              return;
+            }
+          } catch (error) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }));
+            return;
+          }
+        }
+
         if (resource === 'config') {
           if (req.method === 'GET') {
             const configPath = join(kandownPath, 'kandown.json');
@@ -155,6 +231,7 @@ function kandownDevPlugin() {
               JSON.parse(body);
               const { writeFileSync } = await import('node:fs');
               writeFileSync(configPath, body, 'utf8');
+              extensionHost = null;
               res.writeHead(200, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify({ ok: true }));
             } catch (e) {
@@ -188,6 +265,88 @@ function kandownDevPlugin() {
             } catch (e) {
               res.writeHead(500, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify({ error: `Failed to list tasks: ${e.message}` }));
+            }
+            return;
+          }
+          if (req.method === 'POST' && id && parts[2] === 'field') {
+            try {
+              const chunks: Buffer[] = [];
+              await new Promise<void>((resolveBody, rejectBody) => {
+                req.on('data', chunk => chunks.push(chunk));
+                req.on('end', resolveBody);
+                req.on('error', rejectBody);
+              });
+              const body = JSON.parse(Buffer.concat(chunks).toString('utf8')) as { extId?: unknown; key?: unknown; value?: unknown };
+              if (typeof body.extId !== 'string' || typeof body.key !== 'string') {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'extId and key required' }));
+                return;
+              }
+              const extensionModule = await server.ssrLoadModule('/src/cli/lib/extensions-cli.ts') as typeof import('./src/cli/lib/extensions-cli');
+              const boardModule = await server.ssrLoadModule('/src/cli/lib/board-reader.ts') as typeof import('./src/cli/lib/board-reader');
+              if (!extensionHost) extensionHost = await extensionModule.loadExtensionHost(kandownPath);
+              await extensionHost.setFieldValue(decodeURIComponent(id), body.extId, body.key, body.value);
+              const updated = boardModule.readTask(kandownPath, decodeURIComponent(id)).frontmatter as Record<string, unknown>;
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ ok: true, plugins: updated.plugins }));
+            } catch (error) {
+              const message = error instanceof Error ? error.message : String(error);
+              const status = message.includes('not found') ? 404 : message.startsWith('permission denied') ? 403 : 400;
+              res.writeHead(status, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: message }));
+            }
+            return;
+          }
+
+          if (req.method === 'POST' && id && parts[2] === 'move') {
+            try {
+              const chunks: Buffer[] = [];
+              await new Promise<void>((resolveBody, rejectBody) => {
+                req.on('data', chunk => chunks.push(chunk));
+                req.on('end', resolveBody);
+                req.on('error', rejectBody);
+              });
+              const input = JSON.parse(Buffer.concat(chunks).toString('utf8')) as { to?: unknown; toIndex?: unknown };
+              if (typeof input.to !== 'string' || !input.to.trim()) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ ok: false, kind: 'invalid-target', reason: 'Move target is required' }));
+                return;
+              }
+              if (input.toIndex !== undefined && (typeof input.toIndex !== 'number' || !Number.isFinite(input.toIndex))) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ ok: false, kind: 'invalid-target', reason: 'Move target index must be a finite number' }));
+                return;
+              }
+
+              const extensionModule = await server.ssrLoadModule('/src/cli/lib/extensions-cli.ts') as typeof import('./src/cli/lib/extensions-cli');
+              const moveModule = await server.ssrLoadModule('/src/cli/lib/task-move.ts') as typeof import('./src/cli/lib/task-move');
+              if (!extensionHost) extensionHost = await extensionModule.loadExtensionHost(kandownPath);
+              const result = await moveModule.moveTaskWithGates(
+                extensionHost,
+                kandownPath,
+                decodeURIComponent(id),
+                input.to.trim(),
+                input.toIndex,
+              );
+              const status = result.ok
+                ? 200
+                : result.kind === 'not-found'
+                  ? 404
+                  : result.kind === 'invalid-target'
+                    ? 400
+                    : result.kind === 'write'
+                      ? 500
+                      : 409;
+              res.writeHead(status, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify(result));
+            } catch (error) {
+              const badRequest = error instanceof SyntaxError || error instanceof URIError;
+              res.writeHead(badRequest ? 400 : 500, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({
+                ok: false,
+                kind: badRequest ? 'invalid-target' : 'write',
+                reason: error instanceof Error ? error.message : String(error),
+              }));
             }
             return;
           }

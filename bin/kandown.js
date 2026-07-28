@@ -218,7 +218,7 @@ async function checkForUpdate(argv = process.argv) {
     }
   } catch {
   }
-  const latest = await new Promise((resolve7) => {
+  const latest = await new Promise((resolve8) => {
     const child2 = spawn("npm", ["view", "kandown", "version"], {
       timeout: 6e3,
       stdio: ["pipe", "pipe", "pipe"],
@@ -231,11 +231,11 @@ async function checkForUpdate(argv = process.argv) {
     });
     child2.stderr.on("data", () => {
     });
-    child2.on("error", () => resolve7(null));
+    child2.on("error", () => resolve8(null));
     child2.on("close", (code) => {
-      if (code !== 0) return resolve7(null);
+      if (code !== 0) return resolve8(null);
       const v = stdout.trim().replace(/^"|"$/g, "");
-      resolve7(v || null);
+      resolve8(v || null);
     });
   });
   if (!latest) return;
@@ -338,16 +338,16 @@ async function fetchDaemonInfo(port) {
   }
 }
 function isPortListening(port, timeoutMs = 400) {
-  return new Promise((resolve7) => {
+  return new Promise((resolve8) => {
     const socket = createConnection({ port, host: "127.0.0.1" }, () => {
       socket.destroy();
-      resolve7(true);
+      resolve8(true);
     });
-    socket.on("error", () => resolve7(false));
+    socket.on("error", () => resolve8(false));
     socket.setTimeout(timeoutMs);
     socket.on("timeout", () => {
       socket.destroy();
-      resolve7(false);
+      resolve8(false);
     });
   });
 }
@@ -375,7 +375,7 @@ async function waitForDaemon(kandownDir, timeoutMs = 8e3) {
     if (metadata && isProcessAlive(metadata.pid) && await isPortListening(metadata.port)) {
       return { running: true, metadata };
     }
-    await new Promise((resolve7) => setTimeout(resolve7, 120));
+    await new Promise((resolve8) => setTimeout(resolve8, 120));
   }
   return { running: false, metadata: null };
 }
@@ -438,7 +438,7 @@ async function stopProjectDaemon(kandownDir) {
   }
   const started = Date.now();
   while (Date.now() - started < 2500 && isProcessAlive(pid)) {
-    await new Promise((resolve7) => setTimeout(resolve7, 100));
+    await new Promise((resolve8) => setTimeout(resolve8, 100));
   }
   if (isProcessAlive(pid)) {
     try {
@@ -515,6 +515,21 @@ var DEFAULT_CONFIG = {
 };
 
 // src/lib/dependencies.ts
+var DependencyGateError = class extends Error {
+  constructor(taskId, targetStatus, blockedBy, reason = "unresolved-dependency") {
+    const list = blockedBy.length === 1 ? blockedBy[0] : `${blockedBy.slice(0, -1).join(", ")} and ${blockedBy[blockedBy.length - 1]}`;
+    super(`Cannot move ${taskId} to ${targetStatus}: blocked by ${list}`);
+    this.taskId = taskId;
+    this.targetStatus = targetStatus;
+    this.blockedBy = blockedBy;
+    this.reason = reason;
+    this.name = "DependencyGateError";
+  }
+  taskId;
+  targetStatus;
+  blockedBy;
+  reason;
+};
 function terminalStatus(config = DEFAULT_CONFIG) {
   const cols = config.board.columns;
   return cols[cols.length - 1] ?? "Done";
@@ -571,7 +586,7 @@ function resolveDependencyStatus(tasks, config = DEFAULT_CONFIG) {
     const status = readStatus(task).toLowerCase();
     const isArch = isArchivedStatus(task);
     const fm = task.frontmatter;
-    const fmArchived = fm ? fm.archived === true : false;
+    const fmArchived = fm ? isArchivedStatus({ archived: fm.archived, status: fm.status }) : false;
     out.set(id, {
       exists: true,
       resolved: isArch || fmArchived || status === terminal,
@@ -968,6 +983,7 @@ var DEFAULT_CONFIG2 = {
     // of description width to render blanks. Turn it on in `kandown settings`.
     columns: { age: true, status: true, priority: true, owner: true, deps: true, tags: false }
   },
+  extensions: { restricted: true },
   fields: {
     priority: false,
     assignee: false,
@@ -1026,6 +1042,7 @@ function loadConfig(kandownDir) {
       }
     },
     fields: { ...DEFAULT_CONFIG2.fields, ...safeObj(obj.fields) },
+    extensions: { ...DEFAULT_CONFIG2.extensions, ...safeObj(obj.extensions) },
     notifications: { ...DEFAULT_CONFIG2.notifications, ...safeObj(obj.notifications) }
   };
   if (obj.agents && typeof obj.agents === "object") {
@@ -1922,7 +1939,7 @@ function cmdInit(rawArgs) {
 async function cmdUpdate(rawArgs) {
   const current = getCurrentVersion();
   log(`${c.bold}kandown update${c.reset} ${c.dim}\u2014 v${current}${c.reset}`);
-  const latest = await new Promise((resolve7) => {
+  const latest = await new Promise((resolve8) => {
     const child = spawn5("npm", ["view", "kandown", "version"], {
       timeout: 6e3,
       stdio: ["pipe", "pipe", "pipe"],
@@ -1935,11 +1952,11 @@ async function cmdUpdate(rawArgs) {
     });
     child.stderr.on("data", () => {
     });
-    child.on("error", () => resolve7(null));
+    child.on("error", () => resolve8(null));
     child.on("close", (code) => {
-      if (code !== 0) return resolve7(null);
+      if (code !== 0) return resolve8(null);
       const v = stdout.trim().replace(/^"|"$/g, "");
-      resolve7(v || null);
+      resolve8(v || null);
     });
   });
   if (latest && semverGt(latest, current) > 0) {
@@ -2011,17 +2028,17 @@ async function cmdWork(rawArgs) {
 
 // src/cli/commands/tasks.ts
 import { existsSync as existsSync13, readFileSync as readFileSync15, mkdirSync as mkdirSync7, readdirSync as readdirSync7 } from "fs";
-import { join as join15, resolve as resolve6 } from "path";
+import { join as join15, resolve as resolve7 } from "path";
 import { spawnSync } from "child_process";
 
 // src/cli/lib/extensions-cli.ts
 import { existsSync as existsSync11, readFileSync as readFileSync13, writeFileSync as writeFileSync5, mkdirSync as mkdirSync6, cpSync, rmSync, readdirSync as readdirSync6 } from "fs";
-import { join as join13, resolve as resolve5 } from "path";
+import { join as join13, resolve as resolve6 } from "path";
 
 // src/lib/extensions/host.ts
 import { createJiti } from "jiti";
 import { existsSync as existsSync10 } from "fs";
-import { join as join12, resolve as resolve4 } from "path";
+import { join as join12, resolve as resolve5 } from "path";
 import { fileURLToPath as fileURLToPath3 } from "url";
 
 // src/lib/extensions/registry.ts
@@ -2043,8 +2060,9 @@ var ContributionRegistry = class _ContributionRegistry {
     return true;
   }
   registerPanel(extId, def) {
-    if (this.panels.has(def.id)) return false;
-    this.panels.set(def.id, { extId, def });
+    const key = `${extId}.${def.id}`;
+    if (this.panels.has(key)) return false;
+    this.panels.set(key, { extId, def });
     return true;
   }
   registerCommand(extId, def) {
@@ -2076,9 +2094,13 @@ var ContributionRegistry = class _ContributionRegistry {
       else this.lifecycle.delete(event);
     }
   }
-  /** Fields belonging to `extId`, as [key, def]. */
+  /** Fields belonging to `extId`. */
   fieldsFor(extId) {
-    return [...this.fields.values()].filter((f) => f.extId === extId).map((f) => f.def);
+    return [...this.fields.values()].filter((field) => field.extId === extId).map((field) => field.def);
+  }
+  /** Panels belonging to `extId`. */
+  panelsFor(extId) {
+    return [...this.panels.values()].filter((panel) => panel.extId === extId).map((panel) => panel.def);
   }
   reset() {
     this.fields.clear();
@@ -2182,41 +2204,30 @@ function discoverExtensions(projectDir) {
 }
 
 // src/lib/extensions/trust.ts
-import { readFileSync as readFileSync10, writeFileSync as writeFileSync3, mkdirSync as mkdirSync4 } from "fs";
-import { join as join10 } from "path";
-function isRestricted(config) {
-  const flag = config?.extensions?.restricted;
-  return typeof flag === "boolean" ? flag : true;
-}
-function trustFilePath(projectDir) {
-  return join10(projectDir, ".kandown", "extensions", "trust.json");
-}
-function loadProjectTrust(projectDir) {
-  try {
-    const raw = readFileSync10(trustFilePath(projectDir), "utf8");
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return new Set(parsed.filter((x) => typeof x === "string"));
-    return /* @__PURE__ */ new Set();
-  } catch {
-    return /* @__PURE__ */ new Set();
-  }
-}
-function saveProjectTrust(projectDir, trusted) {
-  const file = trustFilePath(projectDir);
-  mkdirSync4(join10(file, ".."), { recursive: true });
-  writeFileSync3(file, `${JSON.stringify([...trusted].sort(), null, 2)}
-`, "utf8");
-}
-
-// src/lib/extensions/state.ts
 import { readFileSync as readFileSync11, writeFileSync as writeFileSync4, mkdirSync as mkdirSync5 } from "fs";
 import { join as join11 } from "path";
+
+// src/lib/extensions/state.ts
+import { readFileSync as readFileSync10, writeFileSync as writeFileSync3, mkdirSync as mkdirSync4, realpathSync, renameSync as renameSync2 } from "fs";
+import { createHash } from "crypto";
+import { homedir as homedir5 } from "os";
+import { join as join10, resolve as resolve4 } from "path";
+function extensionStateDir(projectDir) {
+  let canonicalProject;
+  try {
+    canonicalProject = realpathSync(projectDir);
+  } catch {
+    canonicalProject = resolve4(projectDir);
+  }
+  const projectHash = createHash("sha256").update(canonicalProject).digest("hex").slice(0, 24);
+  return join10(homedir5(), ".kandown", "project-state", projectHash, "extensions");
+}
 function enabledFilePath(projectDir) {
-  return join11(projectDir, ".kandown", "extensions", "enabled.json");
+  return join10(extensionStateDir(projectDir), "enabled.json");
 }
 function loadEnabled(projectDir) {
   try {
-    const raw = readFileSync11(enabledFilePath(projectDir), "utf8");
+    const raw = readFileSync10(enabledFilePath(projectDir), "utf8");
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) return new Set(parsed.filter((x) => typeof x === "string"));
     return /* @__PURE__ */ new Set();
@@ -2226,9 +2237,125 @@ function loadEnabled(projectDir) {
 }
 function saveEnabled(projectDir, ids) {
   const file = enabledFilePath(projectDir);
-  mkdirSync5(join11(file, ".."), { recursive: true });
-  writeFileSync4(file, `${JSON.stringify([...ids].sort(), null, 2)}
+  mkdirSync4(join10(file, ".."), { recursive: true });
+  writeFileSync3(file, `${JSON.stringify([...ids].sort(), null, 2)}
 `, "utf8");
+}
+function healthFilePath(projectDir) {
+  return join10(extensionStateDir(projectDir), "health.json");
+}
+function loadFailureState(projectDir) {
+  try {
+    const parsed = JSON.parse(readFileSync10(healthFilePath(projectDir), "utf8"));
+    if (parsed.version !== 1 || !parsed.extensions || typeof parsed.extensions !== "object") {
+      return /* @__PURE__ */ new Map();
+    }
+    const records = /* @__PURE__ */ new Map();
+    for (const [id, value] of Object.entries(parsed.extensions)) {
+      if (!value || typeof value !== "object") continue;
+      const item = value;
+      if (typeof item.failures !== "number" || !Number.isInteger(item.failures) || item.failures < 1) continue;
+      records.set(id, {
+        failures: item.failures,
+        surface: typeof item.surface === "string" ? item.surface : void 0,
+        error: typeof item.error === "string" ? item.error : void 0,
+        updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : (/* @__PURE__ */ new Date(0)).toISOString()
+      });
+    }
+    return records;
+  } catch {
+    return /* @__PURE__ */ new Map();
+  }
+}
+function saveFailureState(projectDir, records) {
+  const file = healthFilePath(projectDir);
+  const tmp = `${file}.tmp`;
+  mkdirSync4(join10(file, ".."), { recursive: true });
+  const extensions = Object.fromEntries([...records.entries()].sort(([a], [b]) => a.localeCompare(b)));
+  writeFileSync3(tmp, `${JSON.stringify({ version: 1, extensions }, null, 2)}
+`, "utf8");
+  renameSync2(tmp, file);
+}
+
+// src/lib/extensions/trust.ts
+function isRestricted(config) {
+  const flag = config?.extensions?.restricted;
+  return typeof flag === "boolean" ? flag : true;
+}
+function trustFilePath(projectDir) {
+  return join11(extensionStateDir(projectDir), "trust.json");
+}
+function loadProjectTrust(projectDir) {
+  try {
+    const raw = readFileSync11(trustFilePath(projectDir), "utf8");
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return new Set(parsed.filter((x) => typeof x === "string"));
+    return /* @__PURE__ */ new Set();
+  } catch {
+    return /* @__PURE__ */ new Set();
+  }
+}
+function saveProjectTrust(projectDir, trusted) {
+  const file = trustFilePath(projectDir);
+  mkdirSync5(join11(file, ".."), { recursive: true });
+  writeFileSync4(file, `${JSON.stringify([...trusted].sort(), null, 2)}
+`, "utf8");
+}
+
+// src/lib/extensions/permissions.ts
+function isAllowed(declared, permission) {
+  if (!declared || declared.length === 0) return false;
+  for (const entry of declared) {
+    if (entry === permission) return true;
+    if (entry === "*") return true;
+    if (entry.endsWith("*") && permission.startsWith(entry.slice(0, -1))) return true;
+  }
+  return false;
+}
+
+// src/lib/extensions/namespace.ts
+var NS = "plugins";
+function getPluginData(frontmatter, extId) {
+  const plugins = frontmatter[NS];
+  if (!plugins || typeof plugins !== "object" || Array.isArray(plugins)) return void 0;
+  const ext = plugins[extId];
+  if (!ext || typeof ext !== "object" || Array.isArray(ext)) return void 0;
+  return ext;
+}
+function coerceField(raw, type) {
+  switch (type) {
+    case "number": {
+      const n = Number(raw);
+      return Number.isFinite(n) ? n : void 0;
+    }
+    case "boolean":
+      return raw === true || raw === "true" || raw === "True" || raw === 1 || raw === "1";
+    case "string":
+    case "date":
+    case "select":
+    default:
+      return raw === void 0 ? void 0 : String(raw);
+  }
+}
+function readField(frontmatter, extId, key, type) {
+  const data = getPluginData(frontmatter, extId);
+  if (!data || data[key] === void 0) return void 0;
+  return coerceField(data[key], type);
+}
+function setField(frontmatter, extId, key, value) {
+  const out = { ...frontmatter };
+  const plugins = out[NS] && typeof out[NS] === "object" && !Array.isArray(out[NS]) ? { ...out[NS] } : {};
+  const ext = plugins[extId] && typeof plugins[extId] === "object" && !Array.isArray(plugins[extId]) ? { ...plugins[extId] } : {};
+  if (value === void 0 || value === null || value === "") {
+    delete ext[key];
+  } else {
+    ext[key] = value;
+  }
+  if (Object.keys(ext).length > 0) plugins[extId] = ext;
+  else delete plugins[extId];
+  if (Object.keys(plugins).length > 0) out[NS] = plugins;
+  else delete out[NS];
+  return out;
 }
 
 // src/lib/extensions/host.ts
@@ -2242,12 +2369,14 @@ var ExtensionHost = class {
     this.env = env;
     this.trust = loadProjectTrust(env.projectDir);
     this.enabled = loadEnabled(env.projectDir);
+    this.failures = loadFailureState(env.projectDir);
   }
   env;
   registry = new ContributionRegistry();
   byExtId = /* @__PURE__ */ new Map();
   trust;
   enabled;
+  failures;
   jiti;
   /** All loaded extensions, with health and provenance. */
   list() {
@@ -2266,11 +2395,27 @@ var ExtensionHost = class {
       source: ext.source,
       health: ext.health,
       error: ext.error,
-      fields: this.registry.fieldsFor(ext.manifest.id).map((f) => f.key),
-      panels: [...this.registry.panels.values()].filter((p) => p.extId === ext.manifest.id).map((p) => p.def.id),
-      commands: [...this.registry.commands.values()].filter((c2) => c2.extId === ext.manifest.id).map((c2) => c2.def.name),
-      gates: this.registry.gates.filter((g) => g.extId === ext.manifest.id).length,
-      syncs: this.registry.syncs.filter((s) => s.extId === ext.manifest.id).length
+      failures: ext.failures,
+      permissions: [...ext.manifest.permissions ?? []],
+      fields: this.registry.fieldsFor(ext.manifest.id).map((field) => ({
+        extId: ext.manifest.id,
+        key: field.key,
+        label: field.label,
+        type: field.type,
+        options: field.options,
+        hasBadge: typeof field.badge === "function",
+        editorComponentId: field.editorComponentId
+      })),
+      panels: this.registry.panelsFor(ext.manifest.id).map((panel) => ({
+        extId: ext.manifest.id,
+        id: panel.id,
+        title: panel.title,
+        entry: panel.entry,
+        icon: panel.icon
+      })),
+      commands: [...this.registry.commands.values()].filter((command) => command.extId === ext.manifest.id).map((command) => command.def.name),
+      gates: this.registry.gates.filter((gate) => gate.extId === ext.manifest.id).length,
+      syncs: this.registry.syncs.filter((sync) => sync.extId === ext.manifest.id).length
     }));
   }
   /**
@@ -2303,6 +2448,18 @@ var ExtensionHost = class {
         this.byExtId.set(manifest.id, loaded(manifest, found.dir, found.source, "errored", `requires kandown >= ${manifest.minKandownVersion}`));
         continue;
       }
+      const persistedFailure = this.failures.get(manifest.id);
+      if (persistedFailure && persistedFailure.failures >= QUARANTINE_THRESHOLD) {
+        this.byExtId.set(manifest.id, loaded(
+          manifest,
+          found.dir,
+          found.source,
+          "quarantined",
+          persistedFailure.error ?? `quarantined after ${persistedFailure.failures} failures`,
+          persistedFailure.failures
+        ));
+        continue;
+      }
       if (found.source === "project" && !this.trust.has(manifest.id)) {
         this.byExtId.set(manifest.id, loaded(manifest, found.dir, found.source, "disabled", 'project extension not trusted; run "kandown extension enable"'));
         continue;
@@ -2311,11 +2468,11 @@ var ExtensionHost = class {
         this.byExtId.set(manifest.id, loaded(manifest, found.dir, found.source, "disabled", 'restricted mode is on; run "kandown extension enable"'));
         continue;
       }
-      await this.loadEntry(manifest, found.dir, found.source);
+      await this.loadEntry(manifest, found.dir, found.source, persistedFailure?.failures ?? 0);
     }
   }
   /** Loads and runs one extension's Node entry, registering its contributions. */
-  async loadEntry(manifest, dir, source) {
+  async loadEntry(manifest, dir, source, failures = 0) {
     const entry = this.resolveEntry(manifest, dir);
     if (!entry) {
       this.byExtId.set(manifest.id, loaded(manifest, dir, source, "errored", "no Node entry found (index.js or index.ts)"));
@@ -2329,7 +2486,7 @@ var ExtensionHost = class {
       }
       const kd = this.makeApi(manifest.id);
       await factory(kd);
-      this.byExtId.set(manifest.id, loaded(manifest, dir, source, "enabled"));
+      this.byExtId.set(manifest.id, loaded(manifest, dir, source, "enabled", void 0, failures));
     } catch (e) {
       this.registry.clearForExt(manifest.id);
       this.byExtId.set(manifest.id, loaded(manifest, dir, source, "errored", `load failed: ${errMsg(e)}`));
@@ -2337,7 +2494,7 @@ var ExtensionHost = class {
   }
   resolveEntry(manifest, dir) {
     const mainRel = manifest.main;
-    const candidates = mainRel ? [resolve4(dir, mainRel)] : [join12(dir, "index.ts"), join12(dir, "index.js"), join12(dir, "index.mjs")];
+    const candidates = mainRel ? [resolve5(dir, mainRel)] : [join12(dir, "index.ts"), join12(dir, "index.js"), join12(dir, "index.mjs")];
     for (const c2 of candidates) if (existsSync10(c2)) return c2;
     return null;
   }
@@ -2375,10 +2532,21 @@ var ExtensionHost = class {
     const ctx = {
       extId,
       board: {
-        readAll: () => this.env.readAll(),
-        read: (id) => this.env.read(id)
+        readAll: async () => {
+          if (!isAllowed(perms, "read:tasks")) throw new Error("permission denied: read:tasks");
+          return this.env.readAll();
+        },
+        read: async (id) => {
+          if (!isAllowed(perms, "read:tasks")) throw new Error("permission denied: read:tasks");
+          return this.env.read(id);
+        }
       },
-      setField: (taskId, key, value) => this.env.applyField(taskId, extId, key, value),
+      setField: async (taskId, key, value) => {
+        const permission = `write:field:plugins.${extId}.${key}`;
+        const declared = this.byExtId.get(extId)?.manifest.permissions;
+        if (!isAllowed(declared, permission)) throw new Error(`permission denied: ${permission}`);
+        await this.env.applyField(taskId, extId, key, value);
+      },
       log: {
         info: (m) => this.env.log?.info?.(m),
         warn: (m) => this.env.log?.warn?.(m),
@@ -2388,17 +2556,110 @@ var ExtensionHost = class {
     if (hasNet) ctx.fetch = fetch;
     return ctx;
   }
-  /** Bumps the failure counter and quarantines past the threshold. */
-  recordFailure(extId, e) {
+  /**
+   * Validates and writes one registered field through the host. The browser can
+   * never choose another extension's namespace or bypass the declared type.
+   */
+  async setFieldValue(taskId, extId, key, value) {
+    const ext = this.byExtId.get(extId);
+    if (!ext || ext.health !== "enabled") throw new Error(`extension is not enabled: ${extId}`);
+    const field = this.registry.fields.get(ContributionRegistry.fieldKey(extId, key))?.def;
+    if (!field) throw new Error(`unknown field: ${extId}.${key}`);
+    const permission = `write:field:plugins.${extId}.${key}`;
+    if (!isAllowed(ext.manifest.permissions, permission)) throw new Error(`permission denied: ${permission}`);
+    let normalized = value;
+    if (value !== void 0 && value !== null && value !== "") {
+      normalized = coerceField(value, field.type);
+      if (field.type === "number" && normalized === void 0) throw new Error(`${field.label} must be a number`);
+      if (field.type === "select" && field.options && !field.options.some((option) => option.value === normalized)) {
+        throw new Error(`${field.label} has an invalid option`);
+      }
+    }
+    try {
+      await this.env.applyField(taskId, extId, key, normalized);
+      this.recordSuccess(extId, `field:${key}`);
+    } catch (error) {
+      this.recordFailure(extId, error, `field:${key}`);
+      throw error;
+    }
+  }
+  /** Computes every enabled card badge in one pass, avoiding browser N+1 calls. */
+  async renderBadges() {
+    const badges = {};
+    const tasks = await this.env.readAll();
+    for (const task of tasks) {
+      const taskBadges = [];
+      for (const { extId, def } of this.registry.fields.values()) {
+        if (!def.badge || this.byExtId.get(extId)?.health !== "enabled") continue;
+        try {
+          const value = readField(task.frontmatter, extId, def.key, def.type);
+          const text = def.badge(value, task);
+          this.recordSuccess(extId, `badge:${def.key}`);
+          if (typeof text === "string" && text.trim()) {
+            taskBadges.push({ extId, fieldKey: def.key, text });
+          }
+        } catch (error) {
+          this.recordFailure(extId, error, `badge:${def.key}`);
+        }
+      }
+      if (taskBadges.length > 0) badges[task.id] = taskBadges;
+    }
+    return badges;
+  }
+  /** Health persistence is best-effort and must never break fail-open isolation. */
+  persistFailures() {
+    try {
+      saveFailureState(this.env.projectDir, this.failures);
+    } catch (error) {
+      this.env.log?.warn?.(`Could not persist extension health: ${errMsg(error)}`);
+    }
+  }
+  /** Bumps one surface's persistent failure counter and quarantines at the threshold. */
+  recordFailure(extId, e, surface) {
     const ext = this.byExtId.get(extId);
     if (!ext || ext.health !== "enabled") return;
-    ext.failures += 1;
+    const previous = this.failures.get(extId);
+    ext.failures = previous?.surface === surface ? previous.failures + 1 : 1;
+    const message = errMsg(e);
+    this.failures.set(extId, {
+      failures: ext.failures,
+      surface,
+      error: message,
+      updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+    });
     if (ext.failures >= QUARANTINE_THRESHOLD) {
       ext.health = "quarantined";
-      ext.error = `quarantined after ${ext.failures} failures (last: ${errMsg(e)})`;
+      ext.error = `quarantined after ${ext.failures} failures (last: ${message})`;
+      this.failures.set(extId, {
+        failures: ext.failures,
+        surface,
+        error: ext.error,
+        updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+      });
       this.registry.clearForExt(extId);
       this.env.log?.error?.(`[${extId}] quarantined`);
     }
+    this.persistFailures();
+  }
+  /** Clears consecutive failures only for the same contribution surface. */
+  recordSuccess(extId, surface) {
+    const ext = this.byExtId.get(extId);
+    const previous = this.failures.get(extId);
+    if (!ext || ext.health !== "enabled" || ext.failures === 0 || previous?.surface !== surface) return;
+    ext.failures = 0;
+    ext.error = void 0;
+    this.failures.delete(extId);
+    this.persistFailures();
+  }
+  /** Records a browser contribution failure reported through the daemon API. */
+  reportFailure(extId, error) {
+    this.recordFailure(extId, error, "webPanel");
+    return this.byExtId.get(extId);
+  }
+  /** Records a successful browser mount, resetting consecutive failures. */
+  reportSuccess(extId) {
+    this.recordSuccess(extId, "webPanel");
+    return this.byExtId.get(extId);
   }
   /**
    * 📖 Runs every gate matching the event. Returns on the first block. A
@@ -2411,11 +2672,13 @@ var ExtensionHost = class {
       if (this.byExtId.get(extId)?.health !== "enabled") continue;
       try {
         const verdict = await def.handler(event, this.makeContext(extId));
+        const surface = `gate:${def.id ?? def.on}:${def.to ?? "*"}`;
+        this.recordSuccess(extId, surface);
         if (verdict?.block) {
           return { allowed: false, reason: verdict.reason ?? `Blocked by extension "${extId}"` };
         }
       } catch (e) {
-        this.recordFailure(extId, e);
+        this.recordFailure(extId, e, `gate:${def.id ?? def.on}:${def.to ?? "*"}`);
       }
     }
     return { allowed: true };
@@ -2426,7 +2689,8 @@ var ExtensionHost = class {
       if (def.on !== event.type) continue;
       if (def.to && event.to && def.to !== event.to) continue;
       if (this.byExtId.get(extId)?.health !== "enabled") continue;
-      void Promise.resolve(def.handler(event, this.makeContext(extId))).catch((e) => this.recordFailure(extId, e));
+      const surface = `sync:${def.id ?? def.on}:${def.to ?? "*"}`;
+      void Promise.resolve(def.handler(event, this.makeContext(extId))).then(() => this.recordSuccess(extId, surface)).catch((e) => this.recordFailure(extId, e, surface));
     }
   }
   /** Fires matching lifecycle handlers, isolated. */
@@ -2435,7 +2699,8 @@ var ExtensionHost = class {
     if (!handlers) return;
     for (const { extId, handler } of handlers) {
       if (this.byExtId.get(extId)?.health !== "enabled") continue;
-      void Promise.resolve(handler(event, this.makeContext(extId))).catch((e) => this.recordFailure(extId, e));
+      const surface = `lifecycle:${event.type}`;
+      void Promise.resolve(handler(event, this.makeContext(extId))).then(() => this.recordSuccess(extId, surface)).catch((e) => this.recordFailure(extId, e, surface));
     }
   }
   /** Returns a contributed command by name, or null. */
@@ -2451,8 +2716,9 @@ var ExtensionHost = class {
     if (!cmd) throw new Error(`Unknown extension command: ${name}`);
     try {
       await cmd.handler(args, this.makeContext(cmd.extId));
+      this.recordSuccess(cmd.extId, `command:${name}`);
     } catch (e) {
-      this.recordFailure(cmd.extId, e);
+      this.recordFailure(cmd.extId, e, `command:${name}`);
       throw e;
     }
   }
@@ -2463,6 +2729,8 @@ var ExtensionHost = class {
    * discovers everything.
    */
   async enable(id) {
+    this.failures.delete(id);
+    this.persistFailures();
     this.trust.add(id);
     saveProjectTrust(this.env.projectDir, this.trust);
     this.enabled.add(id);
@@ -2482,26 +2750,8 @@ var ExtensionHost = class {
     return true;
   }
 };
-function loaded(manifest, dir, source, health, error) {
-  return { manifest, dir, source, health, error, failures: 0 };
-}
-
-// src/lib/extensions/namespace.ts
-var NS = "plugins";
-function setField(frontmatter, extId, key, value) {
-  const out = { ...frontmatter };
-  const plugins = out[NS] && typeof out[NS] === "object" && !Array.isArray(out[NS]) ? { ...out[NS] } : {};
-  const ext = plugins[extId] && typeof plugins[extId] === "object" && !Array.isArray(plugins[extId]) ? { ...plugins[extId] } : {};
-  if (value === void 0 || value === null || value === "") {
-    delete ext[key];
-  } else {
-    ext[key] = value;
-  }
-  if (Object.keys(ext).length > 0) plugins[extId] = ext;
-  else delete plugins[extId];
-  if (Object.keys(plugins).length > 0) out[NS] = plugins;
-  else delete out[NS];
-  return out;
+function loaded(manifest, dir, source, health, error, failures = 0) {
+  return { manifest, dir, source, health, error, failures };
 }
 
 // src/cli/lib/extensions-cli.ts
@@ -2683,7 +2933,7 @@ async function installExtension(kandownDir, target) {
   const projectDir = getProjectRoot(kandownDir);
   const destRoot = join13(projectDir, ".kandown", "extensions");
   mkdirSync6(destRoot, { recursive: true });
-  const src = resolve5(target);
+  const src = resolve6(target);
   if (existsSync11(src) && existsSync11(join13(src, "manifest.json"))) {
     const manifest = JSON.parse(readFileSync13(join13(src, "manifest.json"), "utf8"));
     if (!manifest.id) return null;
@@ -3402,7 +3652,7 @@ function cmdImport(rawArgs) {
     err("Usage: kandown import <file.json> [--overwrite]");
     process.exit(1);
   }
-  const importPath = resolve6(process.cwd(), file);
+  const importPath = resolve7(process.cwd(), file);
   if (!existsSync13(importPath)) {
     err(`Import file not found: ${file}`);
     process.exit(1);
@@ -3460,6 +3710,137 @@ import { createServer } from "http";
 import { existsSync as existsSync15, readFileSync as readFileSync16, copyFileSync as copyFileSync3, unlinkSync as unlinkSync5, mkdirSync as mkdirSync9 } from "fs";
 import { join as join17 } from "path";
 import { spawn as spawn6 } from "child_process";
+
+// src/cli/lib/task-move.ts
+function userReadyExtensionReason(taskId, target, reason) {
+  return `Cannot move ${taskId} to ${target}: ${reason ?? "blocked by an extension"}`;
+}
+var moveLocks = /* @__PURE__ */ new Map();
+async function withProjectMoveLock(projectKey, operation) {
+  const previous = moveLocks.get(projectKey) ?? Promise.resolve();
+  let release = () => {
+  };
+  const current = new Promise((resolveLock) => {
+    release = resolveLock;
+  });
+  const tail = previous.then(() => current);
+  moveLocks.set(projectKey, tail);
+  await previous;
+  try {
+    return await operation();
+  } finally {
+    release();
+    if (moveLocks.get(projectKey) === tail) moveLocks.delete(projectKey);
+  }
+}
+async function performTaskMove(host, kandownDir, taskId, targetStatus, toIndex) {
+  const taskPath2 = findTaskPath(kandownDir, taskId);
+  if (!taskPath2) {
+    return { ok: false, kind: "not-found", reason: `Task not found: ${taskId}` };
+  }
+  const config = loadConfig(kandownDir);
+  const board = readBoard(kandownDir);
+  const sourceColumn = board.columns.find((column) => column.tasks.some((task) => task.id === taskId));
+  const targetColumn = board.columns.find((column) => column.name.toLowerCase() === targetStatus.toLowerCase());
+  if (!sourceColumn) {
+    return { ok: false, kind: "not-found", reason: `Task is not active: ${taskId}` };
+  }
+  if (!targetColumn) {
+    return { ok: false, kind: "invalid-target", reason: `Unknown status: ${targetStatus}` };
+  }
+  const target = targetColumn.name;
+  const parsed = readTask(kandownDir, taskId);
+  const from = typeof parsed.frontmatter.status === "string" ? parsed.frontmatter.status : sourceColumn.name;
+  const allTasks = listTaskIds(kandownDir).map((id) => {
+    try {
+      return readTask(kandownDir, id);
+    } catch {
+      return null;
+    }
+  }).filter((task) => task !== null);
+  const snapshot = resolveDependencyStatus(allTasks, config);
+  const dependencyVerdict = resolveTransition(parsed, target, snapshot, config);
+  if (!dependencyVerdict.allowed) {
+    const error = new DependencyGateError(taskId, target, dependencyVerdict.blockedBy);
+    return {
+      ok: false,
+      kind: "dependency",
+      reason: error.message,
+      blockedBy: dependencyVerdict.blockedBy
+    };
+  }
+  const extensionVerdict = await runExtensionMoveGates(host, kandownDir, taskId, from, target);
+  if (!extensionVerdict.allowed) {
+    return {
+      ok: false,
+      kind: "extension",
+      reason: userReadyExtensionReason(taskId, target, extensionVerdict.reason)
+    };
+  }
+  const sourceIds = sourceColumn.tasks.map((task) => task.id).filter((id) => id !== taskId);
+  const targetIds = sourceColumn === targetColumn ? sourceIds : targetColumn.tasks.map((task) => task.id).filter((id) => id !== taskId);
+  const insertionIndex = toIndex === void 0 ? targetIds.length : Math.max(0, Math.min(Math.trunc(toIndex), targetIds.length));
+  targetIds.splice(insertionIndex, 0, taskId);
+  const layouts = sourceColumn === targetColumn ? [{ status: target, ids: targetIds }] : [
+    // 📖 Persist the target first, and the moved task first within it. If
+    // that authoritative write fails, no neighbor order has changed.
+    { status: target, ids: targetIds },
+    { status: sourceColumn.name, ids: sourceIds }
+  ];
+  const failedIds = [];
+  for (const layout of layouts) {
+    const entries = layout.ids.map((id, order) => ({ id, order }));
+    entries.sort((left, right) => left.id === taskId ? -1 : right.id === taskId ? 1 : left.order - right.order);
+    for (const { id, order } of entries) {
+      const path = findTaskPath(kandownDir, id);
+      if (!path) {
+        failedIds.push(id);
+        continue;
+      }
+      try {
+        const current = readTask(kandownDir, id);
+        const nextContent = serializeTaskFile(stampUpdated({
+          ...current.frontmatter,
+          id,
+          status: layout.status,
+          order
+        }), current.body);
+        atomicWriteFileSync(path, nextContent);
+      } catch {
+        failedIds.push(id);
+      }
+    }
+  }
+  const uniqueFailedIds = [...new Set(failedIds)];
+  if (uniqueFailedIds.includes(taskId)) {
+    return {
+      ok: false,
+      kind: "write",
+      reason: `Failed to persist move for ${taskId}`
+    };
+  }
+  try {
+    const moved = readTask(kandownDir, taskId);
+    const frontmatter = moved.frontmatter;
+    const event = {
+      type: "task:afterMove",
+      task: {
+        id: taskId,
+        frontmatter,
+        plugins: frontmatter.plugins
+      },
+      from,
+      to: target
+    };
+    host.dispatchSync(event);
+    host.dispatchLifecycle(event);
+  } catch {
+  }
+  return { ok: true, from, to: target, failedIds: uniqueFailedIds };
+}
+async function moveTaskWithGates(host, kandownDir, taskId, targetStatus, toIndex) {
+  return withProjectMoveLock(kandownDir, () => performTaskMove(host, kandownDir, taskId, targetStatus, toIndex));
+}
 
 // src/cli/lib/extensions-store.ts
 import { mkdirSync as mkdirSync8, writeFileSync as writeFileSync6 } from "fs";
@@ -3546,8 +3927,12 @@ var UNSAFE_PORTS = /* @__PURE__ */ new Set([2049, 4045, 6e3, 6665, 6666, 6667, 6
 var sseClients = [];
 var nextClientId = 1;
 var extensionHost = null;
+var extensionHostDir = null;
 async function getExtensionHost(kandownDir) {
-  if (!extensionHost) extensionHost = await loadExtensionHost(kandownDir);
+  if (!extensionHost || extensionHostDir !== kandownDir) {
+    extensionHost = await loadExtensionHost(kandownDir);
+    extensionHostDir = kandownDir;
+  }
   return extensionHost;
 }
 function broadcastSseEvent(data) {
@@ -3664,7 +4049,7 @@ async function handleApi(req, res, url, kandownDir) {
   }
   if (path === "/api/update/check" && method === "GET") {
     const current = getCurrentVersion();
-    const latest = await new Promise((resolve7) => {
+    const latest = await new Promise((resolve8) => {
       const child = spawn6("npm", ["view", "kandown", "version"], {
         timeout: 4e3,
         stdio: ["pipe", "pipe", "pipe"],
@@ -3677,10 +4062,10 @@ async function handleApi(req, res, url, kandownDir) {
       });
       child.stderr.on("data", () => {
       });
-      child.on("error", () => resolve7(null));
+      child.on("error", () => resolve8(null));
       child.on("close", (code) => {
-        if (code !== 0) return resolve7(null);
-        resolve7(stdout.trim().replace(/^"|"$/g, "") || null);
+        if (code !== 0) return resolve8(null);
+        resolve8(stdout.trim().replace(/^"|"$/g, "") || null);
       });
     });
     const installed = getInstalledVersion() ?? current;
@@ -3696,7 +4081,7 @@ async function handleApi(req, res, url, kandownDir) {
   }
   if (path === "/api/update/apply" && method === "POST") {
     const current = getCurrentVersion();
-    const latest = await new Promise((resolve7) => {
+    const latest = await new Promise((resolve8) => {
       const child = spawn6("npm", ["view", "kandown", "version"], {
         timeout: 4e3,
         stdio: ["pipe", "pipe", "pipe"],
@@ -3707,8 +4092,8 @@ async function handleApi(req, res, url, kandownDir) {
       child.stdout.on("data", (d) => {
         stdout += d;
       });
-      child.on("error", () => resolve7(null));
-      child.on("close", (code) => resolve7(code === 0 ? stdout.trim() : null));
+      child.on("error", () => resolve8(null));
+      child.on("close", (code) => resolve8(code === 0 ? stdout.trim() : null));
     });
     const targetVersion = latest || current;
     const ok = await performGlobalPackageUpdate(`kandown@${targetVersion}`);
@@ -3772,10 +4157,14 @@ async function handleApi(req, res, url, kandownDir) {
         try {
           const parsed = JSON.parse(body);
           saveConfig(kandownDir, parsed);
+          if (extensionHostDir === kandownDir) {
+            extensionHost = null;
+            extensionHostDir = null;
+          }
           broadcastSseEvent({ type: "config" });
           writeJson(res, 200, { ok: true });
-        } catch (e) {
-          writeJson(res, 400, { error: e.message });
+        } catch (error) {
+          writeJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
         }
       });
       return;
@@ -3789,11 +4178,18 @@ async function handleApi(req, res, url, kandownDir) {
   }
   if (path === "/api/extensions" && method === "GET") {
     const host = await getExtensionHost(kandownDir);
-    return writeJson(res, 200, { extensions: host.installedSummary() });
+    const badges = await host.renderBadges();
+    return writeJson(res, 200, { extensions: host.installedSummary(), badges });
   }
   if (path.startsWith("/api/extensions/")) {
     const parts = path.slice("/api/extensions/".length).split("/").filter(Boolean);
-    const id = decodeURIComponent(parts[0] ?? "");
+    let id;
+    try {
+      id = decodeURIComponent(parts[0] ?? "");
+    } catch {
+      return writeJson(res, 400, { error: "Invalid extension id" });
+    }
+    if (!/^[a-z][a-z0-9-]{0,63}$/.test(id)) return writeJson(res, 400, { error: "Invalid extension id" });
     const host = await getExtensionHost(kandownDir);
     if (parts.length === 2 && parts[1] === "enable" && method === "POST") {
       const ok = await host.enable(id);
@@ -3804,6 +4200,25 @@ async function handleApi(req, res, url, kandownDir) {
       const ok = host.disable(id);
       broadcastSseEvent({ type: "extensions" });
       return writeJson(res, 200, { ok });
+    }
+    if (parts.length === 2 && parts[1] === "health" && method === "POST") {
+      let body;
+      try {
+        body = JSON.parse(await readRequestBody(req));
+      } catch (error) {
+        return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
+      }
+      if (body.outcome !== "success" && body.outcome !== "failure") {
+        return writeJson(res, 400, { error: "outcome must be success or failure" });
+      }
+      const ext = body.outcome === "success" ? host.reportSuccess(id) : host.reportFailure(id, typeof body.message === "string" ? body.message : "web panel failed");
+      if (!ext) return writeJson(res, 404, { error: "Extension not found" });
+      if (ext.health === "quarantined") broadcastSseEvent({ type: "extensions" });
+      return writeJson(res, 200, {
+        health: ext.health,
+        failures: ext.failures,
+        error: ext.error
+      });
     }
     if (parts.length >= 2 && parts[1] === "files" && method === "GET") {
       const ext = host.get(id);
@@ -3835,15 +4250,30 @@ async function handleApi(req, res, url, kandownDir) {
     const parts = path.slice("/api/tasks/".length).split("/").filter(Boolean);
     const taskId = decodeURIComponent(parts[0] ?? "");
     if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return writeText(res, 400, "Invalid task id");
-    const taskPath2 = findTaskPath(kandownDir, taskId);
-    if (!taskPath2) return writeText(res, 404, "Task not found");
-    const body = JSON.parse(await readRequestBody(req));
-    if (!body.extId || !body.key) return writeJson(res, 400, { error: "extId and key required" });
-    const parsed = parseTaskFile(readFileSync16(taskPath2, "utf8"));
-    const next = setField(parsed.frontmatter, body.extId, body.key, body.value);
-    atomicWriteFileSync(taskPath2, serializeTaskFile(stampUpdated(next), parsed.body));
-    broadcastSseEvent({ type: "task", id: taskId });
-    return writeJson(res, 200, { ok: true });
+    if (!findTaskPath(kandownDir, taskId)) return writeText(res, 404, "Task not found");
+    let body;
+    try {
+      body = JSON.parse(await readRequestBody(req));
+    } catch (error) {
+      return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
+    }
+    if (typeof body.extId !== "string" || typeof body.key !== "string") {
+      return writeJson(res, 400, { error: "extId and key required" });
+    }
+    try {
+      const host = await getExtensionHost(kandownDir);
+      await host.setFieldValue(taskId, body.extId, body.key, body.value);
+      const updated = readTask(kandownDir, taskId).frontmatter;
+      broadcastSseEvent({ type: "task", id: taskId });
+      return writeJson(res, 200, {
+        ok: true,
+        plugins: updated.plugins && typeof updated.plugins === "object" ? updated.plugins : void 0
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const status = message.startsWith("permission denied") ? 403 : message.startsWith("extension is not enabled") ? 409 : 400;
+      return writeJson(res, status, { error: message });
+    }
   }
   if (path.startsWith("/api/tasks/")) {
     const routeParts = path.slice("/api/tasks/".length).split("/").filter(Boolean);
@@ -3859,6 +4289,52 @@ async function handleApi(req, res, url, kandownDir) {
     const activePath = join17(tasksDir, `${taskId}.md`);
     const archivedPath = join17(archiveDir, `${taskId}.md`);
     const action = routeParts[1];
+    if (method === "POST" && action === "move") {
+      if (routeParts.length !== 2) return writeText(res, 400, "Invalid task route");
+      let input;
+      try {
+        input = JSON.parse(await readRequestBody(req));
+      } catch (error) {
+        return writeJson(res, 400, {
+          ok: false,
+          kind: "invalid-target",
+          reason: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}`
+        });
+      }
+      if (typeof input.to !== "string" || !input.to.trim()) {
+        return writeJson(res, 400, {
+          ok: false,
+          kind: "invalid-target",
+          reason: "Move target is required"
+        });
+      }
+      if (input.toIndex !== void 0 && (typeof input.toIndex !== "number" || !Number.isFinite(input.toIndex))) {
+        return writeJson(res, 400, {
+          ok: false,
+          kind: "invalid-target",
+          reason: "Move target index must be a finite number"
+        });
+      }
+      try {
+        const host = await getExtensionHost(kandownDir);
+        const result = await moveTaskWithGates(
+          host,
+          kandownDir,
+          taskId,
+          input.to.trim(),
+          input.toIndex
+        );
+        const status = result.ok ? 200 : result.kind === "not-found" ? 404 : result.kind === "invalid-target" ? 400 : result.kind === "write" ? 500 : 409;
+        if (result.ok) broadcastSseEvent({ type: "task", id: taskId });
+        return writeJson(res, status, result);
+      } catch (error) {
+        return writeJson(res, 500, {
+          ok: false,
+          kind: "write",
+          reason: `Move failed: ${error instanceof Error ? error.message : String(error)}`
+        });
+      }
+    }
     if (method === "POST" && (action === "archive" || action === "unarchive")) {
       if (routeParts.length !== 2) return writeText(res, 400, "Invalid task route");
       const archiving = action === "archive";
@@ -4108,14 +4584,14 @@ function runAgentSync(opts) {
   const { taskId, kandownDir } = opts;
   const prepared = prepareLaunch(opts);
   const { binary, args, contextFile, originalStatus, agentName } = prepared;
-  return new Promise((resolve7, reject) => {
+  return new Promise((resolve8, reject) => {
     const child = spawn7(binary, args, { stdio: "inherit", env: launchEnv(contextFile, taskId, kandownDir) });
     child.on("error", (e) => {
       rollbackTaskStatus(kandownDir, taskId, originalStatus);
       reject(new Error(`Failed to launch ${agentName}: ${e.message}`));
     });
     child.on("exit", (code) => {
-      resolve7({ exitCode: code ?? 0 });
+      resolve8({ exitCode: code ?? 0 });
     });
   });
 }

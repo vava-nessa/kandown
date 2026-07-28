@@ -8,8 +8,9 @@
  * moment the board opens.
  *
  * 📖 Restricted mode lives in `.kandown/kandown.json` under `extensions.restricted`
- * (absent = true). Per-project trust lives in `.kandown/extensions/trust.json`,
- * a simple list of trusted extension ids. See docs/EXTENSIONS.md § "Security".
+ * (absent = true). Per-project trust lives outside the repository in Kandown's
+ * user-local project-state directory, so committed files cannot grant their own
+ * execution permission. See docs/EXTENSIONS.md.
  *
  * @functions
  *  → isRestricted — read the restricted flag from a config object
@@ -22,6 +23,7 @@
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { extensionStateDir } from './state';
 
 /** True when community extensions must be explicitly enabled (default behaviour). */
 export function isRestricted(config: { extensions?: { restricted?: boolean } } | undefined | null): boolean {
@@ -32,7 +34,7 @@ export function isRestricted(config: { extensions?: { restricted?: boolean } } |
 
 /** Absolute path to a project's per-project extension trust file. */
 export function trustFilePath(projectDir: string): string {
-  return join(projectDir, '.kandown', 'extensions', 'trust.json');
+  return join(extensionStateDir(projectDir), 'trust.json');
 }
 
 /** Reads the set of trusted project-local extension ids for a project. */

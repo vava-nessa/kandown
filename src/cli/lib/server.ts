@@ -9,18 +9,15 @@ import { createServer, IncomingMessage, ServerResponse } from 'node:http';
 import { existsSync, readFileSync, copyFileSync, unlinkSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawn } from 'node:child_process';
-import { getProjectRoot, getTasksDir, findTaskPath, readBoard, readTask, moveTaskToColumn, listTaskIds } from './board-reader';
+import { getProjectRoot, getTasksDir, findTaskPath, readTask, listTaskIds } from './board-reader';
 import { loadConfig, saveConfig } from './config';
 import { detectCatalogJSON } from './agents';
 import { getCurrentVersion, getInstalledVersion, semverGt, performGlobalPackageUpdate, PKG_ROOT } from './updater';
 import { atomicWriteFileSync } from './atomic-write';
 import { loadExtensionHost } from './extensions-cli';
+import { moveTaskWithGates, type MoveTaskResult } from './task-move';
 import { fetchRegistry, installExtension, type RegistryEntry } from './extensions-store';
 import type { ExtensionHost } from '../../lib/extensions/host';
-import { setField } from '../../lib/extensions/namespace';
-import { parseTaskFile } from '../../lib/parser';
-import { serializeTaskFile } from '../../lib/serializer';
-import { stampUpdated } from '../../lib/task-meta';
 
 const START_PORT_RANGE = 2050;
 const END_PORT_RANGE = 2099;
@@ -36,8 +33,12 @@ let nextClientId = 1;
 /** 📖 One extension host per daemon process. Built lazily on first /api/extensions
  *  request and reused; enable/disable mutate this same instance and reload. */
 let extensionHost: ExtensionHost | null = null;
+let extensionHostDir: string | null = null;
 async function getExtensionHost(kandownDir: string): Promise<ExtensionHost> {
-  if (!extensionHost) extensionHost = await loadExtensionHost(kandownDir);
+  if (!extensionHost || extensionHostDir !== kandownDir) {
+    extensionHost = await loadExtensionHost(kandownDir);
+    extensionHostDir = kandownDir;
+  }
   return extensionHost;
 }
 
@@ -298,10 +299,14 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
         try {
           const parsed = JSON.parse(body);
           saveConfig(kandownDir, parsed);
+          if (extensionHostDir === kandownDir) {
+            extensionHost = null;
+            extensionHostDir = null;
+          }
           broadcastSseEvent({ type: 'config' });
           writeJson(res, 200, { ok: true });
-        } catch (e: any) {
-          writeJson(res, 400, { error: e.message });
+        } catch (error) {
+          writeJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
         }
       });
       return;
@@ -323,11 +328,18 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
   // host directly. See docs/EXTENSIONS.md.
   if (path === '/api/extensions' && method === 'GET') {
     const host = await getExtensionHost(kandownDir);
-    return writeJson(res, 200, { extensions: host.installedSummary() });
+    const badges = await host.renderBadges();
+    return writeJson(res, 200, { extensions: host.installedSummary(), badges });
   }
   if (path.startsWith('/api/extensions/')) {
     const parts = path.slice('/api/extensions/'.length).split('/').filter(Boolean);
-    const id = decodeURIComponent(parts[0] ?? '');
+    let id: string;
+    try {
+      id = decodeURIComponent(parts[0] ?? '');
+    } catch {
+      return writeJson(res, 400, { error: 'Invalid extension id' });
+    }
+    if (!/^[a-z][a-z0-9-]{0,63}$/.test(id)) return writeJson(res, 400, { error: 'Invalid extension id' });
     const host = await getExtensionHost(kandownDir);
     if (parts.length === 2 && parts[1] === 'enable' && method === 'POST') {
       const ok = await host.enable(id);
@@ -338,6 +350,27 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       const ok = host.disable(id);
       broadcastSseEvent({ type: 'extensions' });
       return writeJson(res, 200, { ok });
+    }
+    if (parts.length === 2 && parts[1] === 'health' && method === 'POST') {
+      let body: { outcome?: unknown; message?: unknown };
+      try {
+        body = JSON.parse(await readRequestBody(req)) as { outcome?: unknown; message?: unknown };
+      } catch (error) {
+        return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
+      }
+      if (body.outcome !== 'success' && body.outcome !== 'failure') {
+        return writeJson(res, 400, { error: 'outcome must be success or failure' });
+      }
+      const ext = body.outcome === 'success'
+        ? host.reportSuccess(id)
+        : host.reportFailure(id, typeof body.message === 'string' ? body.message : 'web panel failed');
+      if (!ext) return writeJson(res, 404, { error: 'Extension not found' });
+      if (ext.health === 'quarantined') broadcastSseEvent({ type: 'extensions' });
+      return writeJson(res, 200, {
+        health: ext.health,
+        failures: ext.failures,
+        error: ext.error,
+      });
     }
     if (parts.length >= 2 && parts[1] === 'files' && method === 'GET') {
       const ext = host.get(id);
@@ -375,15 +408,32 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
     const parts = path.slice('/api/tasks/'.length).split('/').filter(Boolean);
     const taskId = decodeURIComponent(parts[0] ?? '');
     if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return writeText(res, 400, 'Invalid task id');
-    const taskPath = findTaskPath(kandownDir, taskId);
-    if (!taskPath) return writeText(res, 404, 'Task not found');
-    const body = JSON.parse(await readRequestBody(req)) as { extId?: string; key?: string; value?: unknown };
-    if (!body.extId || !body.key) return writeJson(res, 400, { error: 'extId and key required' });
-    const parsed = parseTaskFile(readFileSync(taskPath, 'utf8'));
-    const next = setField(parsed.frontmatter as Record<string, unknown>, body.extId, body.key, body.value);
-    atomicWriteFileSync(taskPath, serializeTaskFile(stampUpdated(next as never), parsed.body));
-    broadcastSseEvent({ type: 'task', id: taskId });
-    return writeJson(res, 200, { ok: true });
+    if (!findTaskPath(kandownDir, taskId)) return writeText(res, 404, 'Task not found');
+    let body: { extId?: unknown; key?: unknown; value?: unknown };
+    try {
+      body = JSON.parse(await readRequestBody(req)) as { extId?: unknown; key?: unknown; value?: unknown };
+    } catch (error) {
+      return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
+    }
+    if (typeof body.extId !== 'string' || typeof body.key !== 'string') {
+      return writeJson(res, 400, { error: 'extId and key required' });
+    }
+    try {
+      const host = await getExtensionHost(kandownDir);
+      await host.setFieldValue(taskId, body.extId, body.key, body.value);
+      const updated = readTask(kandownDir, taskId).frontmatter as Record<string, unknown>;
+      broadcastSseEvent({ type: 'task', id: taskId });
+      return writeJson(res, 200, {
+        ok: true,
+        plugins: updated.plugins && typeof updated.plugins === 'object' ? updated.plugins : undefined,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const status = message.startsWith('permission denied') ? 403
+        : message.startsWith('extension is not enabled') ? 409
+          : 400;
+      return writeJson(res, status, { error: message });
+    }
   }
 
   if (path.startsWith('/api/tasks/')) {
@@ -401,6 +451,62 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
     const activePath = join(tasksDir, `${taskId}.md`);
     const archivedPath = join(archiveDir, `${taskId}.md`);
     const action = routeParts[1];
+
+    if (method === 'POST' && action === 'move') {
+      if (routeParts.length !== 2) return writeText(res, 400, 'Invalid task route');
+      let input: { to?: unknown; toIndex?: unknown };
+      try {
+        input = JSON.parse(await readRequestBody(req)) as { to?: unknown; toIndex?: unknown };
+      } catch (error) {
+        return writeJson(res, 400, {
+          ok: false,
+          kind: 'invalid-target',
+          reason: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}`,
+        } satisfies MoveTaskResult);
+      }
+      if (typeof input.to !== 'string' || !input.to.trim()) {
+        return writeJson(res, 400, {
+          ok: false,
+          kind: 'invalid-target',
+          reason: 'Move target is required',
+        } satisfies MoveTaskResult);
+      }
+      if (input.toIndex !== undefined && (typeof input.toIndex !== 'number' || !Number.isFinite(input.toIndex))) {
+        return writeJson(res, 400, {
+          ok: false,
+          kind: 'invalid-target',
+          reason: 'Move target index must be a finite number',
+        } satisfies MoveTaskResult);
+      }
+
+      try {
+        const host = await getExtensionHost(kandownDir);
+        const result = await moveTaskWithGates(
+          host,
+          kandownDir,
+          taskId,
+          input.to.trim(),
+          input.toIndex,
+        );
+        const status = result.ok
+          ? 200
+          : result.kind === 'not-found'
+            ? 404
+            : result.kind === 'invalid-target'
+              ? 400
+              : result.kind === 'write'
+                ? 500
+                : 409;
+        if (result.ok) broadcastSseEvent({ type: 'task', id: taskId });
+        return writeJson(res, status, result);
+      } catch (error) {
+        return writeJson(res, 500, {
+          ok: false,
+          kind: 'write',
+          reason: `Move failed: ${error instanceof Error ? error.message : String(error)}`,
+        } satisfies MoveTaskResult);
+      }
+    }
 
     // 📖 Archive and restore are explicit sub-resources. The client sends the
     // complete serialized task so metadata and body survive the directory move.

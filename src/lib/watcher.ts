@@ -1,8 +1,8 @@
 /**
  * @file File watcher for Kandown
- * @description 500ms polling watcher using content hashing (SHA-256).
- * Detects external changes to kandown.json and tasks/*.md. Fires events for
- * silent board reloads, notification checks, and conflict detection.
+ * @description Watches project state through content-hashed File System Access
+ * polling or daemon SSE. It translates task, config, board and extension events
+ * into reload, notification, conflict and extension-runtime refresh signals.
  *
  * 📖 Uses SHA-256 content hashing to avoid parsing on every tick — only
  * triggers a reload event when the file content actually changed.
@@ -85,6 +85,12 @@ export class FileWatcher {
               this.emit('configChanged');
               this.emit('taskChanged', '');
             }
+          } else if (data.type === 'task' || data.type === 'task_delete') {
+            this.emit('taskChanged', typeof data.id === 'string' ? data.id : '');
+          } else if (data.type === 'config' || data.type === 'board') {
+            this.emit('configChanged');
+          } else if (data.type === 'extensions') {
+            window.dispatchEvent(new Event('kandown:extensions-changed'));
           }
         } catch {
           // ignore heartbeats

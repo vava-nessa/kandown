@@ -12,6 +12,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { ExtensionHost, type HostEnvironment } from '../extensions/host';
+import { extensionStateDir } from '../extensions/state';
 
 let dir: string;
 
@@ -20,6 +21,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   try {
+    rmSync(join(extensionStateDir(dir), '..'), { recursive: true, force: true });
     rmSync(dir, { recursive: true, force: true });
   } catch {
     /* best effort */
@@ -56,7 +58,8 @@ const burndownManifest = {
 
 const burndownIndex = `
 export default function (kd) {
-  kd.contributeField({ key: 'points', label: 'Points', type: 'number' });
+  kd.contributeField({ key: 'points', label: 'Points', type: 'number', badge: (value) => value ? 'P' + value : null });
+  kd.contributeWebPanel({ id: 'chart', title: 'Burndown', entry: './web.js' });
   kd.contributeCommand('burndown', {
     description: 'print burndown',
     handler: async (_args, ctx) => { ctx.log.info('ran burndown'); },
@@ -73,8 +76,11 @@ export default function (kd) {
 `;
 
 describe('ExtensionHost — discovery, trust and restricted mode', () => {
-  it('keeps a project extension disabled until enabled (trust + enabled set)', async () => {
+  it('ignores repository-controlled trust and stays disabled until locally enabled', async () => {
     writeExt('burndown', { 'manifest.json': JSON.stringify(burndownManifest), 'index.ts': burndownIndex });
+    const committedStateDir = join(dir, '.kandown', 'extensions');
+    writeFileSync(join(committedStateDir, 'trust.json'), JSON.stringify(['burndown']));
+    writeFileSync(join(committedStateDir, 'enabled.json'), JSON.stringify(['burndown']));
     const host = new ExtensionHost(makeEnv());
     await host.loadAll();
     expect(host.get('burndown')?.health).toBe('disabled');
@@ -99,9 +105,25 @@ describe('ExtensionHost — discovery, trust and restricted mode', () => {
     const host = new ExtensionHost(makeEnv());
     await host.enable('burndown');
     const summary = host.installedSummary().find((s) => s.id === 'burndown');
-    expect(summary?.fields).toEqual(['points']);
+    expect(summary?.fields).toEqual([{
+      extId: 'burndown',
+      key: 'points',
+      label: 'Points',
+      type: 'number',
+      options: undefined,
+      hasBadge: true,
+      editorComponentId: undefined,
+    }]);
+    expect(summary?.panels).toEqual([{
+      extId: 'burndown',
+      id: 'chart',
+      title: 'Burndown',
+      entry: './web.js',
+      icon: undefined,
+    }]);
     expect(summary?.commands).toEqual(['burndown']);
     expect(summary?.gates).toBe(1);
+    expect(JSON.stringify(summary)).not.toContain('badge');
   });
 });
 
@@ -173,6 +195,64 @@ describe('ExtensionHost — isolation (the core invariant)', () => {
       task: { id: 't1', frontmatter: {}, plugins: {} },
     });
     expect(blocked.allowed).toBe(false);
+  });
+
+  it('computes typed badges in one pass and omits empty values', async () => {
+    writeExt('burndown', { 'manifest.json': JSON.stringify(burndownManifest), 'index.ts': burndownIndex });
+    const host = new ExtensionHost(makeEnv({
+      readAll: async () => [
+        { id: 't1', frontmatter: { plugins: { burndown: { points: '5' } } } },
+        { id: 't2', frontmatter: { plugins: { burndown: {} } } },
+      ],
+    }));
+    await host.enable('burndown');
+    expect(await host.renderBadges()).toEqual({
+      t1: [{ extId: 'burndown', fieldKey: 'points', text: 'P5' }],
+    });
+  });
+
+  it('namespaces panel ids so two extensions may both contribute chart', async () => {
+    writeExt('burndown', { 'manifest.json': JSON.stringify(burndownManifest), 'index.ts': burndownIndex });
+    writeExt('second', {
+      'manifest.json': JSON.stringify({ id: 'second', name: 'Second', version: '1.0.0', apiVersion: 1 }),
+      'index.ts': `export default function (kd) { kd.contributeWebPanel({ id: 'chart', title: 'Second chart', entry: './web.js' }); }`,
+    });
+    const host = new ExtensionHost(makeEnv());
+    await host.enable('burndown');
+    await host.enable('second');
+    expect(host.registry.panels.size).toBe(2);
+  });
+
+  it('persists quarantine and clears it when the user enables again', async () => {
+    writeExt('flaky', {
+      'manifest.json': JSON.stringify({ id: 'flaky', name: 'Flaky', version: '1.0.0', apiVersion: 1 }),
+      'index.ts': `export default function (kd) { kd.contributeGate({ on: 'task:beforeMove', handler: async () => { throw new Error('always'); } }); }`,
+    });
+    const first = new ExtensionHost(makeEnv());
+    await first.enable('flaky');
+    for (let i = 0; i < 3; i++) await first.runGates({ type: 'task:beforeMove', task: { id: 't1', frontmatter: {} } });
+    expect(first.get('flaky')?.health).toBe('quarantined');
+
+    const second = new ExtensionHost(makeEnv());
+    await second.loadAll();
+    expect(second.get('flaky')?.health).toBe('quarantined');
+    expect(await second.enable('flaky')).toBe(true);
+    expect(second.get('flaky')?.failures).toBe(0);
+  });
+
+  it('resets consecutive browser failures after a successful panel mount', async () => {
+    writeExt('burndown', { 'manifest.json': JSON.stringify(burndownManifest), 'index.ts': burndownIndex });
+    const host = new ExtensionHost(makeEnv({
+      readAll: async () => [{ id: 't1', frontmatter: { plugins: { burndown: { points: 1 } } } }],
+    }));
+    await host.enable('burndown');
+    host.reportFailure('burndown', new Error('one'));
+    host.reportFailure('burndown', new Error('two'));
+    expect(host.get('burndown')?.failures).toBe(2);
+    await host.renderBadges();
+    expect(host.get('burndown')?.failures).toBe(2);
+    host.reportSuccess('burndown');
+    expect(host.get('burndown')?.failures).toBe(0);
   });
 
   it('quarantines an extension whose handler keeps throwing', async () => {

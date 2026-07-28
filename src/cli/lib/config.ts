@@ -70,6 +70,10 @@ export interface KandownConfig {
       tags: boolean;
     };
   };
+  extensions: {
+    /** Community extensions require explicit local enable/trust by default. */
+    restricted: boolean;
+  };
   fields: {
     priority: boolean;
     assignee: boolean;
@@ -115,6 +119,7 @@ const DEFAULT_CONFIG: KandownConfig = {
     // of description width to render blanks. Turn it on in `kandown settings`.
     columns: { age: true, status: true, priority: true, owner: true, deps: true, tags: false },
   },
+  extensions: { restricted: true },
   fields: {
     priority: false,
     assignee: false,
@@ -233,6 +238,7 @@ export function loadConfig(kandownDir: string): KandownConfig {
       },
     },
     fields: { ...DEFAULT_CONFIG.fields, ...safeObj(obj.fields) },
+    extensions: { ...DEFAULT_CONFIG.extensions, ...safeObj(obj.extensions) },
     notifications: { ...DEFAULT_CONFIG.notifications, ...safeObj(obj.notifications) },
   };
   // 📖 agents is optional — only include it if present AND object-shaped.

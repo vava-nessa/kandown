@@ -12,7 +12,7 @@
  * extension persists lives under the opaque `plugins.<id>.*` frontmatter
  * namespace; see docs/EXTENSIONS.md.
  *
- * @exports ExtensionManifest, ExtensionHealth, LoadedExtension, FieldContribution, WebPanelContribution, CommandContribution, GateContribution, SyncContribution, TaskLike, TaskEvent, GateEvent, ExtensionContext, ExtensionCommandContext, KandownExtensionAPI, ExtensionFactory
+ * @exports ExtensionManifest, ExtensionHealth, LoadedExtension, ExtensionFieldDescriptor, ExtensionPanelDescriptor, ExtensionBadge, ExtensionRuntimeSummary, ExtensionRuntimePayload, FieldContribution, WebPanelContribution, CommandContribution, GateContribution, SyncContribution, TaskLike, TaskEvent, GateEvent, ExtensionContext, ExtensionCommandContext, KandownExtensionAPI, ExtensionFactory
  * @see docs/EXTENSIONS.md
  * @see src/lib/extensions/host.ts
  */
@@ -129,6 +129,52 @@ export interface WebPanelContribution {
   title: string;
   entry: string;
   icon?: string;
+}
+
+/** Browser-safe field descriptor returned by the daemon or standalone runtime. */
+export interface ExtensionFieldDescriptor {
+  extId: string;
+  key: string;
+  label: string;
+  type: FieldType;
+  options?: { value: string; label: string }[];
+  hasBadge: boolean;
+  editorComponentId?: string;
+}
+
+/** Browser-safe panel descriptor returned by the daemon or standalone runtime. */
+export interface ExtensionPanelDescriptor extends WebPanelContribution {
+  extId: string;
+}
+
+/** Computed card badge. Extension functions never cross the daemon boundary. */
+export interface ExtensionBadge {
+  extId: string;
+  fieldKey: string;
+  text: string;
+}
+
+/** Browser-safe summary of one installed extension. */
+export interface ExtensionRuntimeSummary {
+  id: string;
+  name: string;
+  version: string;
+  source: 'global' | 'project';
+  health: ExtensionHealth;
+  error?: string;
+  failures: number;
+  permissions: string[];
+  fields: ExtensionFieldDescriptor[];
+  panels: ExtensionPanelDescriptor[];
+  commands: string[];
+  gates: number;
+  syncs: number;
+}
+
+/** One payload hydrates fields, panels and all card badges without N+1 calls. */
+export interface ExtensionRuntimePayload {
+  extensions: ExtensionRuntimeSummary[];
+  badges: Record<string, ExtensionBadge[]>;
 }
 
 /** A CLI/TUI command, surfaced as `kandown <name>`. Additive; never overrides core commands. */

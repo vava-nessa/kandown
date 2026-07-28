@@ -208,7 +208,7 @@ export function resolveDependencyStatus(
     const status = readStatus(task).toLowerCase();
     const isArch = isArchivedStatus(task as unknown as { archived?: unknown; status?: unknown; frontmatter?: { archived?: unknown; status?: unknown } });
     const fm = (task as ParsedTask).frontmatter;
-    const fmArchived = fm ? fm.archived === true : false;
+    const fmArchived = fm ? isArchivedStatus({ archived: fm.archived, status: fm.status }) : false;
     out.set(id, {
       exists: true,
       resolved: isArch || fmArchived || status === terminal,
