@@ -7,7 +7,8 @@
     "repo": "https://github.com/vava-nessa/kandown",
     "path": "examples/extensions/burndown",
     "ref": "main",
-    "minKandownVersion": "0.42.0"
+    "minKandownVersion": "0.42.0",
+    "tags": ["productivity", "fields", "gates", "commands", "canonical"]
   },
   {
     "id": "labels",
@@ -17,7 +18,8 @@
     "repo": "https://github.com/vava-nessa/kandown",
     "path": "examples/extensions/labels",
     "ref": "main",
-    "minKandownVersion": "0.42.0"
+    "minKandownVersion": "0.42.0",
+    "tags": ["productivity", "fields", "gates", "composition"]
   },
   {
     "id": "webhook-sync",
@@ -27,6 +29,7 @@
     "repo": "https://github.com/vava-nessa/kandown",
     "path": "examples/extensions/webhook-sync",
     "ref": "main",
-    "minKandownVersion": "0.42.0"
+    "minKandownVersion": "0.42.0",
+    "tags": ["automation", "sync", "integration", "webhooks"]
   }
 ]

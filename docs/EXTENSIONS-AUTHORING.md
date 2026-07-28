@@ -244,22 +244,30 @@ The store is community-curated, the Obsidian model.
 1. Put your extension in a public Git repo (e.g. `you/kandown-my-ext`).
 2. Tag a release with the bundle assets: `manifest.json`, `index.js` (bundled),
    optional `web.js` and `styles.css`.
-3. Open a PR against `kandown/community-extensions` adding an entry to
-   `extensions.json`:
+3. Open a PR against `registry/extensions.json` (lives in the kandown repo
+   today, ships to `kandown.dev/extensions` at the next build) adding an entry.
+   Include a short list of `tags` so the gallery can filter by category:
 
    ```json
    { "id": "my-ext", "name": "My Extension", "author": "you",
      "repo": "you/kandown-my-ext", "description": "...",
-     "minKandownVersion": "0.42.0" }
+     "minKandownVersion": "0.42.0",
+     "tags": ["productivity", "fields"] }
    ```
 
-Users then install with one click from the web gallery, or:
+   The `path` field is optional. When it points to a subdirectory of the repo,
+   the daemon fetches the extension files from that subdirectory rather than
+   the root — use it to ship several extensions from one repo.
+
+Users browse, filter and install from the website gallery at
+**`kandown.dev/extensions`**, or with one click from the web app
+(`Settings → Extensions`), or from the CLI:
 
 ```bash
 kandown extension install https://github.com/you/kandown-my-ext
 ```
 
-(One-click and paste-URL install are wired with the web UI, task t274.)
+(One-click and paste-URL install land with the web UI, task t274.)
 
 ---
 
