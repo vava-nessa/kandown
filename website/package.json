@@ -26,6 +26,7 @@
     "@tanstack/react-start": "^1.132.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.42.2",
+    "mathjs": "^15.2.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "tailwind-merge": "^3.6.0",

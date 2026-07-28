@@ -17,6 +17,7 @@
 import { Link } from '@tanstack/react-router'
 import { Logo } from './Logo'
 import { site } from '~/lib/site'
+import GradualBlur from './ui/GradualBlur'
 
 // 📖 Pinned to the latest release so the footer's "Changelog · vX.Y.Z" reads
 // as current. Update on release; a stale version is a small thing, but a
@@ -25,7 +26,7 @@ const LATEST_VERSION = '0.38.0'
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-border">
+    <footer className="relative border-t border-border overflow-hidden">
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 sm:px-8 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
         <div>
           <div className="flex items-center gap-2.5">
@@ -98,6 +99,16 @@ export function SiteFooter() {
           </p>
         </div>
       </div>
+      <GradualBlur
+        target="parent"
+        position="bottom"
+        height="6rem"
+        strength={2}
+        divCount={5}
+        curve="bezier"
+        exponential={true}
+        opacity={1}
+      />
     </footer>
   )
 }

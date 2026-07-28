@@ -109,7 +109,7 @@
     },
     {
       "path": "src/App.tsx",
-      "lines": 287,
+      "lines": 290,
       "title": "Web application shell",
       "summary": "Composes the Kandown web UI, hydrates recent projects from the URL, and owns global keyboard shortcuts for board navigation, creation, reload, search focus, and command palette access.",
       "functions": [
@@ -572,9 +572,22 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 546,
+      "lines": 595,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
+    },
+    {
+      "path": "src/cli/lib/task-move.ts",
+      "lines": 163,
+      "title": "Authoritative Node task move coordinator",
+      "summary": "Runs the shared dependency policy and enabled extension gates before persisting a web move.",
+      "functions": [
+        {
+          "name": "moveTaskWithGates - validate, gate, persist, and dispatch one task move",
+          "summary": null
+        }
+      ],
+      "exports": "MoveTaskResult, moveTaskWithGates"
     },
     {
       "path": "src/cli/lib/updater.ts",
@@ -1068,6 +1081,23 @@
       "exports": "ErrorBoundary, ErrorFallback, BoardErrorFallback"
     },
     {
+      "path": "src/components/ExtensionRuntimeProvider.tsx",
+      "lines": 161,
+      "title": "Browser extension runtime provider",
+      "summary": "Hydrates one project-wide extension snapshot for fields, panels and card badges.",
+      "functions": [
+        {
+          "name": "ExtensionRuntimeProvider",
+          "summary": "loads and refreshes the active runtime"
+        },
+        {
+          "name": "useExtensionRuntime",
+          "summary": "reads summaries, badges and scoped runtime actions"
+        }
+      ],
+      "exports": "ExtensionRuntimeProvider, useExtensionRuntime"
+    },
+    {
       "path": "src/components/FilterBar.tsx",
       "lines": 125,
       "title": "Board filter bar",
@@ -1412,6 +1442,13 @@
       "exports": "Button, buttonVariants, ButtonProps"
     },
     {
+      "path": "src/components/ui/GradualBlur.tsx",
+      "lines": 310,
+      "title": "src/components/ui/GradualBlur.tsx",
+      "summary": "Renders a multi-layered gradual backdrop blur overlay with custom curve distributions and responsive dimensions.",
+      "exports": "GradualBlur"
+    },
+    {
       "path": "src/components/ui/input.tsx",
       "lines": 42,
       "title": "Text input primitive",
@@ -1664,8 +1701,33 @@
       "exports": "KandownError, BrowserNotSupportedError, PermissionDeniedError, FileNotFoundError, DiskFullError, CorruptedDataError, FileReadError, FileReadErrorCode, isRetryableError, Result"
     },
     {
+      "path": "src/lib/extensions/browser-runtime.ts",
+      "lines": 369,
+      "title": "Browser extension runtime",
+      "summary": "Loads project-local bundled extension entries through Blob URLs for standalone File System Access mode, registers browser-safe fields, badges and panels, and computes card badges without a daemon.",
+      "functions": [
+        {
+          "name": "loadStandaloneExtensionRuntime",
+          "summary": "discover and activate project extensions"
+        },
+        {
+          "name": "loadExtensionWebModule",
+          "summary": "import a bundled panel module from daemon or FSA"
+        },
+        {
+          "name": "reportStandalonePanelOutcome",
+          "summary": "persist/reset consecutive panel failures"
+        },
+        {
+          "name": "invalidateStandaloneExtensions",
+          "summary": "revoke Blob URLs and clear project cache"
+        }
+      ],
+      "exports": "loadStandaloneExtensionRuntime, loadExtensionWebModule, reportStandalonePanelOutcome, invalidateStandaloneExtensions, ExtensionWebModule"
+    },
+    {
       "path": "src/lib/extensions/host.ts",
-      "lines": 364,
+      "lines": 500,
       "title": "Extension host",
       "summary": "The orchestrator that loads extensions, manages their health, and dispatches contributions (gates, syncs, commands, lifecycle) with per-contribution fail policies.",
       "exports": "ExtensionHost, type HostEnvironment"
@@ -1731,7 +1793,7 @@
     },
     {
       "path": "src/lib/extensions/permissions.ts",
-      "lines": 28,
+      "lines": 29,
       "title": "Extension permission model",
       "summary": "A tiny capability matcher.",
       "functions": [
@@ -1744,31 +1806,35 @@
     },
     {
       "path": "src/lib/extensions/registry.ts",
-      "lines": 106,
+      "lines": 112,
       "title": "Contribution registry",
       "summary": "The in-memory store of everything loaded extensions contribute: fields, web panels, commands, gates, syncs and generic lifecycle handlers.",
       "exports": "ContributionRegistry"
     },
     {
       "path": "src/lib/extensions/state.ts",
-      "lines": 47,
+      "lines": 96,
       "title": "Enabled-extension preference state",
-      "summary": "The per-project set of extension ids the user has explicitly enabled.",
+      "summary": "Persists per-project extension runtime state: the ids the user explicitly enabled plus consecutive failure records used by the quarantine policy.",
       "functions": [
         {
           "name": "enabledFilePath",
           "summary": "absolute path to a project's enabled set"
         },
         {
-          "name": "loadEnabled",
-          "summary": "read the enabled ids (empty when absent)"
+          "name": "healthFilePath",
+          "summary": "absolute path to persistent failure health"
         },
         {
-          "name": "saveEnabled",
-          "summary": "persist the enabled ids set"
+          "name": "loadEnabled / saveEnabled",
+          "summary": "read and persist enabled ids"
+        },
+        {
+          "name": "loadFailureState / saveFailureState",
+          "summary": "read and atomically persist failures"
         }
       ],
-      "exports": "enabledFilePath, loadEnabled, saveEnabled"
+      "exports": "enabledFilePath, healthFilePath, loadEnabled, saveEnabled, loadFailureState, saveFailureState, ExtensionFailureRecord"
     },
     {
       "path": "src/lib/extensions/trust.ts",
@@ -1797,14 +1863,14 @@
     },
     {
       "path": "src/lib/extensions/types.ts",
-      "lines": 193,
+      "lines": 238,
       "title": "Extension system types and public API contract",
       "summary": "The single source of truth for the extension surface: the manifest shape, the contribution-point definitions, the lifecycle events, the context handed to handlers, and the `KandownExtensionAPI` an extension factory receives.",
-      "exports": "ExtensionManifest, ExtensionHealth, LoadedExtension, FieldContribution, WebPanelContribution, CommandContribution, GateContribution, SyncContribution, TaskLike, TaskEvent, GateEvent, ExtensionContext, ExtensionCommandContext, KandownExtensionAPI, ExtensionFactory"
+      "exports": "ExtensionManifest, ExtensionHealth, LoadedExtension, ExtensionFieldDescriptor, ExtensionPanelDescriptor, ExtensionBadge, ExtensionRuntimeSummary, ExtensionRuntimePayload, FieldContribution, WebPanelContribution, CommandContribution, GateContribution, SyncContribution, TaskLike, TaskEvent, GateEvent, ExtensionContext, ExtensionCommandContext, KandownExtensionAPI, ExtensionFactory"
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 1103,
+      "lines": 1128,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [
@@ -1889,6 +1955,10 @@
           "summary": "task CRUD via REST"
         },
         {
+          "name": "serverMoveTask",
+          "summary": "asks the managed backend to gate and persist a task move"
+        },
+        {
           "name": "serverMigrateTasks",
           "summary": "triggers the legacy → new layout migration via REST"
         },
@@ -1897,7 +1967,7 @@
           "summary": "edits `.kandown/instructions.md`"
         }
       ],
-      "exports": "supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverWriteTask, serverDeleteTask, serverMigrateTasks"
+      "exports": "supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, serverWriteTask, serverDeleteTask, serverMigrateTasks"
     },
     {
       "path": "src/lib/githubStars.ts",
@@ -2064,7 +2134,7 @@
     },
     {
       "path": "src/lib/store.ts",
-      "lines": 1988,
+      "lines": 1997,
       "title": "Kandown Zustand store",
       "summary": "Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.",
       "functions": [
@@ -2103,7 +2173,7 @@
     },
     {
       "path": "src/lib/store/boardSlice.ts",
-      "lines": 572,
+      "lines": 581,
       "title": "Zustand store slice — board mutations",
       "summary": "Column CRUD, task move/reorder/create/delete/archive, task selection, and bulk operations."
     },
@@ -2495,10 +2565,10 @@
     },
     {
       "path": "src/lib/types.ts",
-      "lines": 381,
+      "lines": 391,
       "title": "Shared domain types",
       "summary": "Defines the board, task, config, filter, search, and appearance types used by the Kandown web UI and persistence layer.",
-      "exports": "Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, KandownConfig, DEFAULT_COLUMNS, DEFAULT_CONFIG"
+      "exports": "Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, KandownConfig, DEFAULT_COLUMNS, DEFAULT_CONFIG"
     },
     {
       "path": "src/lib/utils.ts",
