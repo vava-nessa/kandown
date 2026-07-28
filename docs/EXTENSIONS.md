@@ -10,11 +10,11 @@ contribution point, writing an extension, or touching anything under the
 [`adr/0002-extensions-system.md`](adr/0002-extensions-system.md); the project
 invariants it must not break are in [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
-📖 **Status:** the engine, the CLI surface and the daemon API are implemented
-and tested (task t273). The web UI consumption (drawer field editor, card
-badge, settings panel, gate-in-web-move, panel mounting) is the next phase,
-tracked in task t274. Contribution points not yet wired into the web are noted
-inline; the CLI exercises every one today via the canonical `burndown` example.
+📖 **Status:** the engine, CLI surface and daemon API shipped in t273. The web
+runtime shipped in t274: Settings management/store, authoritative managed moves,
+typed drawer fields, batched card badges, collapsible web panels, full
+project-local standalone rendering and persistent quarantine. The canonical
+`burndown` example exercises every contribution point.
 
 ---
 
@@ -205,10 +205,15 @@ kd.contributeWebPanel({
 });
 ```
 
-- The panel is mounted inside an `ErrorBoundary` (see
-  [Isolation](#isolation-and-resilience)). A render crash shows a placeholder and
-  disables the panel, never the board.
-- The component receives a **scoped API**, not the raw store or the daemon token.
+- The panel is mounted as a collapsible task-editor section inside its own
+  `ErrorBoundary` (see [Isolation](#isolation-and-resilience)). A render crash
+  shows a retryable placeholder, never a broken editor or board.
+- The self-contained bundle exports `panels: { [id]: Component }` or one default
+  component. It receives a frozen task, scoped field/read/refresh API and the
+  host React runtime as `ui`, so it never needs a second React copy.
+- Panel source is fetched through the authenticated bridge, then imported from a
+  Blob URL. Relative imports must be bundled into `web.js`.
+- The component receives a **scoped API**, not the raw store or daemon token.
 
 ### command
 
@@ -350,11 +355,12 @@ the surface it serves. This is the **hybrid model**.
 
 | Contribution | Runtime | Authoritative? | Available in standalone mode? |
 |---|---|---|---|
-| `field` (read/write) | Node | yes (writes the frontmatter) | yes, via File System Access API |
-| `gate` | Node | **yes, single implementation** | degrades gracefully |
+| `field` (read/write) | Node; browser FSA adapter standalone | yes (writes frontmatter) | yes, project-local |
+| `gate` | Node | **yes, single implementation** | fail-open; core dependency gate stays active |
 | `sync` | Node (daemon, long-lived) | yes | no (needs network + a process) |
-| `command` | Node direct (jiti) | n/a | yes, offline, instant |
-| `webPanel`, `webView`, `card:render` badges | Browser (bundled ES module) | no (render only) | **yes, always** |
+| `command` | Node direct (jiti) | n/a | no browser command runtime |
+| card badge | Node server; browser registration standalone | no (render only) | yes, project-local |
+| `webPanel`, `webView` | Browser bundled ES module | no (render only) | yes, project-local |
 
 Two invariants shape this table:
 
@@ -389,8 +395,11 @@ Every installed extension has one health state:
 | `errored` | Threw on load; never mounted. |
 
 Only `enabled` extensions run. The others are visible in settings with their
-reason and a `Retry` action. The core **never depends** on an extension being
-loaded.
+reason and a `Retry` action. Node health persists under the user-local
+`~/.kandown/project-state/<project-hash>/extensions/` directory; standalone
+browser health persists in origin-local storage keyed by project plus source
+fingerprint. Restarting cannot silently revive a crashing extension. Enable or
+Retry clears the record. The core **never depends** on an extension being loaded.
 
 ### Fail policies
 
@@ -419,10 +428,13 @@ model is **opt-in by default, scoped at runtime, isolated on failure**.
 1. **Restricted mode is the default.** Community extensions are disabled until
    the user explicitly enables them in settings (the Obsidian model). A fresh
    kandown install runs zero community extensions.
-2. **Project-local extensions require trust.** Anything under
-   `.kandown/extensions/` (committed to a repo) loads only after an explicit
-   trust prompt on first load, mirroring pi's `project_trust`. This stops a
-   cloned repo from exfiltrating tasks the moment the board opens.
+2. **Project-local extensions require local trust.** Anything under
+   `.kandown/extensions/` (committed to a repo) loads only after explicit local
+   approval. Node stores trust outside the repository under
+   `~/.kandown/project-state/<project-hash>/extensions/`. Standalone stores a
+   project and source fingerprint in browser-local storage and asks again when
+   the code changes. Committed `trust.json` or `enabled.json` files are ignored,
+   so a cloned repo cannot grant its own execution permission.
 3. **Scoped API, never raw credentials.** Extension code receives a `kd` API
    object and a per-call `ctx`. It never receives the daemon API token or a
    handle to the React store. The core proxies every permitted call. This is the
@@ -524,7 +536,8 @@ command cleans it up on demand.
 | Project | `.kandown/extensions/<id>/` | yes (shared via git) |
 
 Global extensions apply everywhere; project extensions apply only in that
-project, after the trust prompt.
+project, after local trust approval. Enable, trust and quarantine state is
+machine-local and never committed with extension source.
 
 ---
 

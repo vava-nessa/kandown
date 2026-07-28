@@ -21,6 +21,7 @@
 <p align="center">
   <a href="https://kandown.dev"><strong>kandown.dev</strong></a> ·
   <a href="https://kandown.dev/docs">Documentation</a> ·
+  <a href="https://kandown.dev/extensions">Extensions</a> ·
   <a href="https://kandown.dev/changelogs">Changelog</a> ·
   <a href="https://www.reddit.com/r/kandown/">Reddit (r/kandown)</a>
 </p>
@@ -198,6 +199,18 @@ IDE, bot or webhook receive tasks.
 | `kandown projects` | List every open kandown project on this machine |
 | `kandown update` | Update the CLI and the project's `kandown.html` |
 
+### Extensions
+
+| Command | Description |
+|---|---|
+| `kandown extension list` | Show installed extensions, health and contributions |
+| `kandown extension install <path-or-url>` | Install locally or from a GitHub URL |
+| `kandown extension enable\|disable <id>` | Trust and toggle one extension |
+| `kandown extension create <name>` | Scaffold a project-local extension |
+| `kandown extension purge <id>` | Explicitly remove its `plugins.<id>.*` task data |
+
+Browse community extensions at [kandown.dev/extensions](https://kandown.dev/extensions).
+
 ---
 
 ## Features
@@ -218,6 +231,17 @@ keyboard reordering · priority, assignee, tags, due date, epic, owner type ·
 human/agent owner filtering · quick-add syntax
 (`Fix login p1 #backend @chacha due:friday`) · task templates ·
 external-change detection.
+
+### Extensions
+
+Community store with one-click and paste-URL install · restricted mode on by
+default · typed fields in both task editors · card badges · collapsible custom
+panels inside isolated error boundaries · extension and dependency gates enforced
+by one managed move endpoint · full project-local standalone rendering ·
+persistent quarantine after repeated failures.
+
+Extension data stays inside the task file under `plugins.<id>.*`; uninstall keeps
+that data until an explicit purge. No extension becomes a second source of truth.
 
 ### Appearance
 

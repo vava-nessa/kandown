@@ -315,9 +315,20 @@ Two things carry from here into the extension design:
   round-trip without interpreting. This is invariant #1 (the round-trip) extended
   to third-party data, and it is why extensions are forward-compatible by
   construction.
-- **One gate, still one implementation.** Extension gates compose with the
-  dependency gate from a shared call site; the rule itself is never copied into a
-  new surface (see ADR 0001).
+- **One gate, still one implementation.** Managed web moves send an intent to
+  the Node move coordinator, which composes the dependency gate with extension
+  gates before writing status/order. Standalone keeps the pure dependency gate
+  and explicitly degrades extension gates open because no authoritative Node
+  runtime exists.
+- **Repository code cannot authorize itself.** Project-local extension source
+  may be committed, but trust, enablement and quarantine state are user-local.
+  Node keys state by canonical project path; standalone keys browser storage by
+  project and source fingerprint, requiring approval again after code changes.
+- **One browser snapshot, not one request per card.** The daemon executes badge
+  functions for all tasks in one pass and returns browser-safe field/panel defs
+  plus grouped badges. Project-local standalone mode activates the same bundled
+  `index.js` registration through File System Access and Blob imports. Panels
+  receive frozen task snapshots and a scoped API inside per-panel boundaries.
 
 Because extensions persist data inside the task file, they inherit every
 invariant above for free, and they add one of their own: a failing extension is

@@ -8,8 +8,8 @@ A kandown extension is a directory with a `manifest.json` and a Node entry
 (`index.ts` or `index.js`) that registers **contributions** on the `kd` API.
 kandown loads it with jiti, so you write TypeScript with no build step. Three
 working examples live in [`examples/extensions/`](../examples/extensions):
-`burndown` (field + gate + command), `labels` (select field + badge + gate) and
-`webhook-sync` (sync + net permission).
+`burndown` (field + badge + panel + gate + command), `labels` (select field +
+badge + gate) and `webhook-sync` (sync + net permission).
 
 ---
 
@@ -22,7 +22,17 @@ kandown extension list                # see it enabled
 ```
 
 Edit `index.ts`, save, re-run any command: jiti reloads on each invocation, so
-there is no reload step during development. Your extension is ready.
+there is no reload step during development.
+
+Before distribution, also bundle a self-contained `index.js`. The standalone
+browser cannot execute TypeScript through jiti, so it imports `index.js` through
+a Blob URL and invokes the same registration factory. It registers fields,
+badges and panel declarations, while commands, gates, syncs and lifecycle
+handlers remain Node-only. Full standalone rendering applies to project-local
+extensions under `.kandown/extensions/`; browser sandboxing cannot access global
+extensions under `~/.kandown`. Before executing a project-local browser bundle,
+Kandown asks for local approval and fingerprints its manifest and source. Any
+source change requires approval again; repository state files cannot bypass it.
 
 ---
 
@@ -80,7 +90,7 @@ export default function (kd: KandownExtensionAPI) {
 
 ## Contribution points
 
-### field — a custom task field
+### field: a custom task field
 
 Stored under `plugins.<id>.<key>`. The web drawer renders an editor; an optional
 `badge` shows on the card.
@@ -98,7 +108,7 @@ kd.contributeField({
 📖 Scalars are stored as strings on disk and coerced to `type` on read, so a
 `number` field reads back as a number in your handlers.
 
-### command — a CLI command
+### command: a CLI command
 
 Surfaces as `kandown <name>`. Additive; it never overrides core commands.
 
@@ -112,7 +122,7 @@ kd.contributeCommand('burndown', {
 });
 ```
 
-### gate — a transition policy
+### gate: a transition policy
 
 Composes with the core dependency gate and other extensions' gates. A move is
 allowed only if **every** gate abstains or permits. Return `{ block, reason }`
@@ -132,7 +142,7 @@ kd.contributeGate({
 📖 A throwing gate is treated as "no objection" (fail-open) and counted toward
 quarantine, so one bad gate cannot lock the board.
 
-### sync — react to an event (notify, push)
+### sync: react to an event (notify, push)
 
 Fire-and-forget; ideal for webhooks and external pushes. Declare `net:*` to get
 `ctx.fetch`.
@@ -151,18 +161,47 @@ kd.contributeSync({
 });
 ```
 
-### webPanel — a panel in the web drawer
+### webPanel: a panel in the web drawer
 
-Declares a bundled React component. (Panel mounting lands with the web UI, task
-t274; the contribution point is part of the API today.)
+Declare the panel in the Node entry:
 
 ```typescript
 kd.contributeWebPanel({
   id: 'chart',
   title: 'Burndown',
-  entry: './web.js',                    // bundled ES module exporting a React component
+  entry: './web.js',
 });
 ```
+
+The self-contained `web.js` module exports a `panels` map (or one default panel).
+Kandown renders each panel inside its own ErrorBoundary and supplies the host
+React runtime as `ui`, so the bundle must not include a second React copy:
+
+```javascript
+function Chart({ task, api, ui }) {
+  const [tasks, setTasks] = ui.useState([]);
+  ui.useEffect(() => {
+    void api.readAllTasks().then(setTasks);
+  }, [api]);
+  return ui.createElement('div', null, `${tasks.length} tasks`);
+}
+
+export const panels = { chart: Chart };
+```
+
+Panel props are deliberately scoped:
+
+- `task`: a frozen read-only task snapshot;
+- `api.readField(key)`: read this extension's task namespace;
+- `api.readAllTasks()`: read frozen board snapshots;
+- `api.setField(key, value)`: write only a registered field owned by this extension;
+- `api.refresh()`: request a runtime refresh;
+- `ui`: Kandown's React runtime (`createElement`, hooks, Fragment, etc.).
+
+Panel modules load through authenticated fetch followed by Blob import. Bundle
+all relative imports into `web.js`; Blob modules cannot resolve sibling source
+files. Three consecutive panel failures persist quarantine. Failures one and two
+show a retryable inline placeholder without taking down the task editor.
 
 ---
 
@@ -257,7 +296,7 @@ The store is community-curated, the Obsidian model.
 
    The `path` field is optional. When it points to a subdirectory of the repo,
    the daemon fetches the extension files from that subdirectory rather than
-   the root — use it to ship several extensions from one repo.
+   the root; use it to ship several extensions from one repo.
 
 Users browse, filter and install from the website gallery at
 **`kandown.dev/extensions`**, or with one click from the web app
@@ -275,7 +314,7 @@ kandown extension install https://github.com/you/kandown-my-ext
 
 | Extension | Shows |
 |---|---|
-| [`examples/extensions/burndown`](../examples/extensions/burndown) | number field, badge, gate, command |
+| [`examples/extensions/burndown`](../examples/extensions/burndown) | number field, badge, web panel, gate, command |
 | [`examples/extensions/labels`](../examples/extensions/labels) | select field, custom badge, gate composition |
 | [`examples/extensions/webhook-sync`](../examples/extensions/webhook-sync) | sync, `net:*` permission, fetch |
 
