@@ -3535,8 +3535,7 @@ async function installExtension2(projectDir, input) {
   );
   return {
     ok: true,
-    id: manifest.id,
-    error: results.some((r) => r.status === "rejected") ? "some optional files could not be fetched" : void 0
+    id: manifest.id
   };
 }
 
@@ -3825,6 +3824,7 @@ async function handleApi(req, res, url, kandownDir) {
       const body = JSON.parse(await readRequestBody(req));
       const projectDir = getProjectRoot(kandownDir);
       const result = await installExtension2(projectDir, { entry: body.entry, url: body.url });
+      if (result.ok) await (await getExtensionHost(kandownDir)).loadAll();
       broadcastSseEvent({ type: "extensions" });
       return writeJson(res, result.ok ? 200 : 400, result);
     } catch (e) {

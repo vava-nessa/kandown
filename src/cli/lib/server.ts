@@ -361,6 +361,9 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       const body = JSON.parse(await readRequestBody(req)) as { entry?: RegistryEntry; url?: string };
       const projectDir = getProjectRoot(kandownDir);
       const result = await installExtension(projectDir, { entry: body.entry, url: body.url });
+      // 📖 Reload the host so the new extension is discovered and the installed
+      // list refreshes immediately (instead of waiting for the next /api/extensions).
+      if (result.ok) await (await getExtensionHost(kandownDir)).loadAll();
       broadcastSseEvent({ type: 'extensions' });
       return writeJson(res, result.ok ? 200 : 400, result);
     } catch (e) {

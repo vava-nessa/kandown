@@ -151,6 +151,5 @@ export async function installExtension(
   return {
     ok: true,
     id: manifest.id,
-    error: results.some((r) => r.status === 'rejected') ? 'some optional files could not be fetched' : undefined,
   };
 }

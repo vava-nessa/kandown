@@ -505,7 +505,7 @@
     },
     {
       "path": "src/cli/lib/extensions-store.ts",
-      "lines": 157,
+      "lines": 156,
       "title": "Community extension store wiring",
       "summary": "Fetches the community extensions index from its canonical home (a JSON file in the kandown repo, served via `raw.githubusercontent.com`) and installs extensions by copying their files into the project's `.kandown/extensions/` directory."
     },
@@ -572,7 +572,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 543,
+      "lines": 546,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
