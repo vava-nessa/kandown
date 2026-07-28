@@ -21,6 +21,7 @@ export default defineConfig({
     include: [
       'src/lib/__tests__/**/*.spec.ts',
       'src/cli/lib/__tests__/**/*.spec.ts',
+      'website/src/**/__tests__/**/*.spec.ts',
     ],
     coverage: {
       provider: 'v8',
