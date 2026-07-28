@@ -192,6 +192,7 @@ ${c.bold}COMMANDS:${c.reset}
   assign <id> <agent> Assign task to an agent (e.g. claude)
   run [id]            Cascade: run ready tasks via assigned agents (DAG chain)
   agents              List detected AI agents + catalog (.kandown/agents.json)
+  extension           Manage extensions (list/enable/disable/install/create)
   commit              Commit task changes to git
   update              Update kandown CLI to latest version (alias: upgrade)
   doctor              Run environment & board diagnostics

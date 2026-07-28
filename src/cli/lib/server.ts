@@ -14,6 +14,12 @@ import { loadConfig, saveConfig } from './config';
 import { detectCatalogJSON } from './agents';
 import { getCurrentVersion, getInstalledVersion, semverGt, performGlobalPackageUpdate, PKG_ROOT } from './updater';
 import { atomicWriteFileSync } from './atomic-write';
+import { loadExtensionHost } from './extensions-cli';
+import type { ExtensionHost } from '../../lib/extensions/host';
+import { setField } from '../../lib/extensions/namespace';
+import { parseTaskFile } from '../../lib/parser';
+import { serializeTaskFile } from '../../lib/serializer';
+import { stampUpdated } from '../../lib/task-meta';
 
 const START_PORT_RANGE = 2050;
 const END_PORT_RANGE = 2099;
@@ -25,6 +31,14 @@ interface SseClient {
 }
 let sseClients: SseClient[] = [];
 let nextClientId = 1;
+
+/** 📖 One extension host per daemon process. Built lazily on first /api/extensions
+ *  request and reused; enable/disable mutate this same instance and reload. */
+let extensionHost: ExtensionHost | null = null;
+async function getExtensionHost(kandownDir: string): Promise<ExtensionHost> {
+  if (!extensionHost) extensionHost = await loadExtensionHost(kandownDir);
+  return extensionHost;
+}
 
 export function broadcastSseEvent(data: Record<string, unknown>): void {
   const payload = `data: ${JSON.stringify(data)}\n\n`;
@@ -301,6 +315,53 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
   // the daemon (Node) — the browser can't see $PATH, so it asks the backend.
   if (path === '/api/agents' && method === 'GET') {
     return writeJson(res, 200, detectCatalogJSON(kandownDir));
+  }
+
+  // 📖 Extension system API: list, enable/disable, static files (web bundles),
+  // and extension field writes. Foundation for the web UI; the CLI uses the
+  // host directly. See docs/EXTENSIONS.md.
+  if (path === '/api/extensions' && method === 'GET') {
+    const host = await getExtensionHost(kandownDir);
+    return writeJson(res, 200, { extensions: host.installedSummary() });
+  }
+  if (path.startsWith('/api/extensions/')) {
+    const parts = path.slice('/api/extensions/'.length).split('/').filter(Boolean);
+    const id = decodeURIComponent(parts[0] ?? '');
+    const host = await getExtensionHost(kandownDir);
+    if (parts.length === 2 && parts[1] === 'enable' && method === 'POST') {
+      const ok = await host.enable(id);
+      broadcastSseEvent({ type: 'extensions' });
+      return writeJson(res, 200, { ok, summary: host.installedSummary() });
+    }
+    if (parts.length === 2 && parts[1] === 'disable' && method === 'POST') {
+      const ok = host.disable(id);
+      broadcastSseEvent({ type: 'extensions' });
+      return writeJson(res, 200, { ok });
+    }
+    if (parts.length >= 2 && parts[1] === 'files' && method === 'GET') {
+      const ext = host.get(id);
+      if (!ext) return writeText(res, 404, 'Extension not found');
+      const rel = parts.slice(2).join('/');
+      if (!/^[a-zA-Z0-9._\/-]+$/.test(rel) || rel.includes('..')) return writeText(res, 400, 'Bad path');
+      const file = join(ext.dir, rel);
+      if (!existsSync(file)) return writeText(res, 404, 'File not found');
+      return writeText(res, 200, readFileSync(file, 'utf8'));
+    }
+  }
+
+  if (path.startsWith('/api/tasks/') && path.endsWith('/field') && method === 'POST') {
+    const parts = path.slice('/api/tasks/'.length).split('/').filter(Boolean);
+    const taskId = decodeURIComponent(parts[0] ?? '');
+    if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return writeText(res, 400, 'Invalid task id');
+    const taskPath = findTaskPath(kandownDir, taskId);
+    if (!taskPath) return writeText(res, 404, 'Task not found');
+    const body = JSON.parse(await readRequestBody(req)) as { extId?: string; key?: string; value?: unknown };
+    if (!body.extId || !body.key) return writeJson(res, 400, { error: 'extId and key required' });
+    const parsed = parseTaskFile(readFileSync(taskPath, 'utf8'));
+    const next = setField(parsed.frontmatter as Record<string, unknown>, body.extId, body.key, body.value);
+    atomicWriteFileSync(taskPath, serializeTaskFile(stampUpdated(next as never), parsed.body));
+    broadcastSseEvent({ type: 'task', id: taskId });
+    return writeJson(res, 200, { ok: true });
   }
 
   if (path.startsWith('/api/tasks/')) {

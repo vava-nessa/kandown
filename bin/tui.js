@@ -54708,36 +54708,99 @@ function formatAge(timestampMs, now = Date.now()) {
 
 // src/lib/parser.ts
 function parseSimpleYaml(yaml) {
-  const obj = {};
-  if (!yaml || typeof yaml !== "string") return obj;
-  const lines = yaml.split("\n");
-  for (let i = 0; i < lines.length; i++) {
+  if (!yaml || typeof yaml !== "string") return {};
+  return readMapping(yaml.split("\n"), 0, 0).value;
+}
+function leadingSpaces(line) {
+  let n = 0;
+  while (line[n] === " ") n++;
+  return n;
+}
+function nextContentIndent(lines, from) {
+  for (let i = from; i < lines.length; i++) {
+    const l = lines[i] ?? "";
+    if (l.trim() === "") continue;
+    return leadingSpaces(l);
+  }
+  return null;
+}
+function unquoteScalar(raw) {
+  return raw.replace(/^["']|["']$/g, "");
+}
+function parseInlineArray(raw) {
+  return raw.slice(1, -1).split(",").map((s) => s && typeof s === "string" ? s.trim().replace(/^["']|["']$/g, "") : "").filter(Boolean);
+}
+function readBlockScalar(lines, start) {
+  let probe = start;
+  while (probe < lines.length && (lines[probe] ?? "").trim() === "") probe++;
+  if (probe >= lines.length) return { value: "", next: start };
+  const indent = leadingSpaces(lines[probe] ?? "");
+  if (indent <= 0) return { value: "", next: start };
+  const block = [];
+  let i = start;
+  while (i < lines.length) {
     const line = lines[i] ?? "";
-    const m = line.match(/^([a-zA-Z_][\w-]*)\s*:\s*(.*)$/);
-    if (!m) continue;
-    const key = m[1];
-    if (!key) continue;
-    let val = m[2]?.trim() ?? "";
-    if (val === "|") {
-      const block = [];
+    if (line.trim() === "") {
+      block.push("");
       i++;
-      while (i < lines.length && (/^\s+/.test(lines[i] ?? "") || (lines[i] ?? "") === "")) {
-        block.push((lines[i] ?? "").replace(/^  /, ""));
-        i++;
-      }
-      i--;
-      obj[key] = block.join("\n").trimEnd();
       continue;
     }
-    if (typeof val !== "string") val = "";
-    if (val.startsWith("[") && val.endsWith("]")) {
-      const arr = val.slice(1, -1).split(",").map((s) => s && typeof s === "string" ? s.trim().replace(/^["']|["']$/g, "") : "").filter(Boolean);
-      obj[key] = arr;
-    } else {
-      obj[key] = typeof val === "string" ? val.replace(/^["']|["']$/g, "") : val;
-    }
+    if (leadingSpaces(line) < indent) break;
+    block.push(line.slice(indent));
+    i++;
   }
-  return obj;
+  while (block.length > 0 && block[block.length - 1] === "") block.pop();
+  return { value: block.join("\n"), next: i };
+}
+function readMapping(lines, start, indent) {
+  const obj = {};
+  let i = start;
+  while (i < lines.length) {
+    const line = lines[i] ?? "";
+    if (line.trim() === "") {
+      i++;
+      continue;
+    }
+    const ind = leadingSpaces(line);
+    if (ind < indent) break;
+    if (ind > indent) {
+      i++;
+      continue;
+    }
+    const m = line.match(/^(\s*)([a-zA-Z_][\w-]*)\s*:\s*(.*)$/);
+    if (!m) {
+      i++;
+      continue;
+    }
+    const key = m[2];
+    const rawVal = (m[3] ?? "").trim();
+    if (rawVal === "|") {
+      const { value, next } = readBlockScalar(lines, i + 1);
+      obj[key] = value;
+      i = next;
+      continue;
+    }
+    if (rawVal === "") {
+      const childIndent = nextContentIndent(lines, i + 1);
+      if (childIndent !== null && childIndent > indent) {
+        const { value, next } = readMapping(lines, i + 1, childIndent);
+        obj[key] = value;
+        i = next;
+        continue;
+      }
+      obj[key] = "";
+      i++;
+      continue;
+    }
+    if (rawVal.startsWith("[") && rawVal.endsWith("]")) {
+      obj[key] = parseInlineArray(rawVal);
+      i++;
+      continue;
+    }
+    obj[key] = unquoteScalar(rawVal);
+    i++;
+  }
+  return { value: obj, next: i };
 }
 function parseTaskFile(md) {
   if (!md || typeof md !== "string") {
@@ -54896,16 +54959,7 @@ function serializeTaskFile(frontmatter, body) {
   const lines = ["---"];
   if (frontmatter && typeof frontmatter === "object") {
     for (const [k, v] of Object.entries(frontmatter)) {
-      if (v === null || v === void 0 || v === "") continue;
-      if (Array.isArray(v)) {
-        if (v.length === 0) continue;
-        lines.push(`${k}: [${v.join(", ")}]`);
-      } else if (typeof v === "string" && v.includes("\n")) {
-        lines.push(`${k}: |`);
-        lines.push(...v.split("\n").map((line) => line === "" ? "" : `  ${line}`));
-      } else if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") {
-        lines.push(`${k}: ${v}`);
-      }
+      serializeValue(k, v, lines, 0);
     }
   }
   lines.push("---");
@@ -54913,6 +54967,36 @@ function serializeTaskFile(frontmatter, body) {
   lines.push((body ?? "").trim());
   lines.push("");
   return lines.join("\n");
+}
+function serializeValue(key, value, lines, indent) {
+  const pad2 = " ".repeat(indent);
+  if (value === null || value === void 0 || value === "") return;
+  if (Array.isArray(value)) {
+    if (value.length === 0) return;
+    lines.push(`${pad2}${key}: [${value.join(", ")}]`);
+    return;
+  }
+  if (typeof value === "string") {
+    if (value.includes("\n")) {
+      lines.push(`${pad2}${key}: |`);
+      const childPad = " ".repeat(indent + 2);
+      for (const l of value.split("\n")) lines.push(l === "" ? "" : `${childPad}${l}`);
+    } else {
+      lines.push(`${pad2}${key}: ${value}`);
+    }
+    return;
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    lines.push(`${pad2}${key}: ${value}`);
+    return;
+  }
+  if (typeof value === "object") {
+    const entries = Object.entries(value).filter(([, v]) => v !== null && v !== void 0 && v !== "");
+    if (entries.length === 0) return;
+    lines.push(`${pad2}${key}:`);
+    for (const [ck, cv] of entries) serializeValue(ck, cv, lines, indent + 2);
+    return;
+  }
 }
 
 // src/cli/lib/board-reader.ts

@@ -27,6 +27,7 @@ import {
 import { cmdDaemon } from './commands/daemon';
 import { cmdRun } from './commands/run';
 import { cmdAgents } from './commands/agents';
+import { cmdExtension, dispatchContributedCommand } from './lib/extensions-cli';
 
 async function cmdTui(screen: 'board' | 'settings', rawArgs: string[]): Promise<void> {
   const args = parseArgs(rawArgs);
@@ -91,7 +92,7 @@ async function main() {
       break;
 
     case 'move':
-      cmdMove(rest);
+      await cmdMove(rest);
       break;
 
     case 'assign':
@@ -108,6 +109,11 @@ async function main() {
 
     case 'agents':
       cmdAgents(rest);
+      break;
+
+    case 'extension':
+    case 'extensions':
+      await cmdExtension(rest);
       break;
 
     case 'tasks':
@@ -169,14 +175,25 @@ async function main() {
       break;
     }
 
-    default:
+    default: {
       if (!cmd || cmd.startsWith('-')) {
         help();
         break;
       }
+      // 📖 Contributed extension commands: `kandown <ext-cmd> [args]`. Falls
+      // through to "unknown command" when no extension owns the name, so the
+      // common typo path is unchanged in projects with no extensions.
+      const parsed = parseArgs(rest);
+      const kandownDir = resolveKandownDir(parsed.path, process.cwd());
+      if (existsSync(join(kandownDir, 'kandown.json'))) {
+        const positional = rest.filter((a) => !a.startsWith('-') && !a.startsWith('--path'));
+        const ran = await dispatchContributedCommand(kandownDir, cmd, positional.join(' '));
+        if (ran) break;
+      }
       err(`Unknown command: ${cmd}`);
       help();
       process.exit(1);
+    }
   }
 }
 

@@ -50,6 +50,10 @@ if (typeof globalThis.require === 'undefined') {
       'utf-8-validate', 'bufferutil',
       // Packages with CJS require() inside webpack IIFEs (must be regular deps)
       'signal-exit',
+      // 📖 jiti loads its own transform runtime (dist/babel.cjs) via paths
+      // computed from its own location; bundling it into a single file breaks
+      // those internal requires, so it must resolve from node_modules at runtime.
+      'jiti',
     ];
     // 📖 React devtools-core uses 'self' (browser global) inside a CJS UMD bundle.
     // tsup bundles it but can't transform the webpack UniversalModuleDefinition.

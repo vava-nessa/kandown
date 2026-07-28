@@ -1,0 +1,12 @@
+{
+  "id": "burndown",
+  "name": "Burndown",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "minKandownVersion": "0.42.0",
+  "author": "kandown",
+  "description": "Story points and a burndown. The canonical reference extension exercising every CLI-visible contribution point.",
+  "homepage": "https://github.com/vava/kandown",
+  "permissions": ["read:tasks", "write:field:plugins.burndown.*"],
+  "contributes": { "fields": ["points"], "commands": ["burndown"], "gates": ["task:beforeMove"] }
+}

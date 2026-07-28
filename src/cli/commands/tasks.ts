@@ -13,6 +13,7 @@ import { existsSync, readFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { archiveTaskInBoard, getTasksDir, readBoard, readTask, moveTaskToColumn, listTaskIds } from '../lib/board-reader';
+import { loadExtensionHost, runExtensionMoveGates } from '../lib/extensions-cli';
 import { loadConfig } from '../lib/config';
 import { resolveAgentEntry } from '../lib/agents';
 import { atomicWriteFileSync } from '../lib/atomic-write';
@@ -162,7 +163,7 @@ export function cmdCreate(rawArgs: string[]) {
   process.stdout.write(args.flags.json === true ? JSON.stringify(fm, null, 2) + '\n' : `${id}\n`);
 }
 
-export function cmdMove(rawArgs: string[]) {
+export async function cmdMove(rawArgs: string[]) {
   const { kandownDir } = ensureKandownDir(rawArgs);
   const args = taskParseArgs(rawArgs);
   const id = args.positional[0];
@@ -186,10 +187,30 @@ export function cmdMove(rawArgs: string[]) {
     err(`Unknown status: ${rawStatus}`);
     process.exit(1);
   }
+
+  // 📖 Extension gates compose with the core dependency gate. Building the host
+  // is cheap when no extensions are enabled (no jiti load, no network).
+  const host = await loadExtensionHost(kandownDir);
+  let fromStatus: string | undefined;
+  try { fromStatus = readTask(kandownDir, id).frontmatter.status as string | undefined; } catch { /* ignore */ }
+  const gate = await runExtensionMoveGates(host, kandownDir, id, fromStatus, status);
+  if (!gate.allowed) {
+    err(`Cannot move ${id} to ${status}: ${gate.reason ?? 'blocked by an extension'}`);
+    process.exit(1);
+  }
+
   if (!moveTaskToColumn(kandownDir, id, status)) {
     err(`Move failed: ${id}`);
     process.exit(1);
   }
+
+  // Notify contributed sync handlers (fire-and-forget, isolated by the host).
+  try {
+    const moved = readTask(kandownDir, id);
+    const fm = moved.frontmatter as Record<string, unknown>;
+    host.dispatchSync({ type: 'task:afterMove', task: { id, frontmatter: fm, plugins: fm.plugins as Record<string, unknown> | undefined }, from: fromStatus, to: status });
+  } catch { /* ignore */ }
+
   success(`Moved ${id} → "${status}"`);
 }
 

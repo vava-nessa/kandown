@@ -5,8 +5,8 @@ if (typeof globalThis.require === 'undefined') {
 }
 
 // src/cli/cli.ts
-import { existsSync as existsSync13 } from "fs";
-import { join as join15 } from "path";
+import { existsSync as existsSync16 } from "fs";
+import { join as join20 } from "path";
 
 // src/cli/lib/updater.ts
 import { existsSync, readFileSync, writeFileSync, unlinkSync, statSync, mkdirSync } from "fs";
@@ -218,7 +218,7 @@ async function checkForUpdate(argv = process.argv) {
     }
   } catch {
   }
-  const latest = await new Promise((resolve5) => {
+  const latest = await new Promise((resolve7) => {
     const child2 = spawn("npm", ["view", "kandown", "version"], {
       timeout: 6e3,
       stdio: ["pipe", "pipe", "pipe"],
@@ -231,11 +231,11 @@ async function checkForUpdate(argv = process.argv) {
     });
     child2.stderr.on("data", () => {
     });
-    child2.on("error", () => resolve5(null));
+    child2.on("error", () => resolve7(null));
     child2.on("close", (code) => {
-      if (code !== 0) return resolve5(null);
+      if (code !== 0) return resolve7(null);
       const v = stdout.trim().replace(/^"|"$/g, "");
-      resolve5(v || null);
+      resolve7(v || null);
     });
   });
   if (!latest) return;
@@ -338,16 +338,16 @@ async function fetchDaemonInfo(port) {
   }
 }
 function isPortListening(port, timeoutMs = 400) {
-  return new Promise((resolve5) => {
+  return new Promise((resolve7) => {
     const socket = createConnection({ port, host: "127.0.0.1" }, () => {
       socket.destroy();
-      resolve5(true);
+      resolve7(true);
     });
-    socket.on("error", () => resolve5(false));
+    socket.on("error", () => resolve7(false));
     socket.setTimeout(timeoutMs);
     socket.on("timeout", () => {
       socket.destroy();
-      resolve5(false);
+      resolve7(false);
     });
   });
 }
@@ -375,7 +375,7 @@ async function waitForDaemon(kandownDir, timeoutMs = 8e3) {
     if (metadata && isProcessAlive(metadata.pid) && await isPortListening(metadata.port)) {
       return { running: true, metadata };
     }
-    await new Promise((resolve5) => setTimeout(resolve5, 120));
+    await new Promise((resolve7) => setTimeout(resolve7, 120));
   }
   return { running: false, metadata: null };
 }
@@ -438,7 +438,7 @@ async function stopProjectDaemon(kandownDir) {
   }
   const started = Date.now();
   while (Date.now() - started < 2500 && isProcessAlive(pid)) {
-    await new Promise((resolve5) => setTimeout(resolve5, 100));
+    await new Promise((resolve7) => setTimeout(resolve7, 100));
   }
   if (isProcessAlive(pid)) {
     try {
@@ -653,36 +653,99 @@ var YEAR = 365 * DAY;
 
 // src/lib/parser.ts
 function parseSimpleYaml(yaml) {
-  const obj = {};
-  if (!yaml || typeof yaml !== "string") return obj;
-  const lines = yaml.split("\n");
-  for (let i = 0; i < lines.length; i++) {
+  if (!yaml || typeof yaml !== "string") return {};
+  return readMapping(yaml.split("\n"), 0, 0).value;
+}
+function leadingSpaces(line) {
+  let n = 0;
+  while (line[n] === " ") n++;
+  return n;
+}
+function nextContentIndent(lines, from) {
+  for (let i = from; i < lines.length; i++) {
+    const l = lines[i] ?? "";
+    if (l.trim() === "") continue;
+    return leadingSpaces(l);
+  }
+  return null;
+}
+function unquoteScalar(raw) {
+  return raw.replace(/^["']|["']$/g, "");
+}
+function parseInlineArray(raw) {
+  return raw.slice(1, -1).split(",").map((s) => s && typeof s === "string" ? s.trim().replace(/^["']|["']$/g, "") : "").filter(Boolean);
+}
+function readBlockScalar(lines, start) {
+  let probe = start;
+  while (probe < lines.length && (lines[probe] ?? "").trim() === "") probe++;
+  if (probe >= lines.length) return { value: "", next: start };
+  const indent = leadingSpaces(lines[probe] ?? "");
+  if (indent <= 0) return { value: "", next: start };
+  const block = [];
+  let i = start;
+  while (i < lines.length) {
     const line = lines[i] ?? "";
-    const m = line.match(/^([a-zA-Z_][\w-]*)\s*:\s*(.*)$/);
-    if (!m) continue;
-    const key = m[1];
-    if (!key) continue;
-    let val = m[2]?.trim() ?? "";
-    if (val === "|") {
-      const block = [];
+    if (line.trim() === "") {
+      block.push("");
       i++;
-      while (i < lines.length && (/^\s+/.test(lines[i] ?? "") || (lines[i] ?? "") === "")) {
-        block.push((lines[i] ?? "").replace(/^  /, ""));
-        i++;
-      }
-      i--;
-      obj[key] = block.join("\n").trimEnd();
       continue;
     }
-    if (typeof val !== "string") val = "";
-    if (val.startsWith("[") && val.endsWith("]")) {
-      const arr = val.slice(1, -1).split(",").map((s) => s && typeof s === "string" ? s.trim().replace(/^["']|["']$/g, "") : "").filter(Boolean);
-      obj[key] = arr;
-    } else {
-      obj[key] = typeof val === "string" ? val.replace(/^["']|["']$/g, "") : val;
-    }
+    if (leadingSpaces(line) < indent) break;
+    block.push(line.slice(indent));
+    i++;
   }
-  return obj;
+  while (block.length > 0 && block[block.length - 1] === "") block.pop();
+  return { value: block.join("\n"), next: i };
+}
+function readMapping(lines, start, indent) {
+  const obj = {};
+  let i = start;
+  while (i < lines.length) {
+    const line = lines[i] ?? "";
+    if (line.trim() === "") {
+      i++;
+      continue;
+    }
+    const ind = leadingSpaces(line);
+    if (ind < indent) break;
+    if (ind > indent) {
+      i++;
+      continue;
+    }
+    const m = line.match(/^(\s*)([a-zA-Z_][\w-]*)\s*:\s*(.*)$/);
+    if (!m) {
+      i++;
+      continue;
+    }
+    const key = m[2];
+    const rawVal = (m[3] ?? "").trim();
+    if (rawVal === "|") {
+      const { value, next } = readBlockScalar(lines, i + 1);
+      obj[key] = value;
+      i = next;
+      continue;
+    }
+    if (rawVal === "") {
+      const childIndent = nextContentIndent(lines, i + 1);
+      if (childIndent !== null && childIndent > indent) {
+        const { value, next } = readMapping(lines, i + 1, childIndent);
+        obj[key] = value;
+        i = next;
+        continue;
+      }
+      obj[key] = "";
+      i++;
+      continue;
+    }
+    if (rawVal.startsWith("[") && rawVal.endsWith("]")) {
+      obj[key] = parseInlineArray(rawVal);
+      i++;
+      continue;
+    }
+    obj[key] = unquoteScalar(rawVal);
+    i++;
+  }
+  return { value: obj, next: i };
 }
 function parseTaskFile(md) {
   if (!md || typeof md !== "string") {
@@ -841,16 +904,7 @@ function serializeTaskFile(frontmatter, body) {
   const lines = ["---"];
   if (frontmatter && typeof frontmatter === "object") {
     for (const [k, v] of Object.entries(frontmatter)) {
-      if (v === null || v === void 0 || v === "") continue;
-      if (Array.isArray(v)) {
-        if (v.length === 0) continue;
-        lines.push(`${k}: [${v.join(", ")}]`);
-      } else if (typeof v === "string" && v.includes("\n")) {
-        lines.push(`${k}: |`);
-        lines.push(...v.split("\n").map((line) => line === "" ? "" : `  ${line}`));
-      } else if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") {
-        lines.push(`${k}: ${v}`);
-      }
+      serializeValue(k, v, lines, 0);
     }
   }
   lines.push("---");
@@ -858,6 +912,36 @@ function serializeTaskFile(frontmatter, body) {
   lines.push((body ?? "").trim());
   lines.push("");
   return lines.join("\n");
+}
+function serializeValue(key, value, lines, indent) {
+  const pad = " ".repeat(indent);
+  if (value === null || value === void 0 || value === "") return;
+  if (Array.isArray(value)) {
+    if (value.length === 0) return;
+    lines.push(`${pad}${key}: [${value.join(", ")}]`);
+    return;
+  }
+  if (typeof value === "string") {
+    if (value.includes("\n")) {
+      lines.push(`${pad}${key}: |`);
+      const childPad = " ".repeat(indent + 2);
+      for (const l of value.split("\n")) lines.push(l === "" ? "" : `${childPad}${l}`);
+    } else {
+      lines.push(`${pad}${key}: ${value}`);
+    }
+    return;
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    lines.push(`${pad}${key}: ${value}`);
+    return;
+  }
+  if (typeof value === "object") {
+    const entries = Object.entries(value).filter(([, v]) => v !== null && v !== void 0 && v !== "");
+    if (entries.length === 0) return;
+    lines.push(`${pad}${key}:`);
+    for (const [ck, cv] of entries) serializeValue(ck, cv, lines, indent + 2);
+    return;
+  }
 }
 
 // src/cli/lib/config.ts
@@ -1676,6 +1760,7 @@ ${c.bold}COMMANDS:${c.reset}
   assign <id> <agent> Assign task to an agent (e.g. claude)
   run [id]            Cascade: run ready tasks via assigned agents (DAG chain)
   agents              List detected AI agents + catalog (.kandown/agents.json)
+  extension           Manage extensions (list/enable/disable/install/create)
   commit              Commit task changes to git
   update              Update kandown CLI to latest version (alias: upgrade)
   doctor              Run environment & board diagnostics
@@ -1834,7 +1919,7 @@ function cmdInit(rawArgs) {
 async function cmdUpdate(rawArgs) {
   const current = getCurrentVersion();
   log(`${c.bold}kandown update${c.reset} ${c.dim}\u2014 v${current}${c.reset}`);
-  const latest = await new Promise((resolve5) => {
+  const latest = await new Promise((resolve7) => {
     const child = spawn5("npm", ["view", "kandown", "version"], {
       timeout: 6e3,
       stdio: ["pipe", "pipe", "pipe"],
@@ -1847,11 +1932,11 @@ async function cmdUpdate(rawArgs) {
     });
     child.stderr.on("data", () => {
     });
-    child.on("error", () => resolve5(null));
+    child.on("error", () => resolve7(null));
     child.on("close", (code) => {
-      if (code !== 0) return resolve5(null);
+      if (code !== 0) return resolve7(null);
       const v = stdout.trim().replace(/^"|"$/g, "");
-      resolve5(v || null);
+      resolve7(v || null);
     });
   });
   if (latest && semverGt(latest, current) > 0) {
@@ -1922,16 +2007,745 @@ async function cmdWork(rawArgs) {
 }
 
 // src/cli/commands/tasks.ts
-import { existsSync as existsSync10, readFileSync as readFileSync10, mkdirSync as mkdirSync4, readdirSync as readdirSync5 } from "fs";
-import { join as join10, resolve as resolve4 } from "path";
+import { existsSync as existsSync13, readFileSync as readFileSync15, mkdirSync as mkdirSync7, readdirSync as readdirSync7 } from "fs";
+import { join as join15, resolve as resolve6 } from "path";
 import { spawnSync } from "child_process";
+
+// src/cli/lib/extensions-cli.ts
+import { existsSync as existsSync11, readFileSync as readFileSync13, writeFileSync as writeFileSync5, mkdirSync as mkdirSync6, cpSync, rmSync, readdirSync as readdirSync6 } from "fs";
+import { join as join13, resolve as resolve5 } from "path";
+
+// src/lib/extensions/host.ts
+import { createJiti } from "jiti";
+import { existsSync as existsSync10 } from "fs";
+import { join as join12, resolve as resolve4 } from "path";
+import { fileURLToPath as fileURLToPath3 } from "url";
+
+// src/lib/extensions/registry.ts
+var ContributionRegistry = class _ContributionRegistry {
+  fields = /* @__PURE__ */ new Map();
+  panels = /* @__PURE__ */ new Map();
+  commands = /* @__PURE__ */ new Map();
+  gates = [];
+  syncs = [];
+  lifecycle = /* @__PURE__ */ new Map();
+  /** Namespaced key for a field, `${extId}.${fieldKey}`. */
+  static fieldKey(extId, fieldKey) {
+    return `${extId}.${fieldKey}`;
+  }
+  registerField(extId, def) {
+    const key = _ContributionRegistry.fieldKey(extId, def.key);
+    if (this.fields.has(key)) return false;
+    this.fields.set(key, { extId, def });
+    return true;
+  }
+  registerPanel(extId, def) {
+    if (this.panels.has(def.id)) return false;
+    this.panels.set(def.id, { extId, def });
+    return true;
+  }
+  registerCommand(extId, def) {
+    if (this.commands.has(def.name)) return false;
+    this.commands.set(def.name, { extId, def });
+    return true;
+  }
+  registerGate(extId, def) {
+    this.gates.push({ extId, def });
+  }
+  registerSync(extId, def) {
+    this.syncs.push({ extId, def });
+  }
+  on(extId, event, handler) {
+    const list = this.lifecycle.get(event) ?? [];
+    list.push({ extId, handler });
+    this.lifecycle.set(event, list);
+  }
+  /** Removes every contribution owned by `extId`. Used on disable/quarantine. */
+  clearForExt(extId) {
+    for (const [k, v] of this.fields) if (v.extId === extId) this.fields.delete(k);
+    for (const [k, v] of this.panels) if (v.extId === extId) this.panels.delete(k);
+    for (const [k, v] of this.commands) if (v.extId === extId) this.commands.delete(k);
+    this.gates = this.gates.filter((g) => g.extId !== extId);
+    this.syncs = this.syncs.filter((s) => s.extId !== extId);
+    for (const [event, list] of this.lifecycle) {
+      const filtered = list.filter((h) => h.extId !== extId);
+      if (filtered.length > 0) this.lifecycle.set(event, filtered);
+      else this.lifecycle.delete(event);
+    }
+  }
+  /** Fields belonging to `extId`, as [key, def]. */
+  fieldsFor(extId) {
+    return [...this.fields.values()].filter((f) => f.extId === extId).map((f) => f.def);
+  }
+  reset() {
+    this.fields.clear();
+    this.panels.clear();
+    this.commands.clear();
+    this.gates.length = 0;
+    this.syncs.length = 0;
+    this.lifecycle.clear();
+  }
+};
+
+// src/lib/extensions/loader.ts
+import { readdirSync as readdirSync5, readFileSync as readFileSync9, existsSync as existsSync9 } from "fs";
+import { join as join9 } from "path";
+import { homedir as homedir4 } from "os";
+
+// src/lib/extensions/manifest.ts
+var REQUIRED = ["id", "name", "version", "apiVersion"];
+function parseManifest(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    return { ok: false, error: "manifest is not a JSON object" };
+  }
+  const m = raw;
+  for (const key of REQUIRED) {
+    if (m[key] === void 0 || m[key] === null || m[key] === "") {
+      return { ok: false, error: `missing required field "${key}"` };
+    }
+  }
+  if (typeof m.id !== "string" || !/^[a-z][a-z0-9-]{0,63}$/.test(m.id)) {
+    return { ok: false, error: '"id" must be kebab-case (lowercase letters, digits, hyphens)' };
+  }
+  if (typeof m.name !== "string") return { ok: false, error: '"name" must be a string' };
+  if (typeof m.version !== "string") return { ok: false, error: '"version" must be a string' };
+  if (typeof m.apiVersion !== "number" || !Number.isInteger(m.apiVersion)) {
+    return { ok: false, error: '"apiVersion" must be an integer' };
+  }
+  if (m.minKandownVersion !== void 0 && typeof m.minKandownVersion !== "string") {
+    return { ok: false, error: '"minKandownVersion" must be a string' };
+  }
+  if (m.permissions !== void 0 && !Array.isArray(m.permissions)) {
+    return { ok: false, error: '"permissions" must be an array' };
+  }
+  if (m.main !== void 0 && typeof m.main !== "string") {
+    return { ok: false, error: '"main" must be a string' };
+  }
+  return { ok: true, manifest: m };
+}
+function semverTuple(v) {
+  return v.split(".").map((p) => Number.parseInt(p.replace(/[^\d].*$/, ""), 10) || 0).slice(0, 3);
+}
+function isCompatible(manifest, kandownVersion) {
+  if (!manifest.minKandownVersion) return true;
+  const a = semverTuple(kandownVersion);
+  const b = semverTuple(manifest.minKandownVersion);
+  for (let i = 0; i < 3; i++) {
+    if ((a[i] ?? 0) !== (b[i] ?? 0)) return (a[i] ?? 0) > (b[i] ?? 0);
+  }
+  return true;
+}
+
+// src/lib/extensions/loader.ts
+function globalExtensionsDir() {
+  return join9(homedir4(), ".kandown", "extensions");
+}
+function projectExtensionsDir(projectDir) {
+  return join9(projectDir, ".kandown", "extensions");
+}
+function scanLocation(location, source) {
+  let entries = [];
+  try {
+    entries = readdirSync5(location, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
+  } catch {
+    return [];
+  }
+  const found = [];
+  for (const name of entries) {
+    const dir = join9(location, name);
+    const manifestPath = join9(dir, "manifest.json");
+    if (!existsSync9(manifestPath)) continue;
+    let raw;
+    try {
+      raw = JSON.parse(readFileSync9(manifestPath, "utf8"));
+    } catch {
+      found.push({ dir, source, manifestResult: { ok: false, error: "manifest.json is not valid JSON" } });
+      continue;
+    }
+    found.push({ dir, source, manifestResult: parseManifest(raw) });
+  }
+  return found;
+}
+function discoverExtensions(projectDir) {
+  const globalList = scanLocation(globalExtensionsDir(), "global");
+  const projectList = scanLocation(projectExtensionsDir(projectDir), "project");
+  const projectIds = new Set(
+    projectList.map((d) => d.manifestResult.ok ? d.manifestResult.manifest.id : null).filter((x) => x !== null)
+  );
+  const dedupedGlobal = globalList.filter(
+    (d) => !(d.manifestResult.ok && projectIds.has(d.manifestResult.manifest.id))
+  );
+  return [...projectList, ...dedupedGlobal];
+}
+
+// src/lib/extensions/trust.ts
+import { readFileSync as readFileSync10, writeFileSync as writeFileSync3, mkdirSync as mkdirSync4 } from "fs";
+import { join as join10 } from "path";
+function isRestricted(config) {
+  const flag = config?.extensions?.restricted;
+  return typeof flag === "boolean" ? flag : true;
+}
+function trustFilePath(projectDir) {
+  return join10(projectDir, ".kandown", "extensions", "trust.json");
+}
+function loadProjectTrust(projectDir) {
+  try {
+    const raw = readFileSync10(trustFilePath(projectDir), "utf8");
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return new Set(parsed.filter((x) => typeof x === "string"));
+    return /* @__PURE__ */ new Set();
+  } catch {
+    return /* @__PURE__ */ new Set();
+  }
+}
+function saveProjectTrust(projectDir, trusted) {
+  const file = trustFilePath(projectDir);
+  mkdirSync4(join10(file, ".."), { recursive: true });
+  writeFileSync3(file, `${JSON.stringify([...trusted].sort(), null, 2)}
+`, "utf8");
+}
+
+// src/lib/extensions/state.ts
+import { readFileSync as readFileSync11, writeFileSync as writeFileSync4, mkdirSync as mkdirSync5 } from "fs";
+import { join as join11 } from "path";
+function enabledFilePath(projectDir) {
+  return join11(projectDir, ".kandown", "extensions", "enabled.json");
+}
+function loadEnabled(projectDir) {
+  try {
+    const raw = readFileSync11(enabledFilePath(projectDir), "utf8");
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return new Set(parsed.filter((x) => typeof x === "string"));
+    return /* @__PURE__ */ new Set();
+  } catch {
+    return /* @__PURE__ */ new Set();
+  }
+}
+function saveEnabled(projectDir, ids) {
+  const file = enabledFilePath(projectDir);
+  mkdirSync5(join11(file, ".."), { recursive: true });
+  writeFileSync4(file, `${JSON.stringify([...ids].sort(), null, 2)}
+`, "utf8");
+}
+
+// src/lib/extensions/host.ts
+var QUARANTINE_THRESHOLD = 3;
+var SUPPORTED_API_VERSION = 1;
+function errMsg(e) {
+  return e instanceof Error ? e.message : String(e);
+}
+var ExtensionHost = class {
+  constructor(env) {
+    this.env = env;
+    this.trust = loadProjectTrust(env.projectDir);
+    this.enabled = loadEnabled(env.projectDir);
+  }
+  env;
+  registry = new ContributionRegistry();
+  byExtId = /* @__PURE__ */ new Map();
+  trust;
+  enabled;
+  jiti;
+  /** All loaded extensions, with health and provenance. */
+  list() {
+    return [...this.byExtId.values()];
+  }
+  /** One extension by id, or undefined. */
+  get(id) {
+    return this.byExtId.get(id);
+  }
+  /** Summaries of what each enabled extension contributes, for settings/CLI. */
+  installedSummary() {
+    return this.list().map((ext) => ({
+      id: ext.manifest.id,
+      name: ext.manifest.name,
+      version: ext.manifest.version,
+      source: ext.source,
+      health: ext.health,
+      error: ext.error,
+      fields: this.registry.fieldsFor(ext.manifest.id).map((f) => f.key),
+      panels: [...this.registry.panels.values()].filter((p) => p.extId === ext.manifest.id).map((p) => p.def.id),
+      commands: [...this.registry.commands.values()].filter((c2) => c2.extId === ext.manifest.id).map((c2) => c2.def.name),
+      gates: this.registry.gates.filter((g) => g.extId === ext.manifest.id).length,
+      syncs: this.registry.syncs.filter((s) => s.extId === ext.manifest.id).length
+    }));
+  }
+  /**
+   * 📖 Discovers and loads every extension, applying restricted mode, project
+   * trust and version compatibility. Safe to call repeatedly (it resets first).
+   */
+  async loadAll() {
+    this.registry.reset();
+    this.byExtId.clear();
+    const restricted = isRestricted(this.env.config);
+    const discovered = discoverExtensions(this.env.projectDir);
+    for (const found of discovered) {
+      if (!found.manifestResult.ok) {
+        this.byExtId.set(found.dir, {
+          manifest: { id: "(invalid)", name: "(invalid)", version: "0", apiVersion: SUPPORTED_API_VERSION },
+          health: "errored",
+          error: found.manifestResult.error,
+          failures: 0,
+          source: found.source,
+          dir: found.dir
+        });
+        continue;
+      }
+      const manifest = found.manifestResult.manifest;
+      if (manifest.apiVersion !== SUPPORTED_API_VERSION) {
+        this.byExtId.set(manifest.id, loaded(manifest, found.dir, found.source, "errored", `unsupported apiVersion ${manifest.apiVersion} (expected ${SUPPORTED_API_VERSION})`));
+        continue;
+      }
+      if (!isCompatible(manifest, this.env.kandownVersion)) {
+        this.byExtId.set(manifest.id, loaded(manifest, found.dir, found.source, "errored", `requires kandown >= ${manifest.minKandownVersion}`));
+        continue;
+      }
+      if (found.source === "project" && !this.trust.has(manifest.id)) {
+        this.byExtId.set(manifest.id, loaded(manifest, found.dir, found.source, "disabled", 'project extension not trusted; run "kandown extension enable"'));
+        continue;
+      }
+      if (restricted && !this.enabled.has(manifest.id)) {
+        this.byExtId.set(manifest.id, loaded(manifest, found.dir, found.source, "disabled", 'restricted mode is on; run "kandown extension enable"'));
+        continue;
+      }
+      await this.loadEntry(manifest, found.dir, found.source);
+    }
+  }
+  /** Loads and runs one extension's Node entry, registering its contributions. */
+  async loadEntry(manifest, dir, source) {
+    const entry = this.resolveEntry(manifest, dir);
+    if (!entry) {
+      this.byExtId.set(manifest.id, loaded(manifest, dir, source, "errored", "no Node entry found (index.js or index.ts)"));
+      return;
+    }
+    try {
+      const factory = await this.loadFactory(entry);
+      if (typeof factory !== "function") {
+        this.byExtId.set(manifest.id, loaded(manifest, dir, source, "errored", "default export is not a function"));
+        return;
+      }
+      const kd = this.makeApi(manifest.id);
+      await factory(kd);
+      this.byExtId.set(manifest.id, loaded(manifest, dir, source, "enabled"));
+    } catch (e) {
+      this.registry.clearForExt(manifest.id);
+      this.byExtId.set(manifest.id, loaded(manifest, dir, source, "errored", `load failed: ${errMsg(e)}`));
+    }
+  }
+  resolveEntry(manifest, dir) {
+    const mainRel = manifest.main;
+    const candidates = mainRel ? [resolve4(dir, mainRel)] : [join12(dir, "index.ts"), join12(dir, "index.js"), join12(dir, "index.mjs")];
+    for (const c2 of candidates) if (existsSync10(c2)) return c2;
+    return null;
+  }
+  async loadFactory(entry) {
+    if (!this.jiti) {
+      const base = typeof __filename !== "undefined" ? __filename : fileURLToPath3(import.meta.url);
+      this.jiti = createJiti(base);
+    }
+    const mod = await this.jiti.import(entry);
+    return mod.default;
+  }
+  /** Builds the scoped `KandownExtensionAPI` an extension factory receives. */
+  makeApi(extId) {
+    const safe = (fn) => {
+      try {
+        fn();
+      } catch (e) {
+        this.env.log?.warn?.(`[${extId}] registration failed: ${errMsg(e)}`);
+      }
+    };
+    return {
+      id: extId,
+      contributeField: (def) => safe(() => this.registry.registerField(extId, def)),
+      contributeWebPanel: (def) => safe(() => this.registry.registerPanel(extId, def)),
+      contributeCommand: (name, def) => safe(() => this.registry.registerCommand(extId, { ...def, name })),
+      contributeGate: (def) => safe(() => this.registry.registerGate(extId, def)),
+      contributeSync: (def) => safe(() => this.registry.registerSync(extId, def)),
+      on: (event, handler) => this.registry.on(extId, event, handler)
+    };
+  }
+  /** Builds the scoped `ExtensionContext` for a handler of `extId`. */
+  makeContext(extId) {
+    const perms = this.byExtId.get(extId)?.manifest.permissions;
+    const hasNet = perms?.some((p) => p === "*" || p === "net:*" || p.startsWith("net:")) ?? false;
+    const ctx = {
+      extId,
+      board: {
+        readAll: () => this.env.readAll(),
+        read: (id) => this.env.read(id)
+      },
+      setField: (taskId, key, value) => this.env.applyField(taskId, extId, key, value),
+      log: {
+        info: (m) => this.env.log?.info?.(m),
+        warn: (m) => this.env.log?.warn?.(m),
+        error: (m) => this.env.log?.error?.(m)
+      }
+    };
+    if (hasNet) ctx.fetch = fetch;
+    return ctx;
+  }
+  /** Bumps the failure counter and quarantines past the threshold. */
+  recordFailure(extId, e) {
+    const ext = this.byExtId.get(extId);
+    if (!ext || ext.health !== "enabled") return;
+    ext.failures += 1;
+    if (ext.failures >= QUARANTINE_THRESHOLD) {
+      ext.health = "quarantined";
+      ext.error = `quarantined after ${ext.failures} failures (last: ${errMsg(e)})`;
+      this.registry.clearForExt(extId);
+      this.env.log?.error?.(`[${extId}] quarantined`);
+    }
+  }
+  /**
+   * 📖 Runs every gate matching the event. Returns on the first block. A
+   * throwing gate is fail-open (no objection) and counted toward quarantine.
+   */
+  async runGates(event) {
+    for (const { extId, def } of this.registry.gates) {
+      if (def.on !== event.type) continue;
+      if (def.to && event.to && def.to !== event.to) continue;
+      if (this.byExtId.get(extId)?.health !== "enabled") continue;
+      try {
+        const verdict = await def.handler(event, this.makeContext(extId));
+        if (verdict?.block) {
+          return { allowed: false, reason: verdict.reason ?? `Blocked by extension "${extId}"` };
+        }
+      } catch (e) {
+        this.recordFailure(extId, e);
+      }
+    }
+    return { allowed: true };
+  }
+  /** Fires matching sync handlers, isolated. Fire-and-forget (returns void). */
+  dispatchSync(event) {
+    for (const { extId, def } of this.registry.syncs) {
+      if (def.on !== event.type) continue;
+      if (def.to && event.to && def.to !== event.to) continue;
+      if (this.byExtId.get(extId)?.health !== "enabled") continue;
+      void Promise.resolve(def.handler(event, this.makeContext(extId))).catch((e) => this.recordFailure(extId, e));
+    }
+  }
+  /** Fires matching lifecycle handlers, isolated. */
+  dispatchLifecycle(event) {
+    const handlers = this.registry.lifecycle.get(event.type);
+    if (!handlers) return;
+    for (const { extId, handler } of handlers) {
+      if (this.byExtId.get(extId)?.health !== "enabled") continue;
+      void Promise.resolve(handler(event, this.makeContext(extId))).catch((e) => this.recordFailure(extId, e));
+    }
+  }
+  /** Returns a contributed command by name, or null. */
+  getCommand(name) {
+    const owned = this.registry.commands.get(name);
+    if (!owned) return null;
+    if (this.byExtId.get(owned.extId)?.health !== "enabled") return null;
+    return { extId: owned.extId, handler: owned.def.handler };
+  }
+  /** Runs a contributed command by name. Throws if missing; isolated otherwise. */
+  async runCommand(name, args) {
+    const cmd = this.getCommand(name);
+    if (!cmd) throw new Error(`Unknown extension command: ${name}`);
+    try {
+      await cmd.handler(args, this.makeContext(cmd.extId));
+    } catch (e) {
+      this.recordFailure(cmd.extId, e);
+      throw e;
+    }
+  }
+  /**
+   * 📖 Enables an extension by id: trusts it (harmless for global ones), adds it
+   * to the persisted enabled set, and reloads. Returns whether it ended up
+   * enabled. Safe to call on a fresh host (no prior `loadAll`): the reload
+   * discovers everything.
+   */
+  async enable(id) {
+    this.trust.add(id);
+    saveProjectTrust(this.env.projectDir, this.trust);
+    this.enabled.add(id);
+    saveEnabled(this.env.projectDir, this.enabled);
+    await this.loadAll();
+    return this.byExtId.get(id)?.health === "enabled";
+  }
+  /** Disables an extension (persists, clears contributions, keeps files). */
+  disable(id) {
+    const ext = this.byExtId.get(id);
+    if (!ext) return false;
+    this.enabled.delete(id);
+    saveEnabled(this.env.projectDir, this.enabled);
+    ext.health = "disabled";
+    ext.error = void 0;
+    this.registry.clearForExt(id);
+    return true;
+  }
+};
+function loaded(manifest, dir, source, health, error) {
+  return { manifest, dir, source, health, error, failures: 0 };
+}
+
+// src/lib/extensions/namespace.ts
+var NS = "plugins";
+function setField(frontmatter, extId, key, value) {
+  const out = { ...frontmatter };
+  const plugins = out[NS] && typeof out[NS] === "object" && !Array.isArray(out[NS]) ? { ...out[NS] } : {};
+  const ext = plugins[extId] && typeof plugins[extId] === "object" && !Array.isArray(plugins[extId]) ? { ...plugins[extId] } : {};
+  if (value === void 0 || value === null || value === "") {
+    delete ext[key];
+  } else {
+    ext[key] = value;
+  }
+  if (Object.keys(ext).length > 0) plugins[extId] = ext;
+  else delete plugins[extId];
+  if (Object.keys(plugins).length > 0) out[NS] = plugins;
+  else delete out[NS];
+  return out;
+}
+
+// src/cli/lib/extensions-cli.ts
+function buildHostEnvironment(kandownDir) {
+  const projectDir = getProjectRoot(kandownDir);
+  const toTaskLike = (id, fm) => ({
+    id,
+    frontmatter: fm,
+    plugins: fm.plugins && typeof fm.plugins === "object" ? fm.plugins : void 0
+  });
+  return {
+    projectDir,
+    kandownVersion: getCurrentVersion(),
+    config: loadConfig(kandownDir),
+    async readAll() {
+      return listTaskIds(kandownDir).map((id) => {
+        try {
+          return toTaskLike(id, readTask(kandownDir, id).frontmatter);
+        } catch {
+          return null;
+        }
+      }).filter((t) => t !== null);
+    },
+    async read(taskId) {
+      try {
+        const parsed = readTask(kandownDir, taskId);
+        return toTaskLike(taskId, parsed.frontmatter);
+      } catch {
+        return null;
+      }
+    },
+    async applyField(taskId, extId, key, value) {
+      const taskPath2 = findTaskPath(kandownDir, taskId);
+      if (!taskPath2) throw new Error(`task not found: ${taskId}`);
+      const parsed = readTask(kandownDir, taskId);
+      const next = setField(parsed.frontmatter, extId, key, value);
+      atomicWriteFileSync(taskPath2, serializeTaskFile(stampUpdated(next), parsed.body));
+    },
+    log: {
+      info: (m) => info(m),
+      warn: (m) => info(`[warn] ${m}`),
+      error: (m) => err(m)
+    }
+  };
+}
+async function loadExtensionHost(kandownDir) {
+  const host = new ExtensionHost(buildHostEnvironment(kandownDir));
+  await host.loadAll();
+  return host;
+}
+async function runExtensionMoveGates(host, kandownDir, taskId, fromStatus, to) {
+  let task;
+  try {
+    const parsed = readTask(kandownDir, taskId);
+    const fm = parsed.frontmatter;
+    task = { id: taskId, frontmatter: fm, plugins: fm.plugins };
+  } catch {
+    task = { id: taskId, frontmatter: {} };
+  }
+  return host.runGates({ type: "task:beforeMove", task, from: fromStatus, to });
+}
+async function dispatchContributedCommand(kandownDir, name, args) {
+  const host = await loadExtensionHost(kandownDir);
+  if (!host.getCommand(name)) return false;
+  await host.runCommand(name, args);
+  return true;
+}
+async function cmdExtension(rawArgs) {
+  const args = taskParseArgs(rawArgs);
+  const sub = args.positional[0];
+  const { kandownDir } = ensureKandownDir(rawArgs);
+  const usage = `${c.cyan}kandown extension${c.reset} ${c.dim}<list|enable|disable|install|create|purge>${c.reset}`;
+  if (!sub) {
+    log(usage);
+    return;
+  }
+  const host = await loadExtensionHost(kandownDir);
+  switch (sub) {
+    case "list":
+    case "ls": {
+      const summary = host.installedSummary();
+      if (summary.length === 0) {
+        info("No extensions installed. Try: kandown extension create <name>");
+        return;
+      }
+      for (const s of summary) {
+        const tag = s.health === "enabled" ? c.green : s.health === "errored" || s.health === "quarantined" ? c.red : c.dim;
+        log(`${tag}${s.health.padEnd(11)}${c.reset} ${c.bold}${s.id}${c.reset} ${c.dim}v${s.version}${c.reset} [${s.source}] ${s.name}`);
+        if (s.error) log(`             ${c.dim}\u21B3 ${s.error}${c.reset}`);
+        const bits = [
+          s.fields.length && `${s.fields.length} field(s)`,
+          s.panels.length && `${s.panels.length} panel(s)`,
+          s.commands.length && `${s.commands.length} command(s)`,
+          s.gates && `${s.gates} gate(s)`,
+          s.syncs && `${s.syncs} sync(s)`
+        ].filter(Boolean).join(", ");
+        if (bits) log(`             ${c.dim}${bits}${c.reset}`);
+      }
+      return;
+    }
+    case "enable": {
+      const id = args.positional[1];
+      if (!id) {
+        err("Usage: kandown extension enable <id>");
+        process.exit(1);
+      }
+      const ok = await host.enable(id);
+      ok ? success(`Enabled ${id}`) : err(`Could not enable ${id} (not found, incompatible, or errored)`);
+      return;
+    }
+    case "disable": {
+      const id = args.positional[1];
+      if (!id) {
+        err("Usage: kandown extension disable <id>");
+        process.exit(1);
+      }
+      host.disable(id) ? success(`Disabled ${id}`) : err(`Not installed: ${id}`);
+      return;
+    }
+    case "purge": {
+      const id = args.positional[1];
+      if (!id) {
+        err("Usage: kandown extension purge <id>");
+        process.exit(1);
+      }
+      const count = purgePluginData(kandownDir, id);
+      success(`Purged plugins.${id}.* from ${count} task(s).`);
+      return;
+    }
+    case "install": {
+      const target = args.positional[1];
+      if (!target) {
+        err("Usage: kandown extension install <path-or-github-url>");
+        process.exit(1);
+      }
+      const installedId = await installExtension(kandownDir, target);
+      installedId ? success(`Installed ${installedId}. Enable it with: kandown extension enable ${installedId}`) : err("Install failed.");
+      return;
+    }
+    case "create": {
+      const name = args.positional[1];
+      if (!name) {
+        err("Usage: kandown extension create <kebab-name>");
+        process.exit(1);
+      }
+      scaffoldExtension(kandownDir, name);
+      success(`Scaffolded extension "${name}" at .kandown/extensions/${name}/`);
+      info("Edit index.ts, then: kandown extension enable " + name);
+      return;
+    }
+    default:
+      err(`Unknown extension subcommand: ${sub}`);
+      log(usage);
+  }
+}
+function purgePluginData(kandownDir, extId) {
+  const projectDir = getProjectRoot(kandownDir);
+  const tasksDir = join13(projectDir, "tasks");
+  let count = 0;
+  if (!existsSync11(tasksDir)) return 0;
+  for (const file of readdirSync6(tasksDir)) {
+    if (!file.endsWith(".md")) continue;
+    const path = join13(tasksDir, file);
+    const raw = readFileSync13(path, "utf8");
+    const fmMatch = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+    if (!fmMatch || !raw.includes(`plugins:`)) continue;
+    const parsed = parseTaskFile(raw);
+    const fm = parsed.frontmatter;
+    const plugins = fm.plugins;
+    if (!plugins || !(extId in plugins)) continue;
+    delete plugins[extId];
+    if (Object.keys(plugins).length === 0) delete fm.plugins;
+    atomicWriteFileSync(path, serializeTaskFile(stampUpdated(fm), parsed.body));
+    count++;
+  }
+  return count;
+}
+async function installExtension(kandownDir, target) {
+  const projectDir = getProjectRoot(kandownDir);
+  const destRoot = join13(projectDir, ".kandown", "extensions");
+  mkdirSync6(destRoot, { recursive: true });
+  const src = resolve5(target);
+  if (existsSync11(src) && existsSync11(join13(src, "manifest.json"))) {
+    const manifest = JSON.parse(readFileSync13(join13(src, "manifest.json"), "utf8"));
+    if (!manifest.id) return null;
+    const dest = join13(destRoot, manifest.id);
+    rmSync(dest, { recursive: true, force: true });
+    cpSync(src, dest, { recursive: true });
+    return manifest.id;
+  }
+  err("install currently supports a local directory containing manifest.json. GitHub URL fetch is coming soon.");
+  return null;
+}
+function scaffoldExtension(kandownDir, name) {
+  if (!/^[a-z][a-z0-9-]{0,63}$/.test(name)) {
+    err("name must be kebab-case (lowercase letters, digits, hyphens)");
+    process.exit(1);
+  }
+  const projectDir = getProjectRoot(kandownDir);
+  const dir = join13(projectDir, ".kandown", "extensions", name);
+  if (existsSync11(dir)) {
+    err(`Already exists: ${dir}`);
+    process.exit(1);
+  }
+  mkdirSync6(dir, { recursive: true });
+  const manifest = {
+    id: name,
+    name,
+    version: "0.1.0",
+    apiVersion: 1,
+    description: "A kandown extension.",
+    permissions: ["read:tasks", `write:field:plugins.${name}.*`],
+    contributes: { fields: [], webPanels: [], commands: [], gates: [] }
+  };
+  writeFileSync5(join13(dir, "manifest.json"), `${JSON.stringify(manifest, null, 2)}
+`);
+  const indexTs = `// ${name} \u2014 a kandown extension. See docs/EXTENSIONS.md.
+// Loaded via jiti, no build step. Register contributions on the \`kd\` API.
+import type { KandownExtensionAPI } from 'kandown';
+
+export default function (kd: KandownExtensionAPI) {
+  // Example: a custom field stored under plugins.${name}.<key>.
+  kd.contributeField({ key: 'note', label: 'Note', type: 'string' });
+
+  // Example: a CLI command surfaced as: kandown ${name}
+  kd.contributeCommand('${name}', {
+    description: 'Example contributed command',
+    handler: async (_args, ctx) => {
+      const tasks = await ctx.board.readAll();
+      ctx.log.info(\`${name} sees \${tasks.length} task(s)\`);
+    },
+  });
+}
+`;
+  writeFileSync5(join13(dir, "index.ts"), indexTs);
+  writeFileSync5(join13(dir, "README.md"), `# ${name}
+
+A kandown extension. Enable with \`kandown extension enable ${name}\`.
+`);
+}
 
 // src/cli/lib/agents.ts
 import { execFileSync as execFileSync3 } from "child_process";
 
 // src/cli/lib/agents-config.ts
-import { existsSync as existsSync9, readFileSync as readFileSync9 } from "fs";
-import { join as join9 } from "path";
+import { existsSync as existsSync12, readFileSync as readFileSync14 } from "fs";
+import { join as join14 } from "path";
 var AGENTS_CONFIG_VERSION = 1;
 var DEFAULT_CASCADE = {
   unassignedBehavior: "skip",
@@ -1955,11 +2769,11 @@ function defaultAgentsConfig() {
   };
 }
 function loadAgentsConfig(kandownDir) {
-  const path = join9(kandownDir, "agents.json");
-  if (!existsSync9(path)) return defaultAgentsConfig();
+  const path = join14(kandownDir, "agents.json");
+  if (!existsSync12(path)) return defaultAgentsConfig();
   let raw;
   try {
-    raw = JSON.parse(readFileSync9(path, "utf8"));
+    raw = JSON.parse(readFileSync14(path, "utf8"));
   } catch (e) {
     const err3 = e;
     if (err3.code === "ENOENT") return defaultAgentsConfig();
@@ -2002,7 +2816,7 @@ function resolveCascade(raw) {
   };
 }
 function saveAgentsConfig(kandownDir, config) {
-  const path = join9(kandownDir, "agents.json");
+  const path = join14(kandownDir, "agents.json");
   atomicWriteFileSync(path, JSON.stringify(config, null, 2) + "\n");
 }
 
@@ -2381,11 +3195,11 @@ function cmdList(rawArgs) {
     });
   }
   if (includeArchived) {
-    const archiveDir = join10(getTasksDir(kandownDir), "archive");
-    if (existsSync10(archiveDir)) {
-      for (const file of readdirSync5(archiveDir).filter((name) => name.endsWith(".md"))) {
+    const archiveDir = join15(getTasksDir(kandownDir), "archive");
+    if (existsSync13(archiveDir)) {
+      for (const file of readdirSync7(archiveDir).filter((name) => name.endsWith(".md"))) {
         const id = file.slice(0, -3);
-        const parsed = parseTaskFile(readFileSync10(join10(archiveDir, file), "utf8"));
+        const parsed = parseTaskFile(readFileSync15(join15(archiveDir, file), "utf8"));
         rows.push({
           id,
           title: parsed.frontmatter.title || id,
@@ -2439,7 +3253,7 @@ function cmdShow(rawArgs) {
     err(`Task not found: ${id}`);
     process.exit(1);
   }
-  process.stdout.write(readFileSync10(path, "utf8"));
+  process.stdout.write(readFileSync15(path, "utf8"));
 }
 function cmdCreate(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
@@ -2478,7 +3292,7 @@ function cmdCreate(rawArgs) {
   if (assignee) fm.assignee = assignee;
   if (tags.length > 0) fm.tags = tags;
   const tasksDir = getTasksDir(kandownDir);
-  if (!existsSync10(tasksDir)) mkdirSync4(tasksDir, { recursive: true });
+  if (!existsSync13(tasksDir)) mkdirSync7(tasksDir, { recursive: true });
   const path = taskPath(kandownDir, id);
   atomicWriteFileSync(path, serializeTaskFile(fm, ""));
   process.stderr.write(`${c.green}\u2713${c.reset} Created ${c.bold}${id}${c.reset} \u2192 ${status}
@@ -2486,7 +3300,7 @@ function cmdCreate(rawArgs) {
   process.stdout.write(args.flags.json === true ? JSON.stringify(fm, null, 2) + "\n" : `${id}
 `);
 }
-function cmdMove(rawArgs) {
+async function cmdMove(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
   const args = taskParseArgs(rawArgs);
   const id = args.positional[0];
@@ -2508,9 +3322,26 @@ function cmdMove(rawArgs) {
     err(`Unknown status: ${rawStatus}`);
     process.exit(1);
   }
+  const host = await loadExtensionHost(kandownDir);
+  let fromStatus;
+  try {
+    fromStatus = readTask(kandownDir, id).frontmatter.status;
+  } catch {
+  }
+  const gate = await runExtensionMoveGates(host, kandownDir, id, fromStatus, status);
+  if (!gate.allowed) {
+    err(`Cannot move ${id} to ${status}: ${gate.reason ?? "blocked by an extension"}`);
+    process.exit(1);
+  }
   if (!moveTaskToColumn(kandownDir, id, status)) {
     err(`Move failed: ${id}`);
     process.exit(1);
+  }
+  try {
+    const moved = readTask(kandownDir, id);
+    const fm = moved.frontmatter;
+    host.dispatchSync({ type: "task:afterMove", task: { id, frontmatter: fm, plugins: fm.plugins }, from: fromStatus, to: status });
+  } catch {
   }
   success(`Moved ${id} \u2192 "${status}"`);
 }
@@ -2553,12 +3384,12 @@ function cmdExport(rawArgs) {
 }
 function cmdProjects(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
-  const metadataPath2 = join10(kandownDir, "daemon.json");
-  if (!existsSync10(metadataPath2)) {
+  const metadataPath2 = join15(kandownDir, "daemon.json");
+  if (!existsSync13(metadataPath2)) {
     info("No daemon metadata for this project.");
     return;
   }
-  process.stdout.write(readFileSync10(metadataPath2, "utf8").trim() + "\n");
+  process.stdout.write(readFileSync15(metadataPath2, "utf8").trim() + "\n");
 }
 function cmdImport(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
@@ -2568,14 +3399,14 @@ function cmdImport(rawArgs) {
     err("Usage: kandown import <file.json> [--overwrite]");
     process.exit(1);
   }
-  const importPath = resolve4(process.cwd(), file);
-  if (!existsSync10(importPath)) {
+  const importPath = resolve6(process.cwd(), file);
+  if (!existsSync13(importPath)) {
     err(`Import file not found: ${file}`);
     process.exit(1);
   }
   let raw;
   try {
-    raw = JSON.parse(readFileSync10(importPath, "utf8"));
+    raw = JSON.parse(readFileSync15(importPath, "utf8"));
   } catch (error) {
     err(`Import file must be JSON: ${error instanceof Error ? error.message : String(error)}`);
     process.exit(1);
@@ -2598,12 +3429,12 @@ function cmdImport(rawArgs) {
     process.exit(1);
   }
   const tasksDir = getTasksDir(kandownDir);
-  if (!existsSync10(tasksDir)) mkdirSync4(tasksDir, { recursive: true });
+  if (!existsSync13(tasksDir)) mkdirSync7(tasksDir, { recursive: true });
   let imported = 0;
   for (const row of rows) {
     const id = typeof row.id === "string" && /^[a-zA-Z0-9_-]+$/.test(row.id) ? row.id : nextTaskId(kandownDir);
     const path = taskPath(kandownDir, id);
-    if (existsSync10(path) && args.flags.overwrite !== true) continue;
+    if (existsSync13(path) && args.flags.overwrite !== true) continue;
     const fm = {
       id,
       title: typeof row.title === "string" && row.title ? row.title : id,
@@ -2619,18 +3450,23 @@ function cmdImport(rawArgs) {
 }
 
 // src/cli/commands/daemon.ts
-import { join as join12 } from "path";
+import { join as join17 } from "path";
 
 // src/cli/lib/server.ts
 import { createServer } from "http";
-import { existsSync as existsSync11, readFileSync as readFileSync11, copyFileSync as copyFileSync3, unlinkSync as unlinkSync5, mkdirSync as mkdirSync5 } from "fs";
-import { join as join11 } from "path";
+import { existsSync as existsSync14, readFileSync as readFileSync16, copyFileSync as copyFileSync3, unlinkSync as unlinkSync5, mkdirSync as mkdirSync8 } from "fs";
+import { join as join16 } from "path";
 import { spawn as spawn6 } from "child_process";
 var START_PORT_RANGE = 2050;
 var END_PORT_RANGE = 2099;
 var UNSAFE_PORTS = /* @__PURE__ */ new Set([2049, 4045, 6e3, 6665, 6666, 6667, 6668, 6669, 6697]);
 var sseClients = [];
 var nextClientId = 1;
+var extensionHost = null;
+async function getExtensionHost(kandownDir) {
+  if (!extensionHost) extensionHost = await loadExtensionHost(kandownDir);
+  return extensionHost;
+}
 function broadcastSseEvent(data) {
   const payload = `data: ${JSON.stringify(data)}
 
@@ -2672,15 +3508,15 @@ function readRequestBody(req) {
 }
 function syncProjectKandownHtml(kandownDir) {
   try {
-    const projectHtml = join11(kandownDir, "kandown.html");
-    const distHtml = join11(PKG_ROOT, "dist", "index.html");
-    if (!existsSync11(distHtml)) return false;
-    if (!existsSync11(projectHtml)) {
+    const projectHtml = join16(kandownDir, "kandown.html");
+    const distHtml = join16(PKG_ROOT, "dist", "index.html");
+    if (!existsSync14(distHtml)) return false;
+    if (!existsSync14(projectHtml)) {
       copyFileSync3(distHtml, projectHtml);
       return true;
     }
-    const currentContent = readFileSync11(projectHtml, "utf8");
-    const newContent = readFileSync11(distHtml, "utf8");
+    const currentContent = readFileSync16(projectHtml, "utf8");
+    const newContent = readFileSync16(distHtml, "utf8");
     if (currentContent !== newContent) {
       atomicWriteFileSync(projectHtml, newContent);
       return true;
@@ -2691,7 +3527,7 @@ function syncProjectKandownHtml(kandownDir) {
 }
 function readDaemonPort(kandownDir) {
   try {
-    const raw = JSON.parse(readFileSync11(join11(kandownDir, "daemon.json"), "utf8"));
+    const raw = JSON.parse(readFileSync16(join16(kandownDir, "daemon.json"), "utf8"));
     return typeof raw.port === "number" && Number.isInteger(raw.port) ? raw.port : null;
   } catch {
     return null;
@@ -2745,7 +3581,7 @@ async function handleApi(req, res, url, kandownDir) {
   }
   if (path === "/api/update/check" && method === "GET") {
     const current = getCurrentVersion();
-    const latest = await new Promise((resolve5) => {
+    const latest = await new Promise((resolve7) => {
       const child = spawn6("npm", ["view", "kandown", "version"], {
         timeout: 4e3,
         stdio: ["pipe", "pipe", "pipe"],
@@ -2758,10 +3594,10 @@ async function handleApi(req, res, url, kandownDir) {
       });
       child.stderr.on("data", () => {
       });
-      child.on("error", () => resolve5(null));
+      child.on("error", () => resolve7(null));
       child.on("close", (code) => {
-        if (code !== 0) return resolve5(null);
-        resolve5(stdout.trim().replace(/^"|"$/g, "") || null);
+        if (code !== 0) return resolve7(null);
+        resolve7(stdout.trim().replace(/^"|"$/g, "") || null);
       });
     });
     const installed = getInstalledVersion() ?? current;
@@ -2777,7 +3613,7 @@ async function handleApi(req, res, url, kandownDir) {
   }
   if (path === "/api/update/apply" && method === "POST") {
     const current = getCurrentVersion();
-    const latest = await new Promise((resolve5) => {
+    const latest = await new Promise((resolve7) => {
       const child = spawn6("npm", ["view", "kandown", "version"], {
         timeout: 4e3,
         stdio: ["pipe", "pipe", "pipe"],
@@ -2788,8 +3624,8 @@ async function handleApi(req, res, url, kandownDir) {
       child.stdout.on("data", (d) => {
         stdout += d;
       });
-      child.on("error", () => resolve5(null));
-      child.on("close", (code) => resolve5(code === 0 ? stdout.trim() : null));
+      child.on("error", () => resolve7(null));
+      child.on("close", (code) => resolve7(code === 0 ? stdout.trim() : null));
     });
     const targetVersion = latest || current;
     const ok = await performGlobalPackageUpdate(`kandown@${targetVersion}`);
@@ -2821,8 +3657,8 @@ async function handleApi(req, res, url, kandownDir) {
   if (path === "/api/board") {
     if (method === "GET") {
       const tasksDir = getTasksDir(kandownDir);
-      const boardPath = join11(tasksDir, "board.md");
-      const text = existsSync11(boardPath) ? readFileSync11(boardPath, "utf8") : "";
+      const boardPath = join16(tasksDir, "board.md");
+      const text = existsSync14(boardPath) ? readFileSync16(boardPath, "utf8") : "";
       return writeText(res, 200, text);
     }
     if (method === "PUT") {
@@ -2832,8 +3668,8 @@ async function handleApi(req, res, url, kandownDir) {
       });
       req.on("end", () => {
         const tasksDir = getTasksDir(kandownDir);
-        if (!existsSync11(tasksDir)) mkdirSync5(tasksDir, { recursive: true });
-        atomicWriteFileSync(join11(tasksDir, "board.md"), body);
+        if (!existsSync14(tasksDir)) mkdirSync8(tasksDir, { recursive: true });
+        atomicWriteFileSync(join16(tasksDir, "board.md"), body);
         broadcastSseEvent({ type: "board" });
         writeJson(res, 200, { ok: true });
       });
@@ -2868,6 +3704,48 @@ async function handleApi(req, res, url, kandownDir) {
   if (path === "/api/agents" && method === "GET") {
     return writeJson(res, 200, detectCatalogJSON(kandownDir));
   }
+  if (path === "/api/extensions" && method === "GET") {
+    const host = await getExtensionHost(kandownDir);
+    return writeJson(res, 200, { extensions: host.installedSummary() });
+  }
+  if (path.startsWith("/api/extensions/")) {
+    const parts = path.slice("/api/extensions/".length).split("/").filter(Boolean);
+    const id = decodeURIComponent(parts[0] ?? "");
+    const host = await getExtensionHost(kandownDir);
+    if (parts.length === 2 && parts[1] === "enable" && method === "POST") {
+      const ok = await host.enable(id);
+      broadcastSseEvent({ type: "extensions" });
+      return writeJson(res, 200, { ok, summary: host.installedSummary() });
+    }
+    if (parts.length === 2 && parts[1] === "disable" && method === "POST") {
+      const ok = host.disable(id);
+      broadcastSseEvent({ type: "extensions" });
+      return writeJson(res, 200, { ok });
+    }
+    if (parts.length >= 2 && parts[1] === "files" && method === "GET") {
+      const ext = host.get(id);
+      if (!ext) return writeText(res, 404, "Extension not found");
+      const rel = parts.slice(2).join("/");
+      if (!/^[a-zA-Z0-9._\/-]+$/.test(rel) || rel.includes("..")) return writeText(res, 400, "Bad path");
+      const file = join16(ext.dir, rel);
+      if (!existsSync14(file)) return writeText(res, 404, "File not found");
+      return writeText(res, 200, readFileSync16(file, "utf8"));
+    }
+  }
+  if (path.startsWith("/api/tasks/") && path.endsWith("/field") && method === "POST") {
+    const parts = path.slice("/api/tasks/".length).split("/").filter(Boolean);
+    const taskId = decodeURIComponent(parts[0] ?? "");
+    if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return writeText(res, 400, "Invalid task id");
+    const taskPath2 = findTaskPath(kandownDir, taskId);
+    if (!taskPath2) return writeText(res, 404, "Task not found");
+    const body = JSON.parse(await readRequestBody(req));
+    if (!body.extId || !body.key) return writeJson(res, 400, { error: "extId and key required" });
+    const parsed = parseTaskFile(readFileSync16(taskPath2, "utf8"));
+    const next = setField(parsed.frontmatter, body.extId, body.key, body.value);
+    atomicWriteFileSync(taskPath2, serializeTaskFile(stampUpdated(next), parsed.body));
+    broadcastSseEvent({ type: "task", id: taskId });
+    return writeJson(res, 200, { ok: true });
+  }
   if (path.startsWith("/api/tasks/")) {
     const routeParts = path.slice("/api/tasks/".length).split("/").filter(Boolean);
     let taskId;
@@ -2878,24 +3756,24 @@ async function handleApi(req, res, url, kandownDir) {
     }
     if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return writeText(res, 400, "Invalid task id");
     const tasksDir = getTasksDir(kandownDir);
-    const archiveDir = join11(tasksDir, "archive");
-    const activePath = join11(tasksDir, `${taskId}.md`);
-    const archivedPath = join11(archiveDir, `${taskId}.md`);
+    const archiveDir = join16(tasksDir, "archive");
+    const activePath = join16(tasksDir, `${taskId}.md`);
+    const archivedPath = join16(archiveDir, `${taskId}.md`);
     const action = routeParts[1];
     if (method === "POST" && (action === "archive" || action === "unarchive")) {
       if (routeParts.length !== 2) return writeText(res, 400, "Invalid task route");
       const archiving = action === "archive";
       const source = archiving ? activePath : archivedPath;
       const destination = archiving ? archivedPath : activePath;
-      if (!existsSync11(source) && !existsSync11(destination)) {
+      if (!existsSync14(source) && !existsSync14(destination)) {
         return writeText(res, 404, "Task not found");
       }
       try {
-        if (!existsSync11(tasksDir)) mkdirSync5(tasksDir, { recursive: true });
-        if (!existsSync11(archiveDir)) mkdirSync5(archiveDir, { recursive: true });
+        if (!existsSync14(tasksDir)) mkdirSync8(tasksDir, { recursive: true });
+        if (!existsSync14(archiveDir)) mkdirSync8(archiveDir, { recursive: true });
         const body = await readRequestBody(req);
         atomicWriteFileSync(destination, body);
-        if (source !== destination && existsSync11(source)) unlinkSync5(source);
+        if (source !== destination && existsSync14(source)) unlinkSync5(source);
         broadcastSseEvent({ type: "task", id: taskId });
         return writeJson(res, 200, { ok: true });
       } catch (error) {
@@ -2908,11 +3786,11 @@ async function handleApi(req, res, url, kandownDir) {
     if (method === "GET") {
       const taskPath2 = findTaskPath(kandownDir, taskId);
       if (!taskPath2) return writeText(res, 404, "Task not found");
-      return writeText(res, 200, readFileSync11(taskPath2, "utf8"));
+      return writeText(res, 200, readFileSync16(taskPath2, "utf8"));
     }
     if (method === "PUT") {
       try {
-        if (!existsSync11(tasksDir)) mkdirSync5(tasksDir, { recursive: true });
+        if (!existsSync14(tasksDir)) mkdirSync8(tasksDir, { recursive: true });
         const taskPath2 = findTaskPath(kandownDir, taskId) ?? activePath;
         const body = await readRequestBody(req);
         atomicWriteFileSync(taskPath2, body);
@@ -2926,8 +3804,8 @@ async function handleApi(req, res, url, kandownDir) {
     }
     if (method === "DELETE") {
       try {
-        if (existsSync11(activePath)) unlinkSync5(activePath);
-        if (existsSync11(archivedPath)) unlinkSync5(archivedPath);
+        if (existsSync14(activePath)) unlinkSync5(activePath);
+        if (existsSync14(archivedPath)) unlinkSync5(archivedPath);
         broadcastSseEvent({ type: "task_delete", id: taskId });
         return writeJson(res, 200, { ok: true });
       } catch (error) {
@@ -2950,9 +3828,9 @@ function injectServerRoot(html, kandownDir) {
 }
 function serveApp(res, kandownDir) {
   syncProjectKandownHtml(kandownDir);
-  const htmlPath = join11(kandownDir, "kandown.html");
-  if (existsSync11(htmlPath)) {
-    const html = readFileSync11(htmlPath, "utf8");
+  const htmlPath = join16(kandownDir, "kandown.html");
+  if (existsSync14(htmlPath)) {
+    const html = readFileSync16(htmlPath, "utf8");
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
     res.end(injectServerRoot(html, kandownDir));
   } else {
@@ -3014,7 +3892,7 @@ async function cmdDaemon(rest) {
     const preferredPort = typeof daemonOptions.flags.port === "string" ? Number(daemonOptions.flags.port) : null;
     const { port } = await listenOnAvailablePort(kandownDir, Number.isInteger(preferredPort) ? preferredPort : null);
     const url = `http://localhost:${port}`;
-    const metadataPath2 = join12(kandownDir, "daemon.json");
+    const metadataPath2 = join17(kandownDir, "daemon.json");
     atomicWriteFileSync(metadataPath2, JSON.stringify({
       pid: process.pid,
       port,
@@ -3070,8 +3948,8 @@ async function cmdDaemon(rest) {
 
 // src/cli/lib/launcher.ts
 import { execSync as execSync2, spawn as spawn7 } from "child_process";
-import { writeFileSync as writeFileSync3 } from "fs";
-import { join as join13 } from "path";
+import { writeFileSync as writeFileSync6 } from "fs";
+import { join as join18 } from "path";
 import { tmpdir } from "os";
 function prepareLaunch(opts) {
   const { taskId, agentId, kandownDir, handoff, queue } = opts;
@@ -3101,9 +3979,9 @@ function prepareLaunch(opts) {
   if (!taskMoved) {
     throw new Error(`Could not move task ${taskId} to In Progress \u2014 task file missing or unwritable.`);
   }
-  const contextFile = join13(tmpdir(), `kandown-${taskId}-context.md`);
+  const contextFile = join18(tmpdir(), `kandown-${taskId}-context.md`);
   try {
-    writeFileSync3(contextFile, `${systemPrompt}
+    writeFileSync6(contextFile, `${systemPrompt}
 
 ---
 
@@ -3131,14 +4009,14 @@ function runAgentSync(opts) {
   const { taskId, kandownDir } = opts;
   const prepared = prepareLaunch(opts);
   const { binary, args, contextFile, originalStatus, agentName } = prepared;
-  return new Promise((resolve5, reject) => {
+  return new Promise((resolve7, reject) => {
     const child = spawn7(binary, args, { stdio: "inherit", env: launchEnv(contextFile, taskId, kandownDir) });
     child.on("error", (e) => {
       rollbackTaskStatus(kandownDir, taskId, originalStatus);
       reject(new Error(`Failed to launch ${agentName}: ${e.message}`));
     });
     child.on("exit", (code) => {
-      resolve5({ exitCode: code ?? 0 });
+      resolve7({ exitCode: code ?? 0 });
     });
   });
 }
@@ -3483,15 +4361,15 @@ async function cmdRun(rawArgs) {
 }
 
 // src/cli/commands/agents.ts
-import { existsSync as existsSync12 } from "fs";
-import { join as join14 } from "path";
+import { existsSync as existsSync15 } from "fs";
+import { join as join19 } from "path";
 function cmdAgents(rawArgs) {
   const args = parseArgs(rawArgs);
   const kandownDir = resolveKandownDir(args.path, process.cwd());
   const sub = args.positional[0];
   if (sub === "init") {
-    const target = join14(kandownDir, "agents.json");
-    if (existsSync12(target)) {
+    const target = join19(kandownDir, "agents.json");
+    if (existsSync15(target)) {
       info(`${c.bold}agents.json${c.reset} already exists at ${target}`);
       return;
     }
@@ -3504,10 +4382,10 @@ function cmdAgents(rawArgs) {
   const catalog = loadCatalog(kandownDir);
   const installed = detectInstalledAgents(kandownDir);
   const cascade = getCascadeConfig(kandownDir);
-  const agentsFile = join14(kandownDir, "agents.json");
+  const agentsFile = join19(kandownDir, "agents.json");
   log("");
   log(`${c.bold}Agent catalog${c.reset} ${c.dim}(${installed.length}/${catalog.length} installed)${c.reset}`);
-  log(`${c.dim}catalog: ${existsSync12(agentsFile) ? agentsFile : "built-in defaults (run `kandown agents init` to commit one)"}${c.reset}`);
+  log(`${c.dim}catalog: ${existsSync15(agentsFile) ? agentsFile : "built-in defaults (run `kandown agents init` to commit one)"}${c.reset}`);
   log("");
   for (const a of catalog) {
     const ok = isAgentInstalled(a.bin);
@@ -3575,7 +4453,7 @@ async function main() {
       cmdCreate(rest);
       break;
     case "move":
-      cmdMove(rest);
+      await cmdMove(rest);
       break;
     case "assign":
       cmdAssign(rest);
@@ -3588,6 +4466,10 @@ async function main() {
       break;
     case "agents":
       cmdAgents(rest);
+      break;
+    case "extension":
+    case "extensions":
+      await cmdExtension(rest);
       break;
     case "tasks":
       printTaskCommandsHelp();
@@ -3617,13 +4499,13 @@ async function main() {
     case void 0: {
       const parsed = parseArgs(rest);
       const kandownDir = resolveKandownDir(parsed.path, process.cwd());
-      if (existsSync13(join15(kandownDir, "kandown.json"))) {
+      if (existsSync16(join20(kandownDir, "kandown.json"))) {
         let status = await getDaemonStatus(kandownDir);
         if (!status.running) {
           status = await startProjectDaemon(kandownDir);
         }
         if (!parsed.flags["no-open"]) {
-          const urlToOpen = status.metadata?.url || join15(kandownDir, "kandown.html");
+          const urlToOpen = status.metadata?.url || join20(kandownDir, "kandown.html");
           openBrowser(urlToOpen);
         }
       } else if (!process.stdin.isTTY) {
@@ -3633,14 +4515,22 @@ async function main() {
       await launchTui("board", kandownDir);
       break;
     }
-    default:
+    default: {
       if (!cmd || cmd.startsWith("-")) {
         help();
         break;
       }
+      const parsed = parseArgs(rest);
+      const kandownDir = resolveKandownDir(parsed.path, process.cwd());
+      if (existsSync16(join20(kandownDir, "kandown.json"))) {
+        const positional = rest.filter((a) => !a.startsWith("-") && !a.startsWith("--path"));
+        const ran = await dispatchContributedCommand(kandownDir, cmd, positional.join(" "));
+        if (ran) break;
+      }
       err(`Unknown command: ${cmd}`);
       help();
       process.exit(1);
+    }
   }
 }
 void main();
