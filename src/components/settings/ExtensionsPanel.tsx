@@ -12,13 +12,17 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { IconPlugConnected, IconRefresh, IconCheck, IconX } from '@tabler/icons-react';
+import { IconPlugConnected, IconRefresh, IconCheck, IconX, IconDownload, IconExternalLink } from '@tabler/icons-react';
 import { useStore } from '../../lib/store';
 import {
   serverListExtensions,
   serverEnableExtension,
   serverDisableExtension,
+  serverFetchRegistry,
+  serverInstallExtension,
   type ExtensionSummary,
+  type RegistryEntry,
+  type RegistryResult,
 } from '../../lib/filesystem';
 
 function healthClasses(health: string): string {
@@ -48,6 +52,36 @@ export function ExtensionsPanel() {
   }, [refresh]);
 
   const restricted = config.extensions?.restricted ?? true;
+
+  const [registry, setRegistry] = useState<RegistryResult | null>(null);
+  const [pasteUrl, setPasteUrl] = useState('');
+  const [installBusy, setInstallBusy] = useState(false);
+
+  const loadRegistry = useCallback(async () => {
+    const r = await serverFetchRegistry();
+    setRegistry(r);
+  }, []);
+
+  useEffect(() => { void loadRegistry(); }, [loadRegistry]);
+
+  const install = useCallback(async (input: { entry?: RegistryEntry; url?: string }) => {
+    setInstallBusy(true);
+    try {
+      const result = await serverInstallExtension(input);
+      if (result?.ok) {
+        toast(`Installed ${result.id}. Enable it from the list below.`, 'success');
+        await refresh();
+      } else {
+        toast(`Install failed: ${result?.error ?? 'unknown error'}`, 'error');
+      }
+    } catch (e) {
+      toast(`Install failed: ${e instanceof Error ? e.message : String(e)}`, 'error');
+    } finally {
+      setInstallBusy(false);
+    }
+  }, [refresh, toast]);
+
+  const installedIds = new Set(extensions?.map((e) => e.id) ?? []);
 
   const toggle = useCallback(async (id: string, enable: boolean) => {
     setBusyId(id);
@@ -94,6 +128,79 @@ export function ExtensionsPanel() {
           >
             <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${restricted ? 'left-[22px]' : 'left-0.5'}`} />
           </button>
+        </div>
+      </div>
+
+      {/* Community store */}
+      <div className="flex items-center justify-between">
+        <div className="text-[14px] font-medium text-fg">Community store</div>
+        <button type="button" onClick={() => void loadRegistry()} className="flex items-center gap-1.5 text-[13px] text-fg-muted hover:text-fg">
+          <IconRefresh size={14} stroke={1.8} /> Refresh
+        </button>
+      </div>
+      {registry?.error && (
+        <div className="overflow-hidden rounded-[8px] border border-border bg-bg-1 px-4 py-3 text-[12.5px] text-fg-muted">
+          Store unavailable: <span className="text-red-500">{registry.error}</span>
+          {registry.url && <span className="ml-1 text-fg-muted">({registry.url})</span>}
+        </div>
+      )}
+      {registry && registry.entries.length > 0 && (
+        <div className="overflow-hidden rounded-[8px] border border-border bg-bg-1">
+          {registry.entries.map((entry, i) => {
+            const installed = installedIds.has(entry.id);
+            const busy = installBusy;
+            return (
+              <div key={entry.id} className={`px-4 py-3.5 ${i > 0 ? 'border-t border-border' : ''}`}>
+                <div className="flex items-start gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[14px] font-medium text-fg">{entry.name}</span>
+                      <span className="text-[12px] text-fg-muted">· {entry.author ?? 'unknown'}</span>
+                      {entry.minKandownVersion && <span className="rounded-full bg-bg-2 px-1.5 py-0.5 text-[11px] text-fg-muted">≥ {entry.minKandownVersion}</span>}
+                      {installed && <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[11px] font-medium text-emerald-500">installed</span>}
+                    </div>
+                    {entry.description && <div className="mt-0.5 text-[12.5px] text-fg-muted">{entry.description}</div>}
+                    <a href={entry.repo} target="_blank" rel="noreferrer" className="mt-0.5 inline-flex items-center gap-1 text-[11.5px] text-fg-muted hover:text-fg">
+                      <IconExternalLink size={11} stroke={1.8} /> {entry.repo}
+                    </a>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={busy || installed}
+                    onClick={() => void install({ entry })}
+                    className="flex flex-none items-center gap-1 rounded-md border border-border px-2.5 py-1 text-[12.5px] text-fg hover:bg-bg-2 disabled:opacity-50"
+                  >
+                    <IconDownload size={13} stroke={1.8} />
+                    {installed ? 'Installed' : 'Install'}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {/* Paste-URL install */}
+      <div className="overflow-hidden rounded-[8px] border border-border bg-bg-1">
+        <div className="px-4 py-3.5">
+          <div className="text-[13px] font-medium text-fg">Install from GitHub URL</div>
+          <div className="mt-0.5 text-[12px] text-fg-muted">Paste a github.com repo URL (e.g. <span className="font-mono">https://github.com/you/kandown-foo</span>). We fetch <span className="font-mono">manifest.json</span> from the repo root and copy the extension into <span className="font-mono">.kandown/extensions/</span>.</div>
+          <div className="mt-2 flex items-center gap-2">
+            <input
+              type="text"
+              value={pasteUrl}
+              onChange={(e) => setPasteUrl(e.target.value)}
+              placeholder="https://github.com/you/kandown-foo"
+              className="h-8 flex-1 rounded-md border border-border bg-bg-1 px-2 text-[13px] text-fg outline-none focus:border-accent"
+            />
+            <button
+              type="button"
+              disabled={installBusy || !pasteUrl.trim()}
+              onClick={() => { const u = pasteUrl.trim(); if (u) void install({ url: u }); }}
+              className="flex items-center gap-1 rounded-md border border-border px-2.5 py-1 text-[12.5px] text-fg hover:bg-bg-2 disabled:opacity-50"
+            >
+              <IconDownload size={13} stroke={1.8} /> Install
+            </button>
+          </div>
         </div>
       </div>
 

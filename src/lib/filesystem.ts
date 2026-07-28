@@ -330,6 +330,54 @@ export async function serverDisableExtension(id: string): Promise<boolean> {
   return res.ok;
 }
 
+/** A community extension registry entry. */
+export interface RegistryEntry {
+  id: string;
+  name: string;
+  author?: string;
+  description?: string;
+  repo: string;
+  path?: string;
+  ref?: string;
+  minKandownVersion?: string;
+}
+
+/** The daemon's registry fetch result (entries + canonical URL + optional error). */
+export interface RegistryResult {
+  entries: RegistryEntry[];
+  url: string;
+  error?: string;
+}
+
+/** 📖 Fetches the community extensions index via the daemon. Returns null outside server mode. */
+export async function serverFetchRegistry(): Promise<RegistryResult | null> {
+  if (!isServerMode() || isDemoMode()) return null;
+  try {
+    const res = await apiFetch('/api/extensions/registry');
+    if (!res.ok) return { entries: [], url: '', error: `HTTP ${res.status}` };
+    return (await res.json()) as RegistryResult;
+  } catch (e) {
+    return { entries: [], url: '', error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+export interface InstallResult {
+  ok: boolean;
+  id?: string;
+  error?: string;
+}
+
+/** 📖 Installs an extension by registry entry (one-click) or by GitHub URL. */
+export async function serverInstallExtension(input: { entry?: RegistryEntry; url?: string }): Promise<InstallResult | null> {
+  if (!isServerMode() || isDemoMode()) return null;
+  const res = await apiFetch('/api/extensions/install', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  return (await res.json()) as InstallResult;
+}
+
 /**
  * @description Fetches a single task file via the CLI server and parses it.
  * @throws Error if the task is not found (404).

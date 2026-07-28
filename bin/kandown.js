@@ -5,8 +5,8 @@ if (typeof globalThis.require === 'undefined') {
 }
 
 // src/cli/cli.ts
-import { existsSync as existsSync16 } from "fs";
-import { join as join20 } from "path";
+import { existsSync as existsSync17 } from "fs";
+import { join as join21 } from "path";
 
 // src/cli/lib/updater.ts
 import { existsSync, readFileSync, writeFileSync, unlinkSync, statSync, mkdirSync } from "fs";
@@ -3453,13 +3453,94 @@ function cmdImport(rawArgs) {
 }
 
 // src/cli/commands/daemon.ts
-import { join as join17 } from "path";
+import { join as join18 } from "path";
 
 // src/cli/lib/server.ts
 import { createServer } from "http";
-import { existsSync as existsSync14, readFileSync as readFileSync16, copyFileSync as copyFileSync3, unlinkSync as unlinkSync5, mkdirSync as mkdirSync8 } from "fs";
-import { join as join16 } from "path";
+import { existsSync as existsSync15, readFileSync as readFileSync16, copyFileSync as copyFileSync3, unlinkSync as unlinkSync5, mkdirSync as mkdirSync9 } from "fs";
+import { join as join17 } from "path";
 import { spawn as spawn6 } from "child_process";
+
+// src/cli/lib/extensions-store.ts
+import { mkdirSync as mkdirSync8, writeFileSync as writeFileSync6 } from "fs";
+import { join as join16 } from "path";
+var DEFAULT_REGISTRY_URL = "https://raw.githubusercontent.com/vava-nessa/kandown/main/registry/extensions.json";
+var REGISTRY_FILES = ["manifest.json", "index.js", "index.ts", "web.js", "styles.css"];
+async function fetchRegistry(url = DEFAULT_REGISTRY_URL) {
+  try {
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    if (!res.ok) return { entries: [], url, error: `HTTP ${res.status}` };
+    const data = await res.json();
+    const entries = Array.isArray(data) ? data : data.entries ?? [];
+    return { entries: Array.isArray(entries) ? entries : [], url };
+  } catch (e) {
+    return { entries: [], url, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+function githubRawBase(repo, ref) {
+  const cleaned = repo.replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "");
+  return `https://raw.githubusercontent.com/${cleaned}/${ref}`;
+}
+function githubRawBaseHead(repo) {
+  return githubRawBase(repo, "HEAD");
+}
+async function installExtension2(projectDir, input) {
+  let baseUrl;
+  let manifestPath;
+  if (input.entry) {
+    const ref = input.entry.ref || "HEAD";
+    baseUrl = `${githubRawBase(input.entry.repo, ref)}/${input.entry.path || ""}`.replace(/\/$/, "");
+    manifestPath = "manifest.json";
+  } else if (input.url) {
+    baseUrl = githubRawBaseHead(input.url).replace(/\/$/, "");
+    manifestPath = "manifest.json";
+  } else {
+    return { ok: false, error: "Provide a registry entry or a GitHub URL." };
+  }
+  const manifestUrl = `${baseUrl}/${manifestPath}`;
+  let manifestJson;
+  try {
+    const res = await fetch(manifestUrl, { headers: { Accept: "application/json" } });
+    if (!res.ok) return { ok: false, error: `manifest fetch failed: HTTP ${res.status}` };
+    manifestJson = await res.text();
+  } catch (e) {
+    return { ok: false, error: `manifest fetch failed: ${e instanceof Error ? e.message : String(e)}` };
+  }
+  let manifest;
+  try {
+    manifest = JSON.parse(manifestJson);
+  } catch {
+    return { ok: false, error: "manifest.json is not valid JSON" };
+  }
+  if (!manifest.id || !/^[a-z][a-z0-9-]{0,63}$/.test(manifest.id)) {
+    return { ok: false, error: "manifest.json is missing a valid id" };
+  }
+  const destDir = join16(projectDir, ".kandown", "extensions", manifest.id);
+  mkdirSync8(destDir, { recursive: true });
+  const copied = [];
+  const write = (relPath, content) => {
+    writeFileSync6(join16(destDir, relPath), content, "utf8");
+    copied.push(relPath);
+  };
+  write("manifest.json", manifestJson);
+  const otherFiles = REGISTRY_FILES.filter((f) => f !== "manifest.json");
+  const results = await Promise.allSettled(
+    otherFiles.map(async (f) => {
+      const r = await fetch(`${baseUrl}/${f}`);
+      if (!r.ok) return null;
+      const text = await r.text();
+      write(f, text);
+      return f;
+    })
+  );
+  return {
+    ok: true,
+    id: manifest.id,
+    error: results.some((r) => r.status === "rejected") ? "some optional files could not be fetched" : void 0
+  };
+}
+
+// src/cli/lib/server.ts
 var START_PORT_RANGE = 2050;
 var END_PORT_RANGE = 2099;
 var UNSAFE_PORTS = /* @__PURE__ */ new Set([2049, 4045, 6e3, 6665, 6666, 6667, 6668, 6669, 6697]);
@@ -3511,10 +3592,10 @@ function readRequestBody(req) {
 }
 function syncProjectKandownHtml(kandownDir) {
   try {
-    const projectHtml = join16(kandownDir, "kandown.html");
-    const distHtml = join16(PKG_ROOT, "dist", "index.html");
-    if (!existsSync14(distHtml)) return false;
-    if (!existsSync14(projectHtml)) {
+    const projectHtml = join17(kandownDir, "kandown.html");
+    const distHtml = join17(PKG_ROOT, "dist", "index.html");
+    if (!existsSync15(distHtml)) return false;
+    if (!existsSync15(projectHtml)) {
       copyFileSync3(distHtml, projectHtml);
       return true;
     }
@@ -3530,7 +3611,7 @@ function syncProjectKandownHtml(kandownDir) {
 }
 function readDaemonPort(kandownDir) {
   try {
-    const raw = JSON.parse(readFileSync16(join16(kandownDir, "daemon.json"), "utf8"));
+    const raw = JSON.parse(readFileSync16(join17(kandownDir, "daemon.json"), "utf8"));
     return typeof raw.port === "number" && Number.isInteger(raw.port) ? raw.port : null;
   } catch {
     return null;
@@ -3660,8 +3741,8 @@ async function handleApi(req, res, url, kandownDir) {
   if (path === "/api/board") {
     if (method === "GET") {
       const tasksDir = getTasksDir(kandownDir);
-      const boardPath = join16(tasksDir, "board.md");
-      const text = existsSync14(boardPath) ? readFileSync16(boardPath, "utf8") : "";
+      const boardPath = join17(tasksDir, "board.md");
+      const text = existsSync15(boardPath) ? readFileSync16(boardPath, "utf8") : "";
       return writeText(res, 200, text);
     }
     if (method === "PUT") {
@@ -3671,8 +3752,8 @@ async function handleApi(req, res, url, kandownDir) {
       });
       req.on("end", () => {
         const tasksDir = getTasksDir(kandownDir);
-        if (!existsSync14(tasksDir)) mkdirSync8(tasksDir, { recursive: true });
-        atomicWriteFileSync(join16(tasksDir, "board.md"), body);
+        if (!existsSync15(tasksDir)) mkdirSync9(tasksDir, { recursive: true });
+        atomicWriteFileSync(join17(tasksDir, "board.md"), body);
         broadcastSseEvent({ type: "board" });
         writeJson(res, 200, { ok: true });
       });
@@ -3730,9 +3811,24 @@ async function handleApi(req, res, url, kandownDir) {
       if (!ext) return writeText(res, 404, "Extension not found");
       const rel = parts.slice(2).join("/");
       if (!/^[a-zA-Z0-9._\/-]+$/.test(rel) || rel.includes("..")) return writeText(res, 400, "Bad path");
-      const file = join16(ext.dir, rel);
-      if (!existsSync14(file)) return writeText(res, 404, "File not found");
+      const file = join17(ext.dir, rel);
+      if (!existsSync15(file)) return writeText(res, 404, "File not found");
       return writeText(res, 200, readFileSync16(file, "utf8"));
+    }
+  }
+  if (path === "/api/extensions/registry" && method === "GET") {
+    const result = await fetchRegistry();
+    return writeJson(res, 200, result);
+  }
+  if (path === "/api/extensions/install" && method === "POST") {
+    try {
+      const body = JSON.parse(await readRequestBody(req));
+      const projectDir = getProjectRoot(kandownDir);
+      const result = await installExtension2(projectDir, { entry: body.entry, url: body.url });
+      broadcastSseEvent({ type: "extensions" });
+      return writeJson(res, result.ok ? 200 : 400, result);
+    } catch (e) {
+      return writeJson(res, 500, { ok: false, error: e instanceof Error ? e.message : String(e) });
     }
   }
   if (path.startsWith("/api/tasks/") && path.endsWith("/field") && method === "POST") {
@@ -3759,24 +3855,24 @@ async function handleApi(req, res, url, kandownDir) {
     }
     if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return writeText(res, 400, "Invalid task id");
     const tasksDir = getTasksDir(kandownDir);
-    const archiveDir = join16(tasksDir, "archive");
-    const activePath = join16(tasksDir, `${taskId}.md`);
-    const archivedPath = join16(archiveDir, `${taskId}.md`);
+    const archiveDir = join17(tasksDir, "archive");
+    const activePath = join17(tasksDir, `${taskId}.md`);
+    const archivedPath = join17(archiveDir, `${taskId}.md`);
     const action = routeParts[1];
     if (method === "POST" && (action === "archive" || action === "unarchive")) {
       if (routeParts.length !== 2) return writeText(res, 400, "Invalid task route");
       const archiving = action === "archive";
       const source = archiving ? activePath : archivedPath;
       const destination = archiving ? archivedPath : activePath;
-      if (!existsSync14(source) && !existsSync14(destination)) {
+      if (!existsSync15(source) && !existsSync15(destination)) {
         return writeText(res, 404, "Task not found");
       }
       try {
-        if (!existsSync14(tasksDir)) mkdirSync8(tasksDir, { recursive: true });
-        if (!existsSync14(archiveDir)) mkdirSync8(archiveDir, { recursive: true });
+        if (!existsSync15(tasksDir)) mkdirSync9(tasksDir, { recursive: true });
+        if (!existsSync15(archiveDir)) mkdirSync9(archiveDir, { recursive: true });
         const body = await readRequestBody(req);
         atomicWriteFileSync(destination, body);
-        if (source !== destination && existsSync14(source)) unlinkSync5(source);
+        if (source !== destination && existsSync15(source)) unlinkSync5(source);
         broadcastSseEvent({ type: "task", id: taskId });
         return writeJson(res, 200, { ok: true });
       } catch (error) {
@@ -3793,7 +3889,7 @@ async function handleApi(req, res, url, kandownDir) {
     }
     if (method === "PUT") {
       try {
-        if (!existsSync14(tasksDir)) mkdirSync8(tasksDir, { recursive: true });
+        if (!existsSync15(tasksDir)) mkdirSync9(tasksDir, { recursive: true });
         const taskPath2 = findTaskPath(kandownDir, taskId) ?? activePath;
         const body = await readRequestBody(req);
         atomicWriteFileSync(taskPath2, body);
@@ -3807,8 +3903,8 @@ async function handleApi(req, res, url, kandownDir) {
     }
     if (method === "DELETE") {
       try {
-        if (existsSync14(activePath)) unlinkSync5(activePath);
-        if (existsSync14(archivedPath)) unlinkSync5(archivedPath);
+        if (existsSync15(activePath)) unlinkSync5(activePath);
+        if (existsSync15(archivedPath)) unlinkSync5(archivedPath);
         broadcastSseEvent({ type: "task_delete", id: taskId });
         return writeJson(res, 200, { ok: true });
       } catch (error) {
@@ -3831,8 +3927,8 @@ function injectServerRoot(html, kandownDir) {
 }
 function serveApp(res, kandownDir) {
   syncProjectKandownHtml(kandownDir);
-  const htmlPath = join16(kandownDir, "kandown.html");
-  if (existsSync14(htmlPath)) {
+  const htmlPath = join17(kandownDir, "kandown.html");
+  if (existsSync15(htmlPath)) {
     const html = readFileSync16(htmlPath, "utf8");
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
     res.end(injectServerRoot(html, kandownDir));
@@ -3895,7 +3991,7 @@ async function cmdDaemon(rest) {
     const preferredPort = typeof daemonOptions.flags.port === "string" ? Number(daemonOptions.flags.port) : null;
     const { port } = await listenOnAvailablePort(kandownDir, Number.isInteger(preferredPort) ? preferredPort : null);
     const url = `http://localhost:${port}`;
-    const metadataPath2 = join17(kandownDir, "daemon.json");
+    const metadataPath2 = join18(kandownDir, "daemon.json");
     atomicWriteFileSync(metadataPath2, JSON.stringify({
       pid: process.pid,
       port,
@@ -3951,8 +4047,8 @@ async function cmdDaemon(rest) {
 
 // src/cli/lib/launcher.ts
 import { execSync as execSync2, spawn as spawn7 } from "child_process";
-import { writeFileSync as writeFileSync6 } from "fs";
-import { join as join18 } from "path";
+import { writeFileSync as writeFileSync7 } from "fs";
+import { join as join19 } from "path";
 import { tmpdir } from "os";
 function prepareLaunch(opts) {
   const { taskId, agentId, kandownDir, handoff, queue } = opts;
@@ -3982,9 +4078,9 @@ function prepareLaunch(opts) {
   if (!taskMoved) {
     throw new Error(`Could not move task ${taskId} to In Progress \u2014 task file missing or unwritable.`);
   }
-  const contextFile = join18(tmpdir(), `kandown-${taskId}-context.md`);
+  const contextFile = join19(tmpdir(), `kandown-${taskId}-context.md`);
   try {
-    writeFileSync6(contextFile, `${systemPrompt}
+    writeFileSync7(contextFile, `${systemPrompt}
 
 ---
 
@@ -4364,15 +4460,15 @@ async function cmdRun(rawArgs) {
 }
 
 // src/cli/commands/agents.ts
-import { existsSync as existsSync15 } from "fs";
-import { join as join19 } from "path";
+import { existsSync as existsSync16 } from "fs";
+import { join as join20 } from "path";
 function cmdAgents(rawArgs) {
   const args = parseArgs(rawArgs);
   const kandownDir = resolveKandownDir(args.path, process.cwd());
   const sub = args.positional[0];
   if (sub === "init") {
-    const target = join19(kandownDir, "agents.json");
-    if (existsSync15(target)) {
+    const target = join20(kandownDir, "agents.json");
+    if (existsSync16(target)) {
       info(`${c.bold}agents.json${c.reset} already exists at ${target}`);
       return;
     }
@@ -4385,10 +4481,10 @@ function cmdAgents(rawArgs) {
   const catalog = loadCatalog(kandownDir);
   const installed = detectInstalledAgents(kandownDir);
   const cascade = getCascadeConfig(kandownDir);
-  const agentsFile = join19(kandownDir, "agents.json");
+  const agentsFile = join20(kandownDir, "agents.json");
   log("");
   log(`${c.bold}Agent catalog${c.reset} ${c.dim}(${installed.length}/${catalog.length} installed)${c.reset}`);
-  log(`${c.dim}catalog: ${existsSync15(agentsFile) ? agentsFile : "built-in defaults (run `kandown agents init` to commit one)"}${c.reset}`);
+  log(`${c.dim}catalog: ${existsSync16(agentsFile) ? agentsFile : "built-in defaults (run `kandown agents init` to commit one)"}${c.reset}`);
   log("");
   for (const a of catalog) {
     const ok = isAgentInstalled(a.bin);
@@ -4502,13 +4598,13 @@ async function main() {
     case void 0: {
       const parsed = parseArgs(rest);
       const kandownDir = resolveKandownDir(parsed.path, process.cwd());
-      if (existsSync16(join20(kandownDir, "kandown.json"))) {
+      if (existsSync17(join21(kandownDir, "kandown.json"))) {
         let status = await getDaemonStatus(kandownDir);
         if (!status.running) {
           status = await startProjectDaemon(kandownDir);
         }
         if (!parsed.flags["no-open"]) {
-          const urlToOpen = status.metadata?.url || join20(kandownDir, "kandown.html");
+          const urlToOpen = status.metadata?.url || join21(kandownDir, "kandown.html");
           openBrowser(urlToOpen);
         }
       } else if (!process.stdin.isTTY) {
@@ -4525,7 +4621,7 @@ async function main() {
       }
       const parsed = parseArgs(rest);
       const kandownDir = resolveKandownDir(parsed.path, process.cwd());
-      if (existsSync16(join20(kandownDir, "kandown.json"))) {
+      if (existsSync17(join21(kandownDir, "kandown.json"))) {
         const positional = rest.filter((a) => !a.startsWith("-") && !a.startsWith("--path"));
         const ran = await dispatchContributedCommand(kandownDir, cmd, positional.join(" "));
         if (ran) break;

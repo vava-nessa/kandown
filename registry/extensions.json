@@ -1,0 +1,32 @@
+[
+  {
+    "id": "burndown",
+    "name": "Burndown",
+    "author": "kandown",
+    "description": "Story points and a burndown chart. The canonical reference extension exercising a field, a no-Done-without-points gate, and a CLI command.",
+    "repo": "https://github.com/vava-nessa/kandown",
+    "path": "examples/extensions/burndown",
+    "ref": "main",
+    "minKandownVersion": "0.42.0"
+  },
+  {
+    "id": "labels",
+    "name": "Labels",
+    "author": "kandown",
+    "description": "A select label field with emoji badges, plus a gate requiring a label before Done. Demonstrates select fields, badges and gate composition.",
+    "repo": "https://github.com/vava-nessa/kandown",
+    "path": "examples/extensions/labels",
+    "ref": "main",
+    "minKandownVersion": "0.42.0"
+  },
+  {
+    "id": "webhook-sync",
+    "name": "Webhook Sync",
+    "author": "kandown",
+    "description": "Fire a webhook when a task reaches Done. Demonstrates the sync contribution point and the net permission.",
+    "repo": "https://github.com/vava-nessa/kandown",
+    "path": "examples/extensions/webhook-sync",
+    "ref": "main",
+    "minKandownVersion": "0.42.0"
+  }
+]

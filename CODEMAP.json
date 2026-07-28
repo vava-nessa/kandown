@@ -3,7 +3,7 @@
   "files": [
     {
       "path": "bin/kandown.js",
-      "lines": 4540,
+      "lines": 4636,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
@@ -504,6 +504,12 @@
       "exports": "buildHostEnvironment, loadExtensionHost, runExtensionMoveGates, dispatchContributedCommand, cmdExtension"
     },
     {
+      "path": "src/cli/lib/extensions-store.ts",
+      "lines": 157,
+      "title": "Community extension store wiring",
+      "summary": "Fetches the community extensions index from its canonical home (a JSON file in the kandown repo, served via `raw.githubusercontent.com`) and installs extensions by copying their files into the project's `.kandown/extensions/` directory."
+    },
+    {
       "path": "src/cli/lib/file-watcher.ts",
       "lines": 309,
       "title": "Node.js file watcher for CLI",
@@ -566,7 +572,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 524,
+      "lines": 543,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
@@ -1173,7 +1179,7 @@
     },
     {
       "path": "src/components/settings/ExtensionsPanel.tsx",
-      "lines": 158,
+      "lines": 265,
       "title": "Extensions settings panel",
       "summary": "Web UI surface for the extension system: lists installed extensions with their health and contributions, lets the user enable/disable them, and toggles restricted mode (default on)."
     },
@@ -1798,7 +1804,7 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 1055,
+      "lines": 1103,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [

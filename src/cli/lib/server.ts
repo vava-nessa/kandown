@@ -9,12 +9,13 @@ import { createServer, IncomingMessage, ServerResponse } from 'node:http';
 import { existsSync, readFileSync, copyFileSync, unlinkSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawn } from 'node:child_process';
-import { getTasksDir, findTaskPath, readBoard, readTask, moveTaskToColumn, listTaskIds } from './board-reader';
+import { getProjectRoot, getTasksDir, findTaskPath, readBoard, readTask, moveTaskToColumn, listTaskIds } from './board-reader';
 import { loadConfig, saveConfig } from './config';
 import { detectCatalogJSON } from './agents';
 import { getCurrentVersion, getInstalledVersion, semverGt, performGlobalPackageUpdate, PKG_ROOT } from './updater';
 import { atomicWriteFileSync } from './atomic-write';
 import { loadExtensionHost } from './extensions-cli';
+import { fetchRegistry, installExtension, type RegistryEntry } from './extensions-store';
 import type { ExtensionHost } from '../../lib/extensions/host';
 import { setField } from '../../lib/extensions/namespace';
 import { parseTaskFile } from '../../lib/parser';
@@ -346,6 +347,24 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       const file = join(ext.dir, rel);
       if (!existsSync(file)) return writeText(res, 404, 'File not found');
       return writeText(res, 200, readFileSync(file, 'utf8'));
+    }
+  }
+
+  // 📖 Community store: fetch the index, install one entry or by URL.
+  if (path === '/api/extensions/registry' && method === 'GET') {
+    const result = await fetchRegistry();
+    return writeJson(res, 200, result);
+  }
+
+  if (path === '/api/extensions/install' && method === 'POST') {
+    try {
+      const body = JSON.parse(await readRequestBody(req)) as { entry?: RegistryEntry; url?: string };
+      const projectDir = getProjectRoot(kandownDir);
+      const result = await installExtension(projectDir, { entry: body.entry, url: body.url });
+      broadcastSseEvent({ type: 'extensions' });
+      return writeJson(res, result.ok ? 200 : 400, result);
+    } catch (e) {
+      return writeJson(res, 500, { ok: false, error: e instanceof Error ? e.message : String(e) });
     }
   }
 
