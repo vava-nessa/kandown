@@ -49,6 +49,7 @@ import { SettingRow } from './settings/SettingRow';
 import { WorkOutputConfigurator } from './settings/WorkOutputConfigurator';
 import { AboutVersionCard } from './settings/AboutVersionCard';
 import { ExtensionsPanel } from './settings/ExtensionsPanel';
+import { ThemesPanel } from './settings/ThemesPanel';
 
 export function SettingsPage() {
   const { t } = useTranslation();
@@ -98,6 +99,17 @@ export function SettingsPage() {
     return off;
   }, [loadConfig, toast, t]);
 
+  // 📖 The skin picker's "Get more themes" button fires this event so we can
+  // jump straight to the Themes section without scrolling.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ id?: string }>).detail;
+      if (detail?.id === 'themes') setActiveSectionId('themes');
+    };
+    window.addEventListener('kandown:open-section', handler);
+    return () => window.removeEventListener('kandown:open-section', handler);
+  }, []);
+
   useEffect(() => {
     // 📖 Search waits for typing to pause so filtering does not reshuffle the
     // settings list on every keystroke.
@@ -113,7 +125,7 @@ export function SettingsPage() {
     return SECTIONS(t).reduce<Record<SettingsSectionId, number>>((acc, section) => {
       acc[section.id] = settings.filter(setting => setting.section === section.id && isSettingVisible(setting, config)).length;
       return acc;
-    }, { appearance: 0, agent: 0, board: 0, fields: 0, notifications: 0, extensions: 0, about: 0 });
+    }, { appearance: 0, agent: 0, board: 0, fields: 0, notifications: 0, extensions: 0, themes: 0, about: 0 });
   }, [config, t, settings]);
 
   const visibleSettings = useMemo(() => {
@@ -314,6 +326,8 @@ export function SettingsPage() {
                 </div>
               ) : activeSectionId === 'extensions' ? (
                 <ExtensionsPanel />
+              ) : activeSectionId === 'themes' ? (
+                <ThemesPanel />
               ) : !normalizedQuery && activeSectionId === 'agent' ? (
                 <WorkOutputConfigurator
                   config={config}

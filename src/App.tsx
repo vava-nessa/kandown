@@ -38,6 +38,7 @@ import { BulkActionBar } from './components/BulkActionBar';
 import { OnboardingTour } from './components/OnboardingTour';
 import { UpdateNotificationBanner } from './components/UpdateNotificationBanner';
 import { ExtensionRuntimeProvider } from './components/ExtensionRuntimeProvider';
+import { ThemeCustomizerLauncher } from './components/ThemeCustomizerLauncher';
 
 
 import { useStore } from './lib/store';
@@ -282,6 +283,7 @@ export function App() {
         <ConflictModal />
         <OnboardingTour />
         <BulkActionBar />
+        <ThemeCustomizerLauncher />
         </div>
       </ExtensionRuntimeProvider>
     </ErrorBoundary>

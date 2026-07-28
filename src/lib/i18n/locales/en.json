@@ -334,7 +334,10 @@
     "kickerAutomation": "Automation",
     "kickerIdentifiers": "Identifiers",
     "kickerMetadata": "Metadata",
-    "kickerSignals": "Signals"
+    "kickerSignals": "Signals",
+    "kickerThemes": "Skins & community store",
+    "themes": "Themes",
+    "themesDesc": "Browse the community theme store, install curated + community themes, and open the floating editor to tweak or propose your own."
   },
   "conflict": {
     "detected": "Conflict Detected",

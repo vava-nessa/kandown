@@ -109,7 +109,7 @@
     },
     {
       "path": "src/App.tsx",
-      "lines": 290,
+      "lines": 292,
       "title": "Web application shell",
       "summary": "Composes the Kandown web UI, hydrates recent projects from the URL, and owns global keyboard shortcuts for board navigation, creation, reload, search focus, and command palette access.",
       "functions": [
@@ -143,7 +143,7 @@
     },
     {
       "path": "src/cli/cli.ts",
-      "lines": 201,
+      "lines": 207,
       "title": "Main Kandown CLI Entrypoint",
       "summary": "Entrypoint for the kandown command line tool."
     },
@@ -602,7 +602,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 652,
+      "lines": 693,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
@@ -618,6 +618,40 @@
         }
       ],
       "exports": "MoveTaskResult, moveTaskWithGates"
+    },
+    {
+      "path": "src/cli/lib/themes-cli.ts",
+      "lines": 255,
+      "title": "CLI wiring for the community theme store",
+      "summary": "Implements the `kandown theme <subcommand>` verb: list installed themes, install from the registry or a pasted URL, scaffold a starter theme, and emit the prefilled GitHub URL the user clicks to propose their theme via a one-click PR.",
+      "functions": [
+        {
+          "name": "cmdTheme",
+          "summary": "`kandown theme <subcommand>` handler"
+        },
+        {
+          "name": "publishTheme",
+          "summary": "build the prefilled GitHub URL and print it"
+        },
+        {
+          "name": "listInstalledThemesForCli",
+          "summary": "list themes from `.kandown/themes/`"
+        }
+      ],
+      "exports": "cmdTheme, publishTheme"
+    },
+    {
+      "path": "src/cli/lib/themes-meta.ts",
+      "lines": 15,
+      "title": "Theme registry metadata",
+      "summary": "Centralizes the GitHub coordinates of the community theme registry so the CLI, daemon and web editor all propose themes into the same place.",
+      "exports": "KANDOWN_THEME_REPO_OWNER, KANDOWN_THEME_REPO_NAME, KANDOWN_THEME_DEFAULT_BRANCH"
+    },
+    {
+      "path": "src/cli/lib/themes-store.ts",
+      "lines": 211,
+      "title": "Community theme store wiring",
+      "summary": "Fetches the community themes index from its canonical home (a JSON file in the kandown repo, served via `raw.githubusercontent.com`) and installs themes by writing a single JSON file into the project's `.kandown/themes/<id>.json`."
     },
     {
       "path": "src/cli/lib/updater.ts",
@@ -1313,10 +1347,16 @@
     },
     {
       "path": "src/components/settings/SettingRow.tsx",
-      "lines": 309,
+      "lines": 269,
       "title": "Settings — single setting row + theme gallery",
       "summary": "Renders one SettingDef as either a dense toggle row, a full-width theme gallery (for the 'skin' type), or one of the secondary controls — select dropdown, number stepper, text input, language picker, theme mode switcher, or notification…",
       "exports": "SettingRow, ThemeGalleryPicker"
+    },
+    {
+      "path": "src/components/settings/ThemesPanel.tsx",
+      "lines": 243,
+      "title": "Themes settings panel",
+      "summary": "Web UI surface for the community theme store: lists installed themes (from `.kandown/themes/<id>.json` via the daemon), lets the user browse and one-click install entries from the curated community registry, and removes installed themes."
     },
     {
       "path": "src/components/settings/WorkOutputConfigurator.tsx",
@@ -1345,7 +1385,7 @@
     },
     {
       "path": "src/components/SettingsPage.tsx",
-      "lines": 363,
+      "lines": 377,
       "title": "Settings page for the web app",
       "summary": "Dense settings workspace with an iOS-style sidebar, global option search, section navigation, and compact controls for kandown.json.",
       "functions": [
@@ -1421,14 +1461,20 @@
       "exports": "TaskWorkspace"
     },
     {
+      "path": "src/components/ThemeCustomizerLauncher.tsx",
+      "lines": 84,
+      "title": "Theme customizer launcher",
+      "summary": "Mounts one floating ThemeCustomizerModal at the app shell (App.tsx) so the editor is reachable from anywhere: the skin picker's \"Create Custom Theme\" and \"Edit\" actions, the Themes settings panel's \"Open editor\" button, and any future…"
+    },
+    {
       "path": "src/components/ThemeCustomizerModal.tsx",
-      "lines": 470,
-      "title": "Visual Theme Editor & Customizer Modal (FABLE_UI)",
-      "summary": "Provides a visual editor for creating and tweaking custom JSON themes, adjusting HSL tokens, radius, shadows, glass, motion, and checking live WCAG 2.1 contrast compliance with JSON import/export capabilities.",
+      "lines": 722,
+      "title": "Floating theme customizer modal (FABLE_UI + community store)",
+      "summary": "Draggable, minimizable, compact panel for editing a KandownTheme JSON.",
       "functions": [
         {
           "name": "ThemeCustomizerModal",
-          "summary": "modal drawer for editing custom KandownTheme objects"
+          "summary": "floating panel for editing KandownTheme objects"
         }
       ],
       "exports": "ThemeCustomizerModal"
@@ -1951,7 +1997,7 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 1165,
+      "lines": 1233,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [
@@ -2387,7 +2433,7 @@
     },
     {
       "path": "src/lib/theme.ts",
-      "lines": 1612,
+      "lines": 270,
       "title": "Project theme engine (FABLE_UI)",
       "summary": "Manages customizable JSON themes, appearance tokens (--radius, --shadow-*, --font-display, --motion-scale), curated presets (Vercel, Linear, Claude, Apple, Stripe, Paper, Catppuccin, Terminal), and dynamic inheritance.",
       "functions": [
@@ -2415,94 +2461,10 @@
       "exports": "FONT_OPTIONS, BACKGROUND_OPTIONS, THEME_PRESETS, SKIN_OPTIONS, registerCustomThemes, getAllThemes, resolveTheme, applyProjectTheme, normalizeThemeMode, normalizeSkinId, normalizeFontId, normalizeBackgroundId"
     },
     {
-      "path": "src/lib/themes/apple.ts",
-      "lines": 78,
-      "title": "\"apple\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/arc.ts",
-      "lines": 35,
-      "title": "\"arc\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/aurora.ts",
-      "lines": 35,
-      "title": "\"aurora\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/bamboo.ts",
-      "lines": 35,
-      "title": "\"bamboo\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/bauhaus.ts",
-      "lines": 35,
-      "title": "\"bauhaus\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/catppuccin.ts",
-      "lines": 78,
-      "title": "\"catppuccin\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/claude.ts",
-      "lines": 78,
-      "title": "\"claude\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/copper.ts",
-      "lines": 35,
-      "title": "\"copper\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/cyberpunk.ts",
-      "lines": 35,
-      "title": "\"cyberpunk\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/dracula.ts",
-      "lines": 35,
-      "title": "\"dracula\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/emerald.ts",
-      "lines": 35,
-      "title": "\"emerald\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/figma.ts",
-      "lines": 35,
-      "title": "\"figma\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/github.ts",
-      "lines": 35,
-      "title": "\"github\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/glacier.ts",
-      "lines": 35,
-      "title": "\"glacier\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
       "path": "src/lib/themes/index.ts",
-      "lines": 90,
+      "lines": 23,
       "title": "Theme preset registry",
-      "summary": "Aggregates every curated theme preset into the THEME_PRESETS array consumed by the theme engine (src/lib/theme.ts)."
+      "summary": "Aggregates every bundled theme preset into the THEME_PRESETS array consumed by the theme engine (src/lib/theme.ts)."
     },
     {
       "path": "src/lib/themes/kandown.ts",
@@ -2511,158 +2473,14 @@
       "summary": "Kandown's own appearance/color-token preset, built from the brand palette published on the website: #88E138 brand lime (logo arrow, primary actions), #7AD12A the contrast-adjusted lime used on light backgrounds, #0CE931 the hero/WebGL…"
     },
     {
-      "path": "src/lib/themes/latte-macchiato.ts",
-      "lines": 35,
-      "title": "\"latte-macchiato\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/linear.ts",
-      "lines": 78,
-      "title": "\"linear\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/midnight-tokyo.ts",
-      "lines": 35,
-      "title": "\"midnight-tokyo\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/monolith.ts",
-      "lines": 35,
-      "title": "\"monolith\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/moss.ts",
-      "lines": 35,
-      "title": "\"moss\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/nebula.ts",
-      "lines": 35,
-      "title": "\"nebula\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/nordic.ts",
-      "lines": 35,
-      "title": "\"nordic\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/notion-dark.ts",
-      "lines": 35,
-      "title": "\"notion-dark\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/oceanic.ts",
-      "lines": 35,
-      "title": "\"oceanic\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/paper.ts",
-      "lines": 78,
-      "title": "\"paper\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/raycast.ts",
-      "lines": 35,
-      "title": "\"raycast\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/sahara.ts",
-      "lines": 35,
-      "title": "\"sahara\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/sakura.ts",
-      "lines": 35,
-      "title": "\"sakura\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/shadcn.ts",
-      "lines": 35,
-      "title": "\"shadcn\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
       "path": "src/lib/themes/shared.ts",
       "lines": 27,
       "title": "Shared theme tokens",
       "summary": "Status colors (destructive/success/warning) and grid tokens shared by every theme preset, spread into each preset's light/dark token maps."
     },
     {
-      "path": "src/lib/themes/solaris.ts",
-      "lines": 35,
-      "title": "\"solaris\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/spotify.ts",
-      "lines": 35,
-      "title": "\"spotify\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/stripe.ts",
-      "lines": 78,
-      "title": "\"stripe\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/supabase.ts",
-      "lines": 35,
-      "title": "\"supabase\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/synth-gold.ts",
-      "lines": 35,
-      "title": "\"synth-gold\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/synthwave.ts",
-      "lines": 35,
-      "title": "\"synthwave\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/terminal.ts",
-      "lines": 78,
-      "title": "\"terminal\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/vaporwave.ts",
-      "lines": 35,
-      "title": "\"vaporwave\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/vercel.ts",
-      "lines": 78,
-      "title": "\"vercel\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
-      "path": "src/lib/themes/volcanic.ts",
-      "lines": 35,
-      "title": "\"volcanic\" theme preset",
-      "summary": "Curated appearance/color-token preset for the theme gallery."
-    },
-    {
       "path": "src/lib/types.ts",
-      "lines": 395,
+      "lines": 404,
       "title": "Shared domain types",
       "summary": "Defines the board, task, config, filter, search, and appearance types used by the Kandown web UI and persistence layer.",
       "exports": "Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, KandownConfig, DEFAULT_COLUMNS, DEFAULT_CONFIG"

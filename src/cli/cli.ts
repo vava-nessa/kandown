@@ -28,6 +28,7 @@ import { cmdDaemon } from './commands/daemon';
 import { cmdRun } from './commands/run';
 import { cmdAgents } from './commands/agents';
 import { cmdExtension, dispatchContributedCommand } from './lib/extensions-cli';
+import { cmdTheme } from './lib/themes-cli';
 
 async function cmdTui(screen: 'board' | 'settings', rawArgs: string[]): Promise<void> {
   const args = parseArgs(rawArgs);
@@ -114,6 +115,11 @@ async function main() {
     case 'extension':
     case 'extensions':
       await cmdExtension(rest);
+      break;
+
+    case 'theme':
+    case 'themes':
+      await cmdTheme(rest);
       break;
 
     case 'tasks':

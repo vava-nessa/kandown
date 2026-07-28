@@ -17,6 +17,7 @@ import { atomicWriteFileSync } from './atomic-write';
 import { loadExtensionHost } from './extensions-cli';
 import { moveTaskWithGates, type MoveTaskResult } from './task-move';
 import { fetchRegistry, installExtension, type RegistryEntry } from './extensions-store';
+import { fetchRegistry as fetchThemeRegistry, installTheme, listInstalledThemes, type RegistryEntry as ThemeRegistryEntry } from './themes-store';
 import type { ExtensionHost } from '../../lib/extensions/host';
 
 const START_PORT_RANGE = 2050;
@@ -399,6 +400,46 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       if (result.ok) await (await getExtensionHost(kandownDir)).loadAll();
       broadcastSseEvent({ type: 'extensions' });
       return writeJson(res, result.ok ? 200 : 400, result);
+    } catch (e) {
+      return writeJson(res, 500, { ok: false, error: e instanceof Error ? e.message : String(e) });
+    }
+  }
+
+  // 📖 Community theme store: list, registry, install, uninstall. Mirror of
+  // the extension routes above but with no host (themes are static JSON, no
+  // contributions). The reload happens client-side via `registerCustomThemes`
+  // after each install/uninstall — the daemon only owns the disk side.
+  if (path === '/api/themes' && method === 'GET') {
+    const projectDir = getProjectRoot(kandownDir);
+    const themes = listInstalledThemes(projectDir);
+    return writeJson(res, 200, { themes });
+  }
+  if (path === '/api/themes/registry' && method === 'GET') {
+    const result = await fetchThemeRegistry();
+    return writeJson(res, 200, result);
+  }
+  if (path === '/api/themes/install' && method === 'POST') {
+    try {
+      const body = JSON.parse(await readRequestBody(req)) as { entry?: ThemeRegistryEntry; url?: string };
+      const projectDir = getProjectRoot(kandownDir);
+      const result = await installTheme(projectDir, { entry: body.entry, url: body.url });
+      broadcastSseEvent({ type: 'themes' });
+      return writeJson(res, result.ok ? 200 : 400, result);
+    } catch (e) {
+      return writeJson(res, 500, { ok: false, error: e instanceof Error ? e.message : String(e) });
+    }
+  }
+  if (path.startsWith('/api/themes/') && method === 'DELETE') {
+    const rawId = decodeURIComponent(path.slice('/api/themes/'.length).split('?')[0] ?? '');
+    if (!/^[a-z][a-z0-9-]{0,63}$/.test(rawId)) return writeJson(res, 400, { error: 'Invalid theme id' });
+    const { unlinkSync, existsSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const file = join(getProjectRoot(kandownDir), '.kandown', 'themes', `${rawId}.json`);
+    if (!existsSync(file)) return writeJson(res, 404, { error: 'Theme not installed' });
+    try {
+      unlinkSync(file);
+      broadcastSseEvent({ type: 'themes' });
+      return writeJson(res, 200, { ok: true, id: rawId });
     } catch (e) {
       return writeJson(res, 500, { ok: false, error: e instanceof Error ? e.message : String(e) });
     }

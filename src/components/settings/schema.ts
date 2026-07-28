@@ -34,7 +34,7 @@ import { SUPPORTED_LANGUAGES, LANGUAGE_LABELS } from '../../lib/i18n';
 import type { KandownConfig } from '../../lib/types';
 
 export type SettingType = 'toggle' | 'select' | 'number' | 'text' | 'skin' | 'theme' | 'language' | 'permission' | 'button';
-export type SettingsSectionId = 'appearance' | 'agent' | 'board' | 'fields' | 'notifications' | 'extensions' | 'about';
+export type SettingsSectionId = 'appearance' | 'agent' | 'board' | 'fields' | 'notifications' | 'extensions' | 'themes' | 'about';
 
 export interface SettingOption {
   value: string;

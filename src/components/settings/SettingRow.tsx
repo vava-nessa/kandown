@@ -15,13 +15,11 @@
  * @exports SettingRow, ThemeGalleryPicker
  */
 
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconPlus } from '@tabler/icons-react';
+import { IconPlus, IconBuildingStore } from '@tabler/icons-react';
 import { useStore } from '../../lib/store';
-import { getAllThemes, registerCustomThemes, applyProjectTheme, THEME_PRESETS } from '../../lib/theme';
+import { getAllThemes, THEME_PRESETS } from '../../lib/theme';
 import { ThemePreviewCard } from '../ThemePreviewCard';
-import { ThemeCustomizerModal } from '../ThemeCustomizerModal';
 import { ThemeSwitcher } from '../ui/theme-switcher-1';
 import { LanguageDropdown } from './LanguageDropdown';
 import type { KandownTheme, ThemeMode } from '../../lib/types';
@@ -207,74 +205,47 @@ export function SettingRow({
 
 export function ThemeGalleryPicker({ value, onChange }: { value: string; onChange: (value: unknown) => void }) {
   const config = useStore(s => s.config);
-  const updateConfig = useStore(s => s.updateConfig);
   const resolvedMode = (config.ui.theme === 'auto'
     ? (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
     : config.ui.theme) as 'light' | 'dark';
 
-  const [editingTheme, setEditingTheme] = useState<KandownTheme | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-
   const allThemes = getAllThemes();
 
-  const handleOpenCustomizer = (themeToEdit?: KandownTheme) => {
-    const baseTheme = themeToEdit ?? THEME_PRESETS[0];
-    const initialTheme: KandownTheme = themeToEdit
-      ? { ...themeToEdit }
-      : {
-          id: `custom-${Date.now().toString(36)}`,
-          name: 'My Custom Theme',
-          author: 'User',
-          description: 'Custom theme defined in kandown.json',
-          isCustom: true,
-          base: baseTheme.id,
-          appearance: { ...baseTheme.appearance },
-          fonts: { ...baseTheme.fonts },
-          light: { ...baseTheme.light },
-          dark: { ...baseTheme.dark },
-        };
-    setEditingTheme(initialTheme);
-    setModalOpen(true);
-  };
-
-  const handleSaveCustomTheme = (savedTheme: KandownTheme) => {
-    updateConfig(cfg => {
-      const existing = cfg.ui.customThemes || [];
-      const idx = existing.findIndex(t => t.id === savedTheme.id);
-      const nextCustoms = idx >= 0
-        ? [...existing.slice(0, idx), savedTheme, ...existing.slice(idx + 1)]
-        : [...existing, savedTheme];
-
-      registerCustomThemes(nextCustoms);
-      applyProjectTheme(cfg.ui.theme, savedTheme.id, cfg.ui.font, cfg.ui.background);
-
-      return {
-        ...cfg,
-        ui: {
-          ...cfg.ui,
-          skin: savedTheme.id,
-          customThemes: nextCustoms,
-        },
-      };
-    });
+  // 📖 The customizer is mounted at the shell level (ThemeCustomizerLauncher);
+  // we just dispatch events. Open with `detail.theme` to edit/duplicate/export,
+  // or without for a fresh custom theme.
+  const openCustomizer = (theme?: KandownTheme) => {
+    window.dispatchEvent(new CustomEvent('kandown:open-customizer', { detail: { theme } }));
   };
 
   return (
     <div className="w-full space-y-4 pt-1">
       {/* Header bar with New Custom Theme button */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground font-mono">
           Theme Presets & Custom Skins ({allThemes.length})
         </span>
 
-        <button
-          type="button"
-          onClick={() => handleOpenCustomizer()}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors shadow-xs"
-        >
-          <IconPlus className="w-4 h-4" />
-          Create Custom Theme
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent('kandown:open-section', { detail: { id: 'themes' } }))}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-bg-2 text-fg hover:bg-bg-3 border border-border transition-colors shadow-xs"
+            title="Open the Themes section in Settings to install community themes"
+          >
+            <IconBuildingStore className="w-4 h-4" />
+            Get more themes
+          </button>
+
+          <button
+            type="button"
+            onClick={() => openCustomizer()}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors shadow-xs"
+          >
+            <IconPlus className="w-4 h-4" />
+            Create Custom Theme
+          </button>
+        </div>
       </div>
 
       {/* Theme Cards Grid */}
@@ -283,26 +254,15 @@ export function ThemeGalleryPicker({ value, onChange }: { value: string; onChang
           <ThemePreviewCard
             key={t.id}
             theme={t}
-            active={t.id === value || (value === 'kandown' && t.id === 'vercel')}
+            active={t.id === value}
             mode={resolvedMode}
             onSelect={() => onChange(t.id)}
-            onEdit={t.isCustom ? () => handleOpenCustomizer(t) : undefined}
-            onDuplicate={() => handleOpenCustomizer({ ...t, id: `${t.id}-copy-${Date.now().toString(36)}`, name: `${t.name} Copy`, isCustom: true })}
-            onExport={() => handleOpenCustomizer(t)}
+            onEdit={t.isCustom ? () => openCustomizer(t) : undefined}
+            onDuplicate={() => openCustomizer({ ...t, id: `${t.id}-copy-${Date.now().toString(36)}`, name: `${t.name} Copy`, isCustom: true })}
+            onExport={() => openCustomizer(t)}
           />
         ))}
       </div>
-
-
-      {/* Editor Modal */}
-      {modalOpen && editingTheme && (
-        <ThemeCustomizerModal
-          isOpen={modalOpen}
-          initialTheme={editingTheme}
-          onClose={() => setModalOpen(false)}
-          onSave={handleSaveCustomTheme}
-        />
-      )}
     </div>
   );
 }

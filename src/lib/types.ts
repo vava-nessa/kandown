@@ -191,6 +191,15 @@ export interface ThemeAppearance {
   density: 'compact' | 'comfortable' | 'relaxed';
   glass: boolean;
   motion: 'none' | 'subtle' | 'playful';
+  /** 📖 Backdrop blur amount (px) when glass is on. Defaults to 20. */
+  glassIntensity?: number;
+  /** 📖 Optional per-level shadow overrides — when set, used instead of the
+   * level-derived value (see `getShadowValue` in src/lib/theme.ts). Lets
+   * contributors ship a curated theme with bespoke shadow colors that don't
+   * fit the four built-in levels. */
+  shadowCard?: string;
+  shadowPopover?: string;
+  shadowDrawer?: string;
 }
 
 export interface ThemeFonts {

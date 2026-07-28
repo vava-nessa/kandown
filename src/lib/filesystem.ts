@@ -1154,6 +1154,74 @@ export async function serverCheckUpdate(): Promise<UpdateCheckResult | null> {
   }
 }
 
+/* ═════════════ Community theme store ═════════════ */
+/**
+ * @description Theme payload as returned by `GET /api/themes`. The web app
+ * calls `serverListThemes()` on startup and again after every install /
+ * uninstall, then folds the result into the theme engine via
+ * `registerCustomThemes` (see src/lib/theme.ts).
+ */
+export interface InstalledThemeSummary {
+  id: string;
+  name: string;
+  author?: string;
+  description?: string;
+  isCustom?: boolean;
+}
+
+export async function serverListThemes(): Promise<InstalledThemeSummary[] | null> {
+  try {
+    const res = await apiFetch('/api/themes');
+    const data = (await res.json()) as { themes?: InstalledThemeSummary[] };
+    return Array.isArray(data.themes) ? data.themes : [];
+  } catch {
+    return null;
+  }
+}
+
+export interface RegistryFetchResult {
+  entries: Array<{
+    id: string;
+    name: string;
+    author?: string;
+    description?: string;
+    repo: string;
+    path: string;
+    ref?: string;
+    minKandownVersion?: string;
+    tags?: string[];
+  }>;
+  url: string;
+  error?: string;
+}
+
+export async function serverFetchThemeRegistry(): Promise<RegistryFetchResult | null> {
+  try {
+    const res = await apiFetch('/api/themes/registry');
+    return (await res.json()) as RegistryFetchResult;
+  } catch {
+    return null;
+  }
+}
+
+export async function serverInstallTheme(input: { entry?: { id: string; name: string; author?: string; repo: string; path: string; ref?: string }; url?: string }): Promise<{ ok: boolean; id?: string; error?: string } | null> {
+  try {
+    const res = await apiFetch('/api/themes/install', { method: 'POST', body: JSON.stringify(input), headers: { 'Content-Type': 'application/json' } });
+    return (await res.json()) as { ok: boolean; id?: string; error?: string };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+export async function serverUninstallTheme(id: string): Promise<{ ok: boolean; error?: string } | null> {
+  try {
+    const res = await apiFetch(`/api/themes/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    return (await res.json()) as { ok: boolean; error?: string };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
 export async function serverApplyUpdate(): Promise<{ ok: boolean; version?: string; message?: string } | null> {
   try {
     const res = await apiFetch('/api/update/apply', { method: 'POST' });
