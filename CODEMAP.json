@@ -3,7 +3,7 @@
   "files": [
     {
       "path": "bin/kandown.js",
-      "lines": 4636,
+      "lines": 5052,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
@@ -242,7 +242,7 @@
     },
     {
       "path": "src/cli/lib/__tests__/task-move.spec.ts",
-      "lines": 110,
+      "lines": 212,
       "title": "Managed backend task move integration tests",
       "summary": "Exercises the Node move coordinator against real task files and a real jiti-loaded extension."
     },
@@ -578,7 +578,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 595,
+      "lines": 648,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
@@ -1093,12 +1093,12 @@
       "summary": "Hydrates one project-wide extension snapshot for fields, panels and card badges.",
       "functions": [
         {
-          "name": "ExtensionRuntimeProvider",
-          "summary": "loads and refreshes the active runtime"
+          "name": "ExtensionRuntimeProvider: loads and refreshes the active runtime",
+          "summary": null
         },
         {
-          "name": "useExtensionRuntime",
-          "summary": "reads summaries, badges and scoped runtime actions"
+          "name": "useExtensionRuntime: reads summaries, badges and scoped runtime actions",
+          "summary": null
         }
       ],
       "exports": "ExtensionRuntimeProvider, useExtensionRuntime"
@@ -1350,13 +1350,13 @@
     },
     {
       "path": "src/components/TaskExtensionSurface.tsx",
-      "lines": 354,
+      "lines": 364,
       "title": "Task extension surface",
       "summary": "Shared mobile and desktop task-editor section for contributed fields and web panels.",
       "functions": [
         {
-          "name": "TaskExtensionSurface",
-          "summary": "fields followed by collapsible extension panels"
+          "name": "TaskExtensionSurface: fields followed by collapsible extension panels",
+          "summary": null
         }
       ],
       "exports": "TaskExtensionSurface"
@@ -1556,8 +1556,14 @@
       "exports": "useDetectedAgents"
     },
     {
+      "path": "src/lib/__tests__/browser-extension-runtime.spec.ts",
+      "lines": 164,
+      "title": "Standalone browser extension runtime integration tests",
+      "summary": "Uses a minimal in-memory File System Access implementation to prove project-local discovery, bundled index.js activation, typed badge rendering, web module loading, failure isolation and persistent quarantine."
+    },
+    {
       "path": "src/lib/__tests__/demoBackend.spec.ts",
-      "lines": 62,
+      "lines": 72,
       "title": "Website demo move endpoint tests",
       "summary": "Locks the in-memory backend to the managed move protocol."
     },
@@ -1569,7 +1575,7 @@
     },
     {
       "path": "src/lib/__tests__/extensions-host.spec.ts",
-      "lines": 195,
+      "lines": 270,
       "title": "Extension host integration",
       "summary": "Vitest suite that loads real extensions from a temp project dir via jiti and locks the host contract: discovery, restricted mode + project trust, gate composition with block reasons, command dispatch, and the core invariant that a…"
     },
@@ -1727,32 +1733,32 @@
     },
     {
       "path": "src/lib/extensions/browser-runtime.ts",
-      "lines": 370,
+      "lines": 383,
       "title": "Browser extension runtime",
       "summary": "Loads project-local bundled extension entries through Blob URLs for standalone File System Access mode, registers browser-safe fields, badges and panels, and computes card badges without a daemon.",
       "functions": [
         {
-          "name": "loadStandaloneExtensionRuntime",
-          "summary": "discover and activate project extensions"
+          "name": "loadStandaloneExtensionRuntime: discover and activate project extensions",
+          "summary": null
         },
         {
-          "name": "loadExtensionWebModule",
-          "summary": "import a bundled panel module from daemon or FSA"
+          "name": "loadExtensionWebModule: import a bundled panel module from daemon or FSA",
+          "summary": null
         },
         {
-          "name": "reportStandalonePanelOutcome",
-          "summary": "persist/reset consecutive panel failures"
+          "name": "reportStandalonePanelOutcome: persist/reset consecutive panel failures",
+          "summary": null
         },
         {
-          "name": "invalidateStandaloneExtensions",
-          "summary": "revoke Blob URLs and clear project cache"
+          "name": "invalidateStandaloneExtensions: revoke Blob URLs and clear project cache",
+          "summary": null
         }
       ],
       "exports": "loadStandaloneExtensionRuntime, loadExtensionWebModule, reportStandalonePanelOutcome, invalidateStandaloneExtensions, ExtensionWebModule"
     },
     {
       "path": "src/lib/extensions/host.ts",
-      "lines": 500,
+      "lines": 507,
       "title": "Extension host",
       "summary": "The orchestrator that loads extensions, manages their health, and dispatches contributions (gates, syncs, commands, lifecycle) with per-contribution fail policies.",
       "exports": "ExtensionHost, type HostEnvironment"
@@ -1823,8 +1829,8 @@
       "summary": "A tiny capability matcher.",
       "functions": [
         {
-          "name": "isAllowed",
-          "summary": "does a declared list cover a requested permission?"
+          "name": "isAllowed: does a declared list cover a requested permission?",
+          "summary": null
         }
       ],
       "exports": "isAllowed"
@@ -1838,25 +1844,25 @@
     },
     {
       "path": "src/lib/extensions/state.ts",
-      "lines": 96,
+      "lines": 99,
       "title": "Enabled-extension preference state",
       "summary": "Persists per-project extension runtime state: the ids the user explicitly enabled plus consecutive failure records used by the quarantine policy.",
       "functions": [
         {
-          "name": "enabledFilePath",
-          "summary": "absolute path to a project's enabled set"
+          "name": "enabledFilePath: absolute path to a project's enabled set",
+          "summary": null
         },
         {
-          "name": "healthFilePath",
-          "summary": "absolute path to persistent failure health"
+          "name": "healthFilePath: absolute path to persistent failure health",
+          "summary": null
         },
         {
-          "name": "loadEnabled / saveEnabled",
-          "summary": "read and persist enabled ids"
+          "name": "loadEnabled / saveEnabled: read and persist enabled ids",
+          "summary": null
         },
         {
-          "name": "loadFailureState / saveFailureState",
-          "summary": "read and atomically persist failures"
+          "name": "loadFailureState / saveFailureState: read and atomically persist failures",
+          "summary": null
         }
       ],
       "exports": "enabledFilePath, healthFilePath, loadEnabled, saveEnabled, loadFailureState, saveFailureState, ExtensionFailureRecord"
@@ -1895,7 +1901,7 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 1123,
+      "lines": 1165,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [
@@ -1972,27 +1978,43 @@
           "summary": "kandown.json via REST"
         },
         {
-          "name": "serverListTasks",
-          "summary": "list task IDs via REST"
-        },
-        {
-          "name": "serverReadTask / serverWriteTask / serverDeleteTask",
-          "summary": "task CRUD via REST"
-        },
-        {
-          "name": "serverMoveTask - asks the managed backend to gate and persist a task move",
+          "name": "serverListTasks: list task IDs via REST",
           "summary": null
         },
         {
-          "name": "serverMigrateTasks",
-          "summary": "triggers the legacy → new layout migration via REST"
+          "name": "serverReadTask / serverWriteTask / serverDeleteTask: task CRUD via REST",
+          "summary": null
+        },
+        {
+          "name": "serverMoveTask: authoritative managed move intent",
+          "summary": null
+        },
+        {
+          "name": "serverLoadExtensionRuntime: field/panel defs and batched badges",
+          "summary": null
+        },
+        {
+          "name": "serverSetExtensionField: persist one host-validated plugins field",
+          "summary": null
+        },
+        {
+          "name": "serverReadExtensionFile: authenticated source read for Blob import",
+          "summary": null
+        },
+        {
+          "name": "serverReportExtensionOutcome: persistent browser failure health",
+          "summary": null
+        },
+        {
+          "name": "serverMigrateTasks: triggers the legacy to new layout migration via REST",
+          "summary": null
         },
         {
           "name": "readProjectInstructions / writeProjectInstructions",
           "summary": "edits `.kandown/instructions.md`"
         }
       ],
-      "exports": "supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, serverWriteTask, serverDeleteTask, serverMigrateTasks"
+      "exports": "supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks"
     },
     {
       "path": "src/lib/githubStars.ts",
@@ -2619,7 +2641,7 @@
     },
     {
       "path": "src/lib/watcher.ts",
-      "lines": 306,
+      "lines": 312,
       "title": "File watcher for Kandown",
       "summary": "500ms polling watcher using content hashing (SHA-256).",
       "functions": [

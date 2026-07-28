@@ -14,10 +14,12 @@
  *
  * @exports SiteFooter
  */
+import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { Logo } from './Logo'
 import { site } from '~/lib/site'
 import GradualBlur from './ui/GradualBlur'
+import CurvedInput from './ui/CurvedInput'
 
 // 📖 Pinned to the latest release so the footer's "Changelog · vX.Y.Z" reads
 // as current. Update on release; a stale version is a small thing, but a
@@ -25,8 +27,60 @@ import GradualBlur from './ui/GradualBlur'
 const LATEST_VERSION = '0.38.0'
 
 export function SiteFooter() {
+  const [subscribed, setSubscribed] = useState(false)
+  const [subscribedEmail, setSubscribedEmail] = useState('')
+
+  const handleSubscribe = (email: string) => {
+    if (!email || !email.includes('@')) return
+    setSubscribedEmail(email)
+    setSubscribed(true)
+  }
+
   return (
     <footer className="relative border-t border-border overflow-hidden">
+      {/* 📖 Newsletter subscription block featuring the CurvedInput component. */}
+      <div className="border-b border-border bg-bg-subtle/40 px-5 py-12 sm:px-8">
+        <div className="mx-auto max-w-xl text-center">
+          <span className="label text-fg-muted">Newsletter</span>
+          <h3 className="mt-1 text-xl font-semibold tracking-tight text-fg sm:text-2xl">
+            Stay in the loop with kandown updates
+          </h3>
+          <p className="mt-2 text-[13.5px] leading-relaxed text-fg-muted">
+            Get early release notes, feature highlights, and tips for building with local AI agents.
+          </p>
+
+          <div className="mt-6 flex flex-col items-center justify-center">
+            {subscribed ? (
+              <div className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-4 py-2 text-sm font-medium text-fg animate-rise">
+                <svg className="h-4 w-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Subscribed <strong className="font-semibold">{subscribedEmail}</strong> to kandown updates!</span>
+              </div>
+            ) : (
+              <CurvedInput
+                placeholder="your.email@domain.com"
+                buttonText="Subscribe"
+                type="email"
+                bend={20}
+                height={58}
+                width="100%"
+                fontSize={15}
+                backgroundColor="#ffffff"
+                textColor="#16221f"
+                placeholderColor="#8e9789"
+                borderColor="#d8dcd4"
+                buttonColor="#7ad12a"
+                buttonTextColor="#0c1d17"
+                shadowSize="sm"
+                onSubmit={handleSubscribe}
+                className="max-w-md"
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 sm:px-8 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
         <div>
           <div className="flex items-center gap-2.5">
