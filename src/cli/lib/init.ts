@@ -49,6 +49,37 @@ export function syncKandownAgentDoc(kandownDir: string): boolean {
   return false;
 }
 
+/**
+ * 📖 Runtime state that lives inside `.kandown/` but belongs to one machine, not
+ * to the repository. Without this file every project picks up a rotating set of
+ * untracked leftovers (`daemon.json` changes on every launch) and, worse, is
+ * tempted to commit extension trust — which the loader deliberately ignores
+ * anyway, so that a cloned repo cannot grant itself execution permission.
+ *
+ * 📖 Written on init and never rewritten afterwards: a project that has tuned
+ * its own ignore list owns it from that point on.
+ */
+const KANDOWN_GITIGNORE = `daemon.json
+daemon.lock
+.undo/
+
+# Local extension state. Which extensions you enabled and which you trusted is a
+# per-machine decision, and a committed copy is ignored at load time anyway
+# (see docs/EXTENSIONS.md).
+extensions/enabled.json
+extensions/trust.json
+`;
+
+function writeKandownGitignore(kandownDir: string): void {
+  const path = join(kandownDir, '.gitignore');
+  if (existsSync(path)) return;
+  try {
+    atomicWriteFileSync(path, KANDOWN_GITIGNORE);
+  } catch {
+    // 📖 Non-fatal: a missing ignore file is untidy, never broken.
+  }
+}
+
 export function doInit(kandownDir: string): boolean {
   try {
     mkdirSync(kandownDir, { recursive: true });
@@ -60,6 +91,7 @@ export function doInit(kandownDir: string): boolean {
     }
 
     syncKandownAgentDoc(kandownDir);
+    writeKandownGitignore(kandownDir);
 
     const templatesDir = join(PKG_ROOT, 'templates');
     if (existsSync(templatesDir)) {

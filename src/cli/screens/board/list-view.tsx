@@ -33,14 +33,14 @@
  *
  * @functions
  *  → computeListWindow — which rows are visible, given selection and height
- *  → ListHeaderRow — the column header + rule
+ *  → ListHeaderRow — the clickable column header (sort arrow, priority lens)
  *  → TaskListRow — one task line (+ wrapped continuation lines when selected)
- *  → ListFooter — scroll position, counts, active sort and filter
+ *  → ListFooter — scroll position, counts, active sort, direction and filters
  *  → TaskListView — composes the three above over a window of rows
  *  → TaskDetailPane — Name/Value pane that follows the selection
  *
- * @exports DETAIL_PANE_HEIGHT, LIST_START_Y, computeListWindow, TaskListView,
- *   TaskDetailPane
+ * @exports DETAIL_PANE_HEIGHT, LIST_START_Y, LIST_HEADER_Y, computeListWindow,
+ *   TaskListView, TaskDetailPane
  * @see src/cli/screens/board/list-helpers.ts — the data + layout maths
  * @see src/cli/screens/board.tsx — owns state and input
  */
@@ -52,15 +52,19 @@ import { columnAccentColor, pad, truncate } from './helpers.js';
 import type React from 'react';
 import {
   type FilterMode,
+  type ListColumnKey,
   type ListLayout,
   type ListRow,
   type ListSort,
+  type ListSortDir,
   type ListColumnPrefs,
+  type PriorityFilter,
   ALL_LIST_COLUMNS,
   computeListLayout,
   normalizeOwner,
   ownerGlyph,
   priorityColor,
+  sortForColumn,
   wrapText,
 } from './list-helpers.js';
 
@@ -70,6 +74,13 @@ import {
  * Mouse hit-testing in board.tsx converts a click's Y to a row index with this.
  */
 export const LIST_START_Y = 5;
+
+/**
+ * 📖 Terminal row (1-based) the clickable column header sits on: line 3 of the
+ * four counted above. Derived from LIST_START_Y rather than hardcoded, so the
+ * two can never drift when the header block above the list changes height.
+ */
+export const LIST_HEADER_Y = LIST_START_Y - 2;
 
 /** 📖 Fixed height of the detail pane, so the list viewport is predictable. */
 export const DETAIL_PANE_HEIGHT = 11;
@@ -196,20 +207,68 @@ export function listRowAtY(geometry: ListGeometry, selectedIndex: number, y: num
 
 // ─── Rows ────────────────────────────────────────────────────────────────────
 
-function ListHeaderRow({ layout }: { layout: ListLayout }) {
-  const cells: string[] = [pad('', layout.cursor)];
-  if (layout.id) cells.push(pad('ID', layout.id));
-  if (layout.age) cells.push(pad('Age', layout.age));
-  if (layout.status) cells.push(pad('Status', layout.status));
-  if (layout.priority) cells.push(pad('Pr', layout.priority));
-  if (layout.owner) cells.push(pad('O', layout.owner));
-  if (layout.deps) cells.push(pad('Dep', layout.deps));
-  if (layout.tags) cells.push(pad('Tags', layout.tags));
-  cells.push('Description');
+/**
+ * 📖 The clickable column header.
+ *
+ * Every cell is a click target (`listColumnAtX` maps the X back), so the header
+ * has to *say* which column is driving the order: the active one is rendered
+ * bright with an ↑/↓ arrow, the rest stay dim. Without that marker a list
+ * sorted by age and a list sorted by title look identical, and the second click
+ * that reverses the order looks like nothing happened.
+ *
+ * 📖 `Pr` is the exception: it cycles the priority lens rather than sorting, so
+ * it shows the active priority (`P1`) instead of an arrow, in the priority's
+ * own colour. That is also the affordance — a header cell that changes to a
+ * value is visibly a filter, not a sort.
+ */
+function ListHeaderRow({ layout, sort, sortDir, priorityFilter }: {
+  layout: ListLayout;
+  sort: ListSort;
+  sortDir: ListSortDir;
+  priorityFilter: PriorityFilter;
+}) {
+  const arrow = sortDir === 'desc' ? '↓' : '↑';
+
+  /**
+   * 📖 A header cell: label + arrow when it owns the sort, dim otherwise.
+   *
+   * The arrow must never widen the cell — a column that grows by one when you
+   * sort by it would shift every column to its right on each click. Column
+   * widths already reserve room for it (see `computeListLayout`); the slice is
+   * the last-resort guard for a terminal narrow enough that even `Description`
+   * has been squeezed, where losing a letter beats corrupting the grid.
+   */
+  const cell = (key: ListColumnKey, label: string, width: number) => {
+    const active = sortForColumn(key) === sort;
+    const text = active ? `${label.slice(0, Math.max(1, width - 1))}${arrow}` : label;
+    return (
+      <Text key={key} bold color={active ? 'cyan' : 'gray'} dimColor={!active} underline={active}>
+        {pad(text, width)}{' '}
+      </Text>
+    );
+  };
+
+  const priorityActive = priorityFilter !== 'all';
+  const priorityLabel = priorityFilter === 'none' ? '··' : priorityFilter === 'all' ? 'Pr' : priorityFilter;
 
   return (
     <Box flexDirection="column">
-      <Text bold color="cyan">{cells.join(' ')}</Text>
+      <Box>
+        <Text>{pad('', layout.cursor)}{' '}</Text>
+        {layout.id > 0 && cell('id', 'ID', layout.id)}
+        {layout.age > 0 && cell('age', 'Age', layout.age)}
+        {layout.status > 0 && cell('status', 'Status', layout.status)}
+        {layout.priority > 0 && (
+          <Text bold color={priorityActive ? priorityColor(priorityFilter) : 'gray'} dimColor={!priorityActive}>
+            {pad(priorityLabel, layout.priority)}{' '}
+          </Text>
+        )}
+        {layout.owner > 0 && cell('owner', 'Who', layout.owner)}
+        {layout.deps > 0 && cell('deps', 'Dep', layout.deps)}
+        {layout.tags > 0 && cell('tags', 'Tags', layout.tags)}
+        {cell('desc', 'Description', layout.desc)}
+        {layout.assignee > 0 && cell('assignee', 'Assignee', layout.assignee)}
+      </Box>
       <Text color="gray" dimColor>{'─'.repeat(layout.total)}</Text>
     </Box>
   );
@@ -269,6 +328,14 @@ function TaskListRow({ row, selected, layout, now }: {
         <Text color={fg ?? (task.checked ? 'gray' : 'white')} bold={selected} strikethrough={!selected && task.checked}>
           {pad(titleLines[0] ?? '', layout.desc)}
         </Text>
+        {/* 📖 Far right: who owns this task. Dimmed and unassigned-as-`—`, so a
+            column of blanks reads as "nobody has taken these" at a glance
+            rather than as a rendering gap. */}
+        {layout.assignee > 0 && (
+          <Text color={task.assignee ? dim('cyan') : dim('gray')} dimColor={!selected && !task.assignee}>
+            {' '}{pad(task.assignee || '—', layout.assignee)}
+          </Text>
+        )}
       </Box>
       {/* 📖 Continuation lines — selected row only, indented under Description. */}
       {titleLines.slice(1).map((line, idx) => (
@@ -280,15 +347,17 @@ function TaskListRow({ row, selected, layout, now }: {
   );
 }
 
-function ListFooter({ scroll, end, total, selectedIndex, sort, filter, search, width }: {
+function ListFooter({ scroll, end, total, selectedIndex, sort, sortDir, filter, priorityFilter, search, width }: {
   scroll: number; end: number; total: number; selectedIndex: number;
-  sort: ListSort; filter: FilterMode; search: string; width: number;
+  sort: ListSort; sortDir: ListSortDir; filter: FilterMode;
+  priorityFilter: PriorityFilter; search: string; width: number;
 }) {
   const parts: string[] = [];
   if (scroll > 0) parts.push(`▲ ${scroll}`);
   if (end < total) parts.push(`▼ ${total - end}`);
   parts.push(total > 0 ? `${selectedIndex + 1}/${total}` : '0/0');
-  parts.push(`sort ${sort}`);
+  parts.push(`sort ${sort} ${sortDir === 'desc' ? '↓' : '↑'}`);
+  if (priorityFilter !== 'all') parts.push(`only ${priorityFilter === 'none' ? 'untriaged' : priorityFilter}`);
   if (filter !== 'all') parts.push(`filter ${filter}`);
   if (search) parts.push(`/${search}`);
 
@@ -302,27 +371,35 @@ function ListFooter({ scroll, end, total, selectedIndex, sort, filter, search, w
  * and the current scroll offset; returns the header, the visible window and the
  * footer. All navigation state lives in board.tsx.
  */
-export function TaskListView({ rows, selectedIndex, geometry, sort, filter, search, width, now = Date.now() }: {
+export function TaskListView({
+  rows, selectedIndex, geometry, sort, sortDir = 'asc', filter,
+  priorityFilter = 'all', search, width, now = Date.now(),
+}: {
   rows: ListRow[];
   selectedIndex: number;
   /** Layout + visible window, from `computeListGeometry` in the parent. */
   geometry: ListGeometry;
   sort: ListSort;
+  sortDir?: ListSortDir;
   filter: FilterMode;
+  priorityFilter?: PriorityFilter;
   search: string;
   width: number;
   now?: number;
 }) {
   const { layout, window } = geometry;
+  const header = (
+    <ListHeaderRow layout={layout} sort={sort} sortDir={sortDir} priorityFilter={priorityFilter} />
+  );
 
   if (rows.length === 0) {
     return (
       <Box flexDirection="column">
-        <ListHeaderRow layout={layout} />
+        {header}
         <Text color="gray" dimColor>
           {'  '}
-          {search || filter !== 'all'
-            ? 'No task matches the current search / filter — press Esc to clear the search, f to cycle the filter.'
+          {search || filter !== 'all' || priorityFilter !== 'all'
+            ? 'No task matches the current search / filter — press Esc to clear the search, f to cycle the filter, p the priority lens.'
             : 'No tasks yet — press n to create one.'}
         </Text>
       </Box>
@@ -345,7 +422,7 @@ export function TaskListView({ rows, selectedIndex, geometry, sort, filter, sear
 
   return (
     <Box flexDirection="column">
-      <ListHeaderRow layout={layout} />
+      {header}
       {visible}
       <ListFooter
         scroll={window.scroll}
@@ -353,7 +430,9 @@ export function TaskListView({ rows, selectedIndex, geometry, sort, filter, sear
         total={rows.length}
         selectedIndex={selectedIndex}
         sort={sort}
+        sortDir={sortDir}
         filter={filter}
+        priorityFilter={priorityFilter}
         search={search}
         width={width}
       />

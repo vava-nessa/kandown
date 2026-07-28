@@ -27,16 +27,22 @@
  *  → normalizeOwner — collapses ownerType spellings (`agent`/`ai`, `user`/`human`)
  *  → matchesSearch — case-insensitive substring match over id/title/tags/assignee
  *  → matchesFilter — the `f` key's filter modes
- *  → sortRows — applies a ListSort in place-safe fashion
+ *  → matchesPriorityFilter — the `Pr` header's priority lens
+ *  → sortRows — applies a ListSort + direction in place-safe fashion
  *  → buildListRows — board → filtered, sorted flat rows
  *  → computeListLayout — terminal width → per-column widths + visibility
+ *  → listColumnAtX — click X → the header cell under it
+ *  → sortForColumn — header cell → the sort it selects (null for `Pr`)
  *  → wrapText — greedy word wrap for the expanded selected row
  *  → priorityColor / priorityRank — shared priority presentation & ordering
  *
- * @exports ListRow, ListSort, FilterMode, ListLayout, ListColumnPrefs,
- *   ALL_LIST_COLUMNS, LIST_SORTS, FILTER_MODES,
- *   normalizeOwner, matchesSearch, matchesFilter, sortRows, buildListRows,
- *   computeListLayout, wrapText, priorityColor, priorityRank, ownerGlyph
+ * @exports ListRow, ListSort, ListSortDir, FilterMode, PriorityFilter,
+ *   ListLayout, ListColumnPrefs, ListColumnKey, ALL_LIST_COLUMNS,
+ *   LIST_COLUMN_ORDER, LIST_SORTS, FILTER_MODES, PRIORITY_FILTERS, MAX_DESC,
+ *   OWNER_GLYPH_WIDTH, normalizeOwner, matchesSearch, matchesFilter,
+ *   matchesPriorityFilter, sortRows, buildListRows, computeListLayout,
+ *   listColumnAtX, sortForColumn, wrapText, priorityColor, priorityRank,
+ *   ownerGlyph
  * @see src/cli/screens/board/list-view.tsx — the renderer that consumes these
  * @see src/lib/task-meta.ts — where the Age values come from
  */
@@ -59,14 +65,35 @@ export interface ListRow {
   colIndex: number;
 }
 
-export type ListSort = 'status' | 'age' | 'priority' | 'id';
+export type ListSort = 'status' | 'age' | 'priority' | 'id' | 'owner' | 'deps' | 'tags' | 'title' | 'assignee';
+export type ListSortDir = 'asc' | 'desc';
 export type FilterMode = 'all' | 'priority-p1' | 'owner-ai' | 'owner-human' | 'blocked';
 
-/** 📖 Cycle order for the `s` key. */
+/**
+ * 📖 Cycle order for the `s` key. Deliberately shorter than the set of
+ * *sortable* columns: `s` walks the four orders anyone reaches for repeatedly,
+ * while the rarer ones (owner, deps, tags, title, assignee) are one header
+ * click away. A cycle you have to press nine times to get back to the start is
+ * a cycle nobody uses.
+ */
 export const LIST_SORTS: ListSort[] = ['status', 'age', 'priority', 'id'];
 
 /** 📖 Cycle order for the `f` key. */
 export const FILTER_MODES: FilterMode[] = ['all', 'priority-p1', 'owner-ai', 'owner-human', 'blocked'];
+
+/**
+ * 📖 The priority lens, cycled by clicking the `Pr` header (or pressing `p`).
+ * `all` shows everything; a `P1`…`P4` value narrows the list to that single
+ * priority, and `none` surfaces the tasks nobody has triaged yet.
+ *
+ * 📖 Why its own state instead of another `FilterMode` entry: `f` and the
+ * priority lens compose. "AI tasks" ∩ "P1" is the question you actually ask on
+ * a Monday morning, and folding priority into the `f` cycle would make the two
+ * mutually exclusive.
+ */
+export type PriorityFilter = 'all' | 'P1' | 'P2' | 'P3' | 'P4' | 'none';
+
+export const PRIORITY_FILTERS: PriorityFilter[] = ['all', 'P1', 'P2', 'P3', 'P4', 'none'];
 
 // ─── Owner / priority presentation ───────────────────────────────────────────
 
@@ -84,13 +111,22 @@ export function normalizeOwner(task: BoardTask): 'ai' | 'human' | '' {
 }
 
 /**
- * 📖 One-character owner badge. Deliberately ASCII-ish and single-width:
- * emoji (🤖/👤) render as two cells in some terminals and one in others, which
- * would shift every column to its right by one on the affected rows.
+ * 📖 Owner badge: 🤖 for an agent-owned task, 👤 for a human one, blank when
+ * the file says nothing. `A`/`H` were unreadable without the legend; the two
+ * pictograms are the whole point of a one-glyph column.
+ *
+ * 📖 Width discipline. Both glyphs are astral code points, so JavaScript's
+ * `.length` reports 2 — exactly the number of terminal cells an emoji-
+ * presentation character occupies. `pad`/`truncate` count code units, so the
+ * column lines up for free as long as the width reserved for it is even. That
+ * equivalence is the reason these two emoji were picked over, say, 🧑 (same
+ * length, but far more variable rendering across fonts).
  */
+export const OWNER_GLYPH_WIDTH = 2;
+
 export function ownerGlyph(task: BoardTask): string {
   const owner = normalizeOwner(task);
-  return owner === 'ai' ? 'A' : owner === 'human' ? 'H' : ' ';
+  return owner === 'ai' ? '🤖' : owner === 'human' ? '👤' : '  ';
 }
 
 /** 📖 Sort weight for priority — P1 first, unset last. */
@@ -130,6 +166,18 @@ export function matchesSearch(task: BoardTask, query: string): boolean {
   return false;
 }
 
+/**
+ * 📖 The priority lens. `none` is not "no filter" — it is the *untriaged*
+ * bucket, the tasks with no `priority:` at all, which is the one slice you
+ * cannot otherwise ask for.
+ */
+export function matchesPriorityFilter(task: BoardTask, filter: PriorityFilter): boolean {
+  if (filter === 'all') return true;
+  const value = String(task.priority || '').toUpperCase();
+  if (filter === 'none') return !/^P[1-4]$/.test(value);
+  return value === filter;
+}
+
 /** 📖 The `f` key's modes. `blocked` surfaces tasks waiting on a dependency. */
 export function matchesFilter(task: BoardTask, mode: FilterMode): boolean {
   switch (mode) {
@@ -151,39 +199,66 @@ export function matchesFilter(task: BoardTask, mode: FilterMode): boolean {
  * Every order falls back to board position (column, then in-column order) for
  * ties, so the list never reshuffles arbitrarily between two renders of the
  * same data.
+ *
+ * 📖 `dir` mirrors the whole comparator, tiebreak included, so `desc` is the
+ * exact reverse of `asc` and clicking a header twice returns you to a list you
+ * recognise. `asc` always means each column's *natural reading order*: board
+ * order for status, most-recent-first for age, P1-first for priority. Those
+ * are the orders a person means when they say "sorted by age", so they are the
+ * ones the first click gives you.
  */
-export function sortRows(rows: ListRow[], sort: ListSort): ListRow[] {
+export function sortRows(rows: ListRow[], sort: ListSort, dir: ListSortDir = 'asc'): ListRow[] {
   const indexOf = new Map<ListRow, number>();
   rows.forEach((row, i) => indexOf.set(row, i));
   const tiebreak = (a: ListRow, b: ListRow) => (indexOf.get(a) ?? 0) - (indexOf.get(b) ?? 0);
+  // 📖 Empty values sort after every real one in `asc`, so "sort by assignee"
+  // opens on the tasks that actually have one. Under `desc` they lead, because
+  // `desc` is a true mirror (see above): pinning blanks to the bottom in both
+  // directions would make the second click on a header flip *most* of the list
+  // and leave a block of it stuck, which reads as a bug.
+  const byText = (a: string, b: string) => {
+    if (!a && !b) return 0;
+    if (!a) return 1;
+    if (!b) return -1;
+    return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+  };
 
-  const sorted = [...rows];
-  switch (sort) {
-    case 'age':
-      // 📖 Most recently touched first. Tasks with no timestamp at all sink to
-      // the bottom rather than pretending to be from 1970.
-      sorted.sort((a, b) => {
+  const compare = (a: ListRow, b: ListRow): number => {
+    switch (sort) {
+      case 'age': {
+        // 📖 Most recently touched first. Tasks with no timestamp at all sink
+        // to the bottom rather than pretending to be from 1970.
         const ta = a.task.updatedAt;
         const tb = b.task.updatedAt;
-        if (ta === null && tb === null) return tiebreak(a, b);
+        if (ta === null && tb === null) return 0;
         if (ta === null) return 1;
         if (tb === null) return -1;
-        return tb - ta || tiebreak(a, b);
-      });
-      break;
-    case 'priority':
-      sorted.sort((a, b) => priorityRank(a.task) - priorityRank(b.task) || tiebreak(a, b));
-      break;
-    case 'id':
-      sorted.sort((a, b) => a.task.id.localeCompare(b.task.id, undefined, { numeric: true }));
-      break;
-    case 'status':
-    default:
-      // 📖 Already in board order (columns left to right, tasks top to bottom)
-      // because buildListRows walks the board that way.
-      break;
-  }
-  return sorted;
+        return tb - ta;
+      }
+      case 'priority':
+        return priorityRank(a.task) - priorityRank(b.task);
+      case 'id':
+        return a.task.id.localeCompare(b.task.id, undefined, { numeric: true });
+      case 'owner':
+        return byText(normalizeOwner(a.task), normalizeOwner(b.task));
+      case 'deps':
+        return b.task.dependsOn.length - a.task.dependsOn.length;
+      case 'tags':
+        return byText(a.task.tags.join(','), b.task.tags.join(','));
+      case 'title':
+        return byText(a.task.title, b.task.title);
+      case 'assignee':
+        return byText(a.task.assignee ?? '', b.task.assignee ?? '');
+      case 'status':
+      default:
+        // 📖 Board order (columns left to right, tasks top to bottom) is what
+        // buildListRows already produced, so the tiebreak alone reproduces it.
+        return a.colIndex - b.colIndex;
+    }
+  };
+
+  const sign = dir === 'desc' ? -1 : 1;
+  return [...rows].sort((a, b) => sign * (compare(a, b) || tiebreak(a, b)));
 }
 
 /**
@@ -196,19 +271,26 @@ export function sortRows(rows: ListRow[], sort: ListSort): ListRow[] {
  */
 export function buildListRows(
   board: ParsedBoard | null,
-  options: { search?: string; filter?: FilterMode; sort?: ListSort } = {},
+  options: {
+    search?: string;
+    filter?: FilterMode;
+    priority?: PriorityFilter;
+    sort?: ListSort;
+    dir?: ListSortDir;
+  } = {},
 ): ListRow[] {
   if (!board) return [];
-  const { search = '', filter = 'all', sort = 'status' } = options;
+  const { search = '', filter = 'all', priority = 'all', sort = 'status', dir = 'asc' } = options;
   const rows: ListRow[] = [];
   board.columns.forEach((column, colIndex) => {
     for (const task of column.tasks) {
       if (!matchesFilter(task, filter)) continue;
+      if (!matchesPriorityFilter(task, priority)) continue;
       if (!matchesSearch(task, search)) continue;
       rows.push({ task, status: column.name, colIndex });
     }
   });
-  return sortRows(rows, sort);
+  return sortRows(rows, sort, dir);
 }
 
 /**
@@ -223,14 +305,18 @@ export function applyBoardFilter(
   board: ParsedBoard | null,
   search: string,
   filter: FilterMode,
+  priority: PriorityFilter = 'all',
 ): ParsedBoard | null {
   if (!board) return null;
-  if (!search.trim() && filter === 'all') return board;
+  if (!search.trim() && filter === 'all' && priority === 'all') return board;
   return {
     ...board,
     columns: board.columns.map(column => ({
       ...column,
-      tasks: column.tasks.filter(task => matchesFilter(task, filter) && matchesSearch(task, search)),
+      tasks: column.tasks.filter(task =>
+        matchesFilter(task, filter)
+        && matchesPriorityFilter(task, priority)
+        && matchesSearch(task, search)),
     })),
   };
 }
@@ -252,6 +338,8 @@ export interface ListLayout {
   deps: number;
   tags: number;
   desc: number;
+  /** 📖 Assignee cell, drawn *after* the description at the far right. */
+  assignee: number;
   /** 📖 First cell (0-based) of the description column — where wrapped
    * continuation lines of the selected row are indented to. */
   descOffset: number;
@@ -261,6 +349,22 @@ export interface ListLayout {
 
 /** 📖 Below this the description is unreadable, so we drop a column instead. */
 const MIN_DESC = 24;
+
+/**
+ * 📖 Hard cap on the description column.
+ *
+ * A title is scanned, not read: past ~60 characters the eye stops parsing the
+ * line and starts hunting, and on a 200-column terminal an uncapped
+ * description pushes everything after it (the assignee) off into the far
+ * distance where it stops being part of the same row. Capping here also makes
+ * every row the same shape at any terminal width, which is what makes a long
+ * list scannable. The full title is always one keypress away in the detail
+ * pane, and the selected row still wraps in place.
+ */
+export const MAX_DESC = 60;
+
+/** 📖 Enough for `claude-code` / a human handle; longer names get elided. */
+const ASSIGNEE_WIDTH = 12;
 
 /** 📖 One space between every visible column. */
 const GAP = 1;
@@ -273,7 +377,7 @@ const GAP = 1;
  * two things the flat list exists to show that a single task file does not:
  * what moved recently, and where it sits on the board.
  */
-type DroppableColumn = 'tags' | 'deps' | 'owner' | 'priority' | 'age' | 'status';
+type DroppableColumn = 'tags' | 'assignee' | 'deps' | 'owner' | 'priority' | 'age' | 'status';
 
 /**
  * 📖 Which optional columns the user wants at all, from `tui.columns` in
@@ -291,13 +395,14 @@ export interface ListColumnPrefs {
   owner: boolean;
   deps: boolean;
   tags: boolean;
+  assignee: boolean;
 }
 
 /** 📖 Fallback when no preference is supplied (tests, direct calls). */
 export const ALL_LIST_COLUMNS: ListColumnPrefs = {
-  age: true, status: true, priority: true, owner: true, deps: true, tags: true,
+  age: true, status: true, priority: true, owner: true, deps: true, tags: true, assignee: true,
 };
-const DROP_ORDER: DroppableColumn[] = ['tags', 'deps', 'owner', 'priority', 'age', 'status'];
+const DROP_ORDER: DroppableColumn[] = ['tags', 'assignee', 'deps', 'owner', 'priority', 'age', 'status'];
 
 /**
  * 📖 Computes the column widths for the current rows and terminal width.
@@ -323,21 +428,32 @@ export function computeListLayout(
     // 📖 One cell for the ▸ / ✓ marker; the inter-column gap supplies the space
     // that separates it from the id.
     cursor: 1,
-    id: Math.min(longestId, 8),
+    // 📖 Every width below has one cell of slack over its header label, so the
+    // active-sort arrow (`ID↑`, `Status↓`) fits without the column changing
+    // size when you click it. See `ListHeaderRow`.
+    id: Math.max(3, Math.min(longestId, 8)),
     age: prefs.age ? 5 : 0,
-    status: prefs.status ? Math.min(longestStatus, 13) : 0,
+    status: prefs.status ? Math.max(7, Math.min(longestStatus, 13)) : 0,
     priority: prefs.priority ? 2 : 0,
-    owner: prefs.owner ? 1 : 0,
-    deps: prefs.deps ? 3 : 0,
+    // 📖 An emoji owner badge is two terminal cells wide (see `ownerGlyph`);
+    // the extra two carry the `Who↑` header without reserving a third glyph.
+    owner: prefs.owner ? OWNER_GLYPH_WIDTH + 2 : 0,
+    deps: prefs.deps ? 4 : 0,
     tags: prefs.tags ? 14 : 0,
     desc: 0,
+    assignee: prefs.assignee ? ASSIGNEE_WIDTH : 0,
     descOffset: 0,
     total: 0,
   };
 
   const visible = ['cursor', 'id', 'age', 'status', 'priority', 'owner', 'deps', 'tags'] as const;
-  const used = (): number =>
+  const leading = (): number =>
     visible.reduce((sum, key) => sum + layout[key] + (layout[key] > 0 ? GAP : 0), 0);
+  // 📖 The assignee sits to the *right* of the description, so its width is
+  // subtracted from what the description may claim rather than added to the
+  // offset the description starts at.
+  const trailing = (): number => (layout.assignee > 0 ? layout.assignee + GAP : 0);
+  const used = (): number => leading() + trailing();
 
   // 📖 Drop columns until the description can breathe. `cursor` and `id` are
   // never in DROP_ORDER, so this always terminates with a usable list.
@@ -346,10 +462,68 @@ export function computeListLayout(
     layout[key] = 0;
   }
 
-  layout.descOffset = used();
-  layout.desc = Math.max(8, width - layout.descOffset);
-  layout.total = Math.min(width, layout.descOffset + layout.desc);
+  layout.descOffset = leading();
+  // 📖 Capped, not greedy: see MAX_DESC. Whatever the cap leaves over stays
+  // unused rather than being handed to a column that does not need it.
+  layout.desc = Math.max(8, Math.min(MAX_DESC, width - layout.descOffset - trailing()));
+  layout.total = Math.min(width, layout.descOffset + layout.desc + trailing());
   return layout;
+}
+
+// ─── Header hit-testing ──────────────────────────────────────────────────────
+
+/** 📖 Every cell of the header row, in the order it is drawn. */
+export type ListColumnKey =
+  | 'cursor' | 'id' | 'age' | 'status' | 'priority' | 'owner' | 'deps' | 'tags' | 'desc' | 'assignee';
+
+/** 📖 Draw order. The renderer and the hit-test walk this same array, which is
+ *  the only way the two can never disagree about where a column starts. */
+export const LIST_COLUMN_ORDER: ListColumnKey[] = [
+  'cursor', 'id', 'age', 'status', 'priority', 'owner', 'deps', 'tags', 'desc', 'assignee',
+];
+
+/**
+ * 📖 Maps a click's X coordinate (1-based, as terminals report it) to the
+ * header cell under it, or null past the end of the row. Hidden columns
+ * (width 0) are skipped, so a click always lands on something the user can
+ * actually see.
+ *
+ * 📖 The inter-column gap belongs to the cell on its *left*: clicking the
+ * single space after `Status` sorts by status rather than doing nothing, which
+ * matters when a header label is only two characters wide (`Pr`).
+ */
+export function listColumnAtX(layout: ListLayout, x: number): ListColumnKey | null {
+  let start = 0; // 0-based cell index of the current column
+  for (const key of LIST_COLUMN_ORDER) {
+    const width = layout[key];
+    if (width <= 0) continue;
+    const end = start + width + GAP; // inclusive of the trailing gap
+    if (x - 1 < end) return key;
+    start = end;
+  }
+  return null;
+}
+
+/**
+ * 📖 Which sort a header cell selects. The cursor column has nothing to sort
+ * by, and `priority` is deliberately absent: clicking `Pr` cycles the priority
+ * lens instead (the board's most-used filter deserves the most-clickable
+ * target), and priority *sorting* stays on the `s` cycle.
+ */
+export function sortForColumn(key: ListColumnKey): ListSort | null {
+  switch (key) {
+    case 'id': return 'id';
+    case 'age': return 'age';
+    case 'status': return 'status';
+    case 'owner': return 'owner';
+    case 'deps': return 'deps';
+    case 'tags': return 'tags';
+    case 'desc': return 'title';
+    case 'assignee': return 'assignee';
+    case 'priority':
+    case 'cursor':
+    default: return null;
+  }
 }
 
 /**

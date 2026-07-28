@@ -4,7 +4,8 @@
     "theme": "light",
     "skin": "kandown",
     "font": "inter",
-    "background": "solid"
+    "background": "solid",
+    "onboardingCompleted": true
   },
   "agent": {
     "suggestFollowUp": true,
@@ -41,12 +42,25 @@
     ],
     "defaultPriority": "P3",
     "defaultOwnerType": "human",
+    "stackDefaultState": "collapsed",
     "columnColors": {
       "in progress": "fuchsia",
       "backlog": "lime",
       "todo": "red"
-    },
-    "stackDefaultState": "collapsed"
+    }
+  },
+  "tui": {
+    "defaultView": "list",
+    "showDetailPane": true,
+    "listSort": "status",
+    "columns": {
+      "age": true,
+      "status": true,
+      "priority": true,
+      "owner": true,
+      "deps": true,
+      "tags": false
+    }
   },
   "fields": {
     "priority": false,

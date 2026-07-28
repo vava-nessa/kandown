@@ -3,14 +3,14 @@
   "files": [
     {
       "path": "bin/kandown.js",
-      "lines": 5112,
+      "lines": 5306,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 60490,
+      "lines": 60831,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -162,7 +162,7 @@
     },
     {
       "path": "src/cli/commands/daemon.ts",
-      "lines": 81,
+      "lines": 85,
       "title": "CLI command — daemon subcommands",
       "summary": "Handles `kandown daemon <run|start|stop|restart|status|refresh-all>`.",
       "exports": "cmdDaemon"
@@ -229,10 +229,22 @@
       "exports": "useMouseMode, parseMouseInput, MouseInputEvent"
     },
     {
+      "path": "src/cli/lib/__tests__/agent-assign.spec.ts",
+      "lines": 140,
+      "title": "Assign-and-launch unit tests",
+      "summary": "Covers the three pieces the TUI's `a` key now leans on: - `assignTaskToAgent` writes the canonical agent id into `assignee:`, preserves the rest of the frontmatter and the body, is idempotent, and fails soft on an unknown task."
+    },
+    {
       "path": "src/cli/lib/__tests__/board-reader.spec.ts",
       "lines": 125,
       "title": "Integration tests for the gate funneled through board-reader",
       "summary": "Spawns bin/kandown.js (the published CLI bundle) in a tmpdir, seeds two tasks with a dependency edge, and asserts that: - `kandown move` succeeds when the dependency is already in the terminal column."
+    },
+    {
+      "path": "src/cli/lib/__tests__/daemon-self-upgrade.spec.ts",
+      "lines": 124,
+      "title": "Daemon self-upgrade watcher",
+      "summary": "The daemon restarts itself when the package on disk moves ahead of the code it is running, so a user with the web UI open never has to be told to run a command."
     },
     {
       "path": "src/cli/lib/__tests__/resolve-kandown-dir.spec.ts",
@@ -248,7 +260,7 @@
     },
     {
       "path": "src/cli/lib/agents-config.ts",
-      "lines": 203,
+      "lines": 218,
       "title": "Persistent, versioned agent catalog (`.kandown/agents.json`)",
       "summary": "The committed team contract for which AI coding agents a project supports: their binary, aliases, launch mode, and per-agent extra CLI args, plus project-wide cascade preferences (preferred agent, unassigned-task behaviour, same-session…",
       "functions": [
@@ -273,7 +285,7 @@
     },
     {
       "path": "src/cli/lib/agents.ts",
-      "lines": 580,
+      "lines": 704,
       "title": "AI agent registry for the CLI task launcher",
       "summary": "Defines the built-in AI coding agents the CLI knows how to launch, merges them with the versioned team catalog (`.kandown/agents.json`), detects which binaries are installed on the current machine, and builds the shell command — plus…",
       "functions": [
@@ -302,6 +314,10 @@
           "summary": "single-binary PATH check (cached)"
         },
         {
+          "name": "resolveBinPath",
+          "summary": "absolute path of a binary in PATH, or null (cached)"
+        },
+        {
           "name": "buildAgentCommand",
           "summary": "[binary, ...args] for any entry (built-in or custom)"
         },
@@ -310,7 +326,7 @@
           "summary": "system + task prompt, optionally with handoff/queue"
         }
       ],
-      "exports": "AgentDef, LaunchOpts, AGENTS, loadCatalog, detectInstalledAgents, warmupDetection, getAgentById, resolveAgentEntry, isAgentInstalled, buildAgentCommand, buildPrompt"
+      "exports": "AgentDef, LaunchOpts, AGENTS, loadCatalog, detectInstalledAgents, warmupDetection, getAgentById, resolveAgentEntry, isAgentInstalled, resolveBinPath, buildAgentCommand, buildPrompt"
     },
     {
       "path": "src/cli/lib/atomic-write.ts",
@@ -327,7 +343,7 @@
     },
     {
       "path": "src/cli/lib/board-reader.ts",
-      "lines": 438,
+      "lines": 483,
       "title": "Node.js task reader and mutator",
       "summary": "Provides filesystem-based reading and writing of Kandown task files for the CLI.",
       "functions": [
@@ -362,9 +378,13 @@
         {
           "name": "moveTaskToColumn",
           "summary": "updates a task frontmatter status"
+        },
+        {
+          "name": "assignTaskToAgent",
+          "summary": "writes a canonical agent id into `assignee:`"
         }
       ],
-      "exports": "getProjectRoot, getTasksDir, listTaskIds, findTaskPath, readBoard, readTask, readAgentDoc, moveTaskToColumn"
+      "exports": "getProjectRoot, getTasksDir, listTaskIds, findTaskPath, readBoard, readTask, readAgentDoc, moveTaskToColumn, assignTaskToAgent"
     },
     {
       "path": "src/cli/lib/browser.ts",
@@ -428,7 +448,7 @@
     },
     {
       "path": "src/cli/lib/config.ts",
-      "lines": 291,
+      "lines": 300,
       "title": "Config reader/writer for kandown.json",
       "summary": "Handles loading, saving, and accessing the kandown project configuration.",
       "functions": [
@@ -457,7 +477,7 @@
     },
     {
       "path": "src/cli/lib/daemon.ts",
-      "lines": 265,
+      "lines": 367,
       "title": "Kandown daemon helpers for the TUI",
       "summary": "Reads and controls the per-project web daemon from the terminal UI.",
       "functions": [
@@ -476,9 +496,13 @@
         {
           "name": "stopProjectDaemon",
           "summary": "terminate the current project's daemon"
+        },
+        {
+          "name": "scheduleDaemonSelfUpgrade",
+          "summary": "watch the package on disk, restart when stale"
         }
       ],
-      "exports": "DaemonMetadata, DaemonStatus, readDaemonMetadata, getDaemonStatus, startProjectDaemon, stopProjectDaemon"
+      "exports": "DaemonMetadata, DaemonStatus, DAEMON_UPGRADE_ENV, readDaemonMetadata, getDaemonStatus, startProjectDaemon, stopProjectDaemon, scheduleDaemonSelfUpgrade"
     },
     {
       "path": "src/cli/lib/extensions-cli.ts",
@@ -534,15 +558,15 @@
     },
     {
       "path": "src/cli/lib/init.ts",
-      "lines": 98,
+      "lines": 130,
       "title": "Kandown Project Initializer Module",
       "summary": "Creates .kandown/ configuration, copies singlefile HTML bundle, initializes project-root ./tasks/ with welcome templates, and creates AGENT_KANDOWN.md."
     },
     {
       "path": "src/cli/lib/launcher.ts",
-      "lines": 278,
+      "lines": 289,
       "title": "CLI agent launcher",
-      "summary": "Orchestrates the full task launch flow: read context, build prompt, auto-move task to In Progress, and spawn the chosen AI agent.",
+      "summary": "Orchestrates the full task launch flow: read context, build prompt, assign the task to the chosen agent, auto-move it to In Progress, and spawn the agent.",
       "functions": [
         {
           "name": "isInTmux",
@@ -638,20 +662,24 @@
     },
     {
       "path": "src/cli/screens/agent-picker.tsx",
-      "lines": 110,
+      "lines": 150,
       "title": "Agent Picker overlay component",
-      "summary": "Modal-style overlay for selecting an AI agent to launch a task.",
+      "summary": "Modal-style overlay for picking the AI agent a task is assigned to and launched on.",
       "functions": [
         {
           "name": "AgentPicker",
           "summary": "agent selection overlay component"
+        },
+        {
+          "name": "shortenPath",
+          "summary": "$HOME → ~ and middle-elide a binary path to fit the box"
         }
       ],
       "exports": "AgentPicker"
     },
     {
       "path": "src/cli/screens/board.tsx",
-      "lines": 1609,
+      "lines": 1677,
       "title": "TUI Board Screen",
       "summary": "The Kandown CLI's main screen.",
       "functions": [
@@ -661,6 +689,12 @@
         }
       ],
       "exports": "Board"
+    },
+    {
+      "path": "src/cli/screens/board/__tests__/list-helpers.spec.ts",
+      "lines": 231,
+      "title": "List view helpers — sorting, filtering, layout and header hit-testing",
+      "summary": "Guards the pure half of the TUI list view, where a bug is invisible until someone notices the wrong task under the cursor: - `sortRows` produces each column's natural order, and `desc` is its exact mirror (the property that makes a…"
     },
     {
       "path": "src/cli/screens/board/components.tsx",
@@ -734,7 +768,7 @@
     },
     {
       "path": "src/cli/screens/board/list-helpers.ts",
-      "lines": 402,
+      "lines": 576,
       "title": "List view — pure data & layout helpers",
       "summary": "Everything the flat list view needs that is not React: turning the column-shaped board into one ordered list of rows, the search/filter pipeline shared with the kanban view, the sort orders, the adaptive column layout, and word wrapping…",
       "functions": [
@@ -751,8 +785,12 @@
           "summary": "the `f` key's filter modes"
         },
         {
+          "name": "matchesPriorityFilter",
+          "summary": "the `Pr` header's priority lens"
+        },
+        {
           "name": "sortRows",
-          "summary": "applies a ListSort in place-safe fashion"
+          "summary": "applies a ListSort + direction in place-safe fashion"
         },
         {
           "name": "buildListRows",
@@ -763,6 +801,14 @@
           "summary": "terminal width → per-column widths + visibility"
         },
         {
+          "name": "listColumnAtX",
+          "summary": "click X → the header cell under it"
+        },
+        {
+          "name": "sortForColumn",
+          "summary": "header cell → the sort it selects (null for `Pr`)"
+        },
+        {
           "name": "wrapText",
           "summary": "greedy word wrap for the expanded selected row"
         },
@@ -771,11 +817,11 @@
           "summary": "shared priority presentation & ordering"
         }
       ],
-      "exports": "ListRow, ListSort, FilterMode, ListLayout, ListColumnPrefs, ALL_LIST_COLUMNS, LIST_SORTS, FILTER_MODES, normalizeOwner, matchesSearch, matchesFilter, sortRows, buildListRows, computeListLayout, wrapText, priorityColor, priorityRank, ownerGlyph"
+      "exports": "ListRow, ListSort, ListSortDir, FilterMode, PriorityFilter, ListLayout, ListColumnPrefs, ListColumnKey, ALL_LIST_COLUMNS, LIST_COLUMN_ORDER, LIST_SORTS, FILTER_MODES, PRIORITY_FILTERS, MAX_DESC, OWNER_GLYPH_WIDTH, normalizeOwner, matchesSearch, matchesFilter, matchesPriorityFilter, sortRows, buildListRows, computeListLayout, listColumnAtX, sortForColumn, wrapText, priorityColor, priorityRank, ownerGlyph"
     },
     {
       "path": "src/cli/screens/board/list-view.tsx",
-      "lines": 452,
+      "lines": 531,
       "title": "List view — presentational components",
       "summary": "The flat, one-task-per-line view that the TUI opens on, plus the Name/Value detail pane pinned beneath it.",
       "functions": [
@@ -785,7 +831,7 @@
         },
         {
           "name": "ListHeaderRow",
-          "summary": "the column header + rule"
+          "summary": "the clickable column header (sort arrow, priority lens)"
         },
         {
           "name": "TaskListRow",
@@ -793,7 +839,7 @@
         },
         {
           "name": "ListFooter",
-          "summary": "scroll position, counts, active sort and filter"
+          "summary": "scroll position, counts, active sort, direction and filters"
         },
         {
           "name": "TaskListView",
@@ -804,7 +850,7 @@
           "summary": "Name/Value pane that follows the selection"
         }
       ],
-      "exports": "DETAIL_PANE_HEIGHT, LIST_START_Y, computeListWindow, TaskListView, TaskDetailPane"
+      "exports": "DETAIL_PANE_HEIGHT, LIST_START_Y, LIST_HEADER_Y, computeListWindow, TaskListView, TaskDetailPane"
     },
     {
       "path": "src/cli/screens/init-prompt.tsx",
@@ -814,7 +860,7 @@
     },
     {
       "path": "src/cli/screens/settings.tsx",
-      "lines": 543,
+      "lines": 544,
       "title": "Full-screen settings TUI screen",
       "summary": "Interactive settings editor for kandown.json.",
       "functions": [
@@ -840,7 +886,7 @@
     },
     {
       "path": "src/components/agentIcons.tsx",
-      "lines": 289,
+      "lines": 305,
       "title": "AI agent brand icons (sourced from LobeHub) + assignee→avatar resolver",
       "summary": "Local, self-contained brand glyphs for the coding agents kandown can assign tasks to, plus the resolver that turns a task's `assignee` string into either a branded agent logo or a human fallback avatar.",
       "functions": [
@@ -1525,7 +1571,7 @@
     },
     {
       "path": "src/components/UpdateNotificationBanner.tsx",
-      "lines": 187,
+      "lines": 234,
       "title": "Update Notification Banner & Modal",
       "summary": "Non-intrusive, floating update notification banner and 1-click installer prompt for the Web UI."
     },
@@ -1587,7 +1633,7 @@
     },
     {
       "path": "src/lib/agent-aliases.ts",
-      "lines": 223,
+      "lines": 245,
       "title": "Agent alias resolver (shared, framework-agnostic)",
       "summary": "The single source of truth for mapping a free-form assignee string (as typed in a task's `assignee:` frontmatter or quick-add `@token`) to a canonical agent id.",
       "functions": [
@@ -2616,7 +2662,7 @@
     },
     {
       "path": "src/lib/types.ts",
-      "lines": 391,
+      "lines": 395,
       "title": "Shared domain types",
       "summary": "Defines the board, task, config, filter, search, and appearance types used by the Kandown web UI and persistence layer.",
       "exports": "Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, KandownConfig, DEFAULT_COLUMNS, DEFAULT_CONFIG"

@@ -88,14 +88,20 @@ import { BoardHeader, KanbanColumn, StatusBar, TaskDetail } from './board/compon
 import {
   FILTER_MODES,
   LIST_SORTS,
+  PRIORITY_FILTERS,
   type FilterMode,
   type ListColumnPrefs,
   type ListSort,
+  type ListSortDir,
+  type PriorityFilter,
   applyBoardFilter,
   buildListRows,
+  listColumnAtX,
+  sortForColumn,
 } from './board/list-helpers.js';
 import {
   DETAIL_PANE_HEIGHT,
+  LIST_HEADER_Y,
   LIST_START_Y,
   TaskDetailPane,
   TaskListView,
@@ -201,6 +207,12 @@ export function Board({ kandownDir, version }: BoardProps) {
   const [view, setView] = useState<'list' | 'board'>(() => loadConfig(kandownDir).tui.defaultView);
   const [showDetailPane, setShowDetailPane] = useState(() => loadConfig(kandownDir).tui.showDetailPane);
   const [listSort, setListSort] = useState<ListSort>(() => loadConfig(kandownDir).tui.listSort);
+  const [listSortDir, setListSortDir] = useState<ListSortDir>(() => loadConfig(kandownDir).tui.listSortDir);
+  /** 📖 The priority lens (`p`, or a click on the `Pr` header). Session-only on
+   * purpose: a sort is how you like to read the board, a filter is what you are
+   * doing right now, and reopening the TUI to a silently hidden two thirds of
+   * your tasks is a bug report waiting to happen. Same reasoning as `f`. */
+  const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all');
   /** 📖 Which optional list columns to draw, from `tui.columns`. Re-read
    * whenever kandown.json changes on disk (see the watcher below), so toggling
    * a column in `kandown settings` is reflected in an already-open board
@@ -220,7 +232,7 @@ export function Board({ kandownDir, version }: BoardProps) {
    * UI or in `kandown config set` between two keypresses survives. Failures are
    * swallowed — losing a view preference must never take the board down.
    */
-  const persistTuiPref = useCallback((key: 'defaultView' | 'showDetailPane' | 'listSort', value: unknown) => {
+  const persistTuiPref = useCallback((key: 'defaultView' | 'showDetailPane' | 'listSort' | 'listSortDir', value: unknown) => {
     try {
       saveConfig(kandownDir, setConfigValue(loadConfig(kandownDir), `tui.${key}`, value));
     } catch {
@@ -233,16 +245,16 @@ export function Board({ kandownDir, version }: BoardProps) {
   // 📖 The board every view, every hit-test and every navigation bound reads.
   // See the file header for why the dependency gate deliberately does not.
   const board = useMemo(
-    () => applyBoardFilter(rawBoard, searchQuery, filterMode),
-    [rawBoard, searchQuery, filterMode],
+    () => applyBoardFilter(rawBoard, searchQuery, filterMode, priorityFilter),
+    [rawBoard, searchQuery, filterMode, priorityFilter],
   );
 
   // 📖 `board` is already filtered, so the row builder is asked for no further
   // search/filter — passing them twice would be harmless but would hide where
   // the filtering actually happens.
   const listRows = useMemo(
-    () => buildListRows(board, { search: '', filter: 'all', sort: listSort }),
-    [board, listSort],
+    () => buildListRows(board, { search: '', filter: 'all', sort: listSort, dir: listSortDir }),
+    [board, listSort, listSortDir],
   );
 
   const selectedRow = listRows[Math.min(listIndex, Math.max(0, listRows.length - 1))] ?? null;
@@ -633,9 +645,40 @@ export function Board({ kandownDir, version }: BoardProps) {
     const next = LIST_SORTS[(LIST_SORTS.indexOf(listSort) + 1) % LIST_SORTS.length];
     setListSort(next);
     persistTuiPref('listSort', next);
-    showStatus(`Sort: ${next}`, 1800);
+    showStatus(`Sort: ${next} ${listSortDir === 'desc' ? '↓' : '↑'}`, 1800);
     setPendingFocusId(selectedRow?.task.id ?? null);
-  }, [listSort, persistTuiPref, showStatus, selectedRow]);
+  }, [listSort, listSortDir, persistTuiPref, showStatus, selectedRow]);
+
+  /**
+   * 📖 Header click → sort. Picking a *different* column starts it in its
+   * natural order (`asc`); clicking the column you are already sorting by flips
+   * the direction. That is the convention every spreadsheet and file manager
+   * uses, and it makes the second click on the same header meaningful instead
+   * of a no-op.
+   */
+  const sortByColumn = useCallback((next: ListSort) => {
+    const dir: ListSortDir = next === listSort ? (listSortDir === 'asc' ? 'desc' : 'asc') : 'asc';
+    setListSort(next);
+    setListSortDir(dir);
+    persistTuiPref('listSort', next);
+    persistTuiPref('listSortDir', dir);
+    showStatus(`Sort: ${next} ${dir === 'desc' ? '↓' : '↑'}`, 1800);
+    // 📖 The rows reorder under the cursor, so re-find the task by id rather
+    // than keeping an index that now points at a different task.
+    setPendingFocusId(selectedRow?.task.id ?? null);
+  }, [listSort, listSortDir, persistTuiPref, showStatus, selectedRow]);
+
+  /** 📖 Priority lens: all → P1 → P2 → P3 → P4 → untriaged → all. Bound to the
+   *  `Pr` header cell and to `p`. */
+  const cyclePriorityFilter = useCallback(() => {
+    const next = PRIORITY_FILTERS[(PRIORITY_FILTERS.indexOf(priorityFilter) + 1) % PRIORITY_FILTERS.length];
+    setPriorityFilter(next);
+    showStatus(
+      next === 'all' ? 'Priority: all' : `Priority: ${next === 'none' ? 'untriaged only' : `${next} only`}`,
+      1800,
+    );
+    setPendingFocusId(selectedRow?.task.id ?? null);
+  }, [priorityFilter, showStatus, selectedRow]);
 
   const toggleDetailPane = useCallback(() => {
     setShowDetailPane(prev => {
@@ -659,17 +702,19 @@ export function Board({ kandownDir, version }: BoardProps) {
     }
   }, [kandownDir, showStatus]);
 
-  // 📖 Core launch: move to browse, status, then spawn the agent. Shared by
-  // the picker confirmation and the assignee auto-launch path so both behave
-  // identically (rollback, tmux split, status messages).
+  // 📖 Core launch: move to browse, status, then assign + spawn the agent.
+  // Shared by the picker confirmation and the assignee auto-launch path so both
+  // behave identically (assignment, rollback, tmux split, status messages).
+  // `launchAgent` writes `assignee: <agentId>` itself, which is why the status
+  // line can promise both halves before the spawn happens.
   const launchTaskWithAgent = useCallback((taskId: string, agentId: string) => {
     setMode('browse');
-    showStatus(`Launching ${agentId} for ${taskId}…`, 5000);
+    showStatus(`Assigning ${taskId} → ${agentId} and launching…`, 5000);
     setTimeout(() => {
       try {
         launchAgent({ taskId, agentId, kandownDir, onBeforeExec: () => exit() });
         reloadBoard();
-        showStatus(`${agentId} launched in tmux pane`, 3000);
+        showStatus(`${taskId} assigned to ${agentId}, launched in tmux pane`, 3000);
       } catch (err) {
         showStatus(`Error: ${err instanceof Error ? err.message : String(err)}`, 4000);
       }
@@ -993,6 +1038,20 @@ export function Board({ kandownDir, version }: BoardProps) {
       return;
     }
     if (mouse.action !== 'press' || mouse.button !== 0) return;
+
+    // 📖 Click on the column header row: sort by that column, or cycle the
+    // priority lens when the click landed on `Pr`. Handled before the row
+    // hit-test because the header is above the first row and would otherwise
+    // fall through as a miss.
+    if (mouse.y === LIST_HEADER_Y) {
+      const column = listColumnAtX(listGeometry.layout, mouse.x);
+      if (!column) return;
+      if (column === 'priority') { cyclePriorityFilter(); return; }
+      const sort = sortForColumn(column);
+      if (sort) sortByColumn(sort);
+      return;
+    }
+
     const hit = listRowAtY(listGeometry, listIndex, mouse.y);
     if (hit === null) return;
     if (hit === listIndex) {
@@ -1001,7 +1060,7 @@ export function Board({ kandownDir, version }: BoardProps) {
       return;
     }
     setListIndex(hit);
-  }, [listRows, listGeometry, listIndex, openDetail]);
+  }, [listRows, listGeometry, listIndex, openDetail, sortByColumn, cyclePriorityFilter]);
 
   // ─── Input handling (keyboard + mouse) ────────────────────────────────────
 
@@ -1113,10 +1172,11 @@ export function Board({ kandownDir, version }: BoardProps) {
       // first Esc while a filter is on would throw away the narrowing you just
       // typed, and there'd be no way to undo it.
       if (key.escape) {
-        if (searchQuery || filterMode !== 'all') {
+        if (searchQuery || filterMode !== 'all' || priorityFilter !== 'all') {
           setSearchQuery('');
           setFilterMode('all');
-          showStatus('Search and filter cleared', 1800);
+          setPriorityFilter('all');
+          showStatus('Search and filters cleared', 1800);
           return;
         }
         exit();
@@ -1194,6 +1254,10 @@ export function Board({ kandownDir, version }: BoardProps) {
         if (input === 'l' || key.rightArrow) { shiftSelectedTask(1); return; }
         if (input === 'h' || key.leftArrow)  { shiftSelectedTask(-1); return; }
         if (input === 's') { cycleSort(); return; }
+        // 📖 `S` reverses the current sort — the keyboard twin of clicking the
+        // active column header a second time.
+        if (input === 'S') { sortByColumn(listSort); return; }
+        if (input === 'p') { cyclePriorityFilter(); return; }
         if (input === 'z') { toggleDetailPane(); return; }
         if (input === 'm') { showStatus('In list view: h/l move the task between columns', 2500); return; }
         if (key.return) {
@@ -1448,7 +1512,9 @@ export function Board({ kandownDir, version }: BoardProps) {
         <Text color="cyan" bold>List view</Text>
         <Text><Text color="yellow" bold>j/k ↑/↓   </Text>Move selection  ·  <Text color="yellow" bold>PgUp/PgDn</Text> page  ·  <Text color="yellow" bold>[ ]</Text> top/bottom</Text>
         <Text><Text color="yellow" bold>h/l ←/→   </Text>Move the task one column left / right</Text>
-        <Text><Text color="yellow" bold>s         </Text>Cycle sort (status, age, priority, id)</Text>
+        <Text><Text color="yellow" bold>s · S     </Text>Cycle sort (status, age, priority, id) · reverse it</Text>
+        <Text><Text color="yellow" bold>p         </Text>Priority lens (all → P1 → … → P4 → untriaged)</Text>
+        <Text><Text color="yellow" bold>click     </Text>A column header sorts by it, again to reverse · <Text color="yellow" bold>Pr</Text> cycles the priority lens</Text>
         <Text><Text color="yellow" bold>z         </Text>Show / hide the detail pane</Text>
         <Text> </Text>
         <Text color="cyan" bold>Board view</Text>
@@ -1544,7 +1610,9 @@ export function Board({ kandownDir, version }: BoardProps) {
           selectedIndex={listIndex}
           geometry={listGeometry}
           sort={listSort}
+          sortDir={listSortDir}
           filter={filterMode}
+          priorityFilter={priorityFilter}
           search={searchQuery}
           width={termWidth()}
         />

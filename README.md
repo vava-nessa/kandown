@@ -141,18 +141,39 @@ claude mcp add kandown -- kandown mcp
 
 ### Launching agents from the board
 
-Press `a` on any task in the terminal UI to hand it to an agent:
+Press `a` on any task in the terminal UI. One key does both halves of the job:
+it writes `assignee: <agent>` into the task file, then starts that agent on the
+task. The board, the web view and the markdown agree immediately, and the next
+`a` on the same task relaunches the same agent without asking again.
+
+The picker only lists agents whose binary is actually on this machine, each with
+the path it resolved to, so you always know which install is about to run:
+
+```
+ASSIGN & LAUNCH  t42
+
+1 › Claude Code  (~/.local/bin/claude)
+2   OpenAI Codex  (/opt/homebrew/bin/codex)
+3   OpenCode  (~/.nvm/versions/node/v25.2.1/bin/opencode)
+```
 
 | Agent | Binary | Launch mode |
 |---|---|---|
 | Claude Code | `claude` | interactive session |
 | OpenAI Codex | `codex` | interactive session |
-| Gemini CLI | `gemini` | `-i` prompt-interactive |
+| Gemini CLI | `gemini` | `--prompt-interactive` |
 | Goose | `goose` | `run --text`, non-interactive |
 | Aider | `aider` | `--message` initial prompt |
 | OpenCode | `opencode` | TUI, `--prompt` initial message |
 | Cursor | `cursor` | IDE opens the project (paste prompt) |
 | Pi | `pi` | interactive session |
+| GitHub Copilot CLI | `copilot` | `--interactive` prompt |
+| Amazon Q Developer | `q` | `q chat`, interactive |
+| Auggie (Augment) | `auggie` | interactive session |
+| Amp | `amp` | `-x` execute, non-interactive |
+| Factory Droid | `droid` | `droid exec`, non-interactive |
+| Cline | `cline` | `cline task`, non-interactive |
+| Crush · OpenClaw · Kimi · Qwen · Mistral Vibe · Grok · OpenHands · Perplexity · Agy | | interactive session |
 
 The catalog is the committed `.kandown/agents.json` — override binaries, add
 aliases, pin team-wide `extraArgs`, or declare a fully custom agent with a
@@ -258,23 +279,40 @@ default) and the **kanban columns**. The choice is remembered per project in
 `.kandown/kandown.json` under `tui`.
 
 ```
-  ID   Age   Status       Pr O Dep Description
- ─────────────────────────────────────────────────────────────────
-   t12  3s    Backlog      P2 A     Wire up the local daemon
- ▸ t264 12min In Progress  P1 A ↪2  Refactor the TUI — list view by
-                                    default, Tab toggles views
-   t99  4d    Done         P3 H     Rewrite the README intro
+  ID   Age   Status↑     Pr Who  Dep  Description                        Assignee
+ ────────────────────────────────────────────────────────────────────────────────
+   t12  3s    Backlog     P2 🤖       Wire up the local daemon           claude
+ ▸ t264 12min In Progress P1 🤖  ↪2   Refactor the TUI, list view by     codex
+                                      default, Tab toggles views
+   t99  4d    Done        P3 👤       Rewrite the README intro           vava
 ```
 
-The list gives every task the full terminal width, so titles stay readable where
-five kanban columns would truncate them to noise. The selected row expands
-downward to show its whole title; every other row stays exactly one line. A live
-detail pane under the list follows the selection (`z` hides it), and columns drop
-themselves as the terminal narrows, description last.
+The list gives every task a full line, so titles stay readable where five kanban
+columns would truncate them to noise. The selected row expands downward to show
+its whole title; every other row stays exactly one line. A live detail pane under
+the list follows the selection (`z` hides it), and columns drop themselves as the
+terminal narrows, description last.
+
+**Click a column header to sort by it**, and click the same header again to
+reverse — the active column carries a `↑`/`↓` arrow so you always know what is
+driving the order. `s` cycles the four common sorts from the keyboard, `S`
+reverses the current one.
+
+**The `Pr` header is a lens, not a sort**: clicking it (or pressing `p`) cycles
+through *all → P1 → P2 → P3 → P4 → untriaged*, and the header shows the active
+priority in its own colour. It composes with `f`, so "AI-owned P1s" is two
+keystrokes. Priority *sorting* stays on the `s` cycle.
+
+`Who` says who the task belongs to: 🤖 for an agent, 👤 for a person, blank when
+the file does not say. `Assignee`, pinned to the far right, names the specific
+coding agent (or human) on the job — the same value `a` writes when it launches
+one. Descriptions are capped at 60 characters so every row keeps the same shape
+at any terminal width; the selected row still wraps in place, and the detail pane
+always has the full title.
 
 **Every column except `ID` and `Description` can be switched off** in
 `kandown settings` → *Terminal UI*, saved to `tui.columns` in
-`.kandown/kandown.json`. `Tags` is off by default — it is the widest optional
+`.kandown/kandown.json`. `Tags` is off by default: it is the widest optional
 column and most projects leave it empty, so on by default it mostly reserved
 description width to render blanks.
 
@@ -283,16 +321,17 @@ description width to render blanks.
 | `Tab` | Switch list ⇄ board |
 | `j`/`k` | Move the selection |
 | `h`/`l` | **List:** move the task between columns · **board:** change column |
-| `s` · `z` | Cycle sort (status, age, priority, id) · toggle the detail pane |
+| `s` · `S` · `z` | Cycle sort (status, age, priority, id) · reverse it · toggle the detail pane |
 | `n` · `e` · `m` | New task · edit in `$EDITOR` · move menu (board) |
-| `/` · `f` | Search id/title/tags/assignee · cycle filters (P1, AI, human, blocked) |
-| `a` · `g` | Launch an agent · send to agent hook |
+| `/` · `f` · `p` | Search id/title/tags/assignee · cycle filters (P1, AI, human, blocked) · priority lens |
+| `a` · `g` | Assign to an agent and launch it · send to agent hook |
 | `x` · `D` · `u` | Archive · delete · undo |
 | `d` · `r` · `?` | Toggle daemon · reload · cheatsheet |
-| `Esc` | Clear search and filter, or quit when neither is active |
+| `Esc` | Clear search and filters, or quit when none is active |
 
 Drag a task with the mouse to move it between columns in the board view; in the
-list, click to select, click again to open, and scroll with the wheel.
+list, click a header to sort, click a row to select, click it again to open, and
+scroll with the wheel.
 
 The `Age` column reads the `updated:` frontmatter timestamp, which every kandown
 write stamps — CLI, MCP and web alike. It is deliberately not the file mtime:

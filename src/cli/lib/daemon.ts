@@ -9,20 +9,28 @@
  * start time. The TUI never guesses global state — it only trusts the current
  * project's metadata after validating the PID and `/api/daemon` endpoint.
  *
+ * 📖 The daemon also keeps *itself* current. A global `npm i -g kandown` (or the
+ * built-in auto-updater) swaps the files on disk under a daemon that keeps
+ * serving the web bundle it was compiled with, so the browser silently runs an
+ * old app until someone restarts the process by hand. `scheduleDaemonSelfUpgrade`
+ * closes that gap: the daemon watches the package on disk and restarts itself
+ * when it falls behind. See that function for the anti-loop guard.
+ *
  * @functions
  *  → readDaemonMetadata — parse `.kandown/daemon.json` safely
  *  → getDaemonStatus — validate daemon process + API ownership
  *  → startProjectDaemon — spawn the CLI daemon for this `.kandown/` directory
  *  → stopProjectDaemon — terminate the current project's daemon
+ *  → scheduleDaemonSelfUpgrade — watch the package on disk, restart when stale
  *
- * @exports DaemonMetadata, DaemonStatus, readDaemonMetadata, getDaemonStatus, startProjectDaemon, stopProjectDaemon
+ * @exports DaemonMetadata, DaemonStatus, DAEMON_UPGRADE_ENV, readDaemonMetadata, getDaemonStatus, startProjectDaemon, stopProjectDaemon, scheduleDaemonSelfUpgrade
  */
 
 import { existsSync, readFileSync, unlinkSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { execFileSync, spawn } from 'node:child_process';
 import { createConnection } from 'node:net';
-import { getCurrentVersion, PKG_ROOT } from './updater';
+import { getCurrentVersion, getInstalledVersion, semverGt, PKG_ROOT } from './updater';
 
 export interface DaemonMetadata {
   pid: number;
@@ -261,4 +269,98 @@ export async function stopProjectDaemon(kandownDir: string): Promise<boolean> {
   }
   removeDaemonMetadata(kandownDir);
   return true;
+}
+
+// ─── Self-upgrade ────────────────────────────────────────────────────────────
+
+/**
+ * 📖 Set on the restart the daemon triggers for itself, carrying the version it
+ * is restarting *for*. Read back by the fresh process as the anti-loop guard.
+ */
+export const DAEMON_UPGRADE_ENV = 'KANDOWN_DAEMON_UPGRADED_TO';
+
+/** 📖 First check shortly after boot (catches a daemon started moments after an
+ *  update landed), then hourly-ish. The window matters little: the daemon has
+ *  no work to lose, and a user staring at a stale web UI is the failure mode. */
+const FIRST_CHECK_MS = 15_000;
+const CHECK_INTERVAL_MS = 5 * 60_000;
+
+/**
+ * 📖 Is the package on disk newer than the code this process is running?
+ *
+ * `getCurrentVersion()` returns the constant compiled into *this* bundle (what
+ * the browser is being served), while `getInstalledVersion()` re-reads
+ * `package.json` from the install root every time (what npm has put there). A
+ * global update makes the second jump ahead of the first, and that difference is
+ * the whole signal.
+ */
+function pendingUpgradeTarget(): string | null {
+  const running = getCurrentVersion();
+  const installed = getInstalledVersion();
+  if (!installed || !running) return null;
+  return semverGt(installed, running) > 0 ? installed : null;
+}
+
+/**
+ * 📖 Makes the daemon restart itself onto a newly installed version, so a user
+ * with the web UI open finishes an upgrade without ever being told to go and
+ * run a command. Previously the browser could only nag: the daemon is the one
+ * process that knows it is stale, so it is the one that should act.
+ *
+ * 📖 How the restart happens: we spawn a detached `kandown daemon restart`,
+ * which stops us by PID and starts a fresh daemon from the new code on the same
+ * port. Reusing that command rather than re-implementing the dance here means
+ * the ownership checks, the port reuse and the metadata rewrite are the same
+ * ones every other restart path already exercises. The browser sees a few
+ * seconds of failed polls and reloads onto the new bundle.
+ *
+ * 📖 Anti-loop guard, and why it is not optional. In a development checkout
+ * `src/lib/version.ts` is generated at build time, so a bumped `package.json`
+ * with no rebuild looks exactly like a pending upgrade — forever. The restart
+ * carries `KANDOWN_DAEMON_UPGRADED_TO=<target>`; if the fresh process still sees
+ * that same target pending, it has already tried and stops, leaving one wasted
+ * restart instead of an infinite respawn loop.
+ *
+ * Returns a stop function, and is a no-op when nothing can go stale.
+ */
+export function scheduleDaemonSelfUpgrade(kandownDir: string): () => void {
+  const alreadyAttempted = process.env[DAEMON_UPGRADE_ENV];
+
+  const check = (): void => {
+    const target = pendingUpgradeTarget();
+    if (!target) return;
+    // Already restarted for exactly this version and still behind: a stale dev
+    // build, not a real upgrade. Say so once and leave it alone.
+    if (alreadyAttempted === target) return;
+
+    const cliPath = join(PKG_ROOT, 'bin', 'kandown.js');
+    if (!existsSync(cliPath)) return;
+    try {
+      const child = spawn(
+        process.execPath,
+        [cliPath, '--no-update-check', 'daemon', 'restart', '--path', kandownDir],
+        {
+          cwd: dirname(kandownDir),
+          detached: true,
+          stdio: 'ignore',
+          env: { ...process.env, [DAEMON_UPGRADE_ENV]: target },
+        },
+      );
+      child.unref();
+    } catch {
+      // 📖 Non-fatal by design: a daemon that cannot respawn must keep serving
+      // the old bundle rather than take the board down over a version number.
+    }
+  };
+
+  const first = setTimeout(check, FIRST_CHECK_MS);
+  const interval = setInterval(check, CHECK_INTERVAL_MS);
+  // 📖 Neither timer should hold the event loop open on its own.
+  first.unref?.();
+  interval.unref?.();
+
+  return () => {
+    clearTimeout(first);
+    clearInterval(interval);
+  };
 }

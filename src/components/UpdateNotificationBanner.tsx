@@ -10,10 +10,21 @@
  * it compares the registry against its own frozen constant). The banner trusts
  * `KANDOWN_VERSION` instead and only treats the daemon payload as a hint, so a
  * stale daemon cannot nag a user who is already up to date.
+ *
+ * 📖 **A stale daemon is not the user's problem to solve.** This used to render a
+ * modal telling the user to go and run `kandown daemon refresh-all` — a chore
+ * handed to the one person who could not care less which process is serving
+ * which build. The daemon now restarts itself onto the new version
+ * (`scheduleDaemonSelfUpgrade` in the CLI), so all this component does for that
+ * case is poll faster, show a thin non-blocking "finishing the upgrade" line
+ * with no buttons, and reload the page once the daemon comes back current. The
+ * full modal is reserved for a genuine new release the user may want to install.
+ *
+ * @see src/cli/lib/daemon.ts — scheduleDaemonSelfUpgrade, the half that acts
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, RefreshCw, CheckCircle2, AlertCircle, X, Download } from 'lucide-react';
+import { Sparkles, RefreshCw, AlertCircle, X, Download } from 'lucide-react';
 import { serverCheckUpdate, serverApplyUpdate, UpdateCheckResult } from '../lib/filesystem';
 import { KANDOWN_VERSION } from '../lib/version';
 
@@ -42,25 +53,51 @@ export const UpdateNotificationBanner: React.FC = () => {
   /** 📖 Which `latest` the user dismissed, so a newer one re-opens the banner. */
   const dismissedFor = useRef<string | null>(null);
 
+  /** 📖 True once we have seen the daemon lagging behind this bundle, so the
+   *  moment it catches up we can reload onto the process that just replaced it
+   *  (its watchers, SSE streams and port all died with the old one). */
+  const sawStaleDaemon = useRef(false);
+
   useEffect(() => {
     let active = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
     const check = async () => {
       const result = await serverCheckUpdate();
-      if (!active || !result) return;
-      // 📖 Always store the result, including when nothing is pending: keeping
-      // the last "update available" payload around was what left the banner on
-      // screen after the update had already been installed.
-      setUpdateInfo(result);
-      // 📖 A dismissal applies to the state that was dismissed, not forever. If
-      // a newer version ships later, or the daemon falls behind, say so again.
-      setDismissed(prev => (prev && result.latest === dismissedFor.current ? true : false));
-      dismissedFor.current = result.latest;
+      if (!active) return;
+      if (result) {
+        // 📖 Always store the result, including when nothing is pending: keeping
+        // the last "update available" payload around was what left the banner on
+        // screen after the update had already been installed.
+        setUpdateInfo(result);
+        // 📖 A dismissal applies to the state that was dismissed, not forever. If
+        // a newer version ships later, or the daemon falls behind, say so again.
+        setDismissed(prev => (prev && result.latest === dismissedFor.current ? true : false));
+        dismissedFor.current = result.latest;
+
+        const running = result.running ?? result.current;
+        const stale = !!running && compareSemver(KANDOWN_VERSION, running) > 0;
+        if (stale) {
+          sawStaleDaemon.current = true;
+        } else if (sawStaleDaemon.current) {
+          // 📖 The daemon restarted itself onto the current build. Reload so the
+          // page is talking to the live process instead of holding connections
+          // that ended with the old one.
+          window.location.reload();
+          return;
+        }
+      }
+      // 📖 Poll every few seconds while an upgrade is finishing, and go back to
+      // once every ten minutes otherwise. A stale daemon is a transient state
+      // that resolves on its own within seconds; waiting ten minutes to notice
+      // would leave the user staring at an indicator long after it was true.
+      timer = setTimeout(check, sawStaleDaemon.current ? 4_000 : 10 * 60 * 1000);
     };
+
     check();
-    const interval = setInterval(check, 10 * 60 * 1000); // 10 minutes
     return () => {
       active = false;
-      clearInterval(interval);
+      if (timer) clearTimeout(timer);
     };
   }, []);
 
@@ -72,7 +109,8 @@ export const UpdateNotificationBanner: React.FC = () => {
   //  - daemonIsStale, this web bundle is newer than the daemon process serving
   //    it (running / current). The npm install already landed, only the long-
   //    lived daemon process is stuck on its old compiled code. Re-downloading
-  //    would change nothing; only a `kandown daemon refresh-all` will.
+  //    would change nothing, and the daemon is already restarting itself, so
+  //    this state is reported and waited out, never acted on.
   //
   // We do NOT trust the daemon's `updateAvailable` flag as the primary signal:
   // a daemon that was launched before a package upgrade still compares the
@@ -87,6 +125,25 @@ export const UpdateNotificationBanner: React.FC = () => {
     !!reportedRunning &&
     compareSemver(KANDOWN_VERSION, reportedRunning) > 0;
   if (!trulyAvailable && !daemonIsStale) return null;
+
+  // 📖 Stale daemon: the CLI is already restarting itself onto this version, so
+  // there is nothing to ask and nothing to click. A single quiet line that
+  // removes itself when the reload lands, rather than a modal handing the user
+  // a command to copy.
+  if (!trulyAvailable && daemonIsStale) {
+    return (
+      <div className="fixed bottom-4 right-4 z-50 animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div
+          className="flex items-center gap-2 rounded-full border border-border/60 bg-popover/90 px-3 py-1.5 text-xs text-muted-foreground shadow-lg backdrop-blur-md"
+          role="status"
+          aria-live="polite"
+        >
+          <RefreshCw className="h-3.5 w-3.5 animate-spin text-primary" aria-hidden="true" />
+          <span>Finishing update to v{KANDOWN_VERSION}…</span>
+        </div>
+      </div>
+    );
+  }
 
   const handleApplyUpdate = async () => {
     setUpdating(true);
@@ -115,14 +172,10 @@ export const UpdateNotificationBanner: React.FC = () => {
             </div>
             <div>
               <h4 className="text-sm font-semibold tracking-tight flex items-center gap-1.5">
-                {trulyAvailable
-                  ? `Kandown v${updateInfo.latest} is available`
-                  : `Daemon is running v${reportedRunning}`}
+                {`Kandown v${updateInfo.latest} is available`}
               </h4>
               <p className="text-xs text-muted-foreground">
-                {trulyAvailable
-                  ? `Current: v${KANDOWN_VERSION}. Get the latest features & fixes.`
-                  : `The installed package is v${KANDOWN_VERSION}, but this server is still on v${reportedRunning}. Restart the daemon to finish the upgrade.`}
+                {`Current: v${KANDOWN_VERSION}. Get the latest features & fixes.`}
               </p>
             </div>
           </div>
@@ -143,11 +196,6 @@ export const UpdateNotificationBanner: React.FC = () => {
         )}
 
         <div className="flex items-center gap-2 mt-1">
-          {!trulyAvailable ? (
-            <code className="flex-1 px-3 py-2 text-xs font-mono bg-secondary/60 rounded-lg text-foreground/90 select-all">
-              kandown daemon refresh-all
-            </code>
-          ) : (
           <button
             onClick={handleApplyUpdate}
             disabled={updating}
@@ -165,13 +213,12 @@ export const UpdateNotificationBanner: React.FC = () => {
               </>
             )}
           </button>
-          )}
           <button
             onClick={() => setDismissed(true)}
             disabled={updating}
             className="px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
           >
-            {trulyAvailable ? 'Later' : 'Dismiss'}
+            Later
           </button>
         </div>
 

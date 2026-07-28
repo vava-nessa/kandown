@@ -156,6 +156,7 @@ const SETTINGS: SettingDef[] = [
   { key: 'tui.columns.owner', label: 'Column: Owner', section: 'Terminal UI', type: 'toggle' },
   { key: 'tui.columns.deps', label: 'Column: Dependencies', section: 'Terminal UI', type: 'toggle' },
   { key: 'tui.columns.tags', label: 'Column: Tags', section: 'Terminal UI', type: 'toggle' },
+  { key: 'tui.columns.assignee', label: 'Column: Assignee', section: 'Terminal UI', type: 'toggle' },
 
   // Notifications
   { key: 'notifications.browser', label: 'Browser notifications', section: 'Notifications', type: 'toggle' },

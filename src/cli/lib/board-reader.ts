@@ -23,8 +23,9 @@
  *  → readTask            — reads a task file by ID and returns a ParsedTask
  *  → readAgentDoc        — base rules (from the package) + global/project instructions.md layers
  *  → moveTaskToColumn    — updates a task frontmatter status
+ *  → assignTaskToAgent   — writes a canonical agent id into `assignee:`
  *
- * @exports getProjectRoot, getTasksDir, listTaskIds, findTaskPath, readBoard, readTask, readAgentDoc, moveTaskToColumn
+ * @exports getProjectRoot, getTasksDir, listTaskIds, findTaskPath, readBoard, readTask, readAgentDoc, moveTaskToColumn, assignTaskToAgent
  * @see src/lib/parser.ts — pure string parsers reused here
  */
 
@@ -254,6 +255,50 @@ export function moveTaskToColumn(
     return true;
   } catch (e) {
     console.error(`[kandown] Failed to move task ${taskId} to ${targetColumn}:`, (e as Error).message);
+    return false;
+  }
+}
+
+/**
+ * 📖 Writes `assignee: <agentId>` into a task's frontmatter. Called by the
+ * launcher just before an agent is spawned, so "start this task on Codex" and
+ * "this task belongs to Codex" are one action instead of two: the board, the
+ * web view and the task file all agree the moment the agent opens.
+ *
+ * 📖 The value stored is the *canonical catalog id* (`claude`, not
+ * `claude-code`), which is exactly what `resolveAgentEntry` reads back on the
+ * next `a` press to skip the picker, and what the web avatar resolver matches
+ * against. Writing an alias here would work for one side and not the other.
+ *
+ * 📖 No-ops (returns true) when the task is already assigned to that agent, so
+ * relaunching a task does not churn `updated:` or the git diff. Returns false
+ * when the task file is missing or unwritable; the caller decides whether that
+ * is fatal (it is not: an unassigned launch still beats no launch).
+ */
+export function assignTaskToAgent(kandownDir: string, taskId: string, agentId: string): boolean {
+  const taskPath = findTaskPath(kandownDir, taskId);
+  if (!taskPath) return false;
+  try {
+    const parsed = readTask(kandownDir, taskId);
+    if (parsed.frontmatter.assignee === agentId) return true;
+    const prevContent = readFileSync(taskPath, 'utf8');
+    const newContent = serializeTaskFile(stampUpdated({
+      ...parsed.frontmatter,
+      id: taskId,
+      assignee: agentId,
+    }), parsed.body);
+    atomicWriteFileSync(taskPath, newContent);
+    pushUndo(kandownDir, {
+      type: 'move',
+      taskId,
+      path: taskPath,
+      previousContent: prevContent,
+      newContent,
+      timestamp: Date.now(),
+    });
+    return true;
+  } catch (e) {
+    console.error(`[kandown] Failed to assign task ${taskId} to ${agentId}:`, (e as Error).message);
     return false;
   }
 }

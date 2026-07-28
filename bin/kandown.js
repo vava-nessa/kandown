@@ -15,7 +15,7 @@ import { spawn, execSync } from "child_process";
 import { homedir } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.43.0";
+var KANDOWN_VERSION = "0.44.0";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath } from "url";
@@ -448,6 +448,47 @@ async function stopProjectDaemon(kandownDir) {
   }
   removeDaemonMetadata(kandownDir);
   return true;
+}
+var DAEMON_UPGRADE_ENV = "KANDOWN_DAEMON_UPGRADED_TO";
+var FIRST_CHECK_MS = 15e3;
+var CHECK_INTERVAL_MS = 5 * 6e4;
+function pendingUpgradeTarget() {
+  const running = getCurrentVersion();
+  const installed = getInstalledVersion();
+  if (!installed || !running) return null;
+  return semverGt(installed, running) > 0 ? installed : null;
+}
+function scheduleDaemonSelfUpgrade(kandownDir) {
+  const alreadyAttempted = process.env[DAEMON_UPGRADE_ENV];
+  const check = () => {
+    const target = pendingUpgradeTarget();
+    if (!target) return;
+    if (alreadyAttempted === target) return;
+    const cliPath = join2(PKG_ROOT, "bin", "kandown.js");
+    if (!existsSync2(cliPath)) return;
+    try {
+      const child = spawn2(
+        process.execPath,
+        [cliPath, "--no-update-check", "daemon", "restart", "--path", kandownDir],
+        {
+          cwd: dirname2(kandownDir),
+          detached: true,
+          stdio: "ignore",
+          env: { ...process.env, [DAEMON_UPGRADE_ENV]: target }
+        }
+      );
+      child.unref();
+    } catch {
+    }
+  };
+  const first = setTimeout(check, FIRST_CHECK_MS);
+  const interval = setInterval(check, CHECK_INTERVAL_MS);
+  first.unref?.();
+  interval.unref?.();
+  return () => {
+    clearTimeout(first);
+    clearInterval(interval);
+  };
 }
 
 // src/cli/lib/board-reader.ts
@@ -978,10 +1019,11 @@ var DEFAULT_CONFIG2 = {
     defaultView: "list",
     showDetailPane: true,
     listSort: "status",
+    listSortDir: "asc",
     // 📖 Tags default to off: they are the widest optional column and the one
     // most projects leave empty, so on by default it mostly reserved 14 cells
     // of description width to render blanks. Turn it on in `kandown settings`.
-    columns: { age: true, status: true, priority: true, owner: true, deps: true, tags: false }
+    columns: { age: true, status: true, priority: true, owner: true, deps: true, tags: false, assignee: true }
   },
   extensions: { restricted: true },
   fields: {
@@ -1207,6 +1249,33 @@ function moveTaskToColumn(kandownDir, taskId, targetColumn) {
     return true;
   } catch (e) {
     console.error(`[kandown] Failed to move task ${taskId} to ${targetColumn}:`, e.message);
+    return false;
+  }
+}
+function assignTaskToAgent(kandownDir, taskId, agentId) {
+  const taskPath2 = findTaskPath(kandownDir, taskId);
+  if (!taskPath2) return false;
+  try {
+    const parsed = readTask(kandownDir, taskId);
+    if (parsed.frontmatter.assignee === agentId) return true;
+    const prevContent = readFileSync4(taskPath2, "utf8");
+    const newContent = serializeTaskFile(stampUpdated({
+      ...parsed.frontmatter,
+      id: taskId,
+      assignee: agentId
+    }), parsed.body);
+    atomicWriteFileSync(taskPath2, newContent);
+    pushUndo(kandownDir, {
+      type: "move",
+      taskId,
+      path: taskPath2,
+      previousContent: prevContent,
+      newContent,
+      timestamp: Date.now()
+    });
+    return true;
+  } catch (e) {
+    console.error(`[kandown] Failed to assign task ${taskId} to ${agentId}:`, e.message);
     return false;
   }
 }
@@ -1587,6 +1656,24 @@ function syncKandownAgentDoc(kandownDir) {
   }
   return false;
 }
+var KANDOWN_GITIGNORE = `daemon.json
+daemon.lock
+.undo/
+
+# Local extension state. Which extensions you enabled and which you trusted is a
+# per-machine decision, and a committed copy is ignored at load time anyway
+# (see docs/EXTENSIONS.md).
+extensions/enabled.json
+extensions/trust.json
+`;
+function writeKandownGitignore(kandownDir) {
+  const path = join6(kandownDir, ".gitignore");
+  if (existsSync6(path)) return;
+  try {
+    atomicWriteFileSync(path, KANDOWN_GITIGNORE);
+  } catch {
+  }
+}
 function doInit(kandownDir) {
   try {
     mkdirSync3(kandownDir, { recursive: true });
@@ -1596,6 +1683,7 @@ function doInit(kandownDir) {
       copyFileSync(htmlSrc, htmlDest);
     }
     syncKandownAgentDoc(kandownDir);
+    writeKandownGitignore(kandownDir);
     const templatesDir = join6(PKG_ROOT, "templates");
     if (existsSync6(templatesDir)) {
       if (!existsSync6(join6(kandownDir, "README.md")) && existsSync6(join6(templatesDir, "README.md"))) {
@@ -3017,7 +3105,22 @@ function defaultAgentsConfig() {
       { id: "aider", name: "Aider", bin: "aider", interactive: true, description: "Git-aware AI pair programmer", aliases: ["aider"] },
       { id: "opencode", name: "OpenCode", bin: "opencode", interactive: true, description: "SST AI coding TUI", aliases: ["opencode", "sstopencode"] },
       { id: "cursor", name: "Cursor", bin: "cursor", interactive: true, description: "Cursor IDE (opens project; paste prompt)", aliases: ["cursor"] },
-      { id: "pi", name: "Pi", bin: "pi", interactive: true, description: "Earendil Works pi coding agent", aliases: ["pi", "piearendil", "picodingagent"] }
+      { id: "pi", name: "Pi", bin: "pi", interactive: true, description: "Earendil Works pi coding agent", aliases: ["pi", "piearendil", "picodingagent"] },
+      { id: "crush", name: "Crush", bin: "crush", interactive: true, description: "Charmbracelet Crush (Glamourous agentic TUI)", aliases: ["crush", "charmbraceletcrush"] },
+      { id: "openclaw", name: "OpenClaw", bin: "openclaw", interactive: true, description: "OpenClaw Foundation personal AI assistant", aliases: ["openclaw", "openclawfoundation", "claw"] },
+      { id: "kimi", name: "Kimi Code CLI", bin: "kimi", interactive: true, description: "Moonshot Kimi Code CLI (terminal coding agent)", aliases: ["kimi", "moonshot", "moonshotai", "kimicode"] },
+      { id: "qwen", name: "Qwen Code", bin: "qwen", interactive: true, description: "Alibaba Qwen3-Coder CLI (QwenLM/qwen-code)", aliases: ["qwen", "qwencode", "qwenlm", "alibabaqwen"] },
+      { id: "vibe", name: "Mistral Vibe", bin: "vibe", interactive: true, description: "Mistral Vibe CLI (Devstral-powered)", aliases: ["vibe", "mistralvibe"] },
+      { id: "grok", name: "Grok Build", bin: "grok", interactive: true, description: "xAI Grok Build (terminal coding agent)", aliases: ["grok", "grokbuild", "xaigrok", "xai"] },
+      { id: "openhands", name: "OpenHands", bin: "openhands", interactive: true, description: "OpenHands CLI (Python; multi-agent)", aliases: ["openhands", "openhandscli", "openhand"] },
+      { id: "pplx", name: "Perplexity CLI", bin: "pplx", interactive: true, description: "Perplexity pplx CLI (search + agent capabilities)", aliases: ["pplx", "pplxcli", "perplexitycli", "perplexity"] },
+      { id: "copilot", name: "GitHub Copilot CLI", bin: "copilot", interactive: true, description: "GitHub Copilot CLI (interactive session)", aliases: ["copilot", "githubcopilot", "ghcopilot"] },
+      { id: "amp", name: "Amp", bin: "amp", interactive: false, description: "Sourcegraph Amp (execute mode)", aliases: ["amp", "sourcegraphamp", "ampcode"] },
+      { id: "droid", name: "Factory Droid", bin: "droid", interactive: false, description: "Factory AI droid (headless exec)", aliases: ["droid", "factory", "factoryai", "factorydroid"] },
+      { id: "auggie", name: "Auggie", bin: "auggie", interactive: true, description: "Augment Code CLI", aliases: ["auggie", "augment", "augmentcode"] },
+      { id: "amazonq", name: "Amazon Q Developer", bin: "q", interactive: true, description: "Amazon Q Developer CLI (q chat)", aliases: ["q", "amazonq", "awsq", "qdeveloper"] },
+      { id: "cline", name: "Cline", bin: "cline", interactive: false, description: "Cline CLI (task mode)", aliases: ["cline", "clinedev", "claudedev"] },
+      { id: "agy", name: "Agy", bin: "agy", interactive: true, description: "Agy coding agent", aliases: ["agy"] }
     ]
   };
 }
@@ -3238,45 +3341,129 @@ var AGENTS = [
     interactive: true,
     aliases: ["pplx", "pplxcli", "perplexitycli", "perplexity"],
     buildCommand: (opts) => ["pplx", combinedPrompt(opts)]
+  },
+  // 📖 Second compatibility wave. Same contract as the block above: an entry
+  // here needs a matching alias in src/lib/agent-aliases.ts so the web view can
+  // render the `assignee:` the CLI writes. Each buildCommand below mirrors the
+  // flag the tool actually documents for "start a session on this prompt" —
+  // several of these CLIs only expose a one-shot mode, and those are marked
+  // `interactive: false` rather than being forced into a fake TUI launch.
+  {
+    id: "copilot",
+    name: "GitHub Copilot CLI",
+    bin: "copilot",
+    description: "GitHub Copilot CLI (interactive session)",
+    interactive: true,
+    aliases: ["copilot", "githubcopilot", "ghcopilot"],
+    // 📖 `-p/--prompt` exits after the answer; `-i/--interactive <prompt>` runs
+    // the prompt and *keeps* the session, which is what a task launch wants.
+    buildCommand: (opts) => ["copilot", "--interactive", combinedPrompt(opts)]
+  },
+  {
+    id: "amp",
+    name: "Amp",
+    bin: "amp",
+    description: "Sourcegraph Amp (execute mode)",
+    interactive: false,
+    aliases: ["amp", "sourcegraphamp", "ampcode"],
+    // 📖 Amp's only prompt-taking entry point is execute mode: it runs the
+    // prompt once and closes the session, hence interactive: false.
+    buildCommand: (opts) => ["amp", "-x", combinedPrompt(opts)]
+  },
+  {
+    id: "droid",
+    name: "Factory Droid",
+    bin: "droid",
+    description: "Factory AI droid (headless exec)",
+    interactive: false,
+    aliases: ["droid", "factory", "factoryai", "factorydroid"],
+    // 📖 `droid exec` is the scriptable, non-interactive entry point.
+    buildCommand: (opts) => ["droid", "exec", combinedPrompt(opts)]
+  },
+  {
+    id: "auggie",
+    name: "Auggie",
+    bin: "auggie",
+    description: "Augment Code CLI",
+    interactive: true,
+    aliases: ["auggie", "augment", "augmentcode"],
+    buildCommand: (opts) => ["auggie", combinedPrompt(opts)]
+  },
+  {
+    id: "amazonq",
+    name: "Amazon Q Developer",
+    bin: "q",
+    description: "Amazon Q Developer CLI (q chat)",
+    interactive: true,
+    aliases: ["q", "amazonq", "awsq", "qdeveloper"],
+    buildCommand: (opts) => ["q", "chat", combinedPrompt(opts)]
+  },
+  {
+    id: "cline",
+    name: "Cline",
+    bin: "cline",
+    description: "Cline CLI (task mode)",
+    interactive: false,
+    aliases: ["cline", "clinedev", "claudedev"],
+    buildCommand: (opts) => ["cline", "task", combinedPrompt(opts)]
+  },
+  {
+    id: "agy",
+    name: "Agy",
+    bin: "agy",
+    description: "Agy coding agent",
+    interactive: true,
+    aliases: ["agy"],
+    // 📖 Same shape as Gemini: `--prompt-interactive` runs the prompt then
+    // hands the session back to the user. `--print` would be headless.
+    buildCommand: (opts) => ["agy", "--prompt-interactive", combinedPrompt(opts)]
   }
 ];
 function getProjectCwd(kandownDir) {
   const m = kandownDir.replace(/\/(\.kandown|kandown)$/, "");
   return m && m !== kandownDir ? m : process.cwd();
 }
-var installCache = /* @__PURE__ */ new Map();
+var binPathCache = /* @__PURE__ */ new Map();
 function detectCatalogJSON(kandownDir) {
   const catalog = loadCatalog(kandownDir);
   const preferred = kandownDir ? loadAgentsConfig(kandownDir).preferred : void 0;
   return {
     ...preferred ? { preferred } : {},
-    agents: catalog.map((a) => ({
-      id: a.id,
-      name: a.name,
-      bin: a.bin,
-      installed: isAgentInstalled(a.bin),
-      interactive: a.interactive,
-      description: a.description,
-      aliases: a.aliases ?? [],
-      ...preferred === a.id ? { preferred: true } : {}
-    }))
+    agents: catalog.map((a) => {
+      const binPath = resolveBinPath(a.bin);
+      return {
+        id: a.id,
+        name: a.name,
+        bin: a.bin,
+        installed: binPath !== null,
+        binPath,
+        interactive: a.interactive,
+        description: a.description,
+        aliases: a.aliases ?? [],
+        ...preferred === a.id ? { preferred: true } : {}
+      };
+    })
   };
 }
-function isAgentInstalled(bin) {
-  if (installCache.has(bin)) return installCache.get(bin);
+function resolveBinPath(bin) {
+  const cached = binPathCache.get(bin);
+  if (cached !== void 0) return cached;
+  let resolved = null;
   try {
-    execFileSync3("which", [bin], { stdio: "ignore" });
-    installCache.set(bin, true);
-    return true;
+    const out = execFileSync3("which", [bin], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+    const first = out.split("\n").map((l) => l.trim()).find(Boolean);
+    resolved = first && first.startsWith("/") ? first : null;
   } catch {
-    installCache.set(bin, false);
-    return false;
+    resolved = null;
   }
+  binPathCache.set(bin, resolved);
+  return resolved;
+}
+function isAgentInstalled(bin) {
+  return resolveBinPath(bin) !== null;
 }
 function warmupDetection(catalog) {
-  for (const agent of catalog) {
-    if (!installCache.has(agent.bin)) isAgentInstalled(agent.bin);
-  }
+  for (const agent of catalog) resolveBinPath(agent.bin);
 }
 function loadCatalog(kandownDir) {
   const builtins = AGENTS;
@@ -3323,7 +3510,12 @@ function catalogEntryToDef(entry) {
 }
 function detectInstalledAgents(kandownDir) {
   const catalog = loadCatalog(kandownDir);
-  return catalog.filter((agent) => isAgentInstalled(agent.bin));
+  const installed = [];
+  for (const agent of catalog) {
+    const binPath = resolveBinPath(agent.bin);
+    if (binPath) installed.push({ ...agent, binPath });
+  }
+  return installed;
 }
 function getAgentById(id, kandownDir) {
   return loadCatalog(kandownDir).find((a) => a.id === id);
@@ -4478,6 +4670,7 @@ async function cmdDaemon(rest) {
       token: null
     }, null, 2));
     info(`Kandown daemon running on port ${port} (PID ${process.pid})`);
+    scheduleDaemonSelfUpgrade(kandownDir);
     await new Promise(() => {
     });
   } else if (subcommand === "start") {
@@ -4550,6 +4743,7 @@ function prepareLaunch(opts) {
     task.body.trim()
   ].join("\n");
   const { systemPrompt, taskPrompt } = buildPrompt(agentDoc, taskFileContent, taskId, kandownDir, handoff, queue);
+  assignTaskToAgent(kandownDir, taskId, agentDef.id);
   const taskMoved = moveTaskToColumn(kandownDir, taskId, "In Progress");
   if (!taskMoved) {
     throw new Error(`Could not move task ${taskId} to In Progress \u2014 task file missing or unwritable.`);

@@ -9,7 +9,7 @@
  */
 
 import { join } from 'node:path';
-import { getDaemonStatus, startProjectDaemon, stopProjectDaemon } from '../lib/daemon';
+import { getDaemonStatus, scheduleDaemonSelfUpgrade, startProjectDaemon, stopProjectDaemon } from '../lib/daemon';
 import { listenOnAvailablePort } from '../lib/server';
 import { atomicWriteFileSync } from '../lib/atomic-write';
 import { getCurrentVersion } from '../lib/updater';
@@ -37,6 +37,10 @@ export async function cmdDaemon(rest: string[]): Promise<void> {
       token: null,
     }, null, 2));
     info(`Kandown daemon running on port ${port} (PID ${process.pid})`);
+    // 📖 From here the daemon keeps itself current: when a global update lands
+    // under a long-lived process, it restarts onto the new build on its own
+    // rather than serving a stale web bundle and asking the user to intervene.
+    scheduleDaemonSelfUpgrade(kandownDir);
     await new Promise(() => {});
   } else if (subcommand === 'start') {
     const daemonOptions = parseArgs(daemonArgs);

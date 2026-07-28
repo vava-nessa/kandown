@@ -21,6 +21,10 @@ export default defineConfig({
     include: [
       'src/lib/__tests__/**/*.spec.ts',
       'src/cli/lib/__tests__/**/*.spec.ts',
+      // 📖 The TUI screens keep their pure logic (sorting, layout, hit-testing)
+      // in plain .ts next to the components, and those files are as worth
+      // testing as anything under lib/.
+      'src/cli/screens/**/__tests__/**/*.spec.ts',
       'website/src/**/__tests__/**/*.spec.ts',
     ],
     coverage: {

@@ -1,3 +1,11 @@
 daemon.json
 daemon.lock
 .undo/
+
+# Local extension state. Which extensions you enabled and which you trusted is a
+# per-machine decision: a committed copy is deliberately ignored at load time
+# (see docs/EXTENSIONS.md), so a cloned repo can never grant itself execution
+# permission. Keeping these out of git avoids the confusing half-state where the
+# file is tracked but has no effect.
+extensions/enabled.json
+extensions/trust.json

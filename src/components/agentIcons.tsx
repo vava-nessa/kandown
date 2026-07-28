@@ -132,6 +132,10 @@ const AGENT_DISPLAY: Record<string, string> = {
   "groq": "Groq",
   "perplexity": "Perplexity",
   "ollama": "Ollama",
+  "droid": "Factory Droid",
+  "auggie": "Auggie",
+  "amazonq": "Amazon Q",
+  "agy": "Agy",
 };
 
 /** 📖 Which brand SVG to render when the canonical id is desktop-only.
@@ -145,7 +149,20 @@ const DESKTOP_SVG_FALLBACK: Record<string, string> = {
   "vscode-copilot": "copilot",
 };
 
-/** 📖 Branded logo for a known agent id. Renders the glyph in its brand color. */
+/**
+ * 📖 Neutral "some CLI agent" mark: a terminal window with a prompt chevron.
+ * The CLI catalog grows faster than the brand-SVG table, so any agent id that
+ * resolves through the alias table but has no logo yet still renders as an
+ * agent, never as a blank slot or as a human avatar. Whenever a real brand
+ * glyph is added to AGENT_GLYPHS it silently takes over.
+ */
+const GENERIC_AGENT_GLYPH: AgentGlyphData = {
+  viewBox: '0 0 24 24',
+  color: '#7C8A9C',
+  inner:
+    '<path fill-rule="evenodd" clip-rule="evenodd" d="M2.5 5A2.5 2.5 0 0 1 5 2.5h14A2.5 2.5 0 0 1 21.5 5v14a2.5 2.5 0 0 1-2.5 2.5H5A2.5 2.5 0 0 1 2.5 19V5Zm2.5-.5a.5.5 0 0 0-.5.5v14a.5.5 0 0 0 .5.5h14a.5.5 0 0 0 .5-.5V5a.5.5 0 0 0-.5-.5H5Z"></path><path d="M7.2 8.3a1 1 0 0 1 1.4 0l3 3a1 1 0 0 1 0 1.4l-3 3a1 1 0 1 1-1.4-1.4L9.6 12 7.2 9.7a1 1 0 0 1 0-1.4ZM12.5 15H17a1 1 0 1 1 0 2h-4.5a1 1 0 1 1 0-2Z"></path>',
+};
+
 /**
  * 📖 Branded logo for a known agent id. Renders the glyph in its brand color.
  * When `kind === "desktop"`, wraps it in a dashed ring + sets a tooltip so the
@@ -164,8 +181,7 @@ export function AgentGlyph({
   className?: string;
   kind?: 'chainable' | 'desktop';
 }) {
-  const data = AGENT_GLYPHS[id] || AGENT_GLYPHS[DESKTOP_SVG_FALLBACK[id]];
-  if (!data) return null;
+  const data = AGENT_GLYPHS[id] || AGENT_GLYPHS[DESKTOP_SVG_FALLBACK[id]] || GENERIC_AGENT_GLYPH;
   const isDesktop = kind === 'desktop';
   const { t } = useTranslation();
   const tooltip = isDesktop

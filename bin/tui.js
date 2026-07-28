@@ -54028,10 +54028,11 @@ var DEFAULT_CONFIG = {
     defaultView: "list",
     showDetailPane: true,
     listSort: "status",
+    listSortDir: "asc",
     // 📖 Tags default to off: they are the widest optional column and the one
     // most projects leave empty, so on by default it mostly reserved 14 cells
     // of description width to render blanks. Turn it on in `kandown settings`.
-    columns: { age: true, status: true, priority: true, owner: true, deps: true, tags: false }
+    columns: { age: true, status: true, priority: true, owner: true, deps: true, tags: false, assignee: true }
   },
   extensions: { restricted: true },
   fields: {
@@ -54274,6 +54275,7 @@ var SETTINGS = [
   { key: "tui.columns.owner", label: "Column: Owner", section: "Terminal UI", type: "toggle" },
   { key: "tui.columns.deps", label: "Column: Dependencies", section: "Terminal UI", type: "toggle" },
   { key: "tui.columns.tags", label: "Column: Tags", section: "Terminal UI", type: "toggle" },
+  { key: "tui.columns.assignee", label: "Column: Assignee", section: "Terminal UI", type: "toggle" },
   // Notifications
   { key: "notifications.browser", label: "Browser notifications", section: "Notifications", type: "toggle" },
   { key: "notifications.statusChanges", label: "Status changes", section: "Notifications", type: "toggle" },
@@ -55159,6 +55161,33 @@ function moveTaskToColumn(kandownDir, taskId, targetColumn) {
     return false;
   }
 }
+function assignTaskToAgent(kandownDir, taskId, agentId) {
+  const taskPath = findTaskPath(kandownDir, taskId);
+  if (!taskPath) return false;
+  try {
+    const parsed = readTask(kandownDir, taskId);
+    if (parsed.frontmatter.assignee === agentId) return true;
+    const prevContent = readFileSync3(taskPath, "utf8");
+    const newContent = serializeTaskFile(stampUpdated({
+      ...parsed.frontmatter,
+      id: taskId,
+      assignee: agentId
+    }), parsed.body);
+    atomicWriteFileSync(taskPath, newContent);
+    pushUndo(kandownDir, {
+      type: "move",
+      taskId,
+      path: taskPath,
+      previousContent: prevContent,
+      newContent,
+      timestamp: Date.now()
+    });
+    return true;
+  } catch (e) {
+    console.error(`[kandown] Failed to assign task ${taskId} to ${agentId}:`, e.message);
+    return false;
+  }
+}
 function pushUndo(kandownDir, record) {
   try {
     const undoDir = join2(kandownDir, ".undo");
@@ -55331,7 +55360,7 @@ import { spawn, execSync } from "child_process";
 import { homedir as homedir2 } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.43.0";
+var KANDOWN_VERSION = "0.44.0";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath as fileURLToPath2 } from "url";
@@ -55538,6 +55567,7 @@ async function stopProjectDaemon(kandownDir) {
   removeDaemonMetadata(kandownDir);
   return true;
 }
+var CHECK_INTERVAL_MS = 5 * 6e4;
 
 // src/cli/lib/file-watcher.ts
 import { createReadStream, statSync as statSync3, existsSync as existsSync6 } from "fs";
@@ -57472,7 +57502,22 @@ function defaultAgentsConfig() {
       { id: "aider", name: "Aider", bin: "aider", interactive: true, description: "Git-aware AI pair programmer", aliases: ["aider"] },
       { id: "opencode", name: "OpenCode", bin: "opencode", interactive: true, description: "SST AI coding TUI", aliases: ["opencode", "sstopencode"] },
       { id: "cursor", name: "Cursor", bin: "cursor", interactive: true, description: "Cursor IDE (opens project; paste prompt)", aliases: ["cursor"] },
-      { id: "pi", name: "Pi", bin: "pi", interactive: true, description: "Earendil Works pi coding agent", aliases: ["pi", "piearendil", "picodingagent"] }
+      { id: "pi", name: "Pi", bin: "pi", interactive: true, description: "Earendil Works pi coding agent", aliases: ["pi", "piearendil", "picodingagent"] },
+      { id: "crush", name: "Crush", bin: "crush", interactive: true, description: "Charmbracelet Crush (Glamourous agentic TUI)", aliases: ["crush", "charmbraceletcrush"] },
+      { id: "openclaw", name: "OpenClaw", bin: "openclaw", interactive: true, description: "OpenClaw Foundation personal AI assistant", aliases: ["openclaw", "openclawfoundation", "claw"] },
+      { id: "kimi", name: "Kimi Code CLI", bin: "kimi", interactive: true, description: "Moonshot Kimi Code CLI (terminal coding agent)", aliases: ["kimi", "moonshot", "moonshotai", "kimicode"] },
+      { id: "qwen", name: "Qwen Code", bin: "qwen", interactive: true, description: "Alibaba Qwen3-Coder CLI (QwenLM/qwen-code)", aliases: ["qwen", "qwencode", "qwenlm", "alibabaqwen"] },
+      { id: "vibe", name: "Mistral Vibe", bin: "vibe", interactive: true, description: "Mistral Vibe CLI (Devstral-powered)", aliases: ["vibe", "mistralvibe"] },
+      { id: "grok", name: "Grok Build", bin: "grok", interactive: true, description: "xAI Grok Build (terminal coding agent)", aliases: ["grok", "grokbuild", "xaigrok", "xai"] },
+      { id: "openhands", name: "OpenHands", bin: "openhands", interactive: true, description: "OpenHands CLI (Python; multi-agent)", aliases: ["openhands", "openhandscli", "openhand"] },
+      { id: "pplx", name: "Perplexity CLI", bin: "pplx", interactive: true, description: "Perplexity pplx CLI (search + agent capabilities)", aliases: ["pplx", "pplxcli", "perplexitycli", "perplexity"] },
+      { id: "copilot", name: "GitHub Copilot CLI", bin: "copilot", interactive: true, description: "GitHub Copilot CLI (interactive session)", aliases: ["copilot", "githubcopilot", "ghcopilot"] },
+      { id: "amp", name: "Amp", bin: "amp", interactive: false, description: "Sourcegraph Amp (execute mode)", aliases: ["amp", "sourcegraphamp", "ampcode"] },
+      { id: "droid", name: "Factory Droid", bin: "droid", interactive: false, description: "Factory AI droid (headless exec)", aliases: ["droid", "factory", "factoryai", "factorydroid"] },
+      { id: "auggie", name: "Auggie", bin: "auggie", interactive: true, description: "Augment Code CLI", aliases: ["auggie", "augment", "augmentcode"] },
+      { id: "amazonq", name: "Amazon Q Developer", bin: "q", interactive: true, description: "Amazon Q Developer CLI (q chat)", aliases: ["q", "amazonq", "awsq", "qdeveloper"] },
+      { id: "cline", name: "Cline", bin: "cline", interactive: false, description: "Cline CLI (task mode)", aliases: ["cline", "clinedev", "claudedev"] },
+      { id: "agy", name: "Agy", bin: "agy", interactive: true, description: "Agy coding agent", aliases: ["agy"] }
     ]
   };
 }
@@ -57689,28 +57734,108 @@ var AGENTS = [
     interactive: true,
     aliases: ["pplx", "pplxcli", "perplexitycli", "perplexity"],
     buildCommand: (opts) => ["pplx", combinedPrompt(opts)]
+  },
+  // 📖 Second compatibility wave. Same contract as the block above: an entry
+  // here needs a matching alias in src/lib/agent-aliases.ts so the web view can
+  // render the `assignee:` the CLI writes. Each buildCommand below mirrors the
+  // flag the tool actually documents for "start a session on this prompt" —
+  // several of these CLIs only expose a one-shot mode, and those are marked
+  // `interactive: false` rather than being forced into a fake TUI launch.
+  {
+    id: "copilot",
+    name: "GitHub Copilot CLI",
+    bin: "copilot",
+    description: "GitHub Copilot CLI (interactive session)",
+    interactive: true,
+    aliases: ["copilot", "githubcopilot", "ghcopilot"],
+    // 📖 `-p/--prompt` exits after the answer; `-i/--interactive <prompt>` runs
+    // the prompt and *keeps* the session, which is what a task launch wants.
+    buildCommand: (opts) => ["copilot", "--interactive", combinedPrompt(opts)]
+  },
+  {
+    id: "amp",
+    name: "Amp",
+    bin: "amp",
+    description: "Sourcegraph Amp (execute mode)",
+    interactive: false,
+    aliases: ["amp", "sourcegraphamp", "ampcode"],
+    // 📖 Amp's only prompt-taking entry point is execute mode: it runs the
+    // prompt once and closes the session, hence interactive: false.
+    buildCommand: (opts) => ["amp", "-x", combinedPrompt(opts)]
+  },
+  {
+    id: "droid",
+    name: "Factory Droid",
+    bin: "droid",
+    description: "Factory AI droid (headless exec)",
+    interactive: false,
+    aliases: ["droid", "factory", "factoryai", "factorydroid"],
+    // 📖 `droid exec` is the scriptable, non-interactive entry point.
+    buildCommand: (opts) => ["droid", "exec", combinedPrompt(opts)]
+  },
+  {
+    id: "auggie",
+    name: "Auggie",
+    bin: "auggie",
+    description: "Augment Code CLI",
+    interactive: true,
+    aliases: ["auggie", "augment", "augmentcode"],
+    buildCommand: (opts) => ["auggie", combinedPrompt(opts)]
+  },
+  {
+    id: "amazonq",
+    name: "Amazon Q Developer",
+    bin: "q",
+    description: "Amazon Q Developer CLI (q chat)",
+    interactive: true,
+    aliases: ["q", "amazonq", "awsq", "qdeveloper"],
+    buildCommand: (opts) => ["q", "chat", combinedPrompt(opts)]
+  },
+  {
+    id: "cline",
+    name: "Cline",
+    bin: "cline",
+    description: "Cline CLI (task mode)",
+    interactive: false,
+    aliases: ["cline", "clinedev", "claudedev"],
+    buildCommand: (opts) => ["cline", "task", combinedPrompt(opts)]
+  },
+  {
+    id: "agy",
+    name: "Agy",
+    bin: "agy",
+    description: "Agy coding agent",
+    interactive: true,
+    aliases: ["agy"],
+    // 📖 Same shape as Gemini: `--prompt-interactive` runs the prompt then
+    // hands the session back to the user. `--print` would be headless.
+    buildCommand: (opts) => ["agy", "--prompt-interactive", combinedPrompt(opts)]
   }
 ];
 function getProjectCwd(kandownDir) {
   const m = kandownDir.replace(/\/(\.kandown|kandown)$/, "");
   return m && m !== kandownDir ? m : process.cwd();
 }
-var installCache = /* @__PURE__ */ new Map();
-function isAgentInstalled(bin) {
-  if (installCache.has(bin)) return installCache.get(bin);
+var binPathCache = /* @__PURE__ */ new Map();
+function resolveBinPath(bin) {
+  const cached = binPathCache.get(bin);
+  if (cached !== void 0) return cached;
+  let resolved = null;
   try {
-    execFileSync4("which", [bin], { stdio: "ignore" });
-    installCache.set(bin, true);
-    return true;
+    const out = execFileSync4("which", [bin], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+    const first = out.split("\n").map((l) => l.trim()).find(Boolean);
+    resolved = first && first.startsWith("/") ? first : null;
   } catch {
-    installCache.set(bin, false);
-    return false;
+    resolved = null;
   }
+  binPathCache.set(bin, resolved);
+  return resolved;
+}
+function isAgentInstalled(bin) {
+  return resolveBinPath(bin) !== null;
 }
 function warmupDetection(catalog) {
-  for (const agent of catalog) {
-    if (!installCache.has(agent.bin)) isAgentInstalled(agent.bin);
-  }
+  for (const agent of catalog) resolveBinPath(agent.bin);
 }
 function loadCatalog(kandownDir) {
   const builtins = AGENTS;
@@ -57757,7 +57882,12 @@ function catalogEntryToDef(entry) {
 }
 function detectInstalledAgents(kandownDir) {
   const catalog = loadCatalog(kandownDir);
-  return catalog.filter((agent) => isAgentInstalled(agent.bin));
+  const installed = [];
+  for (const agent of catalog) {
+    const binPath = resolveBinPath(agent.bin);
+    if (binPath) installed.push({ ...agent, binPath });
+  }
+  return installed;
 }
 function getAgentById(id, kandownDir) {
   return loadCatalog(kandownDir).find((a) => a.id === id);
@@ -57882,6 +58012,7 @@ function prepareLaunch(opts) {
     task.body.trim()
   ].join("\n");
   const { systemPrompt, taskPrompt } = buildPrompt(agentDoc, taskFileContent, taskId, kandownDir, handoff, queue);
+  assignTaskToAgent(kandownDir, taskId, agentDef.id);
   const taskMoved = moveTaskToColumn(kandownDir, taskId, "In Progress");
   if (!taskMoved) {
     throw new Error(`Could not move task ${taskId} to In Progress \u2014 task file missing or unwritable.`);
@@ -57967,7 +58098,20 @@ function shellescape(str) {
 
 // src/cli/screens/agent-picker.tsx
 var import_react35 = __toESM(require_react(), 1);
+import { homedir as homedir3 } from "os";
 var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
+function shortenPath(path, max) {
+  const home = homedir3();
+  let p = home && path.startsWith(home + "/") ? `~${path.slice(home.length)}` : path;
+  if (max < 8 || p.length <= max) return p;
+  const head = Math.ceil((max - 1) / 2);
+  const tail = max - 1 - head;
+  p = `${p.slice(0, head)}\u2026${p.slice(p.length - tail)}`;
+  return p;
+}
+function maxLongestName(agents) {
+  return agents.reduce((m, a) => Math.max(m, a.name.length), 0);
+}
 function AgentPicker({ agents, taskId, onSelect, onCancel }) {
   const [cursor, setCursor] = (0, import_react35.useState)(0);
   use_input_default((input, key) => {
@@ -57994,8 +58138,12 @@ function AgentPicker({ agents, taskId, onSelect, onCancel }) {
       if (agent) onSelect(agent.id);
     }
   });
-  const maxNameLen = Math.max(...agents.map((a) => a.name.length));
-  const boxWidth = Math.min(60, Math.max(40, maxNameLen + 30));
+  const { stdout } = use_stdout_default();
+  const termWidth2 = stdout?.columns ?? 80;
+  const chrome = 8;
+  const maxRowLen = agents.length > 0 ? Math.max(...agents.map((a) => a.name.length + (a.binPath ? a.binPath.length + 3 : 0))) : 0;
+  const boxWidth = Math.min(Math.max(termWidth2 - 2, 30), Math.max(44, maxRowLen + 6));
+  const pathBudget = Math.max(12, boxWidth - chrome - maxLongestName(agents) - 6);
   return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
     Box_default,
     {
@@ -58007,14 +58155,13 @@ function AgentPicker({ agents, taskId, onSelect, onCancel }) {
       width: boxWidth,
       children: [
         /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Box_default, { marginBottom: 1, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { bold: true, color: "cyan", children: "SELECT AGENT" }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { bold: true, color: "cyan", children: "ASSIGN & LAUNCH" }),
           /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Text, { color: "gray", children: [
             "  ",
-            "for ",
             /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { color: "yellow", children: taskId })
           ] })
         ] }),
-        agents.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { color: "yellow", children: "No agents installed. Install claude, codex, or opencode." }),
+        agents.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { color: "yellow", children: "No agent CLI found in PATH. Install claude, codex, opencode\u2026" }),
         agents.map((agent, idx) => {
           const isFocused = idx === cursor;
           const numHint = idx < 9 ? `${idx + 1} ` : "  ";
@@ -58023,16 +58170,19 @@ function AgentPicker({ agents, taskId, onSelect, onCancel }) {
             /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Text, { color: isFocused ? "black" : void 0, backgroundColor: isFocused ? "cyan" : void 0, children: [
               isFocused ? "\u203A" : " ",
               " ",
-              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { bold: isFocused, children: agent.name }),
-              "  ",
-              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { dimColor: !isFocused, children: agent.description })
+              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { bold: isFocused, children: agent.name })
+            ] }),
+            agent.binPath && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Text, { color: "gray", dimColor: true, children: [
+              "  (",
+              shortenPath(agent.binPath, pathBudget),
+              ")"
             ] })
           ] }, agent.id);
         }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Text, { color: "gray", dimColor: true, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Box_default, { marginTop: 1, flexDirection: "column", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Text, { color: "gray", dimColor: true, children: [
           "\u2191\u2193 or 1\u2013",
           agents.length,
-          " select  Enter launch  Esc cancel"
+          " select  Enter assign + launch  Esc cancel"
         ] }) })
       ]
     }
@@ -58466,15 +58616,17 @@ function TaskDetail({ task, taskId, scrollOffset }) {
 // src/cli/screens/board/list-helpers.ts
 var LIST_SORTS = ["status", "age", "priority", "id"];
 var FILTER_MODES = ["all", "priority-p1", "owner-ai", "owner-human", "blocked"];
+var PRIORITY_FILTERS = ["all", "P1", "P2", "P3", "P4", "none"];
 function normalizeOwner(task) {
   const raw = String(task.ownerType || task.frontmatter?.ownerType || "").toLowerCase().trim();
   if (raw === "ai" || raw === "agent" || raw === "bot") return "ai";
   if (raw === "human" || raw === "user" || raw === "me") return "human";
   return "";
 }
+var OWNER_GLYPH_WIDTH = 2;
 function ownerGlyph(task) {
   const owner = normalizeOwner(task);
-  return owner === "ai" ? "A" : owner === "human" ? "H" : " ";
+  return owner === "ai" ? "\u{1F916}" : owner === "human" ? "\u{1F464}" : "  ";
 }
 function priorityRank(task) {
   const match = String(task.priority || "").match(/^P([1-4])$/i);
@@ -58503,6 +58655,12 @@ function matchesSearch(task, query) {
   if (task.assignee && task.assignee.toLowerCase().includes(q)) return true;
   return false;
 }
+function matchesPriorityFilter(task, filter) {
+  if (filter === "all") return true;
+  const value = String(task.priority || "").toUpperCase();
+  if (filter === "none") return !/^P[1-4]$/.test(value);
+  return value === filter;
+}
 function matchesFilter(task, mode) {
   switch (mode) {
     case "priority-p1":
@@ -58518,59 +58676,76 @@ function matchesFilter(task, mode) {
       return true;
   }
 }
-function sortRows(rows, sort) {
+function sortRows(rows, sort, dir = "asc") {
   const indexOf = /* @__PURE__ */ new Map();
   rows.forEach((row, i) => indexOf.set(row, i));
   const tiebreak = (a, b) => (indexOf.get(a) ?? 0) - (indexOf.get(b) ?? 0);
-  const sorted = [...rows];
-  switch (sort) {
-    case "age":
-      sorted.sort((a, b) => {
+  const byText = (a, b) => {
+    if (!a && !b) return 0;
+    if (!a) return 1;
+    if (!b) return -1;
+    return a.localeCompare(b, void 0, { numeric: true, sensitivity: "base" });
+  };
+  const compare = (a, b) => {
+    switch (sort) {
+      case "age": {
         const ta = a.task.updatedAt;
         const tb = b.task.updatedAt;
-        if (ta === null && tb === null) return tiebreak(a, b);
+        if (ta === null && tb === null) return 0;
         if (ta === null) return 1;
         if (tb === null) return -1;
-        return tb - ta || tiebreak(a, b);
-      });
-      break;
-    case "priority":
-      sorted.sort((a, b) => priorityRank(a.task) - priorityRank(b.task) || tiebreak(a, b));
-      break;
-    case "id":
-      sorted.sort((a, b) => a.task.id.localeCompare(b.task.id, void 0, { numeric: true }));
-      break;
-    case "status":
-    default:
-      break;
-  }
-  return sorted;
+        return tb - ta;
+      }
+      case "priority":
+        return priorityRank(a.task) - priorityRank(b.task);
+      case "id":
+        return a.task.id.localeCompare(b.task.id, void 0, { numeric: true });
+      case "owner":
+        return byText(normalizeOwner(a.task), normalizeOwner(b.task));
+      case "deps":
+        return b.task.dependsOn.length - a.task.dependsOn.length;
+      case "tags":
+        return byText(a.task.tags.join(","), b.task.tags.join(","));
+      case "title":
+        return byText(a.task.title, b.task.title);
+      case "assignee":
+        return byText(a.task.assignee ?? "", b.task.assignee ?? "");
+      case "status":
+      default:
+        return a.colIndex - b.colIndex;
+    }
+  };
+  const sign = dir === "desc" ? -1 : 1;
+  return [...rows].sort((a, b) => sign * (compare(a, b) || tiebreak(a, b)));
 }
 function buildListRows(board, options = {}) {
   if (!board) return [];
-  const { search = "", filter = "all", sort = "status" } = options;
+  const { search = "", filter = "all", priority = "all", sort = "status", dir = "asc" } = options;
   const rows = [];
   board.columns.forEach((column, colIndex) => {
     for (const task of column.tasks) {
       if (!matchesFilter(task, filter)) continue;
+      if (!matchesPriorityFilter(task, priority)) continue;
       if (!matchesSearch(task, search)) continue;
       rows.push({ task, status: column.name, colIndex });
     }
   });
-  return sortRows(rows, sort);
+  return sortRows(rows, sort, dir);
 }
-function applyBoardFilter(board, search, filter) {
+function applyBoardFilter(board, search, filter, priority = "all") {
   if (!board) return null;
-  if (!search.trim() && filter === "all") return board;
+  if (!search.trim() && filter === "all" && priority === "all") return board;
   return {
     ...board,
     columns: board.columns.map((column) => ({
       ...column,
-      tasks: column.tasks.filter((task) => matchesFilter(task, filter) && matchesSearch(task, search))
+      tasks: column.tasks.filter((task) => matchesFilter(task, filter) && matchesPriorityFilter(task, priority) && matchesSearch(task, search))
     }))
   };
 }
 var MIN_DESC = 24;
+var MAX_DESC = 60;
+var ASSIGNEE_WIDTH = 12;
 var GAP = 1;
 var ALL_LIST_COLUMNS = {
   age: true,
@@ -58578,9 +58753,10 @@ var ALL_LIST_COLUMNS = {
   priority: true,
   owner: true,
   deps: true,
-  tags: true
+  tags: true,
+  assignee: true
 };
-var DROP_ORDER = ["tags", "deps", "owner", "priority", "age", "status"];
+var DROP_ORDER = ["tags", "assignee", "deps", "owner", "priority", "age", "status"];
 function computeListLayout(rows, width = termWidth(), prefs = ALL_LIST_COLUMNS) {
   const longestId = rows.reduce((max, row) => Math.max(max, row.task.id.length), 2);
   const longestStatus = rows.reduce((max, row) => Math.max(max, row.status.length), 6);
@@ -58588,27 +58764,82 @@ function computeListLayout(rows, width = termWidth(), prefs = ALL_LIST_COLUMNS) 
     // 📖 One cell for the ▸ / ✓ marker; the inter-column gap supplies the space
     // that separates it from the id.
     cursor: 1,
-    id: Math.min(longestId, 8),
+    // 📖 Every width below has one cell of slack over its header label, so the
+    // active-sort arrow (`ID↑`, `Status↓`) fits without the column changing
+    // size when you click it. See `ListHeaderRow`.
+    id: Math.max(3, Math.min(longestId, 8)),
     age: prefs.age ? 5 : 0,
-    status: prefs.status ? Math.min(longestStatus, 13) : 0,
+    status: prefs.status ? Math.max(7, Math.min(longestStatus, 13)) : 0,
     priority: prefs.priority ? 2 : 0,
-    owner: prefs.owner ? 1 : 0,
-    deps: prefs.deps ? 3 : 0,
+    // 📖 An emoji owner badge is two terminal cells wide (see `ownerGlyph`);
+    // the extra two carry the `Who↑` header without reserving a third glyph.
+    owner: prefs.owner ? OWNER_GLYPH_WIDTH + 2 : 0,
+    deps: prefs.deps ? 4 : 0,
     tags: prefs.tags ? 14 : 0,
     desc: 0,
+    assignee: prefs.assignee ? ASSIGNEE_WIDTH : 0,
     descOffset: 0,
     total: 0
   };
   const visible = ["cursor", "id", "age", "status", "priority", "owner", "deps", "tags"];
-  const used = () => visible.reduce((sum, key) => sum + layout[key] + (layout[key] > 0 ? GAP : 0), 0);
+  const leading = () => visible.reduce((sum, key) => sum + layout[key] + (layout[key] > 0 ? GAP : 0), 0);
+  const trailing = () => layout.assignee > 0 ? layout.assignee + GAP : 0;
+  const used = () => leading() + trailing();
   for (const key of DROP_ORDER) {
     if (width - used() >= MIN_DESC) break;
     layout[key] = 0;
   }
-  layout.descOffset = used();
-  layout.desc = Math.max(8, width - layout.descOffset);
-  layout.total = Math.min(width, layout.descOffset + layout.desc);
+  layout.descOffset = leading();
+  layout.desc = Math.max(8, Math.min(MAX_DESC, width - layout.descOffset - trailing()));
+  layout.total = Math.min(width, layout.descOffset + layout.desc + trailing());
   return layout;
+}
+var LIST_COLUMN_ORDER = [
+  "cursor",
+  "id",
+  "age",
+  "status",
+  "priority",
+  "owner",
+  "deps",
+  "tags",
+  "desc",
+  "assignee"
+];
+function listColumnAtX(layout, x) {
+  let start = 0;
+  for (const key of LIST_COLUMN_ORDER) {
+    const width = layout[key];
+    if (width <= 0) continue;
+    const end = start + width + GAP;
+    if (x - 1 < end) return key;
+    start = end;
+  }
+  return null;
+}
+function sortForColumn(key) {
+  switch (key) {
+    case "id":
+      return "id";
+    case "age":
+      return "age";
+    case "status":
+      return "status";
+    case "owner":
+      return "owner";
+    case "deps":
+      return "deps";
+    case "tags":
+      return "tags";
+    case "desc":
+      return "title";
+    case "assignee":
+      return "assignee";
+    case "priority":
+    case "cursor":
+    default:
+      return null;
+  }
 }
 function wrapText2(text, width, maxLines = 4) {
   const clean = text.replace(/\s+/g, " ").trim();
@@ -58648,6 +58879,7 @@ function wrapText2(text, width, maxLines = 4) {
 // src/cli/screens/board/list-view.tsx
 var import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
 var LIST_START_Y = 5;
+var LIST_HEADER_Y = LIST_START_Y - 2;
 var DETAIL_PANE_HEIGHT = 11;
 var MAX_WRAP_LINES = 4;
 function computeListWindow(previousScroll, selectedIndex, selHeight, total, viewport) {
@@ -58689,18 +58921,37 @@ function listRowAtY(geometry, selectedIndex, y) {
   }
   return null;
 }
-function ListHeaderRow({ layout }) {
-  const cells = [pad("", layout.cursor)];
-  if (layout.id) cells.push(pad("ID", layout.id));
-  if (layout.age) cells.push(pad("Age", layout.age));
-  if (layout.status) cells.push(pad("Status", layout.status));
-  if (layout.priority) cells.push(pad("Pr", layout.priority));
-  if (layout.owner) cells.push(pad("O", layout.owner));
-  if (layout.deps) cells.push(pad("Dep", layout.deps));
-  if (layout.tags) cells.push(pad("Tags", layout.tags));
-  cells.push("Description");
+function ListHeaderRow({ layout, sort, sortDir, priorityFilter }) {
+  const arrow = sortDir === "desc" ? "\u2193" : "\u2191";
+  const cell = (key, label, width) => {
+    const active = sortForColumn(key) === sort;
+    const text = active ? `${label.slice(0, Math.max(1, width - 1))}${arrow}` : label;
+    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { bold: true, color: active ? "cyan" : "gray", dimColor: !active, underline: active, children: [
+      pad(text, width),
+      " "
+    ] }, key);
+  };
+  const priorityActive = priorityFilter !== "all";
+  const priorityLabel = priorityFilter === "none" ? "\xB7\xB7" : priorityFilter === "all" ? "Pr" : priorityFilter;
   return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { bold: true, color: "cyan", children: cells.join(" ") }),
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { children: [
+        pad("", layout.cursor),
+        " "
+      ] }),
+      layout.id > 0 && cell("id", "ID", layout.id),
+      layout.age > 0 && cell("age", "Age", layout.age),
+      layout.status > 0 && cell("status", "Status", layout.status),
+      layout.priority > 0 && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { bold: true, color: priorityActive ? priorityColor(priorityFilter) : "gray", dimColor: !priorityActive, children: [
+        pad(priorityLabel, layout.priority),
+        " "
+      ] }),
+      layout.owner > 0 && cell("owner", "Who", layout.owner),
+      layout.deps > 0 && cell("deps", "Dep", layout.deps),
+      layout.tags > 0 && cell("tags", "Tags", layout.tags),
+      cell("desc", "Description", layout.desc),
+      layout.assignee > 0 && cell("assignee", "Assignee", layout.assignee)
+    ] }),
     /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", dimColor: true, children: "\u2500".repeat(layout.total) })
   ] });
 }
@@ -58745,7 +58996,11 @@ function TaskListRow({ row, selected, layout, now }) {
         pad(tagLabel, layout.tags),
         " "
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: fg ?? (task.checked ? "gray" : "white"), bold: selected, strikethrough: !selected && task.checked, children: pad(titleLines[0] ?? "", layout.desc) })
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: fg ?? (task.checked ? "gray" : "white"), bold: selected, strikethrough: !selected && task.checked, children: pad(titleLines[0] ?? "", layout.desc) }),
+      layout.assignee > 0 && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: task.assignee ? dim("cyan") : dim("gray"), dimColor: !selected && !task.assignee, children: [
+        " ",
+        pad(task.assignee || "\u2014", layout.assignee)
+      ] })
     ] }),
     titleLines.slice(1).map((line, idx) => /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Box_default, { backgroundColor: bg, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: fg, bold: true, children: [
       pad("", layout.descOffset),
@@ -58753,12 +59008,13 @@ function TaskListRow({ row, selected, layout, now }) {
     ] }) }, idx))
   ] });
 }
-function ListFooter({ scroll, end, total, selectedIndex, sort, filter, search, width }) {
+function ListFooter({ scroll, end, total, selectedIndex, sort, sortDir, filter, priorityFilter, search, width }) {
   const parts = [];
   if (scroll > 0) parts.push(`\u25B2 ${scroll}`);
   if (end < total) parts.push(`\u25BC ${total - end}`);
   parts.push(total > 0 ? `${selectedIndex + 1}/${total}` : "0/0");
-  parts.push(`sort ${sort}`);
+  parts.push(`sort ${sort} ${sortDir === "desc" ? "\u2193" : "\u2191"}`);
+  if (priorityFilter !== "all") parts.push(`only ${priorityFilter === "none" ? "untriaged" : priorityFilter}`);
   if (filter !== "all") parts.push(`filter ${filter}`);
   if (search) parts.push(`/${search}`);
   return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "gray", dimColor: true, children: [
@@ -58766,14 +59022,26 @@ function ListFooter({ scroll, end, total, selectedIndex, sort, filter, search, w
     truncate(parts.join(" \xB7 "), Math.max(0, width - 2))
   ] });
 }
-function TaskListView({ rows, selectedIndex, geometry, sort, filter, search, width, now = Date.now() }) {
+function TaskListView({
+  rows,
+  selectedIndex,
+  geometry,
+  sort,
+  sortDir = "asc",
+  filter,
+  priorityFilter = "all",
+  search,
+  width,
+  now = Date.now()
+}) {
   const { layout, window: window2 } = geometry;
+  const header = /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(ListHeaderRow, { layout, sort, sortDir, priorityFilter });
   if (rows.length === 0) {
     return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(ListHeaderRow, { layout }),
+      header,
       /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: "gray", dimColor: true, children: [
         "  ",
-        search || filter !== "all" ? "No task matches the current search / filter \u2014 press Esc to clear the search, f to cycle the filter." : "No tasks yet \u2014 press n to create one."
+        search || filter !== "all" || priorityFilter !== "all" ? "No task matches the current search / filter \u2014 press Esc to clear the search, f to cycle the filter, p the priority lens." : "No tasks yet \u2014 press n to create one."
       ] })
     ] });
   }
@@ -58794,7 +59062,7 @@ function TaskListView({ rows, selectedIndex, geometry, sort, filter, search, wid
     );
   }
   return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Box_default, { flexDirection: "column", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(ListHeaderRow, { layout }),
+    header,
     visible,
     /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
       ListFooter,
@@ -58804,7 +59072,9 @@ function TaskListView({ rows, selectedIndex, geometry, sort, filter, search, wid
         total: rows.length,
         selectedIndex,
         sort,
+        sortDir,
         filter,
+        priorityFilter,
         search,
         width
       }
@@ -58926,6 +59196,8 @@ function Board({ kandownDir, version }) {
   const [view, setView] = (0, import_react37.useState)(() => loadConfig(kandownDir).tui.defaultView);
   const [showDetailPane, setShowDetailPane] = (0, import_react37.useState)(() => loadConfig(kandownDir).tui.showDetailPane);
   const [listSort, setListSort] = (0, import_react37.useState)(() => loadConfig(kandownDir).tui.listSort);
+  const [listSortDir, setListSortDir] = (0, import_react37.useState)(() => loadConfig(kandownDir).tui.listSortDir);
+  const [priorityFilter, setPriorityFilter] = (0, import_react37.useState)("all");
   const [listColumns, setListColumns] = (0, import_react37.useState)(() => loadConfig(kandownDir).tui.columns);
   const [listIndex, setListIndex] = (0, import_react37.useState)(0);
   const [listScroll, setListScroll] = (0, import_react37.useState)(0);
@@ -58938,12 +59210,12 @@ function Board({ kandownDir, version }) {
   }, [kandownDir]);
   const inTmux = isInTmux();
   const board = (0, import_react37.useMemo)(
-    () => applyBoardFilter(rawBoard, searchQuery, filterMode),
-    [rawBoard, searchQuery, filterMode]
+    () => applyBoardFilter(rawBoard, searchQuery, filterMode, priorityFilter),
+    [rawBoard, searchQuery, filterMode, priorityFilter]
   );
   const listRows = (0, import_react37.useMemo)(
-    () => buildListRows(board, { search: "", filter: "all", sort: listSort }),
-    [board, listSort]
+    () => buildListRows(board, { search: "", filter: "all", sort: listSort, dir: listSortDir }),
+    [board, listSort, listSortDir]
   );
   const selectedRow = listRows[Math.min(listIndex, Math.max(0, listRows.length - 1))] ?? null;
   (0, import_react37.useEffect)(() => {
@@ -59230,9 +59502,27 @@ function Board({ kandownDir, version }) {
     const next = LIST_SORTS[(LIST_SORTS.indexOf(listSort) + 1) % LIST_SORTS.length];
     setListSort(next);
     persistTuiPref("listSort", next);
-    showStatus(`Sort: ${next}`, 1800);
+    showStatus(`Sort: ${next} ${listSortDir === "desc" ? "\u2193" : "\u2191"}`, 1800);
     setPendingFocusId(selectedRow?.task.id ?? null);
-  }, [listSort, persistTuiPref, showStatus, selectedRow]);
+  }, [listSort, listSortDir, persistTuiPref, showStatus, selectedRow]);
+  const sortByColumn = (0, import_react37.useCallback)((next) => {
+    const dir = next === listSort ? listSortDir === "asc" ? "desc" : "asc" : "asc";
+    setListSort(next);
+    setListSortDir(dir);
+    persistTuiPref("listSort", next);
+    persistTuiPref("listSortDir", dir);
+    showStatus(`Sort: ${next} ${dir === "desc" ? "\u2193" : "\u2191"}`, 1800);
+    setPendingFocusId(selectedRow?.task.id ?? null);
+  }, [listSort, listSortDir, persistTuiPref, showStatus, selectedRow]);
+  const cyclePriorityFilter = (0, import_react37.useCallback)(() => {
+    const next = PRIORITY_FILTERS[(PRIORITY_FILTERS.indexOf(priorityFilter) + 1) % PRIORITY_FILTERS.length];
+    setPriorityFilter(next);
+    showStatus(
+      next === "all" ? "Priority: all" : `Priority: ${next === "none" ? "untriaged only" : `${next} only`}`,
+      1800
+    );
+    setPendingFocusId(selectedRow?.task.id ?? null);
+  }, [priorityFilter, showStatus, selectedRow]);
   const toggleDetailPane = (0, import_react37.useCallback)(() => {
     setShowDetailPane((prev) => {
       persistTuiPref("showDetailPane", !prev);
@@ -59252,12 +59542,12 @@ function Board({ kandownDir, version }) {
   }, [kandownDir, showStatus]);
   const launchTaskWithAgent = (0, import_react37.useCallback)((taskId, agentId) => {
     setMode("browse");
-    showStatus(`Launching ${agentId} for ${taskId}\u2026`, 5e3);
+    showStatus(`Assigning ${taskId} \u2192 ${agentId} and launching\u2026`, 5e3);
     setTimeout(() => {
       try {
         launchAgent({ taskId, agentId, kandownDir, onBeforeExec: () => exit() });
         reloadBoard();
-        showStatus(`${agentId} launched in tmux pane`, 3e3);
+        showStatus(`${taskId} assigned to ${agentId}, launched in tmux pane`, 3e3);
       } catch (err) {
         showStatus(`Error: ${err instanceof Error ? err.message : String(err)}`, 4e3);
       }
@@ -59532,6 +59822,17 @@ function Board({ kandownDir, version }) {
       return;
     }
     if (mouse.action !== "press" || mouse.button !== 0) return;
+    if (mouse.y === LIST_HEADER_Y) {
+      const column = listColumnAtX(listGeometry.layout, mouse.x);
+      if (!column) return;
+      if (column === "priority") {
+        cyclePriorityFilter();
+        return;
+      }
+      const sort = sortForColumn(column);
+      if (sort) sortByColumn(sort);
+      return;
+    }
     const hit = listRowAtY(listGeometry, listIndex, mouse.y);
     if (hit === null) return;
     if (hit === listIndex) {
@@ -59540,7 +59841,7 @@ function Board({ kandownDir, version }) {
       return;
     }
     setListIndex(hit);
-  }, [listRows, listGeometry, listIndex, openDetail]);
+  }, [listRows, listGeometry, listIndex, openDetail, sortByColumn, cyclePriorityFilter]);
   use_input_default((input, key) => {
     if (isMouseInput(input)) {
       const mouse = parseMouseInput(input);
@@ -59630,10 +59931,11 @@ function Board({ kandownDir, version }) {
         return;
       }
       if (key.escape) {
-        if (searchQuery || filterMode !== "all") {
+        if (searchQuery || filterMode !== "all" || priorityFilter !== "all") {
           setSearchQuery("");
           setFilterMode("all");
-          showStatus("Search and filter cleared", 1800);
+          setPriorityFilter("all");
+          showStatus("Search and filters cleared", 1800);
           return;
         }
         exit();
@@ -59742,6 +60044,14 @@ function Board({ kandownDir, version }) {
         }
         if (input === "s") {
           cycleSort();
+          return;
+        }
+        if (input === "S") {
+          sortByColumn(listSort);
+          return;
+        }
+        if (input === "p") {
+          cyclePriorityFilter();
           return;
         }
         if (input === "z") {
@@ -60030,8 +60340,18 @@ function Board({ kandownDir, version }) {
         "Move the task one column left / right"
       ] }),
       /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "s         " }),
-        "Cycle sort (status, age, priority, id)"
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "s \xB7 S     " }),
+        "Cycle sort (status, age, priority, id) \xB7 reverse it"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "p         " }),
+        "Priority lens (all \u2192 P1 \u2192 \u2026 \u2192 P4 \u2192 untriaged)"
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "click     " }),
+        "A column header sorts by it, again to reverse \xB7 ",
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "Pr" }),
+        " cycles the priority lens"
       ] }),
       /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(Text, { children: [
         /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Text, { color: "yellow", bold: true, children: "z         " }),
@@ -60118,7 +60438,9 @@ function Board({ kandownDir, version }) {
           selectedIndex: listIndex,
           geometry: listGeometry,
           sort: listSort,
+          sortDir: listSortDir,
           filter: filterMode,
+          priorityFilter,
           search: searchQuery,
           width: termWidth()
         }
@@ -60234,6 +60556,24 @@ function syncKandownAgentDoc(kandownDir) {
   }
   return false;
 }
+var KANDOWN_GITIGNORE = `daemon.json
+daemon.lock
+.undo/
+
+# Local extension state. Which extensions you enabled and which you trusted is a
+# per-machine decision, and a committed copy is ignored at load time anyway
+# (see docs/EXTENSIONS.md).
+extensions/enabled.json
+extensions/trust.json
+`;
+function writeKandownGitignore(kandownDir) {
+  const path = join11(kandownDir, ".gitignore");
+  if (existsSync8(path)) return;
+  try {
+    atomicWriteFileSync(path, KANDOWN_GITIGNORE);
+  } catch {
+  }
+}
 function doInit(kandownDir) {
   try {
     mkdirSync3(kandownDir, { recursive: true });
@@ -60243,6 +60583,7 @@ function doInit(kandownDir) {
       copyFileSync(htmlSrc, htmlDest);
     }
     syncKandownAgentDoc(kandownDir);
+    writeKandownGitignore(kandownDir);
     const templatesDir = join11(PKG_ROOT2, "templates");
     if (existsSync8(templatesDir)) {
       if (!existsSync8(join11(kandownDir, "README.md")) && existsSync8(join11(templatesDir, "README.md"))) {

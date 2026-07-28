@@ -114,6 +114,24 @@ export const ALIAS_TO_AGENT: Record<string, string> = {
   "pplxcli": "pplx",
   "perplexitycli": "pplx",
 
+  // 📖 Second compatibility wave (CLI harnesses the TUI can assign + launch).
+  // Same rule as above: every id here has a matching entry in
+  // `src/cli/lib/agents.ts`, otherwise `which <bin>` has nothing to find.
+  "ghcopilot": "copilot",
+  "ampcode": "amp",
+  "droid": "droid",
+  "factory": "droid",
+  "factoryai": "droid",
+  "factorydroid": "droid",
+  "auggie": "auggie",
+  "augment": "auggie",
+  "augmentcode": "auggie",
+  "q": "amazonq",
+  "amazonq": "amazonq",
+  "awsq": "amazonq",
+  "qdeveloper": "amazonq",
+  "agy": "agy",
+
   // 📖 Desktop / app-only identifiers. They reuse the brand SVG of their
   // chainable cousin (Claude app = Claude brand logo, just in `desktop`
   // rendering mode). The pre-built agents.ts detects `which <bin>` and
@@ -197,6 +215,10 @@ export const CHAINABLE_IDS: ReadonlySet<string> = new Set<string>([
   'claude', 'codex', 'gemini', 'goose', 'aider', 'opencode', 'cursor', 'pi',
   // Wide-compat additions (mode-chasse / exa).
   'crush', 'openclaw', 'kimi', 'qwen', 'vibe', 'grok', 'openhands', 'pplx',
+  // 📖 Second wave: these gained a real entry in the CLI catalog, so the web
+  // avatar must stop ringing them as desktop-only. An id that is launchable
+  // from `a` belongs here the same day it lands in AGENTS.
+  'copilot', 'amp', 'droid', 'auggie', 'amazonq', 'cline', 'agy',
 ]);
 
 /**

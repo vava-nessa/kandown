@@ -1,8 +1,8 @@
 /**
  * @file CLI agent launcher
  * @description Orchestrates the full task launch flow: read context, build
- * prompt, auto-move task to In Progress, and spawn the chosen AI agent. Two
- * entry points share the same preparation core:
+ * prompt, assign the task to the chosen agent, auto-move it to In Progress, and
+ * spawn the agent. Two entry points share the same preparation core:
  *
  *   - `launchAgent`     — interactive TUI launch. Either splits a tmux pane
  *     (TUI stays visible) or exec-replaces the current process (terminal
@@ -24,7 +24,10 @@
  *
  * 📖 Failure handling: when the agent fails to spawn AFTER the task was moved
  * to "In Progress", the task is rolled back to its original column (t112) so
- * the board never lies about a running agent.
+ * the board never lies about a running agent. The `assignee:` written on the
+ * way in is deliberately *not* rolled back: the user's choice of agent for that
+ * task is still valid, and it is what lets the next `a` press relaunch straight
+ * into the same agent without reopening the picker.
  *
  * @functions
  *  → isInTmux       — detects if we're running inside a tmux session
@@ -39,7 +42,7 @@ import { execSync, spawn } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { readTask, readAgentDoc, moveTaskToColumn } from './board-reader.js';
+import { readTask, readAgentDoc, moveTaskToColumn, assignTaskToAgent } from './board-reader.js';
 import { getAgentById, buildPrompt, buildAgentCommand, type LaunchOpts } from './agents.js';
 
 // 📖 Options shared by both entry points. The cascade adds handoff/queue.
@@ -119,6 +122,14 @@ function prepareLaunch(opts: LaunchAgentOpts): PreparedLaunch {
   ].join('\n');
 
   const { systemPrompt, taskPrompt } = buildPrompt(agentDoc, taskFileContent, taskId, kandownDir, handoff, queue);
+
+  // 📖 Launching *is* assigning: write the agent into `assignee:` before the
+  // move, so a single `a` press produces one coherent write (assignee + status
+  // + updated) and the web view attributes the task to the agent that is
+  // actually running it. Non-fatal on failure: a task the launcher could not
+  // stamp is still worth starting, and the move below surfaces a real
+  // unwritable-file problem with a proper error.
+  assignTaskToAgent(kandownDir, taskId, agentDef.id);
 
   const taskMoved = moveTaskToColumn(kandownDir, taskId, 'In Progress');
   if (!taskMoved) {

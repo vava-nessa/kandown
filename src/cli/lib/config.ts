@@ -51,8 +51,13 @@ export interface KandownConfig {
     defaultView: 'list' | 'board';
     /** Whether the Name/Value detail pane is pinned under the list view. */
     showDetailPane: boolean;
-    /** Sort order of the flat list view, cycled with `s`. */
+    /** Sort order of the flat list view, cycled with `s` or by clicking a
+     *  column header. */
     listSort: 'status' | 'age' | 'priority' | 'id';
+    /** 📖 Direction of `listSort`. `asc` is each sort's natural reading order
+     *  (board order, newest first, P1 first, t1→t99); `desc` mirrors it.
+     *  Clicking the header of the column you are already sorting by flips it. */
+    listSortDir: 'asc' | 'desc';
     /** 📖 Which optional columns the list view draws. Every column here can be
      * turned off; `ID` and `Description` are not listed because they are the
      * two that make a row identifiable at all, so they are always drawn.
@@ -68,6 +73,9 @@ export interface KandownConfig {
       owner: boolean;
       deps: boolean;
       tags: boolean;
+      /** The agent (or person) the task is assigned to, pinned to the far
+       *  right so the description keeps the eye's natural left edge. */
+      assignee: boolean;
     };
   };
   extensions: {
@@ -114,10 +122,11 @@ const DEFAULT_CONFIG: KandownConfig = {
     defaultView: 'list',
     showDetailPane: true,
     listSort: 'status',
+    listSortDir: 'asc',
     // 📖 Tags default to off: they are the widest optional column and the one
     // most projects leave empty, so on by default it mostly reserved 14 cells
     // of description width to render blanks. Turn it on in `kandown settings`.
-    columns: { age: true, status: true, priority: true, owner: true, deps: true, tags: false },
+    columns: { age: true, status: true, priority: true, owner: true, deps: true, tags: false, assignee: true },
   },
   extensions: { restricted: true },
   fields: {

@@ -14,12 +14,16 @@
  *      custom agents that use a generic launch mode. Loaded by
  *      `loadCatalog(kandownDir)` and merged on top of the built-ins.
  *
- * 📖 Detection uses `which <binary>` via execFileSync and caches results in a
- * module-level Map, so detection only runs once per binary per CLI session.
- * `warmupDetection` pre-seeds that cache at startup so the first agent-picker
- * open is instant.
+ * 📖 Detection uses `which <binary>` via execFileSync and caches the *resolved
+ * absolute path* (or null) in a module-level Map, so detection only runs once
+ * per binary per CLI session. `warmupDetection` pre-seeds that cache at startup
+ * so the first agent-picker open is instant. The resolved path is not just an
+ * installed/not-installed boolean: the picker prints it under each agent name,
+ * and `/api/agents` ships it to the web UI, so both interfaces show the user
+ * exactly which binary would be spawned.
  *
- * Supported built-in agents:
+ * Supported built-in agents (only those whose binary is on the machine ever
+ * reach the picker, so the list can grow without cluttering anyone's UI):
  *  - Claude Code (`claude`) — interactive session with initial prompt arg
  *  - Codex (`codex`) — OpenAI Codex CLI
  *  - Gemini CLI (`gemini`) — Google Gemini CLI
@@ -28,6 +32,9 @@
  *  - OpenCode (`opencode`) — SST's TUI AI coding tool
  *  - Cursor (`cursor`) — IDE; opens the project (paste prompt from context file)
  *  - Pi (`pi`) — Earendil Works pi coding agent
+ *  - Crush, OpenClaw, Kimi, Qwen, Mistral Vibe, Grok, OpenHands, Perplexity
+ *  - GitHub Copilot (`copilot`), Amp (`amp`), Factory Droid (`droid`),
+ *    Auggie (`auggie`), Amazon Q (`q`), Cline (`cline`), Agy (`agy`)
  *
  * @functions
  *  → loadCatalog          — built-ins overridden + extended by agents.json
@@ -36,10 +43,11 @@
  *  → getAgentById         — find a catalog entry by id
  *  → resolveAgentEntry    — resolve a frontmatter `assignee:` to a catalog entry
  *  → isAgentInstalled     — single-binary PATH check (cached)
+ *  → resolveBinPath       — absolute path of a binary in PATH, or null (cached)
  *  → buildAgentCommand    — [binary, ...args] for any entry (built-in or custom)
  *  → buildPrompt          — system + task prompt, optionally with handoff/queue
  *
- * @exports AgentDef, LaunchOpts, AGENTS, loadCatalog, detectInstalledAgents, warmupDetection, getAgentById, resolveAgentEntry, isAgentInstalled, buildAgentCommand, buildPrompt
+ * @exports AgentDef, LaunchOpts, AGENTS, loadCatalog, detectInstalledAgents, warmupDetection, getAgentById, resolveAgentEntry, isAgentInstalled, resolveBinPath, buildAgentCommand, buildPrompt
  * @see src/cli/lib/agents-config.ts — the persistent catalog file
  * @see src/lib/agent-aliases.ts — shared alias table
  */
@@ -84,6 +92,13 @@ export interface AgentDef {
   launchMode?: LaunchMode;
   /** Flag name for `*-flag` launch modes. */
   promptFlag?: string;
+  /**
+   * 📖 Absolute path the binary resolved to, filled in by
+   * `detectInstalledAgents`. Display-only: the picker shows it next to the
+   * agent name so the user knows which install would run. Undefined when the
+   * entry came straight out of `loadCatalog` (no detection pass yet).
+   */
+  binPath?: string;
 }
 
 // 📖 Combine system doc + task prompt into one string. Every built-in CLI that
@@ -259,6 +274,83 @@ export const AGENTS: AgentDef[] = [
     aliases: ['pplx', 'pplxcli', 'perplexitycli', 'perplexity'],
     buildCommand: opts => ['pplx', combinedPrompt(opts)],
   },
+
+  // 📖 Second compatibility wave. Same contract as the block above: an entry
+  // here needs a matching alias in src/lib/agent-aliases.ts so the web view can
+  // render the `assignee:` the CLI writes. Each buildCommand below mirrors the
+  // flag the tool actually documents for "start a session on this prompt" —
+  // several of these CLIs only expose a one-shot mode, and those are marked
+  // `interactive: false` rather than being forced into a fake TUI launch.
+  {
+    id: 'copilot',
+    name: 'GitHub Copilot CLI',
+    bin: 'copilot',
+    description: 'GitHub Copilot CLI (interactive session)',
+    interactive: true,
+    aliases: ['copilot', 'githubcopilot', 'ghcopilot'],
+    // 📖 `-p/--prompt` exits after the answer; `-i/--interactive <prompt>` runs
+    // the prompt and *keeps* the session, which is what a task launch wants.
+    buildCommand: opts => ['copilot', '--interactive', combinedPrompt(opts)],
+  },
+  {
+    id: 'amp',
+    name: 'Amp',
+    bin: 'amp',
+    description: 'Sourcegraph Amp (execute mode)',
+    interactive: false,
+    aliases: ['amp', 'sourcegraphamp', 'ampcode'],
+    // 📖 Amp's only prompt-taking entry point is execute mode: it runs the
+    // prompt once and closes the session, hence interactive: false.
+    buildCommand: opts => ['amp', '-x', combinedPrompt(opts)],
+  },
+  {
+    id: 'droid',
+    name: 'Factory Droid',
+    bin: 'droid',
+    description: 'Factory AI droid (headless exec)',
+    interactive: false,
+    aliases: ['droid', 'factory', 'factoryai', 'factorydroid'],
+    // 📖 `droid exec` is the scriptable, non-interactive entry point.
+    buildCommand: opts => ['droid', 'exec', combinedPrompt(opts)],
+  },
+  {
+    id: 'auggie',
+    name: 'Auggie',
+    bin: 'auggie',
+    description: 'Augment Code CLI',
+    interactive: true,
+    aliases: ['auggie', 'augment', 'augmentcode'],
+    buildCommand: opts => ['auggie', combinedPrompt(opts)],
+  },
+  {
+    id: 'amazonq',
+    name: 'Amazon Q Developer',
+    bin: 'q',
+    description: 'Amazon Q Developer CLI (q chat)',
+    interactive: true,
+    aliases: ['q', 'amazonq', 'awsq', 'qdeveloper'],
+    buildCommand: opts => ['q', 'chat', combinedPrompt(opts)],
+  },
+  {
+    id: 'cline',
+    name: 'Cline',
+    bin: 'cline',
+    description: 'Cline CLI (task mode)',
+    interactive: false,
+    aliases: ['cline', 'clinedev', 'claudedev'],
+    buildCommand: opts => ['cline', 'task', combinedPrompt(opts)],
+  },
+  {
+    id: 'agy',
+    name: 'Agy',
+    bin: 'agy',
+    description: 'Agy coding agent',
+    interactive: true,
+    aliases: ['agy'],
+    // 📖 Same shape as Gemini: `--prompt-interactive` runs the prompt then
+    // hands the session back to the user. `--print` would be headless.
+    buildCommand: opts => ['agy', '--prompt-interactive', combinedPrompt(opts)],
+  },
 ];
 
 /** 📖 `.kandown/` lives one level below the project root, so the cwd to open an
@@ -269,9 +361,11 @@ function getProjectCwd(kandownDir: string): string {
   return m && m !== kandownDir ? m : process.cwd();
 }
 
-// 📖 Cache: binary name → whether it's installed. Populated lazily on first
-// detection call, or eagerly by warmupDetection at startup.
-const installCache = new Map<string, boolean>();
+// 📖 Cache: binary name → its absolute path in PATH, or null when it is not
+// installed. Populated lazily on first detection call, or eagerly by
+// warmupDetection at startup. One map serves both questions ("is it there?"
+// and "where?") so a `which` never runs twice for the same binary.
+const binPathCache = new Map<string, string | null>();
 
 /** 📖 Browser-safe, JSON-serializable shape for one detected agent. This is
  *  what `/api/agents` returns to the web UI — no functions, no Node types, so
@@ -281,6 +375,8 @@ export interface AgentDetectionJSON {
   name: string;
   bin: string;
   installed: boolean;
+  /** Absolute path the binary resolved to, or null when not installed. */
+  binPath: string | null;
   interactive: boolean;
   description: string;
   aliases: string[];
@@ -301,34 +397,54 @@ export function detectCatalogJSON(kandownDir?: string): { preferred?: string; ag
   const preferred = kandownDir ? loadAgentsConfig(kandownDir).preferred : undefined;
   return {
     ...(preferred ? { preferred } : {}),
-    agents: catalog.map(a => ({
+    agents: catalog.map(a => {
+      const binPath = resolveBinPath(a.bin);
+      return {
       id: a.id,
       name: a.name,
       bin: a.bin,
-      installed: isAgentInstalled(a.bin),
+      installed: binPath !== null,
+      binPath,
       interactive: a.interactive,
       description: a.description,
       aliases: a.aliases ?? [],
       ...(preferred === a.id ? { preferred: true } : {}),
-    })),
+      };
+    }),
   };
 }
 
 /**
- * 📖 Checks if a binary is available in PATH using `which`. Caches the result
- * so repeated calls are O(1). Windows uses `where`, but kandown's CLI is
- * Unix-first; `which` is shelled out and missing-binary simply returns false.
+ * 📖 Resolves a binary to its absolute path using `which`, or null when it is
+ * not in PATH. Caches the result so repeated calls are O(1). Windows uses
+ * `where`, but kandown's CLI is Unix-first; `which` is shelled out and a
+ * missing binary simply resolves to null.
+ *
+ * 📖 `which` can print several lines when a name matches more than once (or a
+ * shell-builtin note); the first non-empty line is the one that would actually
+ * be executed, so that is what we keep.
+ */
+export function resolveBinPath(bin: string): string | null {
+  const cached = binPathCache.get(bin);
+  if (cached !== undefined) return cached;
+  let resolved: string | null = null;
+  try {
+    const out = execFileSync('which', [bin], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    const first = out.split('\n').map(l => l.trim()).find(Boolean);
+    resolved = first && first.startsWith('/') ? first : null;
+  } catch {
+    resolved = null;
+  }
+  binPathCache.set(bin, resolved);
+  return resolved;
+}
+
+/**
+ * 📖 Checks if a binary is available in PATH. Thin boolean view over
+ * `resolveBinPath`, kept because most call sites only care about the yes/no.
  */
 export function isAgentInstalled(bin: string): boolean {
-  if (installCache.has(bin)) return installCache.get(bin)!;
-  try {
-    execFileSync('which', [bin], { stdio: 'ignore' });
-    installCache.set(bin, true);
-    return true;
-  } catch {
-    installCache.set(bin, false);
-    return false;
-  }
+  return resolveBinPath(bin) !== null;
 }
 
 /**
@@ -338,9 +454,7 @@ export function isAgentInstalled(bin: string): boolean {
  * binaries are skipped. Non-throwing.
  */
 export function warmupDetection(catalog: AgentDef[]): void {
-  for (const agent of catalog) {
-    if (!installCache.has(agent.bin)) isAgentInstalled(agent.bin);
-  }
+  for (const agent of catalog) resolveBinPath(agent.bin);
 }
 
 /**
@@ -411,11 +525,21 @@ function catalogEntryToDef(entry: AgentCatalogEntry): AgentDef {
 
 /**
  * 📖 Returns the subset of the catalog whose binary is currently installed in
- * PATH. When `kandownDir` is omitted, scans the bare built-ins (legacy callers).
+ * PATH, each entry carrying the `binPath` it resolved to. When `kandownDir` is
+ * omitted, scans the bare built-ins (legacy callers).
+ *
+ * 📖 This is the only list the TUI agent picker ever renders, which is why the
+ * picker never has to think about installed-ness: an agent that is not on this
+ * machine simply is not in the array.
  */
 export function detectInstalledAgents(kandownDir?: string): AgentDef[] {
   const catalog = loadCatalog(kandownDir);
-  return catalog.filter(agent => isAgentInstalled(agent.bin));
+  const installed: AgentDef[] = [];
+  for (const agent of catalog) {
+    const binPath = resolveBinPath(agent.bin);
+    if (binPath) installed.push({ ...agent, binPath });
+  }
+  return installed;
 }
 
 /**

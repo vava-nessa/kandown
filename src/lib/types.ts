@@ -38,6 +38,10 @@ export interface DetectedAgent {
   bin: string;
   /** Whether the binary was found in $PATH by the backend's `which` check. */
   installed: boolean;
+  /** 📖 Absolute path the binary resolved to, or null when not installed. The
+   *  TUI picker prints it under each agent name; the web UI can surface it to
+   *  answer "which install of this tool would actually run?". */
+  binPath: string | null;
   interactive: boolean;
   description: string;
   aliases: string[];
