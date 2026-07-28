@@ -2,7 +2,8 @@
  * 📖 Burndown, the canonical kandown extension.
  * Exercises every CLI-visible contribution point: a custom `points` field (with
  * a card badge), a "no Done without points" transition gate, and a `kandown
- * burndown` command. Copy this directory as the starting point for a new
+ * burndown` command, plus the web panel declaration consumed by the Drawer.
+ * Copy this directory as the starting point for a new
  * extension. See docs/EXTENSIONS.md.
  *
  * `import type` is erased at runtime by jiti, so the `kandown` package does not
@@ -20,6 +21,9 @@ export default function (kd: KandownExtensionAPI) {
     type: 'number',
     badge: (value) => (value ? `🔺 ${value}` : null),
   });
+
+  // A task-drawer panel rendered from the self-contained browser bundle.
+  kd.contributeWebPanel({ id: 'chart', title: 'Burndown', entry: './web.js', icon: 'chart' });
 
   // A transition gate: no task reaches Done without points.
   kd.contributeGate({

@@ -3,12 +3,12 @@
     "id": "burndown",
     "name": "Burndown",
     "author": "kandown",
-    "description": "Story points and a burndown chart. The canonical reference extension exercising a field, a no-Done-without-points gate, and a CLI command.",
+    "description": "Story points, card badges and a collapsible burndown panel. The canonical reference extension also exercises a Done gate and CLI command.",
     "repo": "https://github.com/vava-nessa/kandown",
     "path": "examples/extensions/burndown",
     "ref": "main",
     "minKandownVersion": "0.42.0",
-    "tags": ["productivity", "fields", "gates", "commands", "canonical"]
+    "tags": ["productivity", "fields", "gates", "commands", "panels", "canonical"]
   },
   {
     "id": "labels",
