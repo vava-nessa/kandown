@@ -242,7 +242,7 @@
     },
     {
       "path": "src/cli/lib/__tests__/task-move.spec.ts",
-      "lines": 212,
+      "lines": 214,
       "title": "Managed backend task move integration tests",
       "summary": "Exercises the Node move coordinator against real task files and a real jiti-loaded extension."
     },
@@ -1350,7 +1350,7 @@
     },
     {
       "path": "src/components/TaskExtensionSurface.tsx",
-      "lines": 364,
+      "lines": 365,
       "title": "Task extension surface",
       "summary": "Shared mobile and desktop task-editor section for contributed fields and web panels.",
       "functions": [
@@ -1575,7 +1575,7 @@
     },
     {
       "path": "src/lib/__tests__/extensions-host.spec.ts",
-      "lines": 270,
+      "lines": 275,
       "title": "Extension host integration",
       "summary": "Vitest suite that loads real extensions from a temp project dir via jiti and locks the host contract: discovery, restricted mode + project trust, gate composition with block reasons, command dispatch, and the core invariant that a…"
     },
@@ -1733,7 +1733,7 @@
     },
     {
       "path": "src/lib/extensions/browser-runtime.ts",
-      "lines": 383,
+      "lines": 441,
       "title": "Browser extension runtime",
       "summary": "Loads project-local bundled extension entries through Blob URLs for standalone File System Access mode, registers browser-safe fields, badges and panels, and computes card badges without a daemon.",
       "functions": [
@@ -1758,7 +1758,7 @@
     },
     {
       "path": "src/lib/extensions/host.ts",
-      "lines": 507,
+      "lines": 515,
       "title": "Extension host",
       "summary": "The orchestrator that loads extensions, manages their health, and dispatches contributions (gates, syncs, commands, lifecycle) with per-contribution fail policies.",
       "exports": "ExtensionHost, type HostEnvironment"
@@ -1844,10 +1844,14 @@
     },
     {
       "path": "src/lib/extensions/state.ts",
-      "lines": 99,
-      "title": "Enabled-extension preference state",
+      "lines": 109,
+      "title": "Extension runtime state",
       "summary": "Persists per-project extension runtime state: the ids the user explicitly enabled plus consecutive failure records used by the quarantine policy.",
       "functions": [
+        {
+          "name": "extensionStateDir: user-local state directory keyed by canonical project path",
+          "summary": null
+        },
         {
           "name": "enabledFilePath: absolute path to a project's enabled set",
           "summary": null
@@ -1865,11 +1869,11 @@
           "summary": null
         }
       ],
-      "exports": "enabledFilePath, healthFilePath, loadEnabled, saveEnabled, loadFailureState, saveFailureState, ExtensionFailureRecord"
+      "exports": "extensionStateDir, enabledFilePath, healthFilePath, loadEnabled, saveEnabled, loadFailureState, saveFailureState, ExtensionFailureRecord"
     },
     {
       "path": "src/lib/extensions/trust.ts",
-      "lines": 56,
+      "lines": 58,
       "title": "Restricted mode and project-local trust",
       "summary": "The security gate that decides which extensions may load.",
       "functions": [
@@ -1894,7 +1898,7 @@
     },
     {
       "path": "src/lib/extensions/types.ts",
-      "lines": 238,
+      "lines": 239,
       "title": "Extension system types and public API contract",
       "summary": "The single source of truth for the extension surface: the manifest shape, the contribution-point definitions, the lifecycle events, the context handed to handlers, and the `KandownExtensionAPI` an extension factory receives.",
       "exports": "ExtensionManifest, ExtensionHealth, LoadedExtension, ExtensionFieldDescriptor, ExtensionPanelDescriptor, ExtensionBadge, ExtensionRuntimeSummary, ExtensionRuntimePayload, FieldContribution, WebPanelContribution, CommandContribution, GateContribution, SyncContribution, TaskLike, TaskEvent, GateEvent, ExtensionContext, ExtensionCommandContext, KandownExtensionAPI, ExtensionFactory"
@@ -2643,7 +2647,7 @@
       "path": "src/lib/watcher.ts",
       "lines": 312,
       "title": "File watcher for Kandown",
-      "summary": "500ms polling watcher using content hashing (SHA-256).",
+      "summary": "Watches project state through content-hashed File System Access polling or daemon SSE.",
       "functions": [
         {
           "name": "FileWatcher",
