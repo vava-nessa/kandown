@@ -48,6 +48,7 @@ import { SearchResults } from './settings/SearchResults';
 import { SettingRow } from './settings/SettingRow';
 import { WorkOutputConfigurator } from './settings/WorkOutputConfigurator';
 import { AboutVersionCard } from './settings/AboutVersionCard';
+import { ExtensionsPanel } from './settings/ExtensionsPanel';
 
 export function SettingsPage() {
   const { t } = useTranslation();
@@ -112,7 +113,7 @@ export function SettingsPage() {
     return SECTIONS(t).reduce<Record<SettingsSectionId, number>>((acc, section) => {
       acc[section.id] = settings.filter(setting => setting.section === section.id && isSettingVisible(setting, config)).length;
       return acc;
-    }, { appearance: 0, agent: 0, board: 0, fields: 0, notifications: 0, about: 0 });
+    }, { appearance: 0, agent: 0, board: 0, fields: 0, notifications: 0, extensions: 0, about: 0 });
   }, [config, t, settings]);
 
   const visibleSettings = useMemo(() => {
@@ -311,6 +312,8 @@ export function SettingsPage() {
                     onCheckUpdate={checkForUpdate}
                   />
                 </div>
+              ) : activeSectionId === 'extensions' ? (
+                <ExtensionsPanel />
               ) : !normalizedQuery && activeSectionId === 'agent' ? (
                 <WorkOutputConfigurator
                   config={config}

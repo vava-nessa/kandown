@@ -23,6 +23,7 @@ import {
   IconInfoCircle,
   IconLayoutBoard,
   IconPalette,
+  IconPuzzle,
   IconRobot,
   IconTags,
   type TablerIcon,
@@ -33,7 +34,7 @@ import { SUPPORTED_LANGUAGES, LANGUAGE_LABELS } from '../../lib/i18n';
 import type { KandownConfig } from '../../lib/types';
 
 export type SettingType = 'toggle' | 'select' | 'number' | 'text' | 'skin' | 'theme' | 'language' | 'permission' | 'button';
-export type SettingsSectionId = 'appearance' | 'agent' | 'board' | 'fields' | 'notifications' | 'about';
+export type SettingsSectionId = 'appearance' | 'agent' | 'board' | 'fields' | 'notifications' | 'extensions' | 'about';
 
 export interface SettingOption {
   value: string;
@@ -135,6 +136,13 @@ export const SECTIONS = (t: ReturnType<typeof useTranslation>['t']): SettingsSec
     kicker: t('settings.kickerAbout') ?? 'Version & updates',
     description: t('settings.aboutDesc') ?? 'Kandown version and auto-update status.',
     icon: IconInfoCircle,
+  },
+  {
+    id: 'extensions',
+    label: t('settings.extensions', { defaultValue: 'Extensions' }),
+    kicker: t('settings.kickerExtensions', { defaultValue: 'Plugins & integrations' }),
+    description: t('settings.extensionsDesc', { defaultValue: 'Manage installed extensions: enable, disable and restricted mode.' }),
+    icon: IconPuzzle,
   },
 ];
 

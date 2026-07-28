@@ -312,6 +312,13 @@ export interface KandownConfig {
     editDebounceMs: number;
     webhookUrl?: string;
   };
+  /** 📖 Extension system settings. `restricted` defaults to true (the Obsidian
+   *  model): community/global extensions load disabled until the user enables
+   *  them. See docs/EXTENSIONS.md § "Security model". Optional so older config
+   *  files without it still parse. */
+  extensions?: {
+    restricted?: boolean;
+  };
 }
 
 export const DEFAULT_COLUMNS = ['Backlog', 'Todo', 'In Progress', 'Review', 'Done'];
@@ -366,5 +373,8 @@ export const DEFAULT_CONFIG: KandownConfig = {
     taskEdits: true,
     subtaskCompletions: true,
     editDebounceMs: 2000,
+  },
+  extensions: {
+    restricted: true,
   },
 };

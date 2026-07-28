@@ -508,6 +508,9 @@ var DEFAULT_CONFIG = {
     taskEdits: true,
     subtaskCompletions: true,
     editDebounceMs: 2e3
+  },
+  extensions: {
+    restricted: true
   }
 };
 

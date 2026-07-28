@@ -26,8 +26,8 @@ source to edit instead.
 
 ## `bin/` — Published CLI entrypoints — GENERATED, never edit
 
-- **`kandown.js`** · 4537 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
-- **`tui.js`** · 60485 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
+- **`kandown.js`** · 4540 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
+- **`tui.js`** · 60488 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
 
 ## `src/` — Web app root
 
@@ -120,7 +120,7 @@ source to edit instead.
 - **`ListView.tsx`** · 523 lines — Renders board columns as vertically stacked horizontal sections, with dense task rows, filter/search previews, task drops between sections, and vertical section reordering.
 - **`LogoSvg.tsx`** · 54 lines — Renders the official Kandown vector logo from logo.svg.
 - **`OnboardingTour.tsx`** · 293 lines — Centered dialog that introduces Kandown the first time a user opens a project, then disappears for good on that project.
-- **`SettingsPage.tsx`** · 360 lines — Dense settings workspace with an iOS-style sidebar, global option search, section navigation, and compact controls for kandown.json.
+- **`SettingsPage.tsx`** · 363 lines — Dense settings workspace with an iOS-style sidebar, global option search, section navigation, and compact controls for kandown.json.
 - **`SubtaskEditor.tsx`** · 164 lines — Reusable checklist editor rendered below a task description in both the mobile drawer and desktop workspace.
 - **`SubtaskItem.tsx`** · 228 lines — Editable row for one markdown checklist item inside the task drawer, with toggle, text edit, enter-to-add, empty-backspace removal, and an expandable panel for per-subtask description and report notes.
 - **`TaskWorkspace.tsx`** · 560 lines — Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…
@@ -133,9 +133,10 @@ source to edit instead.
 ## `src/components/settings/` — Settings page sections
 
 - **`AboutVersionCard.tsx`** · 205 lines — Shows the running version, checks npm for a newer release, and can trigger the server-side self-update (serverApplyUpdate) followed by a page reload once the daemon confirms it restarted on the new build.
+- **`ExtensionsPanel.tsx`** · 158 lines — Web UI surface for the extension system: lists installed extensions with their health and contributions, lets the user enable/disable them, and toggles restricted mode (default on).
 - **`GitHubStarsRow.tsx`** · 51 lines — One row in the *About* section: a star + the live GitHub star count, the whole row linking to the repo.
 - **`LanguageDropdown.tsx`** · 141 lines — Searchable flag+name dropdown over ORDERED_LANGUAGES, with arrow-key navigation and Enter-to-select.
-- **`schema.ts`** · 439 lines — Declarative metadata describing every setting (section, type, description, keywords) plus pure functions for reading/writing dotted config paths and building the sidebar search index.
+- **`schema.ts`** · 447 lines — Declarative metadata describing every setting (section, type, description, keywords) plus pure functions for reading/writing dotted config paths and building the sidebar search index.
 - **`SearchResults.tsx`** · 50 lines — Shown in the sidebar below the section nav once the user types a query; lists matching settings across all sections regardless of which section is currently active.
 - **`SettingRow.tsx`** · 309 lines — Renders one SettingDef as either a dense toggle row, a full-width theme gallery (for the 'skin' type), or one of the secondary controls — select dropdown, number stepper, text input, language picker, theme mode switcher, or notification…
 - **`WorkOutputConfigurator.tsx`** · 846 lines — The Agent section's biggest feature: lets the user shape exactly what `kandown work` prints to an AI agent's terminal — base rules density, project instructions (.kandown/instructions.md), and a live board digest — with a live…
@@ -162,7 +163,7 @@ source to edit instead.
 - **`demoSeed.ts`** · 446 lines — The starting contents of the in-memory project served by {@link ./demoBackend.ts} when the app runs in demo mode on the website.
 - **`dependencies.ts`** · 332 lines — Pure module that owns the single rule for moving tasks between board columns: a task may only enter the configured terminal status (and be archived) when every blocking dependency is resolved.
 - **`errors.ts`** · 138 lines — Typed errors used across the web UI to distinguish failure modes (browser support, permissions, disk full, corruption, parse errors) instead of relying on generic `Error` + string matching.
-- **`filesystem.ts`** · 1010 lines — Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.
+- **`filesystem.ts`** · 1055 lines — Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.
 - **`githubStars.ts`** · 122 lines — Client-side GitHub star count for the Kandown web app, with a localStorage cache.
 - **`globalErrors.ts`** · 108 lines — Last-resort safety net that catches uncaught JavaScript errors and unhandled promise rejections, logs them, and shows a throttled toast so the user is informed without being spammed.
 - **`grouping.ts`** · 128 lines — Pure functions that group board tasks by shared `[bracket]` tags or `#hashtag` markers in their titles.
@@ -177,7 +178,7 @@ source to edit instead.
 - **`task-title-category.ts`** · 52 lines — Extracts single leading bracket category tags (e.g.
 - **`task-url.ts`** · 65 lines — Parses and writes deep-link URLs for task drawers.
 - **`theme.ts`** · 1612 lines — Manages customizable JSON themes, appearance tokens (--radius, --shadow-*, --font-display, --motion-scale), curated presets (Vercel, Linear, Claude, Apple, Stripe, Paper, Catppuccin, Terminal), and dynamic inheritance.
-- **`types.ts`** · 371 lines — Defines the board, task, config, filter, search, and appearance types used by the Kandown web UI and persistence layer.
+- **`types.ts`** · 381 lines — Defines the board, task, config, filter, search, and appearance types used by the Kandown web UI and persistence layer.
 - **`utils.ts`** · 24 lines — Provides `cn`, the single utility used across every web component to compose conditional class names.
 - **`version.ts`** · 9 lines · ⚠️ **GENERATED** by scripts/inject-version.js — edit `package.json` instead
 - **`watcher.ts`** · 306 lines — 500ms polling watcher using content hashing (SHA-256).
@@ -278,6 +279,6 @@ source to edit instead.
 
 ## Coverage
 
-179 of 179 eligible files carry an `@description` header.
+180 of 180 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

@@ -3,14 +3,14 @@
   "files": [
     {
       "path": "bin/kandown.js",
-      "lines": 4537,
+      "lines": 4540,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 60485,
+      "lines": 60488,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -1172,6 +1172,12 @@
       "exports": "AboutVersionCard"
     },
     {
+      "path": "src/components/settings/ExtensionsPanel.tsx",
+      "lines": 158,
+      "title": "Extensions settings panel",
+      "summary": "Web UI surface for the extension system: lists installed extensions with their health and contributions, lets the user enable/disable them, and toggles restricted mode (default on)."
+    },
+    {
       "path": "src/components/settings/GitHubStarsRow.tsx",
       "lines": 51,
       "title": "src/components/settings/GitHubStarsRow.tsx",
@@ -1187,7 +1193,7 @@
     },
     {
       "path": "src/components/settings/schema.ts",
-      "lines": 439,
+      "lines": 447,
       "title": "Settings page — schema & config helpers",
       "summary": "Declarative metadata describing every setting (section, type, description, keywords) plus pure functions for reading/writing dotted config paths and building the sidebar search index.",
       "functions": [
@@ -1251,7 +1257,7 @@
     },
     {
       "path": "src/components/SettingsPage.tsx",
-      "lines": 360,
+      "lines": 363,
       "title": "Settings page for the web app",
       "summary": "Dense settings workspace with an iOS-style sidebar, global option search, section navigation, and compact controls for kandown.json.",
       "functions": [
@@ -1792,7 +1798,7 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 1010,
+      "lines": 1055,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [
@@ -2483,7 +2489,7 @@
     },
     {
       "path": "src/lib/types.ts",
-      "lines": 371,
+      "lines": 381,
       "title": "Shared domain types",
       "summary": "Defines the board, task, config, filter, search, and appearance types used by the Kandown web UI and persistence layer.",
       "exports": "Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, KandownConfig, DEFAULT_COLUMNS, DEFAULT_CONFIG"

@@ -285,6 +285,51 @@ export async function serverListTasks(): Promise<string[]> {
   return res.json() as Promise<string[]>;
 }
 
+/** Summary of one installed extension, mirroring the daemon's /api/extensions shape. */
+export interface ExtensionSummary {
+  id: string;
+  name: string;
+  version: string;
+  source: 'global' | 'project';
+  health: string;
+  error?: string;
+  fields: string[];
+  panels: string[];
+  commands: string[];
+  gates: number;
+  syncs: number;
+}
+
+/** 📖 Lists installed extensions via the daemon. Returns null outside server mode
+ *  (standalone File System Access and demo modes have no extension host). */
+export async function serverListExtensions(): Promise<ExtensionSummary[] | null> {
+  if (!isServerMode() || isDemoMode()) return null;
+  try {
+    const res = await apiFetch('/api/extensions');
+    if (!res.ok) return null;
+    const data = (await res.json()) as { extensions?: ExtensionSummary[] };
+    return data.extensions ?? [];
+  } catch {
+    return null;
+  }
+}
+
+/** 📖 Enables an extension by id; returns the refreshed summaries, or null on failure. */
+export async function serverEnableExtension(id: string): Promise<ExtensionSummary[] | null> {
+  if (!isServerMode() || isDemoMode()) return null;
+  const res = await apiFetch(`/api/extensions/${encodeURIComponent(id)}/enable`, { method: 'POST' });
+  if (!res.ok) return null;
+  const data = (await res.json()) as { summary?: ExtensionSummary[] };
+  return data.summary ?? null;
+}
+
+/** 📖 Disables an extension by id. */
+export async function serverDisableExtension(id: string): Promise<boolean> {
+  if (!isServerMode() || isDemoMode()) return false;
+  const res = await apiFetch(`/api/extensions/${encodeURIComponent(id)}/disable`, { method: 'POST' });
+  return res.ok;
+}
+
 /**
  * @description Fetches a single task file via the CLI server and parses it.
  * @throws Error if the task is not found (404).
