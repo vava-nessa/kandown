@@ -34,6 +34,9 @@
   <a href="#contributing">Contributing</a>
 </p>
 
+> [!WARNING]
+> **Active development — do not use in production yet.** Kandown is a build-in-public project. The first stable release will be **v1.0.0**. Expect breaking changes, missing features and rough edges before then. Use at your own risk.
+
 ---
 
 ## What it is

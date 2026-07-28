@@ -25,6 +25,7 @@ import type { ReactNode } from 'react'
 import { SiteHeader } from '~/components/SiteHeader'
 import { SiteFooter } from '~/components/SiteFooter'
 import { SearchDialog } from '~/components/DocSearch'
+import { DevWarning } from '~/components/DevWarning'
 import { site } from '~/lib/site'
 import appCss from '~/styles.css?url'
 
@@ -147,6 +148,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
             renders its own floating way back instead. Because that bar is
             then the only thing saying the session is disposable, it carries the
             sample project's status too. */}
+        {isAppRoute ? null : <DevWarning />}
         {isAppRoute ? null : <SiteHeader />}
         <main id="main">{children}</main>
         {isAppRoute ? null : <SiteFooter />}
