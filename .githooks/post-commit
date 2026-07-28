@@ -12,8 +12,8 @@
 # run from here — only ever by hand.
 #
 # Entirely optional: if graphify is not installed, this exits quietly. It also runs
-# detached and never fails the commit, since a graph refresh must not be able to
-# break someone's git workflow.
+# detached and never fails the commit. Optional Git locks are disabled so the
+# refresh cannot race an immediate follow-up commit and leave `.git/index.lock`.
 #
 # Installed by scripts/install-hooks.js via core.hooksPath (runs on pnpm install).
 
@@ -21,5 +21,5 @@ if [ "$KANDOWN_NO_GRAPHIFY" = "1" ]; then exit 0; fi
 if ! command -v graphify >/dev/null 2>&1; then exit 0; fi
 if [ ! -d graphify-out ]; then exit 0; fi
 
-(graphify update . >/dev/null 2>&1 &) || true
+(GIT_OPTIONAL_LOCKS=0 graphify update . >/dev/null 2>&1 &) || true
 exit 0

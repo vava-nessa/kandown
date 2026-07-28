@@ -402,6 +402,7 @@ is generated from them on every commit, and CI fails if either drifts.
 | `pnpm dev:app` | Full build, then launch the CLI |
 | `pnpm dev:cli` | Watch-mode build of the CLI bundles |
 | `pnpm build` | Version inject → agent-doc sync → typecheck → web → CLI |
+| `pnpm verify` | Full local gate: types, tests, build, generated docs and diff checks |
 | `pnpm typecheck` | TypeScript, no emit |
 | `pnpm codemap` | Regenerate `CODEMAP.md` / `CODEMAP.json` |
 | `pnpm changelog` | Regenerate the `CHANGELOG.md` index from `changelogs/` |

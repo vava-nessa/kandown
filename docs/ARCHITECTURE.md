@@ -215,6 +215,24 @@ have read.
 | Board columns | `.kandown/kandown.json` → `board.columns` | read by all three interfaces |
 | Task state | `tasks/*.md` | there is no index — do not add one |
 
+### Interface adapters and mirrors
+
+Kandown has three execution environments: the packaged daemon, Vite development
+and the in-memory website demo. Their adapters differ, but domain policy must not.
+A local API change therefore needs inspection in `src/cli/lib/server.ts`,
+`vite.config.ts` and `src/lib/demoBackend.ts`; reusable behavior belongs in a
+shared coordinator rather than three copied implementations.
+
+The web UI also has two task editor shells. `TaskWorkspace.tsx` owns the desktop
+route and `Drawer.tsx` owns compact layouts. Shared editor behavior belongs in a
+component mounted by both shells. Likewise, `src/lib/store.ts` is the active
+Zustand store while `src/lib/store/boardSlice.ts` mirrors board actions during the
+store split. Until that migration finishes, behavior changes must stay aligned in
+both files and domain logic should move into shared helpers whenever possible.
+
+This fan-out is summarized in `AGENTS.md` so an agent sees it before coding. The
+architecture remains the authority for why those seams exist.
+
 ---
 
 ## The documentation system

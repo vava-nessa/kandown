@@ -28,6 +28,30 @@ Look a symbol up in `CODEMAP.json` instead of grepping. Ask what depends on what
 with `graphify query "<question>"` (see
 [Architecture § the dependency graph](docs/ARCHITECTURE.md#the-dependency-graph)).
 
+## Change fan-out checklist
+
+Some interfaces intentionally mirror the same feature. Before editing one file
+in a row, inspect every surface listed and keep policy in a shared module.
+
+| Concern | Surfaces to inspect | Shared owner |
+|---|---|---|
+| Task editor UI | `TaskWorkspace.tsx` (desktop), `Drawer.tsx` (mobile) | shared components such as `TaskExtensionSurface.tsx` |
+| Zustand board actions | `src/lib/store.ts`, `src/lib/store/boardSlice.ts` | filesystem and domain helpers under `src/lib/` |
+| Local API behavior | `src/cli/lib/server.ts`, `vite.config.ts`, `src/lib/demoBackend.ts` | shared coordinators under `src/cli/lib/` or `src/lib/` |
+| Generated outputs | `bin/*`, `.kandown/kandown.html`, `CODEMAP.*`, `CHANGELOG.md` | source, build scripts and release files listed below |
+
+The detailed rationale lives in
+[Architecture § interface adapters and mirrors](docs/ARCHITECTURE.md#interface-adapters-and-mirrors).
+
+## Review authority
+
+Vava's explicit decisions and the active task's `Decisions` / `Out of scope`
+sections are authoritative. A reviewer may find bugs inside that contract, but
+must not silently turn an accepted risk or deferred feature into a blocker. List
+such observations separately as non-blocking follow-up work. Ask vava before
+expanding scope, changing a settled architecture decision or reverting verified
+behavior.
+
 ---
 
 ## Hard rules
@@ -160,6 +184,7 @@ as you go.
 | `pnpm dev:app` | Full build, then launch the CLI, the realistic dev loop |
 | `pnpm dev:cli` | Watch-mode build of the CLI/TUI bundles |
 | `pnpm build` | inject version, then sync agent doc, typecheck, web, CLI |
+| `pnpm verify` | Run the complete local quality gate before commit or push |
 | `pnpm typecheck` | TypeScript, no emit |
 | `pnpm codemap` | Regenerate `CODEMAP.md` / `CODEMAP.json` |
 | `pnpm codemap:check` | Fail if the codemap is stale or a file lacks `@description` |
