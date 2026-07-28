@@ -35,41 +35,112 @@ import type {
 import { DEFAULT_COLUMNS } from './types';
 import { taskTimestamp } from './task-meta';
 
+/**
+ * 📖 A small recursive YAML-subset parser. Handles flat scalars, inline arrays
+ * (`[a, b]`), block scalars (`key: |`) and nested mappings (indented blocks).
+ * Nested support exists so the opaque `plugins.<id>.*` extension namespace can
+ * live inside task frontmatter and round-trip through `serializeTaskFile`.
+ * Scalars stay strings on read; typed coercion (numbers, booleans, dates) is
+ * the extension layer's job, keeping the core parser pure and regression-free.
+ * See docs/EXTENSIONS.md § "The data model".
+ */
 export function parseSimpleYaml(yaml: string): Record<string, unknown> {
-  const obj: Record<string, unknown> = {};
-  if (!yaml || typeof yaml !== 'string') return obj;
-  const lines = yaml.split('\n');
-  for (let i = 0; i < lines.length; i++) {
+  if (!yaml || typeof yaml !== 'string') return {};
+  return readMapping(yaml.split('\n'), 0, 0).value;
+}
+
+function leadingSpaces(line: string): number {
+  let n = 0;
+  while (line[n] === ' ') n++;
+  return n;
+}
+
+function nextContentIndent(lines: string[], from: number): number | null {
+  for (let i = from; i < lines.length; i++) {
+    const l = lines[i] ?? '';
+    if (l.trim() === '') continue;
+    return leadingSpaces(l);
+  }
+  return null;
+}
+
+function unquoteScalar(raw: string): string {
+  return raw.replace(/^["']|["']$/g, '');
+}
+
+function parseInlineArray(raw: string): string[] {
+  return raw
+    .slice(1, -1)
+    .split(',')
+    .map(s => (s && typeof s === 'string') ? s.trim().replace(/^["']|["']$/g, '') : '')
+    .filter(Boolean);
+}
+
+/** 📖 Reads a `key: |` block scalar by auto-detecting the indent of its first
+ *  content line (real-YAML style), so 2-space and 4-space blocks both dedent
+ *  correctly and the field round-trips byte-stably. */
+function readBlockScalar(lines: string[], start: number): { value: string; next: number } {
+  let probe = start;
+  while (probe < lines.length && (lines[probe] ?? '').trim() === '') probe++;
+  if (probe >= lines.length) return { value: '', next: start };
+  const indent = leadingSpaces(lines[probe] ?? '');
+  if (indent <= 0) return { value: '', next: start };
+  const block: string[] = [];
+  let i = start;
+  while (i < lines.length) {
     const line = lines[i] ?? '';
-    const m = line.match(/^([a-zA-Z_][\w-]*)\s*:\s*(.*)$/);
-    if (!m) continue;
-    const key = m[1];
-    if (!key) continue;
-    let val: string | string[] = m[2]?.trim() ?? '';
-    if (val === '|') {
-      const block: string[] = [];
-      i++;
-      while (i < lines.length && (/^\s+/.test(lines[i] ?? '') || (lines[i] ?? '') === '')) {
-        block.push((lines[i] ?? '').replace(/^  /, ''));
-        i++;
-      }
-      i--;
-      obj[key] = block.join('\n').trimEnd();
+    if (line.trim() === '') { block.push(''); i++; continue; }
+    if (leadingSpaces(line) < indent) break;
+    block.push(line.slice(indent));
+    i++;
+  }
+  while (block.length > 0 && block[block.length - 1] === '') block.pop();
+  return { value: block.join('\n'), next: i };
+}
+
+/** 📖 Reads a mapping whose entries sit at column `indent`. Returns the parsed
+ *  object and the index of the first line that dedented out of this mapping,
+ *  so callers can resume their own loop. Nested mappings recurse. */
+function readMapping(lines: string[], start: number, indent: number): { value: Record<string, unknown>; next: number } {
+  const obj: Record<string, unknown> = {};
+  let i = start;
+  while (i < lines.length) {
+    const line = lines[i] ?? '';
+    if (line.trim() === '') { i++; continue; }
+    const ind = leadingSpaces(line);
+    if (ind < indent) break;              // dedented: this mapping is finished
+    if (ind > indent) { i++; continue; }  // orphan deeper line, skip defensively
+    const m = line.match(/^(\s*)([a-zA-Z_][\w-]*)\s*:\s*(.*)$/);
+    if (!m) { i++; continue; }
+    const key = m[2]!;
+    const rawVal = (m[3] ?? '').trim();
+    if (rawVal === '|') {
+      const { value, next } = readBlockScalar(lines, i + 1);
+      obj[key] = value;
+      i = next;
       continue;
     }
-    if (typeof val !== 'string') val = '';
-    if (val.startsWith('[') && val.endsWith(']')) {
-      const arr = val
-        .slice(1, -1)
-        .split(',')
-        .map(s => (s && typeof s === 'string') ? s.trim().replace(/^["']|["']$/g, '') : '')
-        .filter(Boolean);
-      obj[key] = arr;
-    } else {
-      obj[key] = (typeof val === 'string') ? val.replace(/^["']|["']$/g, '') : val;
+    if (rawVal === '') {
+      const childIndent = nextContentIndent(lines, i + 1);
+      if (childIndent !== null && childIndent > indent) {
+        const { value, next } = readMapping(lines, i + 1, childIndent);
+        obj[key] = value;
+        i = next;
+        continue;
+      }
+      obj[key] = '';
+      i++;
+      continue;
     }
+    if (rawVal.startsWith('[') && rawVal.endsWith(']')) {
+      obj[key] = parseInlineArray(rawVal);
+      i++;
+      continue;
+    }
+    obj[key] = unquoteScalar(rawVal);
+    i++;
   }
-  return obj;
+  return { value: obj, next: i };
 }
 
 export function parseTaskFile(md: string): ParsedTask {

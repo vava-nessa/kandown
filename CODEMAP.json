@@ -3,14 +3,14 @@
   "files": [
     {
       "path": "bin/kandown.js",
-      "lines": 3647,
+      "lines": 4537,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 60401,
+      "lines": 60485,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -143,7 +143,7 @@
     },
     {
       "path": "src/cli/cli.ts",
-      "lines": 184,
+      "lines": 201,
       "title": "Main Kandown CLI Entrypoint",
       "summary": "Entrypoint for the kandown command line tool."
     },
@@ -189,7 +189,7 @@
     },
     {
       "path": "src/cli/commands/tasks.ts",
-      "lines": 309,
+      "lines": 330,
       "title": "CLI commands — task CRUD & board data",
       "summary": "Handlers for `kandown list/show/create/move/assign/commit` plus `export`/`import`/`projects`.",
       "exports": "cmdList, cmdShow, cmdCreate, cmdMove, cmdAssign, cmdCommit, cmdExport, cmdProjects, cmdImport"
@@ -385,7 +385,7 @@
     },
     {
       "path": "src/cli/lib/cli-shared.ts",
-      "lines": 353,
+      "lines": 354,
       "title": "CLI shared utilities",
       "summary": "Argument parsing, deterministic nearest-ancestor project resolution, colored console output, and task-file path helpers shared across every `cmdX` command handler and the TUI launcher in src/cli/cli.ts.",
       "functions": [
@@ -475,6 +475,35 @@
       "exports": "DaemonMetadata, DaemonStatus, readDaemonMetadata, getDaemonStatus, startProjectDaemon, stopProjectDaemon"
     },
     {
+      "path": "src/cli/lib/extensions-cli.ts",
+      "lines": 303,
+      "title": "CLI wiring for the extension system",
+      "summary": "Bridges the runtime-agnostic `ExtensionHost` to the CLI's synchronous board-reader world: builds a `HostEnvironment` from a kandown project, offers a one-call `loadExtensionHost`, runs extension gates around a move, and implements the…",
+      "functions": [
+        {
+          "name": "buildHostEnvironment",
+          "summary": "adapt a kandown project to a HostEnvironment"
+        },
+        {
+          "name": "loadExtensionHost",
+          "summary": "instantiate + loadAll a host for a project"
+        },
+        {
+          "name": "runExtensionMoveGates",
+          "summary": "run task:beforeMove gates, return first block"
+        },
+        {
+          "name": "dispatchContributedCommand",
+          "summary": "run a `kandown <ext-cmd>` if one exists"
+        },
+        {
+          "name": "cmdExtension",
+          "summary": "`kandown extension <subcommand>` handler"
+        }
+      ],
+      "exports": "buildHostEnvironment, loadExtensionHost, runExtensionMoveGates, dispatchContributedCommand, cmdExtension"
+    },
+    {
       "path": "src/cli/lib/file-watcher.ts",
       "lines": 309,
       "title": "Node.js file watcher for CLI",
@@ -537,7 +566,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 463,
+      "lines": 524,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
@@ -1465,6 +1494,18 @@
       "summary": "Vitest suite that locks the policy decisions into tests (see docs/ARCHITECTURE.md invariant #2)."
     },
     {
+      "path": "src/lib/__tests__/extensions-host.spec.ts",
+      "lines": 195,
+      "title": "Extension host integration",
+      "summary": "Vitest suite that loads real extensions from a temp project dir via jiti and locks the host contract: discovery, restricted mode + project trust, gate composition with block reasons, command dispatch, and the core invariant that a…"
+    },
+    {
+      "path": "src/lib/__tests__/parser-serializer.spec.ts",
+      "lines": 159,
+      "title": "Parser + serializer round-trip",
+      "summary": "Vitest suite locking the `parseSimpleYaml` / `parseTaskFile` ↔ `serializeTaskFile` round-trip."
+    },
+    {
       "path": "src/lib/agent-aliases.ts",
       "lines": 223,
       "title": "Agent alias resolver (shared, framework-agnostic)",
@@ -1609,6 +1650,145 @@
         }
       ],
       "exports": "KandownError, BrowserNotSupportedError, PermissionDeniedError, FileNotFoundError, DiskFullError, CorruptedDataError, FileReadError, FileReadErrorCode, isRetryableError, Result"
+    },
+    {
+      "path": "src/lib/extensions/host.ts",
+      "lines": 364,
+      "title": "Extension host",
+      "summary": "The orchestrator that loads extensions, manages their health, and dispatches contributions (gates, syncs, commands, lifecycle) with per-contribution fail policies.",
+      "exports": "ExtensionHost, type HostEnvironment"
+    },
+    {
+      "path": "src/lib/extensions/loader.ts",
+      "lines": 87,
+      "title": "Extension discovery",
+      "summary": "Scans the global (`~/.kandown/extensions`) and project (`.kandown/extensions`) locations for extension directories, reading and parsing each one's `manifest.json`.",
+      "functions": [
+        {
+          "name": "globalExtensionsDir",
+          "summary": "`~/.kandown/extensions`"
+        },
+        {
+          "name": "projectExtensionsDir",
+          "summary": "`<project>/.kandown/extensions`"
+        },
+        {
+          "name": "discoverExtensions",
+          "summary": "scan both, parse manifests, dedupe (project wins)"
+        }
+      ],
+      "exports": "globalExtensionsDir, projectExtensionsDir, discoverExtensions"
+    },
+    {
+      "path": "src/lib/extensions/manifest.ts",
+      "lines": 77,
+      "title": "Extension manifest parsing and compatibility",
+      "summary": "Validates a raw JSON object into a typed `ExtensionManifest`, and checks version compatibility against the running kandown.",
+      "functions": [
+        {
+          "name": "parseManifest",
+          "summary": "validate raw JSON into a manifest, or return an error"
+        },
+        {
+          "name": "isCompatible",
+          "summary": "semver gate against the running kandown version"
+        }
+      ],
+      "exports": "parseManifest, isCompatible"
+    },
+    {
+      "path": "src/lib/extensions/namespace.ts",
+      "lines": 102,
+      "title": "plugins.* namespace helpers",
+      "summary": "Pure read/write access to the opaque `plugins.<extId>.*` frontmatter namespace.",
+      "functions": [
+        {
+          "name": "getPluginData",
+          "summary": "read an extension's raw sub-object"
+        },
+        {
+          "name": "readField",
+          "summary": "read + coerce one field"
+        },
+        {
+          "name": "setField",
+          "summary": "return a new frontmatter with a field set/removed"
+        }
+      ],
+      "exports": "getPluginData, readField, setField"
+    },
+    {
+      "path": "src/lib/extensions/permissions.ts",
+      "lines": 28,
+      "title": "Extension permission model",
+      "summary": "A tiny capability matcher.",
+      "functions": [
+        {
+          "name": "isAllowed",
+          "summary": "does a declared list cover a requested permission?"
+        }
+      ],
+      "exports": "isAllowed"
+    },
+    {
+      "path": "src/lib/extensions/registry.ts",
+      "lines": 106,
+      "title": "Contribution registry",
+      "summary": "The in-memory store of everything loaded extensions contribute: fields, web panels, commands, gates, syncs and generic lifecycle handlers.",
+      "exports": "ContributionRegistry"
+    },
+    {
+      "path": "src/lib/extensions/state.ts",
+      "lines": 47,
+      "title": "Enabled-extension preference state",
+      "summary": "The per-project set of extension ids the user has explicitly enabled.",
+      "functions": [
+        {
+          "name": "enabledFilePath",
+          "summary": "absolute path to a project's enabled set"
+        },
+        {
+          "name": "loadEnabled",
+          "summary": "read the enabled ids (empty when absent)"
+        },
+        {
+          "name": "saveEnabled",
+          "summary": "persist the enabled ids set"
+        }
+      ],
+      "exports": "enabledFilePath, loadEnabled, saveEnabled"
+    },
+    {
+      "path": "src/lib/extensions/trust.ts",
+      "lines": 56,
+      "title": "Restricted mode and project-local trust",
+      "summary": "The security gate that decides which extensions may load.",
+      "functions": [
+        {
+          "name": "isRestricted",
+          "summary": "read the restricted flag from a config object"
+        },
+        {
+          "name": "loadProjectTrust",
+          "summary": "read trusted project-local ids (empty when absent)"
+        },
+        {
+          "name": "saveProjectTrust",
+          "summary": "persist the trusted ids set"
+        },
+        {
+          "name": "trustFilePath",
+          "summary": "absolute path to a project's trust file"
+        }
+      ],
+      "exports": "isRestricted, loadProjectTrust, saveProjectTrust, trustFilePath"
+    },
+    {
+      "path": "src/lib/extensions/types.ts",
+      "lines": 193,
+      "title": "Extension system types and public API contract",
+      "summary": "The single source of truth for the extension surface: the manifest shape, the contribution-point definitions, the lifecycle events, the context handed to handlers, and the `KandownExtensionAPI` an extension factory receives.",
+      "exports": "ExtensionManifest, ExtensionHealth, LoadedExtension, FieldContribution, WebPanelContribution, CommandContribution, GateContribution, SyncContribution, TaskLike, TaskEvent, GateEvent, ExtensionContext, ExtensionCommandContext, KandownExtensionAPI, ExtensionFactory"
     },
     {
       "path": "src/lib/filesystem.ts",
@@ -1802,7 +1982,7 @@
     },
     {
       "path": "src/lib/parser.ts",
-      "lines": 380,
+      "lines": 451,
       "title": "Markdown parser utilities",
       "summary": "Parses Kandown task markdown into typed structures, builds board columns from task frontmatter, extracts editable subtasks, reinjects them on save, and performs lightweight cached task-content search for the web UI.",
       "functions": [
@@ -1859,7 +2039,7 @@
     },
     {
       "path": "src/lib/serializer.ts",
-      "lines": 45,
+      "lines": 73,
       "title": "Markdown serializer utilities",
       "summary": "Converts task frontmatter/body data back into Kandown's plain markdown task file format.",
       "functions": [
