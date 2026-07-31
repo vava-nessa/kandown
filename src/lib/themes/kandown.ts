@@ -33,6 +33,11 @@ export const kandownTheme: KandownTheme = {
       'accent': '72 100% 90%', 'accent-foreground': '96 50% 18%', 'border': '0 0% 92%', 'border-strong': '0 0% 85%',
       'border-focus': '91 67% 47%', 'input': '0 0% 90%', 'ring': '91 67% 47%', 'success': '130 90% 28%',
       'grid': '92 40% 20% / 0.05', 'grid-strong': '92 40% 20% / 0.09', 'glass': '0 0% 100% / 0.78', 'glass-border': '75 30% 88% / 0.85',
+      // 📖 Code blocks: very light gray background so github-light's dark
+      // token colors (blues / reds / greens) keep a WCAG-AA contrast.
+      // Inline code is slightly tinted with the page accent so single
+      // backticks in body prose still pop without competing with the block.
+      'code-bg': '220 14% 96%', 'code-fg': '220 30% 12%', 'code-inline-bg': '75 35% 90%', 'code-inline-fg': '120 25% 18%', 'code-block-border': '220 14% 88%',
     },
     dark: {
       ...sharedDark,
@@ -42,5 +47,10 @@ export const kandownTheme: KandownTheme = {
       'accent': '92 30% 18%', 'accent-foreground': '92 74% 70%', 'border': '120 6% 18%', 'border-strong': '120 6% 26%',
       'border-focus': '92 74% 55%', 'input': '120 6% 18%', 'ring': '92 74% 55%', 'success': '130 90% 48%',
       'grid': '92 60% 60% / 0.03', 'grid-strong': '92 60% 60% / 0.06', 'glass': '120 7% 10% / 0.78', 'glass-border': '92 20% 24% / 0.8',
+      // 📖 Code blocks: a deeper neutral background, close to github-dark's
+      // own `#0d1117` (≈ 220 15% 9%) so the bundled Shiki palette's light
+      // token colors stay readable. Inline code is warmer so it reads as a
+      // deliberate pill, not a missed selection.
+      'code-bg': '220 15% 11%', 'code-fg': '80 20% 92%', 'code-inline-bg': '92 20% 22%', 'code-inline-fg': '92 50% 78%', 'code-block-border': '220 14% 22%',
     },
   };

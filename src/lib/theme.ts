@@ -128,6 +128,29 @@ export function registerCustomThemes(themes?: KandownTheme[]): void {
   }
 }
 
+// 📖 Default mode-aware code-block tokens. Used as a safety net in
+// `applyProjectTheme` when an installed community theme forgets one of the
+// five code slots, so the editor never renders white-on-white or black-on-
+// black regardless of which theme is active. The light values are tuned for
+// github-light (very light gray, dark fg) and the dark values for
+// github-dark (very dark gray, light fg), matching the contrast Shiki ships
+// for in its bundled themes.
+export const BASE_CODE_TOKENS_LIGHT: Partial<ThemeTokens> = {
+  'code-bg': '220 14% 96%',
+  'code-fg': '220 30% 12%',
+  'code-inline-bg': '75 35% 90%',
+  'code-inline-fg': '120 25% 18%',
+  'code-block-border': '220 14% 88%',
+};
+
+export const BASE_CODE_TOKENS_DARK: Partial<ThemeTokens> = {
+  'code-bg': '220 15% 11%',
+  'code-fg': '80 20% 92%',
+  'code-inline-bg': '92 20% 22%',
+  'code-inline-fg': '92 50% 78%',
+  'code-block-border': '220 14% 22%',
+};
+
 export function getAllThemes(): KandownTheme[] {
   return [...THEME_PRESETS, ...customThemesRegistry];
 }
@@ -178,6 +201,35 @@ export function normalizeBackgroundId(value: unknown): BackgroundId {
   return BACKGROUND_OPTIONS.some(bg => bg.id === value) ? (value as BackgroundId) : 'solid';
 }
 
+/**
+ * 📖 Backfill missing code-block tokens on a theme's mode-specific token map
+ * with the safe defaults shipped in this module. Pure function so the safety
+ * net is unit-testable without a DOM. Returns a new object; the input is not
+ * mutated.
+ *
+ * Why this lives in core: an installed community theme may predate the
+ * code-block tokens, and shipping white-on-white / black-on-black code in
+ * the task description editor is a worse failure than rendering the bundled
+ * `kandown` palette by surprise. The function is the single source of
+ * truth for the safety net — both `applyProjectTheme` (DOM side) and the
+ * unit test (Node side) go through it.
+ */
+export function fillCodeTokens(
+  tokens: ThemeTokens,
+  mode: 'light' | 'dark'
+): ThemeTokens {
+  const defaults = mode === 'dark' ? BASE_CODE_TOKENS_DARK : BASE_CODE_TOKENS_LIGHT;
+  const filled: ThemeTokens = { ...tokens };
+  for (const [name, value] of Object.entries(defaults) as Array<[TokenName, string]>) {
+    if (!filled[name]) {
+      // Cast: ThemeTokens requires every key; we know the defaults object
+      // has the same shape as ThemeTokens by construction.
+      (filled as Record<string, string>)[name] = value;
+    }
+  }
+  return filled;
+}
+
 function resolveMode(theme: ThemeMode): 'light' | 'dark' {
   if (theme === 'auto') {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -215,7 +267,10 @@ export function applyProjectTheme(
   const resolvedMode = resolveMode(theme);
   const activeTheme = resolveTheme(skinId);
   const font = FONT_OPTIONS.find(item => item.id === fontId) ?? FONT_OPTIONS[0];
-  const tokens = activeTheme[resolvedMode];
+  // 📖 The mode-specific token map is passed through `fillCodeTokens` so a
+  // theme that predates the code-block tokens (or forgets one) still ships
+  // legible code. See the function's docstring for the rationale.
+  const tokens = fillCodeTokens(activeTheme[resolvedMode], resolvedMode);
   const appearance = activeTheme.appearance;
 
   root.classList.toggle('dark', resolvedMode === 'dark');

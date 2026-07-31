@@ -3,7 +3,7 @@
   "files": [
     {
       "path": "bin/kandown.js",
-      "lines": 5306,
+      "lines": 5821,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
@@ -1481,7 +1481,7 @@
     },
     {
       "path": "src/components/ThemePreviewCard.tsx",
-      "lines": 212,
+      "lines": 248,
       "title": "Mini-board live theme preview card (FABLE_UI)",
       "summary": "Renders a live preview of a KandownTheme with isolated HSL tokens in a mini 3-column kanban board layout.",
       "functions": [
@@ -1652,6 +1652,12 @@
       "lines": 207,
       "title": "Standalone browser extension runtime integration tests",
       "summary": "Uses a minimal in-memory File System Access implementation to prove project-local discovery, bundled index.js activation, typed badge rendering, web module loading, failure isolation and persistent quarantine."
+    },
+    {
+      "path": "src/lib/__tests__/code-block-tokens.spec.ts",
+      "lines": 157,
+      "title": "Code-block contrast safety net",
+      "summary": "Locks the four invariants that keep markdown code blocks readable on every theme: 1."
     },
     {
       "path": "src/lib/__tests__/demoBackend.spec.ts",
@@ -2433,7 +2439,7 @@
     },
     {
       "path": "src/lib/theme.ts",
-      "lines": 270,
+      "lines": 325,
       "title": "Project theme engine (FABLE_UI)",
       "summary": "Manages customizable JSON themes, appearance tokens (--radius, --shadow-*, --font-display, --motion-scale), curated presets (Vercel, Linear, Claude, Apple, Stripe, Paper, Catppuccin, Terminal), and dynamic inheritance.",
       "functions": [
@@ -2468,7 +2474,7 @@
     },
     {
       "path": "src/lib/themes/kandown.ts",
-      "lines": 47,
+      "lines": 57,
       "title": "\"kandown\" theme preset — the house theme",
       "summary": "Kandown's own appearance/color-token preset, built from the brand palette published on the website: #88E138 brand lime (logo arrow, primary actions), #7AD12A the contrast-adjusted lime used on light backgrounds, #0CE931 the hero/WebGL…"
     },
@@ -2480,7 +2486,7 @@
     },
     {
       "path": "src/lib/types.ts",
-      "lines": 404,
+      "lines": 416,
       "title": "Shared domain types",
       "summary": "Defines the board, task, config, filter, search, and appearance types used by the Kandown web UI and persistence layer.",
       "exports": "Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, KandownConfig, DEFAULT_COLUMNS, DEFAULT_CONFIG"

@@ -48,6 +48,16 @@
     --warning: 38 82% 57%;
     --glass: 0 0% 9% / 0.74;
     --glass-border: 0 0% 16% / 0.82;
+    /* 📖 Dark-mode defaults for the code-block tokens. Themes override
+     * these via `applyProjectTheme` (kandown ships calibrated values
+     * for both modes), but having sane defaults in :root means the very
+     * first paint — before any theme has been applied — never renders
+     * the editor as white-on-white. */
+    --code-bg: 220 15% 11%;
+    --code-fg: 80 20% 92%;
+    --code-inline-bg: 92 20% 22%;
+    --code-inline-fg: 92 50% 78%;
+    --code-block-border: 220 14% 22%;
   }
 
   @supports (font-variation-settings: normal) {
@@ -127,9 +137,9 @@
     --tw-prose-links: hsl(var(--primary));
     --tw-prose-bold: hsl(var(--foreground));
     --tw-prose-em: hsl(var(--foreground));
-    --tw-prose-code: hsl(var(--foreground));
-    --tw-prose-pre-bg: hsl(var(--muted));
-    --tw-prose-pre-code: hsl(var(--foreground));
+    --tw-prose-code: hsl(var(--code-inline-fg));
+    --tw-prose-pre-bg: hsl(var(--code-bg));
+    --tw-prose-pre-code: hsl(var(--code-fg));
     --tw-prose-quotes: hsl(var(--muted-foreground));
     --tw-prose-hr: hsl(var(--border));
     --tw-prose-th-borders: hsl(var(--border));
@@ -238,24 +248,67 @@
   background: transparent;
 }
 
-/* Code blocks: match kandown's muted background and ensure readable text in
-   both modes (BlockNote ships hardcoded rgb(22 22 22) bg + white text, and
-   Shiki may inject conflicting fg/bg via inline style/CSS vars). */
+/* Code blocks: a themed `--code-bg` surface (mode-aware: light in light
+   mode, dark in dark mode) so the bundled Shiki palette — github-light in
+   light mode, github-dark in dark mode — always renders with high contrast.
+   We do NOT override the span colors: Shiki injects them as inline styles
+   and they win over any external rule, so fighting them is pointless. We
+   only control the surface, the border, the font, and the language picker. */
 .blocknote-editor-wrapper .bn-block-content[data-content-type="codeBlock"],
 .blocknote-editor-wrapper .bn-code-block {
-  background: hsl(var(--muted)) !important;
-  color: hsl(var(--foreground)) !important;
-  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--code-bg)) !important;
+  /* 📖 `code-fg` is the fallback used by the language picker label and by
+   * any text that Shiki does not tokenize (whitespace, plain fallback).
+   * Token spans keep their own Shiki color, which contrasts with code-bg. */
+  color: hsl(var(--code-fg));
+  border: 1px solid hsl(var(--code-block-border));
   border-radius: 6px;
   font-size: 13px;
+  /* 📖 Force monospace on every code surface, regardless of which
+   * display/sans font the user picked in the theme picker. */
+  font-family: var(--font-mono) !important;
+  font-feature-settings: 'liga' 0, 'calt' 0;
 }
-.blocknote-editor-wrapper .bn-block-content[data-content-type="codeBlock"] > pre {
+.blocknote-editor-wrapper .bn-block-content[data-content-type="codeBlock"] > pre,
+.blocknote-editor-wrapper .bn-block-content[data-content-type="codeBlock"] pre,
+.blocknote-editor-wrapper .bn-block-content[data-content-type="codeBlock"] code {
   background: transparent !important;
-  color: hsl(var(--foreground)) !important;
+  font-family: var(--font-mono) !important;
+  font-size: inherit;
+  /* 📖 `color: inherit` is a defensive default: if Shiki is disabled or
+   * fails to load, the code falls back to `--code-fg`, not to a theme's
+   * `--foreground` (which can be very different from `--code-bg`). */
+  color: inherit;
 }
 .blocknote-editor-wrapper .bn-block-content[data-content-type="codeBlock"] > div > select,
 .blocknote-editor-wrapper .bn-block-content[data-content-type="codeBlock"] > div > select > option {
-  color: hsl(var(--foreground)) !important;
+  color: hsl(var(--code-fg)) !important;
+  background-color: hsl(var(--code-bg)) !important;
+}
+
+/* 📖 Inline `code` (single backticks) inside body prose. BlockNote renders
+   it as a `<code>` element with class `bn-inline-content-code`; the rule
+   also covers vanilla `<code>` for read-only markdown paths (Tailwind
+   `.prose`, future docs surfaces). */
+.blocknote-editor-wrapper code,
+.blocknote-editor-wrapper .bn-inline-content-code,
+.prose code,
+code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background-color: hsl(var(--code-inline-bg));
+  color: hsl(var(--code-inline-fg));
+  border: 1px solid hsl(var(--code-block-border) / 0.7);
+  font-feature-settings: 'liga' 0, 'calt' 0;
+}
+/* 📖 Inside a code block, an inline `code` is just text; suppress the pill
+   so Shiki's tokens keep their contrast. */
+.blocknote-editor-wrapper .bn-block-content[data-content-type="codeBlock"] code {
+  background: transparent;
+  border-color: transparent;
+  padding: 0;
 }
 
 /* Slash menu z-index fix: --bn-ui-base-z-index is injected via JS on the portal

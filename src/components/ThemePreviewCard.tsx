@@ -87,6 +87,42 @@ export const ThemePreviewCard: React.FC<ThemePreviewCardProps> = ({
         </p>
       )}
 
+      {/* 📖 Code-block sample. Lives in the same isolated scope as the
+       * mini board, so the author sees whether their code-bg / code-fg /
+       * code-inline tokens actually contrast. Without this preview,
+       * shipping a community theme with a tinted muted slot could
+       * quietly turn every fenced block unreadable — a preview catches
+       * it before the user hits save. */}
+      <div
+        className="mb-2.5 rounded-[var(--radius)] border border-[hsl(var(--code-block-border))] overflow-hidden"
+        style={{
+          backgroundColor: 'hsl(var(--code-bg))',
+          color: 'hsl(var(--code-fg))',
+          fontFamily: 'var(--font-mono)',
+        }}
+      >
+        <pre
+          className="px-2.5 py-2 text-[10.5px] leading-[1.5] m-0 whitespace-pre overflow-x-auto"
+          style={{ backgroundColor: 'transparent', color: 'inherit' }}
+        >
+{`function greet(name) {
+  return \`hi \${name}\`;
+}`}
+        </pre>
+        <div
+          className="px-2.5 py-1 text-[10px] border-t"
+          style={{
+            borderColor: 'hsl(var(--code-block-border))',
+            color: 'hsl(var(--code-inline-fg))',
+            backgroundColor: 'hsl(var(--code-inline-bg))',
+            fontFamily: 'var(--font-mono)',
+          }}
+        >
+          <span style={{ color: 'hsl(var(--code-inline-fg))' }}>inline</span>
+          <span style={{ color: 'hsl(var(--code-fg) / 0.55)' }}> sample</span>
+        </div>
+      </div>
+
       {/* Mini Board Isolated Scope */}
       <div
         style={styleVars}

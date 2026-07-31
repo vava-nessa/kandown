@@ -180,7 +180,19 @@ export type TokenName =
   | 'grid'
   | 'grid-strong'
   | 'glass'
-  | 'glass-border';
+  | 'glass-border'
+  // 📖 Code-block tokens, mode-aware: `code-bg` is light in light mode and
+  // dark in dark mode so the bundled Shiki palette (github-light / github-dark)
+  // always renders with high contrast. `code-fg` is the fallback for the
+  // theoretical case where Shiki fails to load. `code-inline-bg` /
+  // `code-inline-fg` style single-backtick `code` spans in body prose.
+  // `code-block-border` separates the block from the surrounding card on
+  // themes where `code-bg` is close to `card`.
+  | 'code-bg'
+  | 'code-fg'
+  | 'code-inline-bg'
+  | 'code-inline-fg'
+  | 'code-block-border';
 
 export type ThemeTokens = Record<TokenName, string>;
 
