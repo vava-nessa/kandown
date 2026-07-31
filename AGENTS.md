@@ -157,10 +157,15 @@ Two non-negotiables from that spec:
 The serializer must round-trip nested objects under `plugins.*` before the nested
 data shape ships (see the spec's data-model section).
 
+### 9. Always verify build after any code change
+
+After making any code modification, **ALWAYS** run `pnpm build` (or `cd website && pnpm build` when working on the website) to check for build errors and verify clean compilation before concluding your task.
+
 ---
 
-## Working on the UI
+## Working on the UI & Website
 
+### Kandown App UI
 Launch or reuse the dev server through **Herdr** in the `kandown` space
 (`workspace_id: wE`), tab **`dev-server`**:
 
@@ -173,6 +178,17 @@ herdr pane send-keys <PANE_ID> "Enter"
 
 Then **always give vava a clickable URL** (`http://localhost:5176/`) so she can test
 as you go.
+
+### Website (`website/`)
+When working on the website (`website/`), **ALWAYS** launch or reuse the local website dev server through **Herdr** tab **`website dev`**:
+
+```bash
+herdr tab create --workspace wE --cwd /Users/vava/Documents/GitHub/kandown/website --label "website dev" --no-focus
+herdr pane send-text <PANE_ID> "pnpm dev"
+herdr pane send-keys <PANE_ID> Enter
+```
+
+Then **always give vava the clickable URL** (`http://localhost:4321/`) so she can test in real time.
 
 ---
 

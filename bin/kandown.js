@@ -3,10 +3,16 @@ import { createRequire as __createRequire } from 'node:module';
 if (typeof globalThis.require === 'undefined') {
   globalThis.require = __createRequire(import.meta.url);
 }
+var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
+  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
+}) : x)(function(x) {
+  if (typeof require !== "undefined") return require.apply(this, arguments);
+  throw Error('Dynamic require of "' + x + '" is not supported');
+});
 
 // src/cli/cli.ts
-import { existsSync as existsSync17 } from "fs";
-import { join as join21 } from "path";
+import { existsSync as existsSync19 } from "fs";
+import { join as join23 } from "path";
 
 // src/cli/lib/updater.ts
 import { existsSync, readFileSync, writeFileSync, unlinkSync, statSync, mkdirSync } from "fs";
@@ -15,7 +21,7 @@ import { spawn, execSync } from "child_process";
 import { homedir } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.44.0";
+var KANDOWN_VERSION = "0.46.0";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath } from "url";
@@ -218,7 +224,7 @@ async function checkForUpdate(argv = process.argv) {
     }
   } catch {
   }
-  const latest = await new Promise((resolve8) => {
+  const latest = await new Promise((resolve9) => {
     const child2 = spawn("npm", ["view", "kandown", "version"], {
       timeout: 6e3,
       stdio: ["pipe", "pipe", "pipe"],
@@ -231,11 +237,11 @@ async function checkForUpdate(argv = process.argv) {
     });
     child2.stderr.on("data", () => {
     });
-    child2.on("error", () => resolve8(null));
+    child2.on("error", () => resolve9(null));
     child2.on("close", (code) => {
-      if (code !== 0) return resolve8(null);
+      if (code !== 0) return resolve9(null);
       const v = stdout.trim().replace(/^"|"$/g, "");
-      resolve8(v || null);
+      resolve9(v || null);
     });
   });
   if (!latest) return;
@@ -338,16 +344,16 @@ async function fetchDaemonInfo(port) {
   }
 }
 function isPortListening(port, timeoutMs = 400) {
-  return new Promise((resolve8) => {
+  return new Promise((resolve9) => {
     const socket = createConnection({ port, host: "127.0.0.1" }, () => {
       socket.destroy();
-      resolve8(true);
+      resolve9(true);
     });
-    socket.on("error", () => resolve8(false));
+    socket.on("error", () => resolve9(false));
     socket.setTimeout(timeoutMs);
     socket.on("timeout", () => {
       socket.destroy();
-      resolve8(false);
+      resolve9(false);
     });
   });
 }
@@ -375,7 +381,7 @@ async function waitForDaemon(kandownDir, timeoutMs = 8e3) {
     if (metadata && isProcessAlive(metadata.pid) && await isPortListening(metadata.port)) {
       return { running: true, metadata };
     }
-    await new Promise((resolve8) => setTimeout(resolve8, 120));
+    await new Promise((resolve9) => setTimeout(resolve9, 120));
   }
   return { running: false, metadata: null };
 }
@@ -438,7 +444,7 @@ async function stopProjectDaemon(kandownDir) {
   }
   const started = Date.now();
   while (Date.now() - started < 2500 && isProcessAlive(pid)) {
-    await new Promise((resolve8) => setTimeout(resolve8, 100));
+    await new Promise((resolve9) => setTimeout(resolve9, 100));
   }
   if (isProcessAlive(pid)) {
     try {
@@ -2027,7 +2033,7 @@ function cmdInit(rawArgs) {
 async function cmdUpdate(rawArgs) {
   const current = getCurrentVersion();
   log(`${c.bold}kandown update${c.reset} ${c.dim}\u2014 v${current}${c.reset}`);
-  const latest = await new Promise((resolve8) => {
+  const latest = await new Promise((resolve9) => {
     const child = spawn5("npm", ["view", "kandown", "version"], {
       timeout: 6e3,
       stdio: ["pipe", "pipe", "pipe"],
@@ -2040,11 +2046,11 @@ async function cmdUpdate(rawArgs) {
     });
     child.stderr.on("data", () => {
     });
-    child.on("error", () => resolve8(null));
+    child.on("error", () => resolve9(null));
     child.on("close", (code) => {
-      if (code !== 0) return resolve8(null);
+      if (code !== 0) return resolve9(null);
       const v = stdout.trim().replace(/^"|"$/g, "");
-      resolve8(v || null);
+      resolve9(v || null);
     });
   });
   if (latest && semverGt(latest, current) > 0) {
@@ -3895,12 +3901,12 @@ function cmdImport(rawArgs) {
 }
 
 // src/cli/commands/daemon.ts
-import { join as join18 } from "path";
+import { join as join19 } from "path";
 
 // src/cli/lib/server.ts
 import { createServer } from "http";
-import { existsSync as existsSync15, readFileSync as readFileSync16, copyFileSync as copyFileSync3, unlinkSync as unlinkSync5, mkdirSync as mkdirSync9 } from "fs";
-import { join as join17 } from "path";
+import { existsSync as existsSync16, readFileSync as readFileSync16, copyFileSync as copyFileSync3, unlinkSync as unlinkSync5, mkdirSync as mkdirSync10 } from "fs";
+import { join as join18 } from "path";
 import { spawn as spawn6 } from "child_process";
 
 // src/cli/lib/task-move.ts
@@ -4112,6 +4118,231 @@ async function installExtension2(projectDir, input) {
   };
 }
 
+// src/cli/lib/themes-store.ts
+import { existsSync as existsSync15, mkdirSync as mkdirSync9, writeFileSync as writeFileSync7 } from "fs";
+import { join as join17 } from "path";
+
+// src/lib/themes/shared.ts
+var sharedLight = {
+  "destructive": "0 72% 51%",
+  "destructive-foreground": "0 0% 100%",
+  "success": "148 55% 39%",
+  "warning": "38 82% 49%",
+  "grid": "220 13% 0% / 0.05",
+  "grid-strong": "220 13% 0% / 0.085"
+};
+var sharedDark = {
+  "destructive": "358 74% 59%",
+  "destructive-foreground": "0 0% 100%",
+  "success": "151 55% 42%",
+  "warning": "38 82% 57%",
+  "grid": "0 0% 100% / 0.018",
+  "grid-strong": "0 0% 100% / 0.04"
+};
+
+// src/lib/themes/kandown.ts
+var kandownTheme = {
+  id: "kandown",
+  name: "Kandown",
+  author: "Kandown",
+  description: "The house theme: brand lime (#88E138) on near-neutral surfaces, pale lime accents, 4px radius.",
+  appearance: { radius: "4px", borderWidth: "1px", shadows: "soft", density: "comfortable", glass: true, motion: "subtle" },
+  fonts: { sans: "'Inter var', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", display: "'Inter Tight', 'Inter var', Inter, sans-serif", mono: "'SF Mono', Menlo, Monaco, Consolas, monospace" },
+  light: {
+    ...sharedLight,
+    "background": "80 40% 99%",
+    "foreground": "120 10% 10%",
+    "card": "0 0% 100%",
+    "card-foreground": "120 10% 10%",
+    "popover": "0 0% 100%",
+    "popover-foreground": "120 10% 10%",
+    "primary": "91 67% 47%",
+    "primary-foreground": "96 55% 9%",
+    "secondary": "75 45% 94%",
+    "secondary-foreground": "96 40% 18%",
+    "muted": "75 12% 95%",
+    "muted-foreground": "120 5% 40%",
+    "accent": "72 100% 90%",
+    "accent-foreground": "96 50% 18%",
+    "border": "0 0% 92%",
+    "border-strong": "0 0% 85%",
+    "border-focus": "91 67% 47%",
+    "input": "0 0% 90%",
+    "ring": "91 67% 47%",
+    "success": "130 90% 28%",
+    "grid": "92 40% 20% / 0.05",
+    "grid-strong": "92 40% 20% / 0.09",
+    "glass": "0 0% 100% / 0.78",
+    "glass-border": "75 30% 88% / 0.85",
+    // 📖 Code blocks: very light gray background so github-light's dark
+    // token colors (blues / reds / greens) keep a WCAG-AA contrast.
+    // Inline code is slightly tinted with the page accent so single
+    // backticks in body prose still pop without competing with the block.
+    "code-bg": "220 14% 96%",
+    "code-fg": "220 30% 12%",
+    "code-inline-bg": "75 35% 90%",
+    "code-inline-fg": "120 25% 18%",
+    "code-block-border": "220 14% 88%"
+  },
+  dark: {
+    ...sharedDark,
+    "background": "120 8% 7%",
+    "foreground": "80 15% 93%",
+    "card": "120 7% 10%",
+    "card-foreground": "80 15% 93%",
+    "popover": "120 7% 11%",
+    "popover-foreground": "80 15% 93%",
+    "primary": "92 74% 55%",
+    "primary-foreground": "120 30% 7%",
+    "secondary": "120 6% 16%",
+    "secondary-foreground": "80 15% 93%",
+    "muted": "120 6% 14%",
+    "muted-foreground": "90 6% 60%",
+    "accent": "92 30% 18%",
+    "accent-foreground": "92 74% 70%",
+    "border": "120 6% 18%",
+    "border-strong": "120 6% 26%",
+    "border-focus": "92 74% 55%",
+    "input": "120 6% 18%",
+    "ring": "92 74% 55%",
+    "success": "130 90% 48%",
+    "grid": "92 60% 60% / 0.03",
+    "grid-strong": "92 60% 60% / 0.06",
+    "glass": "120 7% 10% / 0.78",
+    "glass-border": "92 20% 24% / 0.8",
+    // 📖 Code blocks: a deeper neutral background, close to github-dark's
+    // own `#0d1117` (≈ 220 15% 9%) so the bundled Shiki palette's light
+    // token colors stay readable. Inline code is warmer so it reads as a
+    // deliberate pill, not a missed selection.
+    "code-bg": "220 15% 11%",
+    "code-fg": "80 20% 92%",
+    "code-inline-bg": "92 20% 22%",
+    "code-inline-fg": "92 50% 78%",
+    "code-block-border": "220 14% 22%"
+  }
+};
+
+// src/lib/themes/index.ts
+var THEME_PRESETS = [kandownTheme];
+
+// src/lib/theme.ts
+var LEGACY_SKIN_MAP = {};
+var SKIN_OPTIONS = THEME_PRESETS.map((t) => ({
+  id: t.id,
+  label: t.name,
+  description: t.description ?? "",
+  light: t.light,
+  dark: t.dark
+}));
+var customThemesRegistry = [];
+function getAllThemes() {
+  return [...THEME_PRESETS, ...customThemesRegistry];
+}
+function normalizeSkinId(value) {
+  if (typeof value !== "string") return "kandown";
+  const all = getAllThemes();
+  const target = LEGACY_SKIN_MAP[value] ?? value;
+  return all.some((t) => t.id === target) ? target : "kandown";
+}
+
+// src/cli/lib/themes-store.ts
+var DEFAULT_REGISTRY_URL2 = "https://raw.githubusercontent.com/vava-nessa/kandown/main/registry/themes.json";
+async function fetchRegistry2(url = DEFAULT_REGISTRY_URL2) {
+  try {
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    if (!res.ok) return { entries: [], url, error: `HTTP ${res.status}` };
+    const data = await res.json();
+    const entries = Array.isArray(data) ? data : data.entries ?? [];
+    return { entries: Array.isArray(entries) ? entries : [], url };
+  } catch (e) {
+    return { entries: [], url, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+function githubRawBase2(repo, ref) {
+  const cleaned = repo.replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "");
+  return `https://raw.githubusercontent.com/${cleaned}/${ref}`;
+}
+async function installTheme(projectDir, input) {
+  let themeUrl;
+  if (input.entry) {
+    const ref = input.entry.ref || "HEAD";
+    const base = githubRawBase2(input.entry.repo, ref);
+    const path = input.entry.path || `registry/themes/${input.entry.id}.json`;
+    themeUrl = `${base}/${path}`.replace(/\/+$/, "");
+  } else if (input.url) {
+    const trimmed = input.url.replace(/\/+$/, "");
+    if (trimmed.includes("raw.githubusercontent.com")) {
+      themeUrl = trimmed;
+    } else {
+      const base = githubRawBase2(trimmed, "HEAD");
+      themeUrl = `${base}/registry/themes/${guessIdFromUrl(trimmed)}.json`;
+    }
+  } else {
+    return { ok: false, error: "Provide a registry entry or a GitHub URL." };
+  }
+  let themeJson;
+  try {
+    const res = await fetch(themeUrl, { headers: { Accept: "application/json" } });
+    if (!res.ok) return { ok: false, error: `theme fetch failed: HTTP ${res.status}` };
+    themeJson = await res.text();
+  } catch (e) {
+    return { ok: false, error: `theme fetch failed: ${e instanceof Error ? e.message : String(e)}` };
+  }
+  let theme;
+  try {
+    theme = JSON.parse(themeJson);
+  } catch {
+    return { ok: false, error: "theme file is not valid JSON" };
+  }
+  if (!theme.id || !/^[a-z][a-z0-9-]{0,63}$/.test(theme.id)) {
+    return { ok: false, error: "theme is missing a valid id" };
+  }
+  normalizeSkinId(theme.id);
+  const { description: _desc, author: _author, name: _name, ..._rest } = theme;
+  const destDir = join17(projectDir, ".kandown", "themes");
+  mkdirSync9(destDir, { recursive: true });
+  writeFileSync7(join17(destDir, `${theme.id}.json`), `${themeJson}
+`, "utf8");
+  return { ok: true, id: theme.id };
+}
+function guessIdFromUrl(url) {
+  const m = url.match(/\/([a-z0-9_-]+?)(?:\.git)?$/i);
+  return m ? m[1].toLowerCase().replace(/[^a-z0-9-]/g, "-") : "unknown";
+}
+function base64EncodeUtf8(input) {
+  if (typeof Buffer !== "undefined") {
+    return Buffer.from(input, "utf8").toString("base64");
+  }
+  return btoa(unescape(encodeURIComponent(input)));
+}
+function buildProposeUrl(opts) {
+  const branch = opts.branch ?? "main";
+  const dir = (opts.dir ?? "registry/themes").replace(/\/+$/, "");
+  const params = new URLSearchParams({
+    filename: `${dir}/${opts.themeId}.json`,
+    value: base64EncodeUtf8(opts.json)
+  });
+  return `https://github.com/${opts.githubOwner}/${opts.githubRepo}/new/${branch}/${dir}?${params.toString()}`;
+}
+function listInstalledThemes(projectDir) {
+  const dir = join17(projectDir, ".kandown", "themes");
+  if (!existsSync15(dir)) return [];
+  const themes = [];
+  const { readFileSync: readFileSync18, readdirSync: readdirSync9 } = __require("fs");
+  for (const file of readdirSync9(dir)) {
+    if (!file.endsWith(".json")) continue;
+    try {
+      const raw = readFileSync18(join17(dir, file), "utf8");
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.id && parsed.light && parsed.dark) {
+        themes.push({ ...parsed, isCustom: true });
+      }
+    } catch {
+    }
+  }
+  return themes;
+}
+
 // src/cli/lib/server.ts
 var START_PORT_RANGE = 2050;
 var END_PORT_RANGE = 2099;
@@ -4168,10 +4399,10 @@ function readRequestBody(req) {
 }
 function syncProjectKandownHtml(kandownDir) {
   try {
-    const projectHtml = join17(kandownDir, "kandown.html");
-    const distHtml = join17(PKG_ROOT, "dist", "index.html");
-    if (!existsSync15(distHtml)) return false;
-    if (!existsSync15(projectHtml)) {
+    const projectHtml = join18(kandownDir, "kandown.html");
+    const distHtml = join18(PKG_ROOT, "dist", "index.html");
+    if (!existsSync16(distHtml)) return false;
+    if (!existsSync16(projectHtml)) {
       copyFileSync3(distHtml, projectHtml);
       return true;
     }
@@ -4187,7 +4418,7 @@ function syncProjectKandownHtml(kandownDir) {
 }
 function readDaemonPort(kandownDir) {
   try {
-    const raw = JSON.parse(readFileSync16(join17(kandownDir, "daemon.json"), "utf8"));
+    const raw = JSON.parse(readFileSync16(join18(kandownDir, "daemon.json"), "utf8"));
     return typeof raw.port === "number" && Number.isInteger(raw.port) ? raw.port : null;
   } catch {
     return null;
@@ -4241,7 +4472,7 @@ async function handleApi(req, res, url, kandownDir) {
   }
   if (path === "/api/update/check" && method === "GET") {
     const current = getCurrentVersion();
-    const latest = await new Promise((resolve8) => {
+    const latest = await new Promise((resolve9) => {
       const child = spawn6("npm", ["view", "kandown", "version"], {
         timeout: 4e3,
         stdio: ["pipe", "pipe", "pipe"],
@@ -4254,10 +4485,10 @@ async function handleApi(req, res, url, kandownDir) {
       });
       child.stderr.on("data", () => {
       });
-      child.on("error", () => resolve8(null));
+      child.on("error", () => resolve9(null));
       child.on("close", (code) => {
-        if (code !== 0) return resolve8(null);
-        resolve8(stdout.trim().replace(/^"|"$/g, "") || null);
+        if (code !== 0) return resolve9(null);
+        resolve9(stdout.trim().replace(/^"|"$/g, "") || null);
       });
     });
     const installed = getInstalledVersion() ?? current;
@@ -4273,7 +4504,7 @@ async function handleApi(req, res, url, kandownDir) {
   }
   if (path === "/api/update/apply" && method === "POST") {
     const current = getCurrentVersion();
-    const latest = await new Promise((resolve8) => {
+    const latest = await new Promise((resolve9) => {
       const child = spawn6("npm", ["view", "kandown", "version"], {
         timeout: 4e3,
         stdio: ["pipe", "pipe", "pipe"],
@@ -4284,8 +4515,8 @@ async function handleApi(req, res, url, kandownDir) {
       child.stdout.on("data", (d) => {
         stdout += d;
       });
-      child.on("error", () => resolve8(null));
-      child.on("close", (code) => resolve8(code === 0 ? stdout.trim() : null));
+      child.on("error", () => resolve9(null));
+      child.on("close", (code) => resolve9(code === 0 ? stdout.trim() : null));
     });
     const targetVersion = latest || current;
     const ok = await performGlobalPackageUpdate(`kandown@${targetVersion}`);
@@ -4317,8 +4548,8 @@ async function handleApi(req, res, url, kandownDir) {
   if (path === "/api/board") {
     if (method === "GET") {
       const tasksDir = getTasksDir(kandownDir);
-      const boardPath = join17(tasksDir, "board.md");
-      const text = existsSync15(boardPath) ? readFileSync16(boardPath, "utf8") : "";
+      const boardPath = join18(tasksDir, "board.md");
+      const text = existsSync16(boardPath) ? readFileSync16(boardPath, "utf8") : "";
       return writeText(res, 200, text);
     }
     if (method === "PUT") {
@@ -4328,8 +4559,8 @@ async function handleApi(req, res, url, kandownDir) {
       });
       req.on("end", () => {
         const tasksDir = getTasksDir(kandownDir);
-        if (!existsSync15(tasksDir)) mkdirSync9(tasksDir, { recursive: true });
-        atomicWriteFileSync(join17(tasksDir, "board.md"), body);
+        if (!existsSync16(tasksDir)) mkdirSync10(tasksDir, { recursive: true });
+        atomicWriteFileSync(join18(tasksDir, "board.md"), body);
         broadcastSseEvent({ type: "board" });
         writeJson(res, 200, { ok: true });
       });
@@ -4417,8 +4648,8 @@ async function handleApi(req, res, url, kandownDir) {
       if (!ext) return writeText(res, 404, "Extension not found");
       const rel = parts.slice(2).join("/");
       if (!/^[a-zA-Z0-9._\/-]+$/.test(rel) || rel.includes("..")) return writeText(res, 400, "Bad path");
-      const file = join17(ext.dir, rel);
-      if (!existsSync15(file)) return writeText(res, 404, "File not found");
+      const file = join18(ext.dir, rel);
+      if (!existsSync16(file)) return writeText(res, 404, "File not found");
       return writeText(res, 200, readFileSync16(file, "utf8"));
     }
   }
@@ -4434,6 +4665,41 @@ async function handleApi(req, res, url, kandownDir) {
       if (result.ok) await (await getExtensionHost(kandownDir)).loadAll();
       broadcastSseEvent({ type: "extensions" });
       return writeJson(res, result.ok ? 200 : 400, result);
+    } catch (e) {
+      return writeJson(res, 500, { ok: false, error: e instanceof Error ? e.message : String(e) });
+    }
+  }
+  if (path === "/api/themes" && method === "GET") {
+    const projectDir = getProjectRoot(kandownDir);
+    const themes = listInstalledThemes(projectDir);
+    return writeJson(res, 200, { themes });
+  }
+  if (path === "/api/themes/registry" && method === "GET") {
+    const result = await fetchRegistry2();
+    return writeJson(res, 200, result);
+  }
+  if (path === "/api/themes/install" && method === "POST") {
+    try {
+      const body = JSON.parse(await readRequestBody(req));
+      const projectDir = getProjectRoot(kandownDir);
+      const result = await installTheme(projectDir, { entry: body.entry, url: body.url });
+      broadcastSseEvent({ type: "themes" });
+      return writeJson(res, result.ok ? 200 : 400, result);
+    } catch (e) {
+      return writeJson(res, 500, { ok: false, error: e instanceof Error ? e.message : String(e) });
+    }
+  }
+  if (path.startsWith("/api/themes/") && method === "DELETE") {
+    const rawId = decodeURIComponent(path.slice("/api/themes/".length).split("?")[0] ?? "");
+    if (!/^[a-z][a-z0-9-]{0,63}$/.test(rawId)) return writeJson(res, 400, { error: "Invalid theme id" });
+    const { unlinkSync: unlinkSync6, existsSync: existsSync20 } = await import("fs");
+    const { join: join24 } = await import("path");
+    const file = join24(getProjectRoot(kandownDir), ".kandown", "themes", `${rawId}.json`);
+    if (!existsSync20(file)) return writeJson(res, 404, { error: "Theme not installed" });
+    try {
+      unlinkSync6(file);
+      broadcastSseEvent({ type: "themes" });
+      return writeJson(res, 200, { ok: true, id: rawId });
     } catch (e) {
       return writeJson(res, 500, { ok: false, error: e instanceof Error ? e.message : String(e) });
     }
@@ -4477,9 +4743,9 @@ async function handleApi(req, res, url, kandownDir) {
     }
     if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return writeText(res, 400, "Invalid task id");
     const tasksDir = getTasksDir(kandownDir);
-    const archiveDir = join17(tasksDir, "archive");
-    const activePath = join17(tasksDir, `${taskId}.md`);
-    const archivedPath = join17(archiveDir, `${taskId}.md`);
+    const archiveDir = join18(tasksDir, "archive");
+    const activePath = join18(tasksDir, `${taskId}.md`);
+    const archivedPath = join18(archiveDir, `${taskId}.md`);
     const action = routeParts[1];
     if (method === "POST" && action === "move") {
       if (routeParts.length !== 2) return writeText(res, 400, "Invalid task route");
@@ -4532,15 +4798,15 @@ async function handleApi(req, res, url, kandownDir) {
       const archiving = action === "archive";
       const source = archiving ? activePath : archivedPath;
       const destination = archiving ? archivedPath : activePath;
-      if (!existsSync15(source) && !existsSync15(destination)) {
+      if (!existsSync16(source) && !existsSync16(destination)) {
         return writeText(res, 404, "Task not found");
       }
       try {
-        if (!existsSync15(tasksDir)) mkdirSync9(tasksDir, { recursive: true });
-        if (!existsSync15(archiveDir)) mkdirSync9(archiveDir, { recursive: true });
+        if (!existsSync16(tasksDir)) mkdirSync10(tasksDir, { recursive: true });
+        if (!existsSync16(archiveDir)) mkdirSync10(archiveDir, { recursive: true });
         const body = await readRequestBody(req);
         atomicWriteFileSync(destination, body);
-        if (source !== destination && existsSync15(source)) unlinkSync5(source);
+        if (source !== destination && existsSync16(source)) unlinkSync5(source);
         broadcastSseEvent({ type: "task", id: taskId });
         return writeJson(res, 200, { ok: true });
       } catch (error) {
@@ -4557,7 +4823,7 @@ async function handleApi(req, res, url, kandownDir) {
     }
     if (method === "PUT") {
       try {
-        if (!existsSync15(tasksDir)) mkdirSync9(tasksDir, { recursive: true });
+        if (!existsSync16(tasksDir)) mkdirSync10(tasksDir, { recursive: true });
         const taskPath2 = findTaskPath(kandownDir, taskId) ?? activePath;
         const body = await readRequestBody(req);
         atomicWriteFileSync(taskPath2, body);
@@ -4571,8 +4837,8 @@ async function handleApi(req, res, url, kandownDir) {
     }
     if (method === "DELETE") {
       try {
-        if (existsSync15(activePath)) unlinkSync5(activePath);
-        if (existsSync15(archivedPath)) unlinkSync5(archivedPath);
+        if (existsSync16(activePath)) unlinkSync5(activePath);
+        if (existsSync16(archivedPath)) unlinkSync5(archivedPath);
         broadcastSseEvent({ type: "task_delete", id: taskId });
         return writeJson(res, 200, { ok: true });
       } catch (error) {
@@ -4595,8 +4861,8 @@ function injectServerRoot(html, kandownDir) {
 }
 function serveApp(res, kandownDir) {
   syncProjectKandownHtml(kandownDir);
-  const htmlPath = join17(kandownDir, "kandown.html");
-  if (existsSync15(htmlPath)) {
+  const htmlPath = join18(kandownDir, "kandown.html");
+  if (existsSync16(htmlPath)) {
     const html = readFileSync16(htmlPath, "utf8");
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
     res.end(injectServerRoot(html, kandownDir));
@@ -4659,7 +4925,7 @@ async function cmdDaemon(rest) {
     const preferredPort = typeof daemonOptions.flags.port === "string" ? Number(daemonOptions.flags.port) : null;
     const { port } = await listenOnAvailablePort(kandownDir, Number.isInteger(preferredPort) ? preferredPort : null);
     const url = `http://localhost:${port}`;
-    const metadataPath2 = join18(kandownDir, "daemon.json");
+    const metadataPath2 = join19(kandownDir, "daemon.json");
     atomicWriteFileSync(metadataPath2, JSON.stringify({
       pid: process.pid,
       port,
@@ -4716,8 +4982,8 @@ async function cmdDaemon(rest) {
 
 // src/cli/lib/launcher.ts
 import { execSync as execSync2, spawn as spawn7 } from "child_process";
-import { writeFileSync as writeFileSync7 } from "fs";
-import { join as join19 } from "path";
+import { writeFileSync as writeFileSync8 } from "fs";
+import { join as join20 } from "path";
 import { tmpdir } from "os";
 function prepareLaunch(opts) {
   const { taskId, agentId, kandownDir, handoff, queue } = opts;
@@ -4748,9 +5014,9 @@ function prepareLaunch(opts) {
   if (!taskMoved) {
     throw new Error(`Could not move task ${taskId} to In Progress \u2014 task file missing or unwritable.`);
   }
-  const contextFile = join19(tmpdir(), `kandown-${taskId}-context.md`);
+  const contextFile = join20(tmpdir(), `kandown-${taskId}-context.md`);
   try {
-    writeFileSync7(contextFile, `${systemPrompt}
+    writeFileSync8(contextFile, `${systemPrompt}
 
 ---
 
@@ -4778,14 +5044,14 @@ function runAgentSync(opts) {
   const { taskId, kandownDir } = opts;
   const prepared = prepareLaunch(opts);
   const { binary, args, contextFile, originalStatus, agentName } = prepared;
-  return new Promise((resolve8, reject) => {
+  return new Promise((resolve9, reject) => {
     const child = spawn7(binary, args, { stdio: "inherit", env: launchEnv(contextFile, taskId, kandownDir) });
     child.on("error", (e) => {
       rollbackTaskStatus(kandownDir, taskId, originalStatus);
       reject(new Error(`Failed to launch ${agentName}: ${e.message}`));
     });
     child.on("exit", (code) => {
-      resolve8({ exitCode: code ?? 0 });
+      resolve9({ exitCode: code ?? 0 });
     });
   });
 }
@@ -5130,15 +5396,15 @@ async function cmdRun(rawArgs) {
 }
 
 // src/cli/commands/agents.ts
-import { existsSync as existsSync16 } from "fs";
-import { join as join20 } from "path";
+import { existsSync as existsSync17 } from "fs";
+import { join as join21 } from "path";
 function cmdAgents(rawArgs) {
   const args = parseArgs(rawArgs);
   const kandownDir = resolveKandownDir(args.path, process.cwd());
   const sub = args.positional[0];
   if (sub === "init") {
-    const target = join20(kandownDir, "agents.json");
-    if (existsSync16(target)) {
+    const target = join21(kandownDir, "agents.json");
+    if (existsSync17(target)) {
       info(`${c.bold}agents.json${c.reset} already exists at ${target}`);
       return;
     }
@@ -5151,10 +5417,10 @@ function cmdAgents(rawArgs) {
   const catalog = loadCatalog(kandownDir);
   const installed = detectInstalledAgents(kandownDir);
   const cascade = getCascadeConfig(kandownDir);
-  const agentsFile = join20(kandownDir, "agents.json");
+  const agentsFile = join21(kandownDir, "agents.json");
   log("");
   log(`${c.bold}Agent catalog${c.reset} ${c.dim}(${installed.length}/${catalog.length} installed)${c.reset}`);
-  log(`${c.dim}catalog: ${existsSync16(agentsFile) ? agentsFile : "built-in defaults (run `kandown agents init` to commit one)"}${c.reset}`);
+  log(`${c.dim}catalog: ${existsSync17(agentsFile) ? agentsFile : "built-in defaults (run `kandown agents init` to commit one)"}${c.reset}`);
   log("");
   for (const a of catalog) {
     const ok = isAgentInstalled(a.bin);
@@ -5171,6 +5437,251 @@ function cmdAgents(rawArgs) {
   log(`${c.dim}cascade: unassignedBehavior=${cascade.unassignedBehavior} \xB7 sameSessionChain=${cascade.sameSessionChain}${c.reset}`);
   log(`${c.dim}assign a task with: kandown assign <id> <agent>   \xB7   run a chain with: kandown run${c.reset}`);
   log("");
+}
+
+// src/cli/lib/themes-cli.ts
+import { existsSync as existsSync18, mkdirSync as mkdirSync11, readFileSync as readFileSync17, readdirSync as readdirSync8, writeFileSync as writeFileSync9 } from "fs";
+import { join as join22, resolve as resolve8 } from "path";
+
+// src/cli/lib/themes-meta.ts
+var KANDOWN_THEME_REPO_OWNER = "vava-nessa";
+var KANDOWN_THEME_REPO_NAME = "kandown";
+
+// src/cli/lib/themes-cli.ts
+async function cmdTheme(rawArgs) {
+  const args = taskParseArgs(rawArgs);
+  const sub = args.positional[0];
+  const { kandownDir } = ensureKandownDir(rawArgs);
+  const projectDir = getProjectRoot(kandownDir);
+  const usage = `${c.cyan}kandown theme${c.reset} ${c.dim}<list|install|create|publish>${c.reset}`;
+  if (!sub) {
+    log(usage);
+    return;
+  }
+  switch (sub) {
+    case "list":
+    case "ls": {
+      const themes = listInstalledThemesForCli(projectDir);
+      if (themes.length === 0) {
+        info("No community themes installed. Try: kandown theme install <path-or-github-url>");
+        return;
+      }
+      for (const theme of themes) {
+        log(`${c.green}installed${c.reset} ${c.bold}${theme.id}${c.reset} ${c.dim}v${theme.version ?? "1.0.0"}${c.reset} \u2014 ${theme.name}${theme.author ? ` \xB7 ${theme.author}` : ""}`);
+        if (theme.description) log(`             ${c.dim}${theme.description}${c.reset}`);
+      }
+      return;
+    }
+    case "install": {
+      const target = args.positional[1];
+      if (!target) {
+        err("Usage: kandown theme install <path-or-github-url>");
+        process.exit(1);
+      }
+      const result = await installFromTarget(projectDir, target);
+      if (result.ok) success(`Installed ${result.id}. It will appear in the theme gallery on the next reload.`);
+      else {
+        err(`Install failed: ${result.error}`);
+        process.exit(1);
+      }
+      return;
+    }
+    case "create": {
+      const name = args.positional[1];
+      if (!name) {
+        err("Usage: kandown theme create <kebab-name>");
+        process.exit(1);
+      }
+      if (!/^[a-z][a-z0-9-]{0,63}$/.test(name)) {
+        err("name must be kebab-case (lowercase letters, digits, hyphens)");
+        process.exit(1);
+      }
+      scaffoldTheme(projectDir, name);
+      success(`Scaffolded theme "${name}" at .kandown/themes/${name}.json`);
+      info("Edit it, then: kandown theme publish .kandown/themes/" + name + ".json");
+      return;
+    }
+    case "publish":
+    case "propose": {
+      const file = args.positional[1];
+      if (!file) {
+        err("Usage: kandown theme publish <path-to-theme.json> [--github-user <username>]");
+        process.exit(1);
+      }
+      const githubUser = String(args.flags["github-user"] ?? args.flags["githubUser"] ?? "");
+      publishTheme(file, githubUser);
+      return;
+    }
+    default:
+      err(`Unknown theme subcommand: ${sub}`);
+      log(usage);
+  }
+}
+async function installFromTarget(projectDir, target) {
+  const src = resolve8(target);
+  if (existsSync18(src) && src.endsWith(".json")) {
+    const text = readFileSync17(src, "utf8");
+    const parsed = JSON.parse(text);
+    if (!parsed.id) return { ok: false, error: "theme JSON is missing id" };
+    const destDir = join22(projectDir, ".kandown", "themes");
+    mkdirSync11(destDir, { recursive: true });
+    writeFileSync9(join22(destDir, `${parsed.id}.json`), text, "utf8");
+    return { ok: true, id: parsed.id };
+  }
+  return installTheme(projectDir, { url: target });
+}
+function listInstalledThemesForCli(projectDir) {
+  const dir = join22(projectDir, ".kandown", "themes");
+  if (!existsSync18(dir)) return [];
+  const out = [];
+  for (const file of readdirSync8(dir)) {
+    if (!file.endsWith(".json")) continue;
+    try {
+      const raw = readFileSync17(join22(dir, file), "utf8");
+      const parsed = JSON.parse(raw);
+      if (parsed.id) out.push({ id: parsed.id, name: parsed.name ?? parsed.id, author: parsed.author, description: parsed.description, version: parsed.version });
+    } catch {
+    }
+  }
+  return out;
+}
+function scaffoldTheme(projectDir, name) {
+  const destDir = join22(projectDir, ".kandown", "themes");
+  mkdirSync11(destDir, { recursive: true });
+  const dest = join22(destDir, `${name}.json`);
+  if (existsSync18(dest)) {
+    err(`Already exists: ${dest}`);
+    process.exit(1);
+  }
+  const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+  const starter = {
+    $schema: "https://kandown.dev/schemas/theme.v1.json",
+    id: name,
+    name: name.split("-").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" "),
+    author: "Your GitHub Username",
+    description: "A community theme for kandown.",
+    appearance: {
+      radius: "6px",
+      borderWidth: "1px",
+      shadows: "soft",
+      density: "comfortable",
+      glass: false,
+      motion: "subtle"
+    },
+    fonts: {
+      sans: "'Inter var', Inter, sans-serif",
+      display: "'Inter var', Inter, sans-serif",
+      mono: "'SF Mono', Menlo, monospace"
+    },
+    light: {
+      background: "0 0% 100%",
+      foreground: "220 13% 14%",
+      card: "0 0% 100%",
+      "card-foreground": "220 13% 14%",
+      popover: "0 0% 100%",
+      "popover-foreground": "220 13% 14%",
+      primary: "220 90% 56%",
+      "primary-foreground": "0 0% 100%",
+      secondary: "220 14% 96%",
+      "secondary-foreground": "220 13% 14%",
+      muted: "220 14% 96%",
+      "muted-foreground": "220 9% 46%",
+      accent: "220 14% 96%",
+      "accent-foreground": "220 13% 14%",
+      border: "220 13% 91%",
+      "border-strong": "220 13% 84%",
+      "border-focus": "220 90% 56%",
+      input: "220 13% 91%",
+      ring: "220 90% 56%",
+      destructive: "0 84% 60%",
+      "destructive-foreground": "0 0% 100%",
+      success: "142 71% 45%",
+      warning: "38 92% 50%"
+    },
+    dark: {
+      background: "220 13% 8%",
+      foreground: "220 13% 95%",
+      card: "220 13% 11%",
+      "card-foreground": "220 13% 95%",
+      popover: "220 13% 11%",
+      "popover-foreground": "220 13% 95%",
+      primary: "220 90% 60%",
+      "primary-foreground": "220 13% 8%",
+      secondary: "220 13% 16%",
+      "secondary-foreground": "220 13% 95%",
+      muted: "220 13% 14%",
+      "muted-foreground": "220 9% 60%",
+      accent: "220 13% 18%",
+      "accent-foreground": "220 13% 95%",
+      border: "220 13% 18%",
+      "border-strong": "220 13% 26%",
+      "border-focus": "220 90% 60%",
+      input: "220 13% 18%",
+      ring: "220 90% 60%",
+      destructive: "0 72% 55%",
+      "destructive-foreground": "0 0% 100%",
+      success: "142 71% 50%",
+      warning: "38 92% 55%"
+    },
+    version: "0.1.0",
+    created: today
+  };
+  writeFileSync9(dest, `${JSON.stringify(starter, null, 2)}
+`, "utf8");
+}
+function publishTheme(file, githubUser) {
+  const resolved = resolve8(file);
+  if (!existsSync18(resolved)) {
+    err(`Theme file not found: ${file}`);
+    process.exit(1);
+  }
+  const raw = readFileSync17(resolved, "utf8");
+  let theme;
+  try {
+    theme = JSON.parse(raw);
+  } catch {
+    err("Theme file is not valid JSON.");
+    process.exit(1);
+  }
+  if (!theme.id) {
+    err("Theme JSON is missing the `id` field.");
+    process.exit(1);
+  }
+  if (githubUser && (!theme.author || theme.author === "Your GitHub Username")) {
+    try {
+      const updated = JSON.parse(raw);
+      updated.author = githubUser;
+      const updatedRaw = `${JSON.stringify(updated, null, 2)}
+`;
+      writeFileSync9(resolved, updatedRaw, "utf8");
+      info(`Set author to @${githubUser} in ${file}.`);
+    } catch {
+    }
+  }
+  const json = existsSync18(resolved) ? readFileSync17(resolved, "utf8") : raw;
+  const url = buildProposeUrl({
+    githubOwner: KANDOWN_THEME_REPO_OWNER,
+    githubRepo: KANDOWN_THEME_REPO_NAME,
+    themeId: theme.id,
+    json
+  });
+  success(`Open this URL in your browser to propose "${theme.id}" via PR:`);
+  log(url);
+  log("");
+  info(`If you are not a ${KANDOWN_THEME_REPO_OWNER} collaborator, GitHub will fork the repo automatically and open a PR from your fork.`);
+  log("");
+  log(`${c.dim}Don't forget to add an entry to ${DEFAULT_REGISTRY_URL2} in the same PR:${c.reset}`);
+  const entryJson = JSON.stringify({
+    id: theme.id,
+    name: theme.id,
+    author: githubUser || theme.author || "unknown",
+    description: theme.description ?? "",
+    repo: `https://github.com/${KANDOWN_THEME_REPO_OWNER}/${KANDOWN_THEME_REPO_NAME}`,
+    path: `registry/themes/${theme.id}.json`,
+    ref: "main",
+    tags: ["community"]
+  }, null, 2);
+  log(c.dim + entryJson + c.reset);
 }
 
 // src/cli/cli.ts
@@ -5240,6 +5751,10 @@ async function main() {
     case "extensions":
       await cmdExtension(rest);
       break;
+    case "theme":
+    case "themes":
+      await cmdTheme(rest);
+      break;
     case "tasks":
       printTaskCommandsHelp();
       break;
@@ -5268,13 +5783,13 @@ async function main() {
     case void 0: {
       const parsed = parseArgs(rest);
       const kandownDir = resolveKandownDir(parsed.path, process.cwd());
-      if (existsSync17(join21(kandownDir, "kandown.json"))) {
+      if (existsSync19(join23(kandownDir, "kandown.json"))) {
         let status = await getDaemonStatus(kandownDir);
         if (!status.running) {
           status = await startProjectDaemon(kandownDir);
         }
         if (!parsed.flags["no-open"]) {
-          const urlToOpen = status.metadata?.url || join21(kandownDir, "kandown.html");
+          const urlToOpen = status.metadata?.url || join23(kandownDir, "kandown.html");
           openBrowser(urlToOpen);
         }
       } else if (!process.stdin.isTTY) {
@@ -5291,7 +5806,7 @@ async function main() {
       }
       const parsed = parseArgs(rest);
       const kandownDir = resolveKandownDir(parsed.path, process.cwd());
-      if (existsSync17(join21(kandownDir, "kandown.json"))) {
+      if (existsSync19(join23(kandownDir, "kandown.json"))) {
         const positional = rest.filter((a) => !a.startsWith("-") && !a.startsWith("--path"));
         const ran = await dispatchContributedCommand(kandownDir, cmd, positional.join(" "));
         if (ran) break;

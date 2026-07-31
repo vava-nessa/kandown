@@ -166,6 +166,8 @@ Edge cases, gotchas.
 ## Stack & Deployment
 
 - **Stack**: React, Motion, Tailwind, Vite, Zustand, TypeScript, Node.js ESM CLI.
+- **Build verification**: After making any code modification, **ALWAYS** run `pnpm build` (or `cd website && pnpm build` for website changes) to check for build and TypeScript errors before concluding a task.
+- **Website dev server**: Whenever working on the website (`website/` directory), **ALWAYS** ensure the local dev server is launched via Herdr tab `website dev` (`cd website && pnpm dev`) and provide vava with the clickable URL (`http://localhost:4321/`).
 - **Website deployment (Vercel)**: Whenever you commit and push changes for the website (`website/` folder), **ALWAYS** verify the Vercel deployment status (`cd website && vercel ls` / `vercel inspect`). Ensure the deployment builds and reaches `● Ready` without any error.
 
 ---
