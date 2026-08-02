@@ -68,7 +68,7 @@ export const createBoardSlice: StateCreator<State, [], [], BoardSlice> = (set, g
     const { selectedTaskIds, columns, moveTask } = get();
     for (const id of selectedTaskIds) {
       // Find source column for task
-      let sourceCol = 'Backlog';
+      let sourceCol = columns[0]?.name ?? '';
       for (const col of columns) {
         if (col.tasks.some(t => t.id === id)) {
           sourceCol = col.name;

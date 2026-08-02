@@ -907,21 +907,21 @@ var require_react_development = __commonJS({
         );
         actScopeDepth = prevActScopeDepth;
       }
-      function recursivelyFlushAsyncActWork(returnValue, resolve4, reject) {
+      function recursivelyFlushAsyncActWork(returnValue, resolve6, reject) {
         var queue = ReactSharedInternals.actQueue;
         if (null !== queue)
           if (0 !== queue.length)
             try {
               flushActQueue(queue);
               enqueueTask(function() {
-                return recursivelyFlushAsyncActWork(returnValue, resolve4, reject);
+                return recursivelyFlushAsyncActWork(returnValue, resolve6, reject);
               });
               return;
             } catch (error) {
               ReactSharedInternals.thrownErrors.push(error);
             }
           else ReactSharedInternals.actQueue = null;
-        0 < ReactSharedInternals.thrownErrors.length ? (queue = aggregateErrors(ReactSharedInternals.thrownErrors), ReactSharedInternals.thrownErrors.length = 0, reject(queue)) : resolve4(returnValue);
+        0 < ReactSharedInternals.thrownErrors.length ? (queue = aggregateErrors(ReactSharedInternals.thrownErrors), ReactSharedInternals.thrownErrors.length = 0, reject(queue)) : resolve6(returnValue);
       }
       function flushActQueue(queue) {
         if (!isFlushing) {
@@ -1108,7 +1108,7 @@ var require_react_development = __commonJS({
             ));
           });
           return {
-            then: function(resolve4, reject) {
+            then: function(resolve6, reject) {
               didAwaitActCall = true;
               thenable.then(
                 function(returnValue) {
@@ -1118,7 +1118,7 @@ var require_react_development = __commonJS({
                       flushActQueue(queue), enqueueTask(function() {
                         return recursivelyFlushAsyncActWork(
                           returnValue,
-                          resolve4,
+                          resolve6,
                           reject
                         );
                       });
@@ -1132,7 +1132,7 @@ var require_react_development = __commonJS({
                       ReactSharedInternals.thrownErrors.length = 0;
                       reject(_thrownError);
                     }
-                  } else resolve4(returnValue);
+                  } else resolve6(returnValue);
                 },
                 function(error) {
                   popActScope(prevActQueue, prevActScopeDepth);
@@ -1154,15 +1154,15 @@ var require_react_development = __commonJS({
         if (0 < ReactSharedInternals.thrownErrors.length)
           throw callback = aggregateErrors(ReactSharedInternals.thrownErrors), ReactSharedInternals.thrownErrors.length = 0, callback;
         return {
-          then: function(resolve4, reject) {
+          then: function(resolve6, reject) {
             didAwaitActCall = true;
             0 === prevActScopeDepth ? (ReactSharedInternals.actQueue = queue, enqueueTask(function() {
               return recursivelyFlushAsyncActWork(
                 returnValue$jscomp$0,
-                resolve4,
+                resolve6,
                 reject
               );
-            })) : resolve4(returnValue$jscomp$0);
+            })) : resolve6(returnValue$jscomp$0);
           }
         };
       };
@@ -3048,8 +3048,8 @@ var require_react_reconciler_production = __commonJS({
           currentEntangledActionThenable = {
             status: "pending",
             value: void 0,
-            then: function(resolve4) {
-              entangledListeners.push(resolve4);
+            then: function(resolve6) {
+              entangledListeners.push(resolve6);
             }
           };
         }
@@ -3072,8 +3072,8 @@ var require_react_reconciler_production = __commonJS({
           status: "pending",
           value: null,
           reason: null,
-          then: function(resolve4) {
-            listeners.push(resolve4);
+          then: function(resolve6) {
+            listeners.push(resolve6);
           }
         };
         thenable.then(
@@ -12672,8 +12672,8 @@ var require_react_reconciler_development = __commonJS({
           currentEntangledActionThenable = {
             status: "pending",
             value: void 0,
-            then: function(resolve4) {
-              entangledListeners.push(resolve4);
+            then: function(resolve6) {
+              entangledListeners.push(resolve6);
             }
           };
         }
@@ -12696,8 +12696,8 @@ var require_react_reconciler_development = __commonJS({
           status: "pending",
           value: null,
           reason: null,
-          then: function(resolve4) {
-            listeners.push(resolve4);
+          then: function(resolve6) {
+            listeners.push(resolve6);
           }
         };
         thenable.then(
@@ -26212,7 +26212,7 @@ var require_websocket = __commonJS({
     var http = __require("http");
     var net = __require("net");
     var tls = __require("tls");
-    var { randomBytes, createHash: createHash2 } = __require("crypto");
+    var { randomBytes, createHash: createHash4 } = __require("crypto");
     var { Duplex, Readable: Readable2 } = __require("stream");
     var { URL: URL2 } = __require("url");
     var PerMessageDeflate2 = require_permessage_deflate();
@@ -26872,7 +26872,7 @@ var require_websocket = __commonJS({
           abortHandshake(websocket, socket, "Invalid Upgrade header");
           return;
         }
-        const digest = createHash2("sha1").update(key + GUID).digest("base64");
+        const digest = createHash4("sha1").update(key + GUID).digest("base64");
         if (res.headers["sec-websocket-accept"] !== digest) {
           abortHandshake(websocket, socket, "Invalid Sec-WebSocket-Accept header");
           return;
@@ -27239,7 +27239,7 @@ var require_websocket_server = __commonJS({
     var EventEmitter4 = __require("events");
     var http = __require("http");
     var { Duplex } = __require("stream");
-    var { createHash: createHash2 } = __require("crypto");
+    var { createHash: createHash4 } = __require("crypto");
     var extension2 = require_extension();
     var PerMessageDeflate2 = require_permessage_deflate();
     var subprotocol2 = require_subprotocol();
@@ -27540,7 +27540,7 @@ var require_websocket_server = __commonJS({
           );
         }
         if (this._state > RUNNING) return abortHandshake(socket, 503);
-        const digest = createHash2("sha1").update(key + GUID).digest("base64");
+        const digest = createHash4("sha1").update(key + GUID).digest("base64");
         const headers = [
           "HTTP/1.1 101 Switching Protocols",
           "Upgrade: websocket",
@@ -44418,22 +44418,22 @@ var init_devtools = __esm({
     init_devtools_window_polyfill();
     init_wrapper();
     import_react_devtools_core = __toESM(require_backend(), 1);
-    isDevToolsReachable = async () => new Promise((resolve4) => {
+    isDevToolsReachable = async () => new Promise((resolve6) => {
       const socket = new wrapper_default("ws://localhost:8097");
       const timeout = setTimeout(() => {
         socket.terminate();
-        resolve4(false);
+        resolve6(false);
       }, 2e3);
       timeout.unref();
       socket.on("open", () => {
         clearTimeout(timeout);
         socket.terminate();
-        resolve4(true);
+        resolve6(true);
       });
       socket.on("error", () => {
         clearTimeout(timeout);
         socket.terminate();
-        resolve4(false);
+        resolve6(false);
       });
     });
     if (await isDevToolsReachable()) {
@@ -52683,8 +52683,8 @@ var kittyModifiers = {
 var noop = () => {
 };
 var textEncoder = new TextEncoder();
-var yieldImmediate = async () => new Promise((resolve4) => {
-  setImmediate(resolve4);
+var yieldImmediate = async () => new Promise((resolve6) => {
+  setImmediate(resolve6);
 });
 var kittyQueryEscapeByte = 27;
 var kittyQueryOpenBracketByte = 91;
@@ -52888,8 +52888,8 @@ var Ink = class {
       };
     }
     this.initKittyKeyboard();
-    this.exitPromise = new Promise((resolve4, reject) => {
-      this.resolveExitPromise = resolve4;
+    this.exitPromise = new Promise((resolve6, reject) => {
+      this.resolveExitPromise = resolve6;
       this.rejectExitPromise = reject;
     });
     void this.exitPromise.catch(noop);
@@ -53182,9 +53182,9 @@ var Ink = class {
     settleThrottle(this.throttledOnRender, canWriteToStdout);
     settleThrottle(this.throttledLog, canWriteToStdout);
     if (canWriteToStdout && hasWritableState) {
-      await new Promise((resolve4) => {
+      await new Promise((resolve6) => {
         this.options.stdout.write("", () => {
-          resolve4();
+          resolve6();
         });
       });
       return;
@@ -53251,8 +53251,8 @@ var Ink = class {
   async awaitNextRender() {
     if (!this.nextRenderCommit) {
       let resolveRender;
-      const promise = new Promise((resolve4) => {
-        resolveRender = resolve4;
+      const promise = new Promise((resolve6) => {
+        resolveRender = resolve6;
       });
       this.nextRenderCommit = { promise, resolve: resolveRender };
     }
@@ -53984,9 +53984,9 @@ var import_react32 = __toESM(require_react(), 1);
 var import_react33 = __toESM(require_react(), 1);
 
 // src/cli/tui.tsx
-import { fileURLToPath as fileURLToPath3 } from "url";
-import { existsSync as existsSync9 } from "fs";
-import { join as join12 } from "path";
+import { fileURLToPath as fileURLToPath2 } from "url";
+import { existsSync as existsSync13 } from "fs";
+import { join as join18 } from "path";
 
 // src/cli/app.tsx
 var import_react39 = __toESM(require_react(), 1);
@@ -54014,14 +54014,57 @@ function atomicWriteFileSync(path, content) {
   }
 }
 
-// src/cli/lib/config.ts
+// src/lib/types.ts
+var DEFAULT_COLUMNS = ["Backlog", "Todo", "In Progress", "Review", "Done"];
+var DEFAULT_WORK_OUTPUT = {
+  detailMode: "complete",
+  boardDigest: {
+    showColumnCounts: true,
+    showTasks: true,
+    showPriority: true,
+    showAssignee: true,
+    showBlockedBy: true,
+    showNextActionable: true
+  }
+};
+var DEFAULT_COLUMN_META = {
+  Backlog: {
+    role: "backlog",
+    instructions: "Capture unscheduled work here. Keep enough context to decide whether it belongs in this workflow."
+  },
+  Todo: {
+    role: "ready",
+    instructions: "Only move work here when its required inputs, acceptance criteria, dependencies, and approvals are ready."
+  },
+  "In Progress": {
+    role: "active",
+    instructions: "Execute the current workflow phase, update the checklist as work happens, and record blockers immediately."
+  },
+  Review: {
+    role: "review",
+    instructions: "Require completed verification, reproducible evidence, and the workflow-specific review gate before acceptance."
+  },
+  Done: {
+    role: "terminal",
+    instructions: "Only accept work whose criteria and required review are satisfied. Preserve the completion report and evidence."
+  }
+};
 var DEFAULT_CONFIG = {
-  ui: { language: "en", theme: "auto", skin: "kandown", font: "inter" },
-  agent: { suggestFollowUp: false, maxSuggestions: 3 },
+  ui: { language: "en", theme: "auto", skin: "kandown", font: "inter", background: "solid", onboardingCompleted: false },
+  agent: { suggestFollowUp: false, maxSuggestions: 3, workOutput: DEFAULT_WORK_OUTPUT },
+  workflow: { active: "kandown-standard", skills: [], trackingCadence: "balanced" },
   board: {
-    columns: ["Backlog", "Todo", "In Progress", "Review", "Done"],
+    columns: DEFAULT_COLUMNS,
     defaultPriority: "P3",
     defaultOwnerType: "human",
+    columnColors: {
+      backlog: "red",
+      todo: "blue",
+      "in progress": "orange",
+      review: "violet",
+      done: "green"
+    },
+    columnMeta: DEFAULT_COLUMN_META,
     stackDefaultState: "collapsed"
   },
   tui: {
@@ -54029,12 +54072,16 @@ var DEFAULT_CONFIG = {
     showDetailPane: true,
     listSort: "status",
     listSortDir: "asc",
-    // 📖 Tags default to off: they are the widest optional column and the one
-    // most projects leave empty, so on by default it mostly reserved 14 cells
-    // of description width to render blanks. Turn it on in `kandown settings`.
-    columns: { age: true, status: true, priority: true, owner: true, deps: true, tags: false, assignee: true }
+    columns: {
+      age: true,
+      status: true,
+      priority: true,
+      owner: true,
+      deps: true,
+      tags: false,
+      assignee: true
+    }
   },
-  extensions: { restricted: true },
   fields: {
     priority: false,
     assignee: false,
@@ -54051,55 +54098,317 @@ var DEFAULT_CONFIG = {
     taskEdits: true,
     subtaskCompletions: true,
     editDebounceMs: 2e3
+  },
+  extensions: {
+    restricted: true
   }
 };
+
+// src/lib/config.ts
+var COLUMN_ROLES = [
+  "backlog",
+  "ready",
+  "active",
+  "review",
+  "terminal",
+  "custom"
+];
+var DETAIL_MODES = ["caveman", "standard", "complete"];
+var TRACKING_CADENCES = ["live", "balanced", "economy"];
+var BASE_RULES_MODES = [
+  "verbose",
+  "optimized",
+  "caveman",
+  "full",
+  "concise"
+];
+var COLUMN_COLORS = [
+  "red",
+  "orange",
+  "amber",
+  "yellow",
+  "lime",
+  "green",
+  "emerald",
+  "teal",
+  "cyan",
+  "sky",
+  "blue",
+  "indigo",
+  "violet",
+  "purple",
+  "fuchsia",
+  "pink",
+  "rose",
+  "slate",
+  "gray",
+  "zinc",
+  "black",
+  "blackTransparent"
+];
+var FONT_IDS = ["inter", "system", "serif", "mono", "rounded"];
+var THEME_MODES = ["auto", "light", "dark"];
+var SOUND_IDS = ["soft", "chime", "ping", "pop"];
+function safeObject(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+function isOneOf(value, options) {
+  return typeof value === "string" && options.includes(value);
+}
+function stringOr(value, fallback) {
+  return typeof value === "string" && value.trim().length > 0 ? value : fallback;
+}
+function booleanOr(value, fallback) {
+  return typeof value === "boolean" ? value : fallback;
+}
+function numberOr(value, fallback) {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+function stringList(value) {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(
+    value.filter((entry) => typeof entry === "string").map((entry) => entry.trim()).filter(Boolean)
+  )];
+}
+function normalizeColumns(value) {
+  const columns = stringList(value);
+  return columns.length > 0 ? columns : [...DEFAULT_CONFIG.board.columns];
+}
+function lookupCaseInsensitive(record, key) {
+  if (Object.hasOwn(record, key)) return record[key];
+  const normalizedKey = key.toLocaleLowerCase();
+  const match = Object.keys(record).find(
+    (candidate) => candidate.toLocaleLowerCase() === normalizedKey
+  );
+  return match === void 0 ? void 0 : record[match];
+}
+function normalizeColumnMeta(columns, value) {
+  const rawMeta = safeObject(value);
+  const defaultMeta = safeObject(DEFAULT_COLUMN_META);
+  const normalized = {};
+  for (const column of columns) {
+    const rawValue = lookupCaseInsensitive(rawMeta, column);
+    const hasRawMeta = rawValue !== null && typeof rawValue === "object" && !Array.isArray(rawValue);
+    const raw = safeObject(rawValue);
+    const fallback = safeObject(lookupCaseInsensitive(defaultMeta, column));
+    const role = isOneOf(raw.role, COLUMN_ROLES) ? raw.role : isOneOf(fallback.role, COLUMN_ROLES) ? fallback.role : "custom";
+    const instructions = hasRawMeta ? typeof raw.instructions === "string" ? raw.instructions.trim() : void 0 : typeof fallback.instructions === "string" ? fallback.instructions : void 0;
+    normalized[column] = instructions ? { role, instructions } : { role };
+  }
+  return normalized;
+}
+function normalizeColumnColors(value) {
+  const normalized = {
+    ...DEFAULT_CONFIG.board.columnColors ?? {}
+  };
+  for (const [key, color] of Object.entries(safeObject(value))) {
+    if (isOneOf(color, COLUMN_COLORS)) normalized[key] = color;
+  }
+  return normalized;
+}
+function normalizeWipLimits(value) {
+  const normalized = {};
+  for (const [key, limit] of Object.entries(safeObject(value))) {
+    if (typeof limit === "number" && Number.isFinite(limit) && limit >= 0) {
+      normalized[key] = limit;
+    }
+  }
+  return Object.keys(normalized).length > 0 ? normalized : void 0;
+}
+function normalizeExtraArgs(value) {
+  const normalized = {};
+  for (const [agentId, args] of Object.entries(safeObject(value))) {
+    if (!Array.isArray(args) || !args.every((arg) => typeof arg === "string")) continue;
+    normalized[agentId] = [...args];
+  }
+  return Object.keys(normalized).length > 0 ? normalized : void 0;
+}
+function normalizeAgents(value) {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return void 0;
+  const raw = safeObject(value);
+  const agents = {};
+  if (typeof raw.preferred === "string" && raw.preferred.trim()) {
+    agents.preferred = raw.preferred;
+  }
+  const extraArgs = normalizeExtraArgs(raw.extraArgs);
+  if (extraArgs) agents.extraArgs = extraArgs;
+  return agents;
+}
+function normalizeCustomThemes(value) {
+  if (!Array.isArray(value)) return void 0;
+  const themes = value.filter((entry) => {
+    const theme = safeObject(entry);
+    return typeof theme.id === "string" && typeof theme.name === "string" && Object.keys(safeObject(theme.appearance)).length > 0 && Object.keys(safeObject(theme.light)).length > 0 && Object.keys(safeObject(theme.dark)).length > 0;
+  });
+  return themes.length > 0 ? [...themes] : void 0;
+}
+function detailModeFromLegacyBaseRulesMode(mode) {
+  if (mode === "caveman") return "caveman";
+  if (mode === "concise" || mode === "optimized") return "standard";
+  return "complete";
+}
+function normalizeKandownConfig(raw) {
+  const root = safeObject(raw);
+  const ui = safeObject(root.ui);
+  const agent = safeObject(root.agent);
+  const workOutput = safeObject(agent.workOutput);
+  const boardDigest2 = safeObject(workOutput.boardDigest);
+  const workflow = safeObject(root.workflow);
+  const board = safeObject(root.board);
+  const tui = safeObject(root.tui);
+  const tuiColumns = safeObject(tui.columns);
+  const fields = safeObject(root.fields);
+  const notifications = safeObject(root.notifications);
+  const extensions = safeObject(root.extensions);
+  const baseRulesMode = isOneOf(workOutput.baseRulesMode, BASE_RULES_MODES) ? workOutput.baseRulesMode : "full";
+  const detailMode = isOneOf(workOutput.detailMode, DETAIL_MODES) ? workOutput.detailMode : detailModeFromLegacyBaseRulesMode(baseRulesMode);
+  const columns = normalizeColumns(board.columns);
+  const customThemes = normalizeCustomThemes(ui.customThemes);
+  const wipLimits = normalizeWipLimits(board.wipLimits);
+  const config = {
+    ui: {
+      language: stringOr(ui.language, DEFAULT_CONFIG.ui.language),
+      theme: isOneOf(ui.theme, THEME_MODES) ? ui.theme : DEFAULT_CONFIG.ui.theme,
+      skin: stringOr(ui.skin, DEFAULT_CONFIG.ui.skin),
+      font: isOneOf(ui.font, FONT_IDS) ? ui.font : DEFAULT_CONFIG.ui.font,
+      background: ui.background === "static-gradient" ? "static-gradient" : "solid",
+      onboardingCompleted: booleanOr(
+        ui.onboardingCompleted,
+        DEFAULT_CONFIG.ui.onboardingCompleted
+      ),
+      ...customThemes ? { customThemes } : {}
+    },
+    agent: {
+      suggestFollowUp: booleanOr(
+        agent.suggestFollowUp,
+        DEFAULT_CONFIG.agent.suggestFollowUp
+      ),
+      maxSuggestions: numberOr(agent.maxSuggestions, DEFAULT_CONFIG.agent.maxSuggestions),
+      workOutput: {
+        detailMode,
+        boardDigest: {
+          showColumnCounts: booleanOr(
+            boardDigest2.showColumnCounts,
+            DEFAULT_WORK_OUTPUT.boardDigest.showColumnCounts
+          ),
+          showTasks: booleanOr(
+            boardDigest2.showTasks,
+            DEFAULT_WORK_OUTPUT.boardDigest.showTasks
+          ),
+          showPriority: booleanOr(
+            boardDigest2.showPriority,
+            DEFAULT_WORK_OUTPUT.boardDigest.showPriority
+          ),
+          showAssignee: booleanOr(
+            boardDigest2.showAssignee,
+            DEFAULT_WORK_OUTPUT.boardDigest.showAssignee
+          ),
+          showBlockedBy: booleanOr(
+            boardDigest2.showBlockedBy,
+            DEFAULT_WORK_OUTPUT.boardDigest.showBlockedBy
+          ),
+          showNextActionable: booleanOr(
+            boardDigest2.showNextActionable,
+            DEFAULT_WORK_OUTPUT.boardDigest.showNextActionable
+          )
+        }
+      }
+    },
+    workflow: {
+      active: stringOr(workflow.active, DEFAULT_CONFIG.workflow.active),
+      skills: stringList(workflow.skills),
+      trackingCadence: isOneOf(workflow.trackingCadence, TRACKING_CADENCES) ? workflow.trackingCadence : DEFAULT_CONFIG.workflow.trackingCadence
+    },
+    board: {
+      columns,
+      defaultPriority: stringOr(board.defaultPriority, DEFAULT_CONFIG.board.defaultPriority),
+      defaultOwnerType: board.defaultOwnerType === "ai" ? "ai" : "human",
+      columnColors: normalizeColumnColors(board.columnColors),
+      columnMeta: normalizeColumnMeta(columns, board.columnMeta),
+      stackDefaultState: board.stackDefaultState === "expanded" ? "expanded" : "collapsed",
+      ...wipLimits ? { wipLimits } : {}
+    },
+    tui: {
+      defaultView: tui.defaultView === "board" ? "board" : "list",
+      showDetailPane: booleanOr(tui.showDetailPane, DEFAULT_CONFIG.tui.showDetailPane),
+      listSort: tui.listSort === "age" || tui.listSort === "priority" || tui.listSort === "id" ? tui.listSort : "status",
+      listSortDir: tui.listSortDir === "desc" ? "desc" : "asc",
+      columns: {
+        age: booleanOr(tuiColumns.age, DEFAULT_CONFIG.tui.columns.age),
+        status: booleanOr(tuiColumns.status, DEFAULT_CONFIG.tui.columns.status),
+        priority: booleanOr(tuiColumns.priority, DEFAULT_CONFIG.tui.columns.priority),
+        owner: booleanOr(tuiColumns.owner, DEFAULT_CONFIG.tui.columns.owner),
+        deps: booleanOr(tuiColumns.deps, DEFAULT_CONFIG.tui.columns.deps),
+        tags: booleanOr(tuiColumns.tags, DEFAULT_CONFIG.tui.columns.tags),
+        assignee: booleanOr(tuiColumns.assignee, DEFAULT_CONFIG.tui.columns.assignee)
+      }
+    },
+    fields: {
+      priority: booleanOr(fields.priority, DEFAULT_CONFIG.fields.priority),
+      assignee: booleanOr(fields.assignee, DEFAULT_CONFIG.fields.assignee),
+      tags: booleanOr(fields.tags, DEFAULT_CONFIG.fields.tags),
+      dueDate: booleanOr(fields.dueDate, DEFAULT_CONFIG.fields.dueDate),
+      ownerType: booleanOr(fields.ownerType, DEFAULT_CONFIG.fields.ownerType),
+      tools: booleanOr(fields.tools, DEFAULT_CONFIG.fields.tools)
+    },
+    notifications: {
+      browser: booleanOr(notifications.browser, DEFAULT_CONFIG.notifications.browser),
+      sound: booleanOr(notifications.sound, DEFAULT_CONFIG.notifications.sound),
+      soundId: isOneOf(notifications.soundId, SOUND_IDS) ? notifications.soundId : DEFAULT_CONFIG.notifications.soundId,
+      statusChanges: booleanOr(
+        notifications.statusChanges,
+        DEFAULT_CONFIG.notifications.statusChanges
+      ),
+      taskEdits: booleanOr(notifications.taskEdits, DEFAULT_CONFIG.notifications.taskEdits),
+      subtaskCompletions: booleanOr(
+        notifications.subtaskCompletions,
+        DEFAULT_CONFIG.notifications.subtaskCompletions
+      ),
+      editDebounceMs: numberOr(
+        notifications.editDebounceMs,
+        DEFAULT_CONFIG.notifications.editDebounceMs
+      ),
+      ...typeof notifications.webhookUrl === "string" ? { webhookUrl: notifications.webhookUrl } : {}
+    },
+    extensions: {
+      restricted: booleanOr(extensions.restricted, DEFAULT_CONFIG.extensions.restricted)
+    }
+  };
+  const agents = normalizeAgents(root.agents);
+  if (agents) config.agents = agents;
+  return config;
+}
+function resolveColumnRole(config, columnName) {
+  const rawMeta = safeObject(config.board.columnMeta);
+  const meta = safeObject(lookupCaseInsensitive(rawMeta, columnName));
+  return isOneOf(meta.role, COLUMN_ROLES) ? meta.role : "custom";
+}
+function resolveColumnNamesByRole(config, role) {
+  return config.board.columns.filter(
+    (columnName) => resolveColumnRole(config, columnName) === role
+  );
+}
+function resolveColumnNameByRole(config, role) {
+  return resolveColumnNamesByRole(config, role)[0];
+}
+
+// src/cli/lib/config.ts
 function loadConfig(kandownDir) {
   const configPath = join(kandownDir, "kandown.json");
-  if (!existsSync2(configPath)) return structuredClone(DEFAULT_CONFIG);
+  if (!existsSync2(configPath)) return normalizeKandownConfig(void 0);
   let raw;
   try {
     raw = JSON.parse(readFileSync2(configPath, "utf8"));
   } catch (e) {
     const err = e;
-    if (err.code === "ENOENT") return structuredClone(DEFAULT_CONFIG);
+    if (err.code === "ENOENT") return normalizeKandownConfig(void 0);
     console.warn(`[kandown] kandown.json is corrupted, using defaults: ${e.message}`);
-    return structuredClone(DEFAULT_CONFIG);
+    return normalizeKandownConfig(void 0);
   }
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
     console.warn("[kandown] kandown.json must be a JSON object, using defaults.");
-    return structuredClone(DEFAULT_CONFIG);
   }
-  const obj = raw;
-  const safeObj = (v) => v && typeof v === "object" && !Array.isArray(v) ? v : {};
-  const boardRaw = safeObj(obj.board);
-  const merged = {
-    ui: { ...DEFAULT_CONFIG.ui, ...safeObj(obj.ui) },
-    agent: { ...DEFAULT_CONFIG.agent, ...safeObj(obj.agent) },
-    board: {
-      ...DEFAULT_CONFIG.board,
-      ...boardRaw,
-      columns: Array.isArray(boardRaw.columns) && boardRaw.columns.length > 0 ? boardRaw.columns.filter((name) => typeof name === "string" && name.trim().length > 0) : DEFAULT_CONFIG.board.columns
-    },
-    // 📖 `columns` is merged one level deeper than the rest: a config that only
-    // pins `{"tui":{"columns":{"tags":true}}}` must keep the defaults for every
-    // other column instead of having them come back `undefined` (falsy — which
-    // would silently blank the whole row).
-    tui: {
-      ...DEFAULT_CONFIG.tui,
-      ...safeObj(obj.tui),
-      columns: {
-        ...DEFAULT_CONFIG.tui.columns,
-        ...safeObj(safeObj(obj.tui).columns)
-      }
-    },
-    fields: { ...DEFAULT_CONFIG.fields, ...safeObj(obj.fields) },
-    extensions: { ...DEFAULT_CONFIG.extensions, ...safeObj(obj.extensions) },
-    notifications: { ...DEFAULT_CONFIG.notifications, ...safeObj(obj.notifications) }
-  };
-  if (obj.agents && typeof obj.agents === "object") {
-    merged.agents = obj.agents;
-  }
-  return merged;
+  return normalizeKandownConfig(raw);
 }
 function saveConfig(kandownDir, config) {
   const configPath = join(kandownDir, "kandown.json");
@@ -54420,18 +54729,18 @@ function Settings({ kandownDir, version }) {
         ] })
       ] })
     ] }),
-    SECTIONS.map((section) => {
+    SECTIONS.map((section2) => {
       const items = SETTINGS.filter(
-        (s) => s.section === section && visible.has(SETTINGS.indexOf(s))
+        (s) => s.section === section2 && visible.has(SETTINGS.indexOf(s))
       );
       if (items.length === 0) return null;
-      const icon = SECTION_ICONS[section] ?? "\u2022";
+      const icon = SECTION_ICONS[section2] ?? "\u2022";
       return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Box_default, { flexDirection: "column", marginBottom: 1, flexShrink: 0, children: [
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Box_default, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Text, { color: "cyan", bold: true, children: [
           "  ",
           icon,
           " ",
-          section
+          section2
         ] }) }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Box_default, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { dimColor: true, children: "  " + "\u2500".repeat(LABEL_WIDTH + VALUE_WIDTH + 4) }) }),
         items.map((setting) => {
@@ -54448,7 +54757,7 @@ function Settings({ kandownDir, version }) {
             setting.key
           );
         })
-      ] }, section);
+      ] }, section2);
     }),
     /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Box_default, { marginTop: 1, children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Text, { dimColor: true, children: [
       "  ",
@@ -54512,78 +54821,18 @@ function ValueDisplay({ setting, value, focused }) {
 // src/cli/screens/board.tsx
 var import_react37 = __toESM(require_react(), 1);
 import { spawnSync } from "child_process";
-import { join as join10 } from "path";
+import { join as join16 } from "path";
 
 // src/cli/lib/board-reader.ts
 import { existsSync as existsSync3, readdirSync as readdirSync2, readFileSync as readFileSync3, mkdirSync, unlinkSync as unlinkSync2 } from "fs";
 import { dirname, join as join2 } from "path";
-import { fileURLToPath } from "url";
-import { homedir } from "os";
-import { execFileSync as execFileSync2 } from "child_process";
-
-// src/lib/types.ts
-var DEFAULT_COLUMNS = ["Backlog", "Todo", "In Progress", "Review", "Done"];
-var DEFAULT_WORK_OUTPUT = {
-  mode: "blocks",
-  includeBaseRules: true,
-  baseRulesMode: "full",
-  includeProjectInstructions: true,
-  includeBoardDigest: true,
-  sectionOrder: ["baseRules", "projectInstructions", "boardDigest"],
-  rawTemplate: "{{baseRules}}\n\n---\n\n{{projectInstructions}}\n\n---\n\n{{boardDigest}}",
-  boardDigest: {
-    showColumnCounts: true,
-    showTasks: true,
-    showPriority: true,
-    showAssignee: true,
-    showBlockedBy: true,
-    showNextActionable: true
-  }
-};
-var DEFAULT_CONFIG2 = {
-  ui: { language: "en", theme: "auto", skin: "kandown", font: "inter", background: "solid", onboardingCompleted: false },
-  agent: { suggestFollowUp: false, maxSuggestions: 3, workOutput: DEFAULT_WORK_OUTPUT },
-  board: {
-    columns: DEFAULT_COLUMNS,
-    defaultPriority: "P3",
-    defaultOwnerType: "human",
-    columnColors: {
-      backlog: "red",
-      todo: "blue",
-      "in progress": "orange",
-      review: "violet",
-      done: "green"
-    },
-    stackDefaultState: "collapsed"
-  },
-  fields: {
-    priority: false,
-    assignee: false,
-    tags: false,
-    dueDate: false,
-    ownerType: false,
-    tools: false
-  },
-  notifications: {
-    browser: false,
-    sound: false,
-    soundId: "soft",
-    statusChanges: true,
-    taskEdits: true,
-    subtaskCompletions: true,
-    editDebounceMs: 2e3
-  },
-  extensions: {
-    restricted: true
-  }
-};
 
 // src/lib/dependencies.ts
-function terminalStatus(config = DEFAULT_CONFIG2) {
+function terminalStatus(config = DEFAULT_CONFIG) {
   const cols = config.board.columns;
-  return cols[cols.length - 1] ?? "Done";
+  return resolveColumnNameByRole(config, "terminal") ?? cols[cols.length - 1] ?? DEFAULT_CONFIG.board.columns.at(-1);
 }
-function isTerminalStatus(status, config = DEFAULT_CONFIG2) {
+function isTerminalStatus(status, config = DEFAULT_CONFIG) {
   return status === terminalStatus(config) || status.toLowerCase() === terminalStatus(config).toLowerCase() || isArchivedStatus(status);
 }
 function isArchivedStatus(taskOrStatus, config) {
@@ -54623,7 +54872,7 @@ function readDeps(task) {
   }
   return task.frontmatter?.depends_on;
 }
-function resolveDependencyStatus(tasks, config = DEFAULT_CONFIG2) {
+function resolveDependencyStatus(tasks, config = DEFAULT_CONFIG) {
   const byId = /* @__PURE__ */ new Map();
   for (const t of tasks) {
     const id = t && (t.id ?? t.frontmatter?.id);
@@ -54663,7 +54912,7 @@ function unresolvedDependencyIds(task, resolution) {
   }
   return out;
 }
-function resolveTransition(task, targetStatus, snapshot, config = DEFAULT_CONFIG2) {
+function resolveTransition(task, targetStatus, snapshot, config = DEFAULT_CONFIG) {
   const id = task && task.id || task.frontmatter?.id || "";
   if (typeof targetStatus !== "string" || !targetStatus) {
     return { allowed: true, reason: "not-implemented" };
@@ -54827,9 +55076,9 @@ function parseTaskFile(md) {
   }
   return { frontmatter: { id: "", title: "" }, body: md };
 }
-function normalizeStatus(status) {
+function normalizeStatus(status, fallback = "Backlog") {
   const value = typeof status === "string" ? status.trim() : "";
-  return value || "Backlog";
+  return value || fallback;
 }
 function normalizePriority(priority) {
   if (typeof priority !== "string") return null;
@@ -54850,12 +55099,12 @@ function taskOrder(task) {
   }
   return Number.MAX_SAFE_INTEGER;
 }
-function taskToBoardTask(task) {
+function taskToBoardTask(task, defaultStatus = "Backlog") {
   const { frontmatter, body } = task;
   const { subtasks } = extractSubtasks(body);
   const done = subtasks.filter((s) => s.done).length;
   const total = subtasks.length;
-  const status = normalizeStatus(frontmatter.status);
+  const status = normalizeStatus(frontmatter.status, defaultStatus);
   const tags = Array.isArray(frontmatter.tags) ? frontmatter.tags.filter((tag) => typeof tag === "string" && tag.trim().length > 0) : [];
   const { id: _id, title: _title, status: _status, order: _order, created: _created, updated: _updated, archived: _archived, report: _report, ...metadata } = frontmatter;
   return {
@@ -54877,6 +55126,7 @@ function taskToBoardTask(task) {
 }
 function buildColumnsFromTasks(tasks, configuredColumns = DEFAULT_COLUMNS) {
   const columnNames = configuredColumns.length > 0 ? configuredColumns : DEFAULT_COLUMNS;
+  const defaultStatus = columnNames[0] ?? DEFAULT_COLUMNS[0];
   const columnsByName = /* @__PURE__ */ new Map();
   const configured = columnNames.map((name) => ({ name, tasks: [] }));
   for (const column of configured) columnsByName.set(column.name.toLowerCase(), column);
@@ -54887,14 +55137,14 @@ function buildColumnsFromTasks(tasks, configuredColumns = DEFAULT_COLUMNS) {
     return a.frontmatter.id.localeCompare(b.frontmatter.id, void 0, { numeric: true });
   });
   for (const task of sortedTasks) {
-    const status = normalizeStatus(task.frontmatter.status);
+    const status = normalizeStatus(task.frontmatter.status, defaultStatus);
     let column = columnsByName.get(status.toLowerCase());
     if (!column) {
       column = { name: status, tasks: [] };
       columnsByName.set(status.toLowerCase(), column);
       unknownColumns.push(column);
     }
-    column.tasks.push(taskToBoardTask(task));
+    column.tasks.push(taskToBoardTask(task, defaultStatus));
   }
   return [...unknownColumns, ...configured];
 }
@@ -55038,13 +55288,13 @@ function readBoard(kandownDir) {
   const tasks = [];
   for (const id of ids) {
     try {
-      const task = readTask(kandownDir, id);
+      const task = readTask(kandownDir, id, config.board.columns[0]);
       tasks.push({
         ...task,
         frontmatter: {
           ...task.frontmatter,
           id: task.frontmatter.id || id,
-          status: task.frontmatter.status || "Backlog"
+          status: task.frontmatter.status || config.board.columns[0] || "Backlog"
         }
       });
     } catch (e) {
@@ -55057,11 +55307,12 @@ function readBoard(kandownDir) {
     columns: buildColumnsFromTasks(tasks, config.board.columns)
   };
 }
-function readTask(kandownDir, taskId) {
+function readTask(kandownDir, taskId, defaultStatus) {
+  const fallback = defaultStatus || loadConfig(kandownDir).board.columns[0] || "Backlog";
   const taskPath = findTaskPath(kandownDir, taskId);
   if (!taskPath) {
     return {
-      frontmatter: { id: taskId, title: `Task ${taskId}`, status: "Backlog" },
+      frontmatter: { id: taskId, title: `Task ${taskId}`, status: fallback },
       body: ""
     };
   }
@@ -55072,51 +55323,9 @@ function readTask(kandownDir, taskId) {
     frontmatter: {
       ...parsed.frontmatter,
       id: parsed.frontmatter.id || taskId,
-      status: parsed.frontmatter.status || "Backlog"
+      status: parsed.frontmatter.status || fallback
     }
   };
-}
-var PKG_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
-function readAgentDoc(kandownDir) {
-  const sections = [];
-  try {
-    sections.push(readFileSync3(join2(PKG_ROOT, "templates", "AGENT_KANDOWN.md"), "utf8").trim());
-  } catch (e) {
-    console.warn("[kandown] Could not read base agent rules:", e.message);
-  }
-  const globalPath = join2(homedir(), ".kandown", "instructions.md");
-  if (existsSync3(globalPath)) {
-    try {
-      sections.push(`## Global instructions
-
-${readFileSync3(globalPath, "utf8").trim()}`);
-    } catch (e) {
-      console.warn(`[kandown] Could not read ${globalPath}:`, e.message);
-    }
-  }
-  const projectPath = join2(kandownDir, "instructions.md");
-  if (existsSync3(projectPath)) {
-    try {
-      sections.push(`## Project-specific instructions
-
-${readFileSync3(projectPath, "utf8").trim()}`);
-    } catch (e) {
-      console.warn(`[kandown] Could not read ${projectPath}:`, e.message);
-    }
-  }
-  try {
-    const root = getProjectRoot(kandownDir);
-    const gitLog = execFileSync2("git", ["log", "-n", "5", "--oneline", "--", "tasks/"], { cwd: root, encoding: "utf8" }).trim();
-    if (gitLog) {
-      sections.push(`## Recent Task Activity (Git History)
-
-\`\`\`
-${gitLog}
-\`\`\``);
-    }
-  } catch {
-  }
-  return sections.filter(Boolean).join("\n\n---\n\n");
 }
 function moveTaskToColumn(kandownDir, taskId, targetColumn) {
   const taskPath = findTaskPath(kandownDir, taskId);
@@ -55350,24 +55559,24 @@ function archiveTaskInBoard(kandownDir, taskId) {
 // src/cli/lib/daemon.ts
 import { existsSync as existsSync5, readFileSync as readFileSync5, unlinkSync as unlinkSync4 } from "fs";
 import { dirname as dirname3, join as join4 } from "path";
-import { execFileSync as execFileSync3, spawn as spawn2 } from "child_process";
+import { execFileSync as execFileSync2, spawn as spawn2 } from "child_process";
 import { createConnection } from "net";
 
 // src/cli/lib/updater.ts
 import { existsSync as existsSync4, readFileSync as readFileSync4, writeFileSync as writeFileSync2, unlinkSync as unlinkSync3, statSync as statSync2, mkdirSync as mkdirSync2 } from "fs";
 import { join as join3, resolve } from "path";
 import { spawn, execSync } from "child_process";
-import { homedir as homedir2 } from "os";
+import { homedir } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.46.0";
+var KANDOWN_VERSION = "0.47.0";
 
 // src/cli/lib/updater.ts
-import { fileURLToPath as fileURLToPath2 } from "url";
+import { fileURLToPath } from "url";
 import { dirname as dirname2 } from "path";
 function getPackageRoot() {
   try {
-    const currentFile = fileURLToPath2(import.meta.url);
+    const currentFile = fileURLToPath(import.meta.url);
     if (currentFile.includes("/bin/")) {
       return resolve(dirname2(currentFile), "..");
     }
@@ -55376,8 +55585,8 @@ function getPackageRoot() {
     return process.cwd();
   }
 }
-var PKG_ROOT2 = getPackageRoot();
-var CACHE_DIR = join3(homedir2(), ".kandown");
+var PKG_ROOT = getPackageRoot();
+var CACHE_DIR = join3(homedir(), ".kandown");
 var UPDATE_CHECK_CACHE = join3(CACHE_DIR, ".update-check.json");
 var UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1e3;
 function getCurrentVersion() {
@@ -55456,16 +55665,16 @@ async function fetchDaemonInfo(port) {
   }
 }
 function isPortListening(port, timeoutMs = 400) {
-  return new Promise((resolve4) => {
+  return new Promise((resolve6) => {
     const socket = createConnection({ port, host: "127.0.0.1" }, () => {
       socket.destroy();
-      resolve4(true);
+      resolve6(true);
     });
-    socket.on("error", () => resolve4(false));
+    socket.on("error", () => resolve6(false));
     socket.setTimeout(timeoutMs);
     socket.on("timeout", () => {
       socket.destroy();
-      resolve4(false);
+      resolve6(false);
     });
   });
 }
@@ -55493,7 +55702,7 @@ async function waitForDaemon(kandownDir, timeoutMs = 8e3) {
     if (metadata && isProcessAlive(metadata.pid) && await isPortListening(metadata.port)) {
       return { running: true, metadata };
     }
-    await new Promise((resolve4) => setTimeout(resolve4, 120));
+    await new Promise((resolve6) => setTimeout(resolve6, 120));
   }
   return { running: false, metadata: null };
 }
@@ -55503,7 +55712,7 @@ async function startProjectDaemon(kandownDir, preferredPort) {
     if (current.metadata?.version === getCurrentVersion()) return current;
     await stopProjectDaemon(kandownDir);
   }
-  const cliPath = join4(PKG_ROOT2, "bin", "kandown.js");
+  const cliPath = join4(PKG_ROOT, "bin", "kandown.js");
   if (!existsSync5(cliPath)) throw new Error(`Cannot locate kandown CLI entrypoint at ${cliPath}`);
   const args = [
     cliPath,
@@ -55529,7 +55738,7 @@ async function isOwnedKandownDaemon(pid, port, kandownDir) {
   const remote = await fetchDaemonInfo(port);
   if (remote) return remote.pid === pid && remote.kandownDir === kandownDir;
   try {
-    const cmd = execFileSync3("ps", ["-p", String(pid), "-o", "command="], {
+    const cmd = execFileSync2("ps", ["-p", String(pid), "-o", "command="], {
       encoding: "utf8",
       timeout: 2e3
     }).trim();
@@ -55556,7 +55765,7 @@ async function stopProjectDaemon(kandownDir) {
   }
   const started = Date.now();
   while (Date.now() - started < 2500 && isProcessAlive(pid)) {
-    await new Promise((resolve4) => setTimeout(resolve4, 100));
+    await new Promise((resolve6) => setTimeout(resolve6, 100));
   }
   if (isProcessAlive(pid)) {
     try {
@@ -55727,10 +55936,10 @@ var ReaddirpStream = class extends Readable {
   }
   async _formatEntry(dirent, path) {
     let entry;
-    const basename3 = this._isDirent ? dirent.name : dirent;
+    const basename4 = this._isDirent ? dirent.name : dirent;
     try {
-      const fullPath = presolve(pjoin(path, basename3));
-      entry = { path: prelative(this._root, fullPath), fullPath, basename: basename3 };
+      const fullPath = presolve(pjoin(path, basename4));
+      entry = { path: prelative(this._root, fullPath), fullPath, basename: basename4 };
       entry[this._statsProp] = this._isDirent ? dirent : await this._stat(fullPath);
     } catch (err) {
       this._onError(err);
@@ -56269,9 +56478,9 @@ var NodeFsHandler = class {
   _watchWithNodeFs(path, listener) {
     const opts = this.fsw.options;
     const directory = sysPath.dirname(path);
-    const basename3 = sysPath.basename(path);
+    const basename4 = sysPath.basename(path);
     const parent = this.fsw._getWatchedDir(directory);
-    parent.add(basename3);
+    parent.add(basename4);
     const absolutePath = sysPath.resolve(path);
     const options = {
       persistent: opts.persistent
@@ -56281,7 +56490,7 @@ var NodeFsHandler = class {
     let closer;
     if (opts.usePolling) {
       const enableBin = opts.interval !== opts.binaryInterval;
-      options.interval = enableBin && isBinaryPath(basename3) ? opts.binaryInterval : opts.interval;
+      options.interval = enableBin && isBinaryPath(basename4) ? opts.binaryInterval : opts.interval;
       closer = setFsWatchFileListener(path, absolutePath, options, {
         listener,
         rawEmitter: this.fsw._emitRaw
@@ -56304,10 +56513,10 @@ var NodeFsHandler = class {
       return;
     }
     const dirname6 = sysPath.dirname(file);
-    const basename3 = sysPath.basename(file);
+    const basename4 = sysPath.basename(file);
     const parent = this.fsw._getWatchedDir(dirname6);
     let prevStats = stats;
-    if (parent.has(basename3))
+    if (parent.has(basename4))
       return;
     const listener = async (path, newStats) => {
       if (!this.fsw._throttle(THROTTLE_MODE_WATCH, file, 5))
@@ -56332,9 +56541,9 @@ var NodeFsHandler = class {
             prevStats = newStats2;
           }
         } catch (error) {
-          this.fsw._remove(dirname6, basename3);
+          this.fsw._remove(dirname6, basename4);
         }
-      } else if (parent.has(basename3)) {
+      } else if (parent.has(basename4)) {
         const at = newStats.atimeMs;
         const mt = newStats.mtimeMs;
         if (!at || at <= mt || mt !== prevStats.mtimeMs) {
@@ -56428,7 +56637,7 @@ var NodeFsHandler = class {
         this._addToNodeFs(path, initialAdd, wh, depth + 1);
       }
     }).on(EV.ERROR, this._boundHandleError);
-    return new Promise((resolve4, reject) => {
+    return new Promise((resolve6, reject) => {
       if (!stream)
         return reject();
       stream.once(STR_END, () => {
@@ -56437,7 +56646,7 @@ var NodeFsHandler = class {
           return;
         }
         const wasThrottled = throttler ? throttler.clear() : false;
-        resolve4(void 0);
+        resolve6(void 0);
         previous.getChildren().filter((item) => {
           return item !== directory && !current.has(item);
         }).forEach((item) => {
@@ -57266,11 +57475,11 @@ function watch(paths, options = {}) {
 
 // src/cli/lib/file-watcher.ts
 function hashFile(filePath) {
-  return new Promise((resolve4, reject) => {
+  return new Promise((resolve6, reject) => {
     const hash = createHash("sha256");
     const stream = createReadStream(filePath);
     stream.on("data", (chunk) => hash.update(chunk));
-    stream.on("end", () => resolve4(hash.digest("hex")));
+    stream.on("end", () => resolve6(hash.digest("hex")));
     stream.on("error", reject);
   });
 }
@@ -57479,7 +57688,7 @@ function createWatcher() {
 }
 
 // src/cli/lib/agents.ts
-import { execFileSync as execFileSync4 } from "child_process";
+import { execFileSync as execFileSync3 } from "child_process";
 
 // src/cli/lib/agents-config.ts
 import { existsSync as existsSync7, readFileSync as readFileSync6 } from "fs";
@@ -57822,7 +58031,7 @@ function resolveBinPath(bin) {
   if (cached !== void 0) return cached;
   let resolved = null;
   try {
-    const out = execFileSync4("which", [bin], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+    const out = execFileSync3("which", [bin], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
     const first = out.split("\n").map((l) => l.trim()).find(Boolean);
     resolved = first && first.startsWith("/") ? first : null;
   } catch {
@@ -57932,7 +58141,7 @@ function genericCommand(agent, opts) {
       return [agent.bin, prompt];
   }
 }
-function buildPrompt(agentDoc, taskContent, taskId, kandownDir, handoff, queue) {
+function buildPrompt(agentDoc, taskContent, taskId, kandownDir, activeStatus, terminalStatus2, handoff, queue) {
   const handoffBlock = handoff && handoff.length > 0 ? [
     "## Context from upstream tasks (cascade handoff)",
     "",
@@ -57949,11 +58158,11 @@ function buildPrompt(agentDoc, taskContent, taskId, kandownDir, handoff, queue) 
   const queueBlock = queue && queue.length > 0 ? [
     "## Your queue (same-session cascade)",
     "",
-    'Work through these tasks strictly in order. For each one: set its status to "In Progress", do the work, update the task file as you go, then set it to "Done" with a completion report before starting the next.',
+    `Work through these tasks strictly in order. For each one: set its status to "${activeStatus}", do the work, update the task file as you go, then set it to "${terminalStatus2}" with a completion report before starting the next.`,
     "",
     ...queue.map((q, i) => `${i + 1}. ${q.id} \u2014 ${q.title}`),
     "",
-    "When the whole queue is Done, stop.",
+    `When the whole queue is in "${terminalStatus2}", stop.`,
     "",
     "---",
     ""
@@ -57973,18 +58182,1144 @@ function buildPrompt(agentDoc, taskContent, taskId, kandownDir, handoff, queue) 
     `The kandown directory is at: \`${kandownDir}\``,
     "",
     "Before anything else:",
-    `1. Set task ${taskId} frontmatter status to "In Progress" (it may already be there \u2014 that's fine)`,
+    `1. Set task ${taskId} frontmatter status to "${activeStatus}" (it may already be there, which is fine)`,
     "2. Work through each subtask, checking them off and adding reports as you go",
-    '3. When done, write the completion report and set the task status to "Done"'
+    `3. When done, write the completion report and set the task status to "${terminalStatus2}"`
   ].join("\n");
   return { systemPrompt, taskPrompt };
 }
 
 // src/cli/lib/launcher.ts
 import { execSync as execSync2, spawn as spawn3 } from "child_process";
-import { writeFileSync as writeFileSync3 } from "fs";
-import { join as join9 } from "path";
+import { writeFileSync as writeFileSync5 } from "fs";
+import { join as join15 } from "path";
 import { tmpdir } from "os";
+
+// src/cli/lib/kandown-work.ts
+import { existsSync as existsSync11, readFileSync as readFileSync12, readdirSync as readdirSync5, statSync as statSync5 } from "fs";
+import { homedir as homedir6 } from "os";
+import { join as join14 } from "path";
+
+// src/lib/kandown-work.ts
+function estimateTokenCount(text) {
+  const pieces = text.match(/[\p{L}\p{N}_]+|[^\s\p{L}\p{N}_]/gu) ?? [];
+  return pieces.reduce((total, piece) => {
+    if (/^[\p{L}\p{N}_]+$/u.test(piece)) {
+      const divisor = /^[\x00-\x7F]+$/.test(piece) ? 4 : 2;
+      return total + Math.max(1, Math.ceil(piece.length / divisor));
+    }
+    return total + 1;
+  }, 0);
+}
+function kandownWorkStats(text) {
+  return {
+    characters: text.length,
+    words: text.trim() ? text.trim().split(/\s+/u).length : 0,
+    estimatedTokens: estimateTokenCount(text)
+  };
+}
+var CORE = {
+  caveman: [
+    "Task Markdown is truth. Read the target task first.",
+    "Respect dependencies, decisions, and out of scope.",
+    "Track progress, preserve user data, and prove completion before terminal status."
+  ],
+  standard: [
+    "Task Markdown files are the only source of task truth.",
+    "Read the targeted task before working and respect dependencies and blockers.",
+    "Do not invent scope or silently change recorded decisions or out of scope.",
+    "Record progress at the active cadence and preserve all user-authored data.",
+    "Provide reproducible evidence before moving work to a terminal column.",
+    "Use only commands listed as available in this document."
+  ],
+  complete: [
+    "Task Markdown files are the only source of task truth. Do not create an index, cache, or parallel task state.",
+    "Read the targeted task, its acceptance criteria, dependencies, blockers, decisions, and out of scope before changing anything.",
+    "Do not invent scope, silently reverse a human decision, or turn deferred work into a completion blocker.",
+    "Keep the task file faithful to real progress at the active tracking cadence, including discoveries and blockers.",
+    "Preserve user-authored task data and make every migration or destructive action explicit.",
+    "Before terminal status, satisfy acceptance criteria and record reproducible verification evidence and a useful completion report.",
+    "Use only commands listed as available in this document. Never assume a Kandown command exists."
+  ]
+};
+var TRACKING = {
+  live: "Update the task checklist and reports after every meaningful step. Record blockers immediately.",
+  balanced: "Update the task after each completed subtask, phase change, blocker, or important discovery.",
+  economy: "Update the task at start, on blockers, at phase changes, and at completion."
+};
+function section(title, body) {
+  return `## ${title}
+
+${body.trim()}`;
+}
+function compileKandownWork(input) {
+  const diagnostics = [];
+  const roleNames = /* @__PURE__ */ new Map();
+  for (const column of input.columns) {
+    if (!roleNames.has(column.meta.role)) roleNames.set(column.meta.role, column.name);
+  }
+  const coreRoles = ["backlog", "active", "terminal"];
+  for (const role of /* @__PURE__ */ new Set([...coreRoles, ...input.workflow.manifest.requiredRoles])) {
+    if (!roleNames.has(role)) diagnostics.push({
+      code: "missing_column_role",
+      severity: "error",
+      role,
+      message: `${coreRoles.includes(role) ? "Kandown core" : "Workflow"} requires a column with role "${role}".`
+    });
+  }
+  const compatibleSkills = (input.skills ?? []).filter((skill) => {
+    if (skill.compatibleWorkflows?.length && !skill.compatibleWorkflows.includes(input.workflow.manifest.id)) {
+      diagnostics.push({ code: "incompatible_skill", severity: "warning", message: `Skill "${skill.id}" is not compatible with workflow "${input.workflow.manifest.id}".` });
+      return false;
+    }
+    const missing = (skill.requiredRoles ?? []).find((role) => !roleNames.has(role));
+    if (missing) {
+      diagnostics.push({ code: "missing_skill_role", severity: "error", role: missing, message: `Skill "${skill.id}" requires missing column role "${missing}".` });
+      return false;
+    }
+    return true;
+  });
+  let protocol = input.workflow.protocol.content.replace(/\{\{trackingPolicy\}\}/g, TRACKING[input.trackingCadence]);
+  protocol = protocol.replace(/\{\{column:([a-z]+)\}\}/g, (placeholder, role) => {
+    const name = roleNames.get(role);
+    if (name) return name;
+    diagnostics.push({ code: "unresolved_placeholder", severity: "error", role, message: `Cannot resolve ${placeholder}.` });
+    return `[missing column role: ${role}]`;
+  });
+  const columnLines = input.columns.map(
+    ({ name, meta }) => `- **${name}** (${meta.role})${meta.instructions ? `: ${meta.instructions}` : ""}`
+  );
+  const commandLines = input.availableCommands.map((command) => `- \`${command}\``);
+  const layers = [
+    section("Kandown Core", CORE[input.detailMode].map((rule) => `- ${rule}`).join("\n")),
+    section("Project Columns and Available Commands", `${columnLines.join("\n")}
+
+Available commands:
+${commandLines.join("\n") || "- None declared"}`)
+  ];
+  if (input.extensions?.length) layers.push(section("Active Extensions", input.extensions.map((item) => `- **${item.name}** (\`${item.id}\`): ${item.summary}`).join("\n")));
+  layers.push(section(`Workflow: ${input.workflow.manifest.name}`, protocol));
+  layers.push(section(`Tracking Policy: ${input.trackingCadence}`, TRACKING[input.trackingCadence]));
+  if (compatibleSkills.length) layers.push(section("Active Skills", compatibleSkills.map((skill) => `### ${skill.name}
+
+${skill.content.trim()}`).join("\n\n")));
+  if (input.globalInstructions?.trim()) layers.push(section("Global Instructions", input.globalInstructions));
+  if (input.projectInstructions?.trim()) layers.push(section("Project Instructions", input.projectInstructions));
+  layers.push(section(input.context.kind === "task" ? "Target Task Context" : "Current Board Digest", input.context.markdown));
+  const markdown = `# Kandown Work
+
+${layers.join("\n\n---\n\n")}
+`;
+  return { markdown, diagnostics, stats: kandownWorkStats(markdown) };
+}
+
+// src/lib/workflows/validation.ts
+var KEBAB_CASE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+var SEMVERISH = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
+var ROLES = /* @__PURE__ */ new Set([
+  "backlog",
+  "ready",
+  "active",
+  "review",
+  "terminal",
+  "custom"
+]);
+var MANIFEST_FIELDS = /* @__PURE__ */ new Set([
+  "formatVersion",
+  "id",
+  "name",
+  "version",
+  "author",
+  "description",
+  "summary",
+  "minKandownVersion",
+  "requiredRoles",
+  "protocol",
+  "guide",
+  "boardPreset",
+  "taskTemplates",
+  "attribution",
+  "provenance"
+]);
+var TEMPLATE_FIELDS = /* @__PURE__ */ new Set(["id", "name", "description", "file", "default"]);
+var ATTRIBUTION_FIELDS = /* @__PURE__ */ new Set(["name", "url", "note", "license"]);
+var PROVENANCE_FIELDS = /* @__PURE__ */ new Set(["sourceId", "sourceVersion", "repository", "ref", "forkedAt"]);
+var EXECUTABLE_KEYS = /* @__PURE__ */ new Set([
+  "bin",
+  "command",
+  "commands",
+  "entry",
+  "entrypoint",
+  "executable",
+  "hooks",
+  "main",
+  "module",
+  "permissions",
+  "runtime",
+  "script",
+  "scripts"
+]);
+var EXECUTABLE_FILE = /\.(?:cjs|cmd|com|exe|js|jsx|mjs|ps1|sh|ts|tsx)$/i;
+function isRecord2(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function isWorkflowBoardRole(value) {
+  return typeof value === "string" && ROLES.has(value);
+}
+function failure(errors) {
+  return { ok: false, errors };
+}
+function addError(errors, code, path, message) {
+  errors.push({ code, path, message });
+}
+function executableKey(key) {
+  return EXECUTABLE_KEYS.has(key.toLowerCase());
+}
+function checkKnownFields(value, allowed, path, errors) {
+  for (const key of Object.keys(value)) {
+    if (allowed.has(key)) continue;
+    addError(
+      errors,
+      executableKey(key) ? "executable_payload" : "unknown_field",
+      `${path}.${key}`,
+      executableKey(key) ? `Executable payload declaration "${key}" is not allowed` : `Unknown field "${key}"`
+    );
+  }
+}
+function requiredString(value, key, path, errors) {
+  const raw = value[key];
+  if (typeof raw !== "string") {
+    addError(errors, raw === void 0 ? "missing_field" : "invalid_type", `${path}.${key}`, `Expected ${key} to be a string`);
+    return "";
+  }
+  if (!raw.trim()) addError(errors, "invalid_value", `${path}.${key}`, `${key} must not be empty`);
+  return raw;
+}
+function optionalString(value, key, path, errors) {
+  const raw = value[key];
+  if (raw === void 0) return void 0;
+  if (typeof raw !== "string" || !raw.trim()) {
+    addError(errors, "invalid_type", `${path}.${key}`, `Expected ${key} to be a non-empty string`);
+    return void 0;
+  }
+  return raw;
+}
+function isSafeWorkflowPath(path) {
+  if (!path || path.includes("\\") || path.includes("\0")) return false;
+  if (path.startsWith("/") || path.startsWith("//") || /^[A-Za-z]:/.test(path)) return false;
+  if (/^[A-Za-z][A-Za-z0-9+.-]*:/.test(path)) return false;
+  const segments = path.split("/");
+  return segments.every((segment) => segment.length > 0 && segment !== "." && segment !== "..");
+}
+function validatePath(path, fieldPath, expected, errors) {
+  if (!isSafeWorkflowPath(path)) {
+    addError(errors, "unsafe_path", fieldPath, `Path "${path}" is not a safe relative package path`);
+    return;
+  }
+  const valid = expected === "protocol" ? path === "protocol.md" : expected === "guide" ? path === "guide.md" : expected === "board" ? path === "board.json" : /^templates\/[^/]+\.md$/.test(path);
+  if (!valid) {
+    addError(errors, "invalid_value", fieldPath, `Path "${path}" does not match the workflow ${expected} location`);
+  }
+}
+function validateTaskTemplates(raw, errors) {
+  if (!Array.isArray(raw)) {
+    addError(errors, raw === void 0 ? "missing_field" : "invalid_type", "manifest.taskTemplates", "taskTemplates must be an array");
+    return [];
+  }
+  const templates = [];
+  const ids = /* @__PURE__ */ new Set();
+  const paths = /* @__PURE__ */ new Set();
+  let defaultCount = 0;
+  raw.forEach((item, index) => {
+    const path = `manifest.taskTemplates[${index}]`;
+    if (!isRecord2(item)) {
+      addError(errors, "invalid_type", path, "Task template must be an object");
+      return;
+    }
+    checkKnownFields(item, TEMPLATE_FIELDS, path, errors);
+    const id = requiredString(item, "id", path, errors);
+    const name = requiredString(item, "name", path, errors);
+    const description = requiredString(item, "description", path, errors);
+    const file = requiredString(item, "file", path, errors);
+    const defaultValue2 = item.default;
+    if (defaultValue2 !== void 0 && typeof defaultValue2 !== "boolean") {
+      addError(errors, "invalid_type", `${path}.default`, "default must be a boolean when present");
+    }
+    if (id && !KEBAB_CASE.test(id)) addError(errors, "invalid_value", `${path}.id`, "Template id must be kebab-case");
+    if (id && ids.has(id)) addError(errors, "duplicate_id", `${path}.id`, `Duplicate task template id "${id}"`);
+    if (id) ids.add(id);
+    if (file) validatePath(file, `${path}.file`, "template", errors);
+    if (file && paths.has(file)) addError(errors, "duplicate_id", `${path}.file`, `Duplicate task template file "${file}"`);
+    if (file) paths.add(file);
+    if (defaultValue2 === true) defaultCount += 1;
+    templates.push({
+      id,
+      name,
+      description,
+      file,
+      ...typeof defaultValue2 === "boolean" ? { default: defaultValue2 } : {}
+    });
+  });
+  if (defaultCount > 1) {
+    addError(errors, "duplicate_default", "manifest.taskTemplates", "At most one task template may be the default");
+  }
+  return templates;
+}
+function validateAttribution(raw, errors) {
+  if (!Array.isArray(raw)) {
+    addError(errors, raw === void 0 ? "missing_field" : "invalid_type", "manifest.attribution", "attribution must be an array");
+    return [];
+  }
+  return raw.flatMap((item, index) => {
+    const path = `manifest.attribution[${index}]`;
+    if (!isRecord2(item)) {
+      addError(errors, "invalid_type", path, "Attribution must be an object");
+      return [];
+    }
+    checkKnownFields(item, ATTRIBUTION_FIELDS, path, errors);
+    const name = requiredString(item, "name", path, errors);
+    const url = requiredString(item, "url", path, errors);
+    const note = optionalString(item, "note", path, errors);
+    const license = optionalString(item, "license", path, errors);
+    return [{ name, url, ...note ? { note } : {}, ...license ? { license } : {} }];
+  });
+}
+function validateProvenance(raw, errors) {
+  if (raw === void 0) return void 0;
+  if (!isRecord2(raw)) {
+    addError(errors, "invalid_type", "manifest.provenance", "provenance must be an object");
+    return void 0;
+  }
+  checkKnownFields(raw, PROVENANCE_FIELDS, "manifest.provenance", errors);
+  const sourceId = requiredString(raw, "sourceId", "manifest.provenance", errors);
+  const sourceVersion = requiredString(raw, "sourceVersion", "manifest.provenance", errors);
+  const repository = optionalString(raw, "repository", "manifest.provenance", errors);
+  const ref = optionalString(raw, "ref", "manifest.provenance", errors);
+  const forkedAt = optionalString(raw, "forkedAt", "manifest.provenance", errors);
+  if (sourceId && !KEBAB_CASE.test(sourceId)) addError(errors, "invalid_value", "manifest.provenance.sourceId", "sourceId must be kebab-case");
+  if (sourceVersion && !SEMVERISH.test(sourceVersion)) addError(errors, "invalid_value", "manifest.provenance.sourceVersion", "sourceVersion must be semver-like");
+  return { sourceId, sourceVersion, ...repository ? { repository } : {}, ...ref ? { ref } : {}, ...forkedAt ? { forkedAt } : {} };
+}
+function validateRoles(raw, errors) {
+  if (!Array.isArray(raw)) {
+    addError(errors, raw === void 0 ? "missing_field" : "invalid_type", "manifest.requiredRoles", "requiredRoles must be an array");
+    return [];
+  }
+  const roles = [];
+  const seen = /* @__PURE__ */ new Set();
+  raw.forEach((role, index) => {
+    const path = `manifest.requiredRoles[${index}]`;
+    if (!isWorkflowBoardRole(role)) {
+      addError(errors, "invalid_value", path, `Unknown board role "${String(role)}"`);
+      return;
+    }
+    if (seen.has(role)) {
+      addError(errors, "duplicate_id", path, `Duplicate required role "${role}"`);
+      return;
+    }
+    seen.add(role);
+    roles.push(role);
+  });
+  return roles;
+}
+function validateWorkflowManifest(raw) {
+  const errors = [];
+  if (!isRecord2(raw)) {
+    addError(errors, "invalid_type", "manifest", "Workflow manifest must be an object");
+    return failure(errors);
+  }
+  checkKnownFields(raw, MANIFEST_FIELDS, "manifest", errors);
+  if (raw.formatVersion !== 1) {
+    addError(
+      errors,
+      raw.formatVersion === void 0 ? "missing_field" : "invalid_value",
+      "manifest.formatVersion",
+      "formatVersion must be 1"
+    );
+  }
+  const id = requiredString(raw, "id", "manifest", errors);
+  const name = requiredString(raw, "name", "manifest", errors);
+  const version = requiredString(raw, "version", "manifest", errors);
+  const author = requiredString(raw, "author", "manifest", errors);
+  const description = requiredString(raw, "description", "manifest", errors);
+  const summary = requiredString(raw, "summary", "manifest", errors);
+  const minKandownVersion = optionalString(raw, "minKandownVersion", "manifest", errors);
+  const protocol = requiredString(raw, "protocol", "manifest", errors);
+  const guide = optionalString(raw, "guide", "manifest", errors);
+  const boardPreset = optionalString(raw, "boardPreset", "manifest", errors);
+  const requiredRoles = validateRoles(raw.requiredRoles, errors);
+  const taskTemplates = validateTaskTemplates(raw.taskTemplates, errors);
+  const attribution = validateAttribution(raw.attribution, errors);
+  const provenance = validateProvenance(raw.provenance, errors);
+  if (id && !KEBAB_CASE.test(id)) addError(errors, "invalid_value", "manifest.id", "Workflow id must be kebab-case");
+  if (version && !SEMVERISH.test(version)) addError(errors, "invalid_value", "manifest.version", "Workflow version must be semver-like");
+  if (minKandownVersion && !SEMVERISH.test(minKandownVersion)) {
+    addError(errors, "invalid_value", "manifest.minKandownVersion", "Minimum Kandown version must be semver-like");
+  }
+  if (protocol) validatePath(protocol, "manifest.protocol", "protocol", errors);
+  if (guide) validatePath(guide, "manifest.guide", "guide", errors);
+  if (boardPreset) validatePath(boardPreset, "manifest.boardPreset", "board", errors);
+  if (errors.length > 0) return failure(errors);
+  return {
+    ok: true,
+    value: {
+      formatVersion: 1,
+      id,
+      name,
+      version,
+      author,
+      description,
+      summary,
+      ...minKandownVersion ? { minKandownVersion } : {},
+      requiredRoles,
+      protocol,
+      ...guide ? { guide } : {},
+      ...boardPreset ? { boardPreset } : {},
+      taskTemplates,
+      attribution,
+      ...provenance ? { provenance } : {}
+    }
+  };
+}
+function findExecutableDeclaration(value, path) {
+  if (Array.isArray(value)) {
+    for (let index = 0; index < value.length; index += 1) {
+      const found = findExecutableDeclaration(value[index], `${path}[${index}]`);
+      if (found) return found;
+    }
+    return null;
+  }
+  if (!isRecord2(value)) return null;
+  for (const [key, child] of Object.entries(value)) {
+    if (executableKey(key)) return `${path}.${key}`;
+    const found = findExecutableDeclaration(child, `${path}.${key}`);
+    if (found) return found;
+  }
+  return null;
+}
+function parseBoardPreset(path, content, errors) {
+  let value;
+  try {
+    value = JSON.parse(content);
+  } catch {
+    addError(errors, "malformed_json", path, "Board preset must contain valid JSON");
+    return void 0;
+  }
+  if (!isRecord2(value)) {
+    addError(errors, "invalid_type", path, "Board preset root must be an object");
+    return void 0;
+  }
+  const executable = findExecutableDeclaration(value, path);
+  if (executable) {
+    addError(errors, "executable_payload", executable, "Board presets cannot declare executable payloads");
+    return void 0;
+  }
+  if (!Array.isArray(value.columns) || value.columns.length === 0) {
+    addError(errors, "invalid_type", `${path}.columns`, "Board preset columns must be a non-empty array");
+    return void 0;
+  }
+  const names = /* @__PURE__ */ new Set();
+  value.columns.forEach((rawColumn, index) => {
+    const columnPath = `${path}.columns[${index}]`;
+    if (!isRecord2(rawColumn)) {
+      addError(errors, "invalid_type", columnPath, "Board preset column must be an object");
+      return;
+    }
+    const name = rawColumn.name;
+    if (typeof name !== "string" || !name.trim()) addError(errors, "invalid_value", `${columnPath}.name`, "Column name must be a non-empty string");
+    else if (names.has(name.toLocaleLowerCase())) addError(errors, "duplicate_id", `${columnPath}.name`, `Duplicate board column name "${name}"`);
+    else names.add(name.toLocaleLowerCase());
+    if (!isWorkflowBoardRole(rawColumn.role)) addError(errors, "invalid_value", `${columnPath}.role`, `Unknown board role "${String(rawColumn.role)}"`);
+    if (rawColumn.instructions !== void 0 && typeof rawColumn.instructions !== "string") addError(errors, "invalid_type", `${columnPath}.instructions`, "Column instructions must be a string");
+  });
+  if (value.priorities !== void 0 && (!Array.isArray(value.priorities) || !value.priorities.every((priority) => typeof priority === "string" && priority.trim()))) {
+    addError(errors, "invalid_type", `${path}.priorities`, "Board preset priorities must be an array of non-empty strings");
+  }
+  if (errors.length > 0) return void 0;
+  return { path, content, value };
+}
+function sourceFilesFromUnknown(raw, errors) {
+  if (!isRecord2(raw)) {
+    addError(errors, "invalid_type", "files", "Workflow source files must be an object map");
+    return null;
+  }
+  const files = {};
+  for (const [path, content] of Object.entries(raw)) {
+    if (!isSafeWorkflowPath(path)) {
+      addError(errors, "unsafe_path", `files.${path}`, `Source path "${path}" is unsafe`);
+      continue;
+    }
+    if (EXECUTABLE_FILE.test(path)) {
+      addError(errors, "executable_payload", `files.${path}`, `Executable source file "${path}" is not allowed`);
+      continue;
+    }
+    if (typeof content !== "string") {
+      addError(errors, "invalid_type", `files.${path}`, "Source file content must be a string");
+      continue;
+    }
+    files[path] = content;
+  }
+  return files;
+}
+function loadWorkflowPackage(rawFiles) {
+  const errors = [];
+  const files = sourceFilesFromUnknown(rawFiles, errors);
+  if (!files) return failure(errors);
+  const manifestSource = files["manifest.json"];
+  if (manifestSource === void 0) {
+    addError(errors, "missing_file", "files.manifest.json", "Workflow package requires manifest.json");
+    return failure(errors);
+  }
+  let rawManifest;
+  try {
+    rawManifest = JSON.parse(manifestSource);
+  } catch {
+    addError(errors, "malformed_json", "files.manifest.json", "manifest.json must contain valid JSON");
+    return failure(errors);
+  }
+  const manifestResult = validateWorkflowManifest(rawManifest);
+  if (!manifestResult.ok) errors.push(...manifestResult.errors);
+  if (!manifestResult.ok) return failure(errors);
+  const manifest = manifestResult.value;
+  const expectedPaths = /* @__PURE__ */ new Set(["manifest.json", manifest.protocol]);
+  if (manifest.guide) expectedPaths.add(manifest.guide);
+  if (manifest.boardPreset) expectedPaths.add(manifest.boardPreset);
+  for (const template of manifest.taskTemplates) expectedPaths.add(template.file);
+  for (const path of expectedPaths) {
+    if (files[path] === void 0) addError(errors, "missing_file", `files.${path}`, `Referenced file "${path}" is missing`);
+  }
+  for (const path of Object.keys(files)) {
+    if (!expectedPaths.has(path)) addError(errors, "unknown_file", `files.${path}`, `File "${path}" is not declared by the manifest`);
+  }
+  if (errors.length > 0) return failure(errors);
+  const protocol = { path: manifest.protocol, content: files[manifest.protocol] ?? "" };
+  const guide = manifest.guide ? { path: manifest.guide, content: files[manifest.guide] ?? "" } : void 0;
+  const boardPreset = manifest.boardPreset ? parseBoardPreset(manifest.boardPreset, files[manifest.boardPreset] ?? "", errors) : void 0;
+  if (boardPreset) {
+    const presetRoles = new Set(boardPreset.value.columns.map((column) => column.role));
+    for (const role of manifest.requiredRoles) {
+      if (!presetRoles.has(role)) addError(errors, "missing_field", `${manifest.boardPreset}.columns`, `Board preset does not provide required role "${role}"`);
+    }
+  }
+  const taskTemplates = manifest.taskTemplates.map((template) => ({
+    ...template,
+    content: files[template.file] ?? ""
+  }));
+  if (errors.length > 0) return failure(errors);
+  return {
+    ok: true,
+    value: {
+      manifest,
+      protocol,
+      ...guide ? { guide } : {},
+      ...boardPreset ? { boardPreset } : {},
+      taskTemplates
+    }
+  };
+}
+
+// src/lib/workflows/skills.ts
+var ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+var VERSION = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
+var ROLES2 = /* @__PURE__ */ new Set(["backlog", "ready", "active", "review", "terminal", "custom"]);
+function fail(errors) {
+  return { ok: false, errors };
+}
+function addError2(errors, code, path, message) {
+  errors.push({ code, path, message });
+}
+function loadWorkflowSkill(files) {
+  const errors = [];
+  let raw;
+  try {
+    raw = JSON.parse(files["manifest.json"] ?? "");
+  } catch {
+    return fail([{ code: "malformed_json", path: "manifest.json", message: "Skill manifest must contain valid JSON" }]);
+  }
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return fail([{ code: "invalid_type", path: "manifest", message: "Skill manifest must be an object" }]);
+  const item = raw;
+  const allowed = /* @__PURE__ */ new Set(["formatVersion", "id", "name", "version", "description", "instructions", "compatibleWorkflows", "requiredRoles"]);
+  for (const key of Object.keys(item)) if (!allowed.has(key)) addError2(errors, "unknown_field", `manifest.${key}`, `Unknown skill field "${key}"`);
+  const string = (key) => {
+    const value = item[key];
+    if (typeof value !== "string" || !value.trim()) {
+      addError2(errors, value === void 0 ? "missing_field" : "invalid_value", `manifest.${key}`, `${key} must be a non-empty string`);
+      return "";
+    }
+    return value;
+  };
+  const id = string("id");
+  const name = string("name");
+  const version = string("version");
+  const description = string("description");
+  const instructions = string("instructions");
+  if (item.formatVersion !== 1) addError2(errors, "invalid_value", "manifest.formatVersion", "formatVersion must be 1");
+  if (id && !ID.test(id)) addError2(errors, "invalid_value", "manifest.id", "Skill id must be kebab-case");
+  if (version && !VERSION.test(version)) addError2(errors, "invalid_value", "manifest.version", "Skill version must be semver-like");
+  if (instructions && (!/^([a-zA-Z0-9._-]+)\.md$/.test(instructions) || instructions.includes(".."))) addError2(errors, "unsafe_path", "manifest.instructions", "Skill instructions must be a safe root Markdown path");
+  const compatibleWorkflows = item.compatibleWorkflows === void 0 ? void 0 : Array.isArray(item.compatibleWorkflows) && item.compatibleWorkflows.every((value) => typeof value === "string" && ID.test(value)) ? [...new Set(item.compatibleWorkflows)] : void 0;
+  if (item.compatibleWorkflows !== void 0 && !compatibleWorkflows) addError2(errors, "invalid_type", "manifest.compatibleWorkflows", "compatibleWorkflows must contain kebab-case ids");
+  const requiredRoles = item.requiredRoles === void 0 ? void 0 : Array.isArray(item.requiredRoles) && item.requiredRoles.every((value) => ROLES2.has(value)) ? [...new Set(item.requiredRoles)] : void 0;
+  if (item.requiredRoles !== void 0 && !requiredRoles) addError2(errors, "invalid_type", "manifest.requiredRoles", "requiredRoles contains an unknown role");
+  const expected = /* @__PURE__ */ new Set(["manifest.json", instructions]);
+  for (const path of Object.keys(files)) if (!expected.has(path)) addError2(errors, "unknown_file", path, `Undeclared skill file "${path}"`);
+  const content = files[instructions];
+  if (instructions && typeof content !== "string") addError2(errors, "missing_file", instructions, `Missing skill instructions "${instructions}"`);
+  if (errors.length) return fail(errors);
+  return { ok: true, value: { formatVersion: 1, id, name, version, description, instructions, ...compatibleWorkflows ? { compatibleWorkflows } : {}, ...requiredRoles ? { requiredRoles } : {}, content } };
+}
+
+// src/cli/lib/agent-migration.ts
+import { createHash as createHash2 } from "crypto";
+import {
+  existsSync as existsSync8,
+  mkdirSync as mkdirSync3,
+  readFileSync as readFileSync7,
+  renameSync as renameSync2,
+  unlinkSync as unlinkSync5
+} from "fs";
+import { homedir as homedir2 } from "os";
+import { basename as basename3, extname as extname2, join as join9, resolve as resolve4 } from "path";
+var AGENT_BOOTSTRAP_LINE = "This project uses Kandown. Before task work, run `kandown work` and follow its output. <!-- kandown:agent-ref -->";
+var AGENT_BOOTSTRAP_MARKER = "<!-- kandown:agent-ref -->";
+var LEGACY_AGENT_DOCS = ["AGENT.md", "AGENT_KANDOWN.md"];
+var DEFAULT_KNOWN_HASHES = /* @__PURE__ */ new Set([
+  "fc1380adf958f6e46ba8c5462fe56a9b34840bb85cc8648bd7021c0ba45fb7a5",
+  "889ff6069c3a7e7881fb59b1dc10a469805f3e866eccf5f29c906c268f02b2f6"
+]);
+function sha256(path) {
+  return createHash2("sha256").update(readFileSync7(path)).digest("hex");
+}
+function migrateInstructionFile(directory, scope) {
+  const oldPath = join9(directory, "instructions.md");
+  const newPath = join9(directory, "kandown_work.md");
+  if (!existsSync8(oldPath)) return [];
+  if (existsSync8(newPath)) {
+    return [{
+      severity: "warning",
+      code: "instruction-conflict",
+      message: `Kept both instruction files because ${newPath} already exists.`,
+      path: oldPath,
+      destination: newPath,
+      scope
+    }];
+  }
+  renameSync2(oldPath, newPath);
+  return [{
+    severity: "info",
+    code: "instruction-renamed",
+    message: `Moved ${oldPath} to ${newPath}.`,
+    path: oldPath,
+    destination: newPath,
+    scope
+  }];
+}
+function collisionSafePath(directory, fileName) {
+  const extension2 = extname2(fileName);
+  const stem = basename3(fileName, extension2);
+  let candidate = join9(directory, fileName);
+  let suffix = 1;
+  while (existsSync8(candidate)) {
+    candidate = join9(directory, `${stem}.${suffix}${extension2}`);
+    suffix += 1;
+  }
+  return candidate;
+}
+function migrateLegacyAgentDocs(kandownDir, knownHashes) {
+  const events = [];
+  for (const fileName of LEGACY_AGENT_DOCS) {
+    const legacyPath = join9(kandownDir, fileName);
+    if (!existsSync8(legacyPath)) continue;
+    if (knownHashes.has(sha256(legacyPath))) {
+      unlinkSync5(legacyPath);
+      events.push({
+        severity: "info",
+        code: "generated-doc-removed",
+        message: `Removed known generated agent document ${legacyPath}.`,
+        path: legacyPath
+      });
+      continue;
+    }
+    const backupDir = join9(kandownDir, "legacy-agent-docs");
+    mkdirSync3(backupDir, { recursive: true });
+    const backupPath = collisionSafePath(backupDir, fileName);
+    renameSync2(legacyPath, backupPath);
+    events.push({
+      severity: "warning",
+      code: "legacy-doc-backed-up",
+      message: `Preserved edited agent document at ${backupPath}.`,
+      path: legacyPath,
+      destination: backupPath
+    });
+  }
+  return events;
+}
+function splitPreservingLineEndings(content) {
+  const lines = [];
+  let start = 0;
+  for (let index = 0; index < content.length; index += 1) {
+    const character = content[index];
+    if (character !== "\n" && character !== "\r") continue;
+    const isCrLf = character === "\r" && content[index + 1] === "\n";
+    const ending = isCrLf ? "\r\n" : character;
+    lines.push({ body: content.slice(start, index), ending });
+    if (isCrLf) index += 1;
+    start = index + 1;
+  }
+  if (start < content.length) {
+    lines.push({ body: content.slice(start), ending: "" });
+  }
+  return lines;
+}
+function preferredLineEnding(content) {
+  const firstCrLf = content.indexOf("\r\n");
+  const firstLf = content.indexOf("\n");
+  const firstCr = content.indexOf("\r");
+  if (firstCrLf >= 0 && (firstLf < 0 || firstCrLf <= firstLf)) return "\r\n";
+  if (firstLf >= 0) return "\n";
+  if (firstCr >= 0) return "\r";
+  return "\n";
+}
+function migrateAgentInstructions(kandownDir, options = {}) {
+  const events = [];
+  const projectDirectory = resolve4(kandownDir);
+  const globalDirectory = resolve4(options.homeDir ?? homedir2(), ".kandown");
+  events.push(...migrateInstructionFile(projectDirectory, "project"));
+  events.push(...migrateLegacyAgentDocs(
+    projectDirectory,
+    options.knownHashes ?? DEFAULT_KNOWN_HASHES
+  ));
+  if (globalDirectory !== projectDirectory) {
+    events.push(...migrateInstructionFile(globalDirectory, "global"));
+  }
+  return events;
+}
+function ensureAgentBootstrap(projectRoot) {
+  const agentsPath = join9(projectRoot, "AGENTS.md");
+  if (!existsSync8(agentsPath)) {
+    atomicWriteFileSync(agentsPath, `${AGENT_BOOTSTRAP_LINE}
+`);
+    return [{
+      severity: "info",
+      code: "bootstrap-created",
+      message: `Created ${agentsPath} with the Kandown bootstrap instruction.`,
+      path: agentsPath
+    }];
+  }
+  const content = readFileSync7(agentsPath, "utf8");
+  const lines = splitPreservingLineEndings(content);
+  const markedIndexes = lines.map((line, index) => line.body.includes(AGENT_BOOTSTRAP_MARKER) ? index : -1).filter((index) => index >= 0);
+  if (markedIndexes.length === 0) {
+    const ending = preferredLineEnding(content);
+    const separator = content.length > 0 && !content.endsWith("\n") && !content.endsWith("\r") ? ending : "";
+    atomicWriteFileSync(agentsPath, `${content}${separator}${AGENT_BOOTSTRAP_LINE}${ending}`);
+    return [{
+      severity: "info",
+      code: "bootstrap-appended",
+      message: `Appended the Kandown bootstrap instruction to ${agentsPath}.`,
+      path: agentsPath
+    }];
+  }
+  const firstMarkedIndex = markedIndexes[0];
+  const leadingBom = lines[firstMarkedIndex].body.startsWith("\uFEFF") ? "\uFEFF" : "";
+  const managedBody = `${leadingBom}${AGENT_BOOTSTRAP_LINE}`;
+  const isCurrent = markedIndexes.length === 1 && lines[firstMarkedIndex].body === managedBody;
+  if (isCurrent) return [];
+  const repaired = lines.filter((_, index) => index === firstMarkedIndex || !markedIndexes.includes(index)).map((line, index) => ({
+    ...line,
+    body: index === firstMarkedIndex ? managedBody : line.body
+  })).map((line) => `${line.body}${line.ending}`).join("");
+  atomicWriteFileSync(agentsPath, repaired);
+  return [{
+    severity: "info",
+    code: "bootstrap-repaired",
+    message: `Repaired the managed Kandown bootstrap instruction in ${agentsPath}.`,
+    path: agentsPath
+  }];
+}
+
+// src/lib/extensions/loader.ts
+import { readdirSync as readdirSync3, readFileSync as readFileSync8, existsSync as existsSync9 } from "fs";
+import { join as join10 } from "path";
+import { homedir as homedir3 } from "os";
+
+// src/lib/extensions/manifest.ts
+var REQUIRED = ["id", "name", "version", "apiVersion"];
+function parseManifest(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    return { ok: false, error: "manifest is not a JSON object" };
+  }
+  const m = raw;
+  for (const key of REQUIRED) {
+    if (m[key] === void 0 || m[key] === null || m[key] === "") {
+      return { ok: false, error: `missing required field "${key}"` };
+    }
+  }
+  if (typeof m.id !== "string" || !/^[a-z][a-z0-9-]{0,63}$/.test(m.id)) {
+    return { ok: false, error: '"id" must be kebab-case (lowercase letters, digits, hyphens)' };
+  }
+  if (typeof m.name !== "string") return { ok: false, error: '"name" must be a string' };
+  if (typeof m.version !== "string") return { ok: false, error: '"version" must be a string' };
+  if (typeof m.apiVersion !== "number" || !Number.isInteger(m.apiVersion)) {
+    return { ok: false, error: '"apiVersion" must be an integer' };
+  }
+  if (m.minKandownVersion !== void 0 && typeof m.minKandownVersion !== "string") {
+    return { ok: false, error: '"minKandownVersion" must be a string' };
+  }
+  if (m.permissions !== void 0 && !Array.isArray(m.permissions)) {
+    return { ok: false, error: '"permissions" must be an array' };
+  }
+  if (m.main !== void 0 && typeof m.main !== "string") {
+    return { ok: false, error: '"main" must be a string' };
+  }
+  if (m.agent !== void 0) {
+    if (!m.agent || typeof m.agent !== "object" || Array.isArray(m.agent)) {
+      return { ok: false, error: '"agent" must be an object' };
+    }
+    const agent = m.agent;
+    if (typeof agent.summary !== "string" || !agent.summary.trim()) {
+      return { ok: false, error: '"agent.summary" must be a non-empty string' };
+    }
+    if (agent.guide !== void 0 && (typeof agent.guide !== "string" || !/^[a-zA-Z0-9._/-]+$/.test(agent.guide) || agent.guide.includes("..") || agent.guide.startsWith("/"))) {
+      return { ok: false, error: '"agent.guide" must be a safe relative path' };
+    }
+    if (agent.source !== void 0 && typeof agent.source !== "string") {
+      return { ok: false, error: '"agent.source" must be a string' };
+    }
+  }
+  return { ok: true, manifest: m };
+}
+
+// src/lib/extensions/loader.ts
+function globalExtensionsDir() {
+  return join10(homedir3(), ".kandown", "extensions");
+}
+function projectExtensionsDir(projectDir) {
+  return join10(projectDir, ".kandown", "extensions");
+}
+function scanLocation(location, source) {
+  let entries = [];
+  try {
+    entries = readdirSync3(location, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
+  } catch {
+    return [];
+  }
+  const found = [];
+  for (const name of entries) {
+    const dir = join10(location, name);
+    const manifestPath = join10(dir, "manifest.json");
+    if (!existsSync9(manifestPath)) continue;
+    let raw;
+    try {
+      raw = JSON.parse(readFileSync8(manifestPath, "utf8"));
+    } catch {
+      found.push({ dir, source, manifestResult: { ok: false, error: "manifest.json is not valid JSON" } });
+      continue;
+    }
+    found.push({ dir, source, manifestResult: parseManifest(raw) });
+  }
+  return found;
+}
+function discoverExtensions(projectDir) {
+  const globalList = scanLocation(globalExtensionsDir(), "global");
+  const projectList = scanLocation(projectExtensionsDir(projectDir), "project");
+  const projectIds = new Set(
+    projectList.map((d) => d.manifestResult.ok ? d.manifestResult.manifest.id : null).filter((x) => x !== null)
+  );
+  const dedupedGlobal = globalList.filter(
+    (d) => !(d.manifestResult.ok && projectIds.has(d.manifestResult.manifest.id))
+  );
+  return [...projectList, ...dedupedGlobal];
+}
+
+// src/lib/extensions/state.ts
+import { readFileSync as readFileSync9, writeFileSync as writeFileSync3, mkdirSync as mkdirSync4, realpathSync, renameSync as renameSync3 } from "fs";
+import { createHash as createHash3 } from "crypto";
+import { homedir as homedir4 } from "os";
+import { join as join11, resolve as resolve5 } from "path";
+function extensionStateDir(projectDir) {
+  let canonicalProject;
+  try {
+    canonicalProject = realpathSync(projectDir);
+  } catch {
+    canonicalProject = resolve5(projectDir);
+  }
+  const projectHash = createHash3("sha256").update(canonicalProject).digest("hex").slice(0, 24);
+  return join11(homedir4(), ".kandown", "project-state", projectHash, "extensions");
+}
+function enabledFilePath(projectDir) {
+  return join11(extensionStateDir(projectDir), "enabled.json");
+}
+function loadEnabled(projectDir) {
+  try {
+    const raw = readFileSync9(enabledFilePath(projectDir), "utf8");
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return new Set(parsed.filter((x) => typeof x === "string"));
+    return /* @__PURE__ */ new Set();
+  } catch {
+    return /* @__PURE__ */ new Set();
+  }
+}
+function healthFilePath(projectDir) {
+  return join11(extensionStateDir(projectDir), "health.json");
+}
+function loadFailureState(projectDir) {
+  try {
+    const parsed = JSON.parse(readFileSync9(healthFilePath(projectDir), "utf8"));
+    if (parsed.version !== 1 || !parsed.extensions || typeof parsed.extensions !== "object") {
+      return /* @__PURE__ */ new Map();
+    }
+    const records = /* @__PURE__ */ new Map();
+    for (const [id, value] of Object.entries(parsed.extensions)) {
+      if (!value || typeof value !== "object") continue;
+      const item = value;
+      if (typeof item.failures !== "number" || !Number.isInteger(item.failures) || item.failures < 1) continue;
+      records.set(id, {
+        failures: item.failures,
+        surface: typeof item.surface === "string" ? item.surface : void 0,
+        error: typeof item.error === "string" ? item.error : void 0,
+        updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : (/* @__PURE__ */ new Date(0)).toISOString()
+      });
+    }
+    return records;
+  } catch {
+    return /* @__PURE__ */ new Map();
+  }
+}
+
+// src/lib/extensions/trust.ts
+import { readFileSync as readFileSync10, writeFileSync as writeFileSync4, mkdirSync as mkdirSync5 } from "fs";
+import { join as join12 } from "path";
+function isRestricted(config) {
+  const flag = config?.extensions?.restricted;
+  return typeof flag === "boolean" ? flag : true;
+}
+function trustFilePath(projectDir) {
+  return join12(extensionStateDir(projectDir), "trust.json");
+}
+function loadProjectTrust(projectDir) {
+  try {
+    const raw = readFileSync10(trustFilePath(projectDir), "utf8");
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return new Set(parsed.filter((x) => typeof x === "string"));
+    return /* @__PURE__ */ new Set();
+  } catch {
+    return /* @__PURE__ */ new Set();
+  }
+}
+
+// src/cli/lib/skills.ts
+import { existsSync as existsSync10, readFileSync as readFileSync11, readdirSync as readdirSync4, statSync as statSync4 } from "fs";
+import { homedir as homedir5 } from "os";
+import { join as join13 } from "path";
+function readSourceFiles(directory, prefix = "") {
+  const files = {};
+  for (const name of readdirSync4(directory)) {
+    const absolute = join13(directory, name);
+    const relative3 = prefix ? `${prefix}/${name}` : name;
+    if (statSync4(absolute).isDirectory()) Object.assign(files, readSourceFiles(absolute, relative3));
+    else files[relative3] = readFileSync11(absolute, "utf8");
+  }
+  return files;
+}
+function packageListing(directory, source) {
+  const fallbackId = directory.split("/").at(-1) ?? "invalid-skill";
+  const result = loadWorkflowSkill(readSourceFiles(directory));
+  if (!result.ok) return {
+    id: fallbackId,
+    name: fallbackId,
+    version: "0.0.0",
+    description: "Invalid skill package",
+    source,
+    content: "",
+    valid: false,
+    errors: result.errors.map((error) => `${error.path}: ${error.message}`)
+  };
+  return { ...result.value, source, valid: true, errors: [] };
+}
+function listWorkflowSkills(kandownDir) {
+  const found = /* @__PURE__ */ new Map();
+  for (const location of [
+    { directory: join13(PKG_ROOT, "templates", "skills"), source: "built-in" },
+    { directory: join13(homedir5(), ".kandown", "skills"), source: "global" },
+    { directory: join13(kandownDir, "skills"), source: "project" }
+  ]) {
+    if (!existsSync10(location.directory)) continue;
+    for (const name of readdirSync4(location.directory).sort()) {
+      const absolute = join13(location.directory, name);
+      if (statSync4(absolute).isDirectory() && existsSync10(join13(absolute, "manifest.json"))) {
+        const listing = packageListing(absolute, location.source);
+        found.set(listing.id, listing);
+      } else if (statSync4(absolute).isFile() && /^[a-z0-9-]+\.md$/.test(name)) {
+        const id = name.slice(0, -3);
+        found.set(id, {
+          id,
+          name: id,
+          version: "0.0.0",
+          description: "Legacy Markdown skill",
+          source: location.source,
+          content: readFileSync11(absolute, "utf8"),
+          valid: true,
+          errors: []
+        });
+      }
+    }
+  }
+  return [...found.values()].sort((a, b) => a.id.localeCompare(b.id));
+}
+function loadConfiguredWorkflowSkills(kandownDir, ids) {
+  const installed = new Map(listWorkflowSkills(kandownDir).map((item) => [item.id, item]));
+  const skills = [];
+  const diagnostics = [];
+  for (const id of ids) {
+    const item = installed.get(id);
+    if (!item) {
+      diagnostics.push({ code: "missing_skill", severity: "warning", message: `Configured skill "${id}" is not installed.` });
+      continue;
+    }
+    if (!item.valid) {
+      diagnostics.push({ code: "invalid_skill", severity: "error", message: `Skill "${id}" is invalid: ${item.errors.join("; ")}` });
+      continue;
+    }
+    skills.push({
+      id: item.id,
+      name: item.name,
+      content: item.content,
+      ...item.compatibleWorkflows ? { compatibleWorkflows: item.compatibleWorkflows } : {},
+      ...item.requiredRoles ? { requiredRoles: item.requiredRoles } : {}
+    });
+  }
+  return { skills, diagnostics };
+}
+
+// src/cli/lib/kandown-work.ts
+var AVAILABLE_COMMANDS = [
+  "kandown work [task-id]",
+  "kandown list [--json]",
+  "kandown show <id>",
+  "kandown create <title>",
+  "kandown move <id> <status>",
+  "kandown assign <id> [agent]",
+  "kandown commit"
+];
+function readSourceFiles2(directory, prefix = "") {
+  const files = {};
+  for (const name of readdirSync5(directory)) {
+    const absolute = join14(directory, name);
+    const relative3 = prefix ? `${prefix}/${name}` : name;
+    if (statSync5(absolute).isDirectory()) Object.assign(files, readSourceFiles2(absolute, relative3));
+    else files[relative3] = readFileSync12(absolute, "utf8");
+  }
+  return files;
+}
+function loadSelectedWorkflow(kandownDir, id) {
+  const candidates = [join14(kandownDir, "workflows", id), join14(PKG_ROOT, "templates", "workflows", id)];
+  const directory = candidates.find((candidate) => existsSync11(join14(candidate, "manifest.json")));
+  if (!directory) throw new Error(`Selected workflow "${id}" is not installed.`);
+  const result = loadWorkflowPackage(readSourceFiles2(directory));
+  if (!result.ok) throw new Error(`Workflow "${id}" is invalid: ${result.errors.map((error) => error.message).join("; ")}`);
+  return result.value;
+}
+function readOptional(path) {
+  if (!existsSync11(path)) return void 0;
+  try {
+    return readFileSync12(path, "utf8");
+  } catch {
+    return void 0;
+  }
+}
+function loadExtensionGuidance(kandownDir, config) {
+  const projectRoot = getProjectRoot(kandownDir);
+  const enabled = loadEnabled(projectRoot);
+  const trusted = loadProjectTrust(projectRoot);
+  const failed = loadFailureState(projectRoot);
+  return discoverExtensions(projectRoot).flatMap((item) => {
+    if (!item.manifestResult.ok) return [];
+    const manifest = item.manifestResult.manifest;
+    if (!manifest.agent?.summary || isRestricted(config) && !enabled.has(manifest.id)) return [];
+    if (item.source === "project" && !trusted.has(manifest.id)) return [];
+    if ((failed.get(manifest.id)?.failures ?? 0) >= 3) return [];
+    return [{ id: manifest.id, name: manifest.name, summary: manifest.agent.summary }];
+  });
+}
+function boardDigest(kandownDir, config) {
+  const board = readBoard(kandownDir);
+  const total = board.columns.reduce((sum, column) => sum + column.tasks.length, 0);
+  const tasks = listTaskIds(kandownDir).map((id) => readTask(kandownDir, id));
+  const dependencyStatus = resolveDependencyStatus(tasks, config);
+  const detail = config.agent.workOutput.boardDigest;
+  const lines = [`Tasks total: ${total}`];
+  for (const column of board.columns) {
+    const header = detail.showColumnCounts ? `- **${column.name}** (${column.tasks.length})` : `- **${column.name}**`;
+    if (!detail.showTasks || column.tasks.length === 0) {
+      lines.push(`${header}: ${column.tasks.length ? "tasks hidden" : "empty"}`);
+      continue;
+    }
+    const rendered = column.tasks.slice(0, 12).map((task) => {
+      const parsed = tasks.find((item) => item.frontmatter.id === task.id);
+      const resolution = dependencyStatus.get(task.id);
+      const blocked = parsed ? unresolvedDependencyIds(parsed, dependencyStatus) : [];
+      return [
+        `${task.id} ${task.title}`,
+        detail.showPriority && parsed?.frontmatter.priority ? `[${parsed.frontmatter.priority}]` : "",
+        detail.showAssignee && parsed?.frontmatter.assignee ? `@${parsed.frontmatter.assignee}` : "",
+        detail.showBlockedBy && blocked.length ? `(blocked by ${blocked.join(", ")})` : ""
+      ].filter(Boolean).join(" ");
+    });
+    lines.push(`${header}: ${rendered.join(", ")}${column.tasks.length > 12 ? `, and ${column.tasks.length - 12} more` : ""}`);
+  }
+  if (detail.showNextActionable) {
+    const terminal = terminalStatus(config).toLocaleLowerCase();
+    const priority = (task) => Number.parseInt(String(task.frontmatter.priority ?? "P9").slice(1), 10) || 9;
+    const next = tasks.filter((task) => String(task.frontmatter.status ?? "").toLocaleLowerCase() !== terminal && unresolvedDependencyIds(task, dependencyStatus).length === 0).sort((a, b) => {
+      const aColumn = config.board.columns.indexOf(String(a.frontmatter.status ?? ""));
+      const bColumn = config.board.columns.indexOf(String(b.frontmatter.status ?? ""));
+      return bColumn - aColumn || priority(a) - priority(b) || String(a.frontmatter.id).localeCompare(String(b.frontmatter.id), void 0, { numeric: true });
+    })[0];
+    lines.push(`
+Next actionable: ${next ? `${next.frontmatter.id} ${next.frontmatter.title}` : "none"}`);
+  }
+  return lines.join("\n");
+}
+function compileProjectKandownWork(kandownDir, taskId) {
+  for (const event of migrateAgentInstructions(kandownDir)) {
+    const output = event.severity === "warning" ? console.warn : console.error;
+    output(`[kandown] ${event.message}`);
+  }
+  ensureAgentBootstrap(getProjectRoot(kandownDir));
+  const config = loadConfig(kandownDir);
+  const workflow = loadSelectedWorkflow(kandownDir, config.workflow.active);
+  const columns = config.board.columns.map((name) => ({
+    name,
+    meta: config.board.columnMeta[name] ?? { role: "custom" }
+  }));
+  const context = taskId ? { kind: "task", markdown: (() => {
+    const task = readTask(kandownDir, taskId);
+    return `**${task.frontmatter.id} ${task.frontmatter.title}**
+
+Status: ${task.frontmatter.status}
+Priority: ${task.frontmatter.priority ?? "unset"}
+Dependencies: ${task.frontmatter.depends_on?.join(", ") || "none"}
+
+${task.body.trim()}`;
+  })() } : { kind: "board", markdown: boardDigest(kandownDir, config) };
+  const configuredSkills = loadConfiguredWorkflowSkills(kandownDir, config.workflow.skills);
+  const compiled = compileKandownWork({
+    detailMode: config.agent.workOutput.detailMode,
+    trackingCadence: config.workflow.trackingCadence,
+    columns,
+    availableCommands: AVAILABLE_COMMANDS,
+    workflow,
+    extensions: loadExtensionGuidance(kandownDir, config),
+    skills: configuredSkills.skills,
+    globalInstructions: readOptional(join14(homedir6(), ".kandown", "kandown_work.md")),
+    projectInstructions: readOptional(join14(kandownDir, "kandown_work.md")),
+    context
+  });
+  return { ...compiled, diagnostics: [...configuredSkills.diagnostics, ...compiled.diagnostics] };
+}
+
+// src/cli/lib/launcher.ts
 function isInTmux() {
   return !!process.env.TMUX;
 }
@@ -58000,8 +59335,11 @@ function prepareLaunch(opts) {
   } catch (e) {
     throw new Error(`Failed to read task ${taskId}: ${e.message}`);
   }
-  const originalStatus = task.frontmatter.status || "Backlog";
-  const agentDoc = readAgentDoc(kandownDir);
+  const config = loadConfig(kandownDir);
+  const originalStatus = task.frontmatter.status || config.board.columns[0];
+  const activeStatus = resolveColumnNameByRole(config, "active") ?? config.board.columns[0];
+  const terminalStatus2 = resolveColumnNameByRole(config, "terminal") ?? config.board.columns.at(-1);
+  const agentDoc = compileProjectKandownWork(kandownDir, taskId).markdown;
   const taskFileContent = [
     `---`,
     `id: ${task.frontmatter.id}`,
@@ -58011,15 +59349,15 @@ function prepareLaunch(opts) {
     "",
     task.body.trim()
   ].join("\n");
-  const { systemPrompt, taskPrompt } = buildPrompt(agentDoc, taskFileContent, taskId, kandownDir, handoff, queue);
+  const { systemPrompt, taskPrompt } = buildPrompt(agentDoc, taskFileContent, taskId, kandownDir, activeStatus, terminalStatus2, handoff, queue);
   assignTaskToAgent(kandownDir, taskId, agentDef.id);
-  const taskMoved = moveTaskToColumn(kandownDir, taskId, "In Progress");
+  const taskMoved = moveTaskToColumn(kandownDir, taskId, activeStatus);
   if (!taskMoved) {
-    throw new Error(`Could not move task ${taskId} to In Progress \u2014 task file missing or unwritable.`);
+    throw new Error(`Could not move task ${taskId} to ${activeStatus}: task file missing or unwritable.`);
   }
-  const contextFile = join9(tmpdir(), `kandown-${taskId}-context.md`);
+  const contextFile = join15(tmpdir(), `kandown-${taskId}-context.md`);
   try {
-    writeFileSync3(contextFile, `${systemPrompt}
+    writeFileSync5(contextFile, `${systemPrompt}
 
 ---
 
@@ -58098,10 +59436,10 @@ function shellescape(str) {
 
 // src/cli/screens/agent-picker.tsx
 var import_react35 = __toESM(require_react(), 1);
-import { homedir as homedir3 } from "os";
+import { homedir as homedir7 } from "os";
 var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
 function shortenPath(path, max) {
-  const home = homedir3();
+  const home = homedir7();
   let p = home && path.startsWith(home + "/") ? `~${path.slice(home.length)}` : path;
   if (max < 8 || p.length <= max) return p;
   const head = Math.ceil((max - 1) / 2);
@@ -59392,8 +60730,7 @@ function Board({ kandownDir, version }) {
     const board2 = rawBoard;
     if (!board2) return false;
     const cfg = loadConfig(kandownDir);
-    const cols = cfg.board.columns;
-    const terminalLower = (cols[cols.length - 1] || "Done").toLowerCase();
+    const terminalLower = terminalStatus(cfg).toLowerCase();
     const isTerminal = targetCol.toLowerCase() === terminalLower;
     if (!isTerminal) return true;
     const resolved = /* @__PURE__ */ new Map();
@@ -59975,7 +61312,7 @@ function Board({ kandownDir, version }) {
       if (input === "e") {
         const task = getFocusedTask();
         if (task) {
-          const taskPath = join10(getTasksDir(kandownDir), `${task.id}.md`);
+          const taskPath = join16(getTasksDir(kandownDir), `${task.id}.md`);
           const editor = process.env.EDITOR || "nano";
           try {
             spawnSync(editor, [taskPath], { stdio: "inherit" });
@@ -60515,20 +61852,20 @@ function InitPrompt({ kandownDir, onConfirm }) {
 }
 
 // src/cli/lib/init.ts
-import { existsSync as existsSync8, readFileSync as readFileSync7, mkdirSync as mkdirSync3, copyFileSync, readdirSync as readdirSync3, statSync as statSync4 } from "fs";
-import { join as join11 } from "path";
+import { existsSync as existsSync12, mkdirSync as mkdirSync6, copyFileSync, readdirSync as readdirSync6, statSync as statSync6 } from "fs";
+import { join as join17 } from "path";
 function copyRecursive(src, dest) {
   const errors = [];
   try {
-    if (!existsSync8(dest)) mkdirSync3(dest, { recursive: true });
-    const entries = readdirSync3(src);
+    if (!existsSync12(dest)) mkdirSync6(dest, { recursive: true });
+    const entries = readdirSync6(src);
     for (const entry of entries) {
-      const srcPath = join11(src, entry);
-      const destPath = join11(dest, entry);
+      const srcPath = join17(src, entry);
+      const destPath = join17(dest, entry);
       try {
-        if (statSync4(srcPath).isDirectory()) {
+        if (statSync6(srcPath).isDirectory()) {
           errors.push(...copyRecursive(srcPath, destPath));
-        } else if (!existsSync8(destPath)) {
+        } else if (!existsSync12(destPath)) {
           copyFileSync(srcPath, destPath);
         }
       } catch (error) {
@@ -60539,22 +61876,6 @@ function copyRecursive(src, dest) {
     errors.push(`${src}: ${error instanceof Error ? error.message : String(error)}`);
   }
   return errors;
-}
-function syncKandownAgentDoc(kandownDir) {
-  const source = join11(PKG_ROOT2, "templates", "AGENT_KANDOWN.md");
-  const target = join11(kandownDir, "AGENT_KANDOWN.md");
-  if (!existsSync8(source)) return false;
-  try {
-    const expected = readFileSync7(source, "utf8");
-    const existing = existsSync8(target) ? readFileSync7(target, "utf8") : null;
-    if (existing === null || !existing.includes("# Kandown")) {
-      atomicWriteFileSync(target, expected.endsWith("\n") ? expected : `${expected}
-`);
-      return true;
-    }
-  } catch {
-  }
-  return false;
 }
 var KANDOWN_GITIGNORE = `daemon.json
 daemon.lock
@@ -60567,8 +61888,8 @@ extensions/enabled.json
 extensions/trust.json
 `;
 function writeKandownGitignore(kandownDir) {
-  const path = join11(kandownDir, ".gitignore");
-  if (existsSync8(path)) return;
+  const path = join17(kandownDir, ".gitignore");
+  if (existsSync12(path)) return;
   try {
     atomicWriteFileSync(path, KANDOWN_GITIGNORE);
   } catch {
@@ -60576,32 +61897,30 @@ function writeKandownGitignore(kandownDir) {
 }
 function doInit(kandownDir) {
   try {
-    mkdirSync3(kandownDir, { recursive: true });
-    const htmlSrc = join11(PKG_ROOT2, "dist", "index.html");
-    const htmlDest = join11(kandownDir, "kandown.html");
-    if (existsSync8(htmlSrc)) {
+    mkdirSync6(kandownDir, { recursive: true });
+    const htmlSrc = join17(PKG_ROOT, "dist", "index.html");
+    const htmlDest = join17(kandownDir, "kandown.html");
+    if (existsSync12(htmlSrc)) {
       copyFileSync(htmlSrc, htmlDest);
     }
-    syncKandownAgentDoc(kandownDir);
+    migrateAgentInstructions(kandownDir);
+    ensureAgentBootstrap(join17(kandownDir, ".."));
     writeKandownGitignore(kandownDir);
-    const templatesDir = join11(PKG_ROOT2, "templates");
-    if (existsSync8(templatesDir)) {
-      if (!existsSync8(join11(kandownDir, "README.md")) && existsSync8(join11(templatesDir, "README.md"))) {
-        copyFileSync(join11(templatesDir, "README.md"), join11(kandownDir, "README.md"));
+    const templatesDir = join17(PKG_ROOT, "templates");
+    if (existsSync12(templatesDir)) {
+      if (!existsSync12(join17(kandownDir, "README.md")) && existsSync12(join17(templatesDir, "README.md"))) {
+        copyFileSync(join17(templatesDir, "README.md"), join17(kandownDir, "README.md"));
       }
-      if (!existsSync8(join11(kandownDir, "AGENT.md")) && existsSync8(join11(templatesDir, "AGENT.md"))) {
-        copyFileSync(join11(templatesDir, "AGENT.md"), join11(kandownDir, "AGENT.md"));
-      }
-      const tasksSrc = join11(templatesDir, "tasks");
+      const tasksSrc = join17(templatesDir, "tasks");
       const tasksDest = getTasksDir(kandownDir);
-      if (!existsSync8(tasksDest) && existsSync8(tasksSrc)) {
+      if (!existsSync12(tasksDest) && existsSync12(tasksSrc)) {
         copyRecursive(tasksSrc, tasksDest);
       }
-      if (!existsSync8(join11(kandownDir, "kandown.json")) && existsSync8(join11(templatesDir, "kandown.json"))) {
-        copyFileSync(join11(templatesDir, "kandown.json"), join11(kandownDir, "kandown.json"));
+      if (!existsSync12(join17(kandownDir, "kandown.json")) && existsSync12(join17(templatesDir, "kandown.json"))) {
+        copyFileSync(join17(templatesDir, "kandown.json"), join17(kandownDir, "kandown.json"));
       }
-      if (!existsSync8(join11(kandownDir, "agents.json")) && existsSync8(join11(templatesDir, "agents.json"))) {
-        copyFileSync(join11(templatesDir, "agents.json"), join11(kandownDir, "agents.json"));
+      if (!existsSync12(join17(kandownDir, "agents.json")) && existsSync12(join17(templatesDir, "agents.json"))) {
+        copyFileSync(join17(templatesDir, "agents.json"), join17(kandownDir, "agents.json"));
       }
     }
     return true;
@@ -60685,7 +62004,7 @@ async function run(screen, kandownDir, version) {
       "kandown TUI requires an interactive terminal. Run this command directly in your terminal."
     );
   }
-  const projectExists = existsSync9(join12(kandownDir, "kandown.json"));
+  const projectExists = existsSync13(join18(kandownDir, "kandown.json"));
   const instance = render_default(/* @__PURE__ */ (0, import_jsx_runtime9.jsx)(App2, { screen, kandownDir, version, projectExists }), {
     exitOnCtrlC: true,
     interactive: true,
@@ -60694,7 +62013,7 @@ async function run(screen, kandownDir, version) {
   });
   await instance.waitUntilExit();
 }
-if (process.argv[1] === fileURLToPath3(import.meta.url)) {
+if (process.argv[1] === fileURLToPath2(import.meta.url)) {
   const screen = process.argv[2] || "board";
   const kandownDir = process.argv[3];
   const version = process.argv[4];

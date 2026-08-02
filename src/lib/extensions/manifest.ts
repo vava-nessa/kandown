@@ -53,6 +53,21 @@ export function parseManifest(raw: unknown): ManifestResult {
   if (m.main !== undefined && typeof m.main !== 'string') {
     return { ok: false, error: '"main" must be a string' };
   }
+  if (m.agent !== undefined) {
+    if (!m.agent || typeof m.agent !== 'object' || Array.isArray(m.agent)) {
+      return { ok: false, error: '"agent" must be an object' };
+    }
+    const agent = m.agent as Record<string, unknown>;
+    if (typeof agent.summary !== 'string' || !agent.summary.trim()) {
+      return { ok: false, error: '"agent.summary" must be a non-empty string' };
+    }
+    if (agent.guide !== undefined && (typeof agent.guide !== 'string' || !/^[a-zA-Z0-9._/-]+$/.test(agent.guide) || agent.guide.includes('..') || agent.guide.startsWith('/'))) {
+      return { ok: false, error: '"agent.guide" must be a safe relative path' };
+    }
+    if (agent.source !== undefined && typeof agent.source !== 'string') {
+      return { ok: false, error: '"agent.source" must be a string' };
+    }
+  }
   return { ok: true, manifest: m as unknown as ExtensionManifest };
 }
 

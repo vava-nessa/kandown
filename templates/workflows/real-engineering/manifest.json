@@ -1,0 +1,63 @@
+{
+  "formatVersion": 1,
+  "id": "real-engineering",
+  "name": "Real Engineering",
+  "version": "1.0.0",
+  "author": "Kandown",
+  "description": "A delivery workflow that turns a reviewed specification into tracer-bullet vertical slices, applies test-first work at valuable seams, and reviews standards separately from intent.",
+  "summary": "Specify, slice vertically, test important seams, then run independent Standards and Spec reviews.",
+  "minKandownVersion": "0.46.0",
+  "requiredRoles": ["backlog", "ready", "active", "review", "terminal"],
+  "protocol": "protocol.md",
+  "guide": "guide.md",
+  "boardPreset": "board.json",
+  "taskTemplates": [
+    {
+      "id": "feature-spec",
+      "name": "Feature specification",
+      "description": "Defines the problem, user outcomes, acceptance criteria, decisions, and non-goals.",
+      "file": "templates/feature-spec.md",
+      "default": true
+    },
+    {
+      "id": "tracer-bullet",
+      "name": "Tracer-bullet slice",
+      "description": "Delivers one thin end-to-end behavior that proves the integration path.",
+      "file": "templates/tracer-bullet.md"
+    },
+    {
+      "id": "standards-review",
+      "name": "Standards review",
+      "description": "Reviews the diff only against repository and engineering standards.",
+      "file": "templates/standards-review.md"
+    },
+    {
+      "id": "spec-review",
+      "name": "Spec review",
+      "description": "Reviews delivered behavior only against the approved specification.",
+      "file": "templates/spec-review.md"
+    }
+  ],
+  "attribution": [
+    {
+      "name": "My 7 Phases of AI Development",
+      "url": "https://www.aihero.dev/my-7-phases-of-ai-development",
+      "note": "Specification, dependency planning, execution, and QA loops were adapted independently. No endorsement is implied."
+    },
+    {
+      "name": "The to-spec skill",
+      "url": "https://www.aihero.dev/skills-to-spec",
+      "note": "The specification shape was adapted independently. No endorsement is implied."
+    },
+    {
+      "name": "The code-review skill",
+      "url": "https://www.aihero.dev/skills-code-review",
+      "note": "Separate Standards and Spec review axes were adapted independently. No endorsement is implied."
+    },
+    {
+      "name": "Agentic manual testing",
+      "url": "https://simonwillison.net/guides/agentic-engineering-patterns/agentic-manual-testing/",
+      "note": "Executable and manual evidence practices were adapted independently. No endorsement is implied."
+    }
+  ]
+}

@@ -9,17 +9,7 @@
     "suggestFollowUp": false,
     "maxSuggestions": 3,
     "workOutput": {
-      "mode": "blocks",
-      "includeBaseRules": true,
-      "baseRulesMode": "full",
-      "includeProjectInstructions": true,
-      "includeBoardDigest": true,
-      "sectionOrder": [
-        "baseRules",
-        "projectInstructions",
-        "boardDigest"
-      ],
-      "rawTemplate": "{{baseRules}}\n\n---\n\n{{projectInstructions}}\n\n---\n\n{{boardDigest}}",
+      "detailMode": "complete",
       "boardDigest": {
         "showColumnCounts": true,
         "showTasks": true,
@@ -29,6 +19,11 @@
         "showNextActionable": true
       }
     }
+  },
+  "workflow": {
+    "active": "kandown-standard",
+    "skills": [],
+    "trackingCadence": "balanced"
   },
   "board": {
     "columns": [
@@ -41,6 +36,28 @@
     "defaultPriority": "P3",
     "defaultOwnerType": "human",
     "stackDefaultState": "collapsed",
+    "columnMeta": {
+      "Backlog": {
+        "role": "backlog",
+        "instructions": "Capture unscheduled work here. Keep enough context to decide whether it belongs in this workflow."
+      },
+      "Todo": {
+        "role": "ready",
+        "instructions": "Only move work here when its required inputs, acceptance criteria, dependencies, and approvals are ready."
+      },
+      "In Progress": {
+        "role": "active",
+        "instructions": "Execute the current workflow phase, update the checklist as work happens, and record blockers immediately."
+      },
+      "Review": {
+        "role": "review",
+        "instructions": "Require completed verification, reproducible evidence, and the workflow-specific review gate before acceptance."
+      },
+      "Done": {
+        "role": "terminal",
+        "instructions": "Only accept work whose criteria and required review are satisfied. Preserve the completion report and evidence."
+      }
+    },
     "columnColors": {
       "done": "yellow"
     }

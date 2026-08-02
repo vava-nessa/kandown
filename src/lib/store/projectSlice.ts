@@ -182,7 +182,7 @@ export const createProjectSlice: StateCreator<State, [], [], ProjectSlice> = (se
         const normalizedFrontmatter = {
           ...frontmatter,
           id: frontmatter.id || id,
-          status: frontmatter.status || 'Backlog',
+          status: frontmatter.status || config.board.columns[0] || 'Backlog',
         };
         const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
         return { id, frontmatter: normalizedFrontmatter, body: bodyWithoutSubtasks, subtasks };
@@ -329,7 +329,7 @@ export const createProjectSlice: StateCreator<State, [], [], ProjectSlice> = (se
     set({ isReloading: true, lastReloadError: null });
     try {
       if (isServerMode()) {
-        const tasks = await readAllTasksServer();
+        const tasks = await readAllTasksServer(config.board.columns[0] || 'Backlog');
         syncNotificationSnapshots(tasks);
         const parsedTasks = tasks.map(task => ({
           frontmatter: task.frontmatter,
@@ -352,7 +352,7 @@ export const createProjectSlice: StateCreator<State, [], [], ProjectSlice> = (se
         }
         set({ taskContents: nextContents, searchMatches: new Map(), failedTaskIds: [], isReloading: false });
       } else if (tasksDirHandle) {
-        const { tasks, failedIds } = await readAllTasks(tasksDirHandle);
+        const { tasks, failedIds } = await readAllTasks(tasksDirHandle, config.board.columns[0] || 'Backlog');
         syncNotificationSnapshots(tasks);
         const parsedTasks = tasks.map(task => ({
           frontmatter: task.frontmatter,

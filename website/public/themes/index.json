@@ -1,0 +1,66 @@
+{
+  "generatedAt": "2026-08-01T13:21:35.864Z",
+  "url": "/Users/vava/Documents/GitHub/kandown/registry/themes.json",
+  "source": "local",
+  "tags": [
+    "curated",
+    "editorial",
+    "glass",
+    "minimal",
+    "modern",
+    "serif",
+    "studio",
+    "violet",
+    "warm"
+  ],
+  "entries": [
+    {
+      "id": "claude",
+      "name": "Claude",
+      "author": "kandown",
+      "description": "Editorial warmth, Newsreader serif headings, oat crème light background, terracotta accents.",
+      "repo": "https://github.com/vava-nessa/kandown",
+      "path": "registry/themes/claude.json",
+      "ref": "main",
+      "minKandownVersion": "0.45.0",
+      "tags": [
+        "curated",
+        "warm",
+        "editorial",
+        "serif"
+      ]
+    },
+    {
+      "id": "linear",
+      "name": "Linear",
+      "author": "kandown",
+      "description": "Dark-first aesthetic, Plus Jakarta Sans font, electric violet accent (#5E6AD2), sleek elevated popovers.",
+      "repo": "https://github.com/vava-nessa/kandown",
+      "path": "registry/themes/linear.json",
+      "ref": "main",
+      "minKandownVersion": "0.45.0",
+      "tags": [
+        "curated",
+        "violet",
+        "modern",
+        "glass"
+      ]
+    },
+    {
+      "id": "notion",
+      "name": "Notion",
+      "author": "kandown",
+      "description": "Notion's calm studio aesthetic: warm white surfaces, charcoal type, generous spacing, gentle motion.",
+      "repo": "https://github.com/vava-nessa/kandown",
+      "path": "registry/themes/notion.json",
+      "ref": "main",
+      "minKandownVersion": "0.45.0",
+      "tags": [
+        "curated",
+        "minimal",
+        "studio",
+        "editorial"
+      ]
+    }
+  ]
+}

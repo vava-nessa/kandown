@@ -135,6 +135,11 @@ A single-file extension is also valid: just `manifest.json` + `index.ts`.
     "webPanels": ["chart"],
     "commands": ["burndown"],
     "gates": ["task:beforeMove"]
+  },
+  "agent": {
+    "summary": "Require story points before terminal status.",
+    "guide": "guide.md",
+    "source": "https://github.com/vava/kandown-burndown#agent-guide"
   }
 }
 ```
@@ -148,6 +153,7 @@ A single-file extension is also valid: just `manifest.json` + `index.ts`.
 | `minKandownVersion` | Refuses to load on older kandown installs. |
 | `permissions` | Capabilities the extension may use. Enforced at runtime (see [Security](#security-model)). |
 | `contributes` | Display-only list of contribution ids, so the gallery and the settings panel can describe the extension without executing it. The runtime registrations in code are authoritative. |
+| `agent` | Optional concise `kandown work` summary, safe relative guide path, and source link. The full guide is loaded only by `kandown extension guide <id>`. |
 
 📖 `contributes` is intentionally not enforced: it is a hint for humans and the
 UI. The code is what actually registers contributions. Keeping them in sync is

@@ -65,8 +65,8 @@ The rules that must not be broken, restated from the repository:
 1. **Task state lives in `tasks/*.md` and nowhere else.** No second source of truth.
 2. **The gate, the parser and the daemon module exist once** and are shared by all three
    interfaces.
-3. **Generated files are never edited by hand.** `bin/*.js`, `CODEMAP.md`, `src/lib/version.ts` and
-   the root `AGENT_KANDOWN.md` are build output; edit the source and regenerate.
+3. **Generated files are never edited by hand.** `bin/*.js`, `CODEMAP.md`, and
+   `src/lib/version.ts` are build output; edit the source and regenerate.
 4. **UI text is authored in English.** Every other locale is translated *from* English, never into
    it.
 5. **Every source file carries a JSDoc header** with `@file` and `@description`. `CODEMAP.md` is

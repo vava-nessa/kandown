@@ -10,7 +10,7 @@
  *
  * 📖 Layout (v0.12+):
  *   - `.kandown/` holds config (`kandown.json`), web UI (`kandown.html`),
- *     and agent docs (`AGENT.md`, `AGENT_KANDOWN.md`).
+ *     and project-local workflow instructions (`kandown_work.md`).
  *   - `./tasks/` (project root, sibling of `.kandown/`) holds the markdown
  *     task files and `./tasks/archive/` for archived ones.
  *   The user picks the **project root** in the file picker — we derive
@@ -52,7 +52,7 @@
  *  → serverReadExtensionFile: authenticated source read for Blob import
  *  → serverReportExtensionOutcome: persistent browser failure health
  *  → serverMigrateTasks: triggers the legacy to new layout migration via REST
- *  → readProjectInstructions / writeProjectInstructions — edits `.kandown/instructions.md`
+ *  → readProjectInstructions / writeProjectInstructions — edits `.kandown/kandown_work.md`
  *
  * @exports supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks
  * @see src/lib/store.ts
@@ -61,12 +61,13 @@
 
 import type { KandownConfig, TaskFrontmatter, ParsedTask, DetectedAgent, MoveTaskResult } from './types';
 import type { ExtensionHealth, ExtensionRuntimePayload, ExtensionRuntimeSummary } from './extensions/types';
+import type { LoadedWorkflowPackage } from './workflows';
+import type { KandownWorkDiagnostic, KandownWorkStats } from './kandown-work';
 export type { MoveTaskResult } from './types';
-import { DEFAULT_CONFIG, DEFAULT_WORK_OUTPUT } from './types';
+import { normalizeKandownConfig } from './config';
 import { serializeTaskFile } from './serializer';
 import { stampUpdated } from './task-meta';
 import { parseTaskFile } from './parser';
-import { normalizeFontId, normalizeSkinId, normalizeThemeMode } from './theme';
 import { PermissionDeniedError, DiskFullError, CorruptedDataError, FileReadError } from './errors';
 
 declare global {
@@ -240,7 +241,7 @@ export async function serverWriteBoard(content: string): Promise<void> {
  */
 export async function serverReadConfig(): Promise<KandownConfig> {
   const res = await apiFetch('/api/config');
-  return res.json() as Promise<KandownConfig>;
+  return normalizeKandownConfig(await res.json());
 }
 
 /**
@@ -257,6 +258,107 @@ async function serverReadProjectInstructions(): Promise<string> {
 
 async function serverWriteProjectInstructions(content: string): Promise<void> {
   await apiFetch('/api/instructions', { method: 'PUT', body: content, headers: { 'Content-Type': 'text/plain' } });
+}
+
+export interface WorkflowSummaryPayload {
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+  source: 'built-in' | 'local' | 'store';
+  active: boolean;
+  valid: boolean;
+  errors: string[];
+}
+
+export interface BoardPresetPreviewPayload {
+  workflowId: string;
+  currentColumns: string[];
+  targetColumns: string[];
+  statusMapping: Record<string, string>;
+  taskMoves: Array<{ from: string; to: string; count: number }>;
+  preservedColumns: string[];
+}
+
+export interface WorkflowWorkspacePayload {
+  workflows: WorkflowSummaryPayload[];
+  selected: LoadedWorkflowPackage;
+  preview: string;
+  stats: KandownWorkStats;
+  diagnostics: KandownWorkDiagnostic[];
+  boardPresetPreview: BoardPresetPreviewPayload | null;
+}
+
+export interface SkillPayload {
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+  source: 'built-in' | 'global' | 'project';
+  active: boolean;
+  content: string;
+  compatible: boolean;
+  compatibilityReason?: string;
+}
+export interface WorkflowRegistryEntryPayload { id: string; name: string; description?: string; author: string; repo: string; ref: string; capsule: string; sha256: string; version: string }
+export interface WorkflowUpdatePreviewPayload { id: string; currentVersion: string; nextVersion: string; changed: boolean; diff: string; entry: WorkflowRegistryEntryPayload }
+
+/** Loads the exact daemon-backed workflow workspace used by Settings. */
+export async function serverLoadWorkflowWorkspace(): Promise<WorkflowWorkspacePayload | null> {
+  if (!isServerMode() || isDemoMode()) return null;
+  const response = await apiFetch('/api/workflows');
+  if (!response.ok) throw new Error(await response.text());
+  return response.json() as Promise<WorkflowWorkspacePayload>;
+}
+
+/** Runs one explicit workflow mutation and returns its JSON response. */
+export async function serverWorkflowAction(
+  action: 'use' | 'fork' | 'edit' | 'apply-preset',
+  body: { id: string; path?: string; content?: string; confirm?: boolean },
+): Promise<Record<string, unknown>> {
+  const response = await apiFetch(`/api/workflows/${action}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+  });
+  const payload = await response.json() as Record<string, unknown>;
+  if (!response.ok) throw new Error(typeof payload.error === 'string' ? payload.error : `Workflow action failed (${response.status}).`);
+  return payload;
+}
+
+/** Lists installed global and project Markdown skills. */
+export async function serverListWorkflowSkills(): Promise<SkillPayload[]> {
+  if (!isServerMode() || isDemoMode()) return [];
+  const response = await apiFetch('/api/skills');
+  if (!response.ok) return [];
+  const payload = await response.json() as { skills?: SkillPayload[] };
+  return Array.isArray(payload.skills) ? payload.skills : [];
+}
+
+/** Explicitly fetches the approved workflow registry. */
+export async function serverFetchWorkflowRegistry(): Promise<{ entries: WorkflowRegistryEntryPayload[]; error?: string }> {
+  if (!isServerMode() || isDemoMode()) return { entries: [] };
+  const response = await apiFetch('/api/workflows/registry');
+  if (!response.ok) return { entries: [], error: `HTTP ${response.status}` };
+  return response.json() as Promise<{ entries: WorkflowRegistryEntryPayload[]; error?: string }>;
+}
+
+/** Installs a checksum-verified pinned workflow from the approved registry. */
+export async function serverInstallStoreWorkflow(entry: WorkflowRegistryEntryPayload): Promise<void> {
+  const response = await apiFetch('/api/workflows/install', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ entry }) });
+  const payload = await response.json() as { error?: string };
+  if (!response.ok) throw new Error(payload.error ?? 'Workflow install failed.');
+}
+
+/** Previews or explicitly applies a checksum-verified store workflow update. */
+export async function serverUpdateStoreWorkflow(
+  entry: WorkflowRegistryEntryPayload,
+  confirm: boolean,
+): Promise<{ preview?: WorkflowUpdatePreviewPayload }> {
+  const response = await apiFetch('/api/workflows/update', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ entry, confirm }),
+  });
+  const payload = await response.json() as { error?: string; preview?: WorkflowUpdatePreviewPayload };
+  if (!response.ok) throw new Error(payload.error ?? 'Workflow update failed.');
+  return payload;
 }
 
 /**
@@ -584,17 +686,6 @@ export type ConfigReadResult =
   | { ok: false; reason: 'corrupted'; rawContent?: string; error: Error };
 
 /**
- * 📖 Safe object-spread helper. `{ ...null }` throws TypeError, so when the
- * user (or a botched manual edit) writes `"board": null` in kandown.json we
- * must guard each spread. Returns `{}` for any non-plain-object value (t111).
- */
-function safeObject<T extends Record<string, unknown>>(value: unknown): Partial<T> {
-  return value && typeof value === 'object' && !Array.isArray(value)
-    ? value as Partial<T>
-    : {};
-}
-
-/**
  * 📖 Strict config reader. Distinguishes "file not found" (benign first run)
  * from "corrupted JSON" (actionable: caller should back up + warn the user).
  * Null-safe spreading means `"board": null` in the file no longer crashes
@@ -641,56 +732,7 @@ export async function readConfigFileStrict(
     };
   }
 
-  const partial = raw as Partial<KandownConfig>;
-  const ui = { ...DEFAULT_CONFIG.ui, ...safeObject(partial.ui) };
-  const agentRaw = safeObject(partial.agent);
-  const workOutputRaw = safeObject(agentRaw.workOutput);
-  const boardDigestRaw = safeObject(workOutputRaw.boardDigest);
-  const boardRaw = safeObject(partial.board);
-  const config: KandownConfig = {
-    ui: {
-      ...ui,
-      theme: normalizeThemeMode(ui.theme),
-      skin: normalizeSkinId(ui.skin),
-      font: normalizeFontId(ui.font),
-    },
-    agent: {
-      ...DEFAULT_CONFIG.agent,
-      ...agentRaw,
-      workOutput: {
-        ...DEFAULT_WORK_OUTPUT,
-        ...workOutputRaw,
-        mode: workOutputRaw.mode === 'raw' ? 'raw' : 'blocks',
-        baseRulesMode: workOutputRaw.baseRulesMode === 'concise' ? 'concise' : 'full',
-        sectionOrder: Array.isArray(workOutputRaw.sectionOrder)
-          ? workOutputRaw.sectionOrder.filter((id): id is typeof DEFAULT_WORK_OUTPUT.sectionOrder[number] => (
-            id === 'baseRules' || id === 'projectInstructions' || id === 'boardDigest'
-          ))
-          : DEFAULT_WORK_OUTPUT.sectionOrder,
-        rawTemplate: typeof workOutputRaw.rawTemplate === 'string'
-          ? workOutputRaw.rawTemplate
-          : DEFAULT_WORK_OUTPUT.rawTemplate,
-        boardDigest: { ...DEFAULT_WORK_OUTPUT.boardDigest, ...boardDigestRaw },
-      },
-    },
-    board: {
-      ...DEFAULT_CONFIG.board,
-      ...boardRaw,
-      columns: Array.isArray(boardRaw.columns) && boardRaw.columns.length > 0
-        ? boardRaw.columns.filter((name): name is string => typeof name === 'string' && name.trim().length > 0)
-        : DEFAULT_CONFIG.board.columns,
-    },
-    fields: { ...DEFAULT_CONFIG.fields, ...safeObject(partial.fields) },
-    notifications: { ...DEFAULT_CONFIG.notifications, ...safeObject(partial.notifications) },
-  };
-  // 📖 Preserve optional `agents` block if present and object-shaped. Cast
-  // through `unknown` because the web KandownConfig type doesn't declare it
-  // (the CLI type does) — we still want to round-trip it untouched.
-  const extra = partial as unknown as Record<string, unknown>;
-  if (extra.agents && typeof extra.agents === 'object') {
-    (config as unknown as Record<string, unknown>).agents = extra.agents;
-  }
-  return { ok: true, config };
+  return { ok: true, config: normalizeKandownConfig(raw) };
 }
 
 export async function readConfigFile(_kandownHandle: FileSystemDirectoryHandle | null): Promise<KandownConfig | null> {
@@ -718,7 +760,7 @@ export async function writeConfigFile(_kandownHandle: FileSystemDirectoryHandle 
 export async function readProjectInstructions(_kandownHandle: FileSystemDirectoryHandle | null): Promise<string> {
   if (isServerMode()) return serverReadProjectInstructions();
   try {
-    const h = await _kandownHandle!.getFileHandle('instructions.md');
+    const h = await _kandownHandle!.getFileHandle('kandown_work.md');
     const file = await h.getFile();
     return await file.text();
   } catch (e) {
@@ -731,7 +773,7 @@ export async function readProjectInstructions(_kandownHandle: FileSystemDirector
 export async function writeProjectInstructions(_kandownHandle: FileSystemDirectoryHandle | null, content: string): Promise<void> {
   if (isServerMode()) return serverWriteProjectInstructions(content);
   try {
-    const h = await _kandownHandle!.getFileHandle('instructions.md', { create: true });
+    const h = await _kandownHandle!.getFileHandle('kandown_work.md', { create: true });
     const w = await h.createWritable();
     try {
       await w.write(content.trim() ? content.replace(/\s+$/, '') + '\n' : '');
@@ -739,7 +781,7 @@ export async function writeProjectInstructions(_kandownHandle: FileSystemDirecto
       await w.close();
     }
   } catch (e) {
-    throw toWriteError(e, 'instructions.md');
+    throw toWriteError(e, 'kandown_work.md');
   }
 }
 

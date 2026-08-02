@@ -36,9 +36,9 @@ your-project/
 └── .kandown/
     ├── kandown.json        ← project config: columns, theme, notifications, agents
     ├── kandown.html        ← the web UI, one self-contained file
-    ├── instructions.md     ← optional, project-specific agent instructions
-    ├── AGENT.md            ← agent quick reference        (generated on init)
-    ├── AGENT_KANDOWN.md    ← full agent reference          (generated, self-healing)
+    ├── kandown_work.md     ← optional, project-specific agent instructions
+    ├── workflows/          ← optional, project-local workflow packages
+    ├── skills/             ← optional, project-local data-only skill packages
     ├── daemon.json         ← runtime: PID, port, URL, API token   (gitignored)
     └── daemon.lock         ← runtime: start-up mutex              (gitignored)
 ```
@@ -179,7 +179,6 @@ touch it:
 ```
 pnpm build
   ├─ scripts/inject-version.js      package.json version  →  src/lib/version.ts
-  ├─ scripts/sync-agent-kandown.js  templates/AGENT_KANDOWN.md  →  ./AGENT_KANDOWN.md
   ├─ tsc -b                         typecheck
   ├─ vite build                     src/  →  dist/index.html   (single inlined file)
   └─ tsup                           src/cli/cli.ts   →  bin/kandown.js
@@ -199,7 +198,6 @@ Committed, because they ship — but never edited by hand:
 | `bin/kandown.js` | `src/cli/cli.ts` | tsup |
 | `bin/tui.js` | `src/cli/tui.tsx` | tsup |
 | `src/lib/version.ts` | `package.json` | `scripts/inject-version.js` |
-| `AGENT_KANDOWN.md` (root) | `templates/AGENT_KANDOWN.md` | `scripts/sync-agent-kandown.js` |
 | `CODEMAP.md`, `CODEMAP.json` | every JSDoc `@description` | `scripts/build-codemap.js` |
 
 `CODEMAP.md` marks each of these inline, so the warning is in front of you at the
@@ -211,7 +209,7 @@ have read.
 | Concern | Owner | Everything else |
 |---|---|---|
 | Version number | `package.json` | derived at build (web) or read at runtime (CLI) |
-| Agent reference | `templates/AGENT_KANDOWN.md` | synced to root and into `.kandown/` |
+| Agent instructions | `src/lib/kandown-work.ts` | compiled by CLI, launcher, and Settings preview |
 | Board columns | `.kandown/kandown.json` → `board.columns` | read by all three interfaces |
 | Task state | `tasks/*.md` | there is no index — do not add one |
 

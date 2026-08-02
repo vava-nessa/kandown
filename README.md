@@ -70,11 +70,12 @@ tasks/                # your tasks — the source of truth
 ├── t1.md             # one Markdown file per task
 └── archive/          # archived tasks live here
 
-.kandown/             # config + web UI + agent docs
+.kandown/             # config + web UI + workflow data
 ├── kandown.json      # columns, theme, notifications, agents
 ├── kandown.html      # the web app, one self-contained file
-├── instructions.md   # optional: your project's agent instructions
-└── AGENT*.md         # agent reference, kept in sync with the CLI
+├── kandown_work.md   # optional: your project's agent instructions
+├── workflows/        # optional: project-local workflow packages
+└── skills/           # optional: project-local Markdown skills
 ```
 
 `kandown` then starts a small local daemon and opens both a **web board** in your
@@ -98,24 +99,20 @@ This is the part that makes kandown different, so it is worth two minutes.
 kandown work
 ```
 
-That prints, as plain Markdown on stdout:
-
-1. **The agent rules** — served from the installed CLI, so they are never a stale
-   copy frozen into your repo at init time.
-2. **Your project instructions** — optional, from `.kandown/instructions.md`. Stack
-   quirks, "always use pnpm", commit-message language, token-efficiency
-   preferences.
-3. **A live board digest** — column counts, tasks per column with blocked-by
-   annotations, and a computed **next actionable task** (unblocked, closest to done,
-   highest priority).
+That prints one deterministic nine-layer Markdown document: the immutable Kandown
+core, the project's real column roles and available commands, enabled extension
+guidance, the active workflow, tracking cadence, additive skills, global and
+project instructions, then a targeted task context or compact board digest.
 
 One call, full context. `kandown init` adds a single line to your `AGENTS.md` /
 `CLAUDE.md` pointing at it — no block of rules copied in to go stale.
 
-The Settings page has an **Agent → `kandown work` output** configurator: toggle each
-block, switch to a concise token-efficient mode, hide digest fields, see an
-estimated token count, or take full control with a raw template using
-`{{baseRules}}`, `{{projectInstructions}}` and `{{boardDigest}}`.
+Settings provides three agent-work tabs: **Workflow**, **Skills**, and **Kandown
+Work**. Select one exclusive workflow, add compatible skills, tune instruction
+detail and tracking cadence independently, assign semantic roles to freely named
+columns, edit project instructions, and inspect the exact compiler output.
+The full-screen reader keeps the entire document accessible and shows portable
+token, word, and character estimates before an agent receives it.
 
 ### Scriptable, composable, offline
 
@@ -131,9 +128,9 @@ decorative (`✓ Created…`, warnings, errors) goes to stderr. So `$(kandown cr
 …)` captures exactly one id, and `--json | jq` never chokes on a checkmark. Exit
 code `0` on success, non-zero on failure.
 
-**No network, ever.** The task commands and `kandown daemon` never contact the npm
-registry, so they stay instant and work offline — ideal for CI and for agents in a
-loop.
+**Task commands never use the network.** Registry access occurs only when a human
+explicitly opens a store or runs a store/install/update command. Workflow installs
+are pinned, checksum-verified, validated, and updated only after a displayed diff.
 
 ### MCP
 

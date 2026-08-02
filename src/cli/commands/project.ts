@@ -11,7 +11,8 @@ import { existsSync, readFileSync, copyFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import { getCurrentVersion, performGlobalPackageUpdate, semverGt, PKG_ROOT } from '../lib/updater';
-import { readAgentDoc, readBoard, listTaskIds } from '../lib/board-reader';
+import { listTaskIds } from '../lib/board-reader';
+import { compileProjectKandownWork } from '../lib/kandown-work';
 import { getDaemonStatus } from '../lib/daemon';
 import { doInit } from '../lib/init';
 import { c, log, info, success, err, parseArgs, ensureKandownDir } from '../lib/cli-shared';
@@ -107,15 +108,9 @@ export async function cmdDoctor(rawArgs: string[]) {
 
 export async function cmdWork(rawArgs: string[]) {
   const { kandownDir } = ensureKandownDir(rawArgs);
-  const doc = readAgentDoc(kandownDir);
-  const board = readBoard(kandownDir);
-
-  log(doc);
-  log('\n---\n');
-  log(`## Current Board Digest\n`);
-  const allTasksCount = board.columns.reduce((sum, col) => sum + col.tasks.length, 0);
-  log(`Tasks total: ${allTasksCount}`);
-  for (const col of board.columns) {
-    log(`- **${col.name}** (${col.tasks.length}): ${col.tasks.map(t => `${t.id} ${t.title}`).join(', ') || 'empty'}`);
-  }
+  const taskId = parseArgs(rawArgs).positional[0];
+  const compiled = compileProjectKandownWork(kandownDir, taskId);
+  for (const diagnostic of compiled.diagnostics) console.error(`[kandown] ${diagnostic.severity}: ${diagnostic.message}`);
+  console.error(`[kandown] ~${compiled.stats.estimatedTokens.toLocaleString('en-US')} tokens (${compiled.stats.words.toLocaleString('en-US')} words, estimate varies by model).`);
+  process.stdout.write(compiled.markdown);
 }

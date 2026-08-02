@@ -3,14 +3,14 @@
   "files": [
     {
       "path": "bin/kandown.js",
-      "lines": 5821,
+      "lines": 8200,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 60831,
+      "lines": 62150,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -102,12 +102,6 @@
       "summary": "Reads every task .md file, passes the body through BlockNote's parse → serialize pipeline, and writes back if the result differs."
     },
     {
-      "path": "scripts/sync-agent-kandown.js",
-      "lines": 26,
-      "title": "Sync AGENT_KANDOWN.md",
-      "summary": "Copies templates/AGENT_KANDOWN.md to project root."
-    },
-    {
       "path": "src/App.tsx",
       "lines": 292,
       "title": "Web application shell",
@@ -143,7 +137,7 @@
     },
     {
       "path": "src/cli/cli.ts",
-      "lines": 207,
+      "lines": 213,
       "title": "Main Kandown CLI Entrypoint",
       "summary": "Entrypoint for the kandown command line tool."
     },
@@ -169,14 +163,14 @@
     },
     {
       "path": "src/cli/commands/project.ts",
-      "lines": 122,
+      "lines": 117,
       "title": "CLI commands — project lifecycle",
       "summary": "Handlers for `kandown init`, `update`/`upgrade`, `doctor`, and `work`.",
       "exports": "cmdInit, cmdUpdate, cmdDoctor, cmdWork"
     },
     {
       "path": "src/cli/commands/run.ts",
-      "lines": 115,
+      "lines": 117,
       "title": "`kandown run` command handler — cascade launcher",
       "summary": "Parses flags, prints the cascade plan (always, so the user sees what is about to happen), then drives the orchestrator in `src/cli/lib/cascade.ts` and prints a per-task summary.",
       "functions": [
@@ -189,7 +183,7 @@
     },
     {
       "path": "src/cli/commands/tasks.ts",
-      "lines": 330,
+      "lines": 332,
       "title": "CLI commands — task CRUD & board data",
       "summary": "Handlers for `kandown list/show/create/move/assign/commit` plus `export`/`import`/`projects`.",
       "exports": "cmdList, cmdShow, cmdCreate, cmdMove, cmdAssign, cmdCommit, cmdExport, cmdProjects, cmdImport"
@@ -235,6 +229,12 @@
       "summary": "Covers the three pieces the TUI's `a` key now leans on: - `assignTaskToAgent` writes the canonical agent id into `assignee:`, preserves the rest of the frontmatter and the body, is idempotent, and fails soft on an unknown task."
     },
     {
+      "path": "src/cli/lib/__tests__/agent-migration.spec.ts",
+      "lines": 238,
+      "title": "Safe agent instruction migration tests",
+      "summary": "Exercises the filesystem migration against disposable project and home directories."
+    },
+    {
       "path": "src/cli/lib/__tests__/board-reader.spec.ts",
       "lines": 125,
       "title": "Integration tests for the gate funneled through board-reader",
@@ -247,16 +247,57 @@
       "summary": "The daemon restarts itself when the package on disk moves ahead of the code it is running, so a user with the web UI open never has to be told to run a command."
     },
     {
+      "path": "src/cli/lib/__tests__/kandown-work-cli.spec.ts",
+      "lines": 48,
+      "title": "Kandown Work CLI adapter tests",
+      "summary": "Proves fresh projects print the exact shared compiler output on stdout and that an explicit task replaces the general board digest."
+    },
+    {
       "path": "src/cli/lib/__tests__/resolve-kandown-dir.spec.ts",
       "lines": 127,
       "title": "Regression tests for resolveKandownDir boundary rules",
       "summary": "Pins down the three behaviors that prevent bare `kandown` from silently attaching to a foreign project: 1."
     },
     {
+      "path": "src/cli/lib/__tests__/skills.spec.ts",
+      "lines": 37,
+      "title": "Node workflow skill discovery tests",
+      "summary": "Verifies bundled skill discovery plus missing configured skill diagnostics without relying on network or executable package content."
+    },
+    {
       "path": "src/cli/lib/__tests__/task-move.spec.ts",
       "lines": 264,
       "title": "Managed backend task move integration tests",
       "summary": "Exercises the Node move coordinator against real task files and a real jiti-loaded extension."
+    },
+    {
+      "path": "src/cli/lib/__tests__/workflows-cli.spec.ts",
+      "lines": 64,
+      "title": "Workflow CLI adapter tests",
+      "summary": "Exercises built-in discovery, provenance-preserving local forks, validated Markdown editing, and no-orphan board preset previews against real temporary Kandown projects."
+    },
+    {
+      "path": "src/cli/lib/__tests__/workflows-store.spec.ts",
+      "lines": 59,
+      "title": "Workflow store tests",
+      "summary": "Verifies pinned registry validation, capsule checksum enforcement, immutable install provenance, and explicit update confirmation without network."
+    },
+    {
+      "path": "src/cli/lib/agent-migration.ts",
+      "lines": 258,
+      "title": "Safe agent instruction migration",
+      "summary": "Migrates old project and user-level Kandown instruction files without discarding edited content.",
+      "functions": [
+        {
+          "name": "migrateAgentInstructions - migrate instruction files and legacy documents",
+          "summary": null
+        },
+        {
+          "name": "ensureAgentBootstrap - create or repair the managed root AGENTS.md line",
+          "summary": null
+        }
+      ],
+      "exports": "migrateAgentInstructions, ensureAgentBootstrap, AgentMigrationEvent, AgentMigrationOptions, AGENT_BOOTSTRAP_LINE"
     },
     {
       "path": "src/cli/lib/agents-config.ts",
@@ -285,7 +326,7 @@
     },
     {
       "path": "src/cli/lib/agents.ts",
-      "lines": 704,
+      "lines": 706,
       "title": "AI agent registry for the CLI task launcher",
       "summary": "Defines the built-in AI coding agents the CLI knows how to launch, merges them with the versioned team catalog (`.kandown/agents.json`), detects which binaries are installed on the current machine, and builds the shell command — plus…",
       "functions": [
@@ -343,7 +384,7 @@
     },
     {
       "path": "src/cli/lib/board-reader.ts",
-      "lines": 483,
+      "lines": 419,
       "title": "Node.js task reader and mutator",
       "summary": "Provides filesystem-based reading and writing of Kandown task files for the CLI.",
       "functions": [
@@ -372,10 +413,6 @@
           "summary": "reads a task file by ID and returns a ParsedTask"
         },
         {
-          "name": "readAgentDoc",
-          "summary": "base rules (from the package) + global/project instructions.md layers"
-        },
-        {
           "name": "moveTaskToColumn",
           "summary": "updates a task frontmatter status"
         },
@@ -384,7 +421,7 @@
           "summary": "writes a canonical agent id into `assignee:`"
         }
       ],
-      "exports": "getProjectRoot, getTasksDir, listTaskIds, findTaskPath, readBoard, readTask, readAgentDoc, moveTaskToColumn, assignTaskToAgent"
+      "exports": "getProjectRoot, getTasksDir, listTaskIds, findTaskPath, readBoard, readTask, moveTaskToColumn, assignTaskToAgent"
     },
     {
       "path": "src/cli/lib/browser.ts",
@@ -394,7 +431,7 @@
     },
     {
       "path": "src/cli/lib/cascade.ts",
-      "lines": 463,
+      "lines": 465,
       "title": "Cascade DAG orchestrator (`kandown run`)",
       "summary": "The synchronous task-cascade engine.",
       "functions": [
@@ -411,7 +448,7 @@
     },
     {
       "path": "src/cli/lib/cli-shared.ts",
-      "lines": 354,
+      "lines": 356,
       "title": "CLI shared utilities",
       "summary": "Argument parsing, deterministic nearest-ancestor project resolution, colored console output, and task-file path helpers shared across every `cmdX` command handler and the TUI launcher in src/cli/cli.ts.",
       "functions": [
@@ -448,9 +485,9 @@
     },
     {
       "path": "src/cli/lib/config.ts",
-      "lines": 300,
+      "lines": 138,
       "title": "Config reader/writer for kandown.json",
-      "summary": "Handles loading, saving, and accessing the kandown project configuration.",
+      "summary": "Keeps Node file I/O around the canonical shared Kandown config normalizer, plus nested value access used by the terminal settings screen.",
       "functions": [
         {
           "name": "findKandownDir",
@@ -506,7 +543,7 @@
     },
     {
       "path": "src/cli/lib/extensions-cli.ts",
-      "lines": 303,
+      "lines": 323,
       "title": "CLI wiring for the extension system",
       "summary": "Bridges the runtime-agnostic `ExtensionHost` to the CLI's synchronous board-reader world: builds a `HostEnvironment` from a kandown project, offers a one-call `loadExtensionHost`, runs extension gates around a move, and implements the…",
       "functions": [
@@ -528,7 +565,7 @@
         },
         {
           "name": "cmdExtension",
-          "summary": "`kandown extension <subcommand>` handler"
+          "summary": "`kandown extension <subcommand>` handler, including agent guides"
         }
       ],
       "exports": "buildHostEnvironment, loadExtensionHost, runExtensionMoveGates, dispatchContributedCommand, cmdExtension"
@@ -558,13 +595,26 @@
     },
     {
       "path": "src/cli/lib/init.ts",
-      "lines": 130,
+      "lines": 114,
       "title": "Kandown Project Initializer Module",
-      "summary": "Creates .kandown/ configuration, copies singlefile HTML bundle, initializes project-root ./tasks/ with welcome templates, and creates AGENT_KANDOWN.md."
+      "summary": "Creates .kandown/ configuration, copies singlefile HTML bundle, initializes project-root ./tasks/ with welcome templates, and installs the managed `kandown work` bootstrap line without generated instruction copies."
+    },
+    {
+      "path": "src/cli/lib/kandown-work.ts",
+      "lines": 146,
+      "title": "Node adapter for the Kandown Work compiler",
+      "summary": "Loads the selected built-in or project-local workflow, user instructions, active skill Markdown, task context, and board digest before delegating policy rendering to the shared pure compiler.",
+      "functions": [
+        {
+          "name": "compileProjectKandownWork: loads project inputs and compiles exact output",
+          "summary": null
+        }
+      ],
+      "exports": "compileProjectKandownWork"
     },
     {
       "path": "src/cli/lib/launcher.ts",
-      "lines": 289,
+      "lines": 295,
       "title": "CLI agent launcher",
       "summary": "Orchestrates the full task launch flow: read context, build prompt, assign the task to the chosen agent, auto-move it to In Progress, and spawn the agent.",
       "functions": [
@@ -602,9 +652,26 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 693,
+      "lines": 824,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
+    },
+    {
+      "path": "src/cli/lib/skills.ts",
+      "lines": 118,
+      "title": "Node workflow skill discovery",
+      "summary": "Discovers immutable built-in, global, and project data-only Markdown skill packages with deterministic override precedence.",
+      "functions": [
+        {
+          "name": "listWorkflowSkills: discover every effective skill and validation state",
+          "summary": null
+        },
+        {
+          "name": "loadConfiguredWorkflowSkills: resolve configured ids for the compiler",
+          "summary": null
+        }
+      ],
+      "exports": "WorkflowSkillSource, WorkflowSkillListing, listWorkflowSkills, loadConfiguredWorkflowSkills"
     },
     {
       "path": "src/cli/lib/task-move.ts",
@@ -693,6 +760,52 @@
         }
       ],
       "exports": "getCurrentVersion, getInstalledVersion, semverGt, resolveKandownBin, readInstalledKandownVersion, performGlobalPackageUpdate, checkForUpdate"
+    },
+    {
+      "path": "src/cli/lib/workflows-cli.ts",
+      "lines": 392,
+      "title": "Workflow package CLI and Node persistence adapter",
+      "summary": "Discovers built-in and project-local data-only workflows, exposes list/show/use/validate/pack/import commands, and persists imported capsules without executing package content.",
+      "functions": [
+        {
+          "name": "listWorkflowPackages: discover and validate available workflows",
+          "summary": null
+        },
+        {
+          "name": "loadWorkflowById: load one local or built-in workflow",
+          "summary": null
+        },
+        {
+          "name": "cmdWorkflow: dispatch workflow CLI subcommands",
+          "summary": null
+        }
+      ],
+      "exports": "WorkflowPackageSummary, listWorkflowPackages, loadWorkflowById, cmdWorkflow"
+    },
+    {
+      "path": "src/cli/lib/workflows-store.ts",
+      "lines": 163,
+      "title": "Community workflow store",
+      "summary": "Fetches an approved GitHub-hosted workflow index, installs only pinned and checksum-verified Markdown capsules, records provenance, previews upstream updates as a text diff, and applies them only after confirmation.",
+      "functions": [
+        {
+          "name": "fetchWorkflowRegistry: fetch and validate the approved repository index",
+          "summary": null
+        },
+        {
+          "name": "installStoreWorkflow: install one pinned capsule after checksum validation",
+          "summary": null
+        },
+        {
+          "name": "previewWorkflowUpdate: validate and diff an available upstream version",
+          "summary": null
+        },
+        {
+          "name": "applyWorkflowUpdate: replace an immutable store package after confirmation",
+          "summary": null
+        }
+      ],
+      "exports": "WorkflowRegistryEntry, WorkflowRegistryResult, WorkflowInstallResult, WorkflowUpdatePreview, fetchWorkflowRegistry, installStoreWorkflow, previewWorkflowUpdate, applyWorkflowUpdate"
     },
     {
       "path": "src/cli/screens/agent-picker.tsx",
@@ -1117,7 +1230,7 @@
     },
     {
       "path": "src/components/Drawer.tsx",
-      "lines": 481,
+      "lines": 482,
       "title": "Task drawer editor",
       "summary": "Full-height task detail editor for title, description, subtasks, report, save/close, autosave, and deletion.",
       "functions": [
@@ -1360,32 +1473,20 @@
     },
     {
       "path": "src/components/settings/WorkOutputConfigurator.tsx",
-      "lines": 846,
-      "title": "Settings — `kandown work` output configurator",
-      "summary": "The Agent section's biggest feature: lets the user shape exactly what `kandown work` prints to an AI agent's terminal — base rules density, project instructions (.kandown/instructions.md), and a live board digest — with a live…",
+      "lines": 525,
+      "title": "Kandown Work settings workspace",
+      "summary": "Provides the Workflow, Skills, and Kandown Work tabs backed by the same validated workflow packages and exact compiler output as the CLI.",
       "functions": [
         {
-          "name": "estimateTokenCount",
-          "summary": "rough chars/4 token estimate for the preview panel"
-        },
-        {
-          "name": "buildDigestPreview",
-          "summary": "renders the \"Live Board Digest\" block from board state"
-        },
-        {
-          "name": "getBaseRulesPreview",
-          "summary": "picks the right canned rules text for a density mode"
-        },
-        {
-          "name": "renderWorkPreviewBlocks / renderWorkPreview",
-          "summary": "assembles the full preview,"
+          "name": "WorkOutputConfigurator: render and coordinate the three agent-work tabs",
+          "summary": null
         }
       ],
       "exports": "WorkOutputConfigurator"
     },
     {
       "path": "src/components/SettingsPage.tsx",
-      "lines": 377,
+      "lines": 382,
       "title": "Settings page for the web app",
       "summary": "Dense settings workspace with an iOS-style sidebar, global option search, section navigation, and compact controls for kandown.json.",
       "functions": [
@@ -1449,7 +1550,7 @@
     },
     {
       "path": "src/components/TaskWorkspace.tsx",
-      "lines": 565,
+      "lines": 566,
       "title": "Desktop opened-task workspace",
       "summary": "Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…",
       "functions": [
@@ -1660,6 +1761,12 @@
       "summary": "Locks the four invariants that keep markdown code blocks readable on every theme: 1."
     },
     {
+      "path": "src/lib/__tests__/config.spec.ts",
+      "lines": 153,
+      "title": "Shared Kandown config normalization tests",
+      "summary": "Locks canonical defaults, legacy instruction density migration, malformed input handling, semantic column lookup, and optional agent config preservation into one suite shared by browser and CLI adapters."
+    },
+    {
       "path": "src/lib/__tests__/demoBackend.spec.ts",
       "lines": 72,
       "title": "Website demo move endpoint tests",
@@ -1672,16 +1779,40 @@
       "summary": "Vitest suite that locks the policy decisions into tests (see docs/ARCHITECTURE.md invariant #2)."
     },
     {
+      "path": "src/lib/__tests__/extension-agent-guidance.spec.ts",
+      "lines": 23,
+      "title": "Extension agent guidance manifest tests",
+      "summary": "Locks concise summary, safe guide path, and optional source validation so malformed extension guidance cannot break Kandown Work."
+    },
+    {
       "path": "src/lib/__tests__/extensions-host.spec.ts",
       "lines": 275,
       "title": "Extension host integration",
       "summary": "Vitest suite that loads real extensions from a temp project dir via jiti and locks the host contract: discovery, restricted mode + project trust, gate composition with block reasons, command dispatch, and the core invariant that a…"
     },
     {
+      "path": "src/lib/__tests__/kandown-work.spec.ts",
+      "lines": 63,
+      "title": "Kandown Work compiler tests",
+      "summary": "Verifies immutable-core density, fixed nine-layer ordering, tracking cadence, semantic column placeholders, and structured diagnostics."
+    },
+    {
       "path": "src/lib/__tests__/parser-serializer.spec.ts",
       "lines": 159,
       "title": "Parser + serializer round-trip",
       "summary": "Vitest suite locking the `parseSimpleYaml` / `parseTaskFile` ↔ `serializeTaskFile` round-trip."
+    },
+    {
+      "path": "src/lib/__tests__/workflow-skills.spec.ts",
+      "lines": 93,
+      "title": "Workflow skill package tests",
+      "summary": "Locks data-only skill validation, compatibility filtering, and semantic role diagnostics for additive workflow guidance."
+    },
+    {
+      "path": "src/lib/__tests__/workflows.spec.ts",
+      "lines": 280,
+      "title": "Workflow package format and capsule tests",
+      "summary": "Locks the pure version 1 workflow contract across valid source folders, malformed manifests, portable path security, duplicate template declarations, loaded-package validation, Markdown capsule round trips, strict section parsing,…"
     },
     {
       "path": "src/lib/agent-aliases.ts",
@@ -1712,6 +1843,35 @@
       "exports": "columnIconsByName, getColumnIcon, COLUMN_COLOR_MAP, COLOR_SWATCHES"
     },
     {
+      "path": "src/lib/config.ts",
+      "lines": 407,
+      "title": "Shared Kandown config normalization",
+      "summary": "Converts unknown kandown.json input into the canonical config contract used by browser and Node adapters.",
+      "functions": [
+        {
+          "name": "normalizeKandownConfig - safely normalizes unknown config input",
+          "summary": null
+        },
+        {
+          "name": "detailModeFromLegacyBaseRulesMode - maps legacy instruction density",
+          "summary": null
+        },
+        {
+          "name": "resolveColumnRole - resolves one configured column's semantic role",
+          "summary": null
+        },
+        {
+          "name": "resolveColumnNameByRole - finds the first board-ordered column with a semantic role",
+          "summary": null
+        },
+        {
+          "name": "resolveColumnNamesByRole - finds every column with a semantic role",
+          "summary": null
+        }
+      ],
+      "exports": "normalizeKandownConfig, detailModeFromLegacyBaseRulesMode, resolveColumnRole, resolveColumnNameByRole, resolveColumnNamesByRole"
+    },
+    {
       "path": "src/lib/demoBackend.ts",
       "lines": 393,
       "title": "In-memory backend for the website demo",
@@ -1734,14 +1894,14 @@
     },
     {
       "path": "src/lib/demoSeed.ts",
-      "lines": 446,
+      "lines": 440,
       "title": "Demo project seed data",
       "summary": "The starting contents of the in-memory project served by {@link ./demoBackend.ts} when the app runs in demo mode on the website.",
       "exports": "DEMO_PROJECT_NAME, DEMO_ROOT, DEMO_CONFIG_JSON, DEMO_INSTRUCTIONS, DEMO_BOARD_MD, DEMO_TASKS, DEMO_ARCHIVED_TASKS"
     },
     {
       "path": "src/lib/dependencies.ts",
-      "lines": 332,
+      "lines": 333,
       "title": "Task dependency resolution and transition gate",
       "summary": "Pure module that owns the single rule for moving tasks between board columns: a task may only enter the configured terminal status (and be archived) when every blocking dependency is resolved.",
       "functions": [
@@ -1884,7 +2044,7 @@
     },
     {
       "path": "src/lib/extensions/manifest.ts",
-      "lines": 77,
+      "lines": 92,
       "title": "Extension manifest parsing and compatibility",
       "summary": "Validates a raw JSON object into a typed `ExtensionManifest`, and checks version compatibility against the running kandown.",
       "functions": [
@@ -1996,14 +2156,14 @@
     },
     {
       "path": "src/lib/extensions/types.ts",
-      "lines": 239,
+      "lines": 247,
       "title": "Extension system types and public API contract",
       "summary": "The single source of truth for the extension surface: the manifest shape, the contribution-point definitions, the lifecycle events, the context handed to handlers, and the `KandownExtensionAPI` an extension factory receives.",
       "exports": "ExtensionManifest, ExtensionHealth, LoadedExtension, ExtensionFieldDescriptor, ExtensionPanelDescriptor, ExtensionBadge, ExtensionRuntimeSummary, ExtensionRuntimePayload, FieldContribution, WebPanelContribution, CommandContribution, GateContribution, SyncContribution, TaskLike, TaskEvent, GateEvent, ExtensionContext, ExtensionCommandContext, KandownExtensionAPI, ExtensionFactory"
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 1233,
+      "lines": 1275,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [
@@ -2113,7 +2273,7 @@
         },
         {
           "name": "readProjectInstructions / writeProjectInstructions",
-          "summary": "edits `.kandown/instructions.md`"
+          "summary": "edits `.kandown/kandown_work.md`"
         }
       ],
       "exports": "supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks"
@@ -2181,6 +2341,27 @@
       "exports": "i18n, initI18n, changeLanguage"
     },
     {
+      "path": "src/lib/kandown-work.ts",
+      "lines": 175,
+      "title": "Pure Kandown Work compiler",
+      "summary": "Compiles the immutable Kandown safety core, project column semantics, extensions, workflow, tracking policy, skills, user instructions, and task or board context into one deterministic agent instruction document.",
+      "functions": [
+        {
+          "name": "estimateTokenCount: estimates model-neutral token usage for UI budgets",
+          "summary": null
+        },
+        {
+          "name": "kandownWorkStats: returns characters, words, and estimated tokens",
+          "summary": null
+        },
+        {
+          "name": "compileKandownWork: compiles the nine ordered instruction layers",
+          "summary": null
+        }
+      ],
+      "exports": "KandownWorkDiagnostic, KandownWorkExtension, KandownWorkSkill, KandownWorkInput, KandownWorkStats, CompiledKandownWork, estimateTokenCount, kandownWorkStats, compileKandownWork"
+    },
+    {
       "path": "src/lib/motion-presets.ts",
       "lines": 81,
       "title": "Motion preset tokens",
@@ -2213,7 +2394,7 @@
     },
     {
       "path": "src/lib/parser.ts",
-      "lines": 451,
+      "lines": 452,
       "title": "Markdown parser utilities",
       "summary": "Parses Kandown task markdown into typed structures, builds board columns from task frontmatter, extracts editable subtasks, reinjects them on save, and performs lightweight cached task-content search for the web UI.",
       "functions": [
@@ -2283,7 +2464,7 @@
     },
     {
       "path": "src/lib/store.ts",
-      "lines": 1997,
+      "lines": 1998,
       "title": "Kandown Zustand store",
       "summary": "Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.",
       "functions": [
@@ -2334,7 +2515,7 @@
     },
     {
       "path": "src/lib/store/helpers.ts",
-      "lines": 220,
+      "lines": 221,
       "title": "Zustand store — shared helpers & module-level state",
       "summary": "Pure/async helpers plus the module-level mutable state (toast counter, notification snapshots, watcher timers, in-flight bulk-mutation guard) that multiple store slices need to read or write."
     },
@@ -2486,10 +2667,10 @@
     },
     {
       "path": "src/lib/types.ts",
-      "lines": 416,
+      "lines": 482,
       "title": "Shared domain types",
-      "summary": "Defines the board, task, config, filter, search, and appearance types used by the Kandown web UI and persistence layer.",
-      "exports": "Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, KandownConfig, DEFAULT_COLUMNS, DEFAULT_CONFIG"
+      "summary": "Defines the board, task, config, filter, search, and appearance contracts shared by the Kandown web UI, CLI, TUI, and persistence adapters.",
+      "exports": "Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, ColumnRole, ColumnAgentMeta, WorkflowSelectionConfig, TaskTrackingCadence, WorkOutputDetailMode, TuiConfig, AgentsConfig, KandownConfig, DEFAULT_COLUMNS, DEFAULT_WORK_OUTPUT, DEFAULT_COLUMN_META, DEFAULT_CONFIG"
     },
     {
       "path": "src/lib/utils.ts",
@@ -2533,6 +2714,101 @@
         }
       ],
       "exports": "FileWatcher, fileWatcher"
+    },
+    {
+      "path": "src/lib/workflows/builtin-skills.ts",
+      "lines": 36,
+      "title": "Browser built-in workflow skill loader",
+      "summary": "Loads bundled data-only skill source files through Vite raw imports and validates them with the same pure loader used by the Node runtime.",
+      "functions": [
+        {
+          "name": "listBuiltinWorkflowSkills: returns every valid bundled skill package",
+          "summary": null
+        }
+      ],
+      "exports": "listBuiltinWorkflowSkills"
+    },
+    {
+      "path": "src/lib/workflows/builtins.ts",
+      "lines": 35,
+      "title": "Browser built-in workflow loader",
+      "summary": "Bundles the same readable templates/workflows source packages shipped to the CLI and validates them with the shared pure loader for standalone File System Access mode.",
+      "functions": [
+        {
+          "name": "listBuiltinWorkflowPackages: return every validated bundled package",
+          "summary": null
+        }
+      ],
+      "exports": "listBuiltinWorkflowPackages"
+    },
+    {
+      "path": "src/lib/workflows/capsule.ts",
+      "lines": 345,
+      "title": "Portable Markdown workflow capsules",
+      "summary": "Exports and imports a complete workflow package as one readable Markdown document with YAML frontmatter and length-delimited Kandown sections.",
+      "functions": [
+        {
+          "name": "exportWorkflowCapsule: validates and serializes a loaded workflow package",
+          "summary": null
+        },
+        {
+          "name": "importWorkflowCapsule: parses and validates a Markdown capsule",
+          "summary": null
+        }
+      ],
+      "exports": "WORKFLOW_CAPSULE_MAX_BYTES, exportWorkflowCapsule, importWorkflowCapsule"
+    },
+    {
+      "path": "src/lib/workflows/index.ts",
+      "lines": 39,
+      "title": "Workflow package public API",
+      "summary": "Re-exports the pure version 1 workflow package contracts, validation and source-map loader APIs, plus portable Markdown capsule import and export.",
+      "exports": "Workflow package types, validateWorkflowManifest, validateWorkflowPackage, loadWorkflowPackage, isSafeWorkflowPath, WORKFLOW_CAPSULE_MAX_BYTES, exportWorkflowCapsule, importWorkflowCapsule"
+    },
+    {
+      "path": "src/lib/workflows/skills.ts",
+      "lines": 70,
+      "title": "Data-only workflow skill packages",
+      "summary": "Validates additive Markdown skill manifests with optional workflow compatibility and semantic column-role requirements.",
+      "functions": [
+        {
+          "name": "loadWorkflowSkill: validate a manifest and its declared Markdown file",
+          "summary": null
+        }
+      ],
+      "exports": "WorkflowSkillManifest, LoadedWorkflowSkill, loadWorkflowSkill"
+    },
+    {
+      "path": "src/lib/workflows/types.ts",
+      "lines": 124,
+      "title": "Pure workflow package contracts",
+      "summary": "Defines Kandown's version 1 data-only workflow manifest, loaded package, board-role, source-file, and typed validation result shapes.",
+      "exports": "WorkflowBoardRole, WorkflowTaskTemplateManifest, WorkflowAttribution, WorkflowManifest, WorkflowTextFile, WorkflowBoardPresetFile, LoadedWorkflowTaskTemplate, LoadedWorkflowPackage, WorkflowSourceFiles, WorkflowErrorCode, WorkflowFormatError, WorkflowResult"
+    },
+    {
+      "path": "src/lib/workflows/validation.ts",
+      "lines": 623,
+      "title": "Workflow package validation and pure loading",
+      "summary": "Validates raw version 1 workflow manifests, resolves complete data-only packages from caller-provided file maps, and validates already loaded packages without throwing.",
+      "functions": [
+        {
+          "name": "isSafeWorkflowPath: checks a portable relative package path",
+          "summary": null
+        },
+        {
+          "name": "validateWorkflowManifest: validates unknown manifest input",
+          "summary": null
+        },
+        {
+          "name": "loadWorkflowPackage: resolves and validates a source-file map",
+          "summary": null
+        },
+        {
+          "name": "validateWorkflowPackage: validates an unknown loaded package",
+          "summary": null
+        }
+      ],
+      "exports": "isSafeWorkflowPath, validateWorkflowManifest, loadWorkflowPackage, validateWorkflowPackage"
     },
     {
       "path": "src/main.tsx",

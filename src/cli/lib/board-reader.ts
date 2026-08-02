@@ -21,19 +21,15 @@
  *  → findTaskPath        — resolves an active or archived task file
  *  → readBoard           — scans ./tasks/*.md and returns a ParsedBoard shape
  *  → readTask            — reads a task file by ID and returns a ParsedTask
- *  → readAgentDoc        — base rules (from the package) + global/project instructions.md layers
  *  → moveTaskToColumn    — updates a task frontmatter status
  *  → assignTaskToAgent   — writes a canonical agent id into `assignee:`
  *
- * @exports getProjectRoot, getTasksDir, listTaskIds, findTaskPath, readBoard, readTask, readAgentDoc, moveTaskToColumn, assignTaskToAgent
+ * @exports getProjectRoot, getTasksDir, listTaskIds, findTaskPath, readBoard, readTask, moveTaskToColumn, assignTaskToAgent
  * @see src/lib/parser.ts — pure string parsers reused here
  */
 
 import { existsSync, readdirSync, readFileSync, mkdirSync, unlinkSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { homedir } from 'node:os';
-import { execFileSync } from 'node:child_process';
 import { resolveDependencyStatus, resolveTransition } from '../../lib/dependencies.js';
 import { atomicWriteFileSync } from './atomic-write.js';
 import { buildColumnsFromTasks, parseTaskFile } from '../../lib/parser.js';
@@ -87,7 +83,7 @@ export function findTaskPath(kandownDir: string, taskId: string): string | null 
 
 /**
  * 📖 Scans task files and derives board columns from task frontmatter.
- * Missing task status values are treated as Backlog by the shared parser.
+ * Missing task status values use the project's first configured column.
  * Tolerates individual unreadable task files — they are skipped with a stderr
  * warning instead of crashing the whole board render (t112).
  */
@@ -97,13 +93,13 @@ export function readBoard(kandownDir: string): ParsedBoard {
   const tasks: ParsedTask[] = [];
   for (const id of ids) {
     try {
-      const task = readTask(kandownDir, id);
+      const task = readTask(kandownDir, id, config.board.columns[0]);
       tasks.push({
         ...task,
         frontmatter: {
           ...task.frontmatter,
           id: task.frontmatter.id || id,
-          status: task.frontmatter.status || 'Backlog',
+          status: task.frontmatter.status || config.board.columns[0] || 'Backlog',
         },
       });
     } catch (e) {
@@ -123,11 +119,12 @@ export function readBoard(kandownDir: string): ParsedBoard {
  * 📖 Reads and parses a task file by its ID (e.g. 't-019').
  * Returns a minimal ParsedTask with just the id if the file doesn't exist.
  */
-export function readTask(kandownDir: string, taskId: string): ParsedTask {
+export function readTask(kandownDir: string, taskId: string, defaultStatus?: string): ParsedTask {
+  const fallback = defaultStatus || loadConfig(kandownDir).board.columns[0] || 'Backlog';
   const taskPath = findTaskPath(kandownDir, taskId);
   if (!taskPath) {
     return {
-      frontmatter: { id: taskId, title: `Task ${taskId}`, status: 'Backlog' },
+      frontmatter: { id: taskId, title: `Task ${taskId}`, status: fallback },
       body: '',
     };
   }
@@ -138,70 +135,9 @@ export function readTask(kandownDir: string, taskId: string): ParsedTask {
     frontmatter: {
       ...parsed.frontmatter,
       id: parsed.frontmatter.id || taskId,
-      status: parsed.frontmatter.status || 'Backlog',
+      status: parsed.frontmatter.status || fallback,
     },
   };
-}
-
-/**
- * 📖 Absolute path to the installed kandown package root. Computed from this
- * module's own location inside the built `bin/tui.js` bundle (same trick as
- * PKG_ROOT in bin/kandown.js), NOT from the project being browsed — so the
- * rules served below are always the ones shipped with the running CLI
- * version, never a per-project snapshot that can drift out of sync.
- */
-const PKG_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
-
-/**
- * 📖 Returns the full text of the agent instructions doc used when launching
- * an agent from the TUI (`a` key) — the exact same layered rules `kandown
- * work` prints, so the two entry points can never disagree:
- *   1. Base rules — templates/AGENT_KANDOWN.md, shipped with the package
- *      (never a project-local copy, which would go stale the moment the
- *      package updates — see t… migration from per-project AGENT_KANDOWN.md).
- *   2. Global additions — ~/.kandown/instructions.md, if present.
- *   3. Project additions — .kandown/instructions.md, if present.
- * Returns empty string only if the base rules can't be read at all (t112 —
- * non-critical, the agent still launches, just without a system prompt).
- */
-export function readAgentDoc(kandownDir: string): string {
-  const sections: string[] = [];
-
-  try {
-    sections.push(readFileSync(join(PKG_ROOT, 'templates', 'AGENT_KANDOWN.md'), 'utf8').trim());
-  } catch (e) {
-    console.warn('[kandown] Could not read base agent rules:', (e as Error).message);
-  }
-
-  const globalPath = join(homedir(), '.kandown', 'instructions.md');
-  if (existsSync(globalPath)) {
-    try {
-      sections.push(`## Global instructions\n\n${readFileSync(globalPath, 'utf8').trim()}`);
-    } catch (e) {
-      console.warn(`[kandown] Could not read ${globalPath}:`, (e as Error).message);
-    }
-  }
-
-  const projectPath = join(kandownDir, 'instructions.md');
-  if (existsSync(projectPath)) {
-    try {
-      sections.push(`## Project-specific instructions\n\n${readFileSync(projectPath, 'utf8').trim()}`);
-    } catch (e) {
-      console.warn(`[kandown] Could not read ${projectPath}:`, (e as Error).message);
-    }
-  }
-
-  try {
-    const root = getProjectRoot(kandownDir);
-    const gitLog = execFileSync('git', ['log', '-n', '5', '--oneline', '--', 'tasks/'], { cwd: root, encoding: 'utf8' }).trim();
-    if (gitLog) {
-      sections.push(`## Recent Task Activity (Git History)\n\n\`\`\`\n${gitLog}\n\`\`\``);
-    }
-  } catch {
-    // Non-fatal if not in git repo
-  }
-
-  return sections.filter(Boolean).join('\n\n---\n\n');
 }
 
 /**

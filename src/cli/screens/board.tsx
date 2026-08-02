@@ -80,6 +80,7 @@ import { createWatcher } from '../lib/file-watcher.js';
 import { detectInstalledAgents, resolveAgentEntry, isAgentInstalled, warmupDetection, loadCatalog, type AgentDef } from '../lib/agents.js';
 import { launchAgent, isInTmux } from '../lib/launcher.js';
 import type { ParsedBoard, BoardTask, ParsedTask } from '../../lib/types.js';
+import { terminalStatus } from '../../lib/dependencies.js';
 import { AgentPicker } from './agent-picker.js';
 import { useMouseMode, parseMouseInput, isMouseInput } from '../hooks/use-mouse.js';
 import { MENU_HEIGHT } from '../components/task-context-menu.js';
@@ -498,8 +499,7 @@ export function Board({ kandownDir, version }: BoardProps) {
     const board = rawBoard;
     if (!board) return false;
     const cfg = loadConfig(kandownDir);
-    const cols = cfg.board.columns;
-    const terminalLower = (cols[cols.length - 1] || 'Done').toLowerCase();
+    const terminalLower = terminalStatus(cfg).toLowerCase();
     const isTerminal = targetCol.toLowerCase() === terminalLower;
     if (!isTerminal) return true;
     // 📖 Build a quick id → resolved map from the current board snapshot.

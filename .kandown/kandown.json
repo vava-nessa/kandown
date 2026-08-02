@@ -11,17 +11,7 @@
     "suggestFollowUp": true,
     "maxSuggestions": 2,
     "workOutput": {
-      "mode": "blocks",
-      "includeBaseRules": true,
-      "baseRulesMode": "full",
-      "includeProjectInstructions": true,
-      "includeBoardDigest": true,
-      "sectionOrder": [
-        "baseRules",
-        "projectInstructions",
-        "boardDigest"
-      ],
-      "rawTemplate": "{{baseRules}}\n\n---\n\n{{projectInstructions}}\n\n---\n\n{{boardDigest}}",
+      "detailMode": "complete",
       "boardDigest": {
         "showColumnCounts": true,
         "showTasks": true,
@@ -31,6 +21,13 @@
         "showNextActionable": true
       }
     }
+  },
+  "workflow": {
+    "active": "real-engineering",
+    "skills": [
+      "code-review"
+    ],
+    "trackingCadence": "live"
   },
   "board": {
     "columns": [
@@ -42,24 +39,50 @@
     ],
     "defaultPriority": "P3",
     "defaultOwnerType": "human",
-    "stackDefaultState": "collapsed",
     "columnColors": {
-      "in progress": "fuchsia",
       "backlog": "lime",
-      "todo": "red"
-    }
+      "todo": "red",
+      "in progress": "fuchsia",
+      "review": "violet",
+      "done": "green"
+    },
+    "columnMeta": {
+      "Backlog": {
+        "role": "backlog",
+        "instructions": "Capture unscheduled work here. Keep enough context to decide whether it belongs in this workflow."
+      },
+      "Todo": {
+        "role": "ready",
+        "instructions": "Only move work here when its required inputs, acceptance criteria, dependencies, and approvals are ready."
+      },
+      "In Progress": {
+        "role": "active",
+        "instructions": "Execute the current workflow phase, update the checklist as work happens, and record blockers immediately."
+      },
+      "Review": {
+        "role": "review",
+        "instructions": "Require completed verification, reproducible evidence, and the workflow-specific review gate before acceptance."
+      },
+      "Done": {
+        "role": "terminal",
+        "instructions": "Only accept work whose criteria and required review are satisfied. Preserve the completion report and evidence."
+      }
+    },
+    "stackDefaultState": "collapsed"
   },
   "tui": {
     "defaultView": "list",
     "showDetailPane": true,
     "listSort": "status",
+    "listSortDir": "asc",
     "columns": {
       "age": true,
       "status": true,
       "priority": true,
       "owner": true,
       "deps": true,
-      "tags": false
+      "tags": false,
+      "assignee": true
     }
   },
   "fields": {
@@ -78,5 +101,8 @@
     "taskEdits": true,
     "subtaskCompletions": true,
     "editDebounceMs": 2000
+  },
+  "extensions": {
+    "restricted": true
   }
 }

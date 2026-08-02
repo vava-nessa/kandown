@@ -52,6 +52,7 @@
  */
 
 import type { KandownConfig, ParsedTask } from './types';
+import { resolveColumnNameByRole } from './config';
 import { DEFAULT_CONFIG } from './types';
 
 /** Custom error thrown when a status transition is blocked by an unresolved
@@ -92,11 +93,11 @@ export interface TransitionTaskInput {
   depends_on?: unknown;
 }
 
-/** 📖 Looks up the configured terminal column name; falls back to `'Done'`
- *  if the user has no columns configured (matches the DEFAULT_CONFIG). */
+/** 📖 Resolves the semantic terminal role, with last-column compatibility for
+ * legacy configs that predate column metadata. */
 export function terminalStatus(config: Pick<KandownConfig, 'board'> = DEFAULT_CONFIG): string {
   const cols = config.board.columns;
-  return cols[cols.length - 1] ?? 'Done';
+  return resolveColumnNameByRole(config, 'terminal') ?? cols[cols.length - 1] ?? DEFAULT_CONFIG.board.columns.at(-1)!;
 }
 
 /** 📖 True when the status is the configured terminal column *or* an

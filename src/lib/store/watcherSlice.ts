@@ -93,7 +93,7 @@ export const createWatcherSlice: StateCreator<State, [], [], WatcherSlice> = (se
         frontmatter: {
           ...frontmatter,
           id: frontmatter.id || taskId,
-          status: frontmatter.status || 'Backlog',
+          status: frontmatter.status || config.board.columns[0] || 'Backlog',
         },
         body: bodyWithoutSubtasks,
         subtasks,
@@ -198,7 +198,7 @@ export const createWatcherSlice: StateCreator<State, [], [], WatcherSlice> = (se
             frontmatter: {
               ...frontmatter,
               id: frontmatter.id || taskId,
-              status: frontmatter.status || 'Backlog',
+              status: frontmatter.status || get().config.board.columns[0] || 'Backlog',
             },
             body: bodyWithoutSubtasks,
             subtasks,

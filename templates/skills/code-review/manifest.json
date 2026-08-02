@@ -1,0 +1,9 @@
+{
+  "formatVersion": 1,
+  "id": "code-review",
+  "name": "Code Review",
+  "version": "1.0.0",
+  "description": "Review implementation quality and specification fit as separate checks.",
+  "instructions": "instructions.md",
+  "requiredRoles": ["review"]
+}

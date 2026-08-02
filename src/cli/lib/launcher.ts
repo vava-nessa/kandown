@@ -42,7 +42,10 @@ import { execSync, spawn } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { readTask, readAgentDoc, moveTaskToColumn, assignTaskToAgent } from './board-reader.js';
+import { readTask, moveTaskToColumn, assignTaskToAgent } from './board-reader.js';
+import { compileProjectKandownWork } from './kandown-work.js';
+import { loadConfig } from './config.js';
+import { resolveColumnNameByRole } from '../../lib/config.js';
 import { getAgentById, buildPrompt, buildAgentCommand, type LaunchOpts } from './agents.js';
 
 // 📖 Options shared by both entry points. The cascade adds handoff/queue.
@@ -108,8 +111,11 @@ function prepareLaunch(opts: LaunchAgentOpts): PreparedLaunch {
   } catch (e) {
     throw new Error(`Failed to read task ${taskId}: ${(e as Error).message}`);
   }
-  const originalStatus = task.frontmatter.status || 'Backlog';
-  const agentDoc = readAgentDoc(kandownDir);
+  const config = loadConfig(kandownDir);
+  const originalStatus = task.frontmatter.status || config.board.columns[0];
+  const activeStatus = resolveColumnNameByRole(config, 'active') ?? config.board.columns[0];
+  const terminalStatus = resolveColumnNameByRole(config, 'terminal') ?? config.board.columns.at(-1)!;
+  const agentDoc = compileProjectKandownWork(kandownDir, taskId).markdown;
 
   const taskFileContent = [
     `---`,
@@ -121,7 +127,7 @@ function prepareLaunch(opts: LaunchAgentOpts): PreparedLaunch {
     task.body.trim(),
   ].join('\n');
 
-  const { systemPrompt, taskPrompt } = buildPrompt(agentDoc, taskFileContent, taskId, kandownDir, handoff, queue);
+  const { systemPrompt, taskPrompt } = buildPrompt(agentDoc, taskFileContent, taskId, kandownDir, activeStatus, terminalStatus, handoff, queue);
 
   // 📖 Launching *is* assigning: write the agent into `assignee:` before the
   // move, so a single `a` press produces one coherent write (assignee + status
@@ -131,9 +137,9 @@ function prepareLaunch(opts: LaunchAgentOpts): PreparedLaunch {
   // unwritable-file problem with a proper error.
   assignTaskToAgent(kandownDir, taskId, agentDef.id);
 
-  const taskMoved = moveTaskToColumn(kandownDir, taskId, 'In Progress');
+  const taskMoved = moveTaskToColumn(kandownDir, taskId, activeStatus);
   if (!taskMoved) {
-    throw new Error(`Could not move task ${taskId} to In Progress — task file missing or unwritable.`);
+    throw new Error(`Could not move task ${taskId} to ${activeStatus}: task file missing or unwritable.`);
   }
 
   // 📖 Safety net for very large prompts that hit the argv-length limit.

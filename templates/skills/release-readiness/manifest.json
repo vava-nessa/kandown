@@ -1,0 +1,9 @@
+{
+  "formatVersion": 1,
+  "id": "release-readiness",
+  "name": "Release Readiness",
+  "version": "1.0.0",
+  "description": "Require release evidence, compatibility notes, and rollback awareness.",
+  "instructions": "instructions.md",
+  "requiredRoles": ["terminal"]
+}

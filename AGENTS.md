@@ -15,7 +15,7 @@ Markdown, installed into other projects with `npx kandown init`.
 | 1 | **This file** | Always: the hard rules are below |
 | 2 | [`CODEMAP.md`](CODEMAP.md) | To find the file that owns a concern |
 | 3 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Before any non-trivial change |
-| 4 | `AGENT_KANDOWN.md` | Any task, backlog or board work |
+| 4 | `kandown work` | Any task, backlog or board work |
 | 5 | [`docs/RELEASE.md`](docs/RELEASE.md) | On "bump" / cutting a release |
 | 6 | [`README.md`](README.md) | For the user-facing feature surface |
 | 7 | [`docs/EXTENSIONS.md`](docs/EXTENSIONS.md) | Before touching the extension/plugin system, or anything under `plugins.*` |
@@ -66,7 +66,6 @@ They are committed because they ship. Editing them appears to work, and the next
 | `bin/kandown.js` | `src/cli/cli.ts` |
 | `bin/tui.js` | `src/cli/tui.tsx` |
 | `src/lib/version.ts` | `package.json` (version field) |
-| `AGENT_KANDOWN.md` (root) | `templates/AGENT_KANDOWN.md`, then `pnpm sync:agent` |
 | `CODEMAP.md`, `CODEMAP.json` | the JSDoc headers, then `pnpm codemap` |
 | `CHANGELOG.md` | `changelogs/v<version>.md`, then `pnpm changelog` |
 
@@ -86,7 +85,7 @@ surrounding files.
 ### 3. Keep kandown tasks up to date, as you work
 
 Not at the end. Check off subtasks with a `report:` line as you complete them, move
-the task to the right column, and write a real completion report. `AGENT_KANDOWN.md`
+the task to the right column, and write a real completion report. `kandown work`
 has the full protocol. The task file *is* the work log; if the user opens it, it
 should show exactly where things stand.
 
@@ -196,17 +195,16 @@ Then **always give vava the clickable URL** (`http://localhost:4321/`) so she ca
 
 | Command | What it does |
 |---|---|
-| `pnpm dev` | Vite dev server for the web UI (syncs the agent doc first) |
+| `pnpm dev` | Vite dev server for the web UI |
 | `pnpm dev:app` | Full build, then launch the CLI, the realistic dev loop |
 | `pnpm dev:cli` | Watch-mode build of the CLI/TUI bundles |
-| `pnpm build` | inject version, then sync agent doc, typecheck, web, CLI |
+| `pnpm build` | inject version, then typecheck, web, CLI |
 | `pnpm verify` | Run the complete local quality gate before commit or push |
 | `pnpm typecheck` | TypeScript, no emit |
 | `pnpm codemap` | Regenerate `CODEMAP.md` / `CODEMAP.json` |
 | `pnpm codemap:check` | Fail if the codemap is stale or a file lacks `@description` |
 | `pnpm changelog` | Rebuild `CHANGELOG.md` from `changelogs/` |
 | `pnpm changelog:check` | Fail if the changelog index is stale |
-| `pnpm sync:agent` | Propagate `templates/AGENT_KANDOWN.md` to the project root |
 
 Git hooks install themselves on `pnpm install` (`core.hooksPath` → `.githooks/`):
 pre-commit regenerates and stages the codemap **and the changelog index**,
@@ -219,3 +217,4 @@ sometimes describing source changes still sitting uncommitted in the working tre
 This is intended, it is not a mistake, and the project owner set the hooks up
 deliberately. Commit and move on: no warning, no caveat, no paragraph explaining
 it.
+This project uses Kandown. Before task work, run `kandown work` and follow its output. <!-- kandown:agent-ref -->

@@ -1,0 +1,35 @@
+{
+  "formatVersion": 1,
+  "id": "kandown-standard",
+  "name": "Kandown Standard",
+  "version": "1.0.0",
+  "author": "Kandown",
+  "description": "A balanced workflow for small and medium changes with clear scope, focused implementation, reproducible evidence, and final review.",
+  "summary": "Plan briefly, implement the smallest complete change, verify it, and review the diff.",
+  "minKandownVersion": "0.46.0",
+  "requiredRoles": ["backlog", "ready", "active", "review", "terminal"],
+  "protocol": "protocol.md",
+  "guide": "guide.md",
+  "boardPreset": "board.json",
+  "taskTemplates": [
+    {
+      "id": "standard-task",
+      "name": "Standard task",
+      "description": "A focused implementation task with explicit acceptance criteria and evidence.",
+      "file": "templates/standard-task.md",
+      "default": true
+    }
+  ],
+  "attribution": [
+    {
+      "name": "OpenAI Codex best practices",
+      "url": "https://developers.openai.com/codex/learn/best-practices",
+      "note": "Goal, context, constraints, validation, and review practices were adapted independently. No endorsement is implied."
+    },
+    {
+      "name": "Plan, Execute, Test, Commit planning loop",
+      "url": "https://www.aihero.dev/my-agents-md-file-for-building-plans-you-actually-read",
+      "note": "The concise planning loop was adapted independently. No endorsement is implied."
+    }
+  ]
+}

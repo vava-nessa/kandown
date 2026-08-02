@@ -1,24 +1,23 @@
 ---
 title: Project instructions
 section: AI agents
-description: Teaching agents your project's specifics through .kandown/instructions.md, and why it beats pasting rules into AGENTS.md.
+description: Teaching agents your project's specifics through .kandown/kandown_work.md, and why it beats pasting rules into AGENTS.md.
 ---
 
-`kandown work` serves the *generic* agent rules: how tasks work, what a report is, how the
-dependency gate behaves. What it cannot know is anything about **your** project.
+`kandown work` compiles Kandown's immutable core, the selected workflow, active skills, and live
+board context. What it cannot infer reliably is anything unique to **your** project.
 
-That is what `.kandown/instructions.md` is for.
+That is what `.kandown/kandown_work.md` is for.
 
 ## The file
 
 ```
 .kandown/
-└── instructions.md
+└── kandown_work.md
 ```
 
-Plain Markdown, created by `kandown init` and empty by default. Whatever you put in it is inserted
-into `kandown work` output as the **project instructions** block, between the base rules and the
-board digest.
+Plain Markdown, optional and empty by default. Whatever you put in it is inserted after global
+instructions and before the final task or board context.
 
 ## What belongs in it
 
@@ -53,7 +52,7 @@ Things an agent cannot infer from your code, and will otherwise get wrong:
 
 ## Why not just put it in AGENTS.md?
 
-You can, and for a lot of projects that is fine. Two reasons to prefer `instructions.md`:
+You can, and for a lot of projects that is fine. Two reasons to prefer `kandown_work.md`:
 
 1. **It reaches every interface.** `kandown work`, the MCP server and the "launch an agent" flow
    all include it. An agent invoked from the board gets your rules whether or not it was told to
@@ -72,6 +71,5 @@ that line. It is what tells an agent the command exists in the first place.
 kandown work
 ```
 
-Run it yourself. It is the exact text your agent receives. If it reads badly to you, it will read
-badly to the model. Trim it in Settings → Agent → `kandown work` output, where the estimated token
-count updates as you toggle blocks.
+Run it yourself. It is the exact text your agent receives. Settings → Agent → Kandown Work shows
+the same compiler preview and lets you edit this file directly.

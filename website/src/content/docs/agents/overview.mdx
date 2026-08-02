@@ -17,35 +17,32 @@ that returns everything, and output you can pipe.
 kandown work
 ```
 
-That prints, as plain Markdown on stdout:
-
-1. **The agent rules**, served from the installed CLI, so they are never a stale copy frozen into
-   your repository at init time.
-2. **Your project instructions**, optional, from `.kandown/instructions.md`. Stack quirks,
-   "always use pnpm", commit-message language, token-efficiency preferences.
-3. **A live board digest**: column counts, tasks per column with blocked-by annotations, and a
-   computed **next actionable task**: unblocked, closest to done, highest priority.
+That prints one deterministic document. Its fixed order starts with Kandown's immutable safety
+core, then real column roles and available commands, enabled extension summaries, the active
+workflow, tracking cadence, additive skills, global and project instructions, and finally a
+targeted task context or compact board digest.
 
 One call, full context.
 
-`kandown init` adds a single line to your `AGENTS.md` / `CLAUDE.md` pointing at it (a pointer, not
+`kandown init` adds a single line to your `AGENTS.md` / `CLAUDE.md` pointing at it, a pointer rather than
 a block of rules copied in to go stale. That distinction is the whole point: rules that live in the
 CLI are upgraded when the CLI is upgraded.
 
 ### Tuning the output
 
-The Settings page has an **Agent → `kandown work` output** configurator:
+Settings has three tabs: **Workflow**, **Skills**, and **Kandown Work**. A project selects one
+exclusive workflow and may add compatible skills. Instruction detail and task-tracking cadence
+are independent. Freely named columns receive semantic roles, and the preview is the exact shared
+compiler output used by the CLI and agent launcher.
 
-- toggle each block on or off,
-- switch to a concise, token-efficient mode,
-- hide individual digest fields,
-- see an estimated token count as you go,
-- or take full control with a raw template using `{{baseRules}}`,
-  `{{projectInstructions}}` and `{{boardDigest}}`.
+The complete compiler budget remains visible across all three tabs. **Read everything** opens a
+full-screen rendered Markdown view of the exact document, with estimated tokens, words and characters. Individual
+workflow protocols, guides, templates, skills and project instructions also show their estimated
+token cost. Tokenization varies by model, so Kandown labels these counts as estimates.
 
 <Callout type="tip">
-If you run agents in a tight loop, the concise mode plus a trimmed digest is usually worth the few
-minutes it takes to configure. The token count updates live, so you can see what you are buying.
+Use `caveman` detail with `economy` tracking for tight loops, or `complete` with `live` tracking
+for high-risk and long-running work. The safety invariants remain present in every mode.
 </Callout>
 
 ## The output contract
@@ -67,11 +64,11 @@ kandown move "$ID" "In progress"
 kandown commit -m "tasks: add auth refactor"
 ```
 
-## No network, ever
+## Offline task work
 
-The task commands and `kandown daemon` never contact the npm registry. They stay instant and work
-offline, which matters in CI, and matters a great deal for an agent making dozens of calls in a
-loop.
+Task commands never contact a registry. Store access is explicit: opening a store or running a
+store/install/update command may fetch approved GitHub metadata. Workflow packages are pinned to
+a release or commit, checksum-verified, validated, and updated only after a displayed diff.
 
 The update check that *does* exist is skipped whenever stdout is not a terminal, so it can never
 fire in an automated context. Set `KANDOWN_NO_UPDATE=1` if you want it gone entirely.

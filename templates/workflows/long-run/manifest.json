@@ -1,0 +1,52 @@
+{
+  "formatVersion": 1,
+  "id": "long-run",
+  "name": "Long Run",
+  "version": "1.0.0",
+  "author": "Kandown",
+  "description": "A resilient workflow for multi-session work using a living execution plan, explicit milestones, durable discoveries and decisions, clean handoffs, and independent verification.",
+  "summary": "Keep long-running work resumable through a living plan, milestone evidence, handoffs, and verification.",
+  "minKandownVersion": "0.46.0",
+  "requiredRoles": ["backlog", "ready", "active", "review", "terminal"],
+  "protocol": "protocol.md",
+  "guide": "guide.md",
+  "boardPreset": "board.json",
+  "taskTemplates": [
+    {
+      "id": "living-plan",
+      "name": "Living execution plan",
+      "description": "Owns the mission, milestones, progress, discoveries, decisions, recovery, and next handoff.",
+      "file": "templates/living-plan.md",
+      "default": true
+    },
+    {
+      "id": "milestone",
+      "name": "Milestone increment",
+      "description": "Delivers one clean, mergeable increment and records a durable session handoff.",
+      "file": "templates/milestone.md"
+    },
+    {
+      "id": "independent-verification",
+      "name": "Independent verification",
+      "description": "Verifies a milestone from a fresh context against its acceptance contract and evidence.",
+      "file": "templates/independent-verification.md"
+    }
+  ],
+  "attribution": [
+    {
+      "name": "OpenAI Codex best practices",
+      "url": "https://developers.openai.com/codex/learn/best-practices",
+      "note": "Durable planning, context, implementation, validation, and review practices were adapted independently. No endorsement is implied."
+    },
+    {
+      "name": "Effective harnesses for long-running agents",
+      "url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+      "note": "Initializer, incremental session, baseline, progress, and handoff practices were adapted independently. No endorsement is implied."
+    },
+    {
+      "name": "Advanced Context Engineering for Coding Agents",
+      "url": "https://www.humanlayer.dev/blog/advanced-context-engineering",
+      "note": "Reviewed artifacts and intentional context boundaries informed the handoff model."
+    }
+  ]
+}

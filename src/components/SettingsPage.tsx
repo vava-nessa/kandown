@@ -336,6 +336,12 @@ export function SettingsPage() {
                   onChange={(next) => {
                     void updateConfig(currentConfig => setConfigValue(currentConfig, 'agent.workOutput', next));
                   }}
+                  onWorkflowChange={(next) => {
+                    void updateConfig(currentConfig => setConfigValue(currentConfig, 'workflow', next));
+                  }}
+                  onColumnMetaChange={(next) => {
+                    void updateConfig(currentConfig => setConfigValue(currentConfig, 'board.columnMeta', next));
+                  }}
                   toast={toast}
                   agentSettings={visibleSettings}
                   getConfigValue={(key) => getConfigValue(config, key)}
@@ -373,4 +379,3 @@ export function SettingsPage() {
     </div>
   );
 }
-

@@ -29,6 +29,7 @@ import { cmdRun } from './commands/run';
 import { cmdAgents } from './commands/agents';
 import { cmdExtension, dispatchContributedCommand } from './lib/extensions-cli';
 import { cmdTheme } from './lib/themes-cli';
+import { cmdWorkflow } from './lib/workflows-cli';
 
 async function cmdTui(screen: 'board' | 'settings', rawArgs: string[]): Promise<void> {
   const args = parseArgs(rawArgs);
@@ -120,6 +121,11 @@ async function main() {
     case 'theme':
     case 'themes':
       await cmdTheme(rest);
+      break;
+
+    case 'workflow':
+    case 'workflows':
+      await cmdWorkflow(rest);
       break;
 
     case 'tasks':

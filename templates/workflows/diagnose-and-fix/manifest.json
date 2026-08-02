@@ -1,0 +1,40 @@
+{
+  "formatVersion": 1,
+  "id": "diagnose-and-fix",
+  "name": "Diagnose & Fix",
+  "version": "1.0.0",
+  "author": "Kandown",
+  "description": "A disciplined defect workflow that reproduces and minimises the problem, tests hypotheses with instrumentation, proves the bug red, applies the smallest fix, and captures regression and manual evidence.",
+  "summary": "Reproduce, minimise, diagnose with evidence, add a red test, fix narrowly, and prove the behavior.",
+  "minKandownVersion": "0.46.0",
+  "requiredRoles": ["backlog", "ready", "active", "review", "terminal"],
+  "protocol": "protocol.md",
+  "guide": "guide.md",
+  "boardPreset": "board.json",
+  "taskTemplates": [
+    {
+      "id": "diagnosis-and-fix",
+      "name": "Diagnosis and fix",
+      "description": "Tracks reproduction, minimisation, hypotheses, instrumentation, red and green proof, and the minimal fix.",
+      "file": "templates/diagnosis-and-fix.md",
+      "default": true
+    }
+  ],
+  "attribution": [
+    {
+      "name": "Agentic manual testing",
+      "url": "https://simonwillison.net/guides/agentic-engineering-patterns/agentic-manual-testing/",
+      "note": "Red and green regression proof, direct execution, and durable manual evidence were adapted independently. No endorsement is implied."
+    },
+    {
+      "name": "Release: llm-coding-agent 0.1a0",
+      "url": "https://simonwillison.net/2026/Jul/2/llm-coding-agent/",
+      "note": "Test-first implementation and sensible commit practices informed the workflow."
+    },
+    {
+      "name": "Kiro bugfix and design-first specs",
+      "url": "https://kiro.dev/blog/specs-bugfix-and-design-first/",
+      "note": "Current, expected, and unchanged behavior boundaries informed the diagnosis template."
+    }
+  ]
+}

@@ -17,7 +17,7 @@
  *  → loadExtensionHost — instantiate + loadAll a host for a project
  *  → runExtensionMoveGates — run task:beforeMove gates, return first block
  *  → dispatchContributedCommand — run a `kandown <ext-cmd>` if one exists
- *  → cmdExtension — `kandown extension <subcommand>` handler
+ *  → cmdExtension — `kandown extension <subcommand>` handler, including agent guides
  * @exports buildHostEnvironment, loadExtensionHost, runExtensionMoveGates, dispatchContributedCommand, cmdExtension
  * @see src/lib/extensions/host.ts
  * @see src/cli/commands/tasks.ts
@@ -130,7 +130,7 @@ export async function cmdExtension(rawArgs: string[]): Promise<void> {
   const sub = args.positional[0];
   const { kandownDir } = ensureKandownDir(rawArgs);
 
-  const usage = `${c.cyan}kandown extension${c.reset} ${c.dim}<list|enable|disable|install|create|purge>${c.reset}`;
+  const usage = `${c.cyan}kandown extension${c.reset} ${c.dim}<list|enable|disable|install|create|guide|purge>${c.reset}`;
 
   if (!sub) {
     log(usage);
@@ -140,6 +140,26 @@ export async function cmdExtension(rawArgs: string[]): Promise<void> {
   const host = await loadExtensionHost(kandownDir);
 
   switch (sub) {
+    case 'guide': {
+      const id = args.positional[1];
+      if (!id) { err('Usage: kandown extension guide <id>'); process.exitCode = 1; return; }
+      const extension = host.get(id);
+      if (!extension) { err(`Extension not found: ${id}`); process.exitCode = 1; return; }
+      const guidance = extension.manifest.agent;
+      if (!guidance) { info(`${id} does not provide agent guidance.`); return; }
+      log(`# ${extension.manifest.name} agent guide\n\n${guidance.summary}`);
+      if (guidance.guide) {
+        const guidePath = resolve(extension.dir, guidance.guide);
+        if (!guidePath.startsWith(`${resolve(extension.dir)}/`) || !existsSync(guidePath)) {
+          err(`Declared guide is unavailable: ${guidance.guide}`);
+          process.exitCode = 1;
+          return;
+        }
+        log(`\n${readFileSync(guidePath, 'utf8')}`);
+      }
+      if (guidance.source) log(`\nSource: ${guidance.source}`);
+      return;
+    }
     case 'list':
     case 'ls': {
       const summary = host.installedSummary();

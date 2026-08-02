@@ -26,8 +26,8 @@ source to edit instead.
 
 ## `bin/` — Published CLI entrypoints — GENERATED, never edit
 
-- **`kandown.js`** · 5821 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
-- **`tui.js`** · 60831 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
+- **`kandown.js`** · 8200 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
+- **`tui.js`** · 62150 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
 
 ## `src/` — Web app root
 
@@ -37,16 +37,16 @@ source to edit instead.
 ## `src/cli/` — CLI + terminal UI (source of the bin/ bundles)
 
 - **`app.tsx`** · 106 lines — Routes to the correct screen based on the `screen` prop and wraps every screen in a fixed-height fullscreen frame.
-- **`cli.ts`** · 207 lines — Entrypoint for the kandown command line tool.
+- **`cli.ts`** · 213 lines — Entrypoint for the kandown command line tool.
 - **`tui.tsx`** · 64 lines — Launches the fixed-screen terminal UI using Ink (React for CLI).
 
 ## `src/cli/commands/` — One-shot CLI commands
 
 - **`agents.ts`** · 72 lines — Lists every agent in the merged catalog (built-ins + `.kandown/agents.json`) with a live `which`-installed checkmark, and can seed/refresh the committed catalog file.
 - **`daemon.ts`** · 85 lines — Handles `kandown daemon <run|start|stop|restart|status|refresh-all>`.
-- **`project.ts`** · 122 lines — Handlers for `kandown init`, `update`/`upgrade`, `doctor`, and `work`.
-- **`run.ts`** · 115 lines — Parses flags, prints the cascade plan (always, so the user sees what is about to happen), then drives the orchestrator in `src/cli/lib/cascade.ts` and prints a per-task summary.
-- **`tasks.ts`** · 330 lines — Handlers for `kandown list/show/create/move/assign/commit` plus `export`/`import`/`projects`.
+- **`project.ts`** · 117 lines — Handlers for `kandown init`, `update`/`upgrade`, `doctor`, and `work`.
+- **`run.ts`** · 117 lines — Parses flags, prints the cascade plan (always, so the user sees what is about to happen), then drives the orchestrator in `src/cli/lib/cascade.ts` and prints a per-task summary.
+- **`tasks.ts`** · 332 lines — Handlers for `kandown list/show/create/move/assign/commit` plus `export`/`import`/`projects`.
 
 ## `src/cli/components/` — Shared Ink components
 
@@ -58,35 +58,45 @@ source to edit instead.
 
 ## `src/cli/lib/` — CLI core — daemon, server, config, board access, MCP
 
+- **`agent-migration.ts`** · 258 lines — Migrates old project and user-level Kandown instruction files without discarding edited content.
 - **`agents-config.ts`** · 218 lines — The committed team contract for which AI coding agents a project supports: their binary, aliases, launch mode, and per-agent extra CLI args, plus project-wide cascade preferences (preferred agent, unassigned-task behaviour, same-session…
-- **`agents.ts`** · 704 lines — Defines the built-in AI coding agents the CLI knows how to launch, merges them with the versioned team catalog (`.kandown/agents.json`), detects which binaries are installed on the current machine, and builds the shell command — plus…
+- **`agents.ts`** · 706 lines — Defines the built-in AI coding agents the CLI knows how to launch, merges them with the versioned team catalog (`.kandown/agents.json`), detects which binaries are installed on the current machine, and builds the shell command — plus…
 - **`atomic-write.ts`** · 27 lines — Crash-safe file writes for the CLI: write to a sibling temp file, then rename over the target.
-- **`board-reader.ts`** · 483 lines — Provides filesystem-based reading and writing of Kandown task files for the CLI.
+- **`board-reader.ts`** · 419 lines — Provides filesystem-based reading and writing of Kandown task files for the CLI.
 - **`browser.ts`** · 26 lines — Resolves and spawns the platform default browser for the given URL.
-- **`cascade.ts`** · 463 lines — The synchronous task-cascade engine.
-- **`cli-shared.ts`** · 354 lines — Argument parsing, deterministic nearest-ancestor project resolution, colored console output, and task-file path helpers shared across every `cmdX` command handler and the TUI launcher in src/cli/cli.ts.
-- **`config.ts`** · 300 lines — Handles loading, saving, and accessing the kandown project configuration.
+- **`cascade.ts`** · 465 lines — The synchronous task-cascade engine.
+- **`cli-shared.ts`** · 356 lines — Argument parsing, deterministic nearest-ancestor project resolution, colored console output, and task-file path helpers shared across every `cmdX` command handler and the TUI launcher in src/cli/cli.ts.
+- **`config.ts`** · 138 lines — Keeps Node file I/O around the canonical shared Kandown config normalizer, plus nested value access used by the terminal settings screen.
 - **`daemon.ts`** · 367 lines — Reads and controls the per-project web daemon from the terminal UI.
-- **`extensions-cli.ts`** · 303 lines — Bridges the runtime-agnostic `ExtensionHost` to the CLI's synchronous board-reader world: builds a `HostEnvironment` from a kandown project, offers a one-call `loadExtensionHost`, runs extension gates around a move, and implements the…
+- **`extensions-cli.ts`** · 323 lines — Bridges the runtime-agnostic `ExtensionHost` to the CLI's synchronous board-reader world: builds a `HostEnvironment` from a kandown project, offers a one-call `loadExtensionHost`, runs extension gates around a move, and implements the…
 - **`extensions-store.ts`** · 156 lines — Fetches the community extensions index from its canonical home (a JSON file in the kandown repo, served via `raw.githubusercontent.com`) and installs extensions by copying their files into the project's `.kandown/extensions/` directory.
 - **`file-watcher.ts`** · 309 lines — Uses chokidar for filesystem events and SHA-256 content hashing to detect actual content changes.
-- **`init.ts`** · 130 lines — Creates .kandown/ configuration, copies singlefile HTML bundle, initializes project-root ./tasks/ with welcome templates, and creates AGENT_KANDOWN.md.
-- **`launcher.ts`** · 289 lines — Orchestrates the full task launch flow: read context, build prompt, assign the task to the chosen agent, auto-move it to In Progress, and spawn the agent.
+- **`init.ts`** · 114 lines — Creates .kandown/ configuration, copies singlefile HTML bundle, initializes project-root ./tasks/ with welcome templates, and installs the managed `kandown work` bootstrap line without generated instruction copies.
+- **`kandown-work.ts`** · 146 lines — Loads the selected built-in or project-local workflow, user instructions, active skill Markdown, task context, and board digest before delegating policy rendering to the shared pure compiler.
+- **`launcher.ts`** · 295 lines — Orchestrates the full task launch flow: read context, build prompt, assign the task to the chosen agent, auto-move it to In Progress, and spawn the agent.
 - **`mcp.ts`** · 240 lines — Exposes Kandown task operations to MCP hosts (Claude Desktop, VSCode, etc.) via JSON-RPC 2.0 over stdin/stdout.
-- **`server.ts`** · 693 lines — Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application.
+- **`server.ts`** · 824 lines — Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application.
+- **`skills.ts`** · 118 lines — Discovers immutable built-in, global, and project data-only Markdown skill packages with deterministic override precedence.
 - **`task-move.ts`** · 198 lines — Runs the shared dependency policy and enabled extension gates before persisting a web move.
 - **`themes-cli.ts`** · 255 lines — Implements the `kandown theme <subcommand>` verb: list installed themes, install from the registry or a pasted URL, scaffold a starter theme, and emit the prefilled GitHub URL the user clicks to propose their theme via a one-click PR.
 - **`themes-meta.ts`** · 15 lines — Centralizes the GitHub coordinates of the community theme registry so the CLI, daemon and web editor all propose themes into the same place.
 - **`themes-store.ts`** · 211 lines — Fetches the community themes index from its canonical home (a JSON file in the kandown repo, served via `raw.githubusercontent.com`) and installs themes by writing a single JSON file into the project's `.kandown/themes/<id>.json`.
 - **`updater.ts`** · 321 lines — Manages npm registry version checks, global package updates, PATH binary resolution, and update throttling.
+- **`workflows-cli.ts`** · 392 lines — Discovers built-in and project-local data-only workflows, exposes list/show/use/validate/pack/import commands, and persists imported capsules without executing package content.
+- **`workflows-store.ts`** · 163 lines — Fetches an approved GitHub-hosted workflow index, installs only pinned and checksum-verified Markdown capsules, records provenance, previews upstream updates as a text diff, and applies them only after confirmation.
 
 ## `src/cli/lib/__tests__/`
 
 - **`agent-assign.spec.ts`** · 140 lines — Covers the three pieces the TUI's `a` key now leans on: - `assignTaskToAgent` writes the canonical agent id into `assignee:`, preserves the rest of the frontmatter and the body, is idempotent, and fails soft on an unknown task.
+- **`agent-migration.spec.ts`** · 238 lines — Exercises the filesystem migration against disposable project and home directories.
 - **`board-reader.spec.ts`** · 125 lines — Spawns bin/kandown.js (the published CLI bundle) in a tmpdir, seeds two tasks with a dependency edge, and asserts that: - `kandown move` succeeds when the dependency is already in the terminal column.
 - **`daemon-self-upgrade.spec.ts`** · 124 lines — The daemon restarts itself when the package on disk moves ahead of the code it is running, so a user with the web UI open never has to be told to run a command.
+- **`kandown-work-cli.spec.ts`** · 48 lines — Proves fresh projects print the exact shared compiler output on stdout and that an explicit task replaces the general board digest.
 - **`resolve-kandown-dir.spec.ts`** · 127 lines — Pins down the three behaviors that prevent bare `kandown` from silently attaching to a foreign project: 1.
+- **`skills.spec.ts`** · 37 lines — Verifies bundled skill discovery plus missing configured skill diagnostics without relying on network or executable package content.
 - **`task-move.spec.ts`** · 264 lines — Exercises the Node move coordinator against real task files and a real jiti-loaded extension.
+- **`workflows-cli.spec.ts`** · 64 lines — Exercises built-in discovery, provenance-preserving local forks, validated Markdown editing, and no-orphan board preset previews against real temporary Kandown projects.
+- **`workflows-store.spec.ts`** · 59 lines — Verifies pinned registry validation, capsule checksum enforcement, immutable install provenance, and explicit update confirmation without network.
 
 ## `src/cli/screens/` — Full-screen TUI views
 
@@ -121,7 +131,7 @@ source to edit instead.
 - **`CommandPalette.tsx`** · 363 lines — Provides global quick actions, view switching, task lookup, and content-aware task search with highlighted snippets.
 - **`ConflictModal.tsx`** · 177 lines — Shown when drawer has unsaved changes AND the underlying task file was modified externally with conflicting changes.
 - **`DependenciesHeaderMenu.tsx`** · 248 lines — Compact hoverable & clickable popover menu in the task header for managing dependencies with autocompletion.
-- **`Drawer.tsx`** · 481 lines — Full-height task detail editor for title, description, subtasks, report, save/close, autosave, and deletion.
+- **`Drawer.tsx`** · 482 lines — Full-height task detail editor for title, description, subtasks, report, save/close, autosave, and deletion.
 - **`EmptyState.tsx`** · 147 lines — Renders the first-run project picker, unsupported-browser copy, and recent project shortcuts before a `.kandown` folder is open.
 - **`ErrorBoundary.tsx`** · 164 lines — Catches render-time errors in the child tree and displays a recoverable fallback instead of letting React unmount the whole app to a blank page.
 - **`ExtensionRuntimeProvider.tsx`** · 171 lines — Hydrates one project-wide extension snapshot for fields, panels and card badges.
@@ -133,11 +143,11 @@ source to edit instead.
 - **`ListView.tsx`** · 523 lines — Renders board columns as vertically stacked horizontal sections, with dense task rows, filter/search previews, task drops between sections, and vertical section reordering.
 - **`LogoSvg.tsx`** · 54 lines — Renders the official Kandown vector logo from logo.svg.
 - **`OnboardingTour.tsx`** · 293 lines — Centered dialog that introduces Kandown the first time a user opens a project, then disappears for good on that project.
-- **`SettingsPage.tsx`** · 377 lines — Dense settings workspace with an iOS-style sidebar, global option search, section navigation, and compact controls for kandown.json.
+- **`SettingsPage.tsx`** · 382 lines — Dense settings workspace with an iOS-style sidebar, global option search, section navigation, and compact controls for kandown.json.
 - **`SubtaskEditor.tsx`** · 164 lines — Reusable checklist editor rendered below a task description in both the mobile drawer and desktop workspace.
 - **`SubtaskItem.tsx`** · 228 lines — Editable row for one markdown checklist item inside the task drawer, with toggle, text edit, enter-to-add, empty-backspace removal, and an expandable panel for per-subtask description and report notes.
 - **`TaskExtensionSurface.tsx`** · 381 lines — Shared mobile and desktop task-editor section for contributed fields and web panels.
-- **`TaskWorkspace.tsx`** · 565 lines — Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…
+- **`TaskWorkspace.tsx`** · 566 lines — Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…
 - **`ThemeCustomizerLauncher.tsx`** · 84 lines — Mounts one floating ThemeCustomizerModal at the app shell (App.tsx) so the editor is reachable from anywhere: the skin picker's "Create Custom Theme" and "Edit" actions, the Themes settings panel's "Open editor" button, and any future…
 - **`ThemeCustomizerModal.tsx`** · 722 lines — Draggable, minimizable, compact panel for editing a KandownTheme JSON.
 - **`ThemePreviewCard.tsx`** · 248 lines — Renders a live preview of a KandownTheme with isolated HSL tokens in a mini 3-column kanban board layout.
@@ -155,7 +165,7 @@ source to edit instead.
 - **`SearchResults.tsx`** · 50 lines — Shown in the sidebar below the section nav once the user types a query; lists matching settings across all sections regardless of which section is currently active.
 - **`SettingRow.tsx`** · 269 lines — Renders one SettingDef as either a dense toggle row, a full-width theme gallery (for the 'skin' type), or one of the secondary controls — select dropdown, number stepper, text input, language picker, theme mode switcher, or notification…
 - **`ThemesPanel.tsx`** · 243 lines — Web UI surface for the community theme store: lists installed themes (from `.kandown/themes/<id>.json` via the daemon), lets the user browse and one-click install entries from the curated community registry, and removes installed themes.
-- **`WorkOutputConfigurator.tsx`** · 846 lines — The Agent section's biggest feature: lets the user shape exactly what `kandown work` prints to an AI agent's terminal — base rules density, project instructions (.kandown/instructions.md), and a live board digest — with a live…
+- **`WorkOutputConfigurator.tsx`** · 525 lines — Provides the Workflow, Skills, and Kandown Work tabs backed by the same validated workflow packages and exact compiler output as the CLI.
 
 ## `src/components/ui/` — Primitive UI components
 
@@ -176,26 +186,28 @@ source to edit instead.
 
 - **`agent-aliases.ts`** · 245 lines — The single source of truth for mapping a free-form assignee string (as typed in a task's `assignee:` frontmatter or quick-add `@token`) to a canonical agent id.
 - **`columnUtils.ts`** · 97 lines — Provides column color maps, color swatches, and tabler icon resolvers shared across Board and List views.
+- **`config.ts`** · 407 lines — Converts unknown kandown.json input into the canonical config contract used by browser and Node adapters.
 - **`demoBackend.ts`** · 393 lines — Implements the Kandown REST API against a `Map` instead of a disk, so the whole web UI can run in a browser tab with no CLI, no server and no storage.
-- **`demoSeed.ts`** · 446 lines — The starting contents of the in-memory project served by {@link ./demoBackend.ts} when the app runs in demo mode on the website.
-- **`dependencies.ts`** · 332 lines — Pure module that owns the single rule for moving tasks between board columns: a task may only enter the configured terminal status (and be archived) when every blocking dependency is resolved.
+- **`demoSeed.ts`** · 440 lines — The starting contents of the in-memory project served by {@link ./demoBackend.ts} when the app runs in demo mode on the website.
+- **`dependencies.ts`** · 333 lines — Pure module that owns the single rule for moving tasks between board columns: a task may only enter the configured terminal status (and be archived) when every blocking dependency is resolved.
 - **`errors.ts`** · 138 lines — Typed errors used across the web UI to distinguish failure modes (browser support, permissions, disk full, corruption, parse errors) instead of relying on generic `Error` + string matching.
-- **`filesystem.ts`** · 1233 lines — Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.
+- **`filesystem.ts`** · 1275 lines — Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.
 - **`githubStars.ts`** · 122 lines — Client-side GitHub star count for the Kandown web app, with a localStorage cache.
 - **`globalErrors.ts`** · 108 lines — Last-resort safety net that catches uncaught JavaScript errors and unhandled promise rejections, logs them, and shows a throttled toast so the user is informed without being spammed.
 - **`grouping.ts`** · 128 lines — Pure functions that group board tasks by shared `[bracket]` tags or `#hashtag` markers in their titles.
+- **`kandown-work.ts`** · 175 lines — Compiles the immutable Kandown safety core, project column semantics, extensions, workflow, tracking policy, skills, user instructions, and task or board context into one deterministic agent instruction document.
 - **`motion-presets.ts`** · 81 lines — Single source of truth for every `motion.*` and `AnimatePresence` in the project.
 - **`notifications.ts`** · 137 lines — Centralizes Web Notification permission handling and in-page sound playback for task-file watcher events.
-- **`parser.ts`** · 451 lines — Parses Kandown task markdown into typed structures, builds board columns from task frontmatter, extracts editable subtasks, reinjects them on save, and performs lightweight cached task-content search for the web UI.
+- **`parser.ts`** · 452 lines — Parses Kandown task markdown into typed structures, builds board columns from task frontmatter, extracts editable subtasks, reinjects them on save, and performs lightweight cached task-content search for the web UI.
 - **`quick-add-parser.ts`** · 94 lines — Parses inline metadata annotations in task title strings: - `p1` / `p2` / `p3` / `p4` → priority (`P1`, `P2`, `P3`, `P4`) - `#tag` → tags array (`['tag']`) - `@assignee` → assignee string (`'assignee'`) - `due:friday` / `due:today` /…
 - **`retry.ts`** · 65 lines — Small, dependency-free helper that retries a fallible async operation a bounded number of times, only when the error is transient.
 - **`serializer.ts`** · 73 lines — Converts task frontmatter/body data back into Kandown's plain markdown task file format.
-- **`store.ts`** · 1997 lines — Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.
+- **`store.ts`** · 1998 lines — Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.
 - **`task-meta.ts`** · 129 lines — Owns the `updated:` frontmatter field — the single source of truth for "when did this task last change" — and the compact relative-age formatting the TUI list view renders in its `Age` column.
 - **`task-title-category.ts`** · 52 lines — Extracts single leading bracket category tags (e.g.
 - **`task-url.ts`** · 65 lines — Parses and writes deep-link URLs for task drawers.
 - **`theme.ts`** · 325 lines — Manages customizable JSON themes, appearance tokens (--radius, --shadow-*, --font-display, --motion-scale), curated presets (Vercel, Linear, Claude, Apple, Stripe, Paper, Catppuccin, Terminal), and dynamic inheritance.
-- **`types.ts`** · 416 lines — Defines the board, task, config, filter, search, and appearance types used by the Kandown web UI and persistence layer.
+- **`types.ts`** · 482 lines — Defines the board, task, config, filter, search, and appearance contracts shared by the Kandown web UI, CLI, TUI, and persistence adapters.
 - **`utils.ts`** · 24 lines — Provides `cn`, the single utility used across every web component to compose conditional class names.
 - **`version.ts`** · 9 lines · ⚠️ **GENERATED** by scripts/inject-version.js — edit `package.json` instead
 - **`watcher.ts`** · 312 lines — Watches project state through content-hashed File System Access polling or daemon SSE.
@@ -204,23 +216,28 @@ source to edit instead.
 
 - **`browser-extension-runtime.spec.ts`** · 207 lines — Uses a minimal in-memory File System Access implementation to prove project-local discovery, bundled index.js activation, typed badge rendering, web module loading, failure isolation and persistent quarantine.
 - **`code-block-tokens.spec.ts`** · 157 lines — Locks the four invariants that keep markdown code blocks readable on every theme: 1.
+- **`config.spec.ts`** · 153 lines — Locks canonical defaults, legacy instruction density migration, malformed input handling, semantic column lookup, and optional agent config preservation into one suite shared by browser and CLI adapters.
 - **`demoBackend.spec.ts`** · 72 lines — Locks the in-memory backend to the managed move protocol.
 - **`dependencies.spec.ts`** · 254 lines — Vitest suite that locks the policy decisions into tests (see docs/ARCHITECTURE.md invariant #2).
+- **`extension-agent-guidance.spec.ts`** · 23 lines — Locks concise summary, safe guide path, and optional source validation so malformed extension guidance cannot break Kandown Work.
 - **`extensions-host.spec.ts`** · 275 lines — Vitest suite that loads real extensions from a temp project dir via jiti and locks the host contract: discovery, restricted mode + project trust, gate composition with block reasons, command dispatch, and the core invariant that a…
+- **`kandown-work.spec.ts`** · 63 lines — Verifies immutable-core density, fixed nine-layer ordering, tracking cadence, semantic column placeholders, and structured diagnostics.
 - **`parser-serializer.spec.ts`** · 159 lines — Vitest suite locking the `parseSimpleYaml` / `parseTaskFile` ↔ `serializeTaskFile` round-trip.
+- **`workflow-skills.spec.ts`** · 93 lines — Locks data-only skill validation, compatibility filtering, and semantic role diagnostics for additive workflow guidance.
+- **`workflows.spec.ts`** · 280 lines — Locks the pure version 1 workflow contract across valid source folders, malformed manifests, portable path security, duplicate template declarations, loaded-package validation, Markdown capsule round trips, strict section parsing,…
 
 ## `src/lib/extensions/`
 
 - **`browser-runtime.ts`** · 466 lines — Loads project-local bundled extension entries through Blob URLs for standalone File System Access mode, registers browser-safe fields, badges and panels, and computes card badges without a daemon.
 - **`host.ts`** · 524 lines — The orchestrator that loads extensions, manages their health, and dispatches contributions (gates, syncs, commands, lifecycle) with per-contribution fail policies.
 - **`loader.ts`** · 87 lines — Scans the global (`~/.kandown/extensions`) and project (`.kandown/extensions`) locations for extension directories, reading and parsing each one's `manifest.json`.
-- **`manifest.ts`** · 77 lines — Validates a raw JSON object into a typed `ExtensionManifest`, and checks version compatibility against the running kandown.
+- **`manifest.ts`** · 92 lines — Validates a raw JSON object into a typed `ExtensionManifest`, and checks version compatibility against the running kandown.
 - **`namespace.ts`** · 102 lines — Pure read/write access to the opaque `plugins.<extId>.*` frontmatter namespace.
 - **`permissions.ts`** · 29 lines — A tiny capability matcher.
 - **`registry.ts`** · 112 lines — The in-memory store of everything loaded extensions contribute: fields, web panels, commands, gates, syncs and generic lifecycle handlers.
 - **`state.ts`** · 115 lines — Persists per-project extension runtime state: the ids the user explicitly enabled plus consecutive failure records used by the quarantine policy.
 - **`trust.ts`** · 58 lines — The security gate that decides which extensions may load.
-- **`types.ts`** · 239 lines — The single source of truth for the extension surface: the manifest shape, the contribution-point definitions, the lifecycle events, the context handed to handlers, and the `KandownExtensionAPI` an extension factory receives.
+- **`types.ts`** · 247 lines — The single source of truth for the extension surface: the manifest shape, the contribution-point definitions, the lifecycle events, the context handed to handlers, and the `KandownExtensionAPI` an extension factory receives.
 
 ## `src/lib/i18n/` — Internationalisation setup
 
@@ -231,7 +248,7 @@ source to edit instead.
 - **`agentSearchSlice.ts`** · 127 lines — Lazy content-loading for search (>10 tasks defers full reads until search is used), the CLI daemon's optional "send to agent" hook, and resolving a drawer edit-conflict flagged by the file watcher.
 - **`boardSlice.ts`** · 581 lines — Column CRUD, task move/reorder/create/delete/archive, task selection, and bulk operations.
 - **`drawerSlice.ts`** · 189 lines — Opening/closing the task detail drawer, editing its in-memory data, saving (full or metadata-only autosave), and the unsaved-edits recovery buffer used when the drawer is force-closed before a save completes (t110).
-- **`helpers.ts`** · 220 lines — Pure/async helpers plus the module-level mutable state (toast counter, notification snapshots, watcher timers, in-flight bulk-mutation guard) that multiple store slices need to read or write.
+- **`helpers.ts`** · 221 lines — Pure/async helpers plus the module-level mutable state (toast counter, notification snapshots, watcher timers, in-flight bulk-mutation guard) that multiple store slices need to read or write.
 - **`projectSlice.ts`** · 401 lines — Opening a project (file-picker or recent), server-mode auto-open, config load/update, and the full board reload.
 - **`types.ts`** · 190 lines — State shape and supporting interfaces used across every store slice.
 - **`uiSlice.ts`** · 72 lines — View mode/density (persisted to localStorage), filters, the command palette / cheatsheet open flags, current page routing, and the toast queue used across every other slice for user-facing feedback.
@@ -242,6 +259,16 @@ source to edit instead.
 - **`index.ts`** · 23 lines — Aggregates every bundled theme preset into the THEME_PRESETS array consumed by the theme engine (src/lib/theme.ts).
 - **`kandown.ts`** · 57 lines — Kandown's own appearance/color-token preset, built from the brand palette published on the website: #88E138 brand lime (logo arrow, primary actions), #7AD12A the contrast-adjusted lime used on light backgrounds, #0CE931 the hero/WebGL…
 - **`shared.ts`** · 27 lines — Status colors (destructive/success/warning) and grid tokens shared by every theme preset, spread into each preset's light/dark token maps.
+
+## `src/lib/workflows/`
+
+- **`builtin-skills.ts`** · 36 lines — Loads bundled data-only skill source files through Vite raw imports and validates them with the same pure loader used by the Node runtime.
+- **`builtins.ts`** · 35 lines — Bundles the same readable templates/workflows source packages shipped to the CLI and validates them with the shared pure loader for standalone File System Access mode.
+- **`capsule.ts`** · 345 lines — Exports and imports a complete workflow package as one readable Markdown document with YAML frontmatter and length-delimited Kandown sections.
+- **`index.ts`** · 39 lines — Re-exports the pure version 1 workflow package contracts, validation and source-map loader APIs, plus portable Markdown capsule import and export.
+- **`skills.ts`** · 70 lines — Validates additive Markdown skill manifests with optional workflow compatibility and semantic column-role requirements.
+- **`types.ts`** · 124 lines — Defines Kandown's version 1 data-only workflow manifest, loaded package, board-role, source-file, and typed validation result shapes.
+- **`validation.ts`** · 623 lines — Validates raw version 1 workflow manifests, resolves complete data-only packages from caller-provided file maps, and validates already loaded packages without throwing.
 
 ## `src/types/` — Ambient type declarations
 
@@ -256,12 +283,11 @@ source to edit instead.
 - **`inject-version.js`** · 31 lines — Writes `src/lib/version.ts` with the current package version.
 - **`install-hooks.js`** · 65 lines — Points this repository's git at the versioned `.githooks/` directory by setting `core.hooksPath`, and makes sure every hook in it is executable.
 - **`migrate-md-blocknote.js`** · 148 lines — Reads every task .md file, passes the body through BlockNote's parse → serialize pipeline, and writes back if the result differs.
-- **`sync-agent-kandown.js`** · 26 lines — Copies templates/AGENT_KANDOWN.md to project root.
 
 ---
 
 ## Coverage
 
-160 of 160 eligible files carry an `@description` header.
+183 of 183 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

@@ -1,12 +1,12 @@
 /**
  * @file Shared domain types
  * @description Defines the board, task, config, filter, search, and appearance
- * types used by the Kandown web UI and persistence layer.
+ * contracts shared by the Kandown web UI, CLI, TUI, and persistence adapters.
  *
- * 📖 Keep cross-module contracts here so parser, serializer, store, and React
- * components agree on the same task-file-backed domain model.
+ * 📖 Keep cross-module contracts here so parser, serializer, store, React, and
+ * Node entry points agree on the same task-file-backed domain model.
  *
- * @exports Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, KandownConfig, DEFAULT_COLUMNS, DEFAULT_CONFIG
+ * @exports Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, ColumnRole, ColumnAgentMeta, WorkflowSelectionConfig, TaskTrackingCadence, WorkOutputDetailMode, TuiConfig, AgentsConfig, KandownConfig, DEFAULT_COLUMNS, DEFAULT_WORK_OUTPUT, DEFAULT_COLUMN_META, DEFAULT_CONFIG
  * @see src/lib/parser.ts
  * @see src/lib/store.ts
  */
@@ -236,16 +236,25 @@ export interface KandownTheme {
 
 export type WorkOutputMode = 'blocks' | 'raw';
 export type WorkOutputBaseRulesMode = 'verbose' | 'optimized' | 'caveman' | 'full' | 'concise';
+export type WorkOutputDetailMode = 'caveman' | 'standard' | 'complete';
 export type WorkOutputSectionId = 'baseRules' | 'projectInstructions' | 'boardDigest';
+export type TaskTrackingCadence = 'live' | 'balanced' | 'economy';
+export type ColumnRole = 'backlog' | 'ready' | 'active' | 'review' | 'terminal' | 'custom';
+
+export interface ColumnAgentMeta {
+  role: ColumnRole;
+  instructions?: string;
+}
+
+export interface WorkflowSelectionConfig {
+  active: string;
+  skills: string[];
+  trackingCadence: TaskTrackingCadence;
+}
 
 export interface WorkOutputConfig {
-  mode: WorkOutputMode;
-  includeBaseRules: boolean;
-  baseRulesMode: WorkOutputBaseRulesMode;
-  includeProjectInstructions: boolean;
-  includeBoardDigest: boolean;
-  sectionOrder: WorkOutputSectionId[];
-  rawTemplate: string;
+  /** 📖 Canonical instruction density consumed by the workflow compiler. */
+  detailMode: WorkOutputDetailMode;
   boardDigest: {
     showColumnCounts: boolean;
     showTasks: boolean;
@@ -289,6 +298,27 @@ export type ColumnColor =
   | 'black'
   | 'blackTransparent';
 
+export interface TuiConfig {
+  defaultView: 'list' | 'board';
+  showDetailPane: boolean;
+  listSort: 'status' | 'age' | 'priority' | 'id';
+  listSortDir: 'asc' | 'desc';
+  columns: {
+    age: boolean;
+    status: boolean;
+    priority: boolean;
+    owner: boolean;
+    deps: boolean;
+    tags: boolean;
+    assignee: boolean;
+  };
+}
+
+export interface AgentsConfig {
+  preferred?: string;
+  extraArgs?: Record<string, string[]>;
+}
+
 export interface KandownConfig {
   ui: {
     language: string;
@@ -309,19 +339,20 @@ export interface KandownConfig {
   agent: {
     suggestFollowUp: boolean;
     maxSuggestions: number;
-    /** 📖 Project-scoped renderer settings for `kandown work`. The actual
-     * editable prose lives in `.kandown/instructions.md`; this config controls
-     * which generated blocks are printed and optionally replaces the full
-     * output with a raw template using `{{baseRules}}`, `{{projectInstructions}}`,
-     * and `{{boardDigest}}` placeholders. */
+    /** 📖 Project-scoped compiler settings for `kandown work`. The actual
+     * editable prose lives in `.kandown/kandown_work.md`. Historical raw-mode,
+     * section-order, and core-removal fields are accepted during normalization
+     * but never enter this canonical contract or affect the immutable core. */
     workOutput: WorkOutputConfig;
   };
+  workflow: WorkflowSelectionConfig;
   board: {
     columns: string[];
     defaultPriority: string;
     defaultOwnerType: 'human' | 'ai';
     columnColors?: Record<string, ColumnColor>;
     wipLimits?: Record<string, number>;
+    columnMeta: Record<string, ColumnAgentMeta>;
     /** 📖 Default visual state for groups of tasks sharing the same `[bracket]`
      * or `#hashtag` title tag. `'collapsed'` shows them as a single stacked
      * summary card (click to expand), `'expanded'` always renders the
@@ -329,6 +360,7 @@ export interface KandownConfig {
      * value so match highlights stay visible. */
     stackDefaultState: 'collapsed' | 'expanded';
   };
+  tui: TuiConfig;
   fields: {
     priority: boolean;
     assignee: boolean;
@@ -349,23 +381,17 @@ export interface KandownConfig {
   };
   /** 📖 Extension system settings. `restricted` defaults to true (the Obsidian
    *  model): community/global extensions load disabled until the user enables
-   *  them. See docs/EXTENSIONS.md § "Security model". Optional so older config
-   *  files without it still parse. */
-  extensions?: {
-    restricted?: boolean;
+   *  them. See docs/EXTENSIONS.md § "Security model". */
+  extensions: {
+    restricted: boolean;
   };
+  agents?: AgentsConfig;
 }
 
 export const DEFAULT_COLUMNS = ['Backlog', 'Todo', 'In Progress', 'Review', 'Done'];
 
 export const DEFAULT_WORK_OUTPUT: WorkOutputConfig = {
-  mode: 'blocks',
-  includeBaseRules: true,
-  baseRulesMode: 'full',
-  includeProjectInstructions: true,
-  includeBoardDigest: true,
-  sectionOrder: ['baseRules', 'projectInstructions', 'boardDigest'],
-  rawTemplate: '{{baseRules}}\n\n---\n\n{{projectInstructions}}\n\n---\n\n{{boardDigest}}',
+  detailMode: 'complete',
   boardDigest: {
     showColumnCounts: true,
     showTasks: true,
@@ -376,9 +402,33 @@ export const DEFAULT_WORK_OUTPUT: WorkOutputConfig = {
   },
 };
 
+export const DEFAULT_COLUMN_META: Record<string, ColumnAgentMeta> = {
+  Backlog: {
+    role: 'backlog',
+    instructions: 'Capture unscheduled work here. Keep enough context to decide whether it belongs in this workflow.',
+  },
+  Todo: {
+    role: 'ready',
+    instructions: 'Only move work here when its required inputs, acceptance criteria, dependencies, and approvals are ready.',
+  },
+  'In Progress': {
+    role: 'active',
+    instructions: 'Execute the current workflow phase, update the checklist as work happens, and record blockers immediately.',
+  },
+  Review: {
+    role: 'review',
+    instructions: 'Require completed verification, reproducible evidence, and the workflow-specific review gate before acceptance.',
+  },
+  Done: {
+    role: 'terminal',
+    instructions: 'Only accept work whose criteria and required review are satisfied. Preserve the completion report and evidence.',
+  },
+};
+
 export const DEFAULT_CONFIG: KandownConfig = {
   ui: { language: 'en', theme: 'auto', skin: 'kandown', font: 'inter', background: 'solid', onboardingCompleted: false },
   agent: { suggestFollowUp: false, maxSuggestions: 3, workOutput: DEFAULT_WORK_OUTPUT },
+  workflow: { active: 'kandown-standard', skills: [], trackingCadence: 'balanced' },
   board: {
     columns: DEFAULT_COLUMNS,
     defaultPriority: 'P3',
@@ -390,7 +440,23 @@ export const DEFAULT_CONFIG: KandownConfig = {
       review: 'violet',
       done: 'green',
     },
+    columnMeta: DEFAULT_COLUMN_META,
     stackDefaultState: 'collapsed',
+  },
+  tui: {
+    defaultView: 'list',
+    showDetailPane: true,
+    listSort: 'status',
+    listSortDir: 'asc',
+    columns: {
+      age: true,
+      status: true,
+      priority: true,
+      owner: true,
+      deps: true,
+      tags: false,
+      assignee: true,
+    },
   },
   fields: {
     priority: false,

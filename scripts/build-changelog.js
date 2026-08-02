@@ -42,8 +42,8 @@ const PKG_ROOT = resolve(fileURLToPath(new URL('.', import.meta.url)), '..');
 const DIR = join(PKG_ROOT, 'changelogs');
 const OUT = join(PKG_ROOT, 'CHANGELOG.md');
 
-/** 📖 `# 0.36.1 — 2026-07-26 — "Header Search"` or `# Unreleased — "Two Views"`. */
-const RE_TITLE = /^#\s+(Unreleased|\d+\.\d+\.\d+)(?:\s+—\s+(\d{4}-\d{2}-\d{2}))?\s+—\s+"(.+)"\s*$/;
+/** 📖 Accepts legacy headings with U+2014 and new headings with plain hyphens. */
+const RE_TITLE = /^#\s+(Unreleased|\d+\.\d+\.\d+)(?:\s+(?:\u2014|-)\s+(\d{4}-\d{2}-\d{2}))?\s+(?:\u2014|-)\s+"(.+)"\s*$/;
 
 /** 📖 The change-type sections, in the order they are displayed. */
 const TYPES = ['Added', 'Fixed', 'Changed', 'Removed', 'Cleaned'];
@@ -64,7 +64,7 @@ function parseVersionFile(filename) {
   if (!match) {
     throw new Error(
       `changelogs/${filename}: first heading must look like ` +
-      `'# 0.36.1 — 2026-07-26 — "Name"', got ${title ? `'${title}'` : 'no H1'}`
+      `'# 0.36.1 - 2026-07-26 - "Name"', got ${title ? `'${title}'` : 'no H1'}`
     );
   }
   const [, version, date, name] = match;

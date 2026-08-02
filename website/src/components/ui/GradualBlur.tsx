@@ -46,6 +46,8 @@ export type GradualBlurProps = PropsWithChildren<{
     | 'page-footer';
   gpuOptimized?: boolean;
   hoverIntensity?: number;
+  hoverFade?: boolean;
+  hoverDuration?: string;
   target?: 'parent' | 'page';
 
   onAnimationComplete?: () => void;
@@ -61,11 +63,13 @@ const DEFAULT_CONFIG: Partial<GradualBlurProps> = {
   exponential: false,
   zIndex: 1000,
   animated: false,
-  duration: '0.3s',
-  easing: 'ease-out',
+  duration: '0.5s',
+  easing: 'ease-in-out',
   opacity: 1,
   curve: 'linear',
   responsive: false,
+  hoverFade: false,
+  hoverDuration: '0.5s',
   target: 'parent',
   className: '',
   style: {}
@@ -84,7 +88,7 @@ const PRESETS: Record<string, Partial<GradualBlurProps>> = {
   sharp: { height: '5rem', curve: 'linear', divCount: 4 },
 
   header: { position: 'top', height: '8rem', curve: 'ease-out' },
-  footer: { position: 'bottom', height: '8rem', curve: 'ease-out' },
+  footer: { position: 'bottom', height: '8rem', curve: 'ease-out', hoverFade: true },
   sidebar: { position: 'left', height: '6rem', strength: 2.5 },
 
   'page-header': {
@@ -97,7 +101,8 @@ const PRESETS: Record<string, Partial<GradualBlurProps>> = {
     position: 'bottom',
     height: '10rem',
     target: 'page',
-    strength: 3
+    strength: 3,
+    hoverFade: true
   }
 };
 
@@ -222,10 +227,11 @@ export const GradualBlur: React.FC<GradualBlurProps> = props => {
         maskImage: `linear-gradient(${direction}, ${gradient})`,
         WebkitMaskImage: `linear-gradient(${direction}, ${gradient})`,
         backdropFilter: `blur(${blurValue.toFixed(3)}rem)`,
+        WebkitBackdropFilter: `blur(${blurValue.toFixed(3)}rem)`,
         opacity: config.opacity,
         transition:
           config.animated && config.animated !== 'scroll'
-            ? `backdrop-filter ${config.duration} ${config.easing}`
+            ? `backdrop-filter ${config.duration} ${config.easing}, -webkit-backdrop-filter ${config.duration} ${config.easing}`
             : undefined
       };
 
@@ -235,16 +241,45 @@ export const GradualBlur: React.FC<GradualBlurProps> = props => {
     return divs;
   }, [config, isHovered]);
 
+  useEffect(() => {
+    if (!config.hoverFade) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const isInside =
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom;
+      setIsHovered(isInside);
+    };
+
+    const handleMouseLeaveWindow = () => {
+      setIsHovered(false);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseleave', handleMouseLeaveWindow);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseleave', handleMouseLeaveWindow);
+    };
+  }, [config.hoverFade]);
+
   const containerStyle: CSSProperties = useMemo(() => {
     const isVertical = ['top', 'bottom'].includes(config.position);
     const isHorizontal = ['left', 'right'].includes(config.position);
     const isPageTarget = config.target === 'page';
 
+    const fadeDuration = config.hoverDuration || '0.5s';
+
     const baseStyle: CSSProperties = {
       position: isPageTarget ? 'fixed' : 'absolute',
-      pointerEvents: config.hoverIntensity ? 'auto' : 'none',
-      opacity: isVisible ? 1 : 0,
-      transition: config.animated ? `opacity ${config.duration} ${config.easing}` : undefined,
+      pointerEvents: config.hoverFade ? (isHovered ? 'none' : 'auto') : 'none',
+      opacity: !isVisible ? 0 : isHovered && config.hoverFade ? 0 : config.opacity,
+      transition: `opacity ${fadeDuration} ${config.easing || 'ease-in-out'}`,
       zIndex: isPageTarget ? config.zIndex + 100 : config.zIndex,
       ...config.style
     };
@@ -264,9 +299,9 @@ export const GradualBlur: React.FC<GradualBlurProps> = props => {
     }
 
     return baseStyle;
-  }, [config, responsiveHeight, responsiveWidth, isVisible]);
+  }, [config, responsiveHeight, responsiveWidth, isVisible, isHovered]);
 
-  const { hoverIntensity, animated, onAnimationComplete, duration } = config as any;
+  const { animated, onAnimationComplete, duration } = config as any;
   useEffect(() => {
     if (isVisible && animated === 'scroll' && onAnimationComplete) {
       const t = setTimeout(() => onAnimationComplete(), parseFloat(duration) * 1000);
@@ -279,10 +314,10 @@ export const GradualBlur: React.FC<GradualBlurProps> = props => {
       ref={containerRef}
       className={`gradual-blur relative isolate ${config.target === 'page' ? 'gradual-blur-page' : 'gradual-blur-parent'} ${config.className}`}
       style={containerStyle}
-      onMouseEnter={hoverIntensity ? () => setIsHovered(true) : undefined}
-      onMouseLeave={hoverIntensity ? () => setIsHovered(false) : undefined}
+      onMouseEnter={config.hoverFade ? () => setIsHovered(true) : undefined}
+      onMouseLeave={config.hoverFade ? () => setIsHovered(false) : undefined}
     >
-      <div className="relative w-full h-full">{blurDivs}</div>
+      <div className="relative w-full h-full pointer-events-none">{blurDivs}</div>
       {props.children && <div className="relative">{props.children}</div>}
     </div>
   );
@@ -301,7 +336,7 @@ const injectStyles = () => {
   if (document.getElementById(id)) return;
   const el = document.createElement('style');
   el.id = id;
-  el.textContent = `.gradual-blur{pointer-events:none;transition:opacity .3s ease-out}.gradual-blur-inner{pointer-events:none}`;
+  el.textContent = `.gradual-blur{pointer-events:none;will-change:opacity}.gradual-blur-inner{pointer-events:none}`;
   document.head.appendChild(el);
 };
 if (typeof document !== 'undefined') {

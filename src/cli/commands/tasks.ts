@@ -29,6 +29,7 @@ import {
 
 export function cmdList(rawArgs: string[]) {
   const { kandownDir } = ensureKandownDir(rawArgs);
+  const defaultStatus = loadConfig(kandownDir).board.columns[0] || 'Backlog';
   const args = taskParseArgs(rawArgs);
   const includeArchived = args.flags.archived === true;
   const statusFilter = stringFlag(args.flags, 'status')?.toLowerCase() ?? null;
@@ -42,7 +43,7 @@ export function cmdList(rawArgs: string[]) {
     rows.push({
       id,
       title: task.frontmatter.title || id,
-      status: task.frontmatter.status || 'Backlog',
+      status: task.frontmatter.status || defaultStatus,
       priority: task.frontmatter.priority || '',
       assignee: task.frontmatter.assignee || '',
       tags: Array.isArray(task.frontmatter.tags) ? task.frontmatter.tags : [],
@@ -59,7 +60,7 @@ export function cmdList(rawArgs: string[]) {
         rows.push({
           id,
           title: parsed.frontmatter.title || id,
-          status: `${parsed.frontmatter.status || 'Backlog'} (archived)`,
+          status: `${parsed.frontmatter.status || defaultStatus} (archived)`,
           priority: parsed.frontmatter.priority || '',
           assignee: parsed.frontmatter.assignee || '',
           tags: Array.isArray(parsed.frontmatter.tags) ? parsed.frontmatter.tags : [],
@@ -288,6 +289,7 @@ export function cmdImport(rawArgs: string[]): void {
     process.exit(1);
   }
 
+  const defaultStatus = loadConfig(kandownDir).board.columns[0] || 'Backlog';
   const rows: Array<Record<string, unknown>> = [];
   if (Array.isArray(raw)) {
     rows.push(...raw.filter(value => typeof value === 'object' && value !== null) as Array<Record<string, unknown>>);
@@ -297,7 +299,7 @@ export function cmdImport(rawArgs: string[]): void {
       const col = column as { name?: unknown; tasks?: unknown };
       if (!Array.isArray(col.tasks)) continue;
       for (const task of col.tasks) {
-        if (typeof task === 'object' && task !== null) rows.push({ ...(task as Record<string, unknown>), status: String(col.name || 'Backlog') });
+        if (typeof task === 'object' && task !== null) rows.push({ ...(task as Record<string, unknown>), status: String(col.name || defaultStatus) });
       }
     }
   }
@@ -317,7 +319,7 @@ export function cmdImport(rawArgs: string[]): void {
     const fm: TaskFrontmatter = {
       id,
       title: typeof row.title === 'string' && row.title ? row.title : id,
-      status: typeof row.status === 'string' && row.status ? row.status.replace(/ \(archived\)$/i, '') : 'Backlog',
+      status: typeof row.status === 'string' && row.status ? row.status.replace(/ \(archived\)$/i, '') : defaultStatus,
     };
     if (typeof row.priority === 'string') fm.priority = row.priority;
     if (typeof row.assignee === 'string') fm.assignee = row.assignee;

@@ -53,13 +53,7 @@ export const DEMO_CONFIG_JSON = JSON.stringify(
       suggestFollowUp: true,
       maxSuggestions: 2,
       workOutput: {
-        mode: 'blocks',
-        includeBaseRules: true,
-        baseRulesMode: 'full',
-        includeProjectInstructions: true,
-        includeBoardDigest: true,
-        sectionOrder: ['baseRules', 'projectInstructions', 'boardDigest'],
-        rawTemplate: '{{baseRules}}\n\n---\n\n{{projectInstructions}}\n\n---\n\n{{boardDigest}}',
+        detailMode: 'complete',
         boardDigest: {
           showColumnCounts: true,
           showTasks: true,
@@ -99,7 +93,7 @@ export const DEMO_CONFIG_JSON = JSON.stringify(
   2,
 );
 
-/** 📖 `.kandown/instructions.md` — the project-scoped prose `kandown work` prints to an agent. */
+/** 📖 `.kandown/kandown_work.md`: project prose compiled into `kandown work`. */
 export const DEMO_INSTRUCTIONS = `# Project instructions
 
 This sample board is a hands-on guide to Kandown. It runs entirely in your

@@ -22,6 +22,8 @@
 import { resolveKandownDir, parseArgs, c, log, info, success, err } from '../lib/cli-shared.js';
 import { buildCascadePlan, runCascade, type CascadeOptions } from '../lib/cascade.js';
 import { loadCatalog, isAgentInstalled } from '../lib/agents.js';
+import { loadConfig } from '../lib/config.js';
+import { terminalStatus } from '../../lib/dependencies.js';
 
 export async function cmdRun(rawArgs: string[]): Promise<void> {
   const args = parseArgs(rawArgs);
@@ -105,7 +107,7 @@ export async function cmdRun(rawArgs: string[]): Promise<void> {
   log('');
 
   if (result.incomplete.length === 0 && result.completed.length > 0) {
-    success(`All ${result.completed.length} task(s) reached Done.`);
+    success(`All ${result.completed.length} task(s) reached ${terminalStatus(loadConfig(kandownDir))}.`);
   } else if (result.completed.length > 0) {
     info(`${result.completed.length} done, ${result.incomplete.length} not done. Chain stopped at the first non-done task.`);
   } else {

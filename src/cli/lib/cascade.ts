@@ -38,6 +38,7 @@
 import { listTaskIds, readTask } from './board-reader.js';
 import { loadCatalog, resolveAgentEntry, isAgentInstalled, getCascadeConfig, warmupDetection, getAgentById } from './agents.js';
 import { runAgentSync } from './launcher.js';
+import { resolveColumnNameByRole } from '../../lib/config.js';
 import { resolveDependencyStatus, unresolvedDependencyIds, terminalStatus } from '../../lib/dependencies.js';
 import { loadConfig, type KandownConfig } from './config.js';
 import type { ParsedTask } from '../../lib/types.js';
@@ -179,16 +180,17 @@ export function buildCascadePlan(kandownDir: string, opts: CascadeOptions = {}):
   const scope = opts.startTaskId ? downstreamClosure(all, opts.startTaskId) : null;
 
   const resolution = resolveDependencyStatus(all, cfg);
+  const activeStatus = resolveColumnNameByRole(cfg, 'active');
 
   // Candidates: non-terminal, in scope, not already In Progress (unless resume).
   const candidates: CascadeTask[] = [];
   for (const t of all) {
     const id = t.frontmatter.id || '';
     if (scope && !scope.has(id)) continue;
-    const status = (t.frontmatter.status || 'Backlog');
+    const status = (t.frontmatter.status || cfg.board.columns[0]);
     if (reachedTerminal(status, cfg)) continue;
-    if (status.toLowerCase() === 'in progress' && !opts.includeInProgress) continue;
-    candidates.push(toCascadeTask(t));
+    if (activeStatus && status.toLowerCase() === activeStatus.toLowerCase() && !opts.includeInProgress) continue;
+    candidates.push(toCascadeTask(t, cfg.board.columns[0]));
   }
 
   const candidateIds = new Set(candidates.map(c => c.id));
@@ -267,11 +269,11 @@ function getBinFor(agentId: string, kandownDir: string): string {
 }
 
 /** 📖 Maps a ParsedTask to the slim CascadeTask shape. */
-function toCascadeTask(t: ParsedTask): CascadeTask {
+function toCascadeTask(t: ParsedTask, fallbackStatus: string): CascadeTask {
   return {
     id: t.frontmatter.id || '',
     title: typeof t.frontmatter.title === 'string' ? t.frontmatter.title : '',
-    status: (t.frontmatter.status || 'Backlog'),
+    status: (t.frontmatter.status || fallbackStatus),
     ...(typeof t.frontmatter.assignee === 'string' ? { assignee: t.frontmatter.assignee } : {}),
     ...(typeof t.frontmatter.priority === 'string' ? { priority: t.frontmatter.priority } : {}),
     dependsOn: Array.isArray(t.frontmatter.depends_on) ? t.frontmatter.depends_on.filter((d): d is string => typeof d === 'string') : [],

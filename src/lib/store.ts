@@ -325,14 +325,14 @@ function nextTaskId(columns: Column[], archivedTasks: BoardTask[] = []): string 
   return 't' + (maxN + 1);
 }
 
-async function readAllTasksServer(): Promise<LoadedTask[]> {
+async function readAllTasksServer(defaultStatus: string): Promise<LoadedTask[]> {
   const ids = await serverListTasks();
   const tasks = await Promise.all(ids.map(async (id) => {
     const { frontmatter, body } = await serverReadTaskFile(id);
     const normalizedFrontmatter = {
       ...frontmatter,
       id: frontmatter.id || id,
-      status: frontmatter.status || 'Backlog',
+      status: frontmatter.status || defaultStatus,
     };
     const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
     return { id, frontmatter: normalizedFrontmatter, body: bodyWithoutSubtasks, subtasks };
@@ -342,6 +342,7 @@ async function readAllTasksServer(): Promise<LoadedTask[]> {
 
 async function readAllTasks(
   tasksDirHandle: FileSystemDirectoryHandle,
+  defaultStatus: string,
 ): Promise<{ tasks: LoadedTask[]; failedIds: string[] }> {
   const ids = await listTaskIds(tasksDirHandle);
   // 📖 Use readTaskFileStrict per file so we can tell "file deleted externally"
@@ -362,7 +363,7 @@ async function readAllTasks(
       const frontmatter = {
         ...result.task.frontmatter,
         id: result.task.frontmatter.id || id,
-        status: result.task.frontmatter.status || 'Backlog',
+        status: result.task.frontmatter.status || defaultStatus,
       };
       const { subtasks, bodyWithoutSubtasks } = extractSubtasks(result.task.body);
       tasks.push({ id, frontmatter, body: bodyWithoutSubtasks, subtasks });
@@ -551,7 +552,7 @@ export const useStore = create<State>((set, get) => ({
     const { selectedTaskIds, columns, moveTask } = get();
     for (const id of selectedTaskIds) {
       // Find source column for task
-      let sourceCol = 'Backlog';
+      let sourceCol = columns[0]?.name ?? '';
       for (const col of columns) {
         if (col.tasks.some(t => t.id === id)) {
           sourceCol = col.name;
@@ -853,7 +854,7 @@ export const useStore = create<State>((set, get) => ({
         const normalizedFrontmatter = {
           ...frontmatter,
           id: frontmatter.id || id,
-          status: frontmatter.status || 'Backlog',
+          status: frontmatter.status || config.board.columns[0] || 'Backlog',
         };
         const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
         return { id, frontmatter: normalizedFrontmatter, body: bodyWithoutSubtasks, subtasks };
@@ -1001,7 +1002,7 @@ export const useStore = create<State>((set, get) => ({
     set({ isReloading: true, lastReloadError: null });
     try {
       if (isServerMode()) {
-        const tasks = await readAllTasksServer();
+        const tasks = await readAllTasksServer(config.board.columns[0] || 'Backlog');
         syncNotificationSnapshots(tasks);
         const parsedTasks = tasks.map(task => ({
           frontmatter: task.frontmatter,
@@ -1024,7 +1025,7 @@ export const useStore = create<State>((set, get) => ({
         }
         set({ taskContents: nextContents, searchMatches: new Map(), failedTaskIds: [], isReloading: false });
       } else if (tasksDirHandle) {
-        const { tasks, failedIds } = await readAllTasks(tasksDirHandle);
+        const { tasks, failedIds } = await readAllTasks(tasksDirHandle, config.board.columns[0] || 'Backlog');
         syncNotificationSnapshots(tasks);
         const parsedTasks = tasks.map(task => ({
           frontmatter: task.frontmatter,
@@ -1844,7 +1845,7 @@ export const useStore = create<State>((set, get) => ({
         frontmatter: {
           ...frontmatter,
           id: frontmatter.id || taskId,
-          status: frontmatter.status || 'Backlog',
+          status: frontmatter.status || config.board.columns[0] || 'Backlog',
         },
         body: bodyWithoutSubtasks,
         subtasks,
@@ -1949,7 +1950,7 @@ export const useStore = create<State>((set, get) => ({
             frontmatter: {
               ...frontmatter,
               id: frontmatter.id || taskId,
-              status: frontmatter.status || 'Backlog',
+              status: frontmatter.status || get().config.board.columns[0] || 'Backlog',
             },
             body: bodyWithoutSubtasks,
             subtasks,

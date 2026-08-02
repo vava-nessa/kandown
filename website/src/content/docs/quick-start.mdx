@@ -20,11 +20,11 @@ tasks/                # your tasks, the source of truth
 ├── t1.md             # one Markdown file per task
 └── archive/          # archived tasks live here
 
-.kandown/             # config + web UI + agent docs
+.kandown/             # config + web UI + workflow data
 ├── kandown.json      # columns, theme, notifications, agents
 ├── kandown.html      # the web app, one self-contained file
-├── instructions.md   # optional: your project's agent instructions
-└── AGENT*.md         # agent reference, kept in sync with the CLI
+├── kandown_work.md   # optional: your project's agent instructions
+└── workflows/        # optional: installed or local workflow packages
 ```
 
 It also appends a single line to your `AGENTS.md` / `CLAUDE.md` pointing agents at

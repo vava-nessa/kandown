@@ -165,9 +165,9 @@ export function parseTaskFile(md: string): ParsedTask {
   return { frontmatter: { id: '', title: '' } as TaskFrontmatter, body: md };
 }
 
-function normalizeStatus(status: unknown): string {
+function normalizeStatus(status: unknown, fallback = 'Backlog'): string {
   const value = typeof status === 'string' ? status.trim() : '';
-  return value || 'Backlog';
+  return value || fallback;
 }
 
 function normalizePriority(priority: unknown): Priority | null {
@@ -192,12 +192,12 @@ function taskOrder(task: ParsedTask): number {
   return Number.MAX_SAFE_INTEGER;
 }
 
-export function taskToBoardTask(task: ParsedTask): BoardTask {
+export function taskToBoardTask(task: ParsedTask, defaultStatus = 'Backlog'): BoardTask {
   const { frontmatter, body } = task;
   const { subtasks } = extractSubtasks(body);
   const done = subtasks.filter(s => s.done).length;
   const total = subtasks.length;
-  const status = normalizeStatus(frontmatter.status);
+  const status = normalizeStatus(frontmatter.status, defaultStatus);
   const tags = Array.isArray(frontmatter.tags)
     ? frontmatter.tags.filter((tag): tag is string => typeof tag === 'string' && tag.trim().length > 0)
     : [];
@@ -235,6 +235,7 @@ export function taskToBoardTask(task: ParsedTask): BoardTask {
 
 export function buildColumnsFromTasks(tasks: ParsedTask[], configuredColumns: string[] = DEFAULT_COLUMNS): Column[] {
   const columnNames = configuredColumns.length > 0 ? configuredColumns : DEFAULT_COLUMNS;
+  const defaultStatus = columnNames[0] ?? DEFAULT_COLUMNS[0];
   const columnsByName = new Map<string, Column>();
   const configured = columnNames.map(name => ({ name, tasks: [] as BoardTask[] }));
   for (const column of configured) columnsByName.set(column.name.toLowerCase(), column);
@@ -251,14 +252,14 @@ export function buildColumnsFromTasks(tasks: ParsedTask[], configuredColumns: st
     });
 
   for (const task of sortedTasks) {
-    const status = normalizeStatus(task.frontmatter.status);
+    const status = normalizeStatus(task.frontmatter.status, defaultStatus);
     let column = columnsByName.get(status.toLowerCase());
     if (!column) {
       column = { name: status, tasks: [] };
       columnsByName.set(status.toLowerCase(), column);
       unknownColumns.push(column);
     }
-    column.tasks.push(taskToBoardTask(task));
+    column.tasks.push(taskToBoardTask(task, defaultStatus));
   }
 
   return [...unknownColumns, ...configured];
@@ -279,7 +280,7 @@ export function extractArchivedTasks(tasks: ParsedTask[]): BoardTask[] {
   return [...tasks]
     .filter(task => Boolean(task.frontmatter.id) && isArchived(task))
     .sort((a, b) => a.frontmatter.id.localeCompare(b.frontmatter.id, undefined, { numeric: true }))
-    .map(taskToBoardTask);
+    .map(task => taskToBoardTask(task));
 }
 
 export function extractSubtasks(body: string): { subtasks: Subtask[]; bodyWithoutSubtasks: string } {

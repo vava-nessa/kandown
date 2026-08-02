@@ -75,7 +75,7 @@ const OUT_DIR = join(WEBSITE, 'public', 'changelogs')
  * `Unreleased` replaces the version/date pair when work is in flight. Mirrors
  * the regex in `scripts/build-changelog.js` so the two indexes stay aligned.
  */
-const RE_TITLE = /^#\s+(Unreleased|\d+\.\d+\.\d+)(?:\s+—\s+(\d{4}-\d{2}-\d{2}))?\s+—\s+"(.+)"\s*$/
+const RE_TITLE = /^#\s+(Unreleased|\d+\.\d+\.\d+)(?:\s+(?:\u2014|-)\s+(\d{4}-\d{2}-\d{2}))?\s+(?:\u2014|-)\s+"(.+)"\s*$/
 
 /**
  * @description Reads one version file and produces the data the sidebar and
@@ -96,7 +96,7 @@ async function parseChangelog(filename) {
   if (!match) {
     throw new Error(
       `changelogs/${filename}: first heading must look like ` +
-        `'# 0.36.1 — 2026-07-26 — "Name"', got ${titleLine ? `'${titleLine}'` : 'no H1'}`,
+        `'# 0.36.1 - 2026-07-26 - "Name"', got ${titleLine ? `'${titleLine}'` : 'no H1'}`,
     )
   }
   const [, version, date, name] = match

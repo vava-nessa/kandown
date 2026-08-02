@@ -18,9 +18,10 @@ tasks/                # the source of truth
 .kandown/
 ├── kandown.json      # columns, theme, notifications, agents
 ├── kandown.html      # the web app, one self-contained file
-├── instructions.md   # your project's agent instructions
-├── daemon.json       # runtime state + API token (gitignored)
-└── AGENT*.md         # agent reference, synced from the CLI
+├── kandown_work.md   # optional project agent instructions
+├── workflows/        # optional local workflow packages
+├── skills/           # optional local Markdown skill packages
+└── daemon.json       # runtime state + API token (gitignored)
 ```
 
 There is no index, cache or manifest anywhere. The directory listing *is* the board state.

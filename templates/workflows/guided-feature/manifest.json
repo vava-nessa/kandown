@@ -1,0 +1,53 @@
+{
+  "formatVersion": 1,
+  "id": "guided-feature",
+  "name": "Guided Feature",
+  "version": "1.0.0",
+  "author": "Kandown",
+  "description": "An interactive feature workflow that explores the codebase, resolves product questions, obtains architecture approval, and then implements and reviews the agreed design.",
+  "summary": "Discover first, clarify intent, approve the architecture, then implement with guided review.",
+  "minKandownVersion": "0.46.0",
+  "requiredRoles": ["backlog", "ready", "active", "review", "terminal"],
+  "protocol": "protocol.md",
+  "guide": "guide.md",
+  "boardPreset": "board.json",
+  "taskTemplates": [
+    {
+      "id": "discovery",
+      "name": "Feature discovery",
+      "description": "Maps the request, relevant code paths, constraints, unknowns, and user decisions.",
+      "file": "templates/discovery.md",
+      "default": true
+    },
+    {
+      "id": "architecture-proposal",
+      "name": "Architecture proposal",
+      "description": "Presents a focused design with alternatives, risks, and an explicit approval gate.",
+      "file": "templates/architecture-proposal.md"
+    },
+    {
+      "id": "implementation-slice",
+      "name": "Implementation slice",
+      "description": "Implements one approved, independently verifiable feature slice.",
+      "file": "templates/implementation-slice.md"
+    },
+    {
+      "id": "feature-review",
+      "name": "Feature review",
+      "description": "Checks the implementation, runtime behavior, and acceptance criteria after delivery.",
+      "file": "templates/feature-review.md"
+    }
+  ],
+  "attribution": [
+    {
+      "name": "Building Effective AI Agents",
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "note": "Simple, composable workflow and human checkpoint principles were adapted independently. No endorsement is implied."
+    },
+    {
+      "name": "Advanced Context Engineering for Coding Agents",
+      "url": "https://www.humanlayer.dev/blog/advanced-context-engineering",
+      "note": "Research, plan, implementation, and early review practices were adapted independently. No endorsement is implied."
+    }
+  ]
+}

@@ -39,11 +39,10 @@ digest and the next actionable task.
 | `pnpm dev` | Vite dev server for the web UI |
 | `pnpm dev:app` | Full build, then launch the CLI; the realistic dev loop |
 | `pnpm dev:cli` | Watch-mode build of the CLI/TUI bundles |
-| `pnpm build` | Version inject → agent-doc sync → typecheck → web → CLI |
+| `pnpm build` | Version inject, typecheck, web, then CLI |
 | `pnpm typecheck` | TypeScript, no emit |
 | `pnpm codemap` | Regenerate `CODEMAP.md` / `CODEMAP.json` |
 | `pnpm codemap:check` | Fail if the codemap is stale or a file lacks `@description` |
-| `pnpm sync:agent` | Propagate `templates/AGENT_KANDOWN.md` to the project root |
 
 Git hooks install themselves on `pnpm install`: pre-commit regenerates and stages the codemap,
 post-commit refreshes the local dependency graph. Neither can fail a commit.
@@ -60,7 +59,6 @@ silently erases it).
 | `bin/kandown.js` | `src/cli/cli.ts` |
 | `bin/tui.js` | `src/cli/tui.tsx` |
 | `src/lib/version.ts` | `package.json` (version field) |
-| `AGENT_KANDOWN.md` (root) | `templates/AGENT_KANDOWN.md`, then `pnpm sync:agent` |
 | `CODEMAP.md`, `CODEMAP.json` | the JSDoc headers, then `pnpm codemap` |
 
 `CODEMAP.md` flags each of these inline, at the moment you go looking for it.

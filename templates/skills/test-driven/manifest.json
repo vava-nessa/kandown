@@ -1,0 +1,10 @@
+{
+  "formatVersion": 1,
+  "id": "test-driven",
+  "name": "Test Driven",
+  "version": "1.0.0",
+  "description": "Use focused test-first loops for stable behavioral seams.",
+  "instructions": "instructions.md",
+  "compatibleWorkflows": ["real-engineering", "guided-feature", "spec-driven"],
+  "requiredRoles": ["active"]
+}

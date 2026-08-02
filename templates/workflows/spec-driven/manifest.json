@@ -1,0 +1,57 @@
+{
+  "formatVersion": 1,
+  "id": "spec-driven",
+  "name": "Spec Driven",
+  "version": "1.0.0",
+  "author": "Kandown",
+  "description": "A requirements-first workflow that applies project principles, creates a testable specification and technical plan, then executes dependency-aware tasks with traceability.",
+  "summary": "Turn principles and requirements into a traceable plan, task graph, and verified implementation.",
+  "minKandownVersion": "0.46.0",
+  "requiredRoles": ["backlog", "ready", "active", "review", "terminal"],
+  "protocol": "protocol.md",
+  "guide": "guide.md",
+  "boardPreset": "board.json",
+  "taskTemplates": [
+    {
+      "id": "specification",
+      "name": "Specification",
+      "description": "Defines prioritized user stories, requirements, scenarios, edge cases, and measurable outcomes.",
+      "file": "templates/specification.md",
+      "default": true
+    },
+    {
+      "id": "technical-plan",
+      "name": "Technical plan",
+      "description": "Translates an approved specification into architecture, constraints, seams, and verification strategy.",
+      "file": "templates/technical-plan.md"
+    },
+    {
+      "id": "dependency-task",
+      "name": "Dependency task",
+      "description": "Implements one dependency-aware outcome with requirement and acceptance traceability.",
+      "file": "templates/dependency-task.md"
+    }
+  ],
+  "attribution": [
+    {
+      "name": "GitHub Spec Kit",
+      "url": "https://github.com/github/spec-kit/blob/main/README.md",
+      "note": "The principles, specification, planning, task, and implementation sequence was adapted independently. No endorsement is implied."
+    },
+    {
+      "name": "Spec Kit specification template",
+      "url": "https://github.com/github/spec-kit/blob/main/templates/spec-template.md",
+      "note": "Independent user stories, scenarios, edge cases, and measurable outcomes informed the template."
+    },
+    {
+      "name": "Spec Kit plan template",
+      "url": "https://github.com/github/spec-kit/blob/main/templates/plan-template.md",
+      "note": "Technical context, principle checks, and complexity justification informed the plan template."
+    },
+    {
+      "name": "Spec Kit tasks template",
+      "url": "https://github.com/github/spec-kit/blob/main/templates/tasks-template.md",
+      "note": "Dependency ordering and independently verifiable story tasks informed execution semantics."
+    }
+  ]
+}

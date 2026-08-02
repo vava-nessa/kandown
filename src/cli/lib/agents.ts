@@ -57,7 +57,7 @@ import { loadAgentsConfig, resolveCascade, type AgentCatalogEntry, type LaunchMo
 
 // 📖 Options passed to buildCommand — everything needed to construct the launch args
 export interface LaunchOpts {
-  /** Full system prompt / agent instructions (AGENT_KANDOWN.md content) */
+  /** Full system prompt compiled by Kandown Work. */
   systemPrompt: string;
   /** Task instruction: task file content + directive to start working */
   taskPrompt: string;
@@ -625,11 +625,11 @@ export function getCascadeConfig(kandownDir: string): { unassignedBehavior: 'ski
 /**
  * 📖 Builds the system + task prompt pair to inject into the agent.
  * Structure:
- *   1. Agent rules (system doc) from AGENT_KANDOWN.md
+ *   1. Agent rules from the shared Kandown Work compiler
  *   2. The full task file content
  *   3. A direct instruction to start working on the task
  *
- * @param agentDoc    - content of AGENT_KANDOWN.md (or fallback)
+ * @param agentDoc    - exact compiled Kandown Work Markdown
  * @param taskContent - full raw content of the task markdown file
  * @param taskId      - task ID for the instruction
  * @param kandownDir  - path to .kandown/ for the agent to know where files are
@@ -644,6 +644,8 @@ export function buildPrompt(
   taskContent: string,
   taskId: string,
   kandownDir: string,
+  activeStatus: string,
+  terminalStatus: string,
   handoff?: { taskId: string; title: string; report: string }[],
   queue?: { id: string; title: string }[],
 ): { systemPrompt: string; taskPrompt: string } {
@@ -667,11 +669,11 @@ export function buildPrompt(
     ? [
         '## Your queue (same-session cascade)',
         '',
-        'Work through these tasks strictly in order. For each one: set its status to "In Progress", do the work, update the task file as you go, then set it to "Done" with a completion report before starting the next.',
+        `Work through these tasks strictly in order. For each one: set its status to "${activeStatus}", do the work, update the task file as you go, then set it to "${terminalStatus}" with a completion report before starting the next.`,
         '',
         ...queue.map((q, i) => `${i + 1}. ${q.id} — ${q.title}`),
         '',
-        'When the whole queue is Done, stop.',
+        `When the whole queue is in "${terminalStatus}", stop.`,
         '',
         '---',
         '',
@@ -694,9 +696,9 @@ export function buildPrompt(
     `The kandown directory is at: \`${kandownDir}\``,
     '',
     'Before anything else:',
-    `1. Set task ${taskId} frontmatter status to "In Progress" (it may already be there — that's fine)`,
+    `1. Set task ${taskId} frontmatter status to "${activeStatus}" (it may already be there, which is fine)`,
     '2. Work through each subtask, checking them off and adding reports as you go',
-    '3. When done, write the completion report and set the task status to "Done"',
+    `3. When done, write the completion report and set the task status to "${terminalStatus}"`,
   ].join('\n');
 
   return { systemPrompt, taskPrompt };

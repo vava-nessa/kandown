@@ -9,6 +9,7 @@ the index; click a version for the full notes.
 
 | Version | Date | Release | Changes |
 |---|---|---|---|
+| [0.47.0](changelogs/v0.47.0.md) | 2026-08-02 | Kandown Workflows | 7 added · 2 changed · 1 removed |
 | [0.46.0](changelogs/v0.46.0.md) | 2026-07-31 | Readable Code | 6 added · 1 fixed · 2 changed |
 | [0.45.0](changelogs/v0.45.0.md) | 2026-07-28 | Theme Store | 6 added · 3 changed |
 | [0.44.0](changelogs/v0.44.0.md) | 2026-07-28 | Assign and Launch | 7 added · 3 fixed · 4 changed |

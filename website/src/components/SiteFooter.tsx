@@ -18,7 +18,6 @@ import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { Logo } from './Logo'
 import { site } from '~/lib/site'
-import GradualBlur from './ui/GradualBlur'
 import CurvedInput from './ui/CurvedInput'
 
 // 📖 Pinned to the latest release so the footer's "Changelog · vX.Y.Z" reads
@@ -153,16 +152,9 @@ export function SiteFooter() {
           </p>
         </div>
       </div>
-      <GradualBlur
-        target="page"
-        position="bottom"
-        height="7rem"
-        strength={3}
-        divCount={6}
-        curve="bezier"
-        exponential={true}
-        opacity={1}
-        zIndex={40}
+      <div
+        className="pointer-events-none fixed bottom-0 left-0 right-0 h-24 z-40 bg-gradient-to-t from-white/50 to-transparent"
+        aria-hidden="true"
       />
     </footer>
   )

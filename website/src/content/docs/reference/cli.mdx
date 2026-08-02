@@ -92,6 +92,27 @@ unresolved. See [Tasks § dependencies](/docs/guides/tasks#dependencies).
 Prints the full agent context (rules, project instructions, live board digest and the next
 actionable task) as Markdown on stdout. Documented in [For AI agents](/docs/agents/overview).
 
+Pass a task id to replace the board digest with focused task context:
+
+```bash
+kandown work t42
+```
+
+### `kandown workflow`
+
+```bash
+kandown workflow list
+kandown workflow show kandown-standard
+kandown workflow template kandown-standard [template-id]
+kandown workflow use diagnose-and-fix
+kandown workflow validate ./my-workflow
+kandown workflow pack ./my-workflow --output my-workflow.kandown-workflow.md
+kandown workflow import ./my-workflow.kandown-workflow.md
+```
+
+Store access is explicit through `workflow store`, `install`, and `update`. Updates print a diff
+first and require `--confirm` before replacing an immutable store package.
+
 ### `kandown mcp`
 
 Starts the stdio MCP server. See [MCP server](/docs/agents/mcp).

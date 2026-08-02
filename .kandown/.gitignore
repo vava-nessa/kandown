@@ -1,6 +1,7 @@
 daemon.json
 daemon.lock
 .undo/
+legacy-agent-docs/
 
 # Local extension state. Which extensions you enabled and which you trusted is a
 # per-machine decision: a committed copy is deliberately ignored at load time

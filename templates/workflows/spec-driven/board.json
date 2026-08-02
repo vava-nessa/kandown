@@ -1,0 +1,30 @@
+{
+  "columns": [
+  {
+    "name": "Backlog",
+    "role": "backlog",
+    "instructions": "Capture unscheduled work here. Keep enough context to decide whether it belongs in this workflow."
+  },
+  {
+    "name": "Ready",
+    "role": "ready",
+    "instructions": "Only move work here when its required inputs, acceptance criteria, dependencies, and approvals are ready."
+  },
+  {
+    "name": "In Progress",
+    "role": "active",
+    "instructions": "Execute the current workflow phase, update the checklist as work happens, and record blockers immediately."
+  },
+  {
+    "name": "Review",
+    "role": "review",
+    "instructions": "Require completed verification, reproducible evidence, and the workflow-specific review gate before acceptance."
+  },
+  {
+    "name": "Done",
+    "role": "terminal",
+    "instructions": "Only accept work whose criteria and required review are satisfied. Preserve the completion report and evidence."
+  }
+  ],
+  "priorities": ["P1", "P2", "P3", "P4"]
+}

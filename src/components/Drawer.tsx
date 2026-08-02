@@ -33,6 +33,7 @@ import { parseTaskTitle, updateTitleCategory } from '../lib/task-title-category'
 import { useStore } from '../lib/store';
 import { buildTaskUrl } from '../lib/task-url';
 import type { Subtask } from '../lib/types';
+import { terminalStatus } from '../lib/dependencies';
 
 export function Drawer() {
   const { t } = useTranslation();
@@ -161,7 +162,7 @@ export function Drawer() {
 
   const depResolution = useMemo(() => {
     const map = new Map<string, { exists: boolean; resolved: boolean }>();
-    const terminal = (config.board.columns[config.board.columns.length - 1] || 'Done').toLowerCase();
+    const terminal = terminalStatus(config).toLowerCase();
     for (const col of columns) {
       for (const t of col.tasks) {
         const isArch = t.frontmatter && (t.frontmatter.archived === true || t.frontmatter.archived === 'true');
@@ -181,7 +182,7 @@ export function Drawer() {
       }
     }
     return map;
-  }, [columns, config.board.columns]);
+  }, [columns, config]);
 
   useEffect(() => {
     if (isOpen && !isDesktop) {

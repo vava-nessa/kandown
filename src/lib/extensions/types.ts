@@ -29,6 +29,12 @@ export type FieldType = 'string' | 'number' | 'boolean' | 'date' | 'select';
  * registrations in the factory are authoritative; `contributes` is best-effort
  * display and is surfaced by `kandown extension doctor`.
  */
+export interface ExtensionAgentGuidance {
+  summary: string;
+  guide?: string;
+  source?: string;
+}
+
 export interface ExtensionManifest {
   id: string;
   name: string;
@@ -52,6 +58,8 @@ export interface ExtensionManifest {
     gates?: string[];
     syncs?: string[];
   };
+  /** Concise guidance compiled into `kandown work`; full guide stays on demand. */
+  agent?: ExtensionAgentGuidance;
 }
 
 /** A simplified, read-only view of a task handed to extension handlers. */

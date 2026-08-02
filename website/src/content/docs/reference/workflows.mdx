@@ -1,0 +1,70 @@
+---
+title: Workflows and skills
+section: Reference
+description: Selecting, authoring, validating, packing, and safely installing Kandown agent workflows.
+---
+
+Kandown uses one exclusive workflow per project, plus any number of compatible
+additive skills. The immutable Kandown safety core always remains first.
+
+## Built-in workflows
+
+- Kandown Standard
+- Real Engineering
+- Guided Feature
+- Spec Driven
+- Long Run
+- Diagnose & Fix
+
+Select one in **Settings → Agent → Workflow** or with `kandown workflow use <id>`.
+
+Kandown also ships three additive skills: Code Review, Test Driven, and Release
+Readiness. Settings disables incompatible skills and explains the missing workflow
+or semantic column role.
+
+Settings shows estimated token costs for every protocol, guide, template and skill,
+plus a persistent total for the complete compiled Kandown Work document.
+Workflow contents appear as clean, framed Markdown sections. Local workflow forks
+show the editable source beside a live rendered preview.
+
+## Authoring format
+
+A workflow is a data-only folder containing `manifest.json`, `protocol.md`, an
+optional `guide.md`, an optional `board.json`, and named Markdown task templates.
+Use semantic column placeholders such as `{{column:active}}` and
+`{{column:terminal}}`.
+
+```bash
+kandown workflow validate ./my-workflow
+kandown workflow pack ./my-workflow --output my-workflow.kandown-workflow.md
+```
+
+The capsule can be imported with `kandown workflow import`. Executable payloads,
+unsafe paths, undeclared files, and malformed manifests are rejected.
+
+Task templates are visible in Settings and available from the CLI:
+
+```bash
+kandown workflow template kandown-standard
+kandown workflow template kandown-standard standard-task
+```
+
+## Skill packages
+
+A skill is a data-only folder containing `manifest.json` and one declared Markdown
+instruction file. Manifests may restrict compatible workflow ids and require
+semantic column roles. Project packages in `.kandown/skills/` override global
+packages in `~/.kandown/skills/`, which override bundled skills.
+
+## Board presets
+
+Selecting a workflow never applies its board preset. Settings displays the target
+columns and each task status migration first. Occupied unmatched columns are
+preserved, and applying the preset requires explicit confirmation.
+
+## Store safety
+
+Community workflows stay in author-owned GitHub repositories. Approved index
+entries pin a release or commit and include a SHA-256 checksum. Store access is
+explicit. Updates show a diff and require `--confirm` before replacing an
+immutable store install. Customization creates a provenance-preserving local fork.

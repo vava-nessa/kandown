@@ -35,6 +35,7 @@ import { parseTaskTitle, updateTitleCategory } from '../lib/task-title-category'
 import { useStore } from '../lib/store';
 import { buildTaskUrl } from '../lib/task-url';
 import type { BoardTask, Column, Subtask } from '../lib/types';
+import { terminalStatus } from '../lib/dependencies';
 
 function ToggleIcon({ collapsed }: { collapsed: boolean }) {
   return (
@@ -151,7 +152,7 @@ export function TaskWorkspace() {
 
   const depResolution = useMemo(() => {
     const map = new Map<string, { exists: boolean; resolved: boolean }>();
-    const terminal = (config.board.columns[config.board.columns.length - 1] || 'Done').toLowerCase();
+    const terminal = terminalStatus(config).toLowerCase();
     for (const col of columns) {
       for (const task of col.tasks) {
         const archived = task.frontmatter.archived === true || task.frontmatter.archived === 'true';
@@ -171,7 +172,7 @@ export function TaskWorkspace() {
       }
     }
     return map;
-  }, [columns, config.board.columns]);
+  }, [columns, config]);
 
   const triggerAutoSave = useCallback(() => {
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);

@@ -5,11 +5,12 @@ File-based kanban for this project. Zero install, zero backend, plain markdown o
 ## Layout
 
 ```
-.kandown/             # config, web UI, agent docs
+.kandown/             # config, web UI, workflows, skills
 ├── kandown.html      # single-file web app — open this in your browser
 ├── kandown.json      # project preferences, columns, appearance
-├── AGENT.md          # AI agent conventions
-├── AGENT_KANDOWN.md  # full agent reference
+├── kandown_work.md   # optional project agent instructions
+├── workflows/        # optional local workflow packages
+├── skills/           # optional local Markdown skill packages
 └── README.md         # this file
 
 tasks/                # source of truth — one .md file per task
@@ -38,7 +39,7 @@ The task editor includes a markdown-backed subtask checklist. Add steps with **A
 
 ## For AI agents
 
-See `AGENT.md` and `AGENT_KANDOWN.md`. The key convention: each task file in `tasks/` is its own source of truth. Moving a task means editing the task's frontmatter `status`.
+Run `kandown work` for the current agent protocol and live board context. Each task file in `tasks/` is its own source of truth. Moving a task means editing its frontmatter `status`.
 
 ## Keyboard shortcuts
 

@@ -6,8 +6,9 @@
  */
 
 import { createServer, IncomingMessage, ServerResponse } from 'node:http';
-import { existsSync, readFileSync, copyFileSync, unlinkSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, copyFileSync, unlinkSync, mkdirSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { homedir } from 'node:os';
 import { spawn } from 'node:child_process';
 import { getProjectRoot, getTasksDir, findTaskPath, readTask, listTaskIds } from './board-reader';
 import { loadConfig, saveConfig } from './config';
@@ -19,6 +20,18 @@ import { moveTaskWithGates, type MoveTaskResult } from './task-move';
 import { fetchRegistry, installExtension, type RegistryEntry } from './extensions-store';
 import { fetchRegistry as fetchThemeRegistry, installTheme, listInstalledThemes, type RegistryEntry as ThemeRegistryEntry } from './themes-store';
 import type { ExtensionHost } from '../../lib/extensions/host';
+import {
+  applyBoardPreset,
+  forkWorkflow,
+  listWorkflowPackages,
+  loadWorkflowById,
+  missingWorkflowRoles,
+  previewBoardPreset,
+  updateLocalWorkflowFile,
+} from './workflows-cli';
+import { compileProjectKandownWork } from './kandown-work';
+import { applyWorkflowUpdate, fetchWorkflowRegistry, installStoreWorkflow, previewWorkflowUpdate, type WorkflowRegistryEntry } from './workflows-store';
+import { listWorkflowSkills } from './skills';
 
 const START_PORT_RANGE = 2050;
 const END_PORT_RANGE = 2099;
@@ -311,6 +324,124 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
         }
       });
       return;
+    }
+  }
+
+  if (path === '/api/instructions') {
+    const instructionsPath = join(kandownDir, 'kandown_work.md');
+    if (method === 'GET') return writeText(res, 200, existsSync(instructionsPath) ? readFileSync(instructionsPath, 'utf8') : '');
+    if (method === 'PUT') {
+      try {
+        atomicWriteFileSync(instructionsPath, await readRequestBody(req));
+        broadcastSseEvent({ type: 'instructions' });
+        return writeJson(res, 200, { ok: true });
+      } catch (error) {
+        return writeJson(res, 500, { error: error instanceof Error ? error.message : String(error) });
+      }
+    }
+  }
+
+  if (path === '/api/skills' && method === 'GET') {
+    const config = loadConfig(kandownDir);
+    const active = new Set(config.workflow.skills);
+    const roles = new Set(Object.values(config.board.columnMeta).map(meta => meta.role));
+    const skills = listWorkflowSkills(kandownDir).map(skill => {
+      const missingRole = skill.requiredRoles?.find(role => !roles.has(role));
+      const wrongWorkflow = skill.compatibleWorkflows?.length && !skill.compatibleWorkflows.includes(config.workflow.active);
+      const reason = !skill.valid
+        ? skill.errors.join('; ')
+        : wrongWorkflow
+          ? `Compatible with: ${skill.compatibleWorkflows?.join(', ')}`
+          : missingRole
+            ? `Requires column role: ${missingRole}`
+            : undefined;
+      return { ...skill, active: active.has(skill.id), compatible: !reason, ...(reason ? { compatibilityReason: reason } : {}) };
+    });
+    return writeJson(res, 200, { skills });
+  }
+
+  if (path === '/api/workflows' && method === 'GET') {
+    try {
+      const config = loadConfig(kandownDir);
+      const selected = loadWorkflowById(kandownDir, config.workflow.active);
+      const compiled = compileProjectKandownWork(kandownDir);
+      return writeJson(res, 200, {
+        workflows: listWorkflowPackages(kandownDir),
+        selected,
+        preview: compiled.markdown,
+        stats: compiled.stats,
+        diagnostics: compiled.diagnostics,
+        boardPresetPreview: selected.boardPreset ? previewBoardPreset(kandownDir, selected.manifest.id) : null,
+      });
+    } catch (error) {
+      return writeJson(res, 500, { error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+
+  if (path === '/api/workflows/registry' && method === 'GET') {
+    return writeJson(res, 200, await fetchWorkflowRegistry());
+  }
+
+  if (path === '/api/workflows/install' && method === 'POST') {
+    try {
+      const body = JSON.parse(await readRequestBody(req)) as { entry?: WorkflowRegistryEntry };
+      if (!body.entry) return writeJson(res, 400, { ok: false, error: 'Registry entry is required.' });
+      const result = await installStoreWorkflow(kandownDir, body.entry);
+      broadcastSseEvent({ type: 'workflows' });
+      return writeJson(res, result.ok ? 200 : 400, result);
+    } catch (error) { return writeJson(res, 400, { ok: false, error: error instanceof Error ? error.message : String(error) }); }
+  }
+
+  if (path === '/api/workflows/update' && method === 'POST') {
+    try {
+      const body = JSON.parse(await readRequestBody(req)) as { entry?: WorkflowRegistryEntry; confirm?: boolean };
+      if (!body.entry) return writeJson(res, 400, { ok: false, error: 'Registry entry is required.' });
+      if (body.confirm !== true) return writeJson(res, 200, { ok: true, preview: await previewWorkflowUpdate(kandownDir, body.entry) });
+      const result = await applyWorkflowUpdate(kandownDir, body.entry, true);
+      broadcastSseEvent({ type: 'workflows' });
+      return writeJson(res, result.ok ? 200 : 400, result);
+    } catch (error) { return writeJson(res, 400, { ok: false, error: error instanceof Error ? error.message : String(error) }); }
+  }
+
+  if (path.startsWith('/api/workflows/') && method === 'POST') {
+    const action = path.slice('/api/workflows/'.length);
+    let body: { id?: unknown; path?: unknown; content?: unknown; confirm?: unknown } = {};
+    try { body = JSON.parse(await readRequestBody(req)) as typeof body; }
+    catch (error) { return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` }); }
+    if (typeof body.id !== 'string') return writeJson(res, 400, { error: 'Workflow id is required.' });
+    try {
+      if (action === 'use') {
+        const workflow = loadWorkflowById(kandownDir, body.id);
+        const missing = missingWorkflowRoles(kandownDir, workflow);
+        if (missing.length > 0) return writeJson(res, 409, { error: `Missing required column roles: ${missing.join(', ')}.`, missing, boardPresetPreview: workflow.boardPreset ? previewBoardPreset(kandownDir, body.id) : null });
+        const config = loadConfig(kandownDir);
+        config.workflow.active = workflow.manifest.id;
+        saveConfig(kandownDir, config);
+        broadcastSseEvent({ type: 'config' });
+        return writeJson(res, 200, { ok: true });
+      }
+      if (action === 'fork') {
+        const workflow = forkWorkflow(kandownDir, body.id);
+        broadcastSseEvent({ type: 'workflows' });
+        return writeJson(res, 200, { ok: true, workflow });
+      }
+      if (action === 'edit') {
+        if (typeof body.path !== 'string' || typeof body.content !== 'string') return writeJson(res, 400, { error: 'path and content are required.' });
+        const workflow = updateLocalWorkflowFile(kandownDir, body.id, body.path, body.content);
+        broadcastSseEvent({ type: 'workflows' });
+        return writeJson(res, 200, { ok: true, workflow });
+      }
+      if (action === 'apply-preset') {
+        const preview = previewBoardPreset(kandownDir, body.id);
+        if (body.confirm !== true) return writeJson(res, 409, { error: 'Explicit confirmation is required.', preview });
+        const applied = applyBoardPreset(kandownDir, body.id);
+        broadcastSseEvent({ type: 'config' });
+        broadcastSseEvent({ type: 'board' });
+        return writeJson(res, 200, { ok: true, preview: applied });
+      }
+      return writeJson(res, 404, { error: 'Unknown workflow action.' });
+    } catch (error) {
+      return writeJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
     }
   }
 

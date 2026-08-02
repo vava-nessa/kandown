@@ -111,7 +111,7 @@ function handleJsonRpc(kandownDir: string, req: JsonRpcRequest): void {
               type: 'object',
               properties: {
                 title: { type: 'string', description: 'Task title (supports inline syntax #tag @user p1 due:date)' },
-                status: { type: 'string', description: 'Target column name (default: Backlog)' },
+                status: { type: 'string', description: 'Target column name (default: first configured column)' },
                 priority: { type: 'string', description: 'Priority level (P1, P2, P3, P4)' },
                 assignee: { type: 'string', description: 'Assignee username' },
                 tags: { type: 'array', items: { type: 'string' }, description: 'Tags' },
