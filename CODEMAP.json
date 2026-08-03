@@ -1347,7 +1347,7 @@
     },
     {
       "path": "src/components/ListRow.tsx",
-      "lines": 503,
+      "lines": 519,
       "title": "List row component",
       "summary": "Renders a single task as a compact, Linear-style list item for the list view, with priority indicators, title, status, metadata badges, inline subtask progress slider, and hover quick actions.",
       "functions": [
@@ -1550,13 +1550,17 @@
     },
     {
       "path": "src/components/TaskWorkspace.tsx",
-      "lines": 566,
+      "lines": 772,
       "title": "Desktop opened-task workspace",
       "summary": "Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…",
       "functions": [
         {
           "name": "TaskWorkspace",
           "summary": "desktop split-pane task editor with grouped navigation"
+        },
+        {
+          "name": "TaskSection, collapsible group of sidebar task rows (status or category)",
+          "summary": null
         }
       ],
       "exports": "TaskWorkspace"

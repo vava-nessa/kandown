@@ -175,6 +175,13 @@ interface ListRowProps {
    * full-width list view, archive view, and card-stack-expanded views.
    */
   inline?: boolean;
+  /**
+   * Board column label rendered as the first chip in the inline meta sub-row.
+   * Used by `TaskWorkspace`'s sidebar in category mode, where tasks from many
+   * statuses sit under one `[CATEGORY]` section and the status chip makes the
+   * status-first sort readable at a glance. Omitted everywhere else.
+   */
+  statusLabel?: string;
 }
 
 export function ListRow({
@@ -190,6 +197,7 @@ export function ListRow({
   isActive = false,
   mode = 'list',
   inline = false,
+  statusLabel,
 }: ListRowProps) {
   const { t } = useTranslation();
   const openDrawer = useStore(s => s.openDrawer);
@@ -380,7 +388,7 @@ export function ListRow({
           so a bare task doesn't reserve a wasted line of vertical space. The
           hover action buttons moved out to an absolute-positioned overlay
           (see below) so they no longer dictate the row's height. */}
-      {(inline || task.frontmatter.epic ||
+      {(inline || !!statusLabel || task.frontmatter.epic ||
         task.frontmatter.report || task.frontmatter.agentReport ||
         (task.dependsOn && task.dependsOn.length > 0) ||
         task.assignee ||
@@ -388,6 +396,14 @@ export function ListRow({
         (task.tags && task.tags.length > 0) ||
         (task.progress && task.progress.total > 0)) && (
         <div className="mt-1 pl-[60px] flex items-center gap-1.5 flex-wrap" onPointerDown={e => e.stopPropagation()}>
+          {/* Status chip, first in the meta sub-row. Only rendered when the
+              row sits in a category-mode section, where the status is not
+              obvious from the grouping. */}
+          {statusLabel && (
+            <span className="inline-flex items-center h-[16px] px-1.5 text-[10px] font-medium text-fg-muted rounded bg-black/[0.04] dark:bg-white/[0.06] border border-border/50">
+              {statusLabel}
+            </span>
+          )}
           {/* Tags — only rendered in the sub-row when in inline mode
               (in wide layout they sit on the title line). */}
           {inline && task.tags && task.tags.length > 0 && (

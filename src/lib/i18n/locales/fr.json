@@ -319,5 +319,15 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Paramètres mis à jour depuis l'extérieur — rechargés"
+  },
+  "taskWorkspace": {
+    "allTasks": "Toutes les tâches",
+    "switchHint": "Groupées par statut pour naviguer rapidement.",
+    "switchHintCategory": "Groupées par [catégorie] pour retrouver les tâches liées.",
+    "groupByStatus": "Statut",
+    "groupByCategory": "Catégorie",
+    "uncategorized": "Sans catégorie",
+    "copyUrl": "Copier le lien",
+    "backToCards": "Retour aux cartes"
   }
 }

@@ -133,7 +133,11 @@
     "allTasks": "All tasks",
     "switchHint": "Grouped by status for quick switching.",
     "copyUrl": "Copy URL",
-    "backToCards": "Back to cards"
+    "backToCards": "Back to cards",
+    "groupByStatus": "Status",
+    "groupByCategory": "Category",
+    "switchHintCategory": "Grouped by [category] tag for related tasks.",
+    "uncategorized": "Uncategorized"
   },
   "archive": {
     "empty": "No archived tasks."
