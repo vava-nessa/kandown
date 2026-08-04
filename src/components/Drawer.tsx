@@ -297,13 +297,13 @@ export function Drawer() {
                         if (e.key === 'Enter') handleCategorySubmit(e.currentTarget.value);
                         if (e.key === 'Escape') setIsEditingCategory(false);
                       }}
-                      className="font-mono text-[12px] uppercase px-1.5 py-0.5 bg-accent/15 border border-accent/40 rounded text-accent font-semibold outline-none w-28"
+                      className="font-mono text-[12px] uppercase px-1.5 py-0.5 bg-accent/15 border border-accent/40 rounded text-accent-foreground font-semibold outline-none w-28"
                     />
                   ) : parsedTitle.category ? (
                     <button
                       type="button"
                       onClick={() => setIsEditingCategory(true)}
-                      className="font-mono text-[12px] uppercase px-1.5 py-0.5 bg-accent/15 border border-accent/30 hover:border-accent/60 rounded text-accent font-semibold transition-colors"
+                      className="font-mono text-[12px] uppercase px-1.5 py-0.5 bg-accent/15 border border-accent/30 hover:border-accent/60 rounded text-accent-foreground font-semibold transition-colors"
                       title="Click to edit category"
                     >
                       [{parsedTitle.category}]
