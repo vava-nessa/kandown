@@ -1,9 +1,16 @@
 /**
- * @file Task card row
- * @description Displays one board task as a single dense row inside a column.
- * The card has no border, no shadow, no rounded corners: cards are separated
- * only by a single 1px hairline so the board never shows the double-border
- * "crado" effect (card border + gap + card border).
+ * @file Task card
+ * @description Displays one board task as a clean, rounded card inside a
+ * column. The card carries its own surface (`bg-card`), a subtle hairline
+ * border, and a soft resting shadow; it lifts slightly on hover. Cards are
+ * separated by a small vertical margin so they read as distinct, floating
+ * chips on the column tint — the Linear / Notion kanban look.
+ *
+ * 📖 This matches the collapsed `CardStack` surface so individual cards and
+ * grouped stacks share one visual language. The previous borderless-row
+ * treatment washed out in light mode: `bg-white/25` over an already
+ * near-white board read as muddy. A defined `bg-card` surface fixes that in
+ * both modes.
  *
  * 📖 Layout (top → bottom):
  *   - Title row: `#` on the left, the title text fills the rest of the line
@@ -16,9 +23,9 @@
  *     search-match snippets, full metadata block.
  *
  * 📖 The card height grows with its content. There is no `line-clamp` on the
- * title: a 1-line title produces a compact row, a 3-line title produces a
- * taller row. Compact and non-compact differ in vertical padding and title
- * font size — not in truncation.
+ * title: a 1-line title produces a compact card, a 3-line title produces a
+ * taller card. Compact and non-compact differ in vertical padding, outer
+ * margin and title font size — not in truncation.
  *
  * 📖 Cards are intentionally view-only. Clicking opens the drawer through the
  * store, while mutations such as moving, editing, and deleting stay centralized.
@@ -212,6 +219,10 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
   // 📖 Density drives vertical padding + title size, never truncation. Both
   // modes grow freely with the title length.
   const containerPadding = isCompact ? 'px-3 py-1.5' : 'px-3.5 py-2.5';
+  // 📖 Outer margin between cards replaces the old `border-b` separator. Kept
+  // tight so a full column still stays scannable, but wide enough that each
+  // card reads as its own chip rather than a stacked row.
+  const cardMargin = isCompact ? 'mb-1' : 'mb-1.5';
   const titleSize = isCompact ? 'text-[13.5px]' : 'text-[15px]';
   const metaGap = isCompact ? 'mt-1' : 'mt-1.5';
 
@@ -221,9 +232,11 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
     // `whileTap` with Tailwind's `transition-all` produced a 500ms "pop" on
     // every card (the user reported). Hover lift, tap scale, and shadow are
     // all in the className now.
-    // 📖 The card has no border, no rounded corners, no card background —
-    // a single `border-b` separates it from the next card. The Column
-    // owns the outer border; the Card is a row, not a card.
+    // 📖 The card is a real surface: `bg-card` gives a clean white chip in
+    // light mode and a defined elevated surface in dark mode. A hairline
+    // border + resting shadow define the edge; hover tightens the border,
+    // deepens the shadow and lifts the card by 2px. Cards are spaced by
+    // `cardMargin` (not a separator border) so they float on the column tint.
     <div
       draggable
       {...dragHandlers}
@@ -237,12 +250,13 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       }}
       data-task-id={task.id}
       data-col={columnName}
-      className={`group relative cursor-pointer border-b border-border/60 bg-white/25 transition-colors duration-150 ease-out
+      className={`group relative cursor-pointer rounded-lg bg-card border ${cardMargin}
+        transition-[background-color,border-color,box-shadow,transform] duration-150 ease-out
         ${containerPadding}
         ${
         isSelected
-          ? 'bg-primary/[0.08]'
-          : 'hover:bg-black/[0.03] dark:hover:bg-white/[0.04]'
+          ? 'border-primary/50 bg-primary/[0.08] shadow-[0_2px_8px_-2px_rgba(0,0,0,0.12)] ring-1 ring-primary/25'
+          : 'border-border/80 shadow-[0_1px_2px_rgba(0,0,0,0.05)] hover:border-border-strong hover:shadow-[0_4px_12px_-3px_rgba(0,0,0,0.14)] hover:-translate-y-0.5 active:scale-[0.99] active:translate-y-0'
       } ${task.checked ? 'opacity-70' : ''}`}
     >
       {/* Title row: checkbox (hover) | # | title. The title grows with its

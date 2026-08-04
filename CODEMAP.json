@@ -1105,9 +1105,9 @@
     },
     {
       "path": "src/components/Card.tsx",
-      "lines": 369,
-      "title": "Task card row",
-      "summary": "Displays one board task as a single dense row inside a column.",
+      "lines": 383,
+      "title": "Task card",
+      "summary": "Displays one board task as a clean, rounded card inside a column.",
       "functions": [
         {
           "name": "HighlightedText",

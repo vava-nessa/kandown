@@ -219,10 +219,10 @@ export function CardStack({
        * the previous `motion.div whileHover whileTap` setup that produced a
        * 250ms pop on every card. Now hover lift + tap scale are Tailwind
        * transitions on the `transform` property only, not `all`. */}
-      <div className="relative z-10 rounded-lg border border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)]
-        transition-[border-color,box-shadow,transform] duration-200 ease-out
-        hover:border-border-strong hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:-translate-y-px
-        active:scale-[0.99] active:duration-75">
+      <div className="relative z-10 rounded-lg border border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.05)]
+        transition-[border-color,box-shadow,transform] duration-150 ease-out
+        hover:border-border-strong hover:shadow-[0_4px_12px_-3px_rgba(0,0,0,0.14)] hover:-translate-y-0.5
+        active:scale-[0.99] active:translate-y-0">
         <div className="px-3.5 pt-3 pb-2.5 pl-7">
           {/* Header: stack icon + group key + task count */}
           <div className="flex items-center justify-between mb-1.5">
