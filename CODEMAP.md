@@ -26,8 +26,8 @@ source to edit instead.
 
 ## `bin/` — Published CLI entrypoints — GENERATED, never edit
 
-- **`kandown.js`** · 8200 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
-- **`tui.js`** · 62186 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
+- **`kandown.js`** · 8185 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
+- **`tui.js`** · 62185 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
 
 ## `src/` — Web app root
 
@@ -46,7 +46,7 @@ source to edit instead.
 - **`daemon.ts`** · 85 lines — Handles `kandown daemon <run|start|stop|restart|status|refresh-all>`.
 - **`project.ts`** · 117 lines — Handlers for `kandown init`, `update`/`upgrade`, `doctor`, and `work`.
 - **`run.ts`** · 117 lines — Parses flags, prints the cascade plan (always, so the user sees what is about to happen), then drives the orchestrator in `src/cli/lib/cascade.ts` and prints a per-task summary.
-- **`tasks.ts`** · 332 lines — Handlers for `kandown list/show/create/move/assign/commit` plus `export`/`import`/`projects`.
+- **`tasks.ts`** · 323 lines — Handlers for `kandown list/show/create/move/assign/commit` plus `export`/`import`/`projects`.
 
 ## `src/cli/components/` — Shared Ink components
 
@@ -95,13 +95,14 @@ source to edit instead.
 - **`resolve-kandown-dir.spec.ts`** · 127 lines — Pins down the three behaviors that prevent bare `kandown` from silently attaching to a foreign project: 1.
 - **`skills.spec.ts`** · 37 lines — Verifies bundled skill discovery plus missing configured skill diagnostics without relying on network or executable package content.
 - **`task-move.spec.ts`** · 264 lines — Exercises the Node move coordinator against real task files and a real jiti-loaded extension.
+- **`tasks-list.spec.ts`** · 130 lines — Pins the behaviour that broke when cmdList rebuilt its rows by hand instead of going through `buildColumnsFromTasks`.
 - **`workflows-cli.spec.ts`** · 64 lines — Exercises built-in discovery, provenance-preserving local forks, validated Markdown editing, and no-orphan board preset previews against real temporary Kandown projects.
 - **`workflows-store.spec.ts`** · 59 lines — Verifies pinned registry validation, capsule checksum enforcement, immutable install provenance, and explicit update confirmation without network.
 
 ## `src/cli/screens/` — Full-screen TUI views
 
 - **`agent-picker.tsx`** · 150 lines — Modal-style overlay for picking the AI agent a task is assigned to and launched on.
-- **`board.tsx`** · 1693 lines — The Kandown CLI's main screen.
+- **`board.tsx`** · 1696 lines — The Kandown CLI's main screen.
 - **`init-prompt.tsx`** · 54 lines — Shown when `kandown` is launched inside a directory that does not yet have a `.kandown/` config.
 - **`settings.tsx`** · 544 lines — Interactive settings editor for kandown.json.
 
@@ -199,7 +200,7 @@ source to edit instead.
 - **`kandown-work.ts`** · 175 lines — Compiles the immutable Kandown safety core, project column semantics, extensions, workflow, tracking policy, skills, user instructions, and task or board context into one deterministic agent instruction document.
 - **`motion-presets.ts`** · 81 lines — Single source of truth for every `motion.*` and `AnimatePresence` in the project.
 - **`notifications.ts`** · 137 lines — Centralizes Web Notification permission handling and in-page sound playback for task-file watcher events.
-- **`parser.ts`** · 452 lines — Parses Kandown task markdown into typed structures, builds board columns from task frontmatter, extracts editable subtasks, reinjects them on save, and performs lightweight cached task-content search for the web UI.
+- **`parser.ts`** · 464 lines — Parses Kandown task markdown into typed structures, builds board columns from task frontmatter, extracts editable subtasks, reinjects them on save, and performs lightweight cached task-content search for the web UI.
 - **`quick-add-parser.ts`** · 94 lines — Parses inline metadata annotations in task title strings: - `p1` / `p2` / `p3` / `p4` → priority (`P1`, `P2`, `P3`, `P4`) - `#tag` → tags array (`['tag']`) - `@assignee` → assignee string (`'assignee'`) - `due:friday` / `due:today` /…
 - **`retry.ts`** · 65 lines — Small, dependency-free helper that retries a fallible async operation a bounded number of times, only when the error is transient.
 - **`serializer.ts`** · 73 lines — Converts task frontmatter/body data back into Kandown's plain markdown task file format.
@@ -290,6 +291,6 @@ source to edit instead.
 
 ## Coverage
 
-185 of 185 eligible files carry an `@description` header.
+186 of 186 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

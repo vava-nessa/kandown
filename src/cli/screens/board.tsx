@@ -81,6 +81,7 @@ import { detectInstalledAgents, resolveAgentEntry, isAgentInstalled, warmupDetec
 import { launchAgent, isInTmux } from '../lib/launcher.js';
 import type { ParsedBoard, BoardTask, ParsedTask } from '../../lib/types.js';
 import { terminalStatus } from '../../lib/dependencies.js';
+import { isArchived } from '../../lib/parser.js';
 import { AgentPicker } from './agent-picker.js';
 import { useMouseMode, parseMouseInput, isMouseInput } from '../hooks/use-mouse.js';
 import { MENU_HEIGHT } from '../components/task-context-menu.js';
@@ -523,8 +524,10 @@ export function Board({ kandownDir, version }: BoardProps) {
     const resolved = new Map<string, boolean>();
     for (const col of board.columns) {
       for (const t of col.tasks) {
-        const isArch = t.frontmatter && (t.frontmatter.archived === true || t.frontmatter.archived === 'true');
-        resolved.set(t.id, isArch || col.name.toLowerCase() === terminalLower);
+        // 📖 Same definition as the web store and the CLI list: archived OR
+        // terminal column counts as resolved. Previously inlined here so the
+        // three sites could drift; the parser now owns the single source.
+        resolved.set(t.id, isArchived(t) || col.name.toLowerCase() === terminalLower);
       }
     }
     const movingTask = board.columns.flatMap(c => c.tasks).find(t => t.id === taskId);

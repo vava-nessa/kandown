@@ -15,8 +15,9 @@
  *  → extractSubtasks — separates editable subtasks from task body content
  *  → injectSubtasks — writes edited subtasks back into the task body
  *  → searchTaskContent — returns contextual matches for cached task content
+ *  → isArchived — true when the task carries the archived frontmatter flag
  *
- * @exports parseSimpleYaml, parseTaskFile, taskToBoardTask, buildColumnsFromTasks, extractSubtasks, injectSubtasks, searchTaskContent
+ * @exports parseSimpleYaml, parseTaskFile, taskToBoardTask, buildColumnsFromTasks, extractSubtasks, injectSubtasks, searchTaskContent, isArchived
  * @see src/lib/types.ts
  */
 
@@ -267,8 +268,19 @@ export function buildColumnsFromTasks(tasks: ParsedTask[], configuredColumns: st
 
 /** True when a task carries the archived flag in its frontmatter.
  * Accepts both boolean true and the string "true" because parseSimpleYaml keeps
- * scalar values as strings. String() normalizes both forms safely. */
-function isArchived(task: ParsedTask): boolean {
+ * scalar values as strings. String() normalizes both forms safely.
+ *
+ * 📖 Exported because callers outside the parser need the same definition —
+ * notably `kandown list`, which previously reimplemented it inline as
+ * `archived: false` (always), and the TUI board, which had its own copy.
+ * Keeping a single implementation here is what prevents the three sources of
+ * truth from drifting apart over time.
+ *
+ * 📖 The parameter is typed loosely so `BoardTask` (whose `frontmatter` is
+ * `Record<string, unknown>`) can be passed without a cast — the function only
+ * reads `frontmatter.archived`. The structural minimum keeps a wrong shape
+ * from being silently accepted. */
+export function isArchived(task: { frontmatter: { archived?: unknown } }): boolean {
   return String(task.frontmatter.archived) === 'true';
 }
 

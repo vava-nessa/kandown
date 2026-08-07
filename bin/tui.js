@@ -60771,8 +60771,7 @@ function Board({ kandownDir, version }) {
     const resolved = /* @__PURE__ */ new Map();
     for (const col of board2.columns) {
       for (const t of col.tasks) {
-        const isArch = t.frontmatter && (t.frontmatter.archived === true || t.frontmatter.archived === "true");
-        resolved.set(t.id, isArch || col.name.toLowerCase() === terminalLower);
+        resolved.set(t.id, isArchived(t) || col.name.toLowerCase() === terminalLower);
       }
     }
     const movingTask = board2.columns.flatMap((c) => c.tasks).find((t) => t.id === taskId);

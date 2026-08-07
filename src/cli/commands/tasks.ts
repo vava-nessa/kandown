@@ -9,7 +9,7 @@
  *   cmdExport, cmdProjects, cmdImport
  */
 
-import { existsSync, readFileSync, mkdirSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { archiveTaskInBoard, getTasksDir, readBoard, readTask, moveTaskToColumn, listTaskIds } from '../lib/board-reader';
@@ -17,7 +17,7 @@ import { loadExtensionHost, runExtensionMoveGates } from '../lib/extensions-cli'
 import { loadConfig } from '../lib/config';
 import { resolveAgentEntry } from '../lib/agents';
 import { atomicWriteFileSync } from '../lib/atomic-write';
-import { parseTaskFile } from '../../lib/parser';
+import { isArchived } from '../../lib/parser';
 import { serializeTaskFile } from '../../lib/serializer';
 import { stampUpdated } from '../../lib/task-meta';
 import type { TaskFrontmatter } from '../../lib/types';
@@ -38,36 +38,27 @@ export function cmdList(rawArgs: string[]) {
   const tagFilters = listFlag(args.flags, 'tag').map(tag => tag.toLowerCase());
 
   const rows: Array<{ id: string; title: string; status: string; priority: string; assignee: string; tags: string[]; archived: boolean }> = [];
+  // 📖 `listTaskIds` scans both `tasks/` and `tasks/archive/` on purpose
+  // (dependency resolution and other 12 callers rely on it). We derive the
+  // archived flag from the parsed task's frontmatter, then skip archived rows
+  // by default. `--archived` opts in to seeing them. The previous version
+  // hardcoded `archived: false` for the first pass and re-walked the archive
+  // folder in a second pass when `--archived` was set, which produced
+  // duplicated rows whose two entries contradicted each other.
   for (const id of listTaskIds(kandownDir)) {
     const task = readTask(kandownDir, id);
+    const archived = isArchived(task);
+    if (archived && !includeArchived) continue;
+    const baseStatus = task.frontmatter.status || defaultStatus;
     rows.push({
       id,
       title: task.frontmatter.title || id,
-      status: task.frontmatter.status || defaultStatus,
+      status: archived ? `${baseStatus} (archived)` : baseStatus,
       priority: task.frontmatter.priority || '',
       assignee: task.frontmatter.assignee || '',
       tags: Array.isArray(task.frontmatter.tags) ? task.frontmatter.tags : [],
-      archived: false,
+      archived,
     });
-  }
-
-  if (includeArchived) {
-    const archiveDir = join(getTasksDir(kandownDir), 'archive');
-    if (existsSync(archiveDir)) {
-      for (const file of readdirSync(archiveDir).filter(name => name.endsWith('.md'))) {
-        const id = file.slice(0, -3);
-        const parsed = parseTaskFile(readFileSync(join(archiveDir, file), 'utf8'));
-        rows.push({
-          id,
-          title: parsed.frontmatter.title || id,
-          status: `${parsed.frontmatter.status || defaultStatus} (archived)`,
-          priority: parsed.frontmatter.priority || '',
-          assignee: parsed.frontmatter.assignee || '',
-          tags: Array.isArray(parsed.frontmatter.tags) ? parsed.frontmatter.tags : [],
-          archived: true,
-        });
-      }
-    }
   }
 
   const filtered = rows.filter(row => {

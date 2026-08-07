@@ -3,14 +3,14 @@
   "files": [
     {
       "path": "bin/kandown.js",
-      "lines": 8200,
+      "lines": 8185,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 62186,
+      "lines": 62185,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -183,7 +183,7 @@
     },
     {
       "path": "src/cli/commands/tasks.ts",
-      "lines": 332,
+      "lines": 323,
       "title": "CLI commands — task CRUD & board data",
       "summary": "Handlers for `kandown list/show/create/move/assign/commit` plus `export`/`import`/`projects`.",
       "exports": "cmdList, cmdShow, cmdCreate, cmdMove, cmdAssign, cmdCommit, cmdExport, cmdProjects, cmdImport"
@@ -269,6 +269,12 @@
       "lines": 264,
       "title": "Managed backend task move integration tests",
       "summary": "Exercises the Node move coordinator against real task files and a real jiti-loaded extension."
+    },
+    {
+      "path": "src/cli/lib/__tests__/tasks-list.spec.ts",
+      "lines": 130,
+      "title": "`kandown list` integration tests",
+      "summary": "Pins the behaviour that broke when cmdList rebuilt its rows by hand instead of going through `buildColumnsFromTasks`."
     },
     {
       "path": "src/cli/lib/__tests__/workflows-cli.spec.ts",
@@ -826,7 +832,7 @@
     },
     {
       "path": "src/cli/screens/board.tsx",
-      "lines": 1693,
+      "lines": 1696,
       "title": "TUI Board Screen",
       "summary": "The Kandown CLI's main screen.",
       "functions": [
@@ -2417,7 +2423,7 @@
     },
     {
       "path": "src/lib/parser.ts",
-      "lines": 452,
+      "lines": 464,
       "title": "Markdown parser utilities",
       "summary": "Parses Kandown task markdown into typed structures, builds board columns from task frontmatter, extracts editable subtasks, reinjects them on save, and performs lightweight cached task-content search for the web UI.",
       "functions": [
@@ -2448,9 +2454,13 @@
         {
           "name": "searchTaskContent",
           "summary": "returns contextual matches for cached task content"
+        },
+        {
+          "name": "isArchived",
+          "summary": "true when the task carries the archived frontmatter flag"
         }
       ],
-      "exports": "parseSimpleYaml, parseTaskFile, taskToBoardTask, buildColumnsFromTasks, extractSubtasks, injectSubtasks, searchTaskContent"
+      "exports": "parseSimpleYaml, parseTaskFile, taskToBoardTask, buildColumnsFromTasks, extractSubtasks, injectSubtasks, searchTaskContent, isArchived"
     },
     {
       "path": "src/lib/quick-add-parser.ts",

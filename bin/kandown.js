@@ -3028,11 +3028,11 @@ var init_workflows_store = __esm({
 });
 
 // src/cli/lib/workflows-cli.ts
-import { existsSync as existsSync20, mkdirSync as mkdirSync11, readFileSync as readFileSync19, readdirSync as readdirSync10, statSync as statSync6, unlinkSync as unlinkSync6 } from "fs";
+import { existsSync as existsSync20, mkdirSync as mkdirSync11, readFileSync as readFileSync19, readdirSync as readdirSync9, statSync as statSync6, unlinkSync as unlinkSync6 } from "fs";
 import { basename as basename4, join as join22, resolve as resolve9 } from "path";
 function sourceFiles(directory, prefix = "") {
   const files = {};
-  for (const name of readdirSync10(directory)) {
+  for (const name of readdirSync9(directory)) {
     const absolute = join22(directory, name);
     const relative = prefix ? `${prefix}/${name}` : name;
     if (statSync6(absolute).isDirectory()) Object.assign(files, sourceFiles(absolute, relative));
@@ -3059,7 +3059,7 @@ function workflowDirectory(kandownDir, id) {
 }
 function packageDirectories(root) {
   if (!existsSync20(root)) return [];
-  return readdirSync10(root, { withFileTypes: true }).filter((entry) => entry.isDirectory() && existsSync20(join22(root, entry.name, "manifest.json"))).map((entry) => join22(root, entry.name));
+  return readdirSync9(root, { withFileTypes: true }).filter((entry) => entry.isDirectory() && existsSync20(join22(root, entry.name, "manifest.json"))).map((entry) => join22(root, entry.name));
 }
 function compatibilityError(workflow) {
   const minimum = workflow.manifest.minKandownVersion;
@@ -4483,7 +4483,7 @@ async function cmdWork(rawArgs) {
 
 // src/cli/commands/tasks.ts
 init_board_reader();
-import { existsSync as existsSync16, readFileSync as readFileSync17, mkdirSync as mkdirSync8, readdirSync as readdirSync9 } from "fs";
+import { existsSync as existsSync16, readFileSync as readFileSync17, mkdirSync as mkdirSync8 } from "fs";
 import { join as join18, resolve as resolve8 } from "path";
 import { spawnSync } from "child_process";
 
@@ -5860,33 +5860,18 @@ function cmdList(rawArgs) {
   const rows = [];
   for (const id of listTaskIds(kandownDir)) {
     const task = readTask(kandownDir, id);
+    const archived = isArchived(task);
+    if (archived && !includeArchived) continue;
+    const baseStatus = task.frontmatter.status || defaultStatus;
     rows.push({
       id,
       title: task.frontmatter.title || id,
-      status: task.frontmatter.status || defaultStatus,
+      status: archived ? `${baseStatus} (archived)` : baseStatus,
       priority: task.frontmatter.priority || "",
       assignee: task.frontmatter.assignee || "",
       tags: Array.isArray(task.frontmatter.tags) ? task.frontmatter.tags : [],
-      archived: false
+      archived
     });
-  }
-  if (includeArchived) {
-    const archiveDir = join18(getTasksDir(kandownDir), "archive");
-    if (existsSync16(archiveDir)) {
-      for (const file of readdirSync9(archiveDir).filter((name) => name.endsWith(".md"))) {
-        const id = file.slice(0, -3);
-        const parsed = parseTaskFile(readFileSync17(join18(archiveDir, file), "utf8"));
-        rows.push({
-          id,
-          title: parsed.frontmatter.title || id,
-          status: `${parsed.frontmatter.status || defaultStatus} (archived)`,
-          priority: parsed.frontmatter.priority || "",
-          assignee: parsed.frontmatter.assignee || "",
-          tags: Array.isArray(parsed.frontmatter.tags) ? parsed.frontmatter.tags : [],
-          archived: true
-        });
-      }
-    }
   }
   const filtered = rows.filter((row) => {
     if (statusFilter && row.status.toLowerCase() !== statusFilter) return false;
@@ -6564,8 +6549,8 @@ function listInstalledThemes(projectDir) {
   const dir = join20(projectDir, ".kandown", "themes");
   if (!existsSync18(dir)) return [];
   const themes = [];
-  const { readFileSync: readFileSync22, readdirSync: readdirSync13 } = __require("fs");
-  for (const file of readdirSync13(dir)) {
+  const { readFileSync: readFileSync22, readdirSync: readdirSync12 } = __require("fs");
+  for (const file of readdirSync12(dir)) {
     if (!file.endsWith(".json")) continue;
     try {
       const raw = readFileSync22(join20(dir, file), "utf8");
@@ -7812,7 +7797,7 @@ function cmdAgents(rawArgs) {
 }
 
 // src/cli/lib/themes-cli.ts
-import { existsSync as existsSync23, mkdirSync as mkdirSync13, readFileSync as readFileSync21, readdirSync as readdirSync12, writeFileSync as writeFileSync9 } from "fs";
+import { existsSync as existsSync23, mkdirSync as mkdirSync13, readFileSync as readFileSync21, readdirSync as readdirSync11, writeFileSync as writeFileSync9 } from "fs";
 import { join as join27, resolve as resolve10 } from "path";
 init_board_reader();
 init_cli_shared();
@@ -7908,7 +7893,7 @@ function listInstalledThemesForCli(projectDir) {
   const dir = join27(projectDir, ".kandown", "themes");
   if (!existsSync23(dir)) return [];
   const out = [];
-  for (const file of readdirSync12(dir)) {
+  for (const file of readdirSync11(dir)) {
     if (!file.endsWith(".json")) continue;
     try {
       const raw = readFileSync21(join27(dir, file), "utf8");
