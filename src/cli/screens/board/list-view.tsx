@@ -47,6 +47,7 @@
 
 import { Box, Text } from 'ink';
 import type { BoardTask } from '../../../lib/types.js';
+import { formatDependencyChip } from '../../../lib/dependency-chip-format.js';
 import { formatAge } from '../../../lib/task-meta.js';
 import { columnAccentColor, pad, truncate } from './helpers.js';
 import type React from 'react';
@@ -180,8 +181,12 @@ export function computeListGeometry(
   maxHeight: number,
   width: number,
   columns: ListColumnPrefs = ALL_LIST_COLUMNS,
+  /** 📖 Forwarded to `computeListLayout` so the deps column can size itself
+   * to fit the longest chip content (id + title preview) instead of always
+   * reserving a fixed 4 cells. */
+  titleById?: ReadonlyMap<string, string>,
 ): ListGeometry {
-  const layout = computeListLayout(rows, width, columns);
+  const layout = computeListLayout(rows, width, columns, titleById);
   // 📖 −1 for the always-present footer line (see the file header).
   const viewport = Math.max(1, maxHeight - 1);
   const selected = rows[selectedIndex] ?? rows[0];
@@ -279,8 +284,12 @@ function ListHeaderRow({ layout, sort, sortDir, priorityFilter }: {
  * background) and the title wraps onto continuation lines indented to the
  * description column, so the eye reads them as belonging to the same task.
  */
-function TaskListRow({ row, selected, layout, now }: {
+function TaskListRow({ row, selected, layout, now, titleById }: {
   row: ListRow; selected: boolean; layout: ListLayout; now: number;
+  /** 📖 id → title lookup, used by the deps chip to show `↪ t234: Fix login…`
+   * for a single dependency. Optional — without it the chip falls back to
+   * `↪N id1, id2, …` since no titles are available. */
+  titleById?: ReadonlyMap<string, string>;
 }) {
   const { task } = row;
   const bg = selected ? 'cyan' : undefined;
@@ -320,7 +329,12 @@ function TaskListRow({ row, selected, layout, now }: {
           <Text color={dim(normalizeOwner(task) === 'ai' ? 'magenta' : 'blue')}>{pad(ownerGlyph(task), layout.owner)}{' '}</Text>
         )}
         {layout.deps > 0 && (
-          <Text color={dim('yellow')}>{pad(task.dependsOn.length > 0 ? `↪${task.dependsOn.length}` : '', layout.deps)}{' '}</Text>
+          <Text color={dim('yellow')}>
+            {pad(
+              task.dependsOn.length > 0 ? formatDependencyChip(task.dependsOn, titleById ?? new Map()) : '',
+              layout.deps,
+            )}{' '}
+          </Text>
         )}
         {layout.tags > 0 && (
           <Text color={dim('magenta')}>{pad(tagLabel, layout.tags)}{' '}</Text>
@@ -373,7 +387,7 @@ function ListFooter({ scroll, end, total, selectedIndex, sort, sortDir, filter, 
  */
 export function TaskListView({
   rows, selectedIndex, geometry, sort, sortDir = 'asc', filter,
-  priorityFilter = 'all', search, width, now = Date.now(),
+  priorityFilter = 'all', search, width, now = Date.now(), titleById,
 }: {
   rows: ListRow[];
   selectedIndex: number;
@@ -386,6 +400,9 @@ export function TaskListView({
   search: string;
   width: number;
   now?: number;
+  /** 📖 Forwarded to every row so the deps chip can surface the title of a
+   * single dependency instead of just its count. */
+  titleById?: ReadonlyMap<string, string>;
 }) {
   const { layout, window } = geometry;
   const header = (
@@ -416,6 +433,7 @@ export function TaskListView({
         selected={idx === selectedIndex}
         layout={layout}
         now={now}
+        titleById={titleById}
       />
     );
   }

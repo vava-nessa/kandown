@@ -55569,7 +55569,7 @@ import { spawn, execSync } from "child_process";
 import { homedir } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.47.0";
+var KANDOWN_VERSION = "0.48.0";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath } from "url";
@@ -59951,6 +59951,20 @@ function TaskDetail({ task, taskId, scrollOffset }) {
   ] });
 }
 
+// src/lib/dependency-chip-format.ts
+var DEPENDENCY_TITLE_PREVIEW = 20;
+function formatDependencyChip(ids, titleById) {
+  if (!ids || ids.length === 0) return "";
+  if (ids.length === 1) {
+    const id = ids[0];
+    const title = titleById.get(id) ?? "";
+    if (!title) return `\u21AA ${id}`;
+    const preview = title.length > DEPENDENCY_TITLE_PREVIEW ? `${title.slice(0, DEPENDENCY_TITLE_PREVIEW)}\u2026` : title;
+    return `\u21AA ${id}: ${preview}`;
+  }
+  return `\u21AA${ids.length} ${ids.join(", ")}`;
+}
+
 // src/cli/screens/board/list-helpers.ts
 var LIST_SORTS = ["status", "age", "priority", "id"];
 var FILTER_MODES = ["all", "priority-p1", "owner-ai", "owner-human", "blocked"];
@@ -60095,9 +60109,15 @@ var ALL_LIST_COLUMNS = {
   assignee: true
 };
 var DROP_ORDER = ["tags", "assignee", "deps", "owner", "priority", "age", "status"];
-function computeListLayout(rows, width = termWidth(), prefs = ALL_LIST_COLUMNS) {
+function computeListLayout(rows, width = termWidth(), prefs = ALL_LIST_COLUMNS, titleById) {
   const longestId = rows.reduce((max, row) => Math.max(max, row.task.id.length), 2);
   const longestStatus = rows.reduce((max, row) => Math.max(max, row.status.length), 6);
+  const longestDepsContent = titleById ? rows.reduce((max, row) => {
+    const ids = row.task.dependsOn;
+    if (!ids || ids.length === 0) return max;
+    return Math.max(max, formatDependencyChip(ids, titleById).length);
+  }, 0) : 0;
+  const depsWidth = titleById ? Math.max(4, Math.min(30, longestDepsContent)) : 4;
   const layout = {
     // 📖 One cell for the ▸ / ✓ marker; the inter-column gap supplies the space
     // that separates it from the id.
@@ -60112,7 +60132,7 @@ function computeListLayout(rows, width = termWidth(), prefs = ALL_LIST_COLUMNS) 
     // 📖 An emoji owner badge is two terminal cells wide (see `ownerGlyph`);
     // the extra two carry the `Who↑` header without reserving a third glyph.
     owner: prefs.owner ? OWNER_GLYPH_WIDTH + 2 : 0,
-    deps: prefs.deps ? 4 : 0,
+    deps: prefs.deps ? depsWidth : 0,
     tags: prefs.tags ? 14 : 0,
     desc: 0,
     assignee: prefs.assignee ? ASSIGNEE_WIDTH : 0,
@@ -60242,8 +60262,8 @@ function computeListWindow(previousScroll, selectedIndex, selHeight, total, view
 function rowHeight(row, layout) {
   return wrapText2(row.task.title, layout.desc, MAX_WRAP_LINES).length || 1;
 }
-function computeListGeometry(rows, selectedIndex, previousScroll, maxHeight, width, columns = ALL_LIST_COLUMNS) {
-  const layout = computeListLayout(rows, width, columns);
+function computeListGeometry(rows, selectedIndex, previousScroll, maxHeight, width, columns = ALL_LIST_COLUMNS, titleById) {
+  const layout = computeListLayout(rows, width, columns, titleById);
   const viewport = Math.max(1, maxHeight - 1);
   const selected = rows[selectedIndex] ?? rows[0];
   const selHeight = selected ? rowHeight(selected, layout) : 1;
@@ -60293,7 +60313,7 @@ function ListHeaderRow({ layout, sort, sortDir, priorityFilter }) {
     /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Text, { color: "gray", dimColor: true, children: "\u2500".repeat(layout.total) })
   ] });
 }
-function TaskListRow({ row, selected, layout, now }) {
+function TaskListRow({ row, selected, layout, now, titleById }) {
   const { task } = row;
   const bg = selected ? "cyan" : void 0;
   const fg = selected ? "black" : void 0;
@@ -60327,7 +60347,10 @@ function TaskListRow({ row, selected, layout, now }) {
         " "
       ] }),
       layout.deps > 0 && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: dim("yellow"), children: [
-        pad(task.dependsOn.length > 0 ? `\u21AA${task.dependsOn.length}` : "", layout.deps),
+        pad(
+          task.dependsOn.length > 0 ? formatDependencyChip(task.dependsOn, titleById ?? /* @__PURE__ */ new Map()) : "",
+          layout.deps
+        ),
         " "
       ] }),
       layout.tags > 0 && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(Text, { color: dim("magenta"), children: [
@@ -60370,7 +60393,8 @@ function TaskListView({
   priorityFilter = "all",
   search,
   width,
-  now = Date.now()
+  now = Date.now(),
+  titleById
 }) {
   const { layout, window: window2 } = geometry;
   const header = /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(ListHeaderRow, { layout, sort, sortDir, priorityFilter });
@@ -60393,7 +60417,8 @@ function TaskListView({
           row,
           selected: idx === selectedIndex,
           layout,
-          now
+          now,
+          titleById
         },
         row.task.id
       )
@@ -60576,9 +60601,19 @@ function Board({ kandownDir, version }) {
     3,
     (process.stdout.rows || 24) - LIST_START_Y - 3 - (showDetailPane ? DETAIL_PANE_HEIGHT : 0)
   );
+  const dependencyTitleById = (0, import_react37.useMemo)(() => {
+    const map = /* @__PURE__ */ new Map();
+    if (!rawBoard) return map;
+    for (const col of rawBoard.columns) {
+      for (const t of col.tasks) {
+        if (t.id && t.title) map.set(t.id, t.title);
+      }
+    }
+    return map;
+  }, [rawBoard]);
   const listGeometry = (0, import_react37.useMemo)(
-    () => computeListGeometry(listRows, listIndex, listScroll, listMaxHeight, termWidth(), listColumns),
-    [listRows, listIndex, listScroll, listMaxHeight, listColumns]
+    () => computeListGeometry(listRows, listIndex, listScroll, listMaxHeight, termWidth(), listColumns, dependencyTitleById),
+    [listRows, listIndex, listScroll, listMaxHeight, listColumns, dependencyTitleById]
   );
   (0, import_react37.useEffect)(() => {
     if (listGeometry.window.scroll !== listScroll) setListScroll(listGeometry.window.scroll);
@@ -61779,7 +61814,8 @@ function Board({ kandownDir, version }) {
           filter: filterMode,
           priorityFilter,
           search: searchQuery,
-          width: termWidth()
+          width: termWidth(),
+          titleById: dependencyTitleById
         }
       ),
       showDetailPane && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(

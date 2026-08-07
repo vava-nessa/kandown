@@ -48,6 +48,7 @@
  */
 
 import type { BoardTask, ParsedBoard } from '../../../lib/types.js';
+import { formatDependencyChip } from '../../../lib/dependency-chip-format.js';
 import { termWidth, truncate } from './helpers.js';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -411,14 +412,35 @@ const DROP_ORDER: DroppableColumn[] = ['tags', 'assignee', 'deps', 'owner', 'pri
  * longest actual value (capped), so a project with `t7`-style ids does not
  * reserve six characters, and a project with a "Waiting on review" column is
  * not truncated to "Waiting …" while three columns of slack sit unused.
+ *
+ * 📖 The deps column is also content-aware now: a single dependency renders as
+ * `↪ t234: <20 char preview>` (~30 cells), while multiple deps collapse to
+ * `↪N id1, id2, …` which is shorter. We size the column to fit the widest
+ * value, capped at 30 cells so a pathological `↪99 …` does not eat the
+ * description. `titleById` is optional — without it we fall back to the old
+ * 4-cell width so older callers (and tests) keep working unchanged.
  */
 export function computeListLayout(
   rows: ListRow[],
   width: number = termWidth(),
   prefs: ListColumnPrefs = ALL_LIST_COLUMNS,
+  titleById?: ReadonlyMap<string, string>,
 ): ListLayout {
   const longestId = rows.reduce((max, row) => Math.max(max, row.task.id.length), 2);
   const longestStatus = rows.reduce((max, row) => Math.max(max, row.status.length), 6);
+  // 📖 Adaptive deps width: longest chip content across all rows, capped so
+  // one row with 99 deps does not crowd the description out. Falls back to the
+  // legacy 4-cell width when no title map is provided.
+  const longestDepsContent = titleById
+    ? rows.reduce((max, row) => {
+        const ids = row.task.dependsOn;
+        if (!ids || ids.length === 0) return max;
+        return Math.max(max, formatDependencyChip(ids, titleById).length);
+      }, 0)
+    : 0;
+  const depsWidth = titleById
+    ? Math.max(4, Math.min(30, longestDepsContent))
+    : 4;
 
   // 📖 A disabled column starts at width 0, which every downstream consumer
   // already reads as "hidden" — the drop loop, `used()`, the header row and the
@@ -438,7 +460,7 @@ export function computeListLayout(
     // 📖 An emoji owner badge is two terminal cells wide (see `ownerGlyph`);
     // the extra two carry the `Who↑` header without reserving a third glyph.
     owner: prefs.owner ? OWNER_GLYPH_WIDTH + 2 : 0,
-    deps: prefs.deps ? 4 : 0,
+    deps: prefs.deps ? depsWidth : 0,
     tags: prefs.tags ? 14 : 0,
     desc: 0,
     assignee: prefs.assignee ? ASSIGNEE_WIDTH : 0,

@@ -27,7 +27,7 @@ source to edit instead.
 ## `bin/` — Published CLI entrypoints — GENERATED, never edit
 
 - **`kandown.js`** · 8200 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
-- **`tui.js`** · 62150 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
+- **`tui.js`** · 62186 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
 
 ## `src/` — Web app root
 
@@ -101,7 +101,7 @@ source to edit instead.
 ## `src/cli/screens/` — Full-screen TUI views
 
 - **`agent-picker.tsx`** · 150 lines — Modal-style overlay for picking the AI agent a task is assigned to and launched on.
-- **`board.tsx`** · 1677 lines — The Kandown CLI's main screen.
+- **`board.tsx`** · 1693 lines — The Kandown CLI's main screen.
 - **`init-prompt.tsx`** · 54 lines — Shown when `kandown` is launched inside a directory that does not yet have a `.kandown/` config.
 - **`settings.tsx`** · 544 lines — Interactive settings editor for kandown.json.
 
@@ -109,8 +109,8 @@ source to edit instead.
 
 - **`components.tsx`** · 370 lines — Stateless render pieces for the Kanban board: task rows, the move placeholder, a column (with its own scroll window), the header, the status bar, and the full-screen task detail view. board.tsx composes these around its stateful…
 - **`helpers.ts`** · 133 lines — Text layout (truncate/pad/hyperlink), terminal geometry, and the scroll-window computation shared between the render path (KanbanColumn) and mouse hit-testing (taskHitAt / handleMouseClick) in board.tsx so the two can never diverge.
-- **`list-helpers.ts`** · 576 lines — Everything the flat list view needs that is not React: turning the column-shaped board into one ordered list of rows, the search/filter pipeline shared with the kanban view, the sort orders, the adaptive column layout, and word wrapping…
-- **`list-view.tsx`** · 531 lines — The flat, one-task-per-line view that the TUI opens on, plus the Name/Value detail pane pinned beneath it.
+- **`list-helpers.ts`** · 598 lines — Everything the flat list view needs that is not React: turning the column-shaped board into one ordered list of rows, the search/filter pipeline shared with the kanban view, the sort orders, the adaptive column layout, and word wrapping…
+- **`list-view.tsx`** · 549 lines — The flat, one-task-per-line view that the TUI opens on, plus the Name/Value detail pane pinned beneath it.
 
 ## `src/cli/screens/board/__tests__/`
 
@@ -122,7 +122,7 @@ source to edit instead.
 - **`ArchiveView.tsx`** · 89 lines — Lists every archived task (frontmatter `archived: true`, files living under `tasks/archive/` at the project root) as a flat list.
 - **`Board.tsx`** · 394 lines — Renders the horizontal kanban board, filters tasks per column, wires drag-and-drop state, and forwards content-search matches to cards.
 - **`BulkActionBar.tsx`** · 537 lines — Appears when one or more tasks are selected in the web UI and behaves like Linear's selection bar: a floating pill at the bottom of the screen that exposes every action that makes sense for a group of tasks — change priority, assign,…
-- **`Card.tsx`** · 383 lines — Displays one board task as a clean, rounded card inside a column.
+- **`Card.tsx`** · 402 lines — Displays one board task as a clean, rounded card inside a column.
 - **`CardStack.tsx`** · 257 lines — Renders a group of 2+ cards that share the same `[bracket]` or `#hashtag` title tag as a visually stacked card.
 - **`Cheatsheet.tsx`** · 181 lines — Centered modal that lists every keyboard shortcut in Kandown, grouped by context (Global, Board, Drawer, Command Palette).
 - **`Column.tsx`** · 359 lines — Renders a single kanban column, accepts dropped cards, shows the filtered task count, and creates new tasks directly in the column.
@@ -190,6 +190,7 @@ source to edit instead.
 - **`demoBackend.ts`** · 393 lines — Implements the Kandown REST API against a `Map` instead of a disk, so the whole web UI can run in a browser tab with no CLI, no server and no storage.
 - **`demoSeed.ts`** · 440 lines — The starting contents of the in-memory project served by {@link ./demoBackend.ts} when the app runs in demo mode on the website.
 - **`dependencies.ts`** · 333 lines — Pure module that owns the single rule for moving tasks between board columns: a task may only enter the configured terminal status (and be archived) when every blocking dependency is resolved.
+- **`dependency-chip-format.ts`** · 54 lines — Shared text formatter for the "depends on" chip shown on task cards (web board view) and TUI list rows.
 - **`errors.ts`** · 138 lines — Typed errors used across the web UI to distinguish failure modes (browser support, permissions, disk full, corruption, parse errors) instead of relying on generic `Error` + string matching.
 - **`filesystem.ts`** · 1275 lines — Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.
 - **`githubStars.ts`** · 122 lines — Client-side GitHub star count for the Kandown web app, with a localStorage cache.
@@ -219,6 +220,7 @@ source to edit instead.
 - **`config.spec.ts`** · 153 lines — Locks canonical defaults, legacy instruction density migration, malformed input handling, semantic column lookup, and optional agent config preservation into one suite shared by browser and CLI adapters.
 - **`demoBackend.spec.ts`** · 72 lines — Locks the in-memory backend to the managed move protocol.
 - **`dependencies.spec.ts`** · 254 lines — Vitest suite that locks the policy decisions into tests (see docs/ARCHITECTURE.md invariant #2).
+- **`dependency-chip-format.spec.ts`** · 75 lines — Pins the two rendering rules: single dep → `↪ t234: <20 chars>`, multiple deps → `↪N id1, id2, …`.
 - **`extension-agent-guidance.spec.ts`** · 23 lines — Locks concise summary, safe guide path, and optional source validation so malformed extension guidance cannot break Kandown Work.
 - **`extensions-host.spec.ts`** · 275 lines — Vitest suite that loads real extensions from a temp project dir via jiti and locks the host contract: discovery, restricted mode + project trust, gate composition with block reasons, command dispatch, and the core invariant that a…
 - **`kandown-work.spec.ts`** · 63 lines — Verifies immutable-core density, fixed nine-layer ordering, tracking cadence, semantic column placeholders, and structured diagnostics.
@@ -288,6 +290,6 @@ source to edit instead.
 
 ## Coverage
 
-183 of 183 eligible files carry an `@description` header.
+185 of 185 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

@@ -293,10 +293,25 @@ export function Board({ kandownDir, version }: BoardProps) {
     (process.stdout.rows || 24) - LIST_START_Y - 3 - (showDetailPane ? DETAIL_PANE_HEIGHT : 0),
   );
 
+  /** 📖 id → title map built from every column of the unfiltered board. The
+   * deps chip needs the blocking task's title to render `↪ t234: Fix login…`
+   * for a single dependency. Rebuilt only when the underlying board changes
+   * (file edit, status move, daemon refresh). */
+  const dependencyTitleById = useMemo(() => {
+    const map = new Map<string, string>();
+    if (!rawBoard) return map;
+    for (const col of rawBoard.columns) {
+      for (const t of col.tasks) {
+        if (t.id && t.title) map.set(t.id, t.title);
+      }
+    }
+    return map;
+  }, [rawBoard]);
+
   /** 📖 Shared by the renderer and the click handler — see computeListGeometry. */
   const listGeometry = useMemo(
-    () => computeListGeometry(listRows, listIndex, listScroll, listMaxHeight, termWidth(), listColumns),
-    [listRows, listIndex, listScroll, listMaxHeight, listColumns],
+    () => computeListGeometry(listRows, listIndex, listScroll, listMaxHeight, termWidth(), listColumns, dependencyTitleById),
+    [listRows, listIndex, listScroll, listMaxHeight, listColumns, dependencyTitleById],
   );
 
   // 📖 The geometry resolves the scroll offset; mirror it back into state so
@@ -1615,6 +1630,7 @@ export function Board({ kandownDir, version }: BoardProps) {
           priorityFilter={priorityFilter}
           search={searchQuery}
           width={termWidth()}
+          titleById={dependencyTitleById}
         />
 
         {showDetailPane && (

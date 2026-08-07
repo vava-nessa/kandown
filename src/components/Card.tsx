@@ -42,12 +42,14 @@
  * @see src/components/Drawer.tsx
  */
 
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
 import { AssigneeAvatar } from './agentIcons';
 import type { BoardTask, Density, SearchMatch } from '../lib/types';
 import { useStore } from '../lib/store';
 import { useExtensionRuntime } from './ExtensionRuntimeProvider';
+import { formatDependencyChip } from '../lib/dependency-chip-format';
 
 const priorityColors: Record<string, string> = {
   P1: '#e5484d',
@@ -216,6 +218,23 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
   const toggleTaskSelection = useStore(s => s.toggleTaskSelection);
   const isSelected = selectedTaskIds?.includes(task.id) ?? false;
 
+  // 📖 Single dependency chip needs the title of the blocking task; build a
+  // id → title lookup from every column once per board change so each card
+  // stays O(deps) at render time.
+  const columns = useStore(s => s.columns);
+  const titleById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const col of columns) {
+      for (const t of col.tasks) {
+        if (t.id && t.title) map.set(t.id, t.title);
+      }
+    }
+    return map;
+  }, [columns]);
+  const depsChip = task.dependsOn && task.dependsOn.length > 0
+    ? formatDependencyChip(task.dependsOn, titleById)
+    : '';
+
   // 📖 Density drives vertical padding + title size, never truncation. Both
   // modes grow freely with the title length.
   const containerPadding = isCompact ? 'px-3 py-1.5' : 'px-3.5 py-2.5';
@@ -331,13 +350,13 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
                   {badge.text}
                 </span>
               ))}
-              {task.dependsOn && task.dependsOn.length > 0 && (
+              {depsChip && (
                 <span
-                  className="inline-flex items-center gap-0.5 px-1.5 h-[16px] rounded text-[10.5px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20"
+                  className="inline-flex items-center gap-0.5 px-1.5 h-[16px] rounded text-[10.5px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 max-w-[260px] truncate"
                   title={t('card.blockedBy', { ids: task.dependsOn.join(', ') })}
                   aria-label={t('card.blockedBy', { ids: task.dependsOn.join(', ') })}
                 >
-                  ↪{task.dependsOn.length}
+                  {depsChip}
                 </span>
               )}
             </div>

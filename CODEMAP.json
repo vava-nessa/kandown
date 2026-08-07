@@ -10,7 +10,7 @@
     },
     {
       "path": "bin/tui.js",
-      "lines": 62150,
+      "lines": 62186,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -826,7 +826,7 @@
     },
     {
       "path": "src/cli/screens/board.tsx",
-      "lines": 1677,
+      "lines": 1693,
       "title": "TUI Board Screen",
       "summary": "The Kandown CLI's main screen.",
       "functions": [
@@ -915,7 +915,7 @@
     },
     {
       "path": "src/cli/screens/board/list-helpers.ts",
-      "lines": 576,
+      "lines": 598,
       "title": "List view — pure data & layout helpers",
       "summary": "Everything the flat list view needs that is not React: turning the column-shaped board into one ordered list of rows, the search/filter pipeline shared with the kanban view, the sort orders, the adaptive column layout, and word wrapping…",
       "functions": [
@@ -968,7 +968,7 @@
     },
     {
       "path": "src/cli/screens/board/list-view.tsx",
-      "lines": 531,
+      "lines": 549,
       "title": "List view — presentational components",
       "summary": "The flat, one-task-per-line view that the TUI opens on, plus the Name/Value detail pane pinned beneath it.",
       "functions": [
@@ -1105,7 +1105,7 @@
     },
     {
       "path": "src/components/Card.tsx",
-      "lines": 383,
+      "lines": 402,
       "title": "Task card",
       "summary": "Displays one board task as a clean, rounded card inside a column.",
       "functions": [
@@ -1783,6 +1783,12 @@
       "summary": "Vitest suite that locks the policy decisions into tests (see docs/ARCHITECTURE.md invariant #2)."
     },
     {
+      "path": "src/lib/__tests__/dependency-chip-format.spec.ts",
+      "lines": 75,
+      "title": "Tests for the dependency chip formatter",
+      "summary": "Pins the two rendering rules: single dep → `↪ t234: <20 chars>`, multiple deps → `↪N id1, id2, …`."
+    },
+    {
       "path": "src/lib/__tests__/extension-agent-guidance.spec.ts",
       "lines": 23,
       "title": "Extension agent guidance manifest tests",
@@ -1947,6 +1953,19 @@
         }
       ],
       "exports": "DependencyGateError, TransitionVerdict, TransitionTaskInput, resolveTransition, assertTransitionAllowed, checkTerminalStatusGate, resolveDependencyStatus, unresolvedDependencyIds, countUnresolvedDependencies, terminalStatus, isTerminalStatus, isArchivedStatus, movesIntoArchived"
+    },
+    {
+      "path": "src/lib/dependency-chip-format.ts",
+      "lines": 54,
+      "title": "Dependency chip format",
+      "summary": "Shared text formatter for the \"depends on\" chip shown on task cards (web board view) and TUI list rows.",
+      "functions": [
+        {
+          "name": "formatDependencyChip",
+          "summary": "single source of truth for chip text"
+        }
+      ],
+      "exports": "formatDependencyChip, DEPENDENCY_TITLE_PREVIEW"
     },
     {
       "path": "src/lib/errors.ts",
