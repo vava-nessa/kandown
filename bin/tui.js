@@ -54825,7 +54825,7 @@ import { join as join16 } from "path";
 
 // src/cli/lib/board-reader.ts
 import { existsSync as existsSync3, readdirSync as readdirSync2, readFileSync as readFileSync3, mkdirSync, unlinkSync as unlinkSync2 } from "fs";
-import { dirname, join as join2 } from "path";
+import { dirname, join as join2, sep } from "path";
 
 // src/lib/dependencies.ts
 function terminalStatus(config = DEFAULT_CONFIG) {
@@ -55318,12 +55318,18 @@ function readTask(kandownDir, taskId, defaultStatus) {
   }
   const content = readFileSync3(taskPath, "utf8");
   const parsed = parseTaskFile(content);
+  const tasksDir = getTasksDir(kandownDir);
+  const inArchive = taskPath === join2(tasksDir, "archive", `${taskId}.md`) || taskPath.startsWith(join2(tasksDir, "archive") + sep);
+  const archived = inArchive || isArchived(parsed);
   return {
     ...parsed,
     frontmatter: {
       ...parsed.frontmatter,
       id: parsed.frontmatter.id || taskId,
-      status: parsed.frontmatter.status || fallback
+      status: parsed.frontmatter.status || fallback,
+      // Normalize to a real boolean so JSON serializers and `=== true`
+      // checks both behave consistently downstream.
+      archived: archived ? true : parsed.frontmatter.archived
     }
   };
 }

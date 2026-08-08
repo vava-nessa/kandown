@@ -3,14 +3,14 @@
   "files": [
     {
       "path": "bin/kandown.js",
-      "lines": 8185,
+      "lines": 8191,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 62185,
+      "lines": 62191,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -253,6 +253,12 @@
       "summary": "Proves fresh projects print the exact shared compiler output on stdout and that an explicit task replaces the general board digest."
     },
     {
+      "path": "src/cli/lib/__tests__/readTask-archive-flag.spec.ts",
+      "lines": 133,
+      "title": "Path-as-truth archive invariant",
+      "summary": "Pins the invariant that the file's *location* (active folder vs `tasks/archive/`) is the single source of truth for whether a task is archived."
+    },
+    {
       "path": "src/cli/lib/__tests__/resolve-kandown-dir.spec.ts",
       "lines": 127,
       "title": "Regression tests for resolveKandownDir boundary rules",
@@ -390,7 +396,7 @@
     },
     {
       "path": "src/cli/lib/board-reader.ts",
-      "lines": 419,
+      "lines": 433,
       "title": "Node.js task reader and mutator",
       "summary": "Provides filesystem-based reading and writing of Kandown task files for the CLI.",
       "functions": [
@@ -2192,7 +2198,7 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 1275,
+      "lines": 1289,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [

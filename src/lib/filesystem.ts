@@ -904,9 +904,16 @@ export async function readTaskFile(_tasksDir: FileSystemDirectoryHandle | null, 
       return null;
     }
   };
-  const text = (await tryRead(_tasksDir!)) ?? (await tryArchiveRead(_tasksDir!, id));
-  if (text !== null) return parseTaskFile(text);
-  return emptyTask(id);
+  const activeText = await tryRead(_tasksDir!);
+  const text = activeText ?? (await tryArchiveRead(_tasksDir!, id));
+  if (text === null) return emptyTask(id);
+  const parsed = parseTaskFile(text);
+  // 📖 Path is the source of truth for archive: if the active lookup missed
+  // and archive/ hit, force the flag so a `git mv` without a frontmatter
+  // edit is still recognised as archived. Mirrors `readTask` in
+  // board-reader.ts.
+  if (activeText === null) parsed.frontmatter.archived = true;
+  return parsed;
 }
 
 /** 📖 Outcome of {@link readTaskFileStrict}. `not-found` is benign (file was
@@ -939,10 +946,12 @@ export async function readTaskFileStrict(
   }
   // Try active dir, then archive.
   let text: string | null = null;
+  let activeHit = false;
   try {
     const h = await _tasksDir!.getFileHandle(`${id}.md`);
     const file = await h.getFile();
     text = await file.text();
+    activeHit = true;
   } catch {
     // Fall through to archive lookup.
   }
@@ -960,7 +969,12 @@ export async function readTaskFileStrict(
     return { ok: false, reason: 'corrupted', error: new Error(`Task file ${id}.md is empty`) };
   }
   try {
-    return { ok: true, task: parseTaskFile(text) };
+    const parsed = parseTaskFile(text);
+    // 📖 Path-as-truth for archive: an archive/ hit without a frontmatter
+    // flag is still recognised as archived. Same invariant as readTaskFile
+    // and the CLI's readTask — the three readers must agree.
+    if (!activeHit) parsed.frontmatter.archived = true;
+    return { ok: true, task: parsed };
   } catch (e) {
     return { ok: false, reason: 'corrupted', error: e as Error };
   }

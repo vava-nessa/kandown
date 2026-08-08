@@ -1200,7 +1200,7 @@ var init_config2 = __esm({
 
 // src/cli/lib/board-reader.ts
 import { existsSync as existsSync4, readdirSync as readdirSync2, readFileSync as readFileSync4, mkdirSync as mkdirSync2, unlinkSync as unlinkSync4 } from "fs";
-import { dirname as dirname3, join as join4 } from "path";
+import { dirname as dirname3, join as join4, sep } from "path";
 function getProjectRoot(kandownDir) {
   return dirname3(kandownDir);
 }
@@ -1262,12 +1262,18 @@ function readTask(kandownDir, taskId, defaultStatus) {
   }
   const content = readFileSync4(taskPath2, "utf8");
   const parsed = parseTaskFile(content);
+  const tasksDir = getTasksDir(kandownDir);
+  const inArchive = taskPath2 === join4(tasksDir, "archive", `${taskId}.md`) || taskPath2.startsWith(join4(tasksDir, "archive") + sep);
+  const archived = inArchive || isArchived(parsed);
   return {
     ...parsed,
     frontmatter: {
       ...parsed.frontmatter,
       id: parsed.frontmatter.id || taskId,
-      status: parsed.frontmatter.status || fallback
+      status: parsed.frontmatter.status || fallback,
+      // Normalize to a real boolean so JSON serializers and `=== true`
+      // checks both behave consistently downstream.
+      archived: archived ? true : parsed.frontmatter.archived
     }
   };
 }

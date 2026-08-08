@@ -29,10 +29,10 @@
  */
 
 import { existsSync, readdirSync, readFileSync, mkdirSync, unlinkSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, sep } from 'node:path';
 import { resolveDependencyStatus, resolveTransition } from '../../lib/dependencies.js';
 import { atomicWriteFileSync } from './atomic-write.js';
-import { buildColumnsFromTasks, parseTaskFile } from '../../lib/parser.js';
+import { buildColumnsFromTasks, isArchived, parseTaskFile } from '../../lib/parser.js';
 import { serializeTaskFile } from '../../lib/serializer.js';
 import { stampUpdated } from '../../lib/task-meta.js';
 import type { ParsedBoard, ParsedTask, TaskFrontmatter } from '../../lib/types.js';
@@ -130,12 +130,26 @@ export function readTask(kandownDir: string, taskId: string, defaultStatus?: str
   }
   const content = readFileSync(taskPath, 'utf8');
   const parsed = parseTaskFile(content);
+  // 📖 Path is the single source of truth for "archived". A file under
+  // tasks/archive/ is archived even when its frontmatter flag is missing —
+  // the typical case after a plain `git mv` from cleanup scripts, which was
+  // the bug behind the `kandown list` duplicate rows. The frontmatter flag
+  // is preserved as a cache for callers that read the file directly without
+  // going through this helper (mostly the web filesystem layer, which has
+  // its own path check below).
+  const tasksDir = getTasksDir(kandownDir);
+  const inArchive = taskPath === join(tasksDir, 'archive', `${taskId}.md`)
+    || taskPath.startsWith(join(tasksDir, 'archive') + sep);
+  const archived = inArchive || isArchived(parsed);
   return {
     ...parsed,
     frontmatter: {
       ...parsed.frontmatter,
       id: parsed.frontmatter.id || taskId,
       status: parsed.frontmatter.status || fallback,
+      // Normalize to a real boolean so JSON serializers and `=== true`
+      // checks both behave consistently downstream.
+      archived: archived ? true : parsed.frontmatter.archived,
     },
   };
 }
