@@ -285,16 +285,20 @@ source to edit instead.
 ## `scripts/` — Build & maintenance scripts
 
 - **`build-changelog.js`** · 174 lines — Rebuilds the root `CHANGELOG.md` from the per-version files in `changelogs/`.
-- **`build-codemap.js`** · 362 lines — Walks the source tree, reads the leading JSDoc block of every file, and emits two artefacts committed alongside the code: `CODEMAP.md` (an annotated tree an agent or a human reads to orient themselves) and `CODEMAP.json` (the same data…
+- **`build-codemap.js`** · 364 lines — Walks the source tree, reads the leading JSDoc block of every file, and emits two artefacts committed alongside the code: `CODEMAP.md` (an annotated tree an agent or a human reads to orient themselves) and `CODEMAP.json` (the same data…
 - **`check-md-idempotence.js`** · 140 lines — Verifies that every .md task body survives a BlockNote parse → serialize cycle without changing.
 - **`inject-version.js`** · 31 lines — Writes `src/lib/version.ts` with the current package version.
 - **`install-hooks.js`** · 65 lines — Points this repository's git at the versioned `.githooks/` directory by setting `core.hooksPath`, and makes sure every hook in it is executable.
 - **`migrate-md-blocknote.js`** · 148 lines — Reads every task .md file, passes the body through BlockNote's parse → serialize pipeline, and writes back if the result differs.
 
+## `apps/desktop/src/`
+
+- **`main.ts`** · 12 lines — Slice 1 only opens a blank window.
+
 ---
 
 ## Coverage
 
-190 of 190 eligible files carry an `@description` header.
+191 of 191 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

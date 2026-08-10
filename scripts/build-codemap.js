@@ -47,11 +47,11 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-// 📖 Roots to scan, in the order they appear in CODEMAP.md.
-const SCAN_ROOTS = ['bin', 'src', 'scripts'];
+// � Roots to scan, in the order they appear in CODEMAP.md.
+const SCAN_ROOTS = ['bin', 'src', 'scripts', 'apps'];
 
 const SOURCE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
-const IGNORED_DIRS = new Set(['node_modules', 'dist', '.git']);
+const IGNORED_DIRS = new Set(['node_modules', 'dist', '.git', 'target']);
 
 /**
  * 📖 Files that are build output, not source. Editing them appears to work and is
@@ -101,6 +101,8 @@ const AREA_LABELS = {
   'src/lib/store': 'Zustand store slices',
   'src/lib/themes': 'Theme presets (one module per theme)',
   'src/types': 'Ambient type declarations',
+  'apps': 'Workspace apps — each is a self-contained product surface',
+  'apps/desktop': 'Tauri 2.x wrapper around the system kandown CLI (slice 1+)',
 };
 
 /** Recursively collect source files under `dir`, relative to ROOT. */

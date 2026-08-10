@@ -1,0 +1,11 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default capabilities for the spike window. Slice 1 opens a blank page; no fs, shell or HTTP permissions are needed yet. Each slice that needs an interface plugs the matching permission in here.",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default"
+  ]
+}

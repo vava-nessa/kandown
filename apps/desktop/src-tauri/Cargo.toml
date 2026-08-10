@@ -1,0 +1,27 @@
+[package]
+name = "kandown-desktop"
+version = "0.49.0"
+description = "Tauri 2.x desktop wrapper for kandown"
+authors = ["Vanessa Depraute"]
+edition = "2021"
+rust-version = "1.77"
+
+# 📖 Slice 1 spike: no native Tauri features. The app is a thin window pointed at
+# a localhost daemon; no fs dialogs, no shell, no updater yet. They will be added
+# as slices 2 through 6 plug them in.
+[dependencies]
+tauri = { version = "2", features = [] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-appender = "0.2"
+chrono = { version = "0.4", features = ["clock"] }
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

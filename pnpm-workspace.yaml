@@ -6,6 +6,7 @@
 # reinstall. Do not reintroduce it without checking both versions.
 packages:
   - .
+  - apps/*
 # 📖 esbuild needs its postinstall to fetch a platform binary, or vite build
 # fails. Both keys say the same thing to two pnpm generations: `allowBuilds` is
 # what 10+ reads, `onlyBuiltDependencies` is what 9 reads. pnpm rewrites the
