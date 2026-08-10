@@ -26,7 +26,7 @@ use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
 
-use chrono::Local;
+use chrono::Utc;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -48,10 +48,17 @@ fn log_dir() -> PathBuf {
 }
 
 /// 📖 The file the rolling appender is writing to *right now*, computed from
-/// the local date. The panic hook uses this so a crash and a normal `error!`
+/// the UTC date. The panic hook uses this so a crash and a normal `error!`
 /// land in the same file.
+///
+/// 📖 UTC, not local time. `tracing_appender::rolling::daily` uses
+/// `OffsetDateTime::now_utc()` internally for the date suffix (see
+/// `tracing-appender-0.2/src/rolling.rs:198`), so this MUST agree with
+/// it or the panic hook writes to a different file than the regular
+/// tracing output near midnight UTC. The user-facing log line is the
+/// regular tracing output; the panic hook follows.
 pub fn current_log_path() -> PathBuf {
-    let date = Local::now().format("%Y-%m-%d").to_string();
+    let date = Utc::now().format("%Y-%m-%d").to_string();
     log_dir().join(format!("{LOG_PREFIX}.{date}"))
 }
 

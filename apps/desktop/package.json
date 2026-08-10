@@ -5,8 +5,8 @@
   "description": "Tauri 2.x desktop wrapper for kandown. Spawns the system `kandown` CLI and opens a native window pointed at its daemon.",
   "type": "module",
   "scripts": {
-    "dev": "tauri dev",
-    "build": "tauri build",
+    "dev": "tsc --outDir src --target ES2022 --module ESNext --moduleResolution Bundler --strict --skipLibCheck src/main.ts && tauri dev",
+    "build": "tsc --outDir src --target ES2022 --module ESNext --moduleResolution Bundler --strict --skipLibCheck src/main.ts && tauri build",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

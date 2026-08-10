@@ -6,11 +6,18 @@ authors = ["Vanessa Depraute"]
 edition = "2021"
 rust-version = "1.77"
 
-# 📖 Slice 1 spike: no native Tauri features. The app is a thin window pointed at
-# a localhost daemon; no fs dialogs, no shell, no updater yet. They will be added
-# as slices 2 through 6 plug them in.
+# 📖 Slice 2: native dialog (folder picker), and the system CLI plumbing
+# (locate `kandown` on PATH, spawn its daemon, poll `.kandown/daemon.json`).
+# The webview itself is still pointed at whatever the system CLI serves.
 [dependencies]
 tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+which = "8"
+semver = { version = "1", features = ["serde"] }
+url = "2"
+ureq = { version = "2", default-features = false }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing-appender = "0.2"

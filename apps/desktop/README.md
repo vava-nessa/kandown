@@ -64,15 +64,24 @@ apps/desktop/
 Every Rust error path writes to a tracing subscriber that targets:
 
 ```
-~/.kandown/desktop.log.<YYYY-MM-DD>     (local date)
+~/.kandown/desktop.log.<YYYY-MM-DD>     (UTC date)
 ```
 
-Rotated daily at local midnight by `tracing_appender::rolling::daily`. The
-panic hook installed at startup also appends to the same file, so a crash
-during slice 1 leaves a readable `PANIC at <file>:<line>: <payload>` line that
-slice 4's "reveal the log" menu item can find by listing `~/.kandown/desktop.log.*`
-and picking the most recent mtime. Do not hardcode the date suffix; it
-changes every midnight.
+Rotated daily by `tracing_appender::rolling::daily`. The panic hook installed at
+startup also appends to the same file, so a crash during slice 1 leaves a
+readable `PANIC at <file>:<line>: <payload>` line that slice 4's "reveal the
+log" menu item can find by listing `~/.kandown/desktop.log.*` and picking the
+most recent mtime. Do not hardcode the date suffix; it changes every UTC day.
+
+📖 Why UTC and not local. `tracing_appender::rolling::daily` uses
+`OffsetDateTime::now_utc()` for the filename (verified in
+`tracing-appender-0.2/src/rolling.rs:198`), and the panic hook uses the same
+date so the two never drift to different files near midnight. The slice 1
+README said "local date"; this was true for any test that did not straddle
+midnight UTC, but it would have silently split panic and regular log entries
+at the wrong day boundary. The date suffix is opaque (a key, not a label);
+nothing in the app cares whether it is local or UTC, as long as both writers
+agree.
 
 `RUST_LOG=debug` (or any other `tracing` filter expression) overrides the
 default `info,kandown_desktop=info` level during dev.

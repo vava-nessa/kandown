@@ -62,6 +62,7 @@ const GENERATED = {
   'bin/kandown.js': { source: 'src/cli/cli.ts', by: 'tsup' },
   'bin/tui.js': { source: 'src/cli/tui.tsx', by: 'tsup' },
   'src/lib/version.ts': { source: 'package.json', by: 'scripts/inject-version.js' },
+  'apps/desktop/src/main.js': { source: 'apps/desktop/src/main.ts', by: 'tsc (apps/desktop dev/build scripts)' },
 };
 
 /**

@@ -167,3 +167,4 @@ vite.config.ts.timestamp-*
 dist-demo/
 .vercel
 .env*
+apps/desktop/src/main.js
