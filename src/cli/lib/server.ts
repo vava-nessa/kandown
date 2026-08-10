@@ -32,6 +32,7 @@ import {
 import { compileProjectKandownWork } from './kandown-work';
 import { applyWorkflowUpdate, fetchWorkflowRegistry, installStoreWorkflow, previewWorkflowUpdate, type WorkflowRegistryEntry } from './workflows-store';
 import { listWorkflowSkills } from './skills';
+import { extractToken, selfOrigin, verifyToken } from './daemon-auth';
 
 const START_PORT_RANGE = 2050;
 const END_PORT_RANGE = 2099;
@@ -43,6 +44,47 @@ interface SseClient {
 }
 let sseClients: SseClient[] = [];
 let nextClientId = 1;
+
+/** 📖 Per-process auth token (M5). Set by `cmdDaemon` before the server starts
+ * binding so every subsequent request can be checked in constant time. Cleared
+ * on shutdown so a refreshed daemon never carries the previous token in
+ * memory. `null` means the server is running without auth (unit tests, the
+ * Vite dev plugin) — explicit, not implicit. */
+let activeToken: string | null = null;
+export function setActiveToken(token: string | null): void { activeToken = token; }
+export function getActiveToken(): string | null { return activeToken; }
+
+/** 📖 One CORS helper. The browser matches `Origin` against
+ * `Access-Control-Allow-Origin` exactly and refuses wildcards here, so the
+ * only legitimate caller is the page Kandown itself served. Every response
+ * that goes back to the client — JSON, text, SSE headers and the OPTIONS
+ * preflight — must travel through this helper so a wildcard never sneaks
+ * back in by accident. */
+function corsHeaders(port: number): Record<string, string> {
+  return {
+    'Access-Control-Allow-Origin': selfOrigin(port),
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Kandown-Token',
+  };
+}
+
+/** 📖 Returns `true` when no auth is configured (tests, Vite dev) or when the
+ * supplied token matches the active one. Failure returns `false` and writes a
+ * `401` response with the same strict CORS headers, so the browser can read
+ * the body without a separate preflight. */
+function authenticateHttp(req: IncomingMessage, url: URL, res: ServerResponse): boolean {
+  if (activeToken === null) return true;
+  const candidate = extractToken(req, url);
+  if (candidate === null || !verifyToken(activeToken, candidate)) {
+    res.writeHead(401, {
+      'Content-Type': 'application/json',
+      ...corsHeaders(localPort(res)),
+    });
+    res.end(JSON.stringify({ error: 'Token missing or invalid' }));
+    return false;
+  }
+  return true;
+}
 
 /** 📖 One extension host per daemon process. Built lazily on first /api/extensions
  *  request and reused; enable/disable mutate this same instance and reload. */
@@ -61,19 +103,23 @@ export function broadcastSseEvent(data: Record<string, unknown>): void {
   sseClients.forEach(c => c.res.write(payload));
 }
 
+function localPort(res: ServerResponse): number {
+  // 📖 The response socket exposes the port the request was received on,
+  // which is exactly the daemon's bound port. One helper instead of threading
+  // `port` through every writeJson / writeText / writeHead call site.
+  const socket = res.socket as { localPort?: number } | null;
+  return socket && typeof socket.localPort === 'number' ? socket.localPort : 0;
+}
+
 function handleCors(res: ServerResponse): void {
-  res.writeHead(204, {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Kandown-Token',
-  });
+  res.writeHead(204, corsHeaders(localPort(res)));
   res.end();
 }
 
 function writeJson(res: ServerResponse, status: number, data: unknown): void {
   res.writeHead(status, {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
+    ...corsHeaders(localPort(res)),
   });
   res.end(JSON.stringify(data));
 }
@@ -81,7 +127,7 @@ function writeJson(res: ServerResponse, status: number, data: unknown): void {
 function writeText(res: ServerResponse, status: number, text: string): void {
   res.writeHead(status, {
     'Content-Type': 'text/plain; charset=utf-8',
-    'Access-Control-Allow-Origin': '*',
+    ...corsHeaders(localPort(res)),
   });
   res.end(text);
 }
@@ -180,6 +226,13 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
   const path = url.pathname;
   const method = req.method || 'GET';
 
+  // 📖 /api/daemon is the liveness check the TUI and the dashboard use to
+  // confirm a daemon is ours before reading `daemon.json`. It must keep
+  // answering without a token, otherwise the very request that proves the
+  // daemon is up is the one the daemon refuses. Everything else from here on
+  // requires the token. Both `fetch` and `EventSource` get the same treatment
+  // because `extractToken` checks the header first and falls back to
+  // `?token=` for the SSE route.
   if (path === '/api/daemon' && method === 'GET') {
     return writeJson(res, 200, {
       ok: true,
@@ -190,6 +243,8 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       agentHook: process.env.KANDOWN_AGENT_HOOK_URL ? { enabled: true, label: process.env.KANDOWN_AGENT_HOOK_LABEL || 'Send to Agent' } : null,
     });
   }
+
+  if (!authenticateHttp(req, url, res)) return;
 
   if (path === '/api/version' && method === 'GET') {
     return writeJson(res, 200, {
@@ -270,7 +325,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       'Connection': 'keep-alive',
-      'Access-Control-Allow-Origin': '*',
+      ...corsHeaders(localPort(res)),
     });
     res.write('retry: 2000\n\n');
     const id = nextClientId++;
@@ -757,7 +812,12 @@ function injectServerRoot(html: string, kandownDir: string): string {
   const marker = '</head>';
   const markerIndex = html.toLowerCase().lastIndexOf(marker);
   const safeRoot = JSON.stringify(kandownDir).replace(/</g, '\\u003c');
-  const script = `<script>window.__KANDOWN_ROOT__ = ${safeRoot};</script>\n`;
+  // 📖 Only inject the token literal when one is configured. Dev mode and the
+  // Vite plugin both leave `activeToken` null, in which case the client reads
+  // `undefined` and skips the header, mirroring the pre-M5 behaviour without
+  // ever letting a real token leak through a development build.
+  const tokenLiteral = activeToken === null ? 'null' : JSON.stringify(activeToken).replace(/</g, '\\u003c');
+  const script = `<script>window.__KANDOWN_ROOT__ = ${safeRoot};\nwindow.__KANDOWN_TOKEN__ = ${tokenLiteral};</script>\n`;
 
   if (markerIndex === -1) return script + html;
   return html.slice(0, markerIndex) + script + html.slice(markerIndex);

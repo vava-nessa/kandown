@@ -3,7 +3,7 @@
   "files": [
     {
       "path": "bin/kandown.js",
-      "lines": 8191,
+      "lines": 8246,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
@@ -156,7 +156,7 @@
     },
     {
       "path": "src/cli/commands/daemon.ts",
-      "lines": 85,
+      "lines": 92,
       "title": "CLI command — daemon subcommands",
       "summary": "Handles `kandown daemon <run|start|stop|restart|status|refresh-all>`.",
       "exports": "cmdDaemon"
@@ -239,6 +239,18 @@
       "lines": 125,
       "title": "Integration tests for the gate funneled through board-reader",
       "summary": "Spawns bin/kandown.js (the published CLI bundle) in a tmpdir, seeds two tasks with a dependency edge, and asserts that: - `kandown move` succeeds when the dependency is already in the terminal column."
+    },
+    {
+      "path": "src/cli/lib/__tests__/daemon-auth.spec.ts",
+      "lines": 142,
+      "title": "Daemon auth helpers unit tests",
+      "summary": "Pins the contract of token generation, extraction and verification."
+    },
+    {
+      "path": "src/cli/lib/__tests__/daemon-http-auth.spec.ts",
+      "lines": 203,
+      "title": "Daemon HTTP auth enforcement integration tests",
+      "summary": "Spins up a real `createServeServer` instance with `setActiveToken` configured, then pins the contract: 1."
     },
     {
       "path": "src/cli/lib/__tests__/daemon-self-upgrade.spec.ts",
@@ -525,6 +537,31 @@
       "exports": "KandownConfig, findKandownDir, loadConfig, saveConfig, getConfigValue, setConfigValue"
     },
     {
+      "path": "src/cli/lib/daemon-auth.ts",
+      "lines": 85,
+      "title": "Daemon API auth helpers (M5)",
+      "summary": "Generates, validates and carries the per-project auth token shared between the daemon server, the web client and the TUI.",
+      "functions": [
+        {
+          "name": "generateToken",
+          "summary": "mint a fresh 32-byte hex token"
+        },
+        {
+          "name": "extractToken",
+          "summary": "pull the token from an IncomingRequest (header then query)"
+        },
+        {
+          "name": "verifyToken",
+          "summary": "constant-time compare against the expected token"
+        },
+        {
+          "name": "selfOrigin",
+          "summary": "the daemon's own Origin string for strict CORS headers"
+        }
+      ],
+      "exports": "generateToken, extractToken, verifyToken, selfOrigin, TOKEN_HEADER, TOKEN_QUERY"
+    },
+    {
       "path": "src/cli/lib/daemon.ts",
       "lines": 367,
       "title": "Kandown daemon helpers for the TUI",
@@ -664,7 +701,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 824,
+      "lines": 884,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },

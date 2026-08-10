@@ -10,9 +10,10 @@
 
 import { join } from 'node:path';
 import { getDaemonStatus, scheduleDaemonSelfUpgrade, startProjectDaemon, stopProjectDaemon } from '../lib/daemon';
-import { listenOnAvailablePort } from '../lib/server';
+import { listenOnAvailablePort, setActiveToken } from '../lib/server';
 import { atomicWriteFileSync } from '../lib/atomic-write';
 import { getCurrentVersion } from '../lib/updater';
+import { generateToken } from '../lib/daemon-auth';
 import { c, log, info, success, err, parseArgs, ensureKandownDir, stripFirstPositional } from '../lib/cli-shared';
 
 export async function cmdDaemon(rest: string[]): Promise<void> {
@@ -24,6 +25,12 @@ export async function cmdDaemon(rest: string[]): Promise<void> {
   if (subcommand === 'run') {
     const daemonOptions = parseArgs(daemonArgs);
     const preferredPort = typeof daemonOptions.flags.port === 'string' ? Number(daemonOptions.flags.port) : null;
+    // 📖 M5 per-daemon API auth: mint the token, register it with the server
+    // module BEFORE the listener binds, then start listening. Doing it in this
+    // order closes a microsecond race where a request could arrive before the
+    // token is in place and therefore be accepted without auth.
+    const token = generateToken();
+    setActiveToken(token);
     const { port } = await listenOnAvailablePort(kandownDir, Number.isInteger(preferredPort) ? preferredPort : null);
     const url = `http://localhost:${port}`;
     const metadataPath = join(kandownDir, 'daemon.json');
@@ -34,7 +41,7 @@ export async function cmdDaemon(rest: string[]): Promise<void> {
       kandownDir,
       startedAt: new Date().toISOString(),
       version: getCurrentVersion(),
-      token: null,
+      token,
     }, null, 2));
     info(`Kandown daemon running on port ${port} (PID ${process.pid})`);
     // 📖 From here the daemon keeps itself current: when a global update lands

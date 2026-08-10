@@ -87,6 +87,13 @@ function kandownDevPlugin() {
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         if (process.env.NODE_ENV === 'production') return next();
+        // 📖 Dev mode is intentionally exempt from the per-daemon auth token
+        // enforced by `src/cli/lib/server.ts` in CLI builds. Keeping dev
+        // frictionless saves a token round-trip on every edit, and the vite
+        // dev server only ever runs on `localhost` against the developer's own
+        // tree. Production behaviour is what ships; the served HTML still
+        // exposes `window.__KANDOWN_TOKEN__` (as `null` here) so the client
+        // takes the same code path.
         const kandownPath = resolve(process.cwd(), '.kandown');
         const tasksRoot = resolve(process.cwd(), 'tasks');
         if (!existsSync(kandownPath)) return next();

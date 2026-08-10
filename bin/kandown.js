@@ -6573,11 +6573,61 @@ function listInstalledThemes(projectDir) {
 // src/cli/lib/server.ts
 init_workflows_cli();
 init_workflows_store();
+
+// src/cli/lib/daemon-auth.ts
+import { randomBytes, timingSafeEqual } from "crypto";
+var TOKEN_HEADER = "X-Kandown-Token";
+var TOKEN_QUERY = "token";
+function generateToken() {
+  return randomBytes(32).toString("hex");
+}
+function extractToken(req, url) {
+  const headerValue = req.headers[TOKEN_HEADER.toLowerCase()];
+  const fromHeader = Array.isArray(headerValue) ? headerValue[0] : headerValue;
+  if (typeof fromHeader === "string" && fromHeader.length > 0) return fromHeader;
+  const fromQuery = url?.searchParams.get(TOKEN_QUERY);
+  return typeof fromQuery === "string" && fromQuery.length > 0 ? fromQuery : null;
+}
+function verifyToken(expected, candidate) {
+  const expectedBuffer = Buffer.from(expected, "utf8");
+  const candidateBuffer = Buffer.from(candidate, "utf8");
+  if (expectedBuffer.length !== candidateBuffer.length) return false;
+  return timingSafeEqual(expectedBuffer, candidateBuffer);
+}
+function selfOrigin(port) {
+  return `http://127.0.0.1:${port}`;
+}
+
+// src/cli/lib/server.ts
 var START_PORT_RANGE = 2050;
 var END_PORT_RANGE = 2099;
 var UNSAFE_PORTS = /* @__PURE__ */ new Set([2049, 4045, 6e3, 6665, 6666, 6667, 6668, 6669, 6697]);
 var sseClients = [];
 var nextClientId = 1;
+var activeToken = null;
+function setActiveToken(token) {
+  activeToken = token;
+}
+function corsHeaders(port) {
+  return {
+    "Access-Control-Allow-Origin": selfOrigin(port),
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-Kandown-Token"
+  };
+}
+function authenticateHttp(req, url, res) {
+  if (activeToken === null) return true;
+  const candidate = extractToken(req, url);
+  if (candidate === null || !verifyToken(activeToken, candidate)) {
+    res.writeHead(401, {
+      "Content-Type": "application/json",
+      ...corsHeaders(localPort(res))
+    });
+    res.end(JSON.stringify({ error: "Token missing or invalid" }));
+    return false;
+  }
+  return true;
+}
 var extensionHost = null;
 var extensionHostDir = null;
 async function getExtensionHost(kandownDir) {
@@ -6593,25 +6643,25 @@ function broadcastSseEvent(data) {
 `;
   sseClients.forEach((c2) => c2.res.write(payload));
 }
+function localPort(res) {
+  const socket = res.socket;
+  return socket && typeof socket.localPort === "number" ? socket.localPort : 0;
+}
 function handleCors(res) {
-  res.writeHead(204, {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-Kandown-Token"
-  });
+  res.writeHead(204, corsHeaders(localPort(res)));
   res.end();
 }
 function writeJson(res, status, data) {
   res.writeHead(status, {
     "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*"
+    ...corsHeaders(localPort(res))
   });
   res.end(JSON.stringify(data));
 }
 function writeText(res, status, text) {
   res.writeHead(status, {
     "Content-Type": "text/plain; charset=utf-8",
-    "Access-Control-Allow-Origin": "*"
+    ...corsHeaders(localPort(res))
   });
   res.end(text);
 }
@@ -6694,6 +6744,7 @@ async function handleApi(req, res, url, kandownDir) {
       agentHook: process.env.KANDOWN_AGENT_HOOK_URL ? { enabled: true, label: process.env.KANDOWN_AGENT_HOOK_LABEL || "Send to Agent" } : null
     });
   }
+  if (!authenticateHttp(req, url, res)) return;
   if (path === "/api/version" && method === "GET") {
     return writeJson(res, 200, {
       version: getCurrentVersion()
@@ -6764,7 +6815,7 @@ async function handleApi(req, res, url, kandownDir) {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
       "Connection": "keep-alive",
-      "Access-Control-Allow-Origin": "*"
+      ...corsHeaders(localPort(res))
     });
     res.write("retry: 2000\n\n");
     const id = nextClientId++;
@@ -7195,7 +7246,9 @@ function injectServerRoot(html, kandownDir) {
   const marker = "</head>";
   const markerIndex = html.toLowerCase().lastIndexOf(marker);
   const safeRoot = JSON.stringify(kandownDir).replace(/</g, "\\u003c");
-  const script = `<script>window.__KANDOWN_ROOT__ = ${safeRoot};</script>
+  const tokenLiteral = activeToken === null ? "null" : JSON.stringify(activeToken).replace(/</g, "\\u003c");
+  const script = `<script>window.__KANDOWN_ROOT__ = ${safeRoot};
+window.__KANDOWN_TOKEN__ = ${tokenLiteral};</script>
 `;
   if (markerIndex === -1) return script + html;
   return html.slice(0, markerIndex) + script + html.slice(markerIndex);
@@ -7267,6 +7320,8 @@ async function cmdDaemon(rest) {
   if (subcommand === "run") {
     const daemonOptions = parseArgs(daemonArgs);
     const preferredPort = typeof daemonOptions.flags.port === "string" ? Number(daemonOptions.flags.port) : null;
+    const token = generateToken();
+    setActiveToken(token);
     const { port } = await listenOnAvailablePort(kandownDir, Number.isInteger(preferredPort) ? preferredPort : null);
     const url = `http://localhost:${port}`;
     const metadataPath2 = join24(kandownDir, "daemon.json");
@@ -7277,7 +7332,7 @@ async function cmdDaemon(rest) {
       kandownDir,
       startedAt: (/* @__PURE__ */ new Date()).toISOString(),
       version: getCurrentVersion(),
-      token: null
+      token
     }, null, 2));
     info(`Kandown daemon running on port ${port} (PID ${process.pid})`);
     scheduleDaemonSelfUpgrade(kandownDir);
