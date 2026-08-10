@@ -78,25 +78,13 @@ export function SiteHeader() {
           </Link>
         </nav>
 
-        {/* 📖 `gap-4` rather than `gap-2`: each social link is now four elements
-            wide (mark, word, icon, chip), and at the tighter spacing the npm
-            wordmark sat close enough to the GitHub count to read as part of the
-            same group. */}
-        <div className="ml-auto flex items-center gap-4">
+        <div className="ml-auto flex items-center gap-3">
           <div className="hidden sm:block">
             <SearchTrigger />
           </div>
 
-          {/* 📖 Octocat, word, star and count are a single anchor. They were
-              previously two anchors with the same href (the mark, then a
-              bordered star pill), which meant two hover targets and the
-              repository announced twice by a screen reader. */}
+          {/* 📖 Sleek inline pill buttons for GitHub stars and npm downloads. */}
           <GitHubStars href={site.repo} />
-
-          {/* 📖 The npm wordmark used to be a bare link. It now carries the
-              download count in the same shape as the GitHub link beside it:
-              two numbers, read the same way, telling a visitor how used the
-              project is before they have to go looking. */}
           <NpmDownloads href={site.npm} />
 
           {/* 📖 Reddit community link */}
