@@ -293,8 +293,8 @@ source to edit instead.
 
 ## `apps/desktop/src/`
 
-- **`main.js`** · 209 lines · ⚠️ **GENERATED** by tsc (apps/desktop dev/build scripts) — edit `apps/desktop/src/main.ts` instead
-- **`main.ts`** · 259 lines — Drives the bundled picker page.
+- **`main.js`** · 373 lines · ⚠️ **GENERATED** by tsc (apps/desktop dev/build scripts) — edit `apps/desktop/src/main.ts` instead
+- **`main.ts`** · 434 lines — Drives both the launcher window and the per-project windows in this slice.
 
 ---
 

@@ -30,7 +30,8 @@
 //  → below_minimum — semver check for the version banner
 //  → pick_project — open the native folder picker via tauri-plugin-dialog
 //  → resolve_daemon — join-before-spawn; return a usable handle
-//  → stop_daemon — owned daemons only; SIGTERM → SIGKILL with timeout
+//  → stop_daemon_for_path — owner-agnostic stop via CLI; used by cold start and window close
+//  → validate_daemon_for_path — liveness probe used by cold-start cleanup
 //  → ensure_kandown_installed — convenience wrapper for the command layer
 //
 // 📖 Types
@@ -394,10 +395,18 @@ fn try_join(project_root: &Path) -> Option<DaemonHandle> {
     // 📖 The daemon's reported `kandownDir` is the directory containing
     // `kandown.json` — NOT a `.kandown/` subfolder. `kandown init <path>`
     // writes `kandown.json` directly under `<path>`; the daemon mirrors
-    // that path into its `daemon.json`. Comparing the absolute paths is
-    // what stops us from "joining" a daemon that belongs to a different
-    // project just because it happens to be alive on a free port.
-    let expected_kandown_dir = project_root.to_string_lossy().to_string();
+    // that path into its `daemon.json`. Comparing canonical absolute
+    // paths is what stops us from "joining" a daemon that belongs to a
+    // different project just because it happens to be alive on a free
+    // port. Canonicalisation matters here: macOS resolves `/tmp` to
+    // `/private/tmp` via a symlink, and the CLI also reports the
+    // resolved path. Without this we would refuse to join a daemon we
+    // ourselves started from `/tmp/...`.
+    let expected_kandown_dir = project_root
+        .canonicalize()
+        .ok()
+        .map(|p| p.to_string_lossy().to_string())
+        .unwrap_or_else(|| project_root.to_string_lossy().to_string());
     if remote.kandown_dir != expected_kandown_dir {
         warn!(
             "kandownDir mismatch: expected {} got {}; will spawn a fresh daemon",
@@ -563,82 +572,121 @@ pub fn resolve_daemon(
     Ok((handle, Owned::Owned))
 }
 
-/// 📖 Stop a daemon we own. No-op when `owned = false` (we joined it,
-/// the user still wants it). For owned daemons, use the CLI's
-/// `kandown daemon stop` for the polite path; fall back to a SIGTERM,
-/// then SIGKILL, against the recorded PID if the CLI is slow or
-/// uncooperative. 2.5 s budget matches the CLI's own stop path.
-pub fn stop_daemon(kandown_bin: &Path, handle: &DaemonHandle) {
-    if !handle.owned {
-        info!(
-            "not stopping daemon on port {}: owned by another process",
-            handle.port
-        );
-        return;
-    }
-    let pid = match handle.pid {
-        Some(p) => p,
-        None => {
-            warn!("owned daemon has no recorded PID; cannot stop");
-            return;
-        }
-    };
-    let project_root = &handle.project_root;
+// 📖 Slice 3 removed the slice-2 `stop_daemon(handle)` helper. Window
+// close and cold-start cleanup both go through
+// `stop_daemon_for_path(project_root)` below; that helper relies on the
+// CLI's `daemon stop` command (which already knows how to find the
+// daemon, kill the process, and release the port) and never carries a
+// stale `DaemonHandle` around. The signature-based stop would have
+// duplicated the CLI's logic and required a `DaemonHandle::project_root`
+// to be threaded through every callsite.
+//
+// The slice-3 additions below mirror `getDaemonStatus` in
+// `src/cli/lib/daemon.ts` so a corrupt or stale `daemon.json` is
+// handled identically by the CLI and the desktop wrapper.
 
-    info!("stopping daemon pid {pid} via `kandown daemon stop`");
-    let cli_stop = Command::new(kandown_bin)
-        .args(["daemon", "stop", "--path"])
-        .arg(project_root)
-        .output();
-    match cli_stop {
-        Ok(out) if out.status.success() => {
-            // 📖 The CLI wrote nothing useful here on success; trust it
-            // and poll the port to confirm release.
-        }
-        Ok(out) => {
-            warn!(
-                "kandown daemon stop returned non-zero (exit {:?}); falling back to signals",
-                out.status.code()
-            );
-            signal_fallback(pid);
-        }
-        Err(e) => {
-            warn!("kandown daemon stop failed to launch ({e}); falling back to signals");
-            signal_fallback(pid);
-        }
-    }
-
-    // 📖 Confirm the port actually released. If something is still
-    // listening after 2.5 s, the fallback SIGKILL already fired;
-    // nothing more to do here.
-    let deadline = Instant::now() + Duration::from_millis(2500);
-    while Instant::now() < deadline {
-        if !is_port_listening(handle.port) {
-            return;
-        }
-        std::thread::sleep(Duration::from_millis(100));
-    }
-    warn!(
-        "daemon pid {pid} still appears to be listening on port {} after stop",
-        handle.port
-    );
+/// 📖 Outcome of `validate_daemon_for_path`. The CLI's `getDaemonStatus`
+/// conflates "running" and "not running"; we keep the distinction here
+/// because the cold-start pass needs to decide between "do nothing" and
+/// "run `kandown daemon stop` to release the port".
+#[derive(Debug)]
+pub enum DaemonHealth {
+    /// The daemon is live and answers `/api/daemon` with matching
+    /// `kandownDir`. The caller can safely join it on `port`.
+    Live { port: u16, pid: u32 },
+    /// `daemon.json` does not exist. Nothing to clean up: either the
+    /// project never had a daemon, or one was already stopped. Treat
+    /// this as "no work needed" rather than as a stale daemon we must
+    /// act on.
+    NotRunning,
+    /// `daemon.json` exists but the PID is dead, the port is closed, or
+    /// `/api/daemon` returns a mismatch. The caller should call
+    /// `kandown daemon stop --path` to release any orphaned port.
+    Stale { reason: String },
 }
 
-/// 📖 SIGTERM, wait, SIGKILL. Same shape as `stopProjectDaemon` in
-/// `src/cli/lib/daemon.ts`, with the same 2.5 s budget.
-fn signal_fallback(pid: u32) {
-    #[cfg(unix)]
-    {
-        let _ = Command::new("kill").args(["-TERM", &pid.to_string()]).output();
-        let deadline = Instant::now() + Duration::from_millis(2500);
-        while Instant::now() < deadline {
-            if !is_pid_alive(pid) { return; }
-            std::thread::sleep(Duration::from_millis(100));
+/// 📖 Validate the per-project daemon without spawning anything. Mirrors
+/// the daemon-liveness checks from `getDaemonStatus`:
+///
+///  1. `daemon.json` exists.
+///  2. PID alive (Unix `kill -0`).
+///  3. Port listening (TCP connect timeout 200 ms).
+///  4. `/api/daemon` returns matching `pid` and `kandownDir`.
+///
+/// Used by the cold-start cleanup pass to detect stale daemons after a
+/// crash or `kill -9`. The slice 3 spec's acceptance criterion 6 ("force-
+/// quitting the app and relaunching does not leave an orphaned `node`
+/// process, and does not refuse to reopen the project") is exactly this
+/// case.
+pub fn validate_daemon_for_path(project_root: &Path) -> Result<DaemonHealth, DaemonError> {
+    let metadata = match read_daemon_metadata(project_root)? {
+        Some(m) => m,
+        None => return Ok(DaemonHealth::NotRunning),
+    };
+    if !is_pid_alive(metadata.pid) {
+        return Ok(DaemonHealth::Stale {
+            reason: format!("pid {} not alive", metadata.pid),
+        });
+    }
+    if !is_port_listening(metadata.port) {
+        return Ok(DaemonHealth::Stale {
+            reason: format!("port {} not listening", metadata.port),
+        });
+    }
+    let remote = match probe_daemon_api(metadata.port) {
+        Some(r) => r,
+        None => {
+            return Ok(DaemonHealth::Stale {
+                reason: "no /api/daemon response".to_string(),
+            })
         }
-        let _ = Command::new("kill").args(["-KILL", &pid.to_string()]).output();
+    };
+    if !remote.ok {
+        return Ok(DaemonHealth::Stale {
+            reason: "/api/daemon ok=false".to_string(),
+        });
     }
-    #[cfg(not(unix))]
-    {
-        let _ = pid;
+    let expected = project_root
+        .canonicalize()
+        .ok()
+        .map(|p| p.to_string_lossy().to_string())
+        .unwrap_or_else(|| project_root.to_string_lossy().to_string());
+    if remote.kandown_dir != expected {
+        return Ok(DaemonHealth::Stale {
+            reason: format!(
+                "kandownDir mismatch: expected {} got {}",
+                expected, remote.kandown_dir
+            ),
+        });
     }
+    Ok(DaemonHealth::Live {
+        port: metadata.port,
+        pid: metadata.pid,
+    })
+}
+
+/// 📖 Stop the daemon for `project_root` using the CLI. Path-based; the
+/// caller does not need a `DaemonHandle` (cold-start cleanup may not
+/// have one because the daemon is no longer running). On success the
+/// CLI's own logic releases the port and removes `daemon.json`.
+pub fn stop_daemon_for_path(kandown_bin: &Path, project_root: &Path) -> Result<(), String> {
+    info!("stopping daemon for {} via `kandown daemon stop`", project_root.display());
+    let output = Command::new(kandown_bin)
+        .args(["daemon", "stop", "--path"])
+        .arg(project_root)
+        .output()
+        .map_err(|e| format!("could not launch `kandown daemon stop`: {e}"))?;
+    if output.status.success() {
+        return Ok(());
+    }
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let detail = if !stderr.is_empty() {
+        stderr
+    } else if !stdout.is_empty() {
+        stdout
+    } else {
+        format!("exit {:?}", output.status.code())
+    };
+    Err(format!("`kandown daemon stop` failed: {detail}"))
 }

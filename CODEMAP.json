@@ -3,16 +3,16 @@
   "files": [
     {
       "path": "apps/desktop/src/main.js",
-      "lines": 209,
+      "lines": 373,
       "generated": true,
       "source": "apps/desktop/src/main.ts",
       "generatedBy": "tsc (apps/desktop dev/build scripts)",
-      "summary": "Drives the bundled picker page."
+      "summary": "Drives both the launcher window and the per-project windows in this slice."
     },
     {
       "path": "apps/desktop/src/main.ts",
-      "lines": 259,
-      "summary": "Drives the bundled picker page."
+      "lines": 434,
+      "summary": "Drives both the launcher window and the per-project windows in this slice."
     },
     {
       "path": "bin/kandown.js",

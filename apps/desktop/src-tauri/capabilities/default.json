@@ -1,9 +1,10 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Default capabilities for the desktop window. Slice 1 only needed the core defaults; slice 2 adds the dialog plugin permission so `cmd_pick_project` can open the native folder picker.",
+  "description": "Default capabilities for the desktop window. Slice 2 added the dialog plugin permission so `cmd_pick_project` can open the native folder picker. Slice 3 widens the window label pattern to `main*` so the launcher can spawn one window per project (e.g. `main-<hash>`) under the same capability. The dialog permission and core defaults cover everything the launcher needs; webview-window create/close are core operations and do not need an explicit permission on Tauri 2.x.",
   "windows": [
-    "main"
+    "main",
+    "main-*"
   ],
   "permissions": [
     "core:default",

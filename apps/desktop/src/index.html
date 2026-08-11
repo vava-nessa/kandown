@@ -4,9 +4,10 @@
     <meta charset="utf-8" />
     <title>kandown</title>
     <style>
-      /* 📖 Inline stylesheet so the bundled picker HTML has zero external
-         requests. The webview may live at tauri://localhost (bundled) or
-         http://127.0.0.1:<port>/ (post-resolve); this rule survives both. */
+      /* 📖 Inline stylesheet so the bundled HTML has zero external
+         requests. The webview may live at tauri://localhost (bundled),
+         or http://127.0.0.1:<port>/ (after the daemon resolves and we
+         navigate). Both origins share the same inert CSS. */
       html, body {
         height: 100%;
         margin: 0;
@@ -16,23 +17,30 @@
       }
       body {
         display: flex;
-        align-items: center;
+        align-items: stretch;
         justify-content: center;
       }
       main {
-        max-width: 520px;
+        width: 100%;
+        max-width: 720px;
         padding: 32px;
-        border-radius: 12px;
-        background: #161a22;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+        box-sizing: border-box;
       }
       h1 {
-        margin: 0 0 16px;
+        margin: 0 0 8px;
         font-size: 22px;
         font-weight: 600;
       }
+      h2 {
+        margin: 24px 0 8px;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #8a92a3;
+      }
       p {
-        margin: 0 0 16px;
+        margin: 0 0 12px;
         line-height: 1.5;
         color: #b6bcc8;
       }
@@ -53,6 +61,7 @@
       }
       button:hover { background: #2f6fe0; }
       button:disabled { background: #3a3f4b; cursor: progress; }
+
       .row {
         display: flex;
         gap: 12px;
@@ -68,6 +77,91 @@
         margin-bottom: 16px;
       }
       .hidden { display: none; }
+
+      /* 📖 Recent projects list. Each row is a flex container: project
+         name on the left, relative time + remove button on the right.
+         A `missing` row gets reduced opacity and a "missing" tag. */
+      .projects {
+        list-style: none;
+        padding: 0;
+        margin: 12px 0 0;
+      }
+      .projects li {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        margin-bottom: 6px;
+        background: #161a22;
+        border: 1px solid #232a36;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: border-color 120ms ease;
+      }
+      .projects li:hover {
+        border-color: #3b82f6;
+      }
+      .projects li.missing {
+        opacity: 0.55;
+        cursor: default;
+      }
+      .projects li.missing:hover {
+        border-color: #232a36;
+      }
+      .projects li .name {
+        flex: 1 1 auto;
+        font-weight: 600;
+        font-size: 15px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .projects li .path {
+        flex: 1 1 auto;
+        font-size: 12px;
+        color: #8a92a3;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        margin-left: 6px;
+      }
+      .projects li .meta {
+        flex: 0 0 auto;
+        font-size: 12px;
+        color: #8a92a3;
+      }
+      .projects li.missing .meta {
+        color: #c0734f;
+        font-weight: 600;
+      }
+      .projects li .remove {
+        flex: 0 0 auto;
+        background: transparent;
+        color: #8a92a3;
+        border: 1px solid #2c3340;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+      }
+      .projects li .remove:hover {
+        background: #2c3340;
+        color: #fff;
+      }
+      .empty {
+        padding: 24px;
+        background: #161a22;
+        border: 1px dashed #2c3340;
+        border-radius: 10px;
+        text-align: center;
+        color: #8a92a3;
+      }
+      .status {
+        margin-top: 14px;
+        font-size: 13px;
+        color: #8a92a3;
+        min-height: 1.2em;
+      }
+      .status.error { color: #d96565; }
     </style>
   </head>
   <body>
@@ -83,16 +177,28 @@
         </div>
       </section>
 
-      <section id="picker-screen" class="hidden">
+      <section id="launcher-screen" class="hidden">
         <div id="banner" class="banner hidden"></div>
-        <h1>Open a kandown project</h1>
-        <p id="picker-blurb">Pick the folder containing your <code>kandown.json</code>. Folders without one will be initialised for you.</p>
+        <h1>kandown</h1>
+        <p>Pick the folder containing your <code>kandown.json</code>. Folders without one will be initialised for you.</p>
         <div class="row">
-          <button id="picker-button">Pick folder</button>
-          <button id="picker-reopen" class="hidden">Reopen last</button>
-          <span id="picker-status"></span>
+          <button id="open-folder">Open folder</button>
+          <span id="launcher-status" class="status"></span>
         </div>
-        <p id="picker-last" class="hidden"></p>
+        <h2>Recent projects</h2>
+        <ul id="projects-list" class="projects"></ul>
+        <div id="projects-empty" class="empty hidden">No recent projects yet. Use "Open folder" to add one.</div>
+      </section>
+
+      <section id="project-screen" class="hidden">
+        <div id="banner" class="banner hidden"></div>
+        <h1 id="project-title">Opening kandown project</h1>
+        <p id="project-path"></p>
+        <div class="row">
+          <button id="project-retry" class="hidden">Retry</button>
+          <button id="project-pick">Pick a different folder</button>
+          <span id="project-status" class="status"></span>
+        </div>
       </section>
     </main>
 

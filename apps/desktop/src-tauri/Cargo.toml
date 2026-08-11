@@ -6,12 +6,16 @@ authors = ["Vanessa Depraute"]
 edition = "2021"
 rust-version = "1.77"
 
-# 📖 Slice 2: native dialog (folder picker), and the system CLI plumbing
-# (locate `kandown` on PATH, spawn its daemon, poll `.kandown/daemon.json`).
-# The webview itself is still pointed at whatever the system CLI serves.
+# 📖 Slice 3: native dialog (folder picker), tauri-plugin-single-instance
+# (route a second launch into the running instance per [[t280]] Decision 2),
+# the system CLI plumbing (locate `kandown` on PATH, spawn its daemon,
+# poll `.kandown/daemon.json`), and the recents store (`projects.rs`) for
+# the launcher. The webview itself is still pointed at whatever the
+# system CLI serves.
 [dependencies]
 tauri = { version = "2", features = [] }
 tauri-plugin-dialog = "2"
+tauri-plugin-single-instance = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 which = "8"
