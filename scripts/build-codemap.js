@@ -42,6 +42,7 @@
  */
 
 import { readdirSync, readFileSync, writeFileSync, statSync, existsSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { join, relative, dirname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -52,6 +53,35 @@ const SCAN_ROOTS = ['bin', 'src', 'scripts', 'apps'];
 
 const SOURCE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
 const IGNORED_DIRS = new Set(['node_modules', 'dist', '.git', 'target']);
+
+/**
+ * 📖 Paths git ignores, so the map only ever describes files that are actually
+ * committed. Without this the walk picks up local build output (for example
+ * `apps/desktop/src/main.js`, emitted by `tsc` and gitignored), the generated
+ * CODEMAP then differs between a developer's machine and a fresh clone, and
+ * `--check` fails in CI on a file the CI runner cannot even see. That happened,
+ * and the failure is baffling until you diff against a clean checkout.
+ *
+ * Resolved through one `git check-ignore` call rather than by reimplementing
+ * `.gitignore` semantics. When git is unavailable the set is empty and the walk
+ * behaves as before, which keeps the script usable outside a repository.
+ */
+function gitIgnoredPaths(candidates) {
+  if (candidates.length === 0) return new Set();
+  try {
+    const res = spawnSync('git', ['check-ignore', '--stdin'], {
+      cwd: ROOT,
+      input: candidates.join('\n'),
+      encoding: 'utf8',
+    });
+    // 📖 Exit 0 means "some paths are ignored", 1 means "none are". Anything
+    // else (128: not a repository, git missing) is a soft failure by design.
+    if (res.status !== 0 && res.status !== 1) return new Set();
+    return new Set(res.stdout.split('\n').map(line => line.trim()).filter(Boolean));
+  } catch {
+    return new Set();
+  }
+}
 
 /**
  * 📖 Files that are build output, not source. Editing them appears to work and is
@@ -189,9 +219,17 @@ function buildModel() {
   const collapsed = [];
   const missing = [];
 
+  // 📖 Resolve the ignore set once, over every candidate, so the render is
+  // identical on a developer machine holding local build output and in a clean
+  // CI checkout that does not.
+  const candidates = SCAN_ROOTS.flatMap(root => walk(join(ROOT, root)))
+    .map(abs => relative(ROOT, abs).split(sep).join('/'));
+  const ignored = gitIgnoredPaths(candidates);
+
   for (const root of SCAN_ROOTS) {
     for (const abs of walk(join(ROOT, root))) {
       const relPath = relative(ROOT, abs).split(sep).join('/');
+      if (ignored.has(relPath)) continue;
       const dir = dirname(relPath);
 
       const collapseRoot = Object.keys(COLLAPSED).find(d => dir === d || dir.startsWith(d + '/'));

@@ -289,7 +289,7 @@ source to edit instead.
 ## `scripts/` — Build & maintenance scripts
 
 - **`build-changelog.js`** · 174 lines — Rebuilds the root `CHANGELOG.md` from the per-version files in `changelogs/`.
-- **`build-codemap.js`** · 365 lines — Walks the source tree, reads the leading JSDoc block of every file, and emits two artefacts committed alongside the code: `CODEMAP.md` (an annotated tree an agent or a human reads to orient themselves) and `CODEMAP.json` (the same data…
+- **`build-codemap.js`** · 403 lines — Walks the source tree, reads the leading JSDoc block of every file, and emits two artefacts committed alongside the code: `CODEMAP.md` (an annotated tree an agent or a human reads to orient themselves) and `CODEMAP.json` (the same data…
 - **`check-md-idempotence.js`** · 140 lines — Verifies that every .md task body survives a BlockNote parse → serialize cycle without changing.
 - **`inject-version.js`** · 31 lines — Writes `src/lib/version.ts` with the current package version.
 - **`install-hooks.js`** · 65 lines — Points this repository's git at the versioned `.githooks/` directory by setting `core.hooksPath`, and makes sure every hook in it is executable.
@@ -297,7 +297,6 @@ source to edit instead.
 
 ## `apps/desktop/src/`
 
-- **`main.js`** · 373 lines · ⚠️ **GENERATED** by tsc (apps/desktop dev/build scripts) — edit `apps/desktop/src/main.ts` instead
 - **`main.ts`** · 434 lines — Drives both the launcher window and the per-project windows in this slice.
 
 ---
