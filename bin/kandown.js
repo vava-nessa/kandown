@@ -24,7 +24,7 @@ var KANDOWN_VERSION;
 var init_version = __esm({
   "src/lib/version.ts"() {
     "use strict";
-    KANDOWN_VERSION = "0.49.0";
+    KANDOWN_VERSION = "0.50.0";
   }
 });
 
@@ -1166,6 +1166,214 @@ var init_serializer = __esm({
   }
 });
 
+// src/lib/task-title-category.ts
+function parseTaskTitle(title) {
+  if (!title) return { category: null, rawCategory: null, cleanTitle: "" };
+  const match = title.match(/^\[([^\]]+)\]\s*/);
+  if (!match) {
+    return { category: null, rawCategory: null, cleanTitle: title };
+  }
+  return {
+    category: match[1],
+    rawCategory: match[0].trim(),
+    cleanTitle: title.slice(match[0].length)
+  };
+}
+var init_task_title_category = __esm({
+  "src/lib/task-title-category.ts"() {
+    "use strict";
+  }
+});
+
+// src/lib/task-filename.ts
+function byCodeUnit(a, b) {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+function slugifyTitle(title, maxWords = SLUG_MAX_WORDS) {
+  if (typeof title !== "string" || !title.trim()) return "";
+  if (!Number.isFinite(maxWords) || maxWords < 1) return "";
+  const { cleanTitle } = parseTaskTitle(title);
+  let text = cleanTitle.trim() || title;
+  for (const [pattern, replacement] of TRANSLITERATIONS) text = text.replace(pattern, replacement);
+  const ascii = text.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  if (!ascii) return "";
+  const words = ascii.split(" ").filter(Boolean).map((w) => w.slice(0, SLUG_MAX_WORD_LENGTH));
+  const meaningful = words.filter((w) => !STOP_WORDS.has(w));
+  const chosen = (meaningful.length ? meaningful : words).slice(0, Math.floor(maxWords));
+  let slug = chosen.join(SLUG_SEPARATOR);
+  if (slug.length > SLUG_MAX_LENGTH) {
+    slug = slug.slice(0, SLUG_MAX_LENGTH).replace(/_+[^_]*$/, "");
+    if (!slug) slug = chosen[0].slice(0, SLUG_MAX_LENGTH);
+  }
+  return slug.replace(/^_+|_+$/g, "");
+}
+function buildTaskFilename(id, title, takenFilenames = []) {
+  const safeId = String(id ?? "").trim();
+  if (!safeId) throw new Error("buildTaskFilename requires a task id");
+  if (/[\\/]|^\.+$/.test(safeId)) throw new Error(`Unsafe task id for a filename: ${safeId}`);
+  const slug = slugifyTitle(title ?? "");
+  const candidate = slug ? `${safeId}${SLUG_SEPARATOR}${slug}.md` : `${safeId}.md`;
+  if (!takenFilenames.length) return candidate;
+  const taken = new Set(takenFilenames.map((f) => f.toLowerCase()));
+  if (!taken.has(candidate.toLowerCase())) return candidate;
+  const stem = candidate.slice(0, -3);
+  for (let n = 2; n < 1e3; n += 1) {
+    const next = `${stem}${SLUG_SEPARATOR}${n}.md`;
+    if (!taken.has(next.toLowerCase())) return next;
+  }
+  throw new Error(`Could not find a free filename for task ${safeId}`);
+}
+function isTaskFilename(name) {
+  if (typeof name !== "string") return false;
+  if (!name.toLowerCase().endsWith(".md")) return false;
+  if (name.startsWith(".") || name.includes("/") || name.includes("\\")) return false;
+  const base = name.slice(0, -3);
+  if (!base || base === "." || base === "..") return false;
+  return /^[A-Za-z0-9._-]+$/.test(base);
+}
+function parseTaskFilename(name) {
+  if (!isTaskFilename(name)) return null;
+  const base = name.slice(0, -3);
+  const cut = base.indexOf(SLUG_SEPARATOR);
+  const idPrefix = cut > 0 ? base.slice(0, cut) : null;
+  if (idPrefix === null || cut === base.length - 1 || !ID_LIKE.test(idPrefix)) {
+    return { base, idPrefix: null, slug: null, candidateIds: [base] };
+  }
+  const slug = base.slice(cut + 1);
+  return { base, idPrefix, slug, candidateIds: [base, idPrefix] };
+}
+function taskIdFromFilename(name) {
+  const info2 = parseTaskFilename(name);
+  return info2 ? info2.idPrefix ?? info2.base : null;
+}
+function resolveTaskFilename(id, filenames) {
+  const wanted = String(id ?? "").trim();
+  if (!wanted) return null;
+  const parsed = filenames.map((name) => ({ name, info: parseTaskFilename(name) })).filter((entry) => entry.info !== null).sort((a, b) => byCodeUnit(a.name, b.name));
+  const pick = (matches, exact) => {
+    if (!matches.length) return null;
+    const [best, ...rest] = matches;
+    return {
+      filename: best.name,
+      id: wanted,
+      slug: best.info.slug,
+      exact,
+      ambiguousWith: rest.map((m) => m.name)
+    };
+  };
+  const exactMatches = parsed.filter((e) => e.info.base === wanted);
+  if (exactMatches.length) {
+    const others = parsed.filter((e) => e.info.base !== wanted && e.info.idPrefix === wanted);
+    const match = pick(exactMatches, true);
+    return { ...match, ambiguousWith: [...match.ambiguousWith, ...others.map((o) => o.name)] };
+  }
+  const prefixMatches = parsed.filter((e) => e.info.idPrefix === wanted);
+  if (prefixMatches.length) return pick(prefixMatches, false);
+  const lower = wanted.toLowerCase();
+  const exactCi = parsed.filter((e) => e.info.base.toLowerCase() === lower);
+  if (exactCi.length) return pick(exactCi, true);
+  const prefixCi = parsed.filter((e) => e.info.idPrefix?.toLowerCase() === lower);
+  if (prefixCi.length) return pick(prefixCi, false);
+  return null;
+}
+function hasDescriptiveSlug(name) {
+  return parseTaskFilename(name)?.slug != null;
+}
+var SLUG_MAX_WORDS, SLUG_MAX_LENGTH, SLUG_MAX_WORD_LENGTH, SLUG_SEPARATOR, ID_LIKE, TRANSLITERATIONS, STOP_WORDS;
+var init_task_filename = __esm({
+  "src/lib/task-filename.ts"() {
+    "use strict";
+    init_task_title_category();
+    SLUG_MAX_WORDS = 3;
+    SLUG_MAX_LENGTH = 48;
+    SLUG_MAX_WORD_LENGTH = 20;
+    SLUG_SEPARATOR = "_";
+    ID_LIKE = /^(?=.*\d)[A-Za-z0-9-]+$/;
+    TRANSLITERATIONS = [
+      [/ß/g, "ss"],
+      [/æ/g, "ae"],
+      [/œ/g, "oe"],
+      [/ø/g, "o"],
+      [/å/g, "a"],
+      [/ð/g, "d"],
+      [/þ/g, "th"],
+      [/ł/g, "l"],
+      [/đ/g, "d"],
+      [/ħ/g, "h"],
+      [/ı/g, "i"],
+      [/ŋ/g, "n"]
+    ];
+    STOP_WORDS = /* @__PURE__ */ new Set([
+      // English
+      "a",
+      "an",
+      "and",
+      "are",
+      "as",
+      "at",
+      "be",
+      "but",
+      "by",
+      "for",
+      "from",
+      "in",
+      "into",
+      "is",
+      "it",
+      "its",
+      "of",
+      "on",
+      "onto",
+      "or",
+      "our",
+      "that",
+      "the",
+      "their",
+      "then",
+      "there",
+      "this",
+      "to",
+      "we",
+      "when",
+      "with",
+      "without",
+      // French
+      "au",
+      "aux",
+      "avec",
+      "ce",
+      "ces",
+      "dans",
+      "de",
+      "des",
+      "du",
+      "en",
+      "et",
+      "il",
+      "la",
+      "le",
+      "les",
+      "leur",
+      "ne",
+      "ou",
+      "par",
+      "pas",
+      "pour",
+      "que",
+      "qui",
+      "sa",
+      "sans",
+      "se",
+      "ses",
+      "son",
+      "sur",
+      "un",
+      "une",
+      "y"
+    ]);
+  }
+});
+
 // src/cli/lib/config.ts
 import { readFileSync as readFileSync3, existsSync as existsSync3, readdirSync, statSync as statSync2 } from "fs";
 import { join as join3 } from "path";
@@ -1207,24 +1415,49 @@ function getProjectRoot(kandownDir) {
 function getTasksDir(kandownDir) {
   return join4(getProjectRoot(kandownDir), "tasks");
 }
+function listTaskFilenames(directory) {
+  if (!existsSync4(directory)) return [];
+  try {
+    return readdirSync2(directory).filter(isTaskFilename);
+  } catch {
+    return [];
+  }
+}
 function listTaskIds(kandownDir) {
   const tasksDir = getTasksDir(kandownDir);
-  const ids = /* @__PURE__ */ new Set();
+  const owners = /* @__PURE__ */ new Map();
   for (const directory of [tasksDir, join4(tasksDir, "archive")]) {
-    if (!existsSync4(directory)) continue;
-    for (const name of readdirSync2(directory).filter((entry) => entry.endsWith(".md"))) {
-      ids.add(name.slice(0, -3));
+    for (const name of listTaskFilenames(directory).sort()) {
+      const id = taskIdFromFilename(name);
+      if (!id) continue;
+      const owner = owners.get(id);
+      if (owner) {
+        if (owner !== name) {
+          console.error(`[kandown] Two files claim task ${id}: using ${owner}, ignoring ${name}`);
+        }
+        continue;
+      }
+      owners.set(id, name);
     }
   }
-  return [...ids].sort((a, b) => a.localeCompare(b, void 0, { numeric: true }));
+  return [...owners.keys()].sort((a, b) => a.localeCompare(b, void 0, { numeric: true }));
 }
 function findTaskPath(kandownDir, taskId) {
   if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return null;
   const tasksDir = getTasksDir(kandownDir);
-  const activePath = join4(tasksDir, `${taskId}.md`);
-  if (existsSync4(activePath)) return activePath;
-  const archivedPath = join4(tasksDir, "archive", `${taskId}.md`);
-  return existsSync4(archivedPath) ? archivedPath : null;
+  for (const directory of [tasksDir, join4(tasksDir, "archive")]) {
+    const match = resolveTaskFilename(taskId, listTaskFilenames(directory));
+    if (!match) continue;
+    if (match.ambiguousWith.length) {
+      console.error(`[kandown] Task ${taskId} is claimed by several files, using ${match.filename} (also: ${match.ambiguousWith.join(", ")})`);
+    }
+    return join4(directory, match.filename);
+  }
+  return null;
+}
+function newTaskFilePath(kandownDir, id, title) {
+  const tasksDir = getTasksDir(kandownDir);
+  return join4(tasksDir, buildTaskFilename(id, title, listTaskFilenames(tasksDir)));
 }
 function readBoard(kandownDir) {
   const config = loadConfig(kandownDir);
@@ -1253,17 +1486,17 @@ function readBoard(kandownDir) {
 }
 function readTask(kandownDir, taskId, defaultStatus) {
   const fallback = defaultStatus || loadConfig(kandownDir).board.columns[0] || "Backlog";
-  const taskPath2 = findTaskPath(kandownDir, taskId);
-  if (!taskPath2) {
+  const taskPath = findTaskPath(kandownDir, taskId);
+  if (!taskPath) {
     return {
       frontmatter: { id: taskId, title: `Task ${taskId}`, status: fallback },
       body: ""
     };
   }
-  const content = readFileSync4(taskPath2, "utf8");
+  const content = readFileSync4(taskPath, "utf8");
   const parsed = parseTaskFile(content);
   const tasksDir = getTasksDir(kandownDir);
-  const inArchive = taskPath2 === join4(tasksDir, "archive", `${taskId}.md`) || taskPath2.startsWith(join4(tasksDir, "archive") + sep);
+  const inArchive = taskPath.startsWith(join4(tasksDir, "archive") + sep);
   const archived = inArchive || isArchived(parsed);
   return {
     ...parsed,
@@ -1278,8 +1511,8 @@ function readTask(kandownDir, taskId, defaultStatus) {
   };
 }
 function moveTaskToColumn(kandownDir, taskId, targetColumn) {
-  const taskPath2 = findTaskPath(kandownDir, taskId);
-  if (!taskPath2) return false;
+  const taskPath = findTaskPath(kandownDir, taskId);
+  if (!taskPath) return false;
   try {
     const parsed = readTask(kandownDir, taskId);
     const cfg = loadConfig(kandownDir);
@@ -1299,17 +1532,17 @@ function moveTaskToColumn(kandownDir, taskId, targetColumn) {
       );
       return false;
     }
-    const prevContent = readFileSync4(taskPath2, "utf8");
+    const prevContent = readFileSync4(taskPath, "utf8");
     const newContent = serializeTaskFile(stampUpdated({
       ...parsed.frontmatter,
       id: taskId,
       status: targetColumn
     }), parsed.body);
-    atomicWriteFileSync(taskPath2, newContent);
+    atomicWriteFileSync(taskPath, newContent);
     pushUndo(kandownDir, {
       type: "move",
       taskId,
-      path: taskPath2,
+      path: taskPath,
       previousContent: prevContent,
       newContent,
       timestamp: Date.now()
@@ -1321,22 +1554,22 @@ function moveTaskToColumn(kandownDir, taskId, targetColumn) {
   }
 }
 function assignTaskToAgent(kandownDir, taskId, agentId) {
-  const taskPath2 = findTaskPath(kandownDir, taskId);
-  if (!taskPath2) return false;
+  const taskPath = findTaskPath(kandownDir, taskId);
+  if (!taskPath) return false;
   try {
     const parsed = readTask(kandownDir, taskId);
     if (parsed.frontmatter.assignee === agentId) return true;
-    const prevContent = readFileSync4(taskPath2, "utf8");
+    const prevContent = readFileSync4(taskPath, "utf8");
     const newContent = serializeTaskFile(stampUpdated({
       ...parsed.frontmatter,
       id: taskId,
       assignee: agentId
     }), parsed.body);
-    atomicWriteFileSync(taskPath2, newContent);
+    atomicWriteFileSync(taskPath, newContent);
     pushUndo(kandownDir, {
       type: "move",
       taskId,
-      path: taskPath2,
+      path: taskPath,
       previousContent: prevContent,
       newContent,
       timestamp: Date.now()
@@ -1420,12 +1653,12 @@ function createTaskInBoard(kandownDir, rawInput, status) {
   if (due) fm.due = due;
   if (depends_on.length > 0) fm.depends_on = depends_on;
   const content = serializeTaskFile(fm, "");
-  const taskPath2 = join4(tasksDir, `${newId}.md`);
-  atomicWriteFileSync(taskPath2, content);
+  const taskPath = newTaskFilePath(kandownDir, newId, title);
+  atomicWriteFileSync(taskPath, content);
   pushUndo(kandownDir, {
     type: "create",
     taskId: newId,
-    path: taskPath2,
+    path: taskPath,
     previousContent: null,
     newContent: content,
     timestamp: Date.now()
@@ -1434,10 +1667,12 @@ function createTaskInBoard(kandownDir, rawInput, status) {
 }
 function archiveTaskInBoard(kandownDir, taskId) {
   const tasksDir = getTasksDir(kandownDir);
-  const taskPath2 = join4(tasksDir, `${taskId}.md`);
-  if (!existsSync4(taskPath2)) return false;
+  const match = resolveTaskFilename(taskId, listTaskFilenames(tasksDir));
+  if (!match) return false;
+  const taskPath = join4(tasksDir, match.filename);
+  if (!existsSync4(taskPath)) return false;
   try {
-    const prevContent = readFileSync4(taskPath2, "utf8");
+    const prevContent = readFileSync4(taskPath, "utf8");
     const archiveDir = join4(tasksDir, "archive");
     if (!existsSync4(archiveDir)) mkdirSync2(archiveDir, { recursive: true });
     const parsed = readTask(kandownDir, taskId);
@@ -1446,9 +1681,9 @@ function archiveTaskInBoard(kandownDir, taskId) {
       id: taskId,
       archived: true
     }), parsed.body);
-    const destPath = join4(archiveDir, `${taskId}.md`);
+    const destPath = join4(archiveDir, match.filename);
     atomicWriteFileSync(destPath, newContent);
-    unlinkSync4(taskPath2);
+    unlinkSync4(taskPath);
     pushUndo(kandownDir, {
       type: "archive",
       taskId,
@@ -1470,6 +1705,7 @@ var init_board_reader = __esm({
     init_parser();
     init_serializer();
     init_task_meta();
+    init_task_filename();
     init_config2();
   }
 });
@@ -1740,7 +1976,7 @@ extensions/trust.json
 });
 
 // src/cli/lib/cli-shared.ts
-import { existsSync as existsSync8, readFileSync as readFileSync7, readdirSync as readdirSync4 } from "fs";
+import { existsSync as existsSync8, readFileSync as readFileSync7 } from "fs";
 import { homedir as homedir3 } from "os";
 import { join as join8, resolve as resolve3, basename as basename2, dirname as dirname4 } from "path";
 import { spawn as spawn4 } from "child_process";
@@ -1861,6 +2097,7 @@ ${c.bold}COMMANDS:${c.reset}
   create "<title>"    Create new task (alias: new)
   move <id> <status>  Move task column
   assign <id> <agent> Assign task to an agent (e.g. claude)
+  reslug <id>|--all   Rename task files descriptively (t232_remove_dead_code.md)
   run [id]            Cascade: run ready tasks via assigned agents (DAG chain)
   agents              List detected AI agents + catalog (.kandown/agents.json)
   extension           Manage extensions (list/enable/disable/install/create)
@@ -1939,23 +2176,17 @@ function resolveStatusArg(kandownDir, status) {
   const config = loadConfig(kandownDir);
   return config.board.columns.find((col) => col.toLowerCase() === status.toLowerCase()) ?? null;
 }
-function taskPath(kandownDir, id, archived = false) {
-  return archived ? join8(getTasksDir(kandownDir), "archive", `${id}.md`) : join8(getTasksDir(kandownDir), `${id}.md`);
-}
 function findTaskPath2(kandownDir, id) {
-  const active = taskPath(kandownDir, id);
-  if (existsSync8(active)) return active;
-  const archived = taskPath(kandownDir, id, true);
-  if (existsSync8(archived)) return archived;
-  return null;
+  return findTaskPath(kandownDir, id);
+}
+function newTaskPath(kandownDir, id, title) {
+  return newTaskFilePath(kandownDir, id, title);
 }
 function nextTaskId(kandownDir) {
   const ids = new Set(listTaskIds(kandownDir));
-  const archiveDir = join8(getTasksDir(kandownDir), "archive");
-  if (existsSync8(archiveDir)) {
-    for (const file of readdirSync4(archiveDir)) {
-      if (file.endsWith(".md")) ids.add(file.slice(0, -3));
-    }
+  for (const name of listTaskFilenames(join8(getTasksDir(kandownDir), "archive"))) {
+    const id = taskIdFromFilename(name);
+    if (id) ids.add(id);
   }
   let max = 0;
   for (const id of ids) {
@@ -2014,6 +2245,7 @@ var init_cli_shared = __esm({
     init_init();
     init_config2();
     init_parser();
+    init_task_filename();
     c = {
       reset: "\x1B[0m",
       bold: "\x1B[1m",
@@ -2050,6 +2282,7 @@ var init_cli_shared = __esm({
       "version",
       "run",
       "agents",
+      "reslug",
       "extension",
       "extensions",
       "theme",
@@ -2907,14 +3140,14 @@ __export(workflows_store_exports, {
   previewWorkflowUpdate: () => previewWorkflowUpdate
 });
 import { createHash as createHash3 } from "crypto";
-import { existsSync as existsSync19, readFileSync as readFileSync18 } from "fs";
-import { join as join21 } from "path";
+import { existsSync as existsSync20, readFileSync as readFileSync19 } from "fs";
+import { join as join22 } from "path";
 function installFilePath(kandownDir) {
-  return join21(kandownDir, "workflow-installs.json");
+  return join22(kandownDir, "workflow-installs.json");
 }
 function readInstalls(kandownDir) {
   try {
-    const parsed = JSON.parse(readFileSync18(installFilePath(kandownDir), "utf8"));
+    const parsed = JSON.parse(readFileSync19(installFilePath(kandownDir), "utf8"));
     return parsed.version === 1 && parsed.installs && typeof parsed.installs === "object" ? parsed : { version: 1, installs: {} };
   } catch {
     return { version: 1, installs: {} };
@@ -2970,7 +3203,7 @@ async function fetchPackage(entry) {
 }
 async function installStoreWorkflow(kandownDir, entry) {
   try {
-    if (existsSync19(join21(kandownDir, "workflows", entry.id))) return { ok: false, error: `Workflow ${entry.id} already exists.` };
+    if (existsSync20(join22(kandownDir, "workflows", entry.id))) return { ok: false, error: `Workflow ${entry.id} already exists.` };
     const { workflow } = await fetchPackage(entry);
     writeWorkflowPackage(kandownDir, workflow);
     const installs = readInstalls(kandownDir);
@@ -3034,38 +3267,38 @@ var init_workflows_store = __esm({
 });
 
 // src/cli/lib/workflows-cli.ts
-import { existsSync as existsSync20, mkdirSync as mkdirSync11, readFileSync as readFileSync19, readdirSync as readdirSync9, statSync as statSync6, unlinkSync as unlinkSync6 } from "fs";
-import { basename as basename4, join as join22, resolve as resolve9 } from "path";
+import { existsSync as existsSync21, mkdirSync as mkdirSync11, readFileSync as readFileSync20, readdirSync as readdirSync8, statSync as statSync6, unlinkSync as unlinkSync6 } from "fs";
+import { basename as basename5, join as join23, resolve as resolve9 } from "path";
 function sourceFiles(directory, prefix = "") {
   const files = {};
-  for (const name of readdirSync9(directory)) {
-    const absolute = join22(directory, name);
+  for (const name of readdirSync8(directory)) {
+    const absolute = join23(directory, name);
     const relative = prefix ? `${prefix}/${name}` : name;
     if (statSync6(absolute).isDirectory()) Object.assign(files, sourceFiles(absolute, relative));
-    else files[relative] = readFileSync19(absolute, "utf8");
+    else files[relative] = readFileSync20(absolute, "utf8");
   }
   return files;
 }
 function workflowRoots(kandownDir) {
   return [
-    { directory: join22(kandownDir, "workflows"), source: "local" },
-    { directory: join22(PKG_ROOT, "templates", "workflows"), source: "built-in" }
+    { directory: join23(kandownDir, "workflows"), source: "local" },
+    { directory: join23(PKG_ROOT, "templates", "workflows"), source: "built-in" }
   ];
 }
 function installedStoreIds(kandownDir) {
   try {
-    const raw = JSON.parse(readFileSync19(join22(kandownDir, "workflow-installs.json"), "utf8"));
+    const raw = JSON.parse(readFileSync20(join23(kandownDir, "workflow-installs.json"), "utf8"));
     return new Set(Object.keys(raw.installs ?? {}));
   } catch {
     return /* @__PURE__ */ new Set();
   }
 }
 function workflowDirectory(kandownDir, id) {
-  return workflowRoots(kandownDir).map((root) => ({ directory: join22(root.directory, id), source: root.source })).find((item) => existsSync20(join22(item.directory, "manifest.json"))) ?? null;
+  return workflowRoots(kandownDir).map((root) => ({ directory: join23(root.directory, id), source: root.source })).find((item) => existsSync21(join23(item.directory, "manifest.json"))) ?? null;
 }
 function packageDirectories(root) {
-  if (!existsSync20(root)) return [];
-  return readdirSync9(root, { withFileTypes: true }).filter((entry) => entry.isDirectory() && existsSync20(join22(root, entry.name, "manifest.json"))).map((entry) => join22(root, entry.name));
+  if (!existsSync21(root)) return [];
+  return readdirSync8(root, { withFileTypes: true }).filter((entry) => entry.isDirectory() && existsSync21(join23(root, entry.name, "manifest.json"))).map((entry) => join23(root, entry.name));
 }
 function compatibilityError(workflow) {
   const minimum = workflow.manifest.minKandownVersion;
@@ -3077,7 +3310,7 @@ function listWorkflowPackages(kandownDir) {
   const summaries = /* @__PURE__ */ new Map();
   for (const root of workflowRoots(kandownDir)) {
     for (const directory of packageDirectories(root.directory)) {
-      let rawId = basename4(directory);
+      let rawId = basename5(directory);
       let name = rawId;
       let version = "unknown";
       let description = "";
@@ -3115,8 +3348,8 @@ function listWorkflowPackages(kandownDir) {
 function loadWorkflowById(kandownDir, id) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) throw new Error("Workflow id must be kebab-case.");
   for (const root of workflowRoots(kandownDir)) {
-    const directory = join22(root.directory, id);
-    if (!existsSync20(join22(directory, "manifest.json"))) continue;
+    const directory = join23(root.directory, id);
+    if (!existsSync21(join23(directory, "manifest.json"))) continue;
     const result = loadWorkflowPackage(sourceFiles(directory));
     if (!result.ok) throw new Error(result.errors.map((item) => `${item.path}: ${item.message}`).join("; "));
     const incompatible = compatibilityError(result.value);
@@ -3165,7 +3398,7 @@ function updateLocalWorkflowFile(kandownDir, id, path, content) {
   const nextFiles = { ...sourceFiles(located.directory), [path]: content };
   const validated = loadWorkflowPackage(nextFiles);
   if (!validated.ok) throw new Error(validated.errors.map((item) => `${item.path}: ${item.message}`).join("; "));
-  atomicWriteFileSync(join22(located.directory, path), content);
+  atomicWriteFileSync(join23(located.directory, path), content);
   return validated.value;
 }
 function presetColumns(workflow) {
@@ -3225,32 +3458,32 @@ function applyBoardPreset(kandownDir, id) {
   return preview;
 }
 function writeWorkflowPackage(kandownDir, workflow) {
-  const directory = join22(kandownDir, "workflows", workflow.manifest.id);
-  if (existsSync20(directory)) throw new Error(`Local workflow "${workflow.manifest.id}" already exists.`);
-  mkdirSync11(join22(directory, "templates"), { recursive: true });
-  atomicWriteFileSync(join22(directory, "manifest.json"), `${JSON.stringify(workflow.manifest, null, 2)}
+  const directory = join23(kandownDir, "workflows", workflow.manifest.id);
+  if (existsSync21(directory)) throw new Error(`Local workflow "${workflow.manifest.id}" already exists.`);
+  mkdirSync11(join23(directory, "templates"), { recursive: true });
+  atomicWriteFileSync(join23(directory, "manifest.json"), `${JSON.stringify(workflow.manifest, null, 2)}
 `);
-  atomicWriteFileSync(join22(directory, workflow.protocol.path), workflow.protocol.content);
-  if (workflow.guide) atomicWriteFileSync(join22(directory, workflow.guide.path), workflow.guide.content);
-  if (workflow.boardPreset) atomicWriteFileSync(join22(directory, workflow.boardPreset.path), workflow.boardPreset.content);
-  for (const template of workflow.taskTemplates) atomicWriteFileSync(join22(directory, template.file), template.content);
+  atomicWriteFileSync(join23(directory, workflow.protocol.path), workflow.protocol.content);
+  if (workflow.guide) atomicWriteFileSync(join23(directory, workflow.guide.path), workflow.guide.content);
+  if (workflow.boardPreset) atomicWriteFileSync(join23(directory, workflow.boardPreset.path), workflow.boardPreset.content);
+  for (const template of workflow.taskTemplates) atomicWriteFileSync(join23(directory, template.file), template.content);
   return directory;
 }
 function replaceStoreWorkflowPackage(kandownDir, workflow) {
   if (!installedStoreIds(kandownDir).has(workflow.manifest.id)) throw new Error("Only store-installed workflows can be updated in place.");
-  const directory = join22(kandownDir, "workflows", workflow.manifest.id);
+  const directory = join23(kandownDir, "workflows", workflow.manifest.id);
   const declared = new Set(["manifest.json", workflow.protocol.path, workflow.guide?.path, workflow.boardPreset?.path, ...workflow.taskTemplates.map((item) => item.file)].filter((item) => Boolean(item)));
-  if (existsSync20(directory)) {
-    for (const path of Object.keys(sourceFiles(directory))) if (!declared.has(path)) unlinkSync6(join22(directory, path));
-  } else mkdirSync11(join22(directory, "templates"), { recursive: true });
-  atomicWriteFileSync(join22(directory, "manifest.json"), `${JSON.stringify(workflow.manifest, null, 2)}
+  if (existsSync21(directory)) {
+    for (const path of Object.keys(sourceFiles(directory))) if (!declared.has(path)) unlinkSync6(join23(directory, path));
+  } else mkdirSync11(join23(directory, "templates"), { recursive: true });
+  atomicWriteFileSync(join23(directory, "manifest.json"), `${JSON.stringify(workflow.manifest, null, 2)}
 `);
-  atomicWriteFileSync(join22(directory, workflow.protocol.path), workflow.protocol.content);
-  if (workflow.guide) atomicWriteFileSync(join22(directory, workflow.guide.path), workflow.guide.content);
-  if (workflow.boardPreset) atomicWriteFileSync(join22(directory, workflow.boardPreset.path), workflow.boardPreset.content);
+  atomicWriteFileSync(join23(directory, workflow.protocol.path), workflow.protocol.content);
+  if (workflow.guide) atomicWriteFileSync(join23(directory, workflow.guide.path), workflow.guide.content);
+  if (workflow.boardPreset) atomicWriteFileSync(join23(directory, workflow.boardPreset.path), workflow.boardPreset.content);
   for (const template of workflow.taskTemplates) {
-    mkdirSync11(join22(directory, "templates"), { recursive: true });
-    atomicWriteFileSync(join22(directory, template.file), template.content);
+    mkdirSync11(join23(directory, "templates"), { recursive: true });
+    atomicWriteFileSync(join23(directory, template.file), template.content);
   }
   return directory;
 }
@@ -3352,7 +3585,7 @@ ${workflow.guide.content}` : ""}`);
     }
     if (sub === "validate" || sub === "pack") {
       const directory = resolve9(args.positional[1] ?? "");
-      if (!existsSync20(join22(directory, "manifest.json"))) throw new Error("Expected a workflow directory containing manifest.json.");
+      if (!existsSync21(join23(directory, "manifest.json"))) throw new Error("Expected a workflow directory containing manifest.json.");
       const result = loadWorkflowPackage(sourceFiles(directory));
       if (!result.ok) throw new Error(result.errors.map((item) => `${item.path}: ${item.message}`).join("\n"));
       if (sub === "validate") {
@@ -3368,7 +3601,7 @@ ${workflow.guide.content}` : ""}`);
     }
     if (sub === "import") {
       const capsulePath = resolve9(args.positional[1] ?? "");
-      const result = importWorkflowCapsule(readFileSync19(capsulePath, "utf8"));
+      const result = importWorkflowCapsule(readFileSync20(capsulePath, "utf8"));
       if (!result.ok) throw new Error(result.errors.map((item) => `${item.path}: ${item.message}`).join("\n"));
       success(`Imported ${writeWorkflowPackage(kandownDir, result.value)}.`);
       return;
@@ -3396,8 +3629,8 @@ var init_workflows_cli = __esm({
 
 // src/cli/cli.ts
 init_updater();
-import { existsSync as existsSync24 } from "fs";
-import { join as join28 } from "path";
+import { existsSync as existsSync25 } from "fs";
+import { join as join29 } from "path";
 
 // src/cli/lib/daemon.ts
 init_updater();
@@ -3780,8 +4013,8 @@ function handleJsonRpc(kandownDir, req) {
           ...args.tags ? { tags: args.tags } : {}
         };
         const body = args.body ? (task.body + "\n\n" + args.body).trim() : task.body;
-        const taskPath2 = join5(getTasksDir(kandownDir), `${newId}.md`);
-        atomicWriteFileSync(taskPath2, serializeTaskFile(stampUpdated(fm), body));
+        const taskPath = join5(getTasksDir(kandownDir), `${newId}.md`);
+        atomicWriteFileSync(taskPath, serializeTaskFile(stampUpdated(fm), body));
       }
       sendResponse(id, { result: { content: [{ type: "text", text: `Created task ${newId}` }] } });
       return;
@@ -3795,8 +4028,8 @@ function handleJsonRpc(kandownDir, req) {
       return;
     }
     if (name === "add_report") {
-      const taskPath2 = join5(getTasksDir(kandownDir), `${args.id}.md`);
-      if (!existsSync5(taskPath2)) {
+      const taskPath = join5(getTasksDir(kandownDir), `${args.id}.md`);
+      if (!existsSync5(taskPath)) {
         sendResponse(id, { error: { code: -32602, message: `Task ${args.id} not found` } });
         return;
       }
@@ -3809,7 +4042,7 @@ ${args.report.trim()}`;
       const newBody = task.body.includes("## Report") ? task.body.replace(/## Report[\s\S]*/, `## Report
 
 ${args.report.trim()}`) : task.body.trim() + reportSection;
-      atomicWriteFileSync(taskPath2, serializeTaskFile(stampUpdated(task.frontmatter), newBody));
+      atomicWriteFileSync(taskPath, serializeTaskFile(stampUpdated(task.frontmatter), newBody));
       sendResponse(id, { result: { content: [{ type: "text", text: `Appended report to ${args.id}` }] } });
       return;
     }
@@ -3842,14 +4075,14 @@ init_cli_shared();
 // src/cli/commands/project.ts
 init_updater();
 init_board_reader();
-import { existsSync as existsSync12, readFileSync as readFileSync13, copyFileSync as copyFileSync2 } from "fs";
-import { join as join14, resolve as resolve5 } from "path";
+import { existsSync as existsSync13, readFileSync as readFileSync14, copyFileSync as copyFileSync2 } from "fs";
+import { join as join15, resolve as resolve5 } from "path";
 import { spawn as spawn5 } from "child_process";
 
 // src/cli/lib/kandown-work.ts
-import { existsSync as existsSync11, readFileSync as readFileSync12, readdirSync as readdirSync7, statSync as statSync5 } from "fs";
+import { existsSync as existsSync12, readFileSync as readFileSync13, readdirSync as readdirSync6, statSync as statSync5 } from "fs";
 import { homedir as homedir7 } from "os";
-import { join as join13 } from "path";
+import { join as join14 } from "path";
 
 // src/lib/kandown-work.ts
 function estimateTokenCount(text) {
@@ -3972,7 +4205,7 @@ init_updater();
 init_agent_migration();
 
 // src/lib/extensions/loader.ts
-import { readdirSync as readdirSync5, readFileSync as readFileSync8, existsSync as existsSync9 } from "fs";
+import { readdirSync as readdirSync4, readFileSync as readFileSync8, existsSync as existsSync9 } from "fs";
 import { join as join9 } from "path";
 import { homedir as homedir4 } from "os";
 
@@ -4045,7 +4278,7 @@ function projectExtensionsDir(projectDir) {
 function scanLocation(location, source) {
   let entries = [];
   try {
-    entries = readdirSync5(location, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
+    entries = readdirSync4(location, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
   } catch {
     return [];
   }
@@ -4180,12 +4413,12 @@ init_dependencies();
 // src/cli/lib/skills.ts
 init_workflows();
 init_updater();
-import { existsSync as existsSync10, readFileSync as readFileSync11, readdirSync as readdirSync6, statSync as statSync4 } from "fs";
+import { existsSync as existsSync10, readFileSync as readFileSync11, readdirSync as readdirSync5, statSync as statSync4 } from "fs";
 import { homedir as homedir6 } from "os";
 import { join as join12 } from "path";
 function readSourceFiles(directory, prefix = "") {
   const files = {};
-  for (const name of readdirSync6(directory)) {
+  for (const name of readdirSync5(directory)) {
     const absolute = join12(directory, name);
     const relative = prefix ? `${prefix}/${name}` : name;
     if (statSync4(absolute).isDirectory()) Object.assign(files, readSourceFiles(absolute, relative));
@@ -4216,7 +4449,7 @@ function listWorkflowSkills(kandownDir) {
     { directory: join12(kandownDir, "skills"), source: "project" }
   ]) {
     if (!existsSync10(location.directory)) continue;
-    for (const name of readdirSync6(location.directory).sort()) {
+    for (const name of readdirSync5(location.directory).sort()) {
       const absolute = join12(location.directory, name);
       if (statSync4(absolute).isDirectory() && existsSync10(join12(absolute, "manifest.json"))) {
         const listing = packageListing(absolute, location.source);
@@ -4263,6 +4496,130 @@ function loadConfiguredWorkflowSkills(kandownDir, ids) {
   return { skills, diagnostics };
 }
 
+// src/cli/commands/reslug.ts
+init_cli_shared();
+init_board_reader();
+init_parser();
+init_task_filename();
+import { existsSync as existsSync11, renameSync as renameSync4, readFileSync as readFileSync12 } from "fs";
+import { join as join13, basename as basename3, dirname as dirname5 } from "path";
+import { spawnSync } from "child_process";
+function isTrackedByGit(path) {
+  const res = spawnSync("git", ["ls-files", "--error-unmatch", "--", basename3(path)], {
+    cwd: dirname5(path),
+    encoding: "utf8",
+    stdio: ["ignore", "ignore", "ignore"]
+  });
+  return res.status === 0;
+}
+function renameFile(from, to, useGit) {
+  if (useGit && isTrackedByGit(from)) {
+    const res = spawnSync("git", ["mv", "--", basename3(from), basename3(to)], {
+      cwd: dirname5(from),
+      encoding: "utf8",
+      stdio: ["ignore", "ignore", "pipe"]
+    });
+    if (res.status === 0) return "git";
+  }
+  renameSync4(from, to);
+  return "fs";
+}
+function planFor(directory, filename) {
+  const id = taskIdFromFilename(filename);
+  if (!id) return null;
+  let title = "";
+  try {
+    title = parseTaskFile(readFileSync12(join13(directory, filename), "utf8")).frontmatter.title ?? "";
+  } catch {
+    return null;
+  }
+  const others = listTaskFilenames(directory).filter((f) => f !== filename);
+  const target = buildTaskFilename(id, title, others);
+  if (target === filename) return null;
+  return { id, directory, from: filename, to: target };
+}
+function cmdReslug(rawArgs) {
+  const { kandownDir } = ensureKandownDir(rawArgs);
+  const args = taskParseArgs(rawArgs);
+  const all = args.flags.all === true;
+  const dryRun = args.flags["dry-run"] === true || args.flags.n === true;
+  const force = args.flags.force === true;
+  const useGit = args.flags["no-git"] !== true;
+  const id = args.positional[0];
+  if (!id && !all) {
+    err("Usage: kandown reslug <task-id> | kandown reslug --all [--dry-run] [--no-git]");
+    info("Renames tasks/t232.md to tasks/t232_remove_dead_code.md. The id never changes.");
+    process.exit(1);
+  }
+  const tasksDir = getTasksDir(kandownDir);
+  const archiveDir = join13(tasksDir, "archive");
+  const plans = [];
+  if (all) {
+    for (const directory of [tasksDir, archiveDir]) {
+      for (const filename of listTaskFilenames(directory).sort()) {
+        if (!force && hasDescriptiveSlug(filename)) continue;
+        const plan = planFor(directory, filename);
+        if (plan) plans.push(plan);
+      }
+    }
+  } else {
+    const path = findTaskPath(kandownDir, id);
+    if (!path) {
+      err(`Task not found: ${id}`);
+      process.exit(1);
+    }
+    const plan = planFor(dirname5(path), basename3(path));
+    if (!plan) {
+      info(`${id} already has the right filename: ${basename3(path)}`);
+      return;
+    }
+    plans.push(plan);
+  }
+  if (plans.length === 0) {
+    info(all ? "Every task filename is already descriptive." : "Nothing to rename.");
+    return;
+  }
+  for (const plan of plans) {
+    const label = plan.directory === archiveDir ? `${c.dim}archive/${c.reset}` : "";
+    log(`  ${label}${plan.from} ${c.dim}\u2192${c.reset} ${c.bold}${plan.to}${c.reset}`);
+  }
+  if (dryRun) {
+    info(`Dry run: ${plans.length} file${plans.length === 1 ? "" : "s"} would be renamed, nothing was touched.`);
+    return;
+  }
+  let renamed = 0;
+  let viaGit = 0;
+  for (const plan of plans) {
+    const from = join13(plan.directory, plan.from);
+    const to = join13(plan.directory, plan.to);
+    if (existsSync11(to)) {
+      err(`Skipped ${plan.id}: ${plan.to} already exists`);
+      continue;
+    }
+    try {
+      if (renameFile(from, to, useGit) === "git") viaGit += 1;
+      renamed += 1;
+    } catch (error) {
+      err(`Failed to rename ${plan.from}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  success(`Renamed ${renamed} task file${renamed === 1 ? "" : "s"}${viaGit ? ` (${viaGit} via git mv)` : ""}`);
+  if (renamed) {
+    info("Task ids are unchanged, so dependencies, links and branch names still resolve.");
+  }
+}
+function countBareTaskFilenames(kandownDir) {
+  const tasksDir = getTasksDir(kandownDir);
+  let bare = 0;
+  for (const directory of [tasksDir, join13(tasksDir, "archive")]) {
+    for (const filename of listTaskFilenames(directory)) {
+      if (hasDescriptiveSlug(filename)) continue;
+      if (planFor(directory, filename)) bare += 1;
+    }
+  }
+  return bare;
+}
+
 // src/cli/lib/kandown-work.ts
 var AVAILABLE_COMMANDS = [
   "kandown work [task-id]",
@@ -4271,30 +4628,31 @@ var AVAILABLE_COMMANDS = [
   "kandown create <title>",
   "kandown move <id> <status>",
   "kandown assign <id> [agent]",
-  "kandown commit"
+  "kandown commit",
+  "kandown reslug <id>|--all [--dry-run]"
 ];
 function readSourceFiles2(directory, prefix = "") {
   const files = {};
-  for (const name of readdirSync7(directory)) {
-    const absolute = join13(directory, name);
+  for (const name of readdirSync6(directory)) {
+    const absolute = join14(directory, name);
     const relative = prefix ? `${prefix}/${name}` : name;
     if (statSync5(absolute).isDirectory()) Object.assign(files, readSourceFiles2(absolute, relative));
-    else files[relative] = readFileSync12(absolute, "utf8");
+    else files[relative] = readFileSync13(absolute, "utf8");
   }
   return files;
 }
 function loadSelectedWorkflow(kandownDir, id) {
-  const candidates = [join13(kandownDir, "workflows", id), join13(PKG_ROOT, "templates", "workflows", id)];
-  const directory = candidates.find((candidate) => existsSync11(join13(candidate, "manifest.json")));
+  const candidates = [join14(kandownDir, "workflows", id), join14(PKG_ROOT, "templates", "workflows", id)];
+  const directory = candidates.find((candidate) => existsSync12(join14(candidate, "manifest.json")));
   if (!directory) throw new Error(`Selected workflow "${id}" is not installed.`);
   const result = loadWorkflowPackage(readSourceFiles2(directory));
   if (!result.ok) throw new Error(`Workflow "${id}" is invalid: ${result.errors.map((error) => error.message).join("; ")}`);
   return result.value;
 }
 function readOptional(path) {
-  if (!existsSync11(path)) return void 0;
+  if (!existsSync12(path)) return void 0;
   try {
-    return readFileSync12(path, "utf8");
+    return readFileSync13(path, "utf8");
   } catch {
     return void 0;
   }
@@ -4350,6 +4708,11 @@ function boardDigest(kandownDir, config) {
     lines.push(`
 Next actionable: ${next ? `${next.frontmatter.id} ${next.frontmatter.title}` : "none"}`);
   }
+  const bare = countBareTaskFilenames(kandownDir);
+  if (bare > 0) {
+    lines.push(`
+Filenames: ${bare} task file${bare === 1 ? " is" : "s are"} still named after the id alone (\`t232.md\`). Descriptive names (\`t232_remove_dead_code.md\`) make git diffs and file lists readable, and the task id does not change. Offer the user \`kandown reslug --all --dry-run\` to preview it, then \`kandown reslug --all\`. Do not rename anything without being asked.`);
+  }
   return lines.join("\n");
 }
 function compileProjectKandownWork(kandownDir, taskId) {
@@ -4383,8 +4746,8 @@ ${task.body.trim()}`;
     workflow,
     extensions: loadExtensionGuidance(kandownDir, config),
     skills: configuredSkills.skills,
-    globalInstructions: readOptional(join13(homedir7(), ".kandown", "kandown_work.md")),
-    projectInstructions: readOptional(join13(kandownDir, "kandown_work.md")),
+    globalInstructions: readOptional(join14(homedir7(), ".kandown", "kandown_work.md")),
+    projectInstructions: readOptional(join14(kandownDir, "kandown_work.md")),
     context
   });
   return { ...compiled, diagnostics: [...configuredSkills.diagnostics, ...compiled.diagnostics] };
@@ -4440,10 +4803,10 @@ async function cmdUpdate(rawArgs) {
   const args = parseArgs(rawArgs);
   const cwd = process.cwd();
   const kandownDir = resolve5(cwd, args.path);
-  const htmlDest = join14(kandownDir, "kandown.html");
-  if (existsSync12(htmlDest)) {
+  const htmlDest = join15(kandownDir, "kandown.html");
+  if (existsSync13(htmlDest)) {
     const htmlSrc = resolve5(PKG_ROOT, "dist", "index.html");
-    if (existsSync12(htmlSrc)) {
+    if (existsSync13(htmlSrc)) {
       copyFileSync2(htmlSrc, htmlDest);
       success(`Refreshed ${args.path}/kandown.html`);
     }
@@ -4455,10 +4818,10 @@ async function cmdDoctor(rawArgs) {
   log(`${c.bold}kandown doctor${c.reset} ${c.dim}\u2014 environment & board diagnostic${c.reset}
 `);
   log(`  CLI Version: ${currentVersion}`);
-  const configPath = join14(kandownDir, "kandown.json");
-  if (existsSync12(configPath)) {
+  const configPath = join15(kandownDir, "kandown.json");
+  if (existsSync13(configPath)) {
     try {
-      JSON.parse(readFileSync13(configPath, "utf8"));
+      JSON.parse(readFileSync14(configPath, "utf8"));
       success("kandown.json valid");
     } catch (e) {
       err(`kandown.json invalid: ${e.message}`);
@@ -4489,18 +4852,18 @@ async function cmdWork(rawArgs) {
 
 // src/cli/commands/tasks.ts
 init_board_reader();
-import { existsSync as existsSync16, readFileSync as readFileSync17, mkdirSync as mkdirSync8 } from "fs";
-import { join as join18, resolve as resolve8 } from "path";
-import { spawnSync } from "child_process";
+import { existsSync as existsSync17, readFileSync as readFileSync18, mkdirSync as mkdirSync8 } from "fs";
+import { join as join19, resolve as resolve8 } from "path";
+import { spawnSync as spawnSync2 } from "child_process";
 
 // src/cli/lib/extensions-cli.ts
-import { existsSync as existsSync14, readFileSync as readFileSync15, writeFileSync as writeFileSync5, mkdirSync as mkdirSync7, cpSync, rmSync, readdirSync as readdirSync8 } from "fs";
-import { join as join16, resolve as resolve7 } from "path";
+import { existsSync as existsSync15, readFileSync as readFileSync16, writeFileSync as writeFileSync5, mkdirSync as mkdirSync7, cpSync, rmSync, readdirSync as readdirSync7 } from "fs";
+import { join as join17, resolve as resolve7 } from "path";
 
 // src/lib/extensions/host.ts
 import { createJiti } from "jiti";
-import { existsSync as existsSync13 } from "fs";
-import { join as join15, resolve as resolve6 } from "path";
+import { existsSync as existsSync14 } from "fs";
+import { join as join16, resolve as resolve6 } from "path";
 import { fileURLToPath as fileURLToPath2 } from "url";
 
 // src/lib/extensions/registry.ts
@@ -4766,8 +5129,8 @@ var ExtensionHost = class {
   }
   resolveEntry(manifest, dir) {
     const mainRel = manifest.main;
-    const candidates = mainRel ? [resolve6(dir, mainRel)] : [join15(dir, "index.ts"), join15(dir, "index.js"), join15(dir, "index.mjs")];
-    for (const c2 of candidates) if (existsSync13(c2)) return c2;
+    const candidates = mainRel ? [resolve6(dir, mainRel)] : [join16(dir, "index.ts"), join16(dir, "index.js"), join16(dir, "index.mjs")];
+    for (const c2 of candidates) if (existsSync14(c2)) return c2;
     return null;
   }
   async loadFactory(entry) {
@@ -5064,11 +5427,11 @@ function buildHostEnvironment(kandownDir) {
       }
     },
     async applyField(taskId, extId, key, value) {
-      const taskPath2 = findTaskPath(kandownDir, taskId);
-      if (!taskPath2) throw new Error(`task not found: ${taskId}`);
+      const taskPath = findTaskPath(kandownDir, taskId);
+      if (!taskPath) throw new Error(`task not found: ${taskId}`);
       const parsed = readTask(kandownDir, taskId);
       const next = setField(parsed.frontmatter, extId, key, value);
-      atomicWriteFileSync(taskPath2, serializeTaskFile(stampUpdated(next), parsed.body));
+      atomicWriteFileSync(taskPath, serializeTaskFile(stampUpdated(next), parsed.body));
     },
     log: {
       info: (m) => info(m),
@@ -5133,13 +5496,13 @@ async function cmdExtension(rawArgs) {
 ${guidance.summary}`);
       if (guidance.guide) {
         const guidePath = resolve7(extension.dir, guidance.guide);
-        if (!guidePath.startsWith(`${resolve7(extension.dir)}/`) || !existsSync14(guidePath)) {
+        if (!guidePath.startsWith(`${resolve7(extension.dir)}/`) || !existsSync15(guidePath)) {
           err(`Declared guide is unavailable: ${guidance.guide}`);
           process.exitCode = 1;
           return;
         }
         log(`
-${readFileSync15(guidePath, "utf8")}`);
+${readFileSync16(guidePath, "utf8")}`);
       }
       if (guidance.source) log(`
 Source: ${guidance.source}`);
@@ -5224,13 +5587,13 @@ Source: ${guidance.source}`);
 }
 function purgePluginData(kandownDir, extId) {
   const projectDir = getProjectRoot(kandownDir);
-  const tasksDir = join16(projectDir, "tasks");
+  const tasksDir = join17(projectDir, "tasks");
   let count = 0;
-  if (!existsSync14(tasksDir)) return 0;
-  for (const file of readdirSync8(tasksDir)) {
+  if (!existsSync15(tasksDir)) return 0;
+  for (const file of readdirSync7(tasksDir)) {
     if (!file.endsWith(".md")) continue;
-    const path = join16(tasksDir, file);
-    const raw = readFileSync15(path, "utf8");
+    const path = join17(tasksDir, file);
+    const raw = readFileSync16(path, "utf8");
     const fmMatch = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
     if (!fmMatch || !raw.includes(`plugins:`)) continue;
     const parsed = parseTaskFile(raw);
@@ -5246,13 +5609,13 @@ function purgePluginData(kandownDir, extId) {
 }
 async function installExtension(kandownDir, target) {
   const projectDir = getProjectRoot(kandownDir);
-  const destRoot = join16(projectDir, ".kandown", "extensions");
+  const destRoot = join17(projectDir, ".kandown", "extensions");
   mkdirSync7(destRoot, { recursive: true });
   const src = resolve7(target);
-  if (existsSync14(src) && existsSync14(join16(src, "manifest.json"))) {
-    const manifest = JSON.parse(readFileSync15(join16(src, "manifest.json"), "utf8"));
+  if (existsSync15(src) && existsSync15(join17(src, "manifest.json"))) {
+    const manifest = JSON.parse(readFileSync16(join17(src, "manifest.json"), "utf8"));
     if (!manifest.id) return null;
-    const dest = join16(destRoot, manifest.id);
+    const dest = join17(destRoot, manifest.id);
     rmSync(dest, { recursive: true, force: true });
     cpSync(src, dest, { recursive: true });
     return manifest.id;
@@ -5266,8 +5629,8 @@ function scaffoldExtension(kandownDir, name) {
     process.exit(1);
   }
   const projectDir = getProjectRoot(kandownDir);
-  const dir = join16(projectDir, ".kandown", "extensions", name);
-  if (existsSync14(dir)) {
+  const dir = join17(projectDir, ".kandown", "extensions", name);
+  if (existsSync15(dir)) {
     err(`Already exists: ${dir}`);
     process.exit(1);
   }
@@ -5281,7 +5644,7 @@ function scaffoldExtension(kandownDir, name) {
     permissions: ["read:tasks", `write:field:plugins.${name}.*`],
     contributes: { fields: [], webPanels: [], commands: [], gates: [] }
   };
-  writeFileSync5(join16(dir, "manifest.json"), `${JSON.stringify(manifest, null, 2)}
+  writeFileSync5(join17(dir, "manifest.json"), `${JSON.stringify(manifest, null, 2)}
 `);
   const indexTs = `// ${name} \u2014 a kandown extension. See docs/EXTENSIONS.md.
 // Loaded via jiti, no build step. Register contributions on the \`kd\` API.
@@ -5301,8 +5664,8 @@ export default function (kd: KandownExtensionAPI) {
   });
 }
 `;
-  writeFileSync5(join16(dir, "index.ts"), indexTs);
-  writeFileSync5(join16(dir, "README.md"), `# ${name}
+  writeFileSync5(join17(dir, "index.ts"), indexTs);
+  writeFileSync5(join17(dir, "README.md"), `# ${name}
 
 A kandown extension. Enable with \`kandown extension enable ${name}\`.
 `);
@@ -5316,8 +5679,8 @@ import { execFileSync as execFileSync2 } from "child_process";
 
 // src/cli/lib/agents-config.ts
 init_atomic_write();
-import { existsSync as existsSync15, readFileSync as readFileSync16 } from "fs";
-import { join as join17 } from "path";
+import { existsSync as existsSync16, readFileSync as readFileSync17 } from "fs";
+import { join as join18 } from "path";
 var AGENTS_CONFIG_VERSION = 1;
 var DEFAULT_CASCADE = {
   unassignedBehavior: "skip",
@@ -5356,11 +5719,11 @@ function defaultAgentsConfig() {
   };
 }
 function loadAgentsConfig(kandownDir) {
-  const path = join17(kandownDir, "agents.json");
-  if (!existsSync15(path)) return defaultAgentsConfig();
+  const path = join18(kandownDir, "agents.json");
+  if (!existsSync16(path)) return defaultAgentsConfig();
   let raw;
   try {
-    raw = JSON.parse(readFileSync16(path, "utf8"));
+    raw = JSON.parse(readFileSync17(path, "utf8"));
   } catch (e) {
     const err3 = e;
     if (err3.code === "ENOENT") return defaultAgentsConfig();
@@ -5403,7 +5766,7 @@ function resolveCascade(raw) {
   };
 }
 function saveAgentsConfig(kandownDir, config) {
-  const path = join17(kandownDir, "agents.json");
+  const path = join18(kandownDir, "agents.json");
   atomicWriteFileSync(path, JSON.stringify(config, null, 2) + "\n");
 }
 
@@ -5920,7 +6283,7 @@ function cmdShow(rawArgs) {
     err(`Task not found: ${id}`);
     process.exit(1);
   }
-  process.stdout.write(readFileSync17(path, "utf8"));
+  process.stdout.write(readFileSync18(path, "utf8"));
 }
 function cmdCreate(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
@@ -5959,8 +6322,8 @@ function cmdCreate(rawArgs) {
   if (assignee) fm.assignee = assignee;
   if (tags.length > 0) fm.tags = tags;
   const tasksDir = getTasksDir(kandownDir);
-  if (!existsSync16(tasksDir)) mkdirSync8(tasksDir, { recursive: true });
-  const path = taskPath(kandownDir, id);
+  if (!existsSync17(tasksDir)) mkdirSync8(tasksDir, { recursive: true });
+  const path = newTaskPath(kandownDir, id, title);
   atomicWriteFileSync(path, serializeTaskFile(fm, ""));
   process.stderr.write(`${c.green}\u2713${c.reset} Created ${c.bold}${id}${c.reset} \u2192 ${status}
 `);
@@ -6039,9 +6402,9 @@ function cmdCommit(rawArgs) {
   ensureKandownDir(rawArgs);
   const args = taskParseArgs(rawArgs);
   const message = stringFlag(args.flags, "message") || "tasks: update kandown board";
-  const add = spawnSync("git", ["add", "tasks", ".kandown/kandown.json"], { stdio: "inherit" });
+  const add = spawnSync2("git", ["add", "tasks", ".kandown/kandown.json"], { stdio: "inherit" });
   if (add.status !== 0) process.exit(add.status ?? 1);
-  const commit = spawnSync("git", ["commit", "-m", message], { stdio: "inherit" });
+  const commit = spawnSync2("git", ["commit", "-m", message], { stdio: "inherit" });
   process.exit(commit.status ?? 1);
 }
 function cmdExport(rawArgs) {
@@ -6051,12 +6414,12 @@ function cmdExport(rawArgs) {
 }
 function cmdProjects(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
-  const metadataPath2 = join18(kandownDir, "daemon.json");
-  if (!existsSync16(metadataPath2)) {
+  const metadataPath2 = join19(kandownDir, "daemon.json");
+  if (!existsSync17(metadataPath2)) {
     info("No daemon metadata for this project.");
     return;
   }
-  process.stdout.write(readFileSync17(metadataPath2, "utf8").trim() + "\n");
+  process.stdout.write(readFileSync18(metadataPath2, "utf8").trim() + "\n");
 }
 function cmdImport(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
@@ -6067,13 +6430,13 @@ function cmdImport(rawArgs) {
     process.exit(1);
   }
   const importPath = resolve8(process.cwd(), file);
-  if (!existsSync16(importPath)) {
+  if (!existsSync17(importPath)) {
     err(`Import file not found: ${file}`);
     process.exit(1);
   }
   let raw;
   try {
-    raw = JSON.parse(readFileSync17(importPath, "utf8"));
+    raw = JSON.parse(readFileSync18(importPath, "utf8"));
   } catch (error) {
     err(`Import file must be JSON: ${error instanceof Error ? error.message : String(error)}`);
     process.exit(1);
@@ -6097,15 +6460,17 @@ function cmdImport(rawArgs) {
     process.exit(1);
   }
   const tasksDir = getTasksDir(kandownDir);
-  if (!existsSync16(tasksDir)) mkdirSync8(tasksDir, { recursive: true });
+  if (!existsSync17(tasksDir)) mkdirSync8(tasksDir, { recursive: true });
   let imported = 0;
   for (const row of rows) {
     const id = typeof row.id === "string" && /^[a-zA-Z0-9_-]+$/.test(row.id) ? row.id : nextTaskId(kandownDir);
-    const path = taskPath(kandownDir, id);
-    if (existsSync16(path) && args.flags.overwrite !== true) continue;
+    const title = typeof row.title === "string" && row.title ? row.title : id;
+    const existing = findTaskPath2(kandownDir, id);
+    if (existing && args.flags.overwrite !== true) continue;
+    const path = existing ?? newTaskPath(kandownDir, id, title);
     const fm = {
       id,
-      title: typeof row.title === "string" && row.title ? row.title : id,
+      title,
       status: typeof row.status === "string" && row.status ? row.status.replace(/ \(archived\)$/i, "") : defaultStatus
     };
     if (typeof row.priority === "string") fm.priority = row.priority;
@@ -6118,14 +6483,16 @@ function cmdImport(rawArgs) {
 }
 
 // src/cli/commands/daemon.ts
-import { join as join24 } from "path";
+import { join as join25 } from "path";
 
 // src/cli/lib/server.ts
 init_board_reader();
+init_task_filename();
+init_parser();
 init_config2();
 import { createServer } from "http";
-import { existsSync as existsSync21, readFileSync as readFileSync20, copyFileSync as copyFileSync3, unlinkSync as unlinkSync7, mkdirSync as mkdirSync12 } from "fs";
-import { join as join23 } from "path";
+import { existsSync as existsSync22, readFileSync as readFileSync21, copyFileSync as copyFileSync3, unlinkSync as unlinkSync7, mkdirSync as mkdirSync12 } from "fs";
+import { basename as basename6, join as join24 } from "path";
 import { spawn as spawn6 } from "child_process";
 init_updater();
 init_atomic_write();
@@ -6159,8 +6526,8 @@ async function withProjectMoveLock(projectKey, operation) {
   }
 }
 async function performTaskMove(host, kandownDir, taskId, targetStatus, toIndex) {
-  const taskPath2 = findTaskPath(kandownDir, taskId);
-  if (!taskPath2) {
+  const taskPath = findTaskPath(kandownDir, taskId);
+  if (!taskPath) {
     return { ok: false, kind: "not-found", reason: `Task not found: ${taskId}` };
   }
   const config = loadConfig(kandownDir);
@@ -6269,7 +6636,7 @@ async function moveTaskWithGates(host, kandownDir, taskId, targetStatus, toIndex
 
 // src/cli/lib/extensions-store.ts
 import { mkdirSync as mkdirSync9, writeFileSync as writeFileSync6 } from "fs";
-import { join as join19 } from "path";
+import { join as join20 } from "path";
 var DEFAULT_REGISTRY_URL = "https://raw.githubusercontent.com/vava-nessa/kandown/main/registry/extensions.json";
 var REGISTRY_FILES = ["manifest.json", "index.js", "index.ts", "web.js", "styles.css"];
 async function fetchRegistry(url = DEFAULT_REGISTRY_URL) {
@@ -6321,11 +6688,11 @@ async function installExtension2(projectDir, input) {
   if (!manifest.id || !/^[a-z][a-z0-9-]{0,63}$/.test(manifest.id)) {
     return { ok: false, error: "manifest.json is missing a valid id" };
   }
-  const destDir = join19(projectDir, ".kandown", "extensions", manifest.id);
+  const destDir = join20(projectDir, ".kandown", "extensions", manifest.id);
   mkdirSync9(destDir, { recursive: true });
   const copied = [];
   const write = (relPath, content) => {
-    writeFileSync6(join19(destDir, relPath), content, "utf8");
+    writeFileSync6(join20(destDir, relPath), content, "utf8");
     copied.push(relPath);
   };
   write("manifest.json", manifestJson);
@@ -6346,8 +6713,8 @@ async function installExtension2(projectDir, input) {
 }
 
 // src/cli/lib/themes-store.ts
-import { existsSync as existsSync18, mkdirSync as mkdirSync10, writeFileSync as writeFileSync7 } from "fs";
-import { join as join20 } from "path";
+import { existsSync as existsSync19, mkdirSync as mkdirSync10, writeFileSync as writeFileSync7 } from "fs";
+import { join as join21 } from "path";
 
 // src/lib/themes/shared.ts
 var sharedLight = {
@@ -6526,9 +6893,9 @@ async function installTheme(projectDir, input) {
   }
   normalizeSkinId(theme.id);
   const { description: _desc, author: _author, name: _name, ..._rest } = theme;
-  const destDir = join20(projectDir, ".kandown", "themes");
+  const destDir = join21(projectDir, ".kandown", "themes");
   mkdirSync10(destDir, { recursive: true });
-  writeFileSync7(join20(destDir, `${theme.id}.json`), `${themeJson}
+  writeFileSync7(join21(destDir, `${theme.id}.json`), `${themeJson}
 `, "utf8");
   return { ok: true, id: theme.id };
 }
@@ -6552,14 +6919,14 @@ function buildProposeUrl(opts) {
   return `https://github.com/${opts.githubOwner}/${opts.githubRepo}/new/${branch}/${dir}?${params.toString()}`;
 }
 function listInstalledThemes(projectDir) {
-  const dir = join20(projectDir, ".kandown", "themes");
-  if (!existsSync18(dir)) return [];
+  const dir = join21(projectDir, ".kandown", "themes");
+  if (!existsSync19(dir)) return [];
   const themes = [];
-  const { readFileSync: readFileSync22, readdirSync: readdirSync12 } = __require("fs");
-  for (const file of readdirSync12(dir)) {
+  const { readFileSync: readFileSync23, readdirSync: readdirSync11 } = __require("fs");
+  for (const file of readdirSync11(dir)) {
     if (!file.endsWith(".json")) continue;
     try {
-      const raw = readFileSync22(join20(dir, file), "utf8");
+      const raw = readFileSync23(join21(dir, file), "utf8");
       const parsed = JSON.parse(raw);
       if (parsed && parsed.id && parsed.light && parsed.dark) {
         themes.push({ ...parsed, isCustom: true });
@@ -6678,15 +7045,15 @@ function readRequestBody(req) {
 }
 function syncProjectKandownHtml(kandownDir) {
   try {
-    const projectHtml = join23(kandownDir, "kandown.html");
-    const distHtml = join23(PKG_ROOT, "dist", "index.html");
-    if (!existsSync21(distHtml)) return false;
-    if (!existsSync21(projectHtml)) {
+    const projectHtml = join24(kandownDir, "kandown.html");
+    const distHtml = join24(PKG_ROOT, "dist", "index.html");
+    if (!existsSync22(distHtml)) return false;
+    if (!existsSync22(projectHtml)) {
       copyFileSync3(distHtml, projectHtml);
       return true;
     }
-    const currentContent = readFileSync20(projectHtml, "utf8");
-    const newContent = readFileSync20(distHtml, "utf8");
+    const currentContent = readFileSync21(projectHtml, "utf8");
+    const newContent = readFileSync21(distHtml, "utf8");
     if (currentContent !== newContent) {
       atomicWriteFileSync(projectHtml, newContent);
       return true;
@@ -6697,7 +7064,7 @@ function syncProjectKandownHtml(kandownDir) {
 }
 function readDaemonPort(kandownDir) {
   try {
-    const raw = JSON.parse(readFileSync20(join23(kandownDir, "daemon.json"), "utf8"));
+    const raw = JSON.parse(readFileSync21(join24(kandownDir, "daemon.json"), "utf8"));
     return typeof raw.port === "number" && Number.isInteger(raw.port) ? raw.port : null;
   } catch {
     return null;
@@ -6828,8 +7195,8 @@ async function handleApi(req, res, url, kandownDir) {
   if (path === "/api/board") {
     if (method === "GET") {
       const tasksDir = getTasksDir(kandownDir);
-      const boardPath = join23(tasksDir, "board.md");
-      const text = existsSync21(boardPath) ? readFileSync20(boardPath, "utf8") : "";
+      const boardPath = join24(tasksDir, "board.md");
+      const text = existsSync22(boardPath) ? readFileSync21(boardPath, "utf8") : "";
       return writeText(res, 200, text);
     }
     if (method === "PUT") {
@@ -6839,8 +7206,8 @@ async function handleApi(req, res, url, kandownDir) {
       });
       req.on("end", () => {
         const tasksDir = getTasksDir(kandownDir);
-        if (!existsSync21(tasksDir)) mkdirSync12(tasksDir, { recursive: true });
-        atomicWriteFileSync(join23(tasksDir, "board.md"), body);
+        if (!existsSync22(tasksDir)) mkdirSync12(tasksDir, { recursive: true });
+        atomicWriteFileSync(join24(tasksDir, "board.md"), body);
         broadcastSseEvent({ type: "board" });
         writeJson(res, 200, { ok: true });
       });
@@ -6874,8 +7241,8 @@ async function handleApi(req, res, url, kandownDir) {
     }
   }
   if (path === "/api/instructions") {
-    const instructionsPath = join23(kandownDir, "kandown_work.md");
-    if (method === "GET") return writeText(res, 200, existsSync21(instructionsPath) ? readFileSync20(instructionsPath, "utf8") : "");
+    const instructionsPath = join24(kandownDir, "kandown_work.md");
+    if (method === "GET") return writeText(res, 200, existsSync22(instructionsPath) ? readFileSync21(instructionsPath, "utf8") : "");
     if (method === "PUT") {
       try {
         atomicWriteFileSync(instructionsPath, await readRequestBody(req));
@@ -7040,9 +7407,9 @@ async function handleApi(req, res, url, kandownDir) {
       if (!ext) return writeText(res, 404, "Extension not found");
       const rel = parts.slice(2).join("/");
       if (!/^[a-zA-Z0-9._\/-]+$/.test(rel) || rel.includes("..")) return writeText(res, 400, "Bad path");
-      const file = join23(ext.dir, rel);
-      if (!existsSync21(file)) return writeText(res, 404, "File not found");
-      return writeText(res, 200, readFileSync20(file, "utf8"));
+      const file = join24(ext.dir, rel);
+      if (!existsSync22(file)) return writeText(res, 404, "File not found");
+      return writeText(res, 200, readFileSync21(file, "utf8"));
     }
   }
   if (path === "/api/extensions/registry" && method === "GET") {
@@ -7084,10 +7451,10 @@ async function handleApi(req, res, url, kandownDir) {
   if (path.startsWith("/api/themes/") && method === "DELETE") {
     const rawId = decodeURIComponent(path.slice("/api/themes/".length).split("?")[0] ?? "");
     if (!/^[a-z][a-z0-9-]{0,63}$/.test(rawId)) return writeJson(res, 400, { error: "Invalid theme id" });
-    const { unlinkSync: unlinkSync8, existsSync: existsSync25 } = await import("fs");
-    const { join: join29 } = await import("path");
-    const file = join29(getProjectRoot(kandownDir), ".kandown", "themes", `${rawId}.json`);
-    if (!existsSync25(file)) return writeJson(res, 404, { error: "Theme not installed" });
+    const { unlinkSync: unlinkSync8, existsSync: existsSync26 } = await import("fs");
+    const { join: join30 } = await import("path");
+    const file = join30(getProjectRoot(kandownDir), ".kandown", "themes", `${rawId}.json`);
+    if (!existsSync26(file)) return writeJson(res, 404, { error: "Theme not installed" });
     try {
       unlinkSync8(file);
       broadcastSseEvent({ type: "themes" });
@@ -7135,9 +7502,13 @@ async function handleApi(req, res, url, kandownDir) {
     }
     if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return writeText(res, 400, "Invalid task id");
     const tasksDir = getTasksDir(kandownDir);
-    const archiveDir = join23(tasksDir, "archive");
-    const activePath = join23(tasksDir, `${taskId}.md`);
-    const archivedPath = join23(archiveDir, `${taskId}.md`);
+    const archiveDir = join24(tasksDir, "archive");
+    const resolveIn = (directory) => {
+      const match = resolveTaskFilename(taskId, listTaskFilenames(directory));
+      return match ? join24(directory, match.filename) : null;
+    };
+    const activePath = resolveIn(tasksDir);
+    const archivedPath = resolveIn(archiveDir);
     const action = routeParts[1];
     if (method === "POST" && action === "move") {
       if (routeParts.length !== 2) return writeText(res, 400, "Invalid task route");
@@ -7189,16 +7560,18 @@ async function handleApi(req, res, url, kandownDir) {
       if (routeParts.length !== 2) return writeText(res, 400, "Invalid task route");
       const archiving = action === "archive";
       const source = archiving ? activePath : archivedPath;
-      const destination = archiving ? archivedPath : activePath;
-      if (!existsSync21(source) && !existsSync21(destination)) {
+      const existingDestination = archiving ? archivedPath : activePath;
+      if (!source && !existingDestination) {
         return writeText(res, 404, "Task not found");
       }
+      const destinationDir = archiving ? archiveDir : tasksDir;
+      const destination = existingDestination ?? join24(destinationDir, basename6(source));
       try {
-        if (!existsSync21(tasksDir)) mkdirSync12(tasksDir, { recursive: true });
-        if (!existsSync21(archiveDir)) mkdirSync12(archiveDir, { recursive: true });
+        if (!existsSync22(tasksDir)) mkdirSync12(tasksDir, { recursive: true });
+        if (!existsSync22(archiveDir)) mkdirSync12(archiveDir, { recursive: true });
         const body = await readRequestBody(req);
         atomicWriteFileSync(destination, body);
-        if (source !== destination && existsSync21(source)) unlinkSync7(source);
+        if (source && source !== destination && existsSync22(source)) unlinkSync7(source);
         broadcastSseEvent({ type: "task", id: taskId });
         return writeJson(res, 200, { ok: true });
       } catch (error) {
@@ -7209,16 +7582,16 @@ async function handleApi(req, res, url, kandownDir) {
     }
     if (routeParts.length !== 1) return writeText(res, 404, "Route not found");
     if (method === "GET") {
-      const taskPath2 = findTaskPath(kandownDir, taskId);
-      if (!taskPath2) return writeText(res, 404, "Task not found");
-      return writeText(res, 200, readFileSync20(taskPath2, "utf8"));
+      const taskPath = findTaskPath(kandownDir, taskId);
+      if (!taskPath) return writeText(res, 404, "Task not found");
+      return writeText(res, 200, readFileSync21(taskPath, "utf8"));
     }
     if (method === "PUT") {
       try {
-        if (!existsSync21(tasksDir)) mkdirSync12(tasksDir, { recursive: true });
-        const taskPath2 = findTaskPath(kandownDir, taskId) ?? activePath;
+        if (!existsSync22(tasksDir)) mkdirSync12(tasksDir, { recursive: true });
         const body = await readRequestBody(req);
-        atomicWriteFileSync(taskPath2, body);
+        const taskPath = findTaskPath(kandownDir, taskId) ?? newTaskFilePath(kandownDir, taskId, parseTaskFile(body).frontmatter.title);
+        atomicWriteFileSync(taskPath, body);
         broadcastSseEvent({ type: "task", id: taskId });
         return writeJson(res, 200, { ok: true });
       } catch (error) {
@@ -7229,8 +7602,8 @@ async function handleApi(req, res, url, kandownDir) {
     }
     if (method === "DELETE") {
       try {
-        if (existsSync21(activePath)) unlinkSync7(activePath);
-        if (existsSync21(archivedPath)) unlinkSync7(archivedPath);
+        if (activePath && existsSync22(activePath)) unlinkSync7(activePath);
+        if (archivedPath && existsSync22(archivedPath)) unlinkSync7(archivedPath);
         broadcastSseEvent({ type: "task_delete", id: taskId });
         return writeJson(res, 200, { ok: true });
       } catch (error) {
@@ -7255,9 +7628,9 @@ window.__KANDOWN_TOKEN__ = ${tokenLiteral};</script>
 }
 function serveApp(res, kandownDir) {
   syncProjectKandownHtml(kandownDir);
-  const htmlPath = join23(kandownDir, "kandown.html");
-  if (existsSync21(htmlPath)) {
-    const html = readFileSync20(htmlPath, "utf8");
+  const htmlPath = join24(kandownDir, "kandown.html");
+  if (existsSync22(htmlPath)) {
+    const html = readFileSync21(htmlPath, "utf8");
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
     res.end(injectServerRoot(html, kandownDir));
   } else {
@@ -7324,7 +7697,7 @@ async function cmdDaemon(rest) {
     setActiveToken(token);
     const { port } = await listenOnAvailablePort(kandownDir, Number.isInteger(preferredPort) ? preferredPort : null);
     const url = `http://localhost:${port}`;
-    const metadataPath2 = join24(kandownDir, "daemon.json");
+    const metadataPath2 = join25(kandownDir, "daemon.json");
     atomicWriteFileSync(metadataPath2, JSON.stringify({
       pid: process.pid,
       port,
@@ -7389,7 +7762,7 @@ init_board_reader();
 init_board_reader();
 import { execSync as execSync2, spawn as spawn7 } from "child_process";
 import { writeFileSync as writeFileSync8 } from "fs";
-import { join as join25 } from "path";
+import { join as join26 } from "path";
 import { tmpdir } from "os";
 init_config2();
 init_config();
@@ -7425,7 +7798,7 @@ function prepareLaunch(opts) {
   if (!taskMoved) {
     throw new Error(`Could not move task ${taskId} to ${activeStatus}: task file missing or unwritable.`);
   }
-  const contextFile = join25(tmpdir(), `kandown-${taskId}-context.md`);
+  const contextFile = join26(tmpdir(), `kandown-${taskId}-context.md`);
   try {
     writeFileSync8(contextFile, `${systemPrompt}
 
@@ -7814,15 +8187,15 @@ async function cmdRun(rawArgs) {
 
 // src/cli/commands/agents.ts
 init_cli_shared();
-import { existsSync as existsSync22 } from "fs";
-import { join as join26 } from "path";
+import { existsSync as existsSync23 } from "fs";
+import { join as join27 } from "path";
 function cmdAgents(rawArgs) {
   const args = parseArgs(rawArgs);
   const kandownDir = resolveKandownDir(args.path, process.cwd());
   const sub = args.positional[0];
   if (sub === "init") {
-    const target = join26(kandownDir, "agents.json");
-    if (existsSync22(target)) {
+    const target = join27(kandownDir, "agents.json");
+    if (existsSync23(target)) {
       info(`${c.bold}agents.json${c.reset} already exists at ${target}`);
       return;
     }
@@ -7835,10 +8208,10 @@ function cmdAgents(rawArgs) {
   const catalog = loadCatalog(kandownDir);
   const installed = detectInstalledAgents(kandownDir);
   const cascade = getCascadeConfig(kandownDir);
-  const agentsFile = join26(kandownDir, "agents.json");
+  const agentsFile = join27(kandownDir, "agents.json");
   log("");
   log(`${c.bold}Agent catalog${c.reset} ${c.dim}(${installed.length}/${catalog.length} installed)${c.reset}`);
-  log(`${c.dim}catalog: ${existsSync22(agentsFile) ? agentsFile : "built-in defaults (run `kandown agents init` to commit one)"}${c.reset}`);
+  log(`${c.dim}catalog: ${existsSync23(agentsFile) ? agentsFile : "built-in defaults (run `kandown agents init` to commit one)"}${c.reset}`);
   log("");
   for (const a of catalog) {
     const ok = isAgentInstalled(a.bin);
@@ -7858,8 +8231,8 @@ function cmdAgents(rawArgs) {
 }
 
 // src/cli/lib/themes-cli.ts
-import { existsSync as existsSync23, mkdirSync as mkdirSync13, readFileSync as readFileSync21, readdirSync as readdirSync11, writeFileSync as writeFileSync9 } from "fs";
-import { join as join27, resolve as resolve10 } from "path";
+import { existsSync as existsSync24, mkdirSync as mkdirSync13, readFileSync as readFileSync22, readdirSync as readdirSync10, writeFileSync as writeFileSync9 } from "fs";
+import { join as join28, resolve as resolve10 } from "path";
 init_board_reader();
 init_cli_shared();
 
@@ -7939,25 +8312,25 @@ async function cmdTheme(rawArgs) {
 }
 async function installFromTarget(projectDir, target) {
   const src = resolve10(target);
-  if (existsSync23(src) && src.endsWith(".json")) {
-    const text = readFileSync21(src, "utf8");
+  if (existsSync24(src) && src.endsWith(".json")) {
+    const text = readFileSync22(src, "utf8");
     const parsed = JSON.parse(text);
     if (!parsed.id) return { ok: false, error: "theme JSON is missing id" };
-    const destDir = join27(projectDir, ".kandown", "themes");
+    const destDir = join28(projectDir, ".kandown", "themes");
     mkdirSync13(destDir, { recursive: true });
-    writeFileSync9(join27(destDir, `${parsed.id}.json`), text, "utf8");
+    writeFileSync9(join28(destDir, `${parsed.id}.json`), text, "utf8");
     return { ok: true, id: parsed.id };
   }
   return installTheme(projectDir, { url: target });
 }
 function listInstalledThemesForCli(projectDir) {
-  const dir = join27(projectDir, ".kandown", "themes");
-  if (!existsSync23(dir)) return [];
+  const dir = join28(projectDir, ".kandown", "themes");
+  if (!existsSync24(dir)) return [];
   const out = [];
-  for (const file of readdirSync11(dir)) {
+  for (const file of readdirSync10(dir)) {
     if (!file.endsWith(".json")) continue;
     try {
-      const raw = readFileSync21(join27(dir, file), "utf8");
+      const raw = readFileSync22(join28(dir, file), "utf8");
       const parsed = JSON.parse(raw);
       if (parsed.id) out.push({ id: parsed.id, name: parsed.name ?? parsed.id, author: parsed.author, description: parsed.description, version: parsed.version });
     } catch {
@@ -7966,10 +8339,10 @@ function listInstalledThemesForCli(projectDir) {
   return out;
 }
 function scaffoldTheme(projectDir, name) {
-  const destDir = join27(projectDir, ".kandown", "themes");
+  const destDir = join28(projectDir, ".kandown", "themes");
   mkdirSync13(destDir, { recursive: true });
-  const dest = join27(destDir, `${name}.json`);
-  if (existsSync23(dest)) {
+  const dest = join28(destDir, `${name}.json`);
+  if (existsSync24(dest)) {
     err(`Already exists: ${dest}`);
     process.exit(1);
   }
@@ -8051,11 +8424,11 @@ function scaffoldTheme(projectDir, name) {
 }
 function publishTheme(file, githubUser) {
   const resolved = resolve10(file);
-  if (!existsSync23(resolved)) {
+  if (!existsSync24(resolved)) {
     err(`Theme file not found: ${file}`);
     process.exit(1);
   }
-  const raw = readFileSync21(resolved, "utf8");
+  const raw = readFileSync22(resolved, "utf8");
   let theme;
   try {
     theme = JSON.parse(raw);
@@ -8078,7 +8451,7 @@ function publishTheme(file, githubUser) {
     } catch {
     }
   }
-  const json = existsSync23(resolved) ? readFileSync21(resolved, "utf8") : raw;
+  const json = existsSync24(resolved) ? readFileSync22(resolved, "utf8") : raw;
   const url = buildProposeUrl({
     githubOwner: KANDOWN_THEME_REPO_OWNER,
     githubRepo: KANDOWN_THEME_REPO_NAME,
@@ -8156,6 +8529,9 @@ async function main() {
     case "move":
       await cmdMove(rest);
       break;
+    case "reslug":
+      cmdReslug(rest);
+      break;
     case "assign":
       cmdAssign(rest);
       break;
@@ -8208,13 +8584,13 @@ async function main() {
     case void 0: {
       const parsed = parseArgs(rest);
       const kandownDir = resolveKandownDir(parsed.path, process.cwd());
-      if (existsSync24(join28(kandownDir, "kandown.json"))) {
+      if (existsSync25(join29(kandownDir, "kandown.json"))) {
         let status = await getDaemonStatus(kandownDir);
         if (!status.running) {
           status = await startProjectDaemon(kandownDir);
         }
         if (!parsed.flags["no-open"]) {
-          const urlToOpen = status.metadata?.url || join28(kandownDir, "kandown.html");
+          const urlToOpen = status.metadata?.url || join29(kandownDir, "kandown.html");
           openBrowser(urlToOpen);
         }
       } else if (!process.stdin.isTTY) {
@@ -8231,7 +8607,7 @@ async function main() {
       }
       const parsed = parseArgs(rest);
       const kandownDir = resolveKandownDir(parsed.path, process.cwd());
-      if (existsSync24(join28(kandownDir, "kandown.json"))) {
+      if (existsSync25(join29(kandownDir, "kandown.json"))) {
         const positional = rest.filter((a) => !a.startsWith("-") && !a.startsWith("--path"));
         const ran = await dispatchContributedCommand(kandownDir, cmd, positional.join(" "));
         if (ran) break;

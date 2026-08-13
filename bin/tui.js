@@ -190,8 +190,8 @@ var require_react_production = __commonJS({
             }
         }
       if (invokeCallback)
-        return callback = callback(children), invokeCallback = "" === nameSoFar ? "." + getElementKey(children, 0) : nameSoFar, isArrayImpl(callback) ? (escapedPrefix = "", null != invokeCallback && (escapedPrefix = invokeCallback.replace(userProvidedKeyEscapeRegex, "$&/") + "/"), mapIntoArray(callback, array, escapedPrefix, "", function(c) {
-          return c;
+        return callback = callback(children), invokeCallback = "" === nameSoFar ? "." + getElementKey(children, 0) : nameSoFar, isArrayImpl(callback) ? (escapedPrefix = "", null != invokeCallback && (escapedPrefix = invokeCallback.replace(userProvidedKeyEscapeRegex, "$&/") + "/"), mapIntoArray(callback, array, escapedPrefix, "", function(c2) {
+          return c2;
         })) : null != callback && (isValidElement(callback) && (callback = cloneAndReplaceKey(
           callback,
           escapedPrefix + (null == callback.key || children && children.key === callback.key ? "" : ("" + callback.key).replace(
@@ -488,13 +488,13 @@ var require_react_development = __commonJS({
   "node_modules/.pnpm/react@19.2.5/node_modules/react/cjs/react.development.js"(exports, module) {
     "use strict";
     "production" !== process.env.NODE_ENV && (function() {
-      function defineDeprecationWarning(methodName, info) {
+      function defineDeprecationWarning(methodName, info2) {
         Object.defineProperty(Component.prototype, methodName, {
           get: function() {
             console.warn(
               "%s(...) is deprecated in plain JavaScript React classes. %s",
-              info[0],
-              info[1]
+              info2[0],
+              info2[1]
             );
           }
         });
@@ -767,8 +767,8 @@ var require_react_development = __commonJS({
           invokeCallback = children;
           callback = callback(invokeCallback);
           var childKey = "" === nameSoFar ? "." + getElementKey(invokeCallback, 0) : nameSoFar;
-          isArrayImpl(callback) ? (escapedPrefix = "", null != childKey && (escapedPrefix = childKey.replace(userProvidedKeyEscapeRegex, "$&/") + "/"), mapIntoArray(callback, array, escapedPrefix, "", function(c) {
-            return c;
+          isArrayImpl(callback) ? (escapedPrefix = "", null != childKey && (escapedPrefix = childKey.replace(userProvidedKeyEscapeRegex, "$&/") + "/"), mapIntoArray(callback, array, escapedPrefix, "", function(c2) {
+            return c2;
           })) : null != callback && (isValidElement(callback) && (null != callback.key && (invokeCallback && invokeCallback.key === callback.key || checkKeyStringCoercion(callback.key)), escapedPrefix = cloneAndReplaceKey(
             callback,
             escapedPrefix + (null == callback.key || invokeCallback && invokeCallback.key === callback.key ? "" : ("" + callback.key).replace(
@@ -907,21 +907,21 @@ var require_react_development = __commonJS({
         );
         actScopeDepth = prevActScopeDepth;
       }
-      function recursivelyFlushAsyncActWork(returnValue, resolve6, reject) {
+      function recursivelyFlushAsyncActWork(returnValue, resolve7, reject) {
         var queue = ReactSharedInternals.actQueue;
         if (null !== queue)
           if (0 !== queue.length)
             try {
               flushActQueue(queue);
               enqueueTask(function() {
-                return recursivelyFlushAsyncActWork(returnValue, resolve6, reject);
+                return recursivelyFlushAsyncActWork(returnValue, resolve7, reject);
               });
               return;
             } catch (error) {
               ReactSharedInternals.thrownErrors.push(error);
             }
           else ReactSharedInternals.actQueue = null;
-        0 < ReactSharedInternals.thrownErrors.length ? (queue = aggregateErrors(ReactSharedInternals.thrownErrors), ReactSharedInternals.thrownErrors.length = 0, reject(queue)) : resolve6(returnValue);
+        0 < ReactSharedInternals.thrownErrors.length ? (queue = aggregateErrors(ReactSharedInternals.thrownErrors), ReactSharedInternals.thrownErrors.length = 0, reject(queue)) : resolve7(returnValue);
       }
       function flushActQueue(queue) {
         if (!isFlushing) {
@@ -1108,7 +1108,7 @@ var require_react_development = __commonJS({
             ));
           });
           return {
-            then: function(resolve6, reject) {
+            then: function(resolve7, reject) {
               didAwaitActCall = true;
               thenable.then(
                 function(returnValue) {
@@ -1118,7 +1118,7 @@ var require_react_development = __commonJS({
                       flushActQueue(queue), enqueueTask(function() {
                         return recursivelyFlushAsyncActWork(
                           returnValue,
-                          resolve6,
+                          resolve7,
                           reject
                         );
                       });
@@ -1132,7 +1132,7 @@ var require_react_development = __commonJS({
                       ReactSharedInternals.thrownErrors.length = 0;
                       reject(_thrownError);
                     }
-                  } else resolve6(returnValue);
+                  } else resolve7(returnValue);
                 },
                 function(error) {
                   popActScope(prevActQueue, prevActScopeDepth);
@@ -1154,15 +1154,15 @@ var require_react_development = __commonJS({
         if (0 < ReactSharedInternals.thrownErrors.length)
           throw callback = aggregateErrors(ReactSharedInternals.thrownErrors), ReactSharedInternals.thrownErrors.length = 0, callback;
         return {
-          then: function(resolve6, reject) {
+          then: function(resolve7, reject) {
             didAwaitActCall = true;
             0 === prevActScopeDepth ? (ReactSharedInternals.actQueue = queue, enqueueTask(function() {
               return recursivelyFlushAsyncActWork(
                 returnValue$jscomp$0,
-                resolve6,
+                resolve7,
                 reject
               );
-            })) : resolve6(returnValue$jscomp$0);
+            })) : resolve7(returnValue$jscomp$0);
           }
         };
       };
@@ -2444,11 +2444,11 @@ var require_react_reconciler_production = __commonJS({
         return 2 < lanes ? 8 < lanes ? 0 !== (lanes & 134217727) ? 32 : 268435456 : 8 : 2;
       }
       function setIsStrictModeForDevtools(newIsStrictMode) {
-        "function" === typeof log && unstable_setDisableYieldValue(newIsStrictMode);
+        "function" === typeof log2 && unstable_setDisableYieldValue(newIsStrictMode);
         if (injectedHook && "function" === typeof injectedHook.setStrictMode)
           try {
             injectedHook.setStrictMode(rendererID, newIsStrictMode);
-          } catch (err) {
+          } catch (err2) {
           }
       }
       function is(x, y) {
@@ -2582,11 +2582,11 @@ var require_react_reconciler_production = __commonJS({
       }
       function getStackByFiberInDevAndProd(workInProgress2) {
         try {
-          var info = "", previous = null;
+          var info2 = "", previous = null;
           do
-            info += describeFiber(workInProgress2, previous), previous = workInProgress2, workInProgress2 = workInProgress2.return;
+            info2 += describeFiber(workInProgress2, previous), previous = workInProgress2, workInProgress2 = workInProgress2.return;
           while (workInProgress2);
-          return info;
+          return info2;
         } catch (x) {
           return "\nError generating stack: " + x.message + "\n" + x.stack;
         }
@@ -3048,8 +3048,8 @@ var require_react_reconciler_production = __commonJS({
           currentEntangledActionThenable = {
             status: "pending",
             value: void 0,
-            then: function(resolve6) {
-              entangledListeners.push(resolve6);
+            then: function(resolve7) {
+              entangledListeners.push(resolve7);
             }
           };
         }
@@ -3072,8 +3072,8 @@ var require_react_reconciler_production = __commonJS({
           status: "pending",
           value: null,
           reason: null,
-          then: function(resolve6) {
-            listeners.push(resolve6);
+          then: function(resolve7) {
+            listeners.push(resolve7);
           }
         };
         thenable.then(
@@ -7126,7 +7126,7 @@ var require_react_reconciler_production = __commonJS({
         if (injectedHook && "function" === typeof injectedHook.onCommitFiberUnmount)
           try {
             injectedHook.onCommitFiberUnmount(rendererID, deletedFiber);
-          } catch (err) {
+          } catch (err2) {
           }
         switch (deletedFiber.tag) {
           case 26:
@@ -9036,7 +9036,7 @@ var require_react_reconciler_production = __commonJS({
                 void 0,
                 128 === (finishedWork.current.flags & 128)
               );
-            } catch (err) {
+            } catch (err2) {
             }
           if (null !== recoverableErrors) {
             finishedWork = ReactSharedInternals.T;
@@ -9103,7 +9103,7 @@ var require_react_reconciler_production = __commonJS({
           if (injectedHook && "function" === typeof injectedHook.onPostCommitFiberRoot)
             try {
               injectedHook.onPostCommitFiberRoot(rendererID, root$jscomp$0);
-            } catch (err) {
+            } catch (err2) {
             }
           return true;
         } finally {
@@ -9494,7 +9494,7 @@ var require_react_reconciler_production = __commonJS({
       $$$config.diffHydratedPropsForDevWarnings;
       $$$config.diffHydratedTextForDevWarnings;
       $$$config.describeHydratableInstanceForDevWarnings;
-      var validateHydratableInstance = $$$config.validateHydratableInstance, validateHydratableTextInstance = $$$config.validateHydratableTextInstance, supportsResources = $$$config.supportsResources, isHostHoistableType = $$$config.isHostHoistableType, getHoistableRoot = $$$config.getHoistableRoot, getResource = $$$config.getResource, acquireResource = $$$config.acquireResource, releaseResource = $$$config.releaseResource, hydrateHoistable = $$$config.hydrateHoistable, mountHoistable = $$$config.mountHoistable, unmountHoistable = $$$config.unmountHoistable, createHoistableInstance = $$$config.createHoistableInstance, prepareToCommitHoistables = $$$config.prepareToCommitHoistables, mayResourceSuspendCommit = $$$config.mayResourceSuspendCommit, preloadResource = $$$config.preloadResource, suspendResource = $$$config.suspendResource, supportsSingletons = $$$config.supportsSingletons, resolveSingletonInstance = $$$config.resolveSingletonInstance, acquireSingletonInstance = $$$config.acquireSingletonInstance, releaseSingletonInstance = $$$config.releaseSingletonInstance, isHostSingletonType = $$$config.isHostSingletonType, isSingletonScope = $$$config.isSingletonScope, valueStack = [], index$jscomp$0 = -1, emptyContextObject = {}, clz32 = Math.clz32 ? Math.clz32 : clz32Fallback, log$1 = Math.log, LN2 = Math.LN2, nextTransitionUpdateLane = 256, nextTransitionDeferredLane = 262144, nextRetryLane = 4194304, scheduleCallback$3 = Scheduler2.unstable_scheduleCallback, cancelCallback$1 = Scheduler2.unstable_cancelCallback, shouldYield = Scheduler2.unstable_shouldYield, requestPaint = Scheduler2.unstable_requestPaint, now = Scheduler2.unstable_now, ImmediatePriority = Scheduler2.unstable_ImmediatePriority, UserBlockingPriority = Scheduler2.unstable_UserBlockingPriority, NormalPriority$1 = Scheduler2.unstable_NormalPriority, IdlePriority = Scheduler2.unstable_IdlePriority, log = Scheduler2.log, unstable_setDisableYieldValue = Scheduler2.unstable_setDisableYieldValue, rendererID = null, injectedHook = null, objectIs = "function" === typeof Object.is ? Object.is : is, reportGlobalError = "function" === typeof reportError ? reportError : function(error) {
+      var validateHydratableInstance = $$$config.validateHydratableInstance, validateHydratableTextInstance = $$$config.validateHydratableTextInstance, supportsResources = $$$config.supportsResources, isHostHoistableType = $$$config.isHostHoistableType, getHoistableRoot = $$$config.getHoistableRoot, getResource = $$$config.getResource, acquireResource = $$$config.acquireResource, releaseResource = $$$config.releaseResource, hydrateHoistable = $$$config.hydrateHoistable, mountHoistable = $$$config.mountHoistable, unmountHoistable = $$$config.unmountHoistable, createHoistableInstance = $$$config.createHoistableInstance, prepareToCommitHoistables = $$$config.prepareToCommitHoistables, mayResourceSuspendCommit = $$$config.mayResourceSuspendCommit, preloadResource = $$$config.preloadResource, suspendResource = $$$config.suspendResource, supportsSingletons = $$$config.supportsSingletons, resolveSingletonInstance = $$$config.resolveSingletonInstance, acquireSingletonInstance = $$$config.acquireSingletonInstance, releaseSingletonInstance = $$$config.releaseSingletonInstance, isHostSingletonType = $$$config.isHostSingletonType, isSingletonScope = $$$config.isSingletonScope, valueStack = [], index$jscomp$0 = -1, emptyContextObject = {}, clz32 = Math.clz32 ? Math.clz32 : clz32Fallback, log$1 = Math.log, LN2 = Math.LN2, nextTransitionUpdateLane = 256, nextTransitionDeferredLane = 262144, nextRetryLane = 4194304, scheduleCallback$3 = Scheduler2.unstable_scheduleCallback, cancelCallback$1 = Scheduler2.unstable_cancelCallback, shouldYield = Scheduler2.unstable_shouldYield, requestPaint = Scheduler2.unstable_requestPaint, now = Scheduler2.unstable_now, ImmediatePriority = Scheduler2.unstable_ImmediatePriority, UserBlockingPriority = Scheduler2.unstable_UserBlockingPriority, NormalPriority$1 = Scheduler2.unstable_NormalPriority, IdlePriority = Scheduler2.unstable_IdlePriority, log2 = Scheduler2.log, unstable_setDisableYieldValue = Scheduler2.unstable_setDisableYieldValue, rendererID = null, injectedHook = null, objectIs = "function" === typeof Object.is ? Object.is : is, reportGlobalError = "function" === typeof reportError ? reportError : function(error) {
         if ("object" === typeof window && "function" === typeof window.ErrorEvent) {
           var event = new window.ErrorEvent("error", {
             bubbles: true,
@@ -10021,10 +10021,10 @@ var require_react_reconciler_production = __commonJS({
           setCurrentUpdatePriority(previousPriority), ReactSharedInternals.T = prevTransition;
         }
       };
-      exports2.discreteUpdates = function(fn, a, b, c, d) {
+      exports2.discreteUpdates = function(fn, a, b, c2, d) {
         var prevTransition = ReactSharedInternals.T, previousPriority = getCurrentUpdatePriority();
         try {
-          return setCurrentUpdatePriority(2), ReactSharedInternals.T = null, fn(a, b, c, d);
+          return setCurrentUpdatePriority(2), ReactSharedInternals.T = null, fn(a, b, c2, d);
         } finally {
           setCurrentUpdatePriority(previousPriority), ReactSharedInternals.T = prevTransition, 0 === executionContext && (workInProgressRootRenderTargetTime = now() + 500);
         }
@@ -10143,7 +10143,7 @@ var require_react_reconciler_production = __commonJS({
           else {
             try {
               rendererID = hook.inject(internals), injectedHook = hook;
-            } catch (err) {
+            } catch (err2) {
             }
             internals = hook.checkDCE ? true : false;
           }
@@ -10811,20 +10811,20 @@ var require_react_reconciler_development = __commonJS({
           ), true;
         try {
           rendererID = hook.inject(internals), injectedHook = hook;
-        } catch (err) {
-          console.error("React instrumentation encountered an error: %o.", err);
+        } catch (err2) {
+          console.error("React instrumentation encountered an error: %o.", err2);
         }
         return hook.checkDCE ? true : false;
       }
       function setIsStrictModeForDevtools(newIsStrictMode) {
-        "function" === typeof log && unstable_setDisableYieldValue(newIsStrictMode);
+        "function" === typeof log2 && unstable_setDisableYieldValue(newIsStrictMode);
         if (injectedHook && "function" === typeof injectedHook.setStrictMode)
           try {
             injectedHook.setStrictMode(rendererID, newIsStrictMode);
-          } catch (err) {
+          } catch (err2) {
             hasLoggedError || (hasLoggedError = true, console.error(
               "React instrumentation encountered an error: %o",
-              err
+              err2
             ));
           }
       }
@@ -11574,15 +11574,15 @@ var require_react_reconciler_development = __commonJS({
       }
       function getStackByFiberInDevAndProd(workInProgress2) {
         try {
-          var info = "", previous = null;
+          var info2 = "", previous = null;
           do {
-            info += describeFiber(workInProgress2, previous);
+            info2 += describeFiber(workInProgress2, previous);
             var debugInfo = workInProgress2._debugInfo;
             if (debugInfo)
               for (var i = debugInfo.length - 1; 0 <= i; i--) {
                 var entry = debugInfo[i];
                 if ("string" === typeof entry.name) {
-                  var JSCompiler_temp_const = info;
+                  var JSCompiler_temp_const = info2;
                   a: {
                     var name = entry.name, env3 = entry.env, location = entry.debugLocation;
                     if (null != location) {
@@ -11596,13 +11596,13 @@ var require_react_reconciler_development = __commonJS({
                       name + (env3 ? " [" + env3 + "]" : "")
                     );
                   }
-                  info = JSCompiler_temp_const + JSCompiler_inline_result;
+                  info2 = JSCompiler_temp_const + JSCompiler_inline_result;
                 }
               }
             previous = workInProgress2;
             workInProgress2 = workInProgress2.return;
           } while (workInProgress2);
-          return info;
+          return info2;
         } catch (x) {
           return "\nError generating stack: " + x.message + "\n" + x.stack;
         }
@@ -11685,11 +11685,11 @@ var require_react_reconciler_development = __commonJS({
           "Expected to be hydrating. This is a bug in React. Please file an issue."
         );
       }
-      function requiredContext(c) {
-        null === c && console.error(
+      function requiredContext(c2) {
+        null === c2 && console.error(
           "Expected host context to exist. This error is likely caused by a bug in React. Please file an issue."
         );
-        return c;
+        return c2;
       }
       function pushHostContainer(fiber, nextRootInstance) {
         push(rootInstanceStackCursor, nextRootInstance, fiber);
@@ -11977,33 +11977,33 @@ var require_react_reconciler_development = __commonJS({
         if (null === current) return "";
         var workInProgress2 = current;
         try {
-          var info = "";
+          var info2 = "";
           6 === workInProgress2.tag && (workInProgress2 = workInProgress2.return);
           switch (workInProgress2.tag) {
             case 26:
             case 27:
             case 5:
-              info += describeBuiltInComponentFrame(workInProgress2.type);
+              info2 += describeBuiltInComponentFrame(workInProgress2.type);
               break;
             case 13:
-              info += describeBuiltInComponentFrame("Suspense");
+              info2 += describeBuiltInComponentFrame("Suspense");
               break;
             case 19:
-              info += describeBuiltInComponentFrame("SuspenseList");
+              info2 += describeBuiltInComponentFrame("SuspenseList");
               break;
             case 31:
-              info += describeBuiltInComponentFrame("Activity");
+              info2 += describeBuiltInComponentFrame("Activity");
               break;
             case 30:
             case 0:
             case 15:
             case 1:
-              workInProgress2._debugOwner || "" !== info || (info += describeFunctionComponentFrameWithoutLineNumber(
+              workInProgress2._debugOwner || "" !== info2 || (info2 += describeFunctionComponentFrameWithoutLineNumber(
                 workInProgress2.type
               ));
               break;
             case 11:
-              workInProgress2._debugOwner || "" !== info || (info += describeFunctionComponentFrameWithoutLineNumber(
+              workInProgress2._debugOwner || "" !== info2 || (info2 += describeFunctionComponentFrameWithoutLineNumber(
                 workInProgress2.type.render
               ));
           }
@@ -12014,13 +12014,13 @@ var require_react_reconciler_development = __commonJS({
               var debugStack = fiber._debugStack;
               if (workInProgress2 && debugStack) {
                 var formattedStack = formatOwnerStack(debugStack);
-                "" !== formattedStack && (info += "\n" + formattedStack);
+                "" !== formattedStack && (info2 += "\n" + formattedStack);
               }
             } else if (null != workInProgress2.debugStack) {
               var ownerStack = workInProgress2.debugStack;
-              (workInProgress2 = workInProgress2.owner) && ownerStack && (info += "\n" + formatOwnerStack(ownerStack));
+              (workInProgress2 = workInProgress2.owner) && ownerStack && (info2 += "\n" + formatOwnerStack(ownerStack));
             } else break;
-          var JSCompiler_inline_result = info;
+          var JSCompiler_inline_result = info2;
         } catch (x) {
           JSCompiler_inline_result = "\nError generating stack: " + x.message + "\n" + x.stack;
         }
@@ -12672,8 +12672,8 @@ var require_react_reconciler_development = __commonJS({
           currentEntangledActionThenable = {
             status: "pending",
             value: void 0,
-            then: function(resolve6) {
-              entangledListeners.push(resolve6);
+            then: function(resolve7) {
+              entangledListeners.push(resolve7);
             }
           };
         }
@@ -12696,8 +12696,8 @@ var require_react_reconciler_development = __commonJS({
           status: "pending",
           value: null,
           reason: null,
-          then: function(resolve6) {
-            listeners.push(resolve6);
+          then: function(resolve7) {
+            listeners.push(resolve7);
           }
         };
         thenable.then(
@@ -18351,10 +18351,10 @@ var require_react_reconciler_development = __commonJS({
         if (injectedHook && "function" === typeof injectedHook.onCommitFiberUnmount)
           try {
             injectedHook.onCommitFiberUnmount(rendererID, deletedFiber);
-          } catch (err) {
+          } catch (err2) {
             hasLoggedError || (hasLoggedError = true, console.error(
               "React instrumentation encountered an error: %o",
-              err
+              err2
             ));
           }
         var prevEffectStart = pushComponentEffectStart(), prevEffectDuration = pushComponentEffectDuration(), prevEffectErrors = pushComponentEffectErrors(), prevEffectDidSpawnUpdate = pushComponentEffectDidSpawnUpdate();
@@ -21292,10 +21292,10 @@ var require_react_reconciler_development = __commonJS({
                 schedulerPriority,
                 didError
               );
-            } catch (err) {
+            } catch (err2) {
               hasLoggedError || (hasLoggedError = true, console.error(
                 "React instrumentation encountered an error: %o",
-                err
+                err2
               ));
             }
           isDevToolsPresent && startViewTransitionStartTime.memoizedUpdaters.clear();
@@ -21468,10 +21468,10 @@ var require_react_reconciler_development = __commonJS({
           if (injectedHook && "function" === typeof injectedHook.onPostCommitFiberRoot)
             try {
               injectedHook.onPostCommitFiberRoot(rendererID, priority);
-            } catch (err) {
+            } catch (err2) {
               hasLoggedError || (hasLoggedError = true, console.error(
                 "React instrumentation encountered an error: %o",
-                err
+                err2
               ));
             }
           var stateNode = priority.current.stateNode;
@@ -21999,10 +21999,10 @@ var require_react_reconciler_development = __commonJS({
         if (injectedHook && "function" === typeof injectedHook.onScheduleFiberRoot)
           try {
             injectedHook.onScheduleFiberRoot(rendererID, container, element);
-          } catch (err) {
+          } catch (err2) {
             hasLoggedError || (hasLoggedError = true, console.error(
               "React instrumentation encountered an error: %o",
-              err
+              err2
             ));
           }
         parentComponent = getContextForSubtree(parentComponent);
@@ -22086,7 +22086,7 @@ var require_react_reconciler_development = __commonJS({
       var fiberStack = [];
       var index$jscomp$0 = -1, emptyContextObject = {};
       Object.freeze(emptyContextObject);
-      var clz32 = Math.clz32 ? Math.clz32 : clz32Fallback, log$1 = Math.log, LN2 = Math.LN2, nextTransitionUpdateLane = 256, nextTransitionDeferredLane = 262144, nextRetryLane = 4194304, scheduleCallback$3 = Scheduler2.unstable_scheduleCallback, cancelCallback$1 = Scheduler2.unstable_cancelCallback, shouldYield = Scheduler2.unstable_shouldYield, requestPaint = Scheduler2.unstable_requestPaint, now$1 = Scheduler2.unstable_now, ImmediatePriority = Scheduler2.unstable_ImmediatePriority, UserBlockingPriority = Scheduler2.unstable_UserBlockingPriority, NormalPriority$1 = Scheduler2.unstable_NormalPriority, IdlePriority = Scheduler2.unstable_IdlePriority, log = Scheduler2.log, unstable_setDisableYieldValue = Scheduler2.unstable_setDisableYieldValue, rendererID = null, injectedHook = null, hasLoggedError = false, isDevToolsPresent = "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__, lastResetTime = 0;
+      var clz32 = Math.clz32 ? Math.clz32 : clz32Fallback, log$1 = Math.log, LN2 = Math.LN2, nextTransitionUpdateLane = 256, nextTransitionDeferredLane = 262144, nextRetryLane = 4194304, scheduleCallback$3 = Scheduler2.unstable_scheduleCallback, cancelCallback$1 = Scheduler2.unstable_cancelCallback, shouldYield = Scheduler2.unstable_shouldYield, requestPaint = Scheduler2.unstable_requestPaint, now$1 = Scheduler2.unstable_now, ImmediatePriority = Scheduler2.unstable_ImmediatePriority, UserBlockingPriority = Scheduler2.unstable_UserBlockingPriority, NormalPriority$1 = Scheduler2.unstable_NormalPriority, IdlePriority = Scheduler2.unstable_IdlePriority, log2 = Scheduler2.log, unstable_setDisableYieldValue = Scheduler2.unstable_setDisableYieldValue, rendererID = null, injectedHook = null, hasLoggedError = false, isDevToolsPresent = "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__, lastResetTime = 0;
       if ("object" === typeof performance && "function" === typeof performance.now) {
         var localPerformance = performance;
         var getCurrentTime = function() {
@@ -23747,10 +23747,10 @@ var require_react_reconciler_development = __commonJS({
           setCurrentUpdatePriority(previousPriority), ReactSharedInternals.T = prevTransition;
         }
       };
-      exports2.discreteUpdates = function(fn, a, b, c, d) {
+      exports2.discreteUpdates = function(fn, a, b, c2, d) {
         var prevTransition = ReactSharedInternals.T, previousPriority = getCurrentUpdatePriority();
         try {
-          return setCurrentUpdatePriority(2), ReactSharedInternals.T = null, fn(a, b, c, d);
+          return setCurrentUpdatePriority(2), ReactSharedInternals.T = null, fn(a, b, c2, d);
         } finally {
           setCurrentUpdatePriority(previousPriority), ReactSharedInternals.T = prevTransition, executionContext === NoContext && (workInProgressRootRenderTargetTime = now$1() + RENDER_TIMEOUT_MS);
         }
@@ -24394,9 +24394,9 @@ var require_permessage_deflate = __commonJS({
        */
       decompress(data, fin, callback) {
         zlibLimiter.add((done) => {
-          this._decompress(data, fin, (err, result) => {
+          this._decompress(data, fin, (err2, result) => {
             done();
-            callback(err, result);
+            callback(err2, result);
           });
         });
       }
@@ -24410,9 +24410,9 @@ var require_permessage_deflate = __commonJS({
        */
       compress(data, fin, callback) {
         zlibLimiter.add((done) => {
-          this._compress(data, fin, (err, result) => {
+          this._compress(data, fin, (err2, result) => {
             done();
-            callback(err, result);
+            callback(err2, result);
           });
         });
       }
@@ -24443,11 +24443,11 @@ var require_permessage_deflate = __commonJS({
         this._inflate.write(data);
         if (fin) this._inflate.write(TRAILER);
         this._inflate.flush(() => {
-          const err = this._inflate[kError];
-          if (err) {
+          const err2 = this._inflate[kError];
+          if (err2) {
             this._inflate.close();
             this._inflate = null;
-            callback(err);
+            callback(err2);
             return;
           }
           const data2 = bufferUtil.concat(
@@ -24528,14 +24528,14 @@ var require_permessage_deflate = __commonJS({
       this.removeListener("data", inflateOnData);
       this.reset();
     }
-    function inflateOnError(err) {
+    function inflateOnError(err2) {
       this[kPerMessageDeflate]._inflate = null;
       if (this[kError]) {
         this[kCallback](this[kError]);
         return;
       }
-      err[kStatusCode] = 1007;
-      this[kCallback](err);
+      err2[kStatusCode] = 1007;
+      this[kCallback](err2);
     }
   }
 });
@@ -25158,8 +25158,8 @@ var require_receiver = __commonJS({
        */
       decompress(data, cb) {
         const perMessageDeflate = this._extensions[PerMessageDeflate2.extensionName];
-        perMessageDeflate.decompress(data, this._fin, (err, buf) => {
-          if (err) return cb(err);
+        perMessageDeflate.decompress(data, this._fin, (err2, buf) => {
+          if (err2) return cb(err2);
           if (buf.length) {
             this._messageLength += buf.length;
             if (this._messageLength > this._maxPayload && this._maxPayload > 0) {
@@ -25320,13 +25320,13 @@ var require_receiver = __commonJS({
       createError(ErrorCtor, message, prefix, statusCode, errorCode) {
         this._loop = false;
         this._errored = true;
-        const err = new ErrorCtor(
+        const err2 = new ErrorCtor(
           prefix ? `Invalid WebSocket frame: ${message}` : message
         );
-        Error.captureStackTrace(err, this.createError);
-        err.code = errorCode;
-        err[kStatusCode] = statusCode;
-        return err;
+        Error.captureStackTrace(err2, this.createError);
+        err2.code = errorCode;
+        err2[kStatusCode] = statusCode;
+        return err2;
       }
     };
     module.exports = Receiver2;
@@ -25700,10 +25700,10 @@ var require_sender = __commonJS({
         this._state = GET_BLOB_DATA;
         blob.arrayBuffer().then((arrayBuffer) => {
           if (this._socket.destroyed) {
-            const err = new Error(
+            const err2 = new Error(
               "The socket was closed while the blob was being read"
             );
-            process.nextTick(callCallbacks, this, err, cb);
+            process.nextTick(callCallbacks, this, err2, cb);
             return;
           }
           this._bufferedBytes -= options[kByteLength];
@@ -25715,8 +25715,8 @@ var require_sender = __commonJS({
           } else {
             this.dispatch(data, compress, options, cb);
           }
-        }).catch((err) => {
-          process.nextTick(onError, this, err, cb);
+        }).catch((err2) => {
+          process.nextTick(onError, this, err2, cb);
         });
       }
       /**
@@ -25752,10 +25752,10 @@ var require_sender = __commonJS({
         this._state = DEFLATING;
         perMessageDeflate.compress(data, options.fin, (_, buf) => {
           if (this._socket.destroyed) {
-            const err = new Error(
+            const err2 = new Error(
               "The socket was closed while data was being compressed"
             );
-            callCallbacks(this, err, cb);
+            callCallbacks(this, err2, cb);
             return;
           }
           this._bufferedBytes -= options[kByteLength];
@@ -25806,17 +25806,17 @@ var require_sender = __commonJS({
       }
     };
     module.exports = Sender2;
-    function callCallbacks(sender, err, cb) {
-      if (typeof cb === "function") cb(err);
+    function callCallbacks(sender, err2, cb) {
+      if (typeof cb === "function") cb(err2);
       for (let i = 0; i < sender._queue.length; i++) {
         const params = sender._queue[i];
         const callback = params[params.length - 1];
-        if (typeof callback === "function") callback(err);
+        if (typeof callback === "function") callback(err2);
       }
     }
-    function onError(sender, err, cb) {
-      callCallbacks(sender, err, cb);
-      sender.onerror(err);
+    function onError(sender, err2, cb) {
+      callCallbacks(sender, err2, cb);
+      sender.onerror(err2);
     }
   }
 });
@@ -26464,8 +26464,8 @@ var require_websocket = __commonJS({
           return;
         }
         this._readyState = _WebSocket.CLOSING;
-        this._sender.close(code, data, !this._isServer, (err) => {
-          if (err) return;
+        this._sender.close(code, data, !this._isServer, (err2) => {
+          if (err2) return;
           this._closeFrameSent = true;
           if (this._closeFrameReceived || this._receiver._writableState.errorEmitted) {
             this._socket.end();
@@ -26733,11 +26733,11 @@ var require_websocket = __commonJS({
         invalidUrlMessage = "The URL contains a fragment identifier";
       }
       if (invalidUrlMessage) {
-        const err = new SyntaxError(invalidUrlMessage);
+        const err2 = new SyntaxError(invalidUrlMessage);
         if (websocket._redirects === 0) {
-          throw err;
+          throw err2;
         } else {
-          emitErrorAndClose(websocket, err);
+          emitErrorAndClose(websocket, err2);
           return;
         }
       }
@@ -26832,10 +26832,10 @@ var require_websocket = __commonJS({
           abortHandshake(websocket, req, "Opening handshake has timed out");
         });
       }
-      req.on("error", (err) => {
+      req.on("error", (err2) => {
         if (req === null || req[kAborted]) return;
         req = websocket._req = null;
-        emitErrorAndClose(websocket, err);
+        emitErrorAndClose(websocket, err2);
       });
       req.on("response", (res) => {
         const location = res.headers.location;
@@ -26850,8 +26850,8 @@ var require_websocket = __commonJS({
           try {
             addr = new URL2(location, address);
           } catch (e) {
-            const err = new SyntaxError(`Invalid URL: ${location}`);
-            emitErrorAndClose(websocket, err);
+            const err2 = new SyntaxError(`Invalid URL: ${location}`);
+            emitErrorAndClose(websocket, err2);
             return;
           }
           initAsClient(websocket, addr, protocols, options);
@@ -26903,7 +26903,7 @@ var require_websocket = __commonJS({
           let extensions;
           try {
             extensions = parse(secWebSocketExtensions);
-          } catch (err) {
+          } catch (err2) {
             const message = "Invalid Sec-WebSocket-Extensions header";
             abortHandshake(websocket, socket, message);
             return;
@@ -26916,7 +26916,7 @@ var require_websocket = __commonJS({
           }
           try {
             perMessageDeflate.accept(extensions[PerMessageDeflate2.extensionName]);
-          } catch (err) {
+          } catch (err2) {
             const message = "Invalid Sec-WebSocket-Extensions header";
             abortHandshake(websocket, socket, message);
             return;
@@ -26936,10 +26936,10 @@ var require_websocket = __commonJS({
         req.end();
       }
     }
-    function emitErrorAndClose(websocket, err) {
+    function emitErrorAndClose(websocket, err2) {
       websocket._readyState = WebSocket2.CLOSING;
       websocket._errorEmitted = true;
-      websocket.emit("error", err);
+      websocket.emit("error", err2);
       websocket.emitClose();
     }
     function netConnect(options) {
@@ -26955,17 +26955,17 @@ var require_websocket = __commonJS({
     }
     function abortHandshake(websocket, stream, message) {
       websocket._readyState = WebSocket2.CLOSING;
-      const err = new Error(message);
-      Error.captureStackTrace(err, abortHandshake);
+      const err2 = new Error(message);
+      Error.captureStackTrace(err2, abortHandshake);
       if (stream.setHeader) {
         stream[kAborted] = true;
         stream.abort();
         if (stream.socket && !stream.socket.destroyed) {
           stream.socket.destroy();
         }
-        process.nextTick(emitErrorAndClose, websocket, err);
+        process.nextTick(emitErrorAndClose, websocket, err2);
       } else {
-        stream.destroy(err);
+        stream.destroy(err2);
         stream.once("error", websocket.emit.bind(websocket, "error"));
         stream.once("close", websocket.emitClose.bind(websocket));
       }
@@ -26977,10 +26977,10 @@ var require_websocket = __commonJS({
         else websocket._bufferedAmount += length;
       }
       if (cb) {
-        const err = new Error(
+        const err2 = new Error(
           `WebSocket is not open: readyState ${websocket.readyState} (${readyStates[websocket.readyState]})`
         );
-        process.nextTick(cb, err);
+        process.nextTick(cb, err2);
       }
     }
     function receiverOnConclude(code, reason) {
@@ -26998,16 +26998,16 @@ var require_websocket = __commonJS({
       const websocket = this[kWebSocket];
       if (!websocket.isPaused) websocket._socket.resume();
     }
-    function receiverOnError(err) {
+    function receiverOnError(err2) {
       const websocket = this[kWebSocket];
       if (websocket._socket[kWebSocket] !== void 0) {
         websocket._socket.removeListener("data", socketOnData);
         process.nextTick(resume, websocket._socket);
-        websocket.close(err[kStatusCode]);
+        websocket.close(err2[kStatusCode]);
       }
       if (!websocket._errorEmitted) {
         websocket._errorEmitted = true;
-        websocket.emit("error", err);
+        websocket.emit("error", err2);
       }
     }
     function receiverOnFinish() {
@@ -27027,7 +27027,7 @@ var require_websocket = __commonJS({
     function resume(stream) {
       stream.resume();
     }
-    function senderOnError(err) {
+    function senderOnError(err2) {
       const websocket = this[kWebSocket];
       if (websocket.readyState === WebSocket2.CLOSED) return;
       if (websocket.readyState === WebSocket2.OPEN) {
@@ -27037,7 +27037,7 @@ var require_websocket = __commonJS({
       this._socket.end();
       if (!websocket._errorEmitted) {
         websocket._errorEmitted = true;
-        websocket.emit("error", err);
+        websocket.emit("error", err2);
       }
     }
     function setCloseTimer(websocket) {
@@ -27103,11 +27103,11 @@ var require_stream = __commonJS({
         this.destroy();
       }
     }
-    function duplexOnError(err) {
+    function duplexOnError(err2) {
       this.removeListener("error", duplexOnError);
       this.destroy();
       if (this.listenerCount("error") === 0) {
-        this.emit("error", err);
+        this.emit("error", err2);
       }
     }
     function createWebSocketStream2(ws, options) {
@@ -27123,28 +27123,28 @@ var require_stream = __commonJS({
         const data = !isBinary && duplex._readableState.objectMode ? msg.toString() : msg;
         if (!duplex.push(data)) ws.pause();
       });
-      ws.once("error", function error(err) {
+      ws.once("error", function error(err2) {
         if (duplex.destroyed) return;
         terminateOnDestroy = false;
-        duplex.destroy(err);
+        duplex.destroy(err2);
       });
       ws.once("close", function close() {
         if (duplex.destroyed) return;
         duplex.push(null);
       });
-      duplex._destroy = function(err, callback) {
+      duplex._destroy = function(err2, callback) {
         if (ws.readyState === ws.CLOSED) {
-          callback(err);
+          callback(err2);
           process.nextTick(emitClose, duplex);
           return;
         }
         let called = false;
-        ws.once("error", function error(err2) {
+        ws.once("error", function error(err3) {
           called = true;
-          callback(err2);
+          callback(err3);
         });
         ws.once("close", function close() {
-          if (!called) callback(err);
+          if (!called) callback(err2);
           process.nextTick(emitClose, duplex);
         });
         if (terminateOnDestroy) ws.terminate();
@@ -27466,7 +27466,7 @@ var require_websocket_server = __commonJS({
         if (secWebSocketProtocol !== void 0) {
           try {
             protocols = subprotocol2.parse(secWebSocketProtocol);
-          } catch (err) {
+          } catch (err2) {
             const message = "Invalid Sec-WebSocket-Protocol header";
             abortHandshakeOrEmitwsClientError(this, req, socket, 400, message);
             return;
@@ -27486,20 +27486,20 @@ var require_websocket_server = __commonJS({
               perMessageDeflate.accept(offers[PerMessageDeflate2.extensionName]);
               extensions[PerMessageDeflate2.extensionName] = perMessageDeflate;
             }
-          } catch (err) {
+          } catch (err2) {
             const message = "Invalid or unacceptable Sec-WebSocket-Extensions header";
             abortHandshakeOrEmitwsClientError(this, req, socket, 400, message);
             return;
           }
         }
         if (this.options.verifyClient) {
-          const info = {
+          const info2 = {
             origin: req.headers[`${version === 8 ? "sec-websocket-origin" : "origin"}`],
             secure: !!(req.socket.authorized || req.socket.encrypted),
             req
           };
           if (this.options.verifyClient.length === 2) {
-            this.options.verifyClient(info, (verified, code, message, headers) => {
+            this.options.verifyClient(info2, (verified, code, message, headers) => {
               if (!verified) {
                 return abortHandshake(socket, code || 401, message, headers);
               }
@@ -27515,7 +27515,7 @@ var require_websocket_server = __commonJS({
             });
             return;
           }
-          if (!this.options.verifyClient(info)) return abortHandshake(socket, 401);
+          if (!this.options.verifyClient(info2)) return abortHandshake(socket, 401);
         }
         this.completeUpgrade(extensions, key, protocols, req, socket, head, cb);
       }
@@ -27615,9 +27615,9 @@ var require_websocket_server = __commonJS({
     }
     function abortHandshakeOrEmitwsClientError(server, req, socket, code, message, headers) {
       if (server.listenerCount("wsClientError")) {
-        const err = new Error(message);
-        Error.captureStackTrace(err, abortHandshakeOrEmitwsClientError);
-        server.emit("wsClientError", err, socket, req);
+        const err2 = new Error(message);
+        Error.captureStackTrace(err2, abortHandshakeOrEmitwsClientError);
+        server.emit("wsClientError", err2, socket, req);
       } else {
         abortHandshake(socket, code, message, headers);
       }
@@ -28562,8 +28562,8 @@ var require_backend = __commonJS({
                           return invokeCallback = children._init, mapIntoArray(invokeCallback(children._payload), array, escapedPrefix, nameSoFar, callback);
                       }
                   }
-                  if (invokeCallback) return callback = callback(children), invokeCallback = "" === nameSoFar ? "." + getElementKey(children, 0) : nameSoFar, isArrayImpl(callback) ? (escapedPrefix = "", null != invokeCallback && (escapedPrefix = invokeCallback.replace(userProvidedKeyEscapeRegex, "$&/") + "/"), mapIntoArray(callback, array, escapedPrefix, "", function(c) {
-                    return c;
+                  if (invokeCallback) return callback = callback(children), invokeCallback = "" === nameSoFar ? "." + getElementKey(children, 0) : nameSoFar, isArrayImpl(callback) ? (escapedPrefix = "", null != invokeCallback && (escapedPrefix = invokeCallback.replace(userProvidedKeyEscapeRegex, "$&/") + "/"), mapIntoArray(callback, array, escapedPrefix, "", function(c2) {
+                    return c2;
                   })) : null != callback && (isValidElement(callback) && (callback = cloneAndReplaceKey(callback, escapedPrefix + (null == callback.key || children && children.key === callback.key ? "" : ("" + callback.key).replace(userProvidedKeyEscapeRegex, "$&/") + "/") + invokeCallback)), array.push(callback)), 1;
                   invokeCallback = 0;
                   var nextNamePrefix = "" === nameSoFar ? "." : nameSoFar + ":";
@@ -28674,7 +28674,7 @@ var require_backend = __commonJS({
                 exports2.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE = ReactSharedInternals;
                 exports2.__COMPILER_RUNTIME = {
                   __proto__: null,
-                  c: function c(size) {
+                  c: function c2(size) {
                     return ReactSharedInternals.H.useMemoCache(size);
                   }
                 };
@@ -29696,7 +29696,7 @@ var require_backend = __commonJS({
                   };
                   var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function(t2, e2, r2) {
                     t2[e2] = r2.value;
-                  }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag";
+                  }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c2 = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag";
                   function define2(t2, e2, r2) {
                     return Object.defineProperty(t2, e2, { value: r2, enumerable: true, configurable: true, writable: true }), t2[e2];
                   }
@@ -29708,8 +29708,8 @@ var require_backend = __commonJS({
                     };
                   }
                   function wrap(t2, e2, r2, n2) {
-                    var i2 = e2 && e2.prototype instanceof Generator ? e2 : Generator, a2 = Object.create(i2.prototype), c2 = new Context(n2 || []);
-                    return o(a2, "_invoke", { value: makeInvokeMethod(t2, r2, c2) }), a2;
+                    var i2 = e2 && e2.prototype instanceof Generator ? e2 : Generator, a2 = Object.create(i2.prototype), c3 = new Context(n2 || []);
+                    return o(a2, "_invoke", { value: makeInvokeMethod(t2, r2, c3) }), a2;
                   }
                   function tryCatch(t2, e2, r2) {
                     try {
@@ -29742,9 +29742,9 @@ var require_backend = __commonJS({
                   }
                   function AsyncIterator(t2, e2) {
                     function invoke(r3, o2, i2, a2) {
-                      var c2 = tryCatch(t2[r3], t2, o2);
-                      if ("throw" !== c2.type) {
-                        var u2 = c2.arg, h2 = u2.value;
+                      var c3 = tryCatch(t2[r3], t2, o2);
+                      if ("throw" !== c3.type) {
+                        var u2 = c3.arg, h2 = u2.value;
                         return h2 && "object" == _typeof(h2) && n.call(h2, "__await") ? e2.resolve(h2.__await).then(function(t3) {
                           invoke("next", t3, i2, a2);
                         }, function(t3) {
@@ -29755,7 +29755,7 @@ var require_backend = __commonJS({
                           return invoke("throw", t3, i2, a2);
                         });
                       }
-                      a2(c2.arg);
+                      a2(c3.arg);
                     }
                     var r2;
                     o(this, "_invoke", { value: function value(t3, n2) {
@@ -29776,9 +29776,9 @@ var require_backend = __commonJS({
                         return { value: t, done: true };
                       }
                       for (n2.method = i2, n2.arg = a2; ; ) {
-                        var c2 = n2.delegate;
-                        if (c2) {
-                          var u2 = maybeInvokeDelegate(c2, n2);
+                        var c3 = n2.delegate;
+                        if (c3) {
+                          var u2 = maybeInvokeDelegate(c3, n2);
                           if (u2) {
                             if (u2 === y) continue;
                             return u2;
@@ -29840,7 +29840,7 @@ var require_backend = __commonJS({
                     return Object.setPrototypeOf ? Object.setPrototypeOf(t2, GeneratorFunctionPrototype) : (t2.__proto__ = GeneratorFunctionPrototype, define2(t2, u, "GeneratorFunction")), t2.prototype = Object.create(g), t2;
                   }, e.awrap = function(t2) {
                     return { __await: t2 };
-                  }, defineIteratorMethods(AsyncIterator.prototype), define2(AsyncIterator.prototype, c, function() {
+                  }, defineIteratorMethods(AsyncIterator.prototype), define2(AsyncIterator.prototype, c2, function() {
                     return this;
                   }), e.AsyncIterator = AsyncIterator, e.async = function(t2, r2, n2, o2, i2) {
                     void 0 === i2 && (i2 = Promise);
@@ -29879,11 +29879,11 @@ var require_backend = __commonJS({
                       var i2 = this.tryEntries[o2], a2 = i2.completion;
                       if ("root" === i2.tryLoc) return handle("end");
                       if (i2.tryLoc <= this.prev) {
-                        var c2 = n.call(i2, "catchLoc"), u2 = n.call(i2, "finallyLoc");
-                        if (c2 && u2) {
+                        var c3 = n.call(i2, "catchLoc"), u2 = n.call(i2, "finallyLoc");
+                        if (c3 && u2) {
                           if (this.prev < i2.catchLoc) return handle(i2.catchLoc, true);
                           if (this.prev < i2.finallyLoc) return handle(i2.finallyLoc);
-                        } else if (c2) {
+                        } else if (c3) {
                           if (this.prev < i2.catchLoc) return handle(i2.catchLoc, true);
                         } else {
                           if (!u2) throw Error("try statement without catch or finally");
@@ -32519,11 +32519,11 @@ var require_backend = __commonJS({
             function safeToString(val) {
               try {
                 return String(val);
-              } catch (err) {
+              } catch (err2) {
                 if (backend_utils_typeof(val) === "object") {
                   return "[object Object]";
                 }
-                throw err;
+                throw err2;
               }
             }
             function formatConsoleArgumentsToSingleString(maybeMessage) {
@@ -34988,27 +34988,27 @@ var require_backend = __commonJS({
                   var sampleLines = sampleStack.split("\n");
                   var controlLines = controlStack.split("\n");
                   var s = 0;
-                  var c = 0;
+                  var c2 = 0;
                   while (s < sampleLines.length && !sampleLines[s].includes("DetermineComponentFrameRoot")) {
                     s++;
                   }
-                  while (c < controlLines.length && !controlLines[c].includes("DetermineComponentFrameRoot")) {
-                    c++;
+                  while (c2 < controlLines.length && !controlLines[c2].includes("DetermineComponentFrameRoot")) {
+                    c2++;
                   }
-                  if (s === sampleLines.length || c === controlLines.length) {
+                  if (s === sampleLines.length || c2 === controlLines.length) {
                     s = sampleLines.length - 1;
-                    c = controlLines.length - 1;
-                    while (s >= 1 && c >= 0 && sampleLines[s] !== controlLines[c]) {
-                      c--;
+                    c2 = controlLines.length - 1;
+                    while (s >= 1 && c2 >= 0 && sampleLines[s] !== controlLines[c2]) {
+                      c2--;
                     }
                   }
-                  for (; s >= 1 && c >= 0; s--, c--) {
-                    if (sampleLines[s] !== controlLines[c]) {
-                      if (s !== 1 || c !== 1) {
+                  for (; s >= 1 && c2 >= 0; s--, c2--) {
+                    if (sampleLines[s] !== controlLines[c2]) {
+                      if (s !== 1 || c2 !== 1) {
                         do {
                           s--;
-                          c--;
-                          if (c < 0 || sampleLines[s] !== controlLines[c]) {
+                          c2--;
+                          if (c2 < 0 || sampleLines[s] !== controlLines[c2]) {
                             var _frame = "\n" + sampleLines[s].replace(" at new ", " at ");
                             if (fn.displayName && _frame.includes("<anonymous>")) {
                               _frame = _frame.replace("<anonymous>", fn.displayName);
@@ -35017,7 +35017,7 @@ var require_backend = __commonJS({
                             }
                             return _frame;
                           }
-                        } while (s >= 1 && c >= 0);
+                        } while (s >= 1 && c2 >= 0);
                       }
                       break;
                     }
@@ -35071,7 +35071,7 @@ var require_backend = __commonJS({
             ;
             function getOwnerStackByComponentInfoInDev(componentInfo) {
               try {
-                var info = "";
+                var info2 = "";
                 if (!componentInfo.owner && typeof componentInfo.name === "string") {
                   return describeBuiltInComponentFrame(componentInfo.name);
                 }
@@ -35081,13 +35081,13 @@ var require_backend = __commonJS({
                   if (ownerStack != null) {
                     owner = owner.owner;
                     if (owner) {
-                      info += "\n" + formatOwnerStack(ownerStack);
+                      info2 += "\n" + formatOwnerStack(ownerStack);
                     }
                   } else {
                     break;
                   }
                 }
-                return info;
+                return info2;
               } catch (x) {
                 return "\nError generating stack: " + x.message + "\n" + x.stack;
               }
@@ -35681,31 +35681,31 @@ var require_backend = __commonJS({
             }
             function getStackByFiberInDevAndProd(workTagMap, workInProgress, currentDispatcherRef) {
               try {
-                var info = "";
+                var info2 = "";
                 var node = workInProgress;
                 do {
-                  info += describeFiber(workTagMap, node, currentDispatcherRef);
+                  info2 += describeFiber(workTagMap, node, currentDispatcherRef);
                   var debugInfo = node._debugInfo;
                   if (debugInfo) {
                     for (var i = debugInfo.length - 1; i >= 0; i--) {
                       var entry = debugInfo[i];
                       if (typeof entry.name === "string") {
-                        info += describeDebugInfoFrame(entry.name, entry.env);
+                        info2 += describeDebugInfoFrame(entry.name, entry.env);
                       }
                     }
                   }
                   node = node.return;
                 } while (node);
-                return info;
+                return info2;
               } catch (x) {
                 return "\nError generating stack: " + x.message + "\n" + x.stack;
               }
             }
             function getSourceLocationByFiber(workTagMap, fiber, currentDispatcherRef) {
               try {
-                var info = describeFiber(workTagMap, fiber, currentDispatcherRef);
-                if (info !== "") {
-                  return info.slice(1);
+                var info2 = describeFiber(workTagMap, fiber, currentDispatcherRef);
+                if (info2 !== "") {
+                  return info2.slice(1);
                 }
               } catch (x) {
                 console.error(x);
@@ -35721,7 +35721,7 @@ var require_backend = __commonJS({
             function getOwnerStackByFiberInDev(workTagMap, workInProgress, currentDispatcherRef) {
               var HostHoistable = workTagMap.HostHoistable, HostSingleton = workTagMap.HostSingleton, HostText = workTagMap.HostText, HostComponent = workTagMap.HostComponent, SuspenseComponent = workTagMap.SuspenseComponent, SuspenseListComponent = workTagMap.SuspenseListComponent, ViewTransitionComponent = workTagMap.ViewTransitionComponent, ActivityComponent = workTagMap.ActivityComponent;
               try {
-                var info = "";
+                var info2 = "";
                 if (workInProgress.tag === HostText) {
                   workInProgress = workInProgress.return;
                 }
@@ -35729,19 +35729,19 @@ var require_backend = __commonJS({
                   case HostHoistable:
                   case HostSingleton:
                   case HostComponent:
-                    info += describeBuiltInComponentFrame(workInProgress.type);
+                    info2 += describeBuiltInComponentFrame(workInProgress.type);
                     break;
                   case SuspenseComponent:
-                    info += describeBuiltInComponentFrame("Suspense");
+                    info2 += describeBuiltInComponentFrame("Suspense");
                     break;
                   case SuspenseListComponent:
-                    info += describeBuiltInComponentFrame("SuspenseList");
+                    info2 += describeBuiltInComponentFrame("SuspenseList");
                     break;
                   case ViewTransitionComponent:
-                    info += describeBuiltInComponentFrame("ViewTransition");
+                    info2 += describeBuiltInComponentFrame("ViewTransition");
                     break;
                   case ActivityComponent:
-                    info += describeBuiltInComponentFrame("Activity");
+                    info2 += describeBuiltInComponentFrame("Activity");
                     break;
                 }
                 var owner = workInProgress;
@@ -35755,20 +35755,20 @@ var require_backend = __commonJS({
                         debugStack = formatOwnerStack(debugStack);
                       }
                       if (debugStack !== "") {
-                        info += "\n" + debugStack;
+                        info2 += "\n" + debugStack;
                       }
                     }
                   } else if (owner.debugStack != null) {
                     var ownerStack = owner.debugStack;
                     owner = owner.owner;
                     if (owner && ownerStack) {
-                      info += "\n" + formatOwnerStack(ownerStack);
+                      info2 += "\n" + formatOwnerStack(ownerStack);
                     }
                   } else {
                     break;
                   }
                 }
-                return info;
+                return info2;
               } catch (x) {
                 return "\nError generating stack: " + x.message + "\n" + x.stack;
               }
@@ -36985,7 +36985,7 @@ var require_backend = __commonJS({
                 }
                 throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
               }
-              var normalCompletion = true, didErr = false, err;
+              var normalCompletion = true, didErr = false, err2;
               return { s: function s() {
                 it = it.call(o);
               }, n: function n() {
@@ -36994,12 +36994,12 @@ var require_backend = __commonJS({
                 return step;
               }, e: function e(_e2) {
                 didErr = true;
-                err = _e2;
+                err2 = _e2;
               }, f: function f() {
                 try {
                   if (!normalCompletion && it.return != null) it.return();
                 } finally {
-                  if (didErr) throw err;
+                  if (didErr) throw err2;
                 }
               } };
             }
@@ -37536,8 +37536,8 @@ var require_backend = __commonJS({
                         publicInstanceToDevToolsInstanceMap.set(firstInstance, nearestInstance);
                         break;
                       }
-                    } catch (err) {
-                      _iterator.e(err);
+                    } catch (err2) {
+                      _iterator.e(err2);
                     } finally {
                       _iterator.f();
                     }
@@ -37599,8 +37599,8 @@ var require_backend = __commonJS({
                     } else {
                     }
                   }
-                } catch (err) {
-                  _iterator2.e(err);
+                } catch (err2) {
+                  _iterator2.e(err2);
                 } finally {
                   _iterator2.f();
                 }
@@ -37627,8 +37627,8 @@ var require_backend = __commonJS({
                       updateMostRecentlyInspectedElementIfNecessary(devtoolsInstance.id);
                     }
                   }
-                } catch (err) {
-                  _iterator3.e(err);
+                } catch (err2) {
+                  _iterator3.e(err2);
                 } finally {
                   _iterator3.f();
                 }
@@ -37884,8 +37884,8 @@ var require_backend = __commonJS({
                           return true;
                         }
                       }
-                    } catch (err) {
-                      _iterator4.e(err);
+                    } catch (err2) {
+                      _iterator4.e(err2);
                     } finally {
                       _iterator4.f();
                     }
@@ -37939,8 +37939,8 @@ var require_backend = __commonJS({
                           return true;
                         }
                       }
-                    } catch (err) {
-                      _iterator5.e(err);
+                    } catch (err2) {
+                      _iterator5.e(err2);
                     } finally {
                       _iterator5.f();
                     }
@@ -38166,8 +38166,8 @@ var require_backend = __commonJS({
                       changedKeys.push(key);
                     }
                   }
-                } catch (err) {
-                  _iterator6.e(err);
+                } catch (err2) {
+                  _iterator6.e(err2);
                 } finally {
                   _iterator6.f();
                 }
@@ -40413,7 +40413,7 @@ var require_backend = __commonJS({
                     return null;
                   }
                   return findAllCurrentHostInstances(devtoolsInstance);
-                } catch (err) {
+                } catch (err2) {
                   return null;
                 }
               }
@@ -40428,7 +40428,7 @@ var require_backend = __commonJS({
                     return null;
                   }
                   return devtoolsInstance.suspenseNode.rects;
-                } catch (err) {
+                } catch (err2) {
                   return null;
                 }
               }
@@ -40689,8 +40689,8 @@ var require_backend = __commonJS({
                           return;
                         }
                       }
-                    } catch (err) {
-                      _iterator7.e(err);
+                    } catch (err2) {
+                      _iterator7.e(err2);
                     } finally {
                       _iterator7.f();
                     }
@@ -42471,9 +42471,9 @@ var require_backend = __commonJS({
                       var result = fn.apply(this, args);
                       parentIDStack.pop();
                       return result;
-                    } catch (err) {
+                    } catch (err2) {
                       parentIDStack = [];
-                      throw err;
+                      throw err2;
                     } finally {
                       if (parentIDStack.length === 0) {
                         var rootID = internalInstanceToRootIDMap.get(internalInstance);
@@ -42500,9 +42500,9 @@ var require_backend = __commonJS({
                       }
                       parentIDStack.pop();
                       return result;
-                    } catch (err) {
+                    } catch (err2) {
                       parentIDStack = [];
-                      throw err;
+                      throw err2;
                     } finally {
                       if (parentIDStack.length === 0) {
                         var rootID = internalInstanceToRootIDMap.get(internalInstance);
@@ -42529,9 +42529,9 @@ var require_backend = __commonJS({
                       }
                       parentIDStack.pop();
                       return result;
-                    } catch (err) {
+                    } catch (err2) {
                       parentIDStack = [];
-                      throw err;
+                      throw err2;
                     } finally {
                       if (parentIDStack.length === 0) {
                         var rootID = internalInstanceToRootIDMap.get(internalInstance);
@@ -42554,9 +42554,9 @@ var require_backend = __commonJS({
                       parentIDStack.pop();
                       recordUnmount(internalInstance, id);
                       return result;
-                    } catch (err) {
+                    } catch (err2) {
                       parentIDStack = [];
-                      throw err;
+                      throw err2;
                     } finally {
                       if (parentIDStack.length === 0) {
                         var rootID = internalInstanceToRootIDMap.get(internalInstance);
@@ -43375,7 +43375,7 @@ var require_backend = __commonJS({
                 }
                 throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
               }
-              var normalCompletion = true, didErr = false, err;
+              var normalCompletion = true, didErr = false, err2;
               return { s: function s() {
                 it = it.call(o);
               }, n: function n() {
@@ -43384,12 +43384,12 @@ var require_backend = __commonJS({
                 return step;
               }, e: function e(_e2) {
                 didErr = true;
-                err = _e2;
+                err2 = _e2;
               }, f: function f() {
                 try {
                   if (!normalCompletion && it.return != null) it.return();
                 } finally {
-                  if (didErr) throw err;
+                  if (didErr) throw err2;
                 }
               } };
             }
@@ -43476,7 +43476,7 @@ var require_backend = __commonJS({
                     }
                     return "outdated";
                   }
-                } catch (err) {
+                } catch (err2) {
                 }
                 return "production";
               }
@@ -43490,7 +43490,7 @@ var require_backend = __commonJS({
                       throw new Error("React is running in production mode, but dead code elimination has not been applied. Read how to correctly configure React for production: https://react.dev/link/perf-use-production-build");
                     });
                   }
-                } catch (err) {
+                } catch (err2) {
                 }
               }
               var isProfiling = shouldStartProfilingNow;
@@ -43743,8 +43743,8 @@ var require_backend = __commonJS({
                       for (_iterator.s(); !(_step = _iterator.n()).done; ) {
                         if (_loop3()) break;
                       }
-                    } catch (err) {
-                      _iterator.e(err);
+                    } catch (err2) {
+                      _iterator.e(err2);
                     } finally {
                       _iterator.f();
                     }
@@ -44418,22 +44418,22 @@ var init_devtools = __esm({
     init_devtools_window_polyfill();
     init_wrapper();
     import_react_devtools_core = __toESM(require_backend(), 1);
-    isDevToolsReachable = async () => new Promise((resolve6) => {
+    isDevToolsReachable = async () => new Promise((resolve7) => {
       const socket = new wrapper_default("ws://localhost:8097");
       const timeout = setTimeout(() => {
         socket.terminate();
-        resolve6(false);
+        resolve7(false);
       }, 2e3);
       timeout.unref();
       socket.on("open", () => {
         clearTimeout(timeout);
         socket.terminate();
-        resolve6(true);
+        resolve7(true);
       });
       socket.on("error", () => {
         clearTimeout(timeout);
         socket.terminate();
-        resolve6(false);
+        resolve7(false);
       });
     });
     if (await isDevToolsReachable()) {
@@ -45505,9 +45505,9 @@ var loadYoga = (() => {
     var noExitRuntime = h.noExitRuntime || true;
     "object" != typeof WebAssembly && x("no native wasm support detected");
     var fa, ha = false;
-    function z(a, b, c) {
-      c = b + c;
-      for (var d = ""; !(b >= c); ) {
+    function z(a, b, c2) {
+      c2 = b + c2;
+      for (var d = ""; !(b >= c2); ) {
         var e = a[b++];
         if (!e) break;
         if (e & 128) {
@@ -45564,9 +45564,9 @@ var loadYoga = (() => {
       try {
         if (a == H && w) return new Uint8Array(w);
         if (ua(a)) try {
-          var b = xa(a.slice(37)), c = new Uint8Array(b.length);
-          for (a = 0; a < b.length; ++a) c[a] = b.charCodeAt(a);
-          var d = c;
+          var b = xa(a.slice(37)), c2 = new Uint8Array(b.length);
+          for (a = 0; a < b.length; ++a) c2[a] = b.charCodeAt(a);
+          var d = c2;
         } catch (f) {
           throw Error("Converting base64 string to bytes failed.");
         }
@@ -45605,18 +45605,18 @@ var loadYoga = (() => {
     }
     var J = [{}, { value: void 0 }, { value: null }, { value: true }, { value: false }], Ca = [];
     function Da(a) {
-      var b = Error, c = Ba(a, function(d) {
+      var b = Error, c2 = Ba(a, function(d) {
         this.name = a;
         this.message = d;
         d = Error(d).stack;
         void 0 !== d && (this.stack = this.toString() + "\n" + d.replace(/^Error(:[^\n]*)?\n/, ""));
       });
-      c.prototype = Object.create(b.prototype);
-      c.prototype.constructor = c;
-      c.prototype.toString = function() {
+      c2.prototype = Object.create(b.prototype);
+      c2.prototype.constructor = c2;
+      c2.prototype.toString = function() {
         return void 0 === this.message ? this.name : this.name + ": " + this.message;
       };
-      return c;
+      return c2;
     }
     var K = void 0;
     function L(a) {
@@ -45666,9 +45666,9 @@ var loadYoga = (() => {
       return b;
     }
     function La(a, b) {
-      var c = R[a];
-      void 0 === c && L(b + " has unknown type " + Ja(a));
-      return c;
+      var c2 = R[a];
+      void 0 === c2 && L(b + " has unknown type " + Ja(a));
+      return c2;
     }
     function Ma() {
     }
@@ -45677,11 +45677,11 @@ var loadYoga = (() => {
       --a.count.value;
       0 === a.count.value && (a.T ? a.U.W(a.T) : a.P.N.W(a.O));
     }
-    function Pa(a, b, c) {
-      if (b === c) return a;
-      if (void 0 === c.R) return null;
-      a = Pa(a, b, c.R);
-      return null === a ? null : c.na(a);
+    function Pa(a, b, c2) {
+      if (b === c2) return a;
+      if (void 0 === c2.R) return null;
+      a = Pa(a, b, c2.R);
+      return null === a ? null : c2.na(a);
     }
     var Qa = {};
     function Ra(a, b) {
@@ -45704,8 +45704,8 @@ var loadYoga = (() => {
         Oa(b.M);
       });
       T = (b) => {
-        var c = b.M;
-        c.T && Na.register(b, { M: c }, b);
+        var c2 = b.M;
+        c2.T && Na.register(b, { M: c2 }, b);
         return b;
       };
       Ma = (b) => {
@@ -45724,9 +45724,9 @@ var loadYoga = (() => {
       return this.fromWireType(D[a >> 2]);
     }
     var U = {}, Ya = {};
-    function V(a, b, c) {
+    function V(a, b, c2) {
       function d(k) {
-        k = c(k);
+        k = c2(k);
         k.length !== a.length && Ta("Mismatched type converter count");
         for (var m = 0; m < a.length; ++m) W(a[m], k[m]);
       }
@@ -45757,12 +45757,12 @@ var loadYoga = (() => {
           throw new TypeError("Unknown type size: " + a);
       }
     }
-    function W(a, b, c = {}) {
+    function W(a, b, c2 = {}) {
       if (!("argPackAdvance" in b)) throw new TypeError("registerType registeredInstance requires argPackAdvance");
       var d = b.name;
       a || L('type "' + d + '" must have a positive integer typeid pointer');
       if (R.hasOwnProperty(a)) {
-        if (c.ua) return;
+        if (c2.ua) return;
         L("Cannot register type '" + d + "' twice");
       }
       R[a] = b;
@@ -45774,11 +45774,11 @@ var loadYoga = (() => {
     }
     function X() {
     }
-    function ab(a, b, c) {
+    function ab(a, b, c2) {
       if (void 0 === a[b].S) {
         var d = a[b];
         a[b] = function() {
-          a[b].S.hasOwnProperty(arguments.length) || L("Function '" + c + "' called with an invalid number of arguments (" + arguments.length + ") - expects one of (" + a[b].S + ")!");
+          a[b].S.hasOwnProperty(arguments.length) || L("Function '" + c2 + "' called with an invalid number of arguments (" + arguments.length + ") - expects one of (" + a[b].S + ")!");
           return a[b].S[arguments.length].apply(this, arguments);
         };
         a[b].S = [];
@@ -45788,10 +45788,10 @@ var loadYoga = (() => {
     function bb(a, b) {
       h.hasOwnProperty(a) ? (L("Cannot register public name '" + a + "' twice"), ab(h, a, a), h.hasOwnProperty(void 0) && L("Cannot register multiple overloads of a function with the same number of arguments (undefined)!"), h[a].S[void 0] = b) : h[a] = b;
     }
-    function cb(a, b, c, d, e, f, g, k) {
+    function cb(a, b, c2, d, e, f, g, k) {
       this.name = a;
       this.constructor = b;
-      this.X = c;
+      this.X = c2;
       this.W = d;
       this.R = e;
       this.pa = f;
@@ -45799,8 +45799,8 @@ var loadYoga = (() => {
       this.na = k;
       this.ja = [];
     }
-    function db(a, b, c) {
-      for (; b !== c; ) b.ba || L("Expected null or instance of " + c.name + ", got an instance of " + b.name), a = b.ba(a), b = b.R;
+    function db(a, b, c2) {
+      for (; b !== c2; ) b.ba || L("Expected null or instance of " + c2.name + ", got an instance of " + b.name), a = b.ba(a), b = b.R;
       return a;
     }
     function eb(a, b) {
@@ -45813,37 +45813,37 @@ var loadYoga = (() => {
       if (null === b) {
         this.ea && L("null is not a valid " + this.name);
         if (this.da) {
-          var c = this.fa();
-          null !== a && a.push(this.W, c);
-          return c;
+          var c2 = this.fa();
+          null !== a && a.push(this.W, c2);
+          return c2;
         }
         return 0;
       }
       b.M || L('Cannot pass "' + fb(b) + '" as a ' + this.name);
       b.M.O || L("Cannot pass deleted object as a pointer of type " + this.name);
       !this.ca && b.M.P.ca && L("Cannot convert argument of type " + (b.M.U ? b.M.U.name : b.M.P.name) + " to parameter type " + this.name);
-      c = db(b.M.O, b.M.P.N, this.N);
+      c2 = db(b.M.O, b.M.P.N, this.N);
       if (this.da) switch (void 0 === b.M.T && L("Passing raw pointer to smart pointer is illegal"), this.Ba) {
         case 0:
-          b.M.U === this ? c = b.M.T : L("Cannot convert argument of type " + (b.M.U ? b.M.U.name : b.M.P.name) + " to parameter type " + this.name);
+          b.M.U === this ? c2 = b.M.T : L("Cannot convert argument of type " + (b.M.U ? b.M.U.name : b.M.P.name) + " to parameter type " + this.name);
           break;
         case 1:
-          c = b.M.T;
+          c2 = b.M.T;
           break;
         case 2:
-          if (b.M.U === this) c = b.M.T;
+          if (b.M.U === this) c2 = b.M.T;
           else {
             var d = b.clone();
-            c = this.xa(c, Ea(function() {
+            c2 = this.xa(c2, Ea(function() {
               d["delete"]();
             }));
-            null !== a && a.push(this.W, c);
+            null !== a && a.push(this.W, c2);
           }
           break;
         default:
           L("Unsupporting sharing policy");
       }
-      return c;
+      return c2;
     }
     function hb(a, b) {
       if (null === b) return this.ea && L("null is not a valid " + this.name), 0;
@@ -45852,10 +45852,10 @@ var loadYoga = (() => {
       b.M.P.ca && L("Cannot convert argument of type " + b.M.P.name + " to parameter type " + this.name);
       return db(b.M.O, b.M.P.N, this.N);
     }
-    function Y(a, b, c, d) {
+    function Y(a, b, c2, d) {
       this.name = a;
       this.N = b;
-      this.ea = c;
+      this.ea = c2;
       this.ca = d;
       this.da = false;
       this.W = this.xa = this.fa = this.ka = this.Ba = this.wa = void 0;
@@ -45867,37 +45867,37 @@ var loadYoga = (() => {
       h[a].Z = void 0;
     }
     function jb(a, b) {
-      var c = [];
+      var c2 = [];
       return function() {
-        c.length = 0;
-        Object.assign(c, arguments);
+        c2.length = 0;
+        Object.assign(c2, arguments);
         if (a.includes("j")) {
           var d = h["dynCall_" + a];
-          d = c && c.length ? d.apply(null, [b].concat(c)) : d.call(null, b);
-        } else d = oa.get(b).apply(null, c);
+          d = c2 && c2.length ? d.apply(null, [b].concat(c2)) : d.call(null, b);
+        } else d = oa.get(b).apply(null, c2);
         return d;
       };
     }
     function Z(a, b) {
       a = N(a);
-      var c = a.includes("j") ? jb(a, b) : oa.get(b);
-      "function" != typeof c && L("unknown function pointer with signature " + a + ": " + b);
-      return c;
+      var c2 = a.includes("j") ? jb(a, b) : oa.get(b);
+      "function" != typeof c2 && L("unknown function pointer with signature " + a + ": " + b);
+      return c2;
     }
     var mb = void 0;
     function nb(a, b) {
-      function c(f) {
-        e[f] || R[f] || (Ya[f] ? Ya[f].forEach(c) : (d.push(f), e[f] = true));
+      function c2(f) {
+        e[f] || R[f] || (Ya[f] ? Ya[f].forEach(c2) : (d.push(f), e[f] = true));
       }
       var d = [], e = {};
-      b.forEach(c);
+      b.forEach(c2);
       throw new mb(a + ": " + d.map(Ja).join([", "]));
     }
-    function ob(a, b, c, d, e) {
+    function ob(a, b, c2, d, e) {
       var f = b.length;
       2 > f && L("argTypes array size mismatch! Must at least get return value and 'this' types!");
-      var g = null !== b[1] && null !== c, k = false;
-      for (c = 1; c < b.length; ++c) if (null !== b[c] && void 0 === b[c].V) {
+      var g = null !== b[1] && null !== c2, k = false;
+      for (c2 = 1; c2 < b.length; ++c2) if (null !== b[c2] && void 0 === b[c2].V) {
         k = true;
         break;
       }
@@ -45923,8 +45923,8 @@ var loadYoga = (() => {
       };
     }
     function pb(a, b) {
-      for (var c = [], d = 0; d < a; d++) c.push(E[b + 4 * d >> 2]);
-      return c;
+      for (var c2 = [], d = 0; d < a; d++) c2.push(E[b + 4 * d >> 2]);
+      return c2;
     }
     function qb(a) {
       4 < a && 0 === --J[a].ga && (J[a] = void 0, Ca.push(a));
@@ -45937,33 +45937,33 @@ var loadYoga = (() => {
     function rb(a, b) {
       switch (b) {
         case 2:
-          return function(c) {
-            return this.fromWireType(la[c >> 2]);
+          return function(c2) {
+            return this.fromWireType(la[c2 >> 2]);
           };
         case 3:
-          return function(c) {
-            return this.fromWireType(ma[c >> 3]);
+          return function(c2) {
+            return this.fromWireType(ma[c2 >> 3]);
           };
         default:
           throw new TypeError("Unknown float type: " + a);
       }
     }
-    function sb(a, b, c) {
+    function sb(a, b, c2) {
       switch (b) {
         case 0:
-          return c ? function(d) {
+          return c2 ? function(d) {
             return ja[d];
           } : function(d) {
             return A[d];
           };
         case 1:
-          return c ? function(d) {
+          return c2 ? function(d) {
             return C[d >> 1];
           } : function(d) {
             return ka[d >> 1];
           };
         case 2:
-          return c ? function(d) {
+          return c2 ? function(d) {
             return D[d >> 2];
           } : function(d) {
             return E[d >> 2];
@@ -45973,20 +45973,20 @@ var loadYoga = (() => {
       }
     }
     function tb(a, b) {
-      for (var c = "", d = 0; !(d >= b / 2); ++d) {
+      for (var c2 = "", d = 0; !(d >= b / 2); ++d) {
         var e = C[a + 2 * d >> 1];
         if (0 == e) break;
-        c += String.fromCharCode(e);
+        c2 += String.fromCharCode(e);
       }
-      return c;
+      return c2;
     }
-    function ub(a, b, c) {
-      void 0 === c && (c = 2147483647);
-      if (2 > c) return 0;
-      c -= 2;
+    function ub(a, b, c2) {
+      void 0 === c2 && (c2 = 2147483647);
+      if (2 > c2) return 0;
+      c2 -= 2;
       var d = b;
-      c = c < 2 * a.length ? c / 2 : a.length;
-      for (var e = 0; e < c; ++e) C[b >> 1] = a.charCodeAt(e), b += 2;
+      c2 = c2 < 2 * a.length ? c2 / 2 : a.length;
+      for (var e = 0; e < c2; ++e) C[b >> 1] = a.charCodeAt(e), b += 2;
       C[b >> 1] = 0;
       return b - d;
     }
@@ -45994,19 +45994,19 @@ var loadYoga = (() => {
       return 2 * a.length;
     }
     function wb(a, b) {
-      for (var c = 0, d = ""; !(c >= b / 4); ) {
-        var e = D[a + 4 * c >> 2];
+      for (var c2 = 0, d = ""; !(c2 >= b / 4); ) {
+        var e = D[a + 4 * c2 >> 2];
         if (0 == e) break;
-        ++c;
+        ++c2;
         65536 <= e ? (e -= 65536, d += String.fromCharCode(55296 | e >> 10, 56320 | e & 1023)) : d += String.fromCharCode(e);
       }
       return d;
     }
-    function xb(a, b, c) {
-      void 0 === c && (c = 2147483647);
-      if (4 > c) return 0;
+    function xb(a, b, c2) {
+      void 0 === c2 && (c2 = 2147483647);
+      if (4 > c2) return 0;
       var d = b;
-      c = d + c - 4;
+      c2 = d + c2 - 4;
       for (var e = 0; e < a.length; ++e) {
         var f = a.charCodeAt(e);
         if (55296 <= f && 57343 >= f) {
@@ -46015,15 +46015,15 @@ var loadYoga = (() => {
         }
         D[b >> 2] = f;
         b += 4;
-        if (b + 4 > c) break;
+        if (b + 4 > c2) break;
       }
       D[b >> 2] = 0;
       return b - d;
     }
     function yb(a) {
-      for (var b = 0, c = 0; c < a.length; ++c) {
-        var d = a.charCodeAt(c);
-        55296 <= d && 57343 >= d && ++c;
+      for (var b = 0, c2 = 0; c2 < a.length; ++c2) {
+        var d = a.charCodeAt(c2);
+        55296 <= d && 57343 >= d && ++c2;
         b += 4;
       }
       return b;
@@ -46040,8 +46040,8 @@ var loadYoga = (() => {
       return b;
     }
     function Db(a, b) {
-      for (var c = Array(a), d = 0; d < a; ++d) c[d] = La(E[b + 4 * d >> 2], "parameter " + d);
-      return c;
+      for (var c2 = Array(a), d = 0; d < a; ++d) c2[d] = La(E[b + 4 * d >> 2], "parameter " + d);
+      return c2;
     }
     var Eb = [], Fb = [null, [], []];
     K = h.BindingError = Da("BindingError");
@@ -46072,16 +46072,16 @@ var loadYoga = (() => {
     Sa = h.InternalError = Da("InternalError");
     X.prototype.isAliasOf = function(a) {
       if (!(this instanceof X && a instanceof X)) return false;
-      var b = this.M.P.N, c = this.M.O, d = a.M.P.N;
-      for (a = a.M.O; b.R; ) c = b.ba(c), b = b.R;
+      var b = this.M.P.N, c2 = this.M.O, d = a.M.P.N;
+      for (a = a.M.O; b.R; ) c2 = b.ba(c2), b = b.R;
       for (; d.R; ) a = d.ba(a), d = d.R;
-      return b === d && c === a;
+      return b === d && c2 === a;
     };
     X.prototype.clone = function() {
       this.M.O || $a(this);
       if (this.M.aa) return this.M.count.value += 1, this;
-      var a = T, b = Object, c = b.create, d = Object.getPrototypeOf(this), e = this.M;
-      a = a(c.call(b, d, { M: { value: { count: e.count, $: e.$, aa: e.aa, O: e.O, P: e.P, T: e.T, U: e.U } } }));
+      var a = T, b = Object, c2 = b.create, d = Object.getPrototypeOf(this), e = this.M;
+      a = a(c2.call(b, d, { M: { value: { count: e.count, $: e.$, aa: e.aa, O: e.O, P: e.P, T: e.T, U: e.U } } }));
       a.M.count.value += 1;
       a.M.$ = false;
       return a;
@@ -46118,49 +46118,49 @@ var loadYoga = (() => {
     };
     Y.prototype.fromWireType = function(a) {
       function b() {
-        return this.da ? Ua(this.N.X, { P: this.wa, O: c, U: this, T: a }) : Ua(this.N.X, { P: this, O: a });
+        return this.da ? Ua(this.N.X, { P: this.wa, O: c2, U: this, T: a }) : Ua(this.N.X, { P: this, O: a });
       }
-      var c = this.qa(a);
-      if (!c) return this.ha(a), null;
-      var d = Ra(this.N, c);
+      var c2 = this.qa(a);
+      if (!c2) return this.ha(a), null;
+      var d = Ra(this.N, c2);
       if (void 0 !== d) {
-        if (0 === d.M.count.value) return d.M.O = c, d.M.T = a, d.clone();
+        if (0 === d.M.count.value) return d.M.O = c2, d.M.T = a, d.clone();
         d = d.clone();
         this.ha(a);
         return d;
       }
-      d = this.N.pa(c);
+      d = this.N.pa(c2);
       d = Qa[d];
       if (!d) return b.call(this);
       d = this.ca ? d.la : d.pointerType;
-      var e = Pa(c, this.N, d.N);
+      var e = Pa(c2, this.N, d.N);
       return null === e ? b.call(this) : this.da ? Ua(d.N.X, { P: d, O: e, U: this, T: a }) : Ua(d.N.X, { P: d, O: e });
     };
     mb = h.UnboundTypeError = Da("UnboundTypeError");
     var xa = "function" == typeof atob ? atob : function(a) {
-      var b = "", c = 0;
+      var b = "", c2 = 0;
       a = a.replace(/[^A-Za-z0-9\+\/=]/g, "");
       do {
-        var d = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=".indexOf(a.charAt(c++));
-        var e = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=".indexOf(a.charAt(c++));
-        var f = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=".indexOf(a.charAt(c++));
-        var g = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=".indexOf(a.charAt(c++));
+        var d = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=".indexOf(a.charAt(c2++));
+        var e = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=".indexOf(a.charAt(c2++));
+        var f = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=".indexOf(a.charAt(c2++));
+        var g = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=".indexOf(a.charAt(c2++));
         d = d << 2 | e >> 4;
         e = (e & 15) << 4 | f >> 2;
         var k = (f & 3) << 6 | g;
         b += String.fromCharCode(d);
         64 !== f && (b += String.fromCharCode(e));
         64 !== g && (b += String.fromCharCode(k));
-      } while (c < a.length);
+      } while (c2 < a.length);
       return b;
     }, Jb = {
-      l: function(a, b, c, d) {
-        x("Assertion failed: " + (a ? z(A, a) : "") + ", at: " + [b ? b ? z(A, b) : "" : "unknown filename", c, d ? d ? z(A, d) : "" : "unknown function"]);
+      l: function(a, b, c2, d) {
+        x("Assertion failed: " + (a ? z(A, a) : "") + ", at: " + [b ? b ? z(A, b) : "" : "unknown filename", c2, d ? d ? z(A, d) : "" : "unknown function"]);
       },
-      q: function(a, b, c) {
+      q: function(a, b, c2) {
         a = N(a);
         b = La(b, "wrapper");
-        c = M(c);
+        c2 = M(c2);
         var d = [].slice, e = b.N, f = e.X, g = e.R.X, k = e.R.constructor;
         a = Ba(a, function() {
           e.R.ja.forEach(function(l) {
@@ -46190,13 +46190,13 @@ var loadYoga = (() => {
           Q.hasOwnProperty(l) ? delete Q[l] : L("Tried to unregister unregistered instance: " + l);
         };
         a.prototype = Object.create(f);
-        for (var m in c) a.prototype[m] = c[m];
+        for (var m in c2) a.prototype[m] = c2[m];
         return Ea(a);
       },
       j: function(a) {
         var b = Va[a];
         delete Va[a];
-        var c = b.fa, d = b.W, e = b.ia, f = e.map((g) => g.ta).concat(e.map((g) => g.za));
+        var c2 = b.fa, d = b.W, e = b.ia, f = e.map((g) => g.ta).concat(e.map((g) => g.za));
         V([a], f, (g) => {
           var k = {};
           e.forEach((m, l) => {
@@ -46218,7 +46218,7 @@ var loadYoga = (() => {
             return l;
           }, toWireType: function(m, l) {
             for (var n in k) if (!(n in l)) throw new TypeError('Missing field:  "' + n + '"');
-            var p = c();
+            var p = c2();
             for (n in k) k[n].write(p, l[n]);
             null !== m && m.push(d, p);
             return p;
@@ -46227,8 +46227,8 @@ var loadYoga = (() => {
       },
       v: function() {
       },
-      B: function(a, b, c, d, e) {
-        var f = Za(c);
+      B: function(a, b, c2, d, e) {
+        var f = Za(c2);
         b = N(b);
         W(a, {
           name: b,
@@ -46240,16 +46240,16 @@ var loadYoga = (() => {
           },
           argPackAdvance: 8,
           readValueFromPointer: function(g) {
-            if (1 === c) var k = ja;
-            else if (2 === c) k = C;
-            else if (4 === c) k = D;
+            if (1 === c2) var k = ja;
+            else if (2 === c2) k = C;
+            else if (4 === c2) k = D;
             else throw new TypeError("Unknown boolean type size: " + b);
             return this.fromWireType(k[g >> f]);
           },
           V: null
         });
       },
-      f: function(a, b, c, d, e, f, g, k, m, l, n, p, r) {
+      f: function(a, b, c2, d, e, f, g, k, m, l, n, p, r) {
         n = N(n);
         f = Z(e, f);
         k && (k = Z(g, k));
@@ -46259,7 +46259,7 @@ var loadYoga = (() => {
         bb(u, function() {
           nb("Cannot construct " + n + " due to unbound types", [d]);
         });
-        V([a, b, c], d ? [d] : [], function(t) {
+        V([a, b, c2], d ? [d] : [], function(t) {
           t = t[0];
           if (d) {
             var y = t.N;
@@ -46286,8 +46286,8 @@ var loadYoga = (() => {
           return [y, B, lb];
         });
       },
-      d: function(a, b, c, d, e, f, g) {
-        var k = pb(c, d);
+      d: function(a, b, c2, d, e, f, g) {
+        var k = pb(c2, d);
         b = N(b);
         f = Z(e, f);
         V([], [a], function(m) {
@@ -46298,20 +46298,20 @@ var loadYoga = (() => {
           var n = m.name + "." + b;
           b.startsWith("@@") && (b = Symbol[b.substring(2)]);
           var p = m.N.constructor;
-          void 0 === p[b] ? (l.Z = c - 1, p[b] = l) : (ab(p, b, n), p[b].S[c - 1] = l);
+          void 0 === p[b] ? (l.Z = c2 - 1, p[b] = l) : (ab(p, b, n), p[b].S[c2 - 1] = l);
           V([], k, function(r) {
             r = ob(n, [r[0], null].concat(r.slice(1)), null, f, g);
-            void 0 === p[b].S ? (r.Z = c - 1, p[b] = r) : p[b].S[c - 1] = r;
+            void 0 === p[b].S ? (r.Z = c2 - 1, p[b] = r) : p[b].S[c2 - 1] = r;
             return [];
           });
           return [];
         });
       },
-      p: function(a, b, c, d, e, f) {
+      p: function(a, b, c2, d, e, f) {
         0 < b || x();
         var g = pb(
           b,
-          c
+          c2
         );
         e = Z(d, e);
         V([], [a], function(k) {
@@ -46330,8 +46330,8 @@ var loadYoga = (() => {
           return [];
         });
       },
-      a: function(a, b, c, d, e, f, g, k) {
-        var m = pb(c, d);
+      a: function(a, b, c2, d, e, f, g, k) {
+        var m = pb(c2, d);
         b = N(b);
         f = Z(e, f);
         V([], [a], function(l) {
@@ -46343,10 +46343,10 @@ var loadYoga = (() => {
           b.startsWith("@@") && (b = Symbol[b.substring(2)]);
           k && l.N.ja.push(b);
           var r = l.N.X, u = r[b];
-          void 0 === u || void 0 === u.S && u.className !== l.name && u.Z === c - 2 ? (n.Z = c - 2, n.className = l.name, r[b] = n) : (ab(r, b, p), r[b].S[c - 2] = n);
+          void 0 === u || void 0 === u.S && u.className !== l.name && u.Z === c2 - 2 ? (n.Z = c2 - 2, n.className = l.name, r[b] = n) : (ab(r, b, p), r[b].S[c2 - 2] = n);
           V([], m, function(t) {
             t = ob(p, t, l, f, g);
-            void 0 === r[b].S ? (t.Z = c - 2, r[b] = t) : r[b].S[c - 2] = t;
+            void 0 === r[b].S ? (t.Z = c2 - 2, r[b] = t) : r[b].S[c2 - 2] = t;
             return [];
           });
           return [];
@@ -46356,56 +46356,56 @@ var loadYoga = (() => {
         b = N(b);
         W(
           a,
-          { name: b, fromWireType: function(c) {
-            var d = M(c);
-            qb(c);
+          { name: b, fromWireType: function(c2) {
+            var d = M(c2);
+            qb(c2);
             return d;
-          }, toWireType: function(c, d) {
+          }, toWireType: function(c2, d) {
             return Ea(d);
           }, argPackAdvance: 8, readValueFromPointer: Xa, V: null }
         );
       },
-      n: function(a, b, c) {
-        c = Za(c);
+      n: function(a, b, c2) {
+        c2 = Za(c2);
         b = N(b);
         W(a, { name: b, fromWireType: function(d) {
           return d;
         }, toWireType: function(d, e) {
           return e;
-        }, argPackAdvance: 8, readValueFromPointer: rb(b, c), V: null });
+        }, argPackAdvance: 8, readValueFromPointer: rb(b, c2), V: null });
       },
-      e: function(a, b, c, d, e) {
+      e: function(a, b, c2, d, e) {
         b = N(b);
         -1 === e && (e = 4294967295);
-        e = Za(c);
+        e = Za(c2);
         var f = (k) => k;
         if (0 === d) {
-          var g = 32 - 8 * c;
+          var g = 32 - 8 * c2;
           f = (k) => k << g >>> g;
         }
-        c = b.includes("unsigned") ? function(k, m) {
+        c2 = b.includes("unsigned") ? function(k, m) {
           return m >>> 0;
         } : function(k, m) {
           return m;
         };
-        W(a, { name: b, fromWireType: f, toWireType: c, argPackAdvance: 8, readValueFromPointer: sb(b, e, 0 !== d), V: null });
+        W(a, { name: b, fromWireType: f, toWireType: c2, argPackAdvance: 8, readValueFromPointer: sb(b, e, 0 !== d), V: null });
       },
-      b: function(a, b, c) {
+      b: function(a, b, c2) {
         function d(f) {
           f >>= 2;
           var g = E;
           return new e(ia, g[f + 1], g[f]);
         }
         var e = [Int8Array, Uint8Array, Int16Array, Uint16Array, Int32Array, Uint32Array, Float32Array, Float64Array][b];
-        c = N(c);
-        W(a, { name: c, fromWireType: d, argPackAdvance: 8, readValueFromPointer: d }, { ua: true });
+        c2 = N(c2);
+        W(a, { name: c2, fromWireType: d, argPackAdvance: 8, readValueFromPointer: d }, { ua: true });
       },
       o: function(a, b) {
         b = N(b);
-        var c = "std::string" === b;
+        var c2 = "std::string" === b;
         W(a, { name: b, fromWireType: function(d) {
           var e = E[d >> 2], f = d + 4;
-          if (c) for (var g = f, k = 0; k <= e; ++k) {
+          if (c2) for (var g = f, k = 0; k <= e; ++k) {
             var m = f + k;
             if (k == e || 0 == A[m]) {
               g = g ? z(A, g, m - g) : "";
@@ -46425,7 +46425,7 @@ var loadYoga = (() => {
           e instanceof ArrayBuffer && (e = new Uint8Array(e));
           var f, g = "string" == typeof e;
           g || e instanceof Uint8Array || e instanceof Uint8ClampedArray || e instanceof Int8Array || L("Cannot pass non-string to std::string");
-          if (c && g) {
+          if (c2 && g) {
             var k = 0;
             for (f = 0; f < e.length; ++f) {
               var m = e.charCodeAt(f);
@@ -46436,7 +46436,7 @@ var loadYoga = (() => {
           k = Ib(4 + f + 1);
           m = k + 4;
           E[k >> 2] = f;
-          if (c && g) {
+          if (c2 && g) {
             if (g = m, m = f + 1, f = A, 0 < m) {
               m = g + m - 1;
               for (var l = 0; l < e.length; ++l) {
@@ -46476,8 +46476,8 @@ var loadYoga = (() => {
           S(d);
         } });
       },
-      i: function(a, b, c) {
-        c = N(c);
+      i: function(a, b, c2) {
+        c2 = N(c2);
         if (2 === b) {
           var d = tb;
           var e = ub;
@@ -46485,7 +46485,7 @@ var loadYoga = (() => {
           var g = () => ka;
           var k = 1;
         } else 4 === b && (d = wb, e = xb, f = yb, g = () => E, k = 2);
-        W(a, { name: c, fromWireType: function(m) {
+        W(a, { name: c2, fromWireType: function(m) {
           for (var l = E[m >> 2], n = g(), p, r = m + 4, u = 0; u <= l; ++u) {
             var t = m + 4 + u * b;
             if (u == l || 0 == n[t >> k]) r = d(r, t - r), void 0 === p ? p = r : (p += String.fromCharCode(0), p += r), r = t + b;
@@ -46493,7 +46493,7 @@ var loadYoga = (() => {
           S(m);
           return p;
         }, toWireType: function(m, l) {
-          "string" != typeof l && L("Cannot pass non-string to C++ string type " + c);
+          "string" != typeof l && L("Cannot pass non-string to C++ string type " + c2);
           var n = f(l), p = Ib(4 + n + b);
           E[p >> 2] = n >> k;
           e(l, p + 4, n + b);
@@ -46503,11 +46503,11 @@ var loadYoga = (() => {
           S(m);
         } });
       },
-      k: function(a, b, c, d, e, f) {
-        Va[a] = { name: N(b), fa: Z(c, d), W: Z(e, f), ia: [] };
+      k: function(a, b, c2, d, e, f) {
+        Va[a] = { name: N(b), fa: Z(c2, d), W: Z(e, f), ia: [] };
       },
-      h: function(a, b, c, d, e, f, g, k, m, l) {
-        Va[a].ia.push({ oa: N(b), ta: c, ra: Z(d, e), sa: f, za: g, ya: Z(k, m), Aa: l });
+      h: function(a, b, c2, d, e, f, g, k, m, l) {
+        Va[a].ia.push({ oa: N(b), ta: c2, ra: Z(d, e), sa: f, za: g, ya: Z(k, m), Aa: l });
       },
       C: function(a, b) {
         b = N(b);
@@ -46521,36 +46521,36 @@ var loadYoga = (() => {
           }
         });
       },
-      s: function(a, b, c, d, e) {
+      s: function(a, b, c2, d, e) {
         a = Bb[a];
         b = M(b);
-        c = Ab(c);
+        c2 = Ab(c2);
         var f = [];
         E[d >> 2] = Ea(f);
-        return a(b, c, f, e);
+        return a(b, c2, f, e);
       },
-      t: function(a, b, c, d) {
+      t: function(a, b, c2, d) {
         a = Bb[a];
         b = M(b);
-        c = Ab(c);
-        a(b, c, null, d);
+        c2 = Ab(c2);
+        a(b, c2, null, d);
       },
       g: qb,
       m: function(a, b) {
-        var c = Db(a, b), d = c[0];
-        b = d.name + "_$" + c.slice(1).map(function(g) {
+        var c2 = Db(a, b), d = c2[0];
+        b = d.name + "_$" + c2.slice(1).map(function(g) {
           return g.name;
         }).join("_") + "$";
         var e = Eb[b];
         if (void 0 !== e) return e;
         var f = Array(a - 1);
         e = Cb((g, k, m, l) => {
-          for (var n = 0, p = 0; p < a - 1; ++p) f[p] = c[p + 1].readValueFromPointer(l + n), n += c[p + 1].argPackAdvance;
+          for (var n = 0, p = 0; p < a - 1; ++p) f[p] = c2[p + 1].readValueFromPointer(l + n), n += c2[p + 1].argPackAdvance;
           g = g[k].apply(
             g,
             f
           );
-          for (p = 0; p < a - 1; ++p) c[p + 1].ma && c[p + 1].ma(f[p]);
+          for (p = 0; p < a - 1; ++p) c2[p + 1].ma && c2[p + 1].ma(f[p]);
           if (!d.va) return d.toWireType(m, g);
         });
         return Eb[b] = e;
@@ -46566,15 +46566,15 @@ var loadYoga = (() => {
       c: function() {
         x("");
       },
-      x: function(a, b, c) {
-        A.copyWithin(a, b, b + c);
+      x: function(a, b, c2) {
+        A.copyWithin(a, b, b + c2);
       },
       w: function(a) {
         var b = A.length;
         a >>>= 0;
         if (2147483648 < a) return false;
-        for (var c = 1; 4 >= c; c *= 2) {
-          var d = b * (1 + 0.2 / c);
+        for (var c2 = 1; 4 >= c2; c2 *= 2) {
+          var d = b * (1 + 0.2 / c2);
           d = Math.min(d, a + 100663296);
           var e = Math;
           d = Math.max(a, d);
@@ -46599,8 +46599,8 @@ var loadYoga = (() => {
       u: function() {
         return 70;
       },
-      y: function(a, b, c, d) {
-        for (var e = 0, f = 0; f < c; f++) {
+      y: function(a, b, c2, d) {
+        for (var e = 0, f = 0; f < c2; f++) {
           var g = E[b >> 2], k = E[b + 4 >> 2];
           b += 8;
           for (var m = 0; m < k; m++) {
@@ -46627,7 +46627,7 @@ var loadYoga = (() => {
       function b(e) {
         a(e.instance);
       }
-      function c(e) {
+      function c2(e) {
         return ya().then(function(f) {
           return WebAssembly.instantiate(f, d);
         }).then(function(f) {
@@ -46649,11 +46649,11 @@ var loadYoga = (() => {
         v("Module.instantiateWasm callback failed with error: " + e), ca(e);
       }
       (function() {
-        return w || "function" != typeof WebAssembly.instantiateStreaming || ua(H) || "function" != typeof fetch ? c(b) : fetch(H, { credentials: "same-origin" }).then(function(e) {
+        return w || "function" != typeof WebAssembly.instantiateStreaming || ua(H) || "function" != typeof fetch ? c2(b) : fetch(H, { credentials: "same-origin" }).then(function(e) {
           return WebAssembly.instantiateStreaming(e, d).then(b, function(f) {
             v("wasm streaming compile failed: " + f);
             v("falling back to ArrayBuffer instantiation");
-            return c(b);
+            return c2(b);
           });
         });
       })().catch(ca);
@@ -52683,8 +52683,8 @@ var kittyModifiers = {
 var noop = () => {
 };
 var textEncoder = new TextEncoder();
-var yieldImmediate = async () => new Promise((resolve6) => {
-  setImmediate(resolve6);
+var yieldImmediate = async () => new Promise((resolve7) => {
+  setImmediate(resolve7);
 });
 var kittyQueryEscapeByte = 27;
 var kittyQueryOpenBracketByte = 91;
@@ -52888,8 +52888,8 @@ var Ink = class {
       };
     }
     this.initKittyKeyboard();
-    this.exitPromise = new Promise((resolve6, reject) => {
-      this.resolveExitPromise = resolve6;
+    this.exitPromise = new Promise((resolve7, reject) => {
+      this.resolveExitPromise = resolve7;
       this.rejectExitPromise = reject;
     });
     void this.exitPromise.catch(noop);
@@ -53182,9 +53182,9 @@ var Ink = class {
     settleThrottle(this.throttledOnRender, canWriteToStdout);
     settleThrottle(this.throttledLog, canWriteToStdout);
     if (canWriteToStdout && hasWritableState) {
-      await new Promise((resolve6) => {
+      await new Promise((resolve7) => {
         this.options.stdout.write("", () => {
-          resolve6();
+          resolve7();
         });
       });
       return;
@@ -53251,8 +53251,8 @@ var Ink = class {
   async awaitNextRender() {
     if (!this.nextRenderCommit) {
       let resolveRender;
-      const promise = new Promise((resolve6) => {
-        resolveRender = resolve6;
+      const promise = new Promise((resolve7) => {
+        resolveRender = resolve7;
       });
       this.nextRenderCommit = { promise, resolve: resolveRender };
     }
@@ -53985,8 +53985,8 @@ var import_react33 = __toESM(require_react(), 1);
 
 // src/cli/tui.tsx
 import { fileURLToPath as fileURLToPath2 } from "url";
-import { existsSync as existsSync13 } from "fs";
-import { join as join18 } from "path";
+import { existsSync as existsSync14 } from "fs";
+import { join as join20 } from "path";
 
 // src/cli/app.tsx
 var import_react39 = __toESM(require_react(), 1);
@@ -54400,8 +54400,8 @@ function loadConfig(kandownDir) {
   try {
     raw = JSON.parse(readFileSync2(configPath, "utf8"));
   } catch (e) {
-    const err = e;
-    if (err.code === "ENOENT") return normalizeKandownConfig(void 0);
+    const err2 = e;
+    if (err2.code === "ENOENT") return normalizeKandownConfig(void 0);
     console.warn(`[kandown] kandown.json is corrupted, using defaults: ${e.message}`);
     return normalizeKandownConfig(void 0);
   }
@@ -54820,8 +54820,8 @@ function ValueDisplay({ setting, value, focused }) {
 
 // src/cli/screens/board.tsx
 var import_react37 = __toESM(require_react(), 1);
-import { spawnSync } from "child_process";
-import { join as join16 } from "path";
+import { spawnSync as spawnSync2 } from "child_process";
+import { join as join19 } from "path";
 
 // src/cli/lib/board-reader.ts
 import { existsSync as existsSync3, readdirSync as readdirSync2, readFileSync as readFileSync3, mkdirSync, unlinkSync as unlinkSync2 } from "fs";
@@ -55256,6 +55256,202 @@ function serializeValue(key, value, lines, indent) {
   }
 }
 
+// src/lib/task-title-category.ts
+function parseTaskTitle(title) {
+  if (!title) return { category: null, rawCategory: null, cleanTitle: "" };
+  const match = title.match(/^\[([^\]]+)\]\s*/);
+  if (!match) {
+    return { category: null, rawCategory: null, cleanTitle: title };
+  }
+  return {
+    category: match[1],
+    rawCategory: match[0].trim(),
+    cleanTitle: title.slice(match[0].length)
+  };
+}
+
+// src/lib/task-filename.ts
+var SLUG_MAX_WORDS = 3;
+var SLUG_MAX_LENGTH = 48;
+var SLUG_MAX_WORD_LENGTH = 20;
+var SLUG_SEPARATOR = "_";
+var ID_LIKE = /^(?=.*\d)[A-Za-z0-9-]+$/;
+var TRANSLITERATIONS = [
+  [/ß/g, "ss"],
+  [/æ/g, "ae"],
+  [/œ/g, "oe"],
+  [/ø/g, "o"],
+  [/å/g, "a"],
+  [/ð/g, "d"],
+  [/þ/g, "th"],
+  [/ł/g, "l"],
+  [/đ/g, "d"],
+  [/ħ/g, "h"],
+  [/ı/g, "i"],
+  [/ŋ/g, "n"]
+];
+function byCodeUnit(a, b) {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+var STOP_WORDS = /* @__PURE__ */ new Set([
+  // English
+  "a",
+  "an",
+  "and",
+  "are",
+  "as",
+  "at",
+  "be",
+  "but",
+  "by",
+  "for",
+  "from",
+  "in",
+  "into",
+  "is",
+  "it",
+  "its",
+  "of",
+  "on",
+  "onto",
+  "or",
+  "our",
+  "that",
+  "the",
+  "their",
+  "then",
+  "there",
+  "this",
+  "to",
+  "we",
+  "when",
+  "with",
+  "without",
+  // French
+  "au",
+  "aux",
+  "avec",
+  "ce",
+  "ces",
+  "dans",
+  "de",
+  "des",
+  "du",
+  "en",
+  "et",
+  "il",
+  "la",
+  "le",
+  "les",
+  "leur",
+  "ne",
+  "ou",
+  "par",
+  "pas",
+  "pour",
+  "que",
+  "qui",
+  "sa",
+  "sans",
+  "se",
+  "ses",
+  "son",
+  "sur",
+  "un",
+  "une",
+  "y"
+]);
+function slugifyTitle(title, maxWords = SLUG_MAX_WORDS) {
+  if (typeof title !== "string" || !title.trim()) return "";
+  if (!Number.isFinite(maxWords) || maxWords < 1) return "";
+  const { cleanTitle } = parseTaskTitle(title);
+  let text = cleanTitle.trim() || title;
+  for (const [pattern, replacement] of TRANSLITERATIONS) text = text.replace(pattern, replacement);
+  const ascii = text.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  if (!ascii) return "";
+  const words = ascii.split(" ").filter(Boolean).map((w) => w.slice(0, SLUG_MAX_WORD_LENGTH));
+  const meaningful = words.filter((w) => !STOP_WORDS.has(w));
+  const chosen = (meaningful.length ? meaningful : words).slice(0, Math.floor(maxWords));
+  let slug = chosen.join(SLUG_SEPARATOR);
+  if (slug.length > SLUG_MAX_LENGTH) {
+    slug = slug.slice(0, SLUG_MAX_LENGTH).replace(/_+[^_]*$/, "");
+    if (!slug) slug = chosen[0].slice(0, SLUG_MAX_LENGTH);
+  }
+  return slug.replace(/^_+|_+$/g, "");
+}
+function buildTaskFilename(id, title, takenFilenames = []) {
+  const safeId = String(id ?? "").trim();
+  if (!safeId) throw new Error("buildTaskFilename requires a task id");
+  if (/[\\/]|^\.+$/.test(safeId)) throw new Error(`Unsafe task id for a filename: ${safeId}`);
+  const slug = slugifyTitle(title ?? "");
+  const candidate = slug ? `${safeId}${SLUG_SEPARATOR}${slug}.md` : `${safeId}.md`;
+  if (!takenFilenames.length) return candidate;
+  const taken = new Set(takenFilenames.map((f) => f.toLowerCase()));
+  if (!taken.has(candidate.toLowerCase())) return candidate;
+  const stem = candidate.slice(0, -3);
+  for (let n = 2; n < 1e3; n += 1) {
+    const next = `${stem}${SLUG_SEPARATOR}${n}.md`;
+    if (!taken.has(next.toLowerCase())) return next;
+  }
+  throw new Error(`Could not find a free filename for task ${safeId}`);
+}
+function isTaskFilename(name) {
+  if (typeof name !== "string") return false;
+  if (!name.toLowerCase().endsWith(".md")) return false;
+  if (name.startsWith(".") || name.includes("/") || name.includes("\\")) return false;
+  const base = name.slice(0, -3);
+  if (!base || base === "." || base === "..") return false;
+  return /^[A-Za-z0-9._-]+$/.test(base);
+}
+function parseTaskFilename(name) {
+  if (!isTaskFilename(name)) return null;
+  const base = name.slice(0, -3);
+  const cut = base.indexOf(SLUG_SEPARATOR);
+  const idPrefix = cut > 0 ? base.slice(0, cut) : null;
+  if (idPrefix === null || cut === base.length - 1 || !ID_LIKE.test(idPrefix)) {
+    return { base, idPrefix: null, slug: null, candidateIds: [base] };
+  }
+  const slug = base.slice(cut + 1);
+  return { base, idPrefix, slug, candidateIds: [base, idPrefix] };
+}
+function taskIdFromFilename(name) {
+  const info2 = parseTaskFilename(name);
+  return info2 ? info2.idPrefix ?? info2.base : null;
+}
+function resolveTaskFilename(id, filenames) {
+  const wanted = String(id ?? "").trim();
+  if (!wanted) return null;
+  const parsed = filenames.map((name) => ({ name, info: parseTaskFilename(name) })).filter((entry) => entry.info !== null).sort((a, b) => byCodeUnit(a.name, b.name));
+  const pick = (matches, exact) => {
+    if (!matches.length) return null;
+    const [best, ...rest] = matches;
+    return {
+      filename: best.name,
+      id: wanted,
+      slug: best.info.slug,
+      exact,
+      ambiguousWith: rest.map((m) => m.name)
+    };
+  };
+  const exactMatches = parsed.filter((e) => e.info.base === wanted);
+  if (exactMatches.length) {
+    const others = parsed.filter((e) => e.info.base !== wanted && e.info.idPrefix === wanted);
+    const match = pick(exactMatches, true);
+    return { ...match, ambiguousWith: [...match.ambiguousWith, ...others.map((o) => o.name)] };
+  }
+  const prefixMatches = parsed.filter((e) => e.info.idPrefix === wanted);
+  if (prefixMatches.length) return pick(prefixMatches, false);
+  const lower = wanted.toLowerCase();
+  const exactCi = parsed.filter((e) => e.info.base.toLowerCase() === lower);
+  if (exactCi.length) return pick(exactCi, true);
+  const prefixCi = parsed.filter((e) => e.info.idPrefix?.toLowerCase() === lower);
+  if (prefixCi.length) return pick(prefixCi, false);
+  return null;
+}
+function hasDescriptiveSlug(name) {
+  return parseTaskFilename(name)?.slug != null;
+}
+
 // src/cli/lib/board-reader.ts
 function getProjectRoot(kandownDir) {
   return dirname(kandownDir);
@@ -55263,24 +55459,49 @@ function getProjectRoot(kandownDir) {
 function getTasksDir(kandownDir) {
   return join2(getProjectRoot(kandownDir), "tasks");
 }
+function listTaskFilenames(directory) {
+  if (!existsSync3(directory)) return [];
+  try {
+    return readdirSync2(directory).filter(isTaskFilename);
+  } catch {
+    return [];
+  }
+}
 function listTaskIds(kandownDir) {
   const tasksDir = getTasksDir(kandownDir);
-  const ids = /* @__PURE__ */ new Set();
+  const owners = /* @__PURE__ */ new Map();
   for (const directory of [tasksDir, join2(tasksDir, "archive")]) {
-    if (!existsSync3(directory)) continue;
-    for (const name of readdirSync2(directory).filter((entry) => entry.endsWith(".md"))) {
-      ids.add(name.slice(0, -3));
+    for (const name of listTaskFilenames(directory).sort()) {
+      const id = taskIdFromFilename(name);
+      if (!id) continue;
+      const owner = owners.get(id);
+      if (owner) {
+        if (owner !== name) {
+          console.error(`[kandown] Two files claim task ${id}: using ${owner}, ignoring ${name}`);
+        }
+        continue;
+      }
+      owners.set(id, name);
     }
   }
-  return [...ids].sort((a, b) => a.localeCompare(b, void 0, { numeric: true }));
+  return [...owners.keys()].sort((a, b) => a.localeCompare(b, void 0, { numeric: true }));
 }
 function findTaskPath(kandownDir, taskId) {
   if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return null;
   const tasksDir = getTasksDir(kandownDir);
-  const activePath = join2(tasksDir, `${taskId}.md`);
-  if (existsSync3(activePath)) return activePath;
-  const archivedPath = join2(tasksDir, "archive", `${taskId}.md`);
-  return existsSync3(archivedPath) ? archivedPath : null;
+  for (const directory of [tasksDir, join2(tasksDir, "archive")]) {
+    const match = resolveTaskFilename(taskId, listTaskFilenames(directory));
+    if (!match) continue;
+    if (match.ambiguousWith.length) {
+      console.error(`[kandown] Task ${taskId} is claimed by several files, using ${match.filename} (also: ${match.ambiguousWith.join(", ")})`);
+    }
+    return join2(directory, match.filename);
+  }
+  return null;
+}
+function newTaskFilePath(kandownDir, id, title) {
+  const tasksDir = getTasksDir(kandownDir);
+  return join2(tasksDir, buildTaskFilename(id, title, listTaskFilenames(tasksDir)));
 }
 function readBoard(kandownDir) {
   const config = loadConfig(kandownDir);
@@ -55319,7 +55540,7 @@ function readTask(kandownDir, taskId, defaultStatus) {
   const content = readFileSync3(taskPath, "utf8");
   const parsed = parseTaskFile(content);
   const tasksDir = getTasksDir(kandownDir);
-  const inArchive = taskPath === join2(tasksDir, "archive", `${taskId}.md`) || taskPath.startsWith(join2(tasksDir, "archive") + sep);
+  const inArchive = taskPath.startsWith(join2(tasksDir, "archive") + sep);
   const archived = inArchive || isArchived(parsed);
   return {
     ...parsed,
@@ -55500,7 +55721,7 @@ function createTaskInBoard(kandownDir, rawInput, status) {
   if (due) fm.due = due;
   if (depends_on.length > 0) fm.depends_on = depends_on;
   const content = serializeTaskFile(fm, "");
-  const taskPath = join2(tasksDir, `${newId}.md`);
+  const taskPath = newTaskFilePath(kandownDir, newId, title);
   atomicWriteFileSync(taskPath, content);
   pushUndo(kandownDir, {
     type: "create",
@@ -55533,7 +55754,9 @@ function deleteTaskInBoard(kandownDir, taskId) {
 }
 function archiveTaskInBoard(kandownDir, taskId) {
   const tasksDir = getTasksDir(kandownDir);
-  const taskPath = join2(tasksDir, `${taskId}.md`);
+  const match = resolveTaskFilename(taskId, listTaskFilenames(tasksDir));
+  if (!match) return false;
+  const taskPath = join2(tasksDir, match.filename);
   if (!existsSync3(taskPath)) return false;
   try {
     const prevContent = readFileSync3(taskPath, "utf8");
@@ -55545,7 +55768,7 @@ function archiveTaskInBoard(kandownDir, taskId) {
       id: taskId,
       archived: true
     }), parsed.body);
-    const destPath = join2(archiveDir, `${taskId}.md`);
+    const destPath = join2(archiveDir, match.filename);
     atomicWriteFileSync(destPath, newContent);
     unlinkSync2(taskPath);
     pushUndo(kandownDir, {
@@ -55575,7 +55798,7 @@ import { spawn, execSync } from "child_process";
 import { homedir } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.49.0";
+var KANDOWN_VERSION = "0.50.0";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath } from "url";
@@ -55671,16 +55894,16 @@ async function fetchDaemonInfo(port) {
   }
 }
 function isPortListening(port, timeoutMs = 400) {
-  return new Promise((resolve6) => {
+  return new Promise((resolve7) => {
     const socket = createConnection({ port, host: "127.0.0.1" }, () => {
       socket.destroy();
-      resolve6(true);
+      resolve7(true);
     });
-    socket.on("error", () => resolve6(false));
+    socket.on("error", () => resolve7(false));
     socket.setTimeout(timeoutMs);
     socket.on("timeout", () => {
       socket.destroy();
-      resolve6(false);
+      resolve7(false);
     });
   });
 }
@@ -55708,7 +55931,7 @@ async function waitForDaemon(kandownDir, timeoutMs = 8e3) {
     if (metadata && isProcessAlive(metadata.pid) && await isPortListening(metadata.port)) {
       return { running: true, metadata };
     }
-    await new Promise((resolve6) => setTimeout(resolve6, 120));
+    await new Promise((resolve7) => setTimeout(resolve7, 120));
   }
   return { running: false, metadata: null };
 }
@@ -55771,7 +55994,7 @@ async function stopProjectDaemon(kandownDir) {
   }
   const started = Date.now();
   while (Date.now() - started < 2500 && isProcessAlive(pid)) {
-    await new Promise((resolve6) => setTimeout(resolve6, 100));
+    await new Promise((resolve7) => setTimeout(resolve7, 100));
   }
   if (isProcessAlive(pid)) {
     try {
@@ -55785,9 +56008,9 @@ async function stopProjectDaemon(kandownDir) {
 var CHECK_INTERVAL_MS = 5 * 6e4;
 
 // src/cli/lib/file-watcher.ts
-import { createReadStream, statSync as statSync3, existsSync as existsSync6 } from "fs";
+import { createReadStream, statSync as statSync3 } from "fs";
 import { createHash } from "crypto";
-import { join as join7 } from "path";
+import { basename as basename3, join as join7 } from "path";
 
 // node_modules/.pnpm/chokidar@4.0.3/node_modules/chokidar/esm/index.js
 import { stat as statcb } from "fs";
@@ -55942,22 +56165,22 @@ var ReaddirpStream = class extends Readable {
   }
   async _formatEntry(dirent, path) {
     let entry;
-    const basename4 = this._isDirent ? dirent.name : dirent;
+    const basename7 = this._isDirent ? dirent.name : dirent;
     try {
-      const fullPath = presolve(pjoin(path, basename4));
-      entry = { path: prelative(this._root, fullPath), fullPath, basename: basename4 };
+      const fullPath = presolve(pjoin(path, basename7));
+      entry = { path: prelative(this._root, fullPath), fullPath, basename: basename7 };
       entry[this._statsProp] = this._isDirent ? dirent : await this._stat(fullPath);
-    } catch (err) {
-      this._onError(err);
+    } catch (err2) {
+      this._onError(err2);
       return;
     }
     return entry;
   }
-  _onError(err) {
-    if (isNormalFlowError(err) && !this.destroyed) {
-      this.emit("warn", err);
+  _onError(err2) {
+    if (isNormalFlowError(err2) && !this.destroyed) {
+      this.emit("warn", err2);
     } else {
-      this.destroy(err);
+      this.destroy(err2);
     }
   }
   async _getEntryType(entry) {
@@ -56403,7 +56626,7 @@ var setFsWatchListener = (path, fullPath, options, handlers) => {
           const fd = await open(path, "r");
           await fd.close();
           broadcastErr(error);
-        } catch (err) {
+        } catch (err2) {
         }
       } else {
         broadcastErr(error);
@@ -56484,9 +56707,9 @@ var NodeFsHandler = class {
   _watchWithNodeFs(path, listener) {
     const opts = this.fsw.options;
     const directory = sysPath.dirname(path);
-    const basename4 = sysPath.basename(path);
+    const basename7 = sysPath.basename(path);
     const parent = this.fsw._getWatchedDir(directory);
-    parent.add(basename4);
+    parent.add(basename7);
     const absolutePath = sysPath.resolve(path);
     const options = {
       persistent: opts.persistent
@@ -56496,7 +56719,7 @@ var NodeFsHandler = class {
     let closer;
     if (opts.usePolling) {
       const enableBin = opts.interval !== opts.binaryInterval;
-      options.interval = enableBin && isBinaryPath(basename4) ? opts.binaryInterval : opts.interval;
+      options.interval = enableBin && isBinaryPath(basename7) ? opts.binaryInterval : opts.interval;
       closer = setFsWatchFileListener(path, absolutePath, options, {
         listener,
         rawEmitter: this.fsw._emitRaw
@@ -56518,11 +56741,11 @@ var NodeFsHandler = class {
     if (this.fsw.closed) {
       return;
     }
-    const dirname6 = sysPath.dirname(file);
-    const basename4 = sysPath.basename(file);
-    const parent = this.fsw._getWatchedDir(dirname6);
+    const dirname8 = sysPath.dirname(file);
+    const basename7 = sysPath.basename(file);
+    const parent = this.fsw._getWatchedDir(dirname8);
     let prevStats = stats;
-    if (parent.has(basename4))
+    if (parent.has(basename7))
       return;
     const listener = async (path, newStats) => {
       if (!this.fsw._throttle(THROTTLE_MODE_WATCH, file, 5))
@@ -56547,9 +56770,9 @@ var NodeFsHandler = class {
             prevStats = newStats2;
           }
         } catch (error) {
-          this.fsw._remove(dirname6, basename4);
+          this.fsw._remove(dirname8, basename7);
         }
-      } else if (parent.has(basename4)) {
+      } else if (parent.has(basename7)) {
         const at = newStats.atimeMs;
         const mt = newStats.mtimeMs;
         if (!at || at <= mt || mt !== prevStats.mtimeMs) {
@@ -56643,7 +56866,7 @@ var NodeFsHandler = class {
         this._addToNodeFs(path, initialAdd, wh, depth + 1);
       }
     }).on(EV.ERROR, this._boundHandleError);
-    return new Promise((resolve6, reject) => {
+    return new Promise((resolve7, reject) => {
       if (!stream)
         return reject();
       stream.once(STR_END, () => {
@@ -56652,7 +56875,7 @@ var NodeFsHandler = class {
           return;
         }
         const wasThrottled = throttler ? throttler.clear() : false;
-        resolve6(void 0);
+        resolve7(void 0);
         previous.getChildren().filter((item) => {
           return item !== directory && !current.has(item);
         }).forEach((item) => {
@@ -56904,7 +57127,7 @@ var DirEntry = class {
     const dir = this.path;
     try {
       await readdir2(dir);
-    } catch (err) {
+    } catch (err2) {
       if (this._removeWatcher) {
         this._removeWatcher(sysPath2.dirname(dir), sysPath2.basename(dir));
       }
@@ -57202,10 +57425,10 @@ var FSWatcher = class extends EventEmitter3 {
       }
     }
     if (awf && (event === EVENTS.ADD || event === EVENTS.CHANGE) && this._readyEmitted) {
-      const awfEmit = (err, stats2) => {
-        if (err) {
+      const awfEmit = (err2, stats2) => {
+        if (err2) {
           event = EVENTS.ERROR;
-          args[0] = err;
+          args[0] = err2;
           this.emitWithAll(event, args);
         } else if (stats2) {
           if (args.length > 1) {
@@ -57229,7 +57452,7 @@ var FSWatcher = class extends EventEmitter3 {
       let stats2;
       try {
         stats2 = await stat3(fullPath);
-      } catch (err) {
+      } catch (err2) {
       }
       if (!stats2 || this.closed)
         return;
@@ -57307,10 +57530,10 @@ var FSWatcher = class extends EventEmitter3 {
     const now = /* @__PURE__ */ new Date();
     const writes = this._pendingWrites;
     function awaitWriteFinishFn(prevStat) {
-      statcb(fullPath, (err, curStat) => {
-        if (err || !writes.has(path)) {
-          if (err && err.code !== "ENOENT")
-            awfEmit(err);
+      statcb(fullPath, (err2, curStat) => {
+        if (err2 || !writes.has(path)) {
+          if (err2 && err2.code !== "ENOENT")
+            awfEmit(err2);
           return;
         }
         const now2 = Number(/* @__PURE__ */ new Date());
@@ -57481,11 +57704,11 @@ function watch(paths, options = {}) {
 
 // src/cli/lib/file-watcher.ts
 function hashFile(filePath) {
-  return new Promise((resolve6, reject) => {
+  return new Promise((resolve7, reject) => {
     const hash = createHash("sha256");
     const stream = createReadStream(filePath);
     stream.on("data", (chunk) => hash.update(chunk));
-    stream.on("end", () => resolve6(hash.digest("hex")));
+    stream.on("end", () => resolve7(hash.digest("hex")));
     stream.on("error", reject);
   });
 }
@@ -57494,8 +57717,11 @@ function hashFileSync(filePath) {
   return createHash("sha256").update(content).digest("hex");
 }
 function taskFilePath(tasksDir, taskId) {
-  const activePath = join7(tasksDir, `${taskId}.md`);
-  return existsSync6(activePath) ? activePath : join7(tasksDir, "archive", `${taskId}.md`);
+  for (const directory of [tasksDir, join7(tasksDir, "archive")]) {
+    const match = resolveTaskFilename(taskId, listTaskFilenames(directory));
+    if (match) return join7(directory, match.filename);
+  }
+  return join7(tasksDir, "archive", `${taskId}.md`);
 }
 var FileWatcher = class {
   watcher = null;
@@ -57587,7 +57813,7 @@ var FileWatcher = class {
       }, this.watchDebounceDelay));
       return;
     }
-    const taskId = filePath.replace(/\\/g, "/").split("/").pop()?.replace(/\.md$/, "") ?? "";
+    const taskId = taskIdFromFilename(basename3(filePath.replace(/\\/g, "/")));
     if (!taskId) return;
     if (event === "add" || event === "change") {
       const key = `task:${taskId}:${event}`;
@@ -57697,7 +57923,7 @@ function createWatcher() {
 import { execFileSync as execFileSync3 } from "child_process";
 
 // src/cli/lib/agents-config.ts
-import { existsSync as existsSync7, readFileSync as readFileSync6 } from "fs";
+import { existsSync as existsSync6, readFileSync as readFileSync6 } from "fs";
 import { join as join8 } from "path";
 var AGENTS_CONFIG_VERSION = 1;
 var DEFAULT_CASCADE = {
@@ -57738,13 +57964,13 @@ function defaultAgentsConfig() {
 }
 function loadAgentsConfig(kandownDir) {
   const path = join8(kandownDir, "agents.json");
-  if (!existsSync7(path)) return defaultAgentsConfig();
+  if (!existsSync6(path)) return defaultAgentsConfig();
   let raw;
   try {
     raw = JSON.parse(readFileSync6(path, "utf8"));
   } catch (e) {
-    const err = e;
-    if (err.code === "ENOENT") return defaultAgentsConfig();
+    const err2 = e;
+    if (err2.code === "ENOENT") return defaultAgentsConfig();
     console.warn(`[kandown] agents.json is corrupted, using defaults: ${e.message}`);
     return defaultAgentsConfig();
   }
@@ -57775,9 +58001,9 @@ function loadAgentsConfig(kandownDir) {
 }
 function resolveCascade(raw) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { ...DEFAULT_CASCADE };
-  const c = raw;
-  const ub = c.unassignedBehavior;
-  const ssc = c.sameSessionChain;
+  const c2 = raw;
+  const ub = c2.unassignedBehavior;
+  const ssc = c2.sameSessionChain;
   return {
     unassignedBehavior: ub === "preferred" ? "preferred" : ub === "skip" ? "skip" : DEFAULT_CASCADE.unassignedBehavior,
     sameSessionChain: typeof ssc === "boolean" ? ssc : DEFAULT_CASCADE.sameSessionChain
@@ -58196,15 +58422,15 @@ function buildPrompt(agentDoc, taskContent, taskId, kandownDir, activeStatus, te
 }
 
 // src/cli/lib/launcher.ts
-import { execSync as execSync2, spawn as spawn3 } from "child_process";
+import { execSync as execSync2, spawn as spawn4 } from "child_process";
 import { writeFileSync as writeFileSync5 } from "fs";
-import { join as join15 } from "path";
+import { join as join18 } from "path";
 import { tmpdir } from "os";
 
 // src/cli/lib/kandown-work.ts
-import { existsSync as existsSync11, readFileSync as readFileSync12, readdirSync as readdirSync5, statSync as statSync5 } from "fs";
-import { homedir as homedir6 } from "os";
-import { join as join14 } from "path";
+import { existsSync as existsSync13, readFileSync as readFileSync14, readdirSync as readdirSync6, statSync as statSync6 } from "fs";
+import { homedir as homedir7 } from "os";
+import { join as join17 } from "path";
 
 // src/lib/kandown-work.ts
 function estimateTokenCount(text) {
@@ -58778,14 +59004,14 @@ function loadWorkflowSkill(files) {
 // src/cli/lib/agent-migration.ts
 import { createHash as createHash2 } from "crypto";
 import {
-  existsSync as existsSync8,
+  existsSync as existsSync7,
   mkdirSync as mkdirSync3,
   readFileSync as readFileSync7,
   renameSync as renameSync2,
   unlinkSync as unlinkSync5
 } from "fs";
 import { homedir as homedir2 } from "os";
-import { basename as basename3, extname as extname2, join as join9, resolve as resolve4 } from "path";
+import { basename as basename4, extname as extname2, join as join9, resolve as resolve4 } from "path";
 var AGENT_BOOTSTRAP_LINE = "This project uses Kandown. Before task work, run `kandown work` and follow its output. <!-- kandown:agent-ref -->";
 var AGENT_BOOTSTRAP_MARKER = "<!-- kandown:agent-ref -->";
 var LEGACY_AGENT_DOCS = ["AGENT.md", "AGENT_KANDOWN.md"];
@@ -58799,8 +59025,8 @@ function sha256(path) {
 function migrateInstructionFile(directory, scope) {
   const oldPath = join9(directory, "instructions.md");
   const newPath = join9(directory, "kandown_work.md");
-  if (!existsSync8(oldPath)) return [];
-  if (existsSync8(newPath)) {
+  if (!existsSync7(oldPath)) return [];
+  if (existsSync7(newPath)) {
     return [{
       severity: "warning",
       code: "instruction-conflict",
@@ -58822,10 +59048,10 @@ function migrateInstructionFile(directory, scope) {
 }
 function collisionSafePath(directory, fileName) {
   const extension2 = extname2(fileName);
-  const stem = basename3(fileName, extension2);
+  const stem = basename4(fileName, extension2);
   let candidate = join9(directory, fileName);
   let suffix = 1;
-  while (existsSync8(candidate)) {
+  while (existsSync7(candidate)) {
     candidate = join9(directory, `${stem}.${suffix}${extension2}`);
     suffix += 1;
   }
@@ -58835,7 +59061,7 @@ function migrateLegacyAgentDocs(kandownDir, knownHashes) {
   const events = [];
   for (const fileName of LEGACY_AGENT_DOCS) {
     const legacyPath = join9(kandownDir, fileName);
-    if (!existsSync8(legacyPath)) continue;
+    if (!existsSync7(legacyPath)) continue;
     if (knownHashes.has(sha256(legacyPath))) {
       unlinkSync5(legacyPath);
       events.push({
@@ -58902,7 +59128,7 @@ function migrateAgentInstructions(kandownDir, options = {}) {
 }
 function ensureAgentBootstrap(projectRoot) {
   const agentsPath = join9(projectRoot, "AGENTS.md");
-  if (!existsSync8(agentsPath)) {
+  if (!existsSync7(agentsPath)) {
     atomicWriteFileSync(agentsPath, `${AGENT_BOOTSTRAP_LINE}
 `);
     return [{
@@ -58945,7 +59171,7 @@ function ensureAgentBootstrap(projectRoot) {
 }
 
 // src/lib/extensions/loader.ts
-import { readdirSync as readdirSync3, readFileSync as readFileSync8, existsSync as existsSync9 } from "fs";
+import { readdirSync as readdirSync3, readFileSync as readFileSync8, existsSync as existsSync8 } from "fs";
 import { join as join10 } from "path";
 import { homedir as homedir3 } from "os";
 
@@ -59014,7 +59240,7 @@ function scanLocation(location, source) {
   for (const name of entries) {
     const dir = join10(location, name);
     const manifestPath = join10(dir, "manifest.json");
-    if (!existsSync9(manifestPath)) continue;
+    if (!existsSync8(manifestPath)) continue;
     let raw;
     try {
       raw = JSON.parse(readFileSync8(manifestPath, "utf8"));
@@ -59115,7 +59341,7 @@ function loadProjectTrust(projectDir) {
 }
 
 // src/cli/lib/skills.ts
-import { existsSync as existsSync10, readFileSync as readFileSync11, readdirSync as readdirSync4, statSync as statSync4 } from "fs";
+import { existsSync as existsSync9, readFileSync as readFileSync11, readdirSync as readdirSync4, statSync as statSync4 } from "fs";
 import { homedir as homedir5 } from "os";
 import { join as join13 } from "path";
 function readSourceFiles(directory, prefix = "") {
@@ -59150,10 +59376,10 @@ function listWorkflowSkills(kandownDir) {
     { directory: join13(homedir5(), ".kandown", "skills"), source: "global" },
     { directory: join13(kandownDir, "skills"), source: "project" }
   ]) {
-    if (!existsSync10(location.directory)) continue;
+    if (!existsSync9(location.directory)) continue;
     for (const name of readdirSync4(location.directory).sort()) {
       const absolute = join13(location.directory, name);
-      if (statSync4(absolute).isDirectory() && existsSync10(join13(absolute, "manifest.json"))) {
+      if (statSync4(absolute).isDirectory() && existsSync9(join13(absolute, "manifest.json"))) {
         const listing = packageListing(absolute, location.source);
         found.set(listing.id, listing);
       } else if (statSync4(absolute).isFile() && /^[a-z0-9-]+\.md$/.test(name)) {
@@ -59198,6 +59424,123 @@ function loadConfiguredWorkflowSkills(kandownDir, ids) {
   return { skills, diagnostics };
 }
 
+// src/cli/commands/reslug.ts
+import { existsSync as existsSync12, renameSync as renameSync4, readFileSync as readFileSync13 } from "fs";
+import { join as join16, basename as basename6, dirname as dirname7 } from "path";
+import { spawnSync } from "child_process";
+
+// src/cli/lib/cli-shared.ts
+import { existsSync as existsSync11, readFileSync as readFileSync12 } from "fs";
+import { homedir as homedir6 } from "os";
+import { join as join15, resolve as resolve6, basename as basename5, dirname as dirname6 } from "path";
+import { spawn as spawn3 } from "child_process";
+
+// src/cli/lib/init.ts
+import { existsSync as existsSync10, mkdirSync as mkdirSync6, copyFileSync, readdirSync as readdirSync5, statSync as statSync5 } from "fs";
+import { join as join14 } from "path";
+function copyRecursive(src, dest) {
+  const errors = [];
+  try {
+    if (!existsSync10(dest)) mkdirSync6(dest, { recursive: true });
+    const entries = readdirSync5(src);
+    for (const entry of entries) {
+      const srcPath = join14(src, entry);
+      const destPath = join14(dest, entry);
+      try {
+        if (statSync5(srcPath).isDirectory()) {
+          errors.push(...copyRecursive(srcPath, destPath));
+        } else if (!existsSync10(destPath)) {
+          copyFileSync(srcPath, destPath);
+        }
+      } catch (error) {
+        errors.push(`${entry}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+  } catch (error) {
+    errors.push(`${src}: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  return errors;
+}
+var KANDOWN_GITIGNORE = `daemon.json
+daemon.lock
+.undo/
+
+# Local extension state. Which extensions you enabled and which you trusted is a
+# per-machine decision, and a committed copy is ignored at load time anyway
+# (see docs/EXTENSIONS.md).
+extensions/enabled.json
+extensions/trust.json
+`;
+function writeKandownGitignore(kandownDir) {
+  const path = join14(kandownDir, ".gitignore");
+  if (existsSync10(path)) return;
+  try {
+    atomicWriteFileSync(path, KANDOWN_GITIGNORE);
+  } catch {
+  }
+}
+function doInit(kandownDir) {
+  try {
+    mkdirSync6(kandownDir, { recursive: true });
+    const htmlSrc = join14(PKG_ROOT, "dist", "index.html");
+    const htmlDest = join14(kandownDir, "kandown.html");
+    if (existsSync10(htmlSrc)) {
+      copyFileSync(htmlSrc, htmlDest);
+    }
+    migrateAgentInstructions(kandownDir);
+    ensureAgentBootstrap(join14(kandownDir, ".."));
+    writeKandownGitignore(kandownDir);
+    const templatesDir = join14(PKG_ROOT, "templates");
+    if (existsSync10(templatesDir)) {
+      if (!existsSync10(join14(kandownDir, "README.md")) && existsSync10(join14(templatesDir, "README.md"))) {
+        copyFileSync(join14(templatesDir, "README.md"), join14(kandownDir, "README.md"));
+      }
+      const tasksSrc = join14(templatesDir, "tasks");
+      const tasksDest = getTasksDir(kandownDir);
+      if (!existsSync10(tasksDest) && existsSync10(tasksSrc)) {
+        copyRecursive(tasksSrc, tasksDest);
+      }
+      if (!existsSync10(join14(kandownDir, "kandown.json")) && existsSync10(join14(templatesDir, "kandown.json"))) {
+        copyFileSync(join14(templatesDir, "kandown.json"), join14(kandownDir, "kandown.json"));
+      }
+      if (!existsSync10(join14(kandownDir, "agents.json")) && existsSync10(join14(templatesDir, "agents.json"))) {
+        copyFileSync(join14(templatesDir, "agents.json"), join14(kandownDir, "agents.json"));
+      }
+    }
+    return true;
+  } catch (error) {
+    console.error(`Init failed: ${error instanceof Error ? error.message : String(error)}`);
+    return false;
+  }
+}
+
+// src/cli/commands/reslug.ts
+function planFor(directory, filename) {
+  const id = taskIdFromFilename(filename);
+  if (!id) return null;
+  let title = "";
+  try {
+    title = parseTaskFile(readFileSync13(join16(directory, filename), "utf8")).frontmatter.title ?? "";
+  } catch {
+    return null;
+  }
+  const others = listTaskFilenames(directory).filter((f) => f !== filename);
+  const target = buildTaskFilename(id, title, others);
+  if (target === filename) return null;
+  return { id, directory, from: filename, to: target };
+}
+function countBareTaskFilenames(kandownDir) {
+  const tasksDir = getTasksDir(kandownDir);
+  let bare = 0;
+  for (const directory of [tasksDir, join16(tasksDir, "archive")]) {
+    for (const filename of listTaskFilenames(directory)) {
+      if (hasDescriptiveSlug(filename)) continue;
+      if (planFor(directory, filename)) bare += 1;
+    }
+  }
+  return bare;
+}
+
 // src/cli/lib/kandown-work.ts
 var AVAILABLE_COMMANDS = [
   "kandown work [task-id]",
@@ -59206,30 +59549,31 @@ var AVAILABLE_COMMANDS = [
   "kandown create <title>",
   "kandown move <id> <status>",
   "kandown assign <id> [agent]",
-  "kandown commit"
+  "kandown commit",
+  "kandown reslug <id>|--all [--dry-run]"
 ];
 function readSourceFiles2(directory, prefix = "") {
   const files = {};
-  for (const name of readdirSync5(directory)) {
-    const absolute = join14(directory, name);
+  for (const name of readdirSync6(directory)) {
+    const absolute = join17(directory, name);
     const relative3 = prefix ? `${prefix}/${name}` : name;
-    if (statSync5(absolute).isDirectory()) Object.assign(files, readSourceFiles2(absolute, relative3));
-    else files[relative3] = readFileSync12(absolute, "utf8");
+    if (statSync6(absolute).isDirectory()) Object.assign(files, readSourceFiles2(absolute, relative3));
+    else files[relative3] = readFileSync14(absolute, "utf8");
   }
   return files;
 }
 function loadSelectedWorkflow(kandownDir, id) {
-  const candidates = [join14(kandownDir, "workflows", id), join14(PKG_ROOT, "templates", "workflows", id)];
-  const directory = candidates.find((candidate) => existsSync11(join14(candidate, "manifest.json")));
+  const candidates = [join17(kandownDir, "workflows", id), join17(PKG_ROOT, "templates", "workflows", id)];
+  const directory = candidates.find((candidate) => existsSync13(join17(candidate, "manifest.json")));
   if (!directory) throw new Error(`Selected workflow "${id}" is not installed.`);
   const result = loadWorkflowPackage(readSourceFiles2(directory));
   if (!result.ok) throw new Error(`Workflow "${id}" is invalid: ${result.errors.map((error) => error.message).join("; ")}`);
   return result.value;
 }
 function readOptional(path) {
-  if (!existsSync11(path)) return void 0;
+  if (!existsSync13(path)) return void 0;
   try {
-    return readFileSync12(path, "utf8");
+    return readFileSync14(path, "utf8");
   } catch {
     return void 0;
   }
@@ -59285,6 +59629,11 @@ function boardDigest(kandownDir, config) {
     lines.push(`
 Next actionable: ${next ? `${next.frontmatter.id} ${next.frontmatter.title}` : "none"}`);
   }
+  const bare = countBareTaskFilenames(kandownDir);
+  if (bare > 0) {
+    lines.push(`
+Filenames: ${bare} task file${bare === 1 ? " is" : "s are"} still named after the id alone (\`t232.md\`). Descriptive names (\`t232_remove_dead_code.md\`) make git diffs and file lists readable, and the task id does not change. Offer the user \`kandown reslug --all --dry-run\` to preview it, then \`kandown reslug --all\`. Do not rename anything without being asked.`);
+  }
   return lines.join("\n");
 }
 function compileProjectKandownWork(kandownDir, taskId) {
@@ -59318,8 +59667,8 @@ ${task.body.trim()}`;
     workflow,
     extensions: loadExtensionGuidance(kandownDir, config),
     skills: configuredSkills.skills,
-    globalInstructions: readOptional(join14(homedir6(), ".kandown", "kandown_work.md")),
-    projectInstructions: readOptional(join14(kandownDir, "kandown_work.md")),
+    globalInstructions: readOptional(join17(homedir7(), ".kandown", "kandown_work.md")),
+    projectInstructions: readOptional(join17(kandownDir, "kandown_work.md")),
     context
   });
   return { ...compiled, diagnostics: [...configuredSkills.diagnostics, ...compiled.diagnostics] };
@@ -59361,7 +59710,7 @@ function prepareLaunch(opts) {
   if (!taskMoved) {
     throw new Error(`Could not move task ${taskId} to ${activeStatus}: task file missing or unwritable.`);
   }
-  const contextFile = join15(tmpdir(), `kandown-${taskId}-context.md`);
+  const contextFile = join18(tmpdir(), `kandown-${taskId}-context.md`);
   try {
     writeFileSync5(contextFile, `${systemPrompt}
 
@@ -59409,7 +59758,7 @@ function launchAgent(opts) {
   } else {
     try {
       onBeforeExec?.();
-      const child = spawn3(binary, args, { stdio: "inherit", env: launchEnv(contextFile, taskId, kandownDir) });
+      const child = spawn4(binary, args, { stdio: "inherit", env: launchEnv(contextFile, taskId, kandownDir) });
       child.on("error", (e) => {
         rollbackTaskStatus(kandownDir, taskId, originalStatus);
         console.error(`[kandown] Failed to launch ${agentName}: ${e.message}`);
@@ -59442,10 +59791,10 @@ function shellescape(str) {
 
 // src/cli/screens/agent-picker.tsx
 var import_react35 = __toESM(require_react(), 1);
-import { homedir as homedir7 } from "os";
+import { homedir as homedir8 } from "os";
 var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
 function shortenPath(path, max) {
-  const home = homedir7();
+  const home = homedir8();
   let p = home && path.startsWith(home + "/") ? `~${path.slice(home.length)}` : path;
   if (max < 8 || p.length <= max) return p;
   const head = Math.ceil((max - 1) / 2);
@@ -59464,11 +59813,11 @@ function AgentPicker({ agents, taskId, onSelect, onCancel }) {
       return;
     }
     if (key.downArrow || input === "j") {
-      setCursor((c) => Math.min(c + 1, agents.length - 1));
+      setCursor((c2) => Math.min(c2 + 1, agents.length - 1));
       return;
     }
     if (key.upArrow || input === "k") {
-      setCursor((c) => Math.max(c - 1, 0));
+      setCursor((c2) => Math.max(c2 - 1, 0));
       return;
     }
     if (key.return) {
@@ -60587,13 +60936,20 @@ function Board({ kandownDir, version }) {
     [board, listSort, listSortDir]
   );
   const selectedRow = listRows[Math.min(listIndex, Math.max(0, listRows.length - 1))] ?? null;
+  const selectedFilePath = (0, import_react37.useMemo)(() => {
+    if (!selectedRow) return null;
+    const absolute = findTaskPath(kandownDir, selectedRow.task.id);
+    if (!absolute) return null;
+    const root = getProjectRoot(kandownDir);
+    return absolute.startsWith(root) ? absolute.slice(root.length).replace(/^[/\\]/, "") : absolute;
+  }, [kandownDir, selectedRow?.task.id, board]);
   (0, import_react37.useEffect)(() => {
     setListIndex((i) => Math.max(0, Math.min(i, listRows.length - 1)));
   }, [listRows.length]);
   (0, import_react37.useEffect)(() => {
     if (!board) return;
     const maxCol = Math.max(0, board.columns.length - 1);
-    setColIndex((c) => Math.min(c, maxCol));
+    setColIndex((c2) => Math.min(c2, maxCol));
     const tasks = board.columns[Math.min(colIndex, maxCol)]?.tasks.length ?? 0;
     setRowIndex((r) => Math.max(0, Math.min(r, tasks - 1)));
   }, [board, colIndex]);
@@ -60629,8 +60985,8 @@ function Board({ kandownDir, version }) {
     const numCols = board.columns.length;
     const cw = calcColWidth(numCols);
     let startX = 1;
-    for (let c = 0; c < numCols; c++) {
-      if (x >= startX && x < startX + cw) return c;
+    for (let c2 = 0; c2 < numCols; c2++) {
+      if (x >= startX && x < startX + cw) return c2;
       startX += cw + 1;
     }
     return -1;
@@ -60780,7 +61136,7 @@ function Board({ kandownDir, version }) {
         resolved.set(t.id, isArchived(t) || col.name.toLowerCase() === terminalLower);
       }
     }
-    const movingTask = board2.columns.flatMap((c) => c.tasks).find((t) => t.id === taskId);
+    const movingTask = board2.columns.flatMap((c2) => c2.tasks).find((t) => t.id === taskId);
     if (!movingTask) return true;
     const deps = Array.isArray(movingTask.dependsOn) ? movingTask.dependsOn : [];
     const blocked = [];
@@ -60836,10 +61192,10 @@ function Board({ kandownDir, version }) {
     const next = view === "list" ? "board" : "list";
     if (next === "board" && focusedId && board) {
       let found = false;
-      for (let c = 0; c < board.columns.length && !found; c++) {
-        const r = board.columns[c].tasks.findIndex((t) => t.id === focusedId);
+      for (let c2 = 0; c2 < board.columns.length && !found; c2++) {
+        const r = board.columns[c2].tasks.findIndex((t) => t.id === focusedId);
         if (r >= 0) {
-          setColIndex(c);
+          setColIndex(c2);
           setRowIndex(r);
           found = true;
         }
@@ -60925,8 +61281,8 @@ function Board({ kandownDir, version }) {
         launchAgent({ taskId, agentId, kandownDir, onBeforeExec: () => exit() });
         reloadBoard();
         showStatus(`${taskId} assigned to ${agentId}, launched in tmux pane`, 3e3);
-      } catch (err) {
-        showStatus(`Error: ${err instanceof Error ? err.message : String(err)}`, 4e3);
+      } catch (err2) {
+        showStatus(`Error: ${err2 instanceof Error ? err2.message : String(err2)}`, 4e3);
       }
     }, 50);
   }, [kandownDir, exit, reloadBoard, showStatus, setMode]);
@@ -61352,13 +61708,13 @@ function Board({ kandownDir, version }) {
       if (input === "e") {
         const task = getFocusedTask();
         if (task) {
-          const taskPath = join16(getTasksDir(kandownDir), `${task.id}.md`);
+          const taskPath = join19(getTasksDir(kandownDir), `${task.id}.md`);
           const editor = process.env.EDITOR || "nano";
           try {
-            spawnSync(editor, [taskPath], { stdio: "inherit" });
+            spawnSync2(editor, [taskPath], { stdio: "inherit" });
             loadBoardInto();
-          } catch (err) {
-            showStatus(`Editor error: ${err.message}`, 3e3);
+          } catch (err2) {
+            showStatus(`Editor error: ${err2.message}`, 3e3);
           }
         }
         return;
@@ -61457,12 +61813,12 @@ function Board({ kandownDir, version }) {
       }
       if (input === "l" || key.rightArrow) {
         const maxCol = (board?.columns.length ?? 1) - 1;
-        setColIndex((c) => Math.min(c + 1, maxCol));
+        setColIndex((c2) => Math.min(c2 + 1, maxCol));
         setRowIndex(0);
         return;
       }
       if (input === "h" || key.leftArrow) {
-        setColIndex((c) => Math.max(c - 1, 0));
+        setColIndex((c2) => Math.max(c2 - 1, 0));
         setRowIndex(0);
         return;
       }
@@ -61510,11 +61866,11 @@ function Board({ kandownDir, version }) {
         return;
       }
       if (input === "j" || key.downArrow) {
-        setCtxMenuCursor((c) => Math.min(c + 1, 1));
+        setCtxMenuCursor((c2) => Math.min(c2 + 1, 1));
         return;
       }
       if (input === "k" || key.upArrow) {
-        setCtxMenuCursor((c) => Math.max(c - 1, 0));
+        setCtxMenuCursor((c2) => Math.max(c2 - 1, 0));
         return;
       }
       if (key.return) {
@@ -61827,7 +62183,7 @@ function Board({ kandownDir, version }) {
         TaskDetailPane,
         {
           row: selectedRow,
-          filePath: selectedRow ? `tasks/${selectedRow.task.id}.md` : null,
+          filePath: selectedFilePath,
           width: termWidth()
         }
       ),
@@ -61892,91 +62248,12 @@ function InitPrompt({ kandownDir, onConfirm }) {
   ] });
 }
 
-// src/cli/lib/init.ts
-import { existsSync as existsSync12, mkdirSync as mkdirSync6, copyFileSync, readdirSync as readdirSync6, statSync as statSync6 } from "fs";
-import { join as join17 } from "path";
-function copyRecursive(src, dest) {
-  const errors = [];
-  try {
-    if (!existsSync12(dest)) mkdirSync6(dest, { recursive: true });
-    const entries = readdirSync6(src);
-    for (const entry of entries) {
-      const srcPath = join17(src, entry);
-      const destPath = join17(dest, entry);
-      try {
-        if (statSync6(srcPath).isDirectory()) {
-          errors.push(...copyRecursive(srcPath, destPath));
-        } else if (!existsSync12(destPath)) {
-          copyFileSync(srcPath, destPath);
-        }
-      } catch (error) {
-        errors.push(`${entry}: ${error instanceof Error ? error.message : String(error)}`);
-      }
-    }
-  } catch (error) {
-    errors.push(`${src}: ${error instanceof Error ? error.message : String(error)}`);
-  }
-  return errors;
-}
-var KANDOWN_GITIGNORE = `daemon.json
-daemon.lock
-.undo/
-
-# Local extension state. Which extensions you enabled and which you trusted is a
-# per-machine decision, and a committed copy is ignored at load time anyway
-# (see docs/EXTENSIONS.md).
-extensions/enabled.json
-extensions/trust.json
-`;
-function writeKandownGitignore(kandownDir) {
-  const path = join17(kandownDir, ".gitignore");
-  if (existsSync12(path)) return;
-  try {
-    atomicWriteFileSync(path, KANDOWN_GITIGNORE);
-  } catch {
-  }
-}
-function doInit(kandownDir) {
-  try {
-    mkdirSync6(kandownDir, { recursive: true });
-    const htmlSrc = join17(PKG_ROOT, "dist", "index.html");
-    const htmlDest = join17(kandownDir, "kandown.html");
-    if (existsSync12(htmlSrc)) {
-      copyFileSync(htmlSrc, htmlDest);
-    }
-    migrateAgentInstructions(kandownDir);
-    ensureAgentBootstrap(join17(kandownDir, ".."));
-    writeKandownGitignore(kandownDir);
-    const templatesDir = join17(PKG_ROOT, "templates");
-    if (existsSync12(templatesDir)) {
-      if (!existsSync12(join17(kandownDir, "README.md")) && existsSync12(join17(templatesDir, "README.md"))) {
-        copyFileSync(join17(templatesDir, "README.md"), join17(kandownDir, "README.md"));
-      }
-      const tasksSrc = join17(templatesDir, "tasks");
-      const tasksDest = getTasksDir(kandownDir);
-      if (!existsSync12(tasksDest) && existsSync12(tasksSrc)) {
-        copyRecursive(tasksSrc, tasksDest);
-      }
-      if (!existsSync12(join17(kandownDir, "kandown.json")) && existsSync12(join17(templatesDir, "kandown.json"))) {
-        copyFileSync(join17(templatesDir, "kandown.json"), join17(kandownDir, "kandown.json"));
-      }
-      if (!existsSync12(join17(kandownDir, "agents.json")) && existsSync12(join17(templatesDir, "agents.json"))) {
-        copyFileSync(join17(templatesDir, "agents.json"), join17(kandownDir, "agents.json"));
-      }
-    }
-    return true;
-  } catch (error) {
-    console.error(`Init failed: ${error instanceof Error ? error.message : String(error)}`);
-    return false;
-  }
-}
-
 // src/cli/lib/browser.ts
-import { spawn as spawn4 } from "child_process";
+import { spawn as spawn5 } from "child_process";
 function openBrowser(target) {
   const cmd = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
   try {
-    spawn4(cmd, [target], { detached: true, stdio: "ignore" }).unref();
+    spawn5(cmd, [target], { detached: true, stdio: "ignore" }).unref();
   } catch {
   }
 }
@@ -62045,7 +62322,7 @@ async function run(screen, kandownDir, version) {
       "kandown TUI requires an interactive terminal. Run this command directly in your terminal."
     );
   }
-  const projectExists = existsSync13(join18(kandownDir, "kandown.json"));
+  const projectExists = existsSync14(join20(kandownDir, "kandown.json"));
   const instance = render_default(/* @__PURE__ */ (0, import_jsx_runtime9.jsx)(App2, { screen, kandownDir, version, projectExists }), {
     exitOnCtrlC: true,
     interactive: true,
