@@ -16,14 +16,14 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 8246,
+      "lines": 8622,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 62191,
+      "lines": 62468,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -150,7 +150,7 @@
     },
     {
       "path": "src/cli/cli.ts",
-      "lines": 213,
+      "lines": 218,
       "title": "Main Kandown CLI Entrypoint",
       "summary": "Entrypoint for the kandown command line tool."
     },
@@ -182,6 +182,19 @@
       "exports": "cmdInit, cmdUpdate, cmdDoctor, cmdWork"
     },
     {
+      "path": "src/cli/commands/reslug.ts",
+      "lines": 205,
+      "title": "`kandown reslug` command",
+      "summary": "Renames task files so their name says what they are: `tasks/t232.md` becomes `tasks/t232_remove_dead_code.md`.",
+      "functions": [
+        {
+          "name": "cmdReslug",
+          "summary": "the `kandown reslug [id] [--all] [--dry-run] [--force] [--no-git]` handler"
+        }
+      ],
+      "exports": "cmdReslug"
+    },
+    {
       "path": "src/cli/commands/run.ts",
       "lines": 117,
       "title": "`kandown run` command handler — cascade launcher",
@@ -196,7 +209,7 @@
     },
     {
       "path": "src/cli/commands/tasks.ts",
-      "lines": 323,
+      "lines": 329,
       "title": "CLI commands — task CRUD & board data",
       "summary": "Handlers for `kandown list/show/create/move/assign/commit` plus `export`/`import`/`projects`.",
       "exports": "cmdList, cmdShow, cmdCreate, cmdMove, cmdAssign, cmdCommit, cmdExport, cmdProjects, cmdImport"
@@ -294,6 +307,12 @@
       "lines": 37,
       "title": "Node workflow skill discovery tests",
       "summary": "Verifies bundled skill discovery plus missing configured skill diagnostics without relying on network or executable package content."
+    },
+    {
+      "path": "src/cli/lib/__tests__/task-filename-cli.spec.ts",
+      "lines": 139,
+      "title": "Integration tests for descriptive task filenames",
+      "summary": "Spawns `bin/kandown.js` (the published CLI bundle) against a throwaway project whose `tasks/` folder deliberately mixes both naming forms: the legacy bare `t1.md` and the descriptive `t2_add_dark_mode.md`."
     },
     {
       "path": "src/cli/lib/__tests__/task-move.spec.ts",
@@ -421,7 +440,7 @@
     },
     {
       "path": "src/cli/lib/board-reader.ts",
-      "lines": 433,
+      "lines": 492,
       "title": "Node.js task reader and mutator",
       "summary": "Provides filesystem-based reading and writing of Kandown task files for the CLI.",
       "functions": [
@@ -438,8 +457,16 @@
           "summary": "scans ./tasks/*.md and ./tasks/archive/*.md"
         },
         {
+          "name": "listTaskFilenames",
+          "summary": "the raw task filenames in one directory"
+        },
+        {
           "name": "findTaskPath",
           "summary": "resolves an active or archived task file"
+        },
+        {
+          "name": "newTaskFilePath",
+          "summary": "the path a task about to be created should be written to"
         },
         {
           "name": "readBoard",
@@ -458,7 +485,7 @@
           "summary": "writes a canonical agent id into `assignee:`"
         }
       ],
-      "exports": "getProjectRoot, getTasksDir, listTaskIds, findTaskPath, readBoard, readTask, moveTaskToColumn, assignTaskToAgent"
+      "exports": "getProjectRoot, getTasksDir, listTaskIds, listTaskFilenames, findTaskPath, newTaskFilePath, readBoard, readTask, moveTaskToColumn, assignTaskToAgent"
     },
     {
       "path": "src/cli/lib/browser.ts",
@@ -485,7 +512,7 @@
     },
     {
       "path": "src/cli/lib/cli-shared.ts",
-      "lines": 356,
+      "lines": 375,
       "title": "CLI shared utilities",
       "summary": "Argument parsing, deterministic nearest-ancestor project resolution, colored console output, and task-file path helpers shared across every `cmdX` command handler and the TUI launcher in src/cli/cli.ts.",
       "functions": [
@@ -514,11 +541,15 @@
           "summary": "task file path/read helpers"
         },
         {
+          "name": "newTaskPath",
+          "summary": "the path a task about to be created should be written to"
+        },
+        {
           "name": "launchTui",
           "summary": "spawns bin/tui.js and waits for it to exit"
         }
       ],
-      "exports": "c, log, info, success, err, parseArgs, COMMANDS, splitCommand, stripFirstPositional, resolveKandownDir, ensureKandownDir, help, TaskCliArgs, addMultiFlag, taskParseArgs, stringFlag, listFlag, resolveStatusArg, taskPath, findTaskPath, nextTaskId, readTaskFile, printTaskCommandsHelp, launchTui"
+      "exports": "c, log, info, success, err, parseArgs, COMMANDS, splitCommand, stripFirstPositional, resolveKandownDir, ensureKandownDir, help, TaskCliArgs, addMultiFlag, taskParseArgs, stringFlag, listFlag, resolveStatusArg, taskPath, findTaskPath, newTaskPath, nextTaskId, readTaskFile, printTaskCommandsHelp, launchTui"
     },
     {
       "path": "src/cli/lib/config.ts",
@@ -640,7 +671,7 @@
     },
     {
       "path": "src/cli/lib/file-watcher.ts",
-      "lines": 309,
+      "lines": 321,
       "title": "Node.js file watcher for CLI",
       "summary": "Uses chokidar for filesystem events and SHA-256 content hashing to detect actual content changes.",
       "functions": [
@@ -663,7 +694,7 @@
     },
     {
       "path": "src/cli/lib/kandown-work.ts",
-      "lines": 146,
+      "lines": 156,
       "title": "Node adapter for the Kandown Work compiler",
       "summary": "Loads the selected built-in or project-local workflow, user instructions, active skill Markdown, task context, and board digest before delegating policy rendering to the shared pure compiler.",
       "functions": [
@@ -714,7 +745,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 884,
+      "lines": 901,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
@@ -888,7 +919,7 @@
     },
     {
       "path": "src/cli/screens/board.tsx",
-      "lines": 1696,
+      "lines": 1711,
       "title": "TUI Board Screen",
       "summary": "The Kandown CLI's main screen.",
       "functions": [
@@ -1875,6 +1906,12 @@
       "summary": "Vitest suite locking the `parseSimpleYaml` / `parseTaskFile` ↔ `serializeTaskFile` round-trip."
     },
     {
+      "path": "src/lib/__tests__/task-filename.spec.ts",
+      "lines": 263,
+      "title": "Tests for task filename slugs and id resolution",
+      "summary": "Guards the module that decides which file on disk holds a task."
+    },
+    {
       "path": "src/lib/__tests__/workflow-skills.spec.ts",
       "lines": 93,
       "title": "Workflow skill package tests",
@@ -2248,7 +2285,7 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 1289,
+      "lines": 1353,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [
@@ -2633,6 +2670,43 @@
       "summary": "Starts either the browser file-system watcher or the server-mode REST polling loop, translates watcher events into board reloads / conflict detection / notifications, and exposes a manual restart for when the watcher auto-disables…"
     },
     {
+      "path": "src/lib/task-filename.ts",
+      "lines": 341,
+      "title": "Task filename slugs and id resolution",
+      "summary": "Owns the whole relationship between a task id and the name of the file that holds it, for every surface (CLI, daemon, TUI, web File System Access, desktop).",
+      "functions": [
+        {
+          "name": "slugifyTitle",
+          "summary": "turn a task title into at most three lowercase ASCII words"
+        },
+        {
+          "name": "buildTaskFilename",
+          "summary": "compose the on-disk filename for a new task"
+        },
+        {
+          "name": "isTaskFilename",
+          "summary": "recognize a task Markdown file, rejecting unsafe names"
+        },
+        {
+          "name": "parseTaskFilename",
+          "summary": "split a filename into its id candidates and slug"
+        },
+        {
+          "name": "taskIdFromFilename",
+          "summary": "the canonical id a file on disk claims"
+        },
+        {
+          "name": "resolveTaskFilename",
+          "summary": "pick the file that answers to an id, flagging collisions"
+        },
+        {
+          "name": "hasDescriptiveSlug",
+          "summary": "whether a filename already carries a slug"
+        }
+      ],
+      "exports": "SLUG_MAX_WORDS, SLUG_MAX_LENGTH, slugifyTitle, buildTaskFilename, isTaskFilename, parseTaskFilename, taskIdFromFilename, resolveTaskFilename, hasDescriptiveSlug, ParsedTaskFilename, TaskFilenameMatch"
+    },
+    {
       "path": "src/lib/task-meta.ts",
       "lines": 129,
       "title": "Task recency metadata",
@@ -2785,7 +2859,7 @@
     },
     {
       "path": "src/lib/watcher.ts",
-      "lines": 312,
+      "lines": 322,
       "title": "File watcher for Kandown",
       "summary": "Watches project state through content-hashed File System Access polling or daemon SSE.",
       "functions": [

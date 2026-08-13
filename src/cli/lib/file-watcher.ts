@@ -16,11 +16,12 @@
  * @exports FileWatcher, createWatcher
  */
 
-import { createReadStream, statSync, existsSync } from 'node:fs';
+import { createReadStream, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { watch, FSWatcher } from 'chokidar';
-import { listTaskIds, getTasksDir } from './board-reader.js';
+import { listTaskIds, listTaskFilenames, getTasksDir } from './board-reader.js';
+import { resolveTaskFilename, taskIdFromFilename } from '../../lib/task-filename.js';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -57,9 +58,18 @@ function hashFileSync(filePath: string): string {
 }
 
 /** 📖 Returns the active or archived path for a task id. */
+/**
+ * 📖 Where the file for a task id currently lives, active directory first, in
+ * either the bare `t232.md` or the descriptive `t232_remove_dead_code.md` form.
+ * Falls back to the bare archived path so the caller's `statSync` still throws
+ * the "file is gone" error it expects when the task really disappeared.
+ */
 function taskFilePath(tasksDir: string, taskId: string): string {
-  const activePath = join(tasksDir, `${taskId}.md`);
-  return existsSync(activePath) ? activePath : join(tasksDir, 'archive', `${taskId}.md`);
+  for (const directory of [tasksDir, join(tasksDir, 'archive')]) {
+    const match = resolveTaskFilename(taskId, listTaskFilenames(directory));
+    if (match) return join(directory, match.filename);
+  }
+  return join(tasksDir, 'archive', `${taskId}.md`);
 }
 
 // ─── FileWatcher ───────────────────────────────────────────────────────────────
@@ -173,8 +183,10 @@ export class FileWatcher {
       return;
     }
 
-    // Task file event
-    const taskId = filePath.replace(/\\/g, '/').split('/').pop()?.replace(/\.md$/, '') ?? '';
+    // 📖 Task file event. The id comes from the shared filename policy, so a
+    // descriptive name maps back to `t232` instead of being treated as a
+    // brand-new task called `t232_remove_dead_code`.
+    const taskId = taskIdFromFilename(basename(filePath.replace(/\\/g, '/')));
     if (!taskId) return;
 
     if (event === 'add' || event === 'change') {

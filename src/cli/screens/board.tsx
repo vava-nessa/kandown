@@ -73,6 +73,8 @@ import {
   archiveTaskInBoard,
   undoLastAction,
   getTasksDir,
+  getProjectRoot,
+  findTaskPath,
 } from '../lib/board-reader.js';
 import { loadConfig, saveConfig, setConfigValue } from '../lib/config.js';
 import { getDaemonStatus, startProjectDaemon, stopProjectDaemon, type DaemonStatus } from '../lib/daemon.js';
@@ -260,6 +262,19 @@ export function Board({ kandownDir, version }: BoardProps) {
   );
 
   const selectedRow = listRows[Math.min(listIndex, Math.max(0, listRows.length - 1))] ?? null;
+
+  // 📖 The real filename, resolved rather than rebuilt: a task may live in
+  // `t227_set_up_vitest.md` as well as `t227.md`, and a detail pane that shows a
+  // path the user cannot open is worse than showing none.
+  const selectedFilePath = useMemo(() => {
+    if (!selectedRow) return null;
+    const absolute = findTaskPath(kandownDir, selectedRow.task.id);
+    if (!absolute) return null;
+    const root = getProjectRoot(kandownDir);
+    return absolute.startsWith(root) ? absolute.slice(root.length).replace(/^[/\\]/, '') : absolute;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kandownDir, selectedRow?.task.id, board]);
+
 
   // 📖 Filtering, sorting or a file change can shrink the list under the
   // cursor. Clamp instead of letting the selection point past the end, which
@@ -1639,7 +1654,7 @@ export function Board({ kandownDir, version }: BoardProps) {
         {showDetailPane && (
           <TaskDetailPane
             row={selectedRow}
-            filePath={selectedRow ? `tasks/${selectedRow.task.id}.md` : null}
+            filePath={selectedFilePath}
             width={termWidth()}
           />
         )}

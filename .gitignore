@@ -168,3 +168,9 @@ dist-demo/
 .vercel
 .env*
 apps/desktop/src/main.js
+
+# macOS finder junk
+.DS_Store
+
+# Stray copy of the built web app (the real one lives in .kandown/kandown.html)
+/kandown.html

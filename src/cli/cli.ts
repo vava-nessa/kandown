@@ -24,6 +24,7 @@ import {
   cmdList, cmdShow, cmdCreate, cmdMove, cmdAssign, cmdCommit,
   cmdExport, cmdProjects, cmdImport,
 } from './commands/tasks';
+import { cmdReslug } from './commands/reslug';
 import { cmdDaemon } from './commands/daemon';
 import { cmdRun } from './commands/run';
 import { cmdAgents } from './commands/agents';
@@ -95,6 +96,10 @@ async function main() {
 
     case 'move':
       await cmdMove(rest);
+      break;
+
+    case 'reslug':
+      cmdReslug(rest);
       break;
 
     case 'assign':

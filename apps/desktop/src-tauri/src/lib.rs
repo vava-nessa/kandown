@@ -60,10 +60,18 @@
 //  → logging, log file + panic hook (see `src/logging.rs`)
 //  → daemon, locate / spawn / join / stop (see `src/daemon.rs`)
 //  → projects, recents store at ~/.kandown/desktop.json (see `src/projects.rs`)
+//  → menu, native menu bar + `kandown://menu-action` dispatch (see `src/menu.rs`)
+//  → dock_badge, per-daemon SSE listener that updates the macOS dock
+//     badge (see `src/dock_badge.rs`)
+//  → window_state, per-project window geometry persistence
+//     (see `src/window_state.rs`)
 
 mod daemon;
+mod dock_badge;
 mod logging;
+mod menu;
 mod projects;
+mod window_state;
 
 use std::collections::HashMap;
 use std::path::PathBuf;

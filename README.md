@@ -47,6 +47,10 @@ read and write the same plain Markdown files.
 
 - **Your data is just files.** One `.md` per task, versioned in git, readable by any
   editor, any script, any AI agent. Nothing to export, nothing to lose.
+- **Files named after what they are.** `tasks/t232_remove_dead_code.md`, not
+  `tasks/t232.md`, so a `git diff --stat`, a PR file list and your editor tabs all
+  read as English. The id stays the identifier: renaming a file never breaks a
+  dependency or a link.
 - **Agents are first-class users**, not an integration. Claude Code, Codex, Gemini
   CLI, Goose, Aider and OpenCode all drive the board directly.
 - **Fully offline.** No account, no cloud, no telemetry. The web UI is one
@@ -66,9 +70,9 @@ kandown
 `kandown init` creates two folders at your project root:
 
 ```
-tasks/                # your tasks — the source of truth
-├── t1.md             # one Markdown file per task
-└── archive/          # archived tasks live here
+tasks/                             # your tasks — the source of truth
+├── t1_add_dark_mode.md            # one Markdown file per task, named after it
+└── archive/                       # archived tasks live here
 
 .kandown/             # config + web UI + workflow data
 ├── kandown.json      # columns, theme, notifications, agents
@@ -205,6 +209,7 @@ IDE, bot or webhook receive tasks.
 | `kandown show <id>` | Print a task file's raw content |
 | `kandown create "title"` | Create — `[-p priority] [-a assignee] [-t tag …] [--to status] [--id custom-id] [--json]` |
 | `kandown move <id> <status>` | Move to a column, or to `archived` |
+| `kandown reslug <id>` | Rename the file descriptively. `--all` for the whole board, `--dry-run` to preview |
 | `kandown assign <id> [name]` | Assign, or unassign by omitting the name. Use an agent id/alias (`claude`, `codex`, …) and pressing `a` in the TUI launches it directly |
 | `kandown run [id]` | **Cascade** — run ready tasks via their assigned agents in dependency order, handing each completion report to the next. Flags: `--dry-run`, `--agent <id>`, `--resume`, `--same-session` |
 | `kandown agents` | List detected AI agents + the `.kandown/agents.json` catalog. `kandown agents init` writes a default one |

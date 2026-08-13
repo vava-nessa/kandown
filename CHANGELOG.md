@@ -9,7 +9,7 @@ the index; click a version for the full notes.
 
 | Version | Date | Release | Changes |
 |---|---|---|---|
-| [0.50.0](changelogs/v0.50.0.md) | 2026-08-10 | Sealed Loop | 1 fixed |
+| [0.50.0](changelogs/v0.50.0.md) | 2026-08-10 | Sealed Loop | 1 added · 1 fixed |
 | [0.49.1](changelogs/v0.49.1.md) | 2026-08-11 | Tracer Bullet | 4 added · 1 fixed · 6 changed |
 | [0.49.0](changelogs/v0.49.0.md) | 2026-08-08 | Path Truth | 1 added · 3 fixed |
 | [0.48.0](changelogs/v0.48.0.md) | 2026-08-04 | Clean Cards | 1 added · 1 fixed · 1 changed |

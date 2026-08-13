@@ -18,14 +18,17 @@
  *  → getProjectRoot      — returns the project root (parent of .kandown/)
  *  → getTasksDir         — returns the project-root ./tasks/ absolute path
  *  → listTaskIds         — scans ./tasks/*.md and ./tasks/archive/*.md
+ *  → listTaskFilenames    — the raw task filenames in one directory
  *  → findTaskPath        — resolves an active or archived task file
+ *  → newTaskFilePath     — the path a task about to be created should be written to
  *  → readBoard           — scans ./tasks/*.md and returns a ParsedBoard shape
  *  → readTask            — reads a task file by ID and returns a ParsedTask
  *  → moveTaskToColumn    — updates a task frontmatter status
  *  → assignTaskToAgent   — writes a canonical agent id into `assignee:`
  *
- * @exports getProjectRoot, getTasksDir, listTaskIds, findTaskPath, readBoard, readTask, moveTaskToColumn, assignTaskToAgent
+ * @exports getProjectRoot, getTasksDir, listTaskIds, listTaskFilenames, findTaskPath, newTaskFilePath, readBoard, readTask, moveTaskToColumn, assignTaskToAgent
  * @see src/lib/parser.ts — pure string parsers reused here
+ * @see src/lib/task-filename.ts — the shared id ↔ filename policy, including slugs
  */
 
 import { existsSync, readdirSync, readFileSync, mkdirSync, unlinkSync } from 'node:fs';
@@ -35,6 +38,12 @@ import { atomicWriteFileSync } from './atomic-write.js';
 import { buildColumnsFromTasks, isArchived, parseTaskFile } from '../../lib/parser.js';
 import { serializeTaskFile } from '../../lib/serializer.js';
 import { stampUpdated } from '../../lib/task-meta.js';
+import {
+  buildTaskFilename,
+  isTaskFilename,
+  resolveTaskFilename,
+  taskIdFromFilename,
+} from '../../lib/task-filename.js';
 import type { ParsedBoard, ParsedTask, TaskFrontmatter } from '../../lib/types.js';
 import { loadConfig } from './config.js';
 
@@ -55,30 +64,77 @@ export function getTasksDir(kandownDir: string): string {
   return join(getProjectRoot(kandownDir), 'tasks');
 }
 
-export function listTaskIds(kandownDir: string): string[] {
-  const tasksDir = getTasksDir(kandownDir);
-  const ids = new Set<string>();
-  for (const directory of [tasksDir, join(tasksDir, 'archive')]) {
-    if (!existsSync(directory)) continue;
-    for (const name of readdirSync(directory).filter(entry => entry.endsWith('.md'))) {
-      ids.add(name.slice(0, -3));
-    }
+/**
+ * 📖 The task Markdown files inside one directory, ignoring `README.md`-style
+ * siblings, hidden files and anything unreadable. Returned unsorted: the shared
+ * resolver does its own deterministic ordering.
+ */
+export function listTaskFilenames(directory: string): string[] {
+  if (!existsSync(directory)) return [];
+  try {
+    return readdirSync(directory).filter(isTaskFilename);
+  } catch {
+    return [];
   }
-  return [...ids].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 }
 
 /**
- * 📖 Resolves a task id in the active directory first, then the archive. IDs
- * are restricted to file-safe task identifiers so API routes cannot escape the
- * project task directory through path traversal.
+ * 📖 Every task id in the project, active and archived, whether the file is named
+ * `t232.md` or `t232_remove_dead_code.md`.
+ *
+ * When two files claim the same id the first one wins (active before archived,
+ * then code-unit order) and the duplicate is reported on stderr instead of
+ * silently shadowing a task, because the file the user is editing might be the
+ * one being dropped.
+ */
+export function listTaskIds(kandownDir: string): string[] {
+  const tasksDir = getTasksDir(kandownDir);
+  const owners = new Map<string, string>();
+  for (const directory of [tasksDir, join(tasksDir, 'archive')]) {
+    for (const name of listTaskFilenames(directory).sort()) {
+      const id = taskIdFromFilename(name);
+      if (!id) continue;
+      const owner = owners.get(id);
+      if (owner) {
+        if (owner !== name) {
+          console.error(`[kandown] Two files claim task ${id}: using ${owner}, ignoring ${name}`);
+        }
+        continue;
+      }
+      owners.set(id, name);
+    }
+  }
+  return [...owners.keys()].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+}
+
+/**
+ * 📖 Resolves a task id in the active directory first, then the archive, over
+ * both the bare `t232.md` and the descriptive `t232_remove_dead_code.md` form.
+ * IDs are restricted to file-safe task identifiers so API routes cannot escape
+ * the project task directory through path traversal.
  */
 export function findTaskPath(kandownDir: string, taskId: string): string | null {
   if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return null;
   const tasksDir = getTasksDir(kandownDir);
-  const activePath = join(tasksDir, `${taskId}.md`);
-  if (existsSync(activePath)) return activePath;
-  const archivedPath = join(tasksDir, 'archive', `${taskId}.md`);
-  return existsSync(archivedPath) ? archivedPath : null;
+  for (const directory of [tasksDir, join(tasksDir, 'archive')]) {
+    const match = resolveTaskFilename(taskId, listTaskFilenames(directory));
+    if (!match) continue;
+    if (match.ambiguousWith.length) {
+      console.error(`[kandown] Task ${taskId} is claimed by several files, using ${match.filename} (also: ${match.ambiguousWith.join(', ')})`);
+    }
+    return join(directory, match.filename);
+  }
+  return null;
+}
+
+/**
+ * 📖 Where a brand-new task file goes: `tasks/<id>_<three_words>.md`, or the bare
+ * `tasks/<id>.md` when the title yields no ASCII slug. Existing filenames are
+ * passed through so a collision can never overwrite another task.
+ */
+export function newTaskFilePath(kandownDir: string, id: string, title?: string | null): string {
+  const tasksDir = getTasksDir(kandownDir);
+  return join(tasksDir, buildTaskFilename(id, title, listTaskFilenames(tasksDir)));
 }
 
 /**
@@ -138,8 +194,7 @@ export function readTask(kandownDir: string, taskId: string, defaultStatus?: str
   // going through this helper (mostly the web filesystem layer, which has
   // its own path check below).
   const tasksDir = getTasksDir(kandownDir);
-  const inArchive = taskPath === join(tasksDir, 'archive', `${taskId}.md`)
-    || taskPath.startsWith(join(tasksDir, 'archive') + sep);
+  const inArchive = taskPath.startsWith(join(tasksDir, 'archive') + sep);
   const archived = inArchive || isArchived(parsed);
   return {
     ...parsed,
@@ -351,7 +406,7 @@ export function createTaskInBoard(kandownDir: string, rawInput: string, status?:
   if (depends_on.length > 0) fm.depends_on = depends_on;
 
   const content = serializeTaskFile(fm, '');
-  const taskPath = join(tasksDir, `${newId}.md`);
+  const taskPath = newTaskFilePath(kandownDir, newId, title);
   atomicWriteFileSync(taskPath, content);
   pushUndo(kandownDir, {
     type: 'create',
@@ -386,7 +441,9 @@ export function deleteTaskInBoard(kandownDir: string, taskId: string): boolean {
 
 export function archiveTaskInBoard(kandownDir: string, taskId: string): boolean {
   const tasksDir = getTasksDir(kandownDir);
-  const taskPath = join(tasksDir, `${taskId}.md`);
+  const match = resolveTaskFilename(taskId, listTaskFilenames(tasksDir));
+  if (!match) return false;
+  const taskPath = join(tasksDir, match.filename);
   if (!existsSync(taskPath)) return false;
   try {
     const prevContent = readFileSync(taskPath, 'utf8');
@@ -398,7 +455,9 @@ export function archiveTaskInBoard(kandownDir: string, taskId: string): boolean 
       id: taskId,
       archived: true,
     }), parsed.body);
-    const destPath = join(archiveDir, `${taskId}.md`);
+    // 📖 Archiving keeps the filename it had, slug included, so the archive stays
+    // as readable as the board and a later restore is a plain move back.
+    const destPath = join(archiveDir, match.filename);
     atomicWriteFileSync(destPath, newContent);
     unlinkSync(taskPath);
     pushUndo(kandownDir, {

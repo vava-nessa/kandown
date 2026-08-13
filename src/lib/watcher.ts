@@ -19,6 +19,7 @@
  * @exports FileWatcher, fileWatcher
  */
 
+import { isTaskFilename, resolveTaskFilename, taskIdFromFilename } from './task-filename';
 import { isServerMode } from './filesystem';
 
 export type ConflictType = 'none' | 'body-only' | 'metadata-only' | 'full';
@@ -242,8 +243,11 @@ export class FileWatcher {
     // 📖 Iterate defensively: a single unreadable entry should not abort the
     // directory scan (t107).
     for await (const entry of entries) {
-      if (entry.kind !== 'file' || !entry.name.endsWith('.md')) continue;
-      const id = entry.name.replace('.md', '');
+      if (entry.kind !== 'file') continue;
+      // 📖 A descriptive filename maps back to its id, so re-slugging a file
+      // while the app is open does not register a second phantom task.
+      const id = taskIdFromFilename(entry.name);
+      if (!id) continue;
       if (this.knownTaskIds.has(id)) continue;
       try {
         this.knownTaskIds.add(id);
@@ -302,7 +306,13 @@ async function readConfigFileText(dirHandle: FileSystemDirectoryHandle): Promise
 
 async function readTaskFileText(tasksDir: FileSystemDirectoryHandle, id: string): Promise<string | null> {
   try {
-    const h = await tasksDir.getFileHandle(`${id}.md`);
+    const names: string[] = [];
+    for await (const entry of tasksDir.values()) {
+      if (entry.kind === 'file' && isTaskFilename(entry.name)) names.push(entry.name);
+    }
+    const match = resolveTaskFilename(id, names);
+    if (!match) return null;
+    const h = await tasksDir.getFileHandle(match.filename);
     const file = await h.getFile();
     return await file.text();
   } catch { return null; }

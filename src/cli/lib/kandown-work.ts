@@ -25,12 +25,14 @@ import { loadProjectTrust } from '../../lib/extensions/trust.js';
 import { isRestricted } from '../../lib/extensions/trust.js';
 import { resolveDependencyStatus, terminalStatus, unresolvedDependencyIds } from '../../lib/dependencies.js';
 import { loadConfiguredWorkflowSkills } from './skills.js';
+import { countBareTaskFilenames } from '../commands/reslug.js';
 import type { KandownConfig, ParsedTask } from '../../lib/types.js';
 
 const AVAILABLE_COMMANDS = [
   'kandown work [task-id]', 'kandown list [--json]', 'kandown show <id>',
   'kandown create <title>', 'kandown move <id> <status>',
   'kandown assign <id> [agent]', 'kandown commit',
+  'kandown reslug <id>|--all [--dry-run]',
 ];
 
 function readSourceFiles(directory: string, prefix = ''): WorkflowSourceFiles {
@@ -107,6 +109,14 @@ function boardDigest(kandownDir: string, config: KandownConfig): string {
         return bColumn - aColumn || priority(a) - priority(b) || String(a.frontmatter.id).localeCompare(String(b.frontmatter.id), undefined, { numeric: true });
       })[0];
     lines.push(`\nNext actionable: ${next ? `${next.frontmatter.id} ${next.frontmatter.title}` : 'none'}`);
+  }
+  // 📖 Descriptive filenames are opt-in for tasks that already exist, so the
+  // agent is told to *offer* the rename and never to run it unprompted. Framed
+  // as an instruction rather than a statistic, because a bare count in a board
+  // digest reads as noise and gets ignored.
+  const bare = countBareTaskFilenames(kandownDir);
+  if (bare > 0) {
+    lines.push(`\nFilenames: ${bare} task file${bare === 1 ? ' is' : 's are'} still named after the id alone (\`t232.md\`). Descriptive names (\`t232_remove_dead_code.md\`) make git diffs and file lists readable, and the task id does not change. Offer the user \`kandown reslug --all --dry-run\` to preview it, then \`kandown reslug --all\`. Do not rename anything without being asked.`);
   }
   return lines.join('\n');
 }

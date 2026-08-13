@@ -68,6 +68,7 @@ import { normalizeKandownConfig } from './config';
 import { serializeTaskFile } from './serializer';
 import { stampUpdated } from './task-meta';
 import { parseTaskFile } from './parser';
+import { buildTaskFilename, isTaskFilename, resolveTaskFilename, taskIdFromFilename } from './task-filename';
 import { PermissionDeniedError, DiskFullError, CorruptedDataError, FileReadError } from './errors';
 
 declare global {
@@ -829,11 +830,58 @@ function emptyTask(id: string): ParsedTask {
   };
 }
 
+/**
+ * 📖 The task filenames inside one directory handle. Same filter as the CLI, so
+ * `README.md` and editor leftovers never become phantom tasks.
+ */
+async function listTaskFilenamesIn(dir: FileSystemDirectoryHandle | null): Promise<string[]> {
+  if (!dir) return [];
+  const names: string[] = [];
+  try {
+    for await (const entry of dir.values()) {
+      if (entry.kind === 'file' && isTaskFilename(entry.name)) names.push(entry.name);
+    }
+  } catch {
+    // 📖 Permission revoked mid-scan: behave like an empty directory, the
+    // caller's own error path already covers the read that follows.
+  }
+  return names;
+}
+
+/**
+ * 📖 Which file in this directory holds a task id, over both the bare `t232.md`
+ * and the descriptive `t232_remove_dead_code.md` form. Mirrors the CLI exactly:
+ * both call the same pure resolver, only the directory listing differs.
+ */
+async function resolveTaskFilenameIn(dir: FileSystemDirectoryHandle | null, id: string): Promise<string | null> {
+  const match = resolveTaskFilename(id, await listTaskFilenamesIn(dir));
+  if (match?.ambiguousWith.length) {
+    console.warn(`[kandown] Task ${id} is claimed by several files, using ${match.filename} (also: ${match.ambiguousWith.join(', ')})`);
+  }
+  return match?.filename ?? null;
+}
+
+/**
+ * 📖 The filename to write for a task: the one it already occupies, or a fresh
+ * descriptive name built from its title when the task is being created.
+ */
+async function writeTargetFilename(
+  dir: FileSystemDirectoryHandle | null,
+  id: string,
+  title?: string | null,
+): Promise<string> {
+  const existing = await resolveTaskFilenameIn(dir, id);
+  if (existing) return existing;
+  return buildTaskFilename(id, title, await listTaskFilenamesIn(dir));
+}
+
 /** Reads a task file from the archive subfolder. Returns null if absent. */
 async function tryArchiveRead(tasksDir: FileSystemDirectoryHandle, id: string): Promise<string | null> {
   try {
     const archiveDir = await tasksDir.getDirectoryHandle('archive', { create: false });
-    const h = await archiveDir.getFileHandle(`${id}.md`);
+    const name = await resolveTaskFilenameIn(archiveDir, id);
+    if (!name) return null;
+    const h = await archiveDir.getFileHandle(name);
     const file = await h.getFile();
     return await file.text();
   } catch {
@@ -845,8 +893,7 @@ async function tryArchiveRead(tasksDir: FileSystemDirectoryHandle, id: string): 
 async function taskIsInArchive(tasksDir: FileSystemDirectoryHandle, id: string): Promise<boolean> {
   try {
     const archiveDir = await tasksDir.getDirectoryHandle('archive', { create: false });
-    await archiveDir.getFileHandle(`${id}.md`);
-    return true;
+    return (await resolveTaskFilenameIn(archiveDir, id)) !== null;
   } catch {
     return false;
   }
@@ -864,20 +911,18 @@ async function getArchiveDirHandle(tasksDir: FileSystemDirectoryHandle, create: 
 export async function listTaskIds(_tasksDir: FileSystemDirectoryHandle | null): Promise<string[]> {
   if (isServerMode()) return serverListTasks();
   const ids = new Set<string>();
-  for await (const entry of _tasksDir!.values()) {
-    if (entry.kind === 'file' && entry.name.endsWith('.md')) {
-      ids.add(entry.name.slice(0, -3));
-    }
+  for (const name of await listTaskFilenamesIn(_tasksDir)) {
+    const id = taskIdFromFilename(name);
+    if (id) ids.add(id);
   }
   // 📖 Also surface archived tasks (tasks/archive/*.md) so the archive view can
   // list them. The server endpoint already merges both dirs; this mirrors it
   // for the browser (File System Access API) backend.
   try {
     const archiveDir = await _tasksDir!.getDirectoryHandle('archive', { create: false });
-    for await (const entry of archiveDir.values()) {
-      if (entry.kind === 'file' && entry.name.endsWith('.md')) {
-        ids.add(entry.name.slice(0, -3));
-      }
+    for (const name of await listTaskFilenamesIn(archiveDir)) {
+      const id = taskIdFromFilename(name);
+      if (id) ids.add(id);
     }
   } catch {
     // archive/ doesn't exist yet — no archived tasks
@@ -897,7 +942,9 @@ export async function readTaskFile(_tasksDir: FileSystemDirectoryHandle | null, 
   // 📖 Try the active dir first, then archive/ (archived tasks live there).
   const tryRead = async (dir: FileSystemDirectoryHandle): Promise<string | null> => {
     try {
-      const h = await dir.getFileHandle(`${id}.md`);
+      const name = await resolveTaskFilenameIn(dir, id);
+      if (!name) return null;
+      const h = await dir.getFileHandle(name);
       const file = await h.getFile();
       return await file.text();
     } catch {
@@ -948,7 +995,9 @@ export async function readTaskFileStrict(
   let text: string | null = null;
   let activeHit = false;
   try {
-    const h = await _tasksDir!.getFileHandle(`${id}.md`);
+    const name = await resolveTaskFilenameIn(_tasksDir, id);
+    if (!name) throw new Error('not in active');
+    const h = await _tasksDir!.getFileHandle(name);
     const file = await h.getFile();
     text = await file.text();
     activeHit = true;
@@ -996,7 +1045,10 @@ export async function writeTaskFile(
     const targetDir = (await taskIsInArchive(_tasksDir!, id))
       ? (await getArchiveDirHandle(_tasksDir!, true))!
       : _tasksDir!;
-    const h = await targetDir.getFileHandle(`${id}.md`, { create: true });
+    // 📖 An existing task keeps its filename, slug frozen: editing a title never
+    // renames a file. A task created from the web gets the descriptive name.
+    const name = await writeTargetFilename(targetDir, id, frontmatter.title);
+    const h = await targetDir.getFileHandle(name, { create: true });
     const w = await h.createWritable();
     try {
       await w.write(content);
@@ -1011,10 +1063,14 @@ export async function writeTaskFile(
 export async function deleteTaskFile(_tasksDir: FileSystemDirectoryHandle | null, id: string): Promise<void> {
   if (isServerMode()) return serverDeleteTask(id);
   // 📖 Remove from whichever location holds the file (active or archive).
-  try { await _tasksDir!.removeEntry(`${id}.md`); } catch { /* not in active */ }
+  try {
+    const name = await resolveTaskFilenameIn(_tasksDir, id);
+    if (name) await _tasksDir!.removeEntry(name);
+  } catch { /* not in active */ }
   try {
     const archiveDir = await _tasksDir!.getDirectoryHandle('archive', { create: false });
-    await archiveDir.removeEntry(`${id}.md`);
+    const name = await resolveTaskFilenameIn(archiveDir, id);
+    if (name) await archiveDir.removeEntry(name);
   } catch { /* not in archive */ }
 }
 
@@ -1055,14 +1111,20 @@ export async function archiveTaskFile(
   if (isServerMode()) return serverArchiveTask(id, content);
   try {
     const archiveDir = (await getArchiveDirHandle(_tasksDir!, true))!;
-    const h = await archiveDir.getFileHandle(`${id}.md`, { create: true });
+    // 📖 The file keeps its name across the move, so the archive folder stays as
+    // readable as the board and a later restore is a plain move back.
+    const activeName = await resolveTaskFilenameIn(_tasksDir, id);
+    const name = activeName ?? (await writeTargetFilename(archiveDir, id, frontmatter.title));
+    const h = await archiveDir.getFileHandle(name, { create: true });
     const w = await h.createWritable();
     try {
       await w.write(content);
     } finally {
       await w.close();
     }
-    try { await _tasksDir!.removeEntry(`${id}.md`); } catch { /* already absent */ }
+    if (activeName) {
+      try { await _tasksDir!.removeEntry(activeName); } catch { /* already absent */ }
+    }
   } catch (e) {
     throw toWriteError(e, `archive/${id}.md`);
   }
@@ -1083,17 +1145,19 @@ export async function unarchiveTaskFile(
   const content = serializeTaskFile(stampUpdated(frontmatter), body);
   if (isServerMode()) return serverUnarchiveTask(id, content);
   try {
-    const h = await _tasksDir!.getFileHandle(`${id}.md`, { create: true });
+    const archiveDirRead = await getArchiveDirHandle(_tasksDir!, false);
+    const archivedName = archiveDirRead ? await resolveTaskFilenameIn(archiveDirRead, id) : null;
+    const name = archivedName ?? (await writeTargetFilename(_tasksDir, id, frontmatter.title));
+    const h = await _tasksDir!.getFileHandle(name, { create: true });
     const w = await h.createWritable();
     try {
       await w.write(content);
     } finally {
       await w.close();
     }
-    try {
-      const archiveDir = await _tasksDir!.getDirectoryHandle('archive', { create: false });
-      await archiveDir.removeEntry(`${id}.md`);
-    } catch { /* already absent */ }
+    if (archiveDirRead && archivedName) {
+      try { await archiveDirRead.removeEntry(archivedName); } catch { /* already absent */ }
+    }
   } catch (e) {
     throw toWriteError(e, `${id}.md`);
   }

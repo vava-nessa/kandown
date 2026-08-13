@@ -7,10 +7,12 @@
 
 import { createServer, IncomingMessage, ServerResponse } from 'node:http';
 import { existsSync, readFileSync, copyFileSync, unlinkSync, mkdirSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { homedir } from 'node:os';
 import { spawn } from 'node:child_process';
-import { getProjectRoot, getTasksDir, findTaskPath, readTask, listTaskIds } from './board-reader';
+import { getProjectRoot, getTasksDir, findTaskPath, listTaskFilenames, newTaskFilePath, readTask, listTaskIds } from './board-reader';
+import { resolveTaskFilename } from '../../lib/task-filename';
+import { parseTaskFile } from '../../lib/parser';
 import { loadConfig, saveConfig } from './config';
 import { detectCatalogJSON } from './agents';
 import { getCurrentVersion, getInstalledVersion, semverGt, performGlobalPackageUpdate, PKG_ROOT } from './updater';
@@ -675,8 +677,15 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
 
     const tasksDir = getTasksDir(kandownDir);
     const archiveDir = join(tasksDir, 'archive');
-    const activePath = join(tasksDir, `${taskId}.md`);
-    const archivedPath = join(archiveDir, `${taskId}.md`);
+    // 📖 A task file may be named `t232.md` or `t232_remove_dead_code.md`, so the
+    // route resolves the real filename in each directory instead of assuming it.
+    // `null` means "no file here yet", which the create paths below handle.
+    const resolveIn = (directory: string): string | null => {
+      const match = resolveTaskFilename(taskId, listTaskFilenames(directory));
+      return match ? join(directory, match.filename) : null;
+    };
+    const activePath = resolveIn(tasksDir);
+    const archivedPath = resolveIn(archiveDir);
     const action = routeParts[1];
 
     if (method === 'POST' && action === 'move') {
@@ -741,16 +750,21 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       if (routeParts.length !== 2) return writeText(res, 400, 'Invalid task route');
       const archiving = action === 'archive';
       const source = archiving ? activePath : archivedPath;
-      const destination = archiving ? archivedPath : activePath;
-      if (!existsSync(source) && !existsSync(destination)) {
+      const existingDestination = archiving ? archivedPath : activePath;
+      if (!source && !existingDestination) {
         return writeText(res, 404, 'Task not found');
       }
+      // 📖 The file keeps its name across the move: archiving `t232_remove_dead_code.md`
+      // must not rebuild it as a bare `t232.md` in archive/.
+      const destinationDir = archiving ? archiveDir : tasksDir;
+      const destination = existingDestination
+        ?? join(destinationDir, basename(source!));
       try {
         if (!existsSync(tasksDir)) mkdirSync(tasksDir, { recursive: true });
         if (!existsSync(archiveDir)) mkdirSync(archiveDir, { recursive: true });
         const body = await readRequestBody(req);
         atomicWriteFileSync(destination, body);
-        if (source !== destination && existsSync(source)) unlinkSync(source);
+        if (source && source !== destination && existsSync(source)) unlinkSync(source);
         broadcastSseEvent({ type: 'task', id: taskId });
         return writeJson(res, 200, { ok: true });
       } catch (error) {
@@ -771,9 +785,12 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
     if (method === 'PUT') {
       try {
         if (!existsSync(tasksDir)) mkdirSync(tasksDir, { recursive: true });
-        // 📖 Preserve an archived task's location when autosave writes it.
-        const taskPath = findTaskPath(kandownDir, taskId) ?? activePath;
         const body = await readRequestBody(req);
+        // 📖 Preserve an archived task's location when autosave writes it, and
+        // give a task created through the API a descriptive filename derived
+        // from the title it arrives with.
+        const taskPath = findTaskPath(kandownDir, taskId)
+          ?? newTaskFilePath(kandownDir, taskId, parseTaskFile(body).frontmatter.title);
         atomicWriteFileSync(taskPath, body);
         broadcastSseEvent({ type: 'task', id: taskId });
         return writeJson(res, 200, { ok: true });
@@ -788,8 +805,8 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       try {
         // 📖 Remove both locations defensively if a previous interrupted move
         // left duplicate copies behind.
-        if (existsSync(activePath)) unlinkSync(activePath);
-        if (existsSync(archivedPath)) unlinkSync(archivedPath);
+        if (activePath && existsSync(activePath)) unlinkSync(activePath);
+        if (archivedPath && existsSync(archivedPath)) unlinkSync(archivedPath);
         broadcastSseEvent({ type: 'task_delete', id: taskId });
         return writeJson(res, 200, { ok: true });
       } catch (error) {

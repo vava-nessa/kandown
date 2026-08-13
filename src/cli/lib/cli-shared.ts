@@ -11,24 +11,32 @@
  *  → taskParseArgs, stringFlag, listFlag, addMultiFlag — task-command arg parsing
  *  → resolveStatusArg — case-insensitive column name lookup
  *  → taskPath, findTaskPath, nextTaskId, readTaskFile — task file path/read helpers
+ *  → newTaskPath — the path a task about to be created should be written to
  *  → launchTui — spawns bin/tui.js and waits for it to exit
  *
  * @exports c, log, info, success, err, parseArgs, COMMANDS, splitCommand,
  *   stripFirstPositional, resolveKandownDir, ensureKandownDir, help,
  *   TaskCliArgs, addMultiFlag, taskParseArgs, stringFlag, listFlag,
- *   resolveStatusArg, taskPath, findTaskPath, nextTaskId, readTaskFile,
+ *   resolveStatusArg, taskPath, findTaskPath, newTaskPath, nextTaskId, readTaskFile,
  *   printTaskCommandsHelp, launchTui
  */
 
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, resolve, basename, dirname } from 'node:path';
 import { spawn } from 'node:child_process';
 import { getCurrentVersion, PKG_ROOT } from './updater';
-import { getTasksDir, listTaskIds } from './board-reader';
+import {
+  getTasksDir,
+  listTaskIds,
+  listTaskFilenames,
+  newTaskFilePath,
+  findTaskPath as resolveTaskPath,
+} from './board-reader';
 import { doInit } from './init';
 import { loadConfig } from './config';
 import { parseTaskFile } from '../../lib/parser';
+import { taskIdFromFilename } from '../../lib/task-filename';
 import type { TaskFrontmatter } from '../../lib/types';
 
 export const c = {
@@ -73,7 +81,7 @@ export function parseArgs(args: string[]) {
 export const COMMANDS = new Set([
   'init', 'update', 'upgrade', 'doctor', 'work', 'list', 'ls', 'show', 'move',
   'help', 'daemon', 'board', 'settings', 'tasks', 'create', 'new', 'assign',
-  'commit', 'projects', 'export', 'import', 'mcp', 'version', 'run', 'agents',
+  'commit', 'projects', 'export', 'import', 'mcp', 'version', 'run', 'agents', 'reslug',
   'extension', 'extensions', 'theme', 'themes', 'workflow', 'workflows',
 ]);
 
@@ -191,6 +199,7 @@ ${c.bold}COMMANDS:${c.reset}
   create "<title>"    Create new task (alias: new)
   move <id> <status>  Move task column
   assign <id> <agent> Assign task to an agent (e.g. claude)
+  reslug <id>|--all   Rename task files descriptively (t232_remove_dead_code.md)
   run [id]            Cascade: run ready tasks via assigned agents (DAG chain)
   agents              List detected AI agents + catalog (.kandown/agents.json)
   extension           Manage extensions (list/enable/disable/install/create)
@@ -282,25 +291,35 @@ export function resolveStatusArg(kandownDir: string, status: string): string | n
   return config.board.columns.find(col => col.toLowerCase() === status.toLowerCase()) ?? null;
 }
 
+/**
+ * 📖 The bare `<id>.md` path, without consulting the disk. Only correct for a
+ * task known to have no slug: prefer `findTaskPath` to read an existing task and
+ * `newTaskPath` to create one.
+ */
 export function taskPath(kandownDir: string, id: string, archived = false): string {
   return archived ? join(getTasksDir(kandownDir), 'archive', `${id}.md`) : join(getTasksDir(kandownDir), `${id}.md`);
 }
 
+/**
+ * 📖 Resolves an existing task file, active or archived, in either filename form.
+ * Delegates to the single resolver in board-reader so the CLI, the daemon and
+ * the TUI cannot drift apart on which file holds a task.
+ */
 export function findTaskPath(kandownDir: string, id: string): string | null {
-  const active = taskPath(kandownDir, id);
-  if (existsSync(active)) return active;
-  const archived = taskPath(kandownDir, id, true);
-  if (existsSync(archived)) return archived;
-  return null;
+  return resolveTaskPath(kandownDir, id);
+}
+
+/** 📖 Where to write a task being created: `<id>_<three_words>.md` when the title allows it. */
+export function newTaskPath(kandownDir: string, id: string, title?: string | null): string {
+  return newTaskFilePath(kandownDir, id, title);
 }
 
 export function nextTaskId(kandownDir: string): string {
   const ids = new Set(listTaskIds(kandownDir));
-  const archiveDir = join(getTasksDir(kandownDir), 'archive');
-  if (existsSync(archiveDir)) {
-    for (const file of readdirSync(archiveDir)) {
-      if (file.endsWith('.md')) ids.add(file.slice(0, -3));
-    }
+  // 📖 Archived ids count too, so a number is never reused after an archive.
+  for (const name of listTaskFilenames(join(getTasksDir(kandownDir), 'archive'))) {
+    const id = taskIdFromFilename(name);
+    if (id) ids.add(id);
   }
   let max = 0;
   for (const id of ids) {

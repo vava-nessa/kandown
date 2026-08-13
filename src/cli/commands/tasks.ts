@@ -24,7 +24,7 @@ import type { TaskFrontmatter } from '../../lib/types';
 import {
   c, log, info, success, err,
   ensureKandownDir, taskParseArgs, stringFlag, listFlag,
-  resolveStatusArg, taskPath, findTaskPath, nextTaskId, readTaskFile,
+  resolveStatusArg, findTaskPath, newTaskPath, nextTaskId, readTaskFile,
 } from '../lib/cli-shared';
 
 export function cmdList(rawArgs: string[]) {
@@ -149,7 +149,9 @@ export function cmdCreate(rawArgs: string[]) {
 
   const tasksDir = getTasksDir(kandownDir);
   if (!existsSync(tasksDir)) mkdirSync(tasksDir, { recursive: true });
-  const path = taskPath(kandownDir, id);
+  // 📖 Descriptive filename: `t293_fix_login_button.md`. Falls back to the bare
+  // id when the title has no ASCII words to slug.
+  const path = newTaskPath(kandownDir, id, title);
   atomicWriteFileSync(path, serializeTaskFile(fm, ''));
   process.stderr.write(`${c.green}✓${c.reset} Created ${c.bold}${id}${c.reset} → ${status}\n`);
   process.stdout.write(args.flags.json === true ? JSON.stringify(fm, null, 2) + '\n' : `${id}\n`);
@@ -305,11 +307,15 @@ export function cmdImport(rawArgs: string[]): void {
   let imported = 0;
   for (const row of rows) {
     const id = typeof row.id === 'string' && /^[a-zA-Z0-9_-]+$/.test(row.id) ? row.id : nextTaskId(kandownDir);
-    const path = taskPath(kandownDir, id);
-    if (existsSync(path) && args.flags.overwrite !== true) continue;
+    const title = typeof row.title === 'string' && row.title ? row.title : id;
+    // 📖 Re-importing an existing task must land on the file that already holds
+    // it, slug and all, rather than forking a second bare-named copy of it.
+    const existing = findTaskPath(kandownDir, id);
+    if (existing && args.flags.overwrite !== true) continue;
+    const path = existing ?? newTaskPath(kandownDir, id, title);
     const fm: TaskFrontmatter = {
       id,
-      title: typeof row.title === 'string' && row.title ? row.title : id,
+      title,
       status: typeof row.status === 'string' && row.status ? row.status.replace(/ \(archived\)$/i, '') : defaultStatus,
     };
     if (typeof row.priority === 'string') fm.priority = row.priority;
