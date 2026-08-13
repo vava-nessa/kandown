@@ -395,18 +395,19 @@ fn try_join(project_root: &Path) -> Option<DaemonHandle> {
     // 📖 The daemon's reported `kandownDir` is the directory containing
     // `kandown.json` — NOT a `.kandown/` subfolder. `kandown init <path>`
     // writes `kandown.json` directly under `<path>`; the daemon mirrors
-    // that path into its `daemon.json`. Comparing canonical absolute
-    // paths is what stops us from "joining" a daemon that belongs to a
-    // different project just because it happens to be alive on a free
-    // port. Canonicalisation matters here: macOS resolves `/tmp` to
-    // `/private/tmp` via a symlink, and the CLI also reports the
-    // resolved path. Without this we would refuse to join a daemon we
-    // ourselves started from `/tmp/...`.
-    let expected_kandown_dir = project_root
-        .canonicalize()
-        .ok()
-        .map(|p| p.to_string_lossy().to_string())
-        .unwrap_or_else(|| project_root.to_string_lossy().to_string());
+    // that path into its `daemon.json`. Comparing the supplied
+    // `project_root` against `kandown_dir` stops us from "joining" a
+    // daemon that belongs to a different project just because it
+    // happens to be alive on a free port.
+    //
+    // 📖 We compare the supplied path verbatim rather than going through
+    // `canonicalize()`. The CLI's `path.resolve` does not follow
+    // symlinks, so `daemon.json` records whatever `--path` we passed;
+    // canonicalising here on top would create a `/tmp/...` vs
+    // `/private/tmp/...` mismatch on macOS and refuse to join a daemon
+    // we ourselves just started. The recents store (`projects.rs`)
+    // matches the supplied path for the same reason.
+    let expected_kandown_dir = project_root.to_string_lossy().to_string();
     if remote.kandown_dir != expected_kandown_dir {
         warn!(
             "kandownDir mismatch: expected {} got {}; will spawn a fresh daemon",
@@ -646,11 +647,7 @@ pub fn validate_daemon_for_path(project_root: &Path) -> Result<DaemonHealth, Dae
             reason: "/api/daemon ok=false".to_string(),
         });
     }
-    let expected = project_root
-        .canonicalize()
-        .ok()
-        .map(|p| p.to_string_lossy().to_string())
-        .unwrap_or_else(|| project_root.to_string_lossy().to_string());
+    let expected = project_root.to_string_lossy().to_string();
     if remote.kandown_dir != expected {
         return Ok(DaemonHealth::Stale {
             reason: format!(

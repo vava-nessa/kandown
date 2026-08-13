@@ -154,27 +154,27 @@ pub fn display_name_from_path(path: &Path) -> String {
 /// 📖 Upsert a project entry by absolute path. Bumps `last_opened_at`
 /// and re-sorts the list most-recent-first. Persists as a side effect.
 ///
-/// 📖 Canonicalizes the path before storing so the recents entry uses
-/// the same form the CLI's daemon.json does (`/private/tmp/...` on
-/// macOS, where `/tmp` is a symlink). Without this the cold-start
-/// cleanup compares `/tmp/...` against `/private/tmp/...` and flags
-/// every daemon as stale.
+/// 📖 The path is stored **as supplied**, without `canonicalize()`:
+/// the CLI's `daemon.json` records the raw `--path` argument verbatim
+/// (Node's `path.resolve` does not follow symlinks), so the recents
+/// entry has to match. Earlier canonicalization here caused every
+/// daemon on macOS to look stale on the next cold start, because
+/// `/tmp/...` and `/private/tmp/...` resolved to different strings
+/// inside the recents store and inside `daemon.json`.
 ///
-/// 📖 A pre-existing entry under the non-canonical path is treated as
-/// the same project: we promote it by replacing its path with the
-/// canonical form. This matters for users upgrading from slice 2 whose
-/// `lastProject` was a non-canonical symlink-resolved form.
+/// 📖 A pre-existing entry under the canonical form is treated as the
+/// same project: we replace its path with the new (supplied) form.
+/// This avoids duplicates after a slice-2 → slice-3 upgrade, where
+/// `lastProject` may already be canonical.
 pub fn add_or_touch(path: &Path) {
     let mut config = load();
-    let path_buf = path
-        .canonicalize()
-        .unwrap_or_else(|_| path.to_path_buf());
+    let path_buf = path.to_path_buf();
     let now = now_secs();
     let display_name = display_name_from_path(&path_buf);
 
-    // 📖 First, look for an exact match. Then fall back to a
-    // canonical-form match so an old non-canonical entry is merged
-    // into the new one rather than duplicated.
+    // 📖 Look for an exact match first, then a canonical-form match
+    // so the same project opened two different ways (e.g. symlink and
+    // resolved) does not end up twice in the list.
     let mut found_idx: Option<usize> = None;
     for (idx, entry) in config.projects.iter().enumerate() {
         if entry.path == path_buf {
@@ -183,9 +183,13 @@ pub fn add_or_touch(path: &Path) {
         }
     }
     if found_idx.is_none() {
+        let target_canon = path.canonicalize().unwrap_or_else(|_| path_buf.clone());
         for (idx, entry) in config.projects.iter().enumerate() {
-            let entry_canon = entry.path.canonicalize().unwrap_or_else(|_| entry.path.clone());
-            if entry_canon == path_buf {
+            let entry_canon = entry
+                .path
+                .canonicalize()
+                .unwrap_or_else(|_| entry.path.clone());
+            if entry_canon == target_canon {
                 found_idx = Some(idx);
                 break;
             }

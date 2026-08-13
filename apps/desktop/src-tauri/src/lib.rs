@@ -95,8 +95,11 @@ pub const LAUNCHER_LABEL: &str = "launcher";
 /// fine for the scale we expect (a handful of windows tops); if a future
 /// slice wants concurrent access patterns a `RwLock` would slot in here
 /// without changing the call sites.
+///
+/// 📖 `pub` so the slice-4 modules (`menu.rs`, `dock_badge.rs`,
+/// `window_state.rs`) can read it.
 #[derive(Default)]
-struct ActiveDaemons(Mutex<HashMap<String, DaemonHandle>>);
+pub struct ActiveDaemons(pub Mutex<HashMap<String, DaemonHandle>>);
 
 /// 📖 Path that a freshly-opened project window should auto-resolve on
 /// load. The launcher places the entry just before creating the window;
@@ -104,7 +107,15 @@ struct ActiveDaemons(Mutex<HashMap<String, DaemonHandle>>);
 /// to fetch and clear it. The key is the window label so two windows
 /// opened in rapid succession do not stomp on each other's paths.
 #[derive(Default)]
-struct PendingResolves(Mutex<HashMap<String, PathBuf>>);
+pub struct PendingResolves(pub Mutex<HashMap<String, PathBuf>>);
+
+/// 📖 Slice 4 plumbing carried through the setup hook.
+#[derive(Clone)]
+pub struct Slice4Setup {
+    pub window_state_handler: std::sync::Arc<
+        dyn Fn(&tauri::Window, &tauri::WindowEvent) + Send + Sync,
+    >,
+}
 
 /// 📖 What we hand to the bundled picker. A wrapper around `projects::ProjectEntry`
 /// that keeps field names in camelCase (the file uses snake_case). The
