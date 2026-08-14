@@ -1,0 +1,41 @@
+---
+id: t231
+title: [CLI] Harden the local HTTP API (body size limit, config shape validation)
+status: In Progress
+assignee: claude
+priority: P2
+tags: [cli, daemon, security]
+ownerType: agent
+created: 2026-07-25
+order: 4
+updated: 2026-08-04T23:16:41Z
+---
+
+# Harden the local HTTP API
+
+## Context
+
+The per-project daemon already binds to `127.0.0.1` and requires a random API
+token on every route except the read-only identity check — the main hardening pass
+is done. Two smaller holes from `FABLE_CODEQUALITY` §Serveur HTTP remain open in
+`src/cli/lib/server.ts`:
+
+- **No request body size limit.** `readBody` accumulates without a cap, so a large
+  or malicious PUT can exhaust memory. There is no `413` path anywhere in the file.
+- **`PUT /api/config` validates "is it JSON", not "is it a config".** Writing `[]`
+  overwrites `kandown.json`; `loadConfig` then silently falls back to defaults, and
+  the user's columns, theme and settings are gone with no error shown.
+
+## Subtasks
+
+- [ ] Cap `readBody` at ~10 MB and respond `413` past it
+- [ ] Validate the minimal config shape on `PUT /api/config`: object, `board.columns`
+      an array of non-empty strings — reject with `400` and a reason otherwise
+- [ ] Validate on `PUT /api/tasks/:id` that the body parses as a task file
+      (frontmatter delimiters present, non-empty) before writing
+- [ ] Cover all three with integration tests once [[t227]] lands
+
+## Notes
+
+Path traversal from the same audit is already fixed — `findTaskPath`
+(`src/cli/lib/board-reader.ts`) rejects any id that is not `^[a-zA-Z0-9_-]+$`.

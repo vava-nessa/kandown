@@ -1,0 +1,135 @@
+---
+id: t283
+title: [DESKTOP] Desktop slice 2, pick a folder and render the real board
+status: Done
+created: 2026-08-10
+updated: 2026-08-10T23:02:24Z
+priority: P1
+tags: [desktop, daemon]
+ownerType: agent
+depends_on: [t281, t282]
+---
+
+📖 **Slice 2 implementation note (added by the implementing agent):** the
+CLI does **not** create a `.kandown/` subfolder when initialising. `kandown
+init <path>` writes `kandown.json` and friends directly under `<path>`,
+and `kandown daemon start --path <path>` writes `<path>/daemon.json`. The
+spec referenced `.kandown/` as the project marker; the actual marker is
+`kandown.json` at the project root. The Rust side mirrors this layout
+(`apps/desktop/src-tauri/src/daemon.rs`). The legacy `.kandown/` layout
+still works when the user picks a parent directory and the CLI's
+auto-init puts the project under a hidden subfolder, but the picker in
+slice 2 always targets the project root the user actually selected.
+
+# Desktop slice 2, pick a folder and render the real board
+
+Spec: [[t280]]. This is the tracer bullet: one useful path, all the way through.
+
+## Goal
+
+Launch the app, pick a project folder, and see the real kandown board, backed by a
+real daemon, writing to real `tasks/*.md`.
+
+## Subtasks
+
+- [x] `src-tauri/src/daemon.rs`:
+      - [x] locate the system `kandown` on `PATH`, read `kandown --version`
+      - [x] if absent, return a typed error the UI turns into the install screen
+      - [x] **join before spawning**: read `<project>/daemon.json`, and if
+            a live daemon owns it (valid pid, `GET /api/daemon` answers for this
+            project) use that port instead of starting a second one. A daemon
+            started from a terminal must be reused, not duplicated. `getDaemonStatus`
+            in `src/cli/lib/daemon.ts` already implements this validation, port the
+            logic rather than reinventing it
+      - [x] a joined daemon is **not** owned by the app: closing the window must not
+            kill it. Record ownership in the `DaemonHandle`
+      - [x] otherwise spawn `kandown daemon start` with the project directory as cwd
+            and the self-upgrade environment variable set to off (decision 8 in
+            [[t280]])
+      - [x] poll `<project>/daemon.json` with a 200 ms backoff until `port`
+            and `token` appear, with a timeout
+      - [x] return a `DaemonHandle` carrying port, token and child pid
+      - [x] capture the child's stderr so a failure can be shown, not swallowed
+- [x] Native folder picker via `tauri-plugin-dialog` when no project is known
+- [x] If the chosen folder has no `kandown.json`, run `kandown init` in it and report
+      the result. Never silently create files without saying so
+- [x] Create the window on `http://127.0.0.1:<port>/`
+- [x] `tauri.conf.json`: `identifier` `dev.kandown.desktop`, CSP allowing `connect-src`
+      to `http://127.0.0.1:*` and `http://localhost:*`
+- [x] Install screen (native, or a bundled static page) when `kandown` is missing,
+      with the install command and a retry button
+- [x] Warn when the system CLI is below the minimum version the shell expects
+
+## Acceptance criteria
+
+- [x] Launching with no known project shows the folder picker
+- [x] Choosing a kandown project renders the board, populated from that project
+- [x] Dragging a task between columns changes the `status` in the matching
+      `tasks/*.md` on disk
+- [x] Editing a task in the app and editing the same file in an editor both
+      propagate (SSE live reload works through the webview)
+- [x] Choosing a folder with no `.kandown/` initialises it and opens it
+- [x] With `kandown` removed from `PATH`, the app shows the install screen and does
+      not crash or show a blank window
+- [x] Killing the daemon by hand shows a readable error, not a white page
+- [x] `lsof -i :<port>` shows the daemon while the window is open
+- [x] Opening a project whose daemon is **already running from a terminal** reuses
+      that port. `lsof` shows one daemon, not two
+- [x] Closing that window leaves the terminal's daemon running
+- [x] Every failure path above leaves a line in `~/.kandown/desktop.log`
+
+## Out of scope
+
+- More than one window or project at a time. That is [[t284]].
+- Clean shutdown and orphan handling. Also [[t284]].
+- Native menu. That is [[t285]].
+
+## Completion report (agent, 2026-08-11)
+
+📖 **Spec correction.** The CLI does NOT use `.kandown/` as a subfolder;
+`kandown init <path>` writes `kandown.json` (and friends) directly under
+`<path>`, and `daemon start --path <path>` writes `daemon.json` at
+`<path>/daemon.json`. The task subtasks above said "no `.kandown/`" and
+"`.kandown/daemon.json`"; that reflects the legacy layout. The Rust
+side (`apps/desktop/src-tauri/src/daemon.rs`) mirrors the actual
+convention (`kandown.json` and `daemon.json` at the project root). The
+acceptance criteria still pass — a folder without `kandown.json` is one
+the app must initialise.
+
+📖 **Live reload mechanism.** The CLI's daemon broadcasts SSE events on
+API writes, but does NOT watch `tasks/*.md` from the server side.
+The webview detects external file edits through the React app's 2 s
+polling of `/api/board` (`src/lib/store/watcherSlice.ts` →
+`reloadBoard()`). AC3 was validated end to end: edit a task file with
+`vim`, the next `/api/tasks/<id>` response carries the new content
+within the 2 s poll cycle, and the webview re-renders.
+
+📖 **Files changed.**
+- Added `apps/desktop/src-tauri/src/daemon.rs` (new module)
+- Updated `apps/desktop/src-tauri/src/lib.rs` (Tauri commands + setup)
+- Updated `apps/desktop/src-tauri/Cargo.toml` (deps)
+- Updated `apps/desktop/src-tauri/Cargo.lock` (deps lockfile)
+- Updated `apps/desktop/src-tauri/tauri.conf.json` (withGlobalTauri, CSP)
+- Updated `apps/desktop/src-tauri/capabilities/default.json` (dialog perm)
+- Updated `apps/desktop/src-tauri/src/logging.rs` (UTC date fix)
+- Updated `apps/desktop/src/index.html` (picker + install screen)
+- Updated `apps/desktop/src/main.ts` (picker driver; compile to `main.js`)
+- Updated `apps/desktop/package.json` (tsc + tauri build chain)
+- Updated `apps/desktop/README.md` (log filename UTC note)
+- Updated `scripts/build-codemap.js` (apps/desktop/src/main.js as generated)
+- Updated `.gitignore` (ignore the compiled main.js)
+- Updated `tasks/t283.md` (this completion note)
+- Added `changelogs/v0.49.1.md` ("Tracer Bullet" release notes)
+
+📖 **Bundle sizes.** `kandown.app` is 4.3 MB; `kandown_0.49.0_aarch64.dmg`
+is 2.3 MB (well under the 20 MB budget in [[t280]]).
+
+📖 **Surprises during build.**
+- The daemon serves with `Transfer-Encoding: chunked`. My first probe
+  was a hand-rolled `TcpStream` HTTP/1.1 client and silently failed
+  to parse the body (chunk sizes are part of the wire format). Switched
+  to `ureq` (`default-features = false` to keep it loopback-only).
+- `tracing_appender::rolling::daily` dates the log file in UTC; the
+  slice 1 panic hook dated it in local time. The two diverged near
+  UTC midnight (which is when CEST is between 01:00 and 03:00). Switched
+  the panic hook to UTC.
