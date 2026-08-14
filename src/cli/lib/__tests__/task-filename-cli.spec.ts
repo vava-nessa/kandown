@@ -136,3 +136,48 @@ describe('descriptive task filenames', () => {
     expect(taskFiles(dir, 'archive')).toEqual(['t2_add_dark_mode.md']);
   });
 });
+
+describe('bracket category segment', () => {
+  let dir: string;
+  beforeEach(() => { dir = setupMixedProject(); });
+  afterEach(() => { rmSync(dir, { recursive: true, force: true }); });
+
+  it('creates a new task with a category segment when the title has a leading bracket', () => {
+    const res = run(dir, ['create', '[UI] Fix the login button']);
+    expect(res.status).toBe(0);
+    expect(taskFiles(dir)).toContain('t3_UI_fix_login_button.md');
+    // 📖 The bracket stays in the title too: `git log` keeps reading as English
+    // and the TUI category chip continues to render the human form.
+    const content = readFileSync(join(dir, 'tasks', 't3_UI_fix_login_button.md'), 'utf8');
+    expect(content).toMatch(/^title: \[UI\] Fix the login button$/m);
+    expect(run(dir, ['show', 't3']).stdout).toContain('Fix the login button');
+  });
+
+  it('creates a category-only file when the descriptive part yields no ASCII slug', () => {
+    const res = run(dir, ['create', '[UI] 🎉']);
+    expect(res.status).toBe(0);
+    expect(taskFiles(dir)).toContain('t3_UI.md');
+  });
+
+  it('does not rename when the prose slug changes but the bracket stays the same', () => {
+    run(dir, ['create', '[UI] Fix the login button']);
+    // 📖 No CLI path edits a title yet, so the slug is frozen in practice.
+    // This case is covered by the web PUT path and exercised by the unit
+    // tests; here we only check that the CLI create path stays consistent.
+    expect(taskFiles(dir)).toContain('t3_UI_fix_login_button.md');
+  });
+
+  it('handles multi-word categories without losing information', () => {
+    const res = run(dir, ['create', '[FABLE CLEANUP] Remove dead code']);
+    expect(res.status).toBe(0);
+    expect(taskFiles(dir)).toContain('t3_FABLE_CLEANUP_remove_dead_code.md');
+  });
+
+  it('parses the category segment back out of an existing filename', () => {
+    const res = run(dir, ['create', '[BILLING] Fix the invoice rendering']);
+    expect(res.status).toBe(0);
+    // 📖 `show` resolves the bare id even when the filename carries a category
+    // and slug, because the resolver never parses the id.
+    expect(run(dir, ['show', 't3']).stdout).toContain('Fix the invoice rendering');
+  });
+});

@@ -24,7 +24,7 @@ var KANDOWN_VERSION;
 var init_version = __esm({
   "src/lib/version.ts"() {
     "use strict";
-    KANDOWN_VERSION = "0.50.0";
+    KANDOWN_VERSION = "0.51.0";
   }
 });
 
@@ -1189,6 +1189,20 @@ var init_task_title_category = __esm({
 function byCodeUnit(a, b) {
   return a < b ? -1 : a > b ? 1 : 0;
 }
+function normalizeCategorySegment(raw) {
+  if (typeof raw !== "string") return null;
+  const ascii = raw.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/[^A-Z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  if (!ascii) return null;
+  if (ascii.length > CATEGORY_MAX_LENGTH) {
+    const segments = ascii.slice(0, CATEGORY_MAX_LENGTH).replace(/_[^_]*$/, "");
+    return segments.length >= 2 ? segments : ascii.slice(0, CATEGORY_MAX_LENGTH);
+  }
+  return CATEGORY_LIKE.test(ascii) ? ascii : null;
+}
+function categorySegmentFromTitle(title) {
+  if (typeof title !== "string" || !title.trim()) return null;
+  return normalizeCategorySegment(parseTaskTitle(title).category);
+}
 function slugifyTitle(title, maxWords = SLUG_MAX_WORDS) {
   if (typeof title !== "string" || !title.trim()) return "";
   if (!Number.isFinite(maxWords) || maxWords < 1) return "";
@@ -1211,8 +1225,14 @@ function buildTaskFilename(id, title, takenFilenames = []) {
   const safeId = String(id ?? "").trim();
   if (!safeId) throw new Error("buildTaskFilename requires a task id");
   if (/[\\/]|^\.+$/.test(safeId)) throw new Error(`Unsafe task id for a filename: ${safeId}`);
+  const category = categorySegmentFromTitle(title ?? "");
   const slug = slugifyTitle(title ?? "");
-  const candidate = slug ? `${safeId}${SLUG_SEPARATOR}${slug}.md` : `${safeId}.md`;
+  let body;
+  if (category && slug) body = `${category}${SLUG_SEPARATOR}${slug}`;
+  else if (category) body = category;
+  else if (slug) body = slug;
+  else body = "";
+  const candidate = body ? `${safeId}${SLUG_SEPARATOR}${body}.md` : `${safeId}.md`;
   if (!takenFilenames.length) return candidate;
   const taken = new Set(takenFilenames.map((f) => f.toLowerCase()));
   if (!taken.has(candidate.toLowerCase())) return candidate;
@@ -1236,11 +1256,29 @@ function parseTaskFilename(name) {
   const base = name.slice(0, -3);
   const cut = base.indexOf(SLUG_SEPARATOR);
   const idPrefix = cut > 0 ? base.slice(0, cut) : null;
+  const slug = idPrefix !== null ? base.slice(cut + 1) : null;
   if (idPrefix === null || cut === base.length - 1 || !ID_LIKE.test(idPrefix)) {
-    return { base, idPrefix: null, slug: null, candidateIds: [base] };
+    return { base, idPrefix: null, slug: null, candidateIds: [base], category: null };
   }
-  const slug = base.slice(cut + 1);
-  return { base, idPrefix, slug, candidateIds: [base, idPrefix] };
+  let category = null;
+  let slugOnly = slug;
+  if (slug) {
+    const slugStart = slug.search(/[a-z0-9]/);
+    if (slugStart > 0 && /^[A-Z0-9_-]+$/.test(slug.slice(0, slugStart).replace(/_+$/, ""))) {
+      const candidate = slug.slice(0, slugStart).replace(/_+$/, "");
+      if (/[A-Z]/.test(candidate)) {
+        category = candidate;
+        slugOnly = slug.slice(slugStart);
+      }
+    }
+  }
+  return {
+    base,
+    idPrefix,
+    slug: slugOnly || null,
+    candidateIds: [base, idPrefix],
+    category
+  };
 }
 function taskIdFromFilename(name) {
   const info2 = parseTaskFilename(name);
@@ -1279,7 +1317,7 @@ function resolveTaskFilename(id, filenames) {
 function hasDescriptiveSlug(name) {
   return parseTaskFilename(name)?.slug != null;
 }
-var SLUG_MAX_WORDS, SLUG_MAX_LENGTH, SLUG_MAX_WORD_LENGTH, SLUG_SEPARATOR, ID_LIKE, TRANSLITERATIONS, STOP_WORDS;
+var SLUG_MAX_WORDS, SLUG_MAX_LENGTH, SLUG_MAX_WORD_LENGTH, CATEGORY_MAX_LENGTH, CATEGORY_LIKE, SLUG_SEPARATOR, ID_LIKE, TRANSLITERATIONS, STOP_WORDS;
 var init_task_filename = __esm({
   "src/lib/task-filename.ts"() {
     "use strict";
@@ -1287,6 +1325,8 @@ var init_task_filename = __esm({
     SLUG_MAX_WORDS = 3;
     SLUG_MAX_LENGTH = 48;
     SLUG_MAX_WORD_LENGTH = 20;
+    CATEGORY_MAX_LENGTH = 32;
+    CATEGORY_LIKE = /^[A-Z0-9_-]+$/;
     SLUG_SEPARATOR = "_";
     ID_LIKE = /^(?=.*\d)[A-Za-z0-9-]+$/;
     TRANSLITERATIONS = [
@@ -1407,8 +1447,8 @@ var init_config2 = __esm({
 });
 
 // src/cli/lib/board-reader.ts
-import { existsSync as existsSync4, readdirSync as readdirSync2, readFileSync as readFileSync4, mkdirSync as mkdirSync2, unlinkSync as unlinkSync4 } from "fs";
-import { dirname as dirname3, join as join4, sep } from "path";
+import { existsSync as existsSync4, readdirSync as readdirSync2, readFileSync as readFileSync4, mkdirSync as mkdirSync2, renameSync as renameSync2, unlinkSync as unlinkSync4 } from "fs";
+import { dirname as dirname3, join as join4, sep, basename } from "path";
 function getProjectRoot(kandownDir) {
   return dirname3(kandownDir);
 }
@@ -1458,6 +1498,59 @@ function findTaskPath(kandownDir, taskId) {
 function newTaskFilePath(kandownDir, id, title) {
   const tasksDir = getTasksDir(kandownDir);
   return join4(tasksDir, buildTaskFilename(id, title, listTaskFilenames(tasksDir)));
+}
+function writeTaskContent(kandownDir, id, content, options = {}) {
+  const useGit = options.useGit !== false;
+  const tasksDir = getTasksDir(kandownDir);
+  const previousPath = findTaskPath(kandownDir, id);
+  const previousDir = previousPath ? dirname3(previousPath) : tasksDir;
+  const previousName = previousPath ? basename(previousPath) : null;
+  const parsedTitle = parseTaskFile(content).frontmatter.title;
+  const expectedName = buildTaskFilename(id, parsedTitle, listTaskFilenames(previousDir));
+  let writeDir = previousDir;
+  let writeName = previousName ?? expectedName;
+  if (previousName && previousName !== expectedName) {
+    const previousParsed = parseTaskFilename(previousName);
+    const nextCategory = categorySegmentFromTitle(parsedTitle ?? "");
+    const previousCategory = previousParsed?.category ?? null;
+    if (previousCategory !== nextCategory) {
+      if (existsSync4(join4(writeDir, expectedName))) {
+        throw new Error(`Cannot rename ${id}: ${expectedName} already exists in ${writeDir}`);
+      }
+      const from = join4(writeDir, previousName);
+      const to = join4(writeDir, expectedName);
+      if (useGit && isTrackedByGit(from)) {
+        renameFileViaGit(from, to);
+      } else {
+        renameSync2(from, to);
+      }
+      writeName = expectedName;
+    }
+  } else if (!previousName) {
+    writeName = expectedName;
+    if (!existsSync4(writeDir)) mkdirSync2(writeDir, { recursive: true });
+  }
+  const finalPath = join4(writeDir, writeName);
+  atomicWriteFileSync(finalPath, content);
+  return { path: finalPath, previousPath };
+}
+function isTrackedByGit(path) {
+  const res = __require("child_process").spawnSync(
+    "git",
+    ["ls-files", "--error-unmatch", "--", basename(path)],
+    { cwd: dirname3(path), encoding: "utf8", stdio: ["ignore", "ignore", "ignore"] }
+  );
+  return res.status === 0;
+}
+function renameFileViaGit(from, to) {
+  const res = __require("child_process").spawnSync(
+    "git",
+    ["mv", "--", basename(from), basename(to)],
+    { cwd: dirname3(from), encoding: "utf8", stdio: ["ignore", "ignore", "pipe"] }
+  );
+  if (res.status !== 0) {
+    renameSync2(from, to);
+  }
 }
 function readBoard(kandownDir) {
   const config = loadConfig(kandownDir);
@@ -1716,11 +1809,11 @@ import {
   existsSync as existsSync6,
   mkdirSync as mkdirSync3,
   readFileSync as readFileSync6,
-  renameSync as renameSync2,
+  renameSync as renameSync3,
   unlinkSync as unlinkSync5
 } from "fs";
 import { homedir as homedir2 } from "os";
-import { basename, extname, join as join6, resolve as resolve2 } from "path";
+import { basename as basename2, extname, join as join6, resolve as resolve2 } from "path";
 function sha256(path) {
   return createHash("sha256").update(readFileSync6(path)).digest("hex");
 }
@@ -1738,7 +1831,7 @@ function migrateInstructionFile(directory, scope) {
       scope
     }];
   }
-  renameSync2(oldPath, newPath);
+  renameSync3(oldPath, newPath);
   return [{
     severity: "info",
     code: "instruction-renamed",
@@ -1750,7 +1843,7 @@ function migrateInstructionFile(directory, scope) {
 }
 function collisionSafePath(directory, fileName) {
   const extension = extname(fileName);
-  const stem = basename(fileName, extension);
+  const stem = basename2(fileName, extension);
   let candidate = join6(directory, fileName);
   let suffix = 1;
   while (existsSync6(candidate)) {
@@ -1777,7 +1870,7 @@ function migrateLegacyAgentDocs(kandownDir, knownHashes) {
     const backupDir = join6(kandownDir, "legacy-agent-docs");
     mkdirSync3(backupDir, { recursive: true });
     const backupPath = collisionSafePath(backupDir, fileName);
-    renameSync2(legacyPath, backupPath);
+    renameSync3(legacyPath, backupPath);
     events.push({
       severity: "warning",
       code: "legacy-doc-backed-up",
@@ -1978,7 +2071,7 @@ extensions/trust.json
 // src/cli/lib/cli-shared.ts
 import { existsSync as existsSync8, readFileSync as readFileSync7 } from "fs";
 import { homedir as homedir3 } from "os";
-import { join as join8, resolve as resolve3, basename as basename2, dirname as dirname4 } from "path";
+import { join as join8, resolve as resolve3, basename as basename3, dirname as dirname4 } from "path";
 import { spawn as spawn4 } from "child_process";
 function log(msg) {
   console.log(msg);
@@ -2051,7 +2144,7 @@ function resolveKandownDir(pathArg = ".kandown", cwd = process.cwd()) {
   while (true) {
     const isHomeBoundary = currentDir === homeDir && currentDir !== startDir;
     if (!isHomeBoundary) {
-      if (basename2(currentDir) === ".kandown" && existsSync8(join8(currentDir, "kandown.json"))) {
+      if (basename3(currentDir) === ".kandown" && existsSync8(join8(currentDir, "kandown.json"))) {
         return currentDir;
       }
       const candidate = join8(currentDir, ".kandown");
@@ -3268,7 +3361,7 @@ var init_workflows_store = __esm({
 
 // src/cli/lib/workflows-cli.ts
 import { existsSync as existsSync21, mkdirSync as mkdirSync11, readFileSync as readFileSync20, readdirSync as readdirSync8, statSync as statSync6, unlinkSync as unlinkSync6 } from "fs";
-import { basename as basename5, join as join23, resolve as resolve9 } from "path";
+import { basename as basename6, join as join23, resolve as resolve9 } from "path";
 function sourceFiles(directory, prefix = "") {
   const files = {};
   for (const name of readdirSync8(directory)) {
@@ -3310,7 +3403,7 @@ function listWorkflowPackages(kandownDir) {
   const summaries = /* @__PURE__ */ new Map();
   for (const root of workflowRoots(kandownDir)) {
     for (const directory of packageDirectories(root.directory)) {
-      let rawId = basename5(directory);
+      let rawId = basename6(directory);
       let name = rawId;
       let version = "unknown";
       let description = "";
@@ -4311,7 +4404,7 @@ function discoverExtensions(projectDir) {
 }
 
 // src/lib/extensions/state.ts
-import { readFileSync as readFileSync9, writeFileSync as writeFileSync3, mkdirSync as mkdirSync5, realpathSync, renameSync as renameSync3 } from "fs";
+import { readFileSync as readFileSync9, writeFileSync as writeFileSync3, mkdirSync as mkdirSync5, realpathSync, renameSync as renameSync4 } from "fs";
 import { createHash as createHash2 } from "crypto";
 import { homedir as homedir5 } from "os";
 import { join as join10, resolve as resolve4 } from "path";
@@ -4377,7 +4470,7 @@ function saveFailureState(projectDir, records) {
   const extensions = Object.fromEntries([...records.entries()].sort(([a], [b]) => a.localeCompare(b)));
   writeFileSync3(tmp, `${JSON.stringify({ version: 1, extensions }, null, 2)}
 `, "utf8");
-  renameSync3(tmp, file);
+  renameSync4(tmp, file);
 }
 
 // src/lib/extensions/trust.ts
@@ -4501,11 +4594,11 @@ init_cli_shared();
 init_board_reader();
 init_parser();
 init_task_filename();
-import { existsSync as existsSync11, renameSync as renameSync4, readFileSync as readFileSync12 } from "fs";
-import { join as join13, basename as basename3, dirname as dirname5 } from "path";
+import { existsSync as existsSync11, renameSync as renameSync5, readFileSync as readFileSync12 } from "fs";
+import { join as join13, basename as basename4, dirname as dirname5 } from "path";
 import { spawnSync } from "child_process";
-function isTrackedByGit(path) {
-  const res = spawnSync("git", ["ls-files", "--error-unmatch", "--", basename3(path)], {
+function isTrackedByGit2(path) {
+  const res = spawnSync("git", ["ls-files", "--error-unmatch", "--", basename4(path)], {
     cwd: dirname5(path),
     encoding: "utf8",
     stdio: ["ignore", "ignore", "ignore"]
@@ -4513,15 +4606,15 @@ function isTrackedByGit(path) {
   return res.status === 0;
 }
 function renameFile(from, to, useGit) {
-  if (useGit && isTrackedByGit(from)) {
-    const res = spawnSync("git", ["mv", "--", basename3(from), basename3(to)], {
+  if (useGit && isTrackedByGit2(from)) {
+    const res = spawnSync("git", ["mv", "--", basename4(from), basename4(to)], {
       cwd: dirname5(from),
       encoding: "utf8",
       stdio: ["ignore", "ignore", "pipe"]
     });
     if (res.status === 0) return "git";
   }
-  renameSync4(from, to);
+  renameSync5(from, to);
   return "fs";
 }
 function planFor(directory, filename) {
@@ -4568,9 +4661,9 @@ function cmdReslug(rawArgs) {
       err(`Task not found: ${id}`);
       process.exit(1);
     }
-    const plan = planFor(dirname5(path), basename3(path));
+    const plan = planFor(dirname5(path), basename4(path));
     if (!plan) {
-      info(`${id} already has the right filename: ${basename3(path)}`);
+      info(`${id} already has the right filename: ${basename4(path)}`);
       return;
     }
     plans.push(plan);
@@ -6488,11 +6581,10 @@ import { join as join25 } from "path";
 // src/cli/lib/server.ts
 init_board_reader();
 init_task_filename();
-init_parser();
 init_config2();
 import { createServer } from "http";
 import { existsSync as existsSync22, readFileSync as readFileSync21, copyFileSync as copyFileSync3, unlinkSync as unlinkSync7, mkdirSync as mkdirSync12 } from "fs";
-import { basename as basename6, join as join24 } from "path";
+import { basename as basename7, join as join24 } from "path";
 import { spawn as spawn6 } from "child_process";
 init_updater();
 init_atomic_write();
@@ -7565,7 +7657,7 @@ async function handleApi(req, res, url, kandownDir) {
         return writeText(res, 404, "Task not found");
       }
       const destinationDir = archiving ? archiveDir : tasksDir;
-      const destination = existingDestination ?? join24(destinationDir, basename6(source));
+      const destination = existingDestination ?? join24(destinationDir, basename7(source));
       try {
         if (!existsSync22(tasksDir)) mkdirSync12(tasksDir, { recursive: true });
         if (!existsSync22(archiveDir)) mkdirSync12(archiveDir, { recursive: true });
@@ -7590,8 +7682,7 @@ async function handleApi(req, res, url, kandownDir) {
       try {
         if (!existsSync22(tasksDir)) mkdirSync12(tasksDir, { recursive: true });
         const body = await readRequestBody(req);
-        const taskPath = findTaskPath(kandownDir, taskId) ?? newTaskFilePath(kandownDir, taskId, parseTaskFile(body).frontmatter.title);
-        atomicWriteFileSync(taskPath, body);
+        const { path: taskPath } = writeTaskContent(kandownDir, taskId, body, { useGit: false });
         broadcastSseEvent({ type: "task", id: taskId });
         return writeJson(res, 200, { ok: true });
       } catch (error) {

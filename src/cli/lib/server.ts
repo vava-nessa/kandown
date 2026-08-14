@@ -10,7 +10,7 @@ import { existsSync, readFileSync, copyFileSync, unlinkSync, mkdirSync, readdirS
 import { basename, join } from 'node:path';
 import { homedir } from 'node:os';
 import { spawn } from 'node:child_process';
-import { getProjectRoot, getTasksDir, findTaskPath, listTaskFilenames, newTaskFilePath, readTask, listTaskIds } from './board-reader';
+import { getProjectRoot, getTasksDir, findTaskPath, listTaskFilenames, newTaskFilePath, readTask, listTaskIds, writeTaskContent } from './board-reader';
 import { resolveTaskFilename } from '../../lib/task-filename';
 import { parseTaskFile } from '../../lib/parser';
 import { loadConfig, saveConfig } from './config';
@@ -786,12 +786,11 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       try {
         if (!existsSync(tasksDir)) mkdirSync(tasksDir, { recursive: true });
         const body = await readRequestBody(req);
-        // 📖 Preserve an archived task's location when autosave writes it, and
-        // give a task created through the API a descriptive filename derived
-        // from the title it arrives with.
-        const taskPath = findTaskPath(kandownDir, taskId)
-          ?? newTaskFilePath(kandownDir, taskId, parseTaskFile(body).frontmatter.title);
-        atomicWriteFileSync(taskPath, body);
+        // 📖 One write path: writes in place, renames on bracket change (the
+        // only auto-sync the user asked for). `useGit: false` because the web
+        // app does not know whether the project is a git worktree, and a half-
+        // renamed worktree is worse than a delete-plus-add commit.
+        const { path: taskPath } = writeTaskContent(kandownDir, taskId, body, { useGit: false });
         broadcastSseEvent({ type: 'task', id: taskId });
         return writeJson(res, 200, { ok: true });
       } catch (error) {

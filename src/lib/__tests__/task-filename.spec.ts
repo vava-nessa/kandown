@@ -21,6 +21,9 @@ import {
   taskIdFromFilename,
   resolveTaskFilename,
   hasDescriptiveSlug,
+  hasCategorySegment,
+  categorySegmentFromTitle,
+  normalizeCategorySegment,
 } from '../task-filename';
 
 describe('slugifyTitle', () => {
@@ -147,7 +150,7 @@ describe('isTaskFilename', () => {
 describe('parseTaskFilename', () => {
   it('reads a bare id', () => {
     expect(parseTaskFilename('t232.md')).toEqual({
-      base: 't232', idPrefix: null, slug: null, candidateIds: ['t232'],
+      base: 't232', idPrefix: null, slug: null, candidateIds: ['t232'], category: null,
     });
   });
 
@@ -157,6 +160,7 @@ describe('parseTaskFilename', () => {
       idPrefix: 't232',
       slug: 'remove_dead_code',
       candidateIds: ['t232_remove_dead_code', 't232'],
+      category: null,
     });
   });
 
@@ -170,7 +174,7 @@ describe('parseTaskFilename', () => {
     // 📖 A hand-named file keeps its whole basename as its id, or a project
     // holding `bug_login.md` would see its id silently become `bug`.
     expect(parseTaskFilename('bug_login.md')).toEqual({
-      base: 'bug_login', idPrefix: null, slug: null, candidateIds: ['bug_login'],
+      base: 'bug_login', idPrefix: null, slug: null, candidateIds: ['bug_login'], category: null,
     });
     expect(taskIdFromFilename('bug_login.md')).toBe('bug_login');
     // 📖 Allocated ids always carry a number, and those do split.
@@ -258,5 +262,29 @@ describe('resolveTaskFilename', () => {
     expect(resolveTaskFilename('t292', [name])?.filename).toBe(name);
     expect(hasDescriptiveSlug(name)).toBe(true);
     expect(hasDescriptiveSlug(buildTaskFilename('t292', '🎉'))).toBe(false);
+  });
+
+  it('round-trips a category+slug filename through parse and resolve', () => {
+    const name = buildTaskFilename('t297', '[UI] Fix the login button');
+    expect(name).toBe('t297_UI_fix_login_button.md');
+    const parsed = parseTaskFilename(name);
+    expect(parsed).toEqual({
+      base: 't297_UI_fix_login_button',
+      idPrefix: 't297',
+      slug: 'fix_login_button',
+      category: 'UI',
+      candidateIds: ['t297_UI_fix_login_button', 't297'],
+    });
+    expect(hasCategorySegment(name)).toBe(true);
+    expect(hasCategorySegment('t297.md')).toBe(false);
+    // 📖 The resolver still answers to the bare id, the category is decoration.
+    expect(resolveTaskFilename('t297', [name])?.filename).toBe(name);
+  });
+
+  it('does not mistake a pure-digit prefix for a category', () => {
+    // 📖 `12345` is all digits, no uppercase letter: not a category, just the
+    // tail of a custom id. The whole basename after `t297_` reads as the slug.
+    const parsed = parseTaskFilename('t297_12345_fix.md');
+    expect(parsed?.category).toBeNull();
   });
 });

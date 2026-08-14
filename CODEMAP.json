@@ -8,14 +8,14 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 8622,
+      "lines": 8713,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 62468,
+      "lines": 62508,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -302,7 +302,7 @@
     },
     {
       "path": "src/cli/lib/__tests__/task-filename-cli.spec.ts",
-      "lines": 139,
+      "lines": 184,
       "title": "Integration tests for descriptive task filenames",
       "summary": "Spawns `bin/kandown.js` (the published CLI bundle) against a throwaway project whose `tasks/` folder deliberately mixes both naming forms: the legacy bare `t1.md` and the descriptive `t2_add_dark_mode.md`."
     },
@@ -432,7 +432,7 @@
     },
     {
       "path": "src/cli/lib/board-reader.ts",
-      "lines": 492,
+      "lines": 603,
       "title": "Node.js task reader and mutator",
       "summary": "Provides filesystem-based reading and writing of Kandown task files for the CLI.",
       "functions": [
@@ -737,7 +737,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 901,
+      "lines": 900,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
@@ -1899,7 +1899,7 @@
     },
     {
       "path": "src/lib/__tests__/task-filename.spec.ts",
-      "lines": 263,
+      "lines": 291,
       "title": "Tests for task filename slugs and id resolution",
       "summary": "Guards the module that decides which file on disk holds a task."
     },
@@ -2663,13 +2663,21 @@
     },
     {
       "path": "src/lib/task-filename.ts",
-      "lines": 341,
+      "lines": 458,
       "title": "Task filename slugs and id resolution",
       "summary": "Owns the whole relationship between a task id and the name of the file that holds it, for every surface (CLI, daemon, TUI, web File System Access, desktop).",
       "functions": [
         {
           "name": "slugifyTitle",
           "summary": "turn a task title into at most three lowercase ASCII words"
+        },
+        {
+          "name": "categorySegmentFromTitle",
+          "summary": "the bracket category as a filename segment, if any"
+        },
+        {
+          "name": "normalizeCategorySegment",
+          "summary": "turn raw bracket content into a safe filename chunk"
         },
         {
           "name": "buildTaskFilename",
@@ -2694,9 +2702,13 @@
         {
           "name": "hasDescriptiveSlug",
           "summary": "whether a filename already carries a slug"
+        },
+        {
+          "name": "hasCategorySegment",
+          "summary": "whether a filename already carries a category segment"
         }
       ],
-      "exports": "SLUG_MAX_WORDS, SLUG_MAX_LENGTH, slugifyTitle, buildTaskFilename, isTaskFilename, parseTaskFilename, taskIdFromFilename, resolveTaskFilename, hasDescriptiveSlug, ParsedTaskFilename, TaskFilenameMatch"
+      "exports": "SLUG_MAX_WORDS, SLUG_MAX_LENGTH, CATEGORY_MAX_LENGTH, slugifyTitle, categorySegmentFromTitle, normalizeCategorySegment, buildTaskFilename, isTaskFilename, parseTaskFilename, taskIdFromFilename, resolveTaskFilename, hasDescriptiveSlug, hasCategorySegment, ParsedTaskFilename, TaskFilenameMatch"
     },
     {
       "path": "src/lib/task-meta.ts",

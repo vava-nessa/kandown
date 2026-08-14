@@ -27,17 +27,21 @@
  *
  * @functions
  *  → slugifyTitle — turn a task title into at most three lowercase ASCII words
+ *  → categorySegmentFromTitle — the bracket category as a filename segment, if any
+ *  → normalizeCategorySegment — turn raw bracket content into a safe filename chunk
  *  → buildTaskFilename — compose the on-disk filename for a new task
  *  → isTaskFilename — recognize a task Markdown file, rejecting unsafe names
  *  → parseTaskFilename — split a filename into its id candidates and slug
  *  → taskIdFromFilename — the canonical id a file on disk claims
  *  → resolveTaskFilename — pick the file that answers to an id, flagging collisions
  *  → hasDescriptiveSlug — whether a filename already carries a slug
+ *  → hasCategorySegment — whether a filename already carries a category segment
  *
- * @exports SLUG_MAX_WORDS, SLUG_MAX_LENGTH, slugifyTitle, buildTaskFilename,
- *          isTaskFilename, parseTaskFilename, taskIdFromFilename,
- *          resolveTaskFilename, hasDescriptiveSlug, ParsedTaskFilename,
- *          TaskFilenameMatch
+ * @exports SLUG_MAX_WORDS, SLUG_MAX_LENGTH, CATEGORY_MAX_LENGTH,
+ *          slugifyTitle, categorySegmentFromTitle, normalizeCategorySegment,
+ *          buildTaskFilename, isTaskFilename, parseTaskFilename,
+ *          taskIdFromFilename, resolveTaskFilename, hasDescriptiveSlug,
+ *          hasCategorySegment, ParsedTaskFilename, TaskFilenameMatch
  * @see docs/ARCHITECTURE.md — invariants: the id is not the filename
  */
 
@@ -55,6 +59,17 @@ export const SLUG_MAX_LENGTH = 48;
 
 /** 📖 Per-word cap. One pathological identifier in a title must not eat the whole budget. */
 const SLUG_MAX_WORD_LENGTH = 20;
+
+/** 📖 Hard cap on the bracket-category segment in characters, smaller than the
+ * slug cap on purpose: categories are short codes (`UI`, `BILLING`, `FABLE_CLEANUP`),
+ * not prose, and an oversized one usually means a typo the user did not mean to
+ * keep. */
+export const CATEGORY_MAX_LENGTH = 32;
+
+/** 📖 The class a category segment must satisfy to land in a filename: ASCII
+ * alphanumerics, underscores, dashes. Uppercase by construction. Empty after
+ * normalization means "no category in the filename". */
+const CATEGORY_LIKE = /^[A-Z0-9_-]+$/;
 
 /** 📖 Separator between the id and the slug, and between slug words. Underscore, not dash, because a configurable id may itself contain a dash (`BUG-001`). */
 const SLUG_SEPARATOR = '_';
@@ -135,6 +150,12 @@ export interface ParsedTaskFilename {
    * underscores) and `t232`. Order is the match priority.
    */
   candidateIds: string[];
+  /**
+   * The bracket-category segment, when the filename carries one. `null` for
+   * `t232.md` and `t232_remove_dead_code.md`; a value like `UI` for
+   * `t232_UI_fix_login.md`. Always uppercase ASCII.
+   */
+  category: string | null;
 }
 
 export interface TaskFilenameMatch {
@@ -156,13 +177,56 @@ export interface TaskFilenameMatch {
 }
 
 /**
+ * 📖 Turns raw bracket content (`UI`, `Fable Cleanup`, `R&D`) into the form a
+ * filename wants: uppercase ASCII, internal whitespace as underscore, anything
+ * else dropped. Returns `null` when the result is empty so callers can use a
+ * single nullish check to decide whether to emit a category segment at all.
+ */
+export function normalizeCategorySegment(raw: string | null | undefined): string | null {
+  if (typeof raw !== 'string') return null;
+  const ascii = raw
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  if (!ascii) return null;
+  if (ascii.length > CATEGORY_MAX_LENGTH) {
+    // � Multi-word categories should keep every word, so the cap is applied by
+    // dropping trailing whole segments first rather than slicing in the middle
+    // of a word: `[SUPER LONG THING THAT WENT ON TOO LONG]` keeps
+    // `SUPER_LONG_THING`, not `SUPER_LONG_THIN`.
+    const segments = ascii.slice(0, CATEGORY_MAX_LENGTH).replace(/_[^_]*$/, '');
+    return segments.length >= 2 ? segments : ascii.slice(0, CATEGORY_MAX_LENGTH);
+  }
+  return CATEGORY_LIKE.test(ascii) ? ascii : null;
+}
+
+/**
+ * 📖 The bracket category embedded in a title, normalized to the form a filename
+ * wants. Reads only the first bracket to stay consistent with `parseTaskTitle`.
+ * `null` when the title has no leading bracket or the bracket yields nothing
+ * usable (punctuation-only, emoji-only).
+ */
+export function categorySegmentFromTitle(title: string): string | null {
+  if (typeof title !== 'string' || !title.trim()) return null;
+  // 📖 The bracket category is metadata rather than part of the description.
+  // When it lands in the filename it stays in the title too, so a `git log`
+  // that shows the title reads as English instead of stripping one chunk.
+  return normalizeCategorySegment(parseTaskTitle(title).category);
+}
+
+/**
  * 📖 Turns a task title into the descriptive part of its filename: at most
  * `maxWords` lowercase ASCII words joined by `_`. Returns an empty string when
  * the title yields nothing usable, and the caller must then fall back to the
  * bare id: an empty slug is a normal outcome, not an error.
  *
  * A leading bracket category (`[UI] Fix the button`) is stripped first, since it
- * is metadata rather than a description of the goal.
+ * is metadata rather than a description of the goal. The category itself ends
+ * up in the filename as a separate segment (`t232_UI_fix_the_button.md`), chosen
+ * by `buildTaskFilename` rather than this function, so this stays a pure prose
+ * normalizer.
  */
 export function slugifyTitle(title: string, maxWords: number = SLUG_MAX_WORDS): string {
   if (typeof title !== 'string' || !title.trim()) return '';
@@ -204,8 +268,17 @@ export function slugifyTitle(title: string, maxWords: number = SLUG_MAX_WORDS): 
  * whenever the title produces no usable slug, which keeps every legacy
  * expectation true for non-Latin titles instead of inventing a placeholder.
  *
+ * When the title carries a leading bracket category, that category is added as
+ * a separate uppercase segment between the id and the prose slug:
+ * `[UI] Fix the login button` → `t232_UI_fix_login_button.md`. The category is
+ * taxonomy, not description, so it sits next to the id rather than inside the
+ * slug, and the visual hierarchy reads as `id` `CATEGORY` `prose`. A bracket
+ * that yields nothing usable (punctuation-only) is treated as no bracket, so
+ * the file stays a clean `<id>_<slug>.md` rather than carrying an empty
+ * trailing underscore.
+ *
  * Pass `takenFilenames` to keep the result unique: a second task titled the same
- * way gets `t293_fix_login_button.md` while the first keeps
+ * way gets `t293_fix_login_button_2.md` while the first keeps
  * `t292_fix_login_button.md`, since the id already disambiguates. The parameter
  * exists for the pathological case where the id itself is being reused.
  */
@@ -214,8 +287,16 @@ export function buildTaskFilename(id: string, title?: string | null, takenFilena
   if (!safeId) throw new Error('buildTaskFilename requires a task id');
   if (/[\\/]|^\.+$/.test(safeId)) throw new Error(`Unsafe task id for a filename: ${safeId}`);
 
+  const category = categorySegmentFromTitle(title ?? '');
   const slug = slugifyTitle(title ?? '');
-  const candidate = slug ? `${safeId}${SLUG_SEPARATOR}${slug}.md` : `${safeId}.md`;
+  // 📖 No category and no slug → bare id; one or the other → single segment;
+  // both → category first so the id is always followed by CATEGORY before prose.
+  let body: string;
+  if (category && slug) body = `${category}${SLUG_SEPARATOR}${slug}`;
+  else if (category) body = category;
+  else if (slug) body = slug;
+  else body = '';
+  const candidate = body ? `${safeId}${SLUG_SEPARATOR}${body}.md` : `${safeId}.md`;
   if (!takenFilenames.length) return candidate;
 
   const taken = new Set(takenFilenames.map(f => f.toLowerCase()));
@@ -255,14 +336,40 @@ export function parseTaskFilename(name: string): ParsedTaskFilename | null {
   const base = name.slice(0, -3);
   const cut = base.indexOf(SLUG_SEPARATOR);
   const idPrefix = cut > 0 ? base.slice(0, cut) : null;
-  // 📖 Not a slug boundary when: there is no underscore, it is leading or
+  const slug = idPrefix !== null ? base.slice(cut + 1) : null;
+  // � Not a slug boundary when: there is no underscore, it is leading or
   // trailing (`_t232.md`, `t232_.md`), or the prefix does not look like an
   // allocated id (`bug_login.md` stays the single id `bug_login`).
   if (idPrefix === null || cut === base.length - 1 || !ID_LIKE.test(idPrefix)) {
-    return { base, idPrefix: null, slug: null, candidateIds: [base] };
+    return { base, idPrefix: null, slug: null, candidateIds: [base], category: null };
   }
-  const slug = base.slice(cut + 1);
-  return { base, idPrefix, slug, candidateIds: [base, idPrefix] };
+  // 📖 The category segment is everything between the id and the slug's first
+  // lowercase word. `t232_UI_fix_login_button.md` splits into id `t232`,
+  // category `UI` (uppercase ASCII, all caps, no digits to confuse with the
+  // id), slug `fix_login_button`. A file that only has a slug has no category.
+  let category: string | null = null;
+  let slugOnly = slug;
+  if (slug) {
+    const slugStart = slug.search(/[a-z0-9]/);
+    if (slugStart > 0 && /^[A-Z0-9_-]+$/.test(slug.slice(0, slugStart).replace(/_+$/, ''))) {
+      const candidate = slug.slice(0, slugStart).replace(/_+$/, '');
+      // 📖 A category must contain at least one uppercase letter. A pure-digit
+      // segment would collide with the id-starts-with-digit pattern and the
+      // resolver already disambiguates those, but it would still feel wrong to
+      // label `12345` a category in `t232_12345_fix.md`.
+      if (/[A-Z]/.test(candidate)) {
+        category = candidate;
+        slugOnly = slug.slice(slugStart);
+      }
+    }
+  }
+  return {
+    base,
+    idPrefix,
+    slug: slugOnly || null,
+    candidateIds: [base, idPrefix],
+    category,
+  };
 }
 
 /**
@@ -337,4 +444,14 @@ export function resolveTaskFilename(id: string, filenames: readonly string[]): T
  */
 export function hasDescriptiveSlug(name: string): boolean {
   return parseTaskFilename(name)?.slug != null;
+}
+
+/**
+ * 📖 Whether a task file already carries a bracket-category segment. The
+ * `kandown reslug` command reads this to leave alone files whose category and
+ * slug are already both correct: re-deriving from the title costs a rename for
+ * no observable change.
+ */
+export function hasCategorySegment(name: string): boolean {
+  return parseTaskFilename(name)?.category != null;
 }

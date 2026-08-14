@@ -49,8 +49,12 @@ read and write the same plain Markdown files.
   editor, any script, any AI agent. Nothing to export, nothing to lose.
 - **Files named after what they are.** `tasks/t232_remove_dead_code.md`, not
   `tasks/t232.md`, so a `git diff --stat`, a PR file list and your editor tabs all
-  read as English. The id stays the identifier: renaming a file never breaks a
-  dependency or a link.
+  read as English. A title that starts with a bracket category (`[UI] Fix the
+  login button`) carries it through into the filename as an uppercase segment
+  between the id and the prose (`t232_UI_fix_login_button.md`), so the file's
+  taxonomy is visible at a glance too. The id stays the identifier: renaming a
+  file never breaks a dependency or a link, and bracket changes in the web
+  drawer auto-rename the file so the taxonomy cannot drift.
 - **Agents are first-class users**, not an integration. Claude Code, Codex, Gemini
   CLI, Goose, Aider and OpenCode all drive the board directly.
 - **Fully offline.** No account, no cloud, no telemetry. The web UI is one

@@ -31,8 +31,8 @@
  * @see src/lib/task-filename.ts — the shared id ↔ filename policy, including slugs
  */
 
-import { existsSync, readdirSync, readFileSync, mkdirSync, unlinkSync } from 'node:fs';
-import { dirname, join, sep } from 'node:path';
+import { existsSync, readdirSync, readFileSync, mkdirSync, renameSync, unlinkSync } from 'node:fs';
+import { dirname, join, sep, basename } from 'node:path';
 import { resolveDependencyStatus, resolveTransition } from '../../lib/dependencies.js';
 import { atomicWriteFileSync } from './atomic-write.js';
 import { buildColumnsFromTasks, isArchived, parseTaskFile } from '../../lib/parser.js';
@@ -40,7 +40,9 @@ import { serializeTaskFile } from '../../lib/serializer.js';
 import { stampUpdated } from '../../lib/task-meta.js';
 import {
   buildTaskFilename,
+  categorySegmentFromTitle,
   isTaskFilename,
+  parseTaskFilename,
   resolveTaskFilename,
   taskIdFromFilename,
 } from '../../lib/task-filename.js';
@@ -135,6 +137,115 @@ export function findTaskPath(kandownDir: string, taskId: string): string | null 
 export function newTaskFilePath(kandownDir: string, id: string, title?: string | null): string {
   const tasksDir = getTasksDir(kandownDir);
   return join(tasksDir, buildTaskFilename(id, title, listTaskFilenames(tasksDir)));
+}
+
+/**
+ * 📖 One-place write for an existing task: writes the content where the task
+ * already lives, and renames the file when the bracket category in the new
+ * content's title differs from the bracket currently in the filename. The slug
+ * part stays frozen; only the category segment follows the title, which is why
+ * this helper only ever renames on a bracket change, never on a prose change.
+ *
+ * The rename uses `git mv` when the file is tracked, so history follows and a
+ * follow-up commit records a rename rather than a delete plus an add. Falls
+ * back to a plain rename otherwise.
+ *
+ * Pass `useGit: false` to skip the `git mv` step (for example when the
+ * repository has staged work that should not be touched). Pass `useGit: false`
+ * explicitly, the default `true` is what every existing call site wants.
+ *
+ * Returns the path the content was written to, plus the previous path when a
+ * rename happened, so undo can reverse both halves in one entry.
+ */
+export function writeTaskContent(
+  kandownDir: string,
+  id: string,
+  content: string,
+  options: { useGit?: boolean } = {},
+): { path: string; previousPath: string | null } {
+  const useGit = options.useGit !== false;
+  const tasksDir = getTasksDir(kandownDir);
+  const previousPath = findTaskPath(kandownDir, id);
+  const previousDir = previousPath ? dirname(previousPath) : tasksDir;
+  const previousName = previousPath ? basename(previousPath) : null;
+  const parsedTitle = parseTaskFile(content).frontmatter.title;
+  const expectedName = buildTaskFilename(id, parsedTitle, listTaskFilenames(previousDir));
+
+  let writeDir = previousDir;
+  let writeName = previousName ?? expectedName;
+
+  if (previousName && previousName !== expectedName) {
+    // 📖 Only rename when the bracket category segment actually changed. A
+    // bracket-stripped slug rename is the user's job (`kandown reslug
+    // --force`), not this helper's: silently renaming `t232_remove_dead_code.md`
+    // because someone rephrased the title would be surprising and noisy in
+    // git history.
+    const previousParsed = parseTaskFilename(previousName);
+    const nextCategory = categorySegmentFromTitle(parsedTitle ?? '');
+    const previousCategory = previousParsed?.category ?? null;
+    if (previousCategory !== nextCategory) {
+      if (existsSync(join(writeDir, expectedName))) {
+        // 📖 A race: another file already claims the expected name. We could
+        // collide-suffix here, but doing so silently is exactly the kind of
+        // "write landed in a file the user is not looking at" bug the resolver
+        // exists to prevent. Bail with the previous path and let the caller
+        // surface the error.
+        throw new Error(`Cannot rename ${id}: ${expectedName} already exists in ${writeDir}`);
+      }
+      const from = join(writeDir, previousName);
+      const to = join(writeDir, expectedName);
+      if (useGit && isTrackedByGit(from)) {
+        renameFileViaGit(from, to);
+      } else {
+        renameSync(from, to);
+      }
+      writeName = expectedName;
+    }
+  } else if (!previousName) {
+    writeName = expectedName;
+    if (!existsSync(writeDir)) mkdirSync(writeDir, { recursive: true });
+  }
+
+  const finalPath = join(writeDir, writeName);
+  atomicWriteFileSync(finalPath, content);
+  return { path: finalPath, previousPath };
+}
+
+/**
+ * 📖 True when `path` sits inside a git worktree and is tracked by it. Same
+ * definition `kandown reslug` uses, copied here rather than imported so this
+ * module stays self-contained: `board-reader.ts` is the path for the CLI, the
+ * `reslug` command is an end-user affordance that does not need to be loaded
+ * by every read.
+ */
+function isTrackedByGit(path: string): boolean {
+  // `git ls-files --error-unmatch` prints to stdout and exits 0 only when the
+  // path is tracked. Redirecting stdout to ignore keeps the helper quiet on
+  // hits and the exit code carries the answer.
+  const res = require('node:child_process').spawnSync(
+    'git', ['ls-files', '--error-unmatch', '--', basename(path)],
+    { cwd: dirname(path), encoding: 'utf8', stdio: ['ignore', 'ignore', 'ignore'] },
+  );
+  return res.status === 0;
+}
+
+/**
+ * 📖 `git mv` that ignores failure and returns silently: a tracked-but-renamed
+ * elsewhere situation should not block a write, and the fallback path was
+ * already tried by `renameSync` if `git mv` rejected the move.
+ */
+function renameFileViaGit(from: string, to: string): void {
+  const res = require('node:child_process').spawnSync(
+    'git', ['mv', '--', basename(from), basename(to)],
+    { cwd: dirname(from), encoding: 'utf8', stdio: ['ignore', 'ignore', 'pipe'] },
+  );
+  if (res.status !== 0) {
+    // 📖 Git refused: the worktree might be dirty, the file may be on a
+    // different filesystem, anything. Fall back to a plain rename so the
+    // write still completes; the next `git status` will show a delete plus
+    // an add instead of a rename, which is annoying but not broken.
+    renameSync(from, to);
+  }
 }
 
 /**

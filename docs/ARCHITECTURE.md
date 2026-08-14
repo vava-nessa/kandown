@@ -314,14 +314,18 @@ kind.
    other language is translated from it.
 8. **Never edit a generated file.** See the table above.
 9. **The id identifies a task, the filename only describes it.** A task lives in
-   `tasks/t232.md` or in `tasks/t232_remove_dead_code.md`, and every reader must
-   accept both. Never rebuild a path as `` `${id}.md` ``: resolve it through
+   `tasks/t232.md`, in `tasks/t232_remove_dead_code.md` or in
+   `tasks/t232_UI_fix_login_button.md`, and every reader must accept all three.
+   Never rebuild a path as `` `${id}.md` ``: resolve it through
    `src/lib/task-filename.ts`, which is pure over a directory listing so the CLI
    (`readdirSync`) and the web app (`FileSystemDirectoryHandle`) share one policy.
    The canonical id lives in the `id:` frontmatter, which is why a rename can
-   never invalidate a `depends_on`, a `[[t232]]` link or a deep link. The slug is
-   frozen at creation: editing a title does not touch the filesystem, only an
-   explicit `kandown reslug` does.
+   never invalidate a `depends_on`, a `[[t232]]` link or a deep link. The prose
+   slug is frozen at creation: editing a title does not touch the filesystem.
+   The bracket-category segment is different: it is taxonomy, not description,
+   so changing it through the web drawer auto-renames the file (using `git mv`
+   when the file is tracked). Direct file edits stay stale and need
+   `kandown reslug --force` to refresh.
 
 ---
 

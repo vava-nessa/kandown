@@ -54824,8 +54824,8 @@ import { spawnSync as spawnSync2 } from "child_process";
 import { join as join19 } from "path";
 
 // src/cli/lib/board-reader.ts
-import { existsSync as existsSync3, readdirSync as readdirSync2, readFileSync as readFileSync3, mkdirSync, unlinkSync as unlinkSync2 } from "fs";
-import { dirname, join as join2, sep } from "path";
+import { existsSync as existsSync3, readdirSync as readdirSync2, readFileSync as readFileSync3, mkdirSync, renameSync as renameSync2, unlinkSync as unlinkSync2 } from "fs";
+import { dirname, join as join2, sep, basename } from "path";
 
 // src/lib/dependencies.ts
 function terminalStatus(config = DEFAULT_CONFIG) {
@@ -55274,6 +55274,8 @@ function parseTaskTitle(title) {
 var SLUG_MAX_WORDS = 3;
 var SLUG_MAX_LENGTH = 48;
 var SLUG_MAX_WORD_LENGTH = 20;
+var CATEGORY_MAX_LENGTH = 32;
+var CATEGORY_LIKE = /^[A-Z0-9_-]+$/;
 var SLUG_SEPARATOR = "_";
 var ID_LIKE = /^(?=.*\d)[A-Za-z0-9-]+$/;
 var TRANSLITERATIONS = [
@@ -55361,6 +55363,20 @@ var STOP_WORDS = /* @__PURE__ */ new Set([
   "une",
   "y"
 ]);
+function normalizeCategorySegment(raw) {
+  if (typeof raw !== "string") return null;
+  const ascii = raw.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/[^A-Z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  if (!ascii) return null;
+  if (ascii.length > CATEGORY_MAX_LENGTH) {
+    const segments = ascii.slice(0, CATEGORY_MAX_LENGTH).replace(/_[^_]*$/, "");
+    return segments.length >= 2 ? segments : ascii.slice(0, CATEGORY_MAX_LENGTH);
+  }
+  return CATEGORY_LIKE.test(ascii) ? ascii : null;
+}
+function categorySegmentFromTitle(title) {
+  if (typeof title !== "string" || !title.trim()) return null;
+  return normalizeCategorySegment(parseTaskTitle(title).category);
+}
 function slugifyTitle(title, maxWords = SLUG_MAX_WORDS) {
   if (typeof title !== "string" || !title.trim()) return "";
   if (!Number.isFinite(maxWords) || maxWords < 1) return "";
@@ -55383,8 +55399,14 @@ function buildTaskFilename(id, title, takenFilenames = []) {
   const safeId = String(id ?? "").trim();
   if (!safeId) throw new Error("buildTaskFilename requires a task id");
   if (/[\\/]|^\.+$/.test(safeId)) throw new Error(`Unsafe task id for a filename: ${safeId}`);
+  const category = categorySegmentFromTitle(title ?? "");
   const slug = slugifyTitle(title ?? "");
-  const candidate = slug ? `${safeId}${SLUG_SEPARATOR}${slug}.md` : `${safeId}.md`;
+  let body;
+  if (category && slug) body = `${category}${SLUG_SEPARATOR}${slug}`;
+  else if (category) body = category;
+  else if (slug) body = slug;
+  else body = "";
+  const candidate = body ? `${safeId}${SLUG_SEPARATOR}${body}.md` : `${safeId}.md`;
   if (!takenFilenames.length) return candidate;
   const taken = new Set(takenFilenames.map((f) => f.toLowerCase()));
   if (!taken.has(candidate.toLowerCase())) return candidate;
@@ -55408,11 +55430,29 @@ function parseTaskFilename(name) {
   const base = name.slice(0, -3);
   const cut = base.indexOf(SLUG_SEPARATOR);
   const idPrefix = cut > 0 ? base.slice(0, cut) : null;
+  const slug = idPrefix !== null ? base.slice(cut + 1) : null;
   if (idPrefix === null || cut === base.length - 1 || !ID_LIKE.test(idPrefix)) {
-    return { base, idPrefix: null, slug: null, candidateIds: [base] };
+    return { base, idPrefix: null, slug: null, candidateIds: [base], category: null };
   }
-  const slug = base.slice(cut + 1);
-  return { base, idPrefix, slug, candidateIds: [base, idPrefix] };
+  let category = null;
+  let slugOnly = slug;
+  if (slug) {
+    const slugStart = slug.search(/[a-z0-9]/);
+    if (slugStart > 0 && /^[A-Z0-9_-]+$/.test(slug.slice(0, slugStart).replace(/_+$/, ""))) {
+      const candidate = slug.slice(0, slugStart).replace(/_+$/, "");
+      if (/[A-Z]/.test(candidate)) {
+        category = candidate;
+        slugOnly = slug.slice(slugStart);
+      }
+    }
+  }
+  return {
+    base,
+    idPrefix,
+    slug: slugOnly || null,
+    candidateIds: [base, idPrefix],
+    category
+  };
 }
 function taskIdFromFilename(name) {
   const info2 = parseTaskFilename(name);
@@ -55798,7 +55838,7 @@ import { spawn, execSync } from "child_process";
 import { homedir } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.50.0";
+var KANDOWN_VERSION = "0.51.0";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath } from "url";
@@ -56010,7 +56050,7 @@ var CHECK_INTERVAL_MS = 5 * 6e4;
 // src/cli/lib/file-watcher.ts
 import { createReadStream, statSync as statSync3 } from "fs";
 import { createHash } from "crypto";
-import { basename as basename3, join as join7 } from "path";
+import { basename as basename4, join as join7 } from "path";
 
 // node_modules/.pnpm/chokidar@4.0.3/node_modules/chokidar/esm/index.js
 import { stat as statcb } from "fs";
@@ -56165,10 +56205,10 @@ var ReaddirpStream = class extends Readable {
   }
   async _formatEntry(dirent, path) {
     let entry;
-    const basename7 = this._isDirent ? dirent.name : dirent;
+    const basename8 = this._isDirent ? dirent.name : dirent;
     try {
-      const fullPath = presolve(pjoin(path, basename7));
-      entry = { path: prelative(this._root, fullPath), fullPath, basename: basename7 };
+      const fullPath = presolve(pjoin(path, basename8));
+      entry = { path: prelative(this._root, fullPath), fullPath, basename: basename8 };
       entry[this._statsProp] = this._isDirent ? dirent : await this._stat(fullPath);
     } catch (err2) {
       this._onError(err2);
@@ -56707,9 +56747,9 @@ var NodeFsHandler = class {
   _watchWithNodeFs(path, listener) {
     const opts = this.fsw.options;
     const directory = sysPath.dirname(path);
-    const basename7 = sysPath.basename(path);
+    const basename8 = sysPath.basename(path);
     const parent = this.fsw._getWatchedDir(directory);
-    parent.add(basename7);
+    parent.add(basename8);
     const absolutePath = sysPath.resolve(path);
     const options = {
       persistent: opts.persistent
@@ -56719,7 +56759,7 @@ var NodeFsHandler = class {
     let closer;
     if (opts.usePolling) {
       const enableBin = opts.interval !== opts.binaryInterval;
-      options.interval = enableBin && isBinaryPath(basename7) ? opts.binaryInterval : opts.interval;
+      options.interval = enableBin && isBinaryPath(basename8) ? opts.binaryInterval : opts.interval;
       closer = setFsWatchFileListener(path, absolutePath, options, {
         listener,
         rawEmitter: this.fsw._emitRaw
@@ -56742,10 +56782,10 @@ var NodeFsHandler = class {
       return;
     }
     const dirname8 = sysPath.dirname(file);
-    const basename7 = sysPath.basename(file);
+    const basename8 = sysPath.basename(file);
     const parent = this.fsw._getWatchedDir(dirname8);
     let prevStats = stats;
-    if (parent.has(basename7))
+    if (parent.has(basename8))
       return;
     const listener = async (path, newStats) => {
       if (!this.fsw._throttle(THROTTLE_MODE_WATCH, file, 5))
@@ -56770,9 +56810,9 @@ var NodeFsHandler = class {
             prevStats = newStats2;
           }
         } catch (error) {
-          this.fsw._remove(dirname8, basename7);
+          this.fsw._remove(dirname8, basename8);
         }
-      } else if (parent.has(basename7)) {
+      } else if (parent.has(basename8)) {
         const at = newStats.atimeMs;
         const mt = newStats.mtimeMs;
         if (!at || at <= mt || mt !== prevStats.mtimeMs) {
@@ -57813,7 +57853,7 @@ var FileWatcher = class {
       }, this.watchDebounceDelay));
       return;
     }
-    const taskId = taskIdFromFilename(basename3(filePath.replace(/\\/g, "/")));
+    const taskId = taskIdFromFilename(basename4(filePath.replace(/\\/g, "/")));
     if (!taskId) return;
     if (event === "add" || event === "change") {
       const key = `task:${taskId}:${event}`;
@@ -59007,11 +59047,11 @@ import {
   existsSync as existsSync7,
   mkdirSync as mkdirSync3,
   readFileSync as readFileSync7,
-  renameSync as renameSync2,
+  renameSync as renameSync3,
   unlinkSync as unlinkSync5
 } from "fs";
 import { homedir as homedir2 } from "os";
-import { basename as basename4, extname as extname2, join as join9, resolve as resolve4 } from "path";
+import { basename as basename5, extname as extname2, join as join9, resolve as resolve4 } from "path";
 var AGENT_BOOTSTRAP_LINE = "This project uses Kandown. Before task work, run `kandown work` and follow its output. <!-- kandown:agent-ref -->";
 var AGENT_BOOTSTRAP_MARKER = "<!-- kandown:agent-ref -->";
 var LEGACY_AGENT_DOCS = ["AGENT.md", "AGENT_KANDOWN.md"];
@@ -59036,7 +59076,7 @@ function migrateInstructionFile(directory, scope) {
       scope
     }];
   }
-  renameSync2(oldPath, newPath);
+  renameSync3(oldPath, newPath);
   return [{
     severity: "info",
     code: "instruction-renamed",
@@ -59048,7 +59088,7 @@ function migrateInstructionFile(directory, scope) {
 }
 function collisionSafePath(directory, fileName) {
   const extension2 = extname2(fileName);
-  const stem = basename4(fileName, extension2);
+  const stem = basename5(fileName, extension2);
   let candidate = join9(directory, fileName);
   let suffix = 1;
   while (existsSync7(candidate)) {
@@ -59075,7 +59115,7 @@ function migrateLegacyAgentDocs(kandownDir, knownHashes) {
     const backupDir = join9(kandownDir, "legacy-agent-docs");
     mkdirSync3(backupDir, { recursive: true });
     const backupPath = collisionSafePath(backupDir, fileName);
-    renameSync2(legacyPath, backupPath);
+    renameSync3(legacyPath, backupPath);
     events.push({
       severity: "warning",
       code: "legacy-doc-backed-up",
@@ -59265,7 +59305,7 @@ function discoverExtensions(projectDir) {
 }
 
 // src/lib/extensions/state.ts
-import { readFileSync as readFileSync9, writeFileSync as writeFileSync3, mkdirSync as mkdirSync4, realpathSync, renameSync as renameSync3 } from "fs";
+import { readFileSync as readFileSync9, writeFileSync as writeFileSync3, mkdirSync as mkdirSync4, realpathSync, renameSync as renameSync4 } from "fs";
 import { createHash as createHash3 } from "crypto";
 import { homedir as homedir4 } from "os";
 import { join as join11, resolve as resolve5 } from "path";
@@ -59425,14 +59465,14 @@ function loadConfiguredWorkflowSkills(kandownDir, ids) {
 }
 
 // src/cli/commands/reslug.ts
-import { existsSync as existsSync12, renameSync as renameSync4, readFileSync as readFileSync13 } from "fs";
-import { join as join16, basename as basename6, dirname as dirname7 } from "path";
+import { existsSync as existsSync12, renameSync as renameSync5, readFileSync as readFileSync13 } from "fs";
+import { join as join16, basename as basename7, dirname as dirname7 } from "path";
 import { spawnSync } from "child_process";
 
 // src/cli/lib/cli-shared.ts
 import { existsSync as existsSync11, readFileSync as readFileSync12 } from "fs";
 import { homedir as homedir6 } from "os";
-import { join as join15, resolve as resolve6, basename as basename5, dirname as dirname6 } from "path";
+import { join as join15, resolve as resolve6, basename as basename6, dirname as dirname6 } from "path";
 import { spawn as spawn3 } from "child_process";
 
 // src/cli/lib/init.ts
