@@ -231,7 +231,9 @@
     "pages": "Sayfalar",
     "backToBoard": "Panoya geri dön",
     "matches": "Eşleşmeler",
-    "settingsTitle": "Ayarlar"
+    "settingsTitle": "Ayarlar",
+    "categoryChips": "Colored category chips",
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
   },
   "sectionLabels": {
     "title": "Başlık",

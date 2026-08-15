@@ -1,7 +1,8 @@
 ---
 id: t279
-title: [WEB] Sidebar All tasks: toggle group by status / [category]
+title: "Sidebar All tasks: toggle group by status / [category]"
 status: Review
+category: WEB
 priority: P2
 tags: [web, ui, sidebar, category]
 ownerType: human

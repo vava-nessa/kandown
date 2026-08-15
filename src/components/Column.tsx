@@ -29,7 +29,7 @@ import { CardStack } from './CardStack';
 import { Icon } from './Icons';
 import { KbdButton } from './KbdButton';
 import { ColumnHeaderActions } from './ColumnHeaderActions';
-import { getColumnIcon, COLUMN_COLOR_MAP } from '../lib/columnUtils';
+import { getColumnIcon, COLUMN_BAR_MAP } from '../lib/columnUtils';
 import { useStore } from '../lib/store';
 import { groupTasksByTag, extractGroupKey } from '../lib/grouping';
 import { terminalStatus } from '../lib/dependencies';
@@ -89,7 +89,7 @@ export function Column({
     const tagToTasks = new Map<string, BoardTask[]>();
     for (const col of useStore.getState().columns) {
       for (const t of col.tasks) {
-        const key = extractGroupKey(t.title);
+        const key = extractGroupKey(t);
         if (key) {
           if (!tagToTasks.has(key)) tagToTasks.set(key, []);
           tagToTasks.get(key)!.push(t);
@@ -104,7 +104,9 @@ export function Column({
   }, []);
 
   const colColorKey = config.board.columnColors?.[column.name.toLowerCase()] ?? 'gray';
-  const colBg = COLUMN_COLOR_MAP[colColorKey] ?? COLUMN_COLOR_MAP.gray;
+  // 📖 The column color is a 3-4px accent bar on top of the column card, not
+  // a full-column tint: cleaner, and it does not fight the card surfaces.
+  const colBar = COLUMN_BAR_MAP[colColorKey] ?? COLUMN_BAR_MAP.gray;
 
   const handleColorChange = (color: ColumnColor) => {
     updateConfig(c => ({
@@ -169,7 +171,8 @@ export function Column({
           className="flex flex-col items-center justify-center w-full h-full min-h-0 px-1 transition-[background-color,opacity] duration-200 ease-out"
           style={{
             opacity: isOver ? 0.8 : 1,
-            backgroundColor: isOver ? 'rgba(255,255,255,0.04)' : colBg,
+            backgroundColor: isOver ? 'rgba(255,255,255,0.04)' : 'transparent',
+            borderTop: `3px solid ${colBar}`,
           }}
         >
           <ColumnIcon aria-hidden="true" size={16} stroke={1.8} className="text-fg-muted mb-1 shrink-0" />
@@ -228,7 +231,7 @@ export function Column({
       className={`group/column flex flex-col flex-none w-[320px] h-full rounded-xl border border-border
         transition-[background-color,opacity,box-shadow,border-color] duration-200 ease-out
         ${draggedColIndex === columnIndex ? 'opacity-45 shadow-sm' : ''}`}
-      style={{ backgroundColor: isOver ? 'rgba(255,255,255,0.04)' : colBg }}
+      style={{ backgroundColor: isOver ? 'rgba(255,255,255,0.04)' : 'transparent', borderTop: `3px solid ${colBar}` }}
     >
       <div className="flex items-center justify-between px-3.5 pt-3 pb-2">
         <div className="flex items-center gap-2">

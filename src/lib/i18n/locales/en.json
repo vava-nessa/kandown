@@ -341,7 +341,9 @@
     "kickerSignals": "Signals",
     "kickerThemes": "Skins & community store",
     "themes": "Themes",
-    "themesDesc": "Browse the community theme store, install curated + community themes, and open the floating editor to tweak or propose your own."
+    "themesDesc": "Browse the community theme store, install curated + community themes, and open the floating editor to tweak or propose your own.",
+    "categoryChips": "Colored category chips",
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
   },
   "conflict": {
     "detected": "Conflict Detected",

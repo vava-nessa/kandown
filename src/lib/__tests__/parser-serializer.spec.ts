@@ -66,6 +66,21 @@ describe('serializeTaskFile ↔ parseTaskFile — flat round-trip (regression gu
     expect(roundTrip(fm)).toEqual(fm);
   });
 
+  it('round-trips the category field (0.53.0 first-class category)', () => {
+    const fm: TaskFrontmatter = {
+      id: 't232',
+      title: 'Fix the login button',
+      category: 'UI',
+      status: 'Backlog',
+    };
+    expect(roundTrip(fm)).toEqual(fm);
+    // 📖 The category must land in the frontmatter as its own line, next to
+    // the clean title, and never inside the title itself.
+    const out = serializeTaskFile(fm, '');
+    expect(out).toContain('category: UI');
+    expect(out).not.toContain('[UI]');
+  });
+
   it('round-trips a multi-line report byte-stably', () => {
     const fm = { id: 't9', title: 'X', report: 'first paragraph.\n\nsecond paragraph.' } as TaskFrontmatter;
     expect(roundTrip(fm).report).toBe(fm.report);

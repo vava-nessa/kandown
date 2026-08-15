@@ -1,6 +1,6 @@
 ---
 id: t227
-title: [QUALITY] Set up Vitest + test suite for the pure core and the CLI
+title: Set up Vitest + test suite for the pure core and the CLI
 status: Backlog
 priority: P1
 tags: [quality, tests, infra]
@@ -8,6 +8,7 @@ ownerType: agent
 created: 2026-07-25
 order: 0
 updated: 2026-07-27T01:52:39Z
+category: QUALITY
 ---
 
 # Set up Vitest + test suite for the pure core and the CLI

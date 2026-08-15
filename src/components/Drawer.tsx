@@ -29,7 +29,8 @@ import { SubtaskEditor } from './SubtaskEditor';
 import { BlockNoteMarkdownEditor } from './ui/BlockNoteMarkdownEditor';
 import { DependenciesHeaderMenu } from './DependenciesHeaderMenu';
 import { TaskExtensionSurface } from './TaskExtensionSurface';
-import { parseTaskTitle, updateTitleCategory } from '../lib/task-title-category';
+import { parseTaskTitle } from '../lib/task-title-category';
+import { CategoryChip } from './CategoryChip';
 import { useStore } from '../lib/store';
 import { buildTaskUrl } from '../lib/task-url';
 import type { Subtask } from '../lib/types';
@@ -239,21 +240,37 @@ export function Drawer() {
   };
 
   const rawTitle = (drawerData.frontmatter.title as string) || '';
+  // 📖 The category is a first-class frontmatter field since 0.53.0. Legacy
+  // files that predate the field carry it as a leading `[BRACKET]` in the
+  // title; the fallback keeps those files editable without a migration step.
   const parsedTitle = parseTaskTitle(rawTitle);
+  const displayCategory =
+    (drawerData.frontmatter.category || '').trim() || parsedTitle.category || '';
 
   const handleCleanTitleChange = (newCleanTitle: string) => {
-    const nextFullTitle = parsedTitle.category
-      ? `[${parsedTitle.category}] ${newCleanTitle}`
-      : newCleanTitle;
-    updateField('title', nextFullTitle);
+    // 📖 The title is clean prose; the category lives in its own field, so a
+    // title edit never touches it and never rewrites the filename.
+    updateField('title', newCleanTitle);
+    // 📖 Guard: on a legacy file the category sits in the title bracket. A
+    // title edit would drop it silently, so the bracket is migrated into the
+    // `category:` field before it disappears.
+    if (parsedTitle.category) {
+      updateField('category', parsedTitle.category);
+    }
   };
 
   const handleCategorySubmit = (newCat: string) => {
-    const nextFullTitle = updateTitleCategory(rawTitle, newCat);
-    updateField('title', nextFullTitle);
+    // 📖 Upper-cased on save so the chip, the grouping key and the filename
+    // segment all agree (the filename normalizes further to ASCII anyway).
+    updateField('category', newCat.trim().toUpperCase() || '');
+    // 📖 A legacy title still carrying its `[BRACKET]` is migrated on edit:
+    // the bracket is stripped so it cannot keep feeding the fallback and
+    // resurrect a cleared category on the next reload.
+    if (parsedTitle.category) {
+      updateField('title', parsedTitle.cleanTitle.trim());
+    }
     setIsEditingCategory(false);
   };
-
   const currentDependsOn = Array.isArray(drawerData.frontmatter.depends_on)
     ? drawerData.frontmatter.depends_on.filter((d): d is string => typeof d === 'string')
     : [];
@@ -290,7 +307,7 @@ export function Drawer() {
                     <input
                       type="text"
                       autoFocus
-                      defaultValue={parsedTitle.category || ''}
+                      defaultValue={displayCategory}
                       placeholder="CATEGORY"
                       onBlur={e => handleCategorySubmit(e.target.value)}
                       onKeyDown={e => {
@@ -299,15 +316,8 @@ export function Drawer() {
                       }}
                       className="font-mono text-[12px] uppercase px-1.5 py-0.5 bg-accent/15 border border-accent/40 rounded text-accent-foreground font-semibold outline-none w-28"
                     />
-                  ) : parsedTitle.category ? (
-                    <button
-                      type="button"
-                      onClick={() => setIsEditingCategory(true)}
-                      className="font-mono text-[12px] uppercase px-1.5 py-0.5 bg-accent/15 border border-accent/30 hover:border-accent/60 rounded text-accent-foreground font-semibold transition-colors"
-                      title="Click to edit category"
-                    >
-                      [{parsedTitle.category}]
-                    </button>
+                  ) : displayCategory ? (
+                    <CategoryChip category={displayCategory} onClick={() => setIsEditingCategory(true)} />
                   ) : (
                     <button
                       type="button"

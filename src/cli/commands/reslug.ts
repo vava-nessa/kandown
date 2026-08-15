@@ -33,6 +33,7 @@ import { spawnSync } from 'node:child_process';
 import { c, log, info, success, err, taskParseArgs, ensureKandownDir } from '../lib/cli-shared';
 import { getTasksDir, listTaskFilenames, findTaskPath } from '../lib/board-reader';
 import { parseTaskFile } from '../../lib/parser';
+import type { TaskFrontmatter } from '../../lib/types';
 import { buildTaskFilename, hasDescriptiveSlug, taskIdFromFilename } from '../../lib/task-filename';
 
 interface PlannedRename {
@@ -83,19 +84,21 @@ function renameFile(from: string, to: string, useGit: boolean): 'git' | 'fs' {
 function planFor(directory: string, filename: string): PlannedRename | null {
   const id = taskIdFromFilename(filename);
   if (!id) return null;
-  let title = '';
+  let frontmatter: TaskFrontmatter | null = null;
   try {
     // 📖 The title comes from the frontmatter through the real parser, never from
     // the current filename, so re-slugging an already-slugged file re-derives it
-    // from the actual source of truth.
-    title = parseTaskFile(readFileSync(join(directory, filename), 'utf8')).frontmatter.title ?? '';
+    // from the actual source of truth. The category is read the same way (field
+    // first, legacy title bracket as fallback) so the filename segment follows
+    // the same source of truth as the drawer.
+    frontmatter = parseTaskFile(readFileSync(join(directory, filename), 'utf8')).frontmatter;
   } catch {
     // 📖 An unreadable or malformed task file is left exactly as it is: a rename
     // is never worth risking on a file we could not parse.
     return null;
   }
   const others = listTaskFilenames(directory).filter(f => f !== filename);
-  const target = buildTaskFilename(id, title, others);
+  const target = buildTaskFilename(id, frontmatter.title, frontmatter.category, others);
   if (target === filename) return null;
   return { id, directory, from: filename, to: target };
 }

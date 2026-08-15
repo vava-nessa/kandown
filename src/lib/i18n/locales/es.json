@@ -275,7 +275,9 @@
     "kickerInterface": "Interfaz",
     "kickerAutomation": "Automatización",
     "kickerIdentifiers": "Identificadores",
-    "kickerMetadata": "Metadatos"
+    "kickerMetadata": "Metadatos",
+    "categoryChips": "Colored category chips",
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
   },
   "sectionLabels": {
     "title": "Título",

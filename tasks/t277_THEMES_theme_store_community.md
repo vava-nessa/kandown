@@ -4,11 +4,12 @@ status: In Progress
 order: 3
 created: 2026-07-28
 updated: 2026-08-04T23:16:41Z
-title: [THEMES] Theme store, community catalog, floating editor
+title: Theme store, community catalog, floating editor
 priority: P1
 ownerType: agent
 assignee: pi
 tags: [themes, store, community, editor, website]
+category: THEMES
 ---
 
 ## Goal

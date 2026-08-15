@@ -196,6 +196,14 @@ export const getSETTINGS = (t: ReturnType<typeof useTranslation>['t']): SettingD
     keywords: ['typography', 'text'],
   },
   {
+    key: 'ui.categoryChips',
+    label: t('settings.categoryChips'),
+    section: 'appearance',
+    type: 'toggle',
+    description: t('settings.categoryChipsDesc'),
+    keywords: ['category', 'color', 'chip', 'hash', 'icon'],
+  },
+  {
     // 📖 Action row: re-opens the onboarding modal. The `key` is a synthetic
     // search-only identifier (the search index reads it via `getSettingSearchText`
     // but the value column is never read from config — it has no setting

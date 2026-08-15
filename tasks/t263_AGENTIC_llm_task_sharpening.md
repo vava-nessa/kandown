@@ -1,6 +1,6 @@
 ---
 id: t263
-title: [AGENTIC] LLM Task Sharpening ("Grill-Me" & Auto-Refine)
+title: LLM Task Sharpening ("Grill-Me" & Auto-Refine)
 status: Todo
 assignee: vava
 priority: P1
@@ -9,6 +9,7 @@ ownerType: human
 created: 2026-07-26
 order: 1
 updated: 2026-08-04T23:16:41Z
+category: AGENTIC
 ---
 
 # LLM Task Sharpening ("Grill-Me" & Auto-Refine)

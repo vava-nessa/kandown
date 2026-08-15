@@ -310,8 +310,8 @@ export function findTaskPath(kandownDir: string, id: string): string | null {
 }
 
 /** 📖 Where to write a task being created: `<id>_<three_words>.md` when the title allows it. */
-export function newTaskPath(kandownDir: string, id: string, title?: string | null): string {
-  return newTaskFilePath(kandownDir, id, title);
+export function newTaskPath(kandownDir: string, id: string, title?: string | null, category?: string | null): string {
+  return newTaskFilePath(kandownDir, id, title, category);
 }
 
 export function nextTaskId(kandownDir: string): string {

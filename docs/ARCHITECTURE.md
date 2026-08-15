@@ -322,9 +322,15 @@ kind.
    The canonical id lives in the `id:` frontmatter, which is why a rename can
    never invalidate a `depends_on`, a `[[t232]]` link or a deep link. The prose
    slug is frozen at creation: editing a title does not touch the filesystem.
-   The bracket-category segment is different: it is taxonomy, not description,
-   so changing it through the web drawer auto-renames the file (using `git mv`
-   when the file is tracked). Direct file edits stay stale and need
+   The category segment is different: it is taxonomy, not description, and its
+   source of truth is the `category:` frontmatter field, not the title. Since
+   0.53.0 the title is clean prose and the drawer edits `category:` directly;
+   changing it auto-renames the file (using `git mv` when the file is
+   tracked), because the filename mirrors the field. Legacy files whose
+   category still sits as a leading `[BRACKET]` in the title are read through
+   the same fallback chain (`taskCategory` in `src/lib/task-title-category.ts`)
+   until migrated with `scripts/migrate-task-categories.ts`. Direct file edits
+   that change a category stay stale in the filename and need
    `kandown reslug --force` to refresh.
 
 ---

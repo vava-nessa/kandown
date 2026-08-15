@@ -15,8 +15,10 @@
  * control and persisted in localStorage (`kandown:tasklist-group`):
  *    - `status` (default): one section per board column, collapse state kept
  *      in `collapsedSections`.
- *    - `category`: one section per leading `[CATEGORY]` title tag, case
- *      insensitive, with an "Uncategorized" fallback group. Tasks inside a
+ *    - `category`: one section per category, case insensitive, with an
+ *      "Uncategorized" fallback group. The category comes from the
+ *      frontmatter `category:` field, falling back to a legacy leading
+ *      `[CATEGORY]` title tag. Tasks inside a
  *      category are sorted by board column order, then priority. Opening a
  *      task auto-expands its own category and collapses the others, then
  *      scrolls it into view. Collapse state is tracked separately per mode.
@@ -42,7 +44,9 @@ import { SubtaskEditor } from './SubtaskEditor';
 import { BlockNoteMarkdownEditor } from './ui/BlockNoteMarkdownEditor';
 import { DependenciesHeaderMenu } from './DependenciesHeaderMenu';
 import { TaskExtensionSurface } from './TaskExtensionSurface';
-import { parseTaskTitle, updateTitleCategory } from '../lib/task-title-category';
+import { parseTaskTitle } from '../lib/task-title-category';
+import { categoryColor, categoryIcon } from '../lib/category-color';
+import { CategoryChip } from './CategoryChip';
 import { useStore } from '../lib/store';
 import { buildTaskUrl } from '../lib/task-url';
 import type { BoardTask, Subtask } from '../lib/types';
@@ -50,7 +54,8 @@ import { terminalStatus } from '../lib/dependencies';
 
 /** 📖 Grouping mode of the "All tasks" sidebar navigator. `status` is the
  * historical behavior (one section per board column); `category` groups by
- * the leading `[CATEGORY]` title tag. Persisted as `kandown:tasklist-group`. */
+ * the frontmatter `category:` field, falling back to a legacy leading
+ * `[CATEGORY]` title tag. Persisted as `kandown:tasklist-group`. */
 type GroupMode = 'status' | 'category';
 
 /** 📖 Rank for sorting tasks by priority inside a category group, P1 first. */
@@ -101,6 +106,20 @@ interface TaskSectionProps {
    * in category mode, used for the `data-category` scroll target. */
   dataKey?: string;
 }
+/** 📖 Category chip in the "All tasks" sidebar: a colored hash chip when
+ * `ui.categoryChips` is on (via the shared CategoryChip), the plain mono
+ * accent label otherwise. Uncategorized stays neutral. */
+function CategoryHeaderLabel({ dataKey, title }: { dataKey: string; title: string }) {
+  const categoryChips = useStore(s => s.config.ui.categoryChips !== false);
+  if (!categoryChips || !dataKey) {
+    return (
+      <span className="truncate font-mono text-[12px] uppercase font-semibold text-accent-foreground">
+        {title}
+      </span>
+    );
+  }
+  return <CategoryChip category={dataKey} />;
+}
 
 function TaskSection({
   title,
@@ -126,9 +145,7 @@ function TaskSection({
         <span className="flex min-w-0 items-center gap-2">
           <ToggleIcon collapsed={collapsed} />
           {categoryMode ? (
-            <span className="truncate font-mono text-[12px] uppercase font-semibold text-accent-foreground">
-              {title}
-            </span>
+            <CategoryHeaderLabel dataKey={dataKey ?? ''} title={title} />
           ) : (
             <span className="truncate text-[12.5px] font-semibold text-fg">{title}</span>
           )}
@@ -236,12 +253,13 @@ export function TaskWorkspace() {
     return map;
   }, [columns]);
 
-  // 📖 Group every board task by its leading `[CATEGORY]` title tag, case
+  // 📖 Group every board task by its category: the frontmatter `category:`
+  // field first, legacy leading `[BRACKET]` title tag as fallback.
   const categoryGroups = useMemo<CategoryGroup[]>(() => {
     const groups = new Map<string, CategoryGroup>();
     for (const col of columns) {
       for (const task of col.tasks) {
-        const raw = parseTaskTitle(task.title).category;
+        const raw = task.category ?? parseTaskTitle(task.title).category;
         const key = raw ? raw.trim().toUpperCase() : '';
         let group = groups.get(key);
         if (!group) {
@@ -275,7 +293,7 @@ export function TaskWorkspace() {
     for (const col of columns) {
       const task = col.tasks.find(candidate => candidate.id === drawerTaskId);
       if (task) {
-        const raw = parseTaskTitle(task.title).category;
+        const raw = task.category ?? parseTaskTitle(task.title).category;
         return raw ? raw.trim().toUpperCase() : '';
       }
     }
@@ -494,18 +512,35 @@ export function TaskWorkspace() {
   };
 
   const rawTitle = (drawerData.frontmatter.title as string) || '';
+  // 📖 The category is a first-class frontmatter field since 0.53.0. Legacy
+  // files that predate the field carry it as a leading `[BRACKET]` in the
+  // title; the fallback keeps those files editable without a migration step.
   const parsedTitle = parseTaskTitle(rawTitle);
+  const displayCategory =
+    (drawerData.frontmatter.category || '').trim() || parsedTitle.category || '';
 
   const handleCleanTitleChange = (newCleanTitle: string) => {
-    const nextFullTitle = parsedTitle.category
-      ? `[${parsedTitle.category}] ${newCleanTitle}`
-      : newCleanTitle;
-    updateField('title', nextFullTitle);
+    // 📖 The title is clean prose; the category lives in its own field, so a
+    // title edit never touches it and never rewrites the filename.
+    updateField('title', newCleanTitle);
+    // 📖 Guard: on a legacy file the category sits in the title bracket. A
+    // title edit would drop it silently, so the bracket is migrated into the
+    // `category:` field before it disappears.
+    if (parsedTitle.category) {
+      updateField('category', parsedTitle.category);
+    }
   };
 
   const handleCategorySubmit = (newCat: string) => {
-    const nextFullTitle = updateTitleCategory(rawTitle, newCat);
-    updateField('title', nextFullTitle);
+    // 📖 Upper-cased on save so the chip, the grouping key and the filename
+    // segment all agree (the filename normalizes further to ASCII anyway).
+    updateField('category', newCat.trim().toUpperCase() || '');
+    // 📖 A legacy title still carrying its `[BRACKET]` is migrated on edit:
+    // the bracket is stripped so it cannot keep feeding the fallback and
+    // resurrect a cleared category on the next reload.
+    if (parsedTitle.category) {
+      updateField('title', parsedTitle.cleanTitle.trim());
+    }
     setIsEditingCategory(false);
   };
 
@@ -595,7 +630,7 @@ export function TaskWorkspace() {
               <input
                 type="text"
                 autoFocus
-                defaultValue={parsedTitle.category || ''}
+                defaultValue={displayCategory}
                 placeholder="CATEGORY"
                 onBlur={e => handleCategorySubmit(e.target.value)}
                 onKeyDown={e => {
@@ -604,15 +639,8 @@ export function TaskWorkspace() {
                 }}
                 className="font-mono text-[12px] uppercase px-1.5 py-0.5 bg-accent/15 border border-accent/40 rounded text-accent-foreground font-semibold outline-none w-28"
               />
-            ) : parsedTitle.category ? (
-              <button
-                type="button"
-                onClick={() => setIsEditingCategory(true)}
-                className="font-mono text-[12px] uppercase px-1.5 py-0.5 bg-accent/15 border border-accent/30 hover:border-accent/60 rounded text-accent-foreground font-semibold transition-colors"
-                title="Click to edit category"
-              >
-                [{parsedTitle.category}]
-              </button>
+            ) : displayCategory ? (
+              <CategoryChip category={displayCategory} onClick={() => setIsEditingCategory(true)} />
             ) : (
               <button
                 type="button"

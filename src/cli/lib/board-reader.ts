@@ -40,12 +40,13 @@ import { serializeTaskFile } from '../../lib/serializer.js';
 import { stampUpdated } from '../../lib/task-meta.js';
 import {
   buildTaskFilename,
-  categorySegmentFromTitle,
+  categorySegmentFromFrontmatter,
   isTaskFilename,
   parseTaskFilename,
   resolveTaskFilename,
   taskIdFromFilename,
 } from '../../lib/task-filename.js';
+import { parseTaskTitle } from '../../lib/task-title-category.js';
 import type { ParsedBoard, ParsedTask, TaskFrontmatter } from '../../lib/types.js';
 import { loadConfig } from './config.js';
 
@@ -134,17 +135,22 @@ export function findTaskPath(kandownDir: string, taskId: string): string | null 
  * `tasks/<id>.md` when the title yields no ASCII slug. Existing filenames are
  * passed through so a collision can never overwrite another task.
  */
-export function newTaskFilePath(kandownDir: string, id: string, title?: string | null): string {
+export function newTaskFilePath(
+  kandownDir: string,
+  id: string,
+  title?: string | null,
+  category?: string | null,
+): string {
   const tasksDir = getTasksDir(kandownDir);
-  return join(tasksDir, buildTaskFilename(id, title, listTaskFilenames(tasksDir)));
+  return join(tasksDir, buildTaskFilename(id, title, category, listTaskFilenames(tasksDir)));
 }
 
 /**
  * 📖 One-place write for an existing task: writes the content where the task
- * already lives, and renames the file when the bracket category in the new
- * content's title differs from the bracket currently in the filename. The slug
- * part stays frozen; only the category segment follows the title, which is why
- * this helper only ever renames on a bracket change, never on a prose change.
+ * already lives, and renames the file when the category in the new
+ * content's frontmatter differs from the category currently in the filename. The slug
+ * part stays frozen; only the category segment follows the category, which is why
+ * this helper only ever renames on a category change, never on a prose change.
  *
  * The rename uses `git mv` when the file is tracked, so history follows and a
  * follow-up commit records a rename rather than a delete plus an add. Falls
@@ -168,20 +174,27 @@ export function writeTaskContent(
   const previousPath = findTaskPath(kandownDir, id);
   const previousDir = previousPath ? dirname(previousPath) : tasksDir;
   const previousName = previousPath ? basename(previousPath) : null;
-  const parsedTitle = parseTaskFile(content).frontmatter.title;
-  const expectedName = buildTaskFilename(id, parsedTitle, listTaskFilenames(previousDir));
+  const parsed = parseTaskFile(content);
+  const fm = parsed.frontmatter;
+  const parsedTitle = fm.title;
+  const expectedName = buildTaskFilename(
+    id,
+    parsedTitle,
+    categorySegmentFromFrontmatter(fm),
+    listTaskFilenames(previousDir),
+  );
 
   let writeDir = previousDir;
   let writeName = previousName ?? expectedName;
 
   if (previousName && previousName !== expectedName) {
-    // 📖 Only rename when the bracket category segment actually changed. A
+    // 📖 Only rename when the category segment actually changed. A
     // bracket-stripped slug rename is the user's job (`kandown reslug
     // --force`), not this helper's: silently renaming `t232_remove_dead_code.md`
     // because someone rephrased the title would be surprising and noisy in
     // git history.
     const previousParsed = parseTaskFilename(previousName);
-    const nextCategory = categorySegmentFromTitle(parsedTitle ?? '');
+    const nextCategory = categorySegmentFromFrontmatter(fm);
     const previousCategory = previousParsed?.category ?? null;
     if (previousCategory !== nextCategory) {
       if (existsSync(join(writeDir, expectedName))) {
@@ -501,15 +514,21 @@ export function createTaskInBoard(kandownDir: string, rawInput: string, status?:
   text = text.replace(/(?:^|\s)\+([a-zA-Z0-9_-]+)/g, (_, depId) => { depends_on.push(depId); return ' '; });
   const title = text.replace(/\s+/g, ' ').trim() || rawInput;
 
+  // 📖 A leading `[CATEGORY]` bracket in the title is normalized into the
+  // first-class `category:` field and stripped from the prose, so the drawer
+  // and the filename share one structured source of truth.
+  const { category, cleanTitle } = parseTaskTitle(title);
+
   // 📖 A brand-new task is "updated" at creation time too, so the Age column
   // reads its real age from second one instead of falling back to the
   // day-precision `created` date.
   const fm: TaskFrontmatter = stampUpdated({
     id: newId,
-    title,
+    title: category ? cleanTitle : title,
     status: targetStatus,
     created: new Date().toISOString().slice(0, 10),
   });
+  if (category) fm.category = category;
   if (priority) fm.priority = priority;
   if (assignee) fm.assignee = assignee;
   if (tags.length > 0) fm.tags = tags;

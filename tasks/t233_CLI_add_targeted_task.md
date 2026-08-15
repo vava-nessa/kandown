@@ -1,6 +1,6 @@
 ---
 id: t233
-title: [CLI] Add targeted task mutation commands (set / check / report / done)
+title: Add targeted task mutation commands (set / check / report / done)
 status: Backlog
 priority: P2
 tags: [cli, agents]
@@ -8,6 +8,7 @@ ownerType: agent
 created: 2026-07-25
 order: 5
 updated: 2026-07-26T18:18:27Z
+category: CLI
 ---
 
 # Add targeted task mutation commands

@@ -84,12 +84,21 @@ export function columnAccentColor(name: string): string {
 }
 
 /**
- * 📖 Returns the bracket tag / hashtag extracted from a task title.
- * Used to decide whether a task should render as CategoryTaskRow.
- * Mirrors extractGroupKey from src/lib/grouping.ts but also captures the
- * display label (without brackets / hash) for the category line.
+ * 📖 Returns the category of a board task (frontmatter `category:` field,
+ * legacy leading bracket or hashtag in the title). Used to decide whether a
+ * task should render as CategoryTaskRow. The label (without brackets / hash)
+ * feeds the category line; the key mirrors `extractGroupKey` from
+ * src/lib/grouping.ts.
  */
-export function getTitleCategory(title: string): { key: string; label: string } | null {
+export function getTitleCategory(task: {
+  title: string;
+  category?: string | null;
+}): { key: string; label: string } | null {
+  const category = (task.category || '').trim();
+  if (category) return { key: `[${category.toLowerCase()}]`, label: category };
+  // 📖 Defensive: malformed files can carry a non-string title (YAML array);
+  // treat it as having no bracket or hashtag rather than crashing the board.
+  const title = typeof task.title === 'string' ? task.title : '';
   const bracket = title.match(/^\[([^\]]+)\]\s*/);
   if (bracket) return { key: `[${bracket[1].toLowerCase()}]`, label: bracket[1] };
   const hash = title.match(/#(\w+)/);
@@ -121,7 +130,7 @@ export function computeScrollIdx(
     const adjustedMaxHeight = maxTasksHeight - (hasTopIndicator ? 1 : 0) - reserveBottom;
     let h = 0;
     for (let k = currentScroll; k <= focusedRow; k++) {
-      h += getTitleCategory(tasks[k].title) !== null ? 3 : 1;
+      h += getTitleCategory(tasks[k]) !== null ? 3 : 1;
       if (contextMenuRow === k) h += MENU_HEIGHT;
       if (k < focusedRow) h += 1; // separator
     }

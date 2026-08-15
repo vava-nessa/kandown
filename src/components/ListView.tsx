@@ -29,7 +29,7 @@ import { ListRow } from './ListRow';
 import { CardStack } from './CardStack';
 import { KbdButton } from './KbdButton';
 import { groupTasksByTag, extractGroupKey } from '../lib/grouping';
-import { getColumnIcon, COLUMN_COLOR_MAP } from '../lib/columnUtils';
+import { getColumnIcon, COLUMN_BAR_MAP } from '../lib/columnUtils';
 import { terminalStatus } from '../lib/dependencies';
 import { ColumnHeaderActions } from './ColumnHeaderActions';
 import type { BoardTask, SearchMatch, Column as ColumnType, ColumnColor } from '../lib/types';
@@ -118,7 +118,7 @@ export function ListView() {
     const tagToTasks = new Map<string, BoardTask[]>();
     for (const col of useStore.getState().columns) {
       for (const t of col.tasks) {
-        const key = extractGroupKey(t.title);
+        const key = extractGroupKey(t);
         if (key) {
           if (!tagToTasks.has(key)) tagToTasks.set(key, []);
           tagToTasks.get(key)!.push(t);
@@ -308,7 +308,9 @@ export function ListView() {
             const isTaskDropTarget = taskDropColumn === column.name;
             const isFiltered = filtered.length !== column.tasks.length;
             const colColorKey = config.board.columnColors?.[column.name.toLowerCase()] ?? 'gray';
-            const colBg = COLUMN_COLOR_MAP[colColorKey] ?? COLUMN_COLOR_MAP.gray;
+            // 📖 Column color as a 3-4px accent bar on the section top, matching
+            // the board view (see Column.tsx). No full-section tint.
+            const colBar = COLUMN_BAR_MAP[colColorKey] ?? COLUMN_BAR_MAP.gray;
             const ColumnIcon = getColumnIcon(column.name);
             const isConfiguredColumn = config.board.columns.some(name => name.toLowerCase() === column.name.toLowerCase());
             const columnItems = groupTasksByTag(filtered);
@@ -381,7 +383,7 @@ export function ListView() {
                       ? 'border-border-strong bg-bg-1 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]'
                       : 'border-border/60'
                   } ${draggedColIndex === sectionIndex ? 'opacity-45 scale-[0.995]' : ''}`}
-                  style={{ backgroundColor: isTaskDropTarget ? undefined : colBg }}
+                  style={{ borderTop: `3px solid ${colBar}` }}
                 >
                   <header className="flex items-center justify-between gap-2.5 border-b border-border/40 bg-bg-1/60 px-3 py-2">
                     <div className="flex min-w-0 items-center gap-2.5">

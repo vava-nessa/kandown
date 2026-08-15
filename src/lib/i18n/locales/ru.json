@@ -231,7 +231,9 @@
     "pages": "Страницы",
     "backToBoard": "Вернуться к доске",
     "matches": "Совпадения",
-    "settingsTitle": "Настройки"
+    "settingsTitle": "Настройки",
+    "categoryChips": "Colored category chips",
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
   },
   "sectionLabels": {
     "title": "Название",

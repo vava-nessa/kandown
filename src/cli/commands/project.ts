@@ -9,12 +9,14 @@
 
 import { existsSync, readFileSync, copyFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { homedir } from 'node:os';
 import { spawn } from 'node:child_process';
 import { getCurrentVersion, performGlobalPackageUpdate, semverGt, PKG_ROOT } from '../lib/updater';
 import { listTaskIds } from '../lib/board-reader';
 import { compileProjectKandownWork } from '../lib/kandown-work';
 import { getDaemonStatus } from '../lib/daemon';
 import { doInit } from '../lib/init';
+import { detectHomeWorkspace } from '../lib/home-workspace';
 import { c, log, info, success, err, parseArgs, ensureKandownDir } from '../lib/cli-shared';
 
 export function cmdInit(rawArgs: string[]) {
@@ -103,7 +105,28 @@ export async function cmdDoctor(rawArgs: string[]) {
 
   const taskIds = listTaskIds(kandownDir);
   success(`Tasks: ${taskIds.length} active task files`);
+
+  reportHomeWorkspace();
+
   log(`\n${c.green}✓ Everything looks good!${c.reset}\n`);
+}
+
+/**
+ * 📖 Prints an advisory warning when a pnpm workspace is accidentally
+ * rooted at the user's home directory (see `detectHomeWorkspace`).
+ *
+ * This is a warning, not a failure: `cmdDoctor` still exits 0. The symptom
+ * (frozen `pnpm dev`, wrong install store) is severe enough to deserve
+ * `err`-level visibility, but the board itself is fine.
+ */
+export function reportHomeWorkspace(home: string = homedir()): void {
+  const markers = detectHomeWorkspace(home);
+  if (markers.length === 0) return;
+
+  log(`\n${c.yellow}⚠ pnpm workspace detected in your home directory${c.reset}`);
+  info(`Found ${markers.map((m) => join('~', m.slice(home.length + 1))).join(', ')} at ${home}`);
+  err('This makes pnpm treat ~/ as the workspace root for every project below it — `pnpm dev` can hang and installs may target the wrong store.');
+  info('Fix: remove these files/folders from your home (back them up first), or declare a pnpm-workspace.yaml inside each project.');
 }
 
 export async function cmdWork(rawArgs: string[]) {

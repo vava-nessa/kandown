@@ -28,6 +28,7 @@
  * @functions
  *  → slugifyTitle — turn a task title into at most three lowercase ASCII words
  *  → categorySegmentFromTitle — the bracket category as a filename segment, if any
+ *  → categorySegmentFromFrontmatter — the category segment from frontmatter (field first, legacy bracket fallback)
  *  → normalizeCategorySegment — turn raw bracket content into a safe filename chunk
  *  → buildTaskFilename — compose the on-disk filename for a new task
  *  → isTaskFilename — recognize a task Markdown file, rejecting unsafe names
@@ -38,14 +39,15 @@
  *  → hasCategorySegment — whether a filename already carries a category segment
  *
  * @exports SLUG_MAX_WORDS, SLUG_MAX_LENGTH, CATEGORY_MAX_LENGTH,
- *          slugifyTitle, categorySegmentFromTitle, normalizeCategorySegment,
+ *          slugifyTitle, categorySegmentFromTitle, categorySegmentFromFrontmatter,
+ *          normalizeCategorySegment,
  *          buildTaskFilename, isTaskFilename, parseTaskFilename,
  *          taskIdFromFilename, resolveTaskFilename, hasDescriptiveSlug,
  *          hasCategorySegment, ParsedTaskFilename, TaskFilenameMatch
  * @see docs/ARCHITECTURE.md — invariants: the id is not the filename
  */
 
-import { parseTaskTitle } from './task-title-category';
+import { parseTaskTitle, taskCategory } from './task-title-category';
 
 /** 📖 How many words of the title end up in the filename. Three reads at a glance; four starts to wrap in a git status. */
 export const SLUG_MAX_WORDS = 3;
@@ -206,14 +208,26 @@ export function normalizeCategorySegment(raw: string | null | undefined): string
  * 📖 The bracket category embedded in a title, normalized to the form a filename
  * wants. Reads only the first bracket to stay consistent with `parseTaskTitle`.
  * `null` when the title has no leading bracket or the bracket yields nothing
- * usable (punctuation-only, emoji-only).
+ * usable (punctuation-only, emoji-only). Legacy helper: new code should derive
+ * the category from the frontmatter via `categorySegmentFromFrontmatter`, which
+ * falls back to this function for files that predate the `category:` field.
  */
 export function categorySegmentFromTitle(title: string): string | null {
   if (typeof title !== 'string' || !title.trim()) return null;
-  // 📖 The bracket category is metadata rather than part of the description.
-  // When it lands in the filename it stays in the title too, so a `git log`
-  // that shows the title reads as English instead of stripping one chunk.
   return normalizeCategorySegment(parseTaskTitle(title).category);
+}
+
+/**
+ * 📖 The category segment a task's frontmatter wants in its filename. Reads the
+ * first-class `category:` field, falling back to a legacy leading bracket in the
+ * title, then normalizes to the filename form (uppercase ASCII). `null` when
+ * neither yields anything usable, so the file stays a clean `<id>_<slug>.md`.
+ */
+export function categorySegmentFromFrontmatter(frontmatter: {
+  category?: unknown;
+  title?: string;
+}): string | null {
+  return normalizeCategorySegment(taskCategory(frontmatter));
 }
 
 /**
@@ -268,32 +282,42 @@ export function slugifyTitle(title: string, maxWords: number = SLUG_MAX_WORDS): 
  * whenever the title produces no usable slug, which keeps every legacy
  * expectation true for non-Latin titles instead of inventing a placeholder.
  *
- * When the title carries a leading bracket category, that category is added as
- * a separate uppercase segment between the id and the prose slug:
- * `[UI] Fix the login button` → `t232_UI_fix_login_button.md`. The category is
+ * When the task carries a category, that category is added as a separate
+ * uppercase segment between the id and the prose slug: `Fix the login button`
+ * with `category: UI` → `t232_UI_fix_login_button.md`. The category is
  * taxonomy, not description, so it sits next to the id rather than inside the
- * slug, and the visual hierarchy reads as `id` `CATEGORY` `prose`. A bracket
- * that yields nothing usable (punctuation-only) is treated as no bracket, so
- * the file stays a clean `<id>_<slug>.md` rather than carrying an empty
- * trailing underscore.
+ * slug, and the visual hierarchy reads as `id` `CATEGORY` `prose`. A category
+ * that yields nothing usable (punctuation-only) is treated as absent, so the
+ * file stays a clean `<id>_<slug>.md` rather than carrying an empty trailing
+ * underscore.
+ *
+ * The category argument is the raw value (frontmatter `category:` or a legacy
+ * bracket); it is normalized here. When omitted, a leading `[BRACKET]` in the
+ * title is used instead, so legacy callers keep working unchanged.
  *
  * Pass `takenFilenames` to keep the result unique: a second task titled the same
  * way gets `t293_fix_login_button_2.md` while the first keeps
  * `t292_fix_login_button.md`, since the id already disambiguates. The parameter
  * exists for the pathological case where the id itself is being reused.
  */
-export function buildTaskFilename(id: string, title?: string | null, takenFilenames: readonly string[] = []): string {
+export function buildTaskFilename(
+  id: string,
+  title?: string | null,
+  category?: string | null,
+  takenFilenames: readonly string[] = [],
+): string {
   const safeId = String(id ?? '').trim();
   if (!safeId) throw new Error('buildTaskFilename requires a task id');
   if (/[\\/]|^\.+$/.test(safeId)) throw new Error(`Unsafe task id for a filename: ${safeId}`);
 
-  const category = categorySegmentFromTitle(title ?? '');
+  const categorySegment =
+    normalizeCategorySegment(category ?? null) ?? categorySegmentFromTitle(title ?? '');
   const slug = slugifyTitle(title ?? '');
   // 📖 No category and no slug → bare id; one or the other → single segment;
   // both → category first so the id is always followed by CATEGORY before prose.
   let body: string;
-  if (category && slug) body = `${category}${SLUG_SEPARATOR}${slug}`;
-  else if (category) body = category;
+  if (categorySegment && slug) body = `${categorySegment}${SLUG_SEPARATOR}${slug}`;
+  else if (categorySegment) body = categorySegment;
   else if (slug) body = slug;
   else body = '';
   const candidate = body ? `${safeId}${SLUG_SEPARATOR}${body}.md` : `${safeId}.md`;

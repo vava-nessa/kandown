@@ -382,7 +382,7 @@ export function Board({ kandownDir, version }: BoardProps) {
     const topIndicatorHeight = hasTopIndicator ? 1 : 0;
 
     while (endIdx < col.tasks.length) {
-      const hasCategory = getTitleCategory(col.tasks[endIdx].title) !== null;
+      const hasCategory = getTitleCategory(col.tasks[endIdx]) !== null;
       const taskHeight = hasCategory ? 3 : 1;
       const sepHeight = (endIdx < col.tasks.length - 1) ? 1 : 0;
 
@@ -401,7 +401,6 @@ export function Board({ kandownDir, version }: BoardProps) {
         return { taskId: col.tasks[endIdx].id, colIndex: clickedCol, rowIndex: endIdx, startX: x, startY: y };
       }
       currentY += taskHeight;
-
       if (contextMenuRowVal === endIdx) {
         if (y >= currentY && y < currentY + MENU_HEIGHT) {
           return { taskId: col.tasks[endIdx].id, colIndex: clickedCol, rowIndex: endIdx, startX: x, startY: y, isMenu: true };
@@ -855,7 +854,7 @@ export function Board({ kandownDir, version }: BoardProps) {
     let clickedMenuOffset = -1;
 
     while (endIdx < col.tasks.length) {
-      const hasCategory = getTitleCategory(col.tasks[endIdx].title) !== null;
+      const hasCategory = getTitleCategory(col.tasks[endIdx]) !== null;
       const taskHeight = hasCategory ? 3 : 1;
       const sepHeight = (endIdx < col.tasks.length - 1) ? 1 : 0;
 

@@ -231,7 +231,9 @@
     "pages": "페이지",
     "backToBoard": "보드로 돌아가기",
     "matches": "일치",
-    "settingsTitle": "설정"
+    "settingsTitle": "설정",
+    "categoryChips": "Colored category chips",
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
   },
   "sectionLabels": {
     "title": "제목",

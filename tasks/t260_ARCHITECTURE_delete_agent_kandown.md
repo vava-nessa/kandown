@@ -1,6 +1,6 @@
 ---
 id: t260
-title: [ARCHITECTURE] Delete AGENT_KANDOWN.md — the CLI is the only source of agent instructions
+title: Delete AGENT_KANDOWN.md — the CLI is the only source of agent instructions
 status: In Progress
 assignee: pi
 priority: P1
@@ -9,6 +9,7 @@ ownerType: human
 created: 2026-07-26
 order: 0
 updated: 2026-08-04T23:16:41Z
+category: ARCHITECTURE
 ---
 
 # Delete AGENT_KANDOWN.md

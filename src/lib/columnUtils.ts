@@ -3,7 +3,7 @@
  * @description Provides column color maps, color swatches, and tabler icon resolvers
  * shared across Board and List views.
  *
- * @exports columnIconsByName, getColumnIcon, COLUMN_COLOR_MAP, COLOR_SWATCHES
+ * @exports columnIconsByName, getColumnIcon, COLUMN_BAR_MAP, COLOR_SWATCHES
  * @see src/components/Column.tsx
  * @see src/components/ListView.tsx
  */
@@ -42,34 +42,6 @@ export function getColumnIcon(columnName: string): TablerIcon {
   return columnIconsByName[normalizedName] ?? IconListDetails;
 }
 
-// 📖 Column tints. Default is a barely-there neutral that lets the cards carry
-// the visual weight. Brighter tints are dialed way down vs the old defaults so
-// the board never feels like a kid's coloring book.
-export const COLUMN_COLOR_MAP: Record<ColumnColor, string> = {
-  red: 'rgba(239,68,68,0.06)',
-  orange: 'rgba(249,115,22,0.06)',
-  amber: 'rgba(245,158,11,0.06)',
-  yellow: 'rgba(234,179,8,0.06)',
-  lime: 'rgba(132,204,22,0.06)',
-  green: 'rgba(34,197,94,0.06)',
-  emerald: 'rgba(16,185,129,0.06)',
-  teal: 'rgba(20,184,166,0.06)',
-  cyan: 'rgba(6,182,212,0.06)',
-  sky: 'rgba(14,165,233,0.06)',
-  blue: 'rgba(59,130,246,0.06)',
-  indigo: 'rgba(99,102,241,0.06)',
-  violet: 'rgba(139,92,246,0.06)',
-  purple: 'rgba(168,85,247,0.06)',
-  fuchsia: 'rgba(217,70,239,0.06)',
-  pink: 'rgba(236,72,153,0.06)',
-  rose: 'rgba(244,63,94,0.06)',
-  slate: 'rgba(100,116,139,0.05)',
-  gray: 'rgba(255,255,255,0.025)',
-  zinc: 'rgba(113,113,122,0.05)',
-  black: 'rgba(0,0,0,0.24)',
-  blackTransparent: 'rgba(0,0,0,0.1)',
-};
-
 export const COLOR_SWATCHES: { key: ColumnColor; label: string; color: string }[] = [
   { key: 'red', label: 'Red', color: 'rgba(239,68,68,0.9)' },
   { key: 'orange', label: 'Orange', color: 'rgba(249,115,22,0.9)' },
@@ -94,3 +66,32 @@ export const COLOR_SWATCHES: { key: ColumnColor; label: string; color: string }[
   { key: 'black', label: 'Black', color: 'rgba(0,0,0,0.9)' },
   { key: 'blackTransparent', label: 'Black 50%', color: 'rgba(0,0,0,0.5)' },
 ];
+
+// 📖 Solid bar colors for the 3-4px column accent bar (board and list views).
+// The old COLUMN_COLOR_MAP tints were meant for a full-column wash; a thin
+// top bar needs pigment, so these are the same hue families at ~0.85 alpha.
+// `gray` stays muted so an uncustomized column reads as a neutral hairline.
+export const COLUMN_BAR_MAP: Record<ColumnColor, string> = {
+  red: 'rgba(239,68,68,0.85)',
+  orange: 'rgba(249,115,22,0.85)',
+  amber: 'rgba(245,158,11,0.85)',
+  yellow: 'rgba(234,179,8,0.85)',
+  lime: 'rgba(132,204,22,0.85)',
+  green: 'rgba(34,197,94,0.85)',
+  emerald: 'rgba(16,185,129,0.85)',
+  teal: 'rgba(20,184,166,0.85)',
+  cyan: 'rgba(6,182,212,0.85)',
+  sky: 'rgba(14,165,233,0.85)',
+  blue: 'rgba(59,130,246,0.85)',
+  indigo: 'rgba(99,102,241,0.85)',
+  violet: 'rgba(139,92,246,0.85)',
+  purple: 'rgba(168,85,247,0.85)',
+  fuchsia: 'rgba(217,70,239,0.85)',
+  pink: 'rgba(236,72,153,0.85)',
+  rose: 'rgba(244,63,94,0.85)',
+  slate: 'rgba(100,116,139,0.7)',
+  gray: 'rgba(156,163,175,0.4)',
+  zinc: 'rgba(113,113,122,0.55)',
+  black: 'rgba(0,0,0,0.7)',
+  blackTransparent: 'rgba(0,0,0,0.35)',
+};

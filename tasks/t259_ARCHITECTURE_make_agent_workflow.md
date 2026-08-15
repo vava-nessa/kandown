@@ -1,6 +1,6 @@
 ---
 id: t259
-title: [ARCHITECTURE] Make the agent workflow chosen, not imposed
+title: Make the agent workflow chosen, not imposed
 status: In Progress
 assignee: codex
 priority: P1
@@ -10,6 +10,7 @@ created: 2026-07-26
 order: 1
 depends_on: [t260]
 updated: 2026-08-04T23:16:41Z
+category: ARCHITECTURE
 ---
 
 # Make the agent workflow chosen, not imposed

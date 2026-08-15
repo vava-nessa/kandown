@@ -1,6 +1,6 @@
 ---
 id: t282
-title: [DESKTOP] Desktop slice 1, monorepo groundwork and Tauri 2.x scaffold
+title: Desktop slice 1, monorepo groundwork and Tauri 2.x scaffold
 status: Done
 created: 2026-08-10
 updated: 2026-08-10T21:33:00Z
@@ -8,6 +8,7 @@ priority: P1
 tags: [desktop, build]
 ownerType: agent
 depends_on: [t280, t288]
+category: DESKTOP
 ---
 
 # Desktop slice 1, monorepo groundwork and Tauri 2.x scaffold

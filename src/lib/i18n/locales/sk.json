@@ -264,7 +264,9 @@
     "kickerInterface": "Rozhranie",
     "kickerAutomation": "Automatizácia",
     "kickerIdentifiers": "Identifikátory",
-    "kickerMetadata": "Metaúdaje"
+    "kickerMetadata": "Metaúdaje",
+    "categoryChips": "Colored category chips",
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
   },
   "sectionLabels": {
     "title": "Názov",

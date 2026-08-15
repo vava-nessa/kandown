@@ -1,6 +1,6 @@
 ---
 id: t231
-title: [CLI] Harden the local HTTP API (body size limit, config shape validation)
+title: Harden the local HTTP API (body size limit, config shape validation)
 status: In Progress
 assignee: claude
 priority: P2
@@ -8,7 +8,8 @@ tags: [cli, daemon, security]
 ownerType: agent
 created: 2026-07-25
 order: 4
-updated: 2026-08-04T23:16:41Z
+updated: 2026-08-15T11:10:37Z
+category: CLI
 ---
 
 # Harden the local HTTP API
@@ -30,10 +31,11 @@ is done. Two smaller holes from `FABLE_CODEQUALITY` §Serveur HTTP remain open i
 
 - [ ] Cap `readBody` at ~10 MB and respond `413` past it
 - [ ] Validate the minimal config shape on `PUT /api/config`: object, `board.columns`
-      an array of non-empty strings — reject with `400` and a reason otherwise
 - [ ] Validate on `PUT /api/tasks/:id` that the body parses as a task file
-      (frontmatter delimiters present, non-empty) before writing
 - [ ] Cover all three with integration tests once [[t227]] lands
+
+      an array of non-empty strings — reject with `400` and a reason otherwise
+      (frontmatter delimiters present, non-empty) before writing
 
 ## Notes
 

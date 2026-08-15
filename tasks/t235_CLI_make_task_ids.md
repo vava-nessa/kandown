@@ -1,6 +1,6 @@
 ---
 id: t235
-title: [CLI] Make task IDs configurable (idPrefix + zero padding)
+title: Make task IDs configurable (idPrefix + zero padding)
 status: Backlog
 priority: P2
 tags: [cli, config, ux]
@@ -8,6 +8,7 @@ ownerType: agent
 created: 2026-07-25
 order: 7
 updated: 2026-07-26T18:18:27Z
+category: CLI
 ---
 
 # Make task IDs configurable

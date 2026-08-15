@@ -231,7 +231,9 @@
     "pages": "পেজ",
     "backToBoard": "বোর্ডে ফিরে যান",
     "matches": "ম্যাচ",
-    "settingsTitle": "সেটিংস"
+    "settingsTitle": "সেটিংস",
+    "categoryChips": "Colored category chips",
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
   },
   "sectionLabels": {
     "title": "শিরোনাম",

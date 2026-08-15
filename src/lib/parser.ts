@@ -35,6 +35,7 @@ import type {
 } from './types';
 import { DEFAULT_COLUMNS } from './types';
 import { taskTimestamp } from './task-meta';
+import { taskCategory } from './task-title-category';
 
 /**
  * 📖 A small recursive YAML-subset parser. Handles flat scalars, inline arrays
@@ -208,16 +209,20 @@ export function taskToBoardTask(task: ParsedTask, defaultStatus = 'Backlog'): Bo
   // field the user adds) without the card knowing the field list up-front.
   // Structural fields (id, title, status, order, created, archived) and the
   // heavy `report` body are dropped here so they don't pollute the metadata view.
+  // 📖 `category` joins the structural set: it is rendered as the dedicated
+  // header chip and the grouping key, so printing it again in the metadata
+  // block would duplicate the chip on every card.
   // 📖 `updated` joins the structural set: it is machine-written on every save
   // (src/lib/task-meta.ts), so leaving it in `metadata` would print a raw ISO
   // timestamp in the card's metadata block on every card. It is surfaced as the
   // dedicated `updatedAt` field below instead, which the TUI Age column reads.
-  const { id: _id, title: _title, status: _status, order: _order, created: _created, updated: _updated, archived: _archived, report: _report, ...metadata } = frontmatter;
+  const { id: _id, title: _title, status: _status, order: _order, created: _created, updated: _updated, archived: _archived, report: _report, category: _category, ...metadata } = frontmatter;
 
   return {
     id: frontmatter.id || '',
     title: frontmatter.title || frontmatter.id || 'Untitled task',
     checked: /done|termin|closed|complet/i.test(status),
+    category: taskCategory(frontmatter),
     tags,
     assignee: typeof frontmatter.assignee === 'string' && frontmatter.assignee ? frontmatter.assignee : null,
     priority: normalizePriority(frontmatter.priority),

@@ -1,11 +1,12 @@
 {
   "ui": {
     "language": "en",
-    "theme": "dark",
-    "skin": "kandown",
+    "theme": "light",
+    "skin": "shadcn",
     "font": "inter",
     "background": "solid",
-    "onboardingCompleted": true
+    "onboardingCompleted": true,
+    "categoryChips": true
   },
   "agent": {
     "suggestFollowUp": true,
@@ -71,7 +72,7 @@
     "stackDefaultState": "collapsed"
   },
   "tui": {
-    "defaultView": "list",
+    "defaultView": "board",
     "showDetailPane": true,
     "listSort": "status",
     "listSortDir": "asc",

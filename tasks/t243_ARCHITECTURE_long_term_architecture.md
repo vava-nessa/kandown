@@ -1,13 +1,14 @@
 ---
 id: t243
-title: [ARCHITECTURE] Long-term architecture — pluggable backend, pure core, archived as a status, Backlog.md compat
+title: Long-term architecture — pluggable backend, pure core, archived as a status, Backlog.md compat
 status: Backlog
 priority: P4
 tags: [architecture, epic, decision]
 ownerType: human
 created: 2026-07-25
 order: 15
-updated: 2026-07-26T18:18:27Z
+updated: 2026-08-15T11:11:21Z
+category: ARCHITECTURE
 ---
 
 # Long-term architecture decisions

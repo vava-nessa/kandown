@@ -1,6 +1,6 @@
 ---
 id: t234
-title: [CLI] Decide whether the agent read commands (q / context / next) add anything over `kandown work`
+title: Decide whether the agent read commands (q / context / next) add anything over `kandown work`
 status: Backlog
 priority: P3
 tags: [cli, agents, decision]
@@ -8,6 +8,7 @@ ownerType: human
 created: 2026-07-25
 order: 6
 updated: 2026-07-27T00:33:35Z
+category: CLI
 ---
 
 # Decide the fate of the `q` / `context` / `next` proposals

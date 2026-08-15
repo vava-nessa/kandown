@@ -22,6 +22,7 @@ import { resolveTransition, resolveDependencyStatus } from '../dependencies';
 import { DiskFullError } from '../errors';
 import { withRetry } from '../retry';
 import { parseQuickAddInput } from '../quick-add-parser';
+import { parseTaskTitle } from '../task-title-category';
 import type { State } from './types';
 import {
   bulkMutationInFlight,
@@ -446,10 +447,17 @@ export const createBoardSlice: StateCreator<State, [], [], BoardSlice> = (set, g
     const id = nextTaskId(columns, archivedTasks);
     const targetOrder = columns.find(c => c.name === targetColName)?.tasks.length ?? 0;
     const parsed = quickAddInput ? parseQuickAddInput(quickAddInput) : null;
+    // 📖 A leading `[CATEGORY]` bracket in the quick-add title is normalized
+    // into the `category:` field and stripped from the prose, matching the
+    // CLI create path (src/lib/task-title-category.ts).
+    const parsedTitle = parseTaskTitle(parsed?.title || '');
+    const category = parsedTitle.category;
+    const cleanTitle = parsedTitle.cleanTitle || parsed?.title || '';
     const task: BoardTask = {
       id,
-      title: parsed?.title || '',
+      title: cleanTitle,
       checked: false,
+      category,
       // 📖 Optimistic card for a task being created right now, so its age is
       // "just now" until the write lands and the real `updated:` is parsed back.
       updatedAt: Date.now(),
@@ -468,10 +476,11 @@ export const createBoardSlice: StateCreator<State, [], [], BoardSlice> = (set, g
     const newContents = new Map(taskContents);
     const fm: TaskFrontmatter = {
       id,
-      title: parsed?.title || '',
+      title: cleanTitle,
       status: targetColName,
       order: targetOrder,
       priority: parsed?.priority || (config.fields.priority ? config.board.defaultPriority : ''),
+      category: category ?? '',
       tags: parsed?.tags || [],
       assignee: parsed?.assignee || '',
       due: parsed?.due || '',

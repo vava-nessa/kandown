@@ -48,9 +48,12 @@ export function SingleTaskRow({ task, focused, dragging, colWidth }: {
   const check  = task.checked ? '✓' : '○';
   const idStr  = task.id;
 
-  const tagMatch = task.title.match(RE_BRACKET_TAG);
+  // 📖 Defensive: malformed files can carry a non-string title (YAML array);
+  // render it as an empty string rather than crashing the whole board.
+  const title = typeof task.title === 'string' ? task.title : '';
+  const tagMatch = title.match(RE_BRACKET_TAG);
   const tag = tagMatch ? `[${tagMatch[1]}]` : '';
-  const titleClean = tagMatch ? task.title.slice(tagMatch[0].length) : task.title;
+  const titleClean = tagMatch ? title.slice(tagMatch[0].length) : title;
 
   const fixedChars = 4 + idStr.length + 1;
   const tagChars = tag ? tag.length + 1 : 0;
@@ -90,11 +93,14 @@ export function CategoryTaskRow({ task, focused, dragging, colWidth }: {
   const cursor   = dragging ? '↕' : focused ? '▸' : ' ';
   const check    = task.checked ? '✓' : '○';
   const idStr    = task.id;
-  const category = getTitleCategory(task.title);
+  const category = getTitleCategory(task);
 
-  // Strip the bracket tag / hashtag from the title for the 3rd line
+  // 📖 A frontmatter category means the title is already clean prose. A legacy
+  // bracket still sitting in the title is stripped for the 3rd line regardless
+  // of where the category came from, so the row reads `UI` on line 2 and
+  // `Fix the button` on line 3 instead of repeating the bracket.
   const titleClean = category
-    ? task.title.slice(task.title.indexOf(category.key) + category.key.length).trim()
+    ? task.title.replace(/^\[[^\]]+\]\s*/, '').trim()
     : task.title;
 
   // colWidth − 2 for left indent (cursor prefix + one space)
@@ -172,7 +178,7 @@ export function KanbanColumn({ name, tasks, focusedRow, isFocused, colWidth,
   const topIndicatorHeight = hasTopIndicator ? 1 : 0;
 
   while (endIdx < tasks.length) {
-    const hasCategory = getTitleCategory(tasks[endIdx].title) !== null;
+    const hasCategory = getTitleCategory(tasks[endIdx]) !== null;
     let taskHeight = hasCategory ? 3 : 1;
     if (contextMenuRow === endIdx) taskHeight += MENU_HEIGHT;
     const sepHeight = (endIdx < tasks.length - 1) ? 1 : 0;
@@ -201,7 +207,7 @@ export function KanbanColumn({ name, tasks, focusedRow, isFocused, colWidth,
 
   for (let idx = scrollIdx; idx < endIdx; idx++) {
     const task = tasks[idx];
-    const hasCategory = getTitleCategory(task.title) !== null;
+    const hasCategory = getTitleCategory(task) !== null;
     rows.push(
       hasCategory
         ? <CategoryTaskRow key={task.id} task={task} focused={!!(isFocused && idx === focusedRow)} dragging={task.id === draggedTaskId} colWidth={colWidth} />

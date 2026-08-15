@@ -1,6 +1,6 @@
 ---
 id: t261
-title: [AGENTIC] Intégration Herdr (Opt-in / Auto-détection)
+title: Intégration Herdr (Opt-in / Auto-détection)
 status: Todo
 assignee: vava
 priority: P1
@@ -9,6 +9,7 @@ ownerType: human
 created: 2026-07-26
 order: 0
 updated: 2026-08-04T23:16:41Z
+category: AGENTIC
 ---
 
 # Intégration Herdr (Opt-in / Auto-détection)

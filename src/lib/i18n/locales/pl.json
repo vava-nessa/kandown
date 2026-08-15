@@ -249,7 +249,9 @@
     "kickerInterface": "Interfejs",
     "kickerAutomation": "Automatyzacja",
     "kickerIdentifiers": "Identyfikatory",
-    "kickerMetadata": "Metadane"
+    "kickerMetadata": "Metadane",
+    "categoryChips": "Colored category chips",
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
   },
   "sectionLabels": {
     "title": "Tytuł",

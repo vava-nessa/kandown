@@ -1,8 +1,8 @@
 /**
  * @file Project theme engine (FABLE_UI)
  * @description Manages customizable JSON themes, appearance tokens (--radius,
- * --shadow-*, --font-display, --motion-scale), curated presets (Vercel, Linear,
- * Claude, Apple, Stripe, Paper, Catppuccin, Terminal), and dynamic inheritance.
+ * --shadow-*, --font-display, --motion-scale), four bundled presets (shadcn,
+ * vercel, linear, kandown), installed community themes, and dynamic inheritance.
  *
  * @functions
  *  → registerCustomThemes — registers user custom themes into runtime
@@ -82,11 +82,11 @@ export const BACKGROUND_OPTIONS: BackgroundOption[] = [
   },
 ];
 
-// 📖 Bundled theme: only `kandown` ships with the package. Additional themes
-// — curated (claude, linear, notion) and community submissions — come from
-// the community registry at `registry/themes.json` and are installed as JSON
-// files under `.kandown/themes/<id>.json`. `registerCustomThemes` folds those
-// in at runtime; `getAllThemes` returns [bundled, ...installed] in that order.
+// 📖 Four curated presets ship in the bundle (shadcn, vercel, linear, kandown).
+// Community submissions come from the community registry at
+// `registry/themes.json` and are installed as JSON files under
+// `.kandown/themes/<id>.json`. `registerCustomThemes` folds those in at
+// runtime; `getAllThemes` returns [bundled, ...installed] in that order.
 // See src/cli/lib/themes-store.ts for the install path.
 import { THEME_PRESETS } from './themes';
 export { THEME_PRESETS };
@@ -161,8 +161,9 @@ export function resolveTheme(skinId: string): KandownTheme {
   let found = all.find(t => t.id === targetId);
 
   if (!found) {
-    // 📖 THEME_PRESETS[0] is `kandown` (the only bundled theme). The cast
-    // tells TypeScript the array is non-empty by contract.
+    // 📖 THEME_PRESETS[0] is `shadcn`, the clean default skin (see
+    // src/lib/themes/index.ts). The cast tells TypeScript the array is
+    // non-empty by contract.
     found = THEME_PRESETS[0] as KandownTheme;
   }
 
@@ -187,10 +188,10 @@ export function normalizeThemeMode(value: unknown): ThemeMode {
 }
 
 export function normalizeSkinId(value: unknown): SkinId {
-  if (typeof value !== 'string') return 'kandown';
+  if (typeof value !== 'string') return 'shadcn';
   const all = getAllThemes();
   const target = LEGACY_SKIN_MAP[value] ?? value;
-  return all.some(t => t.id === target) ? target : 'kandown';
+  return all.some(t => t.id === target) ? target : 'shadcn';
 }
 
 export function normalizeFontId(value: unknown): FontId {

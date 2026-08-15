@@ -54050,7 +54050,7 @@ var DEFAULT_COLUMN_META = {
   }
 };
 var DEFAULT_CONFIG = {
-  ui: { language: "en", theme: "auto", skin: "kandown", font: "inter", background: "solid", onboardingCompleted: false },
+  ui: { language: "en", theme: "auto", skin: "shadcn", font: "inter", background: "solid", onboardingCompleted: false, categoryChips: true },
   agent: { suggestFollowUp: false, maxSuggestions: 3, workOutput: DEFAULT_WORK_OUTPUT },
   workflow: { active: "kandown-standard", skills: [], trackingCadence: "balanced" },
   board: {
@@ -54276,6 +54276,7 @@ function normalizeKandownConfig(raw) {
         ui.onboardingCompleted,
         DEFAULT_CONFIG.ui.onboardingCompleted
       ),
+      categoryChips: booleanOr(ui.categoryChips, DEFAULT_CONFIG.ui.categoryChips),
       ...customThemes ? { customThemes } : {}
     },
     agent: {
@@ -54962,6 +54963,26 @@ function formatAge(timestampMs, now = Date.now()) {
   return `${Math.floor(delta / YEAR)}y`;
 }
 
+// src/lib/task-title-category.ts
+function taskCategory(frontmatter) {
+  if (typeof frontmatter.category === "string" && frontmatter.category.trim()) {
+    return frontmatter.category.trim();
+  }
+  return parseTaskTitle(frontmatter.title ?? "").category;
+}
+function parseTaskTitle(title) {
+  if (typeof title !== "string" || !title) return { category: null, rawCategory: null, cleanTitle: typeof title === "string" ? title : "" };
+  const match = title.match(/^\[([^\]]+)\]\s*/);
+  if (!match) {
+    return { category: null, rawCategory: null, cleanTitle: title };
+  }
+  return {
+    category: match[1],
+    rawCategory: match[0].trim(),
+    cleanTitle: title.slice(match[0].length)
+  };
+}
+
 // src/lib/parser.ts
 function parseSimpleYaml(yaml) {
   if (!yaml || typeof yaml !== "string") return {};
@@ -55106,11 +55127,12 @@ function taskToBoardTask(task, defaultStatus = "Backlog") {
   const total = subtasks.length;
   const status = normalizeStatus(frontmatter.status, defaultStatus);
   const tags = Array.isArray(frontmatter.tags) ? frontmatter.tags.filter((tag) => typeof tag === "string" && tag.trim().length > 0) : [];
-  const { id: _id, title: _title, status: _status, order: _order, created: _created, updated: _updated, archived: _archived, report: _report, ...metadata } = frontmatter;
+  const { id: _id, title: _title, status: _status, order: _order, created: _created, updated: _updated, archived: _archived, report: _report, category: _category, ...metadata } = frontmatter;
   return {
     id: frontmatter.id || "",
     title: frontmatter.title || frontmatter.id || "Untitled task",
     checked: /done|termin|closed|complet/i.test(status),
+    category: taskCategory(frontmatter),
     tags,
     assignee: typeof frontmatter.assignee === "string" && frontmatter.assignee ? frontmatter.assignee : null,
     priority: normalizePriority(frontmatter.priority),
@@ -55256,20 +55278,6 @@ function serializeValue(key, value, lines, indent) {
   }
 }
 
-// src/lib/task-title-category.ts
-function parseTaskTitle(title) {
-  if (!title) return { category: null, rawCategory: null, cleanTitle: "" };
-  const match = title.match(/^\[([^\]]+)\]\s*/);
-  if (!match) {
-    return { category: null, rawCategory: null, cleanTitle: title };
-  }
-  return {
-    category: match[1],
-    rawCategory: match[0].trim(),
-    cleanTitle: title.slice(match[0].length)
-  };
-}
-
 // src/lib/task-filename.ts
 var SLUG_MAX_WORDS = 3;
 var SLUG_MAX_LENGTH = 48;
@@ -55395,15 +55403,15 @@ function slugifyTitle(title, maxWords = SLUG_MAX_WORDS) {
   }
   return slug.replace(/^_+|_+$/g, "");
 }
-function buildTaskFilename(id, title, takenFilenames = []) {
+function buildTaskFilename(id, title, category, takenFilenames = []) {
   const safeId = String(id ?? "").trim();
   if (!safeId) throw new Error("buildTaskFilename requires a task id");
   if (/[\\/]|^\.+$/.test(safeId)) throw new Error(`Unsafe task id for a filename: ${safeId}`);
-  const category = categorySegmentFromTitle(title ?? "");
+  const categorySegment = normalizeCategorySegment(category ?? null) ?? categorySegmentFromTitle(title ?? "");
   const slug = slugifyTitle(title ?? "");
   let body;
-  if (category && slug) body = `${category}${SLUG_SEPARATOR}${slug}`;
-  else if (category) body = category;
+  if (categorySegment && slug) body = `${categorySegment}${SLUG_SEPARATOR}${slug}`;
+  else if (categorySegment) body = categorySegment;
   else if (slug) body = slug;
   else body = "";
   const candidate = body ? `${safeId}${SLUG_SEPARATOR}${body}.md` : `${safeId}.md`;
@@ -55539,9 +55547,9 @@ function findTaskPath(kandownDir, taskId) {
   }
   return null;
 }
-function newTaskFilePath(kandownDir, id, title) {
+function newTaskFilePath(kandownDir, id, title, category) {
   const tasksDir = getTasksDir(kandownDir);
-  return join2(tasksDir, buildTaskFilename(id, title, listTaskFilenames(tasksDir)));
+  return join2(tasksDir, buildTaskFilename(id, title, category, listTaskFilenames(tasksDir)));
 }
 function readBoard(kandownDir) {
   const config = loadConfig(kandownDir);
@@ -55749,12 +55757,14 @@ function createTaskInBoard(kandownDir, rawInput, status) {
     return " ";
   });
   const title = text.replace(/\s+/g, " ").trim() || rawInput;
+  const { category, cleanTitle } = parseTaskTitle(title);
   const fm = stampUpdated({
     id: newId,
-    title,
+    title: category ? cleanTitle : title,
     status: targetStatus,
     created: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10)
   });
+  if (category) fm.category = category;
   if (priority) fm.priority = priority;
   if (assignee) fm.assignee = assignee;
   if (tags.length > 0) fm.tags = tags;
@@ -55838,7 +55848,7 @@ import { spawn, execSync } from "child_process";
 import { homedir } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.51.0";
+var KANDOWN_VERSION = "0.52.0";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath } from "url";
@@ -59558,14 +59568,14 @@ function doInit(kandownDir) {
 function planFor(directory, filename) {
   const id = taskIdFromFilename(filename);
   if (!id) return null;
-  let title = "";
+  let frontmatter = null;
   try {
-    title = parseTaskFile(readFileSync13(join16(directory, filename), "utf8")).frontmatter.title ?? "";
+    frontmatter = parseTaskFile(readFileSync13(join16(directory, filename), "utf8")).frontmatter;
   } catch {
     return null;
   }
   const others = listTaskFilenames(directory).filter((f) => f !== filename);
-  const target = buildTaskFilename(id, title, others);
+  const target = buildTaskFilename(id, frontmatter.title, frontmatter.category, others);
   if (target === filename) return null;
   return { id, directory, from: filename, to: target };
 }
@@ -60043,7 +60053,10 @@ function columnAccentColor(name) {
   if (/done|archive|closed|complete/.test(normalized)) return "green";
   return "cyan";
 }
-function getTitleCategory(title) {
+function getTitleCategory(task) {
+  const category = (task.category || "").trim();
+  if (category) return { key: `[${category.toLowerCase()}]`, label: category };
+  const title = typeof task.title === "string" ? task.title : "";
   const bracket = title.match(/^\[([^\]]+)\]\s*/);
   if (bracket) return { key: `[${bracket[1].toLowerCase()}]`, label: bracket[1] };
   const hash = title.match(/#(\w+)/);
@@ -60059,7 +60072,7 @@ function computeScrollIdx(tasks, focusedRow, contextMenuRow, maxTasksHeight) {
     const adjustedMaxHeight = maxTasksHeight - (hasTopIndicator ? 1 : 0) - reserveBottom;
     let h = 0;
     for (let k = currentScroll; k <= focusedRow; k++) {
-      h += getTitleCategory(tasks[k].title) !== null ? 3 : 1;
+      h += getTitleCategory(tasks[k]) !== null ? 3 : 1;
       if (contextMenuRow === k) h += MENU_HEIGHT;
       if (k < focusedRow) h += 1;
     }
@@ -60075,9 +60088,10 @@ function SingleTaskRow({ task, focused, dragging, colWidth }) {
   const cursor = dragging ? "\u2195" : focused ? "\u25B8" : " ";
   const check2 = task.checked ? "\u2713" : "\u25CB";
   const idStr = task.id;
-  const tagMatch = task.title.match(RE_BRACKET_TAG);
+  const title = typeof task.title === "string" ? task.title : "";
+  const tagMatch = title.match(RE_BRACKET_TAG);
   const tag = tagMatch ? `[${tagMatch[1]}]` : "";
-  const titleClean = tagMatch ? task.title.slice(tagMatch[0].length) : task.title;
+  const titleClean = tagMatch ? title.slice(tagMatch[0].length) : title;
   const fixedChars = 4 + idStr.length + 1;
   const tagChars = tag ? tag.length + 1 : 0;
   const titleStr = truncate(titleClean, Math.max(4, colWidth - fixedChars - tagChars));
@@ -60113,8 +60127,8 @@ function CategoryTaskRow({ task, focused, dragging, colWidth }) {
   const cursor = dragging ? "\u2195" : focused ? "\u25B8" : " ";
   const check2 = task.checked ? "\u2713" : "\u25CB";
   const idStr = task.id;
-  const category = getTitleCategory(task.title);
-  const titleClean = category ? task.title.slice(task.title.indexOf(category.key) + category.key.length).trim() : task.title;
+  const category = getTitleCategory(task);
+  const titleClean = category ? task.title.replace(/^\[[^\]]+\]\s*/, "").trim() : task.title;
   const contentWidth = Math.max(4, colWidth - 2);
   const titleStr = truncate(titleClean, contentWidth);
   const bg = dragging ? "yellow" : focused ? "cyan" : "#222";
@@ -60175,7 +60189,7 @@ function KanbanColumn({
   const hasTopIndicator = scrollIdx > 0;
   const topIndicatorHeight = hasTopIndicator ? 1 : 0;
   while (endIdx < tasks.length) {
-    const hasCategory = getTitleCategory(tasks[endIdx].title) !== null;
+    const hasCategory = getTitleCategory(tasks[endIdx]) !== null;
     let taskHeight = hasCategory ? 3 : 1;
     if (contextMenuRow === endIdx) taskHeight += MENU_HEIGHT;
     const sepHeight = endIdx < tasks.length - 1 ? 1 : 0;
@@ -60204,7 +60218,7 @@ function KanbanColumn({
   }
   for (let idx = scrollIdx; idx < endIdx; idx++) {
     const task = tasks[idx];
-    const hasCategory = getTitleCategory(task.title) !== null;
+    const hasCategory = getTitleCategory(task) !== null;
     rows.push(
       hasCategory ? /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(CategoryTaskRow, { task, focused: !!(isFocused && idx === focusedRow), dragging: task.id === draggedTaskId, colWidth }, task.id) : /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(SingleTaskRow, { task, focused: !!(isFocused && idx === focusedRow), dragging: task.id === draggedTaskId, colWidth }, task.id)
     );
@@ -61052,7 +61066,7 @@ function Board({ kandownDir, version }) {
     let accumulatedHeight = 0;
     const topIndicatorHeight = hasTopIndicator ? 1 : 0;
     while (endIdx < col.tasks.length) {
-      const hasCategory = getTitleCategory(col.tasks[endIdx].title) !== null;
+      const hasCategory = getTitleCategory(col.tasks[endIdx]) !== null;
       const taskHeight = hasCategory ? 3 : 1;
       const sepHeight = endIdx < col.tasks.length - 1 ? 1 : 0;
       const hasBottomIndicator = endIdx < col.tasks.length - 1;
@@ -61406,7 +61420,7 @@ function Board({ kandownDir, version }) {
     let clickedTaskIdx = -1;
     let clickedMenuOffset = -1;
     while (endIdx < col.tasks.length) {
-      const hasCategory = getTitleCategory(col.tasks[endIdx].title) !== null;
+      const hasCategory = getTitleCategory(col.tasks[endIdx]) !== null;
       const taskHeight = hasCategory ? 3 : 1;
       const sepHeight = endIdx < col.tasks.length - 1 ? 1 : 0;
       const hasBottomIndicator = endIdx < col.tasks.length - 1;

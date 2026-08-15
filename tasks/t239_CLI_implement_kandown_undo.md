@@ -1,6 +1,6 @@
 ---
 id: t239
-title: [CLI] Implement `kandown undo` (mutation journal)
+title: Implement `kandown undo` (mutation journal)
 status: Backlog
 priority: P3
 tags: [cli, tui, ux]
@@ -8,6 +8,7 @@ ownerType: agent
 created: 2026-07-25
 order: 11
 updated: 2026-07-26T18:18:27Z
+category: CLI
 ---
 
 # Implement `kandown undo`

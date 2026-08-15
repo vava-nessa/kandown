@@ -231,7 +231,9 @@
     "pages": "صفحات",
     "backToBoard": "بازگشت به تخته",
     "matches": "تطابق‌ها",
-    "settingsTitle": "تنظیمات"
+    "settingsTitle": "تنظیمات",
+    "categoryChips": "Colored category chips",
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
   },
   "sectionLabels": {
     "title": "عنوان",

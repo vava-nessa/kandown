@@ -1,6 +1,6 @@
 ---
 id: t245
-title: [WEB] Build the three features previously documented as shipped but never implemented
+title: Build the three features previously documented as shipped but never implemented
 status: Backlog
 priority: P2
 tags: [web, cli, docs-drift]
@@ -8,6 +8,7 @@ ownerType: agent
 created: 2026-07-25
 order: 16
 updated: 2026-07-26T18:18:27Z
+category: WEB
 ---
 
 # Features documented as shipped but never implemented

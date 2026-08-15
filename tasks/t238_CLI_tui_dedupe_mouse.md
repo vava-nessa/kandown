@@ -1,6 +1,6 @@
 ---
 id: t238
-title: [CLI] TUI — dedupe mouse hit-testing and fix Windows binary detection
+title: TUI — dedupe mouse hit-testing and fix Windows binary detection
 status: Backlog
 priority: P3
 tags: [cli, tui, dette, windows]
@@ -8,6 +8,7 @@ ownerType: agent
 created: 2026-07-25
 order: 10
 updated: 2026-07-26T18:18:27Z
+category: CLI
 ---
 
 # TUI — dedupe hit-testing, fix Windows binary detection

@@ -20,6 +20,10 @@ import { mkdtempSync, writeFileSync, readFileSync, readdirSync, rmSync, mkdirSyn
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { writeTaskContent } from '../board-reader';
+import { parseTaskFile } from '../../../lib/parser';
+import { serializeTaskFile } from '../../../lib/serializer';
+import { stampUpdated } from '../../../lib/task-meta';
 
 const CLI = join(process.cwd(), 'bin', 'kandown.js');
 
@@ -146,10 +150,12 @@ describe('bracket category segment', () => {
     const res = run(dir, ['create', '[UI] Fix the login button']);
     expect(res.status).toBe(0);
     expect(taskFiles(dir)).toContain('t3_UI_fix_login_button.md');
-    // 📖 The bracket stays in the title too: `git log` keeps reading as English
-    // and the TUI category chip continues to render the human form.
+    // 📖 Since 0.53.0 the bracket is normalized: the title is clean prose and
+    // the category lands in the first-class `category:` frontmatter field,
+    // which still drives the TUI category chip and the filename segment.
     const content = readFileSync(join(dir, 'tasks', 't3_UI_fix_login_button.md'), 'utf8');
-    expect(content).toMatch(/^title: \[UI\] Fix the login button$/m);
+    expect(content).toMatch(/^title: Fix the login button$/m);
+    expect(content).toMatch(/^category: UI$/m);
     expect(run(dir, ['show', 't3']).stdout).toContain('Fix the login button');
   });
 
@@ -157,6 +163,23 @@ describe('bracket category segment', () => {
     const res = run(dir, ['create', '[UI] 🎉']);
     expect(res.status).toBe(0);
     expect(taskFiles(dir)).toContain('t3_UI.md');
+  });
+
+  it('auto-renames the file when the category changes through the write path', () => {
+    // 📖 writeTaskContent is the server write path the web drawer saves
+    // through. A category change must rename the file (git mv when tracked),
+    // exactly like the legacy bracket change did, while the title stays put.
+    run(dir, ['create', '[UI] Fix the login button']);
+    const old = readFileSync(join(dir, 'tasks', 't3_UI_fix_login_button.md'), 'utf8');
+    const parsed = parseTaskFile(old);
+    const content = serializeTaskFile(
+      stampUpdated({ ...parsed.frontmatter, category: 'BILLING' }),
+      parsed.body,
+    );
+    const { path } = writeTaskContent(join(dir, '.kandown'), 't3', content);
+    expect(path).toMatch(/t3_BILLING_fix_login_button\.md$/);
+    expect(taskFiles(dir)).toContain('t3_BILLING_fix_login_button.md');
+    expect(taskFiles(dir)).not.toContain('t3_UI_fix_login_button.md');
   });
 
   it('does not rename when the prose slug changes but the bracket stays the same', () => {

@@ -1,6 +1,6 @@
 ---
 id: t280
-title: [DESKTOP] Native desktop apps via Tauri 2.x (spec)
+title: Native desktop apps via Tauri 2.x (spec)
 status: In Progress
 created: 2026-08-10
 updated: 2026-08-10T13:12:59Z
@@ -8,6 +8,7 @@ priority: P1
 tags: [desktop, apps, architecture, epic, spec, decision]
 ownerType: human
 depends_on: [t281]
+category: DESKTOP
 ---
 
 # Native desktop apps via Tauri 2.x (spec)

@@ -263,6 +263,7 @@ export function normalizeKandownConfig(raw: unknown): KandownConfig {
         ui.onboardingCompleted,
         DEFAULT_CONFIG.ui.onboardingCompleted,
       ),
+      categoryChips: booleanOr(ui.categoryChips, DEFAULT_CONFIG.ui.categoryChips),
       ...(customThemes ? { customThemes } : {}),
     },
     agent: {

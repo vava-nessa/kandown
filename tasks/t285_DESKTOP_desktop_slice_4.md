@@ -1,6 +1,6 @@
 ---
 id: t285
-title: [DESKTOP] Desktop slice 4, native menu, dock and tray
+title: Desktop slice 4, native menu, dock and tray
 status: In Progress
 created: 2026-08-10
 updated: 2026-08-11T10:17:01Z
@@ -8,6 +8,7 @@ priority: P1
 tags: [desktop, ux]
 ownerType: agent
 depends_on: [t284]
+category: DESKTOP
 ---
 
 # Desktop slice 4, native menu, dock and tray

@@ -38,6 +38,7 @@ import { Icon } from './Icons';
 import { AssigneeAvatar } from './agentIcons';
 import type { BoardTask, Density, SearchMatch } from '../lib/types';
 import { useStore } from '../lib/store';
+import { CategoryChip } from './CategoryChip';
 
 const priorityBadges: Record<string, { bg: string; text: string; border: string }> = {
   P1: { bg: 'bg-red-500/10 dark:bg-red-500/20', text: 'text-red-600 dark:text-red-400', border: 'border-red-500/30' },
@@ -225,6 +226,7 @@ export function ListRow({
   const bracketTag = tagMatch ? `[${tagMatch[1]}]` : '';
   const titleWithoutTag = tagMatch ? task.title.slice(tagMatch[0].length) : task.title;
 
+  const categoryChips = useStore(s => s.config.ui.categoryChips !== false);
   const showPreview = searchMatches.length > 0 && !isCompact;
   const prioKey = task.priority || 'P4';
   const prioStyle = priorityBadges[prioKey] || priorityBadges.P4;
@@ -274,9 +276,10 @@ export function ListRow({
           : 'hover:bg-black/[0.03] dark:hover:bg-white/[0.04]'
       } ${task.checked ? 'opacity-60' : ''}`}
     >
-      {/* Title row: drag handle | priority | # | title (flex-1) | (optional right chips).
-          - Wide layout: title grows freely, right chips (tags + subtask counter)
-            sit on the same line. Title uses `break-words` so long titles wrap.
+      {/* Title row: checkbox | category chip | title (flex-1) | #id + priority + right chips.
+          - Wide layout: title grows freely, the meta cluster (#id, priority, tags,
+            subtask counter) sits right-aligned AFTER the title. Category chip is
+            the first content element, before the title.
           - Inline layout (narrow sidebar): title uses `truncate` to claim the
             full available width and shows ellipsis on overflow. Right chips
             move to the meta sub-row below. */}
@@ -300,7 +303,9 @@ export function ListRow({
               toggleTaskSelection(task.id);
             }}
             onPointerDown={e => e.stopPropagation()}
-            className={`flex-none mt-[1px] flex items-center justify-center h-[18px] w-[18px] rounded-[5px] border transition-colors cursor-pointer ${
+            className={`absolute left-0.5 z-20 flex items-center justify-center h-[18px] w-[18px] rounded-[5px] border bg-card/90 shadow-sm transition-opacity duration-150 cursor-pointer ${
+              isCompact ? 'top-[7px]' : 'top-[11px]'
+            } ${
               isSelected
                 ? 'bg-primary border-primary text-primary-foreground'
                 : `border-border/70 text-transparent hover:border-primary/60 hover:bg-primary/5 ${
@@ -312,19 +317,14 @@ export function ListRow({
           </button>
         )}
 
-        {/* Priority indicator badge */}
-        <span
-          className={`inline-flex items-center justify-center px-1.5 py-0.2 h-[18px] text-[10px] font-mono font-bold rounded border ${prioStyle.bg} ${prioStyle.text} ${prioStyle.border} flex-none mt-[1px]`}
-        >
-          {prioKey}
-        </span>
+        {/* 📖 Category chip FIRST, before the title. When chips are off or the
+            task has no category, the row starts with the title (and a legacy
+            bracket tag inside it). */}
+        {categoryChips && task.category ? (
+          <CategoryChip category={task.category} className="shrink-0 mt-[1px]" />
+        ) : null}
 
-        {/* Task ID — left of the title, always visible */}
-        <span className="font-mono text-[11.5px] font-medium text-fg-faint tabular-nums flex-none mt-[2px]">
-          {task.id.replace(/^t/, '#')}
-        </span>
-
-        {/* Title + bracket tag — grows freely in wide layout, truncates in inline. */}
+        {/* Title — grows freely in wide layout, truncates in inline. */}
         <div className="flex-1 min-w-0">
           <div
             className={`${isCompact ? 'text-[13px]' : 'text-[14.5px]'} leading-snug font-medium ${
@@ -333,55 +333,70 @@ export function ListRow({
               task.checked ? 'line-through text-fg-muted' : 'text-fg'
             }`}
           >
-            {bracketTag && (
+            {!categoryChips && bracketTag ? (
               <span className="inline-flex items-center h-[16px] px-1.5 mr-1.5 align-baseline text-[10px] font-semibold tracking-wide text-fg-muted uppercase rounded bg-black/[0.04] dark:bg-white/10">
                 {bracketTag}
               </span>
-            )}
+            ) : null}
             {titleWithoutTag}
           </div>
         </div>
 
-        {/* Right-aligned chips: tags first, then subtask counter (last).
-            ONLY rendered in wide layout — the inline layout moves them to
-            the meta sub-row below so the title gets the full row width. */}
-        {!inline && ((task.progress && task.progress.total > 0) ||
-          (task.tags && task.tags.length > 0)) && (
-          <div className="flex items-center gap-1.5 flex-none mt-[1px]">
-            {/* Tags */}
-            {task.tags && task.tags.length > 0 && (
-              <span className="hidden sm:inline-flex items-center gap-1">
-                {task.tags.slice(0, 2).map((t, i) => (
-                  <span
-                    key={i}
-                    className="inline-flex items-center h-[16px] px-1.5 text-[10px] font-medium text-fg-muted rounded bg-black/[0.04] dark:bg-white/[0.06]"
-                  >
-                    #{t}
-                  </span>
-                ))}
-              </span>
-            )}
+        {/* The rest AFTER the title: task id, priority, then tags + subtasks
+            (wide layout only). Right-aligned, flex-none so the title owns the
+            remaining width. */}
+        <div className="flex items-center gap-1.5 flex-none mt-[1px]">
+          {/* Task ID */}
+          <span className="font-mono text-[11.5px] font-medium text-fg-faint tabular-nums">
+            {task.id.replace(/^t/i, '')}
+          </span>
 
-            {/* Subtasks counter — always LAST, always the same width. */}
-            {task.progress && task.progress.total > 0 && (
-              <div
-                className="inline-flex items-center justify-center gap-1.5 px-2 py-0.5 rounded bg-black/[0.04] dark:bg-white/[0.06] border border-border/50 text-[10.5px] font-mono text-fg-muted w-[64px] flex-none"
-                title={`Subtasks: ${task.progress.done}/${task.progress.total}`}
-              >
-                <div className="w-8 h-1 rounded-full bg-black/10 dark:bg-white/15 overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-300"
-                    style={{
-                      width: `${Math.round((task.progress.done / task.progress.total) * 100)}%`,
-                      backgroundColor: task.progress.done === task.progress.total ? '#22c55e' : 'var(--primary, #3b82f6)',
-                    }}
-                  />
+          {/* Priority indicator badge */}
+          <span
+            className={`inline-flex items-center justify-center px-1.5 py-0.2 h-[18px] text-[10px] font-mono font-bold rounded border ${prioStyle.bg} ${prioStyle.text} ${prioStyle.border}`}
+          >
+            {prioKey}
+          </span>
+
+          {/* Tags + subtask counter, wide layout only. */}
+          {!inline && ((task.progress && task.progress.total > 0) ||
+            (task.tags && task.tags.length > 0)) && (
+            <div className="flex items-center gap-1.5 flex-none">
+              {/* Tags */}
+              {task.tags && task.tags.length > 0 && (
+                <span className="hidden sm:inline-flex items-center gap-1">
+                  {task.tags.slice(0, 2).map((t, i) => (
+                    <span
+                      key={i}
+                      className="inline-flex items-center h-[16px] px-1.5 text-[10px] font-medium text-fg-muted rounded bg-black/[0.04] dark:bg-white/[0.06]"
+                    >
+                      #{t}
+                    </span>
+                  ))}
+                </span>
+              )}
+
+              {/* Subtasks counter — always LAST, always the same width. */}
+              {task.progress && task.progress.total > 0 && (
+                <div
+                  className="inline-flex items-center justify-center gap-1.5 px-2 py-0.5 rounded bg-black/[0.04] dark:bg-white/[0.06] border border-border/50 text-[10.5px] font-mono text-fg-muted w-[64px] flex-none"
+                  title={`Subtasks: ${task.progress.done}/${task.progress.total}`}
+                >
+                  <div className="w-8 h-1 rounded-full bg-black/10 dark:bg-white/15 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-300"
+                      style={{
+                        width: `${Math.round((task.progress.done / task.progress.total) * 100)}%`,
+                        backgroundColor: task.progress.done === task.progress.total ? '#22c55e' : 'var(--primary, #3b82f6)',
+                      }}
+                    />
+                  </div>
+                  <span className="tabular-nums font-semibold text-[10px] whitespace-nowrap">{task.progress.done}/{task.progress.total}</span>
                 </div>
-                <span className="tabular-nums font-semibold text-[10px] whitespace-nowrap">{task.progress.done}/{task.progress.total}</span>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Meta + actions sub-row. ONLY renders when at least one badge is present

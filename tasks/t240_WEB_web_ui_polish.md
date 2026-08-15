@@ -1,6 +1,6 @@
 ---
 id: t240
-title: [WEB] Web UI polish batch — tag chips, subtask quick-toggle, drag threshold, focus states
+title: Web UI polish batch — tag chips, subtask quick-toggle, drag threshold, focus states
 status: Backlog
 priority: P3
 tags: [web, ux, polish]
@@ -8,6 +8,7 @@ ownerType: agent
 created: 2026-07-25
 order: 12
 updated: 2026-07-26T18:18:27Z
+category: WEB
 ---
 
 # Web UI polish batch

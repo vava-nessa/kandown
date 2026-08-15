@@ -264,7 +264,9 @@
     "kickerInterface": "Käyttöliittymä",
     "kickerAutomation": "Automaatio",
     "kickerIdentifiers": "Tunnisteet",
-    "kickerMetadata": "Metatiedot"
+    "kickerMetadata": "Metatiedot",
+    "categoryChips": "Colored category chips",
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
   },
   "sectionLabels": {
     "title": "Otsikko",

@@ -1,6 +1,6 @@
 ---
 id: t228
-title: [QUALITY] Add a CI quality gate (typecheck + test + build + codemap) on pull requests
+title: Add a CI quality gate (typecheck + test + build + codemap) on pull requests
 status: Backlog
 priority: P1
 tags: [quality, ci, infra]
@@ -8,6 +8,7 @@ ownerType: agent
 created: 2026-07-25
 order: 1
 updated: 2026-07-27T00:47:46Z
+category: QUALITY
 ---
 
 # Add a CI quality gate on pull requests

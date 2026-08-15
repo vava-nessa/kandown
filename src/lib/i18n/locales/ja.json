@@ -231,7 +231,9 @@
     "pages": "ページ",
     "backToBoard": "ボードに戻る",
     "matches": "一致",
-    "settingsTitle": "設定"
+    "settingsTitle": "設定",
+    "categoryChips": "Colored category chips",
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
   },
   "sectionLabels": {
     "title": "タイトル",

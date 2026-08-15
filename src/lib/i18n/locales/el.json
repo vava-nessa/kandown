@@ -264,7 +264,9 @@
     "kickerInterface": "Διεπαφή",
     "kickerAutomation": "Αυτοματοποίηση",
     "kickerIdentifiers": "Αναγνωριστικά",
-    "kickerMetadata": "Μεταδεδομένα"
+    "kickerMetadata": "Μεταδεδομένα",
+    "categoryChips": "Colored category chips",
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
   },
   "sectionLabels": {
     "title": "Τίτλος",

@@ -25,9 +25,10 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconChevronDown, IconChevronUp, IconStack2 } from '@tabler/icons-react';
+import { IconChecklist, IconChevronDown, IconChevronUp, IconStack2 } from '@tabler/icons-react';
 import { Card } from './Card';
 import { ListRow } from './ListRow';
+import { CategoryChip } from './CategoryChip';
 import { useStore } from '../lib/store';
 import { Icon } from './Icons';
 import type { TaskGroup } from '../lib/grouping';
@@ -67,6 +68,12 @@ export function CardStack({
   const taskCount = group.tasks.length;
   const firstTask = group.tasks[0];
 
+  // 📖 The stack's category: grouping is driven by the frontmatter category
+  // field (via extractGroupKey), so sibling tasks share it. Legacy #tag stacks
+  // carry no category and keep the plain text key instead.
+  const categoryChips = useStore(s => s.config.ui.categoryChips !== false);
+  const stackCategory = categoryChips ? (firstTask?.category ?? null) : null;
+
   // 📖 Per-group selection helpers: a parent checkbox on the collapsed stack
   // lets the user add ALL sibling tasks to the bulk selection at once, which
   // is the missing affordance for "CardStack without checkbox per row". When
@@ -87,11 +94,9 @@ export function CardStack({
     }
   };
 
-  // 📖 Preview: strip the group tag from the first task's title for cleaner display
-  const previewTitle = firstTask.title
-    .replace(/^\[([^\]]+)\]\s*/, '')
-    .replace(/#\w+\s*/, '')
-    .trim() || firstTask.title;
+  // 📖 The stack label shows the task count (“4 Tasks”), replacing the
+  // former first-task title preview; the compact count badge stays on the
+  // right.
 
   if (expanded) {
     return (
@@ -100,10 +105,10 @@ export function CardStack({
         <button
           type="button"
           onClick={() => setExpanded(false)}
-          className="flex items-center gap-1.5 px-2 py-1 my-1 rounded-md text-[11px] font-semibold text-fg-muted/70 uppercase tracking-wide hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors w-fit"
+          className="flex items-center gap-1.5 px-2 py-1 my-1 rounded-md text-[11px] font-semibold text-fg-muted/70 uppercase tracking-wide hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors w-fit cursor-pointer"
         >
           <IconChevronUp size={13} stroke={2} />
-          <span>{group.displayKey}</span>
+          {stackCategory ? <CategoryChip category={stackCategory} /> : <span>{group.displayKey}</span>}
           <span className="font-normal text-fg-muted/40">{taskCount}</span>
         </button>
 
@@ -147,24 +152,30 @@ export function CardStack({
           type="button"
           onClick={e => { e.stopPropagation(); toggleStackSelection(); }}
           aria-label="Select all in group"
-          className={`flex items-center justify-center w-[14px] h-[14px] rounded-[3px] border flex-none cursor-pointer transition-all ${
+          className={`absolute left-0.5 z-20 flex items-center justify-center h-[18px] w-[18px] rounded-[5px] border bg-card/90 shadow-sm transition-opacity duration-150 cursor-pointer ${
+            density === 'compact' ? 'top-[7px]' : 'top-[11px]'
+          } ${
             stackAllSelected
               ? 'bg-primary border-primary'
               : stackSomeSelected
                 ? 'bg-primary/40 border-primary/60'
-                : 'border-border-strong hover:border-fg-dim opacity-70 md:opacity-0 md:group-hover/row:opacity-100'
+                : 'border-border-strong hover:border-fg-dim opacity-0 group-hover/row:opacity-100'
           }`}
         >
-          {stackAllSelected && <Icon.Check size={10} className="text-white" strokeWidth={2.5} />}
+          {stackAllSelected && <Icon.Check size={12} className="text-white" strokeWidth={3} />}
           {!stackAllSelected && stackSomeSelected && <span className="block w-[6px] h-[2px] bg-white rounded-full" />}
         </button>
+        {stackCategory ? (
+          <CategoryChip category={stackCategory} className="shrink-0" />
+        ) : (
+          <span className="text-[11px] font-semibold tracking-wide text-fg-muted uppercase flex-none">
+            {group.displayKey}
+          </span>
+        )}
         <IconStack2 size={13} stroke={1.8} className="text-fg-muted/70 flex-none" />
-        <span className="text-[11px] font-semibold tracking-wide text-fg-muted uppercase flex-none">
-          {group.displayKey}
-        </span>
-        <span className="text-[13px] font-medium text-fg truncate">
-          {previewTitle}
-          {taskCount > 1 && <span className="text-fg-muted/50 ml-1.5">+{taskCount - 1}</span>}
+        <span className="flex items-center gap-1 text-[13px] font-medium text-fg truncate">
+          {taskCount}
+          <IconChecklist size={13} stroke={2} className="text-fg-muted/80 shrink-0" />
         </span>
         <div className="flex items-center gap-1.5 flex-none ml-auto">
           <span className="inline-flex items-center h-[18px] px-1.5 text-[10.5px] font-medium rounded-md bg-black/[0.04] dark:bg-white/[0.06] text-fg-muted tabular-nums">
@@ -182,74 +193,89 @@ export function CardStack({
       onClick={() => setExpanded(true)}
       className="relative cursor-pointer pb-3 group"
     >
-      {/* Layer 2 (deepest): offset furthest, smallest scale */}
-      {taskCount > 2 && (
-        <div
-          className="absolute inset-0 rounded-lg border border-border bg-card/40 pointer-events-none"
-          style={{ transform: 'translateY(8px) scale(0.94)', zIndex: 0 }}
-        />
-      )}
-
-      {/* Layer 1: slightly offset behind the main card */}
+      {/* Layer 2 (deepest): diagonal offset (same horizontal as vertical),
+          faded at 50% opacity so it reads as a ghost card behind. Always
+          present: even a 2-task stack looks like three cards. */}
       <div
-        className="absolute inset-0 rounded-lg border border-border bg-card/60 pointer-events-none"
-        style={{ transform: 'translateY(4px) scale(0.97)', zIndex: 1 }}
+        className="absolute inset-0 rounded-lg border border-border bg-card opacity-50 pointer-events-none"
+        style={{ transform: 'translate(4px, 4px) scale(0.96)', zIndex: 0 }}
       />
 
-      {/* Per-group select-all checkbox (board): hover-revealed on the main
-       * stacked card. Clicking it selects/deselects every task in this stack.
-       * Without this, stacked tasks are silently skipped by bulk actions. */}
+      {/* Layer 1: closer diagonal offset, same 50% fade. */}
+      <div
+        className="absolute inset-0 rounded-lg border border-border bg-card opacity-50 pointer-events-none"
+        style={{ transform: 'translate(2px, 2px) scale(0.98)', zIndex: 1 }}
+      />
+
+      {/* Per-group select-all checkbox (board): hover-revealed, inline in the
+       * row exactly like a normal card's checkbox so the chip and title line
+       * up with the cards around it. Clicking it selects/deselects every task
+       * in this stack. Without this, stacked tasks are silently skipped by
+       * bulk actions. */}
       <button
         type="button"
         onClick={e => { e.stopPropagation(); toggleStackSelection(); }}
         aria-label="Select all in group"
-        className={`absolute left-2 top-2 z-20 flex items-center justify-center w-[14px] h-[14px] rounded-[3px] border flex-none cursor-pointer transition-all ${
+        className={`absolute -left-1.5 z-20 flex items-center justify-center h-[18px] w-[18px] rounded-[5px] border bg-card/90 shadow-sm transition-opacity duration-150 cursor-pointer ${
+          density === 'compact' ? 'top-[7px]' : 'top-[11px]'
+        } ${
           stackAllSelected
             ? 'bg-primary border-primary'
             : stackSomeSelected
               ? 'bg-primary/40 border-primary/60'
-              : 'border-border bg-card/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 hover:border-fg-dim'
+              : 'border-border/70 text-transparent hover:border-primary/60 hover:bg-primary/5 opacity-0 group-hover:opacity-100 focus-visible:opacity-100'
         }`}
       >
-        {stackAllSelected && <Icon.Check size={10} className="text-white" strokeWidth={2.5} />}
+        {stackAllSelected && <Icon.Check size={12} className="text-white" strokeWidth={3} />}
         {!stackAllSelected && stackSomeSelected && <span className="block w-[6px] h-[2px] bg-white rounded-full" />}
       </button>
 
       {/* Main card surface (plain <div> with Tailwind transitions — replaces
        * the previous `motion.div whileHover whileTap` setup that produced a
        * 250ms pop on every card. Now hover lift + tap scale are Tailwind
-       * transitions on the `transform` property only, not `all`. */}
+       * transitions on the `transform` property only, not `all`. The inner
+       * row mirrors a normal card (px-3.5 py-2.5, inline checkbox, then
+       * chip + title) so the chip stays aligned with the surrounding cards. */}
       <div className="relative z-10 rounded-lg border border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.05)]
         transition-[border-color,box-shadow,transform] duration-150 ease-out
         hover:border-border-strong hover:shadow-[0_4px_12px_-3px_rgba(0,0,0,0.14)] hover:-translate-y-0.5
         active:scale-[0.99] active:translate-y-0">
-        <div className="px-3.5 pt-3 pb-2.5 pl-7">
-          {/* Header: stack icon + group key + task count */}
-          <div className="flex items-center justify-between mb-1.5">
-            <div className="flex items-center gap-1.5">
-              <IconStack2 size={12} stroke={1.8} className="text-fg-muted/60" />
-              <span className="text-[11px] font-semibold tracking-wide text-fg-muted uppercase">
+        <div className={`px-3.5 ${density === 'compact' ? 'py-1.5' : 'py-2.5'}`}>
+          <div className="flex items-center gap-2">
+            {/* Chip (or legacy group key), then stack icon, then title. */}
+            {stackCategory ? (
+              <CategoryChip category={stackCategory} className="shrink-0" />
+            ) : (
+              <span className="text-[11px] font-semibold tracking-wide text-fg-muted uppercase flex-none">
                 {group.displayKey}
               </span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="inline-flex items-center h-[18px] px-1.5 text-[10.5px] font-medium rounded-md text-fg-muted tabular-nums">
+            )}
+
+            {/* Label: the task count + a checklist icon. */}
+            <span className="flex-1 min-w-0 flex items-center gap-1 text-[13.5px] leading-snug font-medium text-fg truncate">
+              {taskCount}
+              <IconChecklist size={13} stroke={2} className="text-fg-muted/80 shrink-0" />
+            </span>
+
+            {/* Count + chevron, right-aligned. */}
+            <div className="flex items-center gap-1.5 flex-none">
+              <span className="inline-flex items-center h-[18px] px-1.5 text-[10.5px] font-medium rounded-md bg-black/[0.04] dark:bg-white/[0.06] text-fg-muted tabular-nums">
                 {taskCount}
               </span>
               <IconChevronDown size={12} stroke={2} className="text-fg-muted/50" />
             </div>
           </div>
-
-          {/* Preview: first task title (tag stripped) */}
-          <div className="text-[13.5px] leading-snug font-medium text-fg line-clamp-1">
-            {previewTitle}
-            {taskCount > 1 && (
-              <span className="text-fg-muted/50 ml-1.5">
-                +{taskCount - 1}
-              </span>
-            )}
-          </div>
         </div>
+
+        {/* 📖 Stack badge: same spot as the task-id badge on normal cards
+            (bottom-right), carrying the stack icon, slightly larger. White
+            box at 50% opacity with black icon in light mode, inverted in
+            dark, matching the task-id badges. */}
+        <span
+          className="absolute bottom-1 right-1 rounded px-1.5 py-1 flex items-center justify-center bg-white/50 text-black dark:bg-black/50 dark:text-white select-none pointer-events-none"
+        >
+          <IconStack2 size={16} stroke={2} />
+        </span>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 ---
 id: t289
-title: [DESKTOP] Desktop slice 7, CLI entry point, open mode and deep links
+title: Desktop slice 7, CLI entry point, open mode and deep links
 status: Backlog
 created: 2026-08-10
 updated: 2026-08-10T12:42:23Z
@@ -8,6 +8,7 @@ priority: P1
 tags: [desktop, cli, ux]
 ownerType: agent
 depends_on: [t284]
+category: DESKTOP
 ---
 
 # Desktop slice 7, CLI entry point, open mode and deep links

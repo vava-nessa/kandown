@@ -19,6 +19,7 @@ import { resolveAgentEntry } from '../lib/agents';
 import { atomicWriteFileSync } from '../lib/atomic-write';
 import { isArchived } from '../../lib/parser';
 import { serializeTaskFile } from '../../lib/serializer';
+import { parseTaskTitle } from '../../lib/task-title-category';
 import { stampUpdated } from '../../lib/task-meta';
 import type { TaskFrontmatter } from '../../lib/types';
 import {
@@ -116,6 +117,12 @@ export function cmdCreate(rawArgs: string[]) {
     process.exit(1);
   }
 
+  // 📖 A leading `[CATEGORY]` bracket is normalized into the `category:`
+  // frontmatter field and stripped from the prose title, so creation agrees
+  // with the drawer and the filename (see src/lib/task-title-category.ts).
+  const { category, cleanTitle } = parseTaskTitle(title);
+  const storedTitle = category ? cleanTitle : title;
+
   const id = stringFlag(args.flags, 'id') ?? nextTaskId(kandownDir);
   if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
     err(`Invalid task id: ${id}`);
@@ -136,10 +143,11 @@ export function cmdCreate(rawArgs: string[]) {
 
   const fm: TaskFrontmatter = stampUpdated({
     id,
-    title,
+    title: storedTitle,
     status,
     created: new Date().toISOString().slice(0, 10),
   });
+  if (category) fm.category = category;
   const priority = stringFlag(args.flags, 'priority')?.toUpperCase();
   const assignee = stringFlag(args.flags, 'assignee');
   const tags = listFlag(args.flags, 'tag');
@@ -151,7 +159,7 @@ export function cmdCreate(rawArgs: string[]) {
   if (!existsSync(tasksDir)) mkdirSync(tasksDir, { recursive: true });
   // 📖 Descriptive filename: `t293_fix_login_button.md`. Falls back to the bare
   // id when the title has no ASCII words to slug.
-  const path = newTaskPath(kandownDir, id, title);
+  const path = newTaskPath(kandownDir, id, storedTitle, category);
   atomicWriteFileSync(path, serializeTaskFile(fm, ''));
   process.stderr.write(`${c.green}✓${c.reset} Created ${c.bold}${id}${c.reset} → ${status}\n`);
   process.stdout.write(args.flags.json === true ? JSON.stringify(fm, null, 2) + '\n' : `${id}\n`);
@@ -308,16 +316,21 @@ export function cmdImport(rawArgs: string[]): void {
   for (const row of rows) {
     const id = typeof row.id === 'string' && /^[a-zA-Z0-9_-]+$/.test(row.id) ? row.id : nextTaskId(kandownDir);
     const title = typeof row.title === 'string' && row.title ? row.title : id;
+    // 📖 Bracket categories in imported titles become the `category:` field,
+    // keeping the imported file in the same shape the drawer would produce.
+    const { category: rowCategory, cleanTitle: rowCleanTitle } = parseTaskTitle(title);
+    const storedTitle = rowCategory ? rowCleanTitle : title;
     // 📖 Re-importing an existing task must land on the file that already holds
     // it, slug and all, rather than forking a second bare-named copy of it.
     const existing = findTaskPath(kandownDir, id);
     if (existing && args.flags.overwrite !== true) continue;
-    const path = existing ?? newTaskPath(kandownDir, id, title);
+    const path = existing ?? newTaskPath(kandownDir, id, storedTitle, rowCategory);
     const fm: TaskFrontmatter = {
       id,
-      title,
+      title: storedTitle,
       status: typeof row.status === 'string' && row.status ? row.status.replace(/ \(archived\)$/i, '') : defaultStatus,
     };
+    if (rowCategory) fm.category = rowCategory;
     if (typeof row.priority === 'string') fm.priority = row.priority;
     if (typeof row.assignee === 'string') fm.assignee = row.assignee;
     if (Array.isArray(row.tags)) fm.tags = row.tags.map(String);

@@ -231,7 +231,9 @@
     "pages": "Trang",
     "backToBoard": "Quay lại bảng",
     "matches": "Kết quả phù hợp",
-    "settingsTitle": "Cài đặt"
+    "settingsTitle": "Cài đặt",
+    "categoryChips": "Colored category chips",
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
   },
   "sectionLabels": {
     "title": "Tiêu đề",

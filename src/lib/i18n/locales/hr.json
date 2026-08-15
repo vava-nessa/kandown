@@ -264,7 +264,9 @@
     "kickerInterface": "Sučelje",
     "kickerAutomation": "Automatizacija",
     "kickerIdentifiers": "Identifikatori",
-    "kickerMetadata": "Metapodaci"
+    "kickerMetadata": "Metapodaci",
+    "categoryChips": "Colored category chips",
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
   },
   "sectionLabels": {
     "title": "Naslov",

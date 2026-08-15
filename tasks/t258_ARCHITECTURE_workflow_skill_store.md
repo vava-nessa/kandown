@@ -1,6 +1,6 @@
 ---
 id: t258
-title: [ARCHITECTURE] Workflow and skill store — pick an AI workflow in 30 seconds
+title: Workflow and skill store — pick an AI workflow in 30 seconds
 status: In Progress
 priority: P3
 tags: [architecture, store, agents, onboarding, epic, decision]
@@ -9,6 +9,7 @@ created: 2026-07-26
 order: 2
 updated: 2026-08-04T23:16:41Z
 assignee: pi
+category: ARCHITECTURE
 ---
 
 # Workflow and skill store

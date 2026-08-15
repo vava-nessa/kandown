@@ -1,6 +1,6 @@
 ---
 id: t229
-title: [QUALITY] Configure ESLint + Prettier for React 19 / TypeScript strict
+title: Configure ESLint + Prettier for React 19 / TypeScript strict
 status: Backlog
 priority: P2
 tags: [quality, tooling]
@@ -8,6 +8,7 @@ ownerType: agent
 created: 2026-07-25
 order: 2
 updated: 2026-07-27T01:12:56Z
+category: QUALITY
 ---
 
 # Configure ESLint + Prettier

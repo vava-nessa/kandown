@@ -1,13 +1,14 @@
 ---
 id: t241
-title: [AGENTS] Agent distribution — Translation Notes in AGENT_KANDOWN.md + `kandown skill install`
+title: Agent distribution — Translation Notes in AGENT_KANDOWN.md + `kandown skill install`
 status: Backlog
 priority: P3
 tags: [agents, docs, cli]
 ownerType: agent
 created: 2026-07-25
 order: 13
-updated: 2026-07-26T18:18:27Z
+updated: 2026-08-15T11:08:30Z
+category: AGENTS
 ---
 
 # Agent distribution — Translation Notes + skill install
@@ -30,11 +31,12 @@ community has no way to distribute a variant.
 ## Subtasks
 
 - [ ] Add a "Translation Notes" table to `templates/AGENT_KANDOWN.md`
-      (remember: edit the template, never the synced root copy — `pnpm sync:agent`)
 - [ ] `kandown skill install [--out <path>] [--force] [--from <url>]`, defaulting to
-      the bundled template
 - [ ] Refuse to overwrite a modified file without `--force`, and say what differs
 - [ ] Document the command in the README and in `kandown help`
+
+      (remember: edit the template, never the synced root copy — `pnpm sync:agent`)
+      the bundled template
 
 ## Notes
 

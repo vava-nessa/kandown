@@ -45,7 +45,7 @@ export const DEMO_CONFIG_JSON = JSON.stringify(
     ui: {
       language: 'en',
       theme: 'light',
-      skin: 'kandown',
+      skin: 'shadcn',
       font: 'inter',
       background: 'solid',
     },
@@ -118,7 +118,8 @@ export const DEMO_BOARD_MD = `# Project Kanban\n`;
 export const DEMO_TASKS: Readonly<Record<string, string>> = {
   t1: `---
 id: t1
-title: "[Basics] Start here: Kandown in 60 seconds 👋"
+title: "Start here: Kandown in 60 seconds 👋"
+category: Basics
 status: Backlog
 order: 0
 priority: P1
@@ -154,7 +155,8 @@ That is the storage layer. Very boring. Extremely useful. ✨
 
   t2: `---
 id: t2
-title: "[Basics] Markdown is the database 📁"
+title: "Markdown is the database 📁"
+category: Basics
 status: Backlog
 order: 1
 priority: P2
@@ -191,7 +193,8 @@ your files still belong to you. 😌
 
   t3: `---
 id: t3
-title: "[Markdown] Format a task like a tiny project brief"
+title: "Format a task like a tiny project brief"
+category: Markdown
 status: Todo
 order: 0
 priority: P2
@@ -233,7 +236,8 @@ kandown move t3 "In Progress"
 
   t4: `---
 id: t4
-title: "[Agents] Keep long-running agent work alive 🤖"
+title: "Keep long-running agent work alive 🤖"
+category: Agents
 status: In Progress
 order: 0
 priority: P1
@@ -272,7 +276,8 @@ blockers, priorities, and the next actionable task in one response.
 
   t5: `---
 id: t5
-title: "[Agents] Hand work from one agent to another"
+title: "Hand work from one agent to another"
+category: Agents
 status: Review
 order: 0
 priority: P2
@@ -306,7 +311,8 @@ The useful handoff is simple:
 
   t6: `---
 id: t6
-title: "[Interfaces] Use Kanban, TUI, and CLI together"
+title: "Use Kanban, TUI, and CLI together"
+category: Interfaces
 status: Done
 order: 0
 priority: P3
@@ -342,7 +348,8 @@ editing tasks, and getting unstuck from another machine.
 
   t7: `---
 id: t7
-title: "[Workflow] Let dependencies stop fake progress"
+title: "Let dependencies stop fake progress"
+category: Workflow
 status: Todo
 order: 1
 priority: P2
@@ -373,7 +380,8 @@ as "move everything to Done and hope nobody asks questions". 🪄
 
   t8: `---
 id: t8
-title: "[Basics] Search bodies, tags, and metadata"
+title: "Search bodies, tags, and metadata"
+category: Basics
 status: Backlog
 order: 2
 priority: P4

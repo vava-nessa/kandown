@@ -1,6 +1,6 @@
 ---
 id: t262
-title: [AGENTIC] Auto-détection des CLI Agents & Cascade Pipelines
+title: Auto-détection des CLI Agents & Cascade Pipelines
 status: Todo
 assignee: vava
 priority: P1
@@ -9,6 +9,7 @@ ownerType: human
 created: 2026-07-26
 order: 2
 updated: 2026-08-04T23:16:41Z
+category: AGENTIC
 ---
 
 # Auto-détection des CLI Agents & Cascade Pipelines

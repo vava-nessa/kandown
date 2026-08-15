@@ -1,13 +1,14 @@
 ---
 id: t230
-title: [CLI] Fix file-watcher performance and coverage (mtime gate, poll interval, ESM require, archive dir)
+title: Fix file-watcher performance and coverage (mtime gate, poll interval, ESM require, archive dir)
 status: Backlog
 priority: P2
 tags: [cli, performance, watcher]
 ownerType: agent
 created: 2026-07-25
 order: 3
-updated: 2026-07-27T00:47:46Z
+updated: 2026-08-15T09:31:19Z
+category: CLI
 ---
 
 # Fix file-watcher performance and coverage

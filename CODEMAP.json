@@ -8,14 +8,14 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 8713,
+      "lines": 8985,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 62508,
+      "lines": 62522,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -107,6 +107,12 @@
       "summary": "Reads every task .md file, passes the body through BlockNote's parse → serialize pipeline, and writes back if the result differs."
     },
     {
+      "path": "scripts/migrate-task-categories.ts",
+      "lines": 62,
+      "title": "One-shot migration: legacy title brackets → frontmatter category",
+      "summary": "Moves the leading `[CATEGORY]` bracket out of task titles and into the first-class `category:` frontmatter field (introduced in 0.53.0), for every task file in `tasks/` and `tasks/archive/`."
+    },
+    {
       "path": "src/App.tsx",
       "lines": 292,
       "title": "Web application shell",
@@ -168,14 +174,14 @@
     },
     {
       "path": "src/cli/commands/project.ts",
-      "lines": 117,
+      "lines": 140,
       "title": "CLI commands — project lifecycle",
       "summary": "Handlers for `kandown init`, `update`/`upgrade`, `doctor`, and `work`.",
       "exports": "cmdInit, cmdUpdate, cmdDoctor, cmdWork"
     },
     {
       "path": "src/cli/commands/reslug.ts",
-      "lines": 205,
+      "lines": 208,
       "title": "`kandown reslug` command",
       "summary": "Renames task files so their name says what they are: `tasks/t232.md` becomes `tasks/t232_remove_dead_code.md`.",
       "functions": [
@@ -201,7 +207,7 @@
     },
     {
       "path": "src/cli/commands/tasks.ts",
-      "lines": 329,
+      "lines": 342,
       "title": "CLI commands — task CRUD & board data",
       "summary": "Handlers for `kandown list/show/create/move/assign/commit` plus `export`/`import`/`projects`.",
       "exports": "cmdList, cmdShow, cmdCreate, cmdMove, cmdAssign, cmdCommit, cmdExport, cmdProjects, cmdImport"
@@ -277,6 +283,12 @@
       "summary": "The daemon restarts itself when the package on disk moves ahead of the code it is running, so a user with the web UI open never has to be told to run a command."
     },
     {
+      "path": "src/cli/lib/__tests__/home-workspace.spec.ts",
+      "lines": 83,
+      "title": "Regression tests for home-directory pnpm workspace detection",
+      "summary": "Pins down `detectHomeWorkspace`: 1."
+    },
+    {
       "path": "src/cli/lib/__tests__/kandown-work-cli.spec.ts",
       "lines": 48,
       "title": "Kandown Work CLI adapter tests",
@@ -302,7 +314,7 @@
     },
     {
       "path": "src/cli/lib/__tests__/task-filename-cli.spec.ts",
-      "lines": 184,
+      "lines": 207,
       "title": "Integration tests for descriptive task filenames",
       "summary": "Spawns `bin/kandown.js` (the published CLI bundle) against a throwaway project whose `tasks/` folder deliberately mixes both naming forms: the legacy bare `t1.md` and the descriptive `t2_add_dark_mode.md`."
     },
@@ -432,7 +444,7 @@
     },
     {
       "path": "src/cli/lib/board-reader.ts",
-      "lines": 603,
+      "lines": 622,
       "title": "Node.js task reader and mutator",
       "summary": "Provides filesystem-based reading and writing of Kandown task files for the CLI.",
       "functions": [
@@ -679,6 +691,19 @@
       "exports": "FileWatcher, createWatcher"
     },
     {
+      "path": "src/cli/lib/home-workspace.ts",
+      "lines": 54,
+      "title": "Home-directory pnpm workspace detection",
+      "summary": "Detects the silent footgun where a `pnpm-workspace.yaml` + `package.json` (+ `node_modules`) exist at the user's home directory root, making pnpm treat `~/` as the workspace root for every project below it.",
+      "functions": [
+        {
+          "name": "detectHomeWorkspace",
+          "summary": "check home dir for workspace markers, return"
+        }
+      ],
+      "exports": "detectHomeWorkspace"
+    },
+    {
       "path": "src/cli/lib/init.ts",
       "lines": 114,
       "title": "Kandown Project Initializer Module",
@@ -911,7 +936,7 @@
     },
     {
       "path": "src/cli/screens/board.tsx",
-      "lines": 1711,
+      "lines": 1710,
       "title": "TUI Board Screen",
       "summary": "The Kandown CLI's main screen.",
       "functions": [
@@ -930,7 +955,7 @@
     },
     {
       "path": "src/cli/screens/board/components.tsx",
-      "lines": 370,
+      "lines": 376,
       "title": "Board screen — presentational sub-components",
       "summary": "Stateless render pieces for the Kanban board: task rows, the move placeholder, a column (with its own scroll window), the header, the status bar, and the full-screen task detail view. board.tsx composes these around its stateful…",
       "functions": [
@@ -967,7 +992,7 @@
     },
     {
       "path": "src/cli/screens/board/helpers.ts",
-      "lines": 133,
+      "lines": 142,
       "title": "Board screen — pure helpers",
       "summary": "Text layout (truncate/pad/hyperlink), terminal geometry, and the scroll-window computation shared between the render path (KanbanColumn) and mouse hit-testing (taskHitAt / handleMouseClick) in board.tsx so the two can never diverge.",
       "functions": [
@@ -1190,7 +1215,7 @@
     },
     {
       "path": "src/components/Card.tsx",
-      "lines": 402,
+      "lines": 416,
       "title": "Task card",
       "summary": "Displays one board task as a clean, rounded card inside a column.",
       "functions": [
@@ -1207,7 +1232,7 @@
     },
     {
       "path": "src/components/CardStack.tsx",
-      "lines": 257,
+      "lines": 283,
       "title": "Collapsible card stack component",
       "summary": "Renders a group of 2+ cards that share the same `[bracket]` or `#hashtag` title tag as a visually stacked card.",
       "functions": [
@@ -1217,6 +1242,13 @@
         }
       ],
       "exports": "CardStack"
+    },
+    {
+      "path": "src/components/CategoryChip.tsx",
+      "lines": 69,
+      "title": "Shared category chip component",
+      "summary": "Renders a category name as a chip.",
+      "exports": "CategoryChip"
     },
     {
       "path": "src/components/Cheatsheet.tsx",
@@ -1233,7 +1265,7 @@
     },
     {
       "path": "src/components/Column.tsx",
-      "lines": 359,
+      "lines": 362,
       "title": "Board column component",
       "summary": "Renders a single kanban column, accepts dropped cards, shows the filtered task count, and creates new tasks directly in the column.",
       "functions": [
@@ -1315,7 +1347,7 @@
     },
     {
       "path": "src/components/Drawer.tsx",
-      "lines": 482,
+      "lines": 492,
       "title": "Task drawer editor",
       "summary": "Full-height task detail editor for title, description, subtasks, report, save/close, autosave, and deletion.",
       "functions": [
@@ -1432,7 +1464,7 @@
     },
     {
       "path": "src/components/ListRow.tsx",
-      "lines": 519,
+      "lines": 534,
       "title": "List row component",
       "summary": "Renders a single task as a compact, Linear-style list item for the list view, with priority indicators, title, status, metadata badges, inline subtask progress slider, and hover quick actions.",
       "functions": [
@@ -1445,7 +1477,7 @@
     },
     {
       "path": "src/components/ListView.tsx",
-      "lines": 523,
+      "lines": 525,
       "title": "List view",
       "summary": "Renders board columns as vertically stacked horizontal sections, with dense task rows, filter/search previews, task drops between sections, and vertical section reordering.",
       "functions": [
@@ -1513,7 +1545,7 @@
     },
     {
       "path": "src/components/settings/schema.ts",
-      "lines": 447,
+      "lines": 455,
       "title": "Settings page — schema & config helpers",
       "summary": "Declarative metadata describing every setting (section, type, description, keywords) plus pure functions for reading/writing dotted config paths and building the sidebar search index.",
       "functions": [
@@ -1635,7 +1667,7 @@
     },
     {
       "path": "src/components/TaskWorkspace.tsx",
-      "lines": 772,
+      "lines": 800,
       "title": "Desktop opened-task workspace",
       "summary": "Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…",
       "functions": [
@@ -1844,6 +1876,12 @@
       "summary": "Uses a minimal in-memory File System Access implementation to prove project-local discovery, bundled index.js activation, typed badge rendering, web module loading, failure isolation and persistent quarantine."
     },
     {
+      "path": "src/lib/__tests__/category-color.spec.ts",
+      "lines": 62,
+      "title": "Unit tests for hash-based category colors and icons",
+      "summary": "Verifies the deterministic contract of src/lib/category-color.ts: same category string always yields the same color and icon, the foreground is always a legible dark or white on the chosen background, and the palette covers the full…"
+    },
+    {
       "path": "src/lib/__tests__/code-block-tokens.spec.ts",
       "lines": 157,
       "title": "Code-block contrast safety net",
@@ -1893,13 +1931,13 @@
     },
     {
       "path": "src/lib/__tests__/parser-serializer.spec.ts",
-      "lines": 159,
+      "lines": 174,
       "title": "Parser + serializer round-trip",
       "summary": "Vitest suite locking the `parseSimpleYaml` / `parseTaskFile` ↔ `serializeTaskFile` round-trip."
     },
     {
       "path": "src/lib/__tests__/task-filename.spec.ts",
-      "lines": 291,
+      "lines": 302,
       "title": "Tests for task filename slugs and id resolution",
       "summary": "Guards the module that decides which file on disk holds a task."
     },
@@ -1937,15 +1975,36 @@
       "exports": "ALIAS_TO_AGENT, normalizeAlias, resolveAgent, knownAgentIds"
     },
     {
+      "path": "src/lib/category-color.ts",
+      "lines": 168,
+      "title": "Deterministic category colors and icons",
+      "summary": "Maps a category name (WEB, CLI, ARCHITECTURE, THEMES...) to a stable accent color and a stable icon by hashing the name: the same string always yields the same color and icon, nothing is stored, nothing to maintain.",
+      "functions": [
+        {
+          "name": "hashString",
+          "summary": "FNV-1a 32-bit hash of a string"
+        },
+        {
+          "name": "categoryColor",
+          "summary": "{ bg, fg, border } from a category name"
+        },
+        {
+          "name": "categoryIcon",
+          "summary": "a stable tabler icon for a category name"
+        }
+      ],
+      "exports": "hashString, CATEGORY_PALETTE, CATEGORY_ICONS, categoryColor, categoryIcon"
+    },
+    {
       "path": "src/lib/columnUtils.ts",
-      "lines": 97,
+      "lines": 98,
       "title": "Shared column utilities",
       "summary": "Provides column color maps, color swatches, and tabler icon resolvers shared across Board and List views.",
-      "exports": "columnIconsByName, getColumnIcon, COLUMN_COLOR_MAP, COLOR_SWATCHES"
+      "exports": "columnIconsByName, getColumnIcon, COLUMN_BAR_MAP, COLOR_SWATCHES"
     },
     {
       "path": "src/lib/config.ts",
-      "lines": 407,
+      "lines": 408,
       "title": "Shared Kandown config normalization",
       "summary": "Converts unknown kandown.json input into the canonical config contract used by browser and Node adapters.",
       "functions": [
@@ -1995,7 +2054,7 @@
     },
     {
       "path": "src/lib/demoSeed.ts",
-      "lines": 440,
+      "lines": 448,
       "title": "Demo project seed data",
       "summary": "The starting contents of the in-memory project served by {@link ./demoBackend.ts} when the app runs in demo mode on the website.",
       "exports": "DEMO_PROJECT_NAME, DEMO_ROOT, DEMO_CONFIG_JSON, DEMO_INSTRUCTIONS, DEMO_BOARD_MD, DEMO_TASKS, DEMO_ARCHIVED_TASKS"
@@ -2277,7 +2336,7 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 1353,
+      "lines": 1357,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [
@@ -2418,13 +2477,13 @@
     },
     {
       "path": "src/lib/grouping.ts",
-      "lines": 128,
+      "lines": 136,
       "title": "Card grouping utility for visual stacking",
-      "summary": "Pure functions that group board tasks by shared `[bracket]` tags or `#hashtag` markers in their titles.",
+      "summary": "Pure functions that group board tasks by category (frontmatter `category:` field, legacy leading `[bracket]` title tag) or `#hashtag` markers in their titles.",
       "functions": [
         {
           "name": "extractGroupKey",
-          "summary": "pulls the grouping key from a task title"
+          "summary": "pulls the grouping key from a board task"
         },
         {
           "name": "groupTasksByTag",
@@ -2508,7 +2567,7 @@
     },
     {
       "path": "src/lib/parser.ts",
-      "lines": 464,
+      "lines": 469,
       "title": "Markdown parser utilities",
       "summary": "Parses Kandown task markdown into typed structures, builds board columns from task frontmatter, extracts editable subtasks, reinjects them on save, and performs lightweight cached task-content search for the web UI.",
       "functions": [
@@ -2582,7 +2641,7 @@
     },
     {
       "path": "src/lib/store.ts",
-      "lines": 1998,
+      "lines": 2007,
       "title": "Kandown Zustand store",
       "summary": "Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.",
       "functions": [
@@ -2621,7 +2680,7 @@
     },
     {
       "path": "src/lib/store/boardSlice.ts",
-      "lines": 581,
+      "lines": 590,
       "title": "Zustand store slice — board mutations",
       "summary": "Column CRUD, task move/reorder/create/delete/archive, task selection, and bulk operations."
     },
@@ -2663,7 +2722,7 @@
     },
     {
       "path": "src/lib/task-filename.ts",
-      "lines": 458,
+      "lines": 482,
       "title": "Task filename slugs and id resolution",
       "summary": "Owns the whole relationship between a task id and the name of the file that holds it, for every surface (CLI, daemon, TUI, web File System Access, desktop).",
       "functions": [
@@ -2674,6 +2733,10 @@
         {
           "name": "categorySegmentFromTitle",
           "summary": "the bracket category as a filename segment, if any"
+        },
+        {
+          "name": "categorySegmentFromFrontmatter",
+          "summary": "the category segment from frontmatter (field first, legacy bracket fallback)"
         },
         {
           "name": "normalizeCategorySegment",
@@ -2708,7 +2771,7 @@
           "summary": "whether a filename already carries a category segment"
         }
       ],
-      "exports": "SLUG_MAX_WORDS, SLUG_MAX_LENGTH, CATEGORY_MAX_LENGTH, slugifyTitle, categorySegmentFromTitle, normalizeCategorySegment, buildTaskFilename, isTaskFilename, parseTaskFilename, taskIdFromFilename, resolveTaskFilename, hasDescriptiveSlug, hasCategorySegment, ParsedTaskFilename, TaskFilenameMatch"
+      "exports": "SLUG_MAX_WORDS, SLUG_MAX_LENGTH, CATEGORY_MAX_LENGTH, slugifyTitle, categorySegmentFromTitle, categorySegmentFromFrontmatter, normalizeCategorySegment, buildTaskFilename, isTaskFilename, parseTaskFilename, taskIdFromFilename, resolveTaskFilename, hasDescriptiveSlug, hasCategorySegment, ParsedTaskFilename, TaskFilenameMatch"
     },
     {
       "path": "src/lib/task-meta.ts",
@@ -2741,20 +2804,20 @@
     },
     {
       "path": "src/lib/task-title-category.ts",
-      "lines": 52,
-      "title": "Helper for task title category extraction and title formatting",
-      "summary": "Extracts single leading bracket category tags (e.g.",
+      "lines": 57,
+      "title": "Helper for task category extraction and title formatting",
+      "summary": "Provides the canonical way to read a task's category (frontmatter `category:` field first, legacy leading bracket in the title as fallback) and title parsing utilities.",
       "functions": [
         {
-          "name": "parseTaskTitle",
-          "summary": "splits title into category tag and clean title"
+          "name": "taskCategory",
+          "summary": "canonical category: frontmatter field, else title bracket"
         },
         {
-          "name": "updateTitleCategory",
-          "summary": "updates or removes the bracket category tag in title string"
+          "name": "parseTaskTitle",
+          "summary": "splits title into bracket tag and clean title"
         }
       ],
-      "exports": "parseTaskTitle, updateTitleCategory"
+      "exports": "taskCategory, parseTaskTitle"
     },
     {
       "path": "src/lib/task-url.ts",
@@ -2787,9 +2850,9 @@
     },
     {
       "path": "src/lib/theme.ts",
-      "lines": 325,
+      "lines": 326,
       "title": "Project theme engine (FABLE_UI)",
-      "summary": "Manages customizable JSON themes, appearance tokens (--radius, --shadow-*, --font-display, --motion-scale), curated presets (Vercel, Linear, Claude, Apple, Stripe, Paper, Catppuccin, Terminal), and dynamic inheritance.",
+      "summary": "Manages customizable JSON themes, appearance tokens (--radius, --shadow-*, --font-display, --motion-scale), four bundled presets (shadcn, vercel, linear, kandown), installed community themes, and dynamic inheritance.",
       "functions": [
         {
           "name": "registerCustomThemes",
@@ -2816,7 +2879,7 @@
     },
     {
       "path": "src/lib/themes/index.ts",
-      "lines": 23,
+      "lines": 35,
       "title": "Theme preset registry",
       "summary": "Aggregates every bundled theme preset into the THEME_PRESETS array consumed by the theme engine (src/lib/theme.ts)."
     },
@@ -2827,14 +2890,32 @@
       "summary": "Kandown's own appearance/color-token preset, built from the brand palette published on the website: #88E138 brand lime (logo arrow, primary actions), #7AD12A the contrast-adjusted lime used on light backgrounds, #0CE931 the hero/WebGL…"
     },
     {
+      "path": "src/lib/themes/linear.ts",
+      "lines": 48,
+      "title": "\"linear\" theme preset",
+      "summary": "Linear's dark-first aesthetic ported from the community registry (`registry/themes/linear.json`): near-black blue-tinted surfaces, electric violet primary (#5E6AD2, hsl 235 59% 60%), Plus Jakarta Sans, elevated glass popovers."
+    },
+    {
+      "path": "src/lib/themes/shadcn.ts",
+      "lines": 53,
+      "title": "\"shadcn\" theme preset, the clean default",
+      "summary": "Ultra-clean neutral palette in the spirit of shadcn/ui and Linear: zinc surfaces, near-black primary, crisp 1px borders, white card on a pure-white background in light mode, zinc-950 surfaces in dark mode."
+    },
+    {
       "path": "src/lib/themes/shared.ts",
       "lines": 27,
       "title": "Shared theme tokens",
       "summary": "Status colors (destructive/success/warning) and grid tokens shared by every theme preset, spread into each preset's light/dark token maps."
     },
     {
+      "path": "src/lib/themes/vercel.ts",
+      "lines": 46,
+      "title": "\"vercel\" theme preset",
+      "summary": "Vercel's black-and-white high-contrast look: pure white on near-black, mono display type, compact density, no colored surfaces."
+    },
+    {
       "path": "src/lib/types.ts",
-      "lines": 482,
+      "lines": 498,
       "title": "Shared domain types",
       "summary": "Defines the board, task, config, filter, search, and appearance contracts shared by the Kandown web UI, CLI, TUI, and persistence adapters.",
       "exports": "Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, ColumnRole, ColumnAgentMeta, WorkflowSelectionConfig, TaskTrackingCadence, WorkOutputDetailMode, TuiConfig, AgentsConfig, KandownConfig, DEFAULT_COLUMNS, DEFAULT_WORK_OUTPUT, DEFAULT_COLUMN_META, DEFAULT_CONFIG"

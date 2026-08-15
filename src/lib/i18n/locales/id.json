@@ -231,7 +231,9 @@
     "pages": "Halaman",
     "backToBoard": "Kembali ke papan",
     "matches": "Kecocokan",
-    "settingsTitle": "Pengaturan"
+    "settingsTitle": "Pengaturan",
+    "categoryChips": "Colored category chips",
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
   },
   "sectionLabels": {
     "title": "Judul",

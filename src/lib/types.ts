@@ -52,6 +52,11 @@ export interface BoardTask {
   id: string;
   title: string;
   checked: boolean;
+  /** 📖 The task category: the frontmatter `category:` field when present,
+   * falling back to a leading `[BRACKET]` in the title for legacy files.
+   * Null when neither exists. Drives the category chip, the "All tasks"
+   * category grouping and the TUI category rows. */
+  category: string | null;
   tags: string[];
   assignee: string | null;
   priority: Priority | null;
@@ -87,6 +92,13 @@ export interface ParsedBoard {
 export interface TaskFrontmatter {
   id: string;
   title: string;
+  /** 📖 First-class task category (e.g. `UI`, `BILLING`, `FABLE_CLEANUP`).
+   * Source of truth since the 0.53.0 refactor; the filename mirrors it as an
+   * uppercase segment (`t232_UI_fix_login.md`) and the web drawer renders it
+   * as the header chip. Legacy tasks carry the category as a leading
+   * `[BRACKET]` in the title instead; readers fall back to that when this
+   * field is absent. */
+  category?: string;
   status?: string;
   order?: number | string;
   priority?: string;
@@ -335,6 +347,10 @@ export interface KandownConfig {
      * (X, Esc, Next → last step, "Get Started"). The Settings UI can flip
      * it back to `false` to re-open the tour. */
     onboardingCompleted: boolean;
+    /** 📖 When true (default), category names render as colored chips with a
+     * stable hash-derived color and icon (see src/lib/category-color.ts).
+     * When false, categories fall back to the monochrome accent text. */
+    categoryChips: boolean;
   };
   agent: {
     suggestFollowUp: boolean;
@@ -426,7 +442,7 @@ export const DEFAULT_COLUMN_META: Record<string, ColumnAgentMeta> = {
 };
 
 export const DEFAULT_CONFIG: KandownConfig = {
-  ui: { language: 'en', theme: 'auto', skin: 'kandown', font: 'inter', background: 'solid', onboardingCompleted: false },
+  ui: { language: 'en', theme: 'auto', skin: 'shadcn', font: 'inter', background: 'solid', onboardingCompleted: false, categoryChips: true },
   agent: { suggestFollowUp: false, maxSuggestions: 3, workOutput: DEFAULT_WORK_OUTPUT },
   workflow: { active: 'kandown-standard', skills: [], trackingCadence: 'balanced' },
   board: {

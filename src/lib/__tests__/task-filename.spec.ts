@@ -115,13 +115,24 @@ describe('buildTaskFilename', () => {
 
   it('avoids a collision when the exact filename is already taken', () => {
     const taken = ['t292_fix_login_button.md'];
-    expect(buildTaskFilename('t292', 'Fix the login button', taken)).toBe('t292_fix_login_button_2.md');
-    expect(buildTaskFilename('t292', 'Fix the login button', [...taken, 't292_fix_login_button_2.md']))
+    expect(buildTaskFilename('t292', 'Fix the login button', null, taken)).toBe('t292_fix_login_button_2.md');
+    expect(buildTaskFilename('t292', 'Fix the login button', null, [...taken, 't292_fix_login_button_2.md']))
       .toBe('t292_fix_login_button_3.md');
   });
 
   it('treats collisions case-insensitively, like macOS and Windows do', () => {
-    expect(buildTaskFilename('t292', 'Fix login', ['T292_FIX_LOGIN.md'])).toBe('t292_fix_login_2.md');
+    expect(buildTaskFilename('t292', 'Fix login', null, ['T292_FIX_LOGIN.md'])).toBe('t292_fix_login_2.md');
+  });
+
+  it('accepts an explicit category segment from the frontmatter field', () => {
+    expect(buildTaskFilename('t232', 'Fix the login button', 'UI')).toBe('t232_UI_fix_login_button.md');
+    expect(buildTaskFilename('t232', 'Fix the login button', 'FABLE CLEANUP')).toBe('t232_FABLE_CLEANUP_fix_login_button.md');
+    // 📖 A category that normalizes to nothing falls back to a legacy title bracket.
+    expect(buildTaskFilename('t232', '[UI] Fix the login button', '')).toBe('t232_UI_fix_login_button.md');
+  });
+
+  it('still derives the category from a legacy leading bracket when none is passed', () => {
+    expect(buildTaskFilename('t232', '[CLEANUP] Remove dead code')).toBe('t232_CLEANUP_remove_dead_code.md');
   });
 
   it('refuses an id that would escape the tasks directory', () => {

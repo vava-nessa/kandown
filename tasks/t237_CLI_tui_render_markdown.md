@@ -1,6 +1,6 @@
 ---
 id: t237
-title: [CLI] TUI — render markdown properly in the task detail (wrap, headings, lists)
+title: TUI — render markdown properly in the task detail (wrap, headings, lists)
 status: Backlog
 priority: P3
 tags: [cli, tui, ux]
@@ -8,6 +8,7 @@ ownerType: agent
 created: 2026-07-25
 order: 9
 updated: 2026-07-26T18:18:27Z
+category: CLI
 ---
 
 # TUI — render markdown properly in the task detail

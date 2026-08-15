@@ -202,7 +202,7 @@ IDE, bot or webhook receive tasks.
 | `kandown init` | Initialize in the current project |
 | `kandown board` | Terminal UI only, no browser |
 | `kandown settings` | Terminal settings editor |
-| `kandown doctor` | Diagnose config, daemon, ports, task frontmatter |
+| `kandown doctor` | Diagnose config, daemon, ports, task frontmatter + home-directory pnpm workspace detection |
 | `kandown help` | Full help |
 
 ### Tasks — non-interactive, agent- and CI-friendly

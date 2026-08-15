@@ -863,16 +863,18 @@ async function resolveTaskFilenameIn(dir: FileSystemDirectoryHandle | null, id: 
 
 /**
  * 📖 The filename to write for a task: the one it already occupies, or a fresh
- * descriptive name built from its title when the task is being created.
+ * descriptive name built from its title and category when the task is being
+ * created.
  */
 async function writeTargetFilename(
   dir: FileSystemDirectoryHandle | null,
   id: string,
   title?: string | null,
+  category?: string | null,
 ): Promise<string> {
   const existing = await resolveTaskFilenameIn(dir, id);
   if (existing) return existing;
-  return buildTaskFilename(id, title, await listTaskFilenamesIn(dir));
+  return buildTaskFilename(id, title, category, await listTaskFilenamesIn(dir));
 }
 
 /** Reads a task file from the archive subfolder. Returns null if absent. */
@@ -1046,8 +1048,10 @@ export async function writeTaskFile(
       ? (await getArchiveDirHandle(_tasksDir!, true))!
       : _tasksDir!;
     // 📖 An existing task keeps its filename, slug frozen: editing a title never
-    // renames a file. A task created from the web gets the descriptive name.
-    const name = await writeTargetFilename(targetDir, id, frontmatter.title);
+    // renames a file (server mode renames on category change via
+    // writeTaskContent in board-reader.ts). A task created from the web gets
+    // the descriptive name.
+    const name = await writeTargetFilename(targetDir, id, frontmatter.title, frontmatter.category);
     const h = await targetDir.getFileHandle(name, { create: true });
     const w = await h.createWritable();
     try {

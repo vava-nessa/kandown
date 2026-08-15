@@ -46,6 +46,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
 import { AssigneeAvatar } from './agentIcons';
+import { CategoryChip } from './CategoryChip';
 import type { BoardTask, Density, SearchMatch } from '../lib/types';
 import { useStore } from '../lib/store';
 import { useExtensionRuntime } from './ExtensionRuntimeProvider';
@@ -216,6 +217,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
 
   const selectedTaskIds = useStore(s => s.selectedTaskIds);
   const toggleTaskSelection = useStore(s => s.toggleTaskSelection);
+  const categoryChips = useStore(s => s.config.ui.categoryChips !== false);
   const isSelected = selectedTaskIds?.includes(task.id) ?? false;
 
   // 📖 Single dependency chip needs the title of the blocking task; build a
@@ -241,7 +243,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
   // 📖 Outer margin between cards replaces the old `border-b` separator. Kept
   // tight so a full column still stays scannable, but wide enough that each
   // card reads as its own chip rather than a stacked row.
-  const cardMargin = isCompact ? 'mb-1' : 'mb-1.5';
+  const cardMargin = isCompact ? 'mb-1.5' : 'mb-2.5';
   const titleSize = isCompact ? 'text-[13.5px]' : 'text-[15px]';
   const metaGap = isCompact ? 'mt-1' : 'mt-1.5';
 
@@ -282,7 +284,9 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
           content — no line-clamp, no truncation. */}
       <div className="flex items-start gap-2">
         {/* 📖 Linear-style selection checkbox. Mirrors ListRow: appears on
-            hover, stays visible for every card once any task is selected. */}
+            hover, stays visible for every card once any task is selected. It
+            floats absolutely over the card's left edge so it never shifts the
+            content, with a fade in/out on hover. */}
         <button
           type="button"
           aria-label={isSelected ? t('bulk.deselect') : t('bulk.select')}
@@ -292,7 +296,9 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
             toggleTaskSelection(task.id);
           }}
           onPointerDown={e => e.stopPropagation()}
-          className={`flex-none mt-[2px] flex items-center justify-center h-[18px] w-[18px] rounded-[5px] border transition-colors cursor-pointer ${
+          className={`absolute -left-1.5 z-20 flex items-center justify-center h-[18px] w-[18px] rounded-[5px] border bg-card/90 shadow-sm transition-opacity duration-150 cursor-pointer ${
+            isCompact ? 'top-[7px]' : 'top-[11px]'
+          } ${
             isSelected
               ? 'bg-primary border-primary text-primary-foreground'
               : `border-border/70 text-transparent hover:border-primary/60 hover:bg-primary/5 ${
@@ -302,20 +308,19 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
         >
           <Icon.Check size={12} strokeWidth={3} />
         </button>
-        <span className="font-mono text-[11.5px] font-medium text-fg-faint tabular-nums flex-none pt-[2px]">
-          {task.id.replace(/^t/, '#')}
-        </span>
         <div className="flex-1 min-w-0">
           <div
             className={`${titleSize} leading-snug font-medium break-words ${
               task.checked ? 'line-through text-fg-muted' : 'text-fg'
             }`}
           >
-            {bracketTag && (
+            {categoryChips && task.category ? (
+              <CategoryChip category={task.category} className="mr-1.5 align-middle shrink-0" />
+            ) : bracketTag ? (
               <span className="inline-flex items-center h-[16px] px-1.5 mr-1.5 align-baseline text-[10px] font-semibold tracking-wide text-fg-muted uppercase rounded bg-black/[0.04] dark:bg-white/10">
                 {bracketTag}
               </span>
-            )}
+            ) : null}
             {titleWithoutTag}
           </div>
 
@@ -396,6 +401,15 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       )}
 
       <MetadataBlock frontmatter={task.frontmatter} hidden={showMetadata} />
+
+      {/* 📖 Task id badge: absolute bottom-right, glued to the card edge. White
+          box at 50% opacity with black id in light mode, inverted in dark.
+          No `#` prefix, digits only, comfortably readable. */}
+      <span
+        className="absolute bottom-1 right-1 rounded px-1.5 py-0.5 font-mono text-[12px] font-semibold leading-none bg-white/50 text-black dark:bg-black/50 dark:text-white select-none pointer-events-none"
+      >
+        {task.id.replace(/^t/i, '')}
+      </span>
     </div>
   );
 }

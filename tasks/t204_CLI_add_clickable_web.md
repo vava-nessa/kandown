@@ -1,6 +1,6 @@
 ---
 id: t204
-title: [CLI] Add clickable web URL in TUI header
+title: Add clickable web URL in TUI header
 status: Backlog
 assignee: vava
 priority: P2
@@ -9,6 +9,7 @@ ownerType: agent
 created: 2026-07-07
 order: 19
 updated: 2026-07-26T18:18:27Z
+category: CLI
 ---
 
 # Add clickable web URL in TUI header

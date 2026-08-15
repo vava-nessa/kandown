@@ -264,7 +264,9 @@
     "kickerInterface": "इंटरफ़ेस",
     "kickerAutomation": "स्वचालन",
     "kickerIdentifiers": "पहचानकर्ता",
-    "kickerMetadata": "मेटाडेटा"
+    "kickerMetadata": "मेटाडेटा",
+    "categoryChips": "Colored category chips",
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
   },
   "sectionLabels": {
     "title": "शीर्षक",

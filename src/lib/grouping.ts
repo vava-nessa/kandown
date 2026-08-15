@@ -1,19 +1,19 @@
 /**
  * @file Card grouping utility for visual stacking
- * @description Pure functions that group board tasks by shared `[bracket]` tags
- * or `#hashtag` markers in their titles. When 2+ cards in the same column share
- * the same group key, they are collected into a `TaskGroup` that the UI renders
- * as a collapsible stack.
+ * @description Pure functions that group board tasks by category (frontmatter
+ * `category:` field, legacy leading `[bracket]` title tag) or `#hashtag` markers
+ * in their titles. When 2+ cards in the same column share the same group key,
+ * they are collected into a `TaskGroup` that the UI renders as a collapsible stack.
  *
  * 📖 Grouping is purely visual — it does not modify task files or store state.
  * The Column component calls `groupTasksByTag` inside a `useMemo` so the
  * grouping recomputes reactively whenever filtered tasks change.
  *
- * 📖 Bracket tags (`[subject]`) take priority over hashtags (`#word`) when both
- * are present in the same title. Only the first hashtag is used as a group key.
+ * 📖 The frontmatter category takes priority over a legacy title bracket, which
+ * takes priority over a hashtag when several are present on the same task.
  *
  * @functions
- *  → extractGroupKey — pulls the grouping key from a task title
+ *  → extractGroupKey — pulls the grouping key from a board task
  *  → groupTasksByTag — converts a flat task array into mixed singles/stacks
  *
  * @exports TaskGroup, SingleTask, ColumnItem, extractGroupKey, groupTasksByTag
@@ -23,11 +23,11 @@
 
 import type { BoardTask } from './types';
 
-// 📖 A stack of 2+ tasks sharing the same title tag
+// 📖 A stack of 2+ tasks sharing the same group key
 export interface TaskGroup {
   type: 'stack';
-  groupKey: string;    // normalized key, e.g. "[refactor]" or "#auth"
-  displayKey: string;  // human-readable label, e.g. "refactor" or "#auth"
+  groupKey: string;    // normalized key, e.g. "[ui]" or "#auth"
+  displayKey: string;  // human-readable label, e.g. "ui" or "#auth"
   tasks: BoardTask[];
 }
 
@@ -46,15 +46,23 @@ const BRACKET_RE = /^\[([^\]]+)\]\s*/;
 const HASHTAG_RE = /#(\w+)/;
 
 /**
- * Extract the grouping key from a task title.
- * Bracket tags take priority over hashtags. Returns null if no key found.
+ * Extract the grouping key from a board task.
+ * The frontmatter category wins, then legacy title brackets, then hashtags.
+ * Returns null if no key found.
  *
  * @example
- * extractGroupKey("[perf] Fix query")   → "[perf]"
- * extractGroupKey("Fix #auth bug")      → "#auth"
- * extractGroupKey("Plain title")        → null
+ * extractGroupKey({ title: "Fix query", category: "UI" }) → "[ui]"
+ * extractGroupKey({ title: "[perf] Fix query" })         → "[perf]"
+ * extractGroupKey({ title: "Fix #auth bug" })           → "#auth"
+ * extractGroupKey({ title: "Plain title" })             → null
  */
-export function extractGroupKey(title: string): string | null {
+export function extractGroupKey(task: { title: string; category?: string | null }): string | null {
+  const category = (task.category || '').trim();
+  if (category) return `[${category.toLowerCase()}]`;
+
+  // 📖 Defensive: malformed files can carry a non-string title (YAML array);
+  // treat it as having no bracket or hashtag rather than crashing the board.
+  const title = typeof task.title === 'string' ? task.title : '';
   const bracketMatch = title.match(BRACKET_RE);
   if (bracketMatch) return `[${bracketMatch[1].toLowerCase()}]`;
 
@@ -87,7 +95,7 @@ export function groupTasksByTag(tasks: BoardTask[]): ColumnItem[] {
   const countByKey = new Map<string, number>();
 
   for (const task of tasks) {
-    const key = extractGroupKey(task.title);
+    const key = extractGroupKey(task);
     keyByTaskId.set(task.id, key);
     if (key) {
       countByKey.set(key, (countByKey.get(key) ?? 0) + 1);
