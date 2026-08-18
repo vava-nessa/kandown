@@ -8,7 +8,7 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 8985,
+      "lines": 11818,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
@@ -73,6 +73,30 @@
         {
           "name": "main",
           "summary": "write both files, or verify them under --check"
+        }
+      ]
+    },
+    {
+      "path": "scripts/build-extension-brief.js",
+      "lines": 335,
+      "title": "Extension agent brief generator",
+      "summary": "Builds the machine-facing plugin authoring brief from the extension type contract, so the text an AI agent reads can never drift from the code it must compile against.",
+      "functions": [
+        {
+          "name": "extractBlock",
+          "summary": "pull one `export interface|type` declaration out of a source"
+        },
+        {
+          "name": "extractUnion",
+          "summary": "pull the string-literal union of a named method parameter"
+        },
+        {
+          "name": "renderBrief",
+          "summary": "assemble the full markdown brief"
+        },
+        {
+          "name": "main",
+          "summary": "write both artefacts, or compare them under `--check`"
         }
       ]
     },
@@ -148,7 +172,7 @@
     },
     {
       "path": "src/cli/cli.ts",
-      "lines": 218,
+      "lines": 224,
       "title": "Main Kandown CLI Entrypoint",
       "summary": "Entrypoint for the kandown command line tool."
     },
@@ -293,6 +317,12 @@
       "lines": 48,
       "title": "Kandown Work CLI adapter tests",
       "summary": "Proves fresh projects print the exact shared compiler output on stdout and that an explicit task replaces the general board digest."
+    },
+    {
+      "path": "src/cli/lib/__tests__/plugin-authoring.spec.ts",
+      "lines": 277,
+      "title": "Plugin authoring loop",
+      "summary": "Vitest suite over the `kandown plugin` pipeline: every scaffold kind must bundle and validate clean out of the box, and the validator must catch the failures an author (human or agent) actually produces."
     },
     {
       "path": "src/cli/lib/__tests__/readTask-archive-flag.spec.ts",
@@ -516,7 +546,7 @@
     },
     {
       "path": "src/cli/lib/cli-shared.ts",
-      "lines": 375,
+      "lines": 376,
       "title": "CLI shared utilities",
       "summary": "Argument parsing, deterministic nearest-ancestor project resolution, colored console output, and task-file path helpers shared across every `cmdX` command handler and the TUI launcher in src/cli/cli.ts.",
       "functions": [
@@ -761,8 +791,89 @@
       "exports": "startMcpServer"
     },
     {
+      "path": "src/cli/lib/plugin-build.ts",
+      "lines": 153,
+      "title": "Plugin bundler",
+      "summary": "Turns a plugin's TypeScript sources into the self-contained JavaScript the browser can execute.",
+      "functions": [
+        {
+          "name": "buildPlugin",
+          "summary": "bundle index and panel entries for one plugin directory"
+        }
+      ],
+      "exports": "PluginBuildOutput, PluginBuildResult, buildPlugin"
+    },
+    {
+      "path": "src/cli/lib/plugin-check.ts",
+      "lines": 512,
+      "title": "Plugin validator",
+      "summary": "The closed feedback loop that lets an AI agent author a plugin without a human in the middle.",
+      "functions": [
+        {
+          "name": "checkPlugin",
+          "summary": "run every check for one plugin id"
+        },
+        {
+          "name": "formatCheckReport",
+          "summary": "render a human-readable report"
+        }
+      ],
+      "exports": "CheckStatus, PluginCheck, PluginCheckReport, checkPlugin, formatCheckReport"
+    },
+    {
+      "path": "src/cli/lib/plugin-cli.ts",
+      "lines": 296,
+      "title": "`kandown plugin` command surface",
+      "summary": "The agent-first façade over the extension system.",
+      "functions": [
+        {
+          "name": "cmdPlugin",
+          "summary": "the `kandown plugin <subcommand>` entrypoint"
+        },
+        {
+          "name": "resolvePluginDir",
+          "summary": "locate an installed plugin directory by id"
+        }
+      ],
+      "exports": "cmdPlugin"
+    },
+    {
+      "path": "src/cli/lib/plugin-dev.ts",
+      "lines": 154,
+      "title": "Plugin dev loop",
+      "summary": "Watches one plugin directory and, on every save, rebuilds the browser bundles, re-runs the validator and asks the running daemon to hot reload the board.",
+      "functions": [
+        {
+          "name": "runPluginDev",
+          "summary": "build, check, enable, then watch until interrupted"
+        },
+        {
+          "name": "requestDaemonReload",
+          "summary": "ask a running daemon to drop and re-hydrate its host"
+        }
+      ],
+      "exports": "runPluginDev, requestDaemonReload"
+    },
+    {
+      "path": "src/cli/lib/plugin-scaffold.ts",
+      "lines": 342,
+      "title": "Plugin scaffolding templates",
+      "summary": "Generates a ready-to-run plugin directory for `kandown plugin create`.",
+      "functions": [
+        {
+          "name": "scaffoldPlugin",
+          "summary": "write a plugin directory for one kind"
+        },
+        {
+          "name": "PLUGIN_KINDS",
+          "summary": "the supported `--kind` values"
+        }
+      ],
+      "exports": "PLUGIN_KINDS, PluginKind, ScaffoldResult, scaffoldPlugin"
+    },
+    {
       "path": "src/cli/lib/server.ts",
-      "lines": 900,
+      "lines": 913,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
@@ -1398,7 +1509,7 @@
     },
     {
       "path": "src/components/ExtensionRuntimeProvider.tsx",
-      "lines": 171,
+      "lines": 176,
       "title": "Browser extension runtime provider",
       "summary": "Hydrates one project-wide extension snapshot for fields, panels and card badges.",
       "functions": [
@@ -1654,7 +1765,7 @@
     },
     {
       "path": "src/components/TaskExtensionSurface.tsx",
-      "lines": 381,
+      "lines": 384,
       "title": "Task extension surface",
       "summary": "Shared mobile and desktop task-editor section for contributed fields and web panels.",
       "functions": [
@@ -2163,6 +2274,13 @@
       "exports": "KandownError, BrowserNotSupportedError, PermissionDeniedError, FileNotFoundError, DiskFullError, CorruptedDataError, FileReadError, FileReadErrorCode, isRetryableError, Result"
     },
     {
+      "path": "src/lib/extensions/agent-brief.ts",
+      "lines": 15,
+      "title": "Generated plugin authoring brief",
+      "summary": "The machine-facing plugin brief, emitted by `scripts/build-extension-brief.js` from the extension type contract and embedded here so `kandown plugin create` can print it from the published bundle.",
+      "exports": "EXTENSION_AGENT_BRIEF"
+    },
+    {
       "path": "src/lib/extensions/browser-runtime.ts",
       "lines": 466,
       "title": "Browser extension runtime",
@@ -2189,7 +2307,7 @@
     },
     {
       "path": "src/lib/extensions/host.ts",
-      "lines": 524,
+      "lines": 534,
       "title": "Extension host",
       "summary": "The orchestrator that loads extensions, manages their health, and dispatches contributions (gates, syncs, commands, lifecycle) with per-contribution fail policies.",
       "exports": "ExtensionHost, type HostEnvironment"

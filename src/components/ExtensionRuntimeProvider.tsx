@@ -33,6 +33,10 @@ import type { ExtensionRuntimePayload, TaskLike } from '../lib/extensions/types'
 interface ExtensionRuntimeContextValue extends ExtensionRuntimePayload {
   loading: boolean;
   error: string | null;
+  /** 📖 Bumped on every reload. Panels key their module import on it so a hot
+   * reload from `kandown plugin dev` re-imports the rebuilt bundle instead of
+   * reusing the component already mounted in the drawer. */
+  revision: number;
   refresh(): Promise<void>;
   loadWebModule(extId: string, entry: string): Promise<ExtensionWebModule>;
   reportPanelOutcome(extId: string, outcome: 'success' | 'failure', error?: string): Promise<void>;
@@ -155,10 +159,11 @@ export function ExtensionRuntimeProvider({ children }: { children: ReactNode }) 
     ...payload,
     loading,
     error,
+    revision,
     refresh,
     loadWebModule,
     reportPanelOutcome,
-  }), [error, loadWebModule, loading, payload, refresh, reportPanelOutcome]);
+  }), [error, loadWebModule, loading, payload, refresh, reportPanelOutcome, revision]);
 
   return <ExtensionRuntimeContext.Provider value={value}>{children}</ExtensionRuntimeContext.Provider>;
 }

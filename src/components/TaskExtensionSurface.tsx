@@ -135,7 +135,7 @@ function LoadedPanel({
   task: TaskLike;
   onSetField(extId: string, key: string, value: unknown): Promise<void>;
 }) {
-  const { extensions, loadWebModule, refresh, reportPanelOutcome } = useExtensionRuntime();
+  const { extensions, loadWebModule, refresh, reportPanelOutcome, revision } = useExtensionRuntime();
   const columns = useStore((state) => state.columns);
   const archivedTasks = useStore((state) => state.archivedTasks);
   const [component, setComponent] = useState<ExtensionPanelComponent | null>(null);
@@ -160,7 +160,10 @@ function LoadedPanel({
         }
       });
     return () => { cancelled = true; };
-  }, [descriptor.entry, descriptor.extId, descriptor.id, loadWebModule, reportPanelOutcome, retryNonce, task.id]);
+    // 📖 `revision` is in the dependency list on purpose: after a hot reload the
+    // entry path is unchanged, so without it the drawer would keep rendering the
+    // previous bundle even though the module cache was already dropped.
+  }, [descriptor.entry, descriptor.extId, descriptor.id, loadWebModule, reportPanelOutcome, retryNonce, revision, task.id]);
 
   const onSuccess = useCallback(() => {
     void reportPanelOutcome(descriptor.extId, 'success');

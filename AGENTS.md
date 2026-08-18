@@ -20,6 +20,7 @@ Markdown, installed into other projects with `npx kandown init`.
 | 6 | [`README.md`](README.md) | For the user-facing feature surface |
 | 7 | [`docs/EXTENSIONS.md`](docs/EXTENSIONS.md) | Before touching the extension/plugin system, or anything under `plugins.*` |
 | 8 | [`docs/EXTENSIONS-AUTHORING.md`](docs/EXTENSIONS-AUTHORING.md) | When building or scaffolding an extension |
+| 9 | [`docs/EXTENSIONS-AGENT.md`](docs/EXTENSIONS-AGENT.md) | When *writing* a plugin: the generated contract, also printed by `kandown plugin brief` |
 
 Then run **`kandown work`**: it prints the current agent rules plus a live board
 digest and the next actionable task.
@@ -68,6 +69,7 @@ They are committed because they ship. Editing them appears to work, and the next
 | `src/lib/version.ts` | `package.json` (version field) |
 | `CODEMAP.md`, `CODEMAP.json` | the JSDoc headers, then `pnpm codemap` |
 | `CHANGELOG.md` | `changelogs/v<version>.md`, then `pnpm changelog` |
+| `docs/EXTENSIONS-AGENT.md`, `src/lib/extensions/agent-brief.ts` | `src/lib/extensions/types.ts` or the prose in `scripts/build-extension-brief.js`, then `pnpm extension-brief` |
 
 `CODEMAP.md` flags each of these inline, at the moment you go looking for it.
 
@@ -202,6 +204,7 @@ Then **always give vava the clickable URL** (`http://localhost:4321/`) so she ca
 | `pnpm verify` | Run the complete local quality gate before commit or push |
 | `pnpm typecheck` | TypeScript, no emit |
 | `pnpm codemap` | Regenerate `CODEMAP.md` / `CODEMAP.json` |
+| `pnpm extension-brief` | Regenerate the plugin authoring contract from the extension types |
 | `pnpm codemap:check` | Fail if the codemap is stale or a file lacks `@description` |
 | `pnpm changelog` | Rebuild `CHANGELOG.md` from `changelogs/` |
 | `pnpm changelog:check` | Fail if the changelog index is stale |

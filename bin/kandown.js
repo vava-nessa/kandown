@@ -229,7 +229,7 @@ async function checkForUpdate(argv = process.argv) {
     }
   } catch {
   }
-  const latest = await new Promise((resolve11) => {
+  const latest = await new Promise((resolve13) => {
     const child2 = spawn("npm", ["view", "kandown", "version"], {
       timeout: 6e3,
       stdio: ["pipe", "pipe", "pipe"],
@@ -242,11 +242,11 @@ async function checkForUpdate(argv = process.argv) {
     });
     child2.stderr.on("data", () => {
     });
-    child2.on("error", () => resolve11(null));
+    child2.on("error", () => resolve13(null));
     child2.on("close", (code) => {
-      if (code !== 0) return resolve11(null);
+      if (code !== 0) return resolve13(null);
       const v = stdout.trim().replace(/^"|"$/g, "");
-      resolve11(v || null);
+      resolve13(v || null);
     });
   });
   if (!latest) return;
@@ -868,16 +868,16 @@ function taskCategory(frontmatter) {
   }
   return parseTaskTitle(frontmatter.title ?? "").category;
 }
-function parseTaskTitle(title) {
-  if (typeof title !== "string" || !title) return { category: null, rawCategory: null, cleanTitle: typeof title === "string" ? title : "" };
-  const match = title.match(/^\[([^\]]+)\]\s*/);
+function parseTaskTitle(title2) {
+  if (typeof title2 !== "string" || !title2) return { category: null, rawCategory: null, cleanTitle: typeof title2 === "string" ? title2 : "" };
+  const match = title2.match(/^\[([^\]]+)\]\s*/);
   if (!match) {
-    return { category: null, rawCategory: null, cleanTitle: title };
+    return { category: null, rawCategory: null, cleanTitle: title2 };
   }
   return {
     category: match[1],
     rawCategory: match[0].trim(),
-    cleanTitle: title.slice(match[0].length)
+    cleanTitle: title2.slice(match[0].length)
   };
 }
 var init_task_title_category = __esm({
@@ -1208,18 +1208,18 @@ function normalizeCategorySegment(raw) {
   }
   return CATEGORY_LIKE.test(ascii) ? ascii : null;
 }
-function categorySegmentFromTitle(title) {
-  if (typeof title !== "string" || !title.trim()) return null;
-  return normalizeCategorySegment(parseTaskTitle(title).category);
+function categorySegmentFromTitle(title2) {
+  if (typeof title2 !== "string" || !title2.trim()) return null;
+  return normalizeCategorySegment(parseTaskTitle(title2).category);
 }
 function categorySegmentFromFrontmatter(frontmatter) {
   return normalizeCategorySegment(taskCategory(frontmatter));
 }
-function slugifyTitle(title, maxWords = SLUG_MAX_WORDS) {
-  if (typeof title !== "string" || !title.trim()) return "";
+function slugifyTitle(title2, maxWords = SLUG_MAX_WORDS) {
+  if (typeof title2 !== "string" || !title2.trim()) return "";
   if (!Number.isFinite(maxWords) || maxWords < 1) return "";
-  const { cleanTitle } = parseTaskTitle(title);
-  let text = cleanTitle.trim() || title;
+  const { cleanTitle } = parseTaskTitle(title2);
+  let text = cleanTitle.trim() || title2;
   for (const [pattern, replacement] of TRANSLITERATIONS) text = text.replace(pattern, replacement);
   const ascii = text.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   if (!ascii) return "";
@@ -1233,12 +1233,12 @@ function slugifyTitle(title, maxWords = SLUG_MAX_WORDS) {
   }
   return slug.replace(/^_+|_+$/g, "");
 }
-function buildTaskFilename(id, title, category, takenFilenames = []) {
+function buildTaskFilename(id, title2, category, takenFilenames = []) {
   const safeId = String(id ?? "").trim();
   if (!safeId) throw new Error("buildTaskFilename requires a task id");
   if (/[\\/]|^\.+$/.test(safeId)) throw new Error(`Unsafe task id for a filename: ${safeId}`);
-  const categorySegment = normalizeCategorySegment(category ?? null) ?? categorySegmentFromTitle(title ?? "");
-  const slug = slugifyTitle(title ?? "");
+  const categorySegment = normalizeCategorySegment(category ?? null) ?? categorySegmentFromTitle(title2 ?? "");
+  const slug = slugifyTitle(title2 ?? "");
   let body;
   if (categorySegment && slug) body = `${categorySegment}${SLUG_SEPARATOR}${slug}`;
   else if (categorySegment) body = categorySegment;
@@ -1507,9 +1507,9 @@ function findTaskPath(kandownDir, taskId) {
   }
   return null;
 }
-function newTaskFilePath(kandownDir, id, title, category) {
+function newTaskFilePath(kandownDir, id, title2, category) {
   const tasksDir = getTasksDir(kandownDir);
-  return join4(tasksDir, buildTaskFilename(id, title, category, listTaskFilenames(tasksDir)));
+  return join4(tasksDir, buildTaskFilename(id, title2, category, listTaskFilenames(tasksDir)));
 }
 function writeTaskContent(kandownDir, id, content, options = {}) {
   const useGit = options.useGit !== false;
@@ -1752,11 +1752,11 @@ function createTaskInBoard(kandownDir, rawInput, status) {
     depends_on.push(depId);
     return " ";
   });
-  const title = text.replace(/\s+/g, " ").trim() || rawInput;
-  const { category, cleanTitle } = parseTaskTitle(title);
+  const title2 = text.replace(/\s+/g, " ").trim() || rawInput;
+  const { category, cleanTitle } = parseTaskTitle(title2);
   const fm = stampUpdated({
     id: newId,
-    title: category ? cleanTitle : title,
+    title: category ? cleanTitle : title2,
     status: targetStatus,
     created: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10)
   });
@@ -1767,7 +1767,7 @@ function createTaskInBoard(kandownDir, rawInput, status) {
   if (due) fm.due = due;
   if (depends_on.length > 0) fm.depends_on = depends_on;
   const content = serializeTaskFile(fm, "");
-  const taskPath = newTaskFilePath(kandownDir, newId, title);
+  const taskPath = newTaskFilePath(kandownDir, newId, title2);
   atomicWriteFileSync(taskPath, content);
   pushUndo(kandownDir, {
     type: "create",
@@ -2216,6 +2216,7 @@ ${c.bold}COMMANDS:${c.reset}
   run [id]            Cascade: run ready tasks via assigned agents (DAG chain)
   agents              List detected AI agents + catalog (.kandown/agents.json)
   extension           Manage extensions (list/enable/disable/install/create)
+  plugin              Author plugins (create/build/check/dev/brief/publish)
   workflow            Manage workflows, templates, store installs and updates
   commit              Commit task changes to git
   update              Update kandown CLI to latest version (alias: upgrade)
@@ -2294,8 +2295,8 @@ function resolveStatusArg(kandownDir, status) {
 function findTaskPath2(kandownDir, id) {
   return findTaskPath(kandownDir, id);
 }
-function newTaskPath(kandownDir, id, title, category) {
-  return newTaskFilePath(kandownDir, id, title, category);
+function newTaskPath(kandownDir, id, title2, category) {
+  return newTaskFilePath(kandownDir, id, title2, category);
 }
 function nextTaskId(kandownDir) {
   const ids = new Set(listTaskIds(kandownDir));
@@ -2400,6 +2401,8 @@ var init_cli_shared = __esm({
       "reslug",
       "extension",
       "extensions",
+      "plugin",
+      "plugins",
       "theme",
       "themes",
       "workflow",
@@ -3048,19 +3051,19 @@ function parseSections(source, bodyStart, errors) {
   let cursor = firstTag;
   while (cursor < source.length) {
     const remaining = source.slice(cursor);
-    const open = remaining.match(SECTION_OPEN);
-    if (!open) {
+    const open2 = remaining.match(SECTION_OPEN);
+    if (!open2) {
       addError2(errors, "malformed_capsule", `capsule.sections[${sections.length}]`, "Malformed Kandown section tag");
       return sections;
     }
-    const rawKind = open[1] ?? "";
+    const rawKind = open2[1] ?? "";
     if (!isCapsuleSectionKind(rawKind)) {
       addError2(errors, "unknown_section", `capsule.sections[${sections.length}]`, `Unknown Kandown section kind "${rawKind}"`);
       return sections;
     }
     let path;
     try {
-      path = decodeURIComponent(open[2] ?? "");
+      path = decodeURIComponent(open2[2] ?? "");
     } catch {
       addError2(errors, "malformed_capsule", `capsule.sections[${sections.length}].path`, "Section path is not valid URI encoding");
       return sections;
@@ -3069,12 +3072,12 @@ function parseSections(source, bodyStart, errors) {
       addError2(errors, "unsafe_path", `capsule.sections[${sections.length}].path`, `Section path "${path}" is unsafe`);
       return sections;
     }
-    const length = Number(open[3]);
+    const length = Number(open2[3]);
     if (!Number.isSafeInteger(length) || length < 0) {
       addError2(errors, "malformed_capsule", `capsule.sections[${sections.length}].chars`, "Section character count is invalid");
       return sections;
     }
-    const contentStart = cursor + open[0].length;
+    const contentStart = cursor + open2[0].length;
     const contentEnd = contentStart + length;
     if (contentEnd > source.length) {
       addError2(errors, "malformed_capsule", `capsule.sections[${sections.length}]`, "Section content is shorter than its declared character count");
@@ -3255,14 +3258,14 @@ __export(workflows_store_exports, {
   previewWorkflowUpdate: () => previewWorkflowUpdate
 });
 import { createHash as createHash3 } from "crypto";
-import { existsSync as existsSync21, readFileSync as readFileSync19 } from "fs";
+import { existsSync as existsSync21, readFileSync as readFileSync18 } from "fs";
 import { join as join23 } from "path";
 function installFilePath(kandownDir) {
   return join23(kandownDir, "workflow-installs.json");
 }
 function readInstalls(kandownDir) {
   try {
-    const parsed = JSON.parse(readFileSync19(installFilePath(kandownDir), "utf8"));
+    const parsed = JSON.parse(readFileSync18(installFilePath(kandownDir), "utf8"));
     return parsed.version === 1 && parsed.installs && typeof parsed.installs === "object" ? parsed : { version: 1, installs: {} };
   } catch {
     return { version: 1, installs: {} };
@@ -3382,15 +3385,15 @@ var init_workflows_store = __esm({
 });
 
 // src/cli/lib/workflows-cli.ts
-import { existsSync as existsSync22, mkdirSync as mkdirSync11, readFileSync as readFileSync20, readdirSync as readdirSync8, statSync as statSync6, unlinkSync as unlinkSync6 } from "fs";
+import { existsSync as existsSync22, mkdirSync as mkdirSync11, readFileSync as readFileSync19, readdirSync as readdirSync8, statSync as statSync6, unlinkSync as unlinkSync6 } from "fs";
 import { basename as basename6, join as join24, resolve as resolve9 } from "path";
 function sourceFiles(directory, prefix = "") {
   const files = {};
   for (const name of readdirSync8(directory)) {
     const absolute = join24(directory, name);
-    const relative = prefix ? `${prefix}/${name}` : name;
-    if (statSync6(absolute).isDirectory()) Object.assign(files, sourceFiles(absolute, relative));
-    else files[relative] = readFileSync20(absolute, "utf8");
+    const relative3 = prefix ? `${prefix}/${name}` : name;
+    if (statSync6(absolute).isDirectory()) Object.assign(files, sourceFiles(absolute, relative3));
+    else files[relative3] = readFileSync19(absolute, "utf8");
   }
   return files;
 }
@@ -3402,7 +3405,7 @@ function workflowRoots(kandownDir) {
 }
 function installedStoreIds(kandownDir) {
   try {
-    const raw = JSON.parse(readFileSync20(join24(kandownDir, "workflow-installs.json"), "utf8"));
+    const raw = JSON.parse(readFileSync19(join24(kandownDir, "workflow-installs.json"), "utf8"));
     return new Set(Object.keys(raw.installs ?? {}));
   } catch {
     return /* @__PURE__ */ new Set();
@@ -3716,7 +3719,7 @@ ${workflow.guide.content}` : ""}`);
     }
     if (sub === "import") {
       const capsulePath = resolve9(args.positional[1] ?? "");
-      const result = importWorkflowCapsule(readFileSync20(capsulePath, "utf8"));
+      const result = importWorkflowCapsule(readFileSync19(capsulePath, "utf8"));
       if (!result.ok) throw new Error(result.errors.map((item) => `${item.path}: ${item.message}`).join("\n"));
       success(`Imported ${writeWorkflowPackage(kandownDir, result.value)}.`);
       return;
@@ -3744,8 +3747,8 @@ var init_workflows_cli = __esm({
 
 // src/cli/cli.ts
 init_updater();
-import { existsSync as existsSync26 } from "fs";
-import { join as join30 } from "path";
+import { existsSync as existsSync31 } from "fs";
+import { join as join37 } from "path";
 
 // src/cli/lib/daemon.ts
 init_updater();
@@ -3813,16 +3816,16 @@ async function fetchDaemonInfo(port) {
   }
 }
 function isPortListening(port, timeoutMs = 400) {
-  return new Promise((resolve11) => {
+  return new Promise((resolve13) => {
     const socket = createConnection({ port, host: "127.0.0.1" }, () => {
       socket.destroy();
-      resolve11(true);
+      resolve13(true);
     });
-    socket.on("error", () => resolve11(false));
+    socket.on("error", () => resolve13(false));
     socket.setTimeout(timeoutMs);
     socket.on("timeout", () => {
       socket.destroy();
-      resolve11(false);
+      resolve13(false);
     });
   });
 }
@@ -3850,7 +3853,7 @@ async function waitForDaemon(kandownDir, timeoutMs = 8e3) {
     if (metadata && isProcessAlive(metadata.pid) && await isPortListening(metadata.port)) {
       return { running: true, metadata };
     }
-    await new Promise((resolve11) => setTimeout(resolve11, 120));
+    await new Promise((resolve13) => setTimeout(resolve13, 120));
   }
   return { running: false, metadata: null };
 }
@@ -3913,7 +3916,7 @@ async function stopProjectDaemon(kandownDir) {
   }
   const started = Date.now();
   while (Date.now() - started < 2500 && isProcessAlive(pid)) {
-    await new Promise((resolve11) => setTimeout(resolve11, 100));
+    await new Promise((resolve13) => setTimeout(resolve13, 100));
   }
   if (isProcessAlive(pid)) {
     try {
@@ -3935,7 +3938,7 @@ function pendingUpgradeTarget() {
 }
 function scheduleDaemonSelfUpgrade(kandownDir) {
   const alreadyAttempted = process.env[DAEMON_UPGRADE_ENV];
-  const check = () => {
+  const check2 = () => {
     const target = pendingUpgradeTarget();
     if (!target) return;
     if (alreadyAttempted === target) return;
@@ -3956,8 +3959,8 @@ function scheduleDaemonSelfUpgrade(kandownDir) {
     } catch {
     }
   };
-  const first = setTimeout(check, FIRST_CHECK_MS);
-  const interval = setInterval(check, CHECK_INTERVAL_MS);
+  const first = setTimeout(check2, FIRST_CHECK_MS);
+  const interval = setInterval(check2, CHECK_INTERVAL_MS);
   first.unref?.();
   interval.unref?.();
   return () => {
@@ -4247,8 +4250,8 @@ var TRACKING = {
   balanced: "Update the task after each completed subtask, phase change, blocker, or important discovery.",
   economy: "Update the task at start, on blockers, at phase changes, and at completion."
 };
-function section(title, body) {
-  return `## ${title}
+function section(title2, body) {
+  return `## ${title2}
 
 ${body.trim()}`;
 }
@@ -4536,9 +4539,9 @@ function readSourceFiles(directory, prefix = "") {
   const files = {};
   for (const name of readdirSync5(directory)) {
     const absolute = join12(directory, name);
-    const relative = prefix ? `${prefix}/${name}` : name;
-    if (statSync4(absolute).isDirectory()) Object.assign(files, readSourceFiles(absolute, relative));
-    else files[relative] = readFileSync11(absolute, "utf8");
+    const relative3 = prefix ? `${prefix}/${name}` : name;
+    if (statSync4(absolute).isDirectory()) Object.assign(files, readSourceFiles(absolute, relative3));
+    else files[relative3] = readFileSync11(absolute, "utf8");
   }
   return files;
 }
@@ -4751,9 +4754,9 @@ function readSourceFiles2(directory, prefix = "") {
   const files = {};
   for (const name of readdirSync6(directory)) {
     const absolute = join14(directory, name);
-    const relative = prefix ? `${prefix}/${name}` : name;
-    if (statSync5(absolute).isDirectory()) Object.assign(files, readSourceFiles2(absolute, relative));
-    else files[relative] = readFileSync13(absolute, "utf8");
+    const relative3 = prefix ? `${prefix}/${name}` : name;
+    if (statSync5(absolute).isDirectory()) Object.assign(files, readSourceFiles2(absolute, relative3));
+    else files[relative3] = readFileSync13(absolute, "utf8");
   }
   return files;
 }
@@ -4897,7 +4900,7 @@ function cmdInit(rawArgs) {
 async function cmdUpdate(rawArgs) {
   const current = getCurrentVersion();
   log(`${c.bold}kandown update${c.reset} ${c.dim}\u2014 v${current}${c.reset}`);
-  const latest = await new Promise((resolve11) => {
+  const latest = await new Promise((resolve13) => {
     const child = spawn5("npm", ["view", "kandown", "version"], {
       timeout: 6e3,
       stdio: ["pipe", "pipe", "pipe"],
@@ -4910,11 +4913,11 @@ async function cmdUpdate(rawArgs) {
     });
     child.stderr.on("data", () => {
     });
-    child.on("error", () => resolve11(null));
+    child.on("error", () => resolve13(null));
     child.on("close", (code) => {
-      if (code !== 0) return resolve11(null);
+      if (code !== 0) return resolve13(null);
       const v = stdout.trim().replace(/^"|"$/g, "");
-      resolve11(v || null);
+      resolve13(v || null);
     });
   });
   if (latest && semverGt(latest, current) > 0) {
@@ -4990,12 +4993,12 @@ async function cmdWork(rawArgs) {
 
 // src/cli/commands/tasks.ts
 init_board_reader();
-import { existsSync as existsSync18, readFileSync as readFileSync18, mkdirSync as mkdirSync8 } from "fs";
+import { existsSync as existsSync18, readFileSync as readFileSync17, mkdirSync as mkdirSync8 } from "fs";
 import { join as join20, resolve as resolve8 } from "path";
 import { spawnSync as spawnSync2 } from "child_process";
 
 // src/cli/lib/extensions-cli.ts
-import { existsSync as existsSync16, readFileSync as readFileSync16, writeFileSync as writeFileSync5, mkdirSync as mkdirSync7, cpSync, rmSync, readdirSync as readdirSync7 } from "fs";
+import { existsSync as existsSync16, readFileSync as readFileSync15, writeFileSync as writeFileSync5, mkdirSync as mkdirSync7, cpSync, rmSync, readdirSync as readdirSync7 } from "fs";
 import { join as join18, resolve as resolve7 } from "path";
 
 // src/lib/extensions/host.ts
@@ -5194,13 +5197,21 @@ var ExtensionHost = class {
   /**
    * 📖 Discovers and loads every extension, applying restricted mode, project
    * trust and version compatibility. Safe to call repeatedly (it resets first).
+   *
+   * 📖 `options.inspect` skips the trust and restricted-mode gates, and
+   * `options.only` narrows the load to one id. Both exist for `kandown plugin
+   * check`, which must be able to report on a plugin the user has deliberately
+   * not enabled yet. Inspection is in-process and one-shot: it never persists
+   * trust, never installs the host anywhere, and the author already controls the
+   * machine, so it grants no capability they did not have.
    */
-  async loadAll() {
+  async loadAll(options = {}) {
     this.registry.reset();
     this.byExtId.clear();
-    const restricted = isRestricted(this.env.config);
+    const restricted = isRestricted(this.env.config) && !options.inspect;
     const discovered = discoverExtensions(this.env.projectDir);
     for (const found of discovered) {
+      if (options.only && found.manifestResult.ok && found.manifestResult.manifest.id !== options.only) continue;
       if (!found.manifestResult.ok) {
         this.byExtId.set(found.dir, {
           manifest: { id: "(invalid)", name: "(invalid)", version: "0", apiVersion: SUPPORTED_API_VERSION },
@@ -5222,7 +5233,7 @@ var ExtensionHost = class {
         continue;
       }
       const persistedFailure = this.failures.get(manifest.id);
-      if (persistedFailure && persistedFailure.failures >= QUARANTINE_THRESHOLD) {
+      if (!options.inspect && persistedFailure && persistedFailure.failures >= QUARANTINE_THRESHOLD) {
         this.byExtId.set(manifest.id, loaded(
           manifest,
           found.dir,
@@ -5233,7 +5244,7 @@ var ExtensionHost = class {
         ));
         continue;
       }
-      if (found.source === "project" && !this.trust.has(manifest.id)) {
+      if (!options.inspect && found.source === "project" && !this.trust.has(manifest.id)) {
         this.byExtId.set(manifest.id, loaded(manifest, found.dir, found.source, "disabled", 'project extension not trusted; run "kandown extension enable"'));
         continue;
       }
@@ -5640,7 +5651,7 @@ ${guidance.summary}`);
           return;
         }
         log(`
-${readFileSync16(guidePath, "utf8")}`);
+${readFileSync15(guidePath, "utf8")}`);
       }
       if (guidance.source) log(`
 Source: ${guidance.source}`);
@@ -5731,7 +5742,7 @@ function purgePluginData(kandownDir, extId) {
   for (const file of readdirSync7(tasksDir)) {
     if (!file.endsWith(".md")) continue;
     const path = join18(tasksDir, file);
-    const raw = readFileSync16(path, "utf8");
+    const raw = readFileSync15(path, "utf8");
     const fmMatch = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
     if (!fmMatch || !raw.includes(`plugins:`)) continue;
     const parsed = parseTaskFile(raw);
@@ -5751,7 +5762,7 @@ async function installExtension(kandownDir, target) {
   mkdirSync7(destRoot, { recursive: true });
   const src = resolve7(target);
   if (existsSync16(src) && existsSync16(join18(src, "manifest.json"))) {
-    const manifest = JSON.parse(readFileSync16(join18(src, "manifest.json"), "utf8"));
+    const manifest = JSON.parse(readFileSync15(join18(src, "manifest.json"), "utf8"));
     if (!manifest.id) return null;
     const dest = join18(destRoot, manifest.id);
     rmSync(dest, { recursive: true, force: true });
@@ -5817,7 +5828,7 @@ import { execFileSync as execFileSync2 } from "child_process";
 
 // src/cli/lib/agents-config.ts
 init_atomic_write();
-import { existsSync as existsSync17, readFileSync as readFileSync17 } from "fs";
+import { existsSync as existsSync17, readFileSync as readFileSync16 } from "fs";
 import { join as join19 } from "path";
 var AGENTS_CONFIG_VERSION = 1;
 var DEFAULT_CASCADE = {
@@ -5861,7 +5872,7 @@ function loadAgentsConfig(kandownDir) {
   if (!existsSync17(path)) return defaultAgentsConfig();
   let raw;
   try {
-    raw = JSON.parse(readFileSync17(path, "utf8"));
+    raw = JSON.parse(readFileSync16(path, "utf8"));
   } catch (e) {
     const err3 = e;
     if (err3.code === "ENOENT") return defaultAgentsConfig();
@@ -6422,18 +6433,18 @@ function cmdShow(rawArgs) {
     err(`Task not found: ${id}`);
     process.exit(1);
   }
-  process.stdout.write(readFileSync18(path, "utf8"));
+  process.stdout.write(readFileSync17(path, "utf8"));
 }
 function cmdCreate(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
   const args = taskParseArgs(rawArgs);
-  const title = args.positional.join(" ").trim();
-  if (!title) {
+  const title2 = args.positional.join(" ").trim();
+  if (!title2) {
     err('Usage: kandown create "title" [-p P1] [-a user] [-t tag] [--to status] [--id custom-id] [--json]');
     process.exit(1);
   }
-  const { category, cleanTitle } = parseTaskTitle(title);
-  const storedTitle = category ? cleanTitle : title;
+  const { category, cleanTitle } = parseTaskTitle(title2);
+  const storedTitle = category ? cleanTitle : title2;
   const id = stringFlag(args.flags, "id") ?? nextTaskId(kandownDir);
   if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
     err(`Invalid task id: ${id}`);
@@ -6561,7 +6572,7 @@ function cmdProjects(rawArgs) {
     info("No daemon metadata for this project.");
     return;
   }
-  process.stdout.write(readFileSync18(metadataPath2, "utf8").trim() + "\n");
+  process.stdout.write(readFileSync17(metadataPath2, "utf8").trim() + "\n");
 }
 function cmdImport(rawArgs) {
   const { kandownDir } = ensureKandownDir(rawArgs);
@@ -6578,7 +6589,7 @@ function cmdImport(rawArgs) {
   }
   let raw;
   try {
-    raw = JSON.parse(readFileSync18(importPath, "utf8"));
+    raw = JSON.parse(readFileSync17(importPath, "utf8"));
   } catch (error) {
     err(`Import file must be JSON: ${error instanceof Error ? error.message : String(error)}`);
     process.exit(1);
@@ -6606,9 +6617,9 @@ function cmdImport(rawArgs) {
   let imported = 0;
   for (const row of rows) {
     const id = typeof row.id === "string" && /^[a-zA-Z0-9_-]+$/.test(row.id) ? row.id : nextTaskId(kandownDir);
-    const title = typeof row.title === "string" && row.title ? row.title : id;
-    const { category: rowCategory, cleanTitle: rowCleanTitle } = parseTaskTitle(title);
-    const storedTitle = rowCategory ? rowCleanTitle : title;
+    const title2 = typeof row.title === "string" && row.title ? row.title : id;
+    const { category: rowCategory, cleanTitle: rowCleanTitle } = parseTaskTitle(title2);
+    const storedTitle = rowCategory ? rowCleanTitle : title2;
     const existing = findTaskPath2(kandownDir, id);
     if (existing && args.flags.overwrite !== true) continue;
     const path = existing ?? newTaskPath(kandownDir, id, storedTitle, rowCategory);
@@ -6635,7 +6646,7 @@ init_board_reader();
 init_task_filename();
 init_config2();
 import { createServer } from "http";
-import { existsSync as existsSync23, readFileSync as readFileSync21, copyFileSync as copyFileSync3, unlinkSync as unlinkSync7, mkdirSync as mkdirSync12 } from "fs";
+import { existsSync as existsSync23, readFileSync as readFileSync20, copyFileSync as copyFileSync3, unlinkSync as unlinkSync7, mkdirSync as mkdirSync12 } from "fs";
 import { basename as basename7, join as join25 } from "path";
 import { spawn as spawn6 } from "child_process";
 init_updater();
@@ -7286,11 +7297,11 @@ function listInstalledThemes(projectDir) {
   const dir = join22(projectDir, ".kandown", "themes");
   if (!existsSync20(dir)) return [];
   const themes = [];
-  const { readFileSync: readFileSync23, readdirSync: readdirSync11 } = __require("fs");
-  for (const file of readdirSync11(dir)) {
+  const { readFileSync: readFileSync25, readdirSync: readdirSync12 } = __require("fs");
+  for (const file of readdirSync12(dir)) {
     if (!file.endsWith(".json")) continue;
     try {
-      const raw = readFileSync23(join22(dir, file), "utf8");
+      const raw = readFileSync25(join22(dir, file), "utf8");
       const parsed = JSON.parse(raw);
       if (parsed && parsed.id && parsed.light && parsed.dark) {
         themes.push({ ...parsed, isCustom: true });
@@ -7416,8 +7427,8 @@ function syncProjectKandownHtml(kandownDir) {
       copyFileSync3(distHtml, projectHtml);
       return true;
     }
-    const currentContent = readFileSync21(projectHtml, "utf8");
-    const newContent = readFileSync21(distHtml, "utf8");
+    const currentContent = readFileSync20(projectHtml, "utf8");
+    const newContent = readFileSync20(distHtml, "utf8");
     if (currentContent !== newContent) {
       atomicWriteFileSync(projectHtml, newContent);
       return true;
@@ -7428,7 +7439,7 @@ function syncProjectKandownHtml(kandownDir) {
 }
 function readDaemonPort(kandownDir) {
   try {
-    const raw = JSON.parse(readFileSync21(join25(kandownDir, "daemon.json"), "utf8"));
+    const raw = JSON.parse(readFileSync20(join25(kandownDir, "daemon.json"), "utf8"));
     return typeof raw.port === "number" && Number.isInteger(raw.port) ? raw.port : null;
   } catch {
     return null;
@@ -7483,7 +7494,7 @@ async function handleApi(req, res, url, kandownDir) {
   }
   if (path === "/api/update/check" && method === "GET") {
     const current = getCurrentVersion();
-    const latest = await new Promise((resolve11) => {
+    const latest = await new Promise((resolve13) => {
       const child = spawn6("npm", ["view", "kandown", "version"], {
         timeout: 4e3,
         stdio: ["pipe", "pipe", "pipe"],
@@ -7496,10 +7507,10 @@ async function handleApi(req, res, url, kandownDir) {
       });
       child.stderr.on("data", () => {
       });
-      child.on("error", () => resolve11(null));
+      child.on("error", () => resolve13(null));
       child.on("close", (code) => {
-        if (code !== 0) return resolve11(null);
-        resolve11(stdout.trim().replace(/^"|"$/g, "") || null);
+        if (code !== 0) return resolve13(null);
+        resolve13(stdout.trim().replace(/^"|"$/g, "") || null);
       });
     });
     const installed = getInstalledVersion() ?? current;
@@ -7515,7 +7526,7 @@ async function handleApi(req, res, url, kandownDir) {
   }
   if (path === "/api/update/apply" && method === "POST") {
     const current = getCurrentVersion();
-    const latest = await new Promise((resolve11) => {
+    const latest = await new Promise((resolve13) => {
       const child = spawn6("npm", ["view", "kandown", "version"], {
         timeout: 4e3,
         stdio: ["pipe", "pipe", "pipe"],
@@ -7526,8 +7537,8 @@ async function handleApi(req, res, url, kandownDir) {
       child.stdout.on("data", (d) => {
         stdout += d;
       });
-      child.on("error", () => resolve11(null));
-      child.on("close", (code) => resolve11(code === 0 ? stdout.trim() : null));
+      child.on("error", () => resolve13(null));
+      child.on("close", (code) => resolve13(code === 0 ? stdout.trim() : null));
     });
     const targetVersion = latest || current;
     const ok = await performGlobalPackageUpdate(`kandown@${targetVersion}`);
@@ -7560,7 +7571,7 @@ async function handleApi(req, res, url, kandownDir) {
     if (method === "GET") {
       const tasksDir = getTasksDir(kandownDir);
       const boardPath = join25(tasksDir, "board.md");
-      const text = existsSync23(boardPath) ? readFileSync21(boardPath, "utf8") : "";
+      const text = existsSync23(boardPath) ? readFileSync20(boardPath, "utf8") : "";
       return writeText(res, 200, text);
     }
     if (method === "PUT") {
@@ -7606,7 +7617,7 @@ async function handleApi(req, res, url, kandownDir) {
   }
   if (path === "/api/instructions") {
     const instructionsPath = join25(kandownDir, "kandown_work.md");
-    if (method === "GET") return writeText(res, 200, existsSync23(instructionsPath) ? readFileSync21(instructionsPath, "utf8") : "");
+    if (method === "GET") return writeText(res, 200, existsSync23(instructionsPath) ? readFileSync20(instructionsPath, "utf8") : "");
     if (method === "PUT") {
       try {
         atomicWriteFileSync(instructionsPath, await readRequestBody(req));
@@ -7727,6 +7738,13 @@ async function handleApi(req, res, url, kandownDir) {
     const badges = await host.renderBadges();
     return writeJson(res, 200, { extensions: host.installedSummary(), badges });
   }
+  if (path === "/api/extensions/reload" && method === "POST") {
+    extensionHost = null;
+    extensionHostDir = null;
+    await getExtensionHost(kandownDir);
+    broadcastSseEvent({ type: "extensions" });
+    return writeJson(res, 200, { ok: true });
+  }
   if (path.startsWith("/api/extensions/")) {
     const parts = path.slice("/api/extensions/".length).split("/").filter(Boolean);
     let id;
@@ -7773,7 +7791,7 @@ async function handleApi(req, res, url, kandownDir) {
       if (!/^[a-zA-Z0-9._\/-]+$/.test(rel) || rel.includes("..")) return writeText(res, 400, "Bad path");
       const file = join25(ext.dir, rel);
       if (!existsSync23(file)) return writeText(res, 404, "File not found");
-      return writeText(res, 200, readFileSync21(file, "utf8"));
+      return writeText(res, 200, readFileSync20(file, "utf8"));
     }
   }
   if (path === "/api/extensions/registry" && method === "GET") {
@@ -7815,10 +7833,10 @@ async function handleApi(req, res, url, kandownDir) {
   if (path.startsWith("/api/themes/") && method === "DELETE") {
     const rawId = decodeURIComponent(path.slice("/api/themes/".length).split("?")[0] ?? "");
     if (!/^[a-z][a-z0-9-]{0,63}$/.test(rawId)) return writeJson(res, 400, { error: "Invalid theme id" });
-    const { unlinkSync: unlinkSync8, existsSync: existsSync27 } = await import("fs");
-    const { join: join31 } = await import("path");
-    const file = join31(getProjectRoot(kandownDir), ".kandown", "themes", `${rawId}.json`);
-    if (!existsSync27(file)) return writeJson(res, 404, { error: "Theme not installed" });
+    const { unlinkSync: unlinkSync8, existsSync: existsSync32 } = await import("fs");
+    const { join: join38 } = await import("path");
+    const file = join38(getProjectRoot(kandownDir), ".kandown", "themes", `${rawId}.json`);
+    if (!existsSync32(file)) return writeJson(res, 404, { error: "Theme not installed" });
     try {
       unlinkSync8(file);
       broadcastSseEvent({ type: "themes" });
@@ -7948,7 +7966,7 @@ async function handleApi(req, res, url, kandownDir) {
     if (method === "GET") {
       const taskPath = findTaskPath(kandownDir, taskId);
       if (!taskPath) return writeText(res, 404, "Task not found");
-      return writeText(res, 200, readFileSync21(taskPath, "utf8"));
+      return writeText(res, 200, readFileSync20(taskPath, "utf8"));
     }
     if (method === "PUT") {
       try {
@@ -7993,7 +8011,7 @@ function serveApp(res, kandownDir) {
   syncProjectKandownHtml(kandownDir);
   const htmlPath = join25(kandownDir, "kandown.html");
   if (existsSync23(htmlPath)) {
-    const html = readFileSync21(htmlPath, "utf8");
+    const html = readFileSync20(htmlPath, "utf8");
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
     res.end(injectServerRoot(html, kandownDir));
   } else {
@@ -8191,14 +8209,14 @@ function runAgentSync(opts) {
   const { taskId, kandownDir } = opts;
   const prepared = prepareLaunch(opts);
   const { binary, args, contextFile, originalStatus, agentName } = prepared;
-  return new Promise((resolve11, reject) => {
+  return new Promise((resolve13, reject) => {
     const child = spawn7(binary, args, { stdio: "inherit", env: launchEnv(contextFile, taskId, kandownDir) });
     child.on("error", (e) => {
       rollbackTaskStatus(kandownDir, taskId, originalStatus);
       reject(new Error(`Failed to launch ${agentName}: ${e.message}`));
     });
     child.on("exit", (code) => {
-      resolve11({ exitCode: code ?? 0 });
+      resolve13({ exitCode: code ?? 0 });
     });
   });
 }
@@ -8593,9 +8611,2815 @@ function cmdAgents(rawArgs) {
   log("");
 }
 
+// src/cli/lib/plugin-cli.ts
+import { spawn as spawn8 } from "child_process";
+import { existsSync as existsSync29, readFileSync as readFileSync23 } from "fs";
+import { basename as basename13, join as join35 } from "path";
+
+// src/lib/extensions/agent-brief.ts
+var EXTENSION_AGENT_BRIEF = "# Kandown plugin brief (for coding agents)\n\n<!-- Generated by scripts/build-extension-brief.js from src/lib/extensions/types.ts.\n     Do not edit by hand: run `pnpm extension-brief`. -->\n\nYou are writing a **kandown plugin**. This document is the complete contract.\nEverything below is extracted from the shipped type definitions, so it matches\nthe runtime you will be loaded into. Read it once, write the code, then run the\nloop at the bottom until it is green.\n\n## 1. What a plugin is\n\nA directory under `.kandown/extensions/<id>/` containing:\n\n| File | Required | Purpose |\n|---|---|---|\n| `manifest.json` | yes | identity, permissions, display hints |\n| `index.ts` | yes | the Node entry, loaded with jiti (no build step in dev) |\n| `index.js` | to ship | bundled entry, the only thing the browser can execute |\n| `web.tsx` / `web.js` | panels only | the panel module, bundled the same way |\n| `README.md` | no | human documentation |\n\n`index.ts` default-exports a factory. It is called once at load, it registers\ncontributions, and it must not do slow or throwing work at module scope.\n\n```typescript\nimport type { KandownExtensionAPI } from 'kandown';\n\nexport default function (kd: KandownExtensionAPI) {\n  // register here\n}\n```\n\n## 2. The API you are handed\n\n```typescript\nexport interface KandownExtensionAPI {\n  readonly id: string;\n  contributeField(def: FieldContribution): void;\n  contributeWebPanel(def: WebPanelContribution): void;\n  contributeCommand(name: string, def: CommandContribution): void;\n  contributeGate(def: GateContribution): void;\n  contributeSync(def: SyncContribution): void;\n  on(event: 'task:afterCreate' | 'task:afterMove' | 'task:afterArchive' | 'board:load', handler: LifecycleHandler): void;\n}\n```\n\nContribution shapes, verbatim:\n\n```typescript\nexport interface FieldContribution {\n  key: string;\n  label: string;\n  type: FieldType;\n  options?: { value: string; label: string }[];\n  badge?: (value: unknown, task: TaskLike) => string | null;\n  editorComponentId?: string;\n}\n\nexport interface WebPanelContribution {\n  id: string;\n  title: string;\n  entry: string;\n  icon?: string;\n}\n\nexport interface CommandContribution {\n  name: string;\n  description?: string;\n  handler: (args: string, ctx: ExtensionCommandContext) => void | Promise<void>;\n}\n\nexport interface GateContribution {\n  id?: string;\n  on: 'task:beforeMove' | 'task:beforeCreate' | 'task:beforeArchive' | 'task:beforeDelete';\n  to?: string;\n  handler: (event: GateEvent, ctx: ExtensionContext) => void | Promise<void | GateVerdict>;\n}\n\nexport interface SyncContribution {\n  id?: string;\n  on: 'task:afterMove' | 'task:afterCreate' | 'task:afterArchive';\n  to?: string;\n  handler: (event: TaskEvent, ctx: ExtensionContext) => void | Promise<void>;\n}\n\nexport interface GateVerdict {\n  block?: boolean;\n  reason?: string;\n}\n```\n\n## 3. The context handlers receive\n\n```typescript\nexport interface ExtensionContext {\n  extId: string;\n  signal?: AbortSignal;\n  board: {\n    readAll(): Promise<TaskLike[]>;\n    read(taskId: string): Promise<TaskLike | null>;\n  };\n  setField(taskId: string, key: string, value: unknown): Promise<void>;\n  log: {\n    info(msg: string): void;\n    warn(msg: string): void;\n    error(msg: string): void;\n  };\n  fetch?: typeof fetch;\n}\n\nexport interface TaskLike {\n  id: string;\n  frontmatter: Record<string, unknown>;\n  plugins?: Record<string, unknown>;\n}\n```\n\n`ctx.fetch` is present **only** when a `net:` permission is declared. `ctx.board`\nthrows without `read:tasks`. `ctx.setField` throws without\n`write:field:plugins.<id>.<key>` (a trailing `*` covers every key).\n\n## 4. Events\n\n| Kind | Names | Semantics |\n|---|---|---|\n| Gates (`contributeGate`) | `task:beforeMove`, `task:beforeCreate`, `task:beforeArchive`, `task:beforeDelete` | may veto by returning `{ block: true, reason }`; a throw is treated as no objection |\n| Syncs (`contributeSync`) | `task:afterMove`, `task:afterCreate`, `task:afterArchive` | fire and forget, after the file is written |\n| Lifecycle (`kd.on`) | `task:afterCreate`, `task:afterMove`, `task:afterArchive`, `board:load` | observation only, never blocks |\n\nBoth gates and syncs accept an optional `to` to restrict them to one target\ncolumn. A move is allowed only when **every** gate abstains or permits.\n\n## 5. Field types\n\n`string`, `number`, `boolean`, `date`, `select`. Scalars are persisted as strings and coerced back on read,\nso a `number` field reads back as a number. A `select` field must declare\n`options: [{ value, label }]`, and a value outside that list is rejected.\n\n## 6. Where your data lives\n\nOnly under `plugins.<id>.*` in the task frontmatter, opaque to the core:\n\n```yaml\n---\ntitle: Ship the thing\nstatus: Done\nplugins:\n  my-plugin:\n    points: 5\n---\n```\n\nRead it from `event.task.plugins`, write it with `ctx.setField(taskId, key, value)`.\n**Never** write a core field (`title`, `status`, `depends_on`, `created`, ...),\nnever write a second file, never call the serializer.\n\n## 7. Permissions\n\n| Declare | Unlocks |\n|---|---|\n| `read:tasks` | `ctx.board.readAll()`, `ctx.board.read(id)` |\n| `write:field:plugins.<id>.*` | `ctx.setField(...)` for your namespace |\n| `net:*` or `net:<url-prefix>` | `ctx.fetch` |\n| `*` | everything, avoid it |\n\nUndeclared calls throw at runtime. Declare exactly what you use, nothing more:\n`kandown plugin check` reports both missing and unused permissions.\n\n## 8. Web panels\n\nDeclare the panel in `index.ts`, implement it in `web.tsx`:\n\n```typescript\nkd.contributeWebPanel({ id: 'chart', title: 'Burndown', entry: './web.js' });\n```\n\n```javascript\nfunction Chart({ task, api, ui }) {\n  const [tasks, setTasks] = ui.useState([]);\n  ui.useEffect(() => { void api.readAllTasks().then(setTasks); }, [api]);\n  return ui.createElement('div', null, tasks.length + ' tasks');\n}\n\nexport const panels = { chart: Chart };\n```\n\nHard rules for panel modules:\n\n- **Never import React.** The host React runtime arrives as the `ui` prop\n  (`ui.createElement`, `ui.useState`, `ui.useEffect`, `ui.Fragment`). A second\n  React copy in the bundle breaks hooks.\n- The module must be self-contained: it is imported through a Blob URL and\n  cannot resolve sibling files. `kandown plugin build` bundles it for you.\n- Props are exactly `{ task, api, ui }` where `api` is\n  `{ readField(key), readAllTasks(), setField(key, value), refresh() }`.\n- Three consecutive render failures quarantine the plugin.\n\n## 9. The build and verify loop\n\n```bash\nkandown plugin build <id>          # index.ts -> index.js, web.tsx -> web.js\nkandown plugin check <id> --json   # structured verdict, exit code 1 on failure\nkandown plugin enable <id>         # trust + enable\nkandown plugin dev <id>            # watch: rebuild, recheck, hot reload the web UI\n```\n\n`check --json` returns `{ ok, id, checks: [{ id, status, message, fix }] }`.\nRead `fix` on any failing check, apply it, run again. Do not stop until `ok`\nis `true`.\n\n## 10. Failure table\n\n| Symptom from `plugin check` | Fix |\n|---|---|\n| `manifest` invalid id | id must match `^[a-z][a-z0-9-]{0,63}$` |\n| `entry` default export is not a function | export the factory as `export default function (kd) {}` |\n| `permissions` missing | add the exact permission string the check names to `manifest.json` |\n| `bundle` missing index.js | run `kandown plugin build <id>` |\n| `panel` module exports nothing | export `panels` (a map) or a `default` component |\n| `panel` imports react | drop the import, use the `ui` prop |\n| `namespace` write outside plugins.\\<id\\> | only `ctx.setField` may write, and only your own keys |\n| `roundtrip` frontmatter drift | store plain JSON values, no class instances, no `undefined` |\n| quarantined | fix the throw, then `kandown plugin enable <id>` clears the counter |\n\n## 11. Style rules for this codebase\n\n- Never use an em dash or an en dash in any string, comment or document you write.\n- Comment the why, not the what, and open explanatory comments with `\u{1F4D6}`.\n- Keep the factory synchronous unless you genuinely need to await something.\n- Handle your own errors: a throw inside a gate is silently fail-open, which\n  hides bugs. Log with `ctx.log.warn` instead of throwing.\n";
+
+// src/cli/lib/plugin-build.ts
+import { existsSync as existsSync25, readdirSync as readdirSync10, readFileSync as readFileSync21 } from "fs";
+import { basename as basename8, extname as extname2, join as join29 } from "path";
+var SOURCE_EXTENSIONS = [".ts", ".tsx", ".jsx", ".mts"];
+function findSource(dir, stem) {
+  for (const extension of SOURCE_EXTENSIONS) {
+    const candidate = join29(dir, `${stem}${extension}`);
+    if (existsSync25(candidate)) return candidate;
+  }
+  return null;
+}
+function discoverEntries(dir) {
+  const entries = [];
+  const index = findSource(dir, "index");
+  if (index) entries.push({ stem: "index", source: index });
+  let names = [];
+  try {
+    names = readdirSync10(dir);
+  } catch {
+    return entries;
+  }
+  for (const name of names.sort()) {
+    const extension = extname2(name);
+    if (!SOURCE_EXTENSIONS.includes(extension)) continue;
+    const stem = basename8(name, extension);
+    if (!stem.startsWith("web")) continue;
+    if (entries.some((entry) => entry.stem === stem)) continue;
+    entries.push({ stem, source: join29(dir, name) });
+  }
+  return entries;
+}
+async function loadEsbuild() {
+  try {
+    return await import("esbuild");
+  } catch {
+    return null;
+  }
+}
+async function buildPlugin(dir) {
+  const result = { ok: true, outputs: [], errors: [], warnings: [] };
+  const entries = discoverEntries(dir);
+  if (entries.length === 0) {
+    return { ...result, ok: false, errors: ["no TypeScript entry found (expected index.ts or web.tsx)"] };
+  }
+  const esbuild = await loadEsbuild();
+  if (!esbuild) {
+    return {
+      ...result,
+      ok: false,
+      errors: ['esbuild is unavailable; reinstall kandown or run "npm install esbuild" in this project']
+    };
+  }
+  for (const entry of entries) {
+    const out = join29(dir, `${entry.stem}.js`);
+    try {
+      const built = await esbuild.build({
+        entryPoints: [entry.source],
+        outfile: out,
+        bundle: true,
+        format: "esm",
+        platform: "neutral",
+        target: "es2022",
+        // 📖 `neutral` keeps the output browser-safe; these stay external so a
+        // Node-flavoured plugin still compiles and a panel never ships React.
+        external: ["react", "react-dom", "react/jsx-runtime", "kandown", "node:*"],
+        jsx: "automatic",
+        legalComments: "none",
+        logLevel: "silent",
+        write: true
+      });
+      for (const warning of built.warnings) result.warnings.push(`${entry.stem}: ${warning.text}`);
+      const source = readFileSync21(out, "utf8");
+      if (/from\s*["']react(?:-dom|\/jsx-runtime)?["']/.test(source)) {
+        result.errors.push(
+          `${entry.stem}: bundle imports react; panels must use the "ui" prop instead of importing React`
+        );
+        result.ok = false;
+      }
+      result.outputs.push({ entry: entry.source, out, bytes: Buffer.byteLength(source) });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      result.errors.push(`${entry.stem}: ${message.replace(/\n+/g, " ").trim()}`);
+      result.ok = false;
+    }
+  }
+  return result;
+}
+
+// src/cli/lib/plugin-check.ts
+import { existsSync as existsSync26, readFileSync as readFileSync22, statSync as statSync7 } from "fs";
+import { basename as basename9, extname as extname3, join as join30 } from "path";
+init_parser();
+init_serializer();
+init_updater();
+init_config2();
+init_cli_shared();
+function syntheticTasks() {
+  const make = (id, title2, status) => ({
+    id,
+    frontmatter: { id, title: title2, status, created: "2026-01-01", priority: "P2" },
+    plugins: void 0
+  });
+  return [
+    make("check-1", "Synthetic backlog task", "Backlog"),
+    make("check-2", "Synthetic active task", "In Progress"),
+    make("check-3", "Synthetic finished task", "Done")
+  ];
+}
+function stubUi() {
+  const noop = () => void 0;
+  return {
+    createElement: (type, props, ...children) => ({ type, props, children }),
+    Fragment: /* @__PURE__ */ Symbol("Fragment"),
+    useState: (initial) => [typeof initial === "function" ? initial() : initial, noop],
+    // 📖 Effects run so a panel that explodes on mount is caught, but their
+    // async results are dropped: the checker asserts "does not throw", not
+    // "renders the right numbers".
+    useEffect: (effect) => {
+      try {
+        effect();
+      } catch {
+      }
+    },
+    useLayoutEffect: (effect) => {
+      try {
+        effect();
+      } catch {
+      }
+    },
+    useMemo: (factory) => factory(),
+    useCallback: (callback) => callback,
+    useRef: (initial) => ({ current: initial }),
+    useReducer: (_reducer, initial) => [initial, noop],
+    useId: () => "check-id",
+    memo: (component) => component
+  };
+}
+function check(id, status, message, fix) {
+  return fix ? { id, status, message, fix } : { id, status, message };
+}
+function newestMtime(paths) {
+  let newest = 0;
+  for (const path of paths) {
+    try {
+      newest = Math.max(newest, statSync7(path).mtimeMs);
+    } catch {
+    }
+  }
+  return newest;
+}
+function scanPermissionUsage(source) {
+  const usesRead = /\.board\s*\.\s*(readAll|read)\s*\(/.test(source);
+  const usesWrite = /\.setField\s*\(/.test(source);
+  const usesFetch = /\.fetch\s*(\?\.)?\s*\(/.test(source);
+  const needs = [];
+  if (usesRead) needs.push("read:tasks");
+  if (usesFetch) needs.push("net:*");
+  return { needs, uses: { read: usesRead, write: usesWrite, fetch: usesFetch } };
+}
+async function checkPlugin(kandownDir, projectDir, id) {
+  const checks = [];
+  const discovered = discoverExtensions(projectDir);
+  const found = discovered.find((entry) => entry.manifestResult.ok ? entry.manifestResult.manifest.id === id : basename9(entry.dir) === id);
+  if (!found) {
+    return {
+      ok: false,
+      id,
+      dir: null,
+      checks: [check(
+        "discovery",
+        "fail",
+        `no plugin "${id}" found under .kandown/extensions/ or ~/.kandown/extensions/`,
+        `Create it with "kandown plugin create ${id}", or check the directory name.`
+      )]
+    };
+  }
+  const dir = found.dir;
+  if (!found.manifestResult.ok) {
+    return {
+      ok: false,
+      id,
+      dir,
+      checks: [check(
+        "manifest",
+        "fail",
+        found.manifestResult.error,
+        "Fix manifest.json. Required: id (kebab-case), name, version, apiVersion (1)."
+      )]
+    };
+  }
+  const manifest = found.manifestResult.manifest;
+  checks.push(check("manifest", "pass", `manifest.json is valid (v${manifest.version}, apiVersion ${manifest.apiVersion})`));
+  if (basename9(dir) !== manifest.id) {
+    checks.push(check(
+      "manifest-dir",
+      "warn",
+      `directory is "${basename9(dir)}" but the manifest id is "${manifest.id}"`,
+      `Rename the directory to "${manifest.id}" so install and purge target the same namespace.`
+    ));
+  }
+  const tasks = syntheticTasks();
+  const writes = [];
+  const logs = [];
+  const env = {
+    projectDir,
+    kandownVersion: getCurrentVersion(),
+    config: loadConfig(kandownDir),
+    readAll: async () => tasks,
+    read: async (taskId) => tasks.find((task) => task.id === taskId) ?? null,
+    applyField: async (taskId, extId, key, value) => {
+      if (extId !== manifest.id) throw new Error(`refused a write to plugins.${extId}.*`);
+      writes.push({ taskId, key, value });
+    },
+    log: {
+      info: (message) => logs.push(message),
+      warn: (message) => logs.push(`[warn] ${message}`),
+      error: (message) => logs.push(`[error] ${message}`)
+    }
+  };
+  const host = new ExtensionHost(env);
+  await host.loadAll({ only: manifest.id, inspect: true });
+  const loaded2 = host.get(manifest.id);
+  if (!loaded2 || loaded2.health !== "enabled") {
+    checks.push(check(
+      "entry",
+      "fail",
+      loaded2?.error ?? "the plugin did not load",
+      "The default export of index.ts must be a function receiving the kd API, and must not throw while registering."
+    ));
+    return { ok: false, id: manifest.id, dir, checks };
+  }
+  checks.push(check("entry", "pass", "index loaded and the factory ran"));
+  const summary = host.installedSummary().find((entry) => entry.id === manifest.id);
+  const counts = {
+    fields: summary?.fields.length ?? 0,
+    panels: summary?.panels.length ?? 0,
+    commands: summary?.commands.length ?? 0,
+    gates: summary?.gates ?? 0,
+    syncs: summary?.syncs ?? 0
+  };
+  const total = Object.values(counts).reduce((sum, value) => sum + value, 0);
+  if (total === 0) {
+    checks.push(check(
+      "contributions",
+      "fail",
+      "the factory registered nothing",
+      "Call at least one of contributeField, contributeWebPanel, contributeCommand, contributeGate or contributeSync."
+    ));
+  } else {
+    checks.push(check(
+      "contributions",
+      "pass",
+      `${counts.fields} field(s), ${counts.panels} panel(s), ${counts.commands} command(s), ${counts.gates} gate(s), ${counts.syncs} sync(s)`
+    ));
+  }
+  const sources = ["index.ts", "index.tsx", "index.js", "index.mjs"].map((name) => join30(dir, name)).filter((path) => existsSync26(path));
+  const sourceText = sources.map((path) => readFileSync22(path, "utf8")).join("\n");
+  const declared = manifest.permissions ?? [];
+  const usage = scanPermissionUsage(sourceText);
+  const missing = [];
+  for (const permission of usage.needs) {
+    if (!isAllowed(declared, permission)) missing.push(permission);
+  }
+  const needsWrite = usage.uses.write || counts.fields > 0;
+  if (needsWrite && !declared.some((entry) => entry === "*" || entry.startsWith(`write:field:plugins.${manifest.id}.`))) {
+    missing.push(`write:field:plugins.${manifest.id}.*`);
+  }
+  const unused = declared.filter((permission) => {
+    if (permission === "*") return false;
+    if (permission === "read:tasks") return !usage.uses.read;
+    if (permission.startsWith("net:")) return !usage.uses.fetch;
+    if (permission.startsWith("write:field:")) return !needsWrite;
+    return false;
+  });
+  if (missing.length > 0) {
+    checks.push(check(
+      "permissions",
+      "fail",
+      `code calls capabilities the manifest does not declare: ${missing.join(", ")}`,
+      `Add ${JSON.stringify(missing)} to "permissions" in manifest.json.`
+    ));
+  } else if (unused.length > 0) {
+    checks.push(check(
+      "permissions",
+      "warn",
+      `declared but never used: ${unused.join(", ")}`,
+      `Remove ${JSON.stringify(unused)} from "permissions"; an over-broad declaration makes the model meaningless.`
+    ));
+  } else if (declared.includes("*")) {
+    checks.push(check(
+      "permissions",
+      "warn",
+      'the manifest declares "*"',
+      'Replace "*" with the exact permissions used: read:tasks, write:field:plugins.<id>.*, net:*.'
+    ));
+  } else {
+    checks.push(check("permissions", "pass", declared.length > 0 ? `declares ${declared.join(", ")}` : "needs no permission"));
+  }
+  const bundleTargets = [{ stem: "index", sources: sources.filter((path) => extname3(path) === ".ts" || extname3(path) === ".tsx") }];
+  for (const panel of summary?.panels ?? []) {
+    const stem = basename9(panel.entry.replace(/^\.\//, ""), ".js");
+    if (bundleTargets.some((target) => target.stem === stem)) continue;
+    bundleTargets.push({
+      stem,
+      sources: [".tsx", ".ts", ".jsx"].map((extension) => join30(dir, `${stem}${extension}`)).filter((path) => existsSync26(path))
+    });
+  }
+  const staleBundles = [];
+  const missingBundles = [];
+  for (const target of bundleTargets) {
+    const out = join30(dir, `${target.stem}.js`);
+    if (!existsSync26(out)) {
+      if (target.sources.length > 0 || target.stem !== "index") missingBundles.push(`${target.stem}.js`);
+      continue;
+    }
+    if (target.sources.length > 0 && statSync7(out).mtimeMs < newestMtime(target.sources)) {
+      staleBundles.push(`${target.stem}.js`);
+    }
+  }
+  if (missingBundles.length > 0) {
+    checks.push(check(
+      "bundle",
+      "fail",
+      `missing browser bundle(s): ${missingBundles.join(", ")}`,
+      `Run "kandown plugin build ${manifest.id}". The web UI can only execute bundled JavaScript.`
+    ));
+  } else if (staleBundles.length > 0) {
+    checks.push(check(
+      "bundle",
+      "warn",
+      `bundle(s) older than their source: ${staleBundles.join(", ")}`,
+      `Run "kandown plugin build ${manifest.id}" so the browser sees your latest changes.`
+    ));
+  } else {
+    checks.push(check("bundle", "pass", bundleTargets.length > 0 ? "browser bundles are present and current" : "nothing to bundle"));
+  }
+  if ((summary?.panels.length ?? 0) === 0) {
+    checks.push(check("panel", "skip", "no web panel declared"));
+  } else {
+    for (const panel of summary?.panels ?? []) {
+      const entry = panel.entry.replace(/^\.\//, "");
+      const out = join30(dir, entry);
+      if (!existsSync26(out)) {
+        checks.push(check(
+          `panel:${panel.id}`,
+          "fail",
+          `declared entry ${panel.entry} does not exist`,
+          `Run "kandown plugin build ${manifest.id}", or point entry at the bundle it produces.`
+        ));
+        continue;
+      }
+      const source = readFileSync22(out, "utf8");
+      if (/from\s*["']react["']/.test(source)) {
+        checks.push(check(
+          `panel:${panel.id}`,
+          "fail",
+          "the panel bundle imports react",
+          'Delete the React import and use the "ui" prop (ui.createElement, ui.useState, ui.useEffect).'
+        ));
+        continue;
+      }
+      try {
+        const module = await import(`data:text/javascript;charset=utf-8,${encodeURIComponent(source)}`);
+        const component = module.panels?.[panel.id] ?? module.default;
+        if (typeof component !== "function") {
+          checks.push(check(
+            `panel:${panel.id}`,
+            "fail",
+            `the module exports no component for panel "${panel.id}"`,
+            `Export it as "export const panels = { ${panel.id}: Component }" or as the default export.`
+          ));
+          continue;
+        }
+        component({
+          task: tasks[0],
+          api: {
+            readField: () => void 0,
+            readAllTasks: async () => tasks,
+            setField: async () => void 0,
+            refresh: async () => void 0
+          },
+          ui: stubUi()
+        });
+        checks.push(check(`panel:${panel.id}`, "pass", "panel module renders once without throwing"));
+      } catch (error) {
+        checks.push(check(
+          `panel:${panel.id}`,
+          "fail",
+          `panel failed to load or render: ${error instanceof Error ? error.message : String(error)}`,
+          "Keep the module self-contained and side-effect free at import time; three render failures quarantine the plugin."
+        ));
+      }
+    }
+  }
+  if (counts.gates === 0 && counts.syncs === 0 && counts.commands === 0) {
+    checks.push(check("runtime", "skip", "no gate, sync or command to exercise"));
+  } else {
+    const failuresBefore = host.get(manifest.id)?.failures ?? 0;
+    for (const task of tasks) {
+      for (const to of ["Todo", "In Progress", "Done"]) {
+        await host.runGates({ type: "task:beforeMove", task, from: String(task.frontmatter.status ?? ""), to });
+      }
+    }
+    for (const task of tasks) {
+      host.dispatchSync({ type: "task:afterMove", task, from: "In Progress", to: "Done" });
+      host.dispatchLifecycle({ type: "task:afterMove", task, from: "In Progress", to: "Done" });
+    }
+    const commandErrors = [];
+    for (const name of summary?.commands ?? []) {
+      try {
+        await host.runCommand(name, "");
+      } catch (error) {
+        commandErrors.push(`${name}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+    await new Promise((resolve13) => setTimeout(resolve13, 25));
+    const after = host.get(manifest.id);
+    const newFailures = (after?.failures ?? 0) - failuresBefore;
+    if (commandErrors.length > 0) {
+      const denied = commandErrors.map((entry) => /permission denied: (\S+)/.exec(entry)?.[1]).filter((permission) => Boolean(permission));
+      checks.push(check(
+        "runtime",
+        "fail",
+        `contributed command threw: ${commandErrors.join("; ")}`,
+        denied.length > 0 ? `Declare ${JSON.stringify([...new Set(denied)])} in "permissions" in manifest.json.` : "Handle your own errors inside the command handler and report them with ctx.log.error."
+      ));
+    } else if (newFailures > 0 || after?.health === "quarantined") {
+      checks.push(check(
+        "runtime",
+        "fail",
+        `${newFailures} handler failure(s) against a synthetic board: ${after?.error ?? "see logs"}`,
+        "A throwing gate fails open and a throwing sync is swallowed. Guard your handlers and log with ctx.log.warn."
+      ));
+    } else {
+      checks.push(check(
+        "runtime",
+        "pass",
+        `gates, syncs and commands ran clean on 3 synthetic tasks (${writes.length} field write(s))`
+      ));
+    }
+  }
+  if (writes.length === 0) {
+    checks.push(check("roundtrip", "skip", "the plugin wrote no field during the run"));
+  } else {
+    const problems = [];
+    for (const write of writes) {
+      const frontmatter = setField({ id: "check-1", title: "Round trip", status: "Todo" }, manifest.id, write.key, write.value);
+      const reparsed = parseTaskFile(serializeTaskFile(frontmatter, "body")).frontmatter;
+      const namespace = reparsed.plugins?.[manifest.id];
+      if (!namespace || !(write.key in namespace)) {
+        problems.push(`${write.key} disappeared through the serializer`);
+        continue;
+      }
+      if (String(namespace[write.key]) !== String(write.value)) {
+        problems.push(`${write.key}: wrote ${JSON.stringify(write.value)}, read back ${JSON.stringify(namespace[write.key])}`);
+      }
+    }
+    if (problems.length > 0) {
+      checks.push(check(
+        "roundtrip",
+        "fail",
+        problems.join("; "),
+        "Store plain JSON scalars or plain objects under plugins.<id>.*; class instances, undefined and functions do not survive the file."
+      ));
+    } else {
+      checks.push(check("roundtrip", "pass", `${writes.length} field write(s) survive the frontmatter round-trip`));
+    }
+  }
+  return {
+    ok: checks.every((entry) => entry.status !== "fail"),
+    id: manifest.id,
+    dir,
+    checks
+  };
+}
+var MARK = {
+  pass: `${c.green}\u2713${c.reset}`,
+  fail: `${c.red}\u2717${c.reset}`,
+  warn: `${c.yellow}!${c.reset}`,
+  skip: `${c.dim}-${c.reset}`
+};
+function formatCheckReport(report) {
+  const lines = [];
+  for (const entry of report.checks) {
+    lines.push(`${MARK[entry.status]} ${c.bold}${entry.id.padEnd(14)}${c.reset} ${entry.message}`);
+    if (entry.fix) lines.push(`  ${c.dim}\u21B3 fix: ${entry.fix}${c.reset}`);
+  }
+  const failed = report.checks.filter((entry) => entry.status === "fail").length;
+  const warned = report.checks.filter((entry) => entry.status === "warn").length;
+  lines.push("");
+  lines.push(report.ok ? `${c.green}${report.id} passes${c.reset}${warned > 0 ? ` ${c.dim}(${warned} warning(s))${c.reset}` : ""}` : `${c.red}${report.id} fails ${failed} check(s)${c.reset}`);
+  return lines.join("\n");
+}
+
+// node_modules/.pnpm/chokidar@4.0.3/node_modules/chokidar/esm/index.js
+import { stat as statcb } from "fs";
+import { stat as stat3, readdir as readdir2 } from "fs/promises";
+import { EventEmitter } from "events";
+import * as sysPath2 from "path";
+
+// node_modules/.pnpm/readdirp@4.1.2/node_modules/readdirp/esm/index.js
+import { stat, lstat, readdir, realpath } from "fs/promises";
+import { Readable } from "stream";
+import { resolve as presolve, relative as prelative, join as pjoin, sep as psep } from "path";
+var EntryTypes = {
+  FILE_TYPE: "files",
+  DIR_TYPE: "directories",
+  FILE_DIR_TYPE: "files_directories",
+  EVERYTHING_TYPE: "all"
+};
+var defaultOptions = {
+  root: ".",
+  fileFilter: (_entryInfo) => true,
+  directoryFilter: (_entryInfo) => true,
+  type: EntryTypes.FILE_TYPE,
+  lstat: false,
+  depth: 2147483648,
+  alwaysStat: false,
+  highWaterMark: 4096
+};
+Object.freeze(defaultOptions);
+var RECURSIVE_ERROR_CODE = "READDIRP_RECURSIVE_ERROR";
+var NORMAL_FLOW_ERRORS = /* @__PURE__ */ new Set(["ENOENT", "EPERM", "EACCES", "ELOOP", RECURSIVE_ERROR_CODE]);
+var ALL_TYPES = [
+  EntryTypes.DIR_TYPE,
+  EntryTypes.EVERYTHING_TYPE,
+  EntryTypes.FILE_DIR_TYPE,
+  EntryTypes.FILE_TYPE
+];
+var DIR_TYPES = /* @__PURE__ */ new Set([
+  EntryTypes.DIR_TYPE,
+  EntryTypes.EVERYTHING_TYPE,
+  EntryTypes.FILE_DIR_TYPE
+]);
+var FILE_TYPES = /* @__PURE__ */ new Set([
+  EntryTypes.EVERYTHING_TYPE,
+  EntryTypes.FILE_DIR_TYPE,
+  EntryTypes.FILE_TYPE
+]);
+var isNormalFlowError = (error) => NORMAL_FLOW_ERRORS.has(error.code);
+var wantBigintFsStats = process.platform === "win32";
+var emptyFn = (_entryInfo) => true;
+var normalizeFilter = (filter) => {
+  if (filter === void 0)
+    return emptyFn;
+  if (typeof filter === "function")
+    return filter;
+  if (typeof filter === "string") {
+    const fl = filter.trim();
+    return (entry) => entry.basename === fl;
+  }
+  if (Array.isArray(filter)) {
+    const trItems = filter.map((item) => item.trim());
+    return (entry) => trItems.some((f) => entry.basename === f);
+  }
+  return emptyFn;
+};
+var ReaddirpStream = class extends Readable {
+  constructor(options = {}) {
+    super({
+      objectMode: true,
+      autoDestroy: true,
+      highWaterMark: options.highWaterMark
+    });
+    const opts = { ...defaultOptions, ...options };
+    const { root, type } = opts;
+    this._fileFilter = normalizeFilter(opts.fileFilter);
+    this._directoryFilter = normalizeFilter(opts.directoryFilter);
+    const statMethod = opts.lstat ? lstat : stat;
+    if (wantBigintFsStats) {
+      this._stat = (path) => statMethod(path, { bigint: true });
+    } else {
+      this._stat = statMethod;
+    }
+    this._maxDepth = opts.depth ?? defaultOptions.depth;
+    this._wantsDir = type ? DIR_TYPES.has(type) : false;
+    this._wantsFile = type ? FILE_TYPES.has(type) : false;
+    this._wantsEverything = type === EntryTypes.EVERYTHING_TYPE;
+    this._root = presolve(root);
+    this._isDirent = !opts.alwaysStat;
+    this._statsProp = this._isDirent ? "dirent" : "stats";
+    this._rdOptions = { encoding: "utf8", withFileTypes: this._isDirent };
+    this.parents = [this._exploreDir(root, 1)];
+    this.reading = false;
+    this.parent = void 0;
+  }
+  async _read(batch) {
+    if (this.reading)
+      return;
+    this.reading = true;
+    try {
+      while (!this.destroyed && batch > 0) {
+        const par = this.parent;
+        const fil = par && par.files;
+        if (fil && fil.length > 0) {
+          const { path, depth } = par;
+          const slice = fil.splice(0, batch).map((dirent) => this._formatEntry(dirent, path));
+          const awaited = await Promise.all(slice);
+          for (const entry of awaited) {
+            if (!entry)
+              continue;
+            if (this.destroyed)
+              return;
+            const entryType = await this._getEntryType(entry);
+            if (entryType === "directory" && this._directoryFilter(entry)) {
+              if (depth <= this._maxDepth) {
+                this.parents.push(this._exploreDir(entry.fullPath, depth + 1));
+              }
+              if (this._wantsDir) {
+                this.push(entry);
+                batch--;
+              }
+            } else if ((entryType === "file" || this._includeAsFile(entry)) && this._fileFilter(entry)) {
+              if (this._wantsFile) {
+                this.push(entry);
+                batch--;
+              }
+            }
+          }
+        } else {
+          const parent = this.parents.pop();
+          if (!parent) {
+            this.push(null);
+            break;
+          }
+          this.parent = await parent;
+          if (this.destroyed)
+            return;
+        }
+      }
+    } catch (error) {
+      this.destroy(error);
+    } finally {
+      this.reading = false;
+    }
+  }
+  async _exploreDir(path, depth) {
+    let files;
+    try {
+      files = await readdir(path, this._rdOptions);
+    } catch (error) {
+      this._onError(error);
+    }
+    return { files, depth, path };
+  }
+  async _formatEntry(dirent, path) {
+    let entry;
+    const basename14 = this._isDirent ? dirent.name : dirent;
+    try {
+      const fullPath = presolve(pjoin(path, basename14));
+      entry = { path: prelative(this._root, fullPath), fullPath, basename: basename14 };
+      entry[this._statsProp] = this._isDirent ? dirent : await this._stat(fullPath);
+    } catch (err3) {
+      this._onError(err3);
+      return;
+    }
+    return entry;
+  }
+  _onError(err3) {
+    if (isNormalFlowError(err3) && !this.destroyed) {
+      this.emit("warn", err3);
+    } else {
+      this.destroy(err3);
+    }
+  }
+  async _getEntryType(entry) {
+    if (!entry && this._statsProp in entry) {
+      return "";
+    }
+    const stats = entry[this._statsProp];
+    if (stats.isFile())
+      return "file";
+    if (stats.isDirectory())
+      return "directory";
+    if (stats && stats.isSymbolicLink()) {
+      const full = entry.fullPath;
+      try {
+        const entryRealPath = await realpath(full);
+        const entryRealPathStats = await lstat(entryRealPath);
+        if (entryRealPathStats.isFile()) {
+          return "file";
+        }
+        if (entryRealPathStats.isDirectory()) {
+          const len = entryRealPath.length;
+          if (full.startsWith(entryRealPath) && full.substr(len, 1) === psep) {
+            const recursiveError = new Error(`Circular symlink detected: "${full}" points to "${entryRealPath}"`);
+            recursiveError.code = RECURSIVE_ERROR_CODE;
+            return this._onError(recursiveError);
+          }
+          return "directory";
+        }
+      } catch (error) {
+        this._onError(error);
+        return "";
+      }
+    }
+  }
+  _includeAsFile(entry) {
+    const stats = entry && entry[this._statsProp];
+    return stats && this._wantsEverything && !stats.isDirectory();
+  }
+};
+function readdirp(root, options = {}) {
+  let type = options.entryType || options.type;
+  if (type === "both")
+    type = EntryTypes.FILE_DIR_TYPE;
+  if (type)
+    options.type = type;
+  if (!root) {
+    throw new Error("readdirp: root argument is required. Usage: readdirp(root, options)");
+  } else if (typeof root !== "string") {
+    throw new TypeError("readdirp: root argument must be a string. Usage: readdirp(root, options)");
+  } else if (type && !ALL_TYPES.includes(type)) {
+    throw new Error(`readdirp: Invalid type passed. Use one of ${ALL_TYPES.join(", ")}`);
+  }
+  options.root = root;
+  return new ReaddirpStream(options);
+}
+
+// node_modules/.pnpm/chokidar@4.0.3/node_modules/chokidar/esm/handler.js
+import { watchFile, unwatchFile, watch as fs_watch } from "fs";
+import { open, stat as stat2, lstat as lstat2, realpath as fsrealpath } from "fs/promises";
+import * as sysPath from "path";
+import { type as osType } from "os";
+var STR_DATA = "data";
+var STR_END = "end";
+var STR_CLOSE = "close";
+var EMPTY_FN = () => {
+};
+var pl = process.platform;
+var isWindows = pl === "win32";
+var isMacos = pl === "darwin";
+var isLinux = pl === "linux";
+var isFreeBSD = pl === "freebsd";
+var isIBMi = osType() === "OS400";
+var EVENTS = {
+  ALL: "all",
+  READY: "ready",
+  ADD: "add",
+  CHANGE: "change",
+  ADD_DIR: "addDir",
+  UNLINK: "unlink",
+  UNLINK_DIR: "unlinkDir",
+  RAW: "raw",
+  ERROR: "error"
+};
+var EV = EVENTS;
+var THROTTLE_MODE_WATCH = "watch";
+var statMethods = { lstat: lstat2, stat: stat2 };
+var KEY_LISTENERS = "listeners";
+var KEY_ERR = "errHandlers";
+var KEY_RAW = "rawEmitters";
+var HANDLER_KEYS = [KEY_LISTENERS, KEY_ERR, KEY_RAW];
+var binaryExtensions = /* @__PURE__ */ new Set([
+  "3dm",
+  "3ds",
+  "3g2",
+  "3gp",
+  "7z",
+  "a",
+  "aac",
+  "adp",
+  "afdesign",
+  "afphoto",
+  "afpub",
+  "ai",
+  "aif",
+  "aiff",
+  "alz",
+  "ape",
+  "apk",
+  "appimage",
+  "ar",
+  "arj",
+  "asf",
+  "au",
+  "avi",
+  "bak",
+  "baml",
+  "bh",
+  "bin",
+  "bk",
+  "bmp",
+  "btif",
+  "bz2",
+  "bzip2",
+  "cab",
+  "caf",
+  "cgm",
+  "class",
+  "cmx",
+  "cpio",
+  "cr2",
+  "cur",
+  "dat",
+  "dcm",
+  "deb",
+  "dex",
+  "djvu",
+  "dll",
+  "dmg",
+  "dng",
+  "doc",
+  "docm",
+  "docx",
+  "dot",
+  "dotm",
+  "dra",
+  "DS_Store",
+  "dsk",
+  "dts",
+  "dtshd",
+  "dvb",
+  "dwg",
+  "dxf",
+  "ecelp4800",
+  "ecelp7470",
+  "ecelp9600",
+  "egg",
+  "eol",
+  "eot",
+  "epub",
+  "exe",
+  "f4v",
+  "fbs",
+  "fh",
+  "fla",
+  "flac",
+  "flatpak",
+  "fli",
+  "flv",
+  "fpx",
+  "fst",
+  "fvt",
+  "g3",
+  "gh",
+  "gif",
+  "graffle",
+  "gz",
+  "gzip",
+  "h261",
+  "h263",
+  "h264",
+  "icns",
+  "ico",
+  "ief",
+  "img",
+  "ipa",
+  "iso",
+  "jar",
+  "jpeg",
+  "jpg",
+  "jpgv",
+  "jpm",
+  "jxr",
+  "key",
+  "ktx",
+  "lha",
+  "lib",
+  "lvp",
+  "lz",
+  "lzh",
+  "lzma",
+  "lzo",
+  "m3u",
+  "m4a",
+  "m4v",
+  "mar",
+  "mdi",
+  "mht",
+  "mid",
+  "midi",
+  "mj2",
+  "mka",
+  "mkv",
+  "mmr",
+  "mng",
+  "mobi",
+  "mov",
+  "movie",
+  "mp3",
+  "mp4",
+  "mp4a",
+  "mpeg",
+  "mpg",
+  "mpga",
+  "mxu",
+  "nef",
+  "npx",
+  "numbers",
+  "nupkg",
+  "o",
+  "odp",
+  "ods",
+  "odt",
+  "oga",
+  "ogg",
+  "ogv",
+  "otf",
+  "ott",
+  "pages",
+  "pbm",
+  "pcx",
+  "pdb",
+  "pdf",
+  "pea",
+  "pgm",
+  "pic",
+  "png",
+  "pnm",
+  "pot",
+  "potm",
+  "potx",
+  "ppa",
+  "ppam",
+  "ppm",
+  "pps",
+  "ppsm",
+  "ppsx",
+  "ppt",
+  "pptm",
+  "pptx",
+  "psd",
+  "pya",
+  "pyc",
+  "pyo",
+  "pyv",
+  "qt",
+  "rar",
+  "ras",
+  "raw",
+  "resources",
+  "rgb",
+  "rip",
+  "rlc",
+  "rmf",
+  "rmvb",
+  "rpm",
+  "rtf",
+  "rz",
+  "s3m",
+  "s7z",
+  "scpt",
+  "sgi",
+  "shar",
+  "snap",
+  "sil",
+  "sketch",
+  "slk",
+  "smv",
+  "snk",
+  "so",
+  "stl",
+  "suo",
+  "sub",
+  "swf",
+  "tar",
+  "tbz",
+  "tbz2",
+  "tga",
+  "tgz",
+  "thmx",
+  "tif",
+  "tiff",
+  "tlz",
+  "ttc",
+  "ttf",
+  "txz",
+  "udf",
+  "uvh",
+  "uvi",
+  "uvm",
+  "uvp",
+  "uvs",
+  "uvu",
+  "viv",
+  "vob",
+  "war",
+  "wav",
+  "wax",
+  "wbmp",
+  "wdp",
+  "weba",
+  "webm",
+  "webp",
+  "whl",
+  "wim",
+  "wm",
+  "wma",
+  "wmv",
+  "wmx",
+  "woff",
+  "woff2",
+  "wrm",
+  "wvx",
+  "xbm",
+  "xif",
+  "xla",
+  "xlam",
+  "xls",
+  "xlsb",
+  "xlsm",
+  "xlsx",
+  "xlt",
+  "xltm",
+  "xltx",
+  "xm",
+  "xmind",
+  "xpi",
+  "xpm",
+  "xwd",
+  "xz",
+  "z",
+  "zip",
+  "zipx"
+]);
+var isBinaryPath = (filePath) => binaryExtensions.has(sysPath.extname(filePath).slice(1).toLowerCase());
+var foreach = (val, fn) => {
+  if (val instanceof Set) {
+    val.forEach(fn);
+  } else {
+    fn(val);
+  }
+};
+var addAndConvert = (main2, prop, item) => {
+  let container = main2[prop];
+  if (!(container instanceof Set)) {
+    main2[prop] = container = /* @__PURE__ */ new Set([container]);
+  }
+  container.add(item);
+};
+var clearItem = (cont) => (key) => {
+  const set = cont[key];
+  if (set instanceof Set) {
+    set.clear();
+  } else {
+    delete cont[key];
+  }
+};
+var delFromSet = (main2, prop, item) => {
+  const container = main2[prop];
+  if (container instanceof Set) {
+    container.delete(item);
+  } else if (container === item) {
+    delete main2[prop];
+  }
+};
+var isEmptySet = (val) => val instanceof Set ? val.size === 0 : !val;
+var FsWatchInstances = /* @__PURE__ */ new Map();
+function createFsWatchInstance(path, options, listener, errHandler, emitRaw) {
+  const handleEvent = (rawEvent, evPath) => {
+    listener(path);
+    emitRaw(rawEvent, evPath, { watchedPath: path });
+    if (evPath && path !== evPath) {
+      fsWatchBroadcast(sysPath.resolve(path, evPath), KEY_LISTENERS, sysPath.join(path, evPath));
+    }
+  };
+  try {
+    return fs_watch(path, {
+      persistent: options.persistent
+    }, handleEvent);
+  } catch (error) {
+    errHandler(error);
+    return void 0;
+  }
+}
+var fsWatchBroadcast = (fullPath, listenerType, val1, val2, val3) => {
+  const cont = FsWatchInstances.get(fullPath);
+  if (!cont)
+    return;
+  foreach(cont[listenerType], (listener) => {
+    listener(val1, val2, val3);
+  });
+};
+var setFsWatchListener = (path, fullPath, options, handlers) => {
+  const { listener, errHandler, rawEmitter } = handlers;
+  let cont = FsWatchInstances.get(fullPath);
+  let watcher;
+  if (!options.persistent) {
+    watcher = createFsWatchInstance(path, options, listener, errHandler, rawEmitter);
+    if (!watcher)
+      return;
+    return watcher.close.bind(watcher);
+  }
+  if (cont) {
+    addAndConvert(cont, KEY_LISTENERS, listener);
+    addAndConvert(cont, KEY_ERR, errHandler);
+    addAndConvert(cont, KEY_RAW, rawEmitter);
+  } else {
+    watcher = createFsWatchInstance(
+      path,
+      options,
+      fsWatchBroadcast.bind(null, fullPath, KEY_LISTENERS),
+      errHandler,
+      // no need to use broadcast here
+      fsWatchBroadcast.bind(null, fullPath, KEY_RAW)
+    );
+    if (!watcher)
+      return;
+    watcher.on(EV.ERROR, async (error) => {
+      const broadcastErr = fsWatchBroadcast.bind(null, fullPath, KEY_ERR);
+      if (cont)
+        cont.watcherUnusable = true;
+      if (isWindows && error.code === "EPERM") {
+        try {
+          const fd = await open(path, "r");
+          await fd.close();
+          broadcastErr(error);
+        } catch (err3) {
+        }
+      } else {
+        broadcastErr(error);
+      }
+    });
+    cont = {
+      listeners: listener,
+      errHandlers: errHandler,
+      rawEmitters: rawEmitter,
+      watcher
+    };
+    FsWatchInstances.set(fullPath, cont);
+  }
+  return () => {
+    delFromSet(cont, KEY_LISTENERS, listener);
+    delFromSet(cont, KEY_ERR, errHandler);
+    delFromSet(cont, KEY_RAW, rawEmitter);
+    if (isEmptySet(cont.listeners)) {
+      cont.watcher.close();
+      FsWatchInstances.delete(fullPath);
+      HANDLER_KEYS.forEach(clearItem(cont));
+      cont.watcher = void 0;
+      Object.freeze(cont);
+    }
+  };
+};
+var FsWatchFileInstances = /* @__PURE__ */ new Map();
+var setFsWatchFileListener = (path, fullPath, options, handlers) => {
+  const { listener, rawEmitter } = handlers;
+  let cont = FsWatchFileInstances.get(fullPath);
+  const copts = cont && cont.options;
+  if (copts && (copts.persistent < options.persistent || copts.interval > options.interval)) {
+    unwatchFile(fullPath);
+    cont = void 0;
+  }
+  if (cont) {
+    addAndConvert(cont, KEY_LISTENERS, listener);
+    addAndConvert(cont, KEY_RAW, rawEmitter);
+  } else {
+    cont = {
+      listeners: listener,
+      rawEmitters: rawEmitter,
+      options,
+      watcher: watchFile(fullPath, options, (curr, prev) => {
+        foreach(cont.rawEmitters, (rawEmitter2) => {
+          rawEmitter2(EV.CHANGE, fullPath, { curr, prev });
+        });
+        const currmtime = curr.mtimeMs;
+        if (curr.size !== prev.size || currmtime > prev.mtimeMs || currmtime === 0) {
+          foreach(cont.listeners, (listener2) => listener2(path, curr));
+        }
+      })
+    };
+    FsWatchFileInstances.set(fullPath, cont);
+  }
+  return () => {
+    delFromSet(cont, KEY_LISTENERS, listener);
+    delFromSet(cont, KEY_RAW, rawEmitter);
+    if (isEmptySet(cont.listeners)) {
+      FsWatchFileInstances.delete(fullPath);
+      unwatchFile(fullPath);
+      cont.options = cont.watcher = void 0;
+      Object.freeze(cont);
+    }
+  };
+};
+var NodeFsHandler = class {
+  constructor(fsW) {
+    this.fsw = fsW;
+    this._boundHandleError = (error) => fsW._handleError(error);
+  }
+  /**
+   * Watch file for changes with fs_watchFile or fs_watch.
+   * @param path to file or dir
+   * @param listener on fs change
+   * @returns closer for the watcher instance
+   */
+  _watchWithNodeFs(path, listener) {
+    const opts = this.fsw.options;
+    const directory = sysPath.dirname(path);
+    const basename14 = sysPath.basename(path);
+    const parent = this.fsw._getWatchedDir(directory);
+    parent.add(basename14);
+    const absolutePath = sysPath.resolve(path);
+    const options = {
+      persistent: opts.persistent
+    };
+    if (!listener)
+      listener = EMPTY_FN;
+    let closer;
+    if (opts.usePolling) {
+      const enableBin = opts.interval !== opts.binaryInterval;
+      options.interval = enableBin && isBinaryPath(basename14) ? opts.binaryInterval : opts.interval;
+      closer = setFsWatchFileListener(path, absolutePath, options, {
+        listener,
+        rawEmitter: this.fsw._emitRaw
+      });
+    } else {
+      closer = setFsWatchListener(path, absolutePath, options, {
+        listener,
+        errHandler: this._boundHandleError,
+        rawEmitter: this.fsw._emitRaw
+      });
+    }
+    return closer;
+  }
+  /**
+   * Watch a file and emit add event if warranted.
+   * @returns closer for the watcher instance
+   */
+  _handleFile(file, stats, initialAdd) {
+    if (this.fsw.closed) {
+      return;
+    }
+    const dirname9 = sysPath.dirname(file);
+    const basename14 = sysPath.basename(file);
+    const parent = this.fsw._getWatchedDir(dirname9);
+    let prevStats = stats;
+    if (parent.has(basename14))
+      return;
+    const listener = async (path, newStats) => {
+      if (!this.fsw._throttle(THROTTLE_MODE_WATCH, file, 5))
+        return;
+      if (!newStats || newStats.mtimeMs === 0) {
+        try {
+          const newStats2 = await stat2(file);
+          if (this.fsw.closed)
+            return;
+          const at = newStats2.atimeMs;
+          const mt = newStats2.mtimeMs;
+          if (!at || at <= mt || mt !== prevStats.mtimeMs) {
+            this.fsw._emit(EV.CHANGE, file, newStats2);
+          }
+          if ((isMacos || isLinux || isFreeBSD) && prevStats.ino !== newStats2.ino) {
+            this.fsw._closeFile(path);
+            prevStats = newStats2;
+            const closer2 = this._watchWithNodeFs(file, listener);
+            if (closer2)
+              this.fsw._addPathCloser(path, closer2);
+          } else {
+            prevStats = newStats2;
+          }
+        } catch (error) {
+          this.fsw._remove(dirname9, basename14);
+        }
+      } else if (parent.has(basename14)) {
+        const at = newStats.atimeMs;
+        const mt = newStats.mtimeMs;
+        if (!at || at <= mt || mt !== prevStats.mtimeMs) {
+          this.fsw._emit(EV.CHANGE, file, newStats);
+        }
+        prevStats = newStats;
+      }
+    };
+    const closer = this._watchWithNodeFs(file, listener);
+    if (!(initialAdd && this.fsw.options.ignoreInitial) && this.fsw._isntIgnored(file)) {
+      if (!this.fsw._throttle(EV.ADD, file, 0))
+        return;
+      this.fsw._emit(EV.ADD, file, stats);
+    }
+    return closer;
+  }
+  /**
+   * Handle symlinks encountered while reading a dir.
+   * @param entry returned by readdirp
+   * @param directory path of dir being read
+   * @param path of this item
+   * @param item basename of this item
+   * @returns true if no more processing is needed for this entry.
+   */
+  async _handleSymlink(entry, directory, path, item) {
+    if (this.fsw.closed) {
+      return;
+    }
+    const full = entry.fullPath;
+    const dir = this.fsw._getWatchedDir(directory);
+    if (!this.fsw.options.followSymlinks) {
+      this.fsw._incrReadyCount();
+      let linkPath;
+      try {
+        linkPath = await fsrealpath(path);
+      } catch (e) {
+        this.fsw._emitReady();
+        return true;
+      }
+      if (this.fsw.closed)
+        return;
+      if (dir.has(item)) {
+        if (this.fsw._symlinkPaths.get(full) !== linkPath) {
+          this.fsw._symlinkPaths.set(full, linkPath);
+          this.fsw._emit(EV.CHANGE, path, entry.stats);
+        }
+      } else {
+        dir.add(item);
+        this.fsw._symlinkPaths.set(full, linkPath);
+        this.fsw._emit(EV.ADD, path, entry.stats);
+      }
+      this.fsw._emitReady();
+      return true;
+    }
+    if (this.fsw._symlinkPaths.has(full)) {
+      return true;
+    }
+    this.fsw._symlinkPaths.set(full, true);
+  }
+  _handleRead(directory, initialAdd, wh, target, dir, depth, throttler) {
+    directory = sysPath.join(directory, "");
+    throttler = this.fsw._throttle("readdir", directory, 1e3);
+    if (!throttler)
+      return;
+    const previous = this.fsw._getWatchedDir(wh.path);
+    const current = /* @__PURE__ */ new Set();
+    let stream = this.fsw._readdirp(directory, {
+      fileFilter: (entry) => wh.filterPath(entry),
+      directoryFilter: (entry) => wh.filterDir(entry)
+    });
+    if (!stream)
+      return;
+    stream.on(STR_DATA, async (entry) => {
+      if (this.fsw.closed) {
+        stream = void 0;
+        return;
+      }
+      const item = entry.path;
+      let path = sysPath.join(directory, item);
+      current.add(item);
+      if (entry.stats.isSymbolicLink() && await this._handleSymlink(entry, directory, path, item)) {
+        return;
+      }
+      if (this.fsw.closed) {
+        stream = void 0;
+        return;
+      }
+      if (item === target || !target && !previous.has(item)) {
+        this.fsw._incrReadyCount();
+        path = sysPath.join(dir, sysPath.relative(dir, path));
+        this._addToNodeFs(path, initialAdd, wh, depth + 1);
+      }
+    }).on(EV.ERROR, this._boundHandleError);
+    return new Promise((resolve13, reject) => {
+      if (!stream)
+        return reject();
+      stream.once(STR_END, () => {
+        if (this.fsw.closed) {
+          stream = void 0;
+          return;
+        }
+        const wasThrottled = throttler ? throttler.clear() : false;
+        resolve13(void 0);
+        previous.getChildren().filter((item) => {
+          return item !== directory && !current.has(item);
+        }).forEach((item) => {
+          this.fsw._remove(directory, item);
+        });
+        stream = void 0;
+        if (wasThrottled)
+          this._handleRead(directory, false, wh, target, dir, depth, throttler);
+      });
+    });
+  }
+  /**
+   * Read directory to add / remove files from `@watched` list and re-read it on change.
+   * @param dir fs path
+   * @param stats
+   * @param initialAdd
+   * @param depth relative to user-supplied path
+   * @param target child path targeted for watch
+   * @param wh Common watch helpers for this path
+   * @param realpath
+   * @returns closer for the watcher instance.
+   */
+  async _handleDir(dir, stats, initialAdd, depth, target, wh, realpath2) {
+    const parentDir = this.fsw._getWatchedDir(sysPath.dirname(dir));
+    const tracked = parentDir.has(sysPath.basename(dir));
+    if (!(initialAdd && this.fsw.options.ignoreInitial) && !target && !tracked) {
+      this.fsw._emit(EV.ADD_DIR, dir, stats);
+    }
+    parentDir.add(sysPath.basename(dir));
+    this.fsw._getWatchedDir(dir);
+    let throttler;
+    let closer;
+    const oDepth = this.fsw.options.depth;
+    if ((oDepth == null || depth <= oDepth) && !this.fsw._symlinkPaths.has(realpath2)) {
+      if (!target) {
+        await this._handleRead(dir, initialAdd, wh, target, dir, depth, throttler);
+        if (this.fsw.closed)
+          return;
+      }
+      closer = this._watchWithNodeFs(dir, (dirPath, stats2) => {
+        if (stats2 && stats2.mtimeMs === 0)
+          return;
+        this._handleRead(dirPath, false, wh, target, dir, depth, throttler);
+      });
+    }
+    return closer;
+  }
+  /**
+   * Handle added file, directory, or glob pattern.
+   * Delegates call to _handleFile / _handleDir after checks.
+   * @param path to file or ir
+   * @param initialAdd was the file added at watch instantiation?
+   * @param priorWh depth relative to user-supplied path
+   * @param depth Child path actually targeted for watch
+   * @param target Child path actually targeted for watch
+   */
+  async _addToNodeFs(path, initialAdd, priorWh, depth, target) {
+    const ready = this.fsw._emitReady;
+    if (this.fsw._isIgnored(path) || this.fsw.closed) {
+      ready();
+      return false;
+    }
+    const wh = this.fsw._getWatchHelpers(path);
+    if (priorWh) {
+      wh.filterPath = (entry) => priorWh.filterPath(entry);
+      wh.filterDir = (entry) => priorWh.filterDir(entry);
+    }
+    try {
+      const stats = await statMethods[wh.statMethod](wh.watchPath);
+      if (this.fsw.closed)
+        return;
+      if (this.fsw._isIgnored(wh.watchPath, stats)) {
+        ready();
+        return false;
+      }
+      const follow = this.fsw.options.followSymlinks;
+      let closer;
+      if (stats.isDirectory()) {
+        const absPath = sysPath.resolve(path);
+        const targetPath = follow ? await fsrealpath(path) : path;
+        if (this.fsw.closed)
+          return;
+        closer = await this._handleDir(wh.watchPath, stats, initialAdd, depth, target, wh, targetPath);
+        if (this.fsw.closed)
+          return;
+        if (absPath !== targetPath && targetPath !== void 0) {
+          this.fsw._symlinkPaths.set(absPath, targetPath);
+        }
+      } else if (stats.isSymbolicLink()) {
+        const targetPath = follow ? await fsrealpath(path) : path;
+        if (this.fsw.closed)
+          return;
+        const parent = sysPath.dirname(wh.watchPath);
+        this.fsw._getWatchedDir(parent).add(wh.watchPath);
+        this.fsw._emit(EV.ADD, wh.watchPath, stats);
+        closer = await this._handleDir(parent, stats, initialAdd, depth, path, wh, targetPath);
+        if (this.fsw.closed)
+          return;
+        if (targetPath !== void 0) {
+          this.fsw._symlinkPaths.set(sysPath.resolve(path), targetPath);
+        }
+      } else {
+        closer = this._handleFile(wh.watchPath, stats, initialAdd);
+      }
+      ready();
+      if (closer)
+        this.fsw._addPathCloser(path, closer);
+      return false;
+    } catch (error) {
+      if (this.fsw._handleError(error)) {
+        ready();
+        return path;
+      }
+    }
+  }
+};
+
+// node_modules/.pnpm/chokidar@4.0.3/node_modules/chokidar/esm/index.js
+var SLASH = "/";
+var SLASH_SLASH = "//";
+var ONE_DOT = ".";
+var TWO_DOTS = "..";
+var STRING_TYPE = "string";
+var BACK_SLASH_RE = /\\/g;
+var DOUBLE_SLASH_RE = /\/\//;
+var DOT_RE = /\..*\.(sw[px])$|~$|\.subl.*\.tmp/;
+var REPLACER_RE = /^\.[/\\]/;
+function arrify(item) {
+  return Array.isArray(item) ? item : [item];
+}
+var isMatcherObject = (matcher) => typeof matcher === "object" && matcher !== null && !(matcher instanceof RegExp);
+function createPattern(matcher) {
+  if (typeof matcher === "function")
+    return matcher;
+  if (typeof matcher === "string")
+    return (string) => matcher === string;
+  if (matcher instanceof RegExp)
+    return (string) => matcher.test(string);
+  if (typeof matcher === "object" && matcher !== null) {
+    return (string) => {
+      if (matcher.path === string)
+        return true;
+      if (matcher.recursive) {
+        const relative3 = sysPath2.relative(matcher.path, string);
+        if (!relative3) {
+          return false;
+        }
+        return !relative3.startsWith("..") && !sysPath2.isAbsolute(relative3);
+      }
+      return false;
+    };
+  }
+  return () => false;
+}
+function normalizePath(path) {
+  if (typeof path !== "string")
+    throw new Error("string expected");
+  path = sysPath2.normalize(path);
+  path = path.replace(/\\/g, "/");
+  let prepend = false;
+  if (path.startsWith("//"))
+    prepend = true;
+  const DOUBLE_SLASH_RE2 = /\/\//;
+  while (path.match(DOUBLE_SLASH_RE2))
+    path = path.replace(DOUBLE_SLASH_RE2, "/");
+  if (prepend)
+    path = "/" + path;
+  return path;
+}
+function matchPatterns(patterns, testString, stats) {
+  const path = normalizePath(testString);
+  for (let index = 0; index < patterns.length; index++) {
+    const pattern = patterns[index];
+    if (pattern(path, stats)) {
+      return true;
+    }
+  }
+  return false;
+}
+function anymatch(matchers, testString) {
+  if (matchers == null) {
+    throw new TypeError("anymatch: specify first argument");
+  }
+  const matchersArray = arrify(matchers);
+  const patterns = matchersArray.map((matcher) => createPattern(matcher));
+  if (testString == null) {
+    return (testString2, stats) => {
+      return matchPatterns(patterns, testString2, stats);
+    };
+  }
+  return matchPatterns(patterns, testString);
+}
+var unifyPaths = (paths_) => {
+  const paths = arrify(paths_).flat();
+  if (!paths.every((p) => typeof p === STRING_TYPE)) {
+    throw new TypeError(`Non-string provided as watch path: ${paths}`);
+  }
+  return paths.map(normalizePathToUnix);
+};
+var toUnix = (string) => {
+  let str = string.replace(BACK_SLASH_RE, SLASH);
+  let prepend = false;
+  if (str.startsWith(SLASH_SLASH)) {
+    prepend = true;
+  }
+  while (str.match(DOUBLE_SLASH_RE)) {
+    str = str.replace(DOUBLE_SLASH_RE, SLASH);
+  }
+  if (prepend) {
+    str = SLASH + str;
+  }
+  return str;
+};
+var normalizePathToUnix = (path) => toUnix(sysPath2.normalize(toUnix(path)));
+var normalizeIgnored = (cwd = "") => (path) => {
+  if (typeof path === "string") {
+    return normalizePathToUnix(sysPath2.isAbsolute(path) ? path : sysPath2.join(cwd, path));
+  } else {
+    return path;
+  }
+};
+var getAbsolutePath = (path, cwd) => {
+  if (sysPath2.isAbsolute(path)) {
+    return path;
+  }
+  return sysPath2.join(cwd, path);
+};
+var EMPTY_SET = Object.freeze(/* @__PURE__ */ new Set());
+var DirEntry = class {
+  constructor(dir, removeWatcher) {
+    this.path = dir;
+    this._removeWatcher = removeWatcher;
+    this.items = /* @__PURE__ */ new Set();
+  }
+  add(item) {
+    const { items } = this;
+    if (!items)
+      return;
+    if (item !== ONE_DOT && item !== TWO_DOTS)
+      items.add(item);
+  }
+  async remove(item) {
+    const { items } = this;
+    if (!items)
+      return;
+    items.delete(item);
+    if (items.size > 0)
+      return;
+    const dir = this.path;
+    try {
+      await readdir2(dir);
+    } catch (err3) {
+      if (this._removeWatcher) {
+        this._removeWatcher(sysPath2.dirname(dir), sysPath2.basename(dir));
+      }
+    }
+  }
+  has(item) {
+    const { items } = this;
+    if (!items)
+      return;
+    return items.has(item);
+  }
+  getChildren() {
+    const { items } = this;
+    if (!items)
+      return [];
+    return [...items.values()];
+  }
+  dispose() {
+    this.items.clear();
+    this.path = "";
+    this._removeWatcher = EMPTY_FN;
+    this.items = EMPTY_SET;
+    Object.freeze(this);
+  }
+};
+var STAT_METHOD_F = "stat";
+var STAT_METHOD_L = "lstat";
+var WatchHelper = class {
+  constructor(path, follow, fsw) {
+    this.fsw = fsw;
+    const watchPath = path;
+    this.path = path = path.replace(REPLACER_RE, "");
+    this.watchPath = watchPath;
+    this.fullWatchPath = sysPath2.resolve(watchPath);
+    this.dirParts = [];
+    this.dirParts.forEach((parts) => {
+      if (parts.length > 1)
+        parts.pop();
+    });
+    this.followSymlinks = follow;
+    this.statMethod = follow ? STAT_METHOD_F : STAT_METHOD_L;
+  }
+  entryPath(entry) {
+    return sysPath2.join(this.watchPath, sysPath2.relative(this.watchPath, entry.fullPath));
+  }
+  filterPath(entry) {
+    const { stats } = entry;
+    if (stats && stats.isSymbolicLink())
+      return this.filterDir(entry);
+    const resolvedPath = this.entryPath(entry);
+    return this.fsw._isntIgnored(resolvedPath, stats) && this.fsw._hasReadPermissions(stats);
+  }
+  filterDir(entry) {
+    return this.fsw._isntIgnored(this.entryPath(entry), entry.stats);
+  }
+};
+var FSWatcher = class extends EventEmitter {
+  // Not indenting methods for history sake; for now.
+  constructor(_opts = {}) {
+    super();
+    this.closed = false;
+    this._closers = /* @__PURE__ */ new Map();
+    this._ignoredPaths = /* @__PURE__ */ new Set();
+    this._throttled = /* @__PURE__ */ new Map();
+    this._streams = /* @__PURE__ */ new Set();
+    this._symlinkPaths = /* @__PURE__ */ new Map();
+    this._watched = /* @__PURE__ */ new Map();
+    this._pendingWrites = /* @__PURE__ */ new Map();
+    this._pendingUnlinks = /* @__PURE__ */ new Map();
+    this._readyCount = 0;
+    this._readyEmitted = false;
+    const awf = _opts.awaitWriteFinish;
+    const DEF_AWF = { stabilityThreshold: 2e3, pollInterval: 100 };
+    const opts = {
+      // Defaults
+      persistent: true,
+      ignoreInitial: false,
+      ignorePermissionErrors: false,
+      interval: 100,
+      binaryInterval: 300,
+      followSymlinks: true,
+      usePolling: false,
+      // useAsync: false,
+      atomic: true,
+      // NOTE: overwritten later (depends on usePolling)
+      ..._opts,
+      // Change format
+      ignored: _opts.ignored ? arrify(_opts.ignored) : arrify([]),
+      awaitWriteFinish: awf === true ? DEF_AWF : typeof awf === "object" ? { ...DEF_AWF, ...awf } : false
+    };
+    if (isIBMi)
+      opts.usePolling = true;
+    if (opts.atomic === void 0)
+      opts.atomic = !opts.usePolling;
+    const envPoll = process.env.CHOKIDAR_USEPOLLING;
+    if (envPoll !== void 0) {
+      const envLower = envPoll.toLowerCase();
+      if (envLower === "false" || envLower === "0")
+        opts.usePolling = false;
+      else if (envLower === "true" || envLower === "1")
+        opts.usePolling = true;
+      else
+        opts.usePolling = !!envLower;
+    }
+    const envInterval = process.env.CHOKIDAR_INTERVAL;
+    if (envInterval)
+      opts.interval = Number.parseInt(envInterval, 10);
+    let readyCalls = 0;
+    this._emitReady = () => {
+      readyCalls++;
+      if (readyCalls >= this._readyCount) {
+        this._emitReady = EMPTY_FN;
+        this._readyEmitted = true;
+        process.nextTick(() => this.emit(EVENTS.READY));
+      }
+    };
+    this._emitRaw = (...args) => this.emit(EVENTS.RAW, ...args);
+    this._boundRemove = this._remove.bind(this);
+    this.options = opts;
+    this._nodeFsHandler = new NodeFsHandler(this);
+    Object.freeze(opts);
+  }
+  _addIgnoredPath(matcher) {
+    if (isMatcherObject(matcher)) {
+      for (const ignored of this._ignoredPaths) {
+        if (isMatcherObject(ignored) && ignored.path === matcher.path && ignored.recursive === matcher.recursive) {
+          return;
+        }
+      }
+    }
+    this._ignoredPaths.add(matcher);
+  }
+  _removeIgnoredPath(matcher) {
+    this._ignoredPaths.delete(matcher);
+    if (typeof matcher === "string") {
+      for (const ignored of this._ignoredPaths) {
+        if (isMatcherObject(ignored) && ignored.path === matcher) {
+          this._ignoredPaths.delete(ignored);
+        }
+      }
+    }
+  }
+  // Public methods
+  /**
+   * Adds paths to be watched on an existing FSWatcher instance.
+   * @param paths_ file or file list. Other arguments are unused
+   */
+  add(paths_, _origAdd, _internal) {
+    const { cwd } = this.options;
+    this.closed = false;
+    this._closePromise = void 0;
+    let paths = unifyPaths(paths_);
+    if (cwd) {
+      paths = paths.map((path) => {
+        const absPath = getAbsolutePath(path, cwd);
+        return absPath;
+      });
+    }
+    paths.forEach((path) => {
+      this._removeIgnoredPath(path);
+    });
+    this._userIgnored = void 0;
+    if (!this._readyCount)
+      this._readyCount = 0;
+    this._readyCount += paths.length;
+    Promise.all(paths.map(async (path) => {
+      const res = await this._nodeFsHandler._addToNodeFs(path, !_internal, void 0, 0, _origAdd);
+      if (res)
+        this._emitReady();
+      return res;
+    })).then((results) => {
+      if (this.closed)
+        return;
+      results.forEach((item) => {
+        if (item)
+          this.add(sysPath2.dirname(item), sysPath2.basename(_origAdd || item));
+      });
+    });
+    return this;
+  }
+  /**
+   * Close watchers or start ignoring events from specified paths.
+   */
+  unwatch(paths_) {
+    if (this.closed)
+      return this;
+    const paths = unifyPaths(paths_);
+    const { cwd } = this.options;
+    paths.forEach((path) => {
+      if (!sysPath2.isAbsolute(path) && !this._closers.has(path)) {
+        if (cwd)
+          path = sysPath2.join(cwd, path);
+        path = sysPath2.resolve(path);
+      }
+      this._closePath(path);
+      this._addIgnoredPath(path);
+      if (this._watched.has(path)) {
+        this._addIgnoredPath({
+          path,
+          recursive: true
+        });
+      }
+      this._userIgnored = void 0;
+    });
+    return this;
+  }
+  /**
+   * Close watchers and remove all listeners from watched paths.
+   */
+  close() {
+    if (this._closePromise) {
+      return this._closePromise;
+    }
+    this.closed = true;
+    this.removeAllListeners();
+    const closers = [];
+    this._closers.forEach((closerList) => closerList.forEach((closer) => {
+      const promise = closer();
+      if (promise instanceof Promise)
+        closers.push(promise);
+    }));
+    this._streams.forEach((stream) => stream.destroy());
+    this._userIgnored = void 0;
+    this._readyCount = 0;
+    this._readyEmitted = false;
+    this._watched.forEach((dirent) => dirent.dispose());
+    this._closers.clear();
+    this._watched.clear();
+    this._streams.clear();
+    this._symlinkPaths.clear();
+    this._throttled.clear();
+    this._closePromise = closers.length ? Promise.all(closers).then(() => void 0) : Promise.resolve();
+    return this._closePromise;
+  }
+  /**
+   * Expose list of watched paths
+   * @returns for chaining
+   */
+  getWatched() {
+    const watchList = {};
+    this._watched.forEach((entry, dir) => {
+      const key = this.options.cwd ? sysPath2.relative(this.options.cwd, dir) : dir;
+      const index = key || ONE_DOT;
+      watchList[index] = entry.getChildren().sort();
+    });
+    return watchList;
+  }
+  emitWithAll(event, args) {
+    this.emit(event, ...args);
+    if (event !== EVENTS.ERROR)
+      this.emit(EVENTS.ALL, event, ...args);
+  }
+  // Common helpers
+  // --------------
+  /**
+   * Normalize and emit events.
+   * Calling _emit DOES NOT MEAN emit() would be called!
+   * @param event Type of event
+   * @param path File or directory path
+   * @param stats arguments to be passed with event
+   * @returns the error if defined, otherwise the value of the FSWatcher instance's `closed` flag
+   */
+  async _emit(event, path, stats) {
+    if (this.closed)
+      return;
+    const opts = this.options;
+    if (isWindows)
+      path = sysPath2.normalize(path);
+    if (opts.cwd)
+      path = sysPath2.relative(opts.cwd, path);
+    const args = [path];
+    if (stats != null)
+      args.push(stats);
+    const awf = opts.awaitWriteFinish;
+    let pw;
+    if (awf && (pw = this._pendingWrites.get(path))) {
+      pw.lastChange = /* @__PURE__ */ new Date();
+      return this;
+    }
+    if (opts.atomic) {
+      if (event === EVENTS.UNLINK) {
+        this._pendingUnlinks.set(path, [event, ...args]);
+        setTimeout(() => {
+          this._pendingUnlinks.forEach((entry, path2) => {
+            this.emit(...entry);
+            this.emit(EVENTS.ALL, ...entry);
+            this._pendingUnlinks.delete(path2);
+          });
+        }, typeof opts.atomic === "number" ? opts.atomic : 100);
+        return this;
+      }
+      if (event === EVENTS.ADD && this._pendingUnlinks.has(path)) {
+        event = EVENTS.CHANGE;
+        this._pendingUnlinks.delete(path);
+      }
+    }
+    if (awf && (event === EVENTS.ADD || event === EVENTS.CHANGE) && this._readyEmitted) {
+      const awfEmit = (err3, stats2) => {
+        if (err3) {
+          event = EVENTS.ERROR;
+          args[0] = err3;
+          this.emitWithAll(event, args);
+        } else if (stats2) {
+          if (args.length > 1) {
+            args[1] = stats2;
+          } else {
+            args.push(stats2);
+          }
+          this.emitWithAll(event, args);
+        }
+      };
+      this._awaitWriteFinish(path, awf.stabilityThreshold, event, awfEmit);
+      return this;
+    }
+    if (event === EVENTS.CHANGE) {
+      const isThrottled = !this._throttle(EVENTS.CHANGE, path, 50);
+      if (isThrottled)
+        return this;
+    }
+    if (opts.alwaysStat && stats === void 0 && (event === EVENTS.ADD || event === EVENTS.ADD_DIR || event === EVENTS.CHANGE)) {
+      const fullPath = opts.cwd ? sysPath2.join(opts.cwd, path) : path;
+      let stats2;
+      try {
+        stats2 = await stat3(fullPath);
+      } catch (err3) {
+      }
+      if (!stats2 || this.closed)
+        return;
+      args.push(stats2);
+    }
+    this.emitWithAll(event, args);
+    return this;
+  }
+  /**
+   * Common handler for errors
+   * @returns The error if defined, otherwise the value of the FSWatcher instance's `closed` flag
+   */
+  _handleError(error) {
+    const code = error && error.code;
+    if (error && code !== "ENOENT" && code !== "ENOTDIR" && (!this.options.ignorePermissionErrors || code !== "EPERM" && code !== "EACCES")) {
+      this.emit(EVENTS.ERROR, error);
+    }
+    return error || this.closed;
+  }
+  /**
+   * Helper utility for throttling
+   * @param actionType type being throttled
+   * @param path being acted upon
+   * @param timeout duration of time to suppress duplicate actions
+   * @returns tracking object or false if action should be suppressed
+   */
+  _throttle(actionType, path, timeout) {
+    if (!this._throttled.has(actionType)) {
+      this._throttled.set(actionType, /* @__PURE__ */ new Map());
+    }
+    const action = this._throttled.get(actionType);
+    if (!action)
+      throw new Error("invalid throttle");
+    const actionPath = action.get(path);
+    if (actionPath) {
+      actionPath.count++;
+      return false;
+    }
+    let timeoutObject;
+    const clear = () => {
+      const item = action.get(path);
+      const count = item ? item.count : 0;
+      action.delete(path);
+      clearTimeout(timeoutObject);
+      if (item)
+        clearTimeout(item.timeoutObject);
+      return count;
+    };
+    timeoutObject = setTimeout(clear, timeout);
+    const thr = { timeoutObject, clear, count: 0 };
+    action.set(path, thr);
+    return thr;
+  }
+  _incrReadyCount() {
+    return this._readyCount++;
+  }
+  /**
+   * Awaits write operation to finish.
+   * Polls a newly created file for size variations. When files size does not change for 'threshold' milliseconds calls callback.
+   * @param path being acted upon
+   * @param threshold Time in milliseconds a file size must be fixed before acknowledging write OP is finished
+   * @param event
+   * @param awfEmit Callback to be called when ready for event to be emitted.
+   */
+  _awaitWriteFinish(path, threshold, event, awfEmit) {
+    const awf = this.options.awaitWriteFinish;
+    if (typeof awf !== "object")
+      return;
+    const pollInterval = awf.pollInterval;
+    let timeoutHandler;
+    let fullPath = path;
+    if (this.options.cwd && !sysPath2.isAbsolute(path)) {
+      fullPath = sysPath2.join(this.options.cwd, path);
+    }
+    const now = /* @__PURE__ */ new Date();
+    const writes = this._pendingWrites;
+    function awaitWriteFinishFn(prevStat) {
+      statcb(fullPath, (err3, curStat) => {
+        if (err3 || !writes.has(path)) {
+          if (err3 && err3.code !== "ENOENT")
+            awfEmit(err3);
+          return;
+        }
+        const now2 = Number(/* @__PURE__ */ new Date());
+        if (prevStat && curStat.size !== prevStat.size) {
+          writes.get(path).lastChange = now2;
+        }
+        const pw = writes.get(path);
+        const df = now2 - pw.lastChange;
+        if (df >= threshold) {
+          writes.delete(path);
+          awfEmit(void 0, curStat);
+        } else {
+          timeoutHandler = setTimeout(awaitWriteFinishFn, pollInterval, curStat);
+        }
+      });
+    }
+    if (!writes.has(path)) {
+      writes.set(path, {
+        lastChange: now,
+        cancelWait: () => {
+          writes.delete(path);
+          clearTimeout(timeoutHandler);
+          return event;
+        }
+      });
+      timeoutHandler = setTimeout(awaitWriteFinishFn, pollInterval);
+    }
+  }
+  /**
+   * Determines whether user has asked to ignore this path.
+   */
+  _isIgnored(path, stats) {
+    if (this.options.atomic && DOT_RE.test(path))
+      return true;
+    if (!this._userIgnored) {
+      const { cwd } = this.options;
+      const ign = this.options.ignored;
+      const ignored = (ign || []).map(normalizeIgnored(cwd));
+      const ignoredPaths = [...this._ignoredPaths];
+      const list = [...ignoredPaths.map(normalizeIgnored(cwd)), ...ignored];
+      this._userIgnored = anymatch(list, void 0);
+    }
+    return this._userIgnored(path, stats);
+  }
+  _isntIgnored(path, stat4) {
+    return !this._isIgnored(path, stat4);
+  }
+  /**
+   * Provides a set of common helpers and properties relating to symlink handling.
+   * @param path file or directory pattern being watched
+   */
+  _getWatchHelpers(path) {
+    return new WatchHelper(path, this.options.followSymlinks, this);
+  }
+  // Directory helpers
+  // -----------------
+  /**
+   * Provides directory tracking objects
+   * @param directory path of the directory
+   */
+  _getWatchedDir(directory) {
+    const dir = sysPath2.resolve(directory);
+    if (!this._watched.has(dir))
+      this._watched.set(dir, new DirEntry(dir, this._boundRemove));
+    return this._watched.get(dir);
+  }
+  // File helpers
+  // ------------
+  /**
+   * Check for read permissions: https://stackoverflow.com/a/11781404/1358405
+   */
+  _hasReadPermissions(stats) {
+    if (this.options.ignorePermissionErrors)
+      return true;
+    return Boolean(Number(stats.mode) & 256);
+  }
+  /**
+   * Handles emitting unlink events for
+   * files and directories, and via recursion, for
+   * files and directories within directories that are unlinked
+   * @param directory within which the following item is located
+   * @param item      base path of item/directory
+   */
+  _remove(directory, item, isDirectory) {
+    const path = sysPath2.join(directory, item);
+    const fullPath = sysPath2.resolve(path);
+    isDirectory = isDirectory != null ? isDirectory : this._watched.has(path) || this._watched.has(fullPath);
+    if (!this._throttle("remove", path, 100))
+      return;
+    if (!isDirectory && this._watched.size === 1) {
+      this.add(directory, item, true);
+    }
+    const wp = this._getWatchedDir(path);
+    const nestedDirectoryChildren = wp.getChildren();
+    nestedDirectoryChildren.forEach((nested) => this._remove(path, nested));
+    const parent = this._getWatchedDir(directory);
+    const wasTracked = parent.has(item);
+    parent.remove(item);
+    if (this._symlinkPaths.has(fullPath)) {
+      this._symlinkPaths.delete(fullPath);
+    }
+    let relPath = path;
+    if (this.options.cwd)
+      relPath = sysPath2.relative(this.options.cwd, path);
+    if (this.options.awaitWriteFinish && this._pendingWrites.has(relPath)) {
+      const event = this._pendingWrites.get(relPath).cancelWait();
+      if (event === EVENTS.ADD)
+        return;
+    }
+    this._watched.delete(path);
+    this._watched.delete(fullPath);
+    const eventName = isDirectory ? EVENTS.UNLINK_DIR : EVENTS.UNLINK;
+    if (wasTracked && !this._isIgnored(path))
+      this._emit(eventName, path);
+    this._closePath(path);
+  }
+  /**
+   * Closes all watchers for a path
+   */
+  _closePath(path) {
+    this._closeFile(path);
+    const dir = sysPath2.dirname(path);
+    this._getWatchedDir(dir).remove(sysPath2.basename(path));
+  }
+  /**
+   * Closes only file-specific watchers
+   */
+  _closeFile(path) {
+    const closers = this._closers.get(path);
+    if (!closers)
+      return;
+    closers.forEach((closer) => closer());
+    this._closers.delete(path);
+  }
+  _addPathCloser(path, closer) {
+    if (!closer)
+      return;
+    let list = this._closers.get(path);
+    if (!list) {
+      list = [];
+      this._closers.set(path, list);
+    }
+    list.push(closer);
+  }
+  _readdirp(root, opts) {
+    if (this.closed)
+      return;
+    const options = { type: EVENTS.ALL, alwaysStat: true, lstat: true, ...opts, depth: 0 };
+    let stream = readdirp(root, options);
+    this._streams.add(stream);
+    stream.once(STR_CLOSE, () => {
+      stream = void 0;
+    });
+    stream.once(STR_END, () => {
+      if (stream) {
+        this._streams.delete(stream);
+        stream = void 0;
+      }
+    });
+    return stream;
+  }
+};
+function watch(paths, options = {}) {
+  const watcher = new FSWatcher(options);
+  watcher.add(paths);
+  return watcher;
+}
+
+// src/cli/lib/plugin-dev.ts
+import { existsSync as existsSync27 } from "fs";
+import { basename as basename12, dirname as dirname8, extname as extname5, join as join33, sep as sep2 } from "path";
+init_cli_shared();
+function isGeneratedBundle(dir, path) {
+  if (path.includes(`${sep2}node_modules${sep2}`) || basename12(path).startsWith(".")) return true;
+  if (extname5(path) !== ".js") return false;
+  const stem = basename12(path, ".js");
+  return [".ts", ".tsx", ".jsx", ".mts"].some((extension) => existsSync27(join33(dirname8(path) || dir, `${stem}${extension}`)));
+}
+async function requestDaemonReload(kandownDir) {
+  try {
+    const status = await getDaemonStatus(kandownDir);
+    if (!status.running || !status.metadata) return false;
+    const response = await fetch(`http://localhost:${status.metadata.port}/api/extensions/reload`, {
+      method: "POST",
+      headers: status.metadata.token ? { [TOKEN_HEADER]: status.metadata.token } : {}
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+async function cycle(kandownDir, projectDir, id, dir, quiet) {
+  const build = await buildPlugin(dir);
+  for (const warning of build.warnings) info(warning);
+  if (!build.ok) {
+    for (const error of build.errors) err(error);
+    return false;
+  }
+  if (!quiet) {
+    const summary = build.outputs.map((output) => `${output.out.split("/").pop()} ${(output.bytes / 1024).toFixed(1)}kb`).join(", ");
+    info(`built ${summary}`);
+  }
+  const report = await checkPlugin(kandownDir, projectDir, id);
+  log(formatCheckReport(report));
+  const reloaded = await requestDaemonReload(kandownDir);
+  if (reloaded) success("reloaded the board");
+  else if (!quiet) info('no daemon running; start one with "kandown" to see the plugin live');
+  return report.ok;
+}
+async function runPluginDev(kandownDir, projectDir, id, dir) {
+  const host = await loadExtensionHost(kandownDir);
+  const enabled = await host.enable(id);
+  if (enabled) success(`${id} is trusted and enabled`);
+  else info(`${id} is not enabled yet; the checks below explain why`);
+  await cycle(kandownDir, projectDir, id, dir, false);
+  const watcher = watch(dir, {
+    ignoreInitial: true,
+    ignored: (path) => isGeneratedBundle(dir, path),
+    // 📖 Editors write in several steps. Waiting for the size to settle stops a
+    // rebuild from reading a truncated file.
+    awaitWriteFinish: { stabilityThreshold: 120, pollInterval: 30 }
+  });
+  log("");
+  log(`${c.dim}watching ${dir}, press Ctrl+C to stop${c.reset}`);
+  let running = false;
+  let queued = false;
+  const trigger = async () => {
+    if (running) {
+      queued = true;
+      return;
+    }
+    running = true;
+    try {
+      log("");
+      log(`${c.dim}${(/* @__PURE__ */ new Date()).toLocaleTimeString()} rebuilding${c.reset}`);
+      await cycle(kandownDir, projectDir, id, dir, true);
+    } finally {
+      running = false;
+      if (queued) {
+        queued = false;
+        void trigger();
+      }
+    }
+  };
+  watcher.on("all", () => {
+    void trigger();
+  });
+  await new Promise((resolve13) => {
+    const stop = () => {
+      void watcher.close().then(() => resolve13());
+    };
+    process.once("SIGINT", stop);
+    process.once("SIGTERM", stop);
+  });
+}
+
+// src/cli/lib/plugin-scaffold.ts
+import { existsSync as existsSync28, mkdirSync as mkdirSync13, writeFileSync as writeFileSync9 } from "fs";
+import { join as join34 } from "path";
+var PLUGIN_KINDS = ["field", "panel", "gate", "sync", "command", "full"];
+function isValidPluginId(id) {
+  return /^[a-z][a-z0-9-]{0,63}$/.test(id);
+}
+function camel(id) {
+  return id.replace(/-([a-z0-9])/g, (_, char) => char.toUpperCase());
+}
+function title(id) {
+  const spaced = id.replace(/-/g, " ");
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+function fieldPart(id) {
+  return {
+    body: [
+      `  // \u{1F4D6} A number field stored at plugins.${id}.points. The badge renders on`,
+      `  // the card; returning null hides it for tasks that never set a value.`,
+      `  kd.contributeField({`,
+      `    key: 'points',`,
+      `    label: 'Story points',`,
+      `    type: 'number',`,
+      `    badge: (value) => (typeof value === 'number' && value > 0 ? \`\u{1F53A} \${value}\` : null),`,
+      `  });`
+    ],
+    permissions: [`write:field:plugins.${id}.*`],
+    contributes: { fields: ["points"] },
+    web: false,
+    summary: `Adds a "Story points" field on every task, stored under plugins.${id}.points.`
+  };
+}
+function panelPart(id) {
+  return {
+    body: [
+      `  // \u{1F4D6} The panel is declared here and implemented in web.tsx. \`entry\` must`,
+      `  // point at the bundled web.js that \`kandown plugin build\` produces.`,
+      `  kd.contributeWebPanel({`,
+      `    id: 'overview',`,
+      `    title: '${title(id)}',`,
+      `    entry: './web.js',`,
+      `  });`
+    ],
+    // 📖 A panel needs no permission: the browser hands it a task snapshot and
+    // a scoped api, and every privileged call still goes through the host.
+    permissions: [],
+    contributes: { webPanels: ["overview"] },
+    web: true,
+    summary: `Adds an "${title(id)}" panel to the task editor.`
+  };
+}
+function gatePart(id) {
+  return {
+    body: [
+      `  // \u{1F4D6} Gates compose: the move happens only when every gate abstains or`,
+      `  // permits. Return nothing to abstain, never throw (a throw fails open).`,
+      `  kd.contributeGate({`,
+      `    id: '${id}-requires-report',`,
+      `    on: 'task:beforeMove',`,
+      `    to: 'Done',`,
+      `    handler: (event) => {`,
+      `      const body = String(event.task.frontmatter.title ?? '');`,
+      `      if (!body.trim()) return { block: true, reason: 'A task needs a title before Done.' };`,
+      `      return undefined;`,
+      `    },`,
+      `  });`
+    ],
+    permissions: [],
+    contributes: { gates: [`${id}-requires-report`] },
+    web: false,
+    summary: "Blocks a move to Done when the task has no title."
+  };
+}
+function syncPart(id) {
+  return {
+    body: [
+      `  // \u{1F4D6} Syncs are fire and forget: they run after the file is written and`,
+      `  // their failures never block the board. \`ctx.fetch\` exists only because`,
+      `  // this manifest declares a net: permission.`,
+      `  kd.contributeSync({`,
+      `    id: '${id}-notify',`,
+      `    on: 'task:afterMove',`,
+      `    to: 'Done',`,
+      `    handler: async (event, ctx) => {`,
+      `      const url = process.env.${camel(id).toUpperCase()}_WEBHOOK;`,
+      `      if (!url || !ctx.fetch) return;`,
+      `      await ctx.fetch(url, {`,
+      `        method: 'POST',`,
+      `        headers: { 'Content-Type': 'application/json' },`,
+      `        body: JSON.stringify({ id: event.task.id, to: event.to }),`,
+      `      });`,
+      `    },`,
+      `  });`
+    ],
+    permissions: ["net:*"],
+    contributes: { syncs: [`${id}-notify`] },
+    web: false,
+    summary: "Posts a webhook every time a task lands in Done."
+  };
+}
+function commandPart(id) {
+  return {
+    body: [
+      `  // \u{1F4D6} Surfaces as \`kandown ${id}\`. Contributed commands are additive and`,
+      `  // can never shadow a core command.`,
+      `  kd.contributeCommand('${id}', {`,
+      `    description: 'Summarise the board.',`,
+      `    handler: async (_args, ctx) => {`,
+      `      const tasks = await ctx.board.readAll();`,
+      `      ctx.log.info(\`${id}: \${tasks.length} task(s) on the board\`);`,
+      `    },`,
+      `  });`
+    ],
+    permissions: ["read:tasks"],
+    contributes: { commands: [id] },
+    web: false,
+    summary: `Adds the \`kandown ${id}\` command.`
+  };
+}
+function partsFor(kind, id) {
+  switch (kind) {
+    case "field":
+      return fieldPart(id);
+    case "panel":
+      return panelPart(id);
+    case "gate":
+      return gatePart(id);
+    case "sync":
+      return syncPart(id);
+    case "command":
+      return commandPart(id);
+    case "full":
+      return mergeParts(id, [fieldPart(id), panelPart(id), gatePart(id), commandPart(id)]);
+  }
+}
+function mergeParts(id, parts) {
+  const body = [];
+  const permissions = /* @__PURE__ */ new Set();
+  const contributes = {};
+  for (const part of parts) {
+    if (body.length > 0) body.push("");
+    body.push(...part.body);
+    for (const permission of part.permissions) permissions.add(permission);
+    for (const [key, values] of Object.entries(part.contributes)) {
+      const bucket = key;
+      contributes[bucket] = [...contributes[bucket] ?? [], ...values ?? []];
+    }
+  }
+  return {
+    body,
+    permissions: [...permissions],
+    contributes,
+    web: parts.some((part) => part.web),
+    summary: `Field, panel, gate and command for ${id}.`
+  };
+}
+function indexSource(id, parts) {
+  return `/**
+ * @file ${id} plugin entry
+ * @description ${parts.summary}
+ *
+ * \u{1F4D6} Loaded by kandown through jiti, so this TypeScript runs with no build step
+ * during development. Run \`kandown plugin build ${id}\` before sharing it: the
+ * browser can only execute the bundled index.js.
+ */
+
+import type { KandownExtensionAPI } from 'kandown';
+
+export default function (kd: KandownExtensionAPI) {
+${parts.body.join("\n")}
+}
+`;
+}
+function webSource(id) {
+  return `/**
+ * @file ${id} panel module
+ * @description The browser half of the plugin. Bundled to web.js by
+ * \`kandown plugin build ${id}\` and imported through a Blob URL, so it must stay
+ * self-contained.
+ *
+ * \u{1F4D6} Never import React here. The host passes its own React runtime as \`ui\`;
+ * a second copy in the bundle breaks hooks and blanks the panel.
+ */
+
+/** Props kandown passes to every panel. */
+interface PanelProps {
+  task: { id: string; frontmatter: Record<string, unknown> };
+  api: {
+    readField(key: string): unknown;
+    readAllTasks(): Promise<Array<{ id: string; frontmatter: Record<string, unknown> }>>;
+    setField(key: string, value: unknown): Promise<void>;
+    refresh(): Promise<void>;
+  };
+  ui: {
+    createElement: (...args: unknown[]) => unknown;
+    useState: <T>(initial: T) => [T, (next: T) => void];
+    useEffect: (effect: () => void, deps: unknown[]) => void;
+  };
+}
+
+function Overview({ task, api, ui }: PanelProps) {
+  const [total, setTotal] = ui.useState(0);
+
+  ui.useEffect(() => {
+    void api.readAllTasks().then((tasks) => setTotal(tasks.length));
+  }, [api]);
+
+  return ui.createElement(
+    'div',
+    { style: { display: 'grid', gap: '4px', fontSize: '13px' } },
+    ui.createElement('div', { key: 'id' }, 'Task: ' + task.id),
+    ui.createElement('div', { key: 'total' }, 'Board size: ' + total),
+  );
+}
+
+export const panels = { overview: Overview };
+`;
+}
+function agentSource(id, kind, parts) {
+  return `# ${id} plugin
+
+${parts.summary}
+
+## Layout
+
+- \`index.ts\`, the Node entry. Registers every contribution.
+${parts.web ? "- `web.tsx`, the panel component. Bundled to `web.js`.\n" : ""}- \`manifest.json\`, identity and permissions.
+
+## Working on it
+
+\`\`\`bash
+kandown plugin check ${id} --json   # structured verdict, fix every failing check
+kandown plugin dev ${id}            # watch, rebuild, hot reload the web UI
+\`\`\`
+
+Scaffolded as \`--kind ${kind}\`. Data lives only under \`plugins.${id}.*\`.
+Run \`kandown plugin brief\` for the full authoring contract.
+`;
+}
+function scaffoldPlugin(projectDir, id, kind) {
+  if (!isValidPluginId(id)) {
+    throw new Error("plugin id must be kebab-case (lowercase letters, digits, hyphens)");
+  }
+  const dir = join34(projectDir, ".kandown", "extensions", id);
+  if (existsSync28(dir)) throw new Error(`already exists: ${dir}`);
+  const parts = partsFor(kind, id);
+  mkdirSync13(dir, { recursive: true });
+  const manifest = {
+    id,
+    name: title(id),
+    version: "0.1.0",
+    apiVersion: 1,
+    description: parts.summary,
+    permissions: parts.permissions,
+    contributes: parts.contributes,
+    agent: {
+      summary: parts.summary,
+      guide: "AGENT.md"
+    }
+  };
+  const files = [];
+  const write = (name, content) => {
+    writeFileSync9(join34(dir, name), content, "utf8");
+    files.push(name);
+  };
+  write("manifest.json", `${JSON.stringify(manifest, null, 2)}
+`);
+  write("index.ts", indexSource(id, parts));
+  if (parts.web) write("web.tsx", webSource(id));
+  write("AGENT.md", agentSource(id, kind, parts));
+  write("README.md", `# ${title(id)}
+
+${parts.summary}
+
+Enable it with \`kandown plugin enable ${id}\`.
+`);
+  return { dir, files, kind };
+}
+
+// src/cli/lib/plugin-cli.ts
+init_board_reader();
+init_cli_shared();
+var USAGE = `${c.cyan}kandown plugin${c.reset} ${c.dim}<create|build|check|dev|brief|publish|list|enable|disable|install|guide|purge>${c.reset}
+
+  ${c.bold}create${c.reset} <id> [--kind ${PLUGIN_KINDS.join("|")}] [--from "<what it should do>"] [--agent <id>]
+  ${c.bold}build${c.reset}  <id>            bundle index.ts and web.tsx for the browser
+  ${c.bold}check${c.reset}  <id> [--json]   validate against a synthetic board
+  ${c.bold}dev${c.reset}    <id>            watch, rebuild, revalidate, hot reload
+  ${c.bold}brief${c.reset}                  print the full authoring contract
+  ${c.bold}publish${c.reset} <id>           verify, then print the store entry`;
+function resolvePluginDir(projectDir, id) {
+  const found = discoverExtensions(projectDir).find((entry) => entry.manifestResult.ok ? entry.manifestResult.manifest.id === id : basename13(entry.dir) === id);
+  return found?.dir ?? null;
+}
+function buildAgentPrompt(id, dir, kind, description) {
+  return `${EXTENSION_AGENT_BRIEF}
+
+---
+
+# Your assignment
+
+A plugin scaffold already exists. Turn it into this:
+
+> ${description}
+
+Files to edit, all under \`${dir}\`:
+
+- \`index.ts\`, the Node entry (scaffolded as \`--kind ${kind}\`)
+- \`manifest.json\`, keep \`permissions\` exactly matching what the code calls
+- \`web.tsx\` if the plugin renders a panel
+- \`README.md\` and \`AGENT.md\`, keep them truthful
+
+Then run this loop until it is green, from the project root:
+
+\`\`\`bash
+kandown plugin build ${id}
+kandown plugin check ${id} --json
+\`\`\`
+
+\`check\` returns \`{ ok, checks: [{ id, status, message, fix }] }\`. For every
+check whose status is \`fail\`, apply its \`fix\` and run the loop again. You are
+done when \`ok\` is true. Do not edit anything outside \`${dir}\`, and never write
+task frontmatter outside \`plugins.${id}.*\`.`;
+}
+async function delegateToAgent(kandownDir, id, dir, kind, description, requestedAgent) {
+  const prompt = buildAgentPrompt(id, dir, kind, description);
+  const agent = requestedAgent ? getAgentById(requestedAgent, kandownDir) : detectInstalledAgents(kandownDir)[0];
+  if (!agent) {
+    err(requestedAgent ? `Unknown or missing agent: ${requestedAgent}` : "No coding agent CLI detected on this machine.");
+    info("Paste the working order below into your agent instead:");
+    log("");
+    log(prompt);
+    return;
+  }
+  const [binary, ...args] = buildAgentCommand(agent, {
+    systemPrompt: prompt,
+    taskPrompt: `Build the "${id}" kandown plugin described above, then make "kandown plugin check ${id}" pass.`,
+    kandownDir,
+    taskId: id
+  });
+  success(`Handing "${id}" to ${agent.name}`);
+  await new Promise((resolve13) => {
+    const child = spawn8(binary, args, { stdio: "inherit", env: process.env });
+    child.on("error", (error) => {
+      err(`Could not launch ${agent.name}: ${error.message}`);
+      resolve13();
+    });
+    child.on("close", () => resolve13());
+  });
+}
+async function cmdPlugin(rawArgs) {
+  const args = taskParseArgs(rawArgs);
+  const sub = args.positional[0];
+  const json = args.flags.json === true;
+  if (!sub) {
+    log(USAGE);
+    return;
+  }
+  if (["list", "ls", "enable", "disable", "install", "purge", "guide"].includes(sub)) {
+    await cmdExtension(rawArgs);
+    return;
+  }
+  if (sub === "brief") {
+    log(EXTENSION_AGENT_BRIEF);
+    return;
+  }
+  const { kandownDir } = ensureKandownDir(rawArgs);
+  const projectDir = getProjectRoot(kandownDir);
+  switch (sub) {
+    case "create": {
+      const id = args.positional[1];
+      if (!id) {
+        err("Usage: kandown plugin create <kebab-id> [--kind field|panel|gate|sync|command|full]");
+        process.exitCode = 1;
+        return;
+      }
+      if (!isValidPluginId(id)) {
+        err("The id must be kebab-case (lowercase letters, digits, hyphens).");
+        process.exitCode = 1;
+        return;
+      }
+      const requestedKind = stringFlag(args.flags, "kind") ?? "full";
+      if (!PLUGIN_KINDS.includes(requestedKind)) {
+        err(`Unknown --kind "${requestedKind}". Use one of: ${PLUGIN_KINDS.join(", ")}`);
+        process.exitCode = 1;
+        return;
+      }
+      const kind = requestedKind;
+      let created;
+      try {
+        created = scaffoldPlugin(projectDir, id, kind);
+      } catch (error) {
+        err(error instanceof Error ? error.message : String(error));
+        process.exitCode = 1;
+        return;
+      }
+      if (json) {
+        log(JSON.stringify({ ok: true, id, dir: created.dir, kind, files: created.files, brief: EXTENSION_AGENT_BRIEF }, null, 2));
+      } else {
+        log(EXTENSION_AGENT_BRIEF);
+        log("");
+        log(`${c.bold}Scaffolded ${id}${c.reset} (--kind ${kind}) at ${created.dir}`);
+        for (const file of created.files) log(`  ${c.dim}+${c.reset} ${file}`);
+        log("");
+        log(`${c.bold}Next${c.reset}`);
+        log(`  1. edit ${join35(created.dir, "index.ts")}`);
+        log(`  2. ${c.cyan}kandown plugin build ${id}${c.reset}`);
+        log(`  3. ${c.cyan}kandown plugin check ${id} --json${c.reset}   ${c.dim}fix every "fail", repeat${c.reset}`);
+        log(`  4. ${c.cyan}kandown plugin dev ${id}${c.reset}            ${c.dim}watch and hot reload the board${c.reset}`);
+      }
+      const description = stringFlag(args.flags, "from");
+      if (description) {
+        log("");
+        await delegateToAgent(kandownDir, id, created.dir, kind, description, stringFlag(args.flags, "agent"));
+      }
+      return;
+    }
+    case "build": {
+      const id = args.positional[1];
+      if (!id) {
+        err("Usage: kandown plugin build <id>");
+        process.exitCode = 1;
+        return;
+      }
+      const dir = resolvePluginDir(projectDir, id);
+      if (!dir) {
+        err(`No plugin "${id}" found. Create it with: kandown plugin create ${id}`);
+        process.exitCode = 1;
+        return;
+      }
+      const result = await buildPlugin(dir);
+      if (json) {
+        log(JSON.stringify(result, null, 2));
+      } else {
+        for (const warning of result.warnings) info(warning);
+        for (const output of result.outputs) {
+          success(`${basename13(output.out)} ${c.dim}${(output.bytes / 1024).toFixed(1)}kb${c.reset}`);
+        }
+        for (const error of result.errors) err(error);
+      }
+      if (!result.ok) process.exitCode = 1;
+      return;
+    }
+    case "check": {
+      const id = args.positional[1];
+      if (!id) {
+        err("Usage: kandown plugin check <id> [--json]");
+        process.exitCode = 1;
+        return;
+      }
+      const report = await checkPlugin(kandownDir, projectDir, id);
+      log(json ? JSON.stringify(report, null, 2) : formatCheckReport(report));
+      if (!report.ok) process.exitCode = 1;
+      return;
+    }
+    case "dev": {
+      const id = args.positional[1];
+      if (!id) {
+        err("Usage: kandown plugin dev <id>");
+        process.exitCode = 1;
+        return;
+      }
+      const dir = resolvePluginDir(projectDir, id);
+      if (!dir) {
+        err(`No plugin "${id}" found. Create it with: kandown plugin create ${id}`);
+        process.exitCode = 1;
+        return;
+      }
+      await runPluginDev(kandownDir, projectDir, id, dir);
+      return;
+    }
+    case "publish": {
+      const id = args.positional[1];
+      if (!id) {
+        err("Usage: kandown plugin publish <id>");
+        process.exitCode = 1;
+        return;
+      }
+      const dir = resolvePluginDir(projectDir, id);
+      if (!dir) {
+        err(`No plugin "${id}" found.`);
+        process.exitCode = 1;
+        return;
+      }
+      const build = await buildPlugin(dir);
+      for (const error of build.errors) err(error);
+      const report = await checkPlugin(kandownDir, projectDir, id);
+      if (!build.ok || !report.ok) {
+        log(formatCheckReport(report));
+        err("Fix the failing checks before publishing.");
+        process.exitCode = 1;
+        return;
+      }
+      const manifestPath = join35(dir, "manifest.json");
+      const manifest = existsSync29(manifestPath) ? JSON.parse(readFileSync23(manifestPath, "utf8")) : {};
+      const entry = {
+        id: manifest.id ?? id,
+        name: manifest.name ?? id,
+        author: manifest.author ?? "you",
+        repo: "you/kandown-" + id,
+        description: manifest.description ?? "",
+        minKandownVersion: manifest.minKandownVersion ?? void 0,
+        tags: []
+      };
+      if (json) {
+        log(JSON.stringify({ ok: true, id, entry, assets: ["manifest.json", "index.js"] }, null, 2));
+        return;
+      }
+      success(`${id} passes every check and is ready to publish`);
+      log("");
+      log(`${c.bold}1.${c.reset} push ${dir} to a public repo, with the built assets committed:`);
+      log(`   ${c.dim}manifest.json, index.js, web.js (when it has a panel), README.md${c.reset}`);
+      log(`${c.bold}2.${c.reset} open a PR on registry/extensions.json in the kandown repo, adding:`);
+      log("");
+      log(JSON.stringify(entry, null, 2));
+      log("");
+      log(`${c.bold}3.${c.reset} users then install it with ${c.cyan}kandown plugin install <repo-url>${c.reset}`);
+      return;
+    }
+    default:
+      err(`Unknown plugin subcommand: ${sub}`);
+      log(USAGE);
+      process.exitCode = 1;
+  }
+}
+
 // src/cli/lib/themes-cli.ts
-import { existsSync as existsSync25, mkdirSync as mkdirSync13, readFileSync as readFileSync22, readdirSync as readdirSync10, writeFileSync as writeFileSync9 } from "fs";
-import { join as join29, resolve as resolve10 } from "path";
+import { existsSync as existsSync30, mkdirSync as mkdirSync14, readFileSync as readFileSync24, readdirSync as readdirSync11, writeFileSync as writeFileSync10 } from "fs";
+import { join as join36, resolve as resolve12 } from "path";
 init_board_reader();
 init_cli_shared();
 
@@ -8674,26 +11498,26 @@ async function cmdTheme(rawArgs) {
   }
 }
 async function installFromTarget(projectDir, target) {
-  const src = resolve10(target);
-  if (existsSync25(src) && src.endsWith(".json")) {
-    const text = readFileSync22(src, "utf8");
+  const src = resolve12(target);
+  if (existsSync30(src) && src.endsWith(".json")) {
+    const text = readFileSync24(src, "utf8");
     const parsed = JSON.parse(text);
     if (!parsed.id) return { ok: false, error: "theme JSON is missing id" };
-    const destDir = join29(projectDir, ".kandown", "themes");
-    mkdirSync13(destDir, { recursive: true });
-    writeFileSync9(join29(destDir, `${parsed.id}.json`), text, "utf8");
+    const destDir = join36(projectDir, ".kandown", "themes");
+    mkdirSync14(destDir, { recursive: true });
+    writeFileSync10(join36(destDir, `${parsed.id}.json`), text, "utf8");
     return { ok: true, id: parsed.id };
   }
   return installTheme(projectDir, { url: target });
 }
 function listInstalledThemesForCli(projectDir) {
-  const dir = join29(projectDir, ".kandown", "themes");
-  if (!existsSync25(dir)) return [];
+  const dir = join36(projectDir, ".kandown", "themes");
+  if (!existsSync30(dir)) return [];
   const out = [];
-  for (const file of readdirSync10(dir)) {
+  for (const file of readdirSync11(dir)) {
     if (!file.endsWith(".json")) continue;
     try {
-      const raw = readFileSync22(join29(dir, file), "utf8");
+      const raw = readFileSync24(join36(dir, file), "utf8");
       const parsed = JSON.parse(raw);
       if (parsed.id) out.push({ id: parsed.id, name: parsed.name ?? parsed.id, author: parsed.author, description: parsed.description, version: parsed.version });
     } catch {
@@ -8702,10 +11526,10 @@ function listInstalledThemesForCli(projectDir) {
   return out;
 }
 function scaffoldTheme(projectDir, name) {
-  const destDir = join29(projectDir, ".kandown", "themes");
-  mkdirSync13(destDir, { recursive: true });
-  const dest = join29(destDir, `${name}.json`);
-  if (existsSync25(dest)) {
+  const destDir = join36(projectDir, ".kandown", "themes");
+  mkdirSync14(destDir, { recursive: true });
+  const dest = join36(destDir, `${name}.json`);
+  if (existsSync30(dest)) {
     err(`Already exists: ${dest}`);
     process.exit(1);
   }
@@ -8782,16 +11606,16 @@ function scaffoldTheme(projectDir, name) {
     version: "0.1.0",
     created: today
   };
-  writeFileSync9(dest, `${JSON.stringify(starter, null, 2)}
+  writeFileSync10(dest, `${JSON.stringify(starter, null, 2)}
 `, "utf8");
 }
 function publishTheme(file, githubUser) {
-  const resolved = resolve10(file);
-  if (!existsSync25(resolved)) {
+  const resolved = resolve12(file);
+  if (!existsSync30(resolved)) {
     err(`Theme file not found: ${file}`);
     process.exit(1);
   }
-  const raw = readFileSync22(resolved, "utf8");
+  const raw = readFileSync24(resolved, "utf8");
   let theme;
   try {
     theme = JSON.parse(raw);
@@ -8809,12 +11633,12 @@ function publishTheme(file, githubUser) {
       updated.author = githubUser;
       const updatedRaw = `${JSON.stringify(updated, null, 2)}
 `;
-      writeFileSync9(resolved, updatedRaw, "utf8");
+      writeFileSync10(resolved, updatedRaw, "utf8");
       info(`Set author to @${githubUser} in ${file}.`);
     } catch {
     }
   }
-  const json = existsSync25(resolved) ? readFileSync22(resolved, "utf8") : raw;
+  const json = existsSync30(resolved) ? readFileSync24(resolved, "utf8") : raw;
   const url = buildProposeUrl({
     githubOwner: KANDOWN_THEME_REPO_OWNER,
     githubRepo: KANDOWN_THEME_REPO_NAME,
@@ -8911,6 +11735,10 @@ async function main() {
     case "extensions":
       await cmdExtension(rest);
       break;
+    case "plugin":
+    case "plugins":
+      await cmdPlugin(rest);
+      break;
     case "theme":
     case "themes":
       await cmdTheme(rest);
@@ -8947,13 +11775,13 @@ async function main() {
     case void 0: {
       const parsed = parseArgs(rest);
       const kandownDir = resolveKandownDir(parsed.path, process.cwd());
-      if (existsSync26(join30(kandownDir, "kandown.json"))) {
+      if (existsSync31(join37(kandownDir, "kandown.json"))) {
         let status = await getDaemonStatus(kandownDir);
         if (!status.running) {
           status = await startProjectDaemon(kandownDir);
         }
         if (!parsed.flags["no-open"]) {
-          const urlToOpen = status.metadata?.url || join30(kandownDir, "kandown.html");
+          const urlToOpen = status.metadata?.url || join37(kandownDir, "kandown.html");
           openBrowser(urlToOpen);
         }
       } else if (!process.stdin.isTTY) {
@@ -8970,7 +11798,7 @@ async function main() {
       }
       const parsed = parseArgs(rest);
       const kandownDir = resolveKandownDir(parsed.path, process.cwd());
-      if (existsSync26(join30(kandownDir, "kandown.json"))) {
+      if (existsSync31(join37(kandownDir, "kandown.json"))) {
         const positional = rest.filter((a) => !a.startsWith("-") && !a.startsWith("--path"));
         const ran = await dispatchContributedCommand(kandownDir, cmd, positional.join(" "));
         if (ran) break;
@@ -8982,3 +11810,8 @@ async function main() {
   }
 }
 void main();
+/*! Bundled license information:
+
+chokidar/esm/index.js:
+  (*! chokidar - MIT License (c) 2012 Paul Miller (paulmillr.com) *)
+*/

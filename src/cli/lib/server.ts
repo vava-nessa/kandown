@@ -520,6 +520,19 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
     const badges = await host.renderBadges();
     return writeJson(res, 200, { extensions: host.installedSummary(), badges });
   }
+  // 📖 Hot reload channel for `kandown plugin dev`. The CLI owns the rebuild and
+  // the validation; the daemon only has to forget its cached host and tell every
+  // open board to drop its module cache and re-hydrate. Keeping the trigger
+  // explicit (rather than watching the extensions directory from here) means a
+  // reload never fires on a half-written bundle.
+  if (path === '/api/extensions/reload' && method === 'POST') {
+    extensionHost = null;
+    extensionHostDir = null;
+    await getExtensionHost(kandownDir);
+    broadcastSseEvent({ type: 'extensions' });
+    return writeJson(res, 200, { ok: true });
+  }
+
   if (path.startsWith('/api/extensions/')) {
     const parts = path.slice('/api/extensions/'.length).split('/').filter(Boolean);
     let id: string;

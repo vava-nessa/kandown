@@ -554,19 +554,37 @@ machine-local and never committed with extension source.
 short version; read the guide to actually build one.
 
 The goal is that a coding agent (pi, claude, codex) can produce a working
-kandown extension as easily as it produces a pi extension. Three levers make that
-true:
+kandown extension as easily as it produces a pi extension. The `kandown plugin`
+command surface exists for exactly that loop, and four levers make it work:
 
-1. **Scaffold.** `kandown extension create <name>` generates a manifest, an
-   `index.ts`, an optional `web.tsx`, and a README from a strict template.
-2. **Types.** A published `@kandown/extension-api` types package gives
-   autocompletion and compile-time safety for the `kd` API and event payloads.
-3. **Hot reload.** `kandown extension dev` loads via jiti and reloads on save,
-   the pi loop.
+1. **Scaffold.** `kandown plugin create <id> --kind field|panel|gate|sync|command|full`
+   generates a manifest, an `index.ts`, an optional `web.tsx`, an `AGENT.md` and
+   a README, all already valid. It prints the full authoring brief to stdout,
+   which is what lands in an agent's context.
+2. **Contract.** That brief, [`EXTENSIONS-AGENT.md`](EXTENSIONS-AGENT.md), is
+   **generated from `src/lib/extensions/types.ts`**, so the document an agent
+   reads can never drift from the runtime it compiles against.
+3. **Verdict.** `kandown plugin check <id> --json` loads the plugin against a
+   synthetic in-memory board, exercises every contribution it registered, and
+   returns `{ ok, checks: [{ id, status, message, fix }] }`. The `fix` field is
+   written as an instruction, so an agent can iterate to green unattended.
+4. **Hot reload.** `kandown plugin dev <id>` watches the directory, rebuilds the
+   browser bundles, re-runs the checks and pushes a reload to every open board,
+   the pi `/reload` loop without the manual step.
+
+`kandown plugin create <id> --from "<what it should do>"` closes the circle: it
+scaffolds, then hands the brief plus the working order to the coding agent
+already installed on the machine. kandown never calls a model itself; it supplies
+the loop, the agent supplies the code.
 
 Agents are especially good at filling a JSON manifest from a schema, so the
 manifest ships with a published JSON Schema that drives both editor validation
 and agent generation.
+
+> `plugin check` **executes** the plugin. That is the point (a gate that throws
+> is only visible when it runs), but it means checking an untrusted third-party
+> plugin runs its code with your privileges. Read it first, exactly as you would
+> before `enable`.
 
 ### Canonical example
 

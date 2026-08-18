@@ -21,7 +21,7 @@
  */
 
 import { createJiti } from 'jiti';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ContributionRegistry } from './registry';
@@ -146,14 +146,22 @@ export class ExtensionHost {
   /**
    * 📖 Discovers and loads every extension, applying restricted mode, project
    * trust and version compatibility. Safe to call repeatedly (it resets first).
+   *
+   * 📖 `options.inspect` skips the trust and restricted-mode gates, and
+   * `options.only` narrows the load to one id. Both exist for `kandown plugin
+   * check`, which must be able to report on a plugin the user has deliberately
+   * not enabled yet. Inspection is in-process and one-shot: it never persists
+   * trust, never installs the host anywhere, and the author already controls the
+   * machine, so it grants no capability they did not have.
    */
-  async loadAll(): Promise<void> {
+  async loadAll(options: { only?: string; inspect?: boolean } = {}): Promise<void> {
     this.registry.reset();
     this.byExtId.clear();
-    const restricted = isRestricted(this.env.config);
+    const restricted = isRestricted(this.env.config) && !options.inspect;
     const discovered = discoverExtensions(this.env.projectDir);
 
     for (const found of discovered) {
+      if (options.only && found.manifestResult.ok && found.manifestResult.manifest.id !== options.only) continue;
       if (!found.manifestResult.ok) {
         this.byExtId.set(found.dir, {
           manifest: { id: '(invalid)', name: '(invalid)', version: '0', apiVersion: SUPPORTED_API_VERSION },
@@ -177,7 +185,9 @@ export class ExtensionHost {
         continue;
       }
       const persistedFailure = this.failures.get(manifest.id);
-      if (persistedFailure && persistedFailure.failures >= QUARANTINE_THRESHOLD) {
+      // 📖 Inspection deliberately loads quarantined extensions too: finding out
+      // why one broke is the whole point of `kandown plugin check`.
+      if (!options.inspect && persistedFailure && persistedFailure.failures >= QUARANTINE_THRESHOLD) {
         this.byExtId.set(manifest.id, loaded(
           manifest,
           found.dir,
@@ -189,7 +199,7 @@ export class ExtensionHost {
         continue;
       }
       // 📖 Project-local extensions require explicit trust (mirrors pi project_trust).
-      if (found.source === 'project' && !this.trust.has(manifest.id)) {
+      if (!options.inspect && found.source === 'project' && !this.trust.has(manifest.id)) {
         this.byExtId.set(manifest.id, loaded(manifest, found.dir, found.source, 'disabled', 'project extension not trusted; run "kandown extension enable"'));
         continue;
       }

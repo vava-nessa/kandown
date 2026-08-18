@@ -5,6 +5,10 @@
 Every release has its own file in [`changelogs/`](changelogs/). This page is
 the index; click a version for the full notes.
 
+## Unreleased
+
+**[Plugin Forge](changelogs/unreleased.md)** — 9 added · 3 changed
+
 ## 2026
 
 | Version | Date | Release | Changes |

@@ -236,10 +236,33 @@ IDE, bot or webhook receive tasks.
 | `kandown extension list` | Show installed extensions, health and contributions |
 | `kandown extension install <path-or-url>` | Install locally or from a GitHub URL |
 | `kandown extension enable\|disable <id>` | Trust and toggle one extension |
-| `kandown extension create <name>` | Scaffold a project-local extension |
 | `kandown extension purge <id>` | Explicitly remove its `plugins.<id>.*` task data |
 
 Browse community extensions at [kandown.dev/extensions](https://kandown.dev/extensions).
+
+### Writing a plugin
+
+`kandown plugin` is the authoring loop, designed so a coding agent can drive it
+end to end without a human in between.
+
+| Command | Description |
+|---|---|
+| `kandown plugin create <id> [--kind ...]` | Scaffold a working plugin and print the full authoring contract |
+| `kandown plugin create <id> --from "<goal>"` | Same, then hand the job to the coding agent installed on this machine |
+| `kandown plugin build <id>` | Bundle `index.ts` and `web.tsx` into the JavaScript the browser can run |
+| `kandown plugin check <id> [--json]` | Validate against a synthetic board; every failure comes with a fix |
+| `kandown plugin dev <id>` | Watch, rebuild, revalidate and hot reload the open board |
+| `kandown plugin publish <id>` | Verify, then print the community store entry |
+| `kandown plugin brief` | Print the authoring contract on its own |
+
+```bash
+kandown plugin create sprint-velocity --kind panel
+kandown plugin dev sprint-velocity
+```
+
+`--kind` is one of `field`, `panel`, `gate`, `sync`, `command` or `full`. The
+contract an agent reads, [`docs/EXTENSIONS-AGENT.md`](docs/EXTENSIONS-AGENT.md),
+is generated from the extension types, so it can never drift from the runtime.
 
 ### Themes
 

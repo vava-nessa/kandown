@@ -54,6 +54,10 @@ if (typeof globalThis.require === 'undefined') {
       // computed from its own location; bundling it into a single file breaks
       // those internal requires, so it must resolve from node_modules at runtime.
       'jiti',
+      // 📖 esbuild resolves and spawns a platform-specific native binary from
+      // its own install directory. Bundling the JS wrapper breaks that lookup,
+      // so `kandown plugin build` must import it from node_modules at runtime.
+      'esbuild',
     ];
     // 📖 React devtools-core uses 'self' (browser global) inside a CJS UMD bundle.
     // tsup bundles it but can't transform the webpack UniversalModuleDefinition.

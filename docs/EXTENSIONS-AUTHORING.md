@@ -16,23 +16,57 @@ badge + gate) and `webhook-sync` (sync + net permission).
 ## Quick start
 
 ```bash
-kandown extension create my-ext       # scaffolds .kandown/extensions/my-ext/
-kandown extension enable my-ext       # trust + enable it
-kandown extension list                # see it enabled
+kandown plugin create my-ext --kind full   # scaffold + print the authoring brief
+kandown plugin dev my-ext                  # watch: build, check, hot reload
 ```
 
-Edit `index.ts`, save, re-run any command: jiti reloads on each invocation, so
-there is no reload step during development.
+That is the whole loop. `plugin dev` trusts and enables the plugin, bundles the
+browser entries, validates them and pushes a reload to every open board on each
+save. Leave it running while you edit.
 
-Before distribution, also bundle a self-contained `index.js`. The standalone
-browser cannot execute TypeScript through jiti, so it imports `index.js` through
-a Blob URL and invokes the same registration factory. It registers fields,
-badges and panel declarations, while commands, gates, syncs and lifecycle
-handlers remain Node-only. Full standalone rendering applies to project-local
-extensions under `.kandown/extensions/`; browser sandboxing cannot access global
-extensions under `~/.kandown`. Before executing a project-local browser bundle,
-Kandown asks for local approval and fingerprints its manifest and source. Any
-source change requires approval again; repository state files cannot bypass it.
+If you prefer the steps one at a time:
+
+```bash
+kandown plugin create my-ext --kind field  # field | panel | gate | sync | command | full
+kandown plugin build my-ext                # index.ts -> index.js, web.tsx -> web.js
+kandown plugin check my-ext --json         # structured verdict, exit 1 on failure
+kandown plugin enable my-ext               # trust + enable
+kandown plugin list                        # see it enabled
+```
+
+`kandown extension <sub>` still works and remains the administrative view;
+`kandown plugin <sub>` is the authoring surface and aliases the shared
+subcommands (`list`, `enable`, `disable`, `install`, `guide`, `purge`).
+
+### Why `build` is not optional
+
+Node loads `index.ts` directly through jiti, so the CLI sees your TypeScript
+immediately. The **browser cannot**: it imports `index.js` and every panel entry
+through a Blob URL, which can neither run TypeScript nor resolve a sibling file.
+A plugin that works in the CLI and does nothing in the board is almost always an
+unbuilt bundle, which is why `plugin check` reports a missing or stale one as a
+first-class failure.
+
+Full standalone rendering applies to project-local extensions under
+`.kandown/extensions/`; browser sandboxing cannot access global extensions under
+`~/.kandown`. Before executing a project-local browser bundle, Kandown asks for
+local approval and fingerprints its manifest and source. Any source change
+requires approval again; repository state files cannot bypass it.
+
+### Letting an agent write it
+
+```bash
+kandown plugin create sprint-velocity --kind panel \
+  --from "show a burndown chart of remaining story points for the current sprint"
+```
+
+This scaffolds the plugin, then launches the coding agent already installed on
+your machine (`--agent claude|codex|pi|...` to pick one) with the complete
+authoring contract, the file list and the loop to run until `plugin check`
+passes. Without an agent installed it prints the working order for you to paste.
+
+`kandown plugin brief` prints that same contract on its own. It is generated from
+`src/lib/extensions/types.ts`, so it cannot go stale.
 
 ---
 
@@ -262,10 +296,17 @@ kd.on('board:load', async (_event, ctx) => { /* ... */ });
 ## Testing your extension
 
 ```bash
-kandown extension list          # health + contributions; errors show here
-kandown extension enable my-ext
-kandown my-ext                  # run your contributed command
+kandown plugin check my-ext          # readable report, with a fix line per failure
+kandown plugin check my-ext --json   # { ok, checks: [{ id, status, message, fix }] }
+kandown plugin list                  # health + contributions
+kandown my-ext                       # run your contributed command for real
 ```
+
+`check` runs eight things against a **synthetic in-memory board**: the manifest,
+the entry, what it actually registered, permissions declared versus called, the
+freshness of every bundle, one render of every panel, a dispatch of every gate,
+sync and command, and a frontmatter round-trip of everything it wrote. Your real
+tasks are never touched, but your plugin's code does execute.
 
 Common pitfalls:
 
@@ -278,7 +319,14 @@ Common pitfalls:
 
 ## Publishing
 
-The store is community-curated, the Obsidian model.
+The store is community-curated, the Obsidian model. Start with:
+
+```bash
+kandown plugin publish my-ext
+```
+
+It rebuilds, re-runs every check, refuses to continue while one fails, and then
+prints the registry entry to copy plus the exact steps below.
 
 1. Put your extension in a public Git repo (e.g. `you/kandown-my-ext`).
 2. Tag a release with the bundle assets: `manifest.json`, `index.js` (bundled),

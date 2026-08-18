@@ -29,6 +29,7 @@ import { cmdDaemon } from './commands/daemon';
 import { cmdRun } from './commands/run';
 import { cmdAgents } from './commands/agents';
 import { cmdExtension, dispatchContributedCommand } from './lib/extensions-cli';
+import { cmdPlugin } from './lib/plugin-cli';
 import { cmdTheme } from './lib/themes-cli';
 import { cmdWorkflow } from './lib/workflows-cli';
 
@@ -121,6 +122,11 @@ async function main() {
     case 'extension':
     case 'extensions':
       await cmdExtension(rest);
+      break;
+
+    case 'plugin':
+    case 'plugins':
+      await cmdPlugin(rest);
       break;
 
     case 'theme':
