@@ -3,11 +3,12 @@ id: t288
 title: Desktop spike, throwaway Tauri window on a running daemon (go/no-go)
 status: Done
 created: 2026-08-10
-updated: 2026-08-10T21:16:27Z
+updated: 2026-08-21T08:44:31Z
 priority: P1
 tags: [desktop, spike]
 ownerType: agent
 category: DESKTOP
+archived: true
 ---
 
 # Desktop spike, throwaway Tauri window on a running daemon (go/no-go)

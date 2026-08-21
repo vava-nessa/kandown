@@ -1,13 +1,14 @@
 ---
 id: t292
 title: Descriptive task filenames, t232_remove_dead_code.md
-status: Review
+status: Done
 created: 2026-08-13
-updated: 2026-08-13T19:48:27Z
+updated: 2026-08-21T08:44:31Z
 priority: P2
 tags: [cli, core, dx, git]
 ownerType: agent
 category: CLI
+archived: true
 ---
 
 # Descriptive task filenames

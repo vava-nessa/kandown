@@ -3,12 +3,13 @@ id: t284
 title: Desktop slice 3, recents launcher, multi-window projects and lifecycle
 status: Done
 created: 2026-08-10
-updated: 2026-08-11T10:16:47Z
+updated: 2026-08-21T08:44:31Z
 priority: P1
 tags: [desktop, ux]
 ownerType: agent
 depends_on: [t283]
 category: DESKTOP
+archived: true
 ---
 
 # Desktop slice 3, recents launcher, multi-window projects and lifecycle

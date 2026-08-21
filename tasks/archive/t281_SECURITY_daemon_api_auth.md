@@ -3,11 +3,12 @@ id: t281
 title: Daemon API auth token (M5), generate, inject and enforce
 status: Done
 created: 2026-08-10
-updated: 2026-08-10T20:59:32Z
+updated: 2026-08-21T08:44:31Z
 priority: P0
 tags: [security, cli, daemon]
 ownerType: agent
 category: SECURITY
+archived: true
 ---
 
 # Daemon API auth token (M5), generate, inject and enforce

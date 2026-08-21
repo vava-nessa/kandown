@@ -1,14 +1,14 @@
 ---
 id: t279
-title: "Sidebar All tasks: toggle group by status / [category]"
-status: Review
+title: Sidebar All tasks: toggle group by status / [category]
+status: Done
 category: WEB
 priority: P2
 tags: [web, ui, sidebar, category]
 ownerType: human
 assignee: pi
 created: 2026-08-03
-updated: 2026-08-03T20:30:00Z
+updated: 2026-08-21T08:44:14Z
 report: |
   ## Changes
   - `TaskWorkspace.tsx`: new `GroupMode` state (`status` | `category`)
@@ -63,7 +63,7 @@ report: |
   - src/lib/i18n/locales/en.json (new keys, source of truth)
   - src/lib/i18n/locales/fr.json (translated `taskWorkspace` block)
   - CODEMAP.md / CODEMAP.json (regenerated from updated JSDoc headers)
-archived: false
+archived: true
 ---
 
 # Sidebar "All tasks" : toggle group by status / [category]

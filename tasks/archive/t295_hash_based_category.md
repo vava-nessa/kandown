@@ -4,7 +4,8 @@ title: Hash-based category color chips
 status: Done
 category: THEMES
 created: 2026-08-15
-updated: 2026-08-15T10:00:00Z
+updated: 2026-08-21T08:44:32Z
+archived: true
 ---
 
 # Hash-based category color chips

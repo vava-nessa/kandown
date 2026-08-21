@@ -8,7 +8,7 @@ tags: [plugins, extensions, cli, agents, dx]
 ownerType: human
 assignee: claude
 created: 2026-08-17
-updated: 2026-08-18T02:09:23Z
+updated: 2026-08-21T08:44:32Z
 report: |
   ## Goal
 
@@ -129,6 +129,7 @@ report: |
   - `plugin check` executes plugin code by design. Checking an untrusted
     third-party plugin runs it with the user's privileges, exactly like `enable`,
     and this is documented rather than sandboxed.
+archived: true
 ---
 
 ## Context

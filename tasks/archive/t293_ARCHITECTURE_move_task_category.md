@@ -4,7 +4,8 @@ title: Move task category to frontmatter with filename mirror
 status: Done
 category: ARCHITECTURE
 created: 2026-08-14
-updated: 2026-08-14T20:05:00Z
+updated: 2026-08-21T08:44:31Z
+archived: true
 ---
 
 # Move task category to frontmatter with filename mirror

@@ -4,7 +4,8 @@ title: Bundle 3 clean themes, clean default, column color bar
 status: Done
 category: THEMES
 created: 2026-08-15
-updated: 2026-08-15T09:15:00Z
+updated: 2026-08-21T08:44:31Z
+archived: true
 ---
 
 # Bundle 3 clean themes, clean default, column color bar

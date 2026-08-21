@@ -3,12 +3,13 @@ id: t283
 title: Desktop slice 2, pick a folder and render the real board
 status: Done
 created: 2026-08-10
-updated: 2026-08-10T23:02:24Z
+updated: 2026-08-21T08:44:31Z
 priority: P1
 tags: [desktop, daemon]
 ownerType: agent
 depends_on: [t281, t282]
 category: DESKTOP
+archived: true
 ---
 
 📖 **Slice 2 implementation note (added by the implementing agent):** the
