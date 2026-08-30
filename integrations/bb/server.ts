@@ -211,19 +211,31 @@ export const rpcContract = defineRpcContract({
   kd_launch: {
     // 📖 Starts a bb thread on the task in the project that matches the
     // kandown project, then opens it in bb (the frontend navigates).
-    // providerId optionally picks the harness; otherwise the project default.
+    // providerId + model optionally pick the harness; otherwise the project
+    // defaults.
     input: z
-      .object({ projectId: z.string().min(1), taskId: z.string().min(1), providerId: z.string().optional() })
+      .object({
+        projectId: z.string().min(1),
+        taskId: z.string().min(1),
+        providerId: z.string().optional(),
+        model: z.string().optional(),
+      })
       .strict(),
     output: z.object({ ok: z.boolean(), threadId: z.string(), title: z.string(), error: z.string().nullable() }),
   },
   kd_models: {
-    // 📖 The harnesses (providers) available to spawn a task thread on.
-    input: z.object({ projectId: z.string().min(1) }).strict(),
+    // 📖 The harnesses (providers) available to spawn a task thread on, and,
+    // when providerId is given, that provider's selectable models.
+    input: z
+      .object({ projectId: z.string().min(1), providerId: z.string().optional() })
+      .strict(),
     output: z.object({
       providers: z.array(
         z.object({ providerId: z.string(), displayName: z.string(), available: z.boolean() }),
       ),
+      models: z
+        .array(z.object({ id: z.string(), displayName: z.string(), isDefault: z.boolean() }))
+        .optional(),
     }),
   },
 });
@@ -875,6 +887,7 @@ export default async function plugin(bb: BbPluginApi) {
     projectId: string,
     taskId: string,
     providerId?: string,
+    model?: string,
   ): Promise<{ threadId: string; title: string }> {
     const detail = await showTask(projectId, taskId);
     const thread = await bb.sdk.threads.spawn({
@@ -884,6 +897,7 @@ export default async function plugin(bb: BbPluginApi) {
       environment: { type: "project-default" },
       visibility: "visible",
       providerId: providerId !== undefined && providerId !== "" ? providerId : undefined,
+      model: model !== undefined && model !== "" ? model : undefined,
     });
     const threadId = (thread as { id?: string }).id ?? (thread as unknown as { threadId?: string }).threadId ?? "";
     if (threadId === "") throw new KandownError("bb did not return a thread id");
@@ -957,20 +971,30 @@ export default async function plugin(bb: BbPluginApi) {
     kd_update: (input) => updateTask(input),
     kd_init: async ({ projectId }) => ({ ok: await initBoard(projectId) }),
     kd_daemon: async ({ projectId }) => ensureDaemon(projectId),
-    kd_models: async ({ projectId }) => {
+    kd_models: async ({ projectId, providerId }) => {
       const { hostId } = await resolveSource(projectId);
       const providers = await bb.sdk.providers.list({ hostId });
+      const providersOut = providers.map((provider) => ({
+        providerId: provider.id,
+        displayName: provider.displayName,
+        available: provider.available,
+      }));
+      if (providerId === undefined || providerId === "") {
+        return { providers: providersOut };
+      }
+      const modelsResult = await bb.sdk.providers.models({ hostId, providerId });
       return {
-        providers: providers.map((provider) => ({
-          providerId: provider.id,
-          displayName: provider.displayName,
-          available: provider.available,
+        providers: providersOut,
+        models: (modelsResult.models ?? []).map((model) => ({
+          id: model.id,
+          displayName: model.displayName || model.model,
+          isDefault: model.isDefault,
         })),
       };
     },
-    kd_launch: async ({ projectId, taskId, providerId }) => {
+    kd_launch: async ({ projectId, taskId, providerId, model }) => {
       try {
-        const launched = await launchTask(projectId, taskId, providerId);
+        const launched = await launchTask(projectId, taskId, providerId, model);
         return { ok: true, threadId: launched.threadId, title: launched.title, error: null };
       } catch (cause) {
         return { ok: false, threadId: "", title: "", error: cause instanceof Error ? cause.message : String(cause) };
@@ -1033,7 +1057,7 @@ export default async function plugin(bb: BbPluginApi) {
     "  bb kandown move <task-id> <status|archived> [--project <projectId>]",
     "  bb kandown assign <task-id> [<assignee>] [--project <projectId>]",
     "  bb kandown update <task-id> [--title \"...\"] [-p P1-P3] [-t <tag>...] [--category <cat>] [--body \"...\"] [--project <projectId>]",
-    "  bb kandown launch <task-id> [--project <projectId>]  (start as a bb thread)",
+    "  bb kandown launch <task-id> [--provider <id>] [--model <id>] [--project <projectId>]  (start as a bb thread)",
     "  bb kandown daemon [status|start|stop] [--project <projectId>]",
     "  bb kandown init [--project <projectId>]",
     "",
@@ -1051,7 +1075,7 @@ export default async function plugin(bb: BbPluginApi) {
       { name: "move", summary: "Move a task between columns (or to archived)", usage: "bb kandown move <task-id> <status|archived> [--project <id>]" },
       { name: "assign", summary: "Assign (or unassign) a task", usage: "bb kandown assign <task-id> [name] [--project <id>]" },
       { name: "update", summary: "Edit a task's title, priority, tags, category or body", usage: 'bb kandown update <task-id> [--title "..."] [-p P1] [-t tag] [--category X] [--body "..."] [--project <id>]' },
-      { name: "launch", summary: "Start a task as a bb thread in the matching bb project", usage: "bb kandown launch <task-id> [--project <id>]" },
+      { name: "launch", summary: "Start a task as a bb thread in the matching bb project", usage: "bb kandown launch <task-id> [--provider <id>] [--model <id>] [--project <id>]" },
       { name: "daemon", summary: "Manage the kandown daemon that powers the embedded app", usage: "bb kandown daemon [status|start|stop] [--project <id>]" },
       { name: "init", summary: "Initialize kandown in a project checkout", usage: "bb kandown init [--project <id>]" },
     ],
@@ -1236,7 +1260,12 @@ export default async function plugin(bb: BbPluginApi) {
             const id = positional[0];
             if (id === undefined) return { exitCode: 1, stderr: usage };
             const projectId = await pickProject();
-            const launched = await launchTask(projectId, id, flag("provider") ?? undefined);
+            const launched = await launchTask(
+              projectId,
+              id,
+              flag("provider") ?? undefined,
+              flag("model") ?? undefined,
+            );
             return {
               exitCode: 0,
               stdout: json

@@ -89,6 +89,13 @@ interface HarvestOption {
   available: boolean;
 }
 
+/** A selectable model inside a provider. */
+interface HarvestModel {
+  id: string;
+  displayName: string;
+  isDefault: boolean;
+}
+
 interface CreateValues {
   title: string;
   status: string;
@@ -176,17 +183,19 @@ function useKandown() {
     [rpc],
   );
 
-  /** Start a task as a bb thread on a provider harness; throws on failure. */
+  /** Start a task as a bb thread on a provider/model harness; throws on failure. */
   const kdLaunch = useCallback(
     async (
       projectId: string,
       taskId: string,
       providerId?: string,
+      model?: string,
     ): Promise<{ threadId: string; title: string }> => {
       const result = (await rpc.call("kd_launch", {
         projectId,
         taskId,
         providerId: providerId !== undefined && providerId !== "" ? providerId : undefined,
+        model: model !== undefined && model !== "" ? model : undefined,
       })) as {
         ok: boolean;
         threadId: string;
@@ -656,11 +665,11 @@ function KanbanPage() {
     await kandown.runMutation("kd_update", { projectId, id, ...values }, `Saved ${id}`);
   };
 
-  const launchTask = async (task: TaskRow, providerId?: string) => {
+  const launchTask = async (task: TaskRow, providerId?: string, modelId?: string) => {
     if (projectId === null || launching) return;
     setLaunching(true);
     try {
-      const launched = await kandown.kdLaunch(projectId, task.id, providerId ?? "");
+      const launched = await kandown.kdLaunch(projectId, task.id, providerId ?? "", modelId ?? "");
       setLaunchDialog(null);
       toast.success(`Thread started on ${task.id} — opening in bb.`);
       // The thread belongs to this project; opening it is what "start in bb"
@@ -1094,6 +1103,7 @@ function TaskDialog({
 
 /** Default harness pick: last choice per project, else first available. */
 const LAUNCH_PROVIDER_KEY = "kandown.launchProvider";
+const LAUNCH_MODEL_KEY = "kandown.launchModel";
 
 function LaunchDialog({
   projectId,
@@ -1106,16 +1116,19 @@ function LaunchDialog({
   task: TaskRow;
   busy: boolean;
   onCancel: () => void;
-  onLaunch: (task: TaskRow, providerId: string) => Promise<void>;
+  onLaunch: (task: TaskRow, providerId: string, modelId?: string) => Promise<void>;
 }) {
   const rpc = useRpc<typeof rpcContract>();
   const [providers, setProviders] = useState<HarvestOption[] | null>(null);
+  const [models, setModels] = useState<HarvestModel[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [providerId, setProviderId] = useState<string | null>(() => {
     const key = `${LAUNCH_PROVIDER_KEY}:${projectId}`;
     return localStorage.getItem(key);
   });
+  const [modelId, setModelId] = useState<string | null>(null);
 
+  // Load the provider roster and the remembered/available selection once.
   useEffect(() => {
     let alive = true;
     rpc.call("kd_models", { projectId }).then(
@@ -1144,10 +1157,42 @@ function LaunchDialog({
     };
   }, [rpc, projectId]);
 
+  // Load the models for the selected provider; pick the remembered one or the
+  // provider's default.
+  useEffect(() => {
+    if (providerId === null) {
+      setModels(null);
+      setModelId(null);
+      return;
+    }
+    let alive = true;
+    setModels(null);
+    setModelId(null);
+    rpc.call("kd_models", { projectId, providerId }).then(
+      (result) => {
+        if (!alive) return;
+        const value = result as { models?: HarvestModel[] };
+        const next = value.models ?? [];
+        setModels(next);
+        const remembered = localStorage.getItem(`${LAUNCH_MODEL_KEY}:${projectId}:${providerId}`);
+        const pick =
+          next.find((m) => m.id === remembered) ?? next.find((m) => m.isDefault) ?? next[0] ?? null;
+        setModelId(pick?.id ?? null);
+      },
+      (cause) => {
+        if (alive) setError(cause instanceof Error ? cause.message : String(cause));
+      },
+    );
+    return () => {
+      alive = false;
+    };
+  }, [rpc, projectId, providerId]);
+
   const launch = async () => {
     if (providerId === null) return;
     localStorage.setItem(`${LAUNCH_PROVIDER_KEY}:${projectId}`, providerId);
-    await onLaunch(task, providerId);
+    if (modelId !== null) localStorage.setItem(`${LAUNCH_MODEL_KEY}:${projectId}:${providerId}`, modelId);
+    await onLaunch(task, providerId, modelId ?? undefined);
   };
 
   return (
@@ -1166,10 +1211,14 @@ function LaunchDialog({
               {error}
             </p>
           ) : null}
-          <Field label="Harness (provider / model in bb)">
+          <Field label="Harness (provider)">
             <select
               value={providerId ?? ""}
-              onChange={(event) => setProviderId(event.target.value || null)}
+              onChange={(event) => {
+                setProviderId(event.target.value || null);
+                setModelId(null);
+                setModels(null);
+              }}
               className={selectClass}
               disabled={providers === null}
             >
@@ -1182,8 +1231,24 @@ function LaunchDialog({
               ))}
             </select>
           </Field>
+          <Field label="Model">
+            <select
+              value={modelId ?? ""}
+              onChange={(event) => setModelId(event.target.value || null)}
+              className={selectClass}
+              disabled={providerId === null || models === null}
+            >
+              <option value="">Provider default…</option>
+              {(models ?? []).map((model) => (
+                <option key={model.id} value={model.id}>
+                  {model.displayName}
+                  {model.isDefault ? " (default)" : ""}
+                </option>
+              ))}
+            </select>
+          </Field>
           <p className="text-xs text-muted-foreground">
-            The thread opens in bb with this harness and the task as its first prompt. You can switch models
+            The thread opens in bb with this provider and model, seeded with the task. You can switch models
             inside the thread at any time.
           </p>
         </div>
