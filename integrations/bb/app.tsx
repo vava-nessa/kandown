@@ -44,6 +44,7 @@ import { cn } from "@/lib/utils";
 
 const BOARD_CHANGED = "kandown/board-changed";
 const SELECTED_KEY = "kandown.selectedProjectId";
+const LAUNCHED_CHANNEL = "kandown/launched";
 
 /** Priority → accent color, matching kandown's P0-P3 ladder. */
 const PRIORITY_COLORS: Record<string, string> = {
@@ -80,6 +81,13 @@ interface HealthState {
 type TaskDialogState =
   | { mode: "create"; status: string }
   | { mode: "edit"; task: TaskRow };
+
+/** A bb provider (harness) offered by the launch dialog. */
+interface HarvestOption {
+  providerId: string;
+  displayName: string;
+  available: boolean;
+}
 
 interface CreateValues {
   title: string;
@@ -168,6 +176,31 @@ function useKandown() {
     [rpc],
   );
 
+  /** Start a task as a bb thread on a provider harness; throws on failure. */
+  const kdLaunch = useCallback(
+    async (
+      projectId: string,
+      taskId: string,
+      providerId?: string,
+    ): Promise<{ threadId: string; title: string }> => {
+      const result = (await rpc.call("kd_launch", {
+        projectId,
+        taskId,
+        providerId: providerId !== undefined && providerId !== "" ? providerId : undefined,
+      })) as {
+        ok: boolean;
+        threadId: string;
+        title: string;
+        error: string | null;
+      };
+      if (!result.ok || result.threadId === "") {
+        throw new Error(result.error ?? "bb did not start the thread");
+      }
+      return { threadId: result.threadId, title: result.title };
+    },
+    [rpc],
+  );
+
   // Initial load: health + boards, then select the remembered or first board.
   useEffect(() => {
     void refreshBoards();
@@ -238,6 +271,7 @@ function useKandown() {
     loadBoard,
     runMutation,
     showTask,
+    kdLaunch,
     report,
   };
 }
@@ -278,6 +312,7 @@ function TaskCard({
   task,
   archived,
   onEdit,
+  onLaunch,
   onArchive,
   onRestore,
   onDragStart,
@@ -286,6 +321,7 @@ function TaskCard({
   task: TaskRow;
   archived?: boolean;
   onEdit: (task: TaskRow) => void;
+  onLaunch?: (task: TaskRow) => void;
   onArchive?: (task: TaskRow) => void;
   onRestore?: (task: TaskRow) => void;
   onDragStart: (id: string) => void;
@@ -315,7 +351,21 @@ function TaskCard({
           </span>
         ) : null}
         <span className="grow" />
-        <span className="hidden items-center gap-1 group-hover:flex">
+        <span className="hidden items-center gap-0.5 group-hover:flex">
+          {!archived && onLaunch !== undefined ? (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onLaunch(task);
+              }}
+              className="rounded p-1 text-foreground hover:bg-state-hover"
+              title="Start in bb"
+              aria-label={`Start ${task.id} in bb`}
+            >
+              <Icon name="Play" className="size-4" />
+            </button>
+          ) : null}
           {archived && onRestore !== undefined ? (
             <button
               type="button"
@@ -372,6 +422,7 @@ function ColumnView({
   archived,
   onAdd,
   onEdit,
+  onLaunch,
   onArchive,
   onRestore,
   onMove,
@@ -385,6 +436,7 @@ function ColumnView({
   archived?: boolean;
   onAdd: (column: string) => void;
   onEdit: (task: TaskRow) => void;
+  onLaunch: (task: TaskRow) => void;
   onArchive: (task: TaskRow) => void;
   onRestore?: (task: TaskRow) => void;
   onMove: (id: string, column: string) => void;
@@ -435,6 +487,7 @@ function ColumnView({
             task={task}
             archived={archived}
             onEdit={onEdit}
+            onLaunch={onLaunch}
             onArchive={onArchive}
             onRestore={onRestore}
             onDragStart={onDragStart}
@@ -465,6 +518,73 @@ function LoadingBoard() {
   );
 }
 
+/**
+ * The full kandown web app, embedded. The backend ensures the project's
+ * kandown daemon is running (with the bb agent hook) and hands us its URL;
+ * the daemon serves the app and injects its own auth token into the page,
+ * so the iframe needs nothing else. The "Send to Agent · bb" action inside
+ * the app comes back through the plugin's hook and opens the bb thread.
+ */
+function AppView({ projectId, epoch }: { projectId: string; epoch: number }) {
+  const rpc = useRpc<typeof rpcContract>();
+  const [url, setUrl] = useState<string | null>(null);
+  const [state, setState] = useState<"loading" | "ready" | "error">("loading");
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(() => {
+    setState("loading");
+    setError(null);
+    setUrl(null);
+    rpc.call("kd_daemon", { projectId }).then(
+      (result) => {
+        const value = result as { ok: boolean; url: string; error: string | null };
+        if (value.ok && value.url !== "") {
+          setUrl(value.url);
+          setState("ready");
+        } else {
+          setState("error");
+          setError(value.error ?? "The kandown daemon could not be started.");
+        }
+      },
+      (cause) => {
+        setState("error");
+        setError(cause instanceof Error ? cause.message : String(cause));
+      },
+    );
+  }, [rpc, projectId]);
+
+  useEffect(() => {
+    load();
+  }, [load, epoch]);
+
+  if (state === "loading") {
+    return (
+      <div className="p-4">
+        <EmptyState>
+          <Icon name="Loading" className="mr-2 inline size-4 animate-spin" />
+          Starting the kandown daemon…
+        </EmptyState>
+      </div>
+    );
+  }
+  if (state === "error" || url === null) {
+    return (
+      <div className="p-4">
+        <EmptyState>
+          {error}
+          <div className="mt-3">
+            <Button size="sm" onClick={load}>
+              <Icon name="RotateCcw" className="size-4" />
+              Retry
+            </Button>
+          </div>
+        </EmptyState>
+      </div>
+    );
+  }
+  return <iframe key={url} src={url} title="Kandown" className="h-full w-full flex-1 border-0 bg-background" />;
+}
+
 // ---------------------------------------------------------------------------
 // The page
 // ---------------------------------------------------------------------------
@@ -472,14 +592,25 @@ function LoadingBoard() {
 function KanbanPage() {
   const navigate = useBbNavigate();
   const kandown = useKandown();
+  const [view, setView] = useState<"app" | "board">("app");
+  const [daemonEpoch, setDaemonEpoch] = useState(0);
   const [dialog, setDialog] = useState<TaskDialogState | null>(null);
   const [detail, setDetail] = useState<TaskDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [launching, setLaunching] = useState(false);
+  const [launchDialog, setLaunchDialog] = useState<{ task: TaskRow } | null>(null);
 
   const { board, boards, selectedProjectId, setSelectedProjectId } = kandown;
   const projectId = selectedProjectId ?? null;
   const selected = boards?.find((candidate) => candidate.projectId === selectedProjectId) ?? null;
+
+  // A thread launched from the embedded kandown app (its "Send to Agent · bb"
+  // action goes through the plugin hook) arrives here and opens in bb.
+  useRealtime(LAUNCHED_CHANNEL, (payload) => {
+    const { threadId } = (payload ?? {}) as { threadId?: string };
+    if (typeof threadId === "string" && threadId !== "") navigate.toThread(threadId);
+  });
 
   const openCreate = (status: string) => {
     setDetail(null);
@@ -525,16 +656,39 @@ function KanbanPage() {
     await kandown.runMutation("kd_update", { projectId, id, ...values }, `Saved ${id}`);
   };
 
+  const launchTask = async (task: TaskRow, providerId?: string) => {
+    if (projectId === null || launching) return;
+    setLaunching(true);
+    try {
+      const launched = await kandown.kdLaunch(projectId, task.id, providerId ?? "");
+      setLaunchDialog(null);
+      toast.success(`Thread started on ${task.id} — opening in bb.`);
+      // The thread belongs to this project; opening it is what "start in bb"
+      // means. The realtime signal would also do it, but navigate directly
+      // so the transition is instant.
+      navigate.toThread(launched.threadId);
+    } catch (cause) {
+      kandown.report(cause);
+      toast.error(cause instanceof Error ? cause.message : String(cause));
+    } finally {
+      setLaunching(false);
+    }
+  };
+
   const refresh = () => {
     void kandown.refreshBoards();
-    if (projectId !== null) void kandown.loadBoard(projectId);
+    if (view === "app") {
+      setDaemonEpoch((value) => value + 1);
+    } else if (projectId !== null) {
+      void kandown.loadBoard(projectId);
+    }
   };
 
   const archivedCount = board?.archived.length ?? 0;
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      {/* Toolbar: back-to-bb, project picker, health, refresh, archive toggle, add */}
+      {/* Toolbar: back-to-bb, view switch, project picker, health, refresh, board actions */}
       <div className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-2">
         <Button
           variant="ghost"
@@ -583,23 +737,27 @@ function KanbanPage() {
         >
           <Icon name="RotateCcw" className="size-4" />
         </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn(
-            "size-8 text-muted-foreground hover:text-foreground",
-            kandown.includeArchived && "bg-state-active text-foreground",
-          )}
-          aria-label="Toggle archived tasks"
-          onClick={() => kandown.setIncludeArchived((value) => !value)}
-        >
-          <Icon name="Archive" className="size-4" />
-          {archivedCount > 0 ? <span className="text-xs tabular-nums">{archivedCount}</span> : null}
-        </Button>
-        <Button size="sm" onClick={() => openCreate(board?.columns[0]?.name ?? "Backlog")}>
-          <Icon name="Plus" className="size-4" />
-          Add task
-        </Button>
+        {view === "board" ? (
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "size-8 text-muted-foreground hover:text-foreground",
+                kandown.includeArchived && "bg-state-active text-foreground",
+              )}
+              aria-label="Toggle archived tasks"
+              onClick={() => kandown.setIncludeArchived((value) => !value)}
+            >
+              <Icon name="Archive" className="size-4" />
+              {archivedCount > 0 ? <span className="text-xs tabular-nums">{archivedCount}</span> : null}
+            </Button>
+            <Button size="sm" onClick={() => openCreate(board?.columns[0]?.name ?? "Backlog")}>
+              <Icon name="Plus" className="size-4" />
+              Add task
+            </Button>
+          </>
+        ) : null}
       </div>
 
       {kandown.error !== null ? (
@@ -618,7 +776,13 @@ function KanbanPage() {
       ) : null}
 
       <div className="min-h-0 flex-1">
-        {kandown.loading && board === null ? (
+        {view === "app" ? (
+          selected !== null && selected.isKandown && !selected.remote ? (
+            <AppView key={`${selected.projectId}:${daemonEpoch}`} projectId={selected.projectId} epoch={daemonEpoch} />
+          ) : (
+            <EmptyBoard selected={selected} health={kandown.health} onInit={initProject} />
+          )
+        ) : kandown.loading && board === null ? (
           <LoadingBoard />
         ) : board !== null ? (
           <div className="flex h-full min-h-0 items-start gap-3 overflow-x-auto p-3">
@@ -630,6 +794,7 @@ function KanbanPage() {
                 tasks={column.tasks}
                 onAdd={openCreate}
                 onEdit={openEdit}
+                onLaunch={(task) => setLaunchDialog({ task })}
                 onArchive={archiveTask}
                 onMove={moveTask}
                 draggingId={draggingId}
@@ -645,6 +810,7 @@ function KanbanPage() {
                 archived
                 onAdd={() => {}}
                 onEdit={openEdit}
+                onLaunch={() => {}}
                 onArchive={() => {}}
                 onRestore={restoreTask}
                 onMove={() => {}}
@@ -668,6 +834,15 @@ function KanbanPage() {
           onCancel={() => setDialog(null)}
           onCreate={createTask}
           onUpdate={updateTask}
+        />
+      ) : null}
+      {launchDialog !== null && projectId !== null ? (
+        <LaunchDialog
+          projectId={projectId}
+          task={launchDialog.task}
+          busy={launching}
+          onCancel={() => setLaunchDialog(null)}
+          onLaunch={launchTask}
         />
       ) : null}
     </div>
@@ -886,6 +1061,128 @@ function TaskDialog({
             </Button>
           </DialogFooter>
         </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Launch dialog — pick the bb harness (provider) and start the task.
+// ---------------------------------------------------------------------------
+
+/** Default harness pick: last choice per project, else first available. */
+const LAUNCH_PROVIDER_KEY = "kandown.launchProvider";
+
+function LaunchDialog({
+  projectId,
+  task,
+  busy,
+  onCancel,
+  onLaunch,
+}: {
+  projectId: string;
+  task: TaskRow;
+  busy: boolean;
+  onCancel: () => void;
+  onLaunch: (task: TaskRow, providerId: string) => Promise<void>;
+}) {
+  const rpc = useRpc<typeof rpcContract>();
+  const [providers, setProviders] = useState<HarvestOption[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [providerId, setProviderId] = useState<string | null>(() => {
+    const key = `${LAUNCH_PROVIDER_KEY}:${projectId}`;
+    return localStorage.getItem(key);
+  });
+
+  useEffect(() => {
+    let alive = true;
+    rpc.call("kd_models", { projectId }).then(
+      (result) => {
+        if (!alive) return;
+        const value = result as { providers: HarvestOption[] };
+        setProviders(value.providers);
+        const remembered = localStorage.getItem(`${LAUNCH_PROVIDER_KEY}:${projectId}`);
+        if (remembered !== null && value.providers.some((p) => p.providerId === remembered)) {
+          setProviderId(remembered);
+        } else {
+          const preferred =
+            value.providers.find((p) => p.available && p.providerId === "opencode-go") ??
+            value.providers.find((p) => p.available) ??
+            value.providers[0] ??
+            null;
+          if (preferred !== null) setProviderId(preferred.providerId);
+        }
+      },
+      (cause) => {
+        if (alive) setError(cause instanceof Error ? cause.message : String(cause));
+      },
+    );
+    return () => {
+      alive = false;
+    };
+  }, [rpc, projectId]);
+
+  const launch = async () => {
+    if (providerId === null) return;
+    localStorage.setItem(`${LAUNCH_PROVIDER_KEY}:${projectId}`, providerId);
+    await onLaunch(task, providerId);
+  };
+
+  return (
+    <Dialog open onOpenChange={(open) => (open ? undefined : onCancel())}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Start in bb</DialogTitle>
+          <DialogDescription>
+            Spawns a bb thread on <span className="font-mono">{task.id}</span> in this project, with the
+            task file as the prompt. The agent works on it and moves it forward on the board.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3 py-4">
+          {error !== null ? (
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
+          ) : null}
+          <Field label="Harness (provider / model in bb)">
+            <select
+              value={providerId ?? ""}
+              onChange={(event) => setProviderId(event.target.value || null)}
+              className={selectClass}
+              disabled={providers === null}
+            >
+              <option value="">Project default…</option>
+              {(providers ?? []).map((provider) => (
+                <option key={provider.providerId} value={provider.providerId}>
+                  {provider.displayName}
+                  {provider.available ? "" : " (unavailable)"}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <p className="text-xs text-muted-foreground">
+            The thread opens in bb with this harness and the task as its first prompt. You can switch models
+            inside the thread at any time.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onCancel} disabled={busy}>
+            Cancel
+          </Button>
+          <Button type="button" onClick={() => void launch()} disabled={busy || providerId === null}>
+            {busy ? (
+              <>
+                <Icon name="Loading" className="size-4 animate-spin" />
+                Starting…
+              </>
+            ) : (
+              <>
+                <Icon name="Play" className="size-4" />
+                Start in bb
+              </>
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

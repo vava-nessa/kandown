@@ -29,6 +29,9 @@ bb kandown move <id> <column>   move a task (or to "archived")
 bb kandown assign <id> [name]   assign or unassign
 bb kandown update <id> [--title "..."] [-p P1-P3] [-t <tag>] [--category <cat>] [--body "..."]
                                 edit the fields the CLI has no dedicated command for
+bb kandown launch <id>          start the task as a bb thread in the matching project (--provider <id>)
+bb kandown daemon [status|start|stop]
+                                manage the daemon that powers the embedded App view
 bb kandown init --project <id>  initialize a board in a project checkout
 ```
 
@@ -49,3 +52,7 @@ project command needs a board behind it.
   applies the same rule.
 - The board page inside bb (sidebar → Kandown) shows the same data; a task
   edited there lands in the same Markdown file you can edit here.
+- Starting a task with `bb kandown launch` (or the board's play button, or the
+  embedded app's "Send to Agent") creates a bb thread in the bb project that
+  matches the kandown project. The agent works on the task file as source of
+  truth and moves it through the columns when done.

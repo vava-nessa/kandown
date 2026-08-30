@@ -50,6 +50,11 @@ import { join } from "node:path";
 import { defineRpcContract, type BbPluginApi } from "@get-bb/plugin-sdk";
 import { z } from "zod";
 
+/** Normalize an absolute path for matching (trailing slashes, doubled seps). */
+function normalizePath(path: string): string {
+  return join(path).replace(/[\\/]+$/, "");
+}
+
 // ---------------------------------------------------------------------------
 // Shared types (imported type-only by app.tsx)
 // ---------------------------------------------------------------------------
@@ -197,7 +202,34 @@ export const rpcContract = defineRpcContract({
     input: z.object({ projectId: z.string().min(1) }).strict(),
     output: z.object({ ok: z.boolean() }),
   },
+  kd_daemon: {
+    // 📖 Ensures the kandown daemon for a project is running, restarted with
+    // the bb agent hook when needed, and returns the web app URL to embed.
+    input: z.object({ projectId: z.string().min(1) }).strict(),
+    output: z.object({ ok: z.boolean(), url: z.string(), error: z.string().nullable() }),
+  },
+  kd_launch: {
+    // 📖 Starts a bb thread on the task in the project that matches the
+    // kandown project, then opens it in bb (the frontend navigates).
+    // providerId optionally picks the harness; otherwise the project default.
+    input: z
+      .object({ projectId: z.string().min(1), taskId: z.string().min(1), providerId: z.string().optional() })
+      .strict(),
+    output: z.object({ ok: z.boolean(), threadId: z.string(), title: z.string(), error: z.string().nullable() }),
+  },
+  kd_models: {
+    // 📖 The harnesses (providers) available to spawn a task thread on.
+    input: z.object({ projectId: z.string().min(1) }).strict(),
+    output: z.object({
+      providers: z.array(
+        z.object({ providerId: z.string(), displayName: z.string(), available: z.boolean() }),
+      ),
+    }),
+  },
 });
+
+/** Realtime channel the frontend listens on to auto-open a launched thread. */
+export const LAUNCHED_CHANNEL = "kandown/launched";
 
 // ---------------------------------------------------------------------------
 // Small helpers
@@ -217,12 +249,23 @@ interface CliResult {
  * kandown walks up from there to find .kandown/. A missing binary and a
  * missing directory get distinct, actionable messages.
  */
-async function runCli(binary: string, args: string[], cwd: string): Promise<CliResult> {
+async function runCli(
+  binary: string,
+  args: string[],
+  cwd: string,
+  options?: { env?: Record<string, string> },
+): Promise<CliResult> {
   return new Promise((resolve, reject) => {
     execFile(
       binary,
       args,
-      { cwd, timeout: 30_000, maxBuffer: 16 * 1024 * 1024, windowsHide: true },
+      {
+        cwd,
+        timeout: 30_000,
+        maxBuffer: 16 * 1024 * 1024,
+        windowsHide: true,
+        env: options?.env !== undefined ? { ...process.env, ...options.env } : undefined,
+      },
       (error, stdout, stderr) => {
         if (error === null) {
           resolve({ stdout, stderr });
@@ -718,6 +761,140 @@ export default async function plugin(bb: BbPluginApi) {
     return true;
   }
 
+  /** The plugin's own HTTP token, carried in the hook URL for auth. */
+  async function pluginToken(): Promise<string> {
+    const result = (await bb.sdk.plugins.token({ pluginId: "kandown" })) as { token?: string };
+    return result.token ?? "";
+  }
+
+  /** The daemon-facing hook URL: when kandown forwards a task here, a bb
+   *  thread is spawned in the bb project that matches the kandown directory. */
+  async function hookUrl(): Promise<string> {
+    const token = await pluginToken();
+    return `${bb.server.loopbackBaseUrl}/api/v1/plugins/kandown/http/hook?token=${encodeURIComponent(token)}`;
+  }
+
+  /** Read .kandown/daemon.json (pid/port/url) for a project on a host. */
+  async function readDaemonMetadata(
+    hostId: string,
+    path: string,
+  ): Promise<{ port: number; url: string; pid: number } | null> {
+    try {
+      const file = await bb.sdk.files.read({ hostId, path: join(path, ".kandown", "daemon.json") });
+      const data = JSON.parse(file.content) as { port?: unknown; url?: unknown; pid?: unknown };
+      if (typeof data.port === "number" && typeof data.url === "string" && typeof data.pid === "number") {
+        return { port: data.port, url: data.url, pid: data.pid };
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  /** Probe a daemon's /api/daemon; null when unreachable. */
+  async function probeDaemon(url: string): Promise<{ hookEnabled: boolean } | null> {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 1800);
+      try {
+        const response = await fetch(`${url}/api/daemon`, { signal: controller.signal });
+        if (!response.ok) return null;
+        const data = (await response.json()) as { agentHook?: { enabled?: boolean } | null };
+        return { hookEnabled: data.agentHook?.enabled === true };
+      } finally {
+        clearTimeout(timer);
+      }
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * 📖 Ensures the project's kandown daemon is up and hooked to bb. A daemon
+   * already running without KANDOWN_AGENT_HOOK_URL (for example one started
+   * from the terminal before this plugin existed) is restarted so the embedded
+   * app gains the "Send to Agent · bb" action. Returns the web app URL.
+   */
+  async function ensureDaemon(projectId: string): Promise<{ url: string; ok: boolean; error: string | null }> {
+    const { hostId, path } = await resolveSource(projectId);
+    const binary = await binaryFor();
+    const current = await readDaemonMetadata(hostId, path);
+    if (current !== null) {
+      const info = await probeDaemon(current.url);
+      if (info !== null) {
+        if (info.hookEnabled) return { url: current.url, ok: true, error: null };
+        await runCli(binary, ["daemon", "stop"], path);
+      }
+    }
+    await runCli(binary, ["daemon", "start"], path, {
+      env: { KANDOWN_AGENT_HOOK_URL: await hookUrl(), KANDOWN_AGENT_HOOK_LABEL: "bb" },
+    });
+    for (let attempt = 0; attempt < 12; attempt += 1) {
+      const meta = await readDaemonMetadata(hostId, path);
+      if (meta !== null) {
+        const info = await probeDaemon(meta.url);
+        if (info !== null) return { url: meta.url, ok: true, error: null };
+      }
+      await sleep(500);
+    }
+    return {
+      url: "",
+      ok: false,
+      error: "The kandown daemon did not come up. Run `bb kandown daemon status` in the project and check the CLI.",
+    };
+  }
+
+  /** The prompt bb agents get when a kanban task is started in bb. */
+  function buildTaskPrompt(detail: TaskDetail): string {
+    const facts = [
+      `Work on this kandown task in the current project.`,
+      ``, 
+      `Task: ${detail.id} — ${detail.title}`,
+      detail.status !== "" ? `Status: ${detail.status}` : null,
+      detail.priority !== "" ? `Priority: ${detail.priority}` : null,
+      detail.category !== "" ? `Category: ${detail.category}` : null,
+      detail.tags.length > 0 ? `Tags: ${detail.tags.join(", ")}` : null,
+      detail.assignee !== "" ? `Assignee: ${detail.assignee}` : null,
+      ``, 
+      `Full task file (the source of truth):`,
+      ``, 
+      detail.raw,
+      ``, 
+      `Working rules:`,
+      `- The task file under tasks/ is the single source of truth. Keep its frontmatter and body updated as you make progress:`,
+      `    bb kandown update ${detail.id} --status ... -p ... -t ... --body "..."`,
+      `- Move the task through the board as you work: bb kandown move ${detail.id} <NextColumn>`,
+      `- When finished, move it forward with: bb kandown move ${detail.id} Done`,
+      `- End by appending a short summary of what was done and any findings to the task body.`,
+    ];
+    return facts.filter((line): line is string => line !== null).join("\n");
+  }
+
+  /** Spawn a visible bb thread on a kandown task and broadcast its id. */
+  async function launchTask(
+    projectId: string,
+    taskId: string,
+    providerId?: string,
+  ): Promise<{ threadId: string; title: string }> {
+    const detail = await showTask(projectId, taskId);
+    const thread = await bb.sdk.threads.spawn({
+      projectId,
+      title: `${taskId}: ${detail.title}`,
+      prompt: buildTaskPrompt(detail),
+      environment: { type: "project-default" },
+      visibility: "visible",
+      providerId: providerId !== undefined && providerId !== "" ? providerId : undefined,
+    });
+    const threadId = (thread as { id?: string }).id ?? (thread as unknown as { threadId?: string }).threadId ?? "";
+    if (threadId === "") throw new KandownError("bb did not return a thread id");
+    bb.realtime.publish(LAUNCHED_CHANNEL, { threadId });
+    return { threadId, title: detail.title };
+  }
+
+  function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
   // -------------------------------------------------------------------------
   // Boards listing with per-project kandown detection
   // -------------------------------------------------------------------------
@@ -779,7 +956,68 @@ export default async function plugin(bb: BbPluginApi) {
     kd_assign: ({ projectId, id, assignee }) => assignTask(projectId, id, assignee),
     kd_update: (input) => updateTask(input),
     kd_init: async ({ projectId }) => ({ ok: await initBoard(projectId) }),
+    kd_daemon: async ({ projectId }) => ensureDaemon(projectId),
+    kd_models: async ({ projectId }) => {
+      const { hostId } = await resolveSource(projectId);
+      const providers = await bb.sdk.providers.list({ hostId });
+      return {
+        providers: providers.map((provider) => ({
+          providerId: provider.id,
+          displayName: provider.displayName,
+          available: provider.available,
+        })),
+      };
+    },
+    kd_launch: async ({ projectId, taskId, providerId }) => {
+      try {
+        const launched = await launchTask(projectId, taskId, providerId);
+        return { ok: true, threadId: launched.threadId, title: launched.title, error: null };
+      } catch (cause) {
+        return { ok: false, threadId: "", title: "", error: cause instanceof Error ? cause.message : String(cause) };
+      }
+    },
   });
+
+  // 📖 The daemon hook endpoint. kandown's "Send to Agent" action POSTs the
+  // full task here (KANDOWN_AGENT_HOOK_URL); we turn it into a bb thread in
+  // the bb project that matches the kandown directory and publish the thread
+  // id so the open bb client navigates to it. auth: "token" accepts the
+  // ?token= query the hook URL already carries.
+  bb.http.route(
+    "POST",
+    "/hook",
+    async (context) => {
+      const body = (await context.req.json().catch(() => null)) as {
+        id?: unknown;
+        content?: unknown;
+        kandownDir?: unknown;
+      } | null;
+      if (body === null || typeof body.id !== "string" || typeof body.content !== "string") {
+        return Response.json({ ok: false, error: "Expected { id, content }." }, { status: 400 });
+      }
+      if (typeof body.kandownDir !== "string") {
+        return Response.json({ ok: false, error: "Expected kandownDir." }, { status: 400 });
+      }
+      const summaries = await boardsSummary();
+      const normalized = normalizePath(body.kandownDir);
+      // The daemon reports the .kandown directory; bb projects carry the
+      // project root. Accept both, plus the exact path.
+      const match = summaries.find((candidate) => {
+        if (candidate.remote || candidate.path === null) return false;
+        const projectPath = normalizePath(candidate.path);
+        return projectPath === normalized || join(projectPath, ".kandown") === normalized;
+      });
+      if (match === undefined) {
+        return Response.json(
+          { ok: false, error: `No bb project matches the kandown directory ${body.kandownDir}. Add it as a bb project first.` },
+          { status: 404 },
+        );
+      }
+      const launched = await launchTask(match.projectId, body.id);
+      return Response.json({ ok: true, threadId: launched.threadId, title: launched.title });
+    },
+    { auth: "token" },
+  );
 
   // -------------------------------------------------------------------------
   // `bb kandown` — the agent-facing CLI (agents discover it via the
@@ -795,6 +1033,8 @@ export default async function plugin(bb: BbPluginApi) {
     "  bb kandown move <task-id> <status|archived> [--project <projectId>]",
     "  bb kandown assign <task-id> [<assignee>] [--project <projectId>]",
     "  bb kandown update <task-id> [--title \"...\"] [-p P1-P3] [-t <tag>...] [--category <cat>] [--body \"...\"] [--project <projectId>]",
+    "  bb kandown launch <task-id> [--project <projectId>]  (start as a bb thread)",
+    "  bb kandown daemon [status|start|stop] [--project <projectId>]",
     "  bb kandown init [--project <projectId>]",
     "",
     "Boards are bb projects whose checkout is a kandown project (tasks/ + .kandown/).",
@@ -811,6 +1051,8 @@ export default async function plugin(bb: BbPluginApi) {
       { name: "move", summary: "Move a task between columns (or to archived)", usage: "bb kandown move <task-id> <status|archived> [--project <id>]" },
       { name: "assign", summary: "Assign (or unassign) a task", usage: "bb kandown assign <task-id> [name] [--project <id>]" },
       { name: "update", summary: "Edit a task's title, priority, tags, category or body", usage: 'bb kandown update <task-id> [--title "..."] [-p P1] [-t tag] [--category X] [--body "..."] [--project <id>]' },
+      { name: "launch", summary: "Start a task as a bb thread in the matching bb project", usage: "bb kandown launch <task-id> [--project <id>]" },
+      { name: "daemon", summary: "Manage the kandown daemon that powers the embedded app", usage: "bb kandown daemon [status|start|stop] [--project <id>]" },
       { name: "init", summary: "Initialize kandown in a project checkout", usage: "bb kandown init [--project <id>]" },
     ],
     async run(argv) {
@@ -989,6 +1231,41 @@ export default async function plugin(bb: BbPluginApi) {
               tags: tags.length > 0 ? tags : undefined,
             });
             return { exitCode: 0, stdout: json ? JSON.stringify(row) : `Updated ${row.id} → ${row.title}` };
+          }
+          case "launch": {
+            const id = positional[0];
+            if (id === undefined) return { exitCode: 1, stderr: usage };
+            const projectId = await pickProject();
+            const launched = await launchTask(projectId, id, flag("provider") ?? undefined);
+            return {
+              exitCode: 0,
+              stdout: json
+                ? JSON.stringify(launched)
+                : `Started thread ${launched.threadId} on ${id} (${launched.title}) — open it in bb.`,
+            };
+          }
+          case "daemon": {
+            const projectId = await pickProject();
+            const sub = positional[0] ?? "start";
+            if (sub === "stop") {
+              const { path } = await resolveSource(projectId);
+              await runCli(await binaryFor(), ["daemon", "stop"], path);
+              return { exitCode: 0, stdout: `Stopped the kandown daemon for ${projectId}` };
+            }
+            const daemon = await (sub === "start" ? ensureDaemon(projectId) : (async () => {
+              const { hostId, path } = await resolveSource(projectId);
+              const meta = await readDaemonMetadata(hostId, path);
+              if (meta === null) return { url: "", ok: false, error: "Daemon not running." };
+              const info = await probeDaemon(meta.url);
+              return info === null
+                ? { url: meta.url, ok: false, error: "Metadata exists but the daemon is unreachable." }
+                : { url: meta.url, ok: true, error: null };
+            })());
+            return {
+              exitCode: daemon.ok ? 0 : 1,
+              stdout: json ? JSON.stringify(daemon) : daemon.ok ? `Daemon running at ${daemon.url}` : daemon.error ?? "Daemon not running.",
+              stderr: daemon.ok ? undefined : (daemon.error ?? undefined),
+            };
           }
           case "init": {
             const projectId = await pickProject();
