@@ -6644,6 +6644,7 @@ import { join as join26 } from "path";
 // src/cli/lib/server.ts
 init_board_reader();
 init_task_filename();
+init_parser();
 init_config2();
 import { createServer } from "http";
 import { existsSync as existsSync23, readFileSync as readFileSync20, copyFileSync as copyFileSync3, unlinkSync as unlinkSync7, mkdirSync as mkdirSync12 } from "fs";
@@ -7872,6 +7873,50 @@ async function handleApi(req, res, url, kandownDir) {
       const message = error instanceof Error ? error.message : String(error);
       const status = message.startsWith("permission denied") ? 403 : message.startsWith("extension is not enabled") ? 409 : 400;
       return writeJson(res, status, { error: message });
+    }
+  }
+  if (path.startsWith("/api/tasks/") && path.endsWith("/agent") && method === "POST") {
+    const taskId = decodeURIComponent(path.slice("/api/tasks/".length, -"/agent".length));
+    if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return writeText(res, 400, "Invalid task id");
+    const taskPath = findTaskPath(kandownDir, taskId);
+    if (!taskPath) return writeText(res, 404, "Task not found");
+    const hookUrl = process.env.KANDOWN_AGENT_HOOK_URL?.trim();
+    if (!hookUrl) {
+      return writeJson(res, 400, { ok: false, error: "No agent hook is configured on this daemon (KANDOWN_AGENT_HOOK_URL is not set)." });
+    }
+    const content = readFileSync20(taskPath, "utf8");
+    const parsed = parseTaskFile(content);
+    const fm = parsed.frontmatter;
+    const payload = {
+      id: taskId,
+      title: typeof fm.title === "string" ? fm.title : taskId,
+      status: typeof fm.status === "string" ? fm.status : null,
+      priority: typeof fm.priority === "string" ? fm.priority : null,
+      assignee: typeof fm.assignee === "string" ? fm.assignee : null,
+      content,
+      kandownDir
+    };
+    try {
+      const hookResponse = await fetch(hookUrl, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(2e4)
+      });
+      const raw = await hookResponse.text();
+      let forwarded = null;
+      try {
+        forwarded = raw === "" ? null : JSON.parse(raw);
+      } catch {
+        forwarded = raw;
+      }
+      if (!hookResponse.ok) {
+        const message = forwarded !== null && typeof forwarded === "object" && "error" in forwarded ? String(forwarded.error) : raw.slice(0, 500);
+        return writeJson(res, 502, { ok: false, error: message || `Agent hook responded ${hookResponse.status}` });
+      }
+      return writeJson(res, 200, typeof forwarded === "object" && forwarded !== null ? { ok: true, ...forwarded } : { ok: true, forwarded: raw });
+    } catch (error) {
+      return writeJson(res, 502, { ok: false, error: `Agent hook unreachable: ${error instanceof Error ? error.message : String(error)}` });
     }
   }
   if (path.startsWith("/api/tasks/")) {

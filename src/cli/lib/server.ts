@@ -678,6 +678,58 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
     }
   }
 
+  // 📖 POST /api/tasks/<id>/agent — forward the full task to the agent hook.
+  // The web app and the TUI surface a "Send to Agent" action when
+  // KANDOWN_AGENT_HOOK_URL is set on the daemon process; this endpoint is the
+  // half of that feature that actually ships the task. Strictly opt-in (no
+  // env var, no route — the UI hides the button when the daemon reports no
+  // hook). The hook's JSON response is passed back to the caller so it can
+  // surface the outcome (for example a thread id created by the hook).
+  if (path.startsWith('/api/tasks/') && path.endsWith('/agent') && method === 'POST') {
+    const taskId = decodeURIComponent(path.slice('/api/tasks/'.length, -'/agent'.length));
+    if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return writeText(res, 400, 'Invalid task id');
+    const taskPath = findTaskPath(kandownDir, taskId);
+    if (!taskPath) return writeText(res, 404, 'Task not found');
+    const hookUrl = process.env.KANDOWN_AGENT_HOOK_URL?.trim();
+    if (!hookUrl) {
+      return writeJson(res, 400, { ok: false, error: 'No agent hook is configured on this daemon (KANDOWN_AGENT_HOOK_URL is not set).' });
+    }
+    const content = readFileSync(taskPath, 'utf8');
+    const parsed = parseTaskFile(content);
+    const fm = parsed.frontmatter as { title?: unknown; status?: unknown; priority?: unknown; assignee?: unknown };
+    const payload = {
+      id: taskId,
+      title: typeof fm.title === 'string' ? fm.title : taskId,
+      status: typeof fm.status === 'string' ? fm.status : null,
+      priority: typeof fm.priority === 'string' ? fm.priority : null,
+      assignee: typeof fm.assignee === 'string' ? fm.assignee : null,
+      content,
+      kandownDir,
+    };
+    try {
+      const hookResponse = await fetch(hookUrl, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(20_000),
+      });
+      const raw = await hookResponse.text();
+      let forwarded: unknown = null;
+      try { forwarded = raw === '' ? null : JSON.parse(raw); } catch { forwarded = raw; }
+      if (!hookResponse.ok) {
+        const message = forwarded !== null && typeof forwarded === 'object' && 'error' in forwarded
+          ? String((forwarded as { error: unknown }).error)
+          : raw.slice(0, 500);
+        return writeJson(res, 502, { ok: false, error: message || `Agent hook responded ${hookResponse.status}` });
+      }
+      return writeJson(res, 200, typeof forwarded === 'object' && forwarded !== null
+        ? { ok: true, ...(forwarded as Record<string, unknown>) }
+        : { ok: true, forwarded: raw });
+    } catch (error) {
+      return writeJson(res, 502, { ok: false, error: `Agent hook unreachable: ${error instanceof Error ? error.message : String(error)}` });
+    }
+  }
+
   if (path.startsWith('/api/tasks/')) {
     const routeParts = path.slice('/api/tasks/'.length).split('/').filter(Boolean);
     let taskId: string;

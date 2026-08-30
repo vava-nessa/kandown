@@ -7,6 +7,7 @@ is generated from the extension types so it can never drift from the runtime.
 
 ## Added
 
+- **Agent hook daemon endpoint**: `POST /api/tasks/<id>/agent` on the daemon forwards the full task to `KANDOWN_AGENT_HOOK_URL` (already surfaced in the UI as "Send to Agent"). Strictly opt-in: no env var, no route. Lets any IDE, bot or bb integration receive a task with its complete Markdown and reply with a result (for example a thread id).
 - The kandown **bb plugin** (`integrations/bb/`): a standalone bb plugin that runs the board inside bb. A Kandown sidebar entry switches bb's main area to a full kanban view; a back arrow returns to normal bb. All operations shell out to the `kandown` CLI over the same Markdown task files (create, move, assign, update with reslug, archive), plus a `bb kandown` command for agents. Deliberately outside the pnpm workspace so it cannot affect bb's own build.
 - `kandown plugin <sub>`, the authoring surface next to the administrative
   `kandown extension <sub>`: `create`, `build`, `check`, `dev`, `brief`,

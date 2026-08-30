@@ -7,7 +7,7 @@ the index; click a version for the full notes.
 
 ## Unreleased
 
-**[Plugin Forge](changelogs/unreleased.md)** — 9 added · 3 changed
+**[Plugin Forge](changelogs/unreleased.md)** — 11 added · 3 changed
 
 ## 2026
 
