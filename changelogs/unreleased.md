@@ -7,6 +7,7 @@ is generated from the extension types so it can never drift from the runtime.
 
 ## Added
 
+- The kandown **bb plugin** (`integrations/bb/`): a standalone bb plugin that runs the board inside bb. A Kandown sidebar entry switches bb's main area to a full kanban view; a back arrow returns to normal bb. All operations shell out to the `kandown` CLI over the same Markdown task files (create, move, assign, update with reslug, archive), plus a `bb kandown` command for agents. Deliberately outside the pnpm workspace so it cannot affect bb's own build.
 - `kandown plugin <sub>`, the authoring surface next to the administrative
   `kandown extension <sub>`: `create`, `build`, `check`, `dev`, `brief`,
   `publish`, plus aliases for `list`, `enable`, `disable`, `install`, `guide`
