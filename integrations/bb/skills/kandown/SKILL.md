@@ -29,7 +29,7 @@ bb kandown move <id> <column>   move a task (or to "archived")
 bb kandown assign <id> [name]   assign or unassign
 bb kandown update <id> [--title "..."] [-p P1-P3] [-t <tag>] [--category <cat>] [--body "..."]
                                 edit the fields the CLI has no dedicated command for
-bb kandown launch <id>          start the task as a bb thread in the matching project (--provider <id>)
+bb kandown launch <id>          start the task as a bb thread in the matching project (--provider <id> [--model <id>])
 bb kandown daemon [status|start|stop]
                                 manage the daemon that powers the embedded App view
 bb kandown init --project <id>  initialize a board in a project checkout

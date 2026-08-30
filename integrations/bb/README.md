@@ -69,7 +69,7 @@ Every task can become a bb thread:
   is forwarded through the daemon to the plugin, which spawns the thread and bb
   navigates to it. This endpoint (`POST /api/tasks/<id>/agent`) was missing in
   kandown and is now implemented in `src/cli/lib/server.ts`.
-- **From the CLI**: `bb kandown launch <task-id> [--project <id>] [--provider <id>]`.
+- **From the CLI**: `bb kandown launch <task-id> [--project <id>] [--provider <id>] [--model <id>]`.
 
 The thread prompt tells the agent the task file under `tasks/` is the single
 source of truth: keep it updated while working, move the task through the
@@ -88,7 +88,7 @@ bb kandown create "<title>" [--to <column>] [-p P1] [-a name] [-t tag] [--projec
 bb kandown move <task-id> <column|archived> [--project <id>]
 bb kandown assign <task-id> [name] [--project <id>]
 bb kandown update <task-id> [--title "..."] [-p P1] [-t tag] [--category X] [--body "..."] [--project <id>]
-bb kandown launch <task-id> [--provider <id>] [--project <id>]
+bb kandown launch <task-id> [--provider <id>] [--model <id>] [--project <id>]
 bb kandown daemon [status|start|stop] [--project <id>]
 bb kandown init [--project <id>]
 ```
