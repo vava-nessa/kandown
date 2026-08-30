@@ -713,6 +713,28 @@ function KanbanPage() {
             </option>
           ))}
         </select>
+        <div className="flex items-center gap-0.5 rounded-md border border-border p-0.5">
+          <button
+            type="button"
+            onClick={() => setView("app")}
+            className={cn(
+              "rounded-sm px-2 py-1 text-xs font-medium transition-colors",
+              view === "app" ? "bg-state-active text-foreground" : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            App
+          </button>
+          <button
+            type="button"
+            onClick={() => setView("board")}
+            className={cn(
+              "rounded-sm px-2 py-1 text-xs font-medium transition-colors",
+              view === "board" ? "bg-state-active text-foreground" : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            Board
+          </button>
+        </div>
         {kandown.health !== null && !kandown.health.ok ? (
           <span
             className="hidden items-center gap-1.5 text-xs text-foreground/60 md:inline-flex"
