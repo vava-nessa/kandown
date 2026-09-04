@@ -72,3 +72,9 @@ color at 1.5px so they stay visible. Stack borders are 2px (vs 1.5px for
 singles) to distinguish groups at a glance. Single card borders encode
 content: title without subtasks uses the title color (fg/70), untitled cards
 use border-strong, cards with subtasks keep the neutral hairline.
+
+Third follow-up (deduplicate the category): the expanded stack header becomes
+a centered pill (rounded, card-tinted) sitting on the colored block, and child
+cards/rows no longer render their own category chip or legacy bracket tag
+(`inStack` prop on Card and ListRow). The category is announced once at the
+top of the block instead of repeating on every card.
