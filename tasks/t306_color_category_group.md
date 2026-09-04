@@ -78,3 +78,9 @@ a centered pill (rounded, card-tinted) sitting on the colored block, and child
 cards/rows no longer render their own category chip or legacy bracket tag
 (`inStack` prop on Card and ListRow). The category is announced once at the
 top of the block instead of repeating on every card.
+
+Fourth follow-up (simplification): the centered header drops its pill wrapper
+(no background, no border, no count), just the category chip and a small
+collapse chevron. The folded stack replaces the two layered ghost sheets with
+a single offset card wearing the stack border color, which also stops it from
+overflowing onto and hiding the top border of the card above.
