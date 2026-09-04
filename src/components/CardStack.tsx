@@ -228,7 +228,7 @@ export function CardStack({
        * of the old two: it still reads as a stack but never spills over the
        * card above, which used to hide its top border. */}
       <div
-        className="absolute inset-0 rounded-lg border-2 border-border bg-card pointer-events-none"
+        className="absolute inset-0 rounded-lg border border-border bg-card opacity-60 pointer-events-none"
         style={{ transform: 'translate(2px, 2px)', zIndex: 0, ...(stackColor ? { borderColor: stackColor.border } : {}) }}
       />
 
