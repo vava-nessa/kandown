@@ -124,7 +124,7 @@ export function CardStack({
     const list = viewMode === 'list';
     return (
       <div
-        className={`rounded-xl border-2 border-border ${list ? 'py-1.5' : 'p-1.5'} shadow-[0_1px_3px_rgba(0,0,0,0.06)]`}
+        className={`rounded-xl border-2 border-border ${list ? 'py-1.5' : 'p-1.5'} shadow-[0_1px_3px_rgba(0,0,0,0.06)] ${list ? '' : (density === 'compact' ? 'mb-2.5' : 'mb-3.5')}`}
         style={list && stackColor ? { borderColor: stackColor.border } : blockStyle}
       >
         {/* Expanded header: minimal. Just the centered category (chip or
@@ -221,7 +221,7 @@ export function CardStack({
   return (
     <div
       onClick={() => setExpanded(true)}
-      className="relative cursor-pointer pr-[0.15rem] pb-[0.15rem] mb-2 group"
+      className={`relative cursor-pointer pr-[0.15rem] pb-[0.15rem] group ${density === 'compact' ? 'mb-2.5' : 'mb-3.5'}`}
     >
       {/* 📖 Single ghost sheet: one card behind, offset slightly down-right
        * ("de travers"), wearing the stack's border color. One layer instead

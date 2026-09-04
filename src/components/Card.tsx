@@ -280,10 +280,12 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
   // 📖 Density drives vertical padding + title size, never truncation. Both
   // modes grow freely with the title length.
   const containerPadding = isCompact ? 'px-3 py-1.5' : 'px-3.5 py-2.5';
-  // 📖 Outer margin between cards replaces the old `border-b` separator. Kept
-  // tight so a full column still stays scannable, but wide enough that each
-  // card reads as its own chip rather than a stacked row.
-  const cardMargin = isCompact ? 'mb-1.5' : 'mb-2.5';
+  // 📖 Outer margin between cards replaces the old separator. Gives
+  // comfortable vertical breathing room so each card floats as a distinct chip
+  // on the column background.
+  const cardMargin = inStack
+    ? (isCompact ? 'mb-2' : 'mb-2.5 last:mb-0')
+    : (isCompact ? 'mb-2.5' : 'mb-3.5');
   const titleSize = isCompact ? 'text-[13.5px]' : 'text-[15px]';
   const metaGap = isCompact ? 'mt-1' : 'mt-1.5';
   // 📖 Border encodes content shape (vava's hierarchy): a solo card with a

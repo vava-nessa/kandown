@@ -29,7 +29,7 @@ import { ListRow } from './ListRow';
 import { CardStack } from './CardStack';
 import { KbdButton } from './KbdButton';
 import { groupTasksByTag, extractGroupKey } from '../lib/grouping';
-import { getColumnIcon, COLUMN_BAR_MAP } from '../lib/columnUtils';
+import { getColumnIcon, getColumnColorStyles } from '../lib/columnUtils';
 import { terminalStatus } from '../lib/dependencies';
 import { ColumnHeaderActions } from './ColumnHeaderActions';
 import type { BoardTask, SearchMatch, Column as ColumnType, ColumnColor } from '../lib/types';
@@ -308,9 +308,8 @@ export function ListView() {
             const isTaskDropTarget = taskDropColumn === column.name;
             const isFiltered = filtered.length !== column.tasks.length;
             const colColorKey = config.board.columnColors?.[column.name.toLowerCase()] ?? 'gray';
-            // 📖 Column color as a 3-4px accent bar on the section top, matching
-            // the board view (see Column.tsx). No full-section tint.
-            const colBar = COLUMN_BAR_MAP[colColorKey] ?? COLUMN_BAR_MAP.gray;
+            // 📖 Column styling: very light pastel in light mode and deep dark in dark mode.
+            const colStyles = getColumnColorStyles(colColorKey);
             const ColumnIcon = getColumnIcon(column.name);
             const isConfiguredColumn = config.board.columns.some(name => name.toLowerCase() === column.name.toLowerCase());
             const columnItems = groupTasksByTag(filtered);
@@ -378,14 +377,22 @@ export function ListView() {
               >
                 <SectionDropGuide side="top" active={canShowDropGuide(sectionIndex)} />
                 <section
-                  className={`group/section overflow-hidden rounded-lg border transition-[border-color,background-color,opacity] duration-150 ease-out ${
+                  className={`group/section overflow-hidden rounded-lg border
+                    bg-[var(--col-bg-light)] dark:bg-[var(--col-bg-dark)]
+                    border-[var(--col-border-light)] dark:border-[var(--col-border-dark)]
+                    transition-[border-color,background-color,opacity] duration-150 ease-out ${
                     isTaskDropTarget
-                      ? 'border-border-strong bg-bg-1 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]'
-                      : 'border-border/60'
+                      ? 'border-border-strong shadow-[0_0_0_1px_rgba(255,255,255,0.08)]'
+                      : ''
                   } ${draggedColIndex === sectionIndex ? 'opacity-45 scale-[0.995]' : ''}`}
-                  style={{ borderTop: `3px solid ${colBar}` }}
+                  style={{
+                    '--col-bg-light': colStyles.lightBg,
+                    '--col-bg-dark': colStyles.darkBg,
+                    '--col-border-light': colStyles.lightBorder,
+                    '--col-border-dark': colStyles.darkBorder,
+                  } as React.CSSProperties}
                 >
-                  <header className="flex items-center justify-between gap-2.5 border-b border-border/40 bg-bg-1/60 px-3 py-2">
+                  <header className="flex items-center justify-between gap-2.5 border-b border-border/40 bg-black/[0.02] dark:bg-white/[0.02] px-3 py-2">
                     <div className="flex min-w-0 items-center gap-2.5">
                       <div
                         draggable

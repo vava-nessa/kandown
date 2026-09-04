@@ -1326,7 +1326,7 @@
     },
     {
       "path": "src/components/Card.tsx",
-      "lines": 472,
+      "lines": 474,
       "title": "Task card",
       "summary": "Displays one board task as a clean, rounded card inside a column.",
       "functions": [
@@ -1376,21 +1376,21 @@
     },
     {
       "path": "src/components/Column.tsx",
-      "lines": 362,
+      "lines": 370,
       "title": "Board column component",
       "summary": "Renders a single kanban column, accepts dropped cards, shows the filtered task count, and creates new tasks directly in the column.",
       "functions": [
         {
-          "name": "Column",
-          "summary": "animated kanban column with task cards and empty state"
+          "name": "Column: animated kanban column with task cards and empty state",
+          "summary": null
         },
         {
-          "name": "getColumnIcon",
-          "summary": "resolves the Tabler icon for a column title"
+          "name": "getColumnIcon: resolves the Tabler icon for a column title",
+          "summary": null
         },
         {
-          "name": "ColumnColorMenu",
-          "summary": "3-dot dropdown for picking column accent color"
+          "name": "ColumnColorMenu: 3-dot dropdown for picking column accent color",
+          "summary": null
         }
       ],
       "exports": "Column"
@@ -1588,7 +1588,7 @@
     },
     {
       "path": "src/components/ListView.tsx",
-      "lines": 525,
+      "lines": 532,
       "title": "List view",
       "summary": "Renders board columns as vertically stacked horizontal sections, with dense task rows, filter/search previews, task drops between sections, and vertical section reordering.",
       "functions": [
@@ -2108,10 +2108,10 @@
     },
     {
       "path": "src/lib/columnUtils.ts",
-      "lines": 98,
+      "lines": 223,
       "title": "Shared column utilities",
       "summary": "Provides column color maps, color swatches, and tabler icon resolvers shared across Board and List views.",
-      "exports": "columnIconsByName, getColumnIcon, COLUMN_BAR_MAP, COLOR_SWATCHES"
+      "exports": "columnIconsByName, getColumnIcon, COLUMN_BAR_MAP, COLOR_SWATCHES, COLUMN_LIGHT_BG, COLUMN_LIGHT_BORDER, COLUMN_DARK_BG, COLUMN_DARK_BORDER, getColumnColorStyles"
     },
     {
       "path": "src/lib/config.ts",

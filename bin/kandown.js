@@ -24,7 +24,7 @@ var KANDOWN_VERSION;
 var init_version = __esm({
   "src/lib/version.ts"() {
     "use strict";
-    KANDOWN_VERSION = "0.52.0";
+    KANDOWN_VERSION = "0.54.0";
   }
 });
 

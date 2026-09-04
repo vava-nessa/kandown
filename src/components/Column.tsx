@@ -12,9 +12,9 @@
  * fallback icon.
  *
  * @functions
- *  → Column — animated kanban column with task cards and empty state
- *  → getColumnIcon — resolves the Tabler icon for a column title
- *  → ColumnColorMenu — 3-dot dropdown for picking column accent color
+ *  → Column: animated kanban column with task cards and empty state
+ *  → getColumnIcon: resolves the Tabler icon for a column title
+ *  → ColumnColorMenu: 3-dot dropdown for picking column accent color
  *
  * @exports Column
  * @see src/components/Board.tsx
@@ -29,7 +29,7 @@ import { CardStack } from './CardStack';
 import { Icon } from './Icons';
 import { KbdButton } from './KbdButton';
 import { ColumnHeaderActions } from './ColumnHeaderActions';
-import { getColumnIcon, COLUMN_BAR_MAP } from '../lib/columnUtils';
+import { getColumnIcon, getColumnColorStyles } from '../lib/columnUtils';
 import { useStore } from '../lib/store';
 import { groupTasksByTag, extractGroupKey } from '../lib/grouping';
 import { terminalStatus } from '../lib/dependencies';
@@ -104,9 +104,8 @@ export function Column({
   }, []);
 
   const colColorKey = config.board.columnColors?.[column.name.toLowerCase()] ?? 'gray';
-  // 📖 The column color is a 3-4px accent bar on top of the column card, not
-  // a full-column tint: cleaner, and it does not fight the card surfaces.
-  const colBar = COLUMN_BAR_MAP[colColorKey] ?? COLUMN_BAR_MAP.gray;
+  // 📖 Column styling: very light pastel in light mode and deep dark in dark mode.
+  const colStyles = getColumnColorStyles(colColorKey);
 
   const handleColorChange = (color: ColumnColor) => {
     updateConfig(c => ({
@@ -168,12 +167,14 @@ export function Column({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           data-column={column.name}
-          className="flex flex-col items-center justify-center w-full h-full min-h-0 px-1 transition-[background-color,opacity] duration-200 ease-out"
+          className="flex flex-col items-center justify-center w-full h-full min-h-0 px-1 rounded-lg border bg-[var(--col-bg-light)] dark:bg-[var(--col-bg-dark)] border-[var(--col-border-light)] dark:border-[var(--col-border-dark)] transition-[background-color,opacity] duration-200 ease-out"
           style={{
             opacity: isOver ? 0.8 : 1,
-            backgroundColor: isOver ? 'rgba(255,255,255,0.04)' : 'transparent',
-            borderTop: `3px solid ${colBar}`,
-          }}
+            '--col-bg-light': colStyles.lightBg,
+            '--col-bg-dark': colStyles.darkBg,
+            '--col-border-light': colStyles.lightBorder,
+            '--col-border-dark': colStyles.darkBorder,
+          } as React.CSSProperties}
         >
           <ColumnIcon aria-hidden="true" size={16} stroke={1.8} className="text-fg-muted mb-1 shrink-0" />
           <span className="text-[11px] font-medium text-fg-muted text-center leading-tight max-w-full">
@@ -228,10 +229,18 @@ export function Column({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       data-column={column.name}
-      className={`group/column flex flex-col flex-none w-[320px] h-full rounded-xl border border-border
+      className={`group/column flex flex-col flex-none w-[320px] h-full rounded-xl border
+        bg-[var(--col-bg-light)] dark:bg-[var(--col-bg-dark)]
+        border-[var(--col-border-light)] dark:border-[var(--col-border-dark)]
         transition-[background-color,opacity,box-shadow,border-color] duration-200 ease-out
-        ${draggedColIndex === columnIndex ? 'opacity-45 shadow-sm' : ''}`}
-      style={{ backgroundColor: isOver ? 'rgba(255,255,255,0.04)' : 'transparent', borderTop: `3px solid ${colBar}` }}
+        ${draggedColIndex === columnIndex ? 'opacity-45 shadow-sm' : ''}
+        ${isOver ? 'ring-2 ring-primary/40' : ''}`}
+      style={{
+        '--col-bg-light': colStyles.lightBg,
+        '--col-bg-dark': colStyles.darkBg,
+        '--col-border-light': colStyles.lightBorder,
+        '--col-border-dark': colStyles.darkBorder,
+      } as React.CSSProperties}
     >
       <div className="flex items-center justify-between px-3.5 pt-3 pb-2">
         <div className="flex items-center gap-2">
@@ -297,10 +306,9 @@ export function Column({
         className="flex-1 min-h-0 px-2.5 scrollbar-always"
         style={{ overflowY: 'scroll' }}
       >
-        {/* 📖 No gap here — each Card owns its own `border-b` separator, so the
-            column renders as a single hairline-separated stack (no double
-            border, no card margin). Padding is on the Card itself. */}
-        <div className="flex flex-col">
+        {/* 📖 Cards float as distinct chips with vertical spacing.
+            Padding is on the Card itself. */}
+        <div className="flex flex-col pt-1">
           <AnimatePresence mode="popLayout">
             {columnItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 px-4 text-center">

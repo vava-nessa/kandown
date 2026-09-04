@@ -137,11 +137,11 @@ source to edit instead.
 - **`ArchiveView.tsx`** · 89 lines — Lists every archived task (frontmatter `archived: true`, files living under `tasks/archive/` at the project root) as a flat list.
 - **`Board.tsx`** · 394 lines — Renders the horizontal kanban board, filters tasks per column, wires drag-and-drop state, and forwards content-search matches to cards.
 - **`BulkActionBar.tsx`** · 537 lines — Appears when one or more tasks are selected in the web UI and behaves like Linear's selection bar: a floating pill at the bottom of the screen that exposes every action that makes sense for a group of tasks — change priority, assign,…
-- **`Card.tsx`** · 472 lines — Displays one board task as a clean, rounded card inside a column.
+- **`Card.tsx`** · 474 lines — Displays one board task as a clean, rounded card inside a column.
 - **`CardStack.tsx`** · 314 lines — Renders a group of 2+ cards that share the same `[bracket]` or `#hashtag` title tag as a visually stacked card.
 - **`CategoryChip.tsx`** · 69 lines — Renders a category name as a chip.
 - **`Cheatsheet.tsx`** · 181 lines — Centered modal that lists every keyboard shortcut in Kandown, grouped by context (Global, Board, Drawer, Command Palette).
-- **`Column.tsx`** · 362 lines — Renders a single kanban column, accepts dropped cards, shows the filtered task count, and creates new tasks directly in the column.
+- **`Column.tsx`** · 370 lines — Renders a single kanban column, accepts dropped cards, shows the filtered task count, and creates new tasks directly in the column.
 - **`ColumnColorMenu.tsx`** · 97 lines — 3-dot dropdown menu for selecting column background tint color.
 - **`ColumnHeaderActions.tsx`** · 165 lines — Standardized action buttons (Add Task, Color Picker, Rename, Delete, bulk terminal-task actions, Add to Settings) shared across Board and List view column headers.
 - **`CommandPalette.tsx`** · 363 lines — Provides global quick actions, view switching, task lookup, and content-aware task search with highlighted snippets.
@@ -156,7 +156,7 @@ source to edit instead.
 - **`Icons.tsx`** · 220 lines — Centralizes small stroke icons used by the Kandown web UI.
 - **`KbdButton.tsx`** · 109 lines — A unified button component that handles icons, labels, and keyboard shortcuts with consistent styling and improved visibility.
 - **`ListRow.tsx`** · 539 lines — Renders a single task as a compact, Linear-style list item for the list view, with priority indicators, title, status, metadata badges, inline subtask progress slider, and hover quick actions.
-- **`ListView.tsx`** · 525 lines — Renders board columns as vertically stacked horizontal sections, with dense task rows, filter/search previews, task drops between sections, and vertical section reordering.
+- **`ListView.tsx`** · 532 lines — Renders board columns as vertically stacked horizontal sections, with dense task rows, filter/search previews, task drops between sections, and vertical section reordering.
 - **`LogoSvg.tsx`** · 54 lines — Renders the official Kandown vector logo from logo.svg.
 - **`OnboardingTour.tsx`** · 293 lines — Centered dialog that introduces Kandown the first time a user opens a project, then disappears for good on that project.
 - **`SettingsPage.tsx`** · 382 lines — Dense settings workspace with an iOS-style sidebar, global option search, section navigation, and compact controls for kandown.json.
@@ -202,7 +202,7 @@ source to edit instead.
 
 - **`agent-aliases.ts`** · 245 lines — The single source of truth for mapping a free-form assignee string (as typed in a task's `assignee:` frontmatter or quick-add `@token`) to a canonical agent id.
 - **`category-color.ts`** · 168 lines — Maps a category name (WEB, CLI, ARCHITECTURE, THEMES...) to a stable accent color and a stable icon by hashing the name: the same string always yields the same color and icon, nothing is stored, nothing to maintain.
-- **`columnUtils.ts`** · 98 lines — Provides column color maps, color swatches, and tabler icon resolvers shared across Board and List views.
+- **`columnUtils.ts`** · 223 lines — Provides column color maps, color swatches, and tabler icon resolvers shared across Board and List views.
 - **`config.ts`** · 408 lines — Converts unknown kandown.json input into the canonical config contract used by browser and Node adapters.
 - **`demoBackend.ts`** · 393 lines — Implements the Kandown REST API against a `Map` instead of a disk, so the whole web UI can run in a browser tab with no CLI, no server and no storage.
 - **`demoSeed.ts`** · 448 lines — The starting contents of the in-memory project served by {@link ./demoBackend.ts} when the app runs in demo mode on the website.
