@@ -137,7 +137,7 @@ source to edit instead.
 - **`ArchiveView.tsx`** · 89 lines — Lists every archived task (frontmatter `archived: true`, files living under `tasks/archive/` at the project root) as a flat list.
 - **`Board.tsx`** · 394 lines — Renders the horizontal kanban board, filters tasks per column, wires drag-and-drop state, and forwards content-search matches to cards.
 - **`BulkActionBar.tsx`** · 537 lines — Appears when one or more tasks are selected in the web UI and behaves like Linear's selection bar: a floating pill at the bottom of the screen that exposes every action that makes sense for a group of tasks — change priority, assign,…
-- **`Card.tsx`** · 430 lines — Displays one board task as a clean, rounded card inside a column.
+- **`Card.tsx`** · 438 lines — Displays one board task as a clean, rounded card inside a column.
 - **`CardStack.tsx`** · 314 lines — Renders a group of 2+ cards that share the same `[bracket]` or `#hashtag` title tag as a visually stacked card.
 - **`CategoryChip.tsx`** · 69 lines — Renders a category name as a chip.
 - **`Cheatsheet.tsx`** · 181 lines — Centered modal that lists every keyboard shortcut in Kandown, grouped by context (Global, Board, Drawer, Command Palette).

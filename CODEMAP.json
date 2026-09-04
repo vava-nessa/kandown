@@ -1326,7 +1326,7 @@
     },
     {
       "path": "src/components/Card.tsx",
-      "lines": 430,
+      "lines": 438,
       "title": "Task card",
       "summary": "Displays one board task as a clean, rounded card inside a column.",
       "functions": [

@@ -50,6 +50,7 @@ import { CategoryChip } from './CategoryChip';
 import type { BoardTask, Density, SearchMatch } from '../lib/types';
 import { useStore } from '../lib/store';
 import { useExtensionRuntime } from './ExtensionRuntimeProvider';
+import { categoryColor } from '../lib/category-color';
 import { formatDependencyChip } from '../lib/dependency-chip-format';
 
 const priorityColors: Record<string, string> = {
@@ -250,15 +251,21 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
   const cardMargin = isCompact ? 'mb-1.5' : 'mb-2.5';
   const titleSize = isCompact ? 'text-[13.5px]' : 'text-[15px]';
   const metaGap = isCompact ? 'mt-1' : 'mt-1.5';
-  // 📖 Border encodes content shape (vava's hierarchy): a card with a title
-  // but no subtasks wears its title color (fg) so text-bearing tasks stand
-  // out; an untitled card (renders as its bare id) gets the stronger neutral
-  // border-strong; cards with subtasks keep the quiet hairline.
+  // 📖 Border encodes content shape (vava's hierarchy): a solo card with a
+  // category wears that category's border color, matching its chip; a titled
+  // card without subtasks wears its title color (fg); an untitled card
+  // (renders as its bare id) gets the stronger neutral border-strong; cards
+  // with subtasks keep the quiet hairline.
   const hasSubtasks = !!task.progress && task.progress.total > 0;
   const hasTitle = task.title.trim().length > 0;
-  const borderClass = hasTitle
-    ? (hasSubtasks ? 'border-border/80' : 'border-fg/70')
-    : 'border-border-strong';
+  const categoryBorderColor = categoryChips && task.category && !inStack
+    ? categoryColor(task.category).border
+    : null;
+  const borderClass = categoryBorderColor
+    ? 'border'
+    : hasTitle
+      ? (hasSubtasks ? 'border-border/80' : 'border-fg/70')
+      : 'border-border-strong';
 
   return (
     // 📖 No `motion.div` here: drag uses native HTML5 events, and Tailwind
@@ -293,6 +300,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
           ? 'border-primary/50 bg-primary/[0.08] shadow-[0_2px_8px_-2px_rgba(0,0,0,0.12)] ring-1 ring-primary/25'
           : 'shadow-[0_1px_2px_rgba(0,0,0,0.05)] hover:border-border-strong hover:shadow-[0_4px_12px_-3px_rgba(0,0,0,0.14)]'
       } ${task.checked ? 'opacity-70' : ''}`}
+      style={categoryBorderColor ? { borderColor: categoryBorderColor } : undefined}
     >
       {/* Title row: checkbox (hover) | # | title. The title grows with its
           content — no line-clamp, no truncation. */}
