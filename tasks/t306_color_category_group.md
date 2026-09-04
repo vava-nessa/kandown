@@ -64,3 +64,11 @@ the background (it washed out the row text); it draws only the colored frame
 with rows at full width. Collapsed stacks now carry the category border too,
 in both views, and single board cards match the 1.5px border width in neutral
 theme colors. Verified again on the dev server, both views, light and dark.
+
+Second follow-up (hover + hierarchy): hover no longer lifts cards or stacks
+(the translate visually detached the border); only shadow and border change.
+Selection checkboxes keep their edge position but now wear the card's border
+color at 1.5px so they stay visible. Stack borders are 2px (vs 1.5px for
+singles) to distinguish groups at a glance. Single card borders encode
+content: title without subtasks uses the title color (fg/70), untitled cards
+use border-strong, cards with subtasks keep the neutral hairline.
