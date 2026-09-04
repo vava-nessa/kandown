@@ -5,14 +5,11 @@
 Every release has its own file in [`changelogs/`](changelogs/). This page is
 the index; click a version for the full notes.
 
-## Unreleased
-
-**[Plugin Forge](changelogs/unreleased.md)** — 11 added · 3 changed
-
 ## 2026
 
 | Version | Date | Release | Changes |
 |---|---|---|---|
+| [0.53.0](changelogs/v0.53.0.md) | 2026-09-04 | Plugin Forge | 15 added · 1 fixed · 3 changed |
 | [0.52.0](changelogs/v0.52.0.md) | 2026-08-15 | Structured Categories | 4 added · 5 changed |
 | [0.51.0](changelogs/v0.51.0.md) | 2026-08-13 | Categorized Files | 1 added |
 | [0.50.0](changelogs/v0.50.0.md) | 2026-08-13 | Named Files | 1 added · 1 fixed |
