@@ -271,7 +271,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       }}
       data-task-id={task.id}
       data-col={columnName}
-      className={`group relative cursor-pointer rounded-lg bg-card border ${cardMargin}
+      className={`group relative cursor-pointer rounded-lg bg-card border-[1.5px] ${cardMargin}
         transition-[background-color,border-color,box-shadow,transform] duration-150 ease-out
         ${containerPadding}
         ${

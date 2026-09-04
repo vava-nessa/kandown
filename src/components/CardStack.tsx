@@ -13,10 +13,12 @@
  * search-match highlights remain visible on individual cards.
  *
  * 📖 Expanded group block: header + children are wrapped in a rounded
- * envelope tinted with the category's chip color (bg + border, same palette
- * as the chip), so a group reads as one colored unit instead of a loose run
- * of cards. Board view insets the child cards inside the block (block stays
- * at column width); list view keeps rows at full width and frames them.
+ * envelope in the category's chip color, so a group reads as one colored
+ * unit instead of a loose run of cards. Board view tints the block and
+ * insets the child cards; list view draws only the colored frame (no tint,
+ * which washed out the row text) with rows at full width inside. Collapsed
+ * stacks carry the same colored border, and single cards match the border
+ * width in neutral theme colors, so group vs solo reads at a glance.
  *
  * 📖 Collapsed stacks are NOT draggable (v1). Expanded cards retain full drag.
  *
@@ -115,15 +117,15 @@ export function CardStack({
   // right.
 
   if (expanded) {
-    // 📖 Tinted group block: rounded envelope in the category color wrapping
-    // header + children. Board view insets the cards (padding on all sides,
-    // block stays at column width); list view keeps the rows at full width
-    // and only pads vertically so the block reads as a frame around them.
+    // 📖 Category group block: rounded envelope wrapping header + children.
+    // Board view tints the block (chip bg + border) and insets the cards;
+    // list view only draws the colored frame (no background tint: it washed
+    // out the row text) and keeps the rows at full width inside.
     const list = viewMode === 'list';
     return (
       <div
-        className={`rounded-xl border ${list ? 'py-1.5' : 'p-1.5'} shadow-[0_1px_3px_rgba(0,0,0,0.06)]`}
-        style={blockStyle}
+        className={`rounded-xl border-[1.5px] border-border ${list ? 'py-1.5' : 'p-1.5'} shadow-[0_1px_3px_rgba(0,0,0,0.06)]`}
+        style={list && stackColor ? { borderColor: stackColor.border } : blockStyle}
       >
         {/* Expanded header: shows group key + collapse button */}
         <button
@@ -170,7 +172,8 @@ export function CardStack({
     return (
       <div
         onClick={() => setExpanded(true)}
-        className="group/row relative flex items-center gap-2 px-3 py-2 border-b border-border/60 hover:bg-black/[0.03] dark:hover:bg-white/[0.04] cursor-pointer transition-colors"
+        className="group/row relative flex items-center gap-2 px-3 py-2 mx-1 my-1 rounded-lg border-[1.5px] border-border hover:bg-black/[0.03] dark:hover:bg-white/[0.04] cursor-pointer transition-colors"
+        style={stackColor ? { borderColor: stackColor.border } : undefined}
       >
         <button
           type="button"
@@ -260,10 +263,13 @@ export function CardStack({
        * transitions on the `transform` property only, not `all`. The inner
        * row mirrors a normal card (px-3.5 py-2.5, inline checkbox, then
        * chip + title) so the chip stays aligned with the surrounding cards. */}
-      <div className="relative z-10 rounded-lg border border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.05)]
+      <div
+        className="relative z-10 rounded-lg border-[1.5px] border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.05)]
         transition-[border-color,box-shadow,transform] duration-150 ease-out
         hover:border-border-strong hover:shadow-[0_4px_12px_-3px_rgba(0,0,0,0.14)] hover:-translate-y-0.5
-        active:scale-[0.99] active:translate-y-0">
+        active:scale-[0.99] active:translate-y-0"
+        style={stackColor ? { borderColor: stackColor.border } : undefined}
+      >
         <div className={`px-3.5 ${density === 'compact' ? 'py-1.5' : 'py-2.5'}`}>
           <div className="flex items-center gap-2">
             {/* Chip (or legacy group key), then stack icon, then title. */}

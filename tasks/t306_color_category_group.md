@@ -58,3 +58,9 @@ look, still neutral.
 Verified: `pnpm build` passes; visual check on the dev server
 (http://localhost:2051) in dark theme, board and list views, expanded AGENTIC
 (mint) and ARCHITECTURE (pink) stacks render as distinct colored blocks.
+
+Follow-up (same day, vava feedback): list view expanded block no longer tints
+the background (it washed out the row text); it draws only the colored frame
+with rows at full width. Collapsed stacks now carry the category border too,
+in both views, and single board cards match the 1.5px border width in neutral
+theme colors. Verified again on the dev server, both views, light and dark.
