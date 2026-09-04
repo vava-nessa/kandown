@@ -127,16 +127,16 @@ export function CardStack({
         className={`rounded-xl border-2 border-border ${list ? 'py-1.5' : 'p-1.5'} shadow-[0_1px_3px_rgba(0,0,0,0.06)]`}
         style={list && stackColor ? { borderColor: stackColor.border } : blockStyle}
       >
-        {/* Expanded header: centered pill on the tinted background announcing
-         * the group once, so child cards don't repeat the category chip. */}
+        {/* Expanded header: minimal. Just the centered category (chip or
+         * group key) with a small collapse chevron; the colored block around
+         * already announces the group, so no pill, no border, no count. */}
         <button
           type="button"
           onClick={() => setExpanded(false)}
-          className="flex items-center gap-1.5 px-2.5 py-1 my-1 mx-auto rounded-full text-[11px] font-semibold text-fg-muted/70 uppercase tracking-wide bg-card/70 border border-black/[0.06] dark:border-white/[0.08] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors w-fit cursor-pointer"
+          className="flex items-center gap-1.5 py-1 my-1 mx-auto text-[11px] font-semibold text-fg-muted/70 uppercase tracking-wide hover:opacity-75 transition-opacity w-fit cursor-pointer"
         >
-          <IconChevronUp size={13} stroke={2} />
           {stackCategory ? <CategoryChip category={stackCategory} /> : <span>{group.displayKey}</span>}
-          <span className="font-normal text-fg-muted/40">{taskCount}</span>
+          <IconChevronUp size={13} stroke={2} />
         </button>
 
         {/* Individual cards/rows: fully interactive, draggable */}
@@ -223,18 +223,13 @@ export function CardStack({
       onClick={() => setExpanded(true)}
       className="relative cursor-pointer pb-3 group"
     >
-      {/* Layer 2 (deepest): small diagonal offset so its bottom/right edge
-          peeks out like a sheet of paper behind the card, nearly full size
-          and faded to 70% so the pile reads crisp rather than ghosted. */}
+      {/* 📖 Single ghost sheet: one card behind, offset slightly down-right
+       * ("de travers"), wearing the stack's border color. One layer instead
+       * of the old two: it still reads as a stack but never spills over the
+       * card above, which used to hide its top border. */}
       <div
-        className="absolute inset-0 rounded-lg border border-border bg-card opacity-70 pointer-events-none shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
-        style={{ transform: 'translate(6px, 6px) scale(0.975)', zIndex: 0 }}
-      />
-
-      {/* Layer 1: closer sheet, same treatment, half the offset. */}
-      <div
-        className="absolute inset-0 rounded-lg border border-border bg-card opacity-85 pointer-events-none shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
-        style={{ transform: 'translate(3px, 3px) scale(0.988)', zIndex: 1 }}
+        className="absolute inset-0 rounded-lg border-2 border-border bg-card pointer-events-none"
+        style={{ transform: 'translate(4px, 5px)', zIndex: 0, ...(stackColor ? { borderColor: stackColor.border } : {}) }}
       />
 
       {/* Per-group select-all checkbox (board): hover-revealed, inline in the
