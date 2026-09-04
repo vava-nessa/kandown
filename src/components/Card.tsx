@@ -246,18 +246,28 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
   const cardMargin = isCompact ? 'mb-1.5' : 'mb-2.5';
   const titleSize = isCompact ? 'text-[13.5px]' : 'text-[15px]';
   const metaGap = isCompact ? 'mt-1' : 'mt-1.5';
+  // 📖 Border encodes content shape (vava's hierarchy): a card with a title
+  // but no subtasks wears its title color (fg) so text-bearing tasks stand
+  // out; an untitled card (renders as its bare id) gets the stronger neutral
+  // border-strong; cards with subtasks keep the quiet hairline.
+  const hasSubtasks = !!task.progress && task.progress.total > 0;
+  const hasTitle = task.title.trim().length > 0;
+  const borderClass = hasTitle
+    ? (hasSubtasks ? 'border-border/80' : 'border-fg/70')
+    : 'border-border-strong';
 
   return (
     // 📖 No `motion.div` here: drag uses native HTML5 events, and Tailwind
     // transitions cover the hover/active feedback. Mixing `whileHover` /
     // `whileTap` with Tailwind's `transition-all` produced a 500ms "pop" on
-    // every card (the user reported). Hover lift, tap scale, and shadow are
-    // all in the className now.
+    // every card (the user reported). Hover shadow and border feedback are
+    // all in the className now; the old hover lift is gone (the translate
+    // made the border visually detach).
     // 📖 The card is a real surface: `bg-card` gives a clean white chip in
     // light mode and a defined elevated surface in dark mode. A hairline
-    // border + resting shadow define the edge; hover tightens the border,
-    // deepens the shadow and lifts the card by 2px. Cards are spaced by
-    // `cardMargin` (not a separator border) so they float on the column tint.
+    // border + resting shadow define the edge; hover tightens the border and
+    // deepens the shadow. Cards are spaced by `cardMargin` (not a separator
+    // border) so they float on the column tint.
     <div
       draggable
       {...dragHandlers}
@@ -271,13 +281,13 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       }}
       data-task-id={task.id}
       data-col={columnName}
-      className={`group relative cursor-pointer rounded-lg bg-card border-[1.5px] ${cardMargin}
-        transition-[background-color,border-color,box-shadow,transform] duration-150 ease-out
+      className={`group relative cursor-pointer rounded-lg bg-card border-[1.5px] ${borderClass} ${cardMargin}
+        transition-[background-color,border-color,box-shadow] duration-150 ease-out
         ${containerPadding}
         ${
         isSelected
           ? 'border-primary/50 bg-primary/[0.08] shadow-[0_2px_8px_-2px_rgba(0,0,0,0.12)] ring-1 ring-primary/25'
-          : 'border-border/80 shadow-[0_1px_2px_rgba(0,0,0,0.05)] hover:border-border-strong hover:shadow-[0_4px_12px_-3px_rgba(0,0,0,0.14)] hover:-translate-y-0.5 active:scale-[0.99] active:translate-y-0'
+          : 'shadow-[0_1px_2px_rgba(0,0,0,0.05)] hover:border-border-strong hover:shadow-[0_4px_12px_-3px_rgba(0,0,0,0.14)]'
       } ${task.checked ? 'opacity-70' : ''}`}
     >
       {/* Title row: checkbox (hover) | # | title. The title grows with its
@@ -296,12 +306,12 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
             toggleTaskSelection(task.id);
           }}
           onPointerDown={e => e.stopPropagation()}
-          className={`absolute -left-1.5 z-20 flex items-center justify-center h-[18px] w-[18px] rounded-[5px] border bg-card/90 shadow-sm transition-opacity duration-150 cursor-pointer ${
+          className={`absolute -left-1.5 z-20 flex items-center justify-center h-[18px] w-[18px] rounded-[5px] border-[1.5px] bg-card shadow-sm transition-opacity duration-150 cursor-pointer ${
             isCompact ? 'top-[7px]' : 'top-[11px]'
           } ${
             isSelected
               ? 'bg-primary border-primary text-primary-foreground'
-              : `border-border/70 text-transparent hover:border-primary/60 hover:bg-primary/5 ${
+              : `${borderClass} text-transparent hover:border-primary/60 hover:bg-primary/5 ${
                   (selectedTaskIds?.length ?? 0) > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100'
                 }`
           }`}

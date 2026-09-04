@@ -124,7 +124,7 @@ export function CardStack({
     const list = viewMode === 'list';
     return (
       <div
-        className={`rounded-xl border-[1.5px] border-border ${list ? 'py-1.5' : 'p-1.5'} shadow-[0_1px_3px_rgba(0,0,0,0.06)]`}
+        className={`rounded-xl border-2 border-border ${list ? 'py-1.5' : 'p-1.5'} shadow-[0_1px_3px_rgba(0,0,0,0.06)]`}
         style={list && stackColor ? { borderColor: stackColor.border } : blockStyle}
       >
         {/* Expanded header: shows group key + collapse button */}
@@ -172,7 +172,7 @@ export function CardStack({
     return (
       <div
         onClick={() => setExpanded(true)}
-        className="group/row relative flex items-center gap-2 px-3 py-2 mx-1 my-1 rounded-lg border-[1.5px] border-border hover:bg-black/[0.03] dark:hover:bg-white/[0.04] cursor-pointer transition-colors"
+        className="group/row relative flex items-center gap-2 px-3 py-2 mx-1 my-1 rounded-lg border-2 border-border hover:bg-black/[0.03] dark:hover:bg-white/[0.04] cursor-pointer transition-colors"
         style={stackColor ? { borderColor: stackColor.border } : undefined}
       >
         <button
@@ -243,15 +243,16 @@ export function CardStack({
         type="button"
         onClick={e => { e.stopPropagation(); toggleStackSelection(); }}
         aria-label="Select all in group"
-        className={`absolute -left-1.5 z-20 flex items-center justify-center h-[18px] w-[18px] rounded-[5px] border bg-card/90 shadow-sm transition-opacity duration-150 cursor-pointer ${
+        className={`absolute -left-1.5 z-20 flex items-center justify-center h-[18px] w-[18px] rounded-[5px] border-[1.5px] bg-card shadow-sm transition-opacity duration-150 cursor-pointer ${
           density === 'compact' ? 'top-[7px]' : 'top-[11px]'
         } ${
           stackAllSelected
             ? 'bg-primary border-primary'
             : stackSomeSelected
               ? 'bg-primary/40 border-primary/60'
-              : 'border-border/70 text-transparent hover:border-primary/60 hover:bg-primary/5 opacity-0 group-hover:opacity-100 focus-visible:opacity-100'
+              : 'border-border-strong text-transparent hover:border-primary/60 hover:bg-primary/5 opacity-0 group-hover:opacity-100 focus-visible:opacity-100'
         }`}
+        style={stackAllSelected || stackSomeSelected ? undefined : stackColor ? { borderColor: stackColor.border } : undefined}
       >
         {stackAllSelected && <Icon.Check size={12} className="text-white" strokeWidth={3} />}
         {!stackAllSelected && stackSomeSelected && <span className="block w-[6px] h-[2px] bg-white rounded-full" />}
@@ -263,11 +264,13 @@ export function CardStack({
        * transitions on the `transform` property only, not `all`. The inner
        * row mirrors a normal card (px-3.5 py-2.5, inline checkbox, then
        * chip + title) so the chip stays aligned with the surrounding cards. */}
+      {/* 📖 Main card surface: 2px border (thicker than single cards) so a
+       * stack reads as a group at a glance; no hover lift (the translate
+       * made the border visually detach), only shadow and border feedback. */}
       <div
-        className="relative z-10 rounded-lg border-[1.5px] border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.05)]
-        transition-[border-color,box-shadow,transform] duration-150 ease-out
-        hover:border-border-strong hover:shadow-[0_4px_12px_-3px_rgba(0,0,0,0.14)] hover:-translate-y-0.5
-        active:scale-[0.99] active:translate-y-0"
+        className="relative z-10 rounded-lg border-2 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.05)]
+        transition-[border-color,box-shadow] duration-150 ease-out
+        hover:border-border-strong hover:shadow-[0_4px_12px_-3px_rgba(0,0,0,0.14)]"
         style={stackColor ? { borderColor: stackColor.border } : undefined}
       >
         <div className={`px-3.5 ${density === 'compact' ? 'py-1.5' : 'py-2.5'}`}>

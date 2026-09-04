@@ -1326,7 +1326,7 @@
     },
     {
       "path": "src/components/Card.tsx",
-      "lines": 416,
+      "lines": 426,
       "title": "Task card",
       "summary": "Displays one board task as a clean, rounded card inside a column.",
       "functions": [
@@ -1343,7 +1343,7 @@
     },
     {
       "path": "src/components/CardStack.tsx",
-      "lines": 313,
+      "lines": 316,
       "title": "Collapsible card stack component",
       "summary": "Renders a group of 2+ cards that share the same `[bracket]` or `#hashtag` title tag as a visually stacked card.",
       "functions": [
