@@ -1343,7 +1343,7 @@
     },
     {
       "path": "src/components/CardStack.tsx",
-      "lines": 283,
+      "lines": 307,
       "title": "Collapsible card stack component",
       "summary": "Renders a group of 2+ cards that share the same `[bracket]` or `#hashtag` title tag as a visually stacked card.",
       "functions": [

@@ -12,6 +12,12 @@
  * 📖 Stacks auto-expand when a search is active (`defaultExpanded` prop) so
  * search-match highlights remain visible on individual cards.
  *
+ * 📖 Expanded group block: header + children are wrapped in a rounded
+ * envelope tinted with the category's chip color (bg + border, same palette
+ * as the chip), so a group reads as one colored unit instead of a loose run
+ * of cards. Board view insets the child cards inside the block (block stays
+ * at column width); list view keeps rows at full width and frames them.
+ *
  * 📖 Collapsed stacks are NOT draggable (v1). Expanded cards retain full drag.
  *
  * @functions
@@ -29,6 +35,7 @@ import { IconChecklist, IconChevronDown, IconChevronUp, IconStack2 } from '@tabl
 import { Card } from './Card';
 import { ListRow } from './ListRow';
 import { CategoryChip } from './CategoryChip';
+import { categoryColor } from '../lib/category-color';
 import { useStore } from '../lib/store';
 import { Icon } from './Icons';
 import type { TaskGroup } from '../lib/grouping';
@@ -74,6 +81,15 @@ export function CardStack({
   const categoryChips = useStore(s => s.config.ui.categoryChips !== false);
   const stackCategory = categoryChips ? (firstTask?.category ?? null) : null;
 
+  // 📖 Expanded group block: the tinted envelope around header + children
+  // reuses the exact chip palette (bg + border) so the block reads as the
+  // category's color made spatial. Null style keeps everything neutral for
+  // legacy #tag stacks or when chips are off.
+  const stackColor = stackCategory ? categoryColor(stackCategory) : null;
+  const blockStyle = stackColor
+    ? { backgroundColor: stackColor.bg, borderColor: stackColor.border }
+    : undefined;
+
   // 📖 Per-group selection helpers: a parent checkbox on the collapsed stack
   // lets the user add ALL sibling tasks to the bulk selection at once, which
   // is the missing affordance for "CardStack without checkbox per row". When
@@ -99,8 +115,16 @@ export function CardStack({
   // right.
 
   if (expanded) {
+    // 📖 Tinted group block: rounded envelope in the category color wrapping
+    // header + children. Board view insets the cards (padding on all sides,
+    // block stays at column width); list view keeps the rows at full width
+    // and only pads vertically so the block reads as a frame around them.
+    const list = viewMode === 'list';
     return (
-      <div className={viewMode === 'list' ? 'divide-y divide-border/30' : 'flex flex-col'}>
+      <div
+        className={`rounded-xl border ${list ? 'py-1.5' : 'p-1.5'} shadow-[0_1px_3px_rgba(0,0,0,0.06)]`}
+        style={blockStyle}
+      >
         {/* Expanded header: shows group key + collapse button */}
         <button
           type="button"
@@ -193,18 +217,18 @@ export function CardStack({
       onClick={() => setExpanded(true)}
       className="relative cursor-pointer pb-3 group"
     >
-      {/* Layer 2 (deepest): diagonal offset (same horizontal as vertical),
-          faded at 50% opacity so it reads as a ghost card behind. Always
-          present: even a 2-task stack looks like three cards. */}
+      {/* Layer 2 (deepest): small diagonal offset so its bottom/right edge
+          peeks out like a sheet of paper behind the card, nearly full size
+          and faded to 70% so the pile reads crisp rather than ghosted. */}
       <div
-        className="absolute inset-0 rounded-lg border border-border bg-card opacity-50 pointer-events-none"
-        style={{ transform: 'translate(4px, 4px) scale(0.96)', zIndex: 0 }}
+        className="absolute inset-0 rounded-lg border border-border bg-card opacity-70 pointer-events-none shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
+        style={{ transform: 'translate(6px, 6px) scale(0.975)', zIndex: 0 }}
       />
 
-      {/* Layer 1: closer diagonal offset, same 50% fade. */}
+      {/* Layer 1: closer sheet, same treatment, half the offset. */}
       <div
-        className="absolute inset-0 rounded-lg border border-border bg-card opacity-50 pointer-events-none"
-        style={{ transform: 'translate(2px, 2px) scale(0.98)', zIndex: 1 }}
+        className="absolute inset-0 rounded-lg border border-border bg-card opacity-85 pointer-events-none shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
+        style={{ transform: 'translate(3px, 3px) scale(0.988)', zIndex: 1 }}
       />
 
       {/* Per-group select-all checkbox (board): hover-revealed, inline in the
