@@ -42,7 +42,7 @@
  * @see src/components/Drawer.tsx
  */
 
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
 import { AssigneeAvatar } from './agentIcons';
@@ -199,9 +199,44 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       : 0;
   const isComplete = task.progress && task.progress.done === task.progress.total;
 
+  // 📖 Drag tilt (vava's ask): the native drag ghost is a static snapshot,
+  // so we build a rotated clone and hand it to `setDragImage`: the card
+  // follows the cursor already tilted, while the original stays untouched.
+  // On release the ghost vanishes, so we snap the original to the tilted
+  // angle with transitions disabled and let it ease back to level over
+  // 400ms, which reads as the card "landing".
+  const ghostRef = useRef<HTMLElement | null>(null);
+  const handleDragStart = (e: React.DragEvent) => {
+    onDragStart?.(e);
+    const card = e.currentTarget as HTMLElement;
+    const ghost = card.cloneNode(true) as HTMLElement;
+    ghost.style.width = `${card.offsetWidth}px`;
+    ghost.style.position = 'absolute';
+    ghost.style.top = '-10000px';
+    ghost.style.transform = 'rotate(3deg)';
+    ghost.style.pointerEvents = 'none';
+    document.body.appendChild(ghost);
+    ghostRef.current = ghost;
+    e.dataTransfer.setDragImage(ghost, card.offsetWidth / 2, card.offsetHeight / 2);
+  };
+  const handleDragEnd = (e: React.DragEvent) => {
+    onDragEnd?.(e);
+    ghostRef.current?.remove();
+    ghostRef.current = null;
+    const card = e.currentTarget as HTMLElement;
+    card.style.transition = 'none';
+    card.style.transform = 'rotate(3deg)';
+    void card.offsetWidth;
+    card.style.transition = 'transform 400ms ease-in-out';
+    card.style.transform = 'rotate(0deg)';
+    window.setTimeout(() => {
+      card.style.transition = '';
+      card.style.transform = '';
+    }, 400);
+  };
   const dragHandlers = {
-    onDragStart,
-    onDragEnd,
+    onDragStart: handleDragStart,
+    onDragEnd: handleDragEnd,
   } as unknown as Record<string, unknown>;
 
   // 📖 Extract leading bracket tag from title (e.g. "[optimization] Fix X" → tag="[optimization]", rest="Fix X")
@@ -293,7 +328,6 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       data-task-id={task.id}
       data-col={columnName}
       className={`group relative cursor-pointer rounded-lg bg-card border-[1.5px] ${borderClass} ${cardMargin}
-        transition-[background-color,border-color,box-shadow] duration-150 ease-out
         ${containerPadding}
         ${
         isSelected
