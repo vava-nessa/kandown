@@ -133,6 +133,118 @@ function kandownDevPlugin() {
           return;
         }
 
+        // 📖 Agent harness API (t307) in DEV mode. The Vite dev server is Node,
+        // so it can spawn harness processes exactly like the daemon does; the
+        // routes mirror src/cli/lib/server.ts and demoBackend.ts answers 501
+        // so the three adapters stay one protocol.
+        if (resource === 'agent') {
+          try {
+            if (parts[1] === 'harnesses' && req.method === 'GET') {
+              const detectModule = await server.ssrLoadModule('/src/cli/lib/agent/detect.ts') as typeof import('./src/cli/lib/agent/detect');
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify(detectModule.detectHarnessesJSON()));
+              return;
+            }
+
+            if (parts[1] === 'sessions') {
+              const runtimeModule = await server.ssrLoadModule('/src/cli/lib/agent/agent-runtime.ts') as typeof import('./src/cli/lib/agent/agent-runtime');
+
+              if (!id && req.method === 'GET') {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ sessions: runtimeModule.listAgentSessions() }));
+                return;
+              }
+
+              if (!id && req.method === 'POST') {
+                const chunks: Buffer[] = [];
+                await new Promise<void>((resolveBody, rejectBody) => {
+                  req.on('data', chunk => chunks.push(chunk));
+                  req.on('end', resolveBody);
+                  req.on('error', rejectBody);
+                });
+                const body = JSON.parse(Buffer.concat(chunks).toString('utf8')) as {
+                  harnessId?: unknown; taskId?: unknown; message?: unknown; permissionMode?: unknown;
+                };
+                if (typeof body.harnessId !== 'string' || !body.harnessId.trim()) {
+                  res.writeHead(400, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: 'harnessId is required' }));
+                  return;
+                }
+                const workModule = await server.ssrLoadModule('/src/cli/lib/kandown-work.ts') as typeof import('./src/cli/lib/kandown-work');
+                const configModule = await server.ssrLoadModule('/src/cli/lib/config.ts') as typeof import('./src/cli/lib/config');
+                const boardModule = await server.ssrLoadModule('/src/cli/lib/board-reader.ts') as typeof import('./src/cli/lib/board-reader');
+                const taskId = typeof body.taskId === 'string' && body.taskId.trim() ? body.taskId.trim() : undefined;
+                let compiled;
+                try {
+                  compiled = workModule.compileProjectKandownWork(kandownPath, taskId);
+                } catch {
+                  res.writeHead(404, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: `Task not found: ${taskId}` }));
+                  return;
+                }
+                const message = typeof body.message === 'string' && body.message.trim() ? body.message.trim() : undefined;
+                const prompt = message ? `${compiled.markdown}\n\n---\n\n${message}` : compiled.markdown;
+                const config = configModule.loadConfig(kandownPath);
+                const permissionMode = body.permissionMode === 'accept-edits' || body.permissionMode === 'yolo'
+                  ? body.permissionMode
+                  : config.agent.permissionMode;
+                try {
+                  const session = runtimeModule.createAgentSession({
+                    harnessId: body.harnessId.trim(),
+                    projectRoot: boardModule.getProjectRoot(kandownPath),
+                    prompt,
+                    permissionMode,
+                  });
+                  res.writeHead(201, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ session }));
+                } catch (error) {
+                  res.writeHead(400, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }));
+                }
+                return;
+              }
+
+              if (id && parts[2] === 'events' && req.method === 'GET') {
+                const sessionId = decodeURIComponent(id);
+                const unsubscribe = runtimeModule.subscribeAgentSession(sessionId, event => {
+                  res.write(`data: ${JSON.stringify(event)}\n\n`);
+                });
+                if (!unsubscribe) {
+                  res.writeHead(404, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: 'Session not found' }));
+                  return;
+                }
+                res.writeHead(200, {
+                  'Content-Type': 'text/event-stream',
+                  'Cache-Control': 'no-cache',
+                  'Connection': 'keep-alive',
+                });
+                res.write('retry: 2000\n\n');
+                req.on('close', unsubscribe);
+                return;
+              }
+
+              if (id && parts[2] === 'stop' && req.method === 'POST') {
+                const ok = runtimeModule.stopAgentSession(decodeURIComponent(id));
+                res.writeHead(ok ? 200 : 404, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(ok ? { ok: true } : { error: 'Session not found' }));
+                return;
+              }
+
+              if (id && !parts[2] && req.method === 'GET') {
+                const session = runtimeModule.listAgentSessions().find(entry => entry.id === decodeURIComponent(id));
+                res.writeHead(session ? 200 : 404, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(session ? { session } : { error: 'Session not found' }));
+                return;
+              }
+            }
+          } catch (error) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }));
+            return;
+          }
+        }
+
         if (resource === 'extensions') {
           try {
             const extensionModule = await server.ssrLoadModule('/src/cli/lib/extensions-cli.ts') as typeof import('./src/cli/lib/extensions-cli');

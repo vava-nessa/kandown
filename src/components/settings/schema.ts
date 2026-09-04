@@ -245,6 +245,20 @@ export const getSETTINGS = (t: ReturnType<typeof useTranslation>['t']): SettingD
     placeholder: '--dangerously-skip-permissions',
     keywords: ['flags', 'arguments', 'cli', 'agent'],
   },
+  {
+    key: 'agent.permissionMode',
+    label: t('settings.permissionMode', { defaultValue: 'Permission mode' }),
+    section: 'agent',
+    type: 'select',
+    description: t('settings.permissionModeDesc', {
+      defaultValue: 'How much approval agents get in kandown-driven sessions. Yolo lets the harness apply edits directly, git is the safety net. Accept edits asks before each change when the harness supports it, and stays advisory otherwise.',
+    }),
+    options: [
+      { value: 'yolo', label: t('settings.yolo', { defaultValue: 'Yolo' }) },
+      { value: 'accept-edits', label: t('settings.acceptEdits', { defaultValue: 'Accept edits' }) },
+    ],
+    keywords: ['permission', 'yolo', 'accept', 'edits', 'approval', 'agent', 'mode'],
+  },
 
   {
     key: 'board.columns',

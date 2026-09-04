@@ -50,6 +50,7 @@ import { WorkOutputConfigurator } from './settings/WorkOutputConfigurator';
 import { AboutVersionCard } from './settings/AboutVersionCard';
 import { ExtensionsPanel } from './settings/ExtensionsPanel';
 import { ThemesPanel } from './settings/ThemesPanel';
+import { AgentHarnessesPanel } from './settings/AgentHarnessesPanel';
 
 export function SettingsPage() {
   const { t } = useTranslation();
@@ -329,26 +330,29 @@ export function SettingsPage() {
               ) : activeSectionId === 'themes' ? (
                 <ThemesPanel />
               ) : !normalizedQuery && activeSectionId === 'agent' ? (
-                <WorkOutputConfigurator
-                  config={config}
-                  columns={columns}
-                  dirHandle={dirHandle}
-                  onChange={(next) => {
-                    void updateConfig(currentConfig => setConfigValue(currentConfig, 'agent.workOutput', next));
-                  }}
-                  onWorkflowChange={(next) => {
-                    void updateConfig(currentConfig => setConfigValue(currentConfig, 'workflow', next));
-                  }}
-                  onColumnMetaChange={(next) => {
-                    void updateConfig(currentConfig => setConfigValue(currentConfig, 'board.columnMeta', next));
-                  }}
-                  toast={toast}
-                  agentSettings={visibleSettings}
-                  getConfigValue={(key) => getConfigValue(config, key)}
-                  handleChange={handleChange}
-                  notificationPermission={notificationPermission}
-                  onRequestNotificationPermission={handleRequestNotificationPermission}
-                />
+                <div className="flex flex-col gap-4">
+                  <AgentHarnessesPanel />
+                  <WorkOutputConfigurator
+                    config={config}
+                    columns={columns}
+                    dirHandle={dirHandle}
+                    onChange={(next) => {
+                      void updateConfig(currentConfig => setConfigValue(currentConfig, 'agent.workOutput', next));
+                    }}
+                    onWorkflowChange={(next) => {
+                      void updateConfig(currentConfig => setConfigValue(currentConfig, 'workflow', next));
+                    }}
+                    onColumnMetaChange={(next) => {
+                      void updateConfig(currentConfig => setConfigValue(currentConfig, 'board.columnMeta', next));
+                    }}
+                    toast={toast}
+                    agentSettings={visibleSettings}
+                    getConfigValue={(key) => getConfigValue(config, key)}
+                    handleChange={handleChange}
+                    notificationPermission={notificationPermission}
+                    onRequestNotificationPermission={handleRequestNotificationPermission}
+                  />
+                </div>
               ) : visibleSettings.length === 0 ? (
                 <div className="overflow-hidden rounded-[8px] border border-border bg-bg-1 px-4 py-10 text-center">
                   <p className="text-[14px] font-medium text-fg">{t('settings.noOptionFound')}</p>

@@ -15,6 +15,44 @@ export type Priority = 'P1' | 'P2' | 'P3' | 'P4' | '';
 
 export type OwnerType = 'human' | 'ai' | '';
 
+/** 📖 Permission mode for kandown agent harness sessions. `yolo` (default)
+ *  lets the harness apply edits directly, git is the safety net;
+ *  `accept-edits` maps onto the harness' own "approve each edit" mode when it
+ *  exposes one, and degrades to advisory (diff shown after the fact) when it
+ *  does not. Configured per project in `agent.permissionMode` and consumed by
+ *  the harness runtime (t307) and the live-edit experience (t309). */
+export type PermissionMode = 'yolo' | 'accept-edits';
+
+export const PERMISSION_MODES: readonly PermissionMode[] = ['yolo', 'accept-edits'];
+
+/** 📖 Whether a harness natively supports a requested permission mode
+ *  (`native`) or only approximates it and the UI must treat the mode as
+ *  advisory (`advisory`). Reported per harness by detection and per session by
+ *  the `session_started` event. */
+export type PermissionSupport = 'native' | 'advisory';
+
+/** 📖 One harness (a coding agent drivable headlessly by kandown) as returned
+ *  by the `/api/agent/harnesses` backend route. Detection runs in Node (the
+ *  daemon or the Vite dev middleware); the browser renders the list in
+ *  Settings with an install CTA for anything missing. Mirrors the shape built
+ *  by `detectHarnessesJSON` in src/cli/lib/agent/detect.ts, keep in sync. */
+export interface DetectedHarness {
+  id: string;
+  name: string;
+  bin: string;
+  /** Wire protocol the runtime speaks with this harness. */
+  protocol: 'claude-stream-json' | 'codex-exec-json' | 'pi-rpc' | 'acp';
+  /** Absolute path the binary resolved to, or null when not installed. */
+  binPath: string | null;
+  /** Best-effort `--version` output (first line), null when unavailable. */
+  version: string | null;
+  installed: boolean;
+  /** How faithfully each requested permission mode can be honoured. */
+  permissionModes: Record<PermissionMode, PermissionSupport>;
+  /** Where to send the user when the harness is missing (install CTA). */
+  installHint: string;
+}
+
 export interface Subtask {
   done: boolean;
   text: string;
@@ -355,6 +393,12 @@ export interface KandownConfig {
   agent: {
     suggestFollowUp: boolean;
     maxSuggestions: number;
+    /** 📖 Default permission mode for harness sessions launched from the web
+     * UI (chat sidebar, live editing, orchestration). `yolo` is the default:
+     * the harness applies edits directly and git is the safety net.
+     * `accept-edits` requests the harness' own approval mode when it exposes
+     * one. See src/cli/lib/agent/ for the runtime that consumes it. */
+    permissionMode: PermissionMode;
     /** 📖 Project-scoped compiler settings for `kandown work`. The actual
      * editable prose lives in `.kandown/kandown_work.md`. Historical raw-mode,
      * section-order, and core-removal fields are accepted during normalization
@@ -443,7 +487,7 @@ export const DEFAULT_COLUMN_META: Record<string, ColumnAgentMeta> = {
 
 export const DEFAULT_CONFIG: KandownConfig = {
   ui: { language: 'en', theme: 'auto', skin: 'shadcn', font: 'inter', background: 'solid', onboardingCompleted: false, categoryChips: true },
-  agent: { suggestFollowUp: false, maxSuggestions: 3, workOutput: DEFAULT_WORK_OUTPUT },
+  agent: { suggestFollowUp: false, maxSuggestions: 3, permissionMode: 'yolo', workOutput: DEFAULT_WORK_OUTPUT },
   workflow: { active: 'kandown-standard', skills: [], trackingCadence: 'balanced' },
   board: {
     columns: DEFAULT_COLUMNS,

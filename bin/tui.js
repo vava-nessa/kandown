@@ -54015,6 +54015,7 @@ function atomicWriteFileSync(path, content) {
 }
 
 // src/lib/types.ts
+var PERMISSION_MODES = ["yolo", "accept-edits"];
 var DEFAULT_COLUMNS = ["Backlog", "Todo", "In Progress", "Review", "Done"];
 var DEFAULT_WORK_OUTPUT = {
   detailMode: "complete",
@@ -54051,7 +54052,7 @@ var DEFAULT_COLUMN_META = {
 };
 var DEFAULT_CONFIG = {
   ui: { language: "en", theme: "auto", skin: "shadcn", font: "inter", background: "solid", onboardingCompleted: false, categoryChips: true },
-  agent: { suggestFollowUp: false, maxSuggestions: 3, workOutput: DEFAULT_WORK_OUTPUT },
+  agent: { suggestFollowUp: false, maxSuggestions: 3, permissionMode: "yolo", workOutput: DEFAULT_WORK_OUTPUT },
   workflow: { active: "kandown-standard", skills: [], trackingCadence: "balanced" },
   board: {
     columns: DEFAULT_COLUMNS,
@@ -54285,6 +54286,9 @@ function normalizeKandownConfig(raw) {
         DEFAULT_CONFIG.agent.suggestFollowUp
       ),
       maxSuggestions: numberOr(agent.maxSuggestions, DEFAULT_CONFIG.agent.maxSuggestions),
+      // 📖 Permission mode for harness sessions (t307): unknown values fall
+      // back to yolo so a hand-edited kandown.json can never block launches.
+      permissionMode: isOneOf(agent.permissionMode, PERMISSION_MODES) ? agent.permissionMode : DEFAULT_CONFIG.agent.permissionMode,
       workOutput: {
         detailMode,
         boardDigest: {

@@ -22,6 +22,7 @@ import {
   DEFAULT_COLUMN_META,
   DEFAULT_CONFIG,
   DEFAULT_WORK_OUTPUT,
+  PERMISSION_MODES,
 } from './types';
 import type {
   AgentsConfig,
@@ -272,6 +273,11 @@ export function normalizeKandownConfig(raw: unknown): KandownConfig {
         DEFAULT_CONFIG.agent.suggestFollowUp,
       ),
       maxSuggestions: numberOr(agent.maxSuggestions, DEFAULT_CONFIG.agent.maxSuggestions),
+      // 📖 Permission mode for harness sessions (t307): unknown values fall
+      // back to yolo so a hand-edited kandown.json can never block launches.
+      permissionMode: isOneOf(agent.permissionMode, PERMISSION_MODES)
+        ? agent.permissionMode
+        : DEFAULT_CONFIG.agent.permissionMode,
       workOutput: {
         detailMode,
         boardDigest: {

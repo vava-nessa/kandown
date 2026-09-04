@@ -15,6 +15,15 @@ import { resolveTaskFilename } from '../../lib/task-filename';
 import { parseTaskFile } from '../../lib/parser';
 import { loadConfig, saveConfig } from './config';
 import { detectCatalogJSON } from './agents';
+import { detectHarnessesJSON } from './agent/detect';
+import {
+  createAgentSession,
+  listAgentSessions,
+  stopAgentSession,
+  subscribeAgentSession,
+} from './agent/agent-runtime';
+import type { AgentEvent } from './agent/types';
+import type { PermissionMode } from '../../lib/types';
 import { getCurrentVersion, getInstalledVersion, semverGt, performGlobalPackageUpdate, PKG_ROOT } from './updater';
 import { atomicWriteFileSync } from './atomic-write';
 import { loadExtensionHost } from './extensions-cli';
@@ -511,6 +520,95 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
   if (path === '/api/agents' && method === 'GET') {
     return writeJson(res, 200, detectCatalogJSON(kandownDir));
   }
+
+  // 📖 Agent harness API (t307). The daemon owns the harness child processes:
+  // detection answers what is installed, sessions spawn harnesses with the
+  // compiled kandown-work document as initial prompt, events stream over a
+  // per-session SSE channel, and stop is always available. Fan-out note: the
+  // Vite dev plugin mirrors these routes and demoBackend answers 501.
+  if (path === '/api/agent/harnesses' && method === 'GET') {
+    return writeJson(res, 200, detectHarnessesJSON());
+  }
+
+  if (path === '/api/agent/sessions' && method === 'GET') {
+    return writeJson(res, 200, { sessions: listAgentSessions() });
+  }
+
+  if (path === '/api/agent/sessions' && method === 'POST') {
+    let body: {
+      harnessId?: unknown;
+      taskId?: unknown;
+      message?: unknown;
+      permissionMode?: unknown;
+      resumeSessionId?: unknown;
+    };
+    try {
+      body = JSON.parse(await readRequestBody(req)) as typeof body;
+    } catch (error) {
+      return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
+    }
+    if (typeof body.harnessId !== 'string' || !body.harnessId.trim()) {
+      return writeJson(res, 400, { error: 'harnessId is required' });
+    }
+    const taskId = typeof body.taskId === 'string' && body.taskId.trim() ? body.taskId.trim() : undefined;
+    let compiled;
+    try {
+      compiled = compileProjectKandownWork(kandownDir, taskId);
+    } catch {
+      return writeJson(res, 404, { error: `Task not found: ${taskId}` });
+    }
+    const message = typeof body.message === 'string' && body.message.trim() ? body.message.trim() : undefined;
+    const prompt = message ? `${compiled.markdown}\n\n---\n\n${message}` : compiled.markdown;
+    const config = loadConfig(kandownDir);
+    const permissionMode: PermissionMode = body.permissionMode === 'accept-edits' || body.permissionMode === 'yolo'
+      ? body.permissionMode
+      : config.agent.permissionMode;
+    try {
+      const session = createAgentSession({
+        harnessId: body.harnessId.trim(),
+        projectRoot: getProjectRoot(kandownDir),
+        prompt,
+        permissionMode,
+        ...(typeof body.resumeSessionId === 'string' && body.resumeSessionId ? { resumeSessionId: body.resumeSessionId } : {}),
+      });
+      return writeJson(res, 201, { session });
+    } catch (error) {
+      return writeJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+
+  const agentSessionMatch = path.match(/^\/api\/agent\/sessions\/([^/]+)(\/events|\/stop)?$/);
+  if (agentSessionMatch) {
+    const sessionId = decodeURIComponent(agentSessionMatch[1]);
+    const sub = agentSessionMatch[2];
+    if (!sub && method === 'GET') {
+      const session = listAgentSessions().find(entry => entry.id === sessionId);
+      return session ? writeJson(res, 200, { session }) : writeJson(res, 404, { error: 'Session not found' });
+    }
+    if (sub === '/events' && method === 'GET') {
+      // 📖 Per-session SSE. subscribeAgentSession replays the buffered history
+      // first, so a subscriber joining mid-turn still renders the full turn.
+      const unsubscribe = subscribeAgentSession(sessionId, (event: AgentEvent) => {
+        res.write(`data: ${JSON.stringify(event)}\n\n`);
+      });
+      if (!unsubscribe) return writeJson(res, 404, { error: 'Session not found' });
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        ...corsHeaders(localPort(res)),
+      });
+      res.write('retry: 2000\n\n');
+      req.on('close', unsubscribe);
+      return;
+    }
+    if (sub === '/stop' && method === 'POST') {
+      return stopAgentSession(sessionId)
+        ? writeJson(res, 200, { ok: true })
+        : writeJson(res, 404, { error: 'Session not found' });
+    }
+  }
+
 
   // 📖 Extension system API: list, enable/disable, static files (web bundles),
   // and extension field writes. Foundation for the web UI; the CLI uses the

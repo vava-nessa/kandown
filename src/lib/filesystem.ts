@@ -47,6 +47,7 @@
  *  → serverListTasks: list task IDs via REST
  *  → serverReadTask / serverWriteTask / serverDeleteTask: task CRUD via REST
  *  → serverMoveTask: authoritative managed move intent
+ *  → fetchDetectedAgents / fetchAgentHarnesses: Node-side agent and harness detection
  *  → serverLoadExtensionRuntime: field/panel defs and batched badges
  *  → serverSetExtensionField: persist one host-validated plugins field
  *  → serverReadExtensionFile: authenticated source read for Blob import
@@ -54,12 +55,12 @@
  *  → serverMigrateTasks: triggers the legacy to new layout migration via REST
  *  → readProjectInstructions / writeProjectInstructions — edits `.kandown/kandown_work.md`
  *
- * @exports supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks
+ * @exports supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, fetchDetectedAgents, fetchAgentHarnesses, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks
  * @see src/lib/store.ts
  * @see src/lib/parser.ts
  */
 
-import type { KandownConfig, TaskFrontmatter, ParsedTask, DetectedAgent, MoveTaskResult } from './types';
+import type { KandownConfig, TaskFrontmatter, ParsedTask, DetectedAgent, DetectedHarness, MoveTaskResult } from './types';
 import type { ExtensionHealth, ExtensionRuntimePayload, ExtensionRuntimeSummary } from './extensions/types';
 import type { LoadedWorkflowPackage } from './workflows';
 import type { KandownWorkDiagnostic, KandownWorkStats } from './kandown-work';
@@ -375,6 +376,27 @@ export async function fetchDetectedAgents(): Promise<DetectedAgent[] | null> {
     if (!res.ok) return null;
     const data = await res.json() as { agents?: DetectedAgent[] };
     return data.agents ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 📖 Fetches the drivable agent-harness catalog from the backend
+ * (`/api/agent/harnesses`). Detection and `--version` resolution always run
+ * server-side in Node (daemon or Vite dev middleware), mirroring
+ * {@link fetchDetectedAgents}. Returns `null` when not in server mode or the
+ * route is unavailable, so the Settings panel can show its informational
+ * "daemon required" card instead of an error.
+ * @see src/hooks/useAgentHarnesses.ts
+ */
+export async function fetchAgentHarnesses(): Promise<DetectedHarness[] | null> {
+  if (!isServerMode()) return null;
+  try {
+    const res = await apiFetch('/api/agent/harnesses');
+    if (!res.ok) return null;
+    const data = await res.json() as { harnesses?: DetectedHarness[] };
+    return Array.isArray(data.harnesses) ? data.harnesses : null;
   } catch {
     return null;
   }

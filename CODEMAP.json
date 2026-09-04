@@ -8,14 +8,14 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 11863,
+      "lines": 12797,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 62522,
+      "lines": 62526,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -283,6 +283,19 @@
       "summary": "Exercises the filesystem migration against disposable project and home directories."
     },
     {
+      "path": "src/cli/lib/__tests__/agent-runtime.spec.ts",
+      "lines": 264,
+      "title": "Agent harness adapter tests",
+      "summary": "Locks the pure half of the t307 harness foundation: each protocol adapter's argv mapping (permission modes, resume flags) and its stdout-line-to-event normalization, plus the runtime's follow-up routing decision surface.",
+      "functions": [
+        {
+          "name": "(vitest suites)",
+          "summary": null
+        }
+      ],
+      "exports": "(tests)"
+    },
+    {
       "path": "src/cli/lib/__tests__/board-reader.spec.ts",
       "lines": 125,
       "title": "Integration tests for the gate funneled through board-reader",
@@ -388,6 +401,157 @@
         }
       ],
       "exports": "migrateAgentInstructions, ensureAgentBootstrap, AgentMigrationEvent, AgentMigrationOptions, AGENT_BOOTSTRAP_LINE"
+    },
+    {
+      "path": "src/cli/lib/agent/adapters/acp.ts",
+      "lines": 247,
+      "title": "Generic ACP harness adapter (Agent Client Protocol over stdio)",
+      "summary": "Speaks ACP, the open JSON-RPC 2.0 newline-delimited protocol introduced by Zed, so every ACP-capable agent (opencode, gemini, and the long tail) appears in kandown without a bespoke integration.",
+      "functions": [
+        {
+          "name": "buildArgs   : harness binary plus its ACP entry flag",
+          "summary": null
+        },
+        {
+          "name": "initialStdin: the initialize request",
+          "summary": null
+        },
+        {
+          "name": "parseLine   : one stdout line → normalized events (+ JSON-RPC replies)",
+          "summary": null
+        }
+      ],
+      "exports": "acpAdapter"
+    },
+    {
+      "path": "src/cli/lib/agent/adapters/claude-code.ts",
+      "lines": 162,
+      "title": "Claude Code harness adapter (stream-json protocol)",
+      "summary": "Drives `claude -p <prompt> --output-format stream-json` and normalizes its JSONL stdout into kandown agent events.",
+      "functions": [
+        {
+          "name": "buildArgs  : argv for a new or resumed headless session",
+          "summary": null
+        },
+        {
+          "name": "parseLine  : one stdout line → zero or more normalized events",
+          "summary": null
+        }
+      ],
+      "exports": "claudeCodeAdapter"
+    },
+    {
+      "path": "src/cli/lib/agent/adapters/codex.ts",
+      "lines": 164,
+      "title": "OpenAI Codex harness adapter (exec json protocol)",
+      "summary": "Drives `codex exec --json` and normalizes its JSONL event stream into kandown agent events.",
+      "functions": [
+        {
+          "name": "buildArgs  : argv for a new or resumed exec session",
+          "summary": null
+        },
+        {
+          "name": "parseLine  : one stdout line → zero or more normalized events",
+          "summary": null
+        }
+      ],
+      "exports": "codexAdapter"
+    },
+    {
+      "path": "src/cli/lib/agent/adapters/pi.ts",
+      "lines": 218,
+      "title": "Pi harness adapter (RPC mode protocol)",
+      "summary": "Drives `pi --mode rpc`, pi's newline-delimited JSON protocol over stdin/stdout (documented in badlogic/pi-mono, packages/coding-agent/ docs/rpc.md).",
+      "functions": [
+        {
+          "name": "buildArgs     : argv: rpc mode (session persistence stays pi's own)",
+          "summary": null
+        },
+        {
+          "name": "initialStdin  : optional session switch, state probe, initial prompt",
+          "summary": null
+        },
+        {
+          "name": "parseLine     : one stdout line → normalized events (+ stdin replies)",
+          "summary": null
+        },
+        {
+          "name": "onStop        : graceful `abort` command before SIGTERM",
+          "summary": null
+        }
+      ],
+      "exports": "piAdapter"
+    },
+    {
+      "path": "src/cli/lib/agent/agent-runtime.ts",
+      "lines": 378,
+      "title": "AgentRuntime: the harness session facade",
+      "summary": "Spawns and drives harness sessions, normalizing every protocol into the shared event model.",
+      "functions": [
+        {
+          "name": "createAgentSession   : resolve the harness, spawn, start streaming",
+          "summary": null
+        },
+        {
+          "name": "listAgentSessions    : JSON-safe registry snapshot",
+          "summary": null
+        },
+        {
+          "name": "getAgentSession      : one session snapshot or undefined",
+          "summary": null
+        },
+        {
+          "name": "subscribeAgentSession: live listener + buffered replay (SSE backing)",
+          "summary": null
+        },
+        {
+          "name": "sendToSession        : steer a running turn or resume a finished one",
+          "summary": null
+        },
+        {
+          "name": "stopAgentSession     : graceful stop, then SIGTERM",
+          "summary": null
+        },
+        {
+          "name": "resetAgentSessions   : test-only registry wipe",
+          "summary": null
+        }
+      ],
+      "exports": "createAgentSession, listAgentSessions, getAgentSession, subscribeAgentSession, sendToSession, stopAgentSession, resetAgentSessions, MAX_SESSIONS, EVENT_BUFFER_LIMIT"
+    },
+    {
+      "path": "src/cli/lib/agent/detect.ts",
+      "lines": 151,
+      "title": "Harness detection: which installed agents kandown can drive headlessly",
+      "summary": "Extends the PATH scan from src/cli/lib/agents.ts with the harness contract of t307: kandown never embeds an LLM and never asks for an API key, it drives harnesses the user already installed and authenticated.",
+      "functions": [
+        {
+          "name": "detectHarnessesJSON    : the JSON payload served by /api/agent/harnesses",
+          "summary": null
+        },
+        {
+          "name": "getHarnessDef          : find one harness definition by detection id",
+          "summary": null
+        },
+        {
+          "name": "resolveHarness         : def + resolved binary path, for session creation",
+          "summary": null
+        }
+      ],
+      "exports": "HARNESS_DEFS, detectHarnessesJSON, getHarnessDef, resolveHarness"
+    },
+    {
+      "path": "src/cli/lib/agent/types.ts",
+      "lines": 137,
+      "title": "Agent harness contracts: the normalized event model and session types",
+      "summary": "Defines the single event vocabulary every harness adapter normalizes to, the session configuration the runtime accepts, and the adapter interface each protocol backend implements.",
+      "functions": [
+        {
+          "name": "(types only)",
+          "summary": null
+        }
+      ],
+      "exports": "PermissionMode, PermissionSupport, AgentEventType, AgentEvent, AgentSessionConfig, AgentSessionInfo, AgentSessionStatus, HarnessAdapter, AdapterEvent, AdapterParseResult, AdapterState, EDIT_TOOL_NAMES"
     },
     {
       "path": "src/cli/lib/agents-config.ts",
@@ -873,7 +1037,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 965,
+      "lines": 1063,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
@@ -1635,6 +1799,19 @@
       "exports": "AboutVersionCard"
     },
     {
+      "path": "src/components/settings/AgentHarnessesPanel.tsx",
+      "lines": 217,
+      "title": "Agent harnesses settings panel",
+      "summary": "Settings surface for the kandown agent harness catalog (t307).",
+      "functions": [
+        {
+          "name": "AgentHarnessesPanel: the panel",
+          "summary": null
+        }
+      ],
+      "exports": "AgentHarnessesPanel"
+    },
+    {
       "path": "src/components/settings/ExtensionsPanel.tsx",
       "lines": 265,
       "title": "Extensions settings panel",
@@ -1656,7 +1833,7 @@
     },
     {
       "path": "src/components/settings/schema.ts",
-      "lines": 455,
+      "lines": 469,
       "title": "Settings page — schema & config helpers",
       "summary": "Declarative metadata describing every setting (section, type, description, keywords) plus pure functions for reading/writing dotted config paths and building the sidebar search index.",
       "functions": [
@@ -1714,7 +1891,7 @@
     },
     {
       "path": "src/components/SettingsPage.tsx",
-      "lines": 382,
+      "lines": 386,
       "title": "Settings page for the web app",
       "summary": "Dense settings workspace with an iOS-style sidebar, global option search, section navigation, and compact controls for kandown.json.",
       "functions": [
@@ -1955,6 +2132,19 @@
       "summary": "Non-intrusive, floating update notification banner and 1-click installer prompt for the Web UI."
     },
     {
+      "path": "src/hooks/useAgentHarnesses.ts",
+      "lines": 73,
+      "title": "useAgentHarnesses: web UI hook for the detected harness catalog",
+      "summary": "Loads the coding-agent harnesses detected by the backend (`/api/agent/harnesses`) for the Settings agent panel.",
+      "functions": [
+        {
+          "name": "useAgentHarnesses: the hook",
+          "summary": null
+        }
+      ],
+      "exports": "useAgentHarnesses"
+    },
+    {
       "path": "src/hooks/useAnimatedNumber.ts",
       "lines": 29,
       "title": "Animated number hook",
@@ -2115,7 +2305,7 @@
     },
     {
       "path": "src/lib/config.ts",
-      "lines": 408,
+      "lines": 414,
       "title": "Shared Kandown config normalization",
       "summary": "Converts unknown kandown.json input into the canonical config contract used by browser and Node adapters.",
       "functions": [
@@ -2144,7 +2334,7 @@
     },
     {
       "path": "src/lib/demoBackend.ts",
-      "lines": 393,
+      "lines": 396,
       "title": "In-memory backend for the website demo",
       "summary": "Implements the Kandown REST API against a `Map` instead of a disk, so the whole web UI can run in a browser tab with no CLI, no server and no storage.",
       "functions": [
@@ -2454,7 +2644,7 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 1357,
+      "lines": 1379,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [
@@ -2543,6 +2733,10 @@
           "summary": null
         },
         {
+          "name": "fetchDetectedAgents / fetchAgentHarnesses: Node-side agent and harness detection",
+          "summary": null
+        },
+        {
           "name": "serverLoadExtensionRuntime: field/panel defs and batched badges",
           "summary": null
         },
@@ -2567,7 +2761,7 @@
           "summary": "edits `.kandown/kandown_work.md`"
         }
       ],
-      "exports": "supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks"
+      "exports": "supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, fetchDetectedAgents, fetchAgentHarnesses, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks"
     },
     {
       "path": "src/lib/githubStars.ts",
@@ -3033,7 +3227,7 @@
     },
     {
       "path": "src/lib/types.ts",
-      "lines": 498,
+      "lines": 542,
       "title": "Shared domain types",
       "summary": "Defines the board, task, config, filter, search, and appearance contracts shared by the Kandown web UI, CLI, TUI, and persistence adapters.",
       "exports": "Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, ColumnRole, ColumnAgentMeta, WorkflowSelectionConfig, TaskTrackingCadence, WorkOutputDetailMode, TuiConfig, AgentsConfig, KandownConfig, DEFAULT_COLUMNS, DEFAULT_WORK_OUTPUT, DEFAULT_COLUMN_META, DEFAULT_CONFIG"

@@ -296,10 +296,11 @@ var init_updater = __esm({
 });
 
 // src/lib/types.ts
-var DEFAULT_COLUMNS, DEFAULT_WORK_OUTPUT, DEFAULT_COLUMN_META, DEFAULT_CONFIG;
+var PERMISSION_MODES, DEFAULT_COLUMNS, DEFAULT_WORK_OUTPUT, DEFAULT_COLUMN_META, DEFAULT_CONFIG;
 var init_types = __esm({
   "src/lib/types.ts"() {
     "use strict";
+    PERMISSION_MODES = ["yolo", "accept-edits"];
     DEFAULT_COLUMNS = ["Backlog", "Todo", "In Progress", "Review", "Done"];
     DEFAULT_WORK_OUTPUT = {
       detailMode: "complete",
@@ -336,7 +337,7 @@ var init_types = __esm({
     };
     DEFAULT_CONFIG = {
       ui: { language: "en", theme: "auto", skin: "shadcn", font: "inter", background: "solid", onboardingCompleted: false, categoryChips: true },
-      agent: { suggestFollowUp: false, maxSuggestions: 3, workOutput: DEFAULT_WORK_OUTPUT },
+      agent: { suggestFollowUp: false, maxSuggestions: 3, permissionMode: "yolo", workOutput: DEFAULT_WORK_OUTPUT },
       workflow: { active: "kandown-standard", skills: [], trackingCadence: "balanced" },
       board: {
         columns: DEFAULT_COLUMNS,
@@ -528,6 +529,9 @@ function normalizeKandownConfig(raw) {
         DEFAULT_CONFIG.agent.suggestFollowUp
       ),
       maxSuggestions: numberOr(agent.maxSuggestions, DEFAULT_CONFIG.agent.maxSuggestions),
+      // 📖 Permission mode for harness sessions (t307): unknown values fall
+      // back to yolo so a hand-edited kandown.json can never block launches.
+      permissionMode: isOneOf(agent.permissionMode, PERMISSION_MODES) ? agent.permissionMode : DEFAULT_CONFIG.agent.permissionMode,
       workOutput: {
         detailMode,
         boardDigest: {
@@ -624,8 +628,8 @@ function normalizeKandownConfig(raw) {
 }
 function resolveColumnRole(config, columnName) {
   const rawMeta = safeObject(config.board.columnMeta);
-  const meta = safeObject(lookupCaseInsensitive(rawMeta, columnName));
-  return isOneOf(meta.role, COLUMN_ROLES) ? meta.role : "custom";
+  const meta2 = safeObject(lookupCaseInsensitive(rawMeta, columnName));
+  return isOneOf(meta2.role, COLUMN_ROLES) ? meta2.role : "custom";
 }
 function resolveColumnNamesByRole(config, role) {
   return config.board.columns.filter(
@@ -4290,7 +4294,7 @@ function compileKandownWork(input) {
     return `[missing column role: ${role}]`;
   });
   const columnLines = input.columns.map(
-    ({ name, meta }) => `- **${name}** (${meta.role})${meta.instructions ? `: ${meta.instructions}` : ""}`
+    ({ name, meta: meta2 }) => `- **${name}** (${meta2.role})${meta2.instructions ? `: ${meta2.instructions}` : ""}`
   );
   const commandLines = input.availableCommands.map((command) => `- \`${command}\``);
   const layers = [
@@ -6649,7 +6653,864 @@ init_config2();
 import { createServer } from "http";
 import { existsSync as existsSync23, readFileSync as readFileSync20, copyFileSync as copyFileSync3, unlinkSync as unlinkSync7, mkdirSync as mkdirSync12 } from "fs";
 import { basename as basename7, join as join25 } from "path";
+import { spawn as spawn7 } from "child_process";
+
+// src/cli/lib/agent/detect.ts
+import { execFileSync as execFileSync3 } from "child_process";
+var HARNESS_DEFS = [
+  {
+    id: "claude",
+    name: "Claude Code",
+    bin: "claude",
+    protocol: "claude-stream-json",
+    protocolArgs: [],
+    permissionModes: { yolo: "native", "accept-edits": "native" },
+    installHint: "npm install -g @anthropic-ai/claude-code"
+  },
+  {
+    id: "codex",
+    name: "OpenAI Codex",
+    bin: "codex",
+    protocol: "codex-exec-json",
+    protocolArgs: [],
+    // 📖 codex exec has no interactive approver: yolo maps onto its bypass
+    // flags natively, accept-edits can only be approximated by the
+    // workspace-write sandbox, so the UI treats it as advisory.
+    permissionModes: { yolo: "native", "accept-edits": "advisory" },
+    installHint: "npm install -g @openai/codex"
+  },
+  {
+    id: "pi",
+    name: "Pi",
+    bin: "pi",
+    protocol: "pi-rpc",
+    protocolArgs: ["--mode", "rpc"],
+    // 📖 pi is deliberately permission-free (its extensions own confirmations):
+    // both modes are advisory, the diff is shown after the fact.
+    permissionModes: { yolo: "advisory", "accept-edits": "advisory" },
+    installHint: "https://github.com/badlogic/pi-mono"
+  },
+  {
+    id: "opencode",
+    name: "OpenCode",
+    bin: "opencode",
+    protocol: "acp",
+    protocolArgs: ["acp"],
+    // 📖 ACP agents decide per session: session/new reports the available
+    // modes and the runtime upgrades support to native when a mode matches.
+    permissionModes: { yolo: "advisory", "accept-edits": "advisory" },
+    installHint: "https://opencode.ai"
+  },
+  {
+    id: "gemini",
+    name: "Gemini CLI",
+    bin: "gemini",
+    protocol: "acp",
+    protocolArgs: ["--experimental-acp"],
+    permissionModes: { yolo: "advisory", "accept-edits": "advisory" },
+    installHint: "npm install -g @google/gemini-cli"
+  }
+];
+function probeVersion(bin) {
+  try {
+    const out = execFileSync3(bin, ["--version"], {
+      encoding: "utf8",
+      timeout: 3e3,
+      stdio: ["ignore", "pipe", "ignore"]
+    });
+    const first = out.split("\n").map((line) => line.trim()).find(Boolean);
+    return first ? first.slice(0, 80) : null;
+  } catch {
+    return null;
+  }
+}
+function detectHarnessesJSON() {
+  return {
+    harnesses: HARNESS_DEFS.map((def) => {
+      const binPath = resolveBinPath(def.bin);
+      return {
+        id: def.id,
+        name: def.name,
+        bin: def.bin,
+        protocol: def.protocol,
+        binPath,
+        version: binPath ? probeVersion(def.bin) : null,
+        installed: binPath !== null,
+        permissionModes: { ...def.permissionModes },
+        installHint: def.installHint
+      };
+    })
+  };
+}
+function getHarnessDef(id) {
+  return HARNESS_DEFS.find((def) => def.id === id);
+}
+function resolveHarness(id) {
+  const def = getHarnessDef(id);
+  if (!def) return null;
+  const binPath = resolveBinPath(def.bin);
+  return binPath ? { def, binPath } : null;
+}
+
+// src/cli/lib/agent/agent-runtime.ts
 import { spawn as spawn6 } from "child_process";
+import { EventEmitter } from "events";
+import { randomUUID } from "crypto";
+
+// src/cli/lib/agent/types.ts
+var EDIT_TOOL_NAMES = /* @__PURE__ */ new Set(["write", "edit", "multiedit", "notebookedit", "apply_patch", "apply-patch", "str_replace", "create", "patch"]);
+
+// src/cli/lib/agent/adapters/claude-code.ts
+function buildArgs(config, binPath) {
+  const args = [
+    binPath,
+    "-p",
+    config.prompt,
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--permission-mode",
+    config.permissionMode === "yolo" ? "bypassPermissions" : "acceptEdits"
+  ];
+  if (config.resumeSessionId) args.push("--resume", config.resumeSessionId);
+  return args;
+}
+function editPath(input) {
+  if (input === null || typeof input !== "object") return null;
+  const record = input;
+  for (const key of ["file_path", "filePath", "path", "notebook_path"]) {
+    if (typeof record[key] === "string" && record[key]) return record[key];
+  }
+  return null;
+}
+function parseLine(line, state) {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith("{")) return { events: [] };
+  let parsed;
+  try {
+    parsed = JSON.parse(trimmed);
+  } catch {
+    return { events: [] };
+  }
+  if (parsed === null || typeof parsed !== "object") return { events: [] };
+  const event = parsed;
+  const events = [];
+  if (event.type === "system" && event.subtype === "init" && !state.sessionStartedEmitted) {
+    state.sessionStartedEmitted = true;
+    state.harnessSessionId = typeof event.session_id === "string" ? event.session_id : void 0;
+    state.model = typeof event.model === "string" ? event.model : void 0;
+    events.push({
+      type: "session_started",
+      harnessSessionId: state.harnessSessionId ?? "",
+      ...state.model ? { model: state.model } : {},
+      permissionMode: state.permissionMode,
+      permissionSupport: state.permissionSupport
+    });
+    return { events };
+  }
+  if (event.type === "assistant" && event.message && typeof event.message === "object") {
+    const message = event.message;
+    if (Array.isArray(message.content)) {
+      for (const block of message.content) {
+        if (block === null || typeof block !== "object") continue;
+        const content = block;
+        if (content.type === "text" && typeof content.text === "string" && content.text) {
+          events.push({ type: "message_delta", text: content.text, partial: false, channel: "text" });
+        } else if (content.type === "tool_use") {
+          const toolName = typeof content.name === "string" ? content.name : "tool";
+          const path = editPath(content.input);
+          events.push({
+            type: "tool_started",
+            toolCallId: typeof content.id === "string" ? content.id : void 0,
+            toolName,
+            ...path ? { summary: path } : {}
+          });
+          if (path && EDIT_TOOL_NAMES.has(toolName.toLowerCase())) {
+            events.push({ type: "file_changed", path });
+          }
+        }
+      }
+    }
+    return { events };
+  }
+  if (event.type === "user" && event.message && typeof event.message === "object") {
+    const message = event.message;
+    if (Array.isArray(message.content)) {
+      for (const block of message.content) {
+        if (block === null || typeof block !== "object") continue;
+        const content = block;
+        if (content.type === "tool_result") {
+          events.push({
+            type: "tool_finished",
+            toolCallId: typeof content.tool_use_id === "string" ? content.tool_use_id : void 0,
+            ok: content.is_error !== true
+          });
+        }
+      }
+    }
+    return { events };
+  }
+  if (event.type === "result") {
+    if (event.usage && typeof event.usage === "object") {
+      const usage = event.usage;
+      events.push({
+        type: "usage",
+        inputTokens: typeof usage.input_tokens === "number" ? usage.input_tokens : void 0,
+        outputTokens: typeof usage.output_tokens === "number" ? usage.output_tokens : void 0,
+        cachedInputTokens: typeof usage.cache_read_input_tokens === "number" ? usage.cache_read_input_tokens : void 0,
+        costUsd: typeof event.total_cost_usd === "number" ? event.total_cost_usd : void 0
+      });
+    }
+    events.push({
+      type: "turn_completed",
+      stopReason: typeof event.subtype === "string" ? event.subtype : void 0
+    });
+    return { events };
+  }
+  return { events };
+}
+var claudeCodeAdapter = {
+  protocol: "claude-stream-json",
+  buildArgs,
+  parseLine: (line, state) => parseLine(line, state)
+};
+
+// src/cli/lib/agent/adapters/codex.ts
+function buildArgs2(config, binPath) {
+  const modeFlags = config.permissionMode === "yolo" ? ["--dangerously-bypass-approvals-and-sandbox"] : ["--sandbox", "workspace-write"];
+  const jsonAndCheck = ["--json", "--skip-git-repo-check"];
+  if (config.resumeSessionId) {
+    return [binPath, "exec", "resume", config.resumeSessionId, ...jsonAndCheck, ...modeFlags, config.prompt];
+  }
+  return [binPath, "exec", ...jsonAndCheck, ...modeFlags, config.prompt];
+}
+function itemFields(item) {
+  const empty = { type: "", paths: [] };
+  if (item === null || typeof item !== "object") return empty;
+  const record = item;
+  const type = typeof record.type === "string" ? record.type : "";
+  const paths = [];
+  if (Array.isArray(record.changes)) {
+    for (const change of record.changes) {
+      if (change && typeof change === "object" && typeof change.path === "string") {
+        paths.push(change.path);
+      }
+    }
+  }
+  return {
+    type,
+    id: typeof record.id === "string" ? record.id : void 0,
+    text: typeof record.text === "string" ? record.text : void 0,
+    command: typeof record.command === "string" ? record.command : void 0,
+    exitCode: typeof record.exit_code === "number" ? record.exit_code : void 0,
+    paths
+  };
+}
+function parseLine2(line, state) {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith("{")) return { events: [] };
+  let parsed;
+  try {
+    parsed = JSON.parse(trimmed);
+  } catch {
+    return { events: [] };
+  }
+  if (parsed === null || typeof parsed !== "object") return { events: [] };
+  const event = parsed;
+  const events = [];
+  if (event.type === "thread.started" && !state.sessionStartedEmitted) {
+    state.sessionStartedEmitted = true;
+    state.harnessSessionId = typeof event.thread_id === "string" ? event.thread_id : void 0;
+    events.push({
+      type: "session_started",
+      harnessSessionId: state.harnessSessionId ?? "",
+      permissionMode: state.permissionMode,
+      permissionSupport: state.permissionSupport
+    });
+    return { events };
+  }
+  if ((event.type === "item.started" || event.type === "item.completed") && event.item !== void 0) {
+    const item = itemFields(event.item);
+    if (event.type === "item.started" && item.type === "command_execution") {
+      events.push({
+        type: "tool_started",
+        toolCallId: item.id,
+        toolName: "command",
+        ...item.command ? { summary: item.command } : {}
+      });
+      return { events };
+    }
+    if (event.type === "item.completed") {
+      if (item.type === "agent_message" && item.text) {
+        events.push({ type: "message_delta", text: item.text, partial: false, channel: "text" });
+      } else if (item.type === "command_execution") {
+        events.push({
+          type: "tool_finished",
+          toolCallId: item.id,
+          toolName: "command",
+          ok: item.exitCode === void 0 ? true : item.exitCode === 0,
+          ...item.command ? { summary: item.command } : {}
+        });
+      } else if (item.type === "file_change") {
+        for (const path of item.paths) events.push({ type: "file_changed", path });
+      } else if (item.type === "error") {
+        events.push({ type: "error", message: item.text ?? "codex item failed", fatal: false });
+      }
+      return { events };
+    }
+    return { events };
+  }
+  if (event.type === "turn.completed") {
+    if (event.usage && typeof event.usage === "object") {
+      const usage = event.usage;
+      events.push({
+        type: "usage",
+        inputTokens: typeof usage.input_tokens === "number" ? usage.input_tokens : void 0,
+        outputTokens: typeof usage.output_tokens === "number" ? usage.output_tokens : void 0,
+        cachedInputTokens: typeof usage.cached_input_tokens === "number" ? usage.cached_input_tokens : void 0
+      });
+    }
+    events.push({ type: "turn_completed" });
+    return { events };
+  }
+  if (event.type === "turn.failed") {
+    const error = event.error;
+    const message = error && typeof error.message === "string" ? error.message : "codex turn failed";
+    events.push({ type: "error", message, fatal: true });
+    return { events };
+  }
+  if (event.type === "error" && typeof event.message === "string") {
+    events.push({ type: "error", message: event.message, fatal: false });
+    return { events };
+  }
+  return { events };
+}
+var codexAdapter = {
+  protocol: "codex-exec-json",
+  buildArgs: buildArgs2,
+  parseLine: (line, state) => parseLine2(line, state)
+};
+
+// src/cli/lib/agent/adapters/pi.ts
+function buildArgs3(config, binPath) {
+  return [binPath, "--mode", "rpc"];
+}
+function initialStdin(config) {
+  const lines = [];
+  if (config.resumeSessionId) {
+    lines.push(JSON.stringify({ type: "switch_session", sessionPath: config.resumeSessionId }));
+  }
+  lines.push(JSON.stringify({ id: "kandown-state", type: "get_state" }));
+  lines.push(JSON.stringify({ id: "kandown-prompt-1", type: "prompt", message: config.prompt }));
+  return lines;
+}
+function onStop() {
+  return [JSON.stringify({ type: "abort" })];
+}
+function argsPath(args) {
+  if (args === null || typeof args !== "object") return null;
+  const record = args;
+  for (const key of ["path", "file_path", "filePath", "file", "target"]) {
+    if (typeof record[key] === "string" && record[key]) return record[key];
+  }
+  return null;
+}
+function parseMessageUpdate(event, events) {
+  if (event.usage && typeof event.usage === "object") {
+    const usage = event.usage;
+    const cost = usage.cost && typeof usage.cost === "object" ? usage.cost : void 0;
+    events.push({
+      type: "usage",
+      inputTokens: typeof usage.input === "number" ? usage.input : void 0,
+      outputTokens: typeof usage.output === "number" ? usage.output : void 0,
+      cachedInputTokens: typeof usage.cacheRead === "number" ? usage.cacheRead : void 0,
+      costUsd: cost && typeof cost.total === "number" ? cost.total : void 0
+    });
+  }
+  const delta = event.assistantMessageEvent && typeof event.assistantMessageEvent === "object" ? event.assistantMessageEvent : void 0;
+  if (!delta) return;
+  switch (delta.type) {
+    case "text_delta":
+      if (typeof delta.delta === "string") {
+        events.push({ type: "message_delta", text: delta.delta, partial: true, channel: "text" });
+      }
+      break;
+    case "thinking_delta":
+      if (typeof delta.delta === "string") {
+        events.push({ type: "message_delta", text: delta.delta, partial: true, channel: "thinking" });
+      }
+      break;
+    case "toolcall_start":
+      events.push({
+        type: "tool_started",
+        toolCallId: typeof delta.id === "string" ? delta.id : void 0,
+        toolName: typeof delta.toolName === "string" ? delta.toolName : "tool"
+      });
+      break;
+    default:
+      break;
+  }
+}
+function parseLine3(line, state) {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith("{")) return { events: [] };
+  let parsed;
+  try {
+    parsed = JSON.parse(trimmed);
+  } catch {
+    return { events: [] };
+  }
+  if (parsed === null || typeof parsed !== "object") return { events: [] };
+  const event = parsed;
+  const events = [];
+  if (event.type === "response") {
+    if (event.command === "get_state" && event.success === true && !state.sessionStartedEmitted) {
+      const data = event.data && typeof event.data === "object" ? event.data : {};
+      state.sessionStartedEmitted = true;
+      state.harnessSessionId = typeof data.sessionId === "string" ? data.sessionId : void 0;
+      const model = data.model && typeof data.model === "object" ? data.model : void 0;
+      state.model = model && typeof model.id === "string" ? model.id : void 0;
+      events.push({
+        type: "session_started",
+        harnessSessionId: state.harnessSessionId ?? "",
+        ...state.model ? { model: state.model } : {},
+        permissionMode: state.permissionMode,
+        permissionSupport: state.permissionSupport
+      });
+      return { events };
+    }
+    if (event.success === false) {
+      const message = typeof event.error === "string" ? event.error : `pi command failed: ${String(event.command ?? "unknown")}`;
+      events.push({ type: "error", message, fatal: event.command === "prompt" });
+      return { events };
+    }
+    return { events };
+  }
+  if (event.type === "agent_start") {
+    state.busy = true;
+    return { events };
+  }
+  if (event.type === "agent_settled") {
+    state.busy = false;
+    return { events };
+  }
+  if (event.type === "message_update") {
+    parseMessageUpdate(event, events);
+    return { events };
+  }
+  if (event.type === "tool_execution_start") {
+    const toolName = typeof event.toolName === "string" ? event.toolName : "tool";
+    events.push({
+      type: "tool_started",
+      toolCallId: typeof event.toolCallId === "string" ? event.toolCallId : void 0,
+      toolName
+    });
+    const path = argsPath(event.args);
+    if (path && EDIT_TOOL_NAMES.has(toolName.toLowerCase())) {
+      events.push({ type: "file_changed", path });
+    }
+    return { events };
+  }
+  if (event.type === "tool_execution_end") {
+    const toolName = typeof event.toolName === "string" ? event.toolName : void 0;
+    events.push({
+      type: "tool_finished",
+      toolCallId: typeof event.toolCallId === "string" ? event.toolCallId : void 0,
+      ...toolName ? { toolName } : {},
+      ok: event.isError !== true
+    });
+    const path = argsPath(event.args);
+    if (path && toolName && EDIT_TOOL_NAMES.has(toolName.toLowerCase())) {
+      events.push({ type: "file_changed", path });
+    }
+    return { events };
+  }
+  if (event.type === "turn_end") {
+    events.push({ type: "turn_completed" });
+    return { events };
+  }
+  if (event.type === "extension_error") {
+    const message = typeof event.error === "string" ? event.error : "pi extension error";
+    events.push({ type: "error", message, fatal: false });
+    return { events };
+  }
+  return { events };
+}
+var piAdapter = {
+  protocol: "pi-rpc",
+  buildArgs: buildArgs3,
+  initialStdin,
+  parseLine: (line, state) => parseLine3(line, state),
+  onStop
+};
+
+// src/cli/lib/agent/adapters/acp.ts
+var JSONRPC_VERSION = "2.0";
+function buildArgs4(config, binPath) {
+  return config.resumeSessionId ? [binPath, ...config.protocolArgs ?? [], "--resume", config.resumeSessionId] : [binPath, ...config.protocolArgs ?? []];
+}
+function initialStdin2() {
+  return [JSON.stringify({
+    jsonrpc: JSONRPC_VERSION,
+    id: 1,
+    method: "initialize",
+    params: { protocolVersion: 1, clientCapabilities: {} }
+  })];
+}
+function matchModeId(modeId, mode) {
+  const normalized = modeId.toLowerCase().replace(/[\s_-]/g, "");
+  if (mode === "yolo") return /yolo|bypass|danger|fullaccess/.test(normalized);
+  return /accept|edit|autowrite|write/.test(normalized);
+}
+function promptRequest(sessionId, id, prompt) {
+  return JSON.stringify({
+    jsonrpc: JSONRPC_VERSION,
+    id,
+    method: "session/prompt",
+    params: { sessionId, prompt: [{ type: "text", text: prompt }] }
+  });
+}
+function parseSessionUpdate(update, events) {
+  const kind = typeof update.sessionUpdate === "string" ? update.sessionUpdate : "";
+  if (kind === "agent_message_chunk") {
+    const content = update.content && typeof update.content === "object" ? update.content : void 0;
+    if (content && typeof content.text === "string" && content.text) {
+      events.push({ type: "message_delta", text: content.text, partial: true, channel: "text" });
+    }
+  } else if (kind === "agent_thought_chunk") {
+    const content = update.content && typeof update.content === "object" ? update.content : void 0;
+    if (content && typeof content.text === "string" && content.text) {
+      events.push({ type: "message_delta", text: content.text, partial: true, channel: "thinking" });
+    }
+  } else if (kind === "tool_call") {
+    events.push({
+      type: "tool_started",
+      toolCallId: typeof update.toolCallId === "string" ? update.toolCallId : void 0,
+      toolName: typeof update.title === "string" ? update.title : "tool"
+    });
+  } else if (kind === "tool_call_update") {
+    const status = typeof update.status === "string" ? update.status : void 0;
+    if (status === "completed" || status === "failed") {
+      events.push({
+        type: "tool_finished",
+        toolCallId: typeof update.toolCallId === "string" ? update.toolCallId : void 0,
+        ok: status === "completed"
+      });
+    }
+  }
+}
+function parseLine4(line, state, config) {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith("{")) return { events: [] };
+  let parsed;
+  try {
+    parsed = JSON.parse(trimmed);
+  } catch {
+    return { events: [] };
+  }
+  if (parsed === null || typeof parsed !== "object") return { events: [] };
+  const message = parsed;
+  const events = [];
+  const outbound = [];
+  if (message.id === 1 && message.method === void 0 && message.result !== void 0) {
+    outbound.push(JSON.stringify({
+      jsonrpc: JSONRPC_VERSION,
+      id: 2,
+      method: "session/new",
+      params: { cwd: config.projectRoot, mcpServers: [] }
+    }));
+    return { events, outbound };
+  }
+  if (message.id === 2 && message.method === void 0 && message.result !== void 0) {
+    const result = message.result && typeof message.result === "object" ? message.result : {};
+    state.acpSessionId = typeof result.sessionId === "string" ? result.sessionId : void 0;
+    state.harnessSessionId = state.acpSessionId;
+    state.acpNextRequestId = 3;
+    const modes = result.modes && typeof result.modes === "object" ? result.modes : void 0;
+    const available = Array.isArray(modes?.availableModes) ? modes.availableModes : [];
+    let matchedModeId = null;
+    for (const mode of available) {
+      const modeId = mode && typeof mode === "object" && typeof mode.id === "string" ? mode.id : "";
+      if (modeId && matchModeId(modeId, state.permissionMode)) {
+        matchedModeId = modeId;
+        break;
+      }
+    }
+    if (matchedModeId && state.acpSessionId) {
+      state.permissionSupport = "native";
+      outbound.push(JSON.stringify({
+        jsonrpc: JSONRPC_VERSION,
+        method: "session/set_mode",
+        params: { sessionId: state.acpSessionId, modeId: matchedModeId }
+      }));
+    }
+    if (state.acpSessionId) {
+      state.acpPendingPromptId = state.acpNextRequestId;
+      state.acpNextRequestId += 1;
+      outbound.push(promptRequest(state.acpSessionId, state.acpPendingPromptId, config.prompt));
+    }
+    state.sessionStartedEmitted = true;
+    events.push({
+      type: "session_started",
+      harnessSessionId: state.harnessSessionId ?? "",
+      permissionMode: state.permissionMode,
+      permissionSupport: state.permissionSupport
+    });
+    return { events, outbound };
+  }
+  if (message.method === void 0 && message.id !== void 0 && message.id === state.acpPendingPromptId) {
+    state.acpPendingPromptId = void 0;
+    if (message.error !== void 0 && message.error !== null) {
+      events.push({ type: "error", message: `ACP prompt failed: ${JSON.stringify(message.error)}`, fatal: true });
+      return { events };
+    }
+    const result = message.result && typeof message.result === "object" ? message.result : {};
+    events.push({ type: "turn_completed", stopReason: typeof result.stopReason === "string" ? result.stopReason : void 0 });
+    return { events };
+  }
+  if (message.method !== void 0 && message.id !== void 0) {
+    if (message.method === "session/request_permission") {
+      const params = message.params && typeof message.params === "object" ? message.params : {};
+      const options = Array.isArray(params.options) ? params.options : [];
+      let optionId;
+      for (const option of options) {
+        const record = option && typeof option === "object" ? option : {};
+        if (record.kind === "allow_once" && typeof record.optionId === "string") {
+          optionId = record.optionId;
+          break;
+        }
+      }
+      outbound.push(JSON.stringify({
+        jsonrpc: JSONRPC_VERSION,
+        id: message.id,
+        result: {
+          outcome: optionId ? { outcome: "selected", optionId } : { outcome: "cancelled" }
+        }
+      }));
+      return { events, outbound };
+    }
+    outbound.push(JSON.stringify({
+      jsonrpc: JSONRPC_VERSION,
+      id: message.id,
+      error: { code: -32601, message: `kandown does not implement ${String(message.method)}` }
+    }));
+    return { events, outbound };
+  }
+  if (message.method === "session/update" && message.params && typeof message.params === "object") {
+    const params = message.params;
+    const update = params.update && typeof params.update === "object" ? params.update : void 0;
+    if (update) parseSessionUpdate(update, events);
+    return { events };
+  }
+  return { events };
+}
+var acpAdapter = {
+  protocol: "acp",
+  buildArgs: buildArgs4,
+  initialStdin: () => initialStdin2(),
+  parseLine: parseLine4
+};
+
+// src/cli/lib/agent/agent-runtime.ts
+var MAX_SESSIONS = 50;
+var EVENT_BUFFER_LIMIT = 500;
+var ADAPTERS = {
+  "claude-stream-json": claudeCodeAdapter,
+  "codex-exec-json": codexAdapter,
+  "pi-rpc": piAdapter,
+  "acp": acpAdapter
+};
+var sessions = /* @__PURE__ */ new Map();
+function createLineSplitter(onLine) {
+  let buffer = "";
+  return {
+    push(chunk) {
+      buffer += chunk;
+      let index = buffer.indexOf("\n");
+      while (index !== -1) {
+        const line = buffer.slice(0, index).replace(/\r$/, "");
+        buffer = buffer.slice(index + 1);
+        onLine(line);
+        index = buffer.indexOf("\n");
+      }
+    },
+    flush() {
+      if (buffer.trim()) onLine(buffer.replace(/\r$/, ""));
+      buffer = "";
+    }
+  };
+}
+function meta(record) {
+  return { sessionId: record.info.id, harnessId: record.info.harnessId, timestamp: (/* @__PURE__ */ new Date()).toISOString() };
+}
+function recordEvent(record, event) {
+  record.buffer.push(event);
+  if (record.buffer.length > EVENT_BUFFER_LIMIT) record.buffer.shift();
+  record.emitter.emit("event", event);
+}
+function handleLine(record, line) {
+  if (!line.trim()) return;
+  let result;
+  try {
+    result = record.adapter.parseLine(line, record.state, record.config);
+  } catch (error) {
+    recordEvent(record, {
+      type: "error",
+      message: `adapter parse failure: ${error instanceof Error ? error.message : String(error)}`,
+      fatal: false,
+      ...meta(record)
+    });
+    return;
+  }
+  for (const event of result.events ?? []) {
+    if (event.type === "session_started") {
+      record.info.harnessSessionId = event.harnessSessionId || record.state.harnessSessionId;
+    }
+    if (event.type === "turn_completed") record.turnSeen = true;
+    recordEvent(record, { ...event, ...meta(record) });
+  }
+  if (result.outbound && record.child?.stdin && !record.child.stdin.destroyed) {
+    for (const line2 of result.outbound) record.child.stdin.write(`${line2}
+`);
+  }
+}
+function attachChild(record, child) {
+  record.child = child;
+  const splitter = createLineSplitter((line) => handleLine(record, line));
+  child.stdout?.setEncoding("utf8");
+  child.stdout?.on("data", (chunk) => splitter.push(chunk));
+  child.stderr?.setEncoding("utf8");
+  child.stderr?.on("data", (chunk) => {
+    record.stderrTail = `${record.stderrTail}${chunk}`.slice(-2e3);
+  });
+  const finish = (reason, code) => {
+    splitter.flush();
+    record.child = null;
+    record.state.busy = false;
+    record.info.exitCode = code;
+    if (reason === "crash" && !record.turnSeen && record.stderrTail.trim()) {
+      recordEvent(record, {
+        type: "error",
+        message: record.stderrTail.trim().split("\n").slice(-3).join("\n"),
+        fatal: true,
+        ...meta(record)
+      });
+    }
+    record.info.status = reason === "crash" ? "failed" : reason === "user" ? "stopped" : "completed";
+    recordEvent(record, { type: "stopped", reason, exitCode: code, ...meta(record) });
+  };
+  child.on("error", (error) => {
+    recordEvent(record, {
+      type: "error",
+      message: `failed to start ${record.info.harnessId}: ${error.message}`,
+      fatal: true,
+      ...meta(record)
+    });
+    if (record.child === child) finish("crash", null);
+  });
+  child.on("close", (code) => {
+    if (record.stopRequested) finish("user", code);
+    else if (code === 0) finish("exit", code);
+    else finish("crash", code);
+  });
+}
+function startChild(record) {
+  const config = record.config;
+  const argv = record.adapter.buildArgs(config, record.resolvedBinPath);
+  const child = spawn6(argv[0], argv.slice(1), {
+    cwd: config.projectRoot,
+    env: { ...process.env },
+    stdio: ["pipe", "pipe", "pipe"]
+  });
+  attachChild(record, child);
+  const initial = record.adapter.initialStdin?.(config) ?? [];
+  if (initial.length > 0) {
+    child.once("spawn", () => {
+      for (const line of initial) child.stdin?.write(`${line}
+`);
+    });
+  }
+}
+function evictIfNeeded() {
+  if (sessions.size < MAX_SESSIONS) return;
+  const settled = [...sessions.values()].filter((record) => record.info.status !== "starting" && record.info.status !== "running").sort((a, b) => a.info.startedAt.localeCompare(b.info.startedAt));
+  if (settled.length > 0) sessions.delete(settled[0].info.id);
+  else {
+    const oldest = sessions.keys().next();
+    if (!oldest.done) sessions.delete(oldest.value);
+  }
+}
+function createAgentSession(config) {
+  const resolved = resolveHarness(config.harnessId);
+  if (!resolved) {
+    throw new Error(`Harness "${config.harnessId}" is not installed or unknown.`);
+  }
+  const adapter = ADAPTERS[resolved.def.protocol];
+  if (!adapter) {
+    throw new Error(`No adapter for protocol "${resolved.def.protocol}".`);
+  }
+  evictIfNeeded();
+  const record = {
+    info: {
+      id: `ses_${randomUUID().slice(0, 8)}`,
+      harnessId: config.harnessId,
+      status: "starting",
+      startedAt: (/* @__PURE__ */ new Date()).toISOString()
+    },
+    config: { ...config, protocolArgs: [...resolved.def.protocolArgs] },
+    adapter,
+    state: {
+      permissionMode: config.permissionMode,
+      // 📖 Detection-level support; ACP upgrades this per session when a
+      // matching mode is reported by session/new.
+      permissionSupport: resolved.def.permissionModes[config.permissionMode]
+    },
+    emitter: new EventEmitter(),
+    buffer: [],
+    child: null,
+    stopRequested: false,
+    turnSeen: false,
+    stderrTail: "",
+    resolvedBinPath: resolved.binPath
+  };
+  sessions.set(record.info.id, record);
+  startChild(record);
+  return { ...record.info };
+}
+function listAgentSessions() {
+  return [...sessions.values()].map((record) => ({ ...record.info }));
+}
+function subscribeAgentSession(id, listener) {
+  const record = sessions.get(id);
+  if (!record) return null;
+  for (const event of record.buffer) listener(event);
+  record.emitter.on("event", listener);
+  return () => record.emitter.off("event", listener);
+}
+function stopAgentSession(id) {
+  const record = sessions.get(id);
+  if (!record) return false;
+  record.stopRequested = true;
+  if (record.child) {
+    const goodbye = record.adapter.onStop?.(record.state) ?? [];
+    if (record.child.stdin && !record.child.stdin.destroyed) {
+      for (const line of goodbye) record.child.stdin.write(`${line}
+`);
+    }
+    const child = record.child;
+    setTimeout(() => {
+      if (record.child === child && child.exitCode === null && !child.killed) {
+        child.kill("SIGTERM");
+      }
+    }, 3e3);
+  } else {
+    record.info.status = "stopped";
+    recordEvent(record, { type: "stopped", reason: "user", exitCode: null, ...meta(record) });
+  }
+  return true;
+}
+
+// src/cli/lib/server.ts
 init_updater();
 init_atomic_write();
 
@@ -7465,7 +8326,7 @@ setTimeout(() => {
 }, 350);
 `;
   res.on("finish", () => {
-    const child = spawn6(process.execPath, ["-e", launcher, process.execPath, cliPath, ...args], {
+    const child = spawn7(process.execPath, ["-e", launcher, process.execPath, cliPath, ...args], {
       detached: true,
       stdio: "ignore",
       env: { ...process.env, KANDOWN_DAEMON: "1" }
@@ -7496,7 +8357,7 @@ async function handleApi(req, res, url, kandownDir) {
   if (path === "/api/update/check" && method === "GET") {
     const current = getCurrentVersion();
     const latest = await new Promise((resolve13) => {
-      const child = spawn6("npm", ["view", "kandown", "version"], {
+      const child = spawn7("npm", ["view", "kandown", "version"], {
         timeout: 4e3,
         stdio: ["pipe", "pipe", "pipe"],
         env: { ...process.env },
@@ -7528,7 +8389,7 @@ async function handleApi(req, res, url, kandownDir) {
   if (path === "/api/update/apply" && method === "POST") {
     const current = getCurrentVersion();
     const latest = await new Promise((resolve13) => {
-      const child = spawn6("npm", ["view", "kandown", "version"], {
+      const child = spawn7("npm", ["view", "kandown", "version"], {
         timeout: 4e3,
         stdio: ["pipe", "pipe", "pipe"],
         env: { ...process.env },
@@ -7632,7 +8493,7 @@ async function handleApi(req, res, url, kandownDir) {
   if (path === "/api/skills" && method === "GET") {
     const config = loadConfig(kandownDir);
     const active = new Set(config.workflow.skills);
-    const roles = new Set(Object.values(config.board.columnMeta).map((meta) => meta.role));
+    const roles = new Set(Object.values(config.board.columnMeta).map((meta2) => meta2.role));
     const skills = listWorkflowSkills(kandownDir).map((skill) => {
       const missingRole = skill.requiredRoles?.find((role) => !roles.has(role));
       const wrongWorkflow = skill.compatibleWorkflows?.length && !skill.compatibleWorkflows.includes(config.workflow.active);
@@ -7733,6 +8594,79 @@ async function handleApi(req, res, url, kandownDir) {
   }
   if (path === "/api/agents" && method === "GET") {
     return writeJson(res, 200, detectCatalogJSON(kandownDir));
+  }
+  if (path === "/api/agent/harnesses" && method === "GET") {
+    return writeJson(res, 200, detectHarnessesJSON());
+  }
+  if (path === "/api/agent/sessions" && method === "GET") {
+    return writeJson(res, 200, { sessions: listAgentSessions() });
+  }
+  if (path === "/api/agent/sessions" && method === "POST") {
+    let body;
+    try {
+      body = JSON.parse(await readRequestBody(req));
+    } catch (error) {
+      return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
+    }
+    if (typeof body.harnessId !== "string" || !body.harnessId.trim()) {
+      return writeJson(res, 400, { error: "harnessId is required" });
+    }
+    const taskId = typeof body.taskId === "string" && body.taskId.trim() ? body.taskId.trim() : void 0;
+    let compiled;
+    try {
+      compiled = compileProjectKandownWork(kandownDir, taskId);
+    } catch {
+      return writeJson(res, 404, { error: `Task not found: ${taskId}` });
+    }
+    const message = typeof body.message === "string" && body.message.trim() ? body.message.trim() : void 0;
+    const prompt = message ? `${compiled.markdown}
+
+---
+
+${message}` : compiled.markdown;
+    const config = loadConfig(kandownDir);
+    const permissionMode = body.permissionMode === "accept-edits" || body.permissionMode === "yolo" ? body.permissionMode : config.agent.permissionMode;
+    try {
+      const session = createAgentSession({
+        harnessId: body.harnessId.trim(),
+        projectRoot: getProjectRoot(kandownDir),
+        prompt,
+        permissionMode,
+        ...typeof body.resumeSessionId === "string" && body.resumeSessionId ? { resumeSessionId: body.resumeSessionId } : {}
+      });
+      return writeJson(res, 201, { session });
+    } catch (error) {
+      return writeJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+  const agentSessionMatch = path.match(/^\/api\/agent\/sessions\/([^/]+)(\/events|\/stop)?$/);
+  if (agentSessionMatch) {
+    const sessionId = decodeURIComponent(agentSessionMatch[1]);
+    const sub = agentSessionMatch[2];
+    if (!sub && method === "GET") {
+      const session = listAgentSessions().find((entry) => entry.id === sessionId);
+      return session ? writeJson(res, 200, { session }) : writeJson(res, 404, { error: "Session not found" });
+    }
+    if (sub === "/events" && method === "GET") {
+      const unsubscribe = subscribeAgentSession(sessionId, (event) => {
+        res.write(`data: ${JSON.stringify(event)}
+
+`);
+      });
+      if (!unsubscribe) return writeJson(res, 404, { error: "Session not found" });
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        ...corsHeaders(localPort(res))
+      });
+      res.write("retry: 2000\n\n");
+      req.on("close", unsubscribe);
+      return;
+    }
+    if (sub === "/stop" && method === "POST") {
+      return stopAgentSession(sessionId) ? writeJson(res, 200, { ok: true }) : writeJson(res, 404, { error: "Session not found" });
+    }
   }
   if (path === "/api/extensions" && method === "GET") {
     const host = await getExtensionHost(kandownDir);
@@ -8186,7 +9120,7 @@ init_board_reader();
 
 // src/cli/lib/launcher.ts
 init_board_reader();
-import { execSync as execSync2, spawn as spawn7 } from "child_process";
+import { execSync as execSync2, spawn as spawn8 } from "child_process";
 import { writeFileSync as writeFileSync8 } from "fs";
 import { join as join27 } from "path";
 import { tmpdir } from "os";
@@ -8255,7 +9189,7 @@ function runAgentSync(opts) {
   const prepared = prepareLaunch(opts);
   const { binary, args, contextFile, originalStatus, agentName } = prepared;
   return new Promise((resolve13, reject) => {
-    const child = spawn7(binary, args, { stdio: "inherit", env: launchEnv(contextFile, taskId, kandownDir) });
+    const child = spawn8(binary, args, { stdio: "inherit", env: launchEnv(contextFile, taskId, kandownDir) });
     child.on("error", (e) => {
       rollbackTaskStatus(kandownDir, taskId, originalStatus);
       reject(new Error(`Failed to launch ${agentName}: ${e.message}`));
@@ -8657,7 +9591,7 @@ function cmdAgents(rawArgs) {
 }
 
 // src/cli/lib/plugin-cli.ts
-import { spawn as spawn8 } from "child_process";
+import { spawn as spawn9 } from "child_process";
 import { existsSync as existsSync29, readFileSync as readFileSync23 } from "fs";
 import { basename as basename13, join as join35 } from "path";
 
@@ -9161,7 +10095,7 @@ function formatCheckReport(report) {
 // node_modules/.pnpm/chokidar@4.0.3/node_modules/chokidar/esm/index.js
 import { stat as statcb } from "fs";
 import { stat as stat3, readdir as readdir2 } from "fs/promises";
-import { EventEmitter } from "events";
+import { EventEmitter as EventEmitter2 } from "events";
 import * as sysPath2 from "path";
 
 // node_modules/.pnpm/readdirp@4.1.2/node_modules/readdirp/esm/index.js
@@ -10330,7 +11264,7 @@ var WatchHelper = class {
     return this.fsw._isntIgnored(this.entryPath(entry), entry.stats);
   }
 };
-var FSWatcher = class extends EventEmitter {
+var FSWatcher = class extends EventEmitter2 {
   // Not indenting methods for history sake; for now.
   constructor(_opts = {}) {
     super();
@@ -11278,7 +12212,7 @@ async function delegateToAgent(kandownDir, id, dir, kind, description, requested
   });
   success(`Handing "${id}" to ${agent.name}`);
   await new Promise((resolve13) => {
-    const child = spawn8(binary, args, { stdio: "inherit", env: process.env });
+    const child = spawn9(binary, args, { stdio: "inherit", env: process.env });
     child.on("error", (error) => {
       err(`Could not launch ${agent.name}: ${error.message}`);
       resolve13();
