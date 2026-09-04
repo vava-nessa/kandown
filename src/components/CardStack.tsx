@@ -221,7 +221,7 @@ export function CardStack({
   return (
     <div
       onClick={() => setExpanded(true)}
-      className="relative cursor-pointer pb-3 group"
+      className="relative cursor-pointer pr-[0.15rem] pb-[0.15rem] mb-2 group"
     >
       {/* 📖 Single ghost sheet: one card behind, offset slightly down-right
        * ("de travers"), wearing the stack's border color. One layer instead
