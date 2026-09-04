@@ -183,6 +183,10 @@ interface ListRowProps {
    * status-first sort readable at a glance. Omitted everywhere else.
    */
   statusLabel?: string;
+  /** 📖 True when the row renders inside an expanded stack: the category
+   * (chip or legacy bracket tag) is already announced by the stack's centered
+   * header, so repeating it on every row is noise. */
+  inStack?: boolean;
 }
 
 export function ListRow({
@@ -199,6 +203,7 @@ export function ListRow({
   mode = 'list',
   inline = false,
   statusLabel,
+  inStack = false,
 }: ListRowProps) {
   const { t } = useTranslation();
   const openDrawer = useStore(s => s.openDrawer);
@@ -320,7 +325,7 @@ export function ListRow({
         {/* 📖 Category chip FIRST, before the title. When chips are off or the
             task has no category, the row starts with the title (and a legacy
             bracket tag inside it). */}
-        {categoryChips && task.category ? (
+        {categoryChips && task.category && !inStack ? (
           <CategoryChip category={task.category} className="shrink-0 mt-[1px]" />
         ) : null}
 
@@ -333,7 +338,7 @@ export function ListRow({
               task.checked ? 'line-through text-fg-muted' : 'text-fg'
             }`}
           >
-            {!categoryChips && bracketTag ? (
+            {!categoryChips && bracketTag && !inStack ? (
               <span className="inline-flex items-center h-[16px] px-1.5 mr-1.5 align-baseline text-[10px] font-semibold tracking-wide text-fg-muted uppercase rounded bg-black/[0.04] dark:bg-white/10">
                 {bracketTag}
               </span>

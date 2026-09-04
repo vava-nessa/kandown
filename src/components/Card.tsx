@@ -177,9 +177,13 @@ interface CardProps {
   onDragEnd?: (e: React.DragEvent) => void;
   columnName: string;
   doneTags?: Set<string>;
+  /** 📖 True when the card renders inside an expanded stack: the category
+   * (chip or legacy bracket tag) is already announced by the stack's centered
+   * header, so repeating it on every card is noise. */
+  inStack?: boolean;
 }
 
-export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd, columnName, doneTags }: CardProps) {
+export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd, columnName, doneTags, inStack = false }: CardProps) {
   const { t } = useTranslation();
   const openDrawer = useStore(s => s.openDrawer);
   const showMetadata = useStore(s => s.showMetadata);
@@ -324,9 +328,9 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
               task.checked ? 'line-through text-fg-muted' : 'text-fg'
             }`}
           >
-            {categoryChips && task.category ? (
+            {categoryChips && task.category && !inStack ? (
               <CategoryChip category={task.category} className="mr-1.5 align-middle shrink-0" />
-            ) : bracketTag ? (
+            ) : bracketTag && !inStack ? (
               <span className="inline-flex items-center h-[16px] px-1.5 mr-1.5 align-baseline text-[10px] font-semibold tracking-wide text-fg-muted uppercase rounded bg-black/[0.04] dark:bg-white/10">
                 {bracketTag}
               </span>

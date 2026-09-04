@@ -1326,7 +1326,7 @@
     },
     {
       "path": "src/components/Card.tsx",
-      "lines": 426,
+      "lines": 430,
       "title": "Task card",
       "summary": "Displays one board task as a clean, rounded card inside a column.",
       "functions": [
@@ -1343,7 +1343,7 @@
     },
     {
       "path": "src/components/CardStack.tsx",
-      "lines": 316,
+      "lines": 319,
       "title": "Collapsible card stack component",
       "summary": "Renders a group of 2+ cards that share the same `[bracket]` or `#hashtag` title tag as a visually stacked card.",
       "functions": [
@@ -1575,7 +1575,7 @@
     },
     {
       "path": "src/components/ListRow.tsx",
-      "lines": 534,
+      "lines": 539,
       "title": "List row component",
       "summary": "Renders a single task as a compact, Linear-style list item for the list view, with priority indicators, title, status, metadata badges, inline subtask progress slider, and hover quick actions.",
       "functions": [

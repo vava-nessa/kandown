@@ -127,11 +127,12 @@ export function CardStack({
         className={`rounded-xl border-2 border-border ${list ? 'py-1.5' : 'p-1.5'} shadow-[0_1px_3px_rgba(0,0,0,0.06)]`}
         style={list && stackColor ? { borderColor: stackColor.border } : blockStyle}
       >
-        {/* Expanded header: shows group key + collapse button */}
+        {/* Expanded header: centered pill on the tinted background announcing
+         * the group once, so child cards don't repeat the category chip. */}
         <button
           type="button"
           onClick={() => setExpanded(false)}
-          className="flex items-center gap-1.5 px-2 py-1 my-1 rounded-md text-[11px] font-semibold text-fg-muted/70 uppercase tracking-wide hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors w-fit cursor-pointer"
+          className="flex items-center gap-1.5 px-2.5 py-1 my-1 mx-auto rounded-full text-[11px] font-semibold text-fg-muted/70 uppercase tracking-wide bg-card/70 border border-black/[0.06] dark:border-white/[0.08] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors w-fit cursor-pointer"
         >
           <IconChevronUp size={13} stroke={2} />
           {stackCategory ? <CategoryChip category={stackCategory} /> : <span>{group.displayKey}</span>}
@@ -148,6 +149,7 @@ export function CardStack({
               density={density}
               columnName={columnName}
               doneTags={doneTags}
+              inStack
               onDragStart={() => onCardDragStart(task.id, columnName)}
               onDragEnd={onCardDragEnd}
             />
@@ -159,6 +161,7 @@ export function CardStack({
               density={density}
               columnName={columnName}
               doneTags={doneTags}
+              inStack
               onDragStart={() => onCardDragStart(task.id, columnName)}
               onDragEnd={onCardDragEnd}
             />
