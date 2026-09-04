@@ -229,7 +229,7 @@ export function CardStack({
        * card above, which used to hide its top border. */}
       <div
         className="absolute inset-0 rounded-lg border-2 border-border bg-card pointer-events-none"
-        style={{ transform: 'translate(4px, 5px)', zIndex: 0, ...(stackColor ? { borderColor: stackColor.border } : {}) }}
+        style={{ transform: 'translate(2px, 2px)', zIndex: 0, ...(stackColor ? { borderColor: stackColor.border } : {}) }}
       />
 
       {/* Per-group select-all checkbox (board): hover-revealed, inline in the
