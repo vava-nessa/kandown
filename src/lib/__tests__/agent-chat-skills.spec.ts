@@ -1,12 +1,13 @@
 /**
  * @file Agent chat skill helper tests
  * @description Locks the pure interactive-skill contract (t310): the numbered
- * question parser the answer form is built from, and the answer formatter the
- * sidebar sends back as a plain follow-up message.
+ * question parser the answer form is built from (including the candidate
+ * answer bullets grill-me v2 asks agents to propose), and the answer formatter
+ * the sidebar sends back as a plain follow-up message.
  */
 
 import { describe, expect, it } from 'vitest';
-import { formatAnswers, parseNumberedQuestions } from '../agent-chat-skills';
+import { formatAnswers, parseNumberedQuestions, parseSkillQuestions } from '../agent-chat-skills';
 
 describe('parseNumberedQuestions', () => {
   it('extracts "N." lines trimmed', () => {
@@ -42,6 +43,71 @@ describe('parseNumberedQuestions', () => {
     expect(parsed).toHaveLength(8);
     expect(parsed[0]).toBe('Question 1?');
     expect(parsed[7]).toBe('Question 8?');
+  });
+});
+
+describe('parseSkillQuestions', () => {
+  it('returns question texts with empty options when the turn has no bullets', () => {
+    expect(parseSkillQuestions('1. What is the goal?\n2. Who reviews?')).toEqual([
+      { text: 'What is the goal?', options: [] },
+      { text: 'Who reviews?', options: [] },
+    ]);
+  });
+
+  it('collects the "- " bullets directly under each question as options', () => {
+    const text = [
+      '1. Which surfaces must the filter cover?',
+      '   - Web UI only',
+      '   - Web UI and CLI',
+      '   - Everything including the TUI',
+      '2. How should legacy tasks without a category be treated?',
+      '- Excluded until migrated',
+      '* Matched as uncategorized',
+    ].join('\n');
+    expect(parseSkillQuestions(text)).toEqual([
+      {
+        text: 'Which surfaces must the filter cover?',
+        options: ['Web UI only', 'Web UI and CLI', 'Everything including the TUI'],
+      },
+      {
+        text: 'How should legacy tasks without a category be treated?',
+        options: ['Excluded until migrated', 'Matched as uncategorized'],
+      },
+    ]);
+  });
+
+  it('tolerates blank lines inside an option block', () => {
+    const text = '1. Scope?\n\n- Narrow\n- Wide\n\n2. Owner?\n- vava';
+    expect(parseSkillQuestions(text)).toEqual([
+      { text: 'Scope?', options: ['Narrow', 'Wide'] },
+      { text: 'Owner?', options: ['vava'] },
+    ]);
+  });
+
+  it('ends the option block at prose so unrelated text never becomes options', () => {
+    const text = '1. Deadline?\n- This week\n- Next week\nI can also start immediately.\n2. Next question?';
+    const parsed = parseSkillQuestions(text);
+    expect(parsed[0].options).toEqual(['This week', 'Next week']);
+    expect(parsed[1].text).toBe('Next question?');
+  });
+
+  it('dedupes options and caps them at four per question', () => {
+    const text = [
+      '1. Pick one?',
+      '- Same option',
+      '- Same option',
+      '- A',
+      '- B',
+      '- C',
+      '- D',
+      '- E beyond the cap',
+    ].join('\n');
+    expect(parseSkillQuestions(text)[0].options).toEqual(['Same option', 'A', 'B', 'C']);
+  });
+
+  it('keeps questions without options compatible with the text-only parser', () => {
+    const text = '1. Same?\n2. Other?\n3. Same?';
+    expect(parseSkillQuestions(text).map(question => question.text)).toEqual(parseNumberedQuestions(text));
   });
 });
 

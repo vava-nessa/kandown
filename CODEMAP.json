@@ -1830,12 +1830,12 @@
     },
     {
       "path": "src/components/agent/AnswerForm.tsx",
-      "lines": 100,
-      "title": "Answer form for interactive chat skills (t310)",
-      "summary": "Compact panel rendered above the skill buttons when an interactive skill (grill-me) finishes its first turn: one small textarea per parsed question, \"Send answers\" forwards them through sendAnswers (the slice formats a plain follow-up…",
+      "lines": 142,
+      "title": "Answer form for interactive chat skills (t310, options since grill-me v2)",
+      "summary": "Compact panel rendered above the skill buttons when an interactive skill (grill-me) finishes its first turn.",
       "functions": [
         {
-          "name": "AnswerForm: per-question textareas with send / skip controls",
+          "name": "AnswerForm: per-question option chips + free text with send / skip",
           "summary": null
         }
       ],
@@ -3195,9 +3195,9 @@
     },
     {
       "path": "src/lib/__tests__/agent-chat-skills.spec.ts",
-      "lines": 68,
+      "lines": 134,
       "title": "Agent chat skill helper tests",
-      "summary": "Locks the pure interactive-skill contract (t310): the numbered question parser the answer form is built from, and the answer formatter the sidebar sends back as a plain follow-up message."
+      "summary": "Locks the pure interactive-skill contract (t310): the numbered question parser the answer form is built from (including the candidate answer bullets grill-me v2 asks agents to propose), and the answer formatter the sidebar sends back as…"
     },
     {
       "path": "src/lib/__tests__/agent-edits.spec.ts",
@@ -3416,12 +3416,16 @@
     },
     {
       "path": "src/lib/agent-chat-skills.ts",
-      "lines": 70,
+      "lines": 133,
       "title": "Agent chat skill helpers (t310)",
-      "summary": "Pure parsing/formatting for the interactive skill flow in the agent chat sidebar: when an interactive skill (grill-me) runs, the daemon's first assistant turn contains numbered questions, the sidebar extracts them to render an answer…",
+      "summary": "Pure parsing/formatting for the interactive skill flow in the agent chat sidebar: when an interactive skill (grill-me) runs, the daemon's first assistant turn contains numbered questions (optionally each followed by short…",
       "functions": [
         {
-          "name": "parseNumberedQuestions: extracts \"N. question\" lines from a turn",
+          "name": "parseSkillQuestions: extracts \"N. question\" lines plus their \"- option\"",
+          "summary": null
+        },
+        {
+          "name": "parseNumberedQuestions: question texts only, the pre-options shape",
           "summary": null
         },
         {
@@ -3429,7 +3433,7 @@
           "summary": null
         }
       ],
-      "exports": "parseNumberedQuestions, formatAnswers"
+      "exports": "parseSkillQuestions, parseNumberedQuestions, formatAnswers, ChatSkillQuestion, MAX_QUESTIONS"
     },
     {
       "path": "src/lib/category-color.ts",
@@ -4321,7 +4325,7 @@
     },
     {
       "path": "src/lib/store/types.ts",
-      "lines": 494,
+      "lines": 496,
       "title": "Zustand store — shared types",
       "summary": "State shape and supporting interfaces used across every store slice."
     },

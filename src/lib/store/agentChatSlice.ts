@@ -60,7 +60,7 @@ import {
   type AgentChatEvent,
   type ChatFoldState,
 } from '../agent-chat-events';
-import { formatAnswers, parseNumberedQuestions } from '../agent-chat-skills';
+import { formatAnswers, parseSkillQuestions } from '../agent-chat-skills';
 import { findShowDirective } from '../task-links';
 import type { State, AgentChatStartInput, AgentChatState, ChatSkillButton } from './types';
 
@@ -466,10 +466,10 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
       // when the fold no longer parses (edits, truncation, follow-up noise).
       const live = agentChat.live[sessionId];
       const questions = live
-        ? parseNumberedQuestions(lastAssistantText(live.fold))
+        ? parseSkillQuestions(lastAssistantText(live.fold))
         : [];
       const effective = questions.length > 0 ? questions : agentChat.skillQuestions;
-      const text = formatAnswers(effective, answers);
+      const text = formatAnswers(effective.map(question => question.text), answers);
       // 📖 The form goes away at once but the skill chip stays through the
       // fusion turn; answersSent locks the question phase so a later
       // turn_completed cannot reopen the form.
@@ -565,7 +565,7 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
           && !state.agentChat.answersSent
           && !state.agentChat.answersRequested
         ) {
-          const questions = parseNumberedQuestions(lastAssistantText(fold));
+          const questions = parseSkillQuestions(lastAssistantText(fold));
           if (questions.length > 0) {
             skillPatch = { skillQuestions: questions, answersRequested: true };
           }

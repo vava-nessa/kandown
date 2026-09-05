@@ -9,6 +9,7 @@ import type { Column, Filters, BoardTask, Density, ViewMode, Subtask, TaskFrontm
 import type { RecentProject, ServerAgentHook, SkillPayload } from '../filesystem';
 import type { ConflictType, AgentEditsBoardEvent, AgentAutopilotEvent } from '../watcher';
 import type { AgentChatEvent, ChatFoldState } from '../agent-chat-events';
+import type { ChatSkillQuestion } from '../agent-chat-skills';
 
 /** 📖 Toast severity. `warning` is used for partial-failure / corruption /
  * disk-full situations where the user must be informed but the app keeps
@@ -138,8 +139,9 @@ export interface AgentChatState {
   /** True when the answer form is visible (interactive skill asked questions). */
   answersRequested: boolean;
   /** Questions captured from the interactive first turn, backing the form and
-   * the sendAnswers fallback when the live fold cannot be parsed. */
-  skillQuestions: string[];
+   * the sendAnswers fallback when the live fold cannot be parsed. Each entry
+   * carries the candidate answers the agent proposed (empty when none). */
+  skillQuestions: ChatSkillQuestion[];
   /** True once the interactive question phase is over (answers sent or form
    * dismissed), so a later turn_completed never reopens the form. */
   answersSent: boolean;
