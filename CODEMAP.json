@@ -619,7 +619,7 @@
     },
     {
       "path": "src/cli/lib/agent/agent-runtime.ts",
-      "lines": 577,
+      "lines": 579,
       "title": "AgentRuntime: the harness session facade",
       "summary": "Spawns and drives harness sessions, normalizing every protocol into the shared event model.",
       "functions": [
@@ -798,7 +798,7 @@
     },
     {
       "path": "src/cli/lib/agent/types.ts",
-      "lines": 168,
+      "lines": 169,
       "title": "Agent harness contracts: the normalized event model and session types",
       "summary": "Defines the single event vocabulary every harness adapter normalizes to, the session configuration the runtime accepts, and the adapter interface each protocol backend implements.",
       "functions": [

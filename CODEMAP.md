@@ -132,14 +132,14 @@ source to edit instead.
 
 ## `src/cli/lib/agent/`
 
-- **`agent-runtime.ts`** · 577 lines — Spawns and drives harness sessions, normalizing every protocol into the shared event model.
+- **`agent-runtime.ts`** · 579 lines — Spawns and drives harness sessions, normalizing every protocol into the shared event model.
 - **`detect.ts`** · 151 lines — Extends the PATH scan from src/cli/lib/agents.ts with the harness contract of t307: kandown never embeds an LLM and never asks for an API key, it drives harnesses the user already installed and authenticated.
 - **`orchestrator.ts`** · 662 lines — Owns the "who works next" half of autopilot (t311).
 - **`permission-queue.ts`** · 121 lines — When a harness session runs in accept-edits mode and the adapter routes an edit-like permission request to kandown (t309), the daemon parks it here until the web UI answers through the resolve endpoint.
 - **`session-edits.ts`** · 379 lines — The daemon-side half of the live editing experience (t309).
 - **`session-index.ts`** · 199 lines — Kandown never stores conversations: each harness (claude, codex, pi, ACP) persists its own transcript wherever it keeps its data.
 - **`tool-excerpt.ts`** · 59 lines — Extracts a short single-line excerpt from a harness tool input so the chat activity rows show WHAT the agent is doing (the bash command, the touched file) instead of the bare tool name.
-- **`types.ts`** · 168 lines — Defines the single event vocabulary every harness adapter normalizes to, the session configuration the runtime accepts, and the adapter interface each protocol backend implements.
+- **`types.ts`** · 169 lines — Defines the single event vocabulary every harness adapter normalizes to, the session configuration the runtime accepts, and the adapter interface each protocol backend implements.
 
 ## `src/cli/lib/agent/adapters/`
 

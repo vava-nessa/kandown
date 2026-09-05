@@ -55,13 +55,19 @@ import { GitInitBanner } from './GitInitBanner';
 import { AutopilotControls } from './AutopilotControls';
 import type { ChatSkillButton } from '../../lib/store/types';
 
-/** 📖 Short, generic suggestion lists per harness family, mirroring the
+/** 📖 Short, generic suggestion lists per harness, mirroring the
  * ModelPicker datalist (free text moved into the BUI model menu's Default +
- * suggestion rows). Harnesses without a well-known shortlist (pi, ACP) get
- * the Default entry only. */
+ * suggestion rows). 📖 These are cosmetic suggestions only: "Default" stays
+ * the safe entry and any free-text model is still accepted, a shortlist never
+ * validates or restricts the pick. The ACP shortlists use the exact harness
+ * ids from detect.ts; note the opencode pick is currently inert at spawn (its
+ * acp command rejects unknown flags, see MODEL_FLAG_BY_HARNESS in the ACP
+ * adapter), the shortlist is ready for the day it accepts one. */
 const MODEL_SUGGESTIONS: Record<string, string[]> = {
   claude: ['opus', 'sonnet', 'haiku'],
   codex: ['gpt-5.1-codex', 'gpt-5.1', 'o4-mini'],
+  gemini: ['gemini-2.5-pro', 'gemini-2.5-flash'],
+  opencode: ['anthropic/claude-sonnet-4-5', 'openai/gpt-5.1'],
 };
 
 /** 📖 localStorage key prefix for the per-harness model pick (round 4).
