@@ -210,7 +210,7 @@ export function broadcastSseEvent(data: Record<string, unknown>): void {
 
 // ─── Live editing: tracker + watcher + approvals (t309) ─────────────────────
 
-interface AgentEditRuntime {
+export interface AgentEditRuntime {
   tracker: SessionEditTracker;
   watcher: FileWatcher;
 }
@@ -240,6 +240,16 @@ function getAgentEditRuntime(kandownDir: string): AgentEditRuntime {
   agentEditRuntime = { tracker, watcher };
   agentEditRuntimeDir = kandownDir;
   return agentEditRuntime;
+}
+
+/** 📖 Test-only swap for the live-edit runtime, same role as setActiveToken:
+ * the route handlers read these module variables, and building the real
+ * runtime needs a harness session plus a running file watcher, which an HTTP
+ * test must not pay for. Pass `null, null` to restore the pristine
+ * "never spawned a session" state; production code never calls this. */
+export function setAgentEditRuntimeForTests(runtime: AgentEditRuntime | null, kandownDir: string | null): void {
+  agentEditRuntime = runtime;
+  agentEditRuntimeDir = kandownDir;
 }
 
 /** 📖 Approval queue for routed permission requests; entries are parked here
@@ -927,6 +937,22 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
 
   if (path === '/api/agent/autopilot/stop' && method === 'POST') {
     return writeJson(res, 200, getAutopilotOrchestrator(kandownDir).stop());
+  }
+
+  // 📖 Live-edit presence snapshot (t322). Read-only view of the tracker's
+  // active (session, task) pairs so a freshly loaded board can restore
+  // border-beam and blobatar presence at once instead of waiting for the
+  // next agent_edit_started on the SSE stream (the stream never replays
+  // history). Deliberately does NOT call getAgentEditRuntime: building the
+  // runtime starts a file watcher, and a project that never spawned a
+  // harness session must keep answering an empty list for free. A runtime
+  // bound to a previous project (daemon re-pointed) counts as absent, same
+  // rule the lazy getter uses. Auth is enforced globally like every route.
+  if (path === '/api/agent/active-edits' && method === 'GET') {
+    const edits = agentEditRuntime && agentEditRuntimeDir === kandownDir
+      ? agentEditRuntime.tracker.pendingPairs()
+      : [];
+    return writeJson(res, 200, { edits });
   }
 
   // 📖 Live-edit approvals (t309). The UI lists a session's pending permission

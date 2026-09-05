@@ -28,8 +28,10 @@
  *
  * 📖 Model selection (round 4): `config.model` is adapter-owned. The pi,
  * claude and codex adapters translate it into their own launch flag in
- * buildArgs; the ACP adapters deliberately ignore it (their agents
- * self-select models), so an unset model is the normal case, never an error.
+ * buildArgs; the ACP adapter forwards it to the harnesses whose CLI actually
+ * accepts a model flag (see MODEL_FLAG_BY_HARNESS in the ACP adapter: gemini
+ * yes, opencode rejects unknown flags), so an unset model is the normal case,
+ * never an error.
  *
  * @functions
  *  → createAgentSession         : resolve the harness, spawn, start streaming

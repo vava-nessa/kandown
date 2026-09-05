@@ -18,6 +18,14 @@
  * window.__KANDOWN_TOKEN__. Never throws; failures surface as toasts and roll
  * the optimistic removal back.
  *
+ * 📖 Reload seed (t322): the board SSE stream never replays history, so a page
+ * reload lost every edit presence until the next `agent_edit_started`.
+ * setupAgentEdits therefore GETs `/api/agent/active-edits` once per page load
+ * (server mode only: the daemon owns the tracker, the demo backend has none)
+ * and folds the daemon's live (session, task) pairs back into the store
+ * through {@link seedAgentEditsFromPairs}, one batched set. Tolerant to
+ * failure: a missed seed only delays presence until the next SSE event.
+ *
  * 📖 Pure core: the event fold ({@link applyAgentEditsEvent}), the permission
  * queue helpers and the dependency-free line diff ({@link computeLineDiff},
  * rendered by the DiffOverlay component) are pure and unit-tested in
@@ -25,14 +33,19 @@
  *
  * @functions
  *  → createInitialAgentEditsState: empty agentEdits state
- *  → createAgentEditsSlice: SSE wiring, pending-permission fetch, resolve
+ *  → createAgentEditsSlice: SSE wiring, active-edits seed, pending-permission
+ *    fetch, resolve
  *  → applyAgentEditsEvent: fold one board event into the state (pure)
+ *  → seedAgentEditsFromPairs: fold a GET /api/agent/active-edits payload into
+ *    the state (pure)
+ *  → isActiveEditsPayload: narrow the seed response body (pure)
  *  → mergePermissions / withoutPermission / restorePermissions: queue helpers (pure)
  *  → pruneDiffs: keep the 20 most recently touched task diffs (pure)
  *  → computeLineDiff: LCS-free line diff with collapsed context (pure)
  *
  * @exports AgentEditsSlice, createAgentEditsSlice, createInitialAgentEditsState,
- * applyAgentEditsEvent, mergePermissions, withoutPermission, restorePermissions,
+ * applyAgentEditsEvent, seedAgentEditsFromPairs, isActiveEditsPayload,
+ * ActiveEditPair, mergePermissions, withoutPermission, restorePermissions,
  * pruneDiffs, computeLineDiff, DiffRow
  * @see src/lib/watcher.ts: the SSE parsing + type guards
  * @see src/lib/store/types.ts: AgentEditsState shape
@@ -41,6 +54,7 @@
 
 import type { StateCreator } from 'zustand';
 import { fileWatcher } from '../watcher';
+import { isDemoMode, isServerMode } from '../filesystem';
 import type { AgentEditsBoardEvent } from '../watcher';
 import type { State, AgentEditsState, AgentEditDiff, AgentPermissionRequest } from './types';
 
@@ -130,6 +144,55 @@ export function applyAgentEditsEvent(state: AgentEditsState, event: AgentEditsBo
       return { ...state, permissions };
     }
   }
+}
+
+/* ═════════════ Reload seed: GET /api/agent/active-edits (t322) ═════════════ */
+
+/** 📖 One row of the GET /api/agent/active-edits payload: the daemon's
+ * SessionEditPair in JSON form (src/cli/lib/agent/session-edits.ts). */
+export interface ActiveEditPair {
+  sessionId: string;
+  taskId: string;
+  harnessId: string;
+  startedAt: string;
+  lastActivityAt: string;
+}
+
+/**
+ * 📖 Narrows the GET /api/agent/active-edits body without casting. A malformed
+ * payload (older daemon, proxy interference) is ignored: the seed is a
+ * convenience, never a requirement.
+ */
+export function isActiveEditsPayload(value: unknown): value is { edits: ActiveEditPair[] } {
+  if (!isRecord(value) || !Array.isArray(value.edits)) return false;
+  return value.edits.every(item =>
+    isRecord(item)
+    && isString(item.sessionId)
+    && isString(item.taskId)
+    && isString(item.harnessId)
+    && isString(item.startedAt)
+    && isString(item.lastActivityAt)
+  );
+}
+
+/**
+ * 📖 Folds the daemon's active (session, task) pairs into the state after a
+ * page reload, mapping each pair onto the same `agent_edit_started` event the
+ * SSE stream carries (startedAt becomes `since`). Pure: reuse of
+ * {@link applyAgentEditsEvent} keeps one fold for live and seeded presence,
+ * and an empty payload returns the input state untouched.
+ */
+export function seedAgentEditsFromPairs(state: AgentEditsState, pairs: ActiveEditPair[]): AgentEditsState {
+  return pairs.reduce<AgentEditsState>(
+    (current, pair) => applyAgentEditsEvent(current, {
+      type: 'agent_edit_started',
+      sessionId: pair.sessionId,
+      taskId: pair.taskId,
+      harnessId: pair.harnessId,
+      at: pair.startedAt,
+    }),
+    state,
+  );
 }
 
 /** 📖 Appends permission requests that are not queued yet, keyed by
@@ -270,6 +333,11 @@ const fetchedPendingSessions = new Set<string>();
 /** 📖 Page-level rehydrate runs once per page load, on the first board load. */
 let rehydratedOnce = false;
 
+/** 📖 Page-level presence seed runs once per page load: GET
+ * /api/agent/active-edits restores which tasks the live sessions are editing
+ * right after a reload, without waiting for the next SSE event. */
+let activeEditsSeeded = false;
+
 /** 📖 Unsubscribers from the previous setupAgentEdits call. setupWatcher can
  * run again (project reopen) without fileWatcher.stop() in server mode, so
  * re-subscribing must first remove the previous handlers to stay idempotent. */
@@ -299,6 +367,28 @@ export const createAgentEditsSlice: StateCreator<State, [], [], AgentEditsSlice>
       for (const [sessionId, session] of Object.entries(get().agentChat.live)) {
         if (session.status === 'running') void get().fetchPendingPermissions(sessionId);
       }
+    }
+    // 📖 Page-level presence seed (t322), once per page load like the
+    // rehydrate above. Server mode only: the tracker lives in the daemon and
+    // the demo backend answers 501 for /api/agent/*. Fire and forget, never
+    // throws: a failed seed just defers presence to the next SSE event.
+    // One batched set for every pair so the board never flashes per task.
+    if (isServerMode() && !isDemoMode() && !activeEditsSeeded) {
+      activeEditsSeeded = true;
+      void (async (): Promise<void> => {
+        try {
+          const token = daemonToken();
+          const res = await fetch('/api/agent/active-edits', {
+            headers: token ? { 'X-Kandown-Token': token } : undefined,
+          });
+          if (!res.ok) return;
+          const data: unknown = await res.json();
+          if (!isActiveEditsPayload(data) || data.edits.length === 0) return;
+          set(state => ({ agentEdits: seedAgentEditsFromPairs(state.agentEdits, data.edits) }));
+        } catch {
+          // 📖 Daemon unreachable: presence will arrive with the live stream.
+        }
+      })();
     }
   },
 

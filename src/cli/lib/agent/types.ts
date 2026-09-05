@@ -117,9 +117,10 @@ export interface AgentSessionConfig {
   skillAutoApply?: boolean;
   /** 📖 Optional model the session should run on (round 4), validated by the
    * endpoint before it reaches here. Adapters map it onto their own launch
-   * flag in buildArgs (claude `--model`, codex `-m`, pi `--model`); the ACP
-   * adapters ignore it (their agents self-select models), which is why the
-   * field is optional and why nothing here assumes a value. */
+   * flag in buildArgs (claude `--model`, codex `-m`, pi `--model`; the ACP
+   * adapter keeps a per-harness allowlist because some ACP CLIs reject
+   * unknown flags), which is why the field is optional and why nothing here
+   * assumes a value. */
   model?: string;
   /** 📖 Extra argv that switch the binary into its harness-wire mode (ACP
    *  agents need a flag; one-protocol harnesses need none). Copied from the

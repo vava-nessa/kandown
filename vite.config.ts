@@ -253,6 +253,18 @@ function kandownDevPlugin() {
               }
             }
 
+            // 📖 Dev mirror of GET /api/agent/active-edits (t322). Always an
+            // empty list: the tracker only exists where the daemon wires
+            // harness sessions to the file watcher (getAgentEditRuntime in
+            // server.ts). This plugin spawns harnesses but never builds that
+            // runtime, so dev has no live-edit presence to restore and the
+            // client seed stays a no-op.
+            if (parts[1] === 'active-edits' && req.method === 'GET') {
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ edits: [] }));
+              return;
+            }
+
             if (parts[1] === 'autopilot') {
               // 📖 Dev mirror of the autopilot endpoints. The orchestrator
               // lives in the SSR module scope: one instance per dev server,

@@ -11,11 +11,14 @@ import {
   applyAgentEditsEvent,
   computeLineDiff,
   createInitialAgentEditsState,
+  isActiveEditsPayload,
   mergePermissions,
   pruneDiffs,
   restorePermissions,
+  seedAgentEditsFromPairs,
   withoutPermission,
 } from '../store/agentEditsSlice';
+import type { ActiveEditPair } from '../store/agentEditsSlice';
 import {
   isAgentEditsBoardEvent,
   isAgentEditStartedEvent,
@@ -169,6 +172,50 @@ describe('computeLineDiff', () => {
       { kind: 'same', text: 'b' },
       { kind: 'removed', text: 'c' },
     ]);
+  });
+});
+
+describe('active edits seed (t322)', () => {
+  const pair = (overrides: Partial<ActiveEditPair> = {}): ActiveEditPair => ({
+    sessionId: 'sess-1',
+    taskId: 't42',
+    harnessId: 'claude',
+    startedAt: '2026-09-05T10:00:00.000Z',
+    lastActivityAt: '2026-09-05T10:01:00.000Z',
+    ...overrides,
+  });
+
+  it('isActiveEditsPayload accepts the daemon payload and rejects malformed bodies', () => {
+    expect(isActiveEditsPayload({ edits: [pair()] })).toBe(true);
+    expect(isActiveEditsPayload({ edits: [] })).toBe(true);
+    expect(isActiveEditsPayload(null)).toBe(false);
+    expect(isActiveEditsPayload({ edits: 'nope' })).toBe(false);
+    expect(isActiveEditsPayload({ edits: [{ sessionId: 's', taskId: 't42', harnessId: 'claude', startedAt: 'at' }] })).toBe(false);
+    expect(isActiveEditsPayload({ edits: [{ ...pair(), harnessId: 7 }] })).toBe(false);
+  });
+
+  it('seedAgentEditsFromPairs folds every pair in one pass, mapping startedAt to since', () => {
+    const state = seedAgentEditsFromPairs(createInitialAgentEditsState(), [
+      pair(),
+      pair({ sessionId: 'sess-2', taskId: 't7', harnessId: 'codex', startedAt: '2026-09-05T09:00:00.000Z' }),
+    ]);
+    expect(state.edits.t42).toEqual({ sessionId: 'sess-1', harnessId: 'claude', since: '2026-09-05T10:00:00.000Z' });
+    expect(state.edits.t7).toEqual({ sessionId: 'sess-2', harnessId: 'codex', since: '2026-09-05T09:00:00.000Z' });
+  });
+
+  it('seedAgentEditsFromPairs returns the same state for an empty list', () => {
+    const state = createInitialAgentEditsState();
+    expect(seedAgentEditsFromPairs(state, [])).toBe(state);
+  });
+
+  it('a seeded pair follows the same fold rules as a live event', () => {
+    let state = applyAgentEditsEvent(createInitialAgentEditsState(), startedEvent({ sessionId: 'sess-old' }));
+    // 📖 The seed replays the takeover semantics: the newest session wins.
+    state = seedAgentEditsFromPairs(state, [pair({ sessionId: 'sess-1' })]);
+    expect(state.edits.t42?.sessionId).toBe('sess-1');
+    // 📖 And a live agent_edit_ended from the seeded session clears it.
+    state = applyAgentEditsEvent(state, { type: 'agent_edit_ended', sessionId: 'sess-1', taskId: 't42', at: '2026-09-05T10:02:00.000Z' });
+    expect(state.edits.t42).toBeUndefined();
   });
 });
 
