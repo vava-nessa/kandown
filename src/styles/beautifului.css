@@ -148,3 +148,545 @@
 .bui .primitive-card-footer {
   padding: 10px;
 }
+
+.bui .primitive-card-bar {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+}
+
+/* ─────────────────────────────────────────────────────────
+ * RecordsTable (AI spreadsheet) classes
+ * Written against the .bui variables so the grid, pills and
+ * hover states match the BeautifulUI records table look.
+ * ───────────────────────────────────────────────────────── */
+
+/* FilterTable draws its grid lines through this variable */
+.bui {
+  --grid-line: var(--line);
+}
+
+.bui .records-shell {
+  position: relative;
+  width: 100%;
+}
+
+.bui .records-shell.is-fill {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.bui .records-scroll {
+  overflow: auto;
+  max-height: 430px;
+  border-radius: var(--radius-card, 10px);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  scrollbar-width: thin;
+}
+
+.bui .records-shell.is-fill .records-scroll {
+  flex: 1;
+  max-height: none;
+}
+
+.bui .records-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+/* column fallbacks; the component overrides widths inline once measured */
+.bui .records-company-col { width: 270px; }
+.bui .records-category-col { width: 275px; }
+.bui .records-last-col { width: 190px; }
+.bui .records-strength-col { width: 210px; }
+.bui .records-link-col { width: 175px; }
+
+.bui .records-header-cell {
+  position: relative;
+  height: 35px;
+  padding: 0;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-3);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.bui .records-header-cell.is-colsel {
+  background: var(--accent-tint);
+}
+
+.bui .records-header-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  height: 35px;
+  padding: 0 12px;
+  overflow: hidden;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.bui .records-header-button:hover {
+  color: var(--ink-2);
+}
+
+.bui .records-header-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--ink-3);
+}
+
+.bui .records-sort {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  color: var(--ink-2);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.bui .records-header-button:hover .records-sort {
+  opacity: 0.6;
+}
+
+.bui .records-sort.is-visible {
+  opacity: 1;
+}
+
+.bui .records-resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 3;
+  width: 7px;
+  height: 100%;
+  cursor: col-resize;
+}
+
+.bui .records-resize-handle::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  right: 3px;
+  width: 1px;
+  background: transparent;
+  transition: background-color 120ms ease;
+}
+
+.bui .records-resize-handle:hover::after,
+.bui .records-resize-handle.is-resizing::after {
+  background: var(--accent);
+}
+
+.bui .records-row {
+  background: var(--surface);
+  transition: background-color 100ms ease;
+}
+
+.bui .records-row:hover {
+  background: var(--hover);
+}
+
+.bui .records-row.is-selected {
+  background: var(--accent-tint);
+}
+
+.bui .records-cell {
+  height: 40px;
+  padding: 0 12px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.bui .records-cell.is-colsel {
+  background: var(--accent-tint);
+}
+
+.bui .records-sticky-cell {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: inherit;
+  box-shadow: inset -1px 0 0 0 var(--line);
+}
+
+.bui .records-company-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 35px;
+  padding: 0 12px;
+  overflow: hidden;
+}
+
+.bui .records-rownum {
+  display: inline-block;
+  min-width: 18px;
+  margin-right: 2px;
+  font-size: 11px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.bui .records-company-cell .records-checkbox {
+  margin-right: 6px;
+}
+
+.bui .records-company-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  margin-right: 8px;
+  border-radius: 6px;
+  background: var(--field);
+  box-shadow: var(--shadow-hairline);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.bui .records-company-name {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.bui .records-company-name.has-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.bui .records-checkbox {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.bui .records-checkbox input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+.bui .records-checkbox-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4.5px;
+  background: var(--surface);
+  color: transparent;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.bui .records-checkbox:hover .records-checkbox-box {
+  border-color: var(--ink-3);
+}
+
+.bui .records-checkbox-box.is-active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.bui .records-checkbox-dash {
+  width: 7px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.bui .records-tags {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.bui .records-tags-measure {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+  display: flex;
+  gap: 4px;
+  visibility: hidden;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* background, text and border derive from the single --tag-base hue the
+ * component passes inline, via color-mix, so chips adapt to light and dark */
+.bui .records-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border: 1px solid color-mix(in srgb, var(--tag-base) 32%, transparent);
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--tag-base) 14%, transparent);
+  color: color-mix(in srgb, var(--tag-base) 72%, var(--ink));
+  font-size: 11.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.bui .records-more-tag {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+.bui .records-strength {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bui .records-strength-dot {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+}
+
+.bui .records-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  border-radius: 4px;
+  color: var(--ink-2);
+  text-decoration: none;
+}
+
+.bui .records-link:hover {
+  color: var(--accent-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.bui .records-link-label {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.bui .records-muted {
+  color: var(--ink-3);
+}
+
+.bui .records-calc {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bui .records-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: var(--accent);
+  animation: records-pulse 1s ease-in-out infinite;
+}
+
+@keyframes records-pulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+.bui .records-calculation-row .records-cell {
+  height: 40px;
+  border-bottom: 0;
+  border-top: 1px solid var(--line);
+  background: var(--inset);
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.bui .records-footer-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.bui .records-calculation-label {
+  color: var(--ink-3);
+}
+
+.bui .records-calculation-number {
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.bui .records-add-calculation {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: color 100ms ease, background-color 100ms ease;
+}
+
+.bui .records-add-calculation:hover {
+  background: var(--hover);
+  color: var(--ink);
+}
+
+.bui .records-average {
+  color: var(--ink-2);
+}
+
+/* ── FilterTable status pills ── */
+
+.bui .filter-status-todo {
+  border-color: color-mix(in srgb, #f09a2f 32%, transparent);
+  background: color-mix(in srgb, #f09a2f 13%, transparent);
+  color: color-mix(in srgb, #f09a2f 75%, var(--ink));
+}
+
+.bui .filter-status-progress {
+  border-color: color-mix(in srgb, #16a6c7 32%, transparent);
+  background: color-mix(in srgb, #16a6c7 13%, transparent);
+  color: color-mix(in srgb, #16a6c7 75%, var(--ink));
+}
+
+.bui .filter-status-done {
+  border-color: color-mix(in srgb, #25a878 32%, transparent);
+  background: color-mix(in srgb, #25a878 13%, transparent);
+  color: color-mix(in srgb, #25a878 75%, var(--ink));
+}
+
+/* ── InsightCards chart overlays ── */
+
+.bui .insight-chart-stage {
+  cursor: crosshair;
+}
+
+.bui .insight-chart-cursor {
+  position: absolute;
+  top: 8px;
+  bottom: 6px;
+  width: 1px;
+  background: var(--line-strong);
+  pointer-events: none;
+  transform: translateX(-0.5px);
+}
+
+.bui .insight-chart-tooltip-anchor {
+  position: absolute;
+  top: 10px;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.bui .insight-chart-tooltip {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--tooltip-bg);
+  color: var(--tooltip-fg);
+  box-shadow: var(--shadow-overlay);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.bui .insight-chart-tooltip-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.bui .insight-chart-tooltip-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+}
+
+/* ── SidebarNav collapse choreography ──
+ * The aside carries --sidebar-copy-duration, --sidebar-copy-offset and
+ * --sidebar-easing inline; data-sidebar-collapsed drives the states. */
+
+.bui .sidebar-copy {
+  white-space: nowrap;
+  transition:
+    opacity var(--sidebar-copy-duration, 180ms) var(--sidebar-easing, cubic-bezier(0.16, 1, 0.3, 1)),
+    transform var(--sidebar-copy-duration, 180ms) var(--sidebar-easing, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+.bui aside[data-sidebar-collapsed="true"] .sidebar-copy {
+  opacity: 0;
+  transform: translateX(calc(-1 * var(--sidebar-copy-offset, 8px)));
+  pointer-events: none;
+}
+
+.bui .sidebar-workspace-control {
+  transition-property: background-color, transform, opacity;
+}
+
+.bui aside[data-sidebar-collapsed="true"] .sidebar-workspace-control,
+.bui aside[data-sidebar-collapsed="true"] .sidebar-collapse-control {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bui .sidebar-expand-control {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bui aside[data-sidebar-collapsed="true"] .sidebar-expand-control {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* spinner used by the SelectionActions busy state */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

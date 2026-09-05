@@ -9,21 +9,21 @@
 import { useEffect, useState } from "react";
 
 /* ─────────────────────────────────────────────────────────
- * LOADING STATE — pixel-grid loader for long-running work
+ * LOADING STATE : pixel-grid loader for long-running work
  *
  * Variants:
- *   Drive  — square cells, chevron wavefront driving right;
+ *   Drive  : square cells, chevron wavefront driving right;
  *            the 650ms cycle is shorter than the sweep, so
  *            two fronts are always in flight
- *   Dots   — same wavefront, circular cells
- *   Orbit  — a comet lapping the grid perimeter
- *   Surfer — the Drive loader paired with a meme video below
+ *   Dots   : same wavefront, circular cells
+ *   Orbit  : a comet lapping the grid perimeter
+ *   Surfer : the Drive loader paired with a meme video below
  *
  * Paired with a shimmering label and a live elapsed timer
  * in mono tabular figures. Reduced motion freezes the grid
  * to its dim state; the timer still ticks.
  *
- * BeautifulUI (beautifului.dev, MIT) — faithful copy.
+ * BeautifulUI (beautifului.dev, MIT) : faithful copy.
  * ───────────────────────────────────────────────────────── */
 
 const chevron = Array.from({ length: 9 }, (_, i) => {

@@ -20,6 +20,8 @@ import LoadingState from './LoadingState';
 import ThinkingState from './ThinkingState';
 import StreamingText from './StreamingText';
 import ApprovalCard from './ApprovalCard';
+import ChatSection from './gallery/ChatSection';
+import CardsSection from './gallery/CardsSection';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -44,7 +46,7 @@ export default function BuiGallery() {
           Back to the board
         </a>
       </header>
-      <main className="max-w-4xl">
+      <main className="max-w-4xl space-y-12">
         <Section title="01 Loading state">
           <LoadingState label="Churning" variant="Drive" />
           <LoadingState label="Thinking" variant="Dots" />
@@ -63,6 +65,8 @@ export default function BuiGallery() {
         <Section title="04 Approval card">
           <ApprovalCard />
         </Section>
+        <ChatSection />
+        <CardsSection />
       </main>
     </div>
   );

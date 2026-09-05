@@ -9,7 +9,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 /* ─────────────────────────────────────────────────────────
- * THINKING — expandable agent trace, four variants
+ * THINKING : expandable agent trace, four variants
  *
  *   Steps      step list with spinner → muted checks
  *   Reasoning  prose reasoning that expands, then settles
@@ -18,7 +18,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
  *
  * The trace runs once, settles, and remains expandable.
  *
- * BeautifulUI (beautifului.dev, MIT) — faithful copy.
+ * BeautifulUI (beautifului.dev, MIT) : faithful copy.
  * ───────────────────────────────────────────────────────── */
 
 const STAGES = [800, 600, 1800, 2600, 1600];
@@ -60,7 +60,7 @@ const VARIANTS: Record<
     active: "Thinking",
     done: "Thought for 4 seconds",
     rows: [
-      { primary: "Summer demand spikes for stone-fruit flavors — peach and apricot lead." },
+      { primary: "Summer demand spikes for stone-fruit flavors : peach and apricot lead." },
       { primary: "I should check cone inventory before promoting a waffle-bowl special." },
     ],
   },

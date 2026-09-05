@@ -15,10 +15,10 @@ import GlideMenu from "./primitives/GlideMenu";
  * One question at a time. The stack slides vertically as you
  * move between questions (the card's height animates to fit),
  * the step counter rolls like an odometer, and the footer uses
- * pill actions — a quiet Skip and a dark Continue with a ⏎.
+ * pill actions : a quiet Skip and a dark Continue with a ⏎.
  * Single-choice answers auto-advance; multi-select waits.
  *
- * BeautifulUI (beautifului.dev, MIT) — faithful copy.
+ * BeautifulUI (beautifului.dev, MIT) : faithful copy.
  * ───────────────────────────────────────────────────────── */
 
 export type ApprovalQuestion = {

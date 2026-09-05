@@ -13,7 +13,7 @@ import { useEffect, useState, type ReactNode } from "react";
  * Words resolve out of blur, inline citations appear in
  * context, then actions and follow-up prompts become usable.
  *
- * BeautifulUI (beautifului.dev, MIT) — faithful copy.
+ * BeautifulUI (beautifului.dev, MIT) : faithful copy.
  * ───────────────────────────────────────────────────────── */
 
 const WORD_MS = 55;
@@ -22,7 +22,7 @@ const HOLD_MS = 3400;
 export type StreamingToken = { text: string; cite?: boolean };
 
 const TOKENS: StreamingToken[] = [
-  ..."Pistachio is your fastest-growing flavor — sales are up 23% this month and margins beat vanilla by 8 points."
+  ..."Pistachio is your fastest-growing flavor : sales are up 23% this month and margins beat vanilla by 8 points."
     .split(" ")
     .map((text) => ({ text })),
   { text: "", cite: true },

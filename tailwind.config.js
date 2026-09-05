@@ -141,12 +141,26 @@ export default {
       },
       spacing: {
         '4.5': '1.125rem',
+        // BeautifulUI port fractions and sizes used by the components in
+        // src/components/bui (h-5.5/h-6.5 controls, w-7.5 switches, w-30 pickers).
+        '5.5': '1.375rem',
+        '6.5': '1.625rem',
+        '7.5': '1.875rem',
+        '30': '7.5rem',
       },
       maxWidth: {
         95: '23.75rem',
+        // BeautifulUI card widths: FineTuneCard 60, InsightCards 86, FilterTable 105.
+        // TaskRows capsules 110.
+        60: '15rem',
+        86: '21.5rem',
+        105: '26.25rem',
+        110: '27.5rem',
       },
       transitionDuration: {
         400: '400ms',
+        // InsightCards blurred crossfade.
+        250: '250ms',
       },
       animation: {
         'fade-in': 'fadeIn 200ms ease-out',

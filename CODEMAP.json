@@ -231,7 +231,7 @@
     },
     {
       "path": "src/cli/commands/tasks.ts",
-      "lines": 342,
+      "lines": 346,
       "title": "CLI commands — task CRUD & board data",
       "summary": "Handlers for `kandown list/show/create/move/assign/commit` plus `export`/`import`/`projects`.",
       "exports": "cmdList, cmdShow, cmdCreate, cmdMove, cmdAssign, cmdCommit, cmdExport, cmdProjects, cmdImport"
@@ -248,6 +248,12 @@
         }
       ],
       "exports": "InlineContextMenu"
+    },
+    {
+      "path": "src/cli/hooks/__tests__/use-mouse.spec.ts",
+      "lines": 78,
+      "title": "Unit tests for the SGR mouse sequence parser",
+      "summary": "`parseMouseInput` is what makes the TUI board clickable and draggable: every click, drag and wheel tick arrives as a raw SGR escape sequence on stdin and is decoded here."
     },
     {
       "path": "src/cli/hooks/use-mouse.ts",
@@ -297,7 +303,7 @@
     },
     {
       "path": "src/cli/lib/__tests__/agent-runtime.spec.ts",
-      "lines": 264,
+      "lines": 273,
       "title": "Agent harness adapter tests",
       "summary": "Locks the pure half of the t307 harness foundation: each protocol adapter's argv mapping (permission modes, resume flags) and its stdout-line-to-event normalization, plus the runtime's follow-up routing decision surface.",
       "functions": [
@@ -315,6 +321,12 @@
       "summary": "Spawns bin/kandown.js (the published CLI bundle) in a tmpdir, seeds two tasks with a dependency edge, and asserts that: - `kandown move` succeeds when the dependency is already in the terminal column."
     },
     {
+      "path": "src/cli/lib/__tests__/cli-lifecycle.spec.ts",
+      "lines": 228,
+      "title": "End-to-end tests for the `kandown` command surface",
+      "summary": "Spawns the published bundle (`bin/kandown.js`) in a throwaway tmpdir and drives one full task lifecycle the way a user or an agent would: `init` → `create` → `list --json` → `show` → `assign` → `move` → archive."
+    },
+    {
       "path": "src/cli/lib/__tests__/daemon-auth.spec.ts",
       "lines": 142,
       "title": "Daemon auth helpers unit tests",
@@ -325,6 +337,12 @@
       "lines": 203,
       "title": "Daemon HTTP auth enforcement integration tests",
       "summary": "Spins up a real `createServeServer` instance with `setActiveToken` configured, then pins the contract: 1."
+    },
+    {
+      "path": "src/cli/lib/__tests__/daemon-lifecycle.spec.ts",
+      "lines": 211,
+      "title": "Port allocation and daemon start/stop lifecycle",
+      "summary": "Two layers of the same story, both against real sockets and a real detached process — nothing mocked, because everything that goes wrong here (a port already taken, a daemon that outlives its metadata, a stale `daemon.json` pointing at…"
     },
     {
       "path": "src/cli/lib/__tests__/daemon-self-upgrade.spec.ts",
@@ -343,6 +361,12 @@
       "lines": 48,
       "title": "Kandown Work CLI adapter tests",
       "summary": "Proves fresh projects print the exact shared compiler output on stdout and that an explicit task replaces the general board digest."
+    },
+    {
+      "path": "src/cli/lib/__tests__/move-verdict.spec.ts",
+      "lines": 136,
+      "title": "Unit tests for the move verdict surfaced by board-reader",
+      "summary": "`moveTaskToColumnDetailed` is the one place a move is decided: it resolves the task, asks the shared dependency gate, writes the file and reports *why* when it refuses."
     },
     {
       "path": "src/cli/lib/__tests__/orchestrator.spec.ts",
@@ -430,6 +454,12 @@
       "lines": 130,
       "title": "`kandown list` integration tests",
       "summary": "Pins the behaviour that broke when cmdList rebuilt its rows by hand instead of going through `buildColumnsFromTasks`."
+    },
+    {
+      "path": "src/cli/lib/__tests__/updater-semver.spec.ts",
+      "lines": 62,
+      "title": "Unit tests for the update-check version comparison",
+      "summary": "`semverGt` decides whether the npm registry is offering a newer kandown than the one running, which in turn decides whether the CLI nags the user and whether a live daemon self-upgrades."
     },
     {
       "path": "src/cli/lib/__tests__/workflows-cli.spec.ts",
@@ -825,7 +855,7 @@
     },
     {
       "path": "src/cli/lib/board-reader.ts",
-      "lines": 622,
+      "lines": 687,
       "title": "Node.js task reader and mutator",
       "summary": "Provides filesystem-based reading and writing of Kandown task files for the CLI.",
       "functions": [
@@ -863,14 +893,18 @@
         },
         {
           "name": "moveTaskToColumn",
-          "summary": "updates a task frontmatter status"
+          "summary": "updates a task frontmatter status (boolean)"
+        },
+        {
+          "name": "moveTaskToColumnDetailed",
+          "summary": "same move, returning the gate verdict"
         },
         {
           "name": "assignTaskToAgent",
           "summary": "writes a canonical agent id into `assignee:`"
         }
       ],
-      "exports": "getProjectRoot, getTasksDir, listTaskIds, listTaskFilenames, findTaskPath, newTaskFilePath, readBoard, readTask, moveTaskToColumn, assignTaskToAgent"
+      "exports": "getProjectRoot, getTasksDir, listTaskIds, listTaskFilenames, findTaskPath, newTaskFilePath, readBoard, readTask, moveTaskToColumn, moveTaskToColumnDetailed, MoveOutcome, MoveRefusal, assignTaskToAgent"
     },
     {
       "path": "src/cli/lib/browser.ts",
@@ -1134,7 +1168,7 @@
     },
     {
       "path": "src/cli/lib/mcp.ts",
-      "lines": 240,
+      "lines": 242,
       "title": "Stdio MCP server for Kandown",
       "summary": "Exposes Kandown task operations to MCP hosts (Claude Desktop, VSCode, etc.) via JSON-RPC 2.0 over stdin/stdout.",
       "functions": [
@@ -1225,6 +1259,68 @@
         }
       ],
       "exports": "PLUGIN_KINDS, PluginKind, ScaffoldResult, scaffoldPlugin"
+    },
+    {
+      "path": "src/cli/lib/runner/herdr-client.ts",
+      "lines": 328,
+      "title": "Herdr client: silent detection plus a thin typed wrapper over its CLI",
+      "summary": "Everything kandown knows about Herdr (t261) lives here: whether it is present, and how to ask it for workspaces, tabs, panes and terminal output.",
+      "functions": [
+        {
+          "name": "herdrSocketPath      : the socket the local Herdr server would listen on",
+          "summary": null
+        },
+        {
+          "name": "detectHerdr          : cached availability probe, sync, never throws",
+          "summary": null
+        },
+        {
+          "name": "resetHerdrDetection  : drop the cache (tests, and after an install)",
+          "summary": null
+        },
+        {
+          "name": "herdrCall            : run one `herdr ...` command, parse its JSON result",
+          "summary": null
+        },
+        {
+          "name": "parseHerdrPanes      : pure: `pane list` payload to typed panes",
+          "summary": null
+        },
+        {
+          "name": "parseHerdrTabs       : pure: `tab list` payload to typed tabs",
+          "summary": null
+        },
+        {
+          "name": "mapHerdrStatus       : pure: Herdr agent status to a normalized run state",
+          "summary": null
+        },
+        {
+          "name": "taskIdFromTabLabel   : pure: read the `kd:<taskId>` tab-label convention",
+          "summary": null
+        },
+        {
+          "name": "tabLabelForTask      : pure: build that label",
+          "summary": null
+        },
+        {
+          "name": "pickWorkspaceForProject : pure: which workspace a project's tab belongs in",
+          "summary": null
+        }
+      ],
+      "exports": "HERDR_TAB_LABEL_PREFIX, HerdrPane, HerdrTab, HerdrCallResult, herdrSocketPath, detectHerdr, resetHerdrDetection, herdrCall, parseHerdrPanes, parseHerdrTabs, mapHerdrStatus, taskIdFromTabLabel, tabLabelForTask, pickWorkspaceForProject"
+    },
+    {
+      "path": "src/cli/lib/runner/types.ts",
+      "lines": 106,
+      "title": "TaskRunner contract: where a task's agent actually runs",
+      "summary": "Kandown can start an agent on a task in more than one place.",
+      "functions": [
+        {
+          "name": "(types only)",
+          "summary": null
+        }
+      ],
+      "exports": "RunnerId, RunnerRunState, RunnerAvailability, RunnerRun, RunnerStartRequest, RunnerOutput, TaskRunner, TERMINAL_RUN_STATES"
     },
     {
       "path": "src/cli/lib/server.ts",
@@ -2095,8 +2191,36 @@
       "summary": "Renders one approval question at a time for agent sessions: the stack slides vertically between questions while the card height animates to fit, so the agent never continues without an explicit human answer."
     },
     {
+      "path": "src/components/bui/atoms/EntityChip.tsx",
+      "lines": 39,
+      "title": "EntityChip atom of the BeautifulUI design system",
+      "summary": "Faithful-enough port of the BeautifulUI atoms/EntityChip (beautifului.dev, MIT): a small inline chip that prefixes an entity name with a colored dot holding the initial letter, for inline @-mentions and entity references inside prose.",
+      "exports": "EntityChip"
+    },
+    {
+      "path": "src/components/bui/atoms/Shimmer.tsx",
+      "lines": 36,
+      "title": "Shimmer atom of the BeautifulUI design system",
+      "summary": "Faithful port of the BeautifulUI atoms/Shimmer (beautifului.dev, MIT): a span whose text is clipped to a moving accent gradient, driven by the `shimmer-text` keyframe from styles/beautifului.css.",
+      "exports": "Shimmer"
+    },
+    {
+      "path": "src/components/bui/atoms/StreamText.tsx",
+      "lines": 55,
+      "title": "StreamText atom of the BeautifulUI design system",
+      "summary": "Faithful-enough port of the BeautifulUI atoms/StreamText (beautifului.dev, MIT): streams a string word by word on an interval.",
+      "exports": "StreamText"
+    },
+    {
+      "path": "src/components/bui/atoms/ValuePill.tsx",
+      "lines": 36,
+      "title": "ValuePill atom of the BeautifulUI design system",
+      "summary": "Faithful-enough port of the BeautifulUI atoms/ValuePill (beautifului.dev, MIT): a compact monospace pill for numeric values and deltas, with an optional green tone for positive readings.",
+      "exports": "ValuePill"
+    },
+    {
       "path": "src/components/bui/BuiGallery.tsx",
-      "lines": 70,
+      "lines": 74,
       "title": "Hidden BeautifulUI component gallery",
       "summary": "Development surface for the BeautifulUI ports (beautifului.dev, MIT): every component and every variant rendered on one page, inside the scoped `.bui` design system.",
       "functions": [
@@ -2108,6 +2232,78 @@
       "exports": "BuiGallery"
     },
     {
+      "path": "src/components/bui/ChatComposer.tsx",
+      "lines": 242,
+      "title": "Chat composer of the BeautifulUI chat kit",
+      "summary": "Faithful port of the BeautifulUI ChatComposer component (beautifului.dev, MIT): an interactive chat panel with suggestion tabs, header actions, a submitted-prompt bubble and staged assistant replies that blur while resolving.",
+      "exports": "ChatComposer (default) : the tabbed chat panel ChatMessage : one assistant reply (label, sub, time, body) ChatComposerLabels : initial prompt and placeholder copy"
+    },
+    {
+      "path": "src/components/bui/ContextCards.tsx",
+      "lines": 129,
+      "title": "Context cards from BeautifulUI",
+      "summary": "Faithful port of the BeautifulUI ContextCards (beautifului.dev, MIT): retrieved chunks enter once with a staggered fade-up, then remain available; source chips pop in after a beat.",
+      "exports": "ContextCards ContextChunk ContextCardsLabels"
+    },
+    {
+      "path": "src/components/bui/DiffTable.tsx",
+      "lines": 253,
+      "title": "Diff table from BeautifulUI",
+      "summary": "Faithful port of the BeautifulUI DiffTable (beautifului.dev, MIT): the proposed edit plays once and rests on the completed diff; each changed row is the control, so a click includes or excludes that specific addition or removal before…",
+      "exports": "DiffTable DiffRow"
+    },
+    {
+      "path": "src/components/bui/FilterTable.tsx",
+      "lines": 153,
+      "title": "Filter table from BeautifulUI",
+      "summary": "Faithful port of the BeautifulUI FilterTable (beautifului.dev, MIT): the status chips directly filter the task table and rows collapse through an animated grid-rows transition.",
+      "exports": "FilterTable TableRow FilterTableLabels"
+    },
+    {
+      "path": "src/components/bui/FineTuneCard.tsx",
+      "lines": 345,
+      "title": "Fine-tune card from BeautifulUI",
+      "summary": "Faithful port of the BeautifulUI FineTuneCard (beautifului.dev, MIT): a compact interactive inspector whose number fields scrub (drag the label, use the arrow keys, or type), with a segment switch and a GlideMenu type select.",
+      "exports": "FineTuneCard FineTuneField FineTuneCardLabels FineTuneState FineTuneCardProps"
+    },
+    {
+      "path": "src/components/bui/gallery/CardsSection.tsx",
+      "lines": 68,
+      "title": "BeautifulUI gallery section: cards, tables and bars",
+      "summary": "Development surface for the second wave of BeautifulUI ports (beautifului.dev, MIT): every card, table, nav and action component and its variants rendered on one page, inside the scoped `.bui` design system that main.tsx wraps the…",
+      "functions": [
+        {
+          "name": "CardsSection: renders the 06 to 14 gallery sections",
+          "summary": null
+        }
+      ],
+      "exports": "CardsSection"
+    },
+    {
+      "path": "src/components/bui/gallery/ChatSection.tsx",
+      "lines": 68,
+      "title": "Chat section of the BeautifulUI gallery",
+      "summary": "Gallery block for the chat-side BeautifulUI ports (beautifului.dev, MIT): task rows, the chat composer, the prompt bar and command search and tool chips, each variant under its own numbered uppercase heading, matching the section style…",
+      "functions": [
+        {
+          "name": "Heading: small uppercase numbered section title",
+          "summary": null
+        },
+        {
+          "name": "ChatSection: the fragment of gallery subsections",
+          "summary": null
+        }
+      ],
+      "exports": "ChatSection"
+    },
+    {
+      "path": "src/components/bui/InsightCards.tsx",
+      "lines": 559,
+      "title": "Insight cards from BeautifulUI",
+      "summary": "Faithful port of the BeautifulUI InsightCards (beautifului.dev, MIT): embedded mini-visualizations in an \"Insights N < >\" carousel whose autoplay yields as soon as a person uses it.",
+      "exports": "InsightCards InsightPage InsightCardsLabels CompareSeries AnomalyData AllocationSegment"
+    },
+    {
       "path": "src/components/bui/LoadingState.tsx",
       "lines": 158,
       "title": "Pixel-grid loading states",
@@ -2115,17 +2311,59 @@
     },
     {
       "path": "src/components/bui/primitives/Button.tsx",
-      "lines": 41,
+      "lines": 49,
       "title": "Button primitive of the BeautifulUI design system",
-      "summary": "Faithful port of the BeautifulUI atoms/Button used by its components (beautifului.dev, MIT): two variants (`ghost`, `accent`) and compact sizes, written against the scoped `.bui` tokens from styles/beautifului.css.",
+      "summary": "Faithful port of the BeautifulUI atoms/Button used by its components (beautifului.dev, MIT): variants (`ghost`, `accent`, `secondary`, `success`, `primary`, `quiet`) and compact sizes, written against the scoped `.bui` tokens from…",
       "exports": "Button"
     },
     {
       "path": "src/components/bui/primitives/GlideMenu.tsx",
-      "lines": 55,
+      "lines": 61,
       "title": "GlideMenu primitive of the BeautifulUI design system",
       "summary": "Faithful port of the BeautifulUI primitives/GlideMenu (beautifului.dev, MIT): a menu container whose highlight pill glides to the hovered row instead of jumping.",
       "exports": "GlideMenu"
+    },
+    {
+      "path": "src/components/bui/PromptBar.tsx",
+      "lines": 735,
+      "title": "Prompt bar of the BeautifulUI chat kit",
+      "summary": "Faithful port of the official BeautifulUI PromptBar (beautifului.dev, MIT): a composer with real controls, an attach menu, @ data-source and / command menus, a model picker, dictation and send.",
+      "exports": "PromptBar (default) : the composer, variant \"Rounded\" | \"Pill\""
+    },
+    {
+      "path": "src/components/bui/RecommendationCard.tsx",
+      "lines": 181,
+      "title": "Recommendation card from BeautifulUI",
+      "summary": "Faithful port of the BeautifulUI RecommendationCard (beautifului.dev, MIT): the card holds its shape, pressing \"Alternatives\" opens the options drawer, picking one promotes it and the primary action confirms.",
+      "exports": "RecommendationCard RecommendationOption RecommendationLabels"
+    },
+    {
+      "path": "src/components/bui/RecordsTable.tsx",
+      "lines": 1067,
+      "title": "Records table from BeautifulUI",
+      "summary": "Faithful port of the BeautifulUI RecordsTable (beautifului.dev, MIT): an AI spreadsheet grid whose columns are properties.",
+      "exports": "RecordsTable RecordRow"
+    },
+    {
+      "path": "src/components/bui/SearchList.tsx",
+      "lines": 126,
+      "title": "Search list of the BeautifulUI chat kit",
+      "summary": "Faithful port of the BeautifulUI SearchList component (beautifului.dev, MIT): a command search with live filtering.",
+      "exports": "SearchList (default) : the search card SearchItem : one searchable row (a plain string) SearchListLabels : placeholder, aria and empty-state copy"
+    },
+    {
+      "path": "src/components/bui/SelectionActions.tsx",
+      "lines": 574,
+      "title": "Selection actions from BeautifulUI",
+      "summary": "Faithful port of the BeautifulUI SelectionActions (beautifului.dev, MIT): a contextual AI bar attached beneath selected text.",
+      "exports": "SelectionActions SelectionText SelectionAction SelectionActionSet SelectionActionsLabels SelectionActionsProps"
+    },
+    {
+      "path": "src/components/bui/SidebarNav.tsx",
+      "lines": 466,
+      "title": "Sidebar nav from BeautifulUI",
+      "summary": "Faithful port of the BeautifulUI SidebarNav (beautifului.dev, MIT): compact workspace switcher, primary navigation, searchable chat history, and a collapse that preserves icon alignment.",
+      "exports": "SidebarNav SidebarRecent"
     },
     {
       "path": "src/components/bui/StreamingText.tsx",
@@ -2134,10 +2372,24 @@
       "summary": "Animates incoming agent text: words resolve out of blur, inline citations appear in context, then actions and follow-up prompts become usable once the stream settles."
     },
     {
+      "path": "src/components/bui/TaskRows.tsx",
+      "lines": 275,
+      "title": "Task rows of the BeautifulUI chat kit",
+      "summary": "Faithful port of the BeautifulUI TaskRows component (beautifului.dev, MIT): a progress list where each row carries a spinner ring or a success/failure badge plus an expandable details grid.",
+      "exports": "TaskRows (default) : the task list, variant \"Capsules\" | \"List\" TaskDetail : one expandable detail line TaskRowDef : one row definition (status drives the badge) TaskRowsLabels : completion/failure pill copy"
+    },
+    {
       "path": "src/components/bui/ThinkingState.tsx",
       "lines": 279,
       "title": "Expandable agent thinking trace",
       "summary": "Renders an agent trace that runs once, settles, and stays expandable, in four variants (Steps, Reasoning, Search, Coding)."
+    },
+    {
+      "path": "src/components/bui/ToolChips.tsx",
+      "lines": 346,
+      "title": "Tool Chips of the BeautifulUI design system",
+      "summary": "An agent run as compact tool rows with inline chips, then file-diff chips summarizing the edits; hovering a file chip opens its diff preview in a body portal.",
+      "exports": "ToolChips"
     },
     {
       "path": "src/components/BulkActionBar.tsx",
@@ -2879,6 +3131,12 @@
       "summary": "Uses a minimal in-memory File System Access implementation to prove project-local discovery, bundled index.js activation, typed badge rendering, web module loading, failure isolation and persistent quarantine."
     },
     {
+      "path": "src/lib/__tests__/build-columns.spec.ts",
+      "lines": 106,
+      "title": "Unit tests for buildColumnsFromTasks",
+      "summary": "`buildColumnsFromTasks` is the single function that turns a flat list of parsed task files into the column layout every surface renders (web board, TUI board, demo backend)."
+    },
+    {
       "path": "src/lib/__tests__/category-color.spec.ts",
       "lines": 62,
       "title": "Unit tests for hash-based category colors and icons",
@@ -2951,6 +3209,12 @@
       "summary": "Vitest suite locking the `parseSimpleYaml` / `parseTaskFile` ↔ `serializeTaskFile` round-trip."
     },
     {
+      "path": "src/lib/__tests__/quick-add-parser.spec.ts",
+      "lines": 95,
+      "title": "Unit tests for the quick-add inline syntax",
+      "summary": "`parseQuickAddInput` is what turns one typed line (\"Fix login p1 #auth @vava due:2026-01-30 +t12\") into task frontmatter, in both the web quick-add bar and the TUI."
+    },
+    {
       "path": "src/lib/__tests__/task-content-hash.spec.ts",
       "lines": 45,
       "title": "Tests for the shared task-content hash",
@@ -2958,7 +3222,7 @@
     },
     {
       "path": "src/lib/__tests__/task-filename.spec.ts",
-      "lines": 302,
+      "lines": 320,
       "title": "Tests for task filename slugs and id resolution",
       "summary": "Guards the module that decides which file on disk holds a task."
     },
@@ -3993,7 +4257,7 @@
     },
     {
       "path": "src/lib/task-filename.ts",
-      "lines": 482,
+      "lines": 491,
       "title": "Task filename slugs and id resolution",
       "summary": "Owns the whole relationship between a task id and the name of the file that holds it, for every surface (CLI, daemon, TUI, web File System Access, desktop).",
       "functions": [
