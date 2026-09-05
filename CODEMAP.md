@@ -48,7 +48,7 @@ source to edit instead.
 - **`reslug.ts`** · 208 lines — Renames task files so their name says what they are: `tasks/t232.md` becomes `tasks/t232_remove_dead_code.md`.
 - **`run.ts`** · 117 lines — Parses flags, prints the cascade plan (always, so the user sees what is about to happen), then drives the orchestrator in `src/cli/lib/cascade.ts` and prints a per-task summary.
 - **`tasks.ts`** · 346 lines — Handlers for `kandown list/show/create/move/assign/commit` plus `export`/`import`/`projects`.
-- **`undo.ts`** · 100 lines — Reverts the most recent journalized board change (move, create, delete or archive), or lists the journal with `--list`.
+- **`undo.ts`** · 101 lines — Reverts the most recent journalized board change (move, create, delete or archive), or lists the journal with `--list`.
 
 ## `src/cli/components/` — Shared Ink components
 
@@ -68,7 +68,7 @@ source to edit instead.
 - **`agents-config.ts`** · 218 lines — The committed team contract for which AI coding agents a project supports: their binary, aliases, launch mode, and per-agent extra CLI args, plus project-wide cascade preferences (preferred agent, unassigned-task behaviour, same-session…
 - **`agents.ts`** · 706 lines — Defines the built-in AI coding agents the CLI knows how to launch, merges them with the versioned team catalog (`.kandown/agents.json`), detects which binaries are installed on the current machine, and builds the shell command — plus…
 - **`atomic-write.ts`** · 27 lines — Crash-safe file writes for the CLI: write to a sibling temp file, then rename over the target.
-- **`board-reader.ts`** · 687 lines — Provides filesystem-based reading and writing of Kandown task files for the CLI.
+- **`board-reader.ts`** · 740 lines — Provides filesystem-based reading and writing of Kandown task files for the CLI.
 - **`browser.ts`** · 26 lines — Resolves and spawns the platform default browser for the given URL.
 - **`cascade.ts`** · 465 lines — The synchronous task-cascade engine.
 - **`cli-shared.ts`** · 378 lines — Argument parsing, deterministic nearest-ancestor project resolution, colored console output, and task-file path helpers shared across every `cmdX` command handler and the TUI launcher in src/cli/cli.ts.
@@ -128,7 +128,7 @@ source to edit instead.
 - **`task-filename-cli.spec.ts`** · 207 lines — Spawns `bin/kandown.js` (the published CLI bundle) against a throwaway project whose `tasks/` folder deliberately mixes both naming forms: the legacy bare `t1.md` and the descriptive `t2_add_dark_mode.md`.
 - **`task-move.spec.ts`** · 264 lines — Exercises the Node move coordinator against real task files and a real jiti-loaded extension.
 - **`tasks-list.spec.ts`** · 130 lines — Pins the behaviour that broke when cmdList rebuilt its rows by hand instead of going through `buildColumnsFromTasks`.
-- **`undo.spec.ts`** · 179 lines — `listUndoRecords` is the read half of the undo safety net: the `kandown undo` command peeks at the journal through it BEFORE reverting, so a missing, corrupted or partially written journal must come back as an empty (or filtered) list…
+- **`undo.spec.ts`** · 235 lines — `listUndoRecords` is the read half of the undo safety net: the `kandown undo` command peeks at the journal through it BEFORE reverting, so a missing, corrupted or partially written journal must come back as an empty (or filtered) list…
 - **`updater-semver.spec.ts`** · 62 lines — `semverGt` decides whether the npm registry is offering a newer kandown than the one running, which in turn decides whether the CLI nags the user and whether a live daemon self-upgrades.
 - **`workflows-cli.spec.ts`** · 64 lines — Exercises built-in discovery, provenance-preserving local forks, validated Markdown editing, and no-orphan board preset previews against real temporary Kandown projects.
 - **`workflows-store.spec.ts`** · 59 lines — Verifies pinned registry validation, capsule checksum enforcement, immutable install provenance, and explicit update confirmation without network.

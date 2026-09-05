@@ -28,7 +28,7 @@
  */
 
 import { log, info, success, err, parseArgs, ensureKandownDir } from '../lib/cli-shared';
-import { undoLastAction } from '../lib/board-reader';
+import { undoLastActionDetailed } from '../lib/board-reader';
 import { listUndoRecords } from '../lib/undo';
 import type { UndoRecord } from '../lib/undo';
 
@@ -83,17 +83,18 @@ export function cmdUndo(rawArgs: string[]): void {
     return;
   }
 
-  // 📖 Peek before popping: undoLastAction consumes the entry and only says
-  // true/false, so the only way to report WHAT was undone is to read it first.
-  const records = listUndoRecords(kandownDir);
-  const next = records[0];
-  if (!next) {
+  // 📖 The detailed verdict reports the entry it would revert AND why it
+  // refused, so scripts get a truthful exit code and sentence in one call.
+  const outcome = undoLastActionDetailed(kandownDir);
+  if (!outcome.ok) {
+    if (outcome.reason === 'drifted' && outcome.record) {
+      err(`Cannot undo ${outcome.record.type} of ${outcome.record.taskId}: `
+        + `${outcome.record.path} changed after the journalized mutation. `
+        + 'The journal entry is kept; resolve the file by hand.');
+      process.exit(1);
+    }
     err('Nothing to undo: the journal is empty.');
     process.exit(1);
   }
-  if (!undoLastAction(kandownDir)) {
-    err(`Failed to undo ${next.type} of ${next.taskId}: the revert did not complete.`);
-    process.exit(1);
-  }
-  success(describe(next));
+  success(describe(outcome.record!));
 }

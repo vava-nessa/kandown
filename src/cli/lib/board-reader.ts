@@ -27,7 +27,7 @@
  *  → moveTaskToColumnDetailed — same move, returning the gate verdict
  *  → assignTaskToAgent   — writes a canonical agent id into `assignee:`
  *
- * @exports getProjectRoot, getTasksDir, listTaskIds, listTaskFilenames, findTaskPath, newTaskFilePath, readBoard, readTask, moveTaskToColumn, moveTaskToColumnDetailed, MoveOutcome, MoveRefusal, assignTaskToAgent
+ * @exports getProjectRoot, getTasksDir, listTaskIds, listTaskFilenames, findTaskPath, newTaskFilePath, readBoard, readTask, moveTaskToColumn, moveTaskToColumnDetailed, MoveOutcome, MoveRefusal, assignTaskToAgent, undoLastAction, undoLastActionDetailed, UndoOutcome, UndoRefusal
  * @see src/lib/parser.ts — pure string parsers reused here
  * @see src/lib/task-filename.ts — the shared id ↔ filename policy, including slugs
  */
@@ -523,13 +523,57 @@ function pushUndo(kandownDir: string, record: UndoRecord): void {
   }
 }
 
-export function undoLastAction(kandownDir: string): boolean {
+/**
+ * 📖 Why an undo refused to run.
+ *  - `empty`      — the journal has no entry (or is unreadable).
+ *  - `drifted`    — the target file changed after the journalized mutation:
+ *                   reverting would silently destroy those newer edits, so
+ *                   the entry is kept and the human decides.
+ *  - `write-failed` — the revert itself could not be written.
+ */
+export type UndoRefusal = 'empty' | 'drifted' | 'write-failed';
+
+/**
+ * 📖 The verdict of one undo attempt, mirroring the MoveOutcome pattern: the
+ * caller learns WHAT would be reverted and WHY it refused, instead of a bare
+ * boolean that turns "the file moved on since" into "nothing to undo".
+ */
+export interface UndoOutcome {
+  ok: boolean;
+  /** Set only when `ok` is false. */
+  reason?: UndoRefusal;
+  /** The entry the undo would have reverted (the newest one). */
+  record?: UndoRecord;
+}
+
+/**
+ * 📖 Reverts the newest journalized mutation and reports *why* when it does
+ * not. Safety contract (learned the hard way): the revert only runs when the
+ * target file is EXACTLY where the mutation left it. Any edit that landed
+ * after the mutation (a subtask checked, a report written) makes the blind
+ * restore a silent data loss, so a drifted entry refuses and STAYS in the
+ * journal for the human. Never throws.
+ */
+export function undoLastActionDetailed(kandownDir: string): UndoOutcome {
+  let list: UndoRecord[] = [];
+  let record: UndoRecord | undefined;
   try {
     const logPath = join(kandownDir, '.undo', 'log.json');
-    if (!existsSync(logPath)) return false;
-    const list: UndoRecord[] = JSON.parse(readFileSync(logPath, 'utf8'));
-    if (!list || list.length === 0) return false;
-    const record = list.shift()!;
+    if (!existsSync(logPath)) return { ok: false, reason: 'empty' };
+    list = JSON.parse(readFileSync(logPath, 'utf8'));
+    if (!list || list.length === 0) return { ok: false, reason: 'empty' };
+    record = list[0];
+
+    // 📖 Drift gate: the file must still hold exactly what the mutation
+    // produced. For a `create` undo (previousContent null) the file must not
+    // have been edited since creation either.
+    const currentContent = existsSync(record.path) ? readFileSync(record.path, 'utf8') : null;
+    const drifted = currentContent === null
+      ? record.newContent !== null
+      : record.newContent === null || currentContent !== record.newContent;
+    if (drifted) return { ok: false, reason: 'drifted', record };
+
+    list.shift();
     atomicWriteFileSync(logPath, JSON.stringify(list, null, 2));
 
     if (record.previousContent === null) {
@@ -543,10 +587,19 @@ export function undoLastAction(kandownDir: string): boolean {
         if (existsSync(activePath)) unlinkSync(activePath);
       }
     }
-    return true;
+    return { ok: true, record };
   } catch {
-    return false;
+    return { ok: false, reason: record ? 'write-failed' : 'empty', record };
   }
+}
+
+/**
+ * 📖 Boolean wrapper for callers that only need success (the TUI `u` key).
+ * Drifted entries surface as false there; the detailed verdict lives in
+ * {@link undoLastActionDetailed}.
+ */
+export function undoLastAction(kandownDir: string): boolean {
+  return undoLastActionDetailed(kandownDir).ok;
 }
 
 export function createTaskInBoard(kandownDir: string, rawInput: string, status?: string): string {

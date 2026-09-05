@@ -18,7 +18,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { listUndoRecords } from '../undo';
 import type { UndoRecord } from '../undo';
-import { undoLastAction } from '../board-reader';
+import { undoLastAction, undoLastActionDetailed } from '../board-reader';
 
 let projectDir: string;
 let kandownDir: string;
@@ -174,5 +174,61 @@ describe('undoLastAction (journal round trip)', () => {
 
   it('returns false when the journal file is missing', () => {
     expect(undoLastAction(kandownDir)).toBe(false);
+  });
+});
+
+describe('undoLastActionDetailed (drift guard)', () => {
+  it('refuses and keeps the entry when the file changed after the mutation', () => {
+    const taskPath = join(projectDir, 'tasks', 't1.md');
+    const previousContent = '---\nid: t1\nstatus: Todo\n---\n';
+    const newContent = '---\nid: t1\nstatus: Done\n---\n';
+    // 📖 The file drifted after the journalized move: someone checked a
+    // subtask on top of the mutation. A blind restore would erase that.
+    writeFileSync(taskPath, `${newContent}report: edited after the move\n`);
+    writeJournal([
+      makeRecord({ taskId: 't1', path: taskPath, previousContent, newContent }),
+    ]);
+
+    const outcome = undoLastActionDetailed(kandownDir);
+    expect(outcome.ok).toBe(false);
+    expect(outcome.reason).toBe('drifted');
+    expect(outcome.record?.taskId).toBe('t1');
+    // 📖 The file keeps the newer edits and the entry stays queued: nothing
+    // is silently destroyed, the human decides.
+    expect(readFileSync(taskPath, 'utf8')).toBe(`${newContent}report: edited after the move\n`);
+    expect(listUndoRecords(kandownDir)).toHaveLength(1);
+  });
+
+  it('refuses the create-undo when the created file was edited since', () => {
+    const createdPath = join(projectDir, 'tasks', 't2_fresh.md');
+    writeFileSync(createdPath, 'created, then edited');
+    writeJournal([
+      makeRecord({ type: 'create', taskId: 't2', path: createdPath, previousContent: null, newContent: 'created content' }),
+    ]);
+
+    const outcome = undoLastActionDetailed(kandownDir);
+    expect(outcome.ok).toBe(false);
+    expect(outcome.reason).toBe('drifted');
+    expect(existsSync(createdPath)).toBe(true);
+  });
+
+  it('reverts a clean entry and reports the reverted record', () => {
+    const taskPath = join(projectDir, 'tasks', 't1.md');
+    writeFileSync(taskPath, 't1 current');
+    writeJournal([
+      makeRecord({ taskId: 't1', path: taskPath, previousContent: 't1 previous', newContent: 't1 current' }),
+    ]);
+
+    const outcome = undoLastActionDetailed(kandownDir);
+    expect(outcome.ok).toBe(true);
+    expect(outcome.record?.taskId).toBe('t1');
+    expect(readFileSync(taskPath, 'utf8')).toBe('t1 previous');
+    expect(listUndoRecords(kandownDir)).toEqual([]);
+  });
+
+  it('answers empty on an empty journal with the detailed shape', () => {
+    writeJournal([]);
+    const outcome = undoLastActionDetailed(kandownDir);
+    expect(outcome).toEqual({ ok: false, reason: 'empty' });
   });
 });

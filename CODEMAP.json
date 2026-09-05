@@ -238,7 +238,7 @@
     },
     {
       "path": "src/cli/commands/undo.ts",
-      "lines": 100,
+      "lines": 101,
       "title": "`kandown undo` command",
       "summary": "Reverts the most recent journalized board change (move, create, delete or archive), or lists the journal with `--list`.",
       "functions": [
@@ -513,7 +513,7 @@
     },
     {
       "path": "src/cli/lib/__tests__/undo.spec.ts",
-      "lines": 179,
+      "lines": 235,
       "title": "Unit and integration tests for the undo journal reader",
       "summary": "`listUndoRecords` is the read half of the undo safety net: the `kandown undo` command peeks at the journal through it BEFORE reverting, so a missing, corrupted or partially written journal must come back as an empty (or filtered) list…"
     },
@@ -917,7 +917,7 @@
     },
     {
       "path": "src/cli/lib/board-reader.ts",
-      "lines": 687,
+      "lines": 740,
       "title": "Node.js task reader and mutator",
       "summary": "Provides filesystem-based reading and writing of Kandown task files for the CLI.",
       "functions": [
@@ -966,7 +966,7 @@
           "summary": "writes a canonical agent id into `assignee:`"
         }
       ],
-      "exports": "getProjectRoot, getTasksDir, listTaskIds, listTaskFilenames, findTaskPath, newTaskFilePath, readBoard, readTask, moveTaskToColumn, moveTaskToColumnDetailed, MoveOutcome, MoveRefusal, assignTaskToAgent"
+      "exports": "getProjectRoot, getTasksDir, listTaskIds, listTaskFilenames, findTaskPath, newTaskFilePath, readBoard, readTask, moveTaskToColumn, moveTaskToColumnDetailed, MoveOutcome, MoveRefusal, assignTaskToAgent, undoLastAction, undoLastActionDetailed, UndoOutcome, UndoRefusal"
     },
     {
       "path": "src/cli/lib/browser.ts",
