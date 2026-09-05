@@ -241,14 +241,17 @@ source to edit instead.
 
 - **`ApprovalCard.tsx`** · 420 lines — Renders one approval question at a time for agent sessions: the stack slides vertically between questions while the card height animates to fit, so the agent never continues without an explicit human answer.
 - **`BuiGallery.tsx`** · 70 lines — Development surface for the BeautifulUI ports (beautifului.dev, MIT): every component and every variant rendered on one page, inside the scoped `.bui` design system.
+- **`ChatComposer.tsx`** · 242 lines — Faithful port of the BeautifulUI ChatComposer component (beautifului.dev, MIT): an interactive chat panel with suggestion tabs, header actions, a submitted-prompt bubble and staged assistant replies that blur while resolving.
 - **`ContextCards.tsx`** · 129 lines — Faithful port of the BeautifulUI ContextCards (beautifului.dev, MIT): retrieved chunks enter once with a staggered fade-up, then remain available; source chips pop in after a beat.
 - **`DiffTable.tsx`** · 253 lines — Faithful port of the BeautifulUI DiffTable (beautifului.dev, MIT): the proposed edit plays once and rests on the completed diff; each changed row is the control, so a click includes or excludes that specific addition or removal before…
 - **`FilterTable.tsx`** · 153 lines — Faithful port of the BeautifulUI FilterTable (beautifului.dev, MIT): the status chips directly filter the task table and rows collapse through an animated grid-rows transition.
 - **`FineTuneCard.tsx`** · 345 lines — Faithful port of the BeautifulUI FineTuneCard (beautifului.dev, MIT): a compact interactive inspector whose number fields scrub (drag the label, use the arrow keys, or type), with a segment switch and a GlideMenu type select.
 - **`InsightCards.tsx`** · 559 lines — Faithful port of the BeautifulUI InsightCards (beautifului.dev, MIT): embedded mini-visualizations in an "Insights N < >" carousel whose autoplay yields as soon as a person uses it.
 - **`LoadingState.tsx`** · 158 lines — Long-running-work loaders built on a pixel grid, in four variants (Drive, Dots, Orbit, Surfer).
+- **`PromptBar.tsx`** · 735 lines — Faithful port of the official BeautifulUI PromptBar (beautifului.dev, MIT): a composer with real controls, an attach menu, @ data-source and / command menus, a model picker, dictation and send.
 - **`RecommendationCard.tsx`** · 181 lines — Faithful port of the BeautifulUI RecommendationCard (beautifului.dev, MIT): the card holds its shape, pressing "Alternatives" opens the options drawer, picking one promotes it and the primary action confirms.
 - **`RecordsTable.tsx`** · 1067 lines — Faithful port of the BeautifulUI RecordsTable (beautifului.dev, MIT): an AI spreadsheet grid whose columns are properties.
+- **`SearchList.tsx`** · 126 lines — Faithful port of the BeautifulUI SearchList component (beautifului.dev, MIT): a command search with live filtering.
 - **`SelectionActions.tsx`** · 574 lines — Faithful port of the BeautifulUI SelectionActions (beautifului.dev, MIT): a contextual AI bar attached beneath selected text.
 - **`SidebarNav.tsx`** · 466 lines — Faithful port of the BeautifulUI SidebarNav (beautifului.dev, MIT): compact workspace switcher, primary navigation, searchable chat history, and a collapse that preserves icon alignment.
 - **`StreamingText.tsx`** · 244 lines — Animates incoming agent text: words resolve out of blur, inline citations appear in context, then actions and follow-up prompts become usable once the stream settles.
@@ -261,6 +264,11 @@ source to edit instead.
 - **`Shimmer.tsx`** · 36 lines — Faithful port of the BeautifulUI atoms/Shimmer (beautifului.dev, MIT): a span whose text is clipped to a moving accent gradient, driven by the `shimmer-text` keyframe from styles/beautifului.css.
 - **`StreamText.tsx`** · 55 lines — Faithful-enough port of the BeautifulUI atoms/StreamText (beautifului.dev, MIT): streams a string word by word on an interval.
 - **`ValuePill.tsx`** · 36 lines — Faithful-enough port of the BeautifulUI atoms/ValuePill (beautifului.dev, MIT): a compact monospace pill for numeric values and deltas, with an optional green tone for positive readings.
+
+## `src/components/bui/gallery/`
+
+- **`CardsSection.tsx`** · 68 lines — Development surface for the second wave of BeautifulUI ports (beautifului.dev, MIT): every card, table, nav and action component and its variants rendered on one page, inside the scoped `.bui` design system that main.tsx wraps the…
+- **`ChatSection.tsx`** · 62 lines — Gallery block for the chat-side BeautifulUI ports (beautifului.dev, MIT): task rows, the chat composer, the prompt bar and command search, each variant under its own numbered uppercase heading, matching the section style of BuiGallery.
 
 ## `src/components/bui/primitives/`
 
@@ -439,6 +447,6 @@ source to edit instead.
 
 ## Coverage
 
-307 of 307 eligible files carry an `@description` header.
+312 of 312 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

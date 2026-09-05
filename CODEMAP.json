@@ -2232,6 +2232,13 @@
       "exports": "BuiGallery"
     },
     {
+      "path": "src/components/bui/ChatComposer.tsx",
+      "lines": 242,
+      "title": "Chat composer of the BeautifulUI chat kit",
+      "summary": "Faithful port of the BeautifulUI ChatComposer component (beautifului.dev, MIT): an interactive chat panel with suggestion tabs, header actions, a submitted-prompt bubble and staged assistant replies that blur while resolving.",
+      "exports": "ChatComposer (default) : the tabbed chat panel ChatMessage : one assistant reply (label, sub, time, body) ChatComposerLabels : initial prompt and placeholder copy"
+    },
+    {
       "path": "src/components/bui/ContextCards.tsx",
       "lines": 129,
       "title": "Context cards from BeautifulUI",
@@ -2258,6 +2265,36 @@
       "title": "Fine-tune card from BeautifulUI",
       "summary": "Faithful port of the BeautifulUI FineTuneCard (beautifului.dev, MIT): a compact interactive inspector whose number fields scrub (drag the label, use the arrow keys, or type), with a segment switch and a GlideMenu type select.",
       "exports": "FineTuneCard FineTuneField FineTuneCardLabels FineTuneState FineTuneCardProps"
+    },
+    {
+      "path": "src/components/bui/gallery/CardsSection.tsx",
+      "lines": 68,
+      "title": "BeautifulUI gallery section: cards, tables and bars",
+      "summary": "Development surface for the second wave of BeautifulUI ports (beautifului.dev, MIT): every card, table, nav and action component and its variants rendered on one page, inside the scoped `.bui` design system that main.tsx wraps the…",
+      "functions": [
+        {
+          "name": "CardsSection: renders the 06 to 14 gallery sections",
+          "summary": null
+        }
+      ],
+      "exports": "CardsSection"
+    },
+    {
+      "path": "src/components/bui/gallery/ChatSection.tsx",
+      "lines": 62,
+      "title": "Chat section of the BeautifulUI gallery",
+      "summary": "Gallery block for the chat-side BeautifulUI ports (beautifului.dev, MIT): task rows, the chat composer, the prompt bar and command search, each variant under its own numbered uppercase heading, matching the section style of BuiGallery.",
+      "functions": [
+        {
+          "name": "Heading: small uppercase numbered section title",
+          "summary": null
+        },
+        {
+          "name": "ChatSection: the fragment of gallery subsections",
+          "summary": null
+        }
+      ],
+      "exports": "ChatSection"
     },
     {
       "path": "src/components/bui/InsightCards.tsx",
@@ -2287,6 +2324,13 @@
       "exports": "GlideMenu"
     },
     {
+      "path": "src/components/bui/PromptBar.tsx",
+      "lines": 735,
+      "title": "Prompt bar of the BeautifulUI chat kit",
+      "summary": "Faithful port of the official BeautifulUI PromptBar (beautifului.dev, MIT): a composer with real controls, an attach menu, @ data-source and / command menus, a model picker, dictation and send.",
+      "exports": "PromptBar (default) : the composer, variant \"Rounded\" | \"Pill\""
+    },
+    {
       "path": "src/components/bui/RecommendationCard.tsx",
       "lines": 181,
       "title": "Recommendation card from BeautifulUI",
@@ -2299,6 +2343,13 @@
       "title": "Records table from BeautifulUI",
       "summary": "Faithful port of the BeautifulUI RecordsTable (beautifului.dev, MIT): an AI spreadsheet grid whose columns are properties.",
       "exports": "RecordsTable RecordRow"
+    },
+    {
+      "path": "src/components/bui/SearchList.tsx",
+      "lines": 126,
+      "title": "Search list of the BeautifulUI chat kit",
+      "summary": "Faithful port of the BeautifulUI SearchList component (beautifului.dev, MIT): a command search with live filtering.",
+      "exports": "SearchList (default) : the search card SearchItem : one searchable row (a plain string) SearchListLabels : placeholder, aria and empty-state copy"
     },
     {
       "path": "src/components/bui/SelectionActions.tsx",
