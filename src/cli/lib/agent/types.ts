@@ -18,7 +18,7 @@
  * @functions
  *  → (types only)
  *
- * @exports PermissionMode, PermissionSupport, AgentEventType, AgentEvent, AgentSessionConfig, AgentSessionInfo, AgentSessionStatus, HarnessAdapter, AdapterEvent, AdapterParseResult, AdapterState, EDIT_TOOL_NAMES
+ * @exports PermissionMode, PermissionSupport, AgentEventType, AgentEvent, AgentSessionConfig, AgentSessionInfo, AgentSessionStatus, AgentUsageTotals, HarnessAdapter, AdapterEvent, AdapterParseResult, AdapterState, EDIT_TOOL_NAMES
  * @see src/cli/lib/agent/agent-runtime.ts: the facade that spawns and drives adapters
  * @see src/cli/lib/agent/detect.ts: which binaries can act as harnesses
  */
@@ -126,6 +126,16 @@ export interface AgentSessionConfig {
  *  (or an orchestrator) killed it; `failed` means it died without completing. */
 export type AgentSessionStatus = 'starting' | 'running' | 'completed' | 'stopped' | 'failed';
 
+/** 📖 Cumulative usage of one session, summed by the runtime from the
+ *  harness' `usage` events: `tokens` counts input + output + cached-input
+ *  tokens, `costUsd` sums the harness-reported cost. JSON-safe, so it rides
+ *  along on every session snapshot and endpoint response (t311 budget
+ *  enforcement and UI totals). */
+export interface AgentUsageTotals {
+  tokens: number;
+  costUsd: number;
+}
+
 /** 📖 JSON-serializable view of a live or finished session, as returned by the
  *  daemon endpoints and consumed by the web UI. */
 export interface AgentSessionInfo {
@@ -138,4 +148,9 @@ export interface AgentSessionInfo {
   harnessSessionId?: string;
   startedAt: string;
   exitCode?: number | null;
+  /** 📖 Running usage totals, zeroed at creation and accumulated as `usage`
+   *  events arrive. The orchestrator reads these to enforce session budget
+   *  caps; the browser mirror (AgentSessionPayload) keeps the field optional
+   *  so payloads from older daemons stay valid. */
+  usageTotals?: AgentUsageTotals;
 }

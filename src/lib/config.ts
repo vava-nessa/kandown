@@ -26,6 +26,7 @@ import {
 } from './types';
 import type {
   AgentsConfig,
+  AutopilotConfig,
   ColumnAgentMeta,
   ColumnColor,
   ColumnRole,
@@ -206,6 +207,38 @@ function normalizeAgents(value: unknown): AgentsConfig | undefined {
   return agents;
 }
 
+/** 📖 Autopilot parallelism bounds (t311): anything outside 1..8 is clamped,
+ * so a hand-edited kandown.json can never ask for zero or fifty sessions. */
+const MIN_PARALLEL = 1;
+const MAX_PARALLEL = 8;
+
+/** 📖 Keeps a cap only when it is a usable number: finite and not negative.
+ * Anything else (null, a string, Infinity, -1) means "no cap", which matches
+ * the contract that absent caps are unlimited. */
+function nonNegativeNumberOrUndefined(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0
+    ? value
+    : undefined;
+}
+
+function normalizeAutopilot(value: unknown): AutopilotConfig {
+  const raw = safeObject(value);
+  const fallback = DEFAULT_CONFIG.agent.autopilot?.maxParallel ?? 2;
+  const requested = Math.floor(numberOr(raw.maxParallel, fallback));
+  const autopilot: AutopilotConfig = {
+    maxParallel: Math.min(MAX_PARALLEL, Math.max(MIN_PARALLEL, requested)),
+  };
+  const sessionTokenCap = nonNegativeNumberOrUndefined(raw.sessionTokenCap);
+  if (sessionTokenCap !== undefined) autopilot.sessionTokenCap = sessionTokenCap;
+  const sessionCostCapUsd = nonNegativeNumberOrUndefined(raw.sessionCostCapUsd);
+  if (sessionCostCapUsd !== undefined) autopilot.sessionCostCapUsd = sessionCostCapUsd;
+  const runTokenCap = nonNegativeNumberOrUndefined(raw.runTokenCap);
+  if (runTokenCap !== undefined) autopilot.runTokenCap = runTokenCap;
+  const runCostCapUsd = nonNegativeNumberOrUndefined(raw.runCostCapUsd);
+  if (runCostCapUsd !== undefined) autopilot.runCostCapUsd = runCostCapUsd;
+  return autopilot;
+}
+
 function normalizeCustomThemes(value: unknown): KandownTheme[] | undefined {
   if (!Array.isArray(value)) return undefined;
   const themes = value.filter((entry): entry is KandownTheme => {
@@ -307,6 +340,7 @@ export function normalizeKandownConfig(raw: unknown): KandownConfig {
           ),
         },
       },
+      autopilot: normalizeAutopilot(agent.autopilot),
     },
     workflow: {
       active: stringOr(workflow.active, DEFAULT_CONFIG.workflow.active),

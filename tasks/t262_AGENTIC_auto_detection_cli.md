@@ -8,7 +8,7 @@ tags: [agentic, cli, agents, pipeline, dag]
 ownerType: human
 created: 2026-07-26
 order: 2
-updated: 2026-08-04T23:16:41Z
+updated: 2026-09-04T14:49:58Z
 category: AGENTIC
 ---
 
@@ -52,4 +52,5 @@ Reconvertir le champ "Assignee" (inutile pour un dev solo) pour en faire un sél
   description. Catalogue élargi : copilot, amp, droid, auggie, amazonq (q), cline, agy.
   Tests : src/cli/lib/__tests__/agent-assign.spec.ts (12 cas). Vérifié de bout en bout
   dans le TUI sur un board jetable (assignee + status + prompt transmis).
-- [ ] 4. Moteur d'Exécution en Cascade (DAG Orchestrator, chaining tasks, completion report handoff)
+- [x] 4. Moteur d'Exécution en Cascade (DAG Orchestrator, chaining tasks, completion report handoff)
+  report: Remplacé par le preset autopilot de [[t311]] (orchestration agentic plutôt que DAG codé en dur) : readiness (status + depends_on résolus), dispatch de sessions harness via le runtime t307, handoff des completion reports vers les tâches suivantes, budget et kill switch. Le chaînage historique `kandown run` (src/cli/lib/cascade.ts) reste disponible pour les runs séquentiels synchrones.

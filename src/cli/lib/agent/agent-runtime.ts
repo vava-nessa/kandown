@@ -20,6 +20,12 @@
  * spec explicitly forbids that. Adapter parsing happens inside try/catch so a
  * malformed harness line can never take the daemon down.
  *
+ * 📖 Usage accounting (t311): every `usage` event is summed into the record's
+ * `usageTotals` (tokens = input + output + cached input; costUsd from the
+ * harness) inside recordEvent, the same funnel that buffers and broadcasts,
+ * so the totals exposed on AgentSessionInfo always match what subscribers
+ * saw. The autopilot orchestrator reads these to enforce session budget caps.
+ *
  * @functions
  *  → createAgentSession         : resolve the harness, spawn, start streaming
  *  → listAgentSessions          : JSON-safe registry snapshot
@@ -129,10 +135,38 @@ function meta(record: SessionRecord) {
   return { sessionId: record.info.id, harnessId: record.info.harnessId, timestamp: new Date().toISOString() };
 }
 
+/** 📖 Usage events can carry partial or absent counters; anything that is not
+ *  a usable finite number counts as zero so one malformed line cannot poison
+ *  the totals the budget enforcement (t311) relies on. */
+function finiteOrZero(value: number | undefined): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+
+/** 📖 Single funnel for every event a session produces. `usage` events are
+ *  summed into the record's usageTotals here, at the same place events are
+ *  recorded, so the totals on AgentSessionInfo always match what subscribers
+ *  saw. tokens = input + output + cached input; costUsd comes straight from
+ *  the harness. */
 function recordEvent(record: SessionRecord, event: AgentEvent): void {
+  if (event.type === 'usage') {
+    const totals = record.info.usageTotals ?? { tokens: 0, costUsd: 0 };
+    totals.tokens += finiteOrZero(event.inputTokens) + finiteOrZero(event.outputTokens) + finiteOrZero(event.cachedInputTokens);
+    totals.costUsd += finiteOrZero(event.costUsd);
+    record.info.usageTotals = totals;
+  }
   record.buffer.push(event);
   if (record.buffer.length > EVENT_BUFFER_LIMIT) record.buffer.shift();
   record.emitter.emit('event', event);
+}
+
+/** 📖 JSON-safe copy of a session record's info: the nested usageTotals object
+ *  is copied too, so a caller mutating a snapshot can never corrupt the live
+ *  accumulator. */
+function snapshotInfo(record: SessionRecord): AgentSessionInfo {
+  return {
+    ...record.info,
+    ...(record.info.usageTotals ? { usageTotals: { ...record.info.usageTotals } } : {}),
+  };
 }
 
 /** 📖 Runs one stdout line through the adapter and fans the normalized events
@@ -288,6 +322,7 @@ export function createAgentSession(config: AgentSessionConfig): AgentSessionInfo
       harnessId: config.harnessId,
       status: 'starting',
       startedAt: new Date().toISOString(),
+      usageTotals: { tokens: 0, costUsd: 0 },
     },
     config: { ...config, protocolArgs: [...resolved.def.protocolArgs] },
     adapter,
@@ -308,18 +343,18 @@ export function createAgentSession(config: AgentSessionConfig): AgentSessionInfo
   };
   sessions.set(record.info.id, record);
   startChild(record);
-  return { ...record.info };
+  return snapshotInfo(record);
 }
 
 /** 📖 JSON-safe snapshot of every session, creation order preserved. */
 export function listAgentSessions(): AgentSessionInfo[] {
-  return [...sessions.values()].map(record => ({ ...record.info }));
+  return [...sessions.values()].map(snapshotInfo);
 }
 
 /** 📖 One session snapshot for endpoint-level checks, or undefined. */
 export function getAgentSession(id: string): AgentSessionInfo | undefined {
   const record = sessions.get(id);
-  return record ? { ...record.info }: undefined;
+  return record ? snapshotInfo(record): undefined;
 }
 
 /** 📖 Subscribes to a session's live events and immediately replays the

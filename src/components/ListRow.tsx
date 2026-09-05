@@ -25,6 +25,9 @@
  * 📖 Live agent edits (t309): the row hosts the animated border beam while an
  * agent edits the task, and the single "stack host" row mounts the fixed
  * permission approval stack (mount-point agnostic, see isApprovalStackHost).
+ * 📖 Autopilot (t311): the row shows the Working / Queued / Resumable chip in
+ * its meta sub-row and a stop button in the right chip cluster while an
+ * autopilot session runs on the task.
  *
  * @functions
  *  → ListRow — modern linear-style list row component
@@ -45,6 +48,8 @@ import { useStore } from '../lib/store';
 import { CategoryChip } from './CategoryChip';
 import { CardBeam } from './agent/CardBeam';
 import { ApprovalCardStack, isApprovalStackHost } from './agent/ApprovalCard';
+import { AutopilotStatusChip, CardStopButton } from './agent/CardStopButton';
+import { autopilotTaskStatus } from '../lib/store/autopilotSlice';
 
 const priorityBadges: Record<string, { bg: string; text: string; border: string }> = {
   P1: { bg: 'bg-red-500/10 dark:bg-red-500/20', text: 'text-red-600 dark:text-red-400', border: 'border-red-500/30' },
@@ -247,6 +252,11 @@ export function ListRow({
   // column, so exactly one stack exists per rendered view).
   const isStackHost = useStore(s => isApprovalStackHost(s.columns, task.id));
 
+  // 📖 Autopilot (t311): Working / Queued / Resumable chip status, derived
+  // from the SSE snapshot. Also forces the meta sub-row open so a task with
+  // no other badges still shows its autopilot state.
+  const autopilotStatus = useStore(s => autopilotTaskStatus(s.autopilot.snapshot, task.id));
+
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
@@ -361,10 +371,15 @@ export function ListRow({
           </div>
         </div>
 
-        {/* The rest AFTER the title: task id, priority, then tags + subtasks
-            (wide layout only). Right-aligned, flex-none so the title owns the
-            remaining width. */}
+        {/* The rest AFTER the title: stop button (autopilot), task id, priority,
+            then tags + subtasks counter (wide layout only). Right-aligned,
+            flex-none so the title owns the remaining width. */}
         <div className="flex items-center gap-1.5 flex-none mt-[1px]">
+          {/* 📖 Autopilot stop (t311): while a session runs on this task.
+           * Always visible (stopping an agent is urgent), inline in the right
+           * cluster. Self-hiding: renders null when no session is active. */}
+          <CardStopButton taskId={task.id} />
+
           {/* Task ID */}
           <span className="font-mono text-[11.5px] font-medium text-fg-faint tabular-nums">
             {task.id.replace(/^t/i, '')}
@@ -427,6 +442,7 @@ export function ListRow({
         (task.dependsOn && task.dependsOn.length > 0) ||
         task.assignee ||
         task.frontmatter.due ||
+        autopilotStatus ||
         (task.tags && task.tags.length > 0) ||
         (task.progress && task.progress.total > 0)) && (
         <div className="mt-1 pl-[60px] flex items-center gap-1.5 flex-wrap" onPointerDown={e => e.stopPropagation()}>
@@ -499,6 +515,9 @@ export function ListRow({
           {task.assignee && (
             <AssigneeAvatar assignee={task.assignee} size={16} withLabel />
           )}
+
+          {/* 📖 Autopilot presence (t311): Working / Queued / Resumable. */}
+          <AutopilotStatusChip taskId={task.id} />
 
           {/* Due Date */}
           {task.frontmatter.due ? (

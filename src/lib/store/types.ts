@@ -7,7 +7,7 @@
 
 import type { Column, Filters, BoardTask, Density, ViewMode, Subtask, TaskFrontmatter, KandownConfig, TaskContent, SearchMatch, SessionIndexEntryPayload, DetectedHarness, PermissionMode } from '../types';
 import type { RecentProject, ServerAgentHook } from '../filesystem';
-import type { ConflictType, AgentEditsBoardEvent } from '../watcher';
+import type { ConflictType, AgentEditsBoardEvent, AgentAutopilotEvent } from '../watcher';
 import type { AgentChatEvent, ChatFoldState } from '../agent-chat-events';
 
 /** 📖 Toast severity. `warning` is used for partial-failure / corruption /
@@ -171,6 +171,46 @@ export interface AgentEditsState {
   diffs: Record<string, AgentEditDiff>;
   /** Pending permission requests, oldest first. */
   permissions: AgentPermissionRequest[];
+}
+
+/** 📖 One task an autopilot session is currently working on (t311). */
+export interface AutopilotActiveEntry {
+  taskId: string;
+  sessionId: string;
+}
+
+/** 📖 Accumulated autopilot usage for the current run (t311). */
+export interface AutopilotTotals {
+  tokens: number;
+  costUsd: number;
+}
+
+/** 📖 The latest autopilot orchestration snapshot (t311), from the board SSE
+ * event or the /api/agent/autopilot endpoints. `state` is wire truth
+ * ('idle' | 'running'); a user-initiated stop is tracked separately by
+ * AutopilotState.stopping, never by mangling this union. */
+export interface AutopilotSnapshot {
+  state: 'idle' | 'running';
+  /** Harness the run was started with, when the daemon reported one. */
+  harnessId?: string;
+  /** Sessions currently working, one entry per task. */
+  active: AutopilotActiveEntry[];
+  /** Task ids waiting for a free slot. */
+  queue: string[];
+  /** Task ids with a live session that no longer belongs to the run. */
+  orphans: string[];
+  /** Run usage, accumulated across snapshots (deltas) since the run started. */
+  totals: AutopilotTotals;
+  /** ISO 8601 instant of the snapshot. */
+  at: string;
+}
+
+/** 📖 Everything the autopilot UI reads (t311): the latest snapshot plus the
+ * kill-switch in-flight flag. `stopping` is true between the stop click and
+ * the daemon's confirmation (or the rollback after a failure). */
+export interface AutopilotState {
+  snapshot: AutopilotSnapshot | null;
+  stopping: boolean;
 }
 
 /** 📖 A metadata change applied in bulk to one or more tasks (t116). Each field
@@ -378,4 +418,23 @@ export interface State {
   /** Answers a permission request (POST .../resolve). Optimistically removes
    * the card, restores it and toasts when the daemon cannot be reached. */
   resolvePermission: (sessionId: string, permissionId: string, approve: boolean) => Promise<void>;
+
+  // Autopilot orchestration (t311). State lives under `autopilot`.
+  autopilot: AutopilotState;
+  /** Subscribes the slice to the board SSE autopilot events, starts the
+   * stream in server mode and fetches the initial snapshot. Idempotent. */
+  setupAutopilot: () => void;
+  /** Folds one board autopilot event into the autopilot state. */
+  ingestAutopilotEvent: (event: AgentAutopilotEvent) => void;
+  /** GETs /api/agent/autopilot and applies the snapshot. Best-effort. */
+  fetchAutopilotSnapshot: () => Promise<void>;
+  /** Starts a run (POST .../start). Optimistic running state, rollback +
+   * toast on failure. */
+  startAutopilot: (harnessId?: string) => Promise<void>;
+  /** Kill switch: stops the whole run (POST .../stop). Optimistic stopping
+   * flag, rollback + toast on failure. */
+  stopAutopilot: () => Promise<void>;
+  /** Stops one task's session (POST /api/agent/sessions/:id/stop), the same
+   * route the chat sidebar uses. Returns false and toasts on failure. */
+  stopAutopilotSession: (sessionId: string) => Promise<boolean>;
 }

@@ -7,7 +7,8 @@
  * switcher, the harness selector for NEW conversations, the permission mode
  * chip, the usage badge, the daemon guard card when there is no daemon, and
  * the t310 skill surface: chat skill pill buttons plus the interactive answer
- * form, both mounted above the PromptBar.
+ * form, both mounted above the PromptBar. The header also hosts the t311
+ * autopilot controls (start/kill switch + run totals) as a third compact row.
  *
  * 📖 Mounted once in App.tsx, outside the board layout, like Drawer and
  * CommandPalette, so it overlays every view and a board crash never takes the
@@ -37,6 +38,7 @@ import { AnswerForm } from './AnswerForm';
 import { UsageBadge } from './UsageBadge';
 import { DaemonGuardCard } from './DaemonGuardCard';
 import { GitInitBanner } from './GitInitBanner';
+import { AutopilotControls } from './AutopilotControls';
 import type { ChatSkillButton } from '../../lib/store/types';
 
 export function ChatSidebar() {
@@ -231,6 +233,11 @@ export function ChatSidebar() {
                    : t('settings.yolo', 'Yolo')}
                 </span>
               </div>
+              {/* 📖 t311: autopilot row: play/stop toggle (kill-switch styling
+               * while running) + compact run totals. Third compact header row
+               * so it never squeezes the switcher; it disables itself when
+               * the daemon guard reports no daemon. */}
+              <AutopilotControls />
             </div>
 
             {guard === 'no-daemon' ? (

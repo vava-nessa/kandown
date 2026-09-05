@@ -9,6 +9,8 @@
  * @functions
  *  → SECTIONS, getSETTINGS — translated section/setting metadata
  *  → getConfigValue, setConfigValue — dotted-path config read/write
+ *    (reads fall back to PATH_DEFAULTS for not-yet-normalized paths such as
+ *    agent.autopilot; writes create missing intermediate objects)
  *  → stringifySettingValue, getSettingSearchText — sidebar search index text
  *  → isSettingVisible — parentKey-gated visibility (e.g. nested priority default)
  *
@@ -259,6 +261,59 @@ export const getSETTINGS = (t: ReturnType<typeof useTranslation>['t']): SettingD
     ],
     keywords: ['permission', 'yolo', 'accept', 'edits', 'approval', 'agent', 'mode'],
   },
+  // 📖 Autopilot group (t311): budget + concurrency for the daemon's
+  // orchestration run. The number stepper cannot express "unset", so the
+  // caps use 0 as an explicit "no cap"; the daemon reads the same value from
+  // config.agent.autopilot. Labels carry the "Autopilot" prefix so the group
+  // stays visible inside the agent section without a renderer change.
+  {
+    key: 'agent.autopilot.maxParallel',
+    label: t('settings.autopilotMaxParallel', { defaultValue: 'Autopilot: parallel tasks' }),
+    section: 'agent',
+    type: 'number',
+    description: t('settings.autopilotMaxParallelDesc', {
+      defaultValue: 'How many tasks the autopilot daemon runs at the same time (1 to 8).',
+    }),
+    min: 1,
+    max: 8,
+    keywords: ['autopilot', 'parallel', 'concurrency', 'orchestration', 'limit'],
+  },
+  {
+    key: 'agent.autopilot.sessionTokenCap',
+    label: t('settings.autopilotSessionTokenCap', { defaultValue: 'Autopilot: session token cap' }),
+    section: 'agent',
+    type: 'number',
+    description: t('settings.autopilotSessionTokenCapDesc', {
+      defaultValue: 'Token budget for one autopilot session; the daemon stops the session when it is reached. 0 means no cap.',
+    }),
+    min: 0,
+    max: 10_000_000,
+    keywords: ['autopilot', 'token', 'budget', 'cap', 'session', 'limit', 'cost'],
+  },
+  {
+    key: 'agent.autopilot.runTokenCap',
+    label: t('settings.autopilotRunTokenCap', { defaultValue: 'Autopilot: run token cap' }),
+    section: 'agent',
+    type: 'number',
+    description: t('settings.autopilotRunTokenCapDesc', {
+      defaultValue: 'Token budget for the whole autopilot run across all sessions; the daemon winds the run down when it is reached. 0 means no cap.',
+    }),
+    min: 0,
+    max: 100_000_000,
+    keywords: ['autopilot', 'token', 'budget', 'cap', 'run', 'limit', 'cost'],
+  },
+  {
+    key: 'agent.autopilot.runCostCapUsd',
+    label: t('settings.autopilotRunCostCapUsd', { defaultValue: 'Autopilot: run cost cap (USD)' }),
+    section: 'agent',
+    type: 'number',
+    description: t('settings.autopilotRunCostCapUsdDesc', {
+      defaultValue: 'Cost budget in US dollars for the whole autopilot run; the daemon winds the run down when it is reached. 0 means no cap.',
+    }),
+    min: 0,
+    max: 10_000,
+    keywords: ['autopilot', 'cost', 'dollar', 'budget', 'cap', 'run', 'limit'],
+  },
 
   {
     key: 'board.columns',
@@ -423,13 +478,27 @@ export const getSETTINGS = (t: ReturnType<typeof useTranslation>['t']): SettingD
   },
 ];
 
+/** 📖 Fallback values for settings whose config parent object may not exist
+ * yet: the `agent.autopilot` block is normalized into kandown.json by the
+ * config layer, and until a project has been saved once with it, the dotted
+ * path reads undefined. Without these fallbacks the number stepper would
+ * render (and then write) NaN. Keep in sync with the settings' declared
+ * defaults above; the config normalizer stays the source of truth. */
+const PATH_DEFAULTS: Record<string, unknown> = {
+  'agent.autopilot.maxParallel': 2,
+  'agent.autopilot.sessionTokenCap': 0,
+  'agent.autopilot.runTokenCap': 0,
+  'agent.autopilot.runCostCapUsd': 0,
+};
+
 export function getConfigValue(config: KandownConfig, path: string): unknown {
   const parts = path.split('.');
   let current: unknown = config;
   for (const part of parts) {
-    if (current === null || current === undefined) return undefined;
+    if (current === null || current === undefined) return PATH_DEFAULTS[path] ?? undefined;
     current = (current as Record<string, unknown>)[part];
   }
+  if (current === undefined && path in PATH_DEFAULTS) return PATH_DEFAULTS[path];
   return current;
 }
 
@@ -437,8 +506,18 @@ export function setConfigValue(config: KandownConfig, path: string, value: unkno
   const result = structuredClone(config);
   const parts = path.split('.');
   let current = result as unknown as Record<string, unknown>;
+  // 📖 Create missing intermediate objects instead of crashing: writing
+  // agent.autopilot.* into a config that predates the block must work (the
+  // normalizer lands in parallel and older projects do not have it yet).
   for (let i = 0; i < parts.length - 1; i++) {
-    current = current[parts[i]] as Record<string, unknown>;
+    const next = current[parts[i]];
+    if (next === null || typeof next !== 'object') {
+      const created: Record<string, unknown> = {};
+      current[parts[i]] = created;
+      current = created;
+    } else {
+      current = next as Record<string, unknown>;
+    }
   }
   current[parts[parts.length - 1]] = value;
   return result;

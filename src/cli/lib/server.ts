@@ -29,6 +29,7 @@ import {
 } from './agent/agent-runtime';
 import { buildPermissionResponse } from './agent/adapters/acp';
 import { createPermissionQueue } from './agent/permission-queue';
+import { createOrchestrator, type AutopilotOrchestrator } from './agent/orchestrator';
 import { createSessionEditTracker, type SessionEditTracker } from './agent/session-edits';
 import { createWatcher, type FileWatcher } from './file-watcher';
 import {
@@ -168,6 +169,25 @@ function getAgentEditRuntime(kandownDir: string): AgentEditRuntime {
 /** 📖 Approval queue for routed permission requests; entries are parked here
  *  until the web UI resolves them (see the two /api/agent/sessions routes). */
 const permissionQueue = createPermissionQueue();
+
+/** 📖 One autopilot orchestrator per daemon process (t311), created lazily on
+ *  the first /api/agent/autopilot request so projects that never use the
+ *  feature pay for nothing. Rebuilt if the daemon is pointed at a different
+ *  project. Snapshots broadcast on the board SSE channel at every pivot. */
+let autopilotOrchestrator: AutopilotOrchestrator | null = null;
+let autopilotOrchestratorDir: string | null = null;
+
+function getAutopilotOrchestrator(kandownDir: string): AutopilotOrchestrator {
+  if (autopilotOrchestrator && autopilotOrchestratorDir === kandownDir) return autopilotOrchestrator;
+  autopilotOrchestrator?.dispose();
+  autopilotOrchestrator = createOrchestrator(
+    getProjectRoot(kandownDir),
+    kandownDir,
+    { broadcast: broadcastSseEvent },
+  );
+  autopilotOrchestratorDir = kandownDir;
+  return autopilotOrchestrator;
+}
 
 /** 📖 Git work-tree detection, cached per project root for the process
  *  lifetime: `.git` present, or git itself confirming. The two-second guard
@@ -773,6 +793,38 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
     // 📖 Index-only removal: a live runtime session is never stopped here.
     forgetSessionIndexEntry(projectRoot, entryId);
     return writeJson(res, 200, { ok: true });
+  }
+
+  // 📖 Autopilot orchestration API (t311). GET answers the frozen snapshot
+  // shape the web UI codes against; start resolves the harness (body
+  // override, else the catalog preferred agent, else the first installed)
+  // and answers 400 when nothing is installed; stop stops every active
+  // session and empties the queue. Snapshots broadcast as `agent_autopilot`
+  // on the board SSE channel at every pivot. Fan-out note: the Vite dev
+  // plugin mirrors these routes and must keep the same shapes (the demo
+  // backend answers 501, as for the other agent routes).
+  if (path === '/api/agent/autopilot' && method === 'GET') {
+    return writeJson(res, 200, getAutopilotOrchestrator(kandownDir).snapshot());
+  }
+
+  if (path === '/api/agent/autopilot/start' && method === 'POST') {
+    let body: { harnessId?: unknown } = {};
+    try {
+      body = JSON.parse(await readRequestBody(req)) as typeof body;
+    } catch {
+      // 📖 An empty or non-JSON body is allowed: start without an override
+      // resolves the harness from the catalog and config.
+    }
+    const override = typeof body.harnessId === 'string' && body.harnessId.trim() ? body.harnessId.trim() : undefined;
+    try {
+      return writeJson(res, 200, getAutopilotOrchestrator(kandownDir).start(override));
+    } catch (error) {
+      return writeJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+
+  if (path === '/api/agent/autopilot/stop' && method === 'POST') {
+    return writeJson(res, 200, getAutopilotOrchestrator(kandownDir).stop());
   }
 
   // 📖 Live-edit approvals (t309). The UI lists a session's pending permission

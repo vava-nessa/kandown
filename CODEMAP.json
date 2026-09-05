@@ -8,14 +8,14 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 13949,
+      "lines": 14378,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 62792,
+      "lines": 62815,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -332,6 +332,19 @@
       "summary": "Proves fresh projects print the exact shared compiler output on stdout and that an explicit task replaces the general board digest."
     },
     {
+      "path": "src/cli/lib/__tests__/orchestrator.spec.ts",
+      "lines": 532,
+      "title": "Autopilot orchestrator tests",
+      "summary": "Locks the daemon half of autopilot (t311): the pure readiness filter (dependency gating through the shared helpers, terminal and archived detection, live/queued exclusion), the priority/id queue order, the orphan rule, the budget…",
+      "functions": [
+        {
+          "name": "(vitest suites)",
+          "summary": null
+        }
+      ],
+      "exports": "(tests)"
+    },
+    {
       "path": "src/cli/lib/__tests__/permission-queue.spec.ts",
       "lines": 126,
       "title": "Permission queue tests",
@@ -524,7 +537,7 @@
     },
     {
       "path": "src/cli/lib/agent/agent-runtime.ts",
-      "lines": 456,
+      "lines": 491,
       "title": "AgentRuntime: the harness session facade",
       "summary": "Spawns and drives harness sessions, normalizing every protocol into the shared event model.",
       "functions": [
@@ -587,6 +600,43 @@
         }
       ],
       "exports": "HARNESS_DEFS, detectHarnessesJSON, getHarnessDef, resolveHarness"
+    },
+    {
+      "path": "src/cli/lib/agent/orchestrator.ts",
+      "lines": 656,
+      "title": "Autopilot orchestrator: the daemon-side task loop over harness sessions",
+      "summary": "Owns the \"who works next\" half of autopilot (t311).",
+      "functions": [
+        {
+          "name": "computeReadyTasks     : pure readiness filter (terminal, deps, live, queued)",
+          "summary": null
+        },
+        {
+          "name": "orderQueue            : priority first (P1), then id, board-digest style",
+          "summary": null
+        },
+        {
+          "name": "computeOrphanTaskIds  : non-terminal non-backlog tasks with no live session",
+          "summary": null
+        },
+        {
+          "name": "budgetDecision        : none | stop-session | stop-run from caps and totals",
+          "summary": null
+        },
+        {
+          "name": "extractHandoff        : completion report of a terminal task, for cascade",
+          "summary": null
+        },
+        {
+          "name": "buildAutopilotPrompt  : handoff block + compiled work doc + directives",
+          "summary": null
+        },
+        {
+          "name": "createOrchestrator    : the daemon-side instance (start/stop/snapshot/dispose)",
+          "summary": null
+        }
+      ],
+      "exports": "AutopilotTaskInput, AutopilotHandoff, AutopilotTotals, AutopilotCaps, AutopilotSnapshotConfig, AutopilotActiveEntry, AutopilotSnapshot, BudgetDecision, AutopilotBroadcaster, AutopilotEventSubscriber, AutopilotSessionFactory, AutopilotSessionStopper, AutopilotWorkCompiler, AutopilotOrchestratorOptions, AutopilotOrchestrator, AUTOPOLL_INTERVAL_MS, MIN_PARALLEL, MAX_PARALLEL, computeReadyTasks, orderQueue, computeOrphanTaskIds, budgetDecision, extractHandoff, buildAutopilotPrompt, createOrchestrator"
     },
     {
       "path": "src/cli/lib/agent/permission-queue.ts",
@@ -653,7 +703,7 @@
     },
     {
       "path": "src/cli/lib/agent/types.ts",
-      "lines": 142,
+      "lines": 157,
       "title": "Agent harness contracts: the normalized event model and session types",
       "summary": "Defines the single event vocabulary every harness adapter normalizes to, the session configuration the runtime accepts, and the adapter interface each protocol backend implements.",
       "functions": [
@@ -662,7 +712,7 @@
           "summary": null
         }
       ],
-      "exports": "PermissionMode, PermissionSupport, AgentEventType, AgentEvent, AgentSessionConfig, AgentSessionInfo, AgentSessionStatus, HarnessAdapter, AdapterEvent, AdapterParseResult, AdapterState, EDIT_TOOL_NAMES"
+      "exports": "PermissionMode, PermissionSupport, AgentEventType, AgentEvent, AgentSessionConfig, AgentSessionInfo, AgentSessionStatus, AgentUsageTotals, HarnessAdapter, AdapterEvent, AdapterParseResult, AdapterState, EDIT_TOOL_NAMES"
     },
     {
       "path": "src/cli/lib/agents-config.ts",
@@ -1152,7 +1202,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 1311,
+      "lines": 1363,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
@@ -1574,6 +1624,27 @@
       "exports": "isApprovalStackHost, ApprovalCard, ApprovalCardStack"
     },
     {
+      "path": "src/components/agent/AutopilotControls.tsx",
+      "lines": 132,
+      "title": "Autopilot sidebar controls (t311)",
+      "summary": "Compact control row mounted in the agent chat sidebar header: a play/stop toggle for the daemon's autopilot run (with kill-switch styling while running: destructive tint, pulsing dot, active count, and an 800ms click debounce so a…",
+      "functions": [
+        {
+          "name": "formatTokens: compact token count (k / M)",
+          "summary": null
+        },
+        {
+          "name": "formatCost: compact USD cost",
+          "summary": null
+        },
+        {
+          "name": "AutopilotControls: the header control row",
+          "summary": null
+        }
+      ],
+      "exports": "AutopilotControls"
+    },
+    {
       "path": "src/components/agent/Blobatar.tsx",
       "lines": 61,
       "title": "Agent blob avatar (t309)",
@@ -1604,8 +1675,25 @@
       "exports": "CardBeam"
     },
     {
+      "path": "src/components/agent/CardStopButton.tsx",
+      "lines": 110,
+      "title": "Per-card autopilot stop button and status chip (t311)",
+      "summary": "The board-surface half of the autopilot UI.",
+      "functions": [
+        {
+          "name": "AutopilotStatusChip: Working / Queued / Resumable pill",
+          "summary": null
+        },
+        {
+          "name": "CardStopButton: per-task session stop button",
+          "summary": null
+        }
+      ],
+      "exports": "AutopilotStatusChip, CardStopButton"
+    },
+    {
       "path": "src/components/agent/ChatSidebar.tsx",
-      "lines": 309,
+      "lines": 316,
       "title": "Agent chat sidebar (t308)",
       "summary": "The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.",
       "functions": [
@@ -1827,7 +1915,7 @@
     },
     {
       "path": "src/components/Card.tsx",
-      "lines": 529,
+      "lines": 555,
       "title": "Task card",
       "summary": "Displays one board task as a clean, rounded card inside a column.",
       "functions": [
@@ -2076,7 +2164,7 @@
     },
     {
       "path": "src/components/ListRow.tsx",
-      "lines": 561,
+      "lines": 580,
       "title": "List row component",
       "summary": "Renders a single task as a compact, Linear-style list item for the list view, with priority indicators, title, status, metadata badges, inline subtask progress slider, and hover quick actions.",
       "functions": [
@@ -2170,7 +2258,7 @@
     },
     {
       "path": "src/components/settings/schema.ts",
-      "lines": 469,
+      "lines": 548,
       "title": "Settings page — schema & config helpers",
       "summary": "Declarative metadata describing every setting (section, type, description, keywords) plus pure functions for reading/writing dotted config paths and building the sidebar search index.",
       "functions": [
@@ -2526,6 +2614,12 @@
       "summary": "Covers the event fold (applyAgentEditsEvent), the permission queue helpers, diff pruning and the LCS-free line diff exported by src/lib/store/agentEditsSlice.ts, plus the board-event type guards exported by src/lib/watcher.ts (the…"
     },
     {
+      "path": "src/lib/__tests__/autopilot.spec.ts",
+      "lines": 246,
+      "title": "Unit tests for the autopilot orchestration pure core (t311)",
+      "summary": "Covers the snapshot fold (ingestAutopilotSnapshot), the board event fold (applyAutopilotEvent), the failed kill-switch rollback (rollbackAutopilotStop) and the per-task lookups (autopilotTaskStatus, activeSessionForTask) exported by…"
+    },
+    {
       "path": "src/lib/__tests__/browser-extension-runtime.spec.ts",
       "lines": 207,
       "title": "Standalone browser extension runtime integration tests",
@@ -2710,7 +2804,7 @@
     },
     {
       "path": "src/lib/config.ts",
-      "lines": 414,
+      "lines": 448,
       "title": "Shared Kandown config normalization",
       "summary": "Converts unknown kandown.json input into the canonical config contract used by browser and Node adapters.",
       "functions": [
@@ -3387,7 +3481,7 @@
     },
     {
       "path": "src/lib/store.ts",
-      "lines": 2062,
+      "lines": 2084,
       "title": "Kandown Zustand store",
       "summary": "Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.",
       "functions": [
@@ -3471,6 +3565,39 @@
       "summary": "Lazy content-loading for search (>10 tasks defers full reads until search is used), the CLI daemon's optional \"send to agent\" hook, and resolving a drawer edit-conflict flagged by the file watcher."
     },
     {
+      "path": "src/lib/store/autopilotSlice.ts",
+      "lines": 357,
+      "title": "Zustand store slice: autopilot orchestration (t311)",
+      "summary": "Web UI half of the autopilot daemon: keeps the latest orchestration snapshot (run state, active sessions per task, queue, orphans, accumulated token/cost totals), drives the sidebar controls (start, kill switch) and powers the per-card…",
+      "functions": [
+        {
+          "name": "createInitialAutopilotState: empty autopilot state",
+          "summary": null
+        },
+        {
+          "name": "createAutopilotSlice: SSE wiring, snapshot fetch, start, kill switch,",
+          "summary": null
+        },
+        {
+          "name": "ingestAutopilotSnapshot: fold one wire snapshot into the state (pure)",
+          "summary": null
+        },
+        {
+          "name": "applyAutopilotEvent: fold one board event into the state (pure)",
+          "summary": null
+        },
+        {
+          "name": "rollbackAutopilotStop: restore state after a failed kill switch (pure)",
+          "summary": null
+        },
+        {
+          "name": "autopilotTaskStatus / activeSessionForTask: per-task lookups (pure)",
+          "summary": null
+        }
+      ],
+      "exports": "AutopilotSlice, createAutopilotSlice, createInitialAutopilotState, ingestAutopilotSnapshot, applyAutopilotEvent, rollbackAutopilotStop, autopilotTaskStatus, activeSessionForTask, AutopilotWireSnapshot"
+    },
+    {
       "path": "src/lib/store/boardSlice.ts",
       "lines": 590,
       "title": "Zustand store slice — board mutations",
@@ -3496,7 +3623,7 @@
     },
     {
       "path": "src/lib/store/types.ts",
-      "lines": 382,
+      "lines": 441,
       "title": "Zustand store — shared types",
       "summary": "State shape and supporting interfaces used across every store slice."
     },
@@ -3707,10 +3834,10 @@
     },
     {
       "path": "src/lib/types.ts",
-      "lines": 579,
+      "lines": 603,
       "title": "Shared domain types",
       "summary": "Defines the board, task, config, filter, search, and appearance contracts shared by the Kandown web UI, CLI, TUI, and persistence adapters.",
-      "exports": "Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, ColumnRole, ColumnAgentMeta, WorkflowSelectionConfig, TaskTrackingCadence, WorkOutputDetailMode, TuiConfig, AgentsConfig, KandownConfig, DEFAULT_COLUMNS, DEFAULT_WORK_OUTPUT, DEFAULT_COLUMN_META, DEFAULT_CONFIG, PermissionMode, PERMISSION_MODES, PermissionSupport, DetectedHarness, SessionIndexEntryPayload, AgentSessionPayload"
+      "exports": "Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, ColumnRole, ColumnAgentMeta, WorkflowSelectionConfig, TaskTrackingCadence, WorkOutputDetailMode, TuiConfig, AgentsConfig, AutopilotConfig, KandownConfig, DEFAULT_COLUMNS, DEFAULT_WORK_OUTPUT, DEFAULT_COLUMN_META, DEFAULT_CONFIG, PermissionMode, PERMISSION_MODES, PermissionSupport, DetectedHarness, SessionIndexEntryPayload, AgentSessionPayload"
     },
     {
       "path": "src/lib/utils.ts",
@@ -3736,7 +3863,7 @@
     },
     {
       "path": "src/lib/watcher.ts",
-      "lines": 464,
+      "lines": 518,
       "title": "File watcher for Kandown",
       "summary": "Watches project state through content-hashed File System Access polling or daemon SSE.",
       "functions": [
@@ -3757,7 +3884,7 @@
           "summary": null
         }
       ],
-      "exports": "FileWatcher, fileWatcher, AgentEditStartedEvent, AgentEditEndedEvent, TaskDiffEvent, AgentPermissionEvent, AgentEditsBoardEvent, isAgentEditStartedEvent, isAgentEditEndedEvent, isTaskDiffEvent, isAgentPermissionEvent, isAgentEditsBoardEvent"
+      "exports": "FileWatcher, fileWatcher, AgentEditStartedEvent, AgentEditEndedEvent, TaskDiffEvent, AgentPermissionEvent, AgentAutopilotEvent, AgentAutopilotEntry, AgentEditsBoardEvent, isAgentEditStartedEvent, isAgentEditEndedEvent, isTaskDiffEvent, isAgentPermissionEvent, isAgentAutopilotEvent, isAgentEditsBoardEvent"
     },
     {
       "path": "src/lib/workflows/builtin-skills.ts",

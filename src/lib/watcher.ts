@@ -16,19 +16,23 @@
  * `agent_edit_ended`, `task_diff` and `agent_permission` on the same
  * `/api/events` SSE stream as the board events. Each payload is narrowed by a
  * type guard before the matching callback fires, so a malformed event from a
- * newer daemon is ignored instead of crashing the consumer.
+ * newer daemon is ignored instead of crashing the consumer. The same stream
+ * carries the autopilot orchestration snapshots (t311, `agent_autopilot`),
+ * narrowed the same way.
  *
  * @functions
  *  → FileWatcher: polling watcher with content hashing and SSE parsing
  *  → fileWatcher: singleton instance
  *  → isAgentEditStartedEvent / isAgentEditEndedEvent / isTaskDiffEvent /
- *    isAgentPermissionEvent / isAgentEditsBoardEvent: payload guards
+ *    isAgentPermissionEvent / isAgentAutopilotEvent / isAgentEditsBoardEvent:
+ *    payload guards
  *  → readConfigFileText / readTaskFileText: raw text helpers
  *
  * @exports FileWatcher, fileWatcher, AgentEditStartedEvent, AgentEditEndedEvent,
- * TaskDiffEvent, AgentPermissionEvent, AgentEditsBoardEvent,
- * isAgentEditStartedEvent, isAgentEditEndedEvent, isTaskDiffEvent,
- * isAgentPermissionEvent, isAgentEditsBoardEvent
+ * TaskDiffEvent, AgentPermissionEvent, AgentAutopilotEvent, AgentAutopilotEntry,
+ * AgentEditsBoardEvent, isAgentEditStartedEvent, isAgentEditEndedEvent,
+ * isTaskDiffEvent, isAgentPermissionEvent, isAgentAutopilotEvent,
+ * isAgentEditsBoardEvent
  */
 
 import { isTaskFilename, resolveTaskFilename, taskIdFromFilename } from './task-filename';
@@ -85,6 +89,29 @@ export interface AgentPermissionEvent {
   at: string;
 }
 
+/** 📖 One task an autopilot session is currently working on (t311). */
+export interface AgentAutopilotEntry {
+  taskId: string;
+  sessionId: string;
+}
+
+/** 📖 Autopilot orchestration snapshot (t311), emitted on the board SSE stream
+ * whenever the daemon's autopilot state changes. `active` lists the sessions
+ * currently working, `queue` the task ids waiting for a slot, `orphans` the
+ * task ids with a live session that no longer belongs to the run (resumable).
+ * `totals` carries the run usage; kandown treats it as the delta since the
+ * previous snapshot and accumulates it per run (reset when state leaves
+ * `running`). */
+export interface AgentAutopilotEvent {
+  type: 'agent_autopilot';
+  state: 'idle' | 'running';
+  active: AgentAutopilotEntry[];
+  queue: string[];
+  orphans: string[];
+  totals: { tokens: number; costUsd: number };
+  at: string;
+}
+
 export type AgentEditsBoardEvent =
   | AgentEditStartedEvent
   | AgentEditEndedEvent
@@ -123,6 +150,24 @@ export function isAgentPermissionEvent(value: unknown): value is AgentPermission
     && isString(value.title) && isString(value.kind) && isString(value.at);
 }
 
+/** 📖 Narrows the autopilot board event (t311). Malformed payloads from a
+ * newer daemon are ignored instead of crashing the consumer. */
+export function isAgentAutopilotEvent(value: unknown): value is AgentAutopilotEvent {
+  if (!isRecord(value) || value.type !== 'agent_autopilot') return false;
+  if (value.state !== 'idle' && value.state !== 'running') return false;
+  if (!isString(value.at)) return false;
+  if (!Array.isArray(value.active)
+    || !value.active.every(entry =>
+      isRecord(entry) && isString(entry.taskId) && isString(entry.sessionId)
+    )) return false;
+  if (!Array.isArray(value.queue) || !value.queue.every(isString)) return false;
+  if (!Array.isArray(value.orphans) || !value.orphans.every(isString)) return false;
+  const totals = value.totals;
+  return isRecord(totals)
+    && typeof totals.tokens === 'number'
+    && typeof totals.costUsd === 'number';
+}
+
 /** 📖 One-stop narrowing for the board SSE payloads this file re-broadcasts:
  * returns false for heartbeats, garbage, and events from a newer daemon. */
 export function isAgentEditsBoardEvent(value: unknown): value is AgentEditsBoardEvent {
@@ -145,6 +190,8 @@ export interface WatcherEvents {
   agentEditEnded: (event: AgentEditEndedEvent) => void;
   taskDiff: (event: TaskDiffEvent) => void;
   agentPermission: (event: AgentPermissionEvent) => void;
+  /** 📖 Autopilot orchestration snapshots (t311), re-broadcast after narrowing. */
+  agentAutopilot: (event: AgentAutopilotEvent) => void;
 }
 
 type EventHandler<K extends keyof WatcherEvents> = WatcherEvents[K];
@@ -213,6 +260,8 @@ export class FileWatcher {
             this.emit('taskDiff', data);
           } else if (data.type === 'agent_permission' && isAgentPermissionEvent(data)) {
             this.emit('agentPermission', data);
+          } else if (data.type === 'agent_autopilot' && isAgentAutopilotEvent(data)) {
+            this.emit('agentAutopilot', data);
           }
         } catch {
           // ignore heartbeats
@@ -430,6 +479,11 @@ export class FileWatcher {
       if (event === 'taskDiff') {
         const [evt] = args as Parameters<WatcherEvents['taskDiff']>;
         (handler as WatcherEvents['taskDiff'])(evt);
+        return;
+      }
+      if (event === 'agentAutopilot') {
+        const [evt] = args as Parameters<WatcherEvents['agentAutopilot']>;
+        (handler as WatcherEvents['agentAutopilot'])(evt);
         return;
       }
       const [evt] = args as Parameters<WatcherEvents['agentPermission']>;

@@ -180,6 +180,30 @@ function kandownDevPlugin() {
               }
             }
 
+            if (parts[1] === 'autopilot') {
+              // 📖 Dev mirror of the autopilot endpoints. The orchestrator
+              // lives in the SSR module scope: one instance per dev server,
+              // same lifecycle rules as the daemon.
+              const orchestratorModule = await server.ssrLoadModule('/src/cli/lib/agent/orchestrator.ts') as typeof import('./src/cli/lib/agent/orchestrator');
+              const boardModule = await server.ssrLoadModule('/src/cli/lib/board-reader.ts') as typeof import('./src/cli/lib/board-reader');
+              const orchestrator = orchestratorModule.createOrchestrator(boardModule.getProjectRoot(kandownPath), kandownPath);
+              if (req.method === 'GET') {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(orchestrator.snapshot()));
+                return;
+              }
+              if (req.method === 'POST' && parts[2] === 'start') {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(orchestrator.start()));
+                return;
+              }
+              if (req.method === 'POST' && parts[2] === 'stop') {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(orchestrator.stop()));
+                return;
+              }
+            }
+
             if (parts[1] === 'sessions') {
               const runtimeModule = await server.ssrLoadModule('/src/cli/lib/agent/agent-runtime.ts') as typeof import('./src/cli/lib/agent/agent-runtime');
 

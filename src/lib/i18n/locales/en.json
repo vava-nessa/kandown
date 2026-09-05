@@ -266,6 +266,14 @@
     "permissionModeDesc": "How much approval agents get in kandown-driven sessions. Yolo lets the harness apply edits directly, git is the safety net. Accept edits asks before each change when the harness supports it, and stays advisory otherwise.",
     "yolo": "Yolo",
     "acceptEdits": "Accept edits",
+    "autopilotMaxParallel": "Autopilot: parallel tasks",
+    "autopilotMaxParallelDesc": "How many tasks the autopilot daemon runs at the same time (1 to 8).",
+    "autopilotSessionTokenCap": "Autopilot: session token cap",
+    "autopilotSessionTokenCapDesc": "Token budget for one autopilot session; the daemon stops the session when it is reached. 0 means no cap.",
+    "autopilotRunTokenCap": "Autopilot: run token cap",
+    "autopilotRunTokenCapDesc": "Token budget for the whole autopilot run across all sessions; the daemon winds the run down when it is reached. 0 means no cap.",
+    "autopilotRunCostCapUsd": "Autopilot: run cost cap (USD)",
+    "autopilotRunCostCapUsdDesc": "Cost budget in US dollars for the whole autopilot run; the daemon winds the run down when it is reached. 0 means no cap.",
     "harnesses": {
       "title": "Agent harnesses",
       "description": "Kandown drives coding agent CLIs that are already installed and already authenticated on this machine. It never asks for an API key.",
@@ -526,5 +534,20 @@
     "gitWarningTitle": "Project folder is not a git repository",
     "gitWarningBody": "Agent edits cannot be tracked or reverted without git. Run git init in the project folder so every change stays recoverable.",
     "dismiss": "Dismiss"
+  },
+  "agentAutopilot": {
+    "start": "Autopilot",
+    "stopping": "Stopping...",
+    "runTooltip": "Autopilot running: {{active}} active, {{queued}} queued, {{resumable}} resumable. Stop ends every session.",
+    "idleTooltip": "Autopilot is idle. Start it to let the daemon pick and run tasks on its own.",
+    "totalsTitle": "Run totals (tokens, cost)",
+    "working": "Working",
+    "workingTitle": "An autopilot session is working on this task",
+    "queued": "Queued",
+    "queuedTitle": "Waiting for a free autopilot slot",
+    "resumable": "Resumable",
+    "resumableTitle": "A live session exists for this task but left the run; it can be resumed",
+    "stopTask": "Stop the agent working on this task",
+    "stopTaskTitle": "Stop this autopilot session"
   }
 }

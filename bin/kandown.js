@@ -337,7 +337,7 @@ var init_types = __esm({
     };
     DEFAULT_CONFIG = {
       ui: { language: "en", theme: "auto", skin: "shadcn", font: "inter", background: "solid", onboardingCompleted: false, categoryChips: true },
-      agent: { suggestFollowUp: false, maxSuggestions: 3, permissionMode: "yolo", workOutput: DEFAULT_WORK_OUTPUT },
+      agent: { suggestFollowUp: false, maxSuggestions: 3, permissionMode: "yolo", workOutput: DEFAULT_WORK_OUTPUT, autopilot: { maxParallel: 2 } },
       workflow: { active: "kandown-standard", skills: [], trackingCadence: "balanced" },
       board: {
         columns: DEFAULT_COLUMNS,
@@ -478,6 +478,26 @@ function normalizeAgents(value) {
   if (extraArgs) agents.extraArgs = extraArgs;
   return agents;
 }
+function nonNegativeNumberOrUndefined(value) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : void 0;
+}
+function normalizeAutopilot(value) {
+  const raw = safeObject(value);
+  const fallback = DEFAULT_CONFIG.agent.autopilot?.maxParallel ?? 2;
+  const requested = Math.floor(numberOr(raw.maxParallel, fallback));
+  const autopilot = {
+    maxParallel: Math.min(MAX_PARALLEL, Math.max(MIN_PARALLEL, requested))
+  };
+  const sessionTokenCap = nonNegativeNumberOrUndefined(raw.sessionTokenCap);
+  if (sessionTokenCap !== void 0) autopilot.sessionTokenCap = sessionTokenCap;
+  const sessionCostCapUsd = nonNegativeNumberOrUndefined(raw.sessionCostCapUsd);
+  if (sessionCostCapUsd !== void 0) autopilot.sessionCostCapUsd = sessionCostCapUsd;
+  const runTokenCap = nonNegativeNumberOrUndefined(raw.runTokenCap);
+  if (runTokenCap !== void 0) autopilot.runTokenCap = runTokenCap;
+  const runCostCapUsd = nonNegativeNumberOrUndefined(raw.runCostCapUsd);
+  if (runCostCapUsd !== void 0) autopilot.runCostCapUsd = runCostCapUsd;
+  return autopilot;
+}
 function normalizeCustomThemes(value) {
   if (!Array.isArray(value)) return void 0;
   const themes = value.filter((entry) => {
@@ -560,7 +580,8 @@ function normalizeKandownConfig(raw) {
             DEFAULT_WORK_OUTPUT.boardDigest.showNextActionable
           )
         }
-      }
+      },
+      autopilot: normalizeAutopilot(agent.autopilot)
     },
     workflow: {
       active: stringOr(workflow.active, DEFAULT_CONFIG.workflow.active),
@@ -639,7 +660,7 @@ function resolveColumnNamesByRole(config, role) {
 function resolveColumnNameByRole(config, role) {
   return resolveColumnNamesByRole(config, role)[0];
 }
-var COLUMN_ROLES, DETAIL_MODES, TRACKING_CADENCES, BASE_RULES_MODES, COLUMN_COLORS, FONT_IDS, THEME_MODES, SOUND_IDS;
+var COLUMN_ROLES, DETAIL_MODES, TRACKING_CADENCES, BASE_RULES_MODES, COLUMN_COLORS, FONT_IDS, THEME_MODES, SOUND_IDS, MIN_PARALLEL, MAX_PARALLEL;
 var init_config = __esm({
   "src/lib/config.ts"() {
     "use strict";
@@ -688,6 +709,8 @@ var init_config = __esm({
     FONT_IDS = ["inter", "system", "serif", "mono", "rounded"];
     THEME_MODES = ["auto", "light", "dark"];
     SOUND_IDS = ["soft", "chime", "ping", "pop"];
+    MIN_PARALLEL = 1;
+    MAX_PARALLEL = 8;
   }
 });
 
@@ -7622,10 +7645,25 @@ function createLineSplitter(onLine) {
 function meta(record) {
   return { sessionId: record.info.id, harnessId: record.info.harnessId, timestamp: (/* @__PURE__ */ new Date()).toISOString() };
 }
+function finiteOrZero(value) {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
 function recordEvent(record, event) {
+  if (event.type === "usage") {
+    const totals = record.info.usageTotals ?? { tokens: 0, costUsd: 0 };
+    totals.tokens += finiteOrZero(event.inputTokens) + finiteOrZero(event.outputTokens) + finiteOrZero(event.cachedInputTokens);
+    totals.costUsd += finiteOrZero(event.costUsd);
+    record.info.usageTotals = totals;
+  }
   record.buffer.push(event);
   if (record.buffer.length > EVENT_BUFFER_LIMIT) record.buffer.shift();
   record.emitter.emit("event", event);
+}
+function snapshotInfo(record) {
+  return {
+    ...record.info,
+    ...record.info.usageTotals ? { usageTotals: { ...record.info.usageTotals } } : {}
+  };
 }
 function handleLine(record, line) {
   if (!line.trim()) return;
@@ -7741,7 +7779,8 @@ function createAgentSession(config) {
       id: `ses_${randomUUID().slice(0, 8)}`,
       harnessId: config.harnessId,
       status: "starting",
-      startedAt: (/* @__PURE__ */ new Date()).toISOString()
+      startedAt: (/* @__PURE__ */ new Date()).toISOString(),
+      usageTotals: { tokens: 0, costUsd: 0 }
     },
     config: { ...config, protocolArgs: [...resolved.def.protocolArgs] },
     adapter,
@@ -7762,14 +7801,14 @@ function createAgentSession(config) {
   };
   sessions.set(record.info.id, record);
   startChild(record);
-  return { ...record.info };
+  return snapshotInfo(record);
 }
 function listAgentSessions() {
-  return [...sessions.values()].map((record) => ({ ...record.info }));
+  return [...sessions.values()].map(snapshotInfo);
 }
 function getAgentSession(id) {
   const record = sessions.get(id);
-  return record ? { ...record.info } : void 0;
+  return record ? snapshotInfo(record) : void 0;
 }
 function subscribeAgentSession(id, listener) {
   const record = sessions.get(id);
@@ -7908,6 +7947,364 @@ function createPermissionQueue() {
       return total;
     }
   };
+}
+
+// src/cli/lib/agent/orchestrator.ts
+init_config();
+init_dependencies();
+init_board_reader();
+init_config2();
+var AUTOPOLL_INTERVAL_MS = 5e3;
+var MIN_PARALLEL2 = 1;
+var MAX_PARALLEL2 = 8;
+function boardWithTerminal(terminal) {
+  return {
+    board: {
+      columns: [terminal],
+      defaultPriority: "P3",
+      defaultOwnerType: "human",
+      columnMeta: { [terminal]: { role: "terminal" } },
+      stackDefaultState: "collapsed"
+    }
+  };
+}
+function isTerminalTaskStatus(task, terminal) {
+  const status = String(task.status ?? "").toLowerCase();
+  return status === terminal.toLowerCase() || status === "archived" || task.archived === true || task.archived === "true";
+}
+function computeReadyTasks(tasks, terminal, liveTaskIds = []) {
+  const excluded = new Set(liveTaskIds);
+  const resolution = resolveDependencyStatus(tasks, boardWithTerminal(terminal));
+  return tasks.filter((task) => {
+    if (excluded.has(task.id)) return false;
+    if (isTerminalTaskStatus(task, terminal)) return false;
+    return unresolvedDependencyIds(
+      { id: task.id, status: task.status, depends_on: task.depends_on },
+      resolution
+    ).length === 0;
+  });
+}
+function orderQueue(tasks) {
+  const rank = (task) => {
+    const parsed = Number.parseInt(String(task.priority ?? "P9").slice(1), 10);
+    return parsed || 9;
+  };
+  return [...tasks].sort(
+    (a, b) => rank(a) - rank(b) || a.id.localeCompare(b.id, void 0, { numeric: true })
+  );
+}
+function computeOrphanTaskIds(tasks, terminal, backlog, liveTaskIds = [], queuedIds = []) {
+  const live = new Set(liveTaskIds);
+  const queued = new Set(queuedIds);
+  const backlogLower = backlog === void 0 ? void 0 : backlog.toLowerCase();
+  const candidates = tasks.filter((task) => {
+    if (live.has(task.id) || queued.has(task.id)) return false;
+    if (isTerminalTaskStatus(task, terminal)) return false;
+    const status = String(task.status ?? "");
+    if (backlogLower !== void 0 && status.toLowerCase() === backlogLower) return false;
+    return true;
+  });
+  return orderQueue(candidates).map((task) => task.id);
+}
+function budgetDecision(session, run, caps) {
+  const runOver = caps.runTokenCap !== void 0 && run.tokens > caps.runTokenCap || caps.runCostCapUsd !== void 0 && run.costUsd > caps.runCostCapUsd;
+  if (runOver) return "stop-run";
+  const sessionOver = caps.sessionTokenCap !== void 0 && session.tokens > caps.sessionTokenCap || caps.sessionCostCapUsd !== void 0 && session.costUsd > caps.sessionCostCapUsd;
+  return sessionOver ? "stop-session" : "none";
+}
+function extractHandoff(kandownDir, taskId, terminal) {
+  try {
+    const task = readTask(kandownDir, taskId);
+    const status = String(task.frontmatter.status ?? "");
+    if (status.toLowerCase() !== terminal.toLowerCase()) return null;
+    const report = typeof task.frontmatter.report === "string" ? task.frontmatter.report.trim() : "";
+    if (!report) return null;
+    const title2 = typeof task.frontmatter.title === "string" && task.frontmatter.title.trim() ? task.frontmatter.title.trim() : taskId;
+    return { id: taskId, title: title2, report };
+  } catch {
+    return null;
+  }
+}
+function buildAutopilotPrompt(compiled, handoffs, terminalStatusName) {
+  const sections = [];
+  if (handoffs.length > 0) {
+    const entries = handoffs.map((handoff) => `### ${handoff.id} ${handoff.title}
+
+${handoff.report.trim()}`);
+    sections.push(
+      "## Cascade handoff: completed earlier in this autopilot run\n\nThese tasks were completed earlier in the same run. Treat their reports as context: build on this work, do not redo or contradict it.\n\n" + entries.join("\n\n")
+    );
+  }
+  sections.push(compiled.trim());
+  sections.push(
+    `## Autopilot directives
+
+You are running autonomously inside a kandown project. For the task above:
+
+1. Work the task to done.
+2. Keep the task checklist and reports updated as you go: the task file is the work log.
+3. Respect the board column gates; never bypass a dependency.
+4. Write a completion report into the task file when the work is finished.
+5. Propose the move to "${terminalStatusName}" in your completion report, but let the human confirm the terminal move.`
+  );
+  return sections.join("\n\n");
+}
+function createOrchestrator(projectRoot, kandownDir, options = {}) {
+  const broadcast = options.broadcast ?? (() => {
+  });
+  const subscribe = options.subscribe ?? subscribeAgentSession;
+  const createSession = options.createSession ?? createAgentSession;
+  const stopSession = options.stopSession ?? stopAgentSession;
+  const compileWork = options.compileWork ?? compileProjectKandownWork;
+  const isHarnessInstalled = options.isHarnessInstalled ?? ((id) => resolveHarness(id) !== null);
+  const pollIntervalMs = options.pollIntervalMs ?? AUTOPOLL_INTERVAL_MS;
+  let running = false;
+  let harnessId;
+  let queue = [];
+  let timer = null;
+  let lastBroadcastKey = "";
+  const active = /* @__PURE__ */ new Map();
+  const completed = /* @__PURE__ */ new Map();
+  const abandoned = /* @__PURE__ */ new Set();
+  const sessionTotals = /* @__PURE__ */ new Map();
+  let runTotals = { tokens: 0, costUsd: 0 };
+  const unsubscribes = /* @__PURE__ */ new Map();
+  function finiteOrZero2(value) {
+    return typeof value === "number" && Number.isFinite(value) ? value : 0;
+  }
+  function roundCost(value) {
+    return Math.round(value * 1e6) / 1e6;
+  }
+  function autopilotSettings(config) {
+    return config.agent.autopilot ?? { maxParallel: 2 };
+  }
+  function snapshotConfig(config) {
+    const autopilot = autopilotSettings(config);
+    return {
+      maxParallel: Math.min(MAX_PARALLEL2, Math.max(MIN_PARALLEL2, Math.floor(autopilot.maxParallel))),
+      ...autopilot.sessionTokenCap !== void 0 ? { sessionTokenCap: autopilot.sessionTokenCap } : {},
+      ...autopilot.sessionCostCapUsd !== void 0 ? { sessionCostCapUsd: autopilot.sessionCostCapUsd } : {},
+      ...autopilot.runTokenCap !== void 0 ? { runTokenCap: autopilot.runTokenCap } : {},
+      ...autopilot.runCostCapUsd !== void 0 ? { runCostCapUsd: autopilot.runCostCapUsd } : {}
+    };
+  }
+  function readAllTasks() {
+    const tasks = [];
+    for (const id of listTaskIds(kandownDir)) {
+      try {
+        const task = readTask(kandownDir, id);
+        const fm = task.frontmatter;
+        tasks.push({
+          id,
+          status: typeof fm.status === "string" ? fm.status : "",
+          priority: typeof fm.priority === "string" ? fm.priority : void 0,
+          depends_on: fm.depends_on,
+          archived: fm.archived
+        });
+      } catch (error) {
+        console.error(`[kandown] autopilot: cannot read task ${id}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+    return tasks;
+  }
+  function resolveHarnessId(override) {
+    if (override && override.trim()) {
+      const id = override.trim();
+      if (!isHarnessInstalled(id)) {
+        throw new Error(`Harness "${id}" is not installed or unknown.`);
+      }
+      return id;
+    }
+    const config = loadConfig(kandownDir);
+    const preferred = config.agents?.preferred;
+    if (preferred && isHarnessInstalled(preferred)) return preferred;
+    for (const def of HARNESS_DEFS) {
+      if (isHarnessInstalled(def.id)) return def.id;
+    }
+    throw new Error(`No agent harness is installed. Install one of: ${HARNESS_DEFS.map((def) => def.id).join(", ")}.`);
+  }
+  function buildSnapshot() {
+    const config = loadConfig(kandownDir);
+    const tasks = readAllTasks();
+    const terminal = terminalStatus(config);
+    const backlog = resolveColumnNameByRole(config, "backlog");
+    const liveTaskIds = [...active.values()];
+    const orphans = computeOrphanTaskIds(tasks, terminal, backlog, liveTaskIds, queue);
+    return {
+      state: running ? "running" : "idle",
+      ...harnessId ? { harnessId } : {},
+      active: [...active.entries()].map(([sessionId, taskId]) => ({ taskId, sessionId })),
+      queue: [...queue],
+      orphans,
+      totals: { tokens: runTotals.tokens, costUsd: roundCost(runTotals.costUsd) },
+      config: snapshotConfig(config)
+    };
+  }
+  function publish() {
+    const snapshot = buildSnapshot();
+    const key = JSON.stringify([snapshot.state, snapshot.harnessId ?? null, snapshot.active, snapshot.queue, snapshot.orphans]);
+    if (key !== lastBroadcastKey) {
+      lastBroadcastKey = key;
+      broadcast({
+        type: "agent_autopilot",
+        state: snapshot.state,
+        active: snapshot.active,
+        queue: snapshot.queue,
+        orphans: snapshot.orphans,
+        totals: snapshot.totals,
+        at: (/* @__PURE__ */ new Date()).toISOString()
+      });
+    }
+    return snapshot;
+  }
+  function spawnSession(taskId, config) {
+    const compiled = compileWork(kandownDir, taskId);
+    const prompt = buildAutopilotPrompt(compiled.markdown, [...completed.values()], terminalStatus(config));
+    const session = createSession({
+      harnessId: harnessId ?? "",
+      projectRoot,
+      prompt,
+      permissionMode: config.agent.permissionMode
+    });
+    active.set(session.id, taskId);
+    const unsubscribe = subscribe(session.id, (event) => handleSessionEvent(session.id, taskId, event));
+    if (unsubscribe) unsubscribes.set(session.id, unsubscribe);
+  }
+  function dispatchFromQueue() {
+    if (!running) return false;
+    const config = loadConfig(kandownDir);
+    const maxParallel = snapshotConfig(config).maxParallel;
+    let dispatched = false;
+    while (running && active.size < maxParallel && queue.length > 0) {
+      const taskId = queue.shift();
+      if (completed.has(taskId)) continue;
+      if ([...active.values()].includes(taskId)) continue;
+      try {
+        spawnSession(taskId, config);
+        dispatched = true;
+      } catch (error) {
+        console.error(`[kandown] autopilot: failed to dispatch ${taskId}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+    return dispatched;
+  }
+  function refreshQueue() {
+    const config = loadConfig(kandownDir);
+    const tasks = readAllTasks();
+    const terminal = terminalStatus(config);
+    const excluded = /* @__PURE__ */ new Set([...active.values(), ...abandoned, ...completed.keys()]);
+    queue = orderQueue(computeReadyTasks(tasks, terminal, excluded)).map((task) => task.id);
+  }
+  function handleSessionEvent(sessionId, taskId, event) {
+    if (event.type === "usage") {
+      const tokens = finiteOrZero2(event.inputTokens) + finiteOrZero2(event.outputTokens) + finiteOrZero2(event.cachedInputTokens);
+      const costUsd = finiteOrZero2(event.costUsd);
+      const totals = sessionTotals.get(sessionId) ?? { tokens: 0, costUsd: 0 };
+      totals.tokens += tokens;
+      totals.costUsd += costUsd;
+      sessionTotals.set(sessionId, totals);
+      runTotals.tokens += tokens;
+      runTotals.costUsd += costUsd;
+      const caps = snapshotConfig(loadConfig(kandownDir));
+      const decision = budgetDecision(totals, runTotals, caps);
+      if (decision === "stop-run") {
+        stopRunInternal();
+        publish();
+        return;
+      }
+      if (decision === "stop-session") stopSession(sessionId);
+      return;
+    }
+    if (event.type === "stopped") handleFinish(sessionId, taskId);
+  }
+  function handleFinish(sessionId, taskId) {
+    active.delete(sessionId);
+    const unsubscribe = unsubscribes.get(sessionId);
+    if (unsubscribe) {
+      unsubscribe();
+      unsubscribes.delete(sessionId);
+    }
+    sessionTotals.delete(sessionId);
+    if (running) {
+      const terminal = terminalStatus(loadConfig(kandownDir));
+      const handoff = extractHandoff(kandownDir, taskId, terminal);
+      if (handoff) completed.set(taskId, handoff);
+      else abandoned.add(taskId);
+      refreshQueue();
+      dispatchFromQueue();
+    }
+    publish();
+  }
+  function stopRunInternal() {
+    running = false;
+    queue = [];
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+    }
+    for (const sessionId of [...active.keys()]) {
+      try {
+        stopSession(sessionId);
+      } catch (error) {
+        console.error(`[kandown] autopilot: failed to stop session ${sessionId}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+    for (const unsubscribe of [...unsubscribes.values()]) unsubscribe();
+    unsubscribes.clear();
+    active.clear();
+    sessionTotals.clear();
+  }
+  function ensureTimer() {
+    if (timer) return;
+    timer = setInterval(() => {
+      if (!running) return;
+      refreshQueue();
+      dispatchFromQueue();
+      publish();
+    }, pollIntervalMs);
+    timer.unref?.();
+  }
+  const orchestrator = {
+    start(override) {
+      if (running) return publish();
+      const resolved = resolveHarnessId(override);
+      const config = loadConfig(kandownDir);
+      completed.clear();
+      abandoned.clear();
+      sessionTotals.clear();
+      runTotals = { tokens: 0, costUsd: 0 };
+      active.clear();
+      harnessId = resolved;
+      running = true;
+      const tasks = readAllTasks();
+      const terminal = terminalStatus(config);
+      const backlog = resolveColumnNameByRole(config, "backlog");
+      const orphans = computeOrphanTaskIds(tasks, terminal, backlog, [...active.values()], []);
+      queue = [...orphans];
+      const readyExcluded = new Set(orphans);
+      for (const task of orderQueue(computeReadyTasks(tasks, terminal, readyExcluded))) {
+        queue.push(task.id);
+      }
+      ensureTimer();
+      dispatchFromQueue();
+      return publish();
+    },
+    stop() {
+      stopRunInternal();
+      return publish();
+    },
+    snapshot() {
+      return buildSnapshot();
+    },
+    dispose() {
+      stopRunInternal();
+      completed.clear();
+      abandoned.clear();
+      runTotals = { tokens: 0, costUsd: 0 };
+      lastBroadcastKey = "";
+    }
+  };
+  return orchestrator;
 }
 
 // src/cli/lib/agent/session-edits.ts
@@ -10957,6 +11354,19 @@ function getAgentEditRuntime(kandownDir) {
   return agentEditRuntime;
 }
 var permissionQueue = createPermissionQueue();
+var autopilotOrchestrator = null;
+var autopilotOrchestratorDir = null;
+function getAutopilotOrchestrator(kandownDir) {
+  if (autopilotOrchestrator && autopilotOrchestratorDir === kandownDir) return autopilotOrchestrator;
+  autopilotOrchestrator?.dispose();
+  autopilotOrchestrator = createOrchestrator(
+    getProjectRoot(kandownDir),
+    kandownDir,
+    { broadcast: broadcastSseEvent }
+  );
+  autopilotOrchestratorDir = kandownDir;
+  return autopilotOrchestrator;
+}
 var gitWorkTreeCache = /* @__PURE__ */ new Map();
 var execFileAsync = promisify(execFile);
 async function isGitWorkTree(projectRoot) {
@@ -11446,6 +11856,25 @@ ${message}`;
     if (!known) return writeJson(res, 404, { error: "Session not found" });
     forgetSessionIndexEntry(projectRoot, entryId);
     return writeJson(res, 200, { ok: true });
+  }
+  if (path === "/api/agent/autopilot" && method === "GET") {
+    return writeJson(res, 200, getAutopilotOrchestrator(kandownDir).snapshot());
+  }
+  if (path === "/api/agent/autopilot/start" && method === "POST") {
+    let body = {};
+    try {
+      body = JSON.parse(await readRequestBody(req));
+    } catch {
+    }
+    const override = typeof body.harnessId === "string" && body.harnessId.trim() ? body.harnessId.trim() : void 0;
+    try {
+      return writeJson(res, 200, getAutopilotOrchestrator(kandownDir).start(override));
+    } catch (error) {
+      return writeJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+  if (path === "/api/agent/autopilot/stop" && method === "POST") {
+    return writeJson(res, 200, getAutopilotOrchestrator(kandownDir).stop());
   }
   const pendingMatch = path.match(/^\/api\/agent\/sessions\/([^/]+)\/pending$/);
   if (pendingMatch && method === "GET") {

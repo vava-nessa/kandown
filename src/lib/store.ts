@@ -82,9 +82,10 @@ import { parseTaskTitle } from './task-title-category';
 import { buildBoardUrl, buildTaskUrl, getTaskIdFromLocation } from './task-url';
 import { createAgentChatSlice, createInitialAgentChatState } from './store/agentChatSlice';
 import { createAgentEditsSlice, createInitialAgentEditsState } from './store/agentEditsSlice';
-import type { AgentChatState, AgentChatStartInput, AgentEditsState } from './store/types';
+import { createAutopilotSlice, createInitialAutopilotState } from './store/autopilotSlice';
+import type { AgentChatState, AgentChatStartInput, AgentEditsState, AutopilotState } from './store/types';
 import type { AgentChatEvent } from './agent-chat-events';
-import type { AgentEditsBoardEvent } from './watcher';
+import type { AgentEditsBoardEvent, AgentAutopilotEvent } from './watcher';
 
 function updateBrowserUrl(nextUrl: string, replace = false): void {
   if (typeof window === 'undefined') return;
@@ -345,6 +346,16 @@ interface State {
   fetchPendingPermissions: (sessionId: string) => Promise<void>;
   dismissPermission: (permissionId: string) => void;
   resolvePermission: (sessionId: string, permissionId: string, approve: boolean) => Promise<void>;
+
+  // Autopilot orchestration (t311). Full shape documented in store/types.ts;
+  // same inline-mirror pattern as the blocks above.
+  autopilot: AutopilotState;
+  setupAutopilot: () => void;
+  ingestAutopilotEvent: (event: AgentAutopilotEvent) => void;
+  fetchAutopilotSnapshot: () => Promise<void>;
+  startAutopilot: (harnessId?: string) => Promise<void>;
+  stopAutopilot: () => Promise<void>;
+  stopAutopilotSession: (sessionId: string) => Promise<boolean>;
 }
 
 function nextTaskId(columns: Column[], archivedTasks: BoardTask[] = []): string {
@@ -1840,6 +1851,9 @@ export const useStore = create<State>((set, get, api) => ({
       // 📖 t309: wire the live agent-edit slice (subscribes to the board SSE
       // events and opens the /api/events stream, the only server-mode reader).
       get().setupAgentEdits();
+      // 📖 t311: wire the autopilot slice the same way (subscribe, start the
+      // stream, fetch the initial snapshot).
+      get().setupAutopilot();
       return;
     }
 
@@ -2018,6 +2032,8 @@ export const useStore = create<State>((set, get, api) => ({
     // (stop() above clears every listener, so the slice must resubscribe after
     // it). In local mode startServerSse is a no-op: there is no daemon.
     get().setupAgentEdits();
+    // 📖 t311: same resubscription discipline for the autopilot slice.
+    get().setupAutopilot();
   },
 
   restartWatcher: () => {
@@ -2041,6 +2057,12 @@ export const useStore = create<State>((set, get, api) => ({
   // stream (and starts it in server mode).
   agentEdits: createInitialAgentEditsState(),
   ...createAgentEditsSlice(set, get, api),
+
+  // 📖 t311 autopilot orchestration: latest run snapshot (active sessions per
+  // task, queue, orphans, accumulated totals) plus the kill-switch transport.
+  // setupWatcher wires the slice to the board SSE stream the same way.
+  autopilot: createInitialAutopilotState(),
+  ...createAutopilotSlice(set, get, api),
 }));
 
 // Hydrate recent projects on load. IndexedDB may be unavailable (private

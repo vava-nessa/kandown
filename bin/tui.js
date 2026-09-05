@@ -54052,7 +54052,7 @@ var DEFAULT_COLUMN_META = {
 };
 var DEFAULT_CONFIG = {
   ui: { language: "en", theme: "auto", skin: "shadcn", font: "inter", background: "solid", onboardingCompleted: false, categoryChips: true },
-  agent: { suggestFollowUp: false, maxSuggestions: 3, permissionMode: "yolo", workOutput: DEFAULT_WORK_OUTPUT },
+  agent: { suggestFollowUp: false, maxSuggestions: 3, permissionMode: "yolo", workOutput: DEFAULT_WORK_OUTPUT, autopilot: { maxParallel: 2 } },
   workflow: { active: "kandown-standard", skills: [], trackingCadence: "balanced" },
   board: {
     columns: DEFAULT_COLUMNS,
@@ -54235,6 +54235,28 @@ function normalizeAgents(value) {
   if (extraArgs) agents.extraArgs = extraArgs;
   return agents;
 }
+var MIN_PARALLEL = 1;
+var MAX_PARALLEL = 8;
+function nonNegativeNumberOrUndefined(value) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : void 0;
+}
+function normalizeAutopilot(value) {
+  const raw = safeObject(value);
+  const fallback = DEFAULT_CONFIG.agent.autopilot?.maxParallel ?? 2;
+  const requested = Math.floor(numberOr(raw.maxParallel, fallback));
+  const autopilot = {
+    maxParallel: Math.min(MAX_PARALLEL, Math.max(MIN_PARALLEL, requested))
+  };
+  const sessionTokenCap = nonNegativeNumberOrUndefined(raw.sessionTokenCap);
+  if (sessionTokenCap !== void 0) autopilot.sessionTokenCap = sessionTokenCap;
+  const sessionCostCapUsd = nonNegativeNumberOrUndefined(raw.sessionCostCapUsd);
+  if (sessionCostCapUsd !== void 0) autopilot.sessionCostCapUsd = sessionCostCapUsd;
+  const runTokenCap = nonNegativeNumberOrUndefined(raw.runTokenCap);
+  if (runTokenCap !== void 0) autopilot.runTokenCap = runTokenCap;
+  const runCostCapUsd = nonNegativeNumberOrUndefined(raw.runCostCapUsd);
+  if (runCostCapUsd !== void 0) autopilot.runCostCapUsd = runCostCapUsd;
+  return autopilot;
+}
 function normalizeCustomThemes(value) {
   if (!Array.isArray(value)) return void 0;
   const themes = value.filter((entry) => {
@@ -54317,7 +54339,8 @@ function normalizeKandownConfig(raw) {
             DEFAULT_WORK_OUTPUT.boardDigest.showNextActionable
           )
         }
-      }
+      },
+      autopilot: normalizeAutopilot(agent.autopilot)
     },
     workflow: {
       active: stringOr(workflow.active, DEFAULT_CONFIG.workflow.active),

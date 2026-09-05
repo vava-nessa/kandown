@@ -6,7 +6,7 @@
  * 📖 Keep cross-module contracts here so parser, serializer, store, React, and
  * Node entry points agree on the same task-file-backed domain model.
  *
- * @exports Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, ColumnRole, ColumnAgentMeta, WorkflowSelectionConfig, TaskTrackingCadence, WorkOutputDetailMode, TuiConfig, AgentsConfig, KandownConfig, DEFAULT_COLUMNS, DEFAULT_WORK_OUTPUT, DEFAULT_COLUMN_META, DEFAULT_CONFIG, PermissionMode, PERMISSION_MODES, PermissionSupport, DetectedHarness, SessionIndexEntryPayload, AgentSessionPayload
+ * @exports Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, ColumnRole, ColumnAgentMeta, WorkflowSelectionConfig, TaskTrackingCadence, WorkOutputDetailMode, TuiConfig, AgentsConfig, AutopilotConfig, KandownConfig, DEFAULT_COLUMNS, DEFAULT_WORK_OUTPUT, DEFAULT_COLUMN_META, DEFAULT_CONFIG, PermissionMode, PERMISSION_MODES, PermissionSupport, DetectedHarness, SessionIndexEntryPayload, AgentSessionPayload
  * @see src/lib/parser.ts
  * @see src/lib/store.ts
  */
@@ -88,6 +88,11 @@ export interface AgentSessionPayload {
   /** ISO 8601 instant the session was created. */
   startedAt: string;
   exitCode?: number | null;
+  /** 📖 Cumulative usage for this session, summed from the harness' usage
+   * events: `tokens` counts input + output + cached-input tokens, `costUsd`
+   * sums the harness-reported cost. Present on sessions served by daemons
+   * that know about usage (t311); optional so older payloads stay valid. */
+  usageTotals?: { tokens: number; costUsd: number };
 }
 
 export interface Subtask {
@@ -406,6 +411,21 @@ export interface AgentsConfig {
   extraArgs?: Record<string, string[]>;
 }
 
+/** 📖 Autopilot orchestration settings (t311), normalized under
+ * `agent.autopilot`. `maxParallel` is how many harness sessions the
+ * orchestrator runs at once (clamped to 1..8, default 2). The four caps stop
+ * runaway spend: a session cap stops one session when its cumulative usage
+ * passes the limit, a run cap stops the whole autopilot run. Any cap left
+ * undefined (or written as a non-finite or negative number in kandown.json)
+ * means unlimited. */
+export interface AutopilotConfig {
+  maxParallel: number;
+  sessionTokenCap?: number;
+  sessionCostCapUsd?: number;
+  runTokenCap?: number;
+  runCostCapUsd?: number;
+}
+
 export interface KandownConfig {
   ui: {
     language: string;
@@ -441,6 +461,10 @@ export interface KandownConfig {
      * section-order, and core-removal fields are accepted during normalization
      * but never enter this canonical contract or affect the immutable core. */
     workOutput: WorkOutputConfig;
+    /** 📖 Autopilot orchestration (t311): parallelism and budget caps for the
+     * daemon-side task loop. Always populated by normalization (maxParallel
+     * defaults to 2); absent caps mean unlimited. See AutopilotConfig. */
+    autopilot?: AutopilotConfig;
   };
   workflow: WorkflowSelectionConfig;
   board: {
@@ -524,7 +548,7 @@ export const DEFAULT_COLUMN_META: Record<string, ColumnAgentMeta> = {
 
 export const DEFAULT_CONFIG: KandownConfig = {
   ui: { language: 'en', theme: 'auto', skin: 'shadcn', font: 'inter', background: 'solid', onboardingCompleted: false, categoryChips: true },
-  agent: { suggestFollowUp: false, maxSuggestions: 3, permissionMode: 'yolo', workOutput: DEFAULT_WORK_OUTPUT },
+  agent: { suggestFollowUp: false, maxSuggestions: 3, permissionMode: 'yolo', workOutput: DEFAULT_WORK_OUTPUT, autopilot: { maxParallel: 2 } },
   workflow: { active: 'kandown-standard', skills: [], trackingCadence: 'balanced' },
   board: {
     columns: DEFAULT_COLUMNS,

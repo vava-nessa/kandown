@@ -36,6 +36,9 @@
  * session's blob avatar while an agent edits the task, and the single
  * "stack host" card mounts the fixed permission approval stack (mount-point
  * agnostic, see isApprovalStackHost).
+ * 📖 Autopilot (t311): the card shows the Working / Queued / Resumable chip
+ * in the meta row and a always-visible stop button (top-right, left of the
+ * "Ask the agent" button) while an autopilot session runs on the task.
  *
  * @functions
  *  → HighlightedText — highlights a matched keyword inside preview text
@@ -56,6 +59,8 @@ import { CategoryChip } from './CategoryChip';
 import { CardBeam } from './agent/CardBeam';
 import { AgentBlobatar } from './agent/Blobatar';
 import { ApprovalCardStack, isApprovalStackHost } from './agent/ApprovalCard';
+import { AutopilotStatusChip, CardStopButton } from './agent/CardStopButton';
+import { autopilotTaskStatus, activeSessionForTask } from '../lib/store/autopilotSlice';
 import type { BoardTask, Density, SearchMatch } from '../lib/types';
 import { useStore } from '../lib/store';
 import { useExtensionRuntime } from './ExtensionRuntimeProvider';
@@ -203,6 +208,12 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
 
   const isCompact = density === 'compact';
 
+  // 📖 Autopilot (t311): chip status + the session id driving the stop
+  // button. Both derive from the SSE snapshot in one place (autopilotSlice).
+  // Declared early: hasMetaBadges below counts the autopilot chip as a badge.
+  const autopilotStatus = useStore(s => autopilotTaskStatus(s.autopilot.snapshot, task.id));
+  const autopilotSessionId = useStore(s => activeSessionForTask(s.autopilot.snapshot, task.id));
+
   const progressPct =
     task.progress && task.progress.total > 0
       ? Math.round((task.progress.done / task.progress.total) * 100)
@@ -262,6 +273,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       task.frontmatter.agentReport ||
       (task.dependsOn && task.dependsOn.length > 0) ||
       task.assignee ||
+      autopilotStatus ||
       extensionBadges.length > 0
   );
 
@@ -364,7 +376,11 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
           sessionId={editSession.sessionId}
           size={24}
           bubble
-          className={`absolute z-20 ${isCompact ? 'right-7 top-[2px]' : 'right-7 top-[6px]'}`}
+          className={`absolute z-20 ${isCompact ? 'top-[2px]' : 'top-[6px]'} ${
+            // 📖 t311: when an autopilot stop button is mounted next to it,
+            // the blob shifts left so the two controls never overlap.
+            autopilotSessionId ? 'right-[54px]' : 'right-7'
+          }`}
         />
       )}
       {/* Title row: checkbox (hover) | # | title. The title grows with its
@@ -413,6 +429,14 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
         >
           <IconMessage size={12} stroke={1.8} />
         </button>
+        {/* 📖 Autopilot stop (t311): rendered while a session is active on
+         * this task, always visible (not hover-only: stopping an agent is
+         * urgent), left of the "Ask the agent" button. Self-hiding: renders
+         * null when the task has no active session. */}
+        <CardStopButton
+          taskId={task.id}
+          className={`absolute right-[30px] z-20 ${isCompact ? 'top-[4px]' : 'top-[8px]'}`}
+        />
         <div className="flex-1 min-w-0">
           <div
             className={`${titleSize} leading-snug font-medium break-words ${
@@ -460,6 +484,8 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
                   {badge.text}
                 </span>
               ))}
+              {/* 📖 Autopilot presence (t311): Working / Queued / Resumable. */}
+              <AutopilotStatusChip taskId={task.id} />
               {depsChip && (
                 <span
                   className="inline-flex items-center gap-0.5 px-1.5 h-[16px] rounded text-[10.5px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 max-w-[260px] truncate"
