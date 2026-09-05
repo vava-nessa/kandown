@@ -17,6 +17,7 @@
  *  → isAgentChatEvent + per-type guards: narrow an unknown SSE payload
  *  → createChatFoldState: empty fold state for one session
  *  → applyChatEvent: fold one event into a fold state (pure)
+ *  → toolExcerpt: one-line excerpt of a tool call for the activity rows (pure)
  *  → appendUserMessage: append an optimistic user message (pure)
  *  → removeChatEntry: drop one entry by id (rollback helper, pure)
  *  → nextChatEntryId: stable React keys for entries
@@ -25,7 +26,7 @@
  * ToolFinishedEvent, FileChangedEvent, UsageEvent, TurnCompletedEvent, ErrorEvent,
  * StoppedEvent, ChatEntry, ChatUserEntry, ChatAssistantEntry, ChatErrorEntry,
  * ChatToolEntry, ChatUsageTotals, ChatFoldState, isAgentChatEvent, createChatFoldState,
- * applyChatEvent, appendUserMessage, removeChatEntry, nextChatEntryId
+ * applyChatEvent, toolExcerpt, appendUserMessage, removeChatEntry, nextChatEntryId
  * @see src/lib/store/agentChatSlice.ts: the SSE transport + store wiring
  */
 
@@ -223,6 +224,28 @@ export interface ChatToolEntry {
   finished: boolean;
 }
 
+/** 📖 Width of the one-line tool excerpt shown next to the tool name. */
+const TOOL_EXCERPT_MAX = 72;
+
+/**
+ * 📖 Short one-line excerpt of what a tool call was doing, for the activity
+ * block's tool rows: the fold's `summary` when the harness sent one, else ''
+ * (the row then shows the tool name only). Summaries collapse to a single
+ * line and truncate with an ellipsis so a long command can never wrap the row.
+ *
+ * 📖 Why no separate `detail` field: the fold's `summary` IS the detail
+ * channel, and it is exactly as available as the adapters make it: claude
+ * sends the target path for edit tools, codex sends the command line, pi and
+ * acp forward no tool detail at all (their raw args never reach the fold, the
+ * adapters drop them), so there is no second source to store.
+ */
+export function toolExcerpt(entry: ChatToolEntry): string {
+  const singleLine = (entry.summary ?? '').replace(/\s+/g, ' ').trim();
+  if (singleLine === '') return '';
+  if (singleLine.length <= TOOL_EXCERPT_MAX) return singleLine;
+  return `${singleLine.slice(0, TOOL_EXCERPT_MAX - 1).trimEnd()}\u2026`;
+}
+
 export interface ChatAssistantEntry {
   kind: 'assistant';
   id: string;
@@ -365,8 +388,15 @@ export function applyChatEvent(state: ChatFoldState, event: AgentChatEvent): Cha
       const existingIndex = event.toolCallId
         ? entry.tools.findIndex(tool => !tool.finished && tool.toolCallId === event.toolCallId)
        : -1;
+      // 📖 Some harnesses (pi, ACP) open the call nameless from toolcall_start
+      // and only carry the args excerpt on tool_execution_start: a duplicate
+      // started event patches the summary onto the already-open row.
       const tools = existingIndex !== -1
-        ? entry.tools
+        ? entry.tools.map((tool, index) =>
+            index === existingIndex && !tool.summary && event.summary
+              ? { ...tool, summary: event.summary }
+             : tool,
+          )
        : [...entry.tools, {
             toolCallId: event.toolCallId ?? null,
             toolName: event.toolName,

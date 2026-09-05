@@ -4,7 +4,9 @@
  * assistant turns as a BeautifulUI-style full-width panel (ONE collapsible
  * activity block that updates in place while the turn streams, then the
  * Markdown answer below it), error entries in the destructive tint, and the
- * quiet "edited ..." line for files the agent touched during the turn. Pure
+ * quiet "edited ..." line for files the agent touched during the turn, and
+ * the pulsing working dots for the gap between the user's send and the first
+ * renderable event of the turn. Pure
  * presentation: all state comes from the event fold in the store; the
  * grouping of thinking + tools into the single activity block happens here,
  * at render time, so the fold keeps every event untouched.
@@ -27,6 +29,7 @@
 
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { motion, useReducedMotion } from 'motion/react';
 import { IconAlertTriangle } from '@tabler/icons-react';
 import { useStore } from '../../lib/store';
 import { linkifyTaskReferences, stripShowDirectives } from '../../lib/task-links';
@@ -38,9 +41,37 @@ interface MessageListProps {
   messages: ChatEntry[];
   changedFiles: string[];
   preContextTaskId: string | null;
+  /** True while the turn has started (or the send is in flight) but nothing
+   * renderable has arrived yet: shows the pulsing working dots. */
+  waiting?: boolean;
 }
 
-export function MessageList({ messages, changedFiles, preContextTaskId }: MessageListProps) {
+/** 📖 BeautifulUI-style working indicator: three dots pulsing on a stagger
+ * plus the shimmer "Working" label, shown between the user's send and the
+ * first renderable event of the turn. Motion-based (not CSS) so it can run
+ * through the shared motion dependency, gated on prefers-reduced-motion,
+ * which renders three static dots. */
+function WorkingDots() {
+  const { t } = useTranslation();
+  const reduceMotion = useReducedMotion() ?? false;
+  return (
+    <div className="flex items-center gap-2 px-1 py-1.5" role="status">
+      <span className="flex items-end gap-[3px]" aria-hidden="true">
+        {[0, 1, 2].map(dot => (
+          <motion.span
+            key={dot}
+            className="size-[5px] rounded-full bg-fg-muted/70"
+            animate={reduceMotion ? undefined : { opacity: [0.25, 1, 0.25], y: [0, -2.5, 0] }}
+            transition={reduceMotion ? undefined : { duration: 1.15, repeat: Infinity, delay: dot * 0.16, ease: 'easeInOut' }}
+          />
+        ))}
+      </span>
+      <span className="thinking-shimmer text-[11.5px] font-medium">{t('agentChat.working', 'Working...')}</span>
+    </div>
+  );
+}
+
+export function MessageList({ messages, changedFiles, preContextTaskId, waiting = false }: MessageListProps) {
   const { t } = useTranslation();
   // 📖 Task chips open the task through the same path the board uses: the
   // drawer slice reads the file, the workspace/editor renders it (mobile gets
@@ -90,6 +121,12 @@ export function MessageList({ messages, changedFiles, preContextTaskId }: Messag
             </div>
           );
         }
+        // 📖 A streaming entry that is still completely empty (no text, no
+        // thinking, no tools) is skipped: its panel would be an empty bordered
+        // shell, and the working dots below stand in until output lands.
+        if (entry.streaming && entry.text.length === 0 && entry.thinking.length === 0 && entry.tools.length === 0) {
+          return null;
+        }
         return (
           // 📖 Assistant turn: one full-width subtle panel (BeautifulUI chat
           // message shape). The single activity block renders thinking and
@@ -116,6 +153,9 @@ export function MessageList({ messages, changedFiles, preContextTaskId }: Messag
           ))}
         </div>
       )}
+      {/* 📖 Turn started but nothing renderable yet (no text, no thinking, no
+          tools): the pulsing dots sit where the answer will land. */}
+      {waiting && <WorkingDots />}
     </div>
   );
 }

@@ -315,8 +315,10 @@ export function Drawer() {
             className="fixed inset-0 z-[101] flex items-center justify-center p-[10vh] pointer-events-none"
           >
             <div className="w-[80vw] max-w-[1200px] h-[80vh] pointer-events-auto flex flex-col glass rounded-2xl shadow-2xl">
-              {/* Header */}
-              <div className="flex items-center justify-between px-5 py-3 border-b border-border rounded-t-2xl flex-wrap gap-y-2">
+              {/* Header. `relative`: the chat presence floating blob
+                  (AgentPresenceBadge) anchors to it, hovering over the panel
+                  just below this line. */}
+              <div className="relative flex items-center justify-between px-5 py-3 border-b border-border rounded-t-2xl flex-wrap gap-y-2">
                 <div className="flex items-center gap-2.5 flex-wrap">
                   <span className="font-mono text-[12.5px] text-fg-muted px-1.5 py-0.5 bg-bg-2 border border-border rounded-[4px]">
                     {drawerTaskId?.toUpperCase()}

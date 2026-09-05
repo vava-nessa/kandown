@@ -498,6 +498,7 @@
     "send": "Send",
     "placeholder": "Ask the agent...",
     "thinking": "Thinking",
+    "working": "Working...",
     "activityLabel": "Activity",
     "activityExpand": "Show thinking and tool calls",
     "activityCollapse": "Hide thinking and tool calls",

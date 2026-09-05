@@ -37,6 +37,7 @@
  */
 
 import { EDIT_TOOL_NAMES } from '../types.js';
+import { excerptFromToolInput } from '../tool-excerpt.js';
 import type { AdapterParseResult, AdapterState, AgentSessionConfig, HarnessAdapter } from '../types.js';
 
 export function buildArgs(config: AgentSessionConfig, binPath: string): string[] {
@@ -167,10 +168,15 @@ export function parseLine(line: string, state: AdapterState): AdapterParseResult
 
   if (event.type === 'tool_execution_start') {
     const toolName = typeof event.toolName === 'string' ? event.toolName: 'tool';
+    // 📖 tool_execution_start carries the args (toolcall_start does not), so
+    // this is where pi's row excerpt comes from. The fold attaches it to the
+    // already-open toolCallId instead of duplicating the row.
+    const summary = excerptFromToolInput(event.args);
     events.push({
       type: 'tool_started',
       toolCallId: typeof event.toolCallId === 'string' ? event.toolCallId: undefined,
       toolName,
+      ...(summary ? { summary } : {}),
     });
     const path = argsPath(event.args);
     if (path && EDIT_TOOL_NAMES.has(toolName.toLowerCase())) {

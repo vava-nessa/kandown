@@ -26,8 +26,8 @@ source to edit instead.
 
 ## `bin/` — Published CLI entrypoints — GENERATED, never edit
 
-- **`kandown.js`** · 14390 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
-- **`tui.js`** · 62815 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
+- **`kandown.js`** · 14449 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
+- **`tui.js`** · 62831 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
 
 ## `src/` — Web app root
 
@@ -47,7 +47,7 @@ source to edit instead.
 - **`project.ts`** · 140 lines — Handlers for `kandown init`, `update`/`upgrade`, `doctor`, and `work`.
 - **`reslug.ts`** · 208 lines — Renames task files so their name says what they are: `tasks/t232.md` becomes `tasks/t232_remove_dead_code.md`.
 - **`run.ts`** · 117 lines — Parses flags, prints the cascade plan (always, so the user sees what is about to happen), then drives the orchestrator in `src/cli/lib/cascade.ts` and prints a per-task summary.
-- **`tasks.ts`** · 342 lines — Handlers for `kandown list/show/create/move/assign/commit` plus `export`/`import`/`projects`.
+- **`tasks.ts`** · 346 lines — Handlers for `kandown list/show/create/move/assign/commit` plus `export`/`import`/`projects`.
 
 ## `src/cli/components/` — Shared Ink components
 
@@ -57,13 +57,17 @@ source to edit instead.
 
 - **`use-mouse.ts`** · 134 lines — Provides terminal mouse tracking enable/disable and a parser for SGR mouse sequences.
 
+## `src/cli/hooks/__tests__/`
+
+- **`use-mouse.spec.ts`** · 78 lines — `parseMouseInput` is what makes the TUI board clickable and draggable: every click, drag and wheel tick arrives as a raw SGR escape sequence on stdin and is decoded here.
+
 ## `src/cli/lib/` — CLI core — daemon, server, config, board access, MCP
 
 - **`agent-migration.ts`** · 258 lines — Migrates old project and user-level Kandown instruction files without discarding edited content.
 - **`agents-config.ts`** · 218 lines — The committed team contract for which AI coding agents a project supports: their binary, aliases, launch mode, and per-agent extra CLI args, plus project-wide cascade preferences (preferred agent, unassigned-task behaviour, same-session…
 - **`agents.ts`** · 706 lines — Defines the built-in AI coding agents the CLI knows how to launch, merges them with the versioned team catalog (`.kandown/agents.json`), detects which binaries are installed on the current machine, and builds the shell command — plus…
 - **`atomic-write.ts`** · 27 lines — Crash-safe file writes for the CLI: write to a sibling temp file, then rename over the target.
-- **`board-reader.ts`** · 622 lines — Provides filesystem-based reading and writing of Kandown task files for the CLI.
+- **`board-reader.ts`** · 687 lines — Provides filesystem-based reading and writing of Kandown task files for the CLI.
 - **`browser.ts`** · 26 lines — Resolves and spawns the platform default browser for the given URL.
 - **`cascade.ts`** · 465 lines — The synchronous task-cascade engine.
 - **`cli-shared.ts`** · 376 lines — Argument parsing, deterministic nearest-ancestor project resolution, colored console output, and task-file path helpers shared across every `cmdX` command handler and the TUI launcher in src/cli/cli.ts.
@@ -77,7 +81,7 @@ source to edit instead.
 - **`init.ts`** · 114 lines — Creates .kandown/ configuration, copies singlefile HTML bundle, initializes project-root ./tasks/ with welcome templates, and installs the managed `kandown work` bootstrap line without generated instruction copies.
 - **`kandown-work.ts`** · 156 lines — Loads the selected built-in or project-local workflow, user instructions, active skill Markdown, task context, and board digest before delegating policy rendering to the shared pure compiler.
 - **`launcher.ts`** · 295 lines — Orchestrates the full task launch flow: read context, build prompt, assign the task to the chosen agent, auto-move it to In Progress, and spawn the agent.
-- **`mcp.ts`** · 240 lines — Exposes Kandown task operations to MCP hosts (Claude Desktop, VSCode, etc.) via JSON-RPC 2.0 over stdin/stdout.
+- **`mcp.ts`** · 242 lines — Exposes Kandown task operations to MCP hosts (Claude Desktop, VSCode, etc.) via JSON-RPC 2.0 over stdin/stdout.
 - **`plugin-build.ts`** · 153 lines — Turns a plugin's TypeScript sources into the self-contained JavaScript the browser can execute.
 - **`plugin-check.ts`** · 512 lines — The closed feedback loop that lets an AI agent author a plugin without a human in the middle.
 - **`plugin-cli.ts`** · 296 lines — The agent-first façade over the extension system.
@@ -97,13 +101,16 @@ source to edit instead.
 
 - **`agent-assign.spec.ts`** · 140 lines — Covers the three pieces the TUI's `a` key now leans on: - `assignTaskToAgent` writes the canonical agent id into `assignee:`, preserves the rest of the frontmatter and the body, is idempotent, and fails soft on an unknown task.
 - **`agent-migration.spec.ts`** · 238 lines — Exercises the filesystem migration against disposable project and home directories.
-- **`agent-runtime.spec.ts`** · 264 lines — Locks the pure half of the t307 harness foundation: each protocol adapter's argv mapping (permission modes, resume flags) and its stdout-line-to-event normalization, plus the runtime's follow-up routing decision surface.
+- **`agent-runtime.spec.ts`** · 273 lines — Locks the pure half of the t307 harness foundation: each protocol adapter's argv mapping (permission modes, resume flags) and its stdout-line-to-event normalization, plus the runtime's follow-up routing decision surface.
 - **`board-reader.spec.ts`** · 125 lines — Spawns bin/kandown.js (the published CLI bundle) in a tmpdir, seeds two tasks with a dependency edge, and asserts that: - `kandown move` succeeds when the dependency is already in the terminal column.
+- **`cli-lifecycle.spec.ts`** · 228 lines — Spawns the published bundle (`bin/kandown.js`) in a throwaway tmpdir and drives one full task lifecycle the way a user or an agent would: `init` → `create` → `list --json` → `show` → `assign` → `move` → archive.
 - **`daemon-auth.spec.ts`** · 142 lines — Pins the contract of token generation, extraction and verification.
 - **`daemon-http-auth.spec.ts`** · 203 lines — Spins up a real `createServeServer` instance with `setActiveToken` configured, then pins the contract: 1.
+- **`daemon-lifecycle.spec.ts`** · 211 lines — Two layers of the same story, both against real sockets and a real detached process — nothing mocked, because everything that goes wrong here (a port already taken, a daemon that outlives its metadata, a stale `daemon.json` pointing at…
 - **`daemon-self-upgrade.spec.ts`** · 124 lines — The daemon restarts itself when the package on disk moves ahead of the code it is running, so a user with the web UI open never has to be told to run a command.
 - **`home-workspace.spec.ts`** · 83 lines — Pins down `detectHomeWorkspace`: 1.
 - **`kandown-work-cli.spec.ts`** · 48 lines — Proves fresh projects print the exact shared compiler output on stdout and that an explicit task replaces the general board digest.
+- **`move-verdict.spec.ts`** · 136 lines — `moveTaskToColumnDetailed` is the one place a move is decided: it resolves the task, asks the shared dependency gate, writes the file and reports *why* when it refuses.
 - **`orchestrator.spec.ts`** · 532 lines — Locks the daemon half of autopilot (t311): the pure readiness filter (dependency gating through the shared helpers, terminal and archived detection, live/queued exclusion), the priority/id queue order, the orphan rule, the budget…
 - **`permission-queue.spec.ts`** · 126 lines — Locks the FIFO approval store behind the t309 live-edit endpoints: per-session ordering, resolve answering exactly once with the right decision, the found/not-found contract for unknown sessions, unknown ids and double resolves, and the…
 - **`plugin-authoring.spec.ts`** · 277 lines — Vitest suite over the `kandown plugin` pipeline: every scaffold kind must bundle and validate clean out of the box, and the validator must catch the failures an author (human or agent) actually produces.
@@ -115,6 +122,7 @@ source to edit instead.
 - **`task-filename-cli.spec.ts`** · 207 lines — Spawns `bin/kandown.js` (the published CLI bundle) against a throwaway project whose `tasks/` folder deliberately mixes both naming forms: the legacy bare `t1.md` and the descriptive `t2_add_dark_mode.md`.
 - **`task-move.spec.ts`** · 264 lines — Exercises the Node move coordinator against real task files and a real jiti-loaded extension.
 - **`tasks-list.spec.ts`** · 130 lines — Pins the behaviour that broke when cmdList rebuilt its rows by hand instead of going through `buildColumnsFromTasks`.
+- **`updater-semver.spec.ts`** · 62 lines — `semverGt` decides whether the npm registry is offering a newer kandown than the one running, which in turn decides whether the CLI nags the user and whether a live daemon self-upgrades.
 - **`workflows-cli.spec.ts`** · 64 lines — Exercises built-in discovery, provenance-preserving local forks, validated Markdown editing, and no-orphan board preset previews against real temporary Kandown projects.
 - **`workflows-store.spec.ts`** · 59 lines — Verifies pinned registry validation, capsule checksum enforcement, immutable install provenance, and explicit update confirmation without network.
 
@@ -126,14 +134,20 @@ source to edit instead.
 - **`permission-queue.ts`** · 121 lines — When a harness session runs in accept-edits mode and the adapter routes an edit-like permission request to kandown (t309), the daemon parks it here until the web UI answers through the resolve endpoint.
 - **`session-edits.ts`** · 379 lines — The daemon-side half of the live editing experience (t309).
 - **`session-index.ts`** · 199 lines — Kandown never stores conversations: each harness (claude, codex, pi, ACP) persists its own transcript wherever it keeps its data.
+- **`tool-excerpt.ts`** · 59 lines — Extracts a short single-line excerpt from a harness tool input so the chat activity rows show WHAT the agent is doing (the bash command, the touched file) instead of the bare tool name.
 - **`types.ts`** · 157 lines — Defines the single event vocabulary every harness adapter normalizes to, the session configuration the runtime accepts, and the adapter interface each protocol backend implements.
 
 ## `src/cli/lib/agent/adapters/`
 
-- **`acp.ts`** · 328 lines — Speaks ACP, the open JSON-RPC 2.0 newline-delimited protocol introduced by Zed, so every ACP-capable agent (opencode, gemini, and the long tail) appears in kandown without a bespoke integration.
-- **`claude-code.ts`** · 162 lines — Drives `claude -p <prompt> --output-format stream-json` and normalizes its JSONL stdout into kandown agent events.
+- **`acp.ts`** · 331 lines — Speaks ACP, the open JSON-RPC 2.0 newline-delimited protocol introduced by Zed, so every ACP-capable agent (opencode, gemini, and the long tail) appears in kandown without a bespoke integration.
+- **`claude-code.ts`** · 164 lines — Drives `claude -p <prompt> --output-format stream-json` and normalizes its JSONL stdout into kandown agent events.
 - **`codex.ts`** · 164 lines — Drives `codex exec --json` and normalizes its JSONL event stream into kandown agent events.
-- **`pi.ts`** · 218 lines — Drives `pi --mode rpc`, pi's newline-delimited JSON protocol over stdin/stdout (documented in badlogic/pi-mono, packages/coding-agent/ docs/rpc.md).
+- **`pi.ts`** · 224 lines — Drives `pi --mode rpc`, pi's newline-delimited JSON protocol over stdin/stdout (documented in badlogic/pi-mono, packages/coding-agent/ docs/rpc.md).
+
+## `src/cli/lib/runner/`
+
+- **`herdr-client.ts`** · 328 lines — Everything kandown knows about Herdr (t261) lives here: whether it is present, and how to ask it for workspaces, tabs, panes and terminal output.
+- **`types.ts`** · 106 lines — Kandown can start an agent on a task in more than one place.
 
 ## `src/cli/screens/` — Full-screen TUI views
 
@@ -159,7 +173,7 @@ source to edit instead.
 - **`ArchiveView.tsx`** · 89 lines — Lists every archived task (frontmatter `archived: true`, files living under `tasks/archive/` at the project root) as a flat list.
 - **`Board.tsx`** · 394 lines — Renders the horizontal kanban board, filters tasks per column, wires drag-and-drop state, and forwards content-search matches to cards.
 - **`BulkActionBar.tsx`** · 537 lines — Appears when one or more tasks are selected in the web UI and behaves like Linear's selection bar: a floating pill at the bottom of the screen that exposes every action that makes sense for a group of tasks — change priority, assign,…
-- **`Card.tsx`** · 555 lines — Displays one board task as a clean, rounded card inside a column.
+- **`Card.tsx`** · 551 lines — Displays one board task as a clean, rounded card inside a column.
 - **`CardStack.tsx`** · 314 lines — Renders a group of 2+ cards that share the same `[bracket]` or `#hashtag` title tag as a visually stacked card.
 - **`CategoryChip.tsx`** · 69 lines — Renders a category name as a chip.
 - **`Cheatsheet.tsx`** · 182 lines — Centered modal that lists every keyboard shortcut in Kandown, grouped by context (Global, Board, Drawer, Command Palette).
@@ -169,7 +183,7 @@ source to edit instead.
 - **`CommandPalette.tsx`** · 363 lines — Provides global quick actions, view switching, task lookup, and content-aware task search with highlighted snippets.
 - **`ConflictModal.tsx`** · 177 lines — Shown when drawer has unsaved changes AND the underlying task file was modified externally with conflicting changes.
 - **`DependenciesHeaderMenu.tsx`** · 248 lines — Compact hoverable & clickable popover menu in the task header for managing dependencies with autocompletion.
-- **`Drawer.tsx`** · 548 lines — Full-height task detail editor for title, description, subtasks, report, save/close, autosave, and deletion.
+- **`Drawer.tsx`** · 550 lines — Full-height task detail editor for title, description, subtasks, report, save/close, autosave, and deletion.
 - **`EmptyState.tsx`** · 147 lines — Renders the first-run project picker, unsupported-browser copy, and recent project shortcuts before a `.kandown` folder is open.
 - **`ErrorBoundary.tsx`** · 164 lines — Catches render-time errors in the child tree and displays a recoverable fallback instead of letting React unmount the whole app to a blank page.
 - **`ExtensionRuntimeProvider.tsx`** · 176 lines — Hydrates one project-wide extension snapshot for fields, panels and card badges.
@@ -185,7 +199,7 @@ source to edit instead.
 - **`SubtaskEditor.tsx`** · 164 lines — Reusable checklist editor rendered below a task description in both the mobile drawer and desktop workspace.
 - **`SubtaskItem.tsx`** · 228 lines — Editable row for one markdown checklist item inside the task drawer, with toggle, text edit, enter-to-add, empty-backspace removal, and an expandable panel for per-subtask description and report notes.
 - **`TaskExtensionSurface.tsx`** · 384 lines — Shared mobile and desktop task-editor section for contributed fields and web panels.
-- **`TaskWorkspace.tsx`** · 856 lines — Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…
+- **`TaskWorkspace.tsx`** · 858 lines — Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…
 - **`ThemeCustomizerLauncher.tsx`** · 84 lines — Mounts one floating ThemeCustomizerModal at the app shell (App.tsx) so the editor is reachable from anywhere: the skin picker's "Create Custom Theme" and "Edit" actions, the Themes settings panel's "Open editor" button, and any future…
 - **`ThemeCustomizerModal.tsx`** · 722 lines — Draggable, minimizable, compact panel for editing a KandownTheme JSON.
 - **`ThemePreviewCard.tsx`** · 248 lines — Renders a live preview of a KandownTheme with isolated HSL tokens in a mini 3-column kanban board layout.
@@ -195,24 +209,24 @@ source to edit instead.
 
 ## `src/components/agent/`
 
-- **`ActivityBlock.tsx`** · 156 lines — Replaces the pile of interleaved thinking blocks and tool chips the chat used to render: every assistant turn gets a SINGLE panel that updates in place while the turn streams.
-- **`AgentPresenceBadge.tsx`** · 71 lines — Shows the chat session's blobatar near the task id in the TaskWorkspace (desktop) and Drawer (mobile) headers while a `[show: tXXX]` directive from the ACTIVE chat session points at the open task.
+- **`ActivityBlock.tsx`** · 163 lines — Replaces the pile of interleaved thinking blocks and tool chips the chat used to render: every assistant turn gets a SINGLE panel that updates in place while the turn streams.
+- **`AgentPresenceBadge.tsx`** · 83 lines — Shows the chat session's blobatar near the task id in the TaskWorkspace (desktop) and Drawer (mobile) headers while a `[show: tXXX]` directive from the ACTIVE chat session points at the open task: a small header avatar, plus the…
 - **`AnswerForm.tsx`** · 100 lines — Compact panel rendered above the skill buttons when an interactive skill (grill-me) finishes its first turn: one small textarea per parsed question, "Send answers" forwards them through sendAnswers (the slice formats a plain follow-up…
 - **`ApprovalCard.tsx`** · 111 lines — ApprovalCard renders one pending harness permission request (title, kind chip, short session id, Approve / Reject); ApprovalCardStack is the fixed bottom-right container fed by the agentEdits permission queue.
 - **`AutopilotControls.tsx`** · 132 lines — Compact control row mounted in the agent chat sidebar header: a play/stop toggle for the daemon's autopilot run (with kill-switch styling while running: destructive tint, pulsing dot, active count, and an 800ms click debounce so a…
-- **`Blobatar.tsx`** · 61 lines — Deterministic blob avatar identifying the agent session that is currently editing a task: the same sessionId always renders the same creature (shape, face, colors all derive from the id by the blobatar generator), so a session keeps its…
+- **`Blobatar.tsx`** · 125 lines — Deterministic blob avatar identifying the agent session that is currently editing a task: the same sessionId always renders the same creature (shape, face, colors all derive from the id by the blobatar generator), so a session keeps its…
 - **`CardBeam.tsx`** · 128 lines — Animated border-beam overlay marking a task an agent session is currently editing.
 - **`CardStopButton.tsx`** · 110 lines — The board-surface half of the autopilot UI.
-- **`ChatSidebar.tsx`** · 316 lines — The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.
+- **`ChatSidebar.tsx`** · 331 lines — The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.
 - **`DaemonGuardCard.tsx`** · 57 lines — Shown instead of the conversation UI when the session index reported no daemon (standalone File System Access mode, the demo, or an old daemon without the agent routes).
 - **`DiffOverlay.tsx`** · 94 lines — Renders the latest `task_diff` snapshot for a task as a readable, dependency-free line diff: removed lines tinted red, added lines green, unchanged context collapsed to a couple of lines around the change.
 - **`GitInitBanner.tsx`** · 56 lines — Dismissible info banner shown when the daemon reports that the project folder is not a git repository (`gitWarning: 'not-a-git-repo'` on the POST /api/agent/sessions response): agent edits then leave no git history to diff, revert or…
-- **`MarkdownContent.tsx`** · 215 lines — Renders an assistant message as Markdown: headings, lists, bold, links, blockquotes, GFM tables (remark-gfm) and fenced code blocks on the project's code-block token surface with a Copy button.
-- **`MessageList.tsx`** · 122 lines — Renders the folded conversation: user bubbles (plain text), assistant turns as a BeautifulUI-style full-width panel (ONE collapsible activity block that updates in place while the turn streams, then the Markdown answer below it), error…
+- **`MarkdownContent.tsx`** · 293 lines — Renders an assistant message as Markdown: headings, lists, bold, links, blockquotes, GFM tables (remark-gfm) and fenced code blocks on the project's code-block token surface with a Copy button.
+- **`MessageList.tsx`** · 162 lines — Renders the folded conversation: user bubbles (plain text), assistant turns as a BeautifulUI-style full-width panel (ONE collapsible activity block that updates in place while the turn streams, then the Markdown answer below it), error…
 - **`PromptBar.tsx`** · 97 lines — Auto-sizing textarea plus send/stop controls.
 - **`SessionSwitcher.tsx`** · 152 lines — Dropdown over the project's chat session index: title, relative last-activity time, and a harness chip per row.
 - **`SkillButtons.tsx`** · 128 lines — Renders the installed skills that declare a `chat` block as compact pill buttons above the PromptBar.
-- **`StreamingText.tsx`** · 51 lines — Renders an assistant message that is still arriving.
+- **`StreamingText.tsx`** · 61 lines — Renders an assistant message that is still arriving.
 - **`UsageBadge.tsx`** · 51 lines — Shows the running token totals and USD cost of the active session, accumulated by the event fold from `usage` SSE events.
 
 ## `src/components/settings/` — Settings page sections
@@ -247,7 +261,7 @@ source to edit instead.
 ## `src/lib/` — Shared core — parser, serializer, store, theme, i18n
 
 - **`agent-aliases.ts`** · 245 lines — The single source of truth for mapping a free-form assignee string (as typed in a task's `assignee:` frontmatter or quick-add `@token`) to a canonical agent id.
-- **`agent-chat-events.ts`** · 466 lines — Pure, framework-free model of the JSON events the daemon streams on GET /api/agent/sessions/:id/events, plus the reducer that folds them into the chat message list rendered by the agent chat sidebar.
+- **`agent-chat-events.ts`** · 496 lines — Pure, framework-free model of the JSON events the daemon streams on GET /api/agent/sessions/:id/events, plus the reducer that folds them into the chat message list rendered by the agent chat sidebar.
 - **`agent-chat-skills.ts`** · 70 lines — Pure parsing/formatting for the interactive skill flow in the agent chat sidebar: when an interactive skill (grill-me) runs, the daemon's first assistant turn contains numbered questions, the sidebar extracts them to render an answer…
 - **`category-color.ts`** · 168 lines — Maps a category name (WEB, CLI, ARCHITECTURE, THEMES...) to a stable accent color and a stable icon by hashing the name: the same string always yields the same color and icon, nothing is stored, nothing to maintain.
 - **`columnUtils.ts`** · 223 lines — Provides column color maps, color swatches, and tabler icon resolvers shared across Board and List views.
@@ -270,7 +284,7 @@ source to edit instead.
 - **`retry.ts`** · 65 lines — Small, dependency-free helper that retries a fallible async operation a bounded number of times, only when the error is transient.
 - **`serializer.ts`** · 73 lines — Converts task frontmatter/body data back into Kandown's plain markdown task file format.
 - **`store.ts`** · 2084 lines — Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.
-- **`task-filename.ts`** · 482 lines — Owns the whole relationship between a task id and the name of the file that holds it, for every surface (CLI, daemon, TUI, web File System Access, desktop).
+- **`task-filename.ts`** · 491 lines — Owns the whole relationship between a task id and the name of the file that holds it, for every surface (CLI, daemon, TUI, web File System Access, desktop).
 - **`task-links.ts`** · 142 lines — Pure, framework-free parsing of the two task affordances the chat prompt teaches every agent session (see CHAT_AFFORDANCES_PROMPT in the daemon server): inline task references that render as clickable chips, and the `[show: t123]`…
 - **`task-meta.ts`** · 129 lines — Owns the `updated:` frontmatter field — the single source of truth for "when did this task last change" — and the compact relative-age formatting the TUI list view renders in its `Age` column.
 - **`task-title-category.ts`** · 57 lines — Provides the canonical way to read a task's category (frontmatter `category:` field first, legacy leading bracket in the title as fallback) and title parsing utilities.
@@ -283,11 +297,12 @@ source to edit instead.
 
 ## `src/lib/__tests__/`
 
-- **`agent-chat-events.spec.ts`** · 204 lines — Locks the reducer contract the chat sidebar renders from: streaming text accumulates then finalizes, thinking stays on its own channel, tool calls pair by toolCallId, usage accumulates, errors append entries (and fatal ones close the…
+- **`agent-chat-events.spec.ts`** · 252 lines — Locks the reducer contract the chat sidebar renders from: streaming text accumulates then finalizes, thinking stays on its own channel, tool calls pair by toolCallId, usage accumulates, errors append entries (and fatal ones close the…
 - **`agent-chat-skills.spec.ts`** · 68 lines — Locks the pure interactive-skill contract (t310): the numbered question parser the answer form is built from, and the answer formatter the sidebar sends back as a plain follow-up message.
 - **`agent-edits.spec.ts`** · 190 lines — Covers the event fold (applyAgentEditsEvent), the permission queue helpers, diff pruning and the LCS-free line diff exported by src/lib/store/agentEditsSlice.ts, plus the board-event type guards exported by src/lib/watcher.ts (the…
 - **`autopilot.spec.ts`** · 246 lines — Covers the snapshot fold (ingestAutopilotSnapshot), the board event fold (applyAutopilotEvent), the failed kill-switch rollback (rollbackAutopilotStop) and the per-task lookups (autopilotTaskStatus, activeSessionForTask) exported by…
 - **`browser-extension-runtime.spec.ts`** · 207 lines — Uses a minimal in-memory File System Access implementation to prove project-local discovery, bundled index.js activation, typed badge rendering, web module loading, failure isolation and persistent quarantine.
+- **`build-columns.spec.ts`** · 106 lines — `buildColumnsFromTasks` is the single function that turns a flat list of parsed task files into the column layout every surface renders (web board, TUI board, demo backend).
 - **`category-color.spec.ts`** · 62 lines — Verifies the deterministic contract of src/lib/category-color.ts: same category string always yields the same color and icon, the foreground is always a legible dark or white on the chosen background, and the palette covers the full…
 - **`code-block-tokens.spec.ts`** · 157 lines — Locks the four invariants that keep markdown code blocks readable on every theme: 1.
 - **`config.spec.ts`** · 153 lines — Locks canonical defaults, legacy instruction density migration, malformed input handling, semantic column lookup, and optional agent config preservation into one suite shared by browser and CLI adapters.
@@ -297,8 +312,10 @@ source to edit instead.
 - **`extension-agent-guidance.spec.ts`** · 23 lines — Locks concise summary, safe guide path, and optional source validation so malformed extension guidance cannot break Kandown Work.
 - **`extensions-host.spec.ts`** · 275 lines — Vitest suite that loads real extensions from a temp project dir via jiti and locks the host contract: discovery, restricted mode + project trust, gate composition with block reasons, command dispatch, and the core invariant that a…
 - **`kandown-work.spec.ts`** · 63 lines — Verifies immutable-core density, fixed nine-layer ordering, tracking cadence, semantic column placeholders, and structured diagnostics.
+- **`markdown-stream.spec.ts`** · 76 lines — Locks the two pure helpers that keep a streaming assistant message presentable: `closeDanglingCodeFence` (an odd number of ``` markers means the stream cut a fenced block open, so a closing fence is appended before the parser sees the…
 - **`parser-serializer.spec.ts`** · 174 lines — Vitest suite locking the `parseSimpleYaml` / `parseTaskFile` ↔ `serializeTaskFile` round-trip.
-- **`task-filename.spec.ts`** · 302 lines — Guards the module that decides which file on disk holds a task.
+- **`quick-add-parser.spec.ts`** · 95 lines — `parseQuickAddInput` is what turns one typed line ("Fix login p1 #auth @vava due:2026-01-30 +t12") into task frontmatter, in both the web quick-add bar and the TUI.
+- **`task-filename.spec.ts`** · 320 lines — Guards the module that decides which file on disk holds a task.
 - **`task-links.spec.ts`** · 88 lines — Locks the pure contract of src/lib/task-links.ts: the `[show: tXXX]` directive (last one wins, known anchors kept, unknown anchors and malformed forms rejected), the stripping of directives from displayed text without leaving ragged…
 - **`workflow-skills.spec.ts`** · 197 lines — Locks data-only skill validation, compatibility filtering, semantic role diagnostics, and optional chat button metadata for additive workflow guidance.
 - **`workflows.spec.ts`** · 280 lines — Locks the pure version 1 workflow contract across valid source folders, malformed manifests, portable path security, duplicate template declarations, loaded-package validation, Markdown capsule round trips, strict section parsing,…
@@ -378,6 +395,6 @@ source to edit instead.
 
 ## Coverage
 
-261 of 261 eligible files carry an `@description` header.
+272 of 272 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

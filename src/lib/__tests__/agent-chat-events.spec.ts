@@ -15,8 +15,10 @@ import {
   createChatFoldState,
   isAgentChatEvent,
   removeChatEntry,
+  toolExcerpt,
   type AgentChatEvent,
   type ChatAssistantEntry,
+  type ChatToolEntry,
   type ChatUserEntry,
 } from '../agent-chat-events';
 
@@ -144,6 +146,52 @@ describe('applyChatEvent: tool pairing', () => {
     const entry = lastAssistant(state);
     expect(entry.tools).toHaveLength(1);
     expect(entry.tools[0]).toMatchObject({ toolName: 'Write', ok: true, finished: true });
+  });
+
+  it('patches a late summary onto the already-open row instead of duplicating it', () => {
+    let state = createChatFoldState();
+    state = applyChatEvent(state, { ...base('tool_started'), toolCallId: 'tc_1', toolName: 'bash' });
+    state = applyChatEvent(state, { ...base('tool_started'), toolCallId: 'tc_1', toolName: 'bash', summary: 'ls tasks/' });
+    const entry = lastAssistant(state);
+    expect(entry.tools).toHaveLength(1);
+    expect(entry.tools[0]).toMatchObject({ toolCallId: 'tc_1', toolName: 'bash', summary: 'ls tasks/', finished: false });
+  });
+
+  it('never overwrites an existing summary with a late duplicate', () => {
+    let state = createChatFoldState();
+    state = applyChatEvent(state, { ...base('tool_started'), toolCallId: 'tc_1', toolName: 'bash', summary: 'first' });
+    state = applyChatEvent(state, { ...base('tool_started'), toolCallId: 'tc_1', toolName: 'bash', summary: 'second' });
+    expect(lastAssistant(state).tools[0]?.summary).toBe('first');
+  });
+});
+
+describe('toolExcerpt', () => {
+  const entry = (summary?: string): ChatToolEntry => ({
+    toolCallId: null,
+    toolName: 'bash',
+    ...(summary !== undefined ? { summary } : {}),
+    ok: null,
+    finished: false,
+  });
+
+  it('returns the summary as a single line when it is short enough', () => {
+    expect(toolExcerpt(entry('pnpm vitest\n  run src'))).toBe('pnpm vitest run src');
+  });
+
+  it('collapses runs of whitespace and trims the edges', () => {
+    expect(toolExcerpt(entry('  fix   the   thing  '))).toBe('fix the thing');
+  });
+
+  it('truncates long summaries to one line with an ellipsis', () => {
+    const long = 'x'.repeat(200);
+    const excerpt = toolExcerpt(entry(long));
+    expect(excerpt.length).toBeLessThanOrEqual(72);
+    expect(excerpt.endsWith('\u2026')).toBe(true);
+  });
+
+  it('returns an empty string when the harness sent no summary', () => {
+    expect(toolExcerpt(entry())).toBe('');
+    expect(toolExcerpt(entry('   '))).toBe('');
   });
 });
 

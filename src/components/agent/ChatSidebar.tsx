@@ -109,6 +109,20 @@ export function ChatSidebar() {
   const fold = activeLive?.fold;
   const turnActive = fold?.turnActive ?? false;
 
+  // 📖 Working indicator window: the send POST is in flight (between the user's
+  // send and the first event), or the turn already started but has produced no
+  // renderable output yet (no text, no thinking, no tools: the fold lazily
+  // creates the assistant entry, so its emptiness is the "nothing yet" signal).
+  const lastEntry = fold?.messages.length ? fold.messages[fold.messages.length - 1] : undefined;
+  const turnJustStarted = turnActive
+    && lastEntry !== undefined
+    && lastEntry.kind === 'assistant'
+    && lastEntry.streaming
+    && lastEntry.text.length === 0
+    && lastEntry.thinking.length === 0
+    && lastEntry.tools.length === 0;
+  const waiting = sending || turnJustStarted;
+
   // 📖 Stick-to-bottom: follow the stream unless the user scrolled up, in which
   // case show the jump-to-bottom pill instead of yanking the scroll position.
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -260,6 +274,7 @@ export function ChatSidebar() {
                     // recent tail while the agent is actually working.
                     changedFiles={turnActive ? (fold?.changedFiles ?? []): []}
                     preContextTaskId={preContextTaskId}
+                    waiting={waiting}
                   />
                 </div>
                 {/* Jump to bottom pill */}

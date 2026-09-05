@@ -27,6 +27,7 @@
  */
 
 import { EDIT_TOOL_NAMES } from '../types.js';
+import { excerptFromToolInput } from '../tool-excerpt.js';
 import type { AdapterParseResult, AdapterState, AgentSessionConfig, HarnessAdapter } from '../types.js';
 
 /** 📖 Builds the headless argv. `bypassPermissions` is claude's yolo mode;
@@ -99,11 +100,12 @@ export function parseLine(line: string, state: AdapterState): AdapterParseResult
         } else if (content.type === 'tool_use') {
           const toolName = typeof content.name === 'string' ? content.name: 'tool';
           const path = editPath(content.input);
+          const summary = excerptFromToolInput(content.input);
           events.push({
             type: 'tool_started',
             toolCallId: typeof content.id === 'string' ? content.id: undefined,
             toolName,
-            ...(path ? { summary: path }: {}),
+            ...(summary ? { summary } : {}),
           });
           if (path && EDIT_TOOL_NAMES.has(toolName.toLowerCase())) {
             events.push({ type: 'file_changed', path });

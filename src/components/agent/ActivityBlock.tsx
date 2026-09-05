@@ -8,8 +8,10 @@
  * once tools run, a check once the turn settles); the latest thinking fragment
  * ticks on the header line. Expanding reveals the full reasoning text and one
  * row per tool call, retries included, so repeated bash runs stack inside the
- * same block instead of scattering chips through the message. Finished turns
- * keep the collapsed summary.
+ * same block instead of scattering chips through the message. Each tool row
+ * carries a muted one-line excerpt of what ran (the fold's tool summary,
+ * see toolExcerpt) so the panel shows work even when collapsed rows are
+ * glanced at. Finished turns keep the collapsed summary.
  *
  * 📖 Pure render: the data comes from the event fold (agent-chat-events.ts)
  * unchanged; the grouping happens here, at render time. Visual patterns ported
@@ -33,11 +35,16 @@ import { useTranslation } from 'react-i18next';
 import { IconBrain, IconCheck, IconChevronRight, IconTool, IconX } from '@tabler/icons-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { MOTION } from '../../lib/motion-presets';
+import { toolExcerpt } from '../../lib/agent-chat-events';
 import type { ChatAssistantEntry, ChatToolEntry } from '../../lib/agent-chat-events';
 
 /** 📖 Outcome tint + glyph of one tool row: running (pulse, neutral), success
- * (emerald check), failure (red cross). */
+ * (emerald check), failure (red cross). The muted mono excerpt next to the
+ * name shows WHAT ran (command, edit path) from the fold's summary when the
+ * harness sent one; rows without a detail stay name-only. The full summary,
+ * untruncated, rides the title attribute. */
 function ToolRow({ tool }: { tool: ChatToolEntry }) {
+  const excerpt = toolExcerpt(tool);
   return (
     <div className="flex items-center gap-1.5 px-2.5 py-1 text-[11px]" title={tool.summary ?? tool.toolName}>
       {tool.ok === true ? (
@@ -50,8 +57,8 @@ function ToolRow({ tool }: { tool: ChatToolEntry }) {
       <span className={`flex-none font-mono font-medium ${tool.ok === false ? 'text-red-600 dark:text-red-400' : 'text-fg-muted'}`}>
         {tool.toolName}
       </span>
-      {tool.summary && (
-        <span className="min-w-0 flex-1 truncate font-mono text-[10.5px] text-fg-faint">{tool.summary}</span>
+      {excerpt !== '' && (
+        <span className="min-w-0 flex-1 truncate font-mono text-[10.5px] text-fg-faint">{excerpt}</span>
       )}
       {tool.ok === false && (
         <span className="flex-none font-semibold text-red-600 dark:text-red-400">failed</span>

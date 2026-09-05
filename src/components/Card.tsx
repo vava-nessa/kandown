@@ -57,10 +57,10 @@ import { Icon } from './Icons';
 import { AssigneeAvatar } from './agentIcons';
 import { CategoryChip } from './CategoryChip';
 import { CardBeam } from './agent/CardBeam';
-import { AgentBlobatar } from './agent/Blobatar';
+import { FloatingAgentBlobatar } from './agent/Blobatar';
 import { ApprovalCardStack, isApprovalStackHost } from './agent/ApprovalCard';
 import { AutopilotStatusChip, CardStopButton } from './agent/CardStopButton';
-import { autopilotTaskStatus, activeSessionForTask } from '../lib/store/autopilotSlice';
+import { autopilotTaskStatus } from '../lib/store/autopilotSlice';
 import type { BoardTask, Density, SearchMatch } from '../lib/types';
 import { useStore } from '../lib/store';
 import { useExtensionRuntime } from './ExtensionRuntimeProvider';
@@ -210,9 +210,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
 
   // 📖 Autopilot (t311): chip status + the session id driving the stop
   // button. Both derive from the SSE snapshot in one place (autopilotSlice).
-  // Declared early: hasMetaBadges below counts the autopilot chip as a badge.
   const autopilotStatus = useStore(s => autopilotTaskStatus(s.autopilot.snapshot, task.id));
-  const autopilotSessionId = useStore(s => activeSessionForTask(s.autopilot.snapshot, task.id));
 
   const progressPct =
     task.progress && task.progress.total > 0
@@ -367,20 +365,18 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       style={categoryBorderColor ? { borderColor: categoryBorderColor } : undefined}
     >
       {/* 📖 Live agent edit (t309): animated border beam while a session edits
-          this task (self-hiding), plus the session's deterministic blob avatar
-          with its "I am editing..." bubble. The blob sits left of the
-          hover-revealed "Ask the agent" button so the two never collide. */}
+          this task (self-hiding), plus the session's deterministic blob as the
+          floating companion: a bigger creature hovering over the card's
+          bottom-right corner (the quietest corner: only the decorative id
+          badge lives there), drifting on a slow loop, click-through. The
+          "I am editing..." bubble rides along. */}
       <CardBeam taskId={task.id} variant="card" />
       {editSession && (
-        <AgentBlobatar
+        <FloatingAgentBlobatar
           sessionId={editSession.sessionId}
-          size={24}
+          size={44}
           bubble
-          className={`absolute z-20 ${isCompact ? 'top-[2px]' : 'top-[6px]'} ${
-            // 📖 t311: when an autopilot stop button is mounted next to it,
-            // the blob shifts left so the two controls never overlap.
-            autopilotSessionId ? 'right-[54px]' : 'right-7'
-          }`}
+          className="-bottom-3 -right-2 z-20"
         />
       )}
       {/* Title row: checkbox (hover) | # | title. The title grows with its

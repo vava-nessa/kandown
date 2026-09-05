@@ -639,7 +639,9 @@ export function TaskWorkspace() {
       </aside>
 
       <main className="flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card/75 backdrop-blur-xl shadow-2xl">
-        <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-3 flex-wrap">
+        {/* 📖 `relative`: the chat presence floating blob (AgentPresenceBadge)
+            anchors to this header, hovering over the panel just below it. */}
+        <div className="relative flex items-center justify-between gap-3 border-b border-border px-5 py-3 flex-wrap">
           <div className="flex min-w-0 items-center gap-2.5 flex-wrap">
             <span className="font-mono text-[12.5px] text-fg-muted px-1.5 py-0.5 bg-bg-2 border border-border rounded-[4px]">
               {drawerTaskId?.toUpperCase()}

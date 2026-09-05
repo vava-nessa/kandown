@@ -8,14 +8,14 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 14390,
+      "lines": 14449,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 62815,
+      "lines": 62831,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -231,7 +231,7 @@
     },
     {
       "path": "src/cli/commands/tasks.ts",
-      "lines": 342,
+      "lines": 346,
       "title": "CLI commands — task CRUD & board data",
       "summary": "Handlers for `kandown list/show/create/move/assign/commit` plus `export`/`import`/`projects`.",
       "exports": "cmdList, cmdShow, cmdCreate, cmdMove, cmdAssign, cmdCommit, cmdExport, cmdProjects, cmdImport"
@@ -248,6 +248,12 @@
         }
       ],
       "exports": "InlineContextMenu"
+    },
+    {
+      "path": "src/cli/hooks/__tests__/use-mouse.spec.ts",
+      "lines": 78,
+      "title": "Unit tests for the SGR mouse sequence parser",
+      "summary": "`parseMouseInput` is what makes the TUI board clickable and draggable: every click, drag and wheel tick arrives as a raw SGR escape sequence on stdin and is decoded here."
     },
     {
       "path": "src/cli/hooks/use-mouse.ts",
@@ -284,7 +290,7 @@
     },
     {
       "path": "src/cli/lib/__tests__/agent-runtime.spec.ts",
-      "lines": 264,
+      "lines": 273,
       "title": "Agent harness adapter tests",
       "summary": "Locks the pure half of the t307 harness foundation: each protocol adapter's argv mapping (permission modes, resume flags) and its stdout-line-to-event normalization, plus the runtime's follow-up routing decision surface.",
       "functions": [
@@ -302,6 +308,12 @@
       "summary": "Spawns bin/kandown.js (the published CLI bundle) in a tmpdir, seeds two tasks with a dependency edge, and asserts that: - `kandown move` succeeds when the dependency is already in the terminal column."
     },
     {
+      "path": "src/cli/lib/__tests__/cli-lifecycle.spec.ts",
+      "lines": 228,
+      "title": "End-to-end tests for the `kandown` command surface",
+      "summary": "Spawns the published bundle (`bin/kandown.js`) in a throwaway tmpdir and drives one full task lifecycle the way a user or an agent would: `init` → `create` → `list --json` → `show` → `assign` → `move` → archive."
+    },
+    {
       "path": "src/cli/lib/__tests__/daemon-auth.spec.ts",
       "lines": 142,
       "title": "Daemon auth helpers unit tests",
@@ -312,6 +324,12 @@
       "lines": 203,
       "title": "Daemon HTTP auth enforcement integration tests",
       "summary": "Spins up a real `createServeServer` instance with `setActiveToken` configured, then pins the contract: 1."
+    },
+    {
+      "path": "src/cli/lib/__tests__/daemon-lifecycle.spec.ts",
+      "lines": 211,
+      "title": "Port allocation and daemon start/stop lifecycle",
+      "summary": "Two layers of the same story, both against real sockets and a real detached process — nothing mocked, because everything that goes wrong here (a port already taken, a daemon that outlives its metadata, a stale `daemon.json` pointing at…"
     },
     {
       "path": "src/cli/lib/__tests__/daemon-self-upgrade.spec.ts",
@@ -330,6 +348,12 @@
       "lines": 48,
       "title": "Kandown Work CLI adapter tests",
       "summary": "Proves fresh projects print the exact shared compiler output on stdout and that an explicit task replaces the general board digest."
+    },
+    {
+      "path": "src/cli/lib/__tests__/move-verdict.spec.ts",
+      "lines": 136,
+      "title": "Unit tests for the move verdict surfaced by board-reader",
+      "summary": "`moveTaskToColumnDetailed` is the one place a move is decided: it resolves the task, asks the shared dependency gate, writes the file and reports *why* when it refuses."
     },
     {
       "path": "src/cli/lib/__tests__/orchestrator.spec.ts",
@@ -419,6 +443,12 @@
       "summary": "Pins the behaviour that broke when cmdList rebuilt its rows by hand instead of going through `buildColumnsFromTasks`."
     },
     {
+      "path": "src/cli/lib/__tests__/updater-semver.spec.ts",
+      "lines": 62,
+      "title": "Unit tests for the update-check version comparison",
+      "summary": "`semverGt` decides whether the npm registry is offering a newer kandown than the one running, which in turn decides whether the CLI nags the user and whether a live daemon self-upgrades."
+    },
+    {
       "path": "src/cli/lib/__tests__/workflows-cli.spec.ts",
       "lines": 64,
       "title": "Workflow CLI adapter tests",
@@ -449,7 +479,7 @@
     },
     {
       "path": "src/cli/lib/agent/adapters/acp.ts",
-      "lines": 328,
+      "lines": 331,
       "title": "Generic ACP harness adapter (Agent Client Protocol over stdio)",
       "summary": "Speaks ACP, the open JSON-RPC 2.0 newline-delimited protocol introduced by Zed, so every ACP-capable agent (opencode, gemini, and the long tail) appears in kandown without a bespoke integration.",
       "functions": [
@@ -478,7 +508,7 @@
     },
     {
       "path": "src/cli/lib/agent/adapters/claude-code.ts",
-      "lines": 162,
+      "lines": 164,
       "title": "Claude Code harness adapter (stream-json protocol)",
       "summary": "Drives `claude -p <prompt> --output-format stream-json` and normalizes its JSONL stdout into kandown agent events.",
       "functions": [
@@ -512,7 +542,7 @@
     },
     {
       "path": "src/cli/lib/agent/adapters/pi.ts",
-      "lines": 218,
+      "lines": 224,
       "title": "Pi harness adapter (RPC mode protocol)",
       "summary": "Drives `pi --mode rpc`, pi's newline-delimited JSON protocol over stdin/stdout (documented in badlogic/pi-mono, packages/coding-agent/ docs/rpc.md).",
       "functions": [
@@ -702,6 +732,19 @@
       "exports": "SessionIndexEntry, SessionIndexPatch, sessionIndexBaseDir, sessionIndexDir, upsertSessionIndexEntry, patchSessionIndexEntry, forgetSessionIndexEntry, listSessionIndexEntries, indexEntryForPrompt"
     },
     {
+      "path": "src/cli/lib/agent/tool-excerpt.ts",
+      "lines": 59,
+      "title": "Tool detail excerpt for harness adapters",
+      "summary": "Extracts a short single-line excerpt from a harness tool input so the chat activity rows show WHAT the agent is doing (the bash command, the touched file) instead of the bare tool name.",
+      "functions": [
+        {
+          "name": "excerptFromToolInput: one-line excerpt (max 80 chars) or undefined",
+          "summary": null
+        }
+      ],
+      "exports": "excerptFromToolInput"
+    },
+    {
       "path": "src/cli/lib/agent/types.ts",
       "lines": 157,
       "title": "Agent harness contracts: the normalized event model and session types",
@@ -799,7 +842,7 @@
     },
     {
       "path": "src/cli/lib/board-reader.ts",
-      "lines": 622,
+      "lines": 687,
       "title": "Node.js task reader and mutator",
       "summary": "Provides filesystem-based reading and writing of Kandown task files for the CLI.",
       "functions": [
@@ -837,14 +880,18 @@
         },
         {
           "name": "moveTaskToColumn",
-          "summary": "updates a task frontmatter status"
+          "summary": "updates a task frontmatter status (boolean)"
+        },
+        {
+          "name": "moveTaskToColumnDetailed",
+          "summary": "same move, returning the gate verdict"
         },
         {
           "name": "assignTaskToAgent",
           "summary": "writes a canonical agent id into `assignee:`"
         }
       ],
-      "exports": "getProjectRoot, getTasksDir, listTaskIds, listTaskFilenames, findTaskPath, newTaskFilePath, readBoard, readTask, moveTaskToColumn, assignTaskToAgent"
+      "exports": "getProjectRoot, getTasksDir, listTaskIds, listTaskFilenames, findTaskPath, newTaskFilePath, readBoard, readTask, moveTaskToColumn, moveTaskToColumnDetailed, MoveOutcome, MoveRefusal, assignTaskToAgent"
     },
     {
       "path": "src/cli/lib/browser.ts",
@@ -1108,7 +1155,7 @@
     },
     {
       "path": "src/cli/lib/mcp.ts",
-      "lines": 240,
+      "lines": 242,
       "title": "Stdio MCP server for Kandown",
       "summary": "Exposes Kandown task operations to MCP hosts (Claude Desktop, VSCode, etc.) via JSON-RPC 2.0 over stdin/stdout.",
       "functions": [
@@ -1199,6 +1246,68 @@
         }
       ],
       "exports": "PLUGIN_KINDS, PluginKind, ScaffoldResult, scaffoldPlugin"
+    },
+    {
+      "path": "src/cli/lib/runner/herdr-client.ts",
+      "lines": 328,
+      "title": "Herdr client: silent detection plus a thin typed wrapper over its CLI",
+      "summary": "Everything kandown knows about Herdr (t261) lives here: whether it is present, and how to ask it for workspaces, tabs, panes and terminal output.",
+      "functions": [
+        {
+          "name": "herdrSocketPath      : the socket the local Herdr server would listen on",
+          "summary": null
+        },
+        {
+          "name": "detectHerdr          : cached availability probe, sync, never throws",
+          "summary": null
+        },
+        {
+          "name": "resetHerdrDetection  : drop the cache (tests, and after an install)",
+          "summary": null
+        },
+        {
+          "name": "herdrCall            : run one `herdr ...` command, parse its JSON result",
+          "summary": null
+        },
+        {
+          "name": "parseHerdrPanes      : pure: `pane list` payload to typed panes",
+          "summary": null
+        },
+        {
+          "name": "parseHerdrTabs       : pure: `tab list` payload to typed tabs",
+          "summary": null
+        },
+        {
+          "name": "mapHerdrStatus       : pure: Herdr agent status to a normalized run state",
+          "summary": null
+        },
+        {
+          "name": "taskIdFromTabLabel   : pure: read the `kd:<taskId>` tab-label convention",
+          "summary": null
+        },
+        {
+          "name": "tabLabelForTask      : pure: build that label",
+          "summary": null
+        },
+        {
+          "name": "pickWorkspaceForProject : pure: which workspace a project's tab belongs in",
+          "summary": null
+        }
+      ],
+      "exports": "HERDR_TAB_LABEL_PREFIX, HerdrPane, HerdrTab, HerdrCallResult, herdrSocketPath, detectHerdr, resetHerdrDetection, herdrCall, parseHerdrPanes, parseHerdrTabs, mapHerdrStatus, taskIdFromTabLabel, tabLabelForTask, pickWorkspaceForProject"
+    },
+    {
+      "path": "src/cli/lib/runner/types.ts",
+      "lines": 106,
+      "title": "TaskRunner contract: where a task's agent actually runs",
+      "summary": "Kandown can start an agent on a task in more than one place.",
+      "functions": [
+        {
+          "name": "(types only)",
+          "summary": null
+        }
+      ],
+      "exports": "RunnerId, RunnerRunState, RunnerAvailability, RunnerRun, RunnerStartRequest, RunnerOutput, TaskRunner, TERMINAL_RUN_STATES"
     },
     {
       "path": "src/cli/lib/server.ts",
@@ -1591,7 +1700,7 @@
     },
     {
       "path": "src/components/agent/ActivityBlock.tsx",
-      "lines": 156,
+      "lines": 163,
       "title": "One collapsible activity block per assistant turn",
       "summary": "Replaces the pile of interleaved thinking blocks and tool chips the chat used to render: every assistant turn gets a SINGLE panel that updates in place while the turn streams.",
       "functions": [
@@ -1604,12 +1713,12 @@
     },
     {
       "path": "src/components/agent/AgentPresenceBadge.tsx",
-      "lines": 71,
+      "lines": 83,
       "title": "Agent chat presence badge for the task editor headers",
-      "summary": "Shows the chat session's blobatar near the task id in the TaskWorkspace (desktop) and Drawer (mobile) headers while a `[show: tXXX]` directive from the ACTIVE chat session points at the open task.",
+      "summary": "Shows the chat session's blobatar near the task id in the TaskWorkspace (desktop) and Drawer (mobile) headers while a `[show: tXXX]` directive from the ACTIVE chat session points at the open task: a small header avatar, plus the…",
       "functions": [
         {
-          "name": "AgentPresenceBadge: header blob + anchor scroll (null when inactive)",
+          "name": "AgentPresenceBadge: header blob + floating companion + anchor scroll",
           "summary": null
         }
       ],
@@ -1672,16 +1781,20 @@
     },
     {
       "path": "src/components/agent/Blobatar.tsx",
-      "lines": 61,
+      "lines": 125,
       "title": "Agent blob avatar (t309)",
       "summary": "Deterministic blob avatar identifying the agent session that is currently editing a task: the same sessionId always renders the same creature (shape, face, colors all derive from the id by the blobatar generator), so a session keeps its…",
       "functions": [
         {
-          "name": "AgentBlobatar: the avatar (optionally with its editing bubble)",
+          "name": "AgentBlobatar: the small avatar (optionally with its editing bubble)",
+          "summary": null
+        },
+        {
+          "name": "FloatingAgentBlobatar: the bigger drifting companion for card/editor mounts",
           "summary": null
         }
       ],
-      "exports": "AgentBlobatar"
+      "exports": "AgentBlobatar, FloatingAgentBlobatar"
     },
     {
       "path": "src/components/agent/CardBeam.tsx",
@@ -1719,7 +1832,7 @@
     },
     {
       "path": "src/components/agent/ChatSidebar.tsx",
-      "lines": 316,
+      "lines": 331,
       "title": "Agent chat sidebar (t308)",
       "summary": "The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.",
       "functions": [
@@ -1771,12 +1884,24 @@
     },
     {
       "path": "src/components/agent/MarkdownContent.tsx",
-      "lines": 215,
+      "lines": 293,
       "title": "Markdown renderer for assistant chat messages",
       "summary": "Renders an assistant message as Markdown: headings, lists, bold, links, blockquotes, GFM tables (remark-gfm) and fenced code blocks on the project's code-block token surface with a Copy button.",
       "functions": [
         {
-          "name": "TaskChip: clickable task reference chip",
+          "name": "closeDanglingCodeFence: appends the closing fence when the stream cut one open",
+          "summary": null
+        },
+        {
+          "name": "splitStreamingTail: splits the last few words off for the shimmer sweep",
+          "summary": null
+        },
+        {
+          "name": "withShimmerTail: wraps the rendered tree's tail text in the shimmer span",
+          "summary": null
+        },
+        {
+          "name": "TaskChip: clickable task reference chip (a button, no navigation)",
           "summary": null
         },
         {
@@ -1784,15 +1909,19 @@
           "summary": null
         },
         {
-          "name": "MarkdownContent: the markdown root, with element overrides",
+          "name": "buildComponents: element overrides, chat-scale typography",
+          "summary": null
+        },
+        {
+          "name": "MarkdownContent: the markdown root",
           "summary": null
         }
       ],
-      "exports": "MarkdownContent"
+      "exports": "MarkdownContent, closeDanglingCodeFence, splitStreamingTail"
     },
     {
       "path": "src/components/agent/MessageList.tsx",
-      "lines": 122,
+      "lines": 162,
       "title": "Message list for the agent chat sidebar",
       "summary": "Renders the folded conversation: user bubbles (plain text), assistant turns as a BeautifulUI-style full-width panel (ONE collapsible activity block that updates in place while the turn streams, then the Markdown answer below it), error…",
       "functions": [
@@ -1852,12 +1981,12 @@
     },
     {
       "path": "src/components/agent/StreamingText.tsx",
-      "lines": 51,
+      "lines": 61,
       "title": "Streaming text with a live caret",
       "summary": "Renders an assistant message that is still arriving.",
       "functions": [
         {
-          "name": "StreamingText: assistant text with a live caret while streaming",
+          "name": "StreamingText: assistant text with a live caret and tail shimmer",
           "summary": null
         }
       ],
@@ -1954,7 +2083,7 @@
     },
     {
       "path": "src/components/Card.tsx",
-      "lines": 555,
+      "lines": 551,
       "title": "Task card",
       "summary": "Displays one board task as a clean, rounded card inside a column.",
       "functions": [
@@ -2086,7 +2215,7 @@
     },
     {
       "path": "src/components/Drawer.tsx",
-      "lines": 548,
+      "lines": 550,
       "title": "Task drawer editor",
       "summary": "Full-height task detail editor for title, description, subtasks, report, save/close, autosave, and deletion.",
       "functions": [
@@ -2419,7 +2548,7 @@
     },
     {
       "path": "src/components/TaskWorkspace.tsx",
-      "lines": 856,
+      "lines": 858,
       "title": "Desktop opened-task workspace",
       "summary": "Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…",
       "functions": [
@@ -2636,7 +2765,7 @@
     },
     {
       "path": "src/lib/__tests__/agent-chat-events.spec.ts",
-      "lines": 204,
+      "lines": 252,
       "title": "Tests for the agent chat event fold",
       "summary": "Locks the reducer contract the chat sidebar renders from: streaming text accumulates then finalizes, thinking stays on its own channel, tool calls pair by toolCallId, usage accumulates, errors append entries (and fatal ones close the…"
     },
@@ -2663,6 +2792,12 @@
       "lines": 207,
       "title": "Standalone browser extension runtime integration tests",
       "summary": "Uses a minimal in-memory File System Access implementation to prove project-local discovery, bundled index.js activation, typed badge rendering, web module loading, failure isolation and persistent quarantine."
+    },
+    {
+      "path": "src/lib/__tests__/build-columns.spec.ts",
+      "lines": 106,
+      "title": "Unit tests for buildColumnsFromTasks",
+      "summary": "`buildColumnsFromTasks` is the single function that turns a flat list of parsed task files into the column layout every surface renders (web board, TUI board, demo backend)."
     },
     {
       "path": "src/lib/__tests__/category-color.spec.ts",
@@ -2719,14 +2854,26 @@
       "summary": "Verifies immutable-core density, fixed nine-layer ordering, tracking cadence, semantic column placeholders, and structured diagnostics."
     },
     {
+      "path": "src/lib/__tests__/markdown-stream.spec.ts",
+      "lines": 76,
+      "title": "Tests for the streaming markdown helpers",
+      "summary": "Locks the two pure helpers that keep a streaming assistant message presentable: `closeDanglingCodeFence` (an odd number of ``` markers means the stream cut a fenced block open, so a closing fence is appended before the parser sees the…"
+    },
+    {
       "path": "src/lib/__tests__/parser-serializer.spec.ts",
       "lines": 174,
       "title": "Parser + serializer round-trip",
       "summary": "Vitest suite locking the `parseSimpleYaml` / `parseTaskFile` ↔ `serializeTaskFile` round-trip."
     },
     {
+      "path": "src/lib/__tests__/quick-add-parser.spec.ts",
+      "lines": 95,
+      "title": "Unit tests for the quick-add inline syntax",
+      "summary": "`parseQuickAddInput` is what turns one typed line (\"Fix login p1 #auth @vava due:2026-01-30 +t12\") into task frontmatter, in both the web quick-add bar and the TUI."
+    },
+    {
       "path": "src/lib/__tests__/task-filename.spec.ts",
-      "lines": 302,
+      "lines": 320,
       "title": "Tests for task filename slugs and id resolution",
       "summary": "Guards the module that decides which file on disk holds a task."
     },
@@ -2771,7 +2918,7 @@
     },
     {
       "path": "src/lib/agent-chat-events.ts",
-      "lines": 466,
+      "lines": 496,
       "title": "Agent chat event model (t308)",
       "summary": "Pure, framework-free model of the JSON events the daemon streams on GET /api/agent/sessions/:id/events, plus the reducer that folds them into the chat message list rendered by the agent chat sidebar.",
       "functions": [
@@ -2788,6 +2935,10 @@
           "summary": null
         },
         {
+          "name": "toolExcerpt: one-line excerpt of a tool call for the activity rows (pure)",
+          "summary": null
+        },
+        {
           "name": "appendUserMessage: append an optimistic user message (pure)",
           "summary": null
         },
@@ -2800,7 +2951,7 @@
           "summary": null
         }
       ],
-      "exports": "AgentChatEvent, SessionStartedEvent, MessageDeltaEvent, ToolStartedEvent, ToolFinishedEvent, FileChangedEvent, UsageEvent, TurnCompletedEvent, ErrorEvent, StoppedEvent, ChatEntry, ChatUserEntry, ChatAssistantEntry, ChatErrorEntry, ChatToolEntry, ChatUsageTotals, ChatFoldState, isAgentChatEvent, createChatFoldState, applyChatEvent, appendUserMessage, removeChatEntry, nextChatEntryId"
+      "exports": "AgentChatEvent, SessionStartedEvent, MessageDeltaEvent, ToolStartedEvent, ToolFinishedEvent, FileChangedEvent, UsageEvent, TurnCompletedEvent, ErrorEvent, StoppedEvent, ChatEntry, ChatUserEntry, ChatAssistantEntry, ChatErrorEntry, ChatToolEntry, ChatUsageTotals, ChatFoldState, isAgentChatEvent, createChatFoldState, applyChatEvent, toolExcerpt, appendUserMessage, removeChatEntry, nextChatEntryId"
     },
     {
       "path": "src/lib/agent-chat-skills.ts",
@@ -3686,7 +3837,7 @@
     },
     {
       "path": "src/lib/task-filename.ts",
-      "lines": 482,
+      "lines": 491,
       "title": "Task filename slugs and id resolution",
       "summary": "Owns the whole relationship between a task id and the name of the file that holds it, for every surface (CLI, daemon, TUI, web File System Access, desktop).",
       "functions": [

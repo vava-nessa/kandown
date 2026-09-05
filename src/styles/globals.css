@@ -353,3 +353,30 @@ code {
     color: hsl(var(--muted-foreground));
   }
 }
+
+/* 📖 Streaming generation shimmer (agent chat): the trailing few words of a
+   message that is still arriving carry the same soft light sweep as the
+   Thinking label, so the write edge reads as "being generated" until the
+   turn completes. Reuses the thinking-shimmer keyframes, but the static
+   fallback keeps the normal foreground color: this text is real content,
+   not a label. Pure CSS so prefers-reduced-motion users get a static tail. */
+.stream-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--foreground)) 0%,
+    hsl(var(--muted-foreground)) 45%,
+    hsl(var(--foreground)) 90%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: thinking-shimmer 1.6s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .stream-shimmer {
+    animation: none;
+    background: none;
+    -webkit-text-fill-color: currentcolor;
+  }
+}

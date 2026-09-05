@@ -36,6 +36,7 @@
  */
 
 import type { AdapterParseResult, AdapterState, AgentSessionConfig, HarnessAdapter } from '../types.js';
+import { excerptFromToolInput } from '../tool-excerpt.js';
 import type { AgentPermissionRequest, PermissionRoutingAdapter } from '../agent-runtime.js';
 
 const JSONRPC_VERSION = '2.0';
@@ -102,10 +103,12 @@ function parseSessionUpdate(update: Record<string, unknown>, events: AdapterPars
       events.push({ type: 'message_delta', text: content.text, partial: true, channel: 'thinking' });
     }
   } else if (kind === 'tool_call') {
+    const summary = excerptFromToolInput(update.rawInput);
     events.push({
       type: 'tool_started',
       toolCallId: typeof update.toolCallId === 'string' ? update.toolCallId: undefined,
       toolName: typeof update.title === 'string' ? update.title: 'tool',
+      ...(summary ? { summary } : {}),
     });
   } else if (kind === 'tool_call_update') {
     const status = typeof update.status === 'string' ? update.status: undefined;

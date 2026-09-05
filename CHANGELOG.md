@@ -5,6 +5,10 @@
 Every release has its own file in [`changelogs/`](changelogs/). This page is
 the index; click a version for the full notes.
 
+## Unreleased
+
+**[Command Not File](changelogs/unreleased.md)** — 2 fixed · 5 changed · 2 removed
+
 ## 2026
 
 | Version | Date | Release | Changes |

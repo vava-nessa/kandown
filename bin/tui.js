@@ -55434,8 +55434,9 @@ function buildTaskFilename(id, title, category, takenFilenames = []) {
   const safeId = String(id ?? "").trim();
   if (!safeId) throw new Error("buildTaskFilename requires a task id");
   if (/[\\/]|^\.+$/.test(safeId)) throw new Error(`Unsafe task id for a filename: ${safeId}`);
-  const categorySegment = normalizeCategorySegment(category ?? null) ?? categorySegmentFromTitle(title ?? "");
-  const slug = slugifyTitle(title ?? "");
+  const sluggable = ID_LIKE.test(safeId);
+  const categorySegment = sluggable ? normalizeCategorySegment(category ?? null) ?? categorySegmentFromTitle(title ?? "") : null;
+  const slug = sluggable ? slugifyTitle(title ?? "") : "";
   let body;
   if (categorySegment && slug) body = `${categorySegment}${SLUG_SEPARATOR}${slug}`;
   else if (categorySegment) body = categorySegment;
@@ -55629,9 +55630,11 @@ function readTask(kandownDir, taskId, defaultStatus) {
     }
   };
 }
-function moveTaskToColumn(kandownDir, taskId, targetColumn) {
+function moveTaskToColumnDetailed(kandownDir, taskId, targetColumn) {
   const taskPath = findTaskPath(kandownDir, taskId);
-  if (!taskPath) return false;
+  if (!taskPath) {
+    return { ok: false, reason: "not-found", blockedBy: [], message: `Task not found: ${taskId}` };
+  }
   try {
     const parsed = readTask(kandownDir, taskId);
     const cfg = loadConfig(kandownDir);
@@ -55646,10 +55649,12 @@ function moveTaskToColumn(kandownDir, taskId, targetColumn) {
     const snap = resolveDependencyStatus(allTasks, cfg);
     const verdict = resolveTransition(parsed, targetColumn, snap, cfg);
     if (!verdict.allowed) {
-      console.error(
-        `[kandown] Cannot move ${taskId} to ${targetColumn}: blocked by ${verdict.blockedBy.join(", ")}`
-      );
-      return false;
+      return {
+        ok: false,
+        reason: "blocked",
+        blockedBy: [...verdict.blockedBy],
+        message: `Cannot move ${taskId} to ${targetColumn}: blocked by ${verdict.blockedBy.join(", ")}`
+      };
     }
     const prevContent = readFileSync3(taskPath, "utf8");
     const newContent = serializeTaskFile(stampUpdated({
@@ -55666,11 +55671,22 @@ function moveTaskToColumn(kandownDir, taskId, targetColumn) {
       newContent,
       timestamp: Date.now()
     });
-    return true;
+    return { ok: true, blockedBy: [], message: "" };
   } catch (e) {
-    console.error(`[kandown] Failed to move task ${taskId} to ${targetColumn}:`, e.message);
-    return false;
+    return {
+      ok: false,
+      reason: "write-failed",
+      blockedBy: [],
+      message: `Failed to move task ${taskId} to ${targetColumn}: ${e.message}`
+    };
   }
+}
+function moveTaskToColumn(kandownDir, taskId, targetColumn) {
+  const outcome = moveTaskToColumnDetailed(kandownDir, taskId, targetColumn);
+  if (!outcome.ok && outcome.reason !== "not-found") {
+    console.error(`[kandown] ${outcome.message}`);
+  }
+  return outcome.ok;
 }
 function assignTaskToAgent(kandownDir, taskId, agentId) {
   const taskPath = findTaskPath(kandownDir, taskId);

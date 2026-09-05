@@ -1264,8 +1264,9 @@ function buildTaskFilename(id, title2, category, takenFilenames = []) {
   const safeId = String(id ?? "").trim();
   if (!safeId) throw new Error("buildTaskFilename requires a task id");
   if (/[\\/]|^\.+$/.test(safeId)) throw new Error(`Unsafe task id for a filename: ${safeId}`);
-  const categorySegment = normalizeCategorySegment(category ?? null) ?? categorySegmentFromTitle(title2 ?? "");
-  const slug = slugifyTitle(title2 ?? "");
+  const sluggable = ID_LIKE.test(safeId);
+  const categorySegment = sluggable ? normalizeCategorySegment(category ?? null) ?? categorySegmentFromTitle(title2 ?? "") : null;
+  const slug = sluggable ? slugifyTitle(title2 ?? "") : "";
   let body;
   if (categorySegment && slug) body = `${categorySegment}${SLUG_SEPARATOR}${slug}`;
   else if (categorySegment) body = categorySegment;
@@ -1649,9 +1650,11 @@ function readTask(kandownDir, taskId, defaultStatus) {
     }
   };
 }
-function moveTaskToColumn(kandownDir, taskId, targetColumn) {
+function moveTaskToColumnDetailed(kandownDir, taskId, targetColumn) {
   const taskPath = findTaskPath(kandownDir, taskId);
-  if (!taskPath) return false;
+  if (!taskPath) {
+    return { ok: false, reason: "not-found", blockedBy: [], message: `Task not found: ${taskId}` };
+  }
   try {
     const parsed = readTask(kandownDir, taskId);
     const cfg = loadConfig(kandownDir);
@@ -1666,10 +1669,12 @@ function moveTaskToColumn(kandownDir, taskId, targetColumn) {
     const snap = resolveDependencyStatus(allTasks, cfg);
     const verdict = resolveTransition(parsed, targetColumn, snap, cfg);
     if (!verdict.allowed) {
-      console.error(
-        `[kandown] Cannot move ${taskId} to ${targetColumn}: blocked by ${verdict.blockedBy.join(", ")}`
-      );
-      return false;
+      return {
+        ok: false,
+        reason: "blocked",
+        blockedBy: [...verdict.blockedBy],
+        message: `Cannot move ${taskId} to ${targetColumn}: blocked by ${verdict.blockedBy.join(", ")}`
+      };
     }
     const prevContent = readFileSync4(taskPath, "utf8");
     const newContent = serializeTaskFile(stampUpdated({
@@ -1686,11 +1691,22 @@ function moveTaskToColumn(kandownDir, taskId, targetColumn) {
       newContent,
       timestamp: Date.now()
     });
-    return true;
+    return { ok: true, blockedBy: [], message: "" };
   } catch (e) {
-    console.error(`[kandown] Failed to move task ${taskId} to ${targetColumn}:`, e.message);
-    return false;
+    return {
+      ok: false,
+      reason: "write-failed",
+      blockedBy: [],
+      message: `Failed to move task ${taskId} to ${targetColumn}: ${e.message}`
+    };
   }
+}
+function moveTaskToColumn(kandownDir, taskId, targetColumn) {
+  const outcome = moveTaskToColumnDetailed(kandownDir, taskId, targetColumn);
+  if (!outcome.ok && outcome.reason !== "not-found") {
+    console.error(`[kandown] ${outcome.message}`);
+  }
+  return outcome.ok;
 }
 function assignTaskToAgent(kandownDir, taskId, agentId) {
   const taskPath = findTaskPath(kandownDir, taskId);
@@ -4212,10 +4228,10 @@ function handleJsonRpc(kandownDir, req) {
       return;
     }
     if (name === "move_task") {
-      const ok = moveTaskToColumn(kandownDir, args.id, args.status);
+      const outcome = moveTaskToColumnDetailed(kandownDir, args.id, args.status);
       sendResponse(
         id,
-        ok ? { result: { content: [{ type: "text", text: `Moved ${args.id} to ${args.status}` }] } } : { error: { code: -32602, message: `Cannot move ${args.id} to ${args.status} (gate refused or file missing)` } }
+        outcome.ok ? { result: { content: [{ type: "text", text: `Moved ${args.id} to ${args.status}` }] } } : { error: { code: -32602, message: outcome.message } }
       );
       return;
     }
@@ -6766,8 +6782,9 @@ async function cmdMove(rawArgs) {
     err(`Cannot move ${id} to ${status}: ${gate.reason ?? "blocked by an extension"}`);
     process.exit(1);
   }
-  if (!moveTaskToColumn(kandownDir, id, status)) {
-    err(`Move failed: ${id}`);
+  const outcome = moveTaskToColumnDetailed(kandownDir, id, status);
+  if (!outcome.ok) {
+    err(outcome.message);
     process.exit(1);
   }
   try {
@@ -7007,6 +7024,43 @@ import { randomUUID } from "crypto";
 // src/cli/lib/agent/types.ts
 var EDIT_TOOL_NAMES = /* @__PURE__ */ new Set(["write", "edit", "multiedit", "notebookedit", "apply_patch", "apply-patch", "str_replace", "create", "patch"]);
 
+// src/cli/lib/agent/tool-excerpt.ts
+function truncateLine(value) {
+  const line = value.replace(/\s+/g, " ").trim();
+  return line.length > 80 ? `${line.slice(0, 79)}\u2026` : line;
+}
+function excerptFromToolInput(input) {
+  if (input === null || input === void 0) return void 0;
+  if (typeof input === "string") return input.trim() ? truncateLine(input) : void 0;
+  if (typeof input !== "object" || Array.isArray(input)) return void 0;
+  const record = input;
+  const commandKeys = ["command", "cmd", "script"];
+  for (const key of commandKeys) {
+    if (typeof record[key] === "string" && record[key].trim()) {
+      return truncateLine(record[key]);
+    }
+  }
+  const pathKeys = ["path", "file_path", "filePath", "notebook_path", "target", "file"];
+  for (const key of pathKeys) {
+    if (typeof record[key] === "string" && record[key].trim()) {
+      return truncateLine(record[key]);
+    }
+  }
+  const queryKeys = ["query", "url", "pattern", "question"];
+  for (const key of queryKeys) {
+    if (typeof record[key] === "string" && record[key].trim()) {
+      return truncateLine(record[key]);
+    }
+  }
+  try {
+    const json = JSON.stringify(record);
+    if (json && json !== "{}") return truncateLine(json);
+  } catch {
+    return void 0;
+  }
+  return void 0;
+}
+
 // src/cli/lib/agent/adapters/claude-code.ts
 function buildArgs(config, binPath) {
   const args = [
@@ -7066,11 +7120,12 @@ function parseLine(line, state) {
         } else if (content.type === "tool_use") {
           const toolName = typeof content.name === "string" ? content.name : "tool";
           const path = editPath(content.input);
+          const summary = excerptFromToolInput(content.input);
           events.push({
             type: "tool_started",
             toolCallId: typeof content.id === "string" ? content.id : void 0,
             toolName,
-            ...path ? { summary: path } : {}
+            ...summary ? { summary } : {}
           });
           if (path && EDIT_TOOL_NAMES.has(toolName.toLowerCase())) {
             events.push({ type: "file_changed", path });
@@ -7347,10 +7402,12 @@ function parseLine3(line, state) {
   }
   if (event.type === "tool_execution_start") {
     const toolName = typeof event.toolName === "string" ? event.toolName : "tool";
+    const summary = excerptFromToolInput(event.args);
     events.push({
       type: "tool_started",
       toolCallId: typeof event.toolCallId === "string" ? event.toolCallId : void 0,
-      toolName
+      toolName,
+      ...summary ? { summary } : {}
     });
     const path = argsPath(event.args);
     if (path && EDIT_TOOL_NAMES.has(toolName.toLowerCase())) {
@@ -7430,10 +7487,12 @@ function parseSessionUpdate(update, events) {
       events.push({ type: "message_delta", text: content.text, partial: true, channel: "thinking" });
     }
   } else if (kind === "tool_call") {
+    const summary = excerptFromToolInput(update.rawInput);
     events.push({
       type: "tool_started",
       toolCallId: typeof update.toolCallId === "string" ? update.toolCallId : void 0,
-      toolName: typeof update.title === "string" ? update.title : "tool"
+      toolName: typeof update.title === "string" ? update.title : "tool",
+      ...summary ? { summary } : {}
     });
   } else if (kind === "tool_call_update") {
     const status = typeof update.status === "string" ? update.status : void 0;
