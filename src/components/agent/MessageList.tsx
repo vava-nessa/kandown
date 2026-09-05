@@ -93,7 +93,7 @@ function UserMessage({ entry, onOpenTask }: { entry: ChatUserEntry; onOpenTask: 
   return (
     <div className="flex flex-col items-end gap-1">
       <ContextCards text={entry.text} onOpenTask={onOpenTask} />
-      <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-[8px] bg-accent/15 px-2.5 py-1.5 text-[13.5px] leading-relaxed text-fg">
+      <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-[10px] bg-inset px-2.5 py-1.5 text-[13.5px] leading-relaxed text-ink shadow-[inset_0_0_0_1px_var(--line)]">
         {entry.text}
       </div>
     </div>
@@ -155,10 +155,11 @@ function AssistantMessage({ entry, onOpenTask, onFollowUp }: {
   const hasText = displayText.trim() !== '';
 
   return (
-    // 📖 Assistant turn: one full-width subtle panel (BeautifulUI chat
-    // message shape). The single activity block renders thinking and
-    // tools; the Markdown answer streams below it.
-    <div className="w-full rounded-[10px] border border-border/70 bg-bg-1/60 px-2.5 py-2">
+    // 📖 Assistant turn: plain full-width content on the page background,
+    // like the BeautifulUI chat page. No panel box around the whole turn:
+    // the activity blocks and answer cards carry their own shapes, and the
+    // Markdown answer reads as text, not as a card in a card.
+    <div className="w-full min-w-0">
       <ActivityBlock entry={entry} />
       {hasText && (
         <StreamingText text={displayText} streaming={streaming} markdown onOpenTask={onOpenTask} />
@@ -235,7 +236,7 @@ export function MessageList({ messages, changedFiles, preContextTaskId, waiting 
   return (
     // 📖 BeautifulUI 07 chat page rhythm: a hair more air between turns than
     // between the elements inside one turn.
-    <div className="flex flex-col gap-3.5 px-3.5 py-4">
+    <div className="flex flex-col gap-3 px-3 py-3">
       {messages.map(entry => {
         if (entry.kind === 'user') {
           return <UserMessage key={entry.id} entry={entry} onOpenTask={handleOpenTask} />;

@@ -219,6 +219,7 @@ export default function PromptBar({
   onSend,
   value,
   onValueChange,
+  onCaretChange,
   atRows,
   slashRows,
   onPickAt,
@@ -249,8 +250,15 @@ export default function PromptBar({
   /** 📖 External mode switch: the controlled draft. Absent keeps the demo
    * bar self-contained. */
   value?: string;
-  /** 📖 Fires on every draft or caret change (caret = selectionStart). */
+  /** 📖 Fires on every draft change (value + caret). This is the ONLY way the
+   * child pushes text: no other handler may echo a value, or a stale closure
+   * can resurrect a just-cleared draft. */
   onValueChange?: (value: string, caret: number) => void;
+  /** 📖 Fires on caret moves only (selection, cursor keys). The embedder pairs
+   * the caret with the value it already owns: echoing a value here raced the
+   * commit that clears a focused textarea on Enter-to-send and refilled the
+   * draft after every send. */
+  onCaretChange?: (caret: number) => void;
   /** 📖 Rows of the @ menu (tasks), already filtered by the embedder. */
   atRows?: PromptBarRow[];
   /** 📖 Rows of the / menu (skills), already filtered by the embedder. */
@@ -839,7 +847,11 @@ export default function PromptBar({
               setPlusOpen(false);
             }}
             onSelect={(event) => {
-              if (external) onValueChange?.(draft, event.currentTarget.selectionStart ?? 0);
+              // 📖 Caret only, never a value echo: a `select` event fires
+              // synchronously while the embedder's clear-on-send commit is
+              // still writing the DOM, and reading the value there observed
+              // the pre-clear text and resurrected the just-sent draft.
+              if (external) onCaretChange?.(event.currentTarget.selectionStart ?? 0);
             }}
             onKeyDown={(event) => {
               if (menuVisible && rows.length > 0) {

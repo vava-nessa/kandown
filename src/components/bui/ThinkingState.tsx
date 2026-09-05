@@ -139,9 +139,12 @@ export default function ThinkingState({
   const [manualExpanded, setManualExpanded] = useState<boolean | null>(null);
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
   const v = VARIANTS[variant] ?? VARIANTS.Steps;
-  // 📖 External mode: open while live, collapse on settle; the demo keeps
-  // its staged open/close window. A manual toggle always wins over both.
-  const autoExpanded = external ? live === true : stage >= 1 && stage < 4;
+  // 📖 External mode: stay collapsed unless the user opens the trace. The
+  // live shimmer header plus the single-line ticker already say "thinking",
+  // and an auto-expanding block made every streaming turn jump around
+  // (vava's round 7 feedback). The demo keeps its staged open/close window.
+  // A manual toggle always wins over both.
+  const autoExpanded = external ? false : stage >= 1 && stage < 4;
   const expanded = manualExpanded ?? autoExpanded;
   const working = external ? live === true : stage < 3;
   const demoRows = v.rows;

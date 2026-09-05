@@ -8,14 +8,14 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 14690,
+      "lines": 14695,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 62831,
+      "lines": 62840,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -2093,7 +2093,7 @@
     },
     {
       "path": "src/components/agent/PromptBar.tsx",
-      "lines": 298,
+      "lines": 299,
       "title": "Prompt bar for the agent chat sidebar (round 7: official BUI shell)",
       "summary": "The agent chat composer, rebuilt ON the official BeautifulUI PromptBar (src/components/bui/PromptBar.tsx, beautifului.dev, MIT) in its external mode (demo={false}): the BUI component owns the exact visual structure (rounded composer,…",
       "functions": [
@@ -2412,7 +2412,7 @@
     },
     {
       "path": "src/components/bui/PromptBar.tsx",
-      "lines": 992,
+      "lines": 1004,
       "title": "Prompt bar of the BeautifulUI chat kit",
       "summary": "Faithful port of the official BeautifulUI PromptBar (beautifului.dev, MIT): a composer with real controls, an attach menu, @ data-source and / command menus, a model picker, dictation and send.",
       "exports": "PromptBar (default) : the composer, variant \"Rounded\" | \"Pill\" PromptBarRow, PromptBarModel, PromptBarLabels"

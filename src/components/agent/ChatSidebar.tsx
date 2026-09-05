@@ -19,7 +19,11 @@
  * composer to the official BeautifulUI PromptBar (external mode): the model
  * pick becomes the BUI model menu (still persisted per harness, empty key =
  * harness default) and the toolbar keeps the harness selector + permission
- * chip only.
+ * chip only. Round 8 puts the whole sidebar under the scoped `.bui` wrapper
+ * so every BeautifulUI part renders with its real tokens instead of the
+ * kandown fallbacks, and adds the centered agentic chat mode: a header
+ * toggle re-renders the same conversation as a large centered panel
+ * (chat-page proportions) while the board keeps its layout.
  *
  * 📖 Mounted once in App.tsx, outside the board layout, like Drawer and
  * CommandPalette, so it overlays every view and a board crash never takes the
@@ -38,7 +42,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
-import { IconArrowDown, IconX } from '@tabler/icons-react';
+import { IconArrowsDiagonal, IconArrowsDiagonalMinimize, IconArrowDown, IconX } from '@tabler/icons-react';
 import { useStore } from '../../lib/store';
 import { MOTION } from '../../lib/motion-presets';
 import { matchAgent } from '../../lib/agent-aliases';
@@ -134,6 +138,11 @@ export function ChatSidebar() {
   // 📖 Mobile detection mirrors Drawer.tsx: same 768px breakpoint, same
   // fullscreen-overlay treatment below it.
   const [isDesktop, setIsDesktop] = useState(() => window.matchMedia('(min-width: 768px)').matches);
+  // 📖 Centered agentic mode (round 8): the sidebar content re-renders as a
+  // large centered panel (beautifului.dev chat-page proportions) instead of
+  // the 400px rail. Desktop only: mobile is already fullscreen. Local state:
+  // the preference is per-visit, the board keeps its layout either way.
+  const [expandedView, setExpandedView] = useState(false);
   useEffect(() => {
     const query = window.matchMedia('(min-width: 768px)');
     const update = () => setIsDesktop(query.matches);
@@ -330,9 +339,11 @@ export function ChatSidebar() {
             {...MOTION.fade}
             role="complementary"
             aria-label={t('agentChat.title', 'Agent')}
-            className={`fixed z-[101] flex flex-col border-border bg-bg shadow-[0_0_48px_rgba(0,0,0,0.25)] ${
+            className={`bui fixed z-[101] flex flex-col border-border bg-bg shadow-[0_0_48px_rgba(0,0,0,0.25)] ${
               isDesktop
-                ? 'bottom-0 right-0 top-[64px] w-[400px] border-l'
+                ? expandedView
+                  ? 'bottom-[4vh] left-1/2 top-[6vh] w-[min(760px,92vw)] -translate-x-1/2 flex-col rounded-[16px] border shadow-[0_0_48px_rgba(0,0,0,0.35)]'
+                  : 'bottom-0 right-0 top-[64px] w-[400px] border-l'
                : 'inset-0'
             }`}
           >
@@ -347,6 +358,23 @@ export function ChatSidebar() {
                   onNew={newConversation}
                 />
                 {activeSessionId && fold && <UsageBadge totals={fold.totals} />}
+                {isDesktop && (
+                  <button
+                    type="button"
+                    onClick={() => setExpandedView(current => !current)}
+                    className="flex h-7 w-7 flex-none items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-bg-2 hover:text-fg"
+                    title={expandedView
+                      ? t('agentChat.collapseChat', 'Back to the sidebar')
+                      : t('agentChat.expandChat', 'Centered chat')}
+                    aria-label={expandedView
+                      ? t('agentChat.collapseChat', 'Back to the sidebar')
+                      : t('agentChat.expandChat', 'Centered chat')}
+                  >
+                    {expandedView
+                      ? <IconArrowsDiagonalMinimize size={14} stroke={1.8} />
+                      : <IconArrowsDiagonal size={14} stroke={1.8} />}
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={closeSidebar}

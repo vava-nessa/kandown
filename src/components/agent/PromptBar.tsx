@@ -232,6 +232,7 @@ export function PromptBar({
           setValue(nextValue);
           setCaret(nextCaret);
         }}
+        onCaretChange={setCaret}
         atRows={atRows}
         slashRows={slashRows}
         onPickAt={handlePickAt}

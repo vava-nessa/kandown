@@ -132,6 +132,7 @@ export default function ToolChips({
   onOpenChange,
   onToggleRow,
   live = false,
+  defaultOpen = true,
 }: {
   /** Accepted for gallery/registry parity; ToolChips has no visual variants. */
   variant?: string;
@@ -146,10 +147,13 @@ export default function ToolChips({
    * appear as they arrive (no reveal timer) and the demo min-height is
    * dropped so the block hugs the real trace. */
   live?: boolean;
+  /** 📖 Kandown embedding: start collapsed so a streaming turn shows only
+   * the run header. The gallery keeps its default-open demo look. */
+  defaultOpen?: boolean;
 } = {}) {
   const copy = { ...DEFAULT_LABELS, ...labels };
   const [step, setStep] = useState(0);
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(defaultOpen);
   const [openRows, setOpenRows] = useState<Set<string>>(new Set());
   // 📖 Highest step count reached while live: when the flag flips to settled
   // the demo reveal timer would otherwise hide rows that already appeared.

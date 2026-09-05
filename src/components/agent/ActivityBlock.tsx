@@ -119,7 +119,9 @@ export function ActivityBlock({ entry }: ActivityBlockProps) {
       )}
       {/* 📖 Official BeautifulUI 05 Tool Chips (external mode): rows appear
        * as they come while live; settled turns show the failed counter in
-       * the header. The demo diff chips section stays out of the chat. */}
+       * the header. The block starts collapsed so a streaming turn stays
+       * calm: the counter says what happened, the trace is one click away.
+       * The demo diff chips section stays out of the chat. */}
       {tools.length > 0 && (
         <ToolChips
           steps={toolSteps(tools)}
@@ -127,6 +129,7 @@ export function ActivityBlock({ entry }: ActivityBlockProps) {
           diffLines={{}}
           labels={{ header }}
           live={toolsLive}
+          defaultOpen={false}
           className="mt-1"
         />
       )}
