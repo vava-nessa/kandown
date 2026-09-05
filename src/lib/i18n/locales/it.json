@@ -371,7 +371,14 @@
     "proposeAccept": "Accetta",
     "proposeDismiss": "Ignora",
     "contextCardsLabel": "Attività referenziate",
-    "toolDurationTitle": "Durata"
+    "toolDurationTitle": "Durata",
+    "thinkingDone": "Pensiero completato",
+    "atMenuButton": "Sfoglia attività",
+    "menuHintAt": "Digita per cercare attività",
+    "menuHintSlash": "Digita per cercare Skill",
+    "modelDefault": "Valore predefinito dell'Harness",
+    "modelDefaultTag": "Auto",
+    "modelSuggestedTag": "Consigliato"
   },
   "agentSkills": {
     "skillsModalTitle": "Skill",

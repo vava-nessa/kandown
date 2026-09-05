@@ -371,7 +371,14 @@
     "proposeAccept": "Přijmout",
     "proposeDismiss": "Zamítnout",
     "contextCardsLabel": "Odkazované úlohy",
-    "toolDurationTitle": "Doba trvání"
+    "toolDurationTitle": "Doba trvání",
+    "thinkingDone": "Přemýšlení dokončeno",
+    "atMenuButton": "Procházet úlohy",
+    "menuHintAt": "Pište pro vyhledání úloh",
+    "menuHintSlash": "Pište pro vyhledání dovedností",
+    "modelDefault": "Výchozí nastavení Harnessu",
+    "modelDefaultTag": "Auto",
+    "modelSuggestedTag": "Doporučený"
   },
   "agentSkills": {
     "skillsModalTitle": "Dovednosti",

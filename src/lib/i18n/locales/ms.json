@@ -393,7 +393,14 @@
     "proposeAccept": "Terima",
     "proposeDismiss": "Ketepikan",
     "contextCardsLabel": "Tugasan yang dirujuk",
-    "toolDurationTitle": "Tempoh"
+    "toolDurationTitle": "Tempoh",
+    "thinkingDone": "Selesai berfikir",
+    "atMenuButton": "Layari tugasan",
+    "menuHintAt": "Taip untuk cari tugasan",
+    "menuHintSlash": "Taip untuk cari Kemahiran",
+    "modelDefault": "Lalai Harness",
+    "modelDefaultTag": "Auto",
+    "modelSuggestedTag": "Disyorkan"
   },
   "agentSkills": {
     "skillsModalTitle": "Kemahiran",

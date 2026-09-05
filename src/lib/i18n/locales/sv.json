@@ -371,7 +371,14 @@
     "proposeAccept": "Acceptera",
     "proposeDismiss": "Avvisa",
     "contextCardsLabel": "Nämnda uppgifter",
-    "toolDurationTitle": "Varaktighet"
+    "toolDurationTitle": "Varaktighet",
+    "thinkingDone": "Tänkandet är klart",
+    "atMenuButton": "Bläddra bland uppgifter",
+    "menuHintAt": "Skriv för att hitta uppgifter",
+    "menuHintSlash": "Skriv för att hitta färdigheter",
+    "modelDefault": "Harness-standard",
+    "modelDefaultTag": "Auto",
+    "modelSuggestedTag": "Rekommenderad"
   },
   "agentSkills": {
     "skillsModalTitle": "Färdigheter",

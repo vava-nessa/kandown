@@ -338,7 +338,14 @@
     "proposeAccept": "Chấp nhận",
     "proposeDismiss": "Đóng",
     "contextCardsLabel": "Công việc được nhắc đến",
-    "toolDurationTitle": "Thời lượng"
+    "toolDurationTitle": "Thời lượng",
+    "thinkingDone": "Đã suy nghĩ xong",
+    "atMenuButton": "Duyệt công việc",
+    "menuHintAt": "Nhập để tìm công việc",
+    "menuHintSlash": "Nhập để tìm kỹ năng",
+    "modelDefault": "Mặc định của Harness",
+    "modelDefaultTag": "Tự động",
+    "modelSuggestedTag": "Đề xuất"
   },
   "agentSkills": {
     "skillsModalTitle": "Kỹ năng",

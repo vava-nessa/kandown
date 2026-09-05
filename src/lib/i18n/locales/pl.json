@@ -356,7 +356,14 @@
     "proposeAccept": "Zaakceptuj",
     "proposeDismiss": "Odrzuć",
     "contextCardsLabel": "Przywołane zadania",
-    "toolDurationTitle": "Czas trwania"
+    "toolDurationTitle": "Czas trwania",
+    "thinkingDone": "Myślenie zakończone",
+    "atMenuButton": "Przeglądaj zadania",
+    "menuHintAt": "Wpisz, aby znaleźć zadania",
+    "menuHintSlash": "Wpisz, aby znaleźć Skills",
+    "modelDefault": "Wartość domyślna Harnessa",
+    "modelDefaultTag": "Auto",
+    "modelSuggestedTag": "Zalecany"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

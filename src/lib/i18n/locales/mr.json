@@ -393,7 +393,14 @@
     "proposeAccept": "स्वीकारा",
     "proposeDismiss": "वगळा",
     "contextCardsLabel": "नमूद केलेली कामे",
-    "toolDurationTitle": "कालावधी"
+    "toolDurationTitle": "कालावधी",
+    "thinkingDone": "विचार पूर्ण झाला",
+    "atMenuButton": "काम ब्राउज करा",
+    "menuHintAt": "काम शोधण्यासाठी टाइप करा",
+    "menuHintSlash": "कौशल्ये शोधण्यासाठी टाइप करा",
+    "modelDefault": "हार्नेसचे डीफॉल्ट",
+    "modelDefaultTag": "ऑटो",
+    "modelSuggestedTag": "सुचवलेले"
   },
   "agentSkills": {
     "skillsModalTitle": "कौशल्ये",

@@ -371,7 +371,14 @@
     "proposeAccept": "Hyväksy",
     "proposeDismiss": "Hylkää",
     "contextCardsLabel": "Viitatut tehtävät",
-    "toolDurationTitle": "Kesto"
+    "toolDurationTitle": "Kesto",
+    "thinkingDone": "Ajattelu valmis",
+    "atMenuButton": "Selaa tehtäviä",
+    "menuHintAt": "Kirjoita etsiäksesi tehtäviä",
+    "menuHintSlash": "Kirjoita etsiäksesi taitoja",
+    "modelDefault": "Harnessin oletus",
+    "modelDefaultTag": "Automaattinen",
+    "modelSuggestedTag": "Suositeltu"
   },
   "agentSkills": {
     "skillsModalTitle": "Taidot",

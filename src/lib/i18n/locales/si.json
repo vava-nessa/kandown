@@ -393,7 +393,14 @@
     "proposeAccept": "පිළිගන්න",
     "proposeDismiss": "ඉවත් කරන්න",
     "contextCardsLabel": "සඳහන් කාර්යයන්",
-    "toolDurationTitle": "ගතවූ කාලය"
+    "toolDurationTitle": "ගතවූ කාලය",
+    "thinkingDone": "සිතා බැලීම අවසන්",
+    "atMenuButton": "කාර්යයන් පිරික්සන්න",
+    "menuHintAt": "කාර්යයන් සෙවීමට ටයිප් කරන්න",
+    "menuHintSlash": "කුසලතා සෙවීමට ටයිප් කරන්න",
+    "modelDefault": "හානස් හි පෙරනිමිය",
+    "modelDefaultTag": "ස්වයංක්‍රීය",
+    "modelSuggestedTag": "යෝජිත"
   },
   "agentSkills": {
     "skillsModalTitle": "කුසලතා",

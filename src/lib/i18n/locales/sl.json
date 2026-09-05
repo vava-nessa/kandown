@@ -371,7 +371,14 @@
     "proposeAccept": "Sprejmi",
     "proposeDismiss": "Zavrni",
     "contextCardsLabel": "Omenjene naloge",
-    "toolDurationTitle": "Trajanje"
+    "toolDurationTitle": "Trajanje",
+    "thinkingDone": "Razmišljanje končano",
+    "atMenuButton": "Prebrskaj naloge",
+    "menuHintAt": "Vnesite za iskanje nalog",
+    "menuHintSlash": "Vnesite za iskanje veščin",
+    "modelDefault": "Privzeta vrednost Harnessa",
+    "modelDefaultTag": "Samodejno",
+    "modelSuggestedTag": "Priporočeno"
   },
   "agentSkills": {
     "skillsModalTitle": "Veščine",

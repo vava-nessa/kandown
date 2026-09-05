@@ -338,7 +338,14 @@
     "proposeAccept": "受け入れる",
     "proposeDismiss": "却下",
     "contextCardsLabel": "参照タスク",
-    "toolDurationTitle": "所要時間"
+    "toolDurationTitle": "所要時間",
+    "thinkingDone": "思考完了",
+    "atMenuButton": "タスクを検索",
+    "menuHintAt": "入力してタスクを検索",
+    "menuHintSlash": "入力してスキルを検索",
+    "modelDefault": "ハーネスのデフォルト",
+    "modelDefaultTag": "自動",
+    "modelSuggestedTag": "推奨"
   },
   "agentSkills": {
     "skillsModalTitle": "スキル",

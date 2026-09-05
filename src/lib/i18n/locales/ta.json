@@ -393,7 +393,14 @@
     "proposeAccept": "ஏற்கவும்",
     "proposeDismiss": "நிராகரிக்கவும்",
     "contextCardsLabel": "குறிப்பிடப்பட்ட பணிகள்",
-    "toolDurationTitle": "கால அளவு"
+    "toolDurationTitle": "கால அளவு",
+    "thinkingDone": "சிந்தனை முடிந்தது",
+    "atMenuButton": "பணிகளை உலாவு",
+    "menuHintAt": "பணிகளைத் தேட தட்டச்சு செய்யுங்கள்",
+    "menuHintSlash": "திறன்களைத் தேட தட்டச்சு செய்யுங்கள்",
+    "modelDefault": "ஹார்னஸின் இயல்புநிலை",
+    "modelDefaultTag": "தானியங்கு",
+    "modelSuggestedTag": "பரிந்துரைக்கப்பட்டது"
   },
   "agentSkills": {
     "skillsModalTitle": "திறன்கள்",

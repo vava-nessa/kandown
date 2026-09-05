@@ -338,7 +338,14 @@
     "proposeAccept": "پذیرفتن",
     "proposeDismiss": "نادیده گرفتن",
     "contextCardsLabel": "کارهای ارجاع‌شده",
-    "toolDurationTitle": "مدت"
+    "toolDurationTitle": "مدت",
+    "thinkingDone": "فکر کردن تمام شد",
+    "atMenuButton": "مرور کارها",
+    "menuHintAt": "برای یافتن کارها تایپ کنید",
+    "menuHintSlash": "برای یافتن مهارت‌ها تایپ کنید",
+    "modelDefault": "پیش‌فرض هارنس",
+    "modelDefaultTag": "خودکار",
+    "modelSuggestedTag": "پیشنهادی"
   },
   "agentSkills": {
     "skillsModalTitle": "مهارت‌ها",

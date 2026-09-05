@@ -393,7 +393,14 @@
     "proposeAccept": "ยอมรับ",
     "proposeDismiss": "ปิด",
     "contextCardsLabel": "งานที่อ้างถึง",
-    "toolDurationTitle": "ระยะเวลา"
+    "toolDurationTitle": "ระยะเวลา",
+    "thinkingDone": "คิดเสร็จแล้ว",
+    "atMenuButton": "เรียกดูงาน",
+    "menuHintAt": "พิมพ์เพื่อค้นหางาน",
+    "menuHintSlash": "พิมพ์เพื่อค้นหาทักษะ",
+    "modelDefault": "ค่าเริ่มต้นของ Harness",
+    "modelDefaultTag": "อัตโนมัติ",
+    "modelSuggestedTag": "แนะนำ"
   },
   "agentSkills": {
     "skillsModalTitle": "ทักษะ",

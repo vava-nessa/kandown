@@ -382,7 +382,14 @@
     "proposeAccept": "接受",
     "proposeDismiss": "忽略",
     "contextCardsLabel": "引用的任务",
-    "toolDurationTitle": "耗时"
+    "toolDurationTitle": "耗时",
+    "thinkingDone": "思考完成",
+    "atMenuButton": "浏览任务",
+    "menuHintAt": "输入以筛选任务",
+    "menuHintSlash": "输入以筛选技能",
+    "modelDefault": "Harness 默认值",
+    "modelDefaultTag": "自动",
+    "modelSuggestedTag": "推荐"
   },
   "agentSkills": {
     "skillsModalTitle": "技能",

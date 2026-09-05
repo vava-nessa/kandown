@@ -371,7 +371,14 @@
     "proposeAccept": "Aceitar",
     "proposeDismiss": "Descartar",
     "contextCardsLabel": "Tarefas referenciadas",
-    "toolDurationTitle": "Duração"
+    "toolDurationTitle": "Duração",
+    "thinkingDone": "Terminou de pensar",
+    "atMenuButton": "Explorar tarefas",
+    "menuHintAt": "Digite para buscar tarefas",
+    "menuHintSlash": "Digite para buscar Skills",
+    "modelDefault": "Padrão do Harness",
+    "modelDefaultTag": "Auto",
+    "modelSuggestedTag": "Recomendado"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

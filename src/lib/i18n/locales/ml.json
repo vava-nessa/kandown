@@ -393,7 +393,14 @@
     "proposeAccept": "സ്വീകരിക്കൂ",
     "proposeDismiss": "ഉപേക്ഷിക്കൂ",
     "contextCardsLabel": "പരാമർശിച്ച ടാസ്കുകൾ",
-    "toolDurationTitle": "ദൈർഘ്യം"
+    "toolDurationTitle": "ദൈർഘ്യം",
+    "thinkingDone": "ചിന്ത പൂർത്തിയായി",
+    "atMenuButton": "ടാസ്ക്കുകൾ ബ്രൗസ് ചെയ്യുക",
+    "menuHintAt": "ടാസ്ക്കുകൾ കണ്ടെത്താൻ ടൈപ്പ് ചെയ്യുക",
+    "menuHintSlash": "കഴിവുകൾ കണ്ടെത്താൻ ടൈപ്പ് ചെയ്യുക",
+    "modelDefault": "ഹാർനസിന്റെ സ്ഥിരസ്ഥിതി",
+    "modelDefaultTag": "ഓട്ടോ",
+    "modelSuggestedTag": "നിർദ്ദേശിച്ചത്"
   },
   "agentSkills": {
     "skillsModalTitle": "കഴിവുകൾ",

@@ -371,7 +371,14 @@
     "proposeAccept": "Pieņemt",
     "proposeDismiss": "Noraidīt",
     "contextCardsLabel": "Norādītie uzdevumi",
-    "toolDurationTitle": "Ilgums"
+    "toolDurationTitle": "Ilgums",
+    "thinkingDone": "Domāšana pabeigta",
+    "atMenuButton": "Pārlūkot uzdevumus",
+    "menuHintAt": "Rakstiet, lai atrastu uzdevumus",
+    "menuHintSlash": "Rakstiet, lai atrastu prasmes",
+    "modelDefault": "Harness noklusējums",
+    "modelDefaultTag": "Auto",
+    "modelSuggestedTag": "Ieteikts"
   },
   "agentSkills": {
     "skillsModalTitle": "Prasmes",

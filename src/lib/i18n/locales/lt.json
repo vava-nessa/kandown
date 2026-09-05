@@ -371,7 +371,14 @@
     "proposeAccept": "Priimti",
     "proposeDismiss": "Atmesti",
     "contextCardsLabel": "Nurodytos užduotys",
-    "toolDurationTitle": "Trukmė"
+    "toolDurationTitle": "Trukmė",
+    "thinkingDone": "Mąstymas baigtas",
+    "atMenuButton": "Naršyti užduotis",
+    "menuHintAt": "Rašykite, kad rastumėte užduotis",
+    "menuHintSlash": "Rašykite, kad rastumėte įgūdžius",
+    "modelDefault": "Harness numatytoji reikšmė",
+    "modelDefaultTag": "Automatinis",
+    "modelSuggestedTag": "Rekomenduojama"
   },
   "agentSkills": {
     "skillsModalTitle": "Įgūdžiai",

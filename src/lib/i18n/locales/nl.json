@@ -356,7 +356,14 @@
     "proposeAccept": "Accepteren",
     "proposeDismiss": "Verwerpen",
     "contextCardsLabel": "Verwezen taken",
-    "toolDurationTitle": "Duur"
+    "toolDurationTitle": "Duur",
+    "thinkingDone": "Klaar met nadenken",
+    "atMenuButton": "Taken doorbladeren",
+    "menuHintAt": "Typ om taken te vinden",
+    "menuHintSlash": "Typ om Skills te vinden",
+    "modelDefault": "Harness-standaard",
+    "modelDefaultTag": "Auto",
+    "modelSuggestedTag": "Aanbevolen"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

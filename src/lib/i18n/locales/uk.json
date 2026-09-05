@@ -356,7 +356,14 @@
     "proposeAccept": "Прийняти",
     "proposeDismiss": "Відхилити",
     "contextCardsLabel": "Згадані задачі",
-    "toolDurationTitle": "Тривалість"
+    "toolDurationTitle": "Тривалість",
+    "thinkingDone": "Роздуми завершено",
+    "atMenuButton": "Переглянути задачі",
+    "menuHintAt": "Введіть для пошуку задач",
+    "menuHintSlash": "Введіть для пошуку навичок",
+    "modelDefault": "Налаштування Harness за замовчуванням",
+    "modelDefaultTag": "Авто",
+    "modelSuggestedTag": "Рекомендований"
   },
   "agentSkills": {
     "skillsModalTitle": "Навички",

@@ -8,7 +8,7 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 14562,
+      "lines": 14566,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
@@ -278,7 +278,7 @@
     },
     {
       "path": "src/cli/lib/__tests__/acp-permissions.spec.ts",
-      "lines": 270,
+      "lines": 309,
       "title": "ACP permission routing tests",
       "summary": "Locks the t309/t322 permission decision surface of the ACP adapter: recognizing a session/request_permission line on stdout (extractPermissionRequest), building the deferred JSON-RPC reply after the web UI decides…",
       "functions": [
@@ -380,6 +380,19 @@
       "lines": 136,
       "title": "Unit tests for the move verdict surfaced by board-reader",
       "summary": "`moveTaskToColumnDetailed` is the one place a move is decided: it resolves the task, asks the shared dependency gate, writes the file and reports *why* when it refuses."
+    },
+    {
+      "path": "src/cli/lib/__tests__/orchestrator-orphans.spec.ts",
+      "lines": 239,
+      "title": "Autopilot orphan re-file order tests (t322)",
+      "summary": "Locks the start()-time re-file convention of the autopilot orchestrator: tasks orphaned in a non-terminal, non-backlog column with no live session (typically In Progress or Review after a crash) are re-queued FIRST, before any ready…",
+      "functions": [
+        {
+          "name": "(vitest suites)",
+          "summary": null
+        }
+      ],
+      "exports": "(tests)"
     },
     {
       "path": "src/cli/lib/__tests__/orchestrator.spec.ts",
@@ -505,7 +518,7 @@
     },
     {
       "path": "src/cli/lib/agent/adapters/acp.ts",
-      "lines": 331,
+      "lines": 337,
       "title": "Generic ACP harness adapter (Agent Client Protocol over stdio)",
       "summary": "Speaks ACP, the open JSON-RPC 2.0 newline-delimited protocol introduced by Zed, so every ACP-capable agent (opencode, gemini, and the long tail) appears in kandown without a bespoke integration.",
       "functions": [
@@ -659,7 +672,7 @@
     },
     {
       "path": "src/cli/lib/agent/orchestrator.ts",
-      "lines": 656,
+      "lines": 662,
       "title": "Autopilot orchestrator: the daemon-side task loop over harness sessions",
       "summary": "Owns the \"who works next\" half of autopilot (t311).",
       "functions": [

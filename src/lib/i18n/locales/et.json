@@ -371,7 +371,14 @@
     "proposeAccept": "Nõustu",
     "proposeDismiss": "Loobu",
     "contextCardsLabel": "Viidatud ülesanded",
-    "toolDurationTitle": "Kestus"
+    "toolDurationTitle": "Kestus",
+    "thinkingDone": "Mõtlemine lõpetatud",
+    "atMenuButton": "Sirvi ülesandeid",
+    "menuHintAt": "Kirjuta ülesannete leidmiseks",
+    "menuHintSlash": "Kirjuta oskuste leidmiseks",
+    "modelDefault": "Harnessi vaikeseade",
+    "modelDefaultTag": "Automaatne",
+    "modelSuggestedTag": "Soovitatav"
   },
   "agentSkills": {
     "skillsModalTitle": "Oskused",

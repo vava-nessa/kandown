@@ -371,7 +371,14 @@
     "proposeAccept": "Прихвати",
     "proposeDismiss": "Одбаци",
     "contextCardsLabel": "Поменути задаци",
-    "toolDurationTitle": "Трајање"
+    "toolDurationTitle": "Трајање",
+    "thinkingDone": "Размишљање завршено",
+    "atMenuButton": "Прегледај задатке",
+    "menuHintAt": "Куцајте за проналажење задатака",
+    "menuHintSlash": "Куцајте за проналажење вештина",
+    "modelDefault": "Подразумевана вредност Харнесса",
+    "modelDefaultTag": "Ауто",
+    "modelSuggestedTag": "Препоручено"
   },
   "agentSkills": {
     "skillsModalTitle": "Вештине",

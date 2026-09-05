@@ -338,7 +338,14 @@
     "proposeAccept": "수락",
     "proposeDismiss": "거절",
     "contextCardsLabel": "언급된 작업",
-    "toolDurationTitle": "소요 시간"
+    "toolDurationTitle": "소요 시간",
+    "thinkingDone": "생각 완료",
+    "atMenuButton": "작업 찾아보기",
+    "menuHintAt": "입력하여 작업 찾기",
+    "menuHintSlash": "입력하여 스킬 찾기",
+    "modelDefault": "하네스 기본값",
+    "modelDefaultTag": "자동",
+    "modelSuggestedTag": "추천"
   },
   "agentSkills": {
     "skillsModalTitle": "스킬",

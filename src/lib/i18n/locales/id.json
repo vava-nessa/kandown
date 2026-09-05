@@ -338,7 +338,14 @@
     "proposeAccept": "Terima",
     "proposeDismiss": "Abaikan",
     "contextCardsLabel": "Tugas yang dirujuk",
-    "toolDurationTitle": "Durasi"
+    "toolDurationTitle": "Durasi",
+    "thinkingDone": "Selesai berpikir",
+    "atMenuButton": "Jelajahi tugas",
+    "menuHintAt": "Ketik untuk mencari tugas",
+    "menuHintSlash": "Ketik untuk mencari Skill",
+    "modelDefault": "Bawaan Harness",
+    "modelDefaultTag": "Otomatis",
+    "modelSuggestedTag": "Disarankan"
   },
   "agentSkills": {
     "skillsModalTitle": "Skill",

@@ -371,7 +371,14 @@
     "proposeAccept": "Приеми",
     "proposeDismiss": "Отхвърли",
     "contextCardsLabel": "Споменати задачи",
-    "toolDurationTitle": "Продължителност"
+    "toolDurationTitle": "Продължителност",
+    "thinkingDone": "Приключи мисленето",
+    "atMenuButton": "Преглед на задачите",
+    "menuHintAt": "Пишете, за да търсите задачи",
+    "menuHintSlash": "Пишете, за да търсите умения",
+    "modelDefault": "По подразбиране на Harness",
+    "modelDefaultTag": "Авто",
+    "modelSuggestedTag": "Предложен"
   },
   "agentSkills": {
     "skillsModalTitle": "Умения",

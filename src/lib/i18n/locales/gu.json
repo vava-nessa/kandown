@@ -393,7 +393,14 @@
     "proposeAccept": "સ્વીકારો",
     "proposeDismiss": "રદ કરો",
     "contextCardsLabel": "સંદર્ભિત કાર્યો",
-    "toolDurationTitle": "સમયગાળો"
+    "toolDurationTitle": "સમયગાળો",
+    "thinkingDone": "વિચારવાનું પૂર્ણ થયું",
+    "atMenuButton": "કાર્યો બ્રાઉઝ કરો",
+    "menuHintAt": "કાર્યો શોધવા ટાઇપ કરો",
+    "menuHintSlash": "કૌશલ્યો શોધવા ટાઇપ કરો",
+    "modelDefault": "Harness નું ડિફોલ્ટ",
+    "modelDefaultTag": "ઓટો",
+    "modelSuggestedTag": "સૂચવેલું"
   },
   "agentSkills": {
     "skillsModalTitle": "કૌશલ્યો",

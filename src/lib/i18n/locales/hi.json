@@ -371,7 +371,14 @@
     "proposeAccept": "स्वीकार करें",
     "proposeDismiss": "खारिज करें",
     "contextCardsLabel": "संदर्भित कार्य",
-    "toolDurationTitle": "अवधि"
+    "toolDurationTitle": "अवधि",
+    "thinkingDone": "सोचना पूरा हुआ",
+    "atMenuButton": "कार्य ब्राउज़ करें",
+    "menuHintAt": "कार्य खोजने के लिए टाइप करें",
+    "menuHintSlash": "कौशल खोजने के लिए टाइप करें",
+    "modelDefault": "हार्नेस का डिफ़ॉल्ट",
+    "modelDefaultTag": "ऑटो",
+    "modelSuggestedTag": "सुझाया गया"
   },
   "agentSkills": {
     "skillsModalTitle": "कौशल",

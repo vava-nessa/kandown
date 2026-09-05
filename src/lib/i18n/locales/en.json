@@ -27,14 +27,17 @@
     "board": "Board",
     "reload": "Reload",
     "newTask": "New task",
-    "back": "Back"
+    "back": "Back",
+    "list": "List",
+    "run": "Run"
   },
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
     "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeDesc": "Kandown is running in server mode. Click below to open your project — the browser will remember your choice for next time.",
-    "openThisProject": "Open this project"
+    "openThisProject": "Open this project",
+    "serverModeLoadingDesc": "Connecting to the server..."
   },
   "header": {
     "tasks": "tasks",
@@ -243,6 +246,11 @@
     "fieldsDesc": "Optional fields shown on tasks and board cards.",
     "notifications": "Notifications",
     "notificationsDesc": "Browser and in-page signals for file changes while the board is open.",
+    "extensions": "Extensions",
+    "extensionsDesc": "Manage installed extensions: enable, disable and restricted mode.",
+    "kickerExtensions": "Plugins & integrations",
+    "navigate": "Navigate",
+    "select": "Select",
     "language": "Language",
     "languageDesc": "UI language stored in this project config.",
     "mode": "Mode",
@@ -388,7 +396,8 @@
     "priority": "Priority",
     "body": "Body",
     "subtasks": "Subtasks",
-    "none": "(none)"
+    "none": "(none)",
+    "tags": "Tags"
   },
   "sectionLabels": {
     "title": "Title",
@@ -482,6 +491,8 @@
     "delete": "Delete",
     "confirmDelete": "Confirm delete",
     "selectAll": "Select all",
+    "select": "Select task",
+    "deselect": "Deselect task",
     "clear": "Clear selection"
   },
   "agent": {

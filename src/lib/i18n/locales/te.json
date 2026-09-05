@@ -393,7 +393,14 @@
     "proposeAccept": "అంగీకరించండి",
     "proposeDismiss": "తిరస్కరించండి",
     "contextCardsLabel": "ప్రస్తావించిన పనులు",
-    "toolDurationTitle": "వ్యవధి"
+    "toolDurationTitle": "వ్యవధి",
+    "thinkingDone": "ఆలోచన పూర్తయింది",
+    "atMenuButton": "పనులను విహరించండి",
+    "menuHintAt": "పనులను కనుగొనడానికి టైప్ చేయండి",
+    "menuHintSlash": "నైపుణ్యాలను కనుగొనడానికి టైప్ చేయండి",
+    "modelDefault": "హార్నెస్ డిఫాల్ట్",
+    "modelDefaultTag": "ఆటో",
+    "modelSuggestedTag": "సిఫారసు చేసిన"
   },
   "agentSkills": {
     "skillsModalTitle": "నైపుణ్యాలు",

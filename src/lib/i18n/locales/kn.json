@@ -393,7 +393,14 @@
     "proposeAccept": "ಸ್ವೀಕರಿಸಿ",
     "proposeDismiss": "ತಿರಸ್ಕರಿಸಿ",
     "contextCardsLabel": "ಉಲ್ಲೇಖಿಸಿದ ಕಾರ್ಯಗಳು",
-    "toolDurationTitle": "ಅವಧಿ"
+    "toolDurationTitle": "ಅವಧಿ",
+    "thinkingDone": "ಯೋಚನೆ ಪೂರ್ಣಗೊಂಡಿದೆ",
+    "atMenuButton": "ಕಾರ್ಯಗಳನ್ನು ಬ್ರೌಸ್ ಮಾಡಿ",
+    "menuHintAt": "ಕಾರ್ಯಗಳನ್ನು ಹುಡುಕಲು ಟೈಪ್ ಮಾಡಿ",
+    "menuHintSlash": "ಕೌಶಲ್ಯಗಳನ್ನು ಹುಡುಕಲು ಟೈಪ್ ಮಾಡಿ",
+    "modelDefault": "ಹಾರ್ನೆಸ್‌ನ ಡೀಫಾಲ್ಟ್",
+    "modelDefaultTag": "ಆಟೋ",
+    "modelSuggestedTag": "ಶಿಫಾರಸು"
   },
   "agentSkills": {
     "skillsModalTitle": "ಕೌಶಲ್ಯಗಳು",

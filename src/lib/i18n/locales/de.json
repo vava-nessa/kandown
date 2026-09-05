@@ -371,7 +371,14 @@
     "proposeAccept": "Annehmen",
     "proposeDismiss": "Verwerfen",
     "contextCardsLabel": "Referenzierte Aufgaben",
-    "toolDurationTitle": "Dauer"
+    "toolDurationTitle": "Dauer",
+    "thinkingDone": "Nachdenken abgeschlossen",
+    "atMenuButton": "Aufgaben durchsuchen",
+    "menuHintAt": "Tippen, um Aufgaben zu finden",
+    "menuHintSlash": "Tippen, um Skills zu finden",
+    "modelDefault": "Harness-Standard",
+    "modelDefaultTag": "Auto",
+    "modelSuggestedTag": "Empfohlen"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

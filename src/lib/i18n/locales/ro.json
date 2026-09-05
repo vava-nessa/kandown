@@ -356,7 +356,14 @@
     "proposeAccept": "Acceptă",
     "proposeDismiss": "Respinge",
     "contextCardsLabel": "Sarcini menționate",
-    "toolDurationTitle": "Durată"
+    "toolDurationTitle": "Durată",
+    "thinkingDone": "A terminat de gândit",
+    "atMenuButton": "Răsfoiește sarcinile",
+    "menuHintAt": "Scrie pentru a găsi sarcini",
+    "menuHintSlash": "Scrie pentru a găsi abilități",
+    "modelDefault": "Valoarea implicită din Harness",
+    "modelDefaultTag": "Auto",
+    "modelSuggestedTag": "Recomandat"
   },
   "agentSkills": {
     "skillsModalTitle": "Abilități",

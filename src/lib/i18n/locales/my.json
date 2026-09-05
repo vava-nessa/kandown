@@ -393,7 +393,14 @@
     "proposeAccept": "လက်ခံမည်",
     "proposeDismiss": "ပယ်ဖျက်မည်",
     "contextCardsLabel": "ရည်ညွှန်းထားသော လုပ်ငန်းများ",
-    "toolDurationTitle": "ကြာချိန်"
+    "toolDurationTitle": "ကြာချိန်",
+    "thinkingDone": "စဉ်းစားပြီး",
+    "atMenuButton": "လုပ်ငန်းများကို ကြည့်ရှုရန်",
+    "menuHintAt": "လုပ်ငန်းများ ရှာဖွေရန် ရိုက်ထည့်ပါ",
+    "menuHintSlash": "ကျွမ်းကျင်မှုများ ရှာဖွေရန် ရိုက်ထည့်ပါ",
+    "modelDefault": "harness ပုံသေ",
+    "modelDefaultTag": "အလိုအလျောက်",
+    "modelSuggestedTag": "အကြံပြုထားသည်"
   },
   "agentSkills": {
     "skillsModalTitle": "ကျွမ်းကျင်မှုများ",

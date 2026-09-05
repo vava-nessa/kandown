@@ -371,7 +371,14 @@
     "proposeAccept": "Godta",
     "proposeDismiss": "Avvis",
     "contextCardsLabel": "Omtalte oppgaver",
-    "toolDurationTitle": "Varighet"
+    "toolDurationTitle": "Varighet",
+    "thinkingDone": "Ferdig med å tenke",
+    "atMenuButton": "Bla gjennom oppgaver",
+    "menuHintAt": "Skriv for å finne oppgaver",
+    "menuHintSlash": "Skriv for å finne Skills",
+    "modelDefault": "Harness-standard",
+    "modelDefaultTag": "Auto",
+    "modelSuggestedTag": "Anbefalt"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

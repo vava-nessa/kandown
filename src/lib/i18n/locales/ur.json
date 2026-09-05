@@ -338,7 +338,14 @@
     "proposeAccept": "قبول کریں",
     "proposeDismiss": "منسوخ کریں",
     "contextCardsLabel": "حوالہ شدہ کام",
-    "toolDurationTitle": "دورانیہ"
+    "toolDurationTitle": "دورانیہ",
+    "thinkingDone": "سوچنا مکمل ہو گیا",
+    "atMenuButton": "کام براؤز کریں",
+    "menuHintAt": "کام تلاش کرنے کے لیے ٹائپ کریں",
+    "menuHintSlash": "مہارتوں کو تلاش کرنے کے لیے ٹائپ کریں",
+    "modelDefault": "ہارنس کی ڈیفالٹ",
+    "modelDefaultTag": "خودکار",
+    "modelSuggestedTag": "تجویز کردہ"
   },
   "agentSkills": {
     "skillsModalTitle": "مہارتیں",

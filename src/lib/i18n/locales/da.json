@@ -371,7 +371,14 @@
     "proposeAccept": "Acceptér",
     "proposeDismiss": "Afvis",
     "contextCardsLabel": "Omtalte opgaver",
-    "toolDurationTitle": "Varighed"
+    "toolDurationTitle": "Varighed",
+    "thinkingDone": "Færdig med at tænke",
+    "atMenuButton": "Gennemse opgaver",
+    "menuHintAt": "Skriv for at finde opgaver",
+    "menuHintSlash": "Skriv for at finde Skills",
+    "modelDefault": "Harness-standard",
+    "modelDefaultTag": "Auto",
+    "modelSuggestedTag": "Anbefalet"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

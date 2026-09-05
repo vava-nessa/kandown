@@ -338,7 +338,14 @@
     "proposeAccept": "গ্রহণ করুন",
     "proposeDismiss": "বাতিল করুন",
     "contextCardsLabel": "উল্লিখিত কাজ",
-    "toolDurationTitle": "সময়কাল"
+    "toolDurationTitle": "সময়কাল",
+    "thinkingDone": "ভাবা শেষ",
+    "atMenuButton": "কাজ ব্রাউজ করুন",
+    "menuHintAt": "কাজ মেলাতে টাইপ করুন",
+    "menuHintSlash": "দক্ষতা মেলাতে টাইপ করুন",
+    "modelDefault": "হার্নেসের ডিফল্ট",
+    "modelDefaultTag": "অটো",
+    "modelSuggestedTag": "প্রস্তাবিত"
   },
   "agentSkills": {
     "skillsModalTitle": "দক্ষতা",

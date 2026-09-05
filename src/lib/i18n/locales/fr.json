@@ -422,7 +422,14 @@
     "proposeAccept": "Accepter",
     "proposeDismiss": "Ignorer",
     "contextCardsLabel": "Tâches référencées",
-    "toolDurationTitle": "Durée"
+    "toolDurationTitle": "Durée",
+    "thinkingDone": "Réflexion terminée",
+    "atMenuButton": "Parcourir les tâches",
+    "menuHintAt": "Tapez pour rechercher des tâches",
+    "menuHintSlash": "Tapez pour rechercher des Skills",
+    "modelDefault": "Valeur par défaut du Harness",
+    "modelDefaultTag": "Auto",
+    "modelSuggestedTag": "Recommandé"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

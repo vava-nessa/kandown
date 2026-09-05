@@ -371,7 +371,14 @@
     "proposeAccept": "Prihvati",
     "proposeDismiss": "Odbaci",
     "contextCardsLabel": "Spomenuti zadaci",
-    "toolDurationTitle": "Trajanje"
+    "toolDurationTitle": "Trajanje",
+    "thinkingDone": "Razmišljanje završeno",
+    "atMenuButton": "Pregledaj zadatke",
+    "menuHintAt": "Upišite za pronalaženje zadataka",
+    "menuHintSlash": "Upišite za pronalaženje vještina",
+    "modelDefault": "Zadano za Harness",
+    "modelDefaultTag": "Auto",
+    "modelSuggestedTag": "Preporučeno"
   },
   "agentSkills": {
     "skillsModalTitle": "Vještine",

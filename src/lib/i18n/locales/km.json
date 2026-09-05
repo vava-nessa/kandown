@@ -393,7 +393,14 @@
     "proposeAccept": "ទទួលយក",
     "proposeDismiss": "បោះបង់",
     "contextCardsLabel": "ភារកិច្ចដែលបានយោង",
-    "toolDurationTitle": "រយៈពេល"
+    "toolDurationTitle": "រយៈពេល",
+    "thinkingDone": "ការគិតបានបញ្ចប់",
+    "atMenuButton": "រុករកភារកិច្ច",
+    "menuHintAt": "វាយដើម្បីរកភារកិច្ច",
+    "menuHintSlash": "វាយដើម្បីរកជំនាញ",
+    "modelDefault": "លំនាំដើមរបស់ Harness",
+    "modelDefaultTag": "ស្វ័យប្រវត្តិ",
+    "modelSuggestedTag": "បានណែនាំ"
   },
   "agentSkills": {
     "skillsModalTitle": "ជំនាញ",

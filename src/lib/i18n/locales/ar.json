@@ -338,7 +338,14 @@
     "proposeAccept": "قبول",
     "proposeDismiss": "تجاهل",
     "contextCardsLabel": "المهام المُشار إليها",
-    "toolDurationTitle": "المدة"
+    "toolDurationTitle": "المدة",
+    "thinkingDone": "انتهى التفكير",
+    "atMenuButton": "استعراض المهام",
+    "menuHintAt": "اكتب للبحث عن المهام",
+    "menuHintSlash": "اكتب للبحث عن المهارات",
+    "modelDefault": "الافتراضي في Harness",
+    "modelDefaultTag": "تلقائي",
+    "modelSuggestedTag": "مقترح"
   },
   "agentSkills": {
     "skillsModalTitle": "المهارات",

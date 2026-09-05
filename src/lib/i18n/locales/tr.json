@@ -338,7 +338,14 @@
     "proposeAccept": "Kabul et",
     "proposeDismiss": "Yoksay",
     "contextCardsLabel": "Bahsedilen görevler",
-    "toolDurationTitle": "Süre"
+    "toolDurationTitle": "Süre",
+    "thinkingDone": "Düşünme tamamlandı",
+    "atMenuButton": "Görevlere göz at",
+    "menuHintAt": "Görevleri bulmak için yazın",
+    "menuHintSlash": "Becerileri bulmak için yazın",
+    "modelDefault": "Harness varsayılanı",
+    "modelDefaultTag": "Otomatik",
+    "modelSuggestedTag": "Önerilen"
   },
   "agentSkills": {
     "skillsModalTitle": "Beceriler",

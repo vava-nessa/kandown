@@ -371,7 +371,14 @@
     "proposeAccept": "Elfogadás",
     "proposeDismiss": "Elvetés",
     "contextCardsLabel": "Hivatkozott feladatok",
-    "toolDurationTitle": "Időtartam"
+    "toolDurationTitle": "Időtartam",
+    "thinkingDone": "Gondolkodás befejezve",
+    "atMenuButton": "Feladatok böngészése",
+    "menuHintAt": "Írj a feladatok kereséséhez",
+    "menuHintSlash": "Írj a készségek kereséséhez",
+    "modelDefault": "Harness alapértelmezés",
+    "modelDefaultTag": "Auto",
+    "modelSuggestedTag": "Javasolt"
   },
   "agentSkills": {
     "skillsModalTitle": "Készségek",

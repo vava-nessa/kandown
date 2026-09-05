@@ -26,7 +26,7 @@ source to edit instead.
 
 ## `bin/` — Published CLI entrypoints — GENERATED, never edit
 
-- **`kandown.js`** · 14562 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
+- **`kandown.js`** · 14566 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
 - **`tui.js`** · 62831 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
 
 ## `src/` — Web app root
@@ -99,7 +99,7 @@ source to edit instead.
 
 ## `src/cli/lib/__tests__/`
 
-- **`acp-permissions.spec.ts`** · 270 lines — Locks the t309/t322 permission decision surface of the ACP adapter: recognizing a session/request_permission line on stdout (extractPermissionRequest), building the deferred JSON-RPC reply after the web UI decides…
+- **`acp-permissions.spec.ts`** · 309 lines — Locks the t309/t322 permission decision surface of the ACP adapter: recognizing a session/request_permission line on stdout (extractPermissionRequest), building the deferred JSON-RPC reply after the web UI decides…
 - **`agent-assign.spec.ts`** · 140 lines — Covers the three pieces the TUI's `a` key now leans on: - `assignTaskToAgent` writes the canonical agent id into `assignee:`, preserves the rest of the frontmatter and the body, is idempotent, and fails soft on an unknown task.
 - **`agent-delivery.spec.ts`** · 82 lines — Locks the pure surfaces of the steer/queue delivery split and the model pass-through.
 - **`agent-migration.spec.ts`** · 238 lines — Exercises the filesystem migration against disposable project and home directories.
@@ -113,6 +113,7 @@ source to edit instead.
 - **`home-workspace.spec.ts`** · 83 lines — Pins down `detectHomeWorkspace`: 1.
 - **`kandown-work-cli.spec.ts`** · 48 lines — Proves fresh projects print the exact shared compiler output on stdout and that an explicit task replaces the general board digest.
 - **`move-verdict.spec.ts`** · 136 lines — `moveTaskToColumnDetailed` is the one place a move is decided: it resolves the task, asks the shared dependency gate, writes the file and reports *why* when it refuses.
+- **`orchestrator-orphans.spec.ts`** · 239 lines — Locks the start()-time re-file convention of the autopilot orchestrator: tasks orphaned in a non-terminal, non-backlog column with no live session (typically In Progress or Review after a crash) are re-queued FIRST, before any ready…
 - **`orchestrator.spec.ts`** · 532 lines — Locks the daemon half of autopilot (t311): the pure readiness filter (dependency gating through the shared helpers, terminal and archived detection, live/queued exclusion), the priority/id queue order, the orphan rule, the budget…
 - **`permission-queue.spec.ts`** · 126 lines — Locks the FIFO approval store behind the t309 live-edit endpoints: per-session ordering, resolve answering exactly once with the right decision, the found/not-found contract for unknown sessions, unknown ids and double resolves, and the…
 - **`plugin-authoring.spec.ts`** · 277 lines — Vitest suite over the `kandown plugin` pipeline: every scaffold kind must bundle and validate clean out of the box, and the validator must catch the failures an author (human or agent) actually produces.
@@ -132,7 +133,7 @@ source to edit instead.
 
 - **`agent-runtime.ts`** · 577 lines — Spawns and drives harness sessions, normalizing every protocol into the shared event model.
 - **`detect.ts`** · 151 lines — Extends the PATH scan from src/cli/lib/agents.ts with the harness contract of t307: kandown never embeds an LLM and never asks for an API key, it drives harnesses the user already installed and authenticated.
-- **`orchestrator.ts`** · 656 lines — Owns the "who works next" half of autopilot (t311).
+- **`orchestrator.ts`** · 662 lines — Owns the "who works next" half of autopilot (t311).
 - **`permission-queue.ts`** · 121 lines — When a harness session runs in accept-edits mode and the adapter routes an edit-like permission request to kandown (t309), the daemon parks it here until the web UI answers through the resolve endpoint.
 - **`session-edits.ts`** · 379 lines — The daemon-side half of the live editing experience (t309).
 - **`session-index.ts`** · 199 lines — Kandown never stores conversations: each harness (claude, codex, pi, ACP) persists its own transcript wherever it keeps its data.
@@ -141,7 +142,7 @@ source to edit instead.
 
 ## `src/cli/lib/agent/adapters/`
 
-- **`acp.ts`** · 331 lines — Speaks ACP, the open JSON-RPC 2.0 newline-delimited protocol introduced by Zed, so every ACP-capable agent (opencode, gemini, and the long tail) appears in kandown without a bespoke integration.
+- **`acp.ts`** · 337 lines — Speaks ACP, the open JSON-RPC 2.0 newline-delimited protocol introduced by Zed, so every ACP-capable agent (opencode, gemini, and the long tail) appears in kandown without a bespoke integration.
 - **`claude-code.ts`** · 166 lines — Drives `claude -p <prompt> --output-format stream-json` and normalizes its JSONL stdout into kandown agent events.
 - **`codex.ts`** · 167 lines — Drives `codex exec --json` and normalizes its JSONL event stream into kandown agent events.
 - **`pi.ts`** · 230 lines — Drives `pi --mode rpc`, pi's newline-delimited JSON protocol over stdin/stdout (documented in badlogic/pi-mono, packages/coding-agent/ docs/rpc.md).
@@ -449,6 +450,6 @@ source to edit instead.
 
 ## Coverage
 
-314 of 314 eligible files carry an `@description` header.
+315 of 315 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

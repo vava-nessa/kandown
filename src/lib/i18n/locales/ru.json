@@ -338,7 +338,14 @@
     "proposeAccept": "Принять",
     "proposeDismiss": "Отклонить",
     "contextCardsLabel": "Упомянутые задачи",
-    "toolDurationTitle": "Длительность"
+    "toolDurationTitle": "Длительность",
+    "thinkingDone": "Размышления завершены",
+    "atMenuButton": "Просмотреть задачи",
+    "menuHintAt": "Введите для поиска задач",
+    "menuHintSlash": "Введите для поиска навыков",
+    "modelDefault": "Настройка Harness по умолчанию",
+    "modelDefaultTag": "Авто",
+    "modelSuggestedTag": "Рекомендуемый"
   },
   "agentSkills": {
     "skillsModalTitle": "Навыки",

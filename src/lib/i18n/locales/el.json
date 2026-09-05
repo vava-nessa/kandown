@@ -371,7 +371,14 @@
     "proposeAccept": "Αποδοχή",
     "proposeDismiss": "Απόρριψη",
     "contextCardsLabel": "Αναφερόμενες εργασίες",
-    "toolDurationTitle": "Διάρκεια"
+    "toolDurationTitle": "Διάρκεια",
+    "thinkingDone": "Ολοκλήρωσε τη σκέψη",
+    "atMenuButton": "Αναζήτηση εργασιών",
+    "menuHintAt": "Πληκτρολογήστε για αναζήτηση εργασιών",
+    "menuHintSlash": "Πληκτρολογήστε για αναζήτηση δεξιοτήτων",
+    "modelDefault": "Προεπιλογή του Harness",
+    "modelDefaultTag": "Αυτόματο",
+    "modelSuggestedTag": "Προτεινόμενο"
   },
   "agentSkills": {
     "skillsModalTitle": "Δεξιότητες",
