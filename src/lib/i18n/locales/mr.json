@@ -102,6 +102,11 @@
     "navigate": "navigate",
     "select": "select"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "एजंट चॅट साइडबार उघडा किंवा बंद करा"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Title",
@@ -252,6 +257,26 @@
     "suggestFollowUpDesc": "Ask agents to propose next tasks after finishing one.",
     "maxSuggestions": "Max suggestions",
     "maxSuggestionsDesc": "Caps the number of follow-up tasks an agent may propose.",
+    "permissionMode": "परवानगी मोड",
+    "permissionModeDesc": "kandown चालवलेल्या सेशनमध्ये एजंटांना किती मान्यता मिळते. Yolo मुळे हार्नेस थेट बदल लागू करू शकतो, git हा सुरक्षा कवच आहे. बदल स्वीकारा हार्नेस पाठिंबा देत असल्यास प्रत्येक बदलापूर्वी विचारतो, नाहीतर फक्त सल्ला राहतो.",
+    "yolo": "Yolo",
+    "acceptEdits": "बदल स्वीकारा",
+    "harnesses": {
+      "title": "एजंट हार्नेस",
+      "description": "Kandown अशा कोडिंग एजंट CLI चालवतो जे या मशीनवर आधीच इंस्टॉल आणि आधीच प्रमाणित आहेत. कधीही API की मागत नाही.",
+      "installed": "इंस्टॉल आहे",
+      "notInstalled": "इंस्टॉल नाही",
+      "native": "नेटिव्ह",
+      "advisory": "सल्लागार",
+      "refresh": "रिफ्रेश",
+      "loading": "हार्नेस ओळखत आहे…",
+      "needsDaemonTitle": "एजंट सेशनला kandown daemon ची गरज आहे",
+      "needsDaemonBody": "daemon सुरू करण्यासाठी या प्रोजेक्टमध्ये npx kandown चालवा: तो इंस्टॉल केलेले हार्नेस ओळखतो आणि एजंट सेशन चालवतो.",
+      "copyHint": "इंस्टॉल कमांड कॉपी करा",
+      "copied": "कॉपी झाले",
+      "currentMode": "सध्याचा मोड",
+      "empty": "या मशीनवर कोणताही हार्नेस आढळला नाही"
+    },
     "defaultPriority": "Default priority",
     "defaultPriorityDesc": "Initial priority for new tasks when the Priority field is enabled.",
     "defaultOwner": "Default owner",
@@ -302,5 +327,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
+  },
+  "agentChat": {
+    "title": "एजंट चॅट",
+    "askAgent": "एजंटला विचारा",
+    "askAgentTitle": "या कामाबद्दल एजंटला विचारा",
+    "newChat": "नवीन संवाद",
+    "resume": "पुन्हा सुरू करा",
+    "resumeUnavailable": "पुन्हा सुरू करता येत नाही: हार्नेसने कधीही सेशन आयडी कळवलेला नाही",
+    "forget": "विसरा",
+    "stop": "थांबा",
+    "send": "पाठवा",
+    "placeholder": "एजंटला विचारा...",
+    "thinking": "विचार करत आहे",
+    "toolFailed": "अयशस्वी",
+    "tokens": "टोकन",
+    "context": "संदर्भ",
+    "jumpToBottom": "अलीकडच्या गोष्टीकडे जा",
+    "emptyState": "संवाद सुरू करा: या बोर्डबद्दल, एखाद्या कामाबद्दल किंवा पुढच्या कामाबद्दल विचारा.",
+    "sessionUntitled": "निरनामित संवाद",
+    "sessionsEmpty": "या प्रोजेक्टमध्ये अजून संवाद नाहीत.",
+    "harnessLabel": "हार्नेस",
+    "noHarness": "या मशीनवर कोणताही हार्नेस इंस्टॉल केलेला नाही",
+    "copy": "कॉपी",
+    "daemonGuardTitle": "एजंट चॅटला kandown daemon ची गरज आहे",
+    "daemonGuardBody": "तुमच्या कोडिंग एजंटशी बोलण्यासाठी लोकल daemon सुरू करा: या प्रोजेक्टमध्ये npx kandown चालवा."
   }
 }

@@ -18,23 +18,19 @@
  *  → loadFailureState / saveFailureState: read and atomically persist failures
  * @exports extensionStateDir, enabledFilePath, healthFilePath, loadEnabled, saveEnabled, loadFailureState, saveFailureState, ExtensionFailureRecord
  * @see src/lib/extensions/host.ts
+ * @see src/lib/project-hash.ts: the canonicalization + hash this module keys on
  */
 
 import { readFileSync, writeFileSync, mkdirSync, realpathSync, renameSync } from 'node:fs';
-import { createHash } from 'node:crypto';
 import { homedir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
+import { canonicalizeProjectPath, projectHash } from '../project-hash.js';
 
 /** User-local extension state directory for one canonical project path. */
 export function extensionStateDir(projectDir: string): string {
-  let canonicalProject: string;
-  try {
-    canonicalProject = realpathSync(projectDir);
-  } catch {
-    canonicalProject = resolve(projectDir);
-  }
-  const projectHash = createHash('sha256').update(canonicalProject).digest('hex').slice(0, 24);
-  return join(homedir(), '.kandown', 'project-state', projectHash, 'extensions');
+  const canonicalProject = canonicalizeProjectPath(projectDir, realpathSync);
+  const hash = projectHash(canonicalProject);
+  return join(homedir(), '.kandown', 'project-state', hash, 'extensions');
 }
 
 /** Absolute path to a project's enabled-extension set file. */

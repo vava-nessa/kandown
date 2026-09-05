@@ -133,9 +133,9 @@ function kandownDevPlugin() {
           return;
         }
 
-        // 📖 Agent harness API (t307) in DEV mode. The Vite dev server is Node,
-        // so it can spawn harness processes exactly like the daemon does; the
-        // routes mirror src/cli/lib/server.ts and demoBackend.ts answers 501
+        // 📖 Agent harness API (t307, t308) in DEV mode. The Vite dev server is
+        // Node, so it can spawn harness processes exactly like the daemon does;
+        // the routes mirror src/cli/lib/server.ts and demoBackend.ts answers 501
         // so the three adapters stay one protocol.
         if (resource === 'agent') {
           try {
@@ -144,6 +144,35 @@ function kandownDevPlugin() {
               res.writeHead(200, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify(detectModule.detectHarnessesJSON()));
               return;
+            }
+
+            // 📖 t308 session index (DEV mirror). The project root is computed
+            // from the dev tree, never accepted from the client.
+            if (parts[1] === 'sessions-index') {
+              const indexModule = await server.ssrLoadModule('/src/cli/lib/agent/session-index.ts') as typeof import('./src/cli/lib/agent/session-index');
+              const boardModule = await server.ssrLoadModule('/src/cli/lib/board-reader.ts') as typeof import('./src/cli/lib/board-reader');
+              const projectRoot = boardModule.getProjectRoot(kandownPath);
+
+              if (!parts[2] && req.method === 'GET') {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ sessions: indexModule.listSessionIndexEntries(projectRoot) }));
+                return;
+              }
+
+              if (parts[2] && req.method === 'DELETE') {
+                const entryId = decodeURIComponent(parts[2]);
+                const known = indexModule.listSessionIndexEntries(projectRoot).some(entry => entry.id === entryId);
+                if (!known) {
+                  res.writeHead(404, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: 'Session not found' }));
+                  return;
+                }
+                // 📖 Index-only removal: a live runtime session keeps running.
+                indexModule.forgetSessionIndexEntry(projectRoot, entryId);
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ ok: true }));
+                return;
+              }
             }
 
             if (parts[1] === 'sessions') {
@@ -163,7 +192,7 @@ function kandownDevPlugin() {
                   req.on('error', rejectBody);
                 });
                 const body = JSON.parse(Buffer.concat(chunks).toString('utf8')) as {
-                  harnessId?: unknown; taskId?: unknown; message?: unknown; permissionMode?: unknown;
+                  harnessId?: unknown; taskId?: unknown; message?: unknown; title?: unknown; permissionMode?: unknown;
                 };
                 if (typeof body.harnessId !== 'string' || !body.harnessId.trim()) {
                   res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -195,6 +224,32 @@ function kandownDevPlugin() {
                     prompt,
                     permissionMode,
                   });
+                  // 📖 t308 index bookkeeping, same contract as the daemon:
+                  // thin entry now, harnessSessionId on session_started,
+                  // updatedAt on the first stopped event, then unsubscribe.
+                  const indexModule = await server.ssrLoadModule('/src/cli/lib/agent/session-index.ts') as typeof import('./src/cli/lib/agent/session-index');
+                  const projectRoot = boardModule.getProjectRoot(kandownPath);
+                  const titleOverride = typeof body.title === 'string' && body.title.trim() ? body.title.trim() : undefined;
+                  const now = new Date().toISOString();
+                  indexModule.upsertSessionIndexEntry(projectRoot, {
+                    id: session.id,
+                    harnessId: session.harnessId,
+                    title: titleOverride ?? indexModule.indexEntryForPrompt(message ?? compiled.markdown),
+                    ...(taskId ? { taskId } : {}),
+                    createdAt: now,
+                    updatedAt: now,
+                  });
+                  let unsubscribeIndex: (() => void) | null = null;
+                  let sawStopped = false;
+                  unsubscribeIndex = runtimeModule.subscribeAgentSession(session.id, event => {
+                    if (event.type === 'session_started' && event.harnessSessionId) {
+                      indexModule.patchSessionIndexEntry(projectRoot, session.id, { harnessSessionId: event.harnessSessionId });
+                    } else if (event.type === 'stopped' && !sawStopped) {
+                      sawStopped = true;
+                      indexModule.patchSessionIndexEntry(projectRoot, session.id, { updatedAt: new Date().toISOString() });
+                      unsubscribeIndex?.();
+                    }
+                  });
                   res.writeHead(201, { 'Content-Type': 'application/json' });
                   res.end(JSON.stringify({ session }));
                 } catch (error) {
@@ -224,8 +279,41 @@ function kandownDevPlugin() {
                 return;
               }
 
+              if (id && parts[2] === 'send' && req.method === 'POST') {
+                // 📖 t308 follow-up chat message (DEV mirror of the daemon route).
+                const chunks: Buffer[] = [];
+                await new Promise<void>((resolveBody, rejectBody) => {
+                  req.on('data', chunk => chunks.push(chunk));
+                  req.on('end', resolveBody);
+                  req.on('error', rejectBody);
+                });
+                let body: { message?: unknown };
+                try {
+                  body = JSON.parse(Buffer.concat(chunks).toString('utf8')) as typeof body;
+                } catch (error) {
+                  res.writeHead(400, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` }));
+                  return;
+                }
+                if (typeof body.message !== 'string' || !body.message.trim()) {
+                  res.writeHead(400, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: 'message is required' }));
+                  return;
+                }
+                const result = runtimeModule.sendToSession(decodeURIComponent(id), body.message);
+                res.writeHead(result.ok ? 200 : 400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(result.ok ? { ok: true } : { ok: false, error: result.error ?? 'Send failed' }));
+                return;
+              }
+
               if (id && parts[2] === 'stop' && req.method === 'POST') {
                 const ok = runtimeModule.stopAgentSession(decodeURIComponent(id));
+                if (ok) {
+                  // 📖 Same sidebar reordering as the daemon: stop touches updatedAt.
+                  const indexModule = await server.ssrLoadModule('/src/cli/lib/agent/session-index.ts') as typeof import('./src/cli/lib/agent/session-index');
+                  const boardModule = await server.ssrLoadModule('/src/cli/lib/board-reader.ts') as typeof import('./src/cli/lib/board-reader');
+                  indexModule.patchSessionIndexEntry(boardModule.getProjectRoot(kandownPath), decodeURIComponent(id), { updatedAt: new Date().toISOString() });
+                }
                 res.writeHead(ok ? 200 : 404, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(ok ? { ok: true } : { error: 'Session not found' }));
                 return;

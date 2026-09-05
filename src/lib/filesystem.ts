@@ -48,6 +48,8 @@
  *  → serverReadTask / serverWriteTask / serverDeleteTask: task CRUD via REST
  *  → serverMoveTask: authoritative managed move intent
  *  → fetchDetectedAgents / fetchAgentHarnesses: Node-side agent and harness detection
+ *  → createAgentSession / sendAgentSessionMessage: harness chat runtime actions
+ *  → listSessionIndex / forgetSessionIndex: t308 chat sidebar index entries
  *  → serverLoadExtensionRuntime: field/panel defs and batched badges
  *  → serverSetExtensionField: persist one host-validated plugins field
  *  → serverReadExtensionFile: authenticated source read for Blob import
@@ -55,12 +57,12 @@
  *  → serverMigrateTasks: triggers the legacy to new layout migration via REST
  *  → readProjectInstructions / writeProjectInstructions — edits `.kandown/kandown_work.md`
  *
- * @exports supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, fetchDetectedAgents, fetchAgentHarnesses, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks
+ * @exports supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, fetchDetectedAgents, fetchAgentHarnesses, createAgentSession, sendAgentSessionMessage, listSessionIndex, forgetSessionIndex, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks
  * @see src/lib/store.ts
  * @see src/lib/parser.ts
  */
 
-import type { KandownConfig, TaskFrontmatter, ParsedTask, DetectedAgent, DetectedHarness, MoveTaskResult } from './types';
+import type { KandownConfig, TaskFrontmatter, ParsedTask, DetectedAgent, DetectedHarness, MoveTaskResult, PermissionMode, SessionIndexEntryPayload, AgentSessionPayload } from './types';
 import type { ExtensionHealth, ExtensionRuntimePayload, ExtensionRuntimeSummary } from './extensions/types';
 import type { LoadedWorkflowPackage } from './workflows';
 import type { KandownWorkDiagnostic, KandownWorkStats } from './kandown-work';
@@ -399,6 +401,129 @@ export async function fetchAgentHarnesses(): Promise<DetectedHarness[] | null> {
     return Array.isArray(data.harnesses) ? data.harnesses : null;
   } catch {
     return null;
+  }
+}
+
+/* ═════════════ Agent chat (t307 runtime + t308 session index) ═════════════ */
+
+/** 📖 Structural guard for index entries read back over the wire: a backend
+ *  that cannot answer (old daemon) or answers garbage must never leak a
+ *  malformed entry into the sidebar. Mirrors the CLI-side validator. */
+function isSessionIndexEntryPayload(value: unknown): value is SessionIndexEntryPayload {
+  if (!value || typeof value !== 'object') return false;
+  const item = value as Record<string, unknown>;
+  return typeof item.id === 'string' && item.id.length > 0
+    && typeof item.harnessId === 'string' && item.harnessId.length > 0
+    && typeof item.title === 'string'
+    && typeof item.createdAt === 'string'
+    && typeof item.updatedAt === 'string'
+    && (item.harnessSessionId === undefined || typeof item.harnessSessionId === 'string')
+    && (item.taskId === undefined || typeof item.taskId === 'string');
+}
+
+/** 📖 Same guard for session snapshots returned by create/get session. */
+function isAgentSessionPayload(value: unknown): value is AgentSessionPayload {
+  if (!value || typeof value !== 'object') return false;
+  const item = value as Record<string, unknown>;
+  return typeof item.id === 'string' && item.id.length > 0
+    && typeof item.harnessId === 'string' && item.harnessId.length > 0
+    && typeof item.status === 'string'
+    && (item.harnessSessionId === undefined || typeof item.harnessSessionId === 'string');
+}
+
+/** 📖 Everything createAgentSession accepts. `message` becomes the initial
+ *  user message appended to the compiled task document; `title` overrides the
+ *  auto-derived sidebar title; `permissionMode` overrides the project default;
+ *  `resumeSessionId` continues a harness-native conversation (claude session
+ *  id, codex thread id, pi session file path). */
+export interface CreateAgentSessionInput {
+  harnessId: string;
+  taskId?: string;
+  message?: string;
+  title?: string;
+  permissionMode?: PermissionMode;
+  resumeSessionId?: string;
+}
+
+/**
+ * 📖 Starts one harness session via POST /api/agent/sessions and returns the
+ * session snapshot the sidebar keeps. Returns `null` outside server mode,
+ * in the demo, or when the backend refuses (unknown harness, missing task),
+ * so callers can surface their own "daemon required" affordance.
+ */
+export async function createAgentSession(input: CreateAgentSessionInput): Promise<{ session: AgentSessionPayload } | null> {
+  if (!isServerMode() || isDemoMode()) return null;
+  try {
+    const res = await rawApiFetch('/api/agent/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    if (!res.ok) return null;
+    const data = await res.json() as { session?: unknown };
+    return isAgentSessionPayload(data.session) ? { session: data.session } : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 📖 Sends a follow-up chat message via POST /api/agent/sessions/:id/send.
+ * The runtime steers the live turn or resumes the finished session under the
+ * same kandown id. Returns `{ ok: false, error }` carrying the backend's
+ * readable error (empty message, one-shot harness mid-turn, unknown session),
+ * or `null` outside server mode. Never throws.
+ */
+export async function sendAgentSessionMessage(id: string, message: string): Promise<{ ok: boolean; error?: string } | null> {
+  if (!isServerMode() || isDemoMode()) return null;
+  try {
+    const res = await rawApiFetch(`/api/agent/sessions/${encodeURIComponent(id)}/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message }),
+    });
+    if (res.ok) return { ok: true };
+    const payload = await res.json().catch(() => ({})) as { error?: unknown };
+    return {
+      ok: false,
+      error: typeof payload.error === 'string' ? payload.error : `HTTP ${res.status}`,
+    };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+/**
+ * 📖 Lists this project's chat session index via GET /api/agent/sessions-index.
+ * The backend scopes the list to its own project root; the browser never sends
+ * a path. Returns `null` outside server mode, in the demo, or when the backend
+ * has no index support, so the sidebar can render its empty state.
+ */
+export async function listSessionIndex(): Promise<SessionIndexEntryPayload[] | null> {
+  if (!isServerMode() || isDemoMode()) return null;
+  try {
+    const res = await rawApiFetch('/api/agent/sessions-index');
+    if (!res.ok) return null;
+    const data = await res.json() as { sessions?: unknown };
+    if (!Array.isArray(data.sessions)) return null;
+    return data.sessions.filter(isSessionIndexEntryPayload);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 📖 Forgets one index entry via DELETE /api/agent/sessions-index/:id. This is
+ * a sidebar-only removal: a live session keeps running. Returns true when the
+ * backend confirmed, false otherwise (unknown id, no daemon, demo).
+ */
+export async function forgetSessionIndex(id: string): Promise<boolean> {
+  if (!isServerMode() || isDemoMode()) return false;
+  try {
+    const res = await rawApiFetch(`/api/agent/sessions-index/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    return res.ok;
+  } catch {
+    return false;
   }
 }
 

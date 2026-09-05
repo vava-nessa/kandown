@@ -102,6 +102,11 @@
     "navigate": "导航",
     "select": "选择"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "切换智能体聊天侧边栏"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "标题",
@@ -241,6 +246,26 @@
     "suggestFollowUpDesc": "要求代理在完成一个任务后提出下一个任务。",
     "maxSuggestions": "最大建议数",
     "maxSuggestionsDesc": "限制代理可能提出的后续任务数量。",
+    "permissionMode": "权限模式",
+    "permissionModeDesc": "kandown 驱动的会话中智能体拥有多少审批权。Yolo 让 harness 直接应用修改，git 是安全网。接受编辑在 harness 支持时于每次修改前询问，否则仅作提示。",
+    "yolo": "Yolo",
+    "acceptEdits": "接受编辑",
+    "harnesses": {
+      "title": "智能体 harness",
+      "description": "Kandown 驱动本机上已安装且已完成认证的编码智能体 CLI。它从不索要 API key。",
+      "installed": "已安装",
+      "notInstalled": "未安装",
+      "native": "原生",
+      "advisory": "提示",
+      "refresh": "刷新",
+      "loading": "正在检测 harness…",
+      "needsDaemonTitle": "智能体会话需要 kandown daemon",
+      "needsDaemonBody": "在本项目中运行 npx kandown 启动 daemon：它会检测已安装的 harness 并运行智能体会话。",
+      "copyHint": "复制安装命令",
+      "copied": "已复制",
+      "currentMode": "当前模式",
+      "empty": "这台机器上未检测到 harness"
+    },
     "defaultPriority": "默认优先级",
     "defaultPriorityDesc": "启用优先级字段时新任务的初始优先级。",
     "defaultOwner": "默认所有者",
@@ -291,5 +316,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "设置已从外部更新 — 已重新加载"
+  },
+  "agentChat": {
+    "title": "智能体聊天",
+    "askAgent": "问智能体",
+    "askAgentTitle": "就这个任务询问智能体",
+    "newChat": "新对话",
+    "resume": "恢复",
+    "resumeUnavailable": "无法恢复：harness 从未上报会话 ID",
+    "forget": "遗忘",
+    "stop": "停止",
+    "send": "发送",
+    "placeholder": "问问智能体...",
+    "thinking": "思考中",
+    "toolFailed": "失败",
+    "tokens": "tokens",
+    "context": "上下文",
+    "jumpToBottom": "跳到最新",
+    "emptyState": "开始对话：可以问看板、某个任务或接下来的工作。",
+    "sessionUntitled": "未命名对话",
+    "sessionsEmpty": "这个项目还没有对话。",
+    "harnessLabel": "Harness",
+    "noHarness": "这台机器上没有安装 harness",
+    "copy": "复制",
+    "daemonGuardTitle": "智能体聊天需要 kandown daemon",
+    "daemonGuardBody": "启动本地 daemon 即可与编码智能体聊天：在本项目中运行 npx kandown。"
   }
 }

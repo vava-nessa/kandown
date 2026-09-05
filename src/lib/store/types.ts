@@ -5,9 +5,10 @@
  * without a circular dependency on the store module itself.
  */
 
-import type { Column, Filters, BoardTask, Density, ViewMode, Subtask, TaskFrontmatter, KandownConfig, TaskContent, SearchMatch } from '../types';
+import type { Column, Filters, BoardTask, Density, ViewMode, Subtask, TaskFrontmatter, KandownConfig, TaskContent, SearchMatch, SessionIndexEntryPayload, DetectedHarness, PermissionMode } from '../types';
 import type { RecentProject, ServerAgentHook } from '../filesystem';
 import type { ConflictType } from '../watcher';
+import type { AgentChatEvent, ChatFoldState } from '../agent-chat-events';
 
 /** 📖 Toast severity. `warning` is used for partial-failure / corruption /
  * disk-full situations where the user must be informed but the app keeps
@@ -48,6 +49,55 @@ export interface ConflictState {
   remote: { frontmatter: TaskFrontmatter; body: string; subtasks: Subtask[] };
 }
 
+/** 📖 Per-session chat state for the agent chat sidebar (t308). `status`
+ * mirrors the daemon session lifecycle ('starting' | 'running' | 'completed' |
+ * 'stopped' | 'failed' | 'stopping'), `fold` is the rendered conversation. */
+export interface AgentChatLiveSession {
+  status: string;
+  fold: ChatFoldState;
+}
+
+/** 📖 Everything the agent chat sidebar reads. Chat state lives here, never in
+ * tasks/: harnesses own their transcripts, this is session state only. */
+export interface AgentChatState {
+  sidebarOpen: boolean;
+  /** Session index for this project, newest activity first. */
+  sessions: SessionIndexEntryPayload[];
+  activeSessionId: string | null;
+  /** Folded chat state per session id, kept across sidebar close/reopen within
+   * the page life so reopening the sidebar never loses the conversation. */
+  live: Record<string, AgentChatLiveSession>;
+  /** 'unknown' before the first index fetch, 'no-daemon' outside server mode /
+   * demo / old daemon, 'available' once the index answered. */
+  guard: 'unknown' | 'available' | 'no-daemon';
+  /** Permission mode the active session was started with (project default). */
+  permissionModeSnapshot: PermissionMode | null;
+  /** Task the sidebar was opened for ("Ask the agent" on a card / editor). */
+  preContextTaskId: string | null;
+  /** Installed harnesses for the new-conversation selector (lazy, on open). */
+  harnesses: DetectedHarness[];
+  starting: boolean;
+  sending: boolean;
+}
+
+/** 📖 Everything startSession accepts. `message` becomes the first user turn
+ * appended under the compiled task/board context the daemon builds. */
+export interface AgentChatStartInput {
+  harnessId: string;
+  taskId?: string;
+  message?: string;
+}
+
+/** 📖 A metadata change applied in bulk to one or more tasks (t116). Each field
+ * is optional: only the provided ones are merged into each task's frontmatter.
+ * Mirrored in store.ts; kept here so the shared State declaration is complete. */
+export interface BulkMetadataPatch {
+  priority?: string;
+  assignee?: string;
+  due?: string;
+  tags?: { add?: string[]; remove?: string[] };
+}
+
 export interface State {
   isOpen: boolean;
   loading: boolean;
@@ -83,6 +133,10 @@ export interface State {
 
   // Project config
   config: KandownConfig;
+  /** 📖 True once loadConfig() resolved with the persisted kandown.json (or the
+   * corrupted-file fallback). Components use it to avoid acting on
+   * DEFAULT_CONFIG while the real value is still in flight. */
+  configLoaded: boolean;
 
   // Recent projects
   recentProjects: RecentProject[];
@@ -147,10 +201,18 @@ export interface State {
 
   selectedTaskIds: string[];
   toggleTaskSelection: (id: string) => void;
+  /** Replaces the whole selection with the given ids (select-all). */
+  setTaskSelection: (ids: string[]) => void;
+  /** Adds `ids` to the current selection (set union, dedup). */
+  selectTasks: (ids: string[]) => void;
+  /** Removes `ids` from the current selection. Mirror of selectTasks. */
+  deselectTasks: (ids: string[]) => void;
   clearTaskSelection: () => void;
   bulkMoveTasks: (targetColumn: string) => Promise<void>;
   bulkDeleteTasks: (taskIds?: string[]) => Promise<void>;
   bulkArchiveTasks: (taskIds: string[]) => Promise<void>;
+  /** Applies a metadata patch to every selected task (or `taskIds`). */
+  bulkUpdateMetadata: (patch: BulkMetadataPatch, taskIds?: string[]) => Promise<void>;
 
   openDrawer: (taskId: string, options?: { syncUrl?: boolean; replace?: boolean }) => Promise<void>;
   closeDrawer: (options?: { syncUrl?: boolean; replace?: boolean }) => void;
@@ -186,4 +248,27 @@ export interface State {
   setupWatcher: () => void;
   /** 📖 Restarts the file watcher after it auto-disabled itself (t107). */
   restartWatcher: () => void;
+
+  // Agent chat sidebar (t308). State lives under `agentChat`.
+  agentChat: AgentChatState;
+  /** Opens the sidebar, optionally pre-contextualized to a task. */
+  openSidebar: (preTaskId?: string) => void;
+  /** Closes the sidebar. Closes the SSE stream but keeps chat state for reopen. */
+  closeSidebar: () => void;
+  /** Refreshes the session index + harness list; sets the daemon guard. */
+  refreshSessions: () => Promise<void>;
+  /** Starts a new harness session (and connects its SSE stream). */
+  startSession: (input: AgentChatStartInput) => Promise<void>;
+  /** Resumes an indexed conversation through its harness session id. */
+  resumeSession: (entry: SessionIndexEntryPayload) => Promise<void>;
+  /** Switches the sidebar to an empty draft: the next send starts a new session. */
+  newConversation: () => void;
+  /** Sends a follow-up message with optimistic append + rollback on failure. */
+  sendMessage: (text: string) => Promise<void>;
+  /** Stops a live session via POST /api/agent/sessions/:id/stop. */
+  stopSession: (id: string) => Promise<void>;
+  /** Forgets one session index entry (sidebar-only removal). */
+  forgetSession: (id: string) => Promise<void>;
+  /** Internal: folds one SSE event into the session's chat state. */
+  ingestAgentEvent: (sessionId: string, event: AgentChatEvent) => void;
 }

@@ -102,6 +102,11 @@
     "navigate": "navigoi",
     "select": "valitse"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "Näytä tai piilota agenttichatin sivupaneeli"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Otsikko",
@@ -230,6 +235,26 @@
     "suggestFollowUpDesc": "Pyydä agenteja ehdottamaan seuraavia tehtäviä yhden valmistuttua.",
     "maxSuggestions": "Enimmäismäärä ehdotuksia",
     "maxSuggestionsDesc": "Rajoittaa agentin ehdottamien jatkotehtävien määrää.",
+    "permissionMode": "Käyttöoikeustila",
+    "permissionModeDesc": "Kuinka paljon hyväksyntää agentit saavat kandown-ohjatuissa istunnoissa. Yolo antaa harnessin tehdä muutokset suoraan, git on turvaverkko. Hyväksy muutokset kysyy ennen jokaista muutosta, kun harness tukee sitä, ja muuten pysyy vain ehdotuksena.",
+    "yolo": "Yolo",
+    "acceptEdits": "Hyväksy muutokset",
+    "harnesses": {
+      "title": "Agenttiharnessit",
+      "description": "Kandown ohjaa koodausagenttien CLI-työkaluja, jotka on jo asennettu ja jo validoitu tällä koneella. Se ei koskaan pyydä API-avainta.",
+      "installed": "asennettu",
+      "notInstalled": "ei asennettu",
+      "native": "natiivi",
+      "advisory": "ehdotus",
+      "refresh": "Päivitä",
+      "loading": "Tunnistetaan harnessia…",
+      "needsDaemonTitle": "Agenttiistunnot vaativat kandown daemonin",
+      "needsDaemonBody": "Aja npx kandown tässä projektissa käynnistääksesi daemonin: se tunnistaa asennetut harnessit ja ajaa agenttiistuntoja.",
+      "copyHint": "Kopioi asennuskomento",
+      "copied": "Kopioitu",
+      "currentMode": "Nykyinen tila",
+      "empty": "Harnessia ei havaittu tällä koneella"
+    },
     "defaultPriority": "Oletusprioriteetti",
     "defaultPriorityDesc": "Alkuprioriteetti uusille tehtäville, kun Prioriteetti-kenttä on käytössä.",
     "defaultOwner": "Oletusomistaja",
@@ -280,5 +305,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Asetukset päivitettiin ulkoisesti — ladattu uudelleen"
+  },
+  "agentChat": {
+    "title": "Agenttichatti",
+    "askAgent": "Kysy agentilta",
+    "askAgentTitle": "Kysy agentilta tästä tehtävästä",
+    "newChat": "Uusi keskustelu",
+    "resume": "Jatka",
+    "resumeUnavailable": "Jatkaminen ei onnistu: harness ei koskaan ilmoittanut istuntotunnusta",
+    "forget": "Unohda",
+    "stop": "Pysäytä",
+    "send": "Lähetä",
+    "placeholder": "Kysy agentilta...",
+    "thinking": "Ajattelee",
+    "toolFailed": "epäonnistui",
+    "tokens": "tokenia",
+    "context": "Konteksti",
+    "jumpToBottom": "Siirry uusimpaan",
+    "emptyState": "Aloita keskustelu: kysy taulusta, tehtävästä tai tulevasta työstä.",
+    "sessionUntitled": "Nimetön keskustelu",
+    "sessionsEmpty": "Ei vielä keskusteluja tässä projektissa.",
+    "harnessLabel": "Harness",
+    "noHarness": "Harnessia ei ole asennettu tälle koneelle",
+    "copy": "Kopioi",
+    "daemonGuardTitle": "Agenttichatti vaatii kandown daemonin",
+    "daemonGuardBody": "Käynnistä paikallinen daemon juttaaksesi koodausagenttiesi kanssa: aja npx kandown tässä projektissa."
   }
 }

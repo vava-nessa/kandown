@@ -102,6 +102,11 @@
     "navigate": "πλοήγηση",
     "select": "επιλογή"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "Εμφάνιση ή απόκρυψη της πλευρικής στήλης συνομιλίας με τον agent"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Τίτλος",
@@ -230,6 +235,26 @@
     "suggestFollowUpDesc": "Ζητήστε από τους πράκτορες να προτείνουν επόμενες εργασίες μετά την ολοκλήρωση μιας.",
     "maxSuggestions": "Μέγιστες προτάσεις",
     "maxSuggestionsDesc": "Περιορίζει τον αριθμό συνεχειών εργασιών που μπορεί να προτείνει ένας πράκτορας.",
+    "permissionMode": "Λειτουργία αδειών",
+    "permissionModeDesc": "Πόση έγκριση παίρνουν οι agents σε συνεδρίες που καθοδηγούνται από το kandown. Το Yolo αφήνει το harness να εφαρμόζει αλλαγές απευθείας, το git είναι το δίχτυ ασφαλείας. Η αποδοχή αλλαγών ρωτά πριν από κάθε αλλαγή όταν το harness το υποστηρίζει, και αλλιώς μένει μόνο ενδεικτικό.",
+    "yolo": "Yolo",
+    "acceptEdits": "Αποδοχή αλλαγών",
+    "harnesses": {
+      "title": "Harness για agents",
+      "description": "Το kandown χειρίζεται CLI εργαλείων coding agents που είναι ήδη εγκατεστημένα και ήδη πιστοποιημένα σε αυτό το μηχάνημα. Δεν ζητά ποτέ κλειδί API.",
+      "installed": "εγκατεστημένο",
+      "notInstalled": "μη εγκατεστημένο",
+      "native": "εγγενές",
+      "advisory": "ενδεικτικό",
+      "refresh": "Ανανέωση",
+      "loading": "Εντοπισμός harness…",
+      "needsDaemonTitle": "Οι συνεδρίες agents χρειάζονται το kandown daemon",
+      "needsDaemonBody": "Εκτέλεσε npx kandown σε αυτό το έργο για να ξεκινήσει ο daemon: εντοπίζει τα εγκατεστημένα harness και εκτελεί συνεδρίες agents.",
+      "copyHint": "Αντιγραφή εντολής εγκατάστασης",
+      "copied": "Αντιγράφηκε",
+      "currentMode": "Τρέχουσα λειτουργία",
+      "empty": "Δεν εντοπίστηκαν harness σε αυτό το μηχάνημα"
+    },
     "defaultPriority": "Προεπιλεγμένη προτεραιότητα",
     "defaultPriorityDesc": "Αρχική προτεραιότητα για νέες εργασίες όταν είναι ενεργοποιημένο το πεδίο Προτεραιότητα.",
     "defaultOwner": "Προεπιλεγμένος ιδιοκτήτης",
@@ -280,5 +305,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Οι ρυθμίσεις ενημερώθηκαν εξωτερικά — επαναφορτώθηκαν"
+  },
+  "agentChat": {
+    "title": "Συνομιλία με τον agent",
+    "askAgent": "Ρώτησε τον agent",
+    "askAgentTitle": "Ρώτησε τον agent για αυτή την εργασία",
+    "newChat": "Νέα συνομιλία",
+    "resume": "Συνέχεια",
+    "resumeUnavailable": "Δεν είναι δυνατή η συνέχεια: το harness δεν ανέφερε ποτέ αναγνωριστικό συνεδρίας",
+    "forget": "Ξέχασμα",
+    "stop": "Stop",
+    "send": "Αποστολή",
+    "placeholder": "Ρώτησε τον agent...",
+    "thinking": "Σκέφτεται",
+    "toolFailed": "απέτυχε",
+    "tokens": "tokens",
+    "context": "Πλαίσιο",
+    "jumpToBottom": "Μετάβαση στο πιο πρόσφατο",
+    "emptyState": "Ξεκίνα τη συνομιλία: ρώτησε για αυτόν τον πίνακα, μια εργασία ή τη δουλειά που έρχεται.",
+    "sessionUntitled": "Συνομιλία χωρίς τίτλο",
+    "sessionsEmpty": "Δεν υπάρχουν ακόμη συνομιλίες σε αυτό το έργο.",
+    "harnessLabel": "Harness",
+    "noHarness": "Κανένα harness δεν είναι εγκατεστημένο σε αυτό το μηχάνημα",
+    "copy": "Αντιγραφή",
+    "daemonGuardTitle": "Η συνομιλία με τον agent χρειάζεται το kandown daemon",
+    "daemonGuardBody": "Ξεκίνα το τοπικό daemon για να συνομιλείς με τους coding agents σου: εκτέλεσε npx kandown σε αυτό το έργο."
   }
 }

@@ -102,6 +102,11 @@
     "navigate": "navigate",
     "select": "select"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "ಏಜೆಂಟ್ ಚಾಟ್ ಸೈಡ್‌ಬಾರ್ ತೆರೆಯಿರಿ ಅಥವಾ ಮುಚ್ಚಿ"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Title",
@@ -252,6 +257,26 @@
     "suggestFollowUpDesc": "Ask agents to propose next tasks after finishing one.",
     "maxSuggestions": "Max suggestions",
     "maxSuggestionsDesc": "Caps the number of follow-up tasks an agent may propose.",
+    "permissionMode": "ಅನುಮತಿ ಮೋಡ್",
+    "permissionModeDesc": "kandown ನಡೆಸುವ ಸೆಶನ್‌ಗಳಲ್ಲಿ ಏಜೆಂಟ್‌ಗಳಿಗೆ ಎಷ್ಟು ಅನುಮೋದನೆ ಸಿಗುತ್ತದೆ. Yolo ಹಾರ್ನೆಸ್ ನೇರವಾಗಿ ಬದಲಾವಣೆ ಅನ್ವಯಿಸಲು ಅನುಮತಿಸುತ್ತದೆ, git ಸುರಕ್ಷತಾ ಜಾಲ. ಬದಲಾವಣೆಗಳನ್ನು ಸ್ವೀಕರಿಸಿ ಹಾರ್ನೆಸ್ ಬೆಂಬಲಿಸಿದರೆ ಪ್ರತಿ ಬದಲಾವಣೆಗೂ ಮೊದಲು ಕೇಳುತ್ತದೆ, ಇಲ್ಲದಿದ್ದರೆ ಸಲಹೆ ಮಾತ್ರ.",
+    "yolo": "Yolo",
+    "acceptEdits": "ಬದಲಾವಣೆಗಳನ್ನು ಸ್ವೀಕರಿಸಿ",
+    "harnesses": {
+      "title": "ಏಜೆಂಟ್ ಹಾರ್ನೆಸ್‌ಗಳು",
+      "description": "Kandown ಈ ಯಂತ್ರದಲ್ಲಿ ಈಗಾಗಲೇ ಸ್ಥಾಪಿತವಾಗಿರುವ ಮತ್ತು ದೃಢೀಕೃತವಾಗಿರುವ ಕೋಡಿಂಗ್ ಏಜೆಂಟ್ CLI ಗಳನ್ನು ನಡೆಸುತ್ತದೆ. ಎಂದಿಗೂ API ಕೀ ಕೇಳುವುದಿಲ್ಲ.",
+      "installed": "ಸ್ಥಾಪಿತ",
+      "notInstalled": "ಸ್ಥಾಪಿತವಾಗಿಲ್ಲ",
+      "native": "ನೇಟಿವ್",
+      "advisory": "ಸಲಹಾ",
+      "refresh": "ರಿಫ್ರೆಶ್",
+      "loading": "ಹಾರ್ನೆಸ್ ಪತ್ತೆ ಮಾಡಲಾಗುತ್ತಿದೆ…",
+      "needsDaemonTitle": "ಏಜೆಂಟ್ ಸೆಶನ್‌ಗಳಿಗೆ kandown daemon ಬೇಕು",
+      "needsDaemonBody": "daemon ಆರಂಭಿಸಲು ಈ ಪ್ರಾಜೆಕ್ಟ್‌ನಲ್ಲಿ npx kandown ಚಲಾಯಿಸಿ: ಅದು ಸ್ಥಾಪಿತ ಹಾರ್ನೆಸ್ ಪತ್ತೆ ಮಾಡಿ ಏಜೆಂಟ್ ಸೆಶನ್ ನಡೆಸುತ್ತದೆ.",
+      "copyHint": "ಸ್ಥಾಪನಾ ಆಜ್ಞೆಯನ್ನು ನಕಲಿಸಿ",
+      "copied": "ನಕಲಾಗಿದೆ",
+      "currentMode": "ಪ್ರಸ್ತುತ ಮೋಡ್",
+      "empty": "ಈ ಯಂತ್ರದಲ್ಲಿ ಯಾವುದೇ ಹಾರ್ನೆಸ್ ಪತ್ತೆಯಾಗಿಲ್ಲ"
+    },
     "defaultPriority": "Default priority",
     "defaultPriorityDesc": "Initial priority for new tasks when the Priority field is enabled.",
     "defaultOwner": "Default owner",
@@ -302,5 +327,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
+  },
+  "agentChat": {
+    "title": "ಏಜೆಂಟ್ ಚಾಟ್",
+    "askAgent": "ಏಜೆಂಟ್‌ಗೆ ಕೇಳಿ",
+    "askAgentTitle": "ಈ ಕಾರ್ಯದ ಬಗ್ಗೆ ಏಜೆಂಟ್‌ಗೆ ಕೇಳಿ",
+    "newChat": "ಹೊಸ ಸಂಭಾಷಣೆ",
+    "resume": "ಮುಂದುವರಿಸಿ",
+    "resumeUnavailable": "ಮುಂದುವರಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ: ಹಾರ್ನೆಸ್ ಎಂದಿಗೂ ಸೆಶನ್ ಐಡಿ ವರದಿ ಮಾಡಿಲ್ಲ",
+    "forget": "ಮರೆತುಬಿಡಿ",
+    "stop": "ನಿಲ್ಲಿಸಿ",
+    "send": "ಕಳುಹಿಸಿ",
+    "placeholder": "ಏಜೆಂಟ್‌ಗೆ ಕೇಳಿ...",
+    "thinking": "ಯೋಚಿಸುತ್ತಿದೆ",
+    "toolFailed": "ವಿಫಲವಾಗಿದೆ",
+    "tokens": "ಟೋಕನ್‌ಗಳು",
+    "context": "ಸಂದರ್ಭ",
+    "jumpToBottom": "ಇತ್ತೀಚಿನದಕ್ಕೆ ಹೋಗಿ",
+    "emptyState": "ಸಂಭಾಷಣೆ ಆರಂಭಿಸಿ: ಈ ಬೋರ್ಡ್, ಯಾವುದೇ ಕಾರ್ಯ ಅಥವಾ ಮುಂಬರುವ ಕೆಲಸದ ಬಗ್ಗೆ ಕೇಳಿ.",
+    "sessionUntitled": "ಶೀರ್ಷಿಕೆ ಇಲ್ಲದ ಸಂಭಾಷಣೆ",
+    "sessionsEmpty": "ಈ ಪ್ರಾಜೆಕ್ಟ್‌ನಲ್ಲಿ ಇನ್ನೂ ಸಂಭಾಷಣೆಗಳಿಲ್ಲ.",
+    "harnessLabel": "ಹಾರ್ನೆಸ್",
+    "noHarness": "ಈ ಯಂತ್ರದಲ್ಲಿ ಯಾವುದೇ ಹಾರ್ನೆಸ್ ಸ್ಥಾಪಿತವಾಗಿಲ್ಲ",
+    "copy": "ನಕಲಿಸಿ",
+    "daemonGuardTitle": "ಏಜೆಂಟ್ ಚಾಟ್‌ಗೆ kandown daemon ಬೇಕು",
+    "daemonGuardBody": "ನಿಮ್ಮ ಕೋಡಿಂಗ್ ಏಜೆಂಟ್‌ಗಳೊಂದಿಗೆ ಮಾತನಾಡಲು ಲೋಕಲ್ daemon ಆರಂಭಿಸಿ: ಈ ಪ್ರಾಜೆಕ್ಟ್‌ನಲ್ಲಿ npx kandown ಚಲಾಯಿಸಿ."
   }
 }

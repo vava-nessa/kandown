@@ -102,6 +102,11 @@
     "navigate": "navigeerimine",
     "select": "vali"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "Näita või peida agendivestluse külgriba"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Pealkiri",
@@ -230,6 +235,26 @@
     "suggestFollowUpDesc": "Küsi agentidelt järgmisi ülesandeid pärast ühe lõpetamist.",
     "maxSuggestions": "Maks. soovitusi",
     "maxSuggestionsDesc": "Piirab agentide poolt pakutavate järelülesannete arvu.",
+    "permissionMode": "Lubade režiim",
+    "permissionModeDesc": "Kui palju kinnitust agendid kandowni juhitud sessioonides saavad. Yolo lubab harnessil muudatusi otse rakendada, git on turvavõrk. Nõustu muudatustega küsib iga muudatuse eest, kui harness seda toetab, muidu jääb ainult soovituseks.",
+    "yolo": "Yolo",
+    "acceptEdits": "Nõustu muudatustega",
+    "harnesses": {
+      "title": "Agent-harnessid",
+      "description": "Kandown juhib koodimisagentide CLI-tööriistu, mis on selles masinas juba installitud ja juba autenditud. See ei küsi kunagi API-võtit.",
+      "installed": "installitud",
+      "notInstalled": "pole installitud",
+      "native": "natiivne",
+      "advisory": "soovitav",
+      "refresh": "Värskenda",
+      "loading": "Tuvastatakse harnesse…",
+      "needsDaemonTitle": "Agendisessioonid vajavad kandown daemonit",
+      "needsDaemonBody": "Käivita daemoniks selles projektis npx kandown: see tuvastab installitud harnessid ja käivitab agendisessioone.",
+      "copyHint": "Kopeeri installimiskäsk",
+      "copied": "Kopeeritud",
+      "currentMode": "Praegune režiim",
+      "empty": "Selles masinas ei tuvastatud ühtegi harnessit"
+    },
     "defaultPriority": "Vaikimisi tähtsus",
     "defaultPriorityDesc": "Algne tähtsus uutele ülesannetele, kui Tähtsuse väli on lubatud.",
     "defaultOwner": "Vaikimisi omanik",
@@ -280,5 +305,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Sätteid värskendati väliselt — ümber laaditud"
+  },
+  "agentChat": {
+    "title": "Agendiga vestlus",
+    "askAgent": "Küsi agendilt",
+    "askAgentTitle": "Küsi agendilt selle ülesande kohta",
+    "newChat": "Uus vestlus",
+    "resume": "Jätka",
+    "resumeUnavailable": "Jätkata ei saa: harness ei ole kunagi teatanud sessiooni ID-d",
+    "forget": "Unusta",
+    "stop": "Peata",
+    "send": "Saada",
+    "placeholder": "Küsi agendilt...",
+    "thinking": "Mõtleb",
+    "toolFailed": "ebaõnnestus",
+    "tokens": "tokenit",
+    "context": "Kontekst",
+    "jumpToBottom": "Liigu viimase juurde",
+    "emptyState": "Alusta vestlust: küsi selle tahvli, ülesande või ees oleva töö kohta.",
+    "sessionUntitled": "Pealkirjata vestlus",
+    "sessionsEmpty": "Selles projektis pole veel vestlusi.",
+    "harnessLabel": "Harness",
+    "noHarness": "Selles masinas pole ühtegi harnessit installitud",
+    "copy": "Kopeeri",
+    "daemonGuardTitle": "Agendivestlus vajab kandown daemonit",
+    "daemonGuardBody": "Käivita kohalik daemon, et vestleda oma koodimisagentidega: käivita selles projektis npx kandown."
   }
 }

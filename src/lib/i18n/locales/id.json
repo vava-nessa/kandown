@@ -102,6 +102,11 @@
     "navigate": "navigasi",
     "select": "pilih"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "Buka atau tutup panel samping obrolan agen"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Judul",
@@ -201,6 +206,26 @@
     "suggestFollowUpDesc": "Minta agen untuk mengusulkan tugas berikutnya setelah menyelesaikan satu.",
     "maxSuggestions": "Maks saran",
     "maxSuggestionsDesc": "Membatasi jumlah tugas lanjutan yang dapat diusulkan oleh agen.",
+    "permissionMode": "Mode izin",
+    "permissionModeDesc": "Seberapa banyak persetujuan yang diterima agen dalam sesi yang dikendalikan kandown. Yolo membiarkan harness menerapkan perubahan secara langsung, git adalah jaring pengaman. Terima perubahan meminta sebelum setiap perubahan saat harness mendukungnya, dan selebihnya hanya bersifat saran.",
+    "yolo": "Yolo",
+    "acceptEdits": "Terima perubahan",
+    "harnesses": {
+      "title": "Harness agen",
+      "description": "Kandown menjalankan CLI agen kode yang sudah terpasang dan sudah terautentikasi di mesin ini. Ia tidak pernah meminta kunci API.",
+      "installed": "terpasang",
+      "notInstalled": "belum terpasang",
+      "native": "native",
+      "advisory": "saran",
+      "refresh": "Segarkan",
+      "loading": "Mendeteksi harness…",
+      "needsDaemonTitle": "Sesi agen membutuhkan kandown daemon",
+      "needsDaemonBody": "Jalankan npx kandown di proyek ini untuk memulai daemon: ia mendeteksi harness yang terpasang dan menjalankan sesi agen.",
+      "copyHint": "Salin perintah instalasi",
+      "copied": "Tersalin",
+      "currentMode": "Mode saat ini",
+      "empty": "Tidak ada harness yang terdeteksi di mesin ini"
+    },
     "defaultPriority": "Prioritas default",
     "defaultPriorityDesc": "Prioritas awal untuk tugas baru saat bidang Prioritas diaktifkan.",
     "defaultOwner": "Pemilik default",
@@ -247,5 +272,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Pengaturan diperbarui secara eksternal — dimuat ulang"
+  },
+  "agentChat": {
+    "title": "Obrolan agen",
+    "askAgent": "Tanya agen",
+    "askAgentTitle": "Tanya agen tentang tugas ini",
+    "newChat": "Percakapan baru",
+    "resume": "Lanjutkan",
+    "resumeUnavailable": "Tidak bisa dilanjutkan: harness tidak pernah melaporkan id sesi",
+    "forget": "Lupakan",
+    "stop": "Stop",
+    "send": "Kirim",
+    "placeholder": "Tanya agen...",
+    "thinking": "Berpikir",
+    "toolFailed": "gagal",
+    "tokens": "token",
+    "context": "Konteks",
+    "jumpToBottom": "Ke pesan terbaru",
+    "emptyState": "Mulai percakapan: tanyakan tentang papan ini, sebuah tugas, atau pekerjaan yang akan datang.",
+    "sessionUntitled": "Percakapan tanpa judul",
+    "sessionsEmpty": "Belum ada percakapan di proyek ini.",
+    "harnessLabel": "Harness",
+    "noHarness": "Tidak ada harness yang terpasang di mesin ini",
+    "copy": "Salin",
+    "daemonGuardTitle": "Obrolan agen membutuhkan kandown daemon",
+    "daemonGuardBody": "Jalankan daemon lokal untuk mengobrol dengan agen kode kamu: jalankan npx kandown di proyek ini."
   }
 }

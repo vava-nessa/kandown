@@ -22,6 +22,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
+import { IconMessage } from '@tabler/icons-react';
 import { Icon } from './Icons';
 import { KbdButton } from './KbdButton';
 import { ThemeSwitcher } from './ui/theme-switcher-1';
@@ -64,6 +65,9 @@ export function Header() {
   const lastReloadError = useStore(s => s.lastReloadError);
   const watcherError = useStore(s => s.watcherError);
   const restartWatcher = useStore(s => s.restartWatcher);
+  const sidebarOpen = useStore(s => s.agentChat.sidebarOpen);
+  const openSidebar = useStore(s => s.openSidebar);
+  const closeSidebar = useStore(s => s.closeSidebar);
 
   const [menuOpen, setMenuOpen] = useState(false);
   // 📖 Boot splash: show the "kandown v<version>" title for 5s on load, then
@@ -393,6 +397,22 @@ export function Header() {
                 onClick={() => setShowArchives(!showArchives)}
                 className={showArchives ? 'text-accent' : ''}
               />
+            </Tooltip>
+
+            {/* 📖 Agent chat sidebar toggle (t308, ⌘J). Active tint while the
+             * sidebar is open, mirroring the archives button. */}
+            <Tooltip content={`${t('agentChat.title', 'Agent')} (⌘J)`}>
+              <button
+                type="button"
+                onClick={() => (sidebarOpen ? closeSidebar() : openSidebar())}
+                aria-label={t('agentChat.title', 'Agent')}
+                aria-pressed={sidebarOpen}
+                className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${
+                  sidebarOpen ? 'bg-black/[0.06] text-accent dark:bg-white/[0.1]' : 'text-fg-muted/70 hover:text-fg'
+                }`}
+              >
+                <IconMessage size={17} stroke={1.6} />
+              </button>
             </Tooltip>
 
             <Tooltip content={`Densité: ${density === 'compact' ? 'Compacte' : 'Confortable'}`}>

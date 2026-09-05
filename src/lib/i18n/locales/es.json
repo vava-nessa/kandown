@@ -102,6 +102,11 @@
     "navigate": "navegar",
     "select": "seleccionar"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "Mostrar u ocultar el panel de chat del agente"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Título",
@@ -241,6 +246,26 @@
     "suggestFollowUpDesc": "Pide a los agentes que propongan siguientes tareas después de terminar una.",
     "maxSuggestions": "Máx. sugerencias",
     "maxSuggestionsDesc": "Limita el número de tareas de seguimiento que un agente puede proponer.",
+    "permissionMode": "Modo de permisos",
+    "permissionModeDesc": "Cuánta aprobación reciben los agentes en las sesiones dirigidas por kandown. Yolo deja que el harness aplique cambios directamente, git es la red de seguridad. Aceptar cambios pide confirmación antes de cada modificación cuando el harness lo permite, y en caso contrario se queda como aviso.",
+    "yolo": "Yolo",
+    "acceptEdits": "Aceptar cambios",
+    "harnesses": {
+      "title": "Harness de agentes",
+      "description": "Kandown controla CLIs de agentes de código que ya están instalados y autenticados en esta máquina. Nunca pide una clave de API.",
+      "installed": "instalado",
+      "notInstalled": "no instalado",
+      "native": "nativo",
+      "advisory": "informativo",
+      "refresh": "Actualizar",
+      "loading": "Detectando harness…",
+      "needsDaemonTitle": "Las sesiones de agente necesitan el kandown daemon",
+      "needsDaemonBody": "Ejecuta npx kandown en este proyecto para iniciar el daemon: detecta los harness instalados y ejecuta sesiones de agentes.",
+      "copyHint": "Copiar comando de instalación",
+      "copied": "Copiado",
+      "currentMode": "Modo actual",
+      "empty": "No se ha detectado ningún harness en esta máquina"
+    },
     "defaultPriority": "Prioridad predeterminada",
     "defaultPriorityDesc": "Prioridad inicial para nuevas tareas cuando el campo Prioridad está habilitado.",
     "defaultOwner": "Propietario predeterminado",
@@ -291,5 +316,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Ajustes actualizados externamente — recargados"
+  },
+  "agentChat": {
+    "title": "Chat del agente",
+    "askAgent": "Pregunta al agente",
+    "askAgentTitle": "Pregunta al agente sobre esta tarea",
+    "newChat": "Nueva conversación",
+    "resume": "Reanudar",
+    "resumeUnavailable": "No se puede reanudar: el harness nunca informó de un id de sesión",
+    "forget": "Olvidar",
+    "stop": "Stop",
+    "send": "Enviar",
+    "placeholder": "Pregunta al agente...",
+    "thinking": "Pensando",
+    "toolFailed": "falló",
+    "tokens": "tokens",
+    "context": "Contexto",
+    "jumpToBottom": "Ir a lo último",
+    "emptyState": "Inicia la conversación: pregunta sobre este tablero, una tarea o el trabajo pendiente.",
+    "sessionUntitled": "Conversación sin título",
+    "sessionsEmpty": "Aún no hay conversaciones en este proyecto.",
+    "harnessLabel": "Harness",
+    "noHarness": "No hay ningún harness instalado en esta máquina",
+    "copy": "Copiar",
+    "daemonGuardTitle": "El chat del agente necesita el kandown daemon",
+    "daemonGuardBody": "Inicia el daemon local para chatear con tus agentes de código: ejecuta npx kandown en este proyecto."
   }
 }

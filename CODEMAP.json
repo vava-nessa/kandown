@@ -8,14 +8,14 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 12797,
+      "lines": 13159,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 62526,
+      "lines": 62683,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -138,7 +138,7 @@
     },
     {
       "path": "src/App.tsx",
-      "lines": 292,
+      "lines": 308,
       "title": "Web application shell",
       "summary": "Composes the Kandown web UI, hydrates recent projects from the URL, and owns global keyboard shortcuts for board navigation, creation, reload, search focus, and command palette access.",
       "functions": [
@@ -350,6 +350,12 @@
       "summary": "Pins down the three behaviors that prevent bare `kandown` from silently attaching to a foreign project: 1."
     },
     {
+      "path": "src/cli/lib/__tests__/session-index.spec.ts",
+      "lines": 213,
+      "title": "Session index unit tests",
+      "summary": "Pins the t308 chat-session index contract against a disposable fake home directory (the module's `~/.kandown/sessions` base is redirected by mocking `os.homedir`, so no real home state is ever touched): 1. upsert writes one JSON file…"
+    },
+    {
       "path": "src/cli/lib/__tests__/skills.spec.ts",
       "lines": 37,
       "title": "Node workflow skill discovery tests",
@@ -539,6 +545,43 @@
         }
       ],
       "exports": "HARNESS_DEFS, detectHarnessesJSON, getHarnessDef, resolveHarness"
+    },
+    {
+      "path": "src/cli/lib/agent/session-index.ts",
+      "lines": 199,
+      "title": "Chat session index: the thin per-project record of harness conversations",
+      "summary": "Kandown never stores conversations: each harness (claude, codex, pi, ACP) persists its own transcript wherever it keeps its data.",
+      "functions": [
+        {
+          "name": "sessionIndexBaseDir: the ~/.kandown/sessions root shared by all projects",
+          "summary": null
+        },
+        {
+          "name": "sessionIndexDir: one project's index directory (keyed by project hash)",
+          "summary": null
+        },
+        {
+          "name": "upsertSessionIndexEntry: create or replace one session's index file",
+          "summary": null
+        },
+        {
+          "name": "patchSessionIndexEntry: merge a partial update into one entry",
+          "summary": null
+        },
+        {
+          "name": "forgetSessionIndexEntry: delete one entry (index only, never the runtime)",
+          "summary": null
+        },
+        {
+          "name": "listSessionIndexEntries: all entries for a project, newest activity first",
+          "summary": null
+        },
+        {
+          "name": "indexEntryForPrompt: derive a display title from a prompt's first line",
+          "summary": null
+        }
+      ],
+      "exports": "SessionIndexEntry, SessionIndexPatch, sessionIndexBaseDir, sessionIndexDir, upsertSessionIndexEntry, patchSessionIndexEntry, forgetSessionIndexEntry, listSessionIndexEntries, indexEntryForPrompt"
     },
     {
       "path": "src/cli/lib/agent/types.ts",
@@ -1037,7 +1080,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 1063,
+      "lines": 1146,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
@@ -1417,6 +1460,113 @@
       "exports": "run"
     },
     {
+      "path": "src/components/agent/ChatSidebar.tsx",
+      "lines": 256,
+      "title": "Agent chat sidebar (t308)",
+      "summary": "The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.",
+      "functions": [
+        {
+          "name": "ChatSidebar: the agent chat sidebar",
+          "summary": null
+        }
+      ],
+      "exports": "ChatSidebar"
+    },
+    {
+      "path": "src/components/agent/DaemonGuardCard.tsx",
+      "lines": 57,
+      "title": "Daemon-required card for the agent chat sidebar",
+      "summary": "Shown instead of the conversation UI when the session index reported no daemon (standalone File System Access mode, the demo, or an old daemon without the agent routes).",
+      "functions": [
+        {
+          "name": "DaemonGuardCard: friendly \"start the daemon\" explainer",
+          "summary": null
+        }
+      ],
+      "exports": "DaemonGuardCard"
+    },
+    {
+      "path": "src/components/agent/MessageList.tsx",
+      "lines": 164,
+      "title": "Message list for the agent chat sidebar",
+      "summary": "Renders the folded conversation: user bubbles, assistant turns (streaming text, collapsible thinking block, tool chips), error entries in the destructive tint, and the quiet \"edited ...\" line for files the agent touched during the turn.",
+      "functions": [
+        {
+          "name": "ThinkingBlock: collapsible reasoning channel of one assistant turn",
+          "summary": null
+        },
+        {
+          "name": "ToolChips: one chip per tool call, tinted by outcome",
+          "summary": null
+        },
+        {
+          "name": "MessageList: the full conversation, with empty state",
+          "summary": null
+        }
+      ],
+      "exports": "MessageList"
+    },
+    {
+      "path": "src/components/agent/PromptBar.tsx",
+      "lines": 97,
+      "title": "Prompt bar for the agent chat sidebar",
+      "summary": "Auto-sizing textarea plus send/stop controls.",
+      "functions": [
+        {
+          "name": "PromptBar: message composer with send/stop and lazy session start",
+          "summary": null
+        }
+      ],
+      "exports": "PromptBar"
+    },
+    {
+      "path": "src/components/agent/SessionSwitcher.tsx",
+      "lines": 152,
+      "title": "Conversation switcher for the agent chat sidebar",
+      "summary": "Dropdown over the project's chat session index: title, relative last-activity time, and a harness chip per row.",
+      "functions": [
+        {
+          "name": "relativeTime: compact \"now / 5m / 3h / 2d\" age label",
+          "summary": null
+        },
+        {
+          "name": "SessionSwitcher: session list dropdown",
+          "summary": null
+        }
+      ],
+      "exports": "SessionSwitcher"
+    },
+    {
+      "path": "src/components/agent/StreamingText.tsx",
+      "lines": 35,
+      "title": "Streaming text with a live caret",
+      "summary": "Renders an assistant message that is still arriving: the text is shown as-is and a blinking caret marks the write position while `streaming`.",
+      "functions": [
+        {
+          "name": "StreamingText: assistant text with a blinking caret while streaming",
+          "summary": null
+        }
+      ],
+      "exports": "StreamingText"
+    },
+    {
+      "path": "src/components/agent/UsageBadge.tsx",
+      "lines": 51,
+      "title": "Compact usage badge for the agent chat sidebar",
+      "summary": "Shows the running token totals and USD cost of the active session, accumulated by the event fold from `usage` SSE events.",
+      "functions": [
+        {
+          "name": "compactTokens: 1234 → \"1.2k\", 4200 → \"4.2k\"",
+          "summary": null
+        },
+        {
+          "name": "UsageBadge: tokens + cost chip",
+          "summary": null
+        }
+      ],
+      "exports": "UsageBadge"
+    },
+    {
       "path": "src/components/agentIcons.tsx",
       "lines": 305,
       "title": "AI agent brand icons (sourced from LobeHub) + assignee→avatar resolver",
@@ -1490,7 +1640,7 @@
     },
     {
       "path": "src/components/Card.tsx",
-      "lines": 474,
+      "lines": 494,
       "title": "Task card",
       "summary": "Displays one board task as a clean, rounded card inside a column.",
       "functions": [
@@ -1527,7 +1677,7 @@
     },
     {
       "path": "src/components/Cheatsheet.tsx",
-      "lines": 181,
+      "lines": 182,
       "title": "Keyboard shortcuts cheatsheet",
       "summary": "Centered modal that lists every keyboard shortcut in Kandown, grouped by context (Global, Board, Drawer, Command Palette).",
       "functions": [
@@ -1622,7 +1772,7 @@
     },
     {
       "path": "src/components/Drawer.tsx",
-      "lines": 492,
+      "lines": 506,
       "title": "Task drawer editor",
       "summary": "Full-height task detail editor for title, description, subtasks, report, save/close, autosave, and deletion.",
       "functions": [
@@ -1703,7 +1853,7 @@
     },
     {
       "path": "src/components/Header.tsx",
-      "lines": 462,
+      "lines": 482,
       "title": "App header",
       "summary": "Top navigation bar for project switching, task search, filters, view mode, density, settings, command palette, reload, and task creation.",
       "functions": [
@@ -1955,7 +2105,7 @@
     },
     {
       "path": "src/components/TaskWorkspace.tsx",
-      "lines": 800,
+      "lines": 814,
       "title": "Desktop opened-task workspace",
       "summary": "Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…",
       "functions": [
@@ -2171,6 +2321,12 @@
       "exports": "useDetectedAgents"
     },
     {
+      "path": "src/lib/__tests__/agent-chat-events.spec.ts",
+      "lines": 204,
+      "title": "Tests for the agent chat event fold",
+      "summary": "Locks the reducer contract the chat sidebar renders from: streaming text accumulates then finalizes, thinking stays on its own channel, tool calls pair by toolCallId, usage accumulates, errors append entries (and fatal ones close the…"
+    },
+    {
       "path": "src/lib/__tests__/browser-extension-runtime.spec.ts",
       "lines": 207,
       "title": "Standalone browser extension runtime integration tests",
@@ -2276,6 +2432,39 @@
       "exports": "ALIAS_TO_AGENT, normalizeAlias, resolveAgent, knownAgentIds"
     },
     {
+      "path": "src/lib/agent-chat-events.ts",
+      "lines": 466,
+      "title": "Agent chat event model (t308)",
+      "summary": "Pure, framework-free model of the JSON events the daemon streams on GET /api/agent/sessions/:id/events, plus the reducer that folds them into the chat message list rendered by the agent chat sidebar.",
+      "functions": [
+        {
+          "name": "isAgentChatEvent + per-type guards: narrow an unknown SSE payload",
+          "summary": null
+        },
+        {
+          "name": "createChatFoldState: empty fold state for one session",
+          "summary": null
+        },
+        {
+          "name": "applyChatEvent: fold one event into a fold state (pure)",
+          "summary": null
+        },
+        {
+          "name": "appendUserMessage: append an optimistic user message (pure)",
+          "summary": null
+        },
+        {
+          "name": "removeChatEntry: drop one entry by id (rollback helper, pure)",
+          "summary": null
+        },
+        {
+          "name": "nextChatEntryId: stable React keys for entries",
+          "summary": null
+        }
+      ],
+      "exports": "AgentChatEvent, SessionStartedEvent, MessageDeltaEvent, ToolStartedEvent, ToolFinishedEvent, FileChangedEvent, UsageEvent, TurnCompletedEvent, ErrorEvent, StoppedEvent, ChatEntry, ChatUserEntry, ChatAssistantEntry, ChatErrorEntry, ChatToolEntry, ChatUsageTotals, ChatFoldState, isAgentChatEvent, createChatFoldState, applyChatEvent, appendUserMessage, removeChatEntry, nextChatEntryId"
+    },
+    {
       "path": "src/lib/category-color.ts",
       "lines": 168,
       "title": "Deterministic category colors and icons",
@@ -2334,7 +2523,7 @@
     },
     {
       "path": "src/lib/demoBackend.ts",
-      "lines": 396,
+      "lines": 398,
       "title": "In-memory backend for the website demo",
       "summary": "Implements the Kandown REST API against a `Map` instead of a disk, so the whole web UI can run in a browser tab with no CLI, no server and no storage.",
       "functions": [
@@ -2583,7 +2772,7 @@
     },
     {
       "path": "src/lib/extensions/state.ts",
-      "lines": 115,
+      "lines": 111,
       "title": "Extension runtime state",
       "summary": "Persists per-project extension runtime state: the ids the user explicitly enabled plus consecutive failure records used by the quarantine policy.",
       "functions": [
@@ -2644,7 +2833,7 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 1379,
+      "lines": 1504,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [
@@ -2737,6 +2926,14 @@
           "summary": null
         },
         {
+          "name": "createAgentSession / sendAgentSessionMessage: harness chat runtime actions",
+          "summary": null
+        },
+        {
+          "name": "listSessionIndex / forgetSessionIndex: t308 chat sidebar index entries",
+          "summary": null
+        },
+        {
           "name": "serverLoadExtensionRuntime: field/panel defs and batched badges",
           "summary": null
         },
@@ -2761,7 +2958,7 @@
           "summary": "edits `.kandown/kandown_work.md`"
         }
       ],
-      "exports": "supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, fetchDetectedAgents, fetchAgentHarnesses, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks"
+      "exports": "supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, fetchDetectedAgents, fetchAgentHarnesses, createAgentSession, sendAgentSessionMessage, listSessionIndex, forgetSessionIndex, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks"
     },
     {
       "path": "src/lib/githubStars.ts",
@@ -2919,6 +3116,27 @@
       "exports": "parseSimpleYaml, parseTaskFile, taskToBoardTask, buildColumnsFromTasks, extractSubtasks, injectSubtasks, searchTaskContent, isArchived"
     },
     {
+      "path": "src/lib/project-hash.ts",
+      "lines": 172,
+      "title": "Shared project-path canonicalization and hash",
+      "summary": "One canonical identity for \"this project\" across every piece of user-local state kandown keeps outside the repository: extension state under `~/.kandown/project-state/<hash>/` and the chat session index (t308) under…",
+      "functions": [
+        {
+          "name": "canonicalizeProjectPath: realpath when available, lexical fallback otherwise",
+          "summary": null
+        },
+        {
+          "name": "projectHash: 24 hex chars of SHA-256 over the canonical path",
+          "summary": null
+        },
+        {
+          "name": "sha256Hex: full lowercase hex SHA-256 of a UTF-8 string (pure)",
+          "summary": null
+        }
+      ],
+      "exports": "canonicalizeProjectPath, RealpathFn, projectHash, sha256Hex"
+    },
+    {
       "path": "src/lib/quick-add-parser.ts",
       "lines": 94,
       "title": "Quick-add inline syntax parser",
@@ -2953,7 +3171,7 @@
     },
     {
       "path": "src/lib/store.ts",
-      "lines": 2007,
+      "lines": 2032,
       "title": "Kandown Zustand store",
       "summary": "Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.",
       "functions": [
@@ -2983,6 +3201,19 @@
         }
       ],
       "exports": "useStore"
+    },
+    {
+      "path": "src/lib/store/agentChatSlice.ts",
+      "lines": 405,
+      "title": "Zustand store slice: agent chat sidebar (t308)",
+      "summary": "Sidebar open state, the project's chat session index, the live per-session chat folds, and the SSE lifecycle that feeds them.",
+      "functions": [
+        {
+          "name": "createAgentChatSlice: sidebar state, session index, SSE lifecycle, sends",
+          "summary": null
+        }
+      ],
+      "exports": "AgentChatSlice, createAgentChatSlice"
     },
     {
       "path": "src/lib/store/agentSearchSlice.ts",
@@ -3016,7 +3247,7 @@
     },
     {
       "path": "src/lib/store/types.ts",
-      "lines": 190,
+      "lines": 275,
       "title": "Zustand store — shared types",
       "summary": "State shape and supporting interfaces used across every store slice."
     },
@@ -3227,10 +3458,10 @@
     },
     {
       "path": "src/lib/types.ts",
-      "lines": 542,
+      "lines": 579,
       "title": "Shared domain types",
       "summary": "Defines the board, task, config, filter, search, and appearance contracts shared by the Kandown web UI, CLI, TUI, and persistence adapters.",
-      "exports": "Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, ColumnRole, ColumnAgentMeta, WorkflowSelectionConfig, TaskTrackingCadence, WorkOutputDetailMode, TuiConfig, AgentsConfig, KandownConfig, DEFAULT_COLUMNS, DEFAULT_WORK_OUTPUT, DEFAULT_COLUMN_META, DEFAULT_CONFIG"
+      "exports": "Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, ColumnRole, ColumnAgentMeta, WorkflowSelectionConfig, TaskTrackingCadence, WorkOutputDetailMode, TuiConfig, AgentsConfig, KandownConfig, DEFAULT_COLUMNS, DEFAULT_WORK_OUTPUT, DEFAULT_COLUMN_META, DEFAULT_CONFIG, PermissionMode, PERMISSION_MODES, PermissionSupport, DetectedHarness, SessionIndexEntryPayload, AgentSessionPayload"
     },
     {
       "path": "src/lib/utils.ts",

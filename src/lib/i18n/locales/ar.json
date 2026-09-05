@@ -102,6 +102,11 @@
     "navigate": "تنقل",
     "select": "اختيار"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "إظهار أو إخفاء الشريط الجانبي لدردشة الوكيل"
+    }
+  },
   "listView": {
     "id": "المعرف",
     "title": "العنوان",
@@ -201,6 +206,26 @@
     "suggestFollowUpDesc": "اطلب من الوكلاء اقتراح المهام التالية بعد الانتهاء من واحدة.",
     "maxSuggestions": "الحد الأقصى للاقتراحات",
     "maxSuggestionsDesc": "يحدد الحد الأقصى لعدد مهام المتابعة التي قد يقترحها الوكيل.",
+    "permissionMode": "وضع الأذونات",
+    "permissionModeDesc": "مقدار الموافقة الذي يحصل عليه الوكلاء في الجلسات التي يقودها kandown. يتيح Yolo للـ harness تطبيق التعديلات مباشرة، وgit هو شبكة الأمان. قبول التعديلات يطلب التأكيد قبل كل تغيير عندما يدعمه harness، وإلا يبقى استشاريًا فقط.",
+    "yolo": "Yolo",
+    "acceptEdits": "قبول التعديلات",
+    "harnesses": {
+      "title": "Harness للوكلاء",
+      "description": "يشغّل kandown أدوات سطر الأوامر لوكلاء البرمجة المثبتة أصلًا والمصادق عليها أصلًا على هذه الآلة. لا يطلب مفتاح API أبدًا.",
+      "installed": "مثبت",
+      "notInstalled": "غير مثبت",
+      "native": "أصلي",
+      "advisory": "استشاري",
+      "refresh": "تحديث",
+      "loading": "جارٍ اكتشاف أنظمة harness…",
+      "needsDaemonTitle": "جلسات الوكلاء تحتاج إلى kandown daemon",
+      "needsDaemonBody": "شغّل npx kandown في هذا المشروع لبدء الـ daemon: يكتشف أنظمة harness المثبتة ويدير جلسات الوكلاء.",
+      "copyHint": "نسخ أمر التثبيت",
+      "copied": "تم النسخ",
+      "currentMode": "الوضع الحالي",
+      "empty": "لم يُكتشف أي harness على هذه الآلة"
+    },
     "defaultPriority": "الأولوية الافتراضية",
     "defaultPriorityDesc": "الأولوية الأولية للمهام الجديدة عند تمكين حقل الأولوية.",
     "defaultOwner": "المالك الافتراضي",
@@ -247,5 +272,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "تم تحديث الإعدادات خارجيًا - تم إعادة التحميل"
+  },
+  "agentChat": {
+    "title": "دردشة الوكيل",
+    "askAgent": "اسأل الوكيل",
+    "askAgentTitle": "اسأل الوكيل عن هذه المهمة",
+    "newChat": "محادثة جديدة",
+    "resume": "استئناف",
+    "resumeUnavailable": "لا يمكن الاستئناف: لم يبلّغ harness أبدًا عن معرّف جلسة",
+    "forget": "نسيان",
+    "stop": "إيقاف",
+    "send": "إرسال",
+    "placeholder": "اسأل الوكيل...",
+    "thinking": "يفكر",
+    "toolFailed": "فشل",
+    "tokens": "توكن",
+    "context": "السياق",
+    "jumpToBottom": "الانتقال إلى الأحدث",
+    "emptyState": "ابدأ المحادثة: اسأل عن هذه اللوحة أو مهمة ما أو العمل القادم.",
+    "sessionUntitled": "محادثة بدون عنوان",
+    "sessionsEmpty": "لا توجد محادثات بعد في هذا المشروع.",
+    "harnessLabel": "Harness",
+    "noHarness": "لا يوجد harness مثبت على هذه الآلة",
+    "copy": "نسخ",
+    "daemonGuardTitle": "دردشة الوكيل تحتاج إلى kandown daemon",
+    "daemonGuardBody": "شغّل الـ daemon المحلي للتحدث مع وكلاء البرمجة لديك: شغّل npx kandown في هذا المشروع."
   }
 }

@@ -102,6 +102,11 @@
     "navigate": "navigate",
     "select": "select"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "ఏజెంట్ చాట్ సైడ్‌బార్ తెరవండి లేదా మూసివేయండి"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Title",
@@ -252,6 +257,26 @@
     "suggestFollowUpDesc": "Ask agents to propose next tasks after finishing one.",
     "maxSuggestions": "Max suggestions",
     "maxSuggestionsDesc": "Caps the number of follow-up tasks an agent may propose.",
+    "permissionMode": "అనుమతి మోడ్",
+    "permissionModeDesc": "kandown నడిపే సెషన్లలో ఏజెంట్లకు ఎంత ఆమోదం లభిస్తుంది. Yolo హార్నెస్ నేరుగా మార్పులు చేయడానికి అనుమతిస్తుంది, git అనేది భద్రతా వలయం. మార్పులను అంగీకరించు హార్నెస్ మద్దతు ఉంటే ప్రతి మార్పుకూ ముందు అడుగుతుంది, లేదంటే సలహాగా మాత్రమే ఉంటుంది.",
+    "yolo": "Yolo",
+    "acceptEdits": "మార్పులను అంగీకరించు",
+    "harnesses": {
+      "title": "ఏజెంట్ హార్నెస్‌లు",
+      "description": "ఈ యంత్రంలో ఇప్పటికే ఇన్‌స్టాల్ అయి, ఇప్పటికే ప్రమాణీకరించబడిన కోడింగ్ ఏజెంట్ CLI లను Kandown నడుపుతుంది. ఎప్పుడూ API కీ అడగదు.",
+      "installed": "ఇన్‌స్టాల్ అయింది",
+      "notInstalled": "ఇన్‌స్టాల్ కాలేదు",
+      "native": "నేటివ్",
+      "advisory": "సలహా",
+      "refresh": "రిఫ్రెష్",
+      "loading": "హార్నెస్‌లను గుర్తిస్తోంది…",
+      "needsDaemonTitle": "ఏజెంట్ సెషన్లకు kandown daemon కావాలి",
+      "needsDaemonBody": "daemon ప్రారంభించడానికి ఈ ప్రాజెక్ట్‌లో npx kandown నడపండి: ఇన్‌స్టాల్ చేసిన హార్నెస్‌లను గుర్తించి ఏజెంట్ సెషన్లను నడుపుతుంది.",
+      "copyHint": "ఇన్‌స్టాల్ కమాండ్ కాపీ చేయండి",
+      "copied": "కాపీ అయింది",
+      "currentMode": "ప్రస్తుత మోడ్",
+      "empty": "ఈ యంత్రంలో ఏ హార్నెస్ కూడా గుర్తించబడలేదు"
+    },
     "defaultPriority": "Default priority",
     "defaultPriorityDesc": "Initial priority for new tasks when the Priority field is enabled.",
     "defaultOwner": "Default owner",
@@ -302,5 +327,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
+  },
+  "agentChat": {
+    "title": "ఏజెంట్ చాట్",
+    "askAgent": "ఏజెంట్‌ను అడగండి",
+    "askAgentTitle": "ఈ పని గురించి ఏజెంట్‌ను అడగండి",
+    "newChat": "కొత్త సంభాషణ",
+    "resume": "కొనసాగించు",
+    "resumeUnavailable": "కొనసాగించలేం: హార్నెస్ ఎప్పుడూ సెషన్ ఐడీ నివేదించలేదు",
+    "forget": "మర్చిపో",
+    "stop": "ఆపు",
+    "send": "పంపు",
+    "placeholder": "ఏజెంట్‌ను అడగండి...",
+    "thinking": "ఆలోచిస్తోంది",
+    "toolFailed": "విఫలమైంది",
+    "tokens": "టోకెన్లు",
+    "context": "సందర్భం",
+    "jumpToBottom": "తాజాదానికి వెళ్లు",
+    "emptyState": "సంభాషణ మొదలుపెట్టండి: ఈ బోర్డు, ఏదైనా పని లేదా ముందున్న పని గురించి అడగండి.",
+    "sessionUntitled": "పేరులేని సంభాషణ",
+    "sessionsEmpty": "ఈ ప్రాజెక్ట్‌లో ఇంకా సంభాషణలు లేవు.",
+    "harnessLabel": "హార్నెస్",
+    "noHarness": "ఈ యంత్రంలో ఏ హార్నెస్ కూడా ఇన్‌స్టాల్ చేయలేదు",
+    "copy": "కాపీ",
+    "daemonGuardTitle": "ఏజెంట్ చాట్‌కు kandown daemon కావాలి",
+    "daemonGuardBody": "మీ కోడింగ్ ఏజెంట్లతో మాట్లాడటానికి లోకల్ daemon ప్రారంభించండి: ఈ ప్రాజెక్ట్‌లో npx kandown నడపండి."
   }
 }

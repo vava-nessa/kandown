@@ -102,6 +102,11 @@
     "navigate": "navigate",
     "select": "select"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "એજન્ટ ચેટ સાઇડબાર ચાલુ કરો કે બંધ"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Title",
@@ -252,6 +257,26 @@
     "suggestFollowUpDesc": "Ask agents to propose next tasks after finishing one.",
     "maxSuggestions": "Max suggestions",
     "maxSuggestionsDesc": "Caps the number of follow-up tasks an agent may propose.",
+    "permissionMode": "પરવાનગી મોડ",
+    "permissionModeDesc": "kandown સંચાલિત સેશનમાં એજન્ટને કેટલી મંજૂરી મળે છે. Yolo હાર્નેસને સીધા ફેરફાર કરવા દે છે, git સુરક્ષા કવચ છે. ફેરફારો સ્વીકારો હાર્નેસ આધાર આપે તો દરેક ફેરફાર પહેલાં પૂછે છે, નહીંતર ફક્ત સલાહ રહે છે.",
+    "yolo": "Yolo",
+    "acceptEdits": "ફેરફારો સ્વીકારો",
+    "harnesses": {
+      "title": "એજન્ટ હાર્નેસ",
+      "description": "Kandown એવા કોડિંગ એજન્ટ CLI ચલાવે છે જે આ મશીન પર પહેલેથી ઇન્સ્ટોલ અને પ્રમાણિત છે. ક્યારેય API કી માંગતું નથી.",
+      "installed": "ઇન્સ્ટોલ થયેલ",
+      "notInstalled": "ઇન્સ્ટોલ નથી",
+      "native": "નેટિવ",
+      "advisory": "સલાહકાર",
+      "refresh": "રિફ્રેશ",
+      "loading": "હાર્નેસ શોધાય છે…",
+      "needsDaemonTitle": "એજન્ટ સેશનને kandown daemon જોઈએ છે",
+      "needsDaemonBody": "daemon શરૂ કરવા આ પ્રોજેક્ટમાં npx kandown ચલાવો: તે ઇન્સ્ટોલ થયેલા હાર્નેસ શોધે છે અને એજન્ટ સેશન ચલાવે છે.",
+      "copyHint": "ઇન્સ્ટોલ કમાન્ડ કૉપિ કરો",
+      "copied": "કૉપિ થયું",
+      "currentMode": "વર્તમાન મોડ",
+      "empty": "આ મશીન પર કોઈ હાર્નેસ મળ્યો નથી"
+    },
     "defaultPriority": "Default priority",
     "defaultPriorityDesc": "Initial priority for new tasks when the Priority field is enabled.",
     "defaultOwner": "Default owner",
@@ -302,5 +327,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
+  },
+  "agentChat": {
+    "title": "એજન્ટ ચેટ",
+    "askAgent": "એજન્ટને પૂછો",
+    "askAgentTitle": "આ કાર્ય વિશે એજન્ટને પૂછો",
+    "newChat": "નવી વાતચીત",
+    "resume": "ફરી શરૂ કરો",
+    "resumeUnavailable": "ફરી શરૂ કરી શકાતું નથી: હાર્નેસે ક્યારેય સેશન આઈડી આપ્યો નથી",
+    "forget": "ભૂલી જાઓ",
+    "stop": "રોકો",
+    "send": "મોકલો",
+    "placeholder": "એજન્ટને પૂછો...",
+    "thinking": "વિચારી રહ્યું છે",
+    "toolFailed": "નિષ્ફળ",
+    "tokens": "ટોકન",
+    "context": "સંદર્ભ",
+    "jumpToBottom": "નવીનતમ પર જાઓ",
+    "emptyState": "વાતચીત શરૂ કરો: આ બોર્ડ, કોઈ કાર્ય કે આગળનાં કામ વિશે પૂછો.",
+    "sessionUntitled": "શીર્ષક વિનાની વાતચીત",
+    "sessionsEmpty": "આ પ્રોજેક્ટમાં હજી કોઈ વાતચીત નથી.",
+    "harnessLabel": "હાર્નેસ",
+    "noHarness": "આ મશીન પર કોઈ હાર્નેસ ઇન્સ્ટોલ નથી",
+    "copy": "કૉપિ",
+    "daemonGuardTitle": "એજન્ટ ચેટને kandown daemon જોઈએ છે",
+    "daemonGuardBody": "તમારા કોડિંગ એજન્ટ સાથે વાત કરવા લોકલ daemon શરૂ કરો: આ પ્રોજેક્ટમાં npx kandown ચલાવો."
   }
 }

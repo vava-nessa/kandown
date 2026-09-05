@@ -19,9 +19,18 @@ import { detectHarnessesJSON } from './agent/detect';
 import {
   createAgentSession,
   listAgentSessions,
+  sendToSession,
   stopAgentSession,
   subscribeAgentSession,
 } from './agent/agent-runtime';
+import {
+  forgetSessionIndexEntry,
+  indexEntryForPrompt,
+  listSessionIndexEntries,
+  patchSessionIndexEntry,
+  upsertSessionIndexEntry,
+  type SessionIndexEntry,
+} from './agent/session-index';
 import type { AgentEvent } from './agent/types';
 import type { PermissionMode } from '../../lib/types';
 import { getCurrentVersion, getInstalledVersion, semverGt, performGlobalPackageUpdate, PKG_ROOT } from './updater';
@@ -521,11 +530,14 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
     return writeJson(res, 200, detectCatalogJSON(kandownDir));
   }
 
-  // 📖 Agent harness API (t307). The daemon owns the harness child processes:
-  // detection answers what is installed, sessions spawn harnesses with the
-  // compiled kandown-work document as initial prompt, events stream over a
-  // per-session SSE channel, and stop is always available. Fan-out note: the
-  // Vite dev plugin mirrors these routes and demoBackend answers 501.
+  // 📖 Agent harness API (t307, t308). The daemon owns the harness child
+  // processes: detection answers what is installed, sessions spawn harnesses
+  // with the compiled kandown-work document as initial prompt (and write the
+  // thin per-project index entry the chat sidebar lists), events stream over a
+  // per-session SSE channel, follow-ups go through /send, and stop is always
+  // available. The index itself lives under ~/.kandown/sessions/<projectHash>/
+  // (see src/cli/lib/agent/session-index.ts). Fan-out note: the Vite dev
+  // plugin mirrors these routes and demoBackend answers 501.
   if (path === '/api/agent/harnesses' && method === 'GET') {
     return writeJson(res, 200, detectHarnessesJSON());
   }
@@ -539,6 +551,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       harnessId?: unknown;
       taskId?: unknown;
       message?: unknown;
+      title?: unknown;
       permissionMode?: unknown;
       resumeSessionId?: unknown;
     };
@@ -563,13 +576,41 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
     const permissionMode: PermissionMode = body.permissionMode === 'accept-edits' || body.permissionMode === 'yolo'
       ? body.permissionMode
       : config.agent.permissionMode;
+    const projectRoot = getProjectRoot(kandownDir);
     try {
       const session = createAgentSession({
         harnessId: body.harnessId.trim(),
-        projectRoot: getProjectRoot(kandownDir),
+        projectRoot,
         prompt,
         permissionMode,
         ...(typeof body.resumeSessionId === 'string' && body.resumeSessionId ? { resumeSessionId: body.resumeSessionId } : {}),
+      });
+      // 📖 t308 bookkeeping: kandown never stores conversations, only this thin
+      // index entry so the sidebar can list, title and resume the session.
+      const titleOverride = typeof body.title === 'string' && body.title.trim() ? body.title.trim() : undefined;
+      const now = new Date().toISOString();
+      const indexEntry: SessionIndexEntry = {
+        id: session.id,
+        harnessId: session.harnessId,
+        title: titleOverride ?? indexEntryForPrompt(message ?? compiled.markdown),
+        ...(taskId ? { taskId } : {}),
+        createdAt: now,
+        updatedAt: now,
+      };
+      upsertSessionIndexEntry(projectRoot, indexEntry);
+      // 📖 Internal watcher: the harness session id arrives with the
+      // session_started event; the first stopped event closes the bookkeeping
+      // and unsubscribes so a finished session costs nothing.
+      let unsubscribeIndex: (() => void) | null = null;
+      let sawStopped = false;
+      unsubscribeIndex = subscribeAgentSession(session.id, (event: AgentEvent) => {
+        if (event.type === 'session_started' && event.harnessSessionId) {
+          patchSessionIndexEntry(projectRoot, session.id, { harnessSessionId: event.harnessSessionId });
+        } else if (event.type === 'stopped' && !sawStopped) {
+          sawStopped = true;
+          patchSessionIndexEntry(projectRoot, session.id, { updatedAt: new Date().toISOString() });
+          unsubscribeIndex?.();
+        }
       });
       return writeJson(res, 201, { session });
     } catch (error) {
@@ -577,7 +618,28 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
     }
   }
 
-  const agentSessionMatch = path.match(/^\/api\/agent\/sessions\/([^/]+)(\/events|\/stop)?$/);
+  // 📖 Session index for THIS daemon's project only: the project root is
+  // computed server-side from kandownDir, never accepted from the client.
+  if (path === '/api/agent/sessions-index' && method === 'GET') {
+    return writeJson(res, 200, { sessions: listSessionIndexEntries(getProjectRoot(kandownDir)) });
+  }
+
+  if (path.startsWith('/api/agent/sessions-index/') && method === 'DELETE') {
+    let entryId: string;
+    try {
+      entryId = decodeURIComponent(path.slice('/api/agent/sessions-index/'.length).split('?')[0] ?? '');
+    } catch {
+      return writeJson(res, 400, { error: 'Invalid session id' });
+    }
+    const projectRoot = getProjectRoot(kandownDir);
+    const known = listSessionIndexEntries(projectRoot).some(entry => entry.id === entryId);
+    if (!known) return writeJson(res, 404, { error: 'Session not found' });
+    // 📖 Index-only removal: a live runtime session is never stopped here.
+    forgetSessionIndexEntry(projectRoot, entryId);
+    return writeJson(res, 200, { ok: true });
+  }
+
+  const agentSessionMatch = path.match(/^\/api\/agent\/sessions\/([^/]+)(\/events|\/stop|\/send)?$/);
   if (agentSessionMatch) {
     const sessionId = decodeURIComponent(agentSessionMatch[1]);
     const sub = agentSessionMatch[2];
@@ -603,9 +665,30 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       return;
     }
     if (sub === '/stop' && method === 'POST') {
-      return stopAgentSession(sessionId)
+      const stopped = stopAgentSession(sessionId);
+      // 📖 Keep the sidebar ordering honest: a stopped session just became the
+      // least interesting thing in the list, and the timestamp says so.
+      if (stopped) patchSessionIndexEntry(getProjectRoot(kandownDir), sessionId, { updatedAt: new Date().toISOString() });
+      return stopped
         ? writeJson(res, 200, { ok: true })
         : writeJson(res, 404, { error: 'Session not found' });
+    }
+    if (sub === '/send' && method === 'POST') {
+      // 📖 Follow-up chat message: the runtime steers the live turn or resumes
+      // the finished one under the same kandown session id.
+      let body: { message?: unknown };
+      try {
+        body = JSON.parse(await readRequestBody(req)) as typeof body;
+      } catch (error) {
+        return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
+      }
+      if (typeof body.message !== 'string' || !body.message.trim()) {
+        return writeJson(res, 400, { error: 'message is required' });
+      }
+      const result = sendToSession(sessionId, body.message);
+      return result.ok
+        ? writeJson(res, 200, { ok: true })
+        : writeJson(res, 400, { ok: false, error: result.error ?? 'Send failed' });
     }
   }
 

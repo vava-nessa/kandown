@@ -102,6 +102,11 @@
     "navigate": "ナビゲート",
     "select": "選択"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "エージェントチャットのサイドバーを切り替え"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "タイトル",
@@ -201,6 +206,26 @@
     "suggestFollowUpDesc": "エージェントに1つを完了した後、次のタスクを提案するよう依頼。",
     "maxSuggestions": "最大提案数",
     "maxSuggestionsDesc": "エージェントが提案できるフォローアップタスクの数を制限。",
+    "permissionMode": "権限モード",
+    "permissionModeDesc": "kandown が管理するセッションでエージェントに与える承認の範囲です。Yolo はハーネスが直接編集を適用できるモードで、git が安全網になります。編集を承認はハーネスが対応している場合に各変更前に確認を求め、未対応の場合は参考表示のままです。",
+    "yolo": "Yolo",
+    "acceptEdits": "編集を承認",
+    "harnesses": {
+      "title": "エージェントハーネス",
+      "description": "Kandown は、このマシンにすでにインストールされ、認証済みのコーディングエージェント CLI を操作します。API キーの入力は求めません。",
+      "installed": "インストール済み",
+      "notInstalled": "未インストール",
+      "native": "ネイティブ",
+      "advisory": "参考",
+      "refresh": "更新",
+      "loading": "ハーネスを検出中…",
+      "needsDaemonTitle": "エージェントセッションには kandown daemon が必要です",
+      "needsDaemonBody": "このプロジェクトで npx kandown を実行して daemon を起動してください。インストール済みのハーネスを検出し、エージェントセッションを実行します。",
+      "copyHint": "インストールコマンドをコピー",
+      "copied": "コピーしました",
+      "currentMode": "現在のモード",
+      "empty": "このマシンではハーネスが検出されませんでした"
+    },
     "defaultPriority": "デフォルト優先度",
     "defaultPriorityDesc": "優先度フィールドが有効な場合的新しいタスクの初期優先度。",
     "defaultOwner": "デフォルト所有者",
@@ -247,5 +272,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "設定が外部で更新されました — 再読み込みしました"
+  },
+  "agentChat": {
+    "title": "エージェントチャット",
+    "askAgent": "エージェントに質問",
+    "askAgentTitle": "このタスクについてエージェントに質問",
+    "newChat": "新しい会話",
+    "resume": "再開",
+    "resumeUnavailable": "再開できません: ハーネスがセッションIDを報告していません",
+    "forget": "忘れる",
+    "stop": "停止",
+    "send": "送信",
+    "placeholder": "エージェントに質問...",
+    "thinking": "思考中",
+    "toolFailed": "失敗",
+    "tokens": "トークン",
+    "context": "コンテキスト",
+    "jumpToBottom": "最新へ移動",
+    "emptyState": "会話を始めましょう: このボードやタスク、今後の作業について質問できます。",
+    "sessionUntitled": "無題の会話",
+    "sessionsEmpty": "このプロジェクトにはまだ会話がありません。",
+    "harnessLabel": "ハーネス",
+    "noHarness": "このマシンにハーネスがインストールされていません",
+    "copy": "コピー",
+    "daemonGuardTitle": "エージェントチャットには kandown daemon が必要です",
+    "daemonGuardBody": "ローカル daemon を起動してコーディングエージェントとチャットしましょう: このプロジェクトで npx kandown を実行してください。"
   }
 }

@@ -102,6 +102,11 @@
     "navigate": "navigate",
     "select": "select"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "Afișează sau ascunde panoul lateral al chatului cu agentul"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Title",
@@ -215,6 +220,26 @@
     "suggestFollowUpDesc": "Ask agents to propose next tasks after finishing one.",
     "maxSuggestions": "Max suggestions",
     "maxSuggestionsDesc": "Caps the number of follow-up tasks an agent may propose.",
+    "permissionMode": "Mod de permisiuni",
+    "permissionModeDesc": "Câtă aprobare primesc agenții în sesiunile conduse de kandown. Yolo lasă harnessul să aplice modificările direct, git este plasa de siguranță. Acceptă modificările cere confirmarea înainte de fiecare schimbare când harnessul suportă acest lucru, iar în rest rămâne doar consultativ.",
+    "yolo": "Yolo",
+    "acceptEdits": "Acceptă modificările",
+    "harnesses": {
+      "title": "Harnessuri pentru agenți",
+      "description": "Kandown controlează CLI-uri de agenți de cod deja instalați și deja autentificați pe acest calculator. Nu cere niciodată o cheie API.",
+      "installed": "instalat",
+      "notInstalled": "neinstalat",
+      "native": "nativ",
+      "advisory": "consultativ",
+      "refresh": "Reîmprospătează",
+      "loading": "Se detectează harnessurile…",
+      "needsDaemonTitle": "Sesiunile agenților au nevoie de kandown daemon",
+      "needsDaemonBody": "Rulează npx kandown în acest proiect pentru a porni daemonul: detectează harnessurile instalate și rulează sesiuni ale agenților.",
+      "copyHint": "Copiază comanda de instalare",
+      "copied": "Copiat",
+      "currentMode": "Modul curent",
+      "empty": "Nu s-au detectat harnessuri pe acest calculator"
+    },
     "defaultPriority": "Default priority",
     "defaultPriorityDesc": "Initial priority for new tasks when the Priority field is enabled.",
     "defaultOwner": "Default owner",
@@ -265,5 +290,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
+  },
+  "agentChat": {
+    "title": "Chat cu agentul",
+    "askAgent": "Întreabă agentul",
+    "askAgentTitle": "Întreabă agentul despre această sarcină",
+    "newChat": "Conversație nouă",
+    "resume": "Reia",
+    "resumeUnavailable": "Nu se poate relua: harnessul nu a raportat niciodată un id de sesiune",
+    "forget": "Uită",
+    "stop": "Stop",
+    "send": "Trimite",
+    "placeholder": "Întreabă agentul...",
+    "thinking": "Se gândește",
+    "toolFailed": "eșuat",
+    "tokens": "tokeni",
+    "context": "Context",
+    "jumpToBottom": "Mergi la cel mai recent",
+    "emptyState": "Începe conversația: întreabă despre această tablă, o sarcină sau munca care urmează.",
+    "sessionUntitled": "Conversație fără titlu",
+    "sessionsEmpty": "Încă nu există conversații în acest proiect.",
+    "harnessLabel": "Harness",
+    "noHarness": "Niciun harness instalat pe acest calculator",
+    "copy": "Copiază",
+    "daemonGuardTitle": "Chatul cu agentul are nevoie de kandown daemon",
+    "daemonGuardBody": "Pornește daemonul local pentru a discuta cu agenții tăi de cod: rulează npx kandown în acest proiect."
   }
 }

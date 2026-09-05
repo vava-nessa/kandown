@@ -39,6 +39,7 @@ const SHORTCUTS: ShortcutGroup[] = [
     titleKey: 'global',
     shortcuts: [
       { keys: ['⌘', 'K'], descriptionKey: 'commandPalette' },
+      { keys: ['⌘', 'J'], descriptionKey: 'agentChat' },
       { keys: ['?'], descriptionKey: 'showCheatsheet' },
       { keys: ['⌘', '1'], descriptionKey: 'boardView' },
       { keys: ['⌘', '2'], descriptionKey: 'listView' },

@@ -102,6 +102,11 @@
     "navigate": "naviguoti",
     "select": "pasirinkti"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "Rodyti arba slėpti agento pokalbio šoninį skydą"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Pavadinimas",
@@ -230,6 +235,26 @@
     "suggestFollowUpDesc": "Prašyti agentų siūlyti sekančias užduotis užbaigus vieną.",
     "maxSuggestions": "Maks. pasiūlymų",
     "maxSuggestionsDesc": "Riboja agento siūlomų tęstinių užduočių skaičių.",
+    "permissionMode": "Leidimų režimas",
+    "permissionModeDesc": "Kiek patvirtinimų agentai gauna kandown valdomuose seansuose. Yolo leidžia harness tiesiogiai taikyti pakeitimus, git yra saugumo tinklas. Priimti pakeitimus klauso prieš kiekvieną pakeitimą, kai harness tai palaiko, kitu atveju lieka tik patarimas.",
+    "yolo": "Yolo",
+    "acceptEdits": "Priimti pakeitimus",
+    "harnesses": {
+      "title": "Agentų harness",
+      "description": "Kandown valdo kodavimo agentų CLI įrankius, kurie šioje mašinoje jau įdiegti ir jau autentifikuoti. Jis niekada neprašo API rakto.",
+      "installed": "įdiegta",
+      "notInstalled": "neįdiegta",
+      "native": "vietinis",
+      "advisory": "patarimas",
+      "refresh": "Atnaujinti",
+      "loading": "Ieškoma harness…",
+      "needsDaemonTitle": "Agentų seansams reikia kandown daemon",
+      "needsDaemonBody": "Paleiskite npx kandown šiame projekte, kad paleistumėte daemon: jis aptinka įdiegtus harness ir vykdo agentų seansus.",
+      "copyHint": "Nukopijuoti diegimo komandą",
+      "copied": "Nukopijuota",
+      "currentMode": "Dabartinis režimas",
+      "empty": "Šioje mašinoje neaptikta jokių harness"
+    },
     "defaultPriority": "Numatytasis prioritetas",
     "defaultPriorityDesc": "Pradinis prioritetas naujoms užduotims kai prioriteto laukas įjungtas.",
     "defaultOwner": "Numatytasis savininkas",
@@ -280,5 +305,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Nustatymai buvo atnaujinti iš išorės — perkrauta"
+  },
+  "agentChat": {
+    "title": "Pokalbis su agentu",
+    "askAgent": "Klausk agento",
+    "askAgentTitle": "Paklausk agento apie šią užduotį",
+    "newChat": "Naujas pokalbis",
+    "resume": "Tęsti",
+    "resumeUnavailable": "Nepavyko tęsti: harness niekada nepranešė seanso ID",
+    "forget": "Pamiršti",
+    "stop": "Sustabdyti",
+    "send": "Siųsti",
+    "placeholder": "Klausk agento...",
+    "thinking": "Mąsto",
+    "toolFailed": "nepavyko",
+    "tokens": "tokenai",
+    "context": "Kontekstas",
+    "jumpToBottom": "Eiti į naujausią",
+    "emptyState": "Pradėk pokalbį: klausk apie šią lentą, užduotį arba būsimą darbą.",
+    "sessionUntitled": "Nepavadintas pokalbis",
+    "sessionsEmpty": "Šiame projekte dar nėra pokalbių.",
+    "harnessLabel": "Harness",
+    "noHarness": "Šioje mašinoje neįdiegtas joks harness",
+    "copy": "Kopijuoti",
+    "daemonGuardTitle": "Pokalbiui su agentu reikia kandown daemon",
+    "daemonGuardBody": "Paleisti vietinį daemon, kad galėtumėte kalbėtis su savo kodavimo agentais: paleiskite npx kandown šiame projekte."
   }
 }

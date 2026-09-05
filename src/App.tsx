@@ -39,6 +39,7 @@ import { OnboardingTour } from './components/OnboardingTour';
 import { UpdateNotificationBanner } from './components/UpdateNotificationBanner';
 import { ExtensionRuntimeProvider } from './components/ExtensionRuntimeProvider';
 import { ThemeCustomizerLauncher } from './components/ThemeCustomizerLauncher';
+import { ChatSidebar } from './components/agent/ChatSidebar';
 
 
 import { useStore } from './lib/store';
@@ -151,6 +152,19 @@ export function App() {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setCommandOpen(!commandOpen);
+        return;
+      }
+
+      // 📖 ⌘J / Ctrl+J toggles the agent chat sidebar (t308). Works while
+      // typing too, mirroring ⌘K: it is a panel toggle, not a text edit.
+      if ((e.metaKey || e.ctrlKey) && e.key === 'j') {
+        e.preventDefault();
+        const chat = useStore.getState().agentChat;
+        if (chat.sidebarOpen) {
+          useStore.getState().closeSidebar();
+        } else {
+          void useStore.getState().openSidebar();
+        }
         return;
       }
 
@@ -275,8 +289,10 @@ export function App() {
           <EmptyState />
         )}
         {/* 📖 Drawer is intentionally OUTSIDE the board boundary so a board
-         * render crash never throws away unsaved edits. */}
+         * render crash never throws away unsaved edits. Same for the agent
+         * chat sidebar (t308): it overlays every view and owns its own state. */}
         <Drawer />
+        <ChatSidebar />
         <CommandPalette />
         <Cheatsheet />
         <Toaster />

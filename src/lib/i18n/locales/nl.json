@@ -102,6 +102,11 @@
     "navigate": "navigeer",
     "select": "selecteer"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "Zijbalk van de agentchat in- of uitschakelen"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Titel",
@@ -215,6 +220,26 @@
     "suggestFollowUpDesc": "Vraag agents om next taken voor te stellen na het afronden van één.",
     "maxSuggestions": "Max suggesties",
     "maxSuggestionsDesc": "Beperkt het aantal follow-up taken dat een agent kan voorstellen.",
+    "permissionMode": "Toestemmingsmodus",
+    "permissionModeDesc": "Hoeveel goedkeuring agents krijgen in door kandown gestuurde sessies. Yolo laat de harness wijzigingen direct toepassen, git is het vangnet. Wijzigingen accepteren vraagt vóór elke wijziging als de harness dat ondersteunt, en blijft anders alleen advies geven.",
+    "yolo": "Yolo",
+    "acceptEdits": "Wijzigingen accepteren",
+    "harnesses": {
+      "title": "Agent-harnesses",
+      "description": "Kandown stuurt coding agent CLI's aan die op deze machine al geïnstalleerd en al geauthenticeerd zijn. Er wordt nooit om een API-sleutel gevraagd.",
+      "installed": "geïnstalleerd",
+      "notInstalled": "niet geïnstalleerd",
+      "native": "native",
+      "advisory": "adviserend",
+      "refresh": "Vernieuwen",
+      "loading": "Harnesses detecteren…",
+      "needsDaemonTitle": "Agentsessies hebben de kandown daemon nodig",
+      "needsDaemonBody": "Voer npx kandown uit in dit project om de daemon te starten: hij detecteert geïnstalleerde harnesses en voert agentsessies uit.",
+      "copyHint": "Installatiecommando kopiëren",
+      "copied": "Gekopieerd",
+      "currentMode": "Huidige modus",
+      "empty": "Geen harnesses op deze machine gedetecteerd"
+    },
     "defaultPriority": "Standaard prioriteit",
     "defaultPriorityDesc": "Initiële prioriteit voor nieuwe taken wanneer het Prioriteit-veld is ingeschakeld.",
     "defaultOwner": "Standaard eigenaar",
@@ -265,5 +290,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Instellingen extern bijgewerkt — herladen"
+  },
+  "agentChat": {
+    "title": "Agentchat",
+    "askAgent": "Vraag de agent",
+    "askAgentTitle": "Vraag de agent naar deze taak",
+    "newChat": "Nieuw gesprek",
+    "resume": "Hervatten",
+    "resumeUnavailable": "Hervatten niet mogelijk: de harness heeft nooit een sessie-id doorgegeven",
+    "forget": "Vergeten",
+    "stop": "Stop",
+    "send": "Versturen",
+    "placeholder": "Vraag de agent...",
+    "thinking": "Denkt na",
+    "toolFailed": "mislukt",
+    "tokens": "tokens",
+    "context": "Context",
+    "jumpToBottom": "Naar het laatste",
+    "emptyState": "Begin het gesprek: vraag naar dit bord, een taak of het werk dat voor de deur ligt.",
+    "sessionUntitled": "Naamloos gesprek",
+    "sessionsEmpty": "Nog geen gesprekken in dit project.",
+    "harnessLabel": "Harness",
+    "noHarness": "Geen harness op deze machine geïnstalleerd",
+    "copy": "Kopiëren",
+    "daemonGuardTitle": "Agentchat heeft de kandown daemon nodig",
+    "daemonGuardBody": "Start de lokale daemon om met je coding agents te chatten: voer npx kandown uit in dit project."
   }
 }

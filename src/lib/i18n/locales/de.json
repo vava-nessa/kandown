@@ -102,6 +102,11 @@
     "navigate": "navigieren",
     "select": "auswählen"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "Agenten-Chat-Seitenleiste ein- oder ausblenden"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Titel",
@@ -230,6 +235,26 @@
     "suggestFollowUpDesc": "Agenten bitten, nach dem Beenden einer Aufgabe weitere Aufgaben vorzuschlagen.",
     "maxSuggestions": "Max. Vorschläge",
     "maxSuggestionsDesc": "Begrenzt die Anzahl der Folgeaufgaben, die ein Agent vorschlagen kann.",
+    "permissionMode": "Berechtigungsmodus",
+    "permissionModeDesc": "Wie viel Freigabe Agents in kandown-gesteuerten Sitzungen bekommen. Yolo lässt den Harness Änderungen direkt anwenden, git ist das Sicherheitsnetz. Änderungen akzeptieren fragt vor jeder Änderung, wenn der Harness das unterstützt, und bleibt sonst nur ein Hinweis.",
+    "yolo": "Yolo",
+    "acceptEdits": "Änderungen akzeptieren",
+    "harnesses": {
+      "title": "Agent-Harnesses",
+      "description": "Kandown steuert Coding-Agent-CLIs, die auf dieser Maschine bereits installiert und authentifiziert sind. Es fragt nie nach einem API-Schlüssel.",
+      "installed": "installiert",
+      "notInstalled": "nicht installiert",
+      "native": "nativ",
+      "advisory": "nur Hinweis",
+      "refresh": "Aktualisieren",
+      "loading": "Harnesses werden erkannt…",
+      "needsDaemonTitle": "Agenten-Sitzungen brauchen den kandown daemon",
+      "needsDaemonBody": "Führe npx kandown in diesem Projekt aus, um den Daemon zu starten: Er erkennt installierte Harnesses und führt Agenten-Sitzungen aus.",
+      "copyHint": "Installationsbefehl kopieren",
+      "copied": "Kopiert",
+      "currentMode": "Aktueller Modus",
+      "empty": "Keine Harnesses auf dieser Maschine erkannt"
+    },
     "defaultPriority": "Standardpriorität",
     "defaultPriorityDesc": "Anfangspriorität für neue Aufgaben, wenn das Prioritätsfeld aktiviert ist.",
     "defaultOwner": "Standardeigentümer",
@@ -280,5 +305,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Einstellungen extern aktualisiert — neu geladen"
+  },
+  "agentChat": {
+    "title": "Agenten-Chat",
+    "askAgent": "Agent fragen",
+    "askAgentTitle": "Den Agenten zu dieser Aufgabe fragen",
+    "newChat": "Neue Unterhaltung",
+    "resume": "Fortsetzen",
+    "resumeUnavailable": "Fortsetzen nicht möglich: Der Harness hat nie eine Session-ID gemeldet",
+    "forget": "Vergessen",
+    "stop": "Stop",
+    "send": "Senden",
+    "placeholder": "Frag den Agenten...",
+    "thinking": "Denkt nach",
+    "toolFailed": "fehlgeschlagen",
+    "tokens": "Tokens",
+    "context": "Kontext",
+    "jumpToBottom": "Zum Neuesten springen",
+    "emptyState": "Starte die Unterhaltung: Frag nach diesem Board, einer Aufgabe oder der anstehenden Arbeit.",
+    "sessionUntitled": "Unbenannte Unterhaltung",
+    "sessionsEmpty": "Noch keine Unterhaltungen in diesem Projekt.",
+    "harnessLabel": "Harness",
+    "noHarness": "Kein Harness auf dieser Maschine installiert",
+    "copy": "Kopieren",
+    "daemonGuardTitle": "Der Agenten-Chat braucht den kandown daemon",
+    "daemonGuardBody": "Starte den lokalen Daemon, um mit deinen Coding-Agents zu chatten: Führe npx kandown in diesem Projekt aus."
   }
 }

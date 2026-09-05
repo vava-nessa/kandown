@@ -102,6 +102,11 @@
     "navigate": "탐색",
     "select": "선택"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "에이전트 채팅 사이드바 켜기 또는 끄기"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "제목",
@@ -201,6 +206,26 @@
     "suggestFollowUpDesc": "에이전트에게 하나를 완료한 후 다음 작업을 제안하도록 요청하세요.",
     "maxSuggestions": "최대 제안 수",
     "maxSuggestionsDesc": "에이전트가 제안할 수 있는 후속 작업 수를 제한합니다.",
+    "permissionMode": "권한 모드",
+    "permissionModeDesc": "kandown이 진행하는 세션에서 에이전트가 받는 승인 수준입니다. Yolo는 하네스가 편집을 바로 적용하게 두고 git이 안전망입니다. 편집 승인은 하네스가 지원할 때 각 변경 전에 확인을 요청하며, 지원하지 않으면 참고용으로만 유지됩니다.",
+    "yolo": "Yolo",
+    "acceptEdits": "편집 승인",
+    "harnesses": {
+      "title": "에이전트 하네스",
+      "description": "Kandown은 이 머신에 이미 설치되고 이미 인증된 코딩 에이전트 CLI를 구동합니다. API 키를 요구하지 않습니다.",
+      "installed": "설치됨",
+      "notInstalled": "설치 안 됨",
+      "native": "네이티브",
+      "advisory": "참고",
+      "refresh": "새로고침",
+      "loading": "하네스 감지 중…",
+      "needsDaemonTitle": "에이전트 세션에는 kandown daemon이 필요합니다",
+      "needsDaemonBody": "이 프로젝트에서 npx kandown을 실행해 daemon을 시작하세요: 설치된 하네스를 감지하고 에이전트 세션을 실행합니다.",
+      "copyHint": "설치 명령 복사",
+      "copied": "복사됨",
+      "currentMode": "현재 모드",
+      "empty": "이 머신에서 감지된 하네스가 없습니다"
+    },
     "defaultPriority": "기본 우선순위",
     "defaultPriorityDesc": "우선순위 필드가 활성화되면 새 작업의 초기 우선순위.",
     "defaultOwner": "기본 소유자",
@@ -247,5 +272,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "설정이 외부에서 업데이트되었습니다 — 다시 로드됨"
+  },
+  "agentChat": {
+    "title": "에이전트 채팅",
+    "askAgent": "에이전트에게 질문",
+    "askAgentTitle": "이 작업에 대해 에이전트에게 질문",
+    "newChat": "새 대화",
+    "resume": "재개",
+    "resumeUnavailable": "재개할 수 없음: 하네스가 세션 ID를 보고한 적 없음",
+    "forget": "잊기",
+    "stop": "중지",
+    "send": "보내기",
+    "placeholder": "에이전트에게 질문...",
+    "thinking": "생각 중",
+    "toolFailed": "실패",
+    "tokens": "토큰",
+    "context": "컨텍스트",
+    "jumpToBottom": "최신으로 이동",
+    "emptyState": "대화를 시작하세요: 이 보드, 작업, 앞으로 할 일에 대해 물어보세요.",
+    "sessionUntitled": "제목 없는 대화",
+    "sessionsEmpty": "이 프로젝트에는 아직 대화가 없습니다.",
+    "harnessLabel": "하네스",
+    "noHarness": "이 머신에 설치된 하네스가 없습니다",
+    "copy": "복사",
+    "daemonGuardTitle": "에이전트 채팅에는 kandown daemon이 필요합니다",
+    "daemonGuardBody": "로컬 daemon을 시작해 코딩 에이전트와 채팅하세요: 이 프로젝트에서 npx kandown을 실행하세요."
   }
 }

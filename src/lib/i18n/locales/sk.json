@@ -102,6 +102,11 @@
     "navigate": "prechádzať",
     "select": "vybrať"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "Zobraziť alebo skryť bočný panel chatu agenta"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Názov",
@@ -230,6 +235,26 @@
     "suggestFollowUpDesc": "Požiadajte agentov, aby navrhli ďalšie úlohy po dokončení jednej.",
     "maxSuggestions": "Max návrhov",
     "maxSuggestionsDesc": "Obmedzuje počet následných úloh, ktoré môže agent navrhnúť.",
+    "permissionMode": "Režim oprávnení",
+    "permissionModeDesc": "Koľko schválení dostanú agenti v reláciách riadených kandownom. Yolo nechá harness priamo aplikovať úpravy, git je poistka. Prijímať úpravy sa pred každou zmenou pýta, keď to harness podporuje, a inak ostáva len odporúčaním.",
+    "yolo": "Yolo",
+    "acceptEdits": "Prijímať úpravy",
+    "harnesses": {
+      "title": "Harnessy agentov",
+      "description": "Kandown ovláda CLI kódovacích agentov, ktoré sú na tomto počítači už nainštalované a už overené. Nikdy nežiada o API kľúč.",
+      "installed": "nainštalované",
+      "notInstalled": "nenainštalované",
+      "native": "natívny",
+      "advisory": "informatívny",
+      "refresh": "Obnoviť",
+      "loading": "Rozpoznávanie harnessov…",
+      "needsDaemonTitle": "Relácie agentov potrebujú kandown daemon",
+      "needsDaemonBody": "Spustite npx kandown v tomto projekte, aby sa spustil daemon: rozpozná nainštalované harnessy a spúšťa relácie agentov.",
+      "copyHint": "Skopírovať inštalačný príkaz",
+      "copied": "Skopírované",
+      "currentMode": "Aktuálny režim",
+      "empty": "Na tomto počítači neboli rozpoznané žiadne harnessy"
+    },
     "defaultPriority": "Predvolená priorita",
     "defaultPriorityDesc": "Počiatočná priorita pre nové úlohy, keď je pole Priorita povolené.",
     "defaultOwner": "Predvolený vlastník",
@@ -280,5 +305,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Nastavenia boli externe aktualizované — znovu načítané"
+  },
+  "agentChat": {
+    "title": "Chat agenta",
+    "askAgent": "Spýtať sa agenta",
+    "askAgentTitle": "Spýtať sa agenta na túto úlohu",
+    "newChat": "Nová konverzácia",
+    "resume": "Pokračovať",
+    "resumeUnavailable": "Nedá sa pokračovať: harness nikdy neohlásil id relácie",
+    "forget": "Zabudnúť",
+    "stop": "Stop",
+    "send": "Odoslať",
+    "placeholder": "Spýtajte sa agenta...",
+    "thinking": "Premýšľa",
+    "toolFailed": "zlyhalo",
+    "tokens": "tokeny",
+    "context": "Kontext",
+    "jumpToBottom": "Na najnovšie",
+    "emptyState": "Začnite konverzáciu: pýtajte sa na túto nástenku, úlohu alebo nadchádzajúcu prácu.",
+    "sessionUntitled": "Konverzácia bez názvu",
+    "sessionsEmpty": "V tomto projekte zatiaľ žiadne konverzácie.",
+    "harnessLabel": "Harness",
+    "noHarness": "Na tomto počítači nie je nainštalovaný žiadny harness",
+    "copy": "Kopírovať",
+    "daemonGuardTitle": "Chat agenta potrebuje kandown daemon",
+    "daemonGuardBody": "Spustite lokálny daemon a pokecajte so svojimi kódovacími agentmi: spustite npx kandown v tomto projekte."
   }
 }

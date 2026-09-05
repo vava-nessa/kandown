@@ -185,6 +185,7 @@
     },
     "shortcuts": {
       "commandPalette": "Open command palette",
+      "agentChat": "Toggle agent chat",
       "showCheatsheet": "Toggle this cheatsheet",
       "boardView": "Board view",
       "listView": "List view",
@@ -476,5 +477,30 @@
   },
   "agent": {
     "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+  },
+  "agentChat": {
+    "title": "Agent",
+    "askAgent": "Ask the agent",
+    "askAgentTitle": "Open the agent chat with this task as context",
+    "newChat": "New chat",
+    "resume": "Resume",
+    "resumeUnavailable": "Not resumable yet",
+    "forget": "Forget",
+    "stop": "Stop",
+    "send": "Send",
+    "placeholder": "Ask the agent...",
+    "thinking": "Thinking",
+    "toolFailed": "failed",
+    "tokens": "tokens",
+    "context": "Context",
+    "jumpToBottom": "Jump to latest",
+    "emptyState": "No messages yet. Ask anything about this project.",
+    "sessionUntitled": "Untitled conversation",
+    "sessionsEmpty": "No conversations yet",
+    "harnessLabel": "Harness for new chats",
+    "noHarness": "No harness installed",
+    "copy": "Copy",
+    "daemonGuardTitle": "Agent chat needs the kandown daemon",
+    "daemonGuardBody": "Run kandown in this project to chat with your coding agents right from the sidebar."
   }
 }

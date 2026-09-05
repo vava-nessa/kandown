@@ -102,6 +102,11 @@
     "navigate": "navigate",
     "select": "select"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "បិទបើករបារចំហៀងនៃការជជែកជាមួយអេជេន"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Title",
@@ -252,6 +257,26 @@
     "suggestFollowUpDesc": "Ask agents to propose next tasks after finishing one.",
     "maxSuggestions": "Max suggestions",
     "maxSuggestionsDesc": "Caps the number of follow-up tasks an agent may propose.",
+    "permissionMode": "របៀបសិទ្ធិអនុញ្ញាត",
+    "permissionModeDesc": "កម្រិតការអនុម័តដែលអេជេនទទួលបានក្នុងសេស៊ានដែល kandown ដឹកនាំ។ Yolo អនុញ្ញាតឲ្យ harness អនុវត្តការកែសម្រួលដោយផ្ទាល់ ហើយ git ជាត្រយោលសុវត្ថិភាព។ ទទួលយកការកែសម្រួល សួរមុនគ្រប់ការផ្លាស់ប្ដូរនៅពេល harness គាំទ្រ បើមិនដូច្នេះគ្រាន់តែជាការផ្ដល់យោបល់។",
+    "yolo": "Yolo",
+    "acceptEdits": "ទទួលយកការកែសម្រួល",
+    "harnesses": {
+      "title": "Harness របស់អេជេន",
+      "description": "Kandown ដំណើរការ CLI របស់ភ្នាក់ងារសរសេរកូដដែលបានដំឡើងរួចហើយនិងផ្ទៀងផ្ទាត់រួចហើយនៅលើម៉ាស៊ីននេះ។ វាមិនដែលសួររក API key ឡើយ។",
+      "installed": "បានដំឡើង",
+      "notInstalled": "មិនបានដំឡើង",
+      "native": "ដើម",
+      "advisory": "យោបល់",
+      "refresh": "ធ្វើបច្ចុប្បន្នភាព",
+      "loading": "កំពុងរកឃើញ harness…",
+      "needsDaemonTitle": "សេស៊ានអេជេនត្រូវការ kandown daemon",
+      "needsDaemonBody": "ដំណើរការ npx kandown ក្នុងគម្រោងនេះដើម្បីចាប់ផ្ដើម daemon: វារកឃើញ harness ដែលបានដំឡើង ហើយដំណើរការសេស៊ានអេជេន។",
+      "copyHint": "ចម្លងពាក្យបញ្ជាដំឡើង",
+      "copied": "បានចម្លង",
+      "currentMode": "របៀបបច្ចុប្បន្ន",
+      "empty": "មិនរកឃើញ harness ណាមួយនៅលើម៉ាស៊ីននេះទេ"
+    },
     "defaultPriority": "Default priority",
     "defaultPriorityDesc": "Initial priority for new tasks when the Priority field is enabled.",
     "defaultOwner": "Default owner",
@@ -302,5 +327,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
+  },
+  "agentChat": {
+    "title": "ការជជែកជាមួយអេជេន",
+    "askAgent": "សួរអេជេន",
+    "askAgentTitle": "សួរអេជេនអំពីភារកិច្ចនេះ",
+    "newChat": "ការសន្ទនាថ្មី",
+    "resume": "បន្តឡើងវិញ",
+    "resumeUnavailable": "មិនអាចបន្តបានទេ: harness មិនដែលរាយការណ៍លេខសម្គាល់សេស៊ានឡើយ",
+    "forget": "បំភ្លេច",
+    "stop": "ឈប់",
+    "send": "ផ្ញើ",
+    "placeholder": "សួរអេជេន...",
+    "thinking": "កំពុងគិត",
+    "toolFailed": "បរាជ័យ",
+    "tokens": "តូខិន",
+    "context": "បរិបទ",
+    "jumpToBottom": "ទៅថ្មីបំផុត",
+    "emptyState": "ចាប់ផ្ដើមការសន្ទនា: សួរអំពីបន្ទះនេះ ភារកិច្ចណាមួយ ឬការងារដែលនៅមុខ។",
+    "sessionUntitled": "ការសន្ទនាគ្មានចំណងជើង",
+    "sessionsEmpty": "មិនទាន់មានការសន្ទនានៅក្នុងគម្រោងនេះទេ។",
+    "harnessLabel": "Harness",
+    "noHarness": "មិនមាន harness ដំឡើងនៅលើម៉ាស៊ីននេះទេ",
+    "copy": "ចម្លង",
+    "daemonGuardTitle": "ការជជែកជាមួយអេជេនត្រូវការ kandown daemon",
+    "daemonGuardBody": "ចាប់ផ្ដើម daemon ក្នុងស្រុកដើម្បីជជែកជាមួយភ្នាក់ងារសរសេរកូដរបស់អ្នក: ដំណើរការ npx kandown ក្នុងគម្រោងនេះ។"
   }
 }

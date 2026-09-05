@@ -44,6 +44,7 @@
 
 import { useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { IconMessage } from '@tabler/icons-react';
 import { Icon } from './Icons';
 import { AssigneeAvatar } from './agentIcons';
 import { CategoryChip } from './CategoryChip';
@@ -187,6 +188,7 @@ interface CardProps {
 export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd, columnName, doneTags, inStack = false }: CardProps) {
   const { t } = useTranslation();
   const openDrawer = useStore(s => s.openDrawer);
+  const openSidebar = useStore(s => s.openSidebar);
   const showMetadata = useStore(s => s.showMetadata);
   const { badges } = useExtensionRuntime();
   const extensionBadges = badges[task.id] ?? [];
@@ -365,6 +367,24 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
           }`}
         >
           <Icon.Check size={12} strokeWidth={3} />
+        </button>
+        {/* 📖 "Ask the agent" (t308): hover-revealed action in the top-right
+         * corner, mirroring the checkbox pattern. stopPropagation on click and
+         * pointerdown keeps the card's open-drawer and drag handlers quiet. */}
+        <button
+          type="button"
+          aria-label={t('agentChat.askAgent', 'Ask the agent')}
+          title={t('agentChat.askAgent', 'Ask the agent')}
+          onClick={(e) => {
+            e.stopPropagation();
+            openSidebar(task.id);
+          }}
+          onPointerDown={e => e.stopPropagation()}
+          className={`absolute right-[6px] z-20 flex h-[20px] w-[20px] items-center justify-center rounded-[5px] border border-border bg-card text-fg-muted shadow-sm transition-opacity duration-150 hover:border-border-strong hover:text-fg ${
+            isCompact ? 'top-[4px]' : 'top-[8px]'
+          } opacity-0 group-hover:opacity-100 focus-visible:opacity-100`}
+        >
+          <IconMessage size={12} stroke={1.8} />
         </button>
         <div className="flex-1 min-w-0">
           <div

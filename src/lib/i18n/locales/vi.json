@@ -102,6 +102,11 @@
     "navigate": "điều hướng",
     "select": "chọn"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "Bật hoặc tắt thanh bên trò chuyện với agent"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Tiêu đề",
@@ -201,6 +206,26 @@
     "suggestFollowUpDesc": "Yêu cầu các đại lý đề xuất công việc tiếp theo sau khi hoàn thành một công việc.",
     "maxSuggestions": "Đề xuất tối đa",
     "maxSuggestionsDesc": "Giới hạn số lượng công việc theo dõi mà một đại lý có thể đề xuất.",
+    "permissionMode": "Chế độ cấp quyền",
+    "permissionModeDesc": "Mức phê duyệt mà agent nhận được trong các phiên do kandown điều khiển. Yolo cho phép harness áp dụng chỉnh sửa trực tiếp, git là lưới an toàn. Chấp nhận chỉnh sửa hỏi trước mỗi thay đổi khi harness hỗ trợ, nếu không thì chỉ mang tính tham vấn.",
+    "yolo": "Yolo",
+    "acceptEdits": "Chấp nhận chỉnh sửa",
+    "harnesses": {
+      "title": "Harness cho agent",
+      "description": "Kandown điều khiển các CLI của agent lập trình đã được cài đặt và đã xác thực trên máy này. Nó không bao giờ yêu cầu khóa API.",
+      "installed": "đã cài",
+      "notInstalled": "chưa cài",
+      "native": "gốc",
+      "advisory": "tham vấn",
+      "refresh": "Làm mới",
+      "loading": "Đang phát hiện harness…",
+      "needsDaemonTitle": "Các phiên agent cần kandown daemon",
+      "needsDaemonBody": "Chạy npx kandown trong dự án này để khởi động daemon: nó phát hiện các harness đã cài và chạy các phiên agent.",
+      "copyHint": "Sao chép lệnh cài đặt",
+      "copied": "Đã sao chép",
+      "currentMode": "Chế độ hiện tại",
+      "empty": "Không phát hiện harness nào trên máy này"
+    },
     "defaultPriority": "Ưu tiên mặc định",
     "defaultPriorityDesc": "Ưu tiên ban đầu cho công việc mới khi trường Ưu tiên được bật.",
     "defaultOwner": "Chủ sở hữu mặc định",
@@ -247,5 +272,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Cài đặt đã được cập nhật bên ngoài — đã tải lại"
+  },
+  "agentChat": {
+    "title": "Trò chuyện với agent",
+    "askAgent": "Hỏi agent",
+    "askAgentTitle": "Hỏi agent về tác vụ này",
+    "newChat": "Cuộc trò chuyện mới",
+    "resume": "Tiếp tục",
+    "resumeUnavailable": "Không thể tiếp tục: harness chưa bao giờ báo mã phiên",
+    "forget": "Quên",
+    "stop": "Dừng",
+    "send": "Gửi",
+    "placeholder": "Hỏi agent...",
+    "thinking": "Đang suy nghĩ",
+    "toolFailed": "thất bại",
+    "tokens": "token",
+    "context": "Ngữ cảnh",
+    "jumpToBottom": "Đến mới nhất",
+    "emptyState": "Bắt đầu trò chuyện: hỏi về bảng này, một tác vụ hoặc công việc phía trước.",
+    "sessionUntitled": "Cuộc trò chuyện không tiêu đề",
+    "sessionsEmpty": "Chưa có cuộc trò chuyện nào trong dự án này.",
+    "harnessLabel": "Harness",
+    "noHarness": "Không có harness nào được cài trên máy này",
+    "copy": "Sao chép",
+    "daemonGuardTitle": "Trò chuyện với agent cần kandown daemon",
+    "daemonGuardBody": "Khởi động daemon cục bộ để trò chuyện với các agent lập trình của bạn: chạy npx kandown trong dự án này."
   }
 }

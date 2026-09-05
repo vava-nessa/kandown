@@ -35,6 +35,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { IconMessage } from '@tabler/icons-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from './Icons';
@@ -205,6 +206,7 @@ export function TaskWorkspace() {
   const unarchiveTask = useStore(s => s.unarchiveTask);
   const agentHook = useStore(s => s.agentHook);
   const sendTaskToAgent = useStore(s => s.sendTaskToAgent);
+  const openSidebar = useStore(s => s.openSidebar);
   const hasUnsavedDrawerEdits = useStore(s => s.hasUnsavedDrawerEdits);
   const lastSaveError = useStore(s => s.lastSaveError);
   const markDrawerDirty = useStore(s => s.markDrawerDirty);
@@ -772,6 +774,18 @@ export function TaskWorkspace() {
                 title={t('drawer.sendToAgentTitle')}
               />
             )}
+            {/* 📖 "Ask the agent" (t308): opens the chat sidebar with this task
+             * as the pre-compiled context. Always available; the sidebar itself
+             * explains the daemon requirement when there is none. */}
+            <button
+              type="button"
+              onClick={() => { if (drawerTaskId) openSidebar(drawerTaskId); }}
+              title={t('agentChat.askAgentTitle', 'Open the agent chat with this task as context')}
+              className="inline-flex items-center gap-2 rounded-xl border border-border bg-bg px-3 py-2 text-[13px] font-semibold text-fg shadow-sm transition-colors hover:border-border-strong hover:bg-bg-2"
+            >
+              <IconMessage size={14} stroke={1.8} />
+              <span>{t('agentChat.askAgent', 'Ask the agent')}</span>
+            </button>
           </div>
           <div className="flex items-center gap-2">
             {hasUnsavedDrawerEdits && (

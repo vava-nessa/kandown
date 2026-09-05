@@ -102,6 +102,11 @@
     "navigate": "navigate",
     "select": "select"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "เปิดหรือปิดแถบข้างแชทเอเจนต์"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Title",
@@ -252,6 +257,26 @@
     "suggestFollowUpDesc": "Ask agents to propose next tasks after finishing one.",
     "maxSuggestions": "Max suggestions",
     "maxSuggestionsDesc": "Caps the number of follow-up tasks an agent may propose.",
+    "permissionMode": "โหมดสิทธิ์",
+    "permissionModeDesc": "ระดับการอนุมัติที่เอเจนต์ได้รับในเซสชันที่ kandown ควบคุม Yolo ให้ harness แก้ไขได้โดยตรง โดย git เป็นตาข่ายนิรภัย ยอมรับการแก้ไขจะถามก่อนทุกการเปลี่ยนแปลงเมื่อ harness รองรับ มิฉะนั้นจะเป็นเพียงคำแนะนำ",
+    "yolo": "Yolo",
+    "acceptEdits": "ยอมรับการแก้ไข",
+    "harnesses": {
+      "title": "Harness ของเอเจนต์",
+      "description": "Kandown ควบคุม CLI ของเอเจนต์เขียนโค้ดที่ติดตั้งและยืนยันตัวตนแล้วบนเครื่องนี้ โดยไม่ต้องขอ API key เลย",
+      "installed": "ติดตั้งแล้ว",
+      "notInstalled": "ยังไม่ได้ติดตั้ง",
+      "native": "ในตัว",
+      "advisory": "เชิงแนะนำ",
+      "refresh": "รีเฟรช",
+      "loading": "กำลังตรวจจับ harness…",
+      "needsDaemonTitle": "เซสชันของเอเจนต์ต้องใช้ kandown daemon",
+      "needsDaemonBody": "รัน npx kandown ในโปรเจกต์นี้เพื่อเริ่ม daemon: ตัว daemon จะตรวจจับ harness ที่ติดตั้งไว้และรันเซสชันของเอเจนต์",
+      "copyHint": "คัดลอกคำสั่งติดตั้ง",
+      "copied": "คัดลอกแล้ว",
+      "currentMode": "โหมดปัจจุบัน",
+      "empty": "ไม่พบ harness บนเครื่องนี้"
+    },
     "defaultPriority": "Default priority",
     "defaultPriorityDesc": "Initial priority for new tasks when the Priority field is enabled.",
     "defaultOwner": "Default owner",
@@ -302,5 +327,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
+  },
+  "agentChat": {
+    "title": "แชทกับเอเจนต์",
+    "askAgent": "ถามเอเจนต์",
+    "askAgentTitle": "ถามเอเจนต์เกี่ยวกับงานนี้",
+    "newChat": "บทสนทนาใหม่",
+    "resume": "ดำเนินต่อ",
+    "resumeUnavailable": "ดำเนินต่อไม่ได้: harness ไม่เคยรายงานรหัสเซสชัน",
+    "forget": "ลืม",
+    "stop": "หยุด",
+    "send": "ส่ง",
+    "placeholder": "ถามเอเจนต์...",
+    "thinking": "กำลังคิด",
+    "toolFailed": "ล้มเหลว",
+    "tokens": "โทเค็น",
+    "context": "บริบท",
+    "jumpToBottom": "ไปที่ล่าสุด",
+    "emptyState": "เริ่มบทสนทนา: ถามเกี่ยวกับบอร์ดนี้ งานใดงานหนึ่ง หรืองานที่รออยู่",
+    "sessionUntitled": "บทสนทนาไม่มีชื่อ",
+    "sessionsEmpty": "ยังไม่มีบทสนทนาในโปรเจกต์นี้",
+    "harnessLabel": "Harness",
+    "noHarness": "ไม่มี harness ติดตั้งอยู่บนเครื่องนี้",
+    "copy": "คัดลอก",
+    "daemonGuardTitle": "แชทกับเอเจนต์ต้องใช้ kandown daemon",
+    "daemonGuardBody": "เริ่ม daemon ในเครื่องเพื่อแชทกับเอเจนต์เขียนโค้ดของคุณ: รัน npx kandown ในโปรเจกต์นี้"
   }
 }

@@ -102,6 +102,11 @@
     "navigate": "navigáció",
     "select": "kiválasztás"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "Ügynökchat oldalsó paneljének megnyitása vagy bezárása"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Cím",
@@ -230,6 +235,26 @@
     "suggestFollowUpDesc": "Kérd meg az ügynököket, hogy javasoljanak következő feladatokat az egyik befejezése után.",
     "maxSuggestions": "Max javaslatok",
     "maxSuggestionsDesc": "Korlátozza az ügynök által javasolható követő feladatok számát.",
+    "permissionMode": "Engedélyezési mód",
+    "permissionModeDesc": "Mennyi jóváhagyást kapnak az ügynökök a kandown által vezetett munkamenetekben. A Yolo lehetővé teszi, hogy a harness közvetlenül alkalmazza a módosításokat, a git a biztonsági háló. A módosítások elfogadása minden változtatás előtt kérdez, ha a harness támogatja, egyébként csak tanácsadó marad.",
+    "yolo": "Yolo",
+    "acceptEdits": "Módosítások elfogadása",
+    "harnesses": {
+      "title": "Ügynök harnessok",
+      "description": "A kandown olyan kódoló ügynök CLI-ket vezérel, amelyek már telepítve és már hitelesítve vannak ezen a gépen. Sosem kér API-kulcsot.",
+      "installed": "telepítve",
+      "notInstalled": "nincs telepítve",
+      "native": "natív",
+      "advisory": "tanácsadó",
+      "refresh": "Frissítés",
+      "loading": "Harnessok észlelése…",
+      "needsDaemonTitle": "Az ügynökmunkamenetekhez kell a kandown daemon",
+      "needsDaemonBody": "Futtasd az npx kandown parancsot ebben a projektben a daemon elindításához: felismeri a telepített harnessokat és ügynökmunkameneteket futtat.",
+      "copyHint": "Telepítési parancs másolása",
+      "copied": "Másolva",
+      "currentMode": "Jelenlegi mód",
+      "empty": "Nem észlelhető harness ezen a gépen"
+    },
     "defaultPriority": "Alapértelmezett prioritás",
     "defaultPriorityDesc": "Kezdeti prioritás az új feladatokhoz, amikor a Prioritás mező engedélyezve van.",
     "defaultOwner": "Alapértelmezett tulajdonos",
@@ -280,5 +305,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Beállítások külsőleg frissítve — újratöltve"
+  },
+  "agentChat": {
+    "title": "Ügynökchat",
+    "askAgent": "Kérdezd meg az ügynököt",
+    "askAgentTitle": "Kérdezd meg az ügynököt erről a feladatról",
+    "newChat": "Új beszélgetés",
+    "resume": "Folytatás",
+    "resumeUnavailable": "Nem folytatható: a harness soha nem jelentett munkamenet-azonosítót",
+    "forget": "Elfelejt",
+    "stop": "Leállítás",
+    "send": "Küldés",
+    "placeholder": "Kérdezd az ügynököt...",
+    "thinking": "Gondolkodik",
+    "toolFailed": "sikertelen",
+    "tokens": "token",
+    "context": "Kontextus",
+    "jumpToBottom": "Ugrás a legújabbra",
+    "emptyState": "Indítsd el a beszélgetést: kérdezz a tábláról, egy feladatról vagy a hátralévő munkáról.",
+    "sessionUntitled": "Cím nélküli beszélgetés",
+    "sessionsEmpty": "Még nincsenek beszélgetések ebben a projektben.",
+    "harnessLabel": "Harness",
+    "noHarness": "Nincs harness telepítve ezen a gépen",
+    "copy": "Másolás",
+    "daemonGuardTitle": "Az ügynökchatnek szüksége van a kandown daemonra",
+    "daemonGuardBody": "Indítsd el a helyi daemonbot, hogy csevegj a kódoló ügynökeiddel: futtasd az npx kandown parancsot ebben a projektben."
   }
 }

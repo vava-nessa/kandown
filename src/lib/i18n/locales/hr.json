@@ -102,6 +102,11 @@
     "navigate": "navigiraj",
     "select": "odaberi"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "Prikaži ili sakrij bočnu ploču razgovora s agentom"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Naslov",
@@ -230,6 +235,26 @@
     "suggestFollowUpDesc": "Zatražite od agenata da predlože sljedeće zadatke nakon završetka jednog.",
     "maxSuggestions": "Maks. prijedloga",
     "maxSuggestionsDesc": "Ograničava broj nastavnih zadataka koje agent može predložiti.",
+    "permissionMode": "Način dopuštenja",
+    "permissionModeDesc": "Koliko odobrenja agenti dobivaju u sesijama koje vodi kandown. Yolo dopušta harnessu da izmjene primjenjuje izravno, git je sigurnosna mreža. Prihvati izmjene traži potvrdu prije svake izmjene kad harness to podržava, a inače ostaje samo preporuka.",
+    "yolo": "Yolo",
+    "acceptEdits": "Prihvati izmjene",
+    "harnesses": {
+      "title": "Harnessi za agente",
+      "description": "Kandown upravlja CLI alatima agenata za kodiranje koji su već instalirani i već autentificirani na ovom računalu. Nikada ne traži API ključ.",
+      "installed": "instalirano",
+      "notInstalled": "nije instalirano",
+      "native": "izvorno",
+      "advisory": "preporuka",
+      "refresh": "Osvježi",
+      "loading": "Otkrivanje harnessa…",
+      "needsDaemonTitle": "Sesije agenata trebaju kandown daemon",
+      "needsDaemonBody": "Pokreni npx kandown u ovom projektu da se pokrene daemon: otkriva instalirane harnessse i vodi sesije agenata.",
+      "copyHint": "Kopiraj naredbu za instalaciju",
+      "copied": "Kopirano",
+      "currentMode": "Trenutni način",
+      "empty": "Na ovom računalu nisu otkriveni harnessi"
+    },
     "defaultPriority": "Zadani prioritet",
     "defaultPriorityDesc": "Početni prioritet za nove zadatke kada je polje Prioritet omogućeno.",
     "defaultOwner": "Zadani vlasnik",
@@ -280,5 +305,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Postavke su ažurirane izvana — osvježeno"
+  },
+  "agentChat": {
+    "title": "Razgovor s agentom",
+    "askAgent": "Pitaj agenta",
+    "askAgentTitle": "Pitaj agenta o ovom zadatku",
+    "newChat": "Novi razgovor",
+    "resume": "Nastavi",
+    "resumeUnavailable": "Nije moguće nastaviti: harness nikada nije prijavio id sesije",
+    "forget": "Zaboravi",
+    "stop": "Stop",
+    "send": "Pošalji",
+    "placeholder": "Pitaj agenta...",
+    "thinking": "Razmišlja",
+    "toolFailed": "nije uspjelo",
+    "tokens": "tokeni",
+    "context": "Kontekst",
+    "jumpToBottom": "Idi na najnovije",
+    "emptyState": "Započni razgovor: pitaj o ovoj ploči, zadatku ili poslu koji predstoji.",
+    "sessionUntitled": "Razgovor bez naslova",
+    "sessionsEmpty": "Još nema razgovora u ovom projektu.",
+    "harnessLabel": "Harness",
+    "noHarness": "Na ovom računalu nije instaliran nijedan harness",
+    "copy": "Kopiraj",
+    "daemonGuardTitle": "Razgovor s agentom treba kandown daemon",
+    "daemonGuardBody": "Pokreni lokalni daemon kako bi razgovarao sa svojim agentima za kodiranje: pokreni npx kandown u ovom projektu."
   }
 }

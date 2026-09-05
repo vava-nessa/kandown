@@ -366,8 +366,10 @@ export async function demoApi(path: string, options?: RequestInit): Promise<Resp
   if (resource === 'update') return notImplemented('Updating');
   if (resource === 'events') return notImplemented('File watching');
   if (resource === 'tasks' && sub === 'agent') return notImplemented('The agent hook');
-  // 📖 Harness sessions (t307) need real child processes; the demo answers
-  // honestly so the UI can show its "start the daemon" affordance.
+  // 📖 Harness sessions and the t308 session index need real child processes
+  // and a home directory; the demo answers honestly for every /api/agent/...
+  // subresource (harnesses, sessions, sessions-index, send, stop) so the UI
+  // can show its "start the daemon" affordance.
   if (resource === 'agent') return notImplemented('The agent runtime');
 
   return json({ error: `No demo route for ${method} ${pathname}` }, 501);

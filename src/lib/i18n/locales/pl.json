@@ -102,6 +102,11 @@
     "navigate": "nawiguj",
     "select": "wybierz"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "Pokaż lub ukryj panel czatu agenta"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Tytuł",
@@ -215,6 +220,26 @@
     "suggestFollowUpDesc": "Poproś agentów o proponowanie następnych zadań po zakończeniu jednego.",
     "maxSuggestions": "Maks. sugestii",
     "maxSuggestionsDesc": "Ogranicza liczbę zadań follow-up, które agent może zaproponować.",
+    "permissionMode": "Tryb uprawnień",
+    "permissionModeDesc": "Poziom zgody dla agentów w sesjach sterowanych przez kandown. Yolo pozwala harnessowi stosować zmiany bezpośrednio, git jest siecią bezpieczeństwa. Akceptuj zmiany prosi o potwierdzenie przed każdą zmianą, gdy harness to obsługuje, a w przeciwnym razie pozostaje tylko sugestią.",
+    "yolo": "Yolo",
+    "acceptEdits": "Akceptuj zmiany",
+    "harnesses": {
+      "title": "Harnessy agentów",
+      "description": "Kandown steruje CLI agentów kodujących, które są już zainstalowane i już uwierzytelnione na tej maszynie. Nigdy nie prosi o klucz API.",
+      "installed": "zainstalowano",
+      "notInstalled": "nie zainstalowano",
+      "native": "natywny",
+      "advisory": "doradczy",
+      "refresh": "Odśwież",
+      "loading": "Wykrywanie harnessów…",
+      "needsDaemonTitle": "Sesje agentów wymagają kandown daemon",
+      "needsDaemonBody": "Wykonaj npx kandown w tym projekcie, aby uruchomić demona: wykryje on zainstalowane harnessy i uruchomi sesje agentów.",
+      "copyHint": "Skopiuj polecenie instalacji",
+      "copied": "Skopiowano",
+      "currentMode": "Bieżący tryb",
+      "empty": "Nie wykryto harnessów na tej maszynie"
+    },
     "defaultPriority": "Domyślny priorytet",
     "defaultPriorityDesc": "Początkowy priorytet dla nowych zadań, gdy pole Priorytet jest włączone.",
     "defaultOwner": "Domyślny właściciel",
@@ -265,5 +290,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Ustawienia zaktualizowane zewnętrznie — przeładowano"
+  },
+  "agentChat": {
+    "title": "Czat agenta",
+    "askAgent": "Zapytaj agenta",
+    "askAgentTitle": "Zapytaj agenta o to zadanie",
+    "newChat": "Nowa rozmowa",
+    "resume": "Wznów",
+    "resumeUnavailable": "Nie można wznowić: harness nigdy nie zgłosił identyfikatora sesji",
+    "forget": "Zapomnij",
+    "stop": "Stop",
+    "send": "Wyślij",
+    "placeholder": "Zapytaj agenta...",
+    "thinking": "Myślę",
+    "toolFailed": "niepowodzenie",
+    "tokens": "tokeny",
+    "context": "Kontekst",
+    "jumpToBottom": "Przejdź do najnowszych",
+    "emptyState": "Rozpocznij rozmowę: zapytaj o tablicę, zadanie lub nadchodzącą pracę.",
+    "sessionUntitled": "Rozmowa bez tytułu",
+    "sessionsEmpty": "Brak rozmów w tym projekcie.",
+    "harnessLabel": "Harness",
+    "noHarness": "Brak harnessa zainstalowanego na tej maszynie",
+    "copy": "Kopiuj",
+    "daemonGuardTitle": "Czat agenta wymaga kandown daemon",
+    "daemonGuardBody": "Uruchom lokalny daemon, aby czatować z agentami kodującymi: wykonaj npx kandown w tym projekcie."
   }
 }

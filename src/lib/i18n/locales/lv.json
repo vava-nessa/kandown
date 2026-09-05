@@ -102,6 +102,11 @@
     "navigate": "navigācija",
     "select": "izvēlēties"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "Rādīt vai paslēpt aģenta sarakstes sānu paneli"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Virsraksts",
@@ -230,6 +235,26 @@
     "suggestFollowUpDesc": "Lūgt aģentiem piedāvāt nākamos uzdevumus pēc viena pabeigšanas.",
     "maxSuggestions": "Maks. ieteikumu",
     "maxSuggestionsDesc": "Ierobežo aģenta piedāvājamo turpmāko uzdevumu skaitu.",
+    "permissionMode": "Atļauju režīms",
+    "permissionModeDesc": "Cik daudz apstiprinājumu aģenti saņem kandown vadītās sesijās. Yolo ļauj harness tieši veikt izmaiņas, git ir drošības tīkls. Piekrist izmaiņām jautā pirms katras izmaiņas, ja harness to atbalsta, pretējā gadījumā paliek tikai ieteikums.",
+    "yolo": "Yolo",
+    "acceptEdits": "Piekrist izmaiņām",
+    "harnesses": {
+      "title": "Aģentu harnessi",
+      "description": "Kandown vada kodēšanas aģentu CLI rīkus, kas šajā datorā jau ir instalēti un jau autentificēti. Tas nekad neprasa API atslēgu.",
+      "installed": "instalēts",
+      "notInstalled": "nav instalēts",
+      "native": "natīvs",
+      "advisory": "ieteikums",
+      "refresh": "Atjaunot",
+      "loading": "Notiek harnessu noteikšana…",
+      "needsDaemonTitle": "Aģentu sesijām nepieciešams kandown daemon",
+      "needsDaemonBody": "Palaid npx kandown šajā projektā, lai palaistu daemon: tas nosaka instalētos harnessus un veic aģentu sesijas.",
+      "copyHint": "Kopēt instalēšanas komandu",
+      "copied": "Nokopēts",
+      "currentMode": "Pašreizējais režīms",
+      "empty": "Šajā datorā netika atrasts neviens harness"
+    },
     "defaultPriority": "Noklusējuma prioritāte",
     "defaultPriorityDesc": "Sākotnējā prioritāte jauniem uzdevumiem, kad Prioritātes lauks ir iespējots.",
     "defaultOwner": "Noklusējuma īpašnieks",
@@ -280,5 +305,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Iestatījumi atjaunināti ārēji — pārlādēti"
+  },
+  "agentChat": {
+    "title": "Sarakste ar aģentu",
+    "askAgent": "Jautā aģentam",
+    "askAgentTitle": "Jautā aģentam par šo uzdevumu",
+    "newChat": "Jauna saruna",
+    "resume": "Turpināt",
+    "resumeUnavailable": "Nevar turpināt: harness nekad nav ziņojis sesijas ID",
+    "forget": "Aizmirst",
+    "stop": "Apturēt",
+    "send": "Sūtīt",
+    "placeholder": "Jautā aģentam...",
+    "thinking": "Domā",
+    "toolFailed": "nesekmīgs",
+    "tokens": "tokeni",
+    "context": "Konteksts",
+    "jumpToBottom": "Uz jaunāko",
+    "emptyState": "Sāc sarunu: jautā par šo dēli, uzdevumu vai gaidāmo darbu.",
+    "sessionUntitled": "Saruna bez nosaukuma",
+    "sessionsEmpty": "Šajā projektā vēl nav sarunu.",
+    "harnessLabel": "Harness",
+    "noHarness": "Šajā datorā nav instalēts neviens harness",
+    "copy": "Kopēt",
+    "daemonGuardTitle": "Sarakstei ar aģentu nepieciešams kandown daemon",
+    "daemonGuardBody": "Palaid lokālo daemon, lai tērzētu ar saviem kodēšanas aģentiem: palaid npx kandown šajā projektā."
   }
 }

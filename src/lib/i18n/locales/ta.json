@@ -102,6 +102,11 @@
     "navigate": "navigate",
     "select": "select"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "ஏஜென்ட் அரட்டை பக்கப்பட்டியைத் திறக்கவும் மூடவும்"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Title",
@@ -252,6 +257,26 @@
     "suggestFollowUpDesc": "Ask agents to propose next tasks after finishing one.",
     "maxSuggestions": "Max suggestions",
     "maxSuggestionsDesc": "Caps the number of follow-up tasks an agent may propose.",
+    "permissionMode": "அனுமதி முறை",
+    "permissionModeDesc": "kandown இயக்கும் அமர்வுகளில் ஏஜென்டுகளுக்கு எவ்வளவு ஒப்புதல் கிடைக்கும். Yolo ஹார்னஸ் நேரடியாக திருத்தங்களைப் பயன்படுத்த அனுமக்கிறது, git பாதுகாப்பு வலை. திருத்தங்களை ஏற்க ஹார்னஸ் ஆதரித்தால் ஒவ்வொரு மாற்றத்திற்கும் முன் கேட்கும், இல்லையென்றால் ஆலோசனையாகவே இருக்கும்.",
+    "yolo": "Yolo",
+    "acceptEdits": "திருத்தங்களை ஏற்க",
+    "harnesses": {
+      "title": "ஏஜென்ட் ஹார்னஸ்கள்",
+      "description": "இந்தக் கணினியில் ஏற்கனவே நிறுவப்பட்டு ஏற்கனவே அங்கீகரிக்கப்பட்ட கோடிங் ஏஜென்ட் CLI களை Kandown இயக்குகிறது. ஒருபோதும் API கீ கேட்காது.",
+      "installed": "நிறுவப்பட்டது",
+      "notInstalled": "நிறுவப்படவில்லை",
+      "native": "நேட்டிவ்",
+      "advisory": "ஆலோசக",
+      "refresh": "புதுப்பி",
+      "loading": "ஹார்னஸ்கள் கண்டறியப்படுகின்றன…",
+      "needsDaemonTitle": "ஏஜென்ட் அமர்வுகளுக்கு kandown daemon தேவை",
+      "needsDaemonBody": "daemon ஐத் தொடங்க இந்தத் திட்டத்தில் npx kandown இயக்கவும்: நிறுவப்பட்ட ஹார்னஸ்களைக் கண்டறிந்து ஏஜென்ட் அமர்வுகளை இயக்கும்.",
+      "copyHint": "நிறுவல் கட்டளையை நகலெடு",
+      "copied": "நகலெடுக்கப்பட்டது",
+      "currentMode": "தற்போதைய முறை",
+      "empty": "இந்தக் கணினியில் எந்த ஹார்னஸும் கண்டறியப்படவில்லை"
+    },
     "defaultPriority": "Default priority",
     "defaultPriorityDesc": "Initial priority for new tasks when the Priority field is enabled.",
     "defaultOwner": "Default owner",
@@ -302,5 +327,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
+  },
+  "agentChat": {
+    "title": "ஏஜென்ட் அரட்டை",
+    "askAgent": "ஏஜென்டிடம் கேள்",
+    "askAgentTitle": "இந்தப் பணி பற்றி ஏஜென்டிடம் கேள்",
+    "newChat": "புதிய உரையாடல்",
+    "resume": "தொடர்க",
+    "resumeUnavailable": "தொடர முடியவில்லை: ஹார்னஸ் ஒருமுறைகூட செஷன் ஐடியைத் தெரிவிக்கவில்லை",
+    "forget": "மறந்துவிடு",
+    "stop": "நிறுத்து",
+    "send": "அனுப்பு",
+    "placeholder": "ஏஜென்டிடம் கேள்...",
+    "thinking": "சிந்திக்கிறது",
+    "toolFailed": "தோல்வி",
+    "tokens": "டோக்கன்கள்",
+    "context": "சூழல்",
+    "jumpToBottom": "சமீபத்திற்குச் செல்",
+    "emptyState": "உரையாடலைத் தொடங்குங்கள்: இந்தப் பலகை, ஒரு பணி அல்லது முன்னிருக்கும் வேலை பற்றி கேளுங்கள்.",
+    "sessionUntitled": "தலைப்பிடாத உரையாடல்",
+    "sessionsEmpty": "இந்தத் திட்டத்தில் இன்னும் உரையாடல்கள் இல்லை.",
+    "harnessLabel": "ஹார்னஸ்",
+    "noHarness": "இந்தக் கணினியில் எந்த ஹார்னஸும் நிறுவப்படவில்லை",
+    "copy": "நகலெடு",
+    "daemonGuardTitle": "ஏஜென்ட் அரட்டைக்கு kandown daemon தேவை",
+    "daemonGuardBody": "உங்கள் கோடிங் ஏஜென்ட்களுடன் பேச உள்ளூர் daemon ஐத் தொடங்குங்கள்: இந்தத் திட்டத்தில் npx kandown இயக்கவும்."
   }
 }

@@ -6,7 +6,7 @@
  * 📖 Keep cross-module contracts here so parser, serializer, store, React, and
  * Node entry points agree on the same task-file-backed domain model.
  *
- * @exports Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, ColumnRole, ColumnAgentMeta, WorkflowSelectionConfig, TaskTrackingCadence, WorkOutputDetailMode, TuiConfig, AgentsConfig, KandownConfig, DEFAULT_COLUMNS, DEFAULT_WORK_OUTPUT, DEFAULT_COLUMN_META, DEFAULT_CONFIG
+ * @exports Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, ColumnRole, ColumnAgentMeta, WorkflowSelectionConfig, TaskTrackingCadence, WorkOutputDetailMode, TuiConfig, AgentsConfig, KandownConfig, DEFAULT_COLUMNS, DEFAULT_WORK_OUTPUT, DEFAULT_COLUMN_META, DEFAULT_CONFIG, PermissionMode, PERMISSION_MODES, PermissionSupport, DetectedHarness, SessionIndexEntryPayload, AgentSessionPayload
  * @see src/lib/parser.ts
  * @see src/lib/store.ts
  */
@@ -51,6 +51,43 @@ export interface DetectedHarness {
   permissionModes: Record<PermissionMode, PermissionSupport>;
   /** Where to send the user when the harness is missing (install CTA). */
   installHint: string;
+}
+
+/** 📖 One conversation in the per-project chat session index (t308), as
+ *  returned by GET /api/agent/sessions-index. Kandown never stores
+ *  conversations: harnesses persist their own transcripts, this thin record
+ *  only lets the sidebar list, title and resume them. Browser-safe mirror of
+ *  `SessionIndexEntry` in src/cli/lib/agent/session-index.ts, keep in sync. */
+export interface SessionIndexEntryPayload {
+  /** Kandown session id (`ses_*`), also the live runtime session id. */
+  id: string;
+  /** Detection id of the harness driving the conversation (`claude`, `codex`, `pi`, ...). */
+  harnessId: string;
+  /** The harness' own session id, present once the harness reported it; this
+   *  is what a resume request passes back as `resumeSessionId`. */
+  harnessSessionId?: string;
+  /** Sidebar title: first line of the starting prompt, collapsed, max 60 chars. */
+  title: string;
+  /** Task the conversation was started from, when any. */
+  taskId?: string;
+  /** ISO 8601 creation instant. */
+  createdAt: string;
+  /** ISO 8601 last-activity instant; the sidebar sorts on this, newest first. */
+  updatedAt: string;
+}
+
+/** 📖 JSON view of one harness session, as returned by POST
+ *  /api/agent/sessions and GET /api/agent/sessions/:id. Browser-safe mirror
+ *  of `AgentSessionInfo` in src/cli/lib/agent/types.ts, keep in sync. */
+export interface AgentSessionPayload {
+  id: string;
+  harnessId: string;
+  /** Lifecycle: `starting` | `running` | `completed` | `stopped` | `failed`. */
+  status: string;
+  harnessSessionId?: string;
+  /** ISO 8601 instant the session was created. */
+  startedAt: string;
+  exitCode?: number | null;
 }
 
 export interface Subtask {

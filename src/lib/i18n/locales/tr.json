@@ -102,6 +102,11 @@
     "navigate": "navigasyon",
     "select": "seç"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "Ajan sohbeti kenar panelini aç veya kapat"
+    }
+  },
   "listView": {
     "id": "Kimlik",
     "title": "Başlık",
@@ -201,6 +206,26 @@
     "suggestFollowUpDesc": "Ajanlardan birini bitirdikten sonra sonraki görevleri önermelerini isteyin.",
     "maxSuggestions": "Maks öneri",
     "maxSuggestionsDesc": "Bir ajanın önerebileceği takip görevi sayısını sınırlar.",
+    "permissionMode": "İzin modu",
+    "permissionModeDesc": "kandown yönetimindeki oturumlarda ajanların ne kadar onay aldığı. Yolo, harnessin değişiklikleri doğrudan uygulamasına izin verir, git güvenlik ağıdır. Düzenlemeleri kabul et, harness destekliyorsa her değişiklikten önce sorar, aksi halde yalnızca öneri olarak kalır.",
+    "yolo": "Yolo",
+    "acceptEdits": "Düzenlemeleri kabul et",
+    "harnesses": {
+      "title": "Ajan harness'ları",
+      "description": "Kandown, bu makinede zaten kurulu ve zaten kimliği doğrulanmış kodlama ajanı CLI'lerini yönetir. Hiçbir zaman API anahtarı istemez.",
+      "installed": "kurulu",
+      "notInstalled": "kurulu değil",
+      "native": "yerel",
+      "advisory": "öneri",
+      "refresh": "Yenile",
+      "loading": "Harness'lar algılanıyor…",
+      "needsDaemonTitle": "Ajan oturumları kandown daemon gerektirir",
+      "needsDaemonBody": "Daemonu başlatmak için bu projede npx kandown çalıştırın: kurulu harness'ları algılar ve ajan oturumları yürütür.",
+      "copyHint": "Kurulum komutunu kopyala",
+      "copied": "Kopyalandı",
+      "currentMode": "Geçerli mod",
+      "empty": "Bu makinede harness algılanmadı"
+    },
     "defaultPriority": "Varsayılan öncelik",
     "defaultPriorityDesc": "Öncelik alanı etkinleştirildiğinde yeni görevler için başlangıç önceliği.",
     "defaultOwner": "Varsayılan sahip",
@@ -247,5 +272,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Ayarlar dışarıdan güncellendi — yeniden yüklendi"
+  },
+  "agentChat": {
+    "title": "Ajan sohbeti",
+    "askAgent": "Ajana sor",
+    "askAgentTitle": "Bu görev hakkında ajana sor",
+    "newChat": "Yeni sohbet",
+    "resume": "Sürdür",
+    "resumeUnavailable": "Sürdürülemedi: harness hiçbir zaman oturum kimliği bildirmedi",
+    "forget": "Unut",
+    "stop": "Durdur",
+    "send": "Gönder",
+    "placeholder": "Ajana sor...",
+    "thinking": "Düşünüyor",
+    "toolFailed": "başarısız",
+    "tokens": "token",
+    "context": "Bağlam",
+    "jumpToBottom": "En sona git",
+    "emptyState": "Sohbeti başlat: bu pano, bir görev veya yapılacak iş hakkında sor.",
+    "sessionUntitled": "Başlıksız sohbet",
+    "sessionsEmpty": "Bu projede henüz sohbet yok.",
+    "harnessLabel": "Harness",
+    "noHarness": "Bu makinede kurulu bir harness yok",
+    "copy": "Kopyala",
+    "daemonGuardTitle": "Ajan sohbeti kandown daemon gerektirir",
+    "daemonGuardBody": "Kodlama ajanlarınızla sohbet etmek için yerel daemonu başlatın: bu projede npx kandown çalıştırın."
   }
 }

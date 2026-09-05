@@ -229,7 +229,7 @@ async function checkForUpdate(argv = process.argv) {
     }
   } catch {
   }
-  const latest = await new Promise((resolve13) => {
+  const latest = await new Promise((resolve12) => {
     const child2 = spawn("npm", ["view", "kandown", "version"], {
       timeout: 6e3,
       stdio: ["pipe", "pipe", "pipe"],
@@ -242,11 +242,11 @@ async function checkForUpdate(argv = process.argv) {
     });
     child2.stderr.on("data", () => {
     });
-    child2.on("error", () => resolve13(null));
+    child2.on("error", () => resolve12(null));
     child2.on("close", (code) => {
-      if (code !== 0) return resolve13(null);
+      if (code !== 0) return resolve12(null);
       const v = stdout.trim().replace(/^"|"$/g, "");
-      resolve13(v || null);
+      resolve12(v || null);
     });
   });
   if (!latest) return;
@@ -3261,15 +3261,15 @@ __export(workflows_store_exports, {
   installStoreWorkflow: () => installStoreWorkflow,
   previewWorkflowUpdate: () => previewWorkflowUpdate
 });
-import { createHash as createHash3 } from "crypto";
-import { existsSync as existsSync21, readFileSync as readFileSync18 } from "fs";
-import { join as join23 } from "path";
+import { createHash as createHash2 } from "crypto";
+import { existsSync as existsSync21, readFileSync as readFileSync19 } from "fs";
+import { join as join24 } from "path";
 function installFilePath(kandownDir) {
-  return join23(kandownDir, "workflow-installs.json");
+  return join24(kandownDir, "workflow-installs.json");
 }
 function readInstalls(kandownDir) {
   try {
-    const parsed = JSON.parse(readFileSync18(installFilePath(kandownDir), "utf8"));
+    const parsed = JSON.parse(readFileSync19(installFilePath(kandownDir), "utf8"));
     return parsed.version === 1 && parsed.installs && typeof parsed.installs === "object" ? parsed : { version: 1, installs: {} };
   } catch {
     return { version: 1, installs: {} };
@@ -3307,7 +3307,7 @@ async function fetchPackage(entry) {
   const response = await fetch(`${rawBase(entry)}/${entry.capsule}`, { headers: { Accept: "text/markdown" } });
   if (!response.ok) throw new Error(`Capsule fetch failed: HTTP ${response.status}`);
   const capsule = await response.text();
-  const checksum = createHash3("sha256").update(capsule).digest("hex");
+  const checksum = createHash2("sha256").update(capsule).digest("hex");
   if (checksum !== entry.sha256.toLowerCase()) throw new Error("Workflow capsule checksum does not match the approved index.");
   const imported = importWorkflowCapsule(capsule);
   if (!imported.ok) throw new Error(imported.errors.map((item) => `${item.path}: ${item.message}`).join("; "));
@@ -3325,7 +3325,7 @@ async function fetchPackage(entry) {
 }
 async function installStoreWorkflow(kandownDir, entry) {
   try {
-    if (existsSync21(join23(kandownDir, "workflows", entry.id))) return { ok: false, error: `Workflow ${entry.id} already exists.` };
+    if (existsSync21(join24(kandownDir, "workflows", entry.id))) return { ok: false, error: `Workflow ${entry.id} already exists.` };
     const { workflow } = await fetchPackage(entry);
     writeWorkflowPackage(kandownDir, workflow);
     const installs = readInstalls(kandownDir);
@@ -3389,38 +3389,38 @@ var init_workflows_store = __esm({
 });
 
 // src/cli/lib/workflows-cli.ts
-import { existsSync as existsSync22, mkdirSync as mkdirSync11, readFileSync as readFileSync19, readdirSync as readdirSync8, statSync as statSync6, unlinkSync as unlinkSync6 } from "fs";
-import { basename as basename6, join as join24, resolve as resolve9 } from "path";
+import { existsSync as existsSync22, mkdirSync as mkdirSync12, readFileSync as readFileSync20, readdirSync as readdirSync9, statSync as statSync6, unlinkSync as unlinkSync7 } from "fs";
+import { basename as basename6, join as join25, resolve as resolve8 } from "path";
 function sourceFiles(directory, prefix = "") {
   const files = {};
-  for (const name of readdirSync8(directory)) {
-    const absolute = join24(directory, name);
+  for (const name of readdirSync9(directory)) {
+    const absolute = join25(directory, name);
     const relative3 = prefix ? `${prefix}/${name}` : name;
     if (statSync6(absolute).isDirectory()) Object.assign(files, sourceFiles(absolute, relative3));
-    else files[relative3] = readFileSync19(absolute, "utf8");
+    else files[relative3] = readFileSync20(absolute, "utf8");
   }
   return files;
 }
 function workflowRoots(kandownDir) {
   return [
-    { directory: join24(kandownDir, "workflows"), source: "local" },
-    { directory: join24(PKG_ROOT, "templates", "workflows"), source: "built-in" }
+    { directory: join25(kandownDir, "workflows"), source: "local" },
+    { directory: join25(PKG_ROOT, "templates", "workflows"), source: "built-in" }
   ];
 }
 function installedStoreIds(kandownDir) {
   try {
-    const raw = JSON.parse(readFileSync19(join24(kandownDir, "workflow-installs.json"), "utf8"));
+    const raw = JSON.parse(readFileSync20(join25(kandownDir, "workflow-installs.json"), "utf8"));
     return new Set(Object.keys(raw.installs ?? {}));
   } catch {
     return /* @__PURE__ */ new Set();
   }
 }
 function workflowDirectory(kandownDir, id) {
-  return workflowRoots(kandownDir).map((root) => ({ directory: join24(root.directory, id), source: root.source })).find((item) => existsSync22(join24(item.directory, "manifest.json"))) ?? null;
+  return workflowRoots(kandownDir).map((root) => ({ directory: join25(root.directory, id), source: root.source })).find((item) => existsSync22(join25(item.directory, "manifest.json"))) ?? null;
 }
 function packageDirectories(root) {
   if (!existsSync22(root)) return [];
-  return readdirSync8(root, { withFileTypes: true }).filter((entry) => entry.isDirectory() && existsSync22(join24(root, entry.name, "manifest.json"))).map((entry) => join24(root, entry.name));
+  return readdirSync9(root, { withFileTypes: true }).filter((entry) => entry.isDirectory() && existsSync22(join25(root, entry.name, "manifest.json"))).map((entry) => join25(root, entry.name));
 }
 function compatibilityError(workflow) {
   const minimum = workflow.manifest.minKandownVersion;
@@ -3470,8 +3470,8 @@ function listWorkflowPackages(kandownDir) {
 function loadWorkflowById(kandownDir, id) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) throw new Error("Workflow id must be kebab-case.");
   for (const root of workflowRoots(kandownDir)) {
-    const directory = join24(root.directory, id);
-    if (!existsSync22(join24(directory, "manifest.json"))) continue;
+    const directory = join25(root.directory, id);
+    if (!existsSync22(join25(directory, "manifest.json"))) continue;
     const result = loadWorkflowPackage(sourceFiles(directory));
     if (!result.ok) throw new Error(result.errors.map((item) => `${item.path}: ${item.message}`).join("; "));
     const incompatible = compatibilityError(result.value);
@@ -3520,7 +3520,7 @@ function updateLocalWorkflowFile(kandownDir, id, path, content) {
   const nextFiles = { ...sourceFiles(located.directory), [path]: content };
   const validated = loadWorkflowPackage(nextFiles);
   if (!validated.ok) throw new Error(validated.errors.map((item) => `${item.path}: ${item.message}`).join("; "));
-  atomicWriteFileSync(join24(located.directory, path), content);
+  atomicWriteFileSync(join25(located.directory, path), content);
   return validated.value;
 }
 function presetColumns(workflow) {
@@ -3580,32 +3580,32 @@ function applyBoardPreset(kandownDir, id) {
   return preview;
 }
 function writeWorkflowPackage(kandownDir, workflow) {
-  const directory = join24(kandownDir, "workflows", workflow.manifest.id);
+  const directory = join25(kandownDir, "workflows", workflow.manifest.id);
   if (existsSync22(directory)) throw new Error(`Local workflow "${workflow.manifest.id}" already exists.`);
-  mkdirSync11(join24(directory, "templates"), { recursive: true });
-  atomicWriteFileSync(join24(directory, "manifest.json"), `${JSON.stringify(workflow.manifest, null, 2)}
+  mkdirSync12(join25(directory, "templates"), { recursive: true });
+  atomicWriteFileSync(join25(directory, "manifest.json"), `${JSON.stringify(workflow.manifest, null, 2)}
 `);
-  atomicWriteFileSync(join24(directory, workflow.protocol.path), workflow.protocol.content);
-  if (workflow.guide) atomicWriteFileSync(join24(directory, workflow.guide.path), workflow.guide.content);
-  if (workflow.boardPreset) atomicWriteFileSync(join24(directory, workflow.boardPreset.path), workflow.boardPreset.content);
-  for (const template of workflow.taskTemplates) atomicWriteFileSync(join24(directory, template.file), template.content);
+  atomicWriteFileSync(join25(directory, workflow.protocol.path), workflow.protocol.content);
+  if (workflow.guide) atomicWriteFileSync(join25(directory, workflow.guide.path), workflow.guide.content);
+  if (workflow.boardPreset) atomicWriteFileSync(join25(directory, workflow.boardPreset.path), workflow.boardPreset.content);
+  for (const template of workflow.taskTemplates) atomicWriteFileSync(join25(directory, template.file), template.content);
   return directory;
 }
 function replaceStoreWorkflowPackage(kandownDir, workflow) {
   if (!installedStoreIds(kandownDir).has(workflow.manifest.id)) throw new Error("Only store-installed workflows can be updated in place.");
-  const directory = join24(kandownDir, "workflows", workflow.manifest.id);
+  const directory = join25(kandownDir, "workflows", workflow.manifest.id);
   const declared = new Set(["manifest.json", workflow.protocol.path, workflow.guide?.path, workflow.boardPreset?.path, ...workflow.taskTemplates.map((item) => item.file)].filter((item) => Boolean(item)));
   if (existsSync22(directory)) {
-    for (const path of Object.keys(sourceFiles(directory))) if (!declared.has(path)) unlinkSync6(join24(directory, path));
-  } else mkdirSync11(join24(directory, "templates"), { recursive: true });
-  atomicWriteFileSync(join24(directory, "manifest.json"), `${JSON.stringify(workflow.manifest, null, 2)}
+    for (const path of Object.keys(sourceFiles(directory))) if (!declared.has(path)) unlinkSync7(join25(directory, path));
+  } else mkdirSync12(join25(directory, "templates"), { recursive: true });
+  atomicWriteFileSync(join25(directory, "manifest.json"), `${JSON.stringify(workflow.manifest, null, 2)}
 `);
-  atomicWriteFileSync(join24(directory, workflow.protocol.path), workflow.protocol.content);
-  if (workflow.guide) atomicWriteFileSync(join24(directory, workflow.guide.path), workflow.guide.content);
-  if (workflow.boardPreset) atomicWriteFileSync(join24(directory, workflow.boardPreset.path), workflow.boardPreset.content);
+  atomicWriteFileSync(join25(directory, workflow.protocol.path), workflow.protocol.content);
+  if (workflow.guide) atomicWriteFileSync(join25(directory, workflow.guide.path), workflow.guide.content);
+  if (workflow.boardPreset) atomicWriteFileSync(join25(directory, workflow.boardPreset.path), workflow.boardPreset.content);
   for (const template of workflow.taskTemplates) {
-    mkdirSync11(join24(directory, "templates"), { recursive: true });
-    atomicWriteFileSync(join24(directory, template.file), template.content);
+    mkdirSync12(join25(directory, "templates"), { recursive: true });
+    atomicWriteFileSync(join25(directory, template.file), template.content);
   }
   return directory;
 }
@@ -3706,8 +3706,8 @@ ${workflow.guide.content}` : ""}`);
       return;
     }
     if (sub === "validate" || sub === "pack") {
-      const directory = resolve9(args.positional[1] ?? "");
-      if (!existsSync22(join24(directory, "manifest.json"))) throw new Error("Expected a workflow directory containing manifest.json.");
+      const directory = resolve8(args.positional[1] ?? "");
+      if (!existsSync22(join25(directory, "manifest.json"))) throw new Error("Expected a workflow directory containing manifest.json.");
       const result = loadWorkflowPackage(sourceFiles(directory));
       if (!result.ok) throw new Error(result.errors.map((item) => `${item.path}: ${item.message}`).join("\n"));
       if (sub === "validate") {
@@ -3716,14 +3716,14 @@ ${workflow.guide.content}` : ""}`);
       }
       const capsule = exportWorkflowCapsule(result.value);
       if (!capsule.ok) throw new Error(capsule.errors.map((item) => item.message).join("; "));
-      const destination = resolve9(String(args.flags.output || `${result.value.manifest.id}.kandown-workflow.md`));
+      const destination = resolve8(String(args.flags.output || `${result.value.manifest.id}.kandown-workflow.md`));
       atomicWriteFileSync(destination, capsule.value);
       success(`Packed ${destination}.`);
       return;
     }
     if (sub === "import") {
-      const capsulePath = resolve9(args.positional[1] ?? "");
-      const result = importWorkflowCapsule(readFileSync19(capsulePath, "utf8"));
+      const capsulePath = resolve8(args.positional[1] ?? "");
+      const result = importWorkflowCapsule(readFileSync20(capsulePath, "utf8"));
       if (!result.ok) throw new Error(result.errors.map((item) => `${item.path}: ${item.message}`).join("\n"));
       success(`Imported ${writeWorkflowPackage(kandownDir, result.value)}.`);
       return;
@@ -3752,7 +3752,7 @@ var init_workflows_cli = __esm({
 // src/cli/cli.ts
 init_updater();
 import { existsSync as existsSync31 } from "fs";
-import { join as join37 } from "path";
+import { join as join38 } from "path";
 
 // src/cli/lib/daemon.ts
 init_updater();
@@ -3820,16 +3820,16 @@ async function fetchDaemonInfo(port) {
   }
 }
 function isPortListening(port, timeoutMs = 400) {
-  return new Promise((resolve13) => {
+  return new Promise((resolve12) => {
     const socket = createConnection({ port, host: "127.0.0.1" }, () => {
       socket.destroy();
-      resolve13(true);
+      resolve12(true);
     });
-    socket.on("error", () => resolve13(false));
+    socket.on("error", () => resolve12(false));
     socket.setTimeout(timeoutMs);
     socket.on("timeout", () => {
       socket.destroy();
-      resolve13(false);
+      resolve12(false);
     });
   });
 }
@@ -3857,7 +3857,7 @@ async function waitForDaemon(kandownDir, timeoutMs = 8e3) {
     if (metadata && isProcessAlive(metadata.pid) && await isPortListening(metadata.port)) {
       return { running: true, metadata };
     }
-    await new Promise((resolve13) => setTimeout(resolve13, 120));
+    await new Promise((resolve12) => setTimeout(resolve12, 120));
   }
   return { running: false, metadata: null };
 }
@@ -3920,7 +3920,7 @@ async function stopProjectDaemon(kandownDir) {
   }
   const started = Date.now();
   while (Date.now() - started < 2500 && isProcessAlive(pid)) {
-    await new Promise((resolve13) => setTimeout(resolve13, 100));
+    await new Promise((resolve12) => setTimeout(resolve12, 100));
   }
   if (isProcessAlive(pid)) {
     try {
@@ -4198,7 +4198,7 @@ init_cli_shared();
 init_updater();
 init_board_reader();
 import { existsSync as existsSync14, readFileSync as readFileSync14, copyFileSync as copyFileSync2 } from "fs";
-import { join as join16, resolve as resolve5 } from "path";
+import { join as join16, resolve as resolve4 } from "path";
 import { homedir as homedir9 } from "os";
 import { spawn as spawn5 } from "child_process";
 
@@ -4435,18 +4435,175 @@ function discoverExtensions(projectDir) {
 
 // src/lib/extensions/state.ts
 import { readFileSync as readFileSync9, writeFileSync as writeFileSync3, mkdirSync as mkdirSync5, realpathSync, renameSync as renameSync4 } from "fs";
-import { createHash as createHash2 } from "crypto";
 import { homedir as homedir5 } from "os";
-import { join as join10, resolve as resolve4 } from "path";
-function extensionStateDir(projectDir) {
-  let canonicalProject;
-  try {
-    canonicalProject = realpathSync(projectDir);
-  } catch {
-    canonicalProject = resolve4(projectDir);
+import { join as join10 } from "path";
+
+// src/lib/project-hash.ts
+function canonicalizeProjectPath(projectDir, realpath2) {
+  if (realpath2) {
+    try {
+      return realpath2(projectDir);
+    } catch {
+    }
   }
-  const projectHash = createHash2("sha256").update(canonicalProject).digest("hex").slice(0, 24);
-  return join10(homedir5(), ".kandown", "project-state", projectHash, "extensions");
+  return lexicalResolve(projectDir);
+}
+function projectHash(canonicalProject) {
+  return sha256Hex(canonicalProject).slice(0, 24);
+}
+var SHA256_K = new Uint32Array([
+  1116352408,
+  1899447441,
+  3049323471,
+  3921009573,
+  961987163,
+  1508970993,
+  2453635748,
+  2870763221,
+  3624381080,
+  310598401,
+  607225278,
+  1426881987,
+  1925078388,
+  2162078206,
+  2614888103,
+  3248222580,
+  3835390401,
+  4022224774,
+  264347078,
+  604807628,
+  770255983,
+  1249150122,
+  1555081692,
+  1996064986,
+  2554220882,
+  2821834349,
+  2952996808,
+  3210313671,
+  3336571891,
+  3584528711,
+  113926993,
+  338241895,
+  666307205,
+  773529912,
+  1294757372,
+  1396182291,
+  1695183700,
+  1986661051,
+  2177026350,
+  2456956037,
+  2730485921,
+  2820302411,
+  3259730800,
+  3345764771,
+  3516065817,
+  3600352804,
+  4094571909,
+  275423344,
+  430227734,
+  506948616,
+  659060556,
+  883997877,
+  958139571,
+  1322822218,
+  1537002063,
+  1747873779,
+  1955562222,
+  2024104815,
+  2227730452,
+  2361852424,
+  2428436474,
+  2756734187,
+  3204031479,
+  3329325298
+]);
+function rotr(x, n) {
+  return x >>> n | x << 32 - n;
+}
+function sha256Hex(input) {
+  const message = new TextEncoder().encode(input);
+  const bitLength = message.length * 8;
+  const paddedLength = (Math.floor((message.length + 8) / 64) + 1) * 64;
+  const padded = new Uint8Array(paddedLength);
+  padded.set(message);
+  padded[message.length] = 128;
+  const view = new DataView(padded.buffer);
+  view.setUint32(paddedLength - 8, Math.floor(bitLength / 4294967296), false);
+  view.setUint32(paddedLength - 4, bitLength >>> 0, false);
+  let h0 = 1779033703;
+  let h1 = 3144134277;
+  let h2 = 1013904242;
+  let h3 = 2773480762;
+  let h4 = 1359893119;
+  let h5 = 2600822924;
+  let h6 = 528734635;
+  let h7 = 1541459225;
+  const w = new Uint32Array(64);
+  for (let block = 0; block < paddedLength; block += 64) {
+    for (let i = 0; i < 16; i++) w[i] = view.getUint32(block + i * 4, false);
+    for (let i = 16; i < 64; i++) {
+      const s0 = rotr(w[i - 15], 7) ^ rotr(w[i - 15], 18) ^ w[i - 15] >>> 3;
+      const s1 = rotr(w[i - 2], 17) ^ rotr(w[i - 2], 19) ^ w[i - 2] >>> 10;
+      w[i] = w[i - 16] + s0 + w[i - 7] + s1 >>> 0;
+    }
+    let a = h0;
+    let b = h1;
+    let c2 = h2;
+    let d = h3;
+    let e = h4;
+    let f = h5;
+    let g = h6;
+    let h = h7;
+    for (let i = 0; i < 64; i++) {
+      const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+      const ch = e & f ^ ~e & g;
+      const temp1 = h + S1 + ch + SHA256_K[i] + w[i] >>> 0;
+      const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+      const maj = a & b ^ a & c2 ^ b & c2;
+      const temp2 = S0 + maj >>> 0;
+      h = g;
+      g = f;
+      f = e;
+      e = d + temp1 >>> 0;
+      d = c2;
+      c2 = b;
+      b = a;
+      a = temp1 + temp2 >>> 0;
+    }
+    h0 = h0 + a >>> 0;
+    h1 = h1 + b >>> 0;
+    h2 = h2 + c2 >>> 0;
+    h3 = h3 + d >>> 0;
+    h4 = h4 + e >>> 0;
+    h5 = h5 + f >>> 0;
+    h6 = h6 + g >>> 0;
+    h7 = h7 + h >>> 0;
+  }
+  return [h0, h1, h2, h3, h4, h5, h6, h7].map((part) => part.toString(16).padStart(8, "0")).join("");
+}
+function lexicalResolve(projectDir) {
+  const drive = /^[A-Za-z]:/.exec(projectDir)?.[0];
+  const raw = drive ? projectDir.slice(2).replace(/\\/g, "/") : projectDir;
+  const absolute = raw.startsWith("/");
+  const stack = [];
+  for (const segment of raw.split("/")) {
+    if (!segment || segment === ".") continue;
+    if (segment === "..") {
+      if (stack.length > 0) stack.pop();
+      continue;
+    }
+    stack.push(segment);
+  }
+  const body = stack.join("/");
+  if (drive) return `${drive}/${body}`;
+  return absolute ? `/${body}` : body;
+}
+
+// src/lib/extensions/state.ts
+function extensionStateDir(projectDir) {
+  const canonicalProject = canonicalizeProjectPath(projectDir, realpathSync);
+  const hash = projectHash(canonicalProject);
+  return join10(homedir5(), ".kandown", "project-state", hash, "extensions");
 }
 function enabledFilePath(projectDir) {
   return join10(extensionStateDir(projectDir), "enabled.json");
@@ -4893,7 +5050,7 @@ function detectHomeWorkspace(home = homedir8()) {
 init_cli_shared();
 function cmdInit(rawArgs) {
   const args = parseArgs(rawArgs);
-  const kandownDir = resolve5(process.cwd(), args.path);
+  const kandownDir = resolve4(process.cwd(), args.path);
   const created = doInit(kandownDir);
   if (!created) {
     err("Failed to initialize Kandown.");
@@ -4904,7 +5061,7 @@ function cmdInit(rawArgs) {
 async function cmdUpdate(rawArgs) {
   const current = getCurrentVersion();
   log(`${c.bold}kandown update${c.reset} ${c.dim}\u2014 v${current}${c.reset}`);
-  const latest = await new Promise((resolve13) => {
+  const latest = await new Promise((resolve12) => {
     const child = spawn5("npm", ["view", "kandown", "version"], {
       timeout: 6e3,
       stdio: ["pipe", "pipe", "pipe"],
@@ -4917,11 +5074,11 @@ async function cmdUpdate(rawArgs) {
     });
     child.stderr.on("data", () => {
     });
-    child.on("error", () => resolve13(null));
+    child.on("error", () => resolve12(null));
     child.on("close", (code) => {
-      if (code !== 0) return resolve13(null);
+      if (code !== 0) return resolve12(null);
       const v = stdout.trim().replace(/^"|"$/g, "");
-      resolve13(v || null);
+      resolve12(v || null);
     });
   });
   if (latest && semverGt(latest, current) > 0) {
@@ -4937,10 +5094,10 @@ async function cmdUpdate(rawArgs) {
   }
   const args = parseArgs(rawArgs);
   const cwd = process.cwd();
-  const kandownDir = resolve5(cwd, args.path);
+  const kandownDir = resolve4(cwd, args.path);
   const htmlDest = join16(kandownDir, "kandown.html");
   if (existsSync14(htmlDest)) {
-    const htmlSrc = resolve5(PKG_ROOT, "dist", "index.html");
+    const htmlSrc = resolve4(PKG_ROOT, "dist", "index.html");
     if (existsSync14(htmlSrc)) {
       copyFileSync2(htmlSrc, htmlDest);
       success(`Refreshed ${args.path}/kandown.html`);
@@ -4998,17 +5155,17 @@ async function cmdWork(rawArgs) {
 // src/cli/commands/tasks.ts
 init_board_reader();
 import { existsSync as existsSync18, readFileSync as readFileSync17, mkdirSync as mkdirSync8 } from "fs";
-import { join as join20, resolve as resolve8 } from "path";
+import { join as join20, resolve as resolve7 } from "path";
 import { spawnSync as spawnSync2 } from "child_process";
 
 // src/cli/lib/extensions-cli.ts
 import { existsSync as existsSync16, readFileSync as readFileSync15, writeFileSync as writeFileSync5, mkdirSync as mkdirSync7, cpSync, rmSync, readdirSync as readdirSync7 } from "fs";
-import { join as join18, resolve as resolve7 } from "path";
+import { join as join18, resolve as resolve6 } from "path";
 
 // src/lib/extensions/host.ts
 import { createJiti } from "jiti";
 import { existsSync as existsSync15 } from "fs";
-import { join as join17, resolve as resolve6 } from "path";
+import { join as join17, resolve as resolve5 } from "path";
 import { fileURLToPath as fileURLToPath2 } from "url";
 
 // src/lib/extensions/registry.ts
@@ -5282,7 +5439,7 @@ var ExtensionHost = class {
   }
   resolveEntry(manifest, dir) {
     const mainRel = manifest.main;
-    const candidates = mainRel ? [resolve6(dir, mainRel)] : [join17(dir, "index.ts"), join17(dir, "index.js"), join17(dir, "index.mjs")];
+    const candidates = mainRel ? [resolve5(dir, mainRel)] : [join17(dir, "index.ts"), join17(dir, "index.js"), join17(dir, "index.mjs")];
     for (const c2 of candidates) if (existsSync15(c2)) return c2;
     return null;
   }
@@ -5648,8 +5805,8 @@ async function cmdExtension(rawArgs) {
 
 ${guidance.summary}`);
       if (guidance.guide) {
-        const guidePath = resolve7(extension.dir, guidance.guide);
-        if (!guidePath.startsWith(`${resolve7(extension.dir)}/`) || !existsSync16(guidePath)) {
+        const guidePath = resolve6(extension.dir, guidance.guide);
+        if (!guidePath.startsWith(`${resolve6(extension.dir)}/`) || !existsSync16(guidePath)) {
           err(`Declared guide is unavailable: ${guidance.guide}`);
           process.exitCode = 1;
           return;
@@ -5764,7 +5921,7 @@ async function installExtension(kandownDir, target) {
   const projectDir = getProjectRoot(kandownDir);
   const destRoot = join18(projectDir, ".kandown", "extensions");
   mkdirSync7(destRoot, { recursive: true });
-  const src = resolve7(target);
+  const src = resolve6(target);
   if (existsSync16(src) && existsSync16(join18(src, "manifest.json"))) {
     const manifest = JSON.parse(readFileSync15(join18(src, "manifest.json"), "utf8"));
     if (!manifest.id) return null;
@@ -6586,7 +6743,7 @@ function cmdImport(rawArgs) {
     err("Usage: kandown import <file.json> [--overwrite]");
     process.exit(1);
   }
-  const importPath = resolve8(process.cwd(), file);
+  const importPath = resolve7(process.cwd(), file);
   if (!existsSync18(importPath)) {
     err(`Import file not found: ${file}`);
     process.exit(1);
@@ -6643,7 +6800,7 @@ function cmdImport(rawArgs) {
 }
 
 // src/cli/commands/daemon.ts
-import { join as join26 } from "path";
+import { join as join27 } from "path";
 
 // src/cli/lib/server.ts
 init_board_reader();
@@ -6651,8 +6808,8 @@ init_task_filename();
 init_parser();
 init_config2();
 import { createServer } from "http";
-import { existsSync as existsSync23, readFileSync as readFileSync20, copyFileSync as copyFileSync3, unlinkSync as unlinkSync7, mkdirSync as mkdirSync12 } from "fs";
-import { basename as basename7, join as join25 } from "path";
+import { existsSync as existsSync23, readFileSync as readFileSync21, copyFileSync as copyFileSync3, unlinkSync as unlinkSync8, mkdirSync as mkdirSync13 } from "fs";
+import { basename as basename7, join as join26 } from "path";
 import { spawn as spawn7 } from "child_process";
 
 // src/cli/lib/agent/detect.ts
@@ -7487,6 +7644,56 @@ function subscribeAgentSession(id, listener) {
   record.emitter.on("event", listener);
   return () => record.emitter.off("event", listener);
 }
+function promptAcpSession(sessionId, id, text) {
+  return JSON.stringify({
+    jsonrpc: "2.0",
+    id,
+    method: "session/prompt",
+    params: { sessionId, prompt: [{ type: "text", text }] }
+  });
+}
+function sendToSession(id, text) {
+  const record = sessions.get(id);
+  if (!record) return { ok: false, error: "Unknown session" };
+  const trimmed = text.trim();
+  if (!trimmed) return { ok: false, error: "Message is empty" };
+  if (record.child?.stdin && !record.child.stdin.destroyed) {
+    if (record.adapter === piAdapter) {
+      const command = record.state.busy ? { type: "prompt", message: trimmed, streamingBehavior: "followUp" } : { id: `kandown-prompt-${Date.now()}`, type: "prompt", message: trimmed };
+      record.child.stdin.write(`${JSON.stringify(command)}
+`);
+      return { ok: true };
+    }
+    if (record.adapter === acpAdapter && record.state.acpSessionId) {
+      const nextId = record.state.acpNextRequestId ?? 3;
+      record.state.acpNextRequestId = nextId + 1;
+      record.state.acpPendingPromptId = nextId;
+      record.child.stdin.write(`${promptAcpSession(record.state.acpSessionId, nextId, trimmed)}
+`);
+      return { ok: true };
+    }
+    return { ok: false, error: "This harness is one-shot; wait for the turn to finish." };
+  }
+  if (record.info.status === "completed" || record.info.status === "stopped" || record.info.status === "failed") {
+    if (!record.info.harnessSessionId) {
+      return { ok: false, error: "The harness never reported a session id; resume is impossible." };
+    }
+    record.config.prompt = trimmed;
+    record.config.resumeSessionId = record.info.harnessSessionId;
+    record.stopRequested = false;
+    record.turnSeen = false;
+    record.stderrTail = "";
+    record.info.status = "running";
+    try {
+      startChild(record);
+    } catch (error) {
+      record.info.status = "failed";
+      return { ok: false, error: error instanceof Error ? error.message : String(error) };
+    }
+    return { ok: true };
+  }
+  return { ok: false, error: `Session is ${record.info.status}; cannot send now.` };
+}
 function stopAgentSession(id) {
   const record = sessions.get(id);
   if (!record) return false;
@@ -7508,6 +7715,107 @@ function stopAgentSession(id) {
     recordEvent(record, { type: "stopped", reason: "user", exitCode: null, ...meta(record) });
   }
   return true;
+}
+
+// src/cli/lib/agent/session-index.ts
+import { mkdirSync as mkdirSync9, readFileSync as readFileSync18, readdirSync as readdirSync8, realpathSync as realpathSync2, unlinkSync as unlinkSync6 } from "fs";
+import { homedir as homedir10 } from "os";
+import { join as join21 } from "path";
+init_atomic_write();
+function sessionIndexBaseDir() {
+  return join21(homedir10(), ".kandown", "sessions");
+}
+function sessionIndexDir(projectRoot) {
+  const canonicalProject = canonicalizeProjectPath(projectRoot, realpathSync2);
+  return join21(sessionIndexBaseDir(), projectHash(canonicalProject));
+}
+function entryFileName(id) {
+  if (typeof id !== "string") return null;
+  const safe = id.replace(/[^A-Za-z0-9._-]/g, "_");
+  return safe ? `${safe}.json` : null;
+}
+function entryPath(projectRoot, id) {
+  const fileName = entryFileName(id);
+  return fileName ? join21(sessionIndexDir(projectRoot), fileName) : null;
+}
+function isSessionIndexEntry(value) {
+  if (!value || typeof value !== "object") return false;
+  const item = value;
+  if (typeof item.id !== "string" || !item.id) return false;
+  if (typeof item.harnessId !== "string" || !item.harnessId) return false;
+  if (typeof item.title !== "string") return false;
+  if (typeof item.createdAt !== "string" || typeof item.updatedAt !== "string") return false;
+  if (item.harnessSessionId !== void 0 && typeof item.harnessSessionId !== "string") return false;
+  if (item.taskId !== void 0 && typeof item.taskId !== "string") return false;
+  return true;
+}
+function readEntry(projectRoot, id) {
+  const file = entryPath(projectRoot, id);
+  if (!file) return null;
+  try {
+    const parsed = JSON.parse(readFileSync18(file, "utf8"));
+    return isSessionIndexEntry(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+function upsertSessionIndexEntry(projectRoot, entry) {
+  const file = entryPath(projectRoot, entry?.id ?? "");
+  if (!file) return;
+  try {
+    mkdirSync9(sessionIndexDir(projectRoot), { recursive: true });
+    atomicWriteFileSync(file, `${JSON.stringify(entry, null, 2)}
+`);
+  } catch {
+  }
+}
+function patchSessionIndexEntry(projectRoot, id, patch) {
+  if (typeof id !== "string" || !id) return;
+  const existing = readEntry(projectRoot, id);
+  if (!existing) return;
+  const next = {
+    ...existing,
+    ...patch.harnessSessionId !== void 0 ? { harnessSessionId: patch.harnessSessionId } : {},
+    ...patch.title !== void 0 ? { title: patch.title } : {},
+    ...patch.taskId !== void 0 ? { taskId: patch.taskId } : {},
+    updatedAt: patch.updatedAt ?? (/* @__PURE__ */ new Date()).toISOString()
+  };
+  upsertSessionIndexEntry(projectRoot, next);
+}
+function forgetSessionIndexEntry(projectRoot, id) {
+  const file = entryPath(projectRoot, id);
+  if (!file) return;
+  try {
+    unlinkSync6(file);
+  } catch {
+  }
+}
+function listSessionIndexEntries(projectRoot) {
+  const dir = sessionIndexDir(projectRoot);
+  let fileNames;
+  try {
+    fileNames = readdirSync8(dir);
+  } catch {
+    return [];
+  }
+  const entries = [];
+  for (const fileName of fileNames) {
+    if (!fileName.endsWith(".json")) continue;
+    try {
+      const parsed = JSON.parse(readFileSync18(join21(dir, fileName), "utf8"));
+      if (isSessionIndexEntry(parsed)) entries.push(parsed);
+    } catch {
+      continue;
+    }
+  }
+  return entries.sort(
+    (a, b) => b.updatedAt.localeCompare(a.updatedAt) || b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id)
+  );
+}
+function indexEntryForPrompt(prompt) {
+  const firstLine = prompt.split("\n").map((line) => line.trim()).find((line) => line.length > 0) ?? "";
+  const collapsed = firstLine.replace(/\s+/g, " ").trim();
+  return collapsed.slice(0, 60).trimEnd();
 }
 
 // src/cli/lib/server.ts
@@ -7652,8 +7960,8 @@ async function moveTaskWithGates(host, kandownDir, taskId, targetStatus, toIndex
 }
 
 // src/cli/lib/extensions-store.ts
-import { mkdirSync as mkdirSync9, writeFileSync as writeFileSync6 } from "fs";
-import { join as join21 } from "path";
+import { mkdirSync as mkdirSync10, writeFileSync as writeFileSync6 } from "fs";
+import { join as join22 } from "path";
 var DEFAULT_REGISTRY_URL = "https://raw.githubusercontent.com/vava-nessa/kandown/main/registry/extensions.json";
 var REGISTRY_FILES = ["manifest.json", "index.js", "index.ts", "web.js", "styles.css"];
 async function fetchRegistry(url = DEFAULT_REGISTRY_URL) {
@@ -7705,11 +8013,11 @@ async function installExtension2(projectDir, input) {
   if (!manifest.id || !/^[a-z][a-z0-9-]{0,63}$/.test(manifest.id)) {
     return { ok: false, error: "manifest.json is missing a valid id" };
   }
-  const destDir = join21(projectDir, ".kandown", "extensions", manifest.id);
-  mkdirSync9(destDir, { recursive: true });
+  const destDir = join22(projectDir, ".kandown", "extensions", manifest.id);
+  mkdirSync10(destDir, { recursive: true });
   const copied = [];
   const write = (relPath, content) => {
-    writeFileSync6(join21(destDir, relPath), content, "utf8");
+    writeFileSync6(join22(destDir, relPath), content, "utf8");
     copied.push(relPath);
   };
   write("manifest.json", manifestJson);
@@ -7730,8 +8038,8 @@ async function installExtension2(projectDir, input) {
 }
 
 // src/cli/lib/themes-store.ts
-import { existsSync as existsSync20, mkdirSync as mkdirSync10, writeFileSync as writeFileSync7 } from "fs";
-import { join as join22 } from "path";
+import { existsSync as existsSync20, mkdirSync as mkdirSync11, writeFileSync as writeFileSync7 } from "fs";
+import { join as join23 } from "path";
 
 // src/lib/themes/shared.ts
 var sharedLight = {
@@ -8130,9 +8438,9 @@ async function installTheme(projectDir, input) {
   }
   normalizeSkinId(theme.id);
   const { description: _desc, author: _author, name: _name, ..._rest } = theme;
-  const destDir = join22(projectDir, ".kandown", "themes");
-  mkdirSync10(destDir, { recursive: true });
-  writeFileSync7(join22(destDir, `${theme.id}.json`), `${themeJson}
+  const destDir = join23(projectDir, ".kandown", "themes");
+  mkdirSync11(destDir, { recursive: true });
+  writeFileSync7(join23(destDir, `${theme.id}.json`), `${themeJson}
 `, "utf8");
   return { ok: true, id: theme.id };
 }
@@ -8156,14 +8464,14 @@ function buildProposeUrl(opts) {
   return `https://github.com/${opts.githubOwner}/${opts.githubRepo}/new/${branch}/${dir}?${params.toString()}`;
 }
 function listInstalledThemes(projectDir) {
-  const dir = join22(projectDir, ".kandown", "themes");
+  const dir = join23(projectDir, ".kandown", "themes");
   if (!existsSync20(dir)) return [];
   const themes = [];
-  const { readFileSync: readFileSync25, readdirSync: readdirSync12 } = __require("fs");
-  for (const file of readdirSync12(dir)) {
+  const { readFileSync: readFileSync26, readdirSync: readdirSync13 } = __require("fs");
+  for (const file of readdirSync13(dir)) {
     if (!file.endsWith(".json")) continue;
     try {
-      const raw = readFileSync25(join22(dir, file), "utf8");
+      const raw = readFileSync26(join23(dir, file), "utf8");
       const parsed = JSON.parse(raw);
       if (parsed && parsed.id && parsed.light && parsed.dark) {
         themes.push({ ...parsed, isCustom: true });
@@ -8282,15 +8590,15 @@ function readRequestBody(req) {
 }
 function syncProjectKandownHtml(kandownDir) {
   try {
-    const projectHtml = join25(kandownDir, "kandown.html");
-    const distHtml = join25(PKG_ROOT, "dist", "index.html");
+    const projectHtml = join26(kandownDir, "kandown.html");
+    const distHtml = join26(PKG_ROOT, "dist", "index.html");
     if (!existsSync23(distHtml)) return false;
     if (!existsSync23(projectHtml)) {
       copyFileSync3(distHtml, projectHtml);
       return true;
     }
-    const currentContent = readFileSync20(projectHtml, "utf8");
-    const newContent = readFileSync20(distHtml, "utf8");
+    const currentContent = readFileSync21(projectHtml, "utf8");
+    const newContent = readFileSync21(distHtml, "utf8");
     if (currentContent !== newContent) {
       atomicWriteFileSync(projectHtml, newContent);
       return true;
@@ -8301,7 +8609,7 @@ function syncProjectKandownHtml(kandownDir) {
 }
 function readDaemonPort(kandownDir) {
   try {
-    const raw = JSON.parse(readFileSync20(join25(kandownDir, "daemon.json"), "utf8"));
+    const raw = JSON.parse(readFileSync21(join26(kandownDir, "daemon.json"), "utf8"));
     return typeof raw.port === "number" && Number.isInteger(raw.port) ? raw.port : null;
   } catch {
     return null;
@@ -8356,7 +8664,7 @@ async function handleApi(req, res, url, kandownDir) {
   }
   if (path === "/api/update/check" && method === "GET") {
     const current = getCurrentVersion();
-    const latest = await new Promise((resolve13) => {
+    const latest = await new Promise((resolve12) => {
       const child = spawn7("npm", ["view", "kandown", "version"], {
         timeout: 4e3,
         stdio: ["pipe", "pipe", "pipe"],
@@ -8369,10 +8677,10 @@ async function handleApi(req, res, url, kandownDir) {
       });
       child.stderr.on("data", () => {
       });
-      child.on("error", () => resolve13(null));
+      child.on("error", () => resolve12(null));
       child.on("close", (code) => {
-        if (code !== 0) return resolve13(null);
-        resolve13(stdout.trim().replace(/^"|"$/g, "") || null);
+        if (code !== 0) return resolve12(null);
+        resolve12(stdout.trim().replace(/^"|"$/g, "") || null);
       });
     });
     const installed = getInstalledVersion() ?? current;
@@ -8388,7 +8696,7 @@ async function handleApi(req, res, url, kandownDir) {
   }
   if (path === "/api/update/apply" && method === "POST") {
     const current = getCurrentVersion();
-    const latest = await new Promise((resolve13) => {
+    const latest = await new Promise((resolve12) => {
       const child = spawn7("npm", ["view", "kandown", "version"], {
         timeout: 4e3,
         stdio: ["pipe", "pipe", "pipe"],
@@ -8399,8 +8707,8 @@ async function handleApi(req, res, url, kandownDir) {
       child.stdout.on("data", (d) => {
         stdout += d;
       });
-      child.on("error", () => resolve13(null));
-      child.on("close", (code) => resolve13(code === 0 ? stdout.trim() : null));
+      child.on("error", () => resolve12(null));
+      child.on("close", (code) => resolve12(code === 0 ? stdout.trim() : null));
     });
     const targetVersion = latest || current;
     const ok = await performGlobalPackageUpdate(`kandown@${targetVersion}`);
@@ -8432,8 +8740,8 @@ async function handleApi(req, res, url, kandownDir) {
   if (path === "/api/board") {
     if (method === "GET") {
       const tasksDir = getTasksDir(kandownDir);
-      const boardPath = join25(tasksDir, "board.md");
-      const text = existsSync23(boardPath) ? readFileSync20(boardPath, "utf8") : "";
+      const boardPath = join26(tasksDir, "board.md");
+      const text = existsSync23(boardPath) ? readFileSync21(boardPath, "utf8") : "";
       return writeText(res, 200, text);
     }
     if (method === "PUT") {
@@ -8443,8 +8751,8 @@ async function handleApi(req, res, url, kandownDir) {
       });
       req.on("end", () => {
         const tasksDir = getTasksDir(kandownDir);
-        if (!existsSync23(tasksDir)) mkdirSync12(tasksDir, { recursive: true });
-        atomicWriteFileSync(join25(tasksDir, "board.md"), body);
+        if (!existsSync23(tasksDir)) mkdirSync13(tasksDir, { recursive: true });
+        atomicWriteFileSync(join26(tasksDir, "board.md"), body);
         broadcastSseEvent({ type: "board" });
         writeJson(res, 200, { ok: true });
       });
@@ -8478,8 +8786,8 @@ async function handleApi(req, res, url, kandownDir) {
     }
   }
   if (path === "/api/instructions") {
-    const instructionsPath = join25(kandownDir, "kandown_work.md");
-    if (method === "GET") return writeText(res, 200, existsSync23(instructionsPath) ? readFileSync20(instructionsPath, "utf8") : "");
+    const instructionsPath = join26(kandownDir, "kandown_work.md");
+    if (method === "GET") return writeText(res, 200, existsSync23(instructionsPath) ? readFileSync21(instructionsPath, "utf8") : "");
     if (method === "PUT") {
       try {
         atomicWriteFileSync(instructionsPath, await readRequestBody(req));
@@ -8626,20 +8934,59 @@ async function handleApi(req, res, url, kandownDir) {
 ${message}` : compiled.markdown;
     const config = loadConfig(kandownDir);
     const permissionMode = body.permissionMode === "accept-edits" || body.permissionMode === "yolo" ? body.permissionMode : config.agent.permissionMode;
+    const projectRoot = getProjectRoot(kandownDir);
     try {
       const session = createAgentSession({
         harnessId: body.harnessId.trim(),
-        projectRoot: getProjectRoot(kandownDir),
+        projectRoot,
         prompt,
         permissionMode,
         ...typeof body.resumeSessionId === "string" && body.resumeSessionId ? { resumeSessionId: body.resumeSessionId } : {}
+      });
+      const titleOverride = typeof body.title === "string" && body.title.trim() ? body.title.trim() : void 0;
+      const now = (/* @__PURE__ */ new Date()).toISOString();
+      const indexEntry = {
+        id: session.id,
+        harnessId: session.harnessId,
+        title: titleOverride ?? indexEntryForPrompt(message ?? compiled.markdown),
+        ...taskId ? { taskId } : {},
+        createdAt: now,
+        updatedAt: now
+      };
+      upsertSessionIndexEntry(projectRoot, indexEntry);
+      let unsubscribeIndex = null;
+      let sawStopped = false;
+      unsubscribeIndex = subscribeAgentSession(session.id, (event) => {
+        if (event.type === "session_started" && event.harnessSessionId) {
+          patchSessionIndexEntry(projectRoot, session.id, { harnessSessionId: event.harnessSessionId });
+        } else if (event.type === "stopped" && !sawStopped) {
+          sawStopped = true;
+          patchSessionIndexEntry(projectRoot, session.id, { updatedAt: (/* @__PURE__ */ new Date()).toISOString() });
+          unsubscribeIndex?.();
+        }
       });
       return writeJson(res, 201, { session });
     } catch (error) {
       return writeJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
     }
   }
-  const agentSessionMatch = path.match(/^\/api\/agent\/sessions\/([^/]+)(\/events|\/stop)?$/);
+  if (path === "/api/agent/sessions-index" && method === "GET") {
+    return writeJson(res, 200, { sessions: listSessionIndexEntries(getProjectRoot(kandownDir)) });
+  }
+  if (path.startsWith("/api/agent/sessions-index/") && method === "DELETE") {
+    let entryId;
+    try {
+      entryId = decodeURIComponent(path.slice("/api/agent/sessions-index/".length).split("?")[0] ?? "");
+    } catch {
+      return writeJson(res, 400, { error: "Invalid session id" });
+    }
+    const projectRoot = getProjectRoot(kandownDir);
+    const known = listSessionIndexEntries(projectRoot).some((entry) => entry.id === entryId);
+    if (!known) return writeJson(res, 404, { error: "Session not found" });
+    forgetSessionIndexEntry(projectRoot, entryId);
+    return writeJson(res, 200, { ok: true });
+  }
+  const agentSessionMatch = path.match(/^\/api\/agent\/sessions\/([^/]+)(\/events|\/stop|\/send)?$/);
   if (agentSessionMatch) {
     const sessionId = decodeURIComponent(agentSessionMatch[1]);
     const sub = agentSessionMatch[2];
@@ -8665,7 +9012,22 @@ ${message}` : compiled.markdown;
       return;
     }
     if (sub === "/stop" && method === "POST") {
-      return stopAgentSession(sessionId) ? writeJson(res, 200, { ok: true }) : writeJson(res, 404, { error: "Session not found" });
+      const stopped = stopAgentSession(sessionId);
+      if (stopped) patchSessionIndexEntry(getProjectRoot(kandownDir), sessionId, { updatedAt: (/* @__PURE__ */ new Date()).toISOString() });
+      return stopped ? writeJson(res, 200, { ok: true }) : writeJson(res, 404, { error: "Session not found" });
+    }
+    if (sub === "/send" && method === "POST") {
+      let body;
+      try {
+        body = JSON.parse(await readRequestBody(req));
+      } catch (error) {
+        return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
+      }
+      if (typeof body.message !== "string" || !body.message.trim()) {
+        return writeJson(res, 400, { error: "message is required" });
+      }
+      const result = sendToSession(sessionId, body.message);
+      return result.ok ? writeJson(res, 200, { ok: true }) : writeJson(res, 400, { ok: false, error: result.error ?? "Send failed" });
     }
   }
   if (path === "/api/extensions" && method === "GET") {
@@ -8724,9 +9086,9 @@ ${message}` : compiled.markdown;
       if (!ext) return writeText(res, 404, "Extension not found");
       const rel = parts.slice(2).join("/");
       if (!/^[a-zA-Z0-9._\/-]+$/.test(rel) || rel.includes("..")) return writeText(res, 400, "Bad path");
-      const file = join25(ext.dir, rel);
+      const file = join26(ext.dir, rel);
       if (!existsSync23(file)) return writeText(res, 404, "File not found");
-      return writeText(res, 200, readFileSync20(file, "utf8"));
+      return writeText(res, 200, readFileSync21(file, "utf8"));
     }
   }
   if (path === "/api/extensions/registry" && method === "GET") {
@@ -8768,12 +9130,12 @@ ${message}` : compiled.markdown;
   if (path.startsWith("/api/themes/") && method === "DELETE") {
     const rawId = decodeURIComponent(path.slice("/api/themes/".length).split("?")[0] ?? "");
     if (!/^[a-z][a-z0-9-]{0,63}$/.test(rawId)) return writeJson(res, 400, { error: "Invalid theme id" });
-    const { unlinkSync: unlinkSync8, existsSync: existsSync32 } = await import("fs");
-    const { join: join38 } = await import("path");
-    const file = join38(getProjectRoot(kandownDir), ".kandown", "themes", `${rawId}.json`);
+    const { unlinkSync: unlinkSync9, existsSync: existsSync32 } = await import("fs");
+    const { join: join39 } = await import("path");
+    const file = join39(getProjectRoot(kandownDir), ".kandown", "themes", `${rawId}.json`);
     if (!existsSync32(file)) return writeJson(res, 404, { error: "Theme not installed" });
     try {
-      unlinkSync8(file);
+      unlinkSync9(file);
       broadcastSseEvent({ type: "themes" });
       return writeJson(res, 200, { ok: true, id: rawId });
     } catch (e) {
@@ -8818,7 +9180,7 @@ ${message}` : compiled.markdown;
     if (!hookUrl) {
       return writeJson(res, 400, { ok: false, error: "No agent hook is configured on this daemon (KANDOWN_AGENT_HOOK_URL is not set)." });
     }
-    const content = readFileSync20(taskPath, "utf8");
+    const content = readFileSync21(taskPath, "utf8");
     const parsed = parseTaskFile(content);
     const fm = parsed.frontmatter;
     const payload = {
@@ -8863,10 +9225,10 @@ ${message}` : compiled.markdown;
     }
     if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return writeText(res, 400, "Invalid task id");
     const tasksDir = getTasksDir(kandownDir);
-    const archiveDir = join25(tasksDir, "archive");
+    const archiveDir = join26(tasksDir, "archive");
     const resolveIn = (directory) => {
       const match = resolveTaskFilename(taskId, listTaskFilenames(directory));
-      return match ? join25(directory, match.filename) : null;
+      return match ? join26(directory, match.filename) : null;
     };
     const activePath = resolveIn(tasksDir);
     const archivedPath = resolveIn(archiveDir);
@@ -8926,13 +9288,13 @@ ${message}` : compiled.markdown;
         return writeText(res, 404, "Task not found");
       }
       const destinationDir = archiving ? archiveDir : tasksDir;
-      const destination = existingDestination ?? join25(destinationDir, basename7(source));
+      const destination = existingDestination ?? join26(destinationDir, basename7(source));
       try {
-        if (!existsSync23(tasksDir)) mkdirSync12(tasksDir, { recursive: true });
-        if (!existsSync23(archiveDir)) mkdirSync12(archiveDir, { recursive: true });
+        if (!existsSync23(tasksDir)) mkdirSync13(tasksDir, { recursive: true });
+        if (!existsSync23(archiveDir)) mkdirSync13(archiveDir, { recursive: true });
         const body = await readRequestBody(req);
         atomicWriteFileSync(destination, body);
-        if (source && source !== destination && existsSync23(source)) unlinkSync7(source);
+        if (source && source !== destination && existsSync23(source)) unlinkSync8(source);
         broadcastSseEvent({ type: "task", id: taskId });
         return writeJson(res, 200, { ok: true });
       } catch (error) {
@@ -8945,11 +9307,11 @@ ${message}` : compiled.markdown;
     if (method === "GET") {
       const taskPath = findTaskPath(kandownDir, taskId);
       if (!taskPath) return writeText(res, 404, "Task not found");
-      return writeText(res, 200, readFileSync20(taskPath, "utf8"));
+      return writeText(res, 200, readFileSync21(taskPath, "utf8"));
     }
     if (method === "PUT") {
       try {
-        if (!existsSync23(tasksDir)) mkdirSync12(tasksDir, { recursive: true });
+        if (!existsSync23(tasksDir)) mkdirSync13(tasksDir, { recursive: true });
         const body = await readRequestBody(req);
         const { path: taskPath } = writeTaskContent(kandownDir, taskId, body, { useGit: false });
         broadcastSseEvent({ type: "task", id: taskId });
@@ -8962,8 +9324,8 @@ ${message}` : compiled.markdown;
     }
     if (method === "DELETE") {
       try {
-        if (activePath && existsSync23(activePath)) unlinkSync7(activePath);
-        if (archivedPath && existsSync23(archivedPath)) unlinkSync7(archivedPath);
+        if (activePath && existsSync23(activePath)) unlinkSync8(activePath);
+        if (archivedPath && existsSync23(archivedPath)) unlinkSync8(archivedPath);
         broadcastSseEvent({ type: "task_delete", id: taskId });
         return writeJson(res, 200, { ok: true });
       } catch (error) {
@@ -8988,9 +9350,9 @@ window.__KANDOWN_TOKEN__ = ${tokenLiteral};</script>
 }
 function serveApp(res, kandownDir) {
   syncProjectKandownHtml(kandownDir);
-  const htmlPath = join25(kandownDir, "kandown.html");
+  const htmlPath = join26(kandownDir, "kandown.html");
   if (existsSync23(htmlPath)) {
-    const html = readFileSync20(htmlPath, "utf8");
+    const html = readFileSync21(htmlPath, "utf8");
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
     res.end(injectServerRoot(html, kandownDir));
   } else {
@@ -9057,7 +9419,7 @@ async function cmdDaemon(rest) {
     setActiveToken(token);
     const { port } = await listenOnAvailablePort(kandownDir, Number.isInteger(preferredPort) ? preferredPort : null);
     const url = `http://localhost:${port}`;
-    const metadataPath2 = join26(kandownDir, "daemon.json");
+    const metadataPath2 = join27(kandownDir, "daemon.json");
     atomicWriteFileSync(metadataPath2, JSON.stringify({
       pid: process.pid,
       port,
@@ -9122,7 +9484,7 @@ init_board_reader();
 init_board_reader();
 import { execSync as execSync2, spawn as spawn8 } from "child_process";
 import { writeFileSync as writeFileSync8 } from "fs";
-import { join as join27 } from "path";
+import { join as join28 } from "path";
 import { tmpdir } from "os";
 init_config2();
 init_config();
@@ -9158,7 +9520,7 @@ function prepareLaunch(opts) {
   if (!taskMoved) {
     throw new Error(`Could not move task ${taskId} to ${activeStatus}: task file missing or unwritable.`);
   }
-  const contextFile = join27(tmpdir(), `kandown-${taskId}-context.md`);
+  const contextFile = join28(tmpdir(), `kandown-${taskId}-context.md`);
   try {
     writeFileSync8(contextFile, `${systemPrompt}
 
@@ -9188,14 +9550,14 @@ function runAgentSync(opts) {
   const { taskId, kandownDir } = opts;
   const prepared = prepareLaunch(opts);
   const { binary, args, contextFile, originalStatus, agentName } = prepared;
-  return new Promise((resolve13, reject) => {
+  return new Promise((resolve12, reject) => {
     const child = spawn8(binary, args, { stdio: "inherit", env: launchEnv(contextFile, taskId, kandownDir) });
     child.on("error", (e) => {
       rollbackTaskStatus(kandownDir, taskId, originalStatus);
       reject(new Error(`Failed to launch ${agentName}: ${e.message}`));
     });
     child.on("exit", (code) => {
-      resolve13({ exitCode: code ?? 0 });
+      resolve12({ exitCode: code ?? 0 });
     });
   });
 }
@@ -9548,13 +9910,13 @@ async function cmdRun(rawArgs) {
 // src/cli/commands/agents.ts
 init_cli_shared();
 import { existsSync as existsSync24 } from "fs";
-import { join as join28 } from "path";
+import { join as join29 } from "path";
 function cmdAgents(rawArgs) {
   const args = parseArgs(rawArgs);
   const kandownDir = resolveKandownDir(args.path, process.cwd());
   const sub = args.positional[0];
   if (sub === "init") {
-    const target = join28(kandownDir, "agents.json");
+    const target = join29(kandownDir, "agents.json");
     if (existsSync24(target)) {
       info(`${c.bold}agents.json${c.reset} already exists at ${target}`);
       return;
@@ -9568,7 +9930,7 @@ function cmdAgents(rawArgs) {
   const catalog = loadCatalog(kandownDir);
   const installed = detectInstalledAgents(kandownDir);
   const cascade = getCascadeConfig(kandownDir);
-  const agentsFile = join28(kandownDir, "agents.json");
+  const agentsFile = join29(kandownDir, "agents.json");
   log("");
   log(`${c.bold}Agent catalog${c.reset} ${c.dim}(${installed.length}/${catalog.length} installed)${c.reset}`);
   log(`${c.dim}catalog: ${existsSync24(agentsFile) ? agentsFile : "built-in defaults (run `kandown agents init` to commit one)"}${c.reset}`);
@@ -9592,19 +9954,19 @@ function cmdAgents(rawArgs) {
 
 // src/cli/lib/plugin-cli.ts
 import { spawn as spawn9 } from "child_process";
-import { existsSync as existsSync29, readFileSync as readFileSync23 } from "fs";
-import { basename as basename13, join as join35 } from "path";
+import { existsSync as existsSync29, readFileSync as readFileSync24 } from "fs";
+import { basename as basename13, join as join36 } from "path";
 
 // src/lib/extensions/agent-brief.ts
 var EXTENSION_AGENT_BRIEF = "# Kandown plugin brief (for coding agents)\n\n<!-- Generated by scripts/build-extension-brief.js from src/lib/extensions/types.ts.\n     Do not edit by hand: run `pnpm extension-brief`. -->\n\nYou are writing a **kandown plugin**. This document is the complete contract.\nEverything below is extracted from the shipped type definitions, so it matches\nthe runtime you will be loaded into. Read it once, write the code, then run the\nloop at the bottom until it is green.\n\n## 1. What a plugin is\n\nA directory under `.kandown/extensions/<id>/` containing:\n\n| File | Required | Purpose |\n|---|---|---|\n| `manifest.json` | yes | identity, permissions, display hints |\n| `index.ts` | yes | the Node entry, loaded with jiti (no build step in dev) |\n| `index.js` | to ship | bundled entry, the only thing the browser can execute |\n| `web.tsx` / `web.js` | panels only | the panel module, bundled the same way |\n| `README.md` | no | human documentation |\n\n`index.ts` default-exports a factory. It is called once at load, it registers\ncontributions, and it must not do slow or throwing work at module scope.\n\n```typescript\nimport type { KandownExtensionAPI } from 'kandown';\n\nexport default function (kd: KandownExtensionAPI) {\n  // register here\n}\n```\n\n## 2. The API you are handed\n\n```typescript\nexport interface KandownExtensionAPI {\n  readonly id: string;\n  contributeField(def: FieldContribution): void;\n  contributeWebPanel(def: WebPanelContribution): void;\n  contributeCommand(name: string, def: CommandContribution): void;\n  contributeGate(def: GateContribution): void;\n  contributeSync(def: SyncContribution): void;\n  on(event: 'task:afterCreate' | 'task:afterMove' | 'task:afterArchive' | 'board:load', handler: LifecycleHandler): void;\n}\n```\n\nContribution shapes, verbatim:\n\n```typescript\nexport interface FieldContribution {\n  key: string;\n  label: string;\n  type: FieldType;\n  options?: { value: string; label: string }[];\n  badge?: (value: unknown, task: TaskLike) => string | null;\n  editorComponentId?: string;\n}\n\nexport interface WebPanelContribution {\n  id: string;\n  title: string;\n  entry: string;\n  icon?: string;\n}\n\nexport interface CommandContribution {\n  name: string;\n  description?: string;\n  handler: (args: string, ctx: ExtensionCommandContext) => void | Promise<void>;\n}\n\nexport interface GateContribution {\n  id?: string;\n  on: 'task:beforeMove' | 'task:beforeCreate' | 'task:beforeArchive' | 'task:beforeDelete';\n  to?: string;\n  handler: (event: GateEvent, ctx: ExtensionContext) => void | Promise<void | GateVerdict>;\n}\n\nexport interface SyncContribution {\n  id?: string;\n  on: 'task:afterMove' | 'task:afterCreate' | 'task:afterArchive';\n  to?: string;\n  handler: (event: TaskEvent, ctx: ExtensionContext) => void | Promise<void>;\n}\n\nexport interface GateVerdict {\n  block?: boolean;\n  reason?: string;\n}\n```\n\n## 3. The context handlers receive\n\n```typescript\nexport interface ExtensionContext {\n  extId: string;\n  signal?: AbortSignal;\n  board: {\n    readAll(): Promise<TaskLike[]>;\n    read(taskId: string): Promise<TaskLike | null>;\n  };\n  setField(taskId: string, key: string, value: unknown): Promise<void>;\n  log: {\n    info(msg: string): void;\n    warn(msg: string): void;\n    error(msg: string): void;\n  };\n  fetch?: typeof fetch;\n}\n\nexport interface TaskLike {\n  id: string;\n  frontmatter: Record<string, unknown>;\n  plugins?: Record<string, unknown>;\n}\n```\n\n`ctx.fetch` is present **only** when a `net:` permission is declared. `ctx.board`\nthrows without `read:tasks`. `ctx.setField` throws without\n`write:field:plugins.<id>.<key>` (a trailing `*` covers every key).\n\n## 4. Events\n\n| Kind | Names | Semantics |\n|---|---|---|\n| Gates (`contributeGate`) | `task:beforeMove`, `task:beforeCreate`, `task:beforeArchive`, `task:beforeDelete` | may veto by returning `{ block: true, reason }`; a throw is treated as no objection |\n| Syncs (`contributeSync`) | `task:afterMove`, `task:afterCreate`, `task:afterArchive` | fire and forget, after the file is written |\n| Lifecycle (`kd.on`) | `task:afterCreate`, `task:afterMove`, `task:afterArchive`, `board:load` | observation only, never blocks |\n\nBoth gates and syncs accept an optional `to` to restrict them to one target\ncolumn. A move is allowed only when **every** gate abstains or permits.\n\n## 5. Field types\n\n`string`, `number`, `boolean`, `date`, `select`. Scalars are persisted as strings and coerced back on read,\nso a `number` field reads back as a number. A `select` field must declare\n`options: [{ value, label }]`, and a value outside that list is rejected.\n\n## 6. Where your data lives\n\nOnly under `plugins.<id>.*` in the task frontmatter, opaque to the core:\n\n```yaml\n---\ntitle: Ship the thing\nstatus: Done\nplugins:\n  my-plugin:\n    points: 5\n---\n```\n\nRead it from `event.task.plugins`, write it with `ctx.setField(taskId, key, value)`.\n**Never** write a core field (`title`, `status`, `depends_on`, `created`, ...),\nnever write a second file, never call the serializer.\n\n## 7. Permissions\n\n| Declare | Unlocks |\n|---|---|\n| `read:tasks` | `ctx.board.readAll()`, `ctx.board.read(id)` |\n| `write:field:plugins.<id>.*` | `ctx.setField(...)` for your namespace |\n| `net:*` or `net:<url-prefix>` | `ctx.fetch` |\n| `*` | everything, avoid it |\n\nUndeclared calls throw at runtime. Declare exactly what you use, nothing more:\n`kandown plugin check` reports both missing and unused permissions.\n\n## 8. Web panels\n\nDeclare the panel in `index.ts`, implement it in `web.tsx`:\n\n```typescript\nkd.contributeWebPanel({ id: 'chart', title: 'Burndown', entry: './web.js' });\n```\n\n```javascript\nfunction Chart({ task, api, ui }) {\n  const [tasks, setTasks] = ui.useState([]);\n  ui.useEffect(() => { void api.readAllTasks().then(setTasks); }, [api]);\n  return ui.createElement('div', null, tasks.length + ' tasks');\n}\n\nexport const panels = { chart: Chart };\n```\n\nHard rules for panel modules:\n\n- **Never import React.** The host React runtime arrives as the `ui` prop\n  (`ui.createElement`, `ui.useState`, `ui.useEffect`, `ui.Fragment`). A second\n  React copy in the bundle breaks hooks.\n- The module must be self-contained: it is imported through a Blob URL and\n  cannot resolve sibling files. `kandown plugin build` bundles it for you.\n- Props are exactly `{ task, api, ui }` where `api` is\n  `{ readField(key), readAllTasks(), setField(key, value), refresh() }`.\n- Three consecutive render failures quarantine the plugin.\n\n## 9. The build and verify loop\n\n```bash\nkandown plugin build <id>          # index.ts -> index.js, web.tsx -> web.js\nkandown plugin check <id> --json   # structured verdict, exit code 1 on failure\nkandown plugin enable <id>         # trust + enable\nkandown plugin dev <id>            # watch: rebuild, recheck, hot reload the web UI\n```\n\n`check --json` returns `{ ok, id, checks: [{ id, status, message, fix }] }`.\nRead `fix` on any failing check, apply it, run again. Do not stop until `ok`\nis `true`.\n\n## 10. Failure table\n\n| Symptom from `plugin check` | Fix |\n|---|---|\n| `manifest` invalid id | id must match `^[a-z][a-z0-9-]{0,63}$` |\n| `entry` default export is not a function | export the factory as `export default function (kd) {}` |\n| `permissions` missing | add the exact permission string the check names to `manifest.json` |\n| `bundle` missing index.js | run `kandown plugin build <id>` |\n| `panel` module exports nothing | export `panels` (a map) or a `default` component |\n| `panel` imports react | drop the import, use the `ui` prop |\n| `namespace` write outside plugins.\\<id\\> | only `ctx.setField` may write, and only your own keys |\n| `roundtrip` frontmatter drift | store plain JSON values, no class instances, no `undefined` |\n| quarantined | fix the throw, then `kandown plugin enable <id>` clears the counter |\n\n## 11. Style rules for this codebase\n\n- Never use an em dash or an en dash in any string, comment or document you write.\n- Comment the why, not the what, and open explanatory comments with `\u{1F4D6}`.\n- Keep the factory synchronous unless you genuinely need to await something.\n- Handle your own errors: a throw inside a gate is silently fail-open, which\n  hides bugs. Log with `ctx.log.warn` instead of throwing.\n";
 
 // src/cli/lib/plugin-build.ts
-import { existsSync as existsSync25, readdirSync as readdirSync10, readFileSync as readFileSync21 } from "fs";
-import { basename as basename8, extname as extname2, join as join29 } from "path";
+import { existsSync as existsSync25, readdirSync as readdirSync11, readFileSync as readFileSync22 } from "fs";
+import { basename as basename8, extname as extname2, join as join30 } from "path";
 var SOURCE_EXTENSIONS = [".ts", ".tsx", ".jsx", ".mts"];
 function findSource(dir, stem) {
   for (const extension of SOURCE_EXTENSIONS) {
-    const candidate = join29(dir, `${stem}${extension}`);
+    const candidate = join30(dir, `${stem}${extension}`);
     if (existsSync25(candidate)) return candidate;
   }
   return null;
@@ -9615,7 +9977,7 @@ function discoverEntries(dir) {
   if (index) entries.push({ stem: "index", source: index });
   let names = [];
   try {
-    names = readdirSync10(dir);
+    names = readdirSync11(dir);
   } catch {
     return entries;
   }
@@ -9625,7 +9987,7 @@ function discoverEntries(dir) {
     const stem = basename8(name, extension);
     if (!stem.startsWith("web")) continue;
     if (entries.some((entry) => entry.stem === stem)) continue;
-    entries.push({ stem, source: join29(dir, name) });
+    entries.push({ stem, source: join30(dir, name) });
   }
   return entries;
 }
@@ -9651,7 +10013,7 @@ async function buildPlugin(dir) {
     };
   }
   for (const entry of entries) {
-    const out = join29(dir, `${entry.stem}.js`);
+    const out = join30(dir, `${entry.stem}.js`);
     try {
       const built = await esbuild.build({
         entryPoints: [entry.source],
@@ -9669,7 +10031,7 @@ async function buildPlugin(dir) {
         write: true
       });
       for (const warning of built.warnings) result.warnings.push(`${entry.stem}: ${warning.text}`);
-      const source = readFileSync21(out, "utf8");
+      const source = readFileSync22(out, "utf8");
       if (/from\s*["']react(?:-dom|\/jsx-runtime)?["']/.test(source)) {
         result.errors.push(
           `${entry.stem}: bundle imports react; panels must use the "ui" prop instead of importing React`
@@ -9687,8 +10049,8 @@ async function buildPlugin(dir) {
 }
 
 // src/cli/lib/plugin-check.ts
-import { existsSync as existsSync26, readFileSync as readFileSync22, statSync as statSync7 } from "fs";
-import { basename as basename9, extname as extname3, join as join30 } from "path";
+import { existsSync as existsSync26, readFileSync as readFileSync23, statSync as statSync7 } from "fs";
+import { basename as basename9, extname as extname3, join as join31 } from "path";
 init_parser();
 init_serializer();
 init_updater();
@@ -9853,8 +10215,8 @@ async function checkPlugin(kandownDir, projectDir, id) {
       `${counts.fields} field(s), ${counts.panels} panel(s), ${counts.commands} command(s), ${counts.gates} gate(s), ${counts.syncs} sync(s)`
     ));
   }
-  const sources = ["index.ts", "index.tsx", "index.js", "index.mjs"].map((name) => join30(dir, name)).filter((path) => existsSync26(path));
-  const sourceText = sources.map((path) => readFileSync22(path, "utf8")).join("\n");
+  const sources = ["index.ts", "index.tsx", "index.js", "index.mjs"].map((name) => join31(dir, name)).filter((path) => existsSync26(path));
+  const sourceText = sources.map((path) => readFileSync23(path, "utf8")).join("\n");
   const declared = manifest.permissions ?? [];
   const usage = scanPermissionUsage(sourceText);
   const missing = [];
@@ -9902,13 +10264,13 @@ async function checkPlugin(kandownDir, projectDir, id) {
     if (bundleTargets.some((target) => target.stem === stem)) continue;
     bundleTargets.push({
       stem,
-      sources: [".tsx", ".ts", ".jsx"].map((extension) => join30(dir, `${stem}${extension}`)).filter((path) => existsSync26(path))
+      sources: [".tsx", ".ts", ".jsx"].map((extension) => join31(dir, `${stem}${extension}`)).filter((path) => existsSync26(path))
     });
   }
   const staleBundles = [];
   const missingBundles = [];
   for (const target of bundleTargets) {
-    const out = join30(dir, `${target.stem}.js`);
+    const out = join31(dir, `${target.stem}.js`);
     if (!existsSync26(out)) {
       if (target.sources.length > 0 || target.stem !== "index") missingBundles.push(`${target.stem}.js`);
       continue;
@@ -9939,7 +10301,7 @@ async function checkPlugin(kandownDir, projectDir, id) {
   } else {
     for (const panel of summary?.panels ?? []) {
       const entry = panel.entry.replace(/^\.\//, "");
-      const out = join30(dir, entry);
+      const out = join31(dir, entry);
       if (!existsSync26(out)) {
         checks.push(check(
           `panel:${panel.id}`,
@@ -9949,7 +10311,7 @@ async function checkPlugin(kandownDir, projectDir, id) {
         ));
         continue;
       }
-      const source = readFileSync22(out, "utf8");
+      const source = readFileSync23(out, "utf8");
       if (/from\s*["']react["']/.test(source)) {
         checks.push(check(
           `panel:${panel.id}`,
@@ -10013,7 +10375,7 @@ async function checkPlugin(kandownDir, projectDir, id) {
         commandErrors.push(`${name}: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
-    await new Promise((resolve13) => setTimeout(resolve13, 25));
+    await new Promise((resolve12) => setTimeout(resolve12, 25));
     const after = host.get(manifest.id);
     const newFailures = (after?.failures ?? 0) - failuresBefore;
     if (commandErrors.length > 0) {
@@ -10946,7 +11308,7 @@ var NodeFsHandler = class {
         this._addToNodeFs(path, initialAdd, wh, depth + 1);
       }
     }).on(EV.ERROR, this._boundHandleError);
-    return new Promise((resolve13, reject) => {
+    return new Promise((resolve12, reject) => {
       if (!stream)
         return reject();
       stream.once(STR_END, () => {
@@ -10955,7 +11317,7 @@ var NodeFsHandler = class {
           return;
         }
         const wasThrottled = throttler ? throttler.clear() : false;
-        resolve13(void 0);
+        resolve12(void 0);
         previous.getChildren().filter((item) => {
           return item !== directory && !current.has(item);
         }).forEach((item) => {
@@ -11784,13 +12146,13 @@ function watch(paths, options = {}) {
 
 // src/cli/lib/plugin-dev.ts
 import { existsSync as existsSync27 } from "fs";
-import { basename as basename12, dirname as dirname8, extname as extname5, join as join33, sep as sep2 } from "path";
+import { basename as basename12, dirname as dirname8, extname as extname5, join as join34, sep as sep2 } from "path";
 init_cli_shared();
 function isGeneratedBundle(dir, path) {
   if (path.includes(`${sep2}node_modules${sep2}`) || basename12(path).startsWith(".")) return true;
   if (extname5(path) !== ".js") return false;
   const stem = basename12(path, ".js");
-  return [".ts", ".tsx", ".jsx", ".mts"].some((extension) => existsSync27(join33(dirname8(path) || dir, `${stem}${extension}`)));
+  return [".ts", ".tsx", ".jsx", ".mts"].some((extension) => existsSync27(join34(dirname8(path) || dir, `${stem}${extension}`)));
 }
 async function requestDaemonReload(kandownDir) {
   try {
@@ -11861,9 +12223,9 @@ async function runPluginDev(kandownDir, projectDir, id, dir) {
   watcher.on("all", () => {
     void trigger();
   });
-  await new Promise((resolve13) => {
+  await new Promise((resolve12) => {
     const stop = () => {
-      void watcher.close().then(() => resolve13());
+      void watcher.close().then(() => resolve12());
     };
     process.once("SIGINT", stop);
     process.once("SIGTERM", stop);
@@ -11871,8 +12233,8 @@ async function runPluginDev(kandownDir, projectDir, id, dir) {
 }
 
 // src/cli/lib/plugin-scaffold.ts
-import { existsSync as existsSync28, mkdirSync as mkdirSync13, writeFileSync as writeFileSync9 } from "fs";
-import { join as join34 } from "path";
+import { existsSync as existsSync28, mkdirSync as mkdirSync14, writeFileSync as writeFileSync9 } from "fs";
+import { join as join35 } from "path";
 var PLUGIN_KINDS = ["field", "panel", "gate", "sync", "command", "full"];
 function isValidPluginId(id) {
   return /^[a-z][a-z0-9-]{0,63}$/.test(id);
@@ -12113,10 +12475,10 @@ function scaffoldPlugin(projectDir, id, kind) {
   if (!isValidPluginId(id)) {
     throw new Error("plugin id must be kebab-case (lowercase letters, digits, hyphens)");
   }
-  const dir = join34(projectDir, ".kandown", "extensions", id);
+  const dir = join35(projectDir, ".kandown", "extensions", id);
   if (existsSync28(dir)) throw new Error(`already exists: ${dir}`);
   const parts = partsFor(kind, id);
-  mkdirSync13(dir, { recursive: true });
+  mkdirSync14(dir, { recursive: true });
   const manifest = {
     id,
     name: title(id),
@@ -12132,7 +12494,7 @@ function scaffoldPlugin(projectDir, id, kind) {
   };
   const files = [];
   const write = (name, content) => {
-    writeFileSync9(join34(dir, name), content, "utf8");
+    writeFileSync9(join35(dir, name), content, "utf8");
     files.push(name);
   };
   write("manifest.json", `${JSON.stringify(manifest, null, 2)}
@@ -12211,13 +12573,13 @@ async function delegateToAgent(kandownDir, id, dir, kind, description, requested
     taskId: id
   });
   success(`Handing "${id}" to ${agent.name}`);
-  await new Promise((resolve13) => {
+  await new Promise((resolve12) => {
     const child = spawn9(binary, args, { stdio: "inherit", env: process.env });
     child.on("error", (error) => {
       err(`Could not launch ${agent.name}: ${error.message}`);
-      resolve13();
+      resolve12();
     });
-    child.on("close", () => resolve13());
+    child.on("close", () => resolve12());
   });
 }
 async function cmdPlugin(rawArgs) {
@@ -12275,7 +12637,7 @@ async function cmdPlugin(rawArgs) {
         for (const file of created.files) log(`  ${c.dim}+${c.reset} ${file}`);
         log("");
         log(`${c.bold}Next${c.reset}`);
-        log(`  1. edit ${join35(created.dir, "index.ts")}`);
+        log(`  1. edit ${join36(created.dir, "index.ts")}`);
         log(`  2. ${c.cyan}kandown plugin build ${id}${c.reset}`);
         log(`  3. ${c.cyan}kandown plugin check ${id} --json${c.reset}   ${c.dim}fix every "fail", repeat${c.reset}`);
         log(`  4. ${c.cyan}kandown plugin dev ${id}${c.reset}            ${c.dim}watch and hot reload the board${c.reset}`);
@@ -12363,8 +12725,8 @@ async function cmdPlugin(rawArgs) {
         process.exitCode = 1;
         return;
       }
-      const manifestPath = join35(dir, "manifest.json");
-      const manifest = existsSync29(manifestPath) ? JSON.parse(readFileSync23(manifestPath, "utf8")) : {};
+      const manifestPath = join36(dir, "manifest.json");
+      const manifest = existsSync29(manifestPath) ? JSON.parse(readFileSync24(manifestPath, "utf8")) : {};
       const entry = {
         id: manifest.id ?? id,
         name: manifest.name ?? id,
@@ -12397,8 +12759,8 @@ async function cmdPlugin(rawArgs) {
 }
 
 // src/cli/lib/themes-cli.ts
-import { existsSync as existsSync30, mkdirSync as mkdirSync14, readFileSync as readFileSync24, readdirSync as readdirSync11, writeFileSync as writeFileSync10 } from "fs";
-import { join as join36, resolve as resolve12 } from "path";
+import { existsSync as existsSync30, mkdirSync as mkdirSync15, readFileSync as readFileSync25, readdirSync as readdirSync12, writeFileSync as writeFileSync10 } from "fs";
+import { join as join37, resolve as resolve11 } from "path";
 init_board_reader();
 init_cli_shared();
 
@@ -12477,26 +12839,26 @@ async function cmdTheme(rawArgs) {
   }
 }
 async function installFromTarget(projectDir, target) {
-  const src = resolve12(target);
+  const src = resolve11(target);
   if (existsSync30(src) && src.endsWith(".json")) {
-    const text = readFileSync24(src, "utf8");
+    const text = readFileSync25(src, "utf8");
     const parsed = JSON.parse(text);
     if (!parsed.id) return { ok: false, error: "theme JSON is missing id" };
-    const destDir = join36(projectDir, ".kandown", "themes");
-    mkdirSync14(destDir, { recursive: true });
-    writeFileSync10(join36(destDir, `${parsed.id}.json`), text, "utf8");
+    const destDir = join37(projectDir, ".kandown", "themes");
+    mkdirSync15(destDir, { recursive: true });
+    writeFileSync10(join37(destDir, `${parsed.id}.json`), text, "utf8");
     return { ok: true, id: parsed.id };
   }
   return installTheme(projectDir, { url: target });
 }
 function listInstalledThemesForCli(projectDir) {
-  const dir = join36(projectDir, ".kandown", "themes");
+  const dir = join37(projectDir, ".kandown", "themes");
   if (!existsSync30(dir)) return [];
   const out = [];
-  for (const file of readdirSync11(dir)) {
+  for (const file of readdirSync12(dir)) {
     if (!file.endsWith(".json")) continue;
     try {
-      const raw = readFileSync24(join36(dir, file), "utf8");
+      const raw = readFileSync25(join37(dir, file), "utf8");
       const parsed = JSON.parse(raw);
       if (parsed.id) out.push({ id: parsed.id, name: parsed.name ?? parsed.id, author: parsed.author, description: parsed.description, version: parsed.version });
     } catch {
@@ -12505,9 +12867,9 @@ function listInstalledThemesForCli(projectDir) {
   return out;
 }
 function scaffoldTheme(projectDir, name) {
-  const destDir = join36(projectDir, ".kandown", "themes");
-  mkdirSync14(destDir, { recursive: true });
-  const dest = join36(destDir, `${name}.json`);
+  const destDir = join37(projectDir, ".kandown", "themes");
+  mkdirSync15(destDir, { recursive: true });
+  const dest = join37(destDir, `${name}.json`);
   if (existsSync30(dest)) {
     err(`Already exists: ${dest}`);
     process.exit(1);
@@ -12589,12 +12951,12 @@ function scaffoldTheme(projectDir, name) {
 `, "utf8");
 }
 function publishTheme(file, githubUser) {
-  const resolved = resolve12(file);
+  const resolved = resolve11(file);
   if (!existsSync30(resolved)) {
     err(`Theme file not found: ${file}`);
     process.exit(1);
   }
-  const raw = readFileSync24(resolved, "utf8");
+  const raw = readFileSync25(resolved, "utf8");
   let theme;
   try {
     theme = JSON.parse(raw);
@@ -12617,7 +12979,7 @@ function publishTheme(file, githubUser) {
     } catch {
     }
   }
-  const json = existsSync30(resolved) ? readFileSync24(resolved, "utf8") : raw;
+  const json = existsSync30(resolved) ? readFileSync25(resolved, "utf8") : raw;
   const url = buildProposeUrl({
     githubOwner: KANDOWN_THEME_REPO_OWNER,
     githubRepo: KANDOWN_THEME_REPO_NAME,
@@ -12754,13 +13116,13 @@ async function main() {
     case void 0: {
       const parsed = parseArgs(rest);
       const kandownDir = resolveKandownDir(parsed.path, process.cwd());
-      if (existsSync31(join37(kandownDir, "kandown.json"))) {
+      if (existsSync31(join38(kandownDir, "kandown.json"))) {
         let status = await getDaemonStatus(kandownDir);
         if (!status.running) {
           status = await startProjectDaemon(kandownDir);
         }
         if (!parsed.flags["no-open"]) {
-          const urlToOpen = status.metadata?.url || join37(kandownDir, "kandown.html");
+          const urlToOpen = status.metadata?.url || join38(kandownDir, "kandown.html");
           openBrowser(urlToOpen);
         }
       } else if (!process.stdin.isTTY) {
@@ -12777,7 +13139,7 @@ async function main() {
       }
       const parsed = parseArgs(rest);
       const kandownDir = resolveKandownDir(parsed.path, process.cwd());
-      if (existsSync31(join37(kandownDir, "kandown.json"))) {
+      if (existsSync31(join38(kandownDir, "kandown.json"))) {
         const positional = rest.filter((a) => !a.startsWith("-") && !a.startsWith("--path"));
         const ran = await dispatchContributedCommand(kandownDir, cmd, positional.join(" "));
         if (ran) break;

@@ -907,21 +907,21 @@ var require_react_development = __commonJS({
         );
         actScopeDepth = prevActScopeDepth;
       }
-      function recursivelyFlushAsyncActWork(returnValue, resolve7, reject) {
+      function recursivelyFlushAsyncActWork(returnValue, resolve6, reject) {
         var queue = ReactSharedInternals.actQueue;
         if (null !== queue)
           if (0 !== queue.length)
             try {
               flushActQueue(queue);
               enqueueTask(function() {
-                return recursivelyFlushAsyncActWork(returnValue, resolve7, reject);
+                return recursivelyFlushAsyncActWork(returnValue, resolve6, reject);
               });
               return;
             } catch (error) {
               ReactSharedInternals.thrownErrors.push(error);
             }
           else ReactSharedInternals.actQueue = null;
-        0 < ReactSharedInternals.thrownErrors.length ? (queue = aggregateErrors(ReactSharedInternals.thrownErrors), ReactSharedInternals.thrownErrors.length = 0, reject(queue)) : resolve7(returnValue);
+        0 < ReactSharedInternals.thrownErrors.length ? (queue = aggregateErrors(ReactSharedInternals.thrownErrors), ReactSharedInternals.thrownErrors.length = 0, reject(queue)) : resolve6(returnValue);
       }
       function flushActQueue(queue) {
         if (!isFlushing) {
@@ -1108,7 +1108,7 @@ var require_react_development = __commonJS({
             ));
           });
           return {
-            then: function(resolve7, reject) {
+            then: function(resolve6, reject) {
               didAwaitActCall = true;
               thenable.then(
                 function(returnValue) {
@@ -1118,7 +1118,7 @@ var require_react_development = __commonJS({
                       flushActQueue(queue), enqueueTask(function() {
                         return recursivelyFlushAsyncActWork(
                           returnValue,
-                          resolve7,
+                          resolve6,
                           reject
                         );
                       });
@@ -1132,7 +1132,7 @@ var require_react_development = __commonJS({
                       ReactSharedInternals.thrownErrors.length = 0;
                       reject(_thrownError);
                     }
-                  } else resolve7(returnValue);
+                  } else resolve6(returnValue);
                 },
                 function(error) {
                   popActScope(prevActQueue, prevActScopeDepth);
@@ -1154,15 +1154,15 @@ var require_react_development = __commonJS({
         if (0 < ReactSharedInternals.thrownErrors.length)
           throw callback = aggregateErrors(ReactSharedInternals.thrownErrors), ReactSharedInternals.thrownErrors.length = 0, callback;
         return {
-          then: function(resolve7, reject) {
+          then: function(resolve6, reject) {
             didAwaitActCall = true;
             0 === prevActScopeDepth ? (ReactSharedInternals.actQueue = queue, enqueueTask(function() {
               return recursivelyFlushAsyncActWork(
                 returnValue$jscomp$0,
-                resolve7,
+                resolve6,
                 reject
               );
-            })) : resolve7(returnValue$jscomp$0);
+            })) : resolve6(returnValue$jscomp$0);
           }
         };
       };
@@ -3048,8 +3048,8 @@ var require_react_reconciler_production = __commonJS({
           currentEntangledActionThenable = {
             status: "pending",
             value: void 0,
-            then: function(resolve7) {
-              entangledListeners.push(resolve7);
+            then: function(resolve6) {
+              entangledListeners.push(resolve6);
             }
           };
         }
@@ -3072,8 +3072,8 @@ var require_react_reconciler_production = __commonJS({
           status: "pending",
           value: null,
           reason: null,
-          then: function(resolve7) {
-            listeners.push(resolve7);
+          then: function(resolve6) {
+            listeners.push(resolve6);
           }
         };
         thenable.then(
@@ -12672,8 +12672,8 @@ var require_react_reconciler_development = __commonJS({
           currentEntangledActionThenable = {
             status: "pending",
             value: void 0,
-            then: function(resolve7) {
-              entangledListeners.push(resolve7);
+            then: function(resolve6) {
+              entangledListeners.push(resolve6);
             }
           };
         }
@@ -12696,8 +12696,8 @@ var require_react_reconciler_development = __commonJS({
           status: "pending",
           value: null,
           reason: null,
-          then: function(resolve7) {
-            listeners.push(resolve7);
+          then: function(resolve6) {
+            listeners.push(resolve6);
           }
         };
         thenable.then(
@@ -26212,7 +26212,7 @@ var require_websocket = __commonJS({
     var http = __require("http");
     var net = __require("net");
     var tls = __require("tls");
-    var { randomBytes, createHash: createHash4 } = __require("crypto");
+    var { randomBytes, createHash: createHash3 } = __require("crypto");
     var { Duplex, Readable: Readable2 } = __require("stream");
     var { URL: URL2 } = __require("url");
     var PerMessageDeflate2 = require_permessage_deflate();
@@ -26872,7 +26872,7 @@ var require_websocket = __commonJS({
           abortHandshake(websocket, socket, "Invalid Upgrade header");
           return;
         }
-        const digest = createHash4("sha1").update(key + GUID).digest("base64");
+        const digest = createHash3("sha1").update(key + GUID).digest("base64");
         if (res.headers["sec-websocket-accept"] !== digest) {
           abortHandshake(websocket, socket, "Invalid Sec-WebSocket-Accept header");
           return;
@@ -27239,7 +27239,7 @@ var require_websocket_server = __commonJS({
     var EventEmitter4 = __require("events");
     var http = __require("http");
     var { Duplex } = __require("stream");
-    var { createHash: createHash4 } = __require("crypto");
+    var { createHash: createHash3 } = __require("crypto");
     var extension2 = require_extension();
     var PerMessageDeflate2 = require_permessage_deflate();
     var subprotocol2 = require_subprotocol();
@@ -27540,7 +27540,7 @@ var require_websocket_server = __commonJS({
           );
         }
         if (this._state > RUNNING) return abortHandshake(socket, 503);
-        const digest = createHash4("sha1").update(key + GUID).digest("base64");
+        const digest = createHash3("sha1").update(key + GUID).digest("base64");
         const headers = [
           "HTTP/1.1 101 Switching Protocols",
           "Upgrade: websocket",
@@ -44418,22 +44418,22 @@ var init_devtools = __esm({
     init_devtools_window_polyfill();
     init_wrapper();
     import_react_devtools_core = __toESM(require_backend(), 1);
-    isDevToolsReachable = async () => new Promise((resolve7) => {
+    isDevToolsReachable = async () => new Promise((resolve6) => {
       const socket = new wrapper_default("ws://localhost:8097");
       const timeout = setTimeout(() => {
         socket.terminate();
-        resolve7(false);
+        resolve6(false);
       }, 2e3);
       timeout.unref();
       socket.on("open", () => {
         clearTimeout(timeout);
         socket.terminate();
-        resolve7(true);
+        resolve6(true);
       });
       socket.on("error", () => {
         clearTimeout(timeout);
         socket.terminate();
-        resolve7(false);
+        resolve6(false);
       });
     });
     if (await isDevToolsReachable()) {
@@ -52683,8 +52683,8 @@ var kittyModifiers = {
 var noop = () => {
 };
 var textEncoder = new TextEncoder();
-var yieldImmediate = async () => new Promise((resolve7) => {
-  setImmediate(resolve7);
+var yieldImmediate = async () => new Promise((resolve6) => {
+  setImmediate(resolve6);
 });
 var kittyQueryEscapeByte = 27;
 var kittyQueryOpenBracketByte = 91;
@@ -52888,8 +52888,8 @@ var Ink = class {
       };
     }
     this.initKittyKeyboard();
-    this.exitPromise = new Promise((resolve7, reject) => {
-      this.resolveExitPromise = resolve7;
+    this.exitPromise = new Promise((resolve6, reject) => {
+      this.resolveExitPromise = resolve6;
       this.rejectExitPromise = reject;
     });
     void this.exitPromise.catch(noop);
@@ -53182,9 +53182,9 @@ var Ink = class {
     settleThrottle(this.throttledOnRender, canWriteToStdout);
     settleThrottle(this.throttledLog, canWriteToStdout);
     if (canWriteToStdout && hasWritableState) {
-      await new Promise((resolve7) => {
+      await new Promise((resolve6) => {
         this.options.stdout.write("", () => {
-          resolve7();
+          resolve6();
         });
       });
       return;
@@ -53251,8 +53251,8 @@ var Ink = class {
   async awaitNextRender() {
     if (!this.nextRenderCommit) {
       let resolveRender;
-      const promise = new Promise((resolve7) => {
-        resolveRender = resolve7;
+      const promise = new Promise((resolve6) => {
+        resolveRender = resolve6;
       });
       this.nextRenderCommit = { promise, resolve: resolveRender };
     }
@@ -55948,16 +55948,16 @@ async function fetchDaemonInfo(port) {
   }
 }
 function isPortListening(port, timeoutMs = 400) {
-  return new Promise((resolve7) => {
+  return new Promise((resolve6) => {
     const socket = createConnection({ port, host: "127.0.0.1" }, () => {
       socket.destroy();
-      resolve7(true);
+      resolve6(true);
     });
-    socket.on("error", () => resolve7(false));
+    socket.on("error", () => resolve6(false));
     socket.setTimeout(timeoutMs);
     socket.on("timeout", () => {
       socket.destroy();
-      resolve7(false);
+      resolve6(false);
     });
   });
 }
@@ -55985,7 +55985,7 @@ async function waitForDaemon(kandownDir, timeoutMs = 8e3) {
     if (metadata && isProcessAlive(metadata.pid) && await isPortListening(metadata.port)) {
       return { running: true, metadata };
     }
-    await new Promise((resolve7) => setTimeout(resolve7, 120));
+    await new Promise((resolve6) => setTimeout(resolve6, 120));
   }
   return { running: false, metadata: null };
 }
@@ -56048,7 +56048,7 @@ async function stopProjectDaemon(kandownDir) {
   }
   const started = Date.now();
   while (Date.now() - started < 2500 && isProcessAlive(pid)) {
-    await new Promise((resolve7) => setTimeout(resolve7, 100));
+    await new Promise((resolve6) => setTimeout(resolve6, 100));
   }
   if (isProcessAlive(pid)) {
     try {
@@ -56920,7 +56920,7 @@ var NodeFsHandler = class {
         this._addToNodeFs(path, initialAdd, wh, depth + 1);
       }
     }).on(EV.ERROR, this._boundHandleError);
-    return new Promise((resolve7, reject) => {
+    return new Promise((resolve6, reject) => {
       if (!stream)
         return reject();
       stream.once(STR_END, () => {
@@ -56929,7 +56929,7 @@ var NodeFsHandler = class {
           return;
         }
         const wasThrottled = throttler ? throttler.clear() : false;
-        resolve7(void 0);
+        resolve6(void 0);
         previous.getChildren().filter((item) => {
           return item !== directory && !current.has(item);
         }).forEach((item) => {
@@ -57758,11 +57758,11 @@ function watch(paths, options = {}) {
 
 // src/cli/lib/file-watcher.ts
 function hashFile(filePath) {
-  return new Promise((resolve7, reject) => {
+  return new Promise((resolve6, reject) => {
     const hash = createHash("sha256");
     const stream = createReadStream(filePath);
     stream.on("data", (chunk) => hash.update(chunk));
-    stream.on("end", () => resolve7(hash.digest("hex")));
+    stream.on("end", () => resolve6(hash.digest("hex")));
     stream.on("error", reject);
   });
 }
@@ -59320,18 +59320,175 @@ function discoverExtensions(projectDir) {
 
 // src/lib/extensions/state.ts
 import { readFileSync as readFileSync9, writeFileSync as writeFileSync3, mkdirSync as mkdirSync4, realpathSync, renameSync as renameSync4 } from "fs";
-import { createHash as createHash3 } from "crypto";
 import { homedir as homedir4 } from "os";
-import { join as join11, resolve as resolve5 } from "path";
-function extensionStateDir(projectDir) {
-  let canonicalProject;
-  try {
-    canonicalProject = realpathSync(projectDir);
-  } catch {
-    canonicalProject = resolve5(projectDir);
+import { join as join11 } from "path";
+
+// src/lib/project-hash.ts
+function canonicalizeProjectPath(projectDir, realpath2) {
+  if (realpath2) {
+    try {
+      return realpath2(projectDir);
+    } catch {
+    }
   }
-  const projectHash = createHash3("sha256").update(canonicalProject).digest("hex").slice(0, 24);
-  return join11(homedir4(), ".kandown", "project-state", projectHash, "extensions");
+  return lexicalResolve(projectDir);
+}
+function projectHash(canonicalProject) {
+  return sha256Hex(canonicalProject).slice(0, 24);
+}
+var SHA256_K = new Uint32Array([
+  1116352408,
+  1899447441,
+  3049323471,
+  3921009573,
+  961987163,
+  1508970993,
+  2453635748,
+  2870763221,
+  3624381080,
+  310598401,
+  607225278,
+  1426881987,
+  1925078388,
+  2162078206,
+  2614888103,
+  3248222580,
+  3835390401,
+  4022224774,
+  264347078,
+  604807628,
+  770255983,
+  1249150122,
+  1555081692,
+  1996064986,
+  2554220882,
+  2821834349,
+  2952996808,
+  3210313671,
+  3336571891,
+  3584528711,
+  113926993,
+  338241895,
+  666307205,
+  773529912,
+  1294757372,
+  1396182291,
+  1695183700,
+  1986661051,
+  2177026350,
+  2456956037,
+  2730485921,
+  2820302411,
+  3259730800,
+  3345764771,
+  3516065817,
+  3600352804,
+  4094571909,
+  275423344,
+  430227734,
+  506948616,
+  659060556,
+  883997877,
+  958139571,
+  1322822218,
+  1537002063,
+  1747873779,
+  1955562222,
+  2024104815,
+  2227730452,
+  2361852424,
+  2428436474,
+  2756734187,
+  3204031479,
+  3329325298
+]);
+function rotr(x, n) {
+  return x >>> n | x << 32 - n;
+}
+function sha256Hex(input) {
+  const message = new TextEncoder().encode(input);
+  const bitLength = message.length * 8;
+  const paddedLength = (Math.floor((message.length + 8) / 64) + 1) * 64;
+  const padded = new Uint8Array(paddedLength);
+  padded.set(message);
+  padded[message.length] = 128;
+  const view = new DataView(padded.buffer);
+  view.setUint32(paddedLength - 8, Math.floor(bitLength / 4294967296), false);
+  view.setUint32(paddedLength - 4, bitLength >>> 0, false);
+  let h0 = 1779033703;
+  let h1 = 3144134277;
+  let h2 = 1013904242;
+  let h3 = 2773480762;
+  let h4 = 1359893119;
+  let h5 = 2600822924;
+  let h6 = 528734635;
+  let h7 = 1541459225;
+  const w = new Uint32Array(64);
+  for (let block = 0; block < paddedLength; block += 64) {
+    for (let i = 0; i < 16; i++) w[i] = view.getUint32(block + i * 4, false);
+    for (let i = 16; i < 64; i++) {
+      const s0 = rotr(w[i - 15], 7) ^ rotr(w[i - 15], 18) ^ w[i - 15] >>> 3;
+      const s1 = rotr(w[i - 2], 17) ^ rotr(w[i - 2], 19) ^ w[i - 2] >>> 10;
+      w[i] = w[i - 16] + s0 + w[i - 7] + s1 >>> 0;
+    }
+    let a = h0;
+    let b = h1;
+    let c2 = h2;
+    let d = h3;
+    let e = h4;
+    let f = h5;
+    let g = h6;
+    let h = h7;
+    for (let i = 0; i < 64; i++) {
+      const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+      const ch = e & f ^ ~e & g;
+      const temp1 = h + S1 + ch + SHA256_K[i] + w[i] >>> 0;
+      const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+      const maj = a & b ^ a & c2 ^ b & c2;
+      const temp2 = S0 + maj >>> 0;
+      h = g;
+      g = f;
+      f = e;
+      e = d + temp1 >>> 0;
+      d = c2;
+      c2 = b;
+      b = a;
+      a = temp1 + temp2 >>> 0;
+    }
+    h0 = h0 + a >>> 0;
+    h1 = h1 + b >>> 0;
+    h2 = h2 + c2 >>> 0;
+    h3 = h3 + d >>> 0;
+    h4 = h4 + e >>> 0;
+    h5 = h5 + f >>> 0;
+    h6 = h6 + g >>> 0;
+    h7 = h7 + h >>> 0;
+  }
+  return [h0, h1, h2, h3, h4, h5, h6, h7].map((part) => part.toString(16).padStart(8, "0")).join("");
+}
+function lexicalResolve(projectDir) {
+  const drive = /^[A-Za-z]:/.exec(projectDir)?.[0];
+  const raw = drive ? projectDir.slice(2).replace(/\\/g, "/") : projectDir;
+  const absolute = raw.startsWith("/");
+  const stack = [];
+  for (const segment of raw.split("/")) {
+    if (!segment || segment === ".") continue;
+    if (segment === "..") {
+      if (stack.length > 0) stack.pop();
+      continue;
+    }
+    stack.push(segment);
+  }
+  const body = stack.join("/");
+  if (drive) return `${drive}/${body}`;
+  return absolute ? `/${body}` : body;
+}
+
+// src/lib/extensions/state.ts
+function extensionStateDir(projectDir) {
+  const canonicalProject = canonicalizeProjectPath(projectDir, realpathSync);
+  const hash = projectHash(canonicalProject);
+  return join11(homedir4(), ".kandown", "project-state", hash, "extensions");
 }
 function enabledFilePath(projectDir) {
   return join11(extensionStateDir(projectDir), "enabled.json");
@@ -59486,7 +59643,7 @@ import { spawnSync } from "child_process";
 // src/cli/lib/cli-shared.ts
 import { existsSync as existsSync11, readFileSync as readFileSync12 } from "fs";
 import { homedir as homedir6 } from "os";
-import { join as join15, resolve as resolve6, basename as basename6, dirname as dirname6 } from "path";
+import { join as join15, resolve as resolve5, basename as basename6, dirname as dirname6 } from "path";
 import { spawn as spawn3 } from "child_process";
 
 // src/cli/lib/init.ts

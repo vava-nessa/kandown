@@ -102,6 +102,11 @@
     "navigate": "navigate",
     "select": "select"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "Tunjuk atau sembunyi panel sisi sembang ejen"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Title",
@@ -252,6 +257,26 @@
     "suggestFollowUpDesc": "Ask agents to propose next tasks after finishing one.",
     "maxSuggestions": "Max suggestions",
     "maxSuggestionsDesc": "Caps the number of follow-up tasks an agent may propose.",
+    "permissionMode": "Mod kebenaran",
+    "permissionModeDesc": "Berapa banyak kelulusan yang diterima ejen dalam sesi yang dikendalikan kandown. Yolo membenarkan harness memohon suntingan secara langsung, git ialah jaring keselamatan. Terima suntingan bertanya sebelum setiap perubahan apabila harness menyokongnya, dan selain itu kekal sebagai cadangan.",
+    "yolo": "Yolo",
+    "acceptEdits": "Terima suntingan",
+    "harnesses": {
+      "title": "Harness ejen",
+      "description": "Kandown memacu CLI ejen kod yang sudah dipasang dan sudah disahkan pada mesin ini. Ia tidak pernah meminta kunci API.",
+      "installed": "dipasang",
+      "notInstalled": "tidak dipasang",
+      "native": "asli",
+      "advisory": "cadangan",
+      "refresh": "Muat semula",
+      "loading": "Mengesan harness…",
+      "needsDaemonTitle": "Sesi ejen memerlukan kandown daemon",
+      "needsDaemonBody": "Jalankan npx kandown dalam projek ini untuk memulakan daemon: ia mengesan harness yang dipasang dan menjalankan sesi ejen.",
+      "copyHint": "Salin arahan pemasangan",
+      "copied": "Disalin",
+      "currentMode": "Mod semasa",
+      "empty": "Tiada harness dikesan pada mesin ini"
+    },
     "defaultPriority": "Default priority",
     "defaultPriorityDesc": "Initial priority for new tasks when the Priority field is enabled.",
     "defaultOwner": "Default owner",
@@ -302,5 +327,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
+  },
+  "agentChat": {
+    "title": "Sembang ejen",
+    "askAgent": "Tanya ejen",
+    "askAgentTitle": "Tanya ejen tentang tugasan ini",
+    "newChat": "Perbualan baharu",
+    "resume": "Sambung semula",
+    "resumeUnavailable": "Tidak dapat disambung semula: harness tidak pernah melaporkan id sesi",
+    "forget": "Lupakan",
+    "stop": "Stop",
+    "send": "Hantar",
+    "placeholder": "Tanya ejen...",
+    "thinking": "Berpikir",
+    "toolFailed": "gagal",
+    "tokens": "token",
+    "context": "Konteks",
+    "jumpToBottom": "Ke yang terkini",
+    "emptyState": "Mulakan perbualan: tanya tentang papan ini, satu tugasan atau kerja yang akan datang.",
+    "sessionUntitled": "Perbualan tanpa tajuk",
+    "sessionsEmpty": "Tiada perbualan lagi dalam projek ini.",
+    "harnessLabel": "Harness",
+    "noHarness": "Tiada harness dipasang pada mesin ini",
+    "copy": "Salin",
+    "daemonGuardTitle": "Sembang ejen memerlukan kandown daemon",
+    "daemonGuardBody": "Mulakan daemon tempatan untuk berbual dengan ejen kod anda: jalankan npx kandown dalam projek ini."
   }
 }

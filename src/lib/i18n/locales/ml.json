@@ -102,6 +102,11 @@
     "navigate": "navigate",
     "select": "select"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "ഏജന്റ് ചാറ്റ് സൈഡ്ബാർ തുറക്കുക അല്ലെങ്കിൽ അടയ്ക്കുക"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Title",
@@ -252,6 +257,26 @@
     "suggestFollowUpDesc": "Ask agents to propose next tasks after finishing one.",
     "maxSuggestions": "Max suggestions",
     "maxSuggestionsDesc": "Caps the number of follow-up tasks an agent may propose.",
+    "permissionMode": "അനുമതി മോഡ്",
+    "permissionModeDesc": "kandown നിയന്ത്രിക്കുന്ന സെഷനുകളിൽ ഏജന്റുകൾക്ക് എത്രമാത്രം അംഗീകാരം ലഭിക്കുന്നു. Yolo ഹാർനസിന് നേരിട്ട് എഡിറ്റുകൾ പ്രയോഗിക്കാൻ അനുവദിക്കുന്നു, git ആണ് സുരക്ഷാവലയം. എഡിറ്റുകൾ സ്വീകരിക്കുക ഹാർനസ് പിന്തുണച്ചാൽ ഓരോ മാറ്റത്തിനും മുമ്പ് ചോദിക്കുന്നു, ഇല്ലെങ്കിൽ നിർദ്ദേശം മാത്രം.",
+    "yolo": "Yolo",
+    "acceptEdits": "എഡിറ്റുകൾ സ്വീകരിക്കുക",
+    "harnesses": {
+      "title": "ഏജന്റ് ഹാർനസുകൾ",
+      "description": "ഈ മെഷീനിൽ ഇതിനകം ഇൻസ്റ്റാൾ ചെയ്തിട്ടുള്ളതും ഓതന്റിക്കേറ്റഡ് ആയതുമായ കോഡിംഗ് ഏജന്റ് CLI കളെ Kandown നടത്തുന്നു. ഒരികലും API കീ ആവശ്യപ്പെടുന്നില്ല.",
+      "installed": "ഇൻസ്റ്റാൾ ചെയ്തു",
+      "notInstalled": "ഇൻസ്റ്റാൾ ചെയ്തിട്ടില്ല",
+      "native": "നേറ്റീവ്",
+      "advisory": "ഉപദേശക",
+      "refresh": "റിഫ്രഷ്",
+      "loading": "ഹാർനസുകൾ കണ്ടെത്തുന്നു…",
+      "needsDaemonTitle": "ഏജന്റ് സെഷനുകൾക്ക് kandown daemon വേണം",
+      "needsDaemonBody": "daemon ആരംഭിക്കാൻ ഈ പ്രോജക്റ്റിൽ npx kandown റൺ ചെയ്യുക: ഇൻസ്റ്റാൾ ചെയ്ത ഹാർനസുകൾ കണ്ടെത്തി ഏജന്റ് സെഷനുകൾ നടത്തുന്നു.",
+      "copyHint": "ഇൻസ്റ്റാൾ കമാൻഡ് പകർത്തുക",
+      "copied": "പകർത്തി",
+      "currentMode": "നിലവിലെ മോഡ്",
+      "empty": "ഈ മെഷീനിൽ ഹാർനസുകളൊന്നും കണ്ടെത്തിയില്ല"
+    },
     "defaultPriority": "Default priority",
     "defaultPriorityDesc": "Initial priority for new tasks when the Priority field is enabled.",
     "defaultOwner": "Default owner",
@@ -302,5 +327,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
+  },
+  "agentChat": {
+    "title": "ഏജന്റ് ചാറ്റ്",
+    "askAgent": "ഏജന്റിനോട് ചോദിക്കുക",
+    "askAgentTitle": "ഈ ജോലിയെക്കുറിച്ച് ഏജന്റിനോട് ചോദിക്കുക",
+    "newChat": "പുതിയ സംഭാഷണം",
+    "resume": "തുടരുക",
+    "resumeUnavailable": "തുടരാനാവില്ല: ഹാർനസ് ഒരികലും സെഷൻ ഐഡി റിപ്പോർട്ട് ചെയ്തിട്ടില്ല",
+    "forget": "മറക്കുക",
+    "stop": "നിർത്തുക",
+    "send": "അയക്കുക",
+    "placeholder": "ഏജന്റിനോട് ചോദിക്കുക...",
+    "thinking": "ചിന്തിക്കുന്നു",
+    "toolFailed": "പരാജയപ്പെട്ടു",
+    "tokens": "ടോക്കണുകൾ",
+    "context": "സന്ദർഭം",
+    "jumpToBottom": "ഏറ്റവും പുതിയതിലേക്ക്",
+    "emptyState": "സംഭാഷണം തുടങ്ങുക: ഈ ബോർഡ്, ഒരു ജോലി, അല്ലെങ്കിൽ വരാനുള്ള കാര്യങ്ങളെക്കുറിച്ച് ചോദിക്കൂ.",
+    "sessionUntitled": "പേരില്ലാത്ത സംഭാഷണം",
+    "sessionsEmpty": "ഈ പ്രോജക്റ്റിൽ ഇതുവരെ സംഭാഷണങ്ങളില്ല.",
+    "harnessLabel": "ഹാർനസ്",
+    "noHarness": "ഈ മെഷീനിൽ ഒരു ഹാർനസും ഇൻസ്റ്റാൾ ചെയ്തിട്ടില്ല",
+    "copy": "പകർത്തുക",
+    "daemonGuardTitle": "ഏജന്റ് ചാറ്റിന് kandown daemon വേണം",
+    "daemonGuardBody": "നിങ്ങളുടെ കോഡിംഗ് ഏജന്റുകളുമായി സംസാരിക്കാൻ ലോക്കൽ daemon ആരംഭിക്കുക: ഈ പ്രോജക്റ്റിൽ npx kandown റൺ ചെയ്യുക."
   }
 }

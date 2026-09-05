@@ -102,6 +102,11 @@
     "navigate": "navigate",
     "select": "select"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "Показати або приховати бічну панель чату з агентом"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Title",
@@ -215,6 +220,26 @@
     "suggestFollowUpDesc": "Ask agents to propose next tasks after finishing one.",
     "maxSuggestions": "Max suggestions",
     "maxSuggestionsDesc": "Caps the number of follow-up tasks an agent may propose.",
+    "permissionMode": "Режим дозволів",
+    "permissionModeDesc": "Скільки погодження отримують агенти в сесіях під керуванням kandown. Yolo дозволяє harness застосовувати правки напряму, git є страховкою. Приймати правки запитує підтвердження перед кожною зміною, якщо harness це підтримує, інакше лишається лише порадою.",
+    "yolo": "Yolo",
+    "acceptEdits": "Приймати правки",
+    "harnesses": {
+      "title": "Harness для агентів",
+      "description": "Kandown керує CLI кодинг-агентів, які вже встановлені та вже авторизовані на цій машині. Він ніколи не запитує API-ключ.",
+      "installed": "встановлено",
+      "notInstalled": "не встановлено",
+      "native": "нативний",
+      "advisory": "консультативний",
+      "refresh": "Оновити",
+      "loading": "Пошук harness…",
+      "needsDaemonTitle": "Сесіям агентів потрібен kandown daemon",
+      "needsDaemonBody": "Виконайте npx kandown у цьому проєкті, щоб запустити daemon: він знаходить установлені harness і запускає сесії агентів.",
+      "copyHint": "Копіювати команду встановлення",
+      "copied": "Скопійовано",
+      "currentMode": "Поточний режим",
+      "empty": "На цій машині не виявлено жодного harness"
+    },
     "defaultPriority": "Default priority",
     "defaultPriorityDesc": "Initial priority for new tasks when the Priority field is enabled.",
     "defaultOwner": "Default owner",
@@ -265,5 +290,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
+  },
+  "agentChat": {
+    "title": "Чат з агентом",
+    "askAgent": "Запитати агента",
+    "askAgentTitle": "Запитати агента про це завдання",
+    "newChat": "Новий діалог",
+    "resume": "Продовжити",
+    "resumeUnavailable": "Не вдалося продовжити: harness ніколи не повідомляв ідентифікатор сесії",
+    "forget": "Забути",
+    "stop": "Стоп",
+    "send": "Надіслати",
+    "placeholder": "Запитайте агента...",
+    "thinking": "Думає",
+    "toolFailed": "помилка",
+    "tokens": "токени",
+    "context": "Контекст",
+    "jumpToBottom": "До останніх повідомлень",
+    "emptyState": "Почніть діалог: запитайте про дошку, завдання або майбутню роботу.",
+    "sessionUntitled": "Діалог без назви",
+    "sessionsEmpty": "У цьому проєкті ще немає діалогів.",
+    "harnessLabel": "Harness",
+    "noHarness": "На цій машині не встановлено жодного harness",
+    "copy": "Копіювати",
+    "daemonGuardTitle": "Чату з агентом потрібен kandown daemon",
+    "daemonGuardBody": "Запустіть локальний daemon, щоб спілкуватися з кодинг-агентами: виконайте npx kandown у цьому проєкті."
   }
 }

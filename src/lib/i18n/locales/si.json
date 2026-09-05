@@ -102,6 +102,11 @@
     "navigate": "navigate",
     "select": "select"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "ඒජන්ත චැට් පැති තීරුව විවෘත කරන්න හෝ වසන්න"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Title",
@@ -252,6 +257,26 @@
     "suggestFollowUpDesc": "Ask agents to propose next tasks after finishing one.",
     "maxSuggestions": "Max suggestions",
     "maxSuggestionsDesc": "Caps the number of follow-up tasks an agent may propose.",
+    "permissionMode": "අවසර ප්‍රකාරය",
+    "permissionModeDesc": "kandown මෙහෙයවන සැසිවලදී ඒජන්තයන්ට කොතරම් අනුමැතියක් ලැබේද. Yolo හානස් සෘජුවම සංස්කරණ යෙදීමට ඉඩ දෙයි, git ආරක්ෂක ජාලයයි. සංස්කරණ පිළිගන්න හානස් සහාය දක්වන්නේ නම් සෑම වෙනසකට පෙර අසයි, නැතහොත් උපදේශනාත්මකව පමණි.",
+    "yolo": "Yolo",
+    "acceptEdits": "සංස්කරණ පිළිගන්න",
+    "harnesses": {
+      "title": "ඒජන්ත හානස්",
+      "description": "මෙම යන්ත්‍රයේ දැනටමත් ස්ථාපනය වී ඇති සහ දැනටමත් තහවුරු කළ කෝඩිං ඒජන්ත CLI කන්ඩායම Kandown මෙහෙයවයි. කිසිවිටෙක API යතුරක් ඉල්ලන්නේ නැත.",
+      "installed": "ස්ථාපිත",
+      "notInstalled": "ස්ථාපනය කර නැත",
+      "native": "ස්වදේශී",
+      "advisory": "උපදේශක",
+      "refresh": "නැවුම් කරන්න",
+      "loading": "හානස් හඳුනාගනිමින්…",
+      "needsDaemonTitle": "ඒජන්ත සැසි සඳහා kandown daemon අවශ්‍ය වේ",
+      "needsDaemonBody": "daemon ආරම්භ කිරීමට මෙම ව්‍යාපෘතිය තුළ npx kandown ධාවනය කරන්න: ස්ථාපිත හානස් හඳුනාගෙන ඒජන්ත සැසි ධාවනය කරයි.",
+      "copyHint": "ස්ථාපන විධානය පිටපත් කරන්න",
+      "copied": "පිටපත් විය",
+      "currentMode": "වත්මන් ප්‍රකාරය",
+      "empty": "මෙම යන්ත්‍රයේ හානස් කිසිවක් හඳුනාගත්තේ නැත"
+    },
     "defaultPriority": "Default priority",
     "defaultPriorityDesc": "Initial priority for new tasks when the Priority field is enabled.",
     "defaultOwner": "Default owner",
@@ -302,5 +327,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
+  },
+  "agentChat": {
+    "title": "ඒජන්ත චැට්",
+    "askAgent": "ඒජන්තයාගෙන් අසන්න",
+    "askAgentTitle": "මෙම කාර්යය ගැන ඒජන්තයාගෙන් අසන්න",
+    "newChat": "නව සංවාදය",
+    "resume": "නැවත අරඹන්න",
+    "resumeUnavailable": "නැවත අරඹා නොහැක: හානස් කිසිවිට සැසි අංකයක් වාර්තා කර නොමැත",
+    "forget": "අමතක කරන්න",
+    "stop": "නවත්වන්න",
+    "send": "යවන්න",
+    "placeholder": "ඒජන්තයාගෙන් අසන්න...",
+    "thinking": "සිතමින්",
+    "toolFailed": "අසාර්ථක විය",
+    "tokens": "ටෝකන",
+    "context": "සන්දර්භය",
+    "jumpToBottom": "නවතම දේට",
+    "emptyState": "සංවාදය අරඹන්න: මෙම පුවරුව, කාර්යයක් හෝ ඉදිරි වැඩ ගැන අසන්න.",
+    "sessionUntitled": "නම් නොකළ සංවාදය",
+    "sessionsEmpty": "මෙම ව්‍යාපෘතියේ තවම සංවාද නැත.",
+    "harnessLabel": "හානස්",
+    "noHarness": "මෙම යන්ත්‍රයේ හානස් එකක්වත් ස්ථාපනය කර නැත",
+    "copy": "පිටපත් කරන්න",
+    "daemonGuardTitle": "ඒජන්ත චැට් සඳහා kandown daemon අවශ්‍ය වේ",
+    "daemonGuardBody": "ඔබේ කෝඩිං ඒජන්තයන් සමඟ කතාබහ කිරීමට ලෝකල් daemon ආරම්භ කරන්න: මෙම ව්‍යාපෘතිය තුළ npx kandown ධාවනය කරන්න."
   }
 }

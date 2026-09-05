@@ -102,6 +102,11 @@
     "navigate": "naviger",
     "select": "velg"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "Vis eller skjul sidepanelet for agentchat"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Tittel",
@@ -230,6 +235,26 @@
     "suggestFollowUpDesc": "Be agenter om å foreslå neste oppgaver etter å ha fullført en.",
     "maxSuggestions": "Maks forslag",
     "maxSuggestionsDesc": "Begrenser antallet oppfølgingsoppgaver en agent kan foreslå.",
+    "permissionMode": "Tillatelsesmodus",
+    "permissionModeDesc": "Hvor mye godkjenning agentene får i kandown-drevne økter. Yolo lar harnessen bruke endringer direkte, git er sikkerhetsnettet. Godta endringer spør før hver endring når harnessen støtter det, og er ellers bare veiledende.",
+    "yolo": "Yolo",
+    "acceptEdits": "Godta endringer",
+    "harnesses": {
+      "title": "Agent-harnesser",
+      "description": "Kandown styrer kodeagent-CLI-er som allerede er installert og autentisert på denne maskinen. Den spør aldri etter en API-nøkkel.",
+      "installed": "installert",
+      "notInstalled": "ikke installert",
+      "native": "innebygd",
+      "advisory": "veiledende",
+      "refresh": "Oppdater",
+      "loading": "Finner harnesser…",
+      "needsDaemonTitle": "Agentøkter trenger kandown daemon",
+      "needsDaemonBody": "Kjør npx kandown i dette prosjektet for å starte daemonen: den oppdager installerte harnesser og kjører agentøkter.",
+      "copyHint": "Kopier installasjonskommandoen",
+      "copied": "Kopiert",
+      "currentMode": "Gjeldende modus",
+      "empty": "Ingen harnesser oppdaget på denne maskinen"
+    },
     "defaultPriority": "Standard prioritet",
     "defaultPriorityDesc": "Startprioritet for nye oppgaver når Prioritet-feltet er aktivert.",
     "defaultOwner": "Standard eier",
@@ -280,5 +305,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Innstillinger oppdatert eksternt — lastet inn på nytt"
+  },
+  "agentChat": {
+    "title": "Agentchat",
+    "askAgent": "Spør agenten",
+    "askAgentTitle": "Spør agenten om denne oppgaven",
+    "newChat": "Ny samtale",
+    "resume": "Fortsett",
+    "resumeUnavailable": "Kan ikke fortsette: harnessen rapporterte aldri en økt-id",
+    "forget": "Glem",
+    "stop": "Stopp",
+    "send": "Send",
+    "placeholder": "Spør agenten...",
+    "thinking": "Tenker",
+    "toolFailed": "feilet",
+    "tokens": "tokens",
+    "context": "Kontekst",
+    "jumpToBottom": "Gå til det nyeste",
+    "emptyState": "Start samtalen: spør om tavla, en oppgave eller arbeidet som ligger foran.",
+    "sessionUntitled": "Samtale uten tittel",
+    "sessionsEmpty": "Ingen samtaler ennå i dette prosjektet.",
+    "harnessLabel": "Harness",
+    "noHarness": "Ingen harness installert på denne maskinen",
+    "copy": "Kopier",
+    "daemonGuardTitle": "Agentchatten trenger kandown daemon",
+    "daemonGuardBody": "Start den lokale daemonen for å chatte med kodeagentene dine: kjør npx kandown i dette prosjektet."
   }
 }

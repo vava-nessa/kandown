@@ -102,6 +102,11 @@
     "navigate": "navigate",
     "select": "select"
   },
+  "cheatsheet": {
+    "shortcuts": {
+      "agentChat": "အေဂျင့် ချတ် ဘေးတိုင်ဘားကို ဖွင့်ပါ သို့မဟုတ် ပိတ်ပါ"
+    }
+  },
   "listView": {
     "id": "ID",
     "title": "Title",
@@ -252,6 +257,26 @@
     "suggestFollowUpDesc": "Ask agents to propose next tasks after finishing one.",
     "maxSuggestions": "Max suggestions",
     "maxSuggestionsDesc": "Caps the number of follow-up tasks an agent may propose.",
+    "permissionMode": "ခွင့်ပြုချက် မုဒ်",
+    "permissionModeDesc": "kandown ဦးဆောင်သော session များတွင် အေဂျင့်များ ရရှိသော အတည်ပြုချက် ပမာဏ။ Yolo သည် harness အား တည်းဖြတ်မှုများကို တိုက်ရိုက် အသုံးချခွင့်ပေးပြီး git မှာ စိတ်ချရသော ကာကွယ်မှုဖြစ်သည်။ တည်းဖြတ်မှုများ လက်ခံမည် သည် harness က ထောက်ပံ့ပါက မွမ်းမံမှုတိုင်းမတိုင်မီ မေးမြန်းပြီး မထောက်ပံ့ပါက အကြံပြုချက်သာ ဖြစ်သည်။",
+    "yolo": "Yolo",
+    "acceptEdits": "တည်းဖြတ်မှုများ လက်ခံမည်",
+    "harnesses": {
+      "title": "အေဂျင့် harness များ",
+      "description": "Kandown သည် ဤစက်တွင် ထည့်သွင်းပြီးသားနှင့် စစ်မှန်ကြောင်း အတည်ပြုပြီးသား ကုဒ်ရေးအေဂျင့် CLI များကို မောင်းနှင်သည်။ API key ကို ဘယ်တော့မှ မတောင်းပါ။",
+      "installed": "ထည့်သွင်းပြီး",
+      "notInstalled": "မထည့်သွင်းရ",
+      "native": "မူလ",
+      "advisory": "အကြံပေး",
+      "refresh": "ပြန်တင်မည်",
+      "loading": "harness များကို ရှာဖွေနေသည်…",
+      "needsDaemonTitle": "အေဂျင့် session များအတွက် kandown daemon လိုအပ်သည်",
+      "needsDaemonBody": "daemon စတင်ရန် ဤပရောဂျက်တွင် npx kandown ကို run ပါ: ၎င်းသည် ထည့်သွင်းထားသော harness များကို ရှာဖွေပြီး အေဂျင့် session များကို run သည်။",
+      "copyHint": "ထည့်သွင်းရေး command ကို ကူးယူမည်",
+      "copied": "ကူးယူပြီး",
+      "currentMode": "လက်ရှိ မုဒ်",
+      "empty": "ဤစက်တွင် harness များ မတွေ့ရှိပါ"
+    },
     "defaultPriority": "Default priority",
     "defaultPriorityDesc": "Initial priority for new tasks when the Priority field is enabled.",
     "defaultOwner": "Default owner",
@@ -302,5 +327,30 @@
   },
   "toast": {
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
+  },
+  "agentChat": {
+    "title": "အေဂျင့် ချတ်",
+    "askAgent": "အေဂျင့်ကို မေးပါ",
+    "askAgentTitle": "ဤတာဝန်အကြောင်း အေဂျင့်ကို မေးပါ",
+    "newChat": "စကားဝိုင်းအသစ်",
+    "resume": "ပြန်ဆက်မည်",
+    "resumeUnavailable": "ပြန်ဆက်မရပါ: harness က session id ကို ဘယ်တုန်းကမှ မသတင်းပို့ခဲ့ပါ",
+    "forget": "မေ့လိုက်ပါ",
+    "stop": "ရပ်ပါ",
+    "send": "ပို့မည်",
+    "placeholder": "အေဂျင့်ကို မေးပါ...",
+    "thinking": "စဉ်းစားနေသည်",
+    "toolFailed": "မအောင်မြင်ပါ",
+    "tokens": "တိုကန်",
+    "context": "ကွန်တက်စ်",
+    "jumpToBottom": "နောက်ဆုံးသို့ သွားမည်",
+    "emptyState": "စကားဝိုင်းစတင်ပါ: ဤဘုတ်၊ တာဝန်တစ်ခု သို့မဟုတ် ရှေ့တွင်ရှိသော အလုပ်အကြောင်း မေးမြန်းပါ။",
+    "sessionUntitled": "ခေါင်းစဉ်မဲ့ စကားဝိုင်း",
+    "sessionsEmpty": "ဤပရောဂျက်တွင် စကားဝိုင်း မရှိသေးပါ။",
+    "harnessLabel": "harness",
+    "noHarness": "ဤစက်တွင် harness ထည့်သွင်းထားခြင်း မရှိပါ",
+    "copy": "ကူးယူမည်",
+    "daemonGuardTitle": "အေဂျင့် ချတ်အတွက် kandown daemon လိုအပ်သည်",
+    "daemonGuardBody": "သင့်ကုဒ်ရေးအေဂျင့်များနှင့် စကားပြောရန် local daemon ကို စတင်ပါ: ဤပရောဂျက်တွင် npx kandown ကို run ပါ။"
   }
 }

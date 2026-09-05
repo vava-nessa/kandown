@@ -30,7 +30,7 @@
  */
 
 import { create } from 'zustand';
-import type { Column, Filters, BoardTask, Density, ViewMode, Subtask, TaskFrontmatter, KandownConfig, TaskContent, SearchMatch } from './types';
+import type { Column, Filters, BoardTask, Density, ViewMode, Subtask, TaskFrontmatter, KandownConfig, TaskContent, SearchMatch, SessionIndexEntryPayload } from './types';
 import { DEFAULT_CONFIG } from './types';
 import {
   pickProjectDirectory,
@@ -80,6 +80,9 @@ import { withRetry } from './retry';
 import { parseQuickAddInput } from './quick-add-parser';
 import { parseTaskTitle } from './task-title-category';
 import { buildBoardUrl, buildTaskUrl, getTaskIdFromLocation } from './task-url';
+import { createAgentChatSlice, createInitialAgentChatState } from './store/agentChatSlice';
+import type { AgentChatState, AgentChatStartInput } from './store/types';
+import type { AgentChatEvent } from './agent-chat-events';
 
 function updateBrowserUrl(nextUrl: string, replace = false): void {
   if (typeof window === 'undefined') return;
@@ -312,6 +315,20 @@ interface State {
   setupWatcher: () => void;
   /** 📖 Restarts the file watcher after it auto-disabled itself (t107). */
   restartWatcher: () => void;
+
+  // Agent chat sidebar (t308). Full shape documented in store/types.ts; this
+  // inline mirror exists because store.ts still owns its own State declaration.
+  agentChat: AgentChatState;
+  openSidebar: (preTaskId?: string) => void;
+  closeSidebar: () => void;
+  refreshSessions: () => Promise<void>;
+  startSession: (input: AgentChatStartInput) => Promise<void>;
+  resumeSession: (entry: SessionIndexEntryPayload) => Promise<void>;
+  newConversation: () => void;
+  sendMessage: (text: string) => Promise<void>;
+  stopSession: (id: string) => Promise<void>;
+  forgetSession: (id: string) => Promise<void>;
+  ingestAgentEvent: (sessionId: string, event: AgentChatEvent) => void;
 }
 
 function nextTaskId(columns: Column[], archivedTasks: BoardTask[] = []): string {
@@ -480,7 +497,7 @@ function uniqueTaskIds(taskIds: string[]): string[] {
   return [...new Set(taskIds.filter(id => typeof id === 'string' && id.trim().length > 0))];
 }
 
-export const useStore = create<State>((set, get) => ({
+export const useStore = create<State>((set, get, api) => ({
   isOpen: false,
   loading: false,
   dirHandle: null,
@@ -1986,6 +2003,14 @@ export const useStore = create<State>((set, get) => ({
     get().setupWatcher();
     get().toast('File watcher restarted');
   },
+
+  // 📖 t308 agent chat sidebar: the slice owns sidebar open state, the session
+  // index, the per-session chat folds and the SSE lifecycle. store.ts still
+  // declares its own inline `State` (the slices extraction is incremental and
+  // mirrors live in store/types.ts); the two declarations are kept structurally
+  // identical so the slice composes with no casts.
+  agentChat: createInitialAgentChatState(),
+  ...createAgentChatSlice(set, get, api),
 }));
 
 // Hydrate recent projects on load. IndexedDB may be unavailable (private
