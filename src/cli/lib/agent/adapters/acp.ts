@@ -13,6 +13,14 @@
  * advisory to native only when a mode actually matched. Unmatched modes stay
  * advisory: the diff shows after the fact (t309).
  *
+ * 📖 Model selection (t322): `config.model` maps onto a per-harness spawn
+ * flag in buildArgs (see MODEL_FLAG_BY_HARNESS), the same launch-flag pattern
+ * the pi, claude and codex adapters use. session/set_model is deliberately
+ * not used: it is not a standard ACP method, so the flag at spawn is the only
+ * portable surface. An unset model is the normal case, never an error, and
+ * harnesses with no verified spawn flag simply get no flag (the pick stays
+ * inert instead of risking a failed spawn).
+ *
  * 📖 Inbound requests: ACP lets the agent ask the client for permissions
  * (session/request_permission) and file reads. In yolo mode kandown auto-
  * selects the first allow-once permission option (the session was launched in
@@ -25,7 +33,8 @@
  * client-fs agents degrade and kandown does not open an arbitrary-read surface.
  *
  * @functions
- *  → buildArgs               : harness binary plus its ACP entry flag
+ *  → buildArgs               : harness binary, ACP entry flag, optional model
+ *                              flag, optional --resume
  *  → initialStdin            : the initialize request
  *  → extractPermissionRequest: recognize one stdout line as a permission request
  *  → buildPermissionResponse : the JSON-RPC reply line for a deferred decision
@@ -41,13 +50,36 @@ import type { AgentPermissionRequest, PermissionRoutingAdapter } from '../agent-
 
 const JSONRPC_VERSION = '2.0';
 
+/** 📖 Model spawn flag per harness id (detect.ts catalog ids), verified against
+ *  the installed binaries (gemini-cli 0.46.0, opencode 1.18.19, 2026-09):
+ *  - gemini: `-m/--model` is a global top-level yargs option, accepted in any
+ *    position relative to `--experimental-acp` (both orders were run live and
+ *    get past argv parsing).
+ *  - opencode: `opencode acp` parses with strict yargs and exits 1 on ANY
+ *    unknown flag, `--model` included (help text dumped to stderr; the
+ *    existing `--resume` argument hits the same rejection). Passing a flag it
+ *    does not know would kill the session at spawn, so the pick stays inert
+ *    for opencode until its acp command grows a model option.
+ *  Unknown ACP harnesses get no flag either: a conservative default keeps a
+ *  cosmetic pick from ever breaking a spawn. */
+const MODEL_FLAG_BY_HARNESS: Record<string, string[]> = {
+  gemini: ['--model'],
+};
+
 export function buildArgs(config: AgentSessionConfig, binPath: string): string[] {
   // 📖 protocolArgs come from the harness definition (opencode: `acp`, gemini:
   // `--experimental-acp`). The runtime passes them after the binary path, so
   // here they ride in through the config already merged by agent-runtime.
-  return config.resumeSessionId
-    ? [binPath, ...(config.protocolArgs ?? []), '--resume', config.resumeSessionId]
-   : [binPath, ...(config.protocolArgs ?? [])];
+  // 📖 The model flag rides after protocolArgs, the same slot the `--resume`
+  // precedent established for harness-specific arguments: protocolArgs switch
+  // the binary into ACP mode first, session-scoped flags come after. Verified
+  // harmless for gemini, whose parser accepts global options in any position.
+  const args: string[] = [binPath, ...(config.protocolArgs ?? [])];
+  // 📖 The map owns the flag form only; the value is always config.model.
+  const modelFlag = config.model ? MODEL_FLAG_BY_HARNESS[config.harnessId] : undefined;
+  if (config.model && modelFlag) args.push(...modelFlag, config.model);
+  if (config.resumeSessionId) args.push('--resume', config.resumeSessionId);
+  return args;
 }
 
 /** 📖 First stdin line: the ACP handshake. Everything else is driven from
@@ -210,13 +242,19 @@ export function parseLine(line: string, state: AdapterState, config: AgentSessio
     if (message.method === 'session/request_permission') {
       const params = message.params && typeof message.params === 'object' ? message.params as Record<string, unknown>: {};
       const options = Array.isArray(params.options) ? params.options as unknown[]: [];
+      // 📖 Same preference order as buildPermissionResponse: allow_once first,
+      // then allow_always. Agents that only offer a persistent allow used to
+      // get `cancelled` here and the turn stalled until the user intervened.
       let optionId: string | undefined;
-      for (const option of options) {
-        const record = option && typeof option === 'object' ? option as Record<string, unknown>: {};
-        if (record.kind === 'allow_once' && typeof record.optionId === 'string') {
-          optionId = record.optionId;
-          break;
+      for (const kind of ['allow_once', 'allow_always']) {
+        for (const option of options) {
+          const record = option && typeof option === 'object' ? option as Record<string, unknown>: {};
+          if (record.kind === kind && typeof record.optionId === 'string') {
+            optionId = record.optionId;
+            break;
+          }
         }
+        if (optionId) break;
       }
       outbound.push(JSON.stringify({
         jsonrpc: JSONRPC_VERSION,

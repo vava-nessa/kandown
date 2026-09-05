@@ -8,7 +8,7 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 14566,
+      "lines": 14576,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
@@ -278,9 +278,22 @@
     },
     {
       "path": "src/cli/lib/__tests__/acp-permissions.spec.ts",
-      "lines": 309,
-      "title": "ACP permission routing tests",
-      "summary": "Locks the t309/t322 permission decision surface of the ACP adapter: recognizing a session/request_permission line on stdout (extractPermissionRequest), building the deferred JSON-RPC reply after the web UI decides…",
+      "lines": 367,
+      "title": "ACP adapter tests: permission routing and spawn argv",
+      "summary": "Locks the t309/t322 surface of the ACP adapter: recognizing a session/request_permission line on stdout (extractPermissionRequest), building the deferred JSON-RPC reply after the web UI decides (buildPermissionResponse), the edit-like…",
+      "functions": [
+        {
+          "name": "(vitest suites)",
+          "summary": null
+        }
+      ],
+      "exports": "(tests)"
+    },
+    {
+      "path": "src/cli/lib/__tests__/active-edits-route.spec.ts",
+      "lines": 175,
+      "title": "Daemon route tests for GET /api/agent/active-edits (t322)",
+      "summary": "Spins up a real `createServeServer` instance and pins the live-edit presence snapshot contract: 1.",
       "functions": [
         {
           "name": "(vitest suites)",
@@ -518,12 +531,12 @@
     },
     {
       "path": "src/cli/lib/agent/adapters/acp.ts",
-      "lines": 337,
+      "lines": 369,
       "title": "Generic ACP harness adapter (Agent Client Protocol over stdio)",
       "summary": "Speaks ACP, the open JSON-RPC 2.0 newline-delimited protocol introduced by Zed, so every ACP-capable agent (opencode, gemini, and the long tail) appears in kandown without a bespoke integration.",
       "functions": [
         {
-          "name": "buildArgs               : harness binary plus its ACP entry flag",
+          "name": "buildArgs               : harness binary, ACP entry flag, optional model",
           "summary": null
         },
         {
@@ -1350,7 +1363,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 1503,
+      "lines": 1529,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
@@ -1883,7 +1896,7 @@
     },
     {
       "path": "src/components/agent/ChatSidebar.tsx",
-      "lines": 504,
+      "lines": 510,
       "title": "Agent chat sidebar (t308)",
       "summary": "The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.",
       "functions": [
@@ -3148,7 +3161,7 @@
     },
     {
       "path": "src/lib/__tests__/agent-edits.spec.ts",
-      "lines": 190,
+      "lines": 237,
       "title": "Unit tests for the live agent edits pure core (t309)",
       "summary": "Covers the event fold (applyAgentEditsEvent), the permission queue helpers, diff pruning and the LCS-free line diff exported by src/lib/store/agentEditsSlice.ts, plus the board-event type guards exported by src/lib/watcher.ts (the…"
     },
@@ -4164,7 +4177,7 @@
     },
     {
       "path": "src/lib/store/agentEditsSlice.ts",
-      "lines": 381,
+      "lines": 471,
       "title": "Zustand store slice: live agent edit presence (t309)",
       "summary": "Makes agent edits visible on the board: tracks which task each agent session is currently editing (border beam + blobatar), keeps the latest before/after diff per task (live diff panel in the editor shells) and queues harness permission…",
       "functions": [
@@ -4173,11 +4186,19 @@
           "summary": null
         },
         {
-          "name": "createAgentEditsSlice: SSE wiring, pending-permission fetch, resolve",
+          "name": "createAgentEditsSlice: SSE wiring, active-edits seed, pending-permission",
           "summary": null
         },
         {
           "name": "applyAgentEditsEvent: fold one board event into the state (pure)",
+          "summary": null
+        },
+        {
+          "name": "seedAgentEditsFromPairs: fold a GET /api/agent/active-edits payload into",
+          "summary": null
+        },
+        {
+          "name": "isActiveEditsPayload: narrow the seed response body (pure)",
           "summary": null
         },
         {
@@ -4193,7 +4214,7 @@
           "summary": null
         }
       ],
-      "exports": "AgentEditsSlice, createAgentEditsSlice, createInitialAgentEditsState, applyAgentEditsEvent, mergePermissions, withoutPermission, restorePermissions, pruneDiffs, computeLineDiff, DiffRow"
+      "exports": "AgentEditsSlice, createAgentEditsSlice, createInitialAgentEditsState, applyAgentEditsEvent, seedAgentEditsFromPairs, isActiveEditsPayload, ActiveEditPair, mergePermissions, withoutPermission, restorePermissions, pruneDiffs, computeLineDiff, DiffRow"
     },
     {
       "path": "src/lib/store/agentSearchSlice.ts",
