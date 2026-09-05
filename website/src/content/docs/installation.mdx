@@ -84,6 +84,18 @@ If you have several projects open, bring their daemons onto the current version 
 kandown daemon refresh-all
 ```
 
+### Breaking changes when you upgrade
+
+Kandown prints a one-time notice after an upgrade that changes something user-facing, so you see it
+once and never again.
+
+<Callout type="warn">
+The agent instruction documents `.kandown/AGENT_KANDOWN.md` and `.kandown/AGENT.md` are no longer
+written or read. Agents get the rules from `kandown work`. See
+[Upgrading from AGENT_KANDOWN.md](/docs/agents/instructions#upgrading-from-agent_kandownmd) for what
+the migration does to your files.
+</Callout>
+
 ## Uninstall
 
 ```bash

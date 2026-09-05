@@ -73,3 +73,40 @@ kandown work
 
 Run it yourself. It is the exact text your agent receives. Settings → Agent → Kandown Work shows
 the same compiler preview and lets you edit this file directly.
+
+## Upgrading from `AGENT_KANDOWN.md`
+
+<Callout type="warn">
+**Breaking change.** Kandown no longer writes an agent instruction document into your project.
+`.kandown/AGENT_KANDOWN.md` and `.kandown/AGENT.md` are gone. Any prompt, script or agent config
+that says "read `.kandown/AGENT_KANDOWN.md`" must run `kandown work` instead.
+</Callout>
+
+Those files were copies of rules the CLI already knows. A copy goes stale the moment the package
+updates, gets hand-edited, gets half-committed, and then quietly disagrees with the tool that
+generated it. A command cannot: it always answers with the rules of the version you have installed.
+
+### What happens on your first run
+
+`kandown init` and `kandown work` both run the migration, once, and print what they did:
+
+| Found | Result |
+|---|---|
+| `.kandown/AGENT_KANDOWN.md` or `.kandown/AGENT.md`, unmodified | Deleted, after a checksum match against the generated original |
+| Either file, edited by you | Moved to `.kandown/legacy-agent-docs/`, never deleted |
+| `.kandown/instructions.md` | Renamed to `.kandown/kandown_work.md` |
+| `~/.kandown/instructions.md` | Renamed to `~/.kandown/kandown_work.md` |
+| No `kandown work` line in `AGENTS.md` / `CLAUDE.md` | The one-line pointer is added or repaired |
+
+Nothing you wrote is deleted. If both `instructions.md` and `kandown_work.md` exist, Kandown keeps
+both and warns, rather than picking a winner for you.
+
+### What to change in your prompts
+
+```diff
+- Read .kandown/AGENT_KANDOWN.md before working on a task.
++ Run `kandown work` before working on a task, and follow its output.
+```
+
+If you backed up an edited document, its project-specific parts belong in
+`.kandown/kandown_work.md`. The generic Kandown rules in it can be dropped: the CLI serves them.
