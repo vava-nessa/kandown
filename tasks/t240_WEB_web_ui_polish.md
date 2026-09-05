@@ -6,8 +6,8 @@ priority: P3
 tags: [web, ux, polish]
 ownerType: agent
 created: 2026-07-25
-order: 11
-updated: 2026-09-04T14:49:58Z
+order: 12
+updated: 2026-09-05T09:16:18Z
 category: WEB
 ---
 

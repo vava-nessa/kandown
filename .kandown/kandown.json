@@ -22,6 +22,9 @@
         "showBlockedBy": true,
         "showNextActionable": true
       }
+    },
+    "autopilot": {
+      "maxParallel": 2
     }
   },
   "workflow": {

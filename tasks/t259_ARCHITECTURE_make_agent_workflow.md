@@ -1,7 +1,7 @@
 ---
 id: t259
 title: Make the agent workflow chosen, not imposed
-status: In Progress
+status: Review
 assignee: codex
 priority: P1
 tags: [architecture, agents, workflow, breaking, pre-v1]
@@ -9,7 +9,7 @@ ownerType: human
 created: 2026-07-26
 order: 1
 depends_on: [t260]
-updated: 2026-08-04T23:16:41Z
+updated: 2026-09-05T09:36:00Z
 category: ARCHITECTURE
 ---
 
@@ -99,3 +99,57 @@ file that no longer reflects the choice.
 The migration risk worth naming: users who hand-edited their instructions to fake a
 custom workflow. Once workflows are real, those edits should be either preserved as
 project instructions or converted into a local workflow — not silently overwritten.
+
+## Completion report
+
+The protocol is now a slot. `compileKandownWork` emits a fixed order that no
+workflow can reorder: immutable Kandown core first, then the real columns with
+their semantic roles and available commands, then extensions, then the selected
+workflow protocol, then tracking cadence, additive skills, global and project
+instructions, and finally the task context or board digest. Selection lives in
+`.kandown/kandown.json` under `workflow.active`, exclusive by construction, with
+`skills` and `trackingCadence` as independent additive settings. Six built-ins
+ship: Kandown Standard, Real Engineering, Guided Feature, Spec Driven, Long Run,
+Diagnose & Fix. Workflow packages are data only, validated at version 1, and
+travel either as a folder or as a single portable capsule.
+
+Verification, this session, on the current tree:
+
+- `pnpm vitest run`: 44 files, 506 tests, all passing.
+- `pnpm build`: clean (vite + tsup, no type errors).
+- Fresh `kandown init` in a scratch project defaults to `kandown-standard`.
+- `kandown workflow use spec-driven` swaps only the protocol layer: diffing the
+  compiled `kandown work` output before and after shows the Kandown Core block
+  byte-identical and the `## Workflow:` section replaced.
+- Selection fails loudly, not silently: on a board with the Review column
+  removed, `kandown workflow use real-engineering` prints `Workflow requires
+  missing column roles: review.`, exits 1, and leaves `workflow.active`
+  unchanged.
+- Capsule round trip: `workflow pack templates/workflows/spec-driven --output
+  sd.kandown-workflow.md` then `workflow import` writes
+  `.kandown/workflows/spec-driven`, and `workflow list` then shows it as
+  `[local]` shadowing the built-in. Exit codes are correct on the failure path
+  (`workflow validate <missing dir>` exits 1).
+- Web surface exercised live at `http://localhost:2051`: Settings, Agent
+  instructions, tab **Workflow** lists the six built-ins, shows the active one
+  (Real Engineering) with its required roles, protocol/guide/template counts,
+  token budget, attribution, Fork to edit, and a Community library entry. The
+  Skills and Kandown Work tabs are present alongside it.
+
+Shipped to users in v0.47.0 "Kandown Workflows"; `docs/WORKFLOWS.md` and the
+README section are current. This session added one line to the AGENTS.md read
+order so `docs/WORKFLOWS.md` is discoverable from the entry point.
+
+**Proposed move: Review, then Done, for human confirmation.** Note the gate:
+[t260](t260.md) is still In Progress (6/7 subtasks), and t259 declares
+`depends_on: [t260]`, so the terminal move is legitimately blocked until t260
+lands. Nothing here should bypass it.
+
+Non-blocking follow-ups found while verifying, both outside this task's scope:
+
+- Deep-link routing creates task files. Opening `http://localhost:2051/settings`
+  created `tasks/settings.md` on disk from an unknown path segment. An unknown
+  deep link should resolve to nothing, not write a task. (The stray file was
+  deleted.)
+- The Settings navigation does not list a Themes page even though `ThemesPanel`
+  is wired in `SettingsPage.tsx`.

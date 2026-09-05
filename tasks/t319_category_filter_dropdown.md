@@ -1,9 +1,9 @@
 ---
 id: t319
 title: Category filter dropdown in header
-status: Review
+status: Done
 created: 2026-09-05
-updated: 2026-09-05T15:39:10Z
+updated: 2026-09-05T16:10:29Z
 ---
 
 ## Goal
@@ -62,3 +62,6 @@ with an X (title/aria from existing `common.remove`) beside the toggle, which
 collapses to a count badge while a selection exists. Toggling in the menu no
 longer closes it. README updated to "multi-category filter". Round 1 shipped
 the dropdown itself, the locked expanded stacks, and the 47-locale key.
+
+Shipped in v0.56.0 "Beautiful UI" (tag + GitHub release; npm upload blocked
+by an expired NPM_TOKEN, unrelated to this task).

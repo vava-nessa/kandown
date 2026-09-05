@@ -7,8 +7,8 @@ priority: P2
 tags: [web, daemon, remote, pwa, security]
 ownerType: human
 created: 2026-09-05
-order: 19
-updated: 2026-09-05T00:50:46Z
+order: 3
+updated: 2026-09-05T09:16:18Z
 category: WEB
 ---
 

@@ -2,13 +2,14 @@
 id: t263
 title: LLM Task Sharpening ("Grill-Me" & Auto-Refine)
 status: Backlog
+depends_on: [t310]
 assignee: vava
 priority: P1
 tags: [agentic, llm, refine, grill-me, ai]
 ownerType: human
 created: 2026-07-26
-order: 1
-updated: 2026-09-04T23:45:08Z
+order: 2
+updated: 2026-09-05T09:16:18Z
 category: AGENTIC
 ---
 
@@ -47,3 +48,5 @@ Ajouter un bouton magique "⚡ Sharpen Task" dans l'éditeur de tâche pour affi
 - [ ] 2. Workflow Refine instantané (réécriture titre, context, subtasks)
 - [ ] 3. Workflow Grill-Me / Interview (génération 3-5 questions, mini-formulaire interactif, fusion Markdown)
 - [ ] 4. Intégration Éditeur & Remplacement Markdown (sauvegarde sécurisée avec préservation du frontmatter YAML)
+
+Note 2026-09-05 : grill-me et refine sont livres par [[t310]] (skills builtin + choix cliquables dans le chat). Le reste (auto-refine au create) reste a cadrer.

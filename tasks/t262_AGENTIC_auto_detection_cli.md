@@ -7,8 +7,8 @@ priority: P1
 tags: [agentic, cli, agents, pipeline, dag]
 ownerType: human
 created: 2026-07-26
-order: 2
-updated: 2026-09-04T14:49:58Z
+order: 1
+updated: 2026-09-05T09:16:18Z
 category: AGENTIC
 ---
 

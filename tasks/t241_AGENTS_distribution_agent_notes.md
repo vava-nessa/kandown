@@ -6,8 +6,8 @@ priority: P3
 tags: [agents, docs, cli]
 ownerType: agent
 created: 2026-07-25
-order: 27
-updated: 2026-09-05T00:51:51Z
+order: 28
+updated: 2026-09-05T09:16:18Z
 category: AGENTS
 ---
 

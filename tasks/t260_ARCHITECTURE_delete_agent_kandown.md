@@ -1,14 +1,14 @@
 ---
 id: t260
 title: Delete AGENT_KANDOWN.md — the CLI is the only source of agent instructions
-status: In Progress
+status: Review
 assignee: pi
 priority: P1
 tags: [architecture, cli, agents, breaking]
 ownerType: human
 created: 2026-07-26
 order: 0
-updated: 2026-08-04T23:16:41Z
+updated: 2026-09-05T09:32:44Z
 category: ARCHITECTURE
 ---
 
@@ -81,7 +81,8 @@ module instead — that is a bigger, uglier change for no behavioural gain.
   [REPORT] Updated AGENTS, README, architecture, template README, browser file
 - [x] Replace the legacy Settings preview with the exact shared compiler output.
   [REPORT] Replaced the legacy three-block/raw-template configurator with the
-- [ ] Update website documentation and add the breaking-change release note.
+- [x] Update website documentation and add the breaking-change release note.
+  [REPORT] Added the upgrade section to the docs site, the breaking-change
 
     never copies `AGENT.md` or `AGENT_KANDOWN.md`.
     divergent files collision-safely, migrates both instruction scopes to
@@ -90,6 +91,8 @@ module instead — that is a bigger, uglier change for no behavioural gain.
     `pnpm build` no longer regenerates them and passes successfully.
     helpers, and launcher documentation to the dynamic compiler contract.
     shared compiler preview and immutable core controls.
+    callout on the installation page, and `changelogs/unreleased.md`
+    ("Command Not File"); both builds pass.
 
 ## Notes
 
@@ -101,3 +104,44 @@ should be loud enough that a user notices once and never again.
 Worth stating plainly in the docs, because it is the actual argument: a file can be
 edited, forked, and left behind by an update. A command cannot — it always answers
 with the rules of the version that is installed.
+
+## Completion report
+
+Agent instructions are now served by the CLI only. The generated documents are
+gone from the user's project and from this repository, `kandown init` and
+`kandown work` both migrate old installs once without losing anything the user
+edited, and the Settings preview renders the same compiler output the CLI and
+the agent launcher render.
+
+The final slice was documentation and the release note:
+
+- `website/src/content/docs/agents/instructions.mdx` gained **Upgrading from
+  `AGENT_KANDOWN.md`**: the breaking-change callout, a table of what the
+  migration does to every file it touches (checksum-matched delete, backup to
+  `.kandown/legacy-agent-docs/`, the two `instructions.md` renames, the
+  `AGENTS.md` bootstrap line), and a before/after diff for prompts.
+- `website/src/content/docs/installation.mdx` gained a **Breaking changes when
+  you upgrade** subsection pointing at it, so someone reading about updates
+  meets the change without hunting through the agent section.
+- `changelogs/unreleased.md` records the release as **"Command Not File"**: two
+  removals, five changes, with the breaking line stated in the task's own words
+  ("anything that says read `.kandown/AGENT_KANDOWN.md` stops working").
+  `CHANGELOG.md` was rebuilt by `pnpm changelog`.
+
+Verification: `pnpm build` passes at the root, `cd website && pnpm build`
+passes and prerenders `/docs/agents/instructions#upgrading-from-agent_kandownmd`,
+`pnpm changelog:check` is clean, and the website changelog index lists the
+Unreleased entry with its generated fragment.
+
+Open decision, resolved as recommended: `templates/` keeps the packaged
+authoring source. It ships inside the installed package, is never copied into a
+project and is never out of date. Say the word if you want it moved into
+TypeScript instead.
+
+Deliberately not done: the unreleased changelog covers t260 only. The autopilot
+(t311) and agent chat (t314) work landed after v0.54.0 without changelog
+entries, and folding them in would be writing release notes for tasks that are
+not this one.
+
+**Proposing the move to Done.** Everything in scope is implemented, documented
+and verified; the terminal move is yours to confirm.

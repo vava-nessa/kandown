@@ -3,13 +3,13 @@ id: t286
 title: Desktop slice 5, Tauri auto-updater
 status: Backlog
 created: 2026-08-10
-updated: 2026-09-04T14:49:58Z
+updated: 2026-09-05T09:16:18Z
 priority: P2
 tags: [desktop, release]
 ownerType: agent
 depends_on: [t284]
 category: DESKTOP
-order: 16
+order: 17
 ---
 
 # Desktop slice 5, Tauri auto-updater

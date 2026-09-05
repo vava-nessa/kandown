@@ -6,8 +6,8 @@ priority: P3
 tags: [architecture, plugins, store, epic, decision]
 ownerType: human
 created: 2026-07-26
-order: 14
-updated: 2026-09-04T14:49:58Z
+order: 15
+updated: 2026-09-05T09:16:18Z
 category: ARCHITECTURE
 ---
 
