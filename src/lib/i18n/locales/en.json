@@ -542,7 +542,14 @@
     "proposeAccept": "Accept",
     "proposeDismiss": "Dismiss",
     "contextCardsLabel": "Referenced tasks",
-    "toolDurationTitle": "Duration"
+    "toolDurationTitle": "Duration",
+    "thinkingDone": "Finished thinking",
+    "atMenuButton": "Browse tasks",
+    "menuHintAt": "Type to match tasks",
+    "menuHintSlash": "Type to match skills",
+    "modelDefault": "Harness default",
+    "modelDefaultTag": "Auto",
+    "modelSuggestedTag": "Suggested"
   },
   "agentSkills": {
     "skillsLabel": "Skills",

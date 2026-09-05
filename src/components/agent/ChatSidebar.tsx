@@ -10,14 +10,16 @@
  * form, both mounted above the PromptBar. Round 3 adds the stale-auth banner
  * (daemon restarted: reload to reconnect) in place of the daemon card, the
  * pick-a-task flow when a task-scoped skill launches with no preselected
- * task, and the shared skill launch handler the PromptBar slash-token picker
- * reuses. Round 4 adds the ModelPicker next to the harness selector (per-
- * harness persisted model for new conversations) and the steer/queue delivery
- * control in the composer for interactive harnesses. The header also hosts the t311
- * autopilot controls (start/kill switch + run totals) as a third compact row.
- * Round 5 moves the harness/model/permission cluster into the composer
- * container (BeautifulUI 08: PromptBar's toolbar slot), leaving the header
- * with the switcher, usage badge and autopilot row only.
+ * task, and the shared skill launch handler the composer slash-token picker
+ * reuses. Round 4 adds the per-harness persisted model pick for new
+ * conversations and the steer/queue delivery control in the composer for
+ * interactive harnesses. The header hosts the switcher, usage badge and the
+ * t311 autopilot controls. Round 5 moves the harness/permission cluster into
+ * the composer container, leaving the header minimal. Round 7 switches the
+ * composer to the official BeautifulUI PromptBar (external mode): the model
+ * pick becomes the BUI model menu (still persisted per harness, empty key =
+ * harness default) and the toolbar keeps the harness selector + permission
+ * chip only.
  *
  * 📖 Mounted once in App.tsx, outside the board layout, like Drawer and
  * CommandPalette, so it overlays every view and a board crash never takes the
@@ -29,6 +31,7 @@
  * @exports ChatSidebar
  * @see src/lib/store/agentChatSlice.ts
  * @see src/components/agent/MessageList.tsx
+ * @see src/components/bui/PromptBar.tsx: the composer shell
  * @see src/components/agent/SkillButtons.tsx
  */
 
@@ -42,7 +45,8 @@ import { matchAgent } from '../../lib/agent-aliases';
 import { SessionSwitcher } from './SessionSwitcher';
 import { MessageList } from './MessageList';
 import { PromptBar } from './PromptBar';
-import { ModelPicker } from './ModelPicker';
+import { loadStoredModel } from './ModelPicker';
+import type { PromptBarModel } from '../bui/PromptBar';
 import { SkillButtons } from './SkillButtons';
 import { AnswerForm } from './AnswerForm';
 import { UsageBadge } from './UsageBadge';
@@ -50,6 +54,32 @@ import { DaemonGuardCard } from './DaemonGuardCard';
 import { GitInitBanner } from './GitInitBanner';
 import { AutopilotControls } from './AutopilotControls';
 import type { ChatSkillButton } from '../../lib/store/types';
+
+/** 📖 Short, generic suggestion lists per harness family, mirroring the
+ * ModelPicker datalist (free text moved into the BUI model menu's Default +
+ * suggestion rows). Harnesses without a well-known shortlist (pi, ACP) get
+ * the Default entry only. */
+const MODEL_SUGGESTIONS: Record<string, string[]> = {
+  claude: ['opus', 'sonnet', 'haiku'],
+  codex: ['gpt-5.1-codex', 'gpt-5.1', 'o4-mini'],
+};
+
+/** 📖 localStorage key prefix for the per-harness model pick (round 4).
+ * Same slot the ModelPicker datalist writes; the string lives there privately,
+ * so it is mirrored here for the menu persistence. */
+const MODEL_STORAGE_PREFIX = 'kandown.model.';
+
+/** 📖 Persists one harness's model pick ("" removes it: harness default).
+ * Mirrors ModelPicker's own persistence; storage failures degrade to "the
+ * pick does not survive the page", never an error. */
+function persistModel(harnessId: string, model: string): void {
+  try {
+    if (model) window.localStorage.setItem(`${MODEL_STORAGE_PREFIX}${harnessId}`, model);
+    else window.localStorage.removeItem(`${MODEL_STORAGE_PREFIX}${harnessId}`);
+  } catch {
+    // 📖 Storage unavailable: the pick just does not survive the page.
+  }
+}
 
 export function ChatSidebar() {
   const { t } = useTranslation();
@@ -128,11 +158,33 @@ export function ChatSidebar() {
     setSelectedHarness((preferred ?? installedHarnesses[0])?.id ?? null);
   }, [installedHarnesses, taskAssignee, selectedHarness]);
 
-  // 📖 Round 4: model for the NEXT new conversation. The ModelPicker owns the
-  // per-harness localStorage persistence; this state is only the forwarding
-  // copy the session-start calls read.
+  // 📖 Round 4: model for the NEXT new conversation, persisted per harness in
+  // localStorage (the BUI model menu now owns the pick; "" = harness default).
+  // The state is only the forwarding copy the session-start calls read.
   const [selectedModel, setSelectedModel] = useState('');
-  const handleModelChange = useCallback((model: string) => setSelectedModel(model), []);
+  // 📖 A harness switch invalidates the previous pick: prefill from that
+  // harness's own persisted slot (ModelPicker's old prefill effect).
+  useEffect(() => {
+    setSelectedModel(selectedHarness ? loadStoredModel(selectedHarness) : '');
+  }, [selectedHarness]);
+  const handleModelChange = useCallback((model: string) => {
+    if (selectedHarness) persistModel(selectedHarness, model);
+    setSelectedModel(model);
+  }, [selectedHarness]);
+
+  // 📖 Round 7: the BUI model menu entries: Default (empty key, forwards
+  // nothing) then the harness's suggestion shortlist.
+  const modelMenu = useMemo<PromptBarModel[]>(() => {
+    const suggestions = selectedHarness ? MODEL_SUGGESTIONS[selectedHarness] ?? [] : [];
+    return [
+      { key: '', name: t('agentChat.modelDefault', 'Harness default'), tag: t('agentChat.modelDefaultTag', 'Auto') },
+      ...suggestions.map(suggestion => ({
+        key: suggestion,
+        name: suggestion,
+        tag: t('agentChat.modelSuggestedTag', 'Suggested'),
+      })),
+    ];
+  }, [selectedHarness, t]);
 
   // 📖 Round 4: delivery control visibility. Only interactive harnesses (pi,
   // ACP agents) can accept a steer/queue choice for follow-ups; one-shot
@@ -406,10 +458,11 @@ export function ChatSidebar() {
                   pickTaskLabel={pendingSkill?.skill.label ?? null}
                   onPickTask={handlePickTask}
                   onDismissPickTask={handleDismissPickTask}
-                  // 📖 Round 5: the conversation controls ride inside the
-                  // composer container (BeautifulUI 08 layout). The harness
-                  // picker applies to the NEXT new conversation; a live
-                  // session is already bound to its harness.
+                  // 📖 Round 7: the conversation controls ride inside the
+                  // composer (official BeautifulUI 08 toolbar slot). The
+                  // harness picker applies to the NEXT new conversation; a
+                  // live session is already bound to its harness. The model
+                  // pick moved into the BUI model menu (models/model below).
                   toolbar={
                     <>
                       <select
@@ -426,7 +479,6 @@ export function ChatSidebar() {
                           <option key={harness.id} value={harness.id}>{harness.name}</option>
                         ))}
                       </select>
-                      <ModelPicker harnessId={selectedHarness} onModelChange={handleModelChange} />
                       <span
                         className="ml-auto inline-flex flex-none items-center rounded-full border border-border bg-bg px-2 py-0.5 text-[10px] text-fg-muted"
                         title={t('settings.permissionMode', 'Permission mode')}
@@ -437,6 +489,9 @@ export function ChatSidebar() {
                       </span>
                     </>
                   }
+                  models={modelMenu}
+                  model={selectedModel}
+                  onModelChange={handleModelChange}
                 />
               </>
             )}

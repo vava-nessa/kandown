@@ -13,11 +13,23 @@
  * <style> block because the scoped port cannot edit styles/beautifului.css
  * (on beautifului.dev they live in the global stylesheet).
  *
+ * 📖 Kandown embedding (round 7): passing `value` switches the bar to
+ * external mode (demo={false} is implied). The composer then renders the
+ * caller's rows and state instead of the demo fixtures: `atRows` /
+ * `slashRows` feed the @ and / menus (already filtered by the embedder),
+ * `onPickAt` / `onPickSlash` handle the picks (the token commit stays
+ * here), `models` / `model` / `onModelChange` drive the model menu,
+ * `turnActive` / `onStop` swap the send square for a stop square,
+ * `onSkillClick` replaces the dictation button, `leftSlot` hosts the
+ * Steer/Queue control and `toolbar` a slim row inside the composer.
+ * Without `value` the bar is the untouched demo (gallery unchanged).
+ *
  * @exports PromptBar (default) : the composer, variant "Rounded" | "Pill"
+ * @exports PromptBarRow, PromptBarModel, PromptBarLabels
  * @see src/components/bui/gallery/ChatSection.tsx
  */
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createShader, playSweep, accentChain, ACCENTS } from "glimm";
 
 /* The built-in "prism" palette is only cyan→indigo→magenta, so a sweep
@@ -119,6 +131,45 @@ const MODELS = [
   { key: "freezer-burn", name: "Freezer Burn 0.4", tag: "Stale" },
 ];
 
+/* 📖 Kandown embedding: one menu row of the external @ or / menu. `name` is
+ * the row title WITHOUT the @ (the component commits "@name " on pick) and
+ * WITH the leading / for slash rows (picking removes the token and calls
+ * onPickSlash). Rows arrive already filtered; the component does not filter
+ * them again. */
+export type PromptBarRow = {
+  key: string;
+  name: string;
+  desc: string;
+  /** Renders a quiet marker (skills that ask questions). */
+  interactive?: boolean;
+};
+
+/* 📖 One entry of the external model menu. An empty key means "harness
+ * default": nothing is forwarded on session start. */
+export type PromptBarModel = { key: string; name: string; tag: string };
+
+export type PromptBarLabels = {
+  send: string;
+  stop: string;
+  model: string;
+  sources: string;
+  skills: string;
+  atHint: string;
+  slashHint: string;
+  interactive: string;
+};
+
+const DEFAULT_LABELS: PromptBarLabels = {
+  send: "Send",
+  stop: "Stop",
+  model: "Choose model",
+  sources: "Add attachments and sources",
+  skills: "Skills",
+  atHint: "Type to search sources & files",
+  slashHint: "Type to search commands",
+  interactive: "Interactive",
+};
+
 const FILES = ["flavor-chart.png", "summer-menu.pdf", "pos-export.csv"];
 const DICTATION = "Compare pistachio weekends to last summer";
 
@@ -166,6 +217,27 @@ export default function PromptBar({
   tall = false,
   placeholder,
   onSend,
+  value,
+  onValueChange,
+  atRows,
+  slashRows,
+  onPickAt,
+  onPickSlash,
+  models,
+  model,
+  onModelChange,
+  disabled = false,
+  sendDisabled = false,
+  turnActive = false,
+  onStop,
+  onSkillClick,
+  leftSlot,
+  toolbar,
+  menuHeading,
+  menuHint,
+  menuOverride = false,
+  onDismissMenu,
+  labels,
 }: {
   variant?: string;
   /** the self-running walkthrough; turn off when embedding in a real surface */
@@ -174,13 +246,61 @@ export default function PromptBar({
   tall?: boolean;
   placeholder?: string;
   onSend?: (text: string) => void;
+  /** 📖 External mode switch: the controlled draft. Absent keeps the demo
+   * bar self-contained. */
+  value?: string;
+  /** 📖 Fires on every draft or caret change (caret = selectionStart). */
+  onValueChange?: (value: string, caret: number) => void;
+  /** 📖 Rows of the @ menu (tasks), already filtered by the embedder. */
+  atRows?: PromptBarRow[];
+  /** 📖 Rows of the / menu (skills), already filtered by the embedder. */
+  slashRows?: PromptBarRow[];
+  /** 📖 Fired after an @ pick; the token commit ("@id ") already happened. */
+  onPickAt?: (row: PromptBarRow) => void;
+  /** 📖 Fired after a / pick; the token was removed from the draft. */
+  onPickSlash?: (row: PromptBarRow) => void;
+  /** 📖 Entries of the model menu; empty hides the model button. */
+  models?: PromptBarModel[];
+  /** 📖 Selected model key ("" = harness default). */
+  model?: string;
+  /** 📖 Fired when a model row is picked. */
+  onModelChange?: (key: string) => void;
+  /** 📖 Disables the textarea and the actions (no daemon). */
+  disabled?: boolean;
+  /** 📖 Extra send gate (a POST is already in flight). */
+  sendDisabled?: boolean;
+  /** 📖 True while a turn is live: the send square becomes a stop square
+   * and Enter stops submitting. */
+  turnActive?: boolean;
+  /** 📖 Fired by the stop square. */
+  onStop?: () => void;
+  /** 📖 Replaces the dictation button (the embedder's skills surface). */
+  onSkillClick?: () => void;
+  /** 📖 Rendered in the control row's free column (Steer/Queue). Forces the
+   * two-row layout so the control has its own row under the text. */
+  leftSlot?: ReactNode;
+  /** 📖 Slim control row rendered inside the composer, above the text. */
+  toolbar?: ReactNode;
+  /** 📖 Optional heading at the top of the @ // menu (pick-a-task mode). */
+  menuHeading?: string;
+  /** 📖 Replaces the menu footer hint. */
+  menuHint?: string;
+  /** 📖 Keeps the @ menu open regardless of the draft token (pick-a-task
+   * mode); picking a row then calls onPickAt without touching the draft. */
+  menuOverride?: boolean;
+  /** 📖 Fired on Escape while a menu is open (pick-a-task dismissal). */
+  onDismissMenu?: () => void;
+  labels?: Partial<PromptBarLabels>;
 }) {
+  const l = { ...DEFAULT_LABELS, ...labels };
+  const external = value !== undefined;
   const pill = variant === "Pill";
-  const [draft, setDraft] = useState("");
+  const [internalDraft, setInternalDraft] = useState("");
+  const draft = external ? value : internalDraft;
   const [dismissed, setDismissed] = useState(false);
   const [plusOpen, setPlusOpen] = useState(false);
   const [modelOpen, setModelOpen] = useState(false);
-  const [model, setModel] = useState(MODELS[1]);
+  const [demoModel, setDemoModel] = useState(MODELS[1]);
   const [attachments, setAttachments] = useState<string[]>([]);
   const [connected, setConnected] = useState(false);
   const [active, setActive] = useState(0);
@@ -188,7 +308,7 @@ export default function PromptBar({
   const [auto, setAuto] = useState(demo);
   const [autoStep, setAutoStep] = useState(0);
   const [expanded, setExpanded] = useState(false);
-  const wide = expanded || tall;
+  const wide = expanded || tall || (external && leftSlot !== undefined);
   const [rowBox, setRowBox] = useState<{ top: number; height: number } | null>(null);
   const [engaged, setEngaged] = useState(false);
   const [modelBox, setModelBox] = useState<{ top: number; height: number } | null>(null);
@@ -206,28 +326,50 @@ export default function PromptBar({
   const shaderRef = useRef<ReturnType<typeof createShader> | null>(null);
   const sweepingRef = useRef(false);
 
+  /* 📖 Single draft mutation path: external mode forwards the new value and
+   * caret to the embedder instead of holding the truth locally. */
+  const changeDraft = (next: string, caret?: number) => {
+    if (external) onValueChange?.(next, caret ?? next.length);
+    else setInternalDraft(next);
+  };
+
   /* hand control to the user: stop the demo loop, and when they aim at
    * the input itself, clear the demo's leftover draft for a clean start */
   const takeOver = (event: { target: EventTarget | null }) => {
+    if (!auto) return;
     setAuto(false);
-    if (auto && event.target === inputRef.current) setDraft("");
+    if (event.target === inputRef.current) setInternalDraft("");
   };
 
-  const token = dismissed ? null : parseToken(draft);
-  const menu: "at" | "slash" | null = plusOpen ? "at" : token?.kind ?? null;
+  const token = dismissed && !menuOverride ? null : parseToken(draft);
+  const menu: "at" | "slash" | null = menuOverride
+    ? "at"
+    : plusOpen ? "at" : token?.kind ?? null;
   const query = plusOpen ? "" : token?.query ?? "";
 
-  const rows: { key: string; name: string; desc: string }[] =
-    menu === "at"
-      ? SOURCES.filter((s) => s.name.toLowerCase().includes(query))
-      : menu === "slash"
-        ? COMMANDS.filter((c) => c.name.slice(1).startsWith(query))
-        : [];
+  /* 📖 Demo mode keeps filtering its fixtures; external rows arrive already
+   * filtered, and the menu hides entirely when nothing matches (the chat
+   * never showed a "no matches" dropdown). */
+  const rows: { key: string; name: string; desc: string; interactive?: boolean }[] =
+    external
+      ? menu === "at" ? atRows ?? [] : slashRows ?? []
+      : menu === "at"
+        ? SOURCES.filter((s) => s.name.toLowerCase().includes(query))
+        : menu === "slash"
+          ? COMMANDS.filter((c) => c.name.slice(1).startsWith(query))
+          : [];
+  const menuVisible = menu !== null && (external ? Boolean(menuOverride) || rows.length > 0 : true);
+  const footerHint = external
+    ? menuHint ?? (menu === "at" ? l.atHint : l.slashHint)
+    : menu === "at" ? "Type to search sources & files" : "Type to search commands";
 
   useEffect(() => {
     setActive(0);
     setEngaged(false);
-  }, [menu, query]);
+    // 📖 rows.length too: in external pick-a-task mode the embedder filters
+    // the rows without any token query changing, so a refinement must still
+    // point the keyboard back at the first row.
+  }, [menu, query, rows.length]);
 
   /* a single highlight glides to the active row instead of each row
    * toggling its own background: matches the gliding pill in the nav */
@@ -236,9 +378,16 @@ export default function PromptBar({
     if (target) setRowBox({ top: target.offsetTop, height: target.offsetHeight });
   }, [menu, query, active, connected, rows.length]);
 
+  /* 📖 Model list: the demo fixtures, or the embedder's entries (empty list
+   * hides the model button entirely). */
+  const modelList: PromptBarModel[] = external ? models ?? [] : MODELS;
+  const selectedModelKey = external ? model ?? "" : demoModel.key;
+  const selectedModel: PromptBarModel = modelList.find((m) => m.key === selectedModelKey)
+    ?? { key: selectedModelKey, name: selectedModelKey || l.model, tag: "" };
+
   /* same gliding highlight in the model menu: floats to the hovered
    * row, falling back to the currently-selected model */
-  const modelIndex = MODELS.findIndex((m) => m.key === model.key);
+  const modelIndex = modelList.findIndex((m) => m.key === selectedModel.key);
   useLayoutEffect(() => {
     if (!modelOpen) return;
     const target = modelRowRefs.current[modelHovered ?? modelIndex];
@@ -253,7 +402,7 @@ export default function PromptBar({
     const triggerRect = modelRef.current.getBoundingClientRect();
     setModelMenuLeft(Math.max(0, Math.min(triggerRect.left - anchorRect.left, anchorRect.width - 176)));
     setModelMenuBottom(anchorRect.bottom - triggerRect.top + 8);
-  }, [modelOpen, wide, model.name]);
+  }, [modelOpen, wide, selectedModel.name]);
 
   useEffect(() => {
     if (!modelOpen) setModelHovered(null);
@@ -318,8 +467,15 @@ export default function PromptBar({
     });
   };
 
-  const selectModel = (next: (typeof MODELS)[number]) => {
-    setModel(next);
+  const selectModel = (next: PromptBarModel) => {
+    // 📖 External mode forwards the key; the demo keeps its local state and
+    // its flagship rainbow sweep.
+    if (external) {
+      onModelChange?.(next.key);
+      setModelOpen(false);
+      return;
+    }
+    setDemoModel(next);
     setModelOpen(false);
     if (next.key === "sprinkles-5") celebrate();
   };
@@ -328,7 +484,7 @@ export default function PromptBar({
   useEffect(() => {
     if (!auto) return;
     const step = AUTO_STEPS[autoStep % AUTO_STEPS.length];
-    setDraft(step.draft);
+    setInternalDraft(step.draft);
     if (step.active !== undefined) setActive(step.active);
     if (step.connect !== undefined) setConnected(step.connect);
     if (step.modelOpen !== undefined) setModelOpen(step.modelOpen);
@@ -344,7 +500,7 @@ export default function PromptBar({
   useEffect(() => {
     if (!listening) return;
     const t = setTimeout(() => {
-      setDraft((current) => (current ? `${current.trimEnd()} ${DICTATION}` : DICTATION));
+      setInternalDraft((current) => (current ? `${current.trimEnd()} ${DICTATION}` : DICTATION));
       setListening(false);
       inputRef.current?.focus();
     }, 2200);
@@ -357,9 +513,9 @@ export default function PromptBar({
     const controls = controlsRef.current;
     const measure = measureRef.current;
     const modelButton = modelRef.current;
-    if (!input || !controls || !measure || !modelButton) return;
+    if (!input || !controls || !measure) return;
 
-    const fixedControlsWidth = 28 * 3 + modelButton.offsetWidth;
+    const fixedControlsWidth = 28 * 3 + (modelButton?.offsetWidth ?? 0);
     const inlineGaps = 4 * 4;
     const inlineInputWidth = controls.clientWidth - fixedControlsWidth - inlineGaps;
     const needsFullWidth = draft.includes("\n") || measure.offsetWidth + 8 > inlineInputWidth;
@@ -393,26 +549,48 @@ export default function PromptBar({
     setModelOpen(false);
   };
 
-  const pick = (row: { key: string; name: string }) => {
+  const pick = (row: PromptBarRow) => {
+    if (external) {
+      if (menu === "at") {
+        // 📖 Pick-a-task mode: the caller owns the outcome, the draft stays
+        // untouched. Mention mode commits "@name " in place of the token,
+        // exactly like the demo does.
+        if (!menuOverride) {
+          const prefix = token ? draft.slice(0, token.start) : draft;
+          changeDraft(`${prefix}@${row.name} `);
+        }
+        onPickAt?.(row);
+      } else {
+        // 📖 A slash token did its job: remove it, then let the caller launch.
+        changeDraft(token ? draft.slice(0, token.start) : draft);
+        onPickSlash?.(row);
+      }
+      setPlusOpen(false);
+      setDismissed(false);
+      inputRef.current?.focus();
+      return;
+    }
     const source = SOURCES.find((s) => s.key === row.key);
     if (source?.attach) {
       setAttachments((current) => [...current, FILES[current.length % FILES.length]]);
-      if (token) setDraft(draft.slice(0, token.start));
+      if (token) setInternalDraft(draft.slice(0, token.start));
     } else if (menu === "at") {
-      setDraft(`${token ? draft.slice(0, token.start) : draft}@${row.name} `);
+      setInternalDraft(`${token ? draft.slice(0, token.start) : draft}@${row.name} `);
     } else {
-      setDraft(`${token ? draft.slice(0, token.start) : draft}${row.name} `);
+      setInternalDraft(`${token ? draft.slice(0, token.start) : draft}${row.name} `);
     }
     setPlusOpen(false);
     setDismissed(false);
     inputRef.current?.focus();
   };
 
-  const canSend = draft.trim().length > 0 || attachments.length > 0;
+  const canSend = external
+    ? draft.trim().length > 0 && !disabled && !sendDisabled
+    : draft.trim().length > 0 || attachments.length > 0;
   const send = () => {
     if (!canSend) return;
     onSend?.(draft.trim());
-    setDraft("");
+    changeDraft("");
     setAttachments([]);
     closeMenus();
   };
@@ -432,12 +610,16 @@ export default function PromptBar({
       {/* composer is the anchor: menus grow up from its top edge */}
       <div ref={composerAnchorRef} className="relative">
       {/* ── @ / slash menu ─────────────────────────────── */}
-      {menu && (
+      {menuVisible && (
         <div
           onMouseLeave={() => setEngaged(false)}
           className="absolute inset-x-0 bottom-full z-10 mb-2 rounded-[10px] bg-surface p-1 shadow-raised"
           style={{ animation: "pop-in 180ms cubic-bezier(0.23,1,0.32,1) both", transformOrigin: "bottom center" }}
         >
+          {/* 📖 Optional heading (pick-a-task mode announces what is picked) */}
+          {menuHeading && (
+            <p className="truncate px-2 pb-1 pt-1.5 text-[11px] font-medium text-ink-3">{menuHeading}</p>
+          )}
           {/* single gliding highlight: appears once a row is hovered */}
           <span
             aria-hidden
@@ -451,7 +633,7 @@ export default function PromptBar({
             }}
           />
           {rows.map((row, i) => {
-            const source = menu === "at" ? SOURCES.find((s) => s.key === row.key) : undefined;
+            const source = external ? undefined : menu === "at" ? SOURCES.find((s) => s.key === row.key) : undefined;
             return (
               <button
                 key={row.key}
@@ -476,6 +658,11 @@ export default function PromptBar({
                   {row.name}
                 </span>
                 <span className="min-w-0 flex-1 truncate text-[12px] text-ink-3">{row.desc}</span>
+                {row.interactive && (
+                  <span className="shrink-0 rounded-full bg-inset px-1.5 py-0.5 text-[10px] font-medium text-ink-3">
+                    {l.interactive}
+                  </span>
+                )}
                 {source?.connect && (
                   <span
                     role="button"
@@ -500,7 +687,7 @@ export default function PromptBar({
             </div>
           )}
           <div className="mt-1 border-t border-line px-2 pt-1.5 pb-1 text-[11px] text-ink-3">
-            {menu === "at" ? "Type to search sources & files" : "Type to search commands"}
+            {footerHint}
           </div>
         </div>
       )}
@@ -524,7 +711,7 @@ export default function PromptBar({
                 "top 220ms cubic-bezier(0.23,1,0.32,1), height 220ms cubic-bezier(0.23,1,0.32,1), opacity 150ms ease",
             }}
           />
-          {MODELS.map((m, i) => (
+          {modelList.map((m, i) => (
             <button
               key={m.key}
               type="button"
@@ -541,7 +728,7 @@ export default function PromptBar({
             >
               <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-ink">{m.name}</span>
               <span className="shrink-0 text-[11px] text-ink-3">{m.tag}</span>
-              <span className={`shrink-0 text-ink ${m.key === model.key ? "" : "invisible"}`}>
+              <span className={`shrink-0 text-ink ${m.key === selectedModel.key ? "" : "invisible"}`}>
                 <Icon size={13} strokeWidth={2.5}><path d="M20 6L9 17l-5-5" /></Icon>
               </span>
             </button>
@@ -573,6 +760,10 @@ export default function PromptBar({
         >
           {draft}
         </span>
+
+        {toolbar && (
+          <div className="flex flex-wrap items-center gap-1.5 px-2 pt-2">{toolbar}</div>
+        )}
 
         {attachments.length > 0 && (
           <div className={`flex flex-wrap gap-1.5 pt-0.5 ${pill ? "px-1" : "px-0.5"}`}>
@@ -611,10 +802,22 @@ export default function PromptBar({
         >
           <button
             type="button"
-            aria-label="Add attachments and sources"
+            aria-label={l.sources}
             aria-expanded={plusOpen}
             onClick={() => {
               setModelOpen(false);
+              if (external) {
+                // 📖 Browse tasks: seed an @ token so the mention menu opens
+                // over the board; already-open means this is just a focus.
+                const seed = draft.endsWith("@")
+                  ? draft
+                  : draft === "" || draft.endsWith(" ")
+                    ? `${draft}@`
+                    : `${draft} @`;
+                changeDraft(seed);
+                inputRef.current?.focus();
+                return;
+              }
               setPlusOpen((current) => !current);
               inputRef.current?.focus();
             }}
@@ -629,13 +832,17 @@ export default function PromptBar({
             ref={inputRef}
             rows={1}
             value={draft}
+            disabled={disabled || undefined}
             onChange={(event) => {
-              setDraft(event.target.value);
+              changeDraft(event.target.value, event.target.selectionStart ?? undefined);
               setDismissed(false);
               setPlusOpen(false);
             }}
+            onSelect={(event) => {
+              if (external) onValueChange?.(draft, event.currentTarget.selectionStart ?? 0);
+            }}
             onKeyDown={(event) => {
-              if (menu && rows.length > 0) {
+              if (menuVisible && rows.length > 0) {
                 if (event.key === "ArrowDown" || event.key === "ArrowUp") {
                   event.preventDefault();
                   setEngaged(true);
@@ -644,88 +851,138 @@ export default function PromptBar({
                 }
                 if ((event.key === "Enter" && !event.shiftKey) || event.key === "Tab") {
                   event.preventDefault();
-                  pick(rows[active]);
+                  pick(rows[Math.min(active, rows.length - 1)]);
                   return;
                 }
               }
               if (event.key === "Escape") {
                 setDismissed(true);
                 closeMenus();
+                onDismissMenu?.();
                 return;
               }
               if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+                // 📖 While a turn is live the square is a stop square: Enter
+                // submits nothing, matching the embedder's old contract.
+                if (external && turnActive) {
+                  event.preventDefault();
+                  return;
+                }
                 event.preventDefault();
                 send();
               }
             }}
             placeholder={listening ? "Listening…" : placeholder ?? "Write a message…"}
             aria-label="Prompt"
-            className={`${tall ? "min-h-[68px] px-2 py-2 text-[14px] leading-5" : "min-h-7 px-1 py-[5px] text-[13px] leading-[18px]"} min-w-0 w-full resize-none bg-transparent text-ink outline-none [overflow-wrap:anywhere] placeholder:text-ink-3 ${
+            className={`${tall ? "min-h-[68px] px-2 py-2 text-[14px] leading-5" : "min-h-7 px-1 py-[5px] text-[13px] leading-[18px]"} min-w-0 w-full resize-none bg-transparent text-ink outline-none [overflow-wrap:anywhere] placeholder:text-ink-3 disabled:opacity-60 ${
               wide ? "col-span-full col-start-1 row-start-1" : "col-start-2 row-start-1"
             }`}
           />
 
-          {/* model picker */}
-          <button
-            ref={modelRef}
-            type="button"
-            aria-expanded={modelOpen}
-            aria-label="Choose model"
-            onClick={() => {
-              setPlusOpen(false);
-              setModelOpen((current) => !current);
-            }}
-            className={`flex h-7 shrink-0 items-center gap-1 px-1.5 text-[12px] font-medium text-ink-2 transition-colors duration-150 hover:bg-hover hover:text-ink ${
-              pill ? "rounded-full" : "rounded-[8px]"
-            } ${wide ? "col-start-2 row-start-2 justify-self-start" : "col-start-3 row-start-1"}`}
-          >
-            {model.name}
-            <span className="text-ink-3">
-              <Icon size={11} strokeWidth={2.4}><path d="M6 9l6 6 6-6" /></Icon>
-            </span>
-          </button>
-
-          {/* dictation */}
-          <button
-            type="button"
-            aria-label={listening ? "Stop dictation" : "Start dictation"}
-            aria-pressed={listening}
-            onClick={() => setListening((current) => !current)}
-            className={`flex size-7 shrink-0 items-center justify-center transition-[background-color,color,transform] duration-150 active:scale-[0.94] ${
-              pill ? "rounded-full" : "rounded-[8px]"
-            } ${listening ? "bg-accent-tint text-accent-ink" : "text-ink-3 hover:bg-hover hover:text-ink"} ${wide ? "col-start-4 row-start-2" : "col-start-4 row-start-1"}`}
-          >
-            {listening ? (
-              <span className="flex h-3.5 items-center gap-[2.5px]">
-                {[0, 1, 2].map((i) => (
-                  <span
-                    key={i}
-                    className="w-[2.5px] rounded-full bg-current"
-                    style={{ height: "100%", animation: `eq-bounce 900ms ease-in-out ${i * 150}ms infinite` }}
-                  />
-                ))}
+          {/* model picker (hidden when the embedder offers no entries) */}
+          {modelList.length > 0 && (
+            <button
+              ref={modelRef}
+              type="button"
+              aria-expanded={modelOpen}
+              aria-label={l.model}
+              onClick={() => {
+                setPlusOpen(false);
+                setModelOpen((current) => !current);
+              }}
+              className={`flex h-7 shrink-0 items-center gap-1 px-1.5 text-[12px] font-medium text-ink-2 transition-colors duration-150 hover:bg-hover hover:text-ink ${
+                pill ? "rounded-full" : "rounded-[8px]"
+              } ${wide ? "col-start-2 row-start-2 justify-self-start" : "col-start-3 row-start-1"}`}
+            >
+              {selectedModel.name}
+              <span className="text-ink-3">
+                <Icon size={11} strokeWidth={2.4}><path d="M6 9l6 6 6-6" /></Icon>
               </span>
-            ) : (
-              <Icon size={15} strokeWidth={2}><g><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3" /></g></Icon>
-            )}
-          </button>
+            </button>
+          )}
 
-          {/* send: tactile square (round in the pill variant) */}
-          <button
-            type="button"
-            aria-label="Send"
-            disabled={!canSend}
-            onClick={send}
-            className={`flex size-7 shrink-0 items-center justify-center transition-[background-color,color,transform] duration-200 enabled:active:scale-[0.94] ${
-              pill ? "rounded-full" : "rounded-[8px]"
-            } ${wide ? "col-start-5 row-start-2" : "col-start-5 row-start-1"}`}
-            style={{
-              background: canSend ? "var(--ink)" : "var(--line-strong)",
-              color: canSend ? "var(--surface)" : "var(--ink-2)",
-            }}
-          >
-            <Icon size={16} strokeWidth={2.4}><path d="M12 19V5M5 12l7-7 7 7" /></Icon>
-          </button>
+          {/* 📖 Kandown embedding: the skills button takes the dictation slot;
+           * the demo keeps its fake dictation. */}
+          {external ? (
+            onSkillClick && (
+              <button
+                type="button"
+                aria-label={l.skills}
+                title={l.skills}
+                onClick={onSkillClick}
+                className={`flex size-7 shrink-0 items-center justify-center text-ink-3 transition-[background-color,color,transform] duration-150 hover:bg-hover hover:text-ink active:scale-[0.94] ${
+                  pill ? "rounded-full" : "rounded-[8px]"
+                } ${wide ? "col-start-4 row-start-2" : "col-start-4 row-start-1"}`}
+              >
+                <Icon size={15} strokeWidth={2}><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" /><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z" /></Icon>
+              </button>
+            )
+          ) : (
+            <button
+              type="button"
+              aria-label={listening ? "Stop dictation" : "Start dictation"}
+              aria-pressed={listening}
+              onClick={() => setListening((current) => !current)}
+              className={`flex size-7 shrink-0 items-center justify-center transition-[background-color,color,transform] duration-150 active:scale-[0.94] ${
+                pill ? "rounded-full" : "rounded-[8px]"
+              } ${listening ? "bg-accent-tint text-accent-ink" : "text-ink-3 hover:bg-hover hover:text-ink"} ${wide ? "col-start-4 row-start-2" : "col-start-4 row-start-1"}`}
+            >
+              {listening ? (
+                <span className="flex h-3.5 items-center gap-[2.5px]">
+                  {[0, 1, 2].map((i) => (
+                    <span
+                      key={i}
+                      className="w-[2.5px] rounded-full bg-current"
+                      style={{ height: "100%", animation: `eq-bounce 900ms ease-in-out ${i * 150}ms infinite` }}
+                    />
+                  ))}
+                </span>
+              ) : (
+                <Icon size={15} strokeWidth={2}><g><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3" /></g></Icon>
+              )}
+            </button>
+          )}
+
+          {/* 📖 Kandown embedding: free column in the wide layout hosts the
+           * Steer/Queue delivery control (leftSlot forces the wide layout). */}
+          {leftSlot && wide && (
+            <div className="col-start-3 row-start-2 flex min-w-0 items-center self-center justify-self-start">
+              {leftSlot}
+            </div>
+          )}
+
+          {/* send: tactile square (round in the pill variant); while a turn is
+           * live it becomes the stop square */}
+          {external && turnActive ? (
+            <button
+              type="button"
+              aria-label={l.stop}
+              title={l.stop}
+              disabled={disabled}
+              onClick={() => onStop?.()}
+              className={`flex size-7 shrink-0 items-center justify-center border border-line-strong bg-surface text-ink transition-[background-color,color,transform] duration-200 enabled:active:scale-[0.94] hover:border-red hover:text-red disabled:opacity-50 ${
+                pill ? "rounded-full" : "rounded-[8px]"
+              } ${wide ? "col-start-5 row-start-2" : "col-start-5 row-start-1"}`}
+            >
+              <Icon size={15} strokeWidth={2.2}><g><rect x="6.5" y="6.5" width="11" height="11" rx="1.5" /></g></Icon>
+            </button>
+          ) : (
+            <button
+              type="button"
+              aria-label={l.send}
+              disabled={!canSend}
+              onClick={send}
+              className={`flex size-7 shrink-0 items-center justify-center transition-[background-color,color,transform] duration-200 enabled:active:scale-[0.94] ${
+                pill ? "rounded-full" : "rounded-[8px]"
+              } ${wide ? "col-start-5 row-start-2" : "col-start-5 row-start-1"}`}
+              style={{
+                background: canSend ? "var(--ink)" : "var(--line-strong)",
+                color: canSend ? "var(--surface)" : "var(--ink-2)",
+              }}
+            >
+              <Icon size={16} strokeWidth={2.4}><path d="M12 19V5M5 12l7-7 7 7" /></Icon>
+            </button>
+          )}
         </div>
       </div>
       </div>

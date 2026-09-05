@@ -1,26 +1,26 @@
 /**
  * @file Message list for the agent chat sidebar
- * @description Renders the folded conversation: user bubbles (plain text,
- * with BeautifulUI-10-style context cards for every @task mention above the
- * bubble), assistant turns as a BeautifulUI-style full-width panel (ONE
- * collapsible activity block that updates in place while the turn streams,
- * then the Markdown answer below it), error entries in the destructive tint,
- * the quiet "edited ..." line for files the agent touched during the turn,
- * and the BeautifulUI-01 pixel-grid loader (shimmer label + elapsed seconds,
- * capped at 99s) for the gap between the user's send and the first
+ * @description Renders the folded conversation: user bubbles with the
+ * BeautifulUI context cards for every @task mention above the bubble,
+ * assistant turns as a BeautifulUI-style full-width panel (ONE activity
+ * block that updates in place while the turn streams, then the Markdown
+ * answer below it), error entries in the destructive tint, the quiet
+ * "edited ..." line for files the agent touched during the turn, and the
+ * official BeautifulUI 01 pixel-grid loader (Drive variant, shimmer label +
+ * elapsed timer) for the gap between the user's send and the first
  * renderable event of the turn.
  *
  * 📖 Interactive answer surfaces (round 5, ported from BeautifulUI,
- * https://www.beautifului.dev, MIT): an ```options fenced block in an
- * assistant reply never renders as code; it becomes a 04-Approval-Card-style
- * choice card whose buttons send the chosen text as a follow-up through the
- * slice's sendMessage, then render answered (chosen highlighted, others
- * dimmed). A `PROPOSE:` line becomes a 09-Recommendation-Card with
- * Accept (sends "Approved: <action>") and Dismiss. A settled turn gets
- * 03-style follow-up suggestion chips. All of that state is per-entry
- * component-local (block index keyed); the fold itself stays untouched: the
- * parsers run at render time on the raw entry text, and the stripped text is
- * what reaches the markdown renderer.
+ * https://www.beautifului.dev, MIT; round 7 switches them to the shared
+ * bui/ components): an ```options fenced block renders as the 04 Approval
+ * Card (single radio question; a pick auto-answers and the chosen text is
+ * sent as a follow-up through the slice's sendMessage; Skip is "let me type
+ * instead"). A `PROPOSE:` line becomes the 09 Recommendation Card with
+ * Accept (sends "Approved: <action>") and Dismiss. A settled turn gets the
+ * 03-style follow-up rows. All of that state is per-entry component-local
+ * (block index keyed); the fold itself stays untouched: the parsers run at
+ * render time on the raw entry text, and the stripped text is what reaches
+ * the markdown renderer.
  *
  * 📖 Task references are linkified into chips that open the task via the
  * canonical openDrawer action, and the `[show: tXXX]` directive is stripped
@@ -28,11 +28,11 @@
  * ported from BeautifulUI in kandown tokens.
  *
  * @functions
- *  → PixelGridLoader: BeautifulUI-01 loading state (pixel grid + shimmer +
- *    elapsed seconds counter, display capped at 99s)
+ *  → WorkingLoader: official BeautifulUI 01 loading state (Drive grid +
+ *    shimmer label + elapsed timer) shown while waiting for the turn
  *  → UserMessage: bubble + @mention context cards
  *  → AssistantMessage: activity block, markdown, choice/proposal cards,
- *    suggestion chips
+ *    follow-up rows
  *  → MessageList: the full conversation, with empty state
  *
  * @exports MessageList
@@ -43,7 +43,7 @@
  * @see src/lib/task-links.ts: directive stripping + reference linkifying
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconAlertTriangle } from '@tabler/icons-react';
 import { useStore } from '../../lib/store';
@@ -61,47 +61,26 @@ import { OptionsChoiceCard } from './OptionsChoiceCard';
 import { RecommendationCard } from './RecommendationCard';
 import { SuggestionChips } from './SuggestionChips';
 import { ContextCards } from './ContextCards';
+import LoadingState from '../bui/LoadingState';
 
 interface MessageListProps {
   messages: ChatEntry[];
   changedFiles: string[];
   preContextTaskId: string | null;
   /** True while the turn has started (or the send is in flight) but nothing
-   * renderable has arrived yet: shows the pixel-grid loader. */
+   * renderable has arrived yet: shows the BeautifulUI loading grid. */
   waiting?: boolean;
 }
 
-/** 📖 BeautifulUI 01 Loading State port: a 3x3 grid of tiny pixel cells
- * lighting up in a diagonal sweep (pure CSS keyframes in globals.css, frozen
- * for prefers-reduced-motion users), the shimmer "Working..." label, and an
- * elapsed-seconds counter that stops counting at 99s so an hour-long stall
- * never grows an unbounded label. Shown between the user's send and the
- * first renderable event of the turn. */
-function PixelGridLoader() {
+/** 📖 Official BeautifulUI 01 Loading State (Drive variant): pixel-grid wave,
+ * shimmering label and its own elapsed timer. Shown between the user's send
+ * and the first renderable event of the turn; unmounts as soon as output
+ * lands, which also stops the timer. */
+function WorkingLoader() {
   const { t } = useTranslation();
-  const [seconds, setSeconds] = useState(0);
-  // 📖 The interval re-arms every tick until the cap: reads back as "stop
-  // counting at 99s" without an unbounded timer.
-  useEffect(() => {
-    if (seconds >= 99) return;
-    const timer = window.setInterval(() => {
-      setSeconds(current => Math.min(current + 1, 99));
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, [seconds]);
   return (
-    <div className="flex items-center gap-2 px-1 py-1.5" role="status">
-      <span className="grid flex-none grid-cols-3 gap-[2.5px]" aria-hidden="true">
-        {Array.from({ length: 9 }, (_, cell) => (
-          <span
-            key={cell}
-            className="agent-pixel-cell size-[4px] rounded-[1px] bg-fg-muted"
-            style={{ animationDelay: `${(((cell % 3) + Math.floor(cell / 3)) % 5) * 130}ms` }}
-          />
-        ))}
-      </span>
-      <span className="thinking-shimmer text-[11.5px] font-medium">{t('agentChat.working', 'Working...')}</span>
-      <span className="flex-none font-mono text-[10.5px] tabular-nums text-fg-faint">{seconds}s</span>
+    <div className="px-1 py-1.5">
+      <LoadingState variant="Drive" label={t('agentChat.working', 'Working...')} />
     </div>
   );
 }
@@ -296,8 +275,9 @@ export function MessageList({ messages, changedFiles, preContextTaskId, waiting 
         </div>
       )}
       {/* 📖 Turn started but nothing renderable yet (no text, no thinking, no
-          tools): the pixel-grid loader sits where the answer will land. */}
-      {waiting && <PixelGridLoader />}
+          tools): the official BeautifulUI loading grid sits where the answer
+          will land. */}
+      {waiting && <WorkingLoader />}
     </div>
   );
 }

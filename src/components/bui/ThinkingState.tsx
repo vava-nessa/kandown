@@ -4,6 +4,14 @@
  * expandable, in four variants (Steps, Reasoning, Search, Coding). Lets
  * the chat surface show live progress without permanently occupying
  * vertical space.
+ *
+ * 📖 Kandown embedding (round 7): passing `rows` (the reasoning text split
+ * into trace lines) switches the component to external mode: the demo
+ * sequence is bypassed and the rows render Reasoning-style, driven by the
+ * `live` flag instead of the internal timer. The collapsed header keeps a
+ * single-line ticker (pass `ticker`, usually the tail of the live text),
+ * auto-expands while live and auto-collapses once settled. Without `rows`
+ * the component is the untouched faithful demo copy (gallery unchanged).
  */
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -17,19 +25,20 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
  *   Coding     tool trace: files read, edits, commands
  *
  * The trace runs once, settles, and remains expandable.
+ * External mode (rows + live) renders real agent reasoning.
  *
  * BeautifulUI (beautifului.dev, MIT) : faithful copy.
  * ───────────────────────────────────────────────────────── */
 
 const STAGES = [800, 600, 1800, 2600, 1600];
 
-function useSequence(steps: number[]) {
+function useSequence(steps: number[], enabled = true) {
   const [stage, setStage] = useState(0);
   useEffect(() => {
-    if (stage >= steps.length - 1) return;
+    if (!enabled || stage >= steps.length - 1) return;
     const t = setTimeout(() => setStage((s) => s + 1), steps[stage]);
     return () => clearTimeout(t);
-  }, [stage, steps]);
+  }, [stage, steps, enabled]);
   return stage;
 }
 
@@ -98,15 +107,52 @@ function Dot({ tone }: { tone: string }) {
 
 const TONES = ["bg-accent", "bg-orange", "bg-green"];
 
-export default function ThinkingState({ variant = "Steps", onSettled }: { variant?: string; onSettled?: () => void }) {
-  const stage = useSequence(STAGES);
+export default function ThinkingState({
+  variant = "Steps",
+  onSettled,
+  rows,
+  live,
+  activeLabel,
+  doneLabel,
+  ticker,
+  className,
+}: {
+  variant?: string;
+  onSettled?: () => void;
+  /** External mode: the trace rows to render (Reasoning-style prose).
+   * Absent keeps the internal demo sequence of the variant. */
+  rows?: string[];
+  /** External mode: true while the reasoning channel is still streaming.
+   * Drives the header shimmer, the auto-expand and the settle. */
+  live?: boolean;
+  /** External mode: header copy while live (defaults to the variant's). */
+  activeLabel?: string;
+  /** External mode: header copy once settled (defaults to the variant's). */
+  doneLabel?: string;
+  /** External mode: single-line tail ticked in the collapsed header. */
+  ticker?: string;
+  /** Appended to the root so an embedding surface can add spacing. */
+  className?: string;
+}) {
+  const external = rows !== undefined;
+  const stage = useSequence(STAGES, !external);
   const [manualExpanded, setManualExpanded] = useState<boolean | null>(null);
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
   const v = VARIANTS[variant] ?? VARIANTS.Steps;
-  const autoExpanded = stage >= 1 && stage < 4;
+  // 📖 External mode: open while live, collapse on settle; the demo keeps
+  // its staged open/close window. A manual toggle always wins over both.
+  const autoExpanded = external ? live === true : stage >= 1 && stage < 4;
   const expanded = manualExpanded ?? autoExpanded;
-  const working = stage < 3;
-  const visible = stage < 2 ? 0 : stage === 2 ? Math.min(2, v.rows.length) : v.rows.length;
+  const working = external ? live === true : stage < 3;
+  const demoRows = v.rows;
+  const visible = external
+    ? rows.length
+    : stage < 2 ? 0 : stage === 2 ? Math.min(2, demoRows.length) : demoRows.length;
+  const renderRows: Row[] = external
+    ? rows.map((primary) => ({ primary }))
+    : demoRows;
+  const headerActive = external ? (activeLabel ?? v.active) : v.active;
+  const headerDone = external ? (doneLabel ?? v.done) : v.done;
   const traceRef = useRef<HTMLDivElement>(null);
   const [lineHeight, setLineHeight] = useState(0);
   useLayoutEffect(() => {
@@ -115,17 +161,19 @@ export default function ThinkingState({ variant = "Steps", onSettled }: { varian
 
   const settledRef = useRef(false);
   useEffect(() => {
-    if (working || settledRef.current) return;
+    if (external || working || settledRef.current) return;
     settledRef.current = true;
     onSettled?.();
-  }, [working, onSettled]);
+  }, [external, working, onSettled]);
 
   return (
     <div
-      key={variant}
-      className="flex w-full max-w-95 flex-col"
+      key={external ? "external" : variant}
+      className={`flex w-full max-w-95 flex-col${className ? ` ${className}` : ""}`}
       style={{
-        minHeight: working || expanded ? 176 : undefined,
+        // 📖 Demo only: the staged choreography needs the reserved height so
+        // the card does not jump between stages. External rows hug content.
+        minHeight: !external && (working || expanded) ? 176 : undefined,
         transition: "min-height 400ms cubic-bezier(0.23,1,0.32,1)",
       }}
     >
@@ -133,7 +181,7 @@ export default function ThinkingState({ variant = "Steps", onSettled }: { varian
         type="button"
         aria-expanded={expanded}
         onClick={() => setManualExpanded((current) => !(current ?? autoExpanded))}
-        className="-mx-1.5 flex w-fit items-center gap-2 rounded-control px-1.5 py-1
+        className="-mx-1.5 flex w-fit max-w-full items-center gap-2 rounded-control px-1.5 py-1
           transition-colors duration-100 hover:bg-hover-2"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--ink-2)">
@@ -150,17 +198,25 @@ export default function ThinkingState({ variant = "Steps", onSettled }: { varian
                 animation: "shimmer-text 1.4s linear infinite",
               }}
             >
-              {v.active}
+              {headerActive}
             </span>
           ) : (
             <span
               className="text-[13px] font-medium whitespace-nowrap text-ink-2"
               style={{ animation: "fade-in 350ms ease-out both" }}
             >
-              {v.done}
+              {headerDone}
             </span>
           )}
         </span>
+        {/* 📖 Single-line ticker: the tail of the live text ticks by in the
+         * collapsed header; hidden once expanded (the rows carry the same
+         * words) and in the pure demo mode. */}
+        {external && working && !expanded && ticker && (
+          <span className="min-w-0 max-w-56 truncate text-[12px] font-normal text-ink-3">
+            {ticker}
+          </span>
+        )}
         <svg
           width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
           className="transition-transform duration-300"
@@ -195,7 +251,7 @@ export default function ThinkingState({ variant = "Steps", onSettled }: { varian
                 <span className="text-[12.5px] text-ink-2">{v.query}</span>
               </div>
             )}
-            {v.rows.slice(0, visible).map((row, i) => {
+            {renderRows.slice(0, visible).map((row, i) => {
               const content = (
                 <>
                 {variant === "Search" && <Dot tone={TONES[i % 3]} />}
@@ -208,7 +264,7 @@ export default function ThinkingState({ variant = "Steps", onSettled }: { varian
                     <span className="size-3 shrink-0 rounded-full border-[1.5px] border-line-strong border-t-ink-2" style={{ animation: "spin 700ms linear infinite" }} />
                   )
                 )}
-                <span className={`min-w-0 truncate text-[12.5px] ${variant === "Reasoning" ? "whitespace-normal leading-relaxed text-ink-2" : "font-medium text-ink"} ${variant === "Search" ? "animated-underline" : ""}`}>
+                <span className={`min-w-0 text-[12.5px] ${variant === "Reasoning" || external ? "whitespace-normal leading-relaxed text-ink-2" : "truncate font-medium text-ink"} ${variant === "Search" ? "animated-underline" : ""}`}>
                   {row.primary}
                 </span>
                 {row.secondary && (
@@ -225,7 +281,7 @@ export default function ThinkingState({ variant = "Steps", onSettled }: { varian
                 </>
               );
               const rowClass = "flex min-h-7 w-full items-center gap-2 rounded-[6px] px-1.5 py-0.5 text-left";
-              const animation = { animation: `fade-up 320ms cubic-bezier(0.23,1,0.32,1) ${i * 120}ms both` };
+              const animation = { animation: `fade-up 320ms cubic-bezier(0.23,1,0.32,1) ${Math.min(i, 8) * 120}ms both` };
 
               if (variant === "Search") {
                 return (
@@ -259,7 +315,7 @@ export default function ThinkingState({ variant = "Steps", onSettled }: { varian
               }
 
               return (
-                <div key={row.primary} className={rowClass} style={animation}>
+                <div key={`${i}-${row.primary}`} className={rowClass} style={animation}>
                   {content}
                 </div>
               );

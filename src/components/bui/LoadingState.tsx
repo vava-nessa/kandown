@@ -4,6 +4,12 @@
  * variants (Drive, Dots, Orbit, Surfer). Shown while agent sessions or
  * other slow operations are in flight, so waiting reads as motion
  * instead of a frozen UI.
+ *
+ * 📖 Kandown embedding (round 7): the agent chat sidebar renders the Drive
+ * variant while a turn has started but produced no output yet. The only
+ * adaptation is the optional `className` prop appended to the root so the
+ * caller can add layout spacing; everything else keeps the faithful demo
+ * behavior (gallery unchanged when props are absent).
  */
 
 import { useEffect, useState } from "react";
@@ -83,10 +89,13 @@ export default function LoadingState({
   label,
   variant = "Drive",
   videoSrc = "https://95dnc2a95qgwt9ff.public.blob.vercel-storage.com/subway-surfers.mp4",
+  className,
 }: {
   label?: string;
   variant?: string;
   videoSrc?: string;
+  /** Appended to the root element so an embedding surface can add spacing. */
+  className?: string;
 }) {
   const elapsed = useElapsed();
   const surfer = variant === "Surfer";
@@ -148,7 +157,7 @@ export default function LoadingState({
   }
 
   return (
-    <div role="status" className="flex w-fit items-center gap-2.5">
+    <div role="status" className={`flex w-fit items-center gap-2.5${className ? ` ${className}` : ""}`}>
       <LoaderGrid delays={delays} dur={dur} round={round} />
       {labelEl}
       {elapsedEl}

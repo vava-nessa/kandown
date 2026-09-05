@@ -277,6 +277,19 @@
       "exports": "useMouseMode, parseMouseInput, MouseInputEvent"
     },
     {
+      "path": "src/cli/lib/__tests__/acp-permissions.spec.ts",
+      "lines": 270,
+      "title": "ACP permission routing tests",
+      "summary": "Locks the t309/t322 permission decision surface of the ACP adapter: recognizing a session/request_permission line on stdout (extractPermissionRequest), building the deferred JSON-RPC reply after the web UI decides…",
+      "functions": [
+        {
+          "name": "(vitest suites)",
+          "summary": null
+        }
+      ],
+      "exports": "(tests)"
+    },
+    {
       "path": "src/cli/lib/__tests__/agent-assign.spec.ts",
       "lines": 140,
       "title": "Assign-and-launch unit tests",
@@ -1713,16 +1726,24 @@
     },
     {
       "path": "src/components/agent/ActivityBlock.tsx",
-      "lines": 195,
-      "title": "One collapsible activity block per assistant turn",
-      "summary": "Replaces the pile of interleaved thinking blocks and tool chips the chat used to render: every assistant turn gets a SINGLE panel that updates in place while the turn streams.",
+      "lines": 136,
+      "title": "One activity area per assistant turn, on the shared BeautifulUI parts",
+      "summary": "Every assistant turn gets one activity area that updates in place while the turn streams: the reasoning channel renders through the official bui ThinkingState (Reasoning-style prose trace, shimmer header while live, single-line ticker…",
       "functions": [
         {
-          "name": "ToolRow: one 05/06-style tool step of the trace (name, excerpt,",
+          "name": "toolIcon: maps a fold tool name onto a ToolChips icon key",
           "summary": null
         },
         {
-          "name": "ActivityBlock: the single collapsible activity panel of one turn",
+          "name": "toolSteps: builds the ToolChips rows from the fold's tool entries",
+          "summary": null
+        },
+        {
+          "name": "thinkingRows: splits the reasoning text into trace lines",
+          "summary": null
+        },
+        {
+          "name": "ActivityBlock: the thinking trace + tool chips of one turn",
           "summary": null
         }
       ],
@@ -1849,7 +1870,7 @@
     },
     {
       "path": "src/components/agent/ChatSidebar.tsx",
-      "lines": 449,
+      "lines": 504,
       "title": "Agent chat sidebar (t308)",
       "summary": "The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.",
       "functions": [
@@ -1862,12 +1883,12 @@
     },
     {
       "path": "src/components/agent/ContextCards.tsx",
-      "lines": 92,
-      "title": "Context cards above a user chat message (round 5)",
-      "summary": "BeautifulUI 10 Context Cards port: when a user message carries",
+      "lines": 83,
+      "title": "Context cards above a user chat message (round 5, round 7 renderer)",
+      "summary": "BeautifulUI 10 Context Cards, shared bui/ edition: when a user message carries @task mentions, the official bui cards render above the bubble, right-aligned like it.",
       "functions": [
         {
-          "name": "ContextCards: the referenced-task cards of one user message",
+          "name": "ContextCards: the referenced-task bui cards of one user message",
           "summary": null
         }
       ],
@@ -1951,12 +1972,12 @@
     },
     {
       "path": "src/components/agent/MessageList.tsx",
-      "lines": 304,
+      "lines": 284,
       "title": "Message list for the agent chat sidebar",
-      "summary": "Renders the folded conversation: user bubbles (plain text, with BeautifulUI-10-style context cards for every @task mention above the bubble), assistant turns as a BeautifulUI-style full-width panel (ONE collapsible activity block that…",
+      "summary": "Renders the folded conversation: user bubbles with the BeautifulUI context cards for every @task mention above the bubble, assistant turns as a BeautifulUI-style full-width panel (ONE activity block that updates in place while the turn…",
       "functions": [
         {
-          "name": "PixelGridLoader: BeautifulUI-01 loading state (pixel grid + shimmer +",
+          "name": "WorkingLoader: official BeautifulUI 01 loading state (Drive grid +",
           "summary": null
         },
         {
@@ -1993,12 +2014,12 @@
     },
     {
       "path": "src/components/agent/OptionsChoiceCard.tsx",
-      "lines": 85,
-      "title": "Choice card for assistant ```options blocks (round 5)",
-      "summary": "BeautifulUI 04 Approval Card port (\"choices + skip/continue\"): when an assistant reply carries an ```options fenced block (one choice per line, parsed by agent-chat-options.ts), the block is NOT rendered as code; every choice becomes a…",
+      "lines": 83,
+      "title": "Choice card for assistant ```options blocks (round 5, round 7 renderer)",
+      "summary": "BeautifulUI 04 Approval Card, shared bui/ edition: when an assistant reply carries an ```options fenced block (one choice per line, parsed by agent-chat-options.ts), the block is NOT rendered as code; it becomes the official bui…",
       "functions": [
         {
-          "name": "OptionsChoiceCard: the clickable choices of one ```options block",
+          "name": "OptionsChoiceCard: the bui ApprovalCard rendering of one ```options block",
           "summary": null
         }
       ],
@@ -2006,12 +2027,12 @@
     },
     {
       "path": "src/components/agent/PromptBar.tsx",
-      "lines": 429,
-      "title": "Prompt bar for the agent chat sidebar",
-      "summary": "BeautifulUI 08 Prompt Bar port, in kandown tokens: one rounded container that holds the whole composer, the auto-sizing textarea on top, the control row under it (delivery choice for interactive harnesses on the left, sparkles + the…",
+      "lines": 298,
+      "title": "Prompt bar for the agent chat sidebar (round 7: official BUI shell)",
+      "summary": "The agent chat composer, rebuilt ON the official BeautifulUI PromptBar (src/components/bui/PromptBar.tsx, beautifului.dev, MIT) in its external mode (demo={false}): the BUI component owns the exact visual structure (rounded composer,…",
       "functions": [
         {
-          "name": "PromptBar: composer with send/stop, mention/skill pickers, toolbar slot",
+          "name": "PromptBar: the official BUI composer wired to kandown behavior",
           "summary": null
         }
       ],
@@ -2019,12 +2040,12 @@
     },
     {
       "path": "src/components/agent/RecommendationCard.tsx",
-      "lines": 74,
-      "title": "Recommendation card for assistant PROPOSE lines (round 5)",
-      "summary": "BeautifulUI 09 Recommendation Card port: when an assistant message contains a `PROPOSE: <action>` line on its own (the Kandown agent charter documents the convention: the agent suggests a board action), the line is lifted out of the…",
+      "lines": 62,
+      "title": "Recommendation card for assistant PROPOSE lines (round 5, round 7 renderer)",
+      "summary": "BeautifulUI 09 Recommendation Card, shared bui/ edition: when an assistant message contains a `PROPOSE: <action>` line on its own (the Kandown agent charter documents the convention: the agent suggests a board action), the line is…",
       "functions": [
         {
-          "name": "RecommendationCard: action text + Accept / Dismiss",
+          "name": "RecommendationCard: the bui card for one PROPOSE action",
           "summary": null
         }
       ],
@@ -2092,12 +2113,12 @@
     },
     {
       "path": "src/components/agent/SuggestionChips.tsx",
-      "lines": 53,
-      "title": "Follow-up suggestion chips under a settled assistant turn (round 5)",
-      "summary": "BeautifulUI 03 Streaming Text follow-ups port: once a turn completes, a quiet row of 2-3 small suggestion chips appears under the reply; clicking one sends its text as the follow-up message.",
+      "lines": 82,
+      "title": "Follow-up suggestion rows under a settled assistant turn (round 5, restyled round 7)",
+      "summary": "BeautifulUI 03 Streaming Text follow-ups: once a turn completes, a quiet list of 2-3 suggestion rows appears under the reply; clicking one sends its text as the follow-up message.",
       "functions": [
         {
-          "name": "SuggestionChips: the static follow-up chip row",
+          "name": "SuggestionChips: the static follow-up rows",
           "summary": null
         }
       ],
@@ -2186,7 +2207,7 @@
     },
     {
       "path": "src/components/bui/ApprovalCard.tsx",
-      "lines": 420,
+      "lines": 513,
       "title": "Human-in-the-loop approval card",
       "summary": "Renders one approval question at a time for agent sessions: the stack slides vertically between questions while the card height animates to fit, so the agent never continues without an explicit human answer."
     },
@@ -2240,7 +2261,7 @@
     },
     {
       "path": "src/components/bui/ContextCards.tsx",
-      "lines": 129,
+      "lines": 173,
       "title": "Context cards from BeautifulUI",
       "summary": "Faithful port of the BeautifulUI ContextCards (beautifului.dev, MIT): retrieved chunks enter once with a staggered fade-up, then remain available; source chips pop in after a beat.",
       "exports": "ContextCards ContextChunk ContextCardsLabels"
@@ -2305,7 +2326,7 @@
     },
     {
       "path": "src/components/bui/LoadingState.tsx",
-      "lines": 158,
+      "lines": 167,
       "title": "Pixel-grid loading states",
       "summary": "Long-running-work loaders built on a pixel grid, in four variants (Drive, Dots, Orbit, Surfer)."
     },
@@ -2325,14 +2346,14 @@
     },
     {
       "path": "src/components/bui/PromptBar.tsx",
-      "lines": 735,
+      "lines": 992,
       "title": "Prompt bar of the BeautifulUI chat kit",
       "summary": "Faithful port of the official BeautifulUI PromptBar (beautifului.dev, MIT): a composer with real controls, an attach menu, @ data-source and / command menus, a model picker, dictation and send.",
-      "exports": "PromptBar (default) : the composer, variant \"Rounded\" | \"Pill\""
+      "exports": "PromptBar (default) : the composer, variant \"Rounded\" | \"Pill\" PromptBarRow, PromptBarModel, PromptBarLabels"
     },
     {
       "path": "src/components/bui/RecommendationCard.tsx",
-      "lines": 181,
+      "lines": 248,
       "title": "Recommendation card from BeautifulUI",
       "summary": "Faithful port of the BeautifulUI RecommendationCard (beautifului.dev, MIT): the card holds its shape, pressing \"Alternatives\" opens the options drawer, picking one promotes it and the primary action confirms.",
       "exports": "RecommendationCard RecommendationOption RecommendationLabels"
@@ -2380,13 +2401,13 @@
     },
     {
       "path": "src/components/bui/ThinkingState.tsx",
-      "lines": 279,
+      "lines": 335,
       "title": "Expandable agent thinking trace",
       "summary": "Renders an agent trace that runs once, settles, and stays expandable, in four variants (Steps, Reasoning, Search, Coding)."
     },
     {
       "path": "src/components/bui/ToolChips.tsx",
-      "lines": 346,
+      "lines": 367,
       "title": "Tool Chips of the BeautifulUI design system",
       "summary": "An agent run as compact tool rows with inline chips, then file-diff chips summarizing the edits; hovering a file chip opens its diff preview in a body portal.",
       "exports": "ToolChips"

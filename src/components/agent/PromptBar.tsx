@@ -1,65 +1,59 @@
 /**
- * @file Prompt bar for the agent chat sidebar
- * @description BeautifulUI 08 Prompt Bar port, in kandown tokens: one rounded
- * container that holds the whole composer, the auto-sizing textarea on top,
- * the control row under it (delivery choice for interactive harnesses on the
- * left, sparkles + the accent-circle send/stop button on the right) and an
- * optional slim `toolbar` row above the textarea where ChatSidebar mounts the
- * harness/model/permission cluster (they concern the NEXT new conversation).
- * Enter sends, Shift+Enter inserts a newline. While a turn is live the send
- * circle becomes a stop circle; when no session is active the first send
- * starts one (lazily, so "Ask the agent" never kicks off a harness run the
- * user did not ask for); without a daemon the bar is disabled.
+ * @file Prompt bar for the agent chat sidebar (round 7: official BUI shell)
+ * @description The agent chat composer, rebuilt ON the official BeautifulUI
+ * PromptBar (src/components/bui/PromptBar.tsx, beautifului.dev, MIT) in its
+ * external mode (demo={false}): the BUI component owns the exact visual
+ * structure (rounded composer, auto-sizing textarea, @ / slash menus with the
+ * gliding highlight, model menu, control row with send/stop squares), while
+ * this wrapper owns every kandown behavior:
  *
- * 📖 Round 4: when the active session runs on an interactive harness (pi, ACP
- * agents), a tiny Steer/Queue segmented control sits inline in the control
- * row and the choice rides along on send as the follow-up's delivery mode
- * ('steer' delivers into the live turn, 'queue' after it). One-shot harnesses
- * hide the control: their follow-ups always resume after the turn.
+ *  → caret-tracked @task mentions and /skill tokens through chat-mentions.ts,
+ *    fed to the BUI menus as already-filtered rows (tasks cap at 8, the whole
+ *    board in pick-task mode); picking an @row commits "@<id> " (done by the
+ *    BUI component), picking a /row removes the token and launches the skill
+ *    through the same handler the pill buttons use;
+ *  → the pick-a-task flow for a task-scoped skill launched without a task
+ *    context (menuOverride keeps the menu open until a task is picked or Esc
+ *    dismisses);
+ *  → send semantics: @mentions are extracted and forwarded as structured ids
+ *    so the daemon can inline the integral task files; the visible text is
+ *    never rewritten; Enter sends, Shift+Enter inserts a newline; while a
+ *    turn is live the send square becomes the stop square;
+ *  → the Steer/Queue delivery control for interactive harnesses rides the
+ *    BUI control row (leftSlot) and the choice travels on send ('steer'
+ *    delivers into the live turn, 'queue' after it);
+ *  → the model menu is wired to ChatSidebar's per-harness persisted model
+ *    state (empty key = harness default);
+ *  → the slim toolbar row inside the composer carries the harness/permission
+ *    cluster for the NEXT new conversation;
+ *  → lazy session start stays in ChatSidebar: the first send on a sessionless
+ *    sidebar starts one.
  *
- * 📖 Round 3 additions, all anchored above the textarea through the shared
- * TaskMentionDropdown: typing `@` opens the task mention picker (ArrowUp/Down
- * move, Enter/Tab select, Esc closes; selecting rewrites the active @token in
- * place), typing `/` opens the chat-skill picker (selecting launches the
- * skill through the same handler the pill buttons use), the sparkles button
- * opens the read-only SkillsModal, and the controlled `pickTaskMode` lets
- * ChatSidebar ask for a target task when a task-scoped skill is launched
- * without a task context. On send, @mentions are extracted and forwarded as
- * structured ids so the daemon can inline the integral task files; the
- * visible text is never rewritten.
+ * 📖 Round 4/5 behaviors preserved verbatim; round 7 only swaps the rendering
+ * shell for the official component. Attachments and dictation are demo-only
+ * BUI features and stay out of kandown.
  *
  * @functions
- *  → PromptBar: composer with send/stop, mention/skill pickers, toolbar slot
- *    and lazy session start
+ *  → PromptBar: the official BUI composer wired to kandown behavior
  *
  * @exports PromptBar
+ * @see src/components/bui/PromptBar.tsx: the official component (external mode)
  * @see src/components/agent/ChatSidebar.tsx
  * @see src/lib/chat-mentions.ts: the pure token detection this composes
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconArrowUp, IconPlayerStop, IconSparkles } from '@tabler/icons-react';
 import { useStore } from '../../lib/store';
 import {
   extractMentionedTaskIds,
   findActiveMentionQuery,
   findActiveSlashQuery,
   stripMentionMarkers,
-  type MentionQuery,
 } from '../../lib/chat-mentions';
-import { TaskMentionDropdown, type TaskMentionDropdownItem } from './TaskMentionDropdown';
 import { SkillsModal } from './SkillsModal';
+import BuiPromptBar, { type PromptBarModel, type PromptBarRow } from '../bui/PromptBar';
 import type { ChatSkillButton } from '../../lib/store/types';
-
-/** 📖 How the prompt bar reads the live menu. `kind` decides what selecting a
- * row does; `title` / `emptyLabel` are rendered by TaskMentionDropdown. */
-interface PromptMenu {
-  kind: 'mention' | 'skill' | 'pickTask';
-  items: TaskMentionDropdownItem[];
-  title: string | null;
-  emptyLabel: string | null;
-}
 
 interface PromptBarProps {
   disabled: boolean;
@@ -74,7 +68,7 @@ interface PromptBarProps {
    * buttons use, including the pick-a-task fallback for task-scoped skills. */
   onLaunchSkill: (skill: ChatSkillButton) => void;
   /** 📖 Feature 3: controlled mode asking the user to pick a target task for
-   * a task-scoped skill. Rendered instead of the mention/skill menus. */
+   * a task-scoped skill. Rendered as the BUI menu in override mode. */
   pickTaskMode: boolean;
   /** Label of the skill awaiting a task, shown in the pick list heading. */
   pickTaskLabel: string | null;
@@ -82,11 +76,15 @@ interface PromptBarProps {
   onPickTask: (taskId: string) => void;
   /** Esc (or dismiss) out of pick-task mode. */
   onDismissPickTask: () => void;
-  /** 📖 Round 5 (BeautifulUI 08): slim control row rendered inside the
-   * rounded container, above the textarea. ChatSidebar mounts the
-   * harness/model/permission cluster here so the composer carries the
-   * conversation controls the way the catalog composer does. */
-  toolbar?: ReactNode;
+  /** 📖 Slim control row rendered inside the composer, above the textarea.
+   * ChatSidebar mounts the harness/permission cluster here. */
+  toolbar?: React.ReactNode;
+  /** 📖 Round 7: entries of the BUI model menu (per-harness, Default first). */
+  models: PromptBarModel[];
+  /** 📖 Round 7: the persisted model pick ("" = harness default). */
+  model: string;
+  /** 📖 Round 7: forwards a menu pick to ChatSidebar (persists + forwards). */
+  onModelChange: (model: string) => void;
 }
 
 export function PromptBar({
@@ -102,38 +100,27 @@ export function PromptBar({
   onPickTask,
   onDismissPickTask,
   toolbar,
+  models,
+  model,
+  onModelChange,
 }: PromptBarProps) {
   const { t } = useTranslation();
-  const [value, setValue] = useState('');
   // 📖 The caret participates in the trigger detection, so it is tracked on
-  // every change and every selection move (clicks, arrows).
+  // every change (and selection move, reported back by the BUI component).
+  const [value, setValue] = useState('');
   const [caret, setCaret] = useState(0);
-  const [menuIndex, setMenuIndex] = useState(0);
-  // 📖 Esc only dismisses until the text changes again: the token is still in
-  // the draft, so retyping or moving back into it reopens the menu.
-  const [menuDismissed, setMenuDismissed] = useState(false);
-  const [skillsOpen, setSkillsOpen] = useState(false);
   // 📖 Round 4 delivery mode for interactive harnesses. Queue is the default:
   // never interrupting a running turn is the safe choice; steering is a
   // deliberate opt-in.
   const [delivery, setDelivery] = useState<'steer' | 'queue'>('queue');
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [skillsOpen, setSkillsOpen] = useState(false);
 
   const columns = useStore(s => s.columns);
   const chatSkills = useStore(s => s.agentChat.chatSkills);
 
   // 📖 Flat board tasks for the mention and pick-task menus (id + title is
-  // all the dropdown needs).
+  // all the rows need).
   const boardTasks = useMemo(() => columns.flatMap(column => column.tasks), [columns]);
-
-  // 📖 Auto-size: reset height then grow to the scroll height, capped by CSS
-  // max-height so long drafts scroll internally instead of eating the sidebar.
-  useEffect(() => {
-    const el = textareaRef.current;
-    if (!el) return;
-    el.style.height = 'auto';
-    el.style.height = `${Math.min(el.scrollHeight, 140)}px`;
-  }, [value]);
 
   const mentionQuery = useMemo(
     () => (pickTaskMode ? null : findActiveMentionQuery(value, caret)),
@@ -160,268 +147,150 @@ export function PromptBar({
     return matches;
   }, [boardTasks]);
 
-  const mentionItems = useMemo<TaskMentionDropdownItem[]>(
+  const mentionRows = useMemo<PromptBarRow[]>(
     () => (mentionQuery
       ? filterTasks(mentionQuery.query, 8).map(task => ({
           key: task.id,
-          mono: `@${task.id}`,
-          label: task.title,
+          name: task.id,
+          desc: task.title,
         }))
       : []),
     [mentionQuery, filterTasks],
   );
 
-  const skillItems = useMemo<TaskMentionDropdownItem[]>(
+  const slashRows = useMemo<PromptBarRow[]>(
     () => (slashQuery
       ? chatSkills.map(skill => ({
           key: skill.skillId,
-          mono: `/${skill.skillId}`,
-          label: skill.label,
+          name: `/${skill.skillId}`,
+          desc: skill.label,
           interactive: skill.interactive,
         }))
       : []),
     [slashQuery, chatSkills],
   );
 
-  const pickItems = useMemo<TaskMentionDropdownItem[]>(
+  const pickRows = useMemo<PromptBarRow[]>(
     () => (pickTaskMode
       ? filterTasks(value.trim(), 50).map(task => ({
           key: task.id,
-          mono: task.id,
-          label: task.title,
+          name: task.id,
+          desc: task.title,
         }))
       : []),
     [pickTaskMode, value, filterTasks],
   );
 
-  const menu = useMemo<PromptMenu | null>(() => {
-    if (menuDismissed) return null;
-    if (pickTaskMode) {
-      return {
-        kind: 'pickTask',
-        items: pickItems,
-        title: t('agentChat.pickTaskTitle', {
-          defaultValue: 'Pick the task to run {{skill}} on',
-          skill: pickTaskLabel ?? '',
-        }),
-        emptyLabel: t('agentChat.pickTaskEmpty', { defaultValue: 'No tasks on the board yet' }),
-      };
-    }
-    if (mentionQuery && mentionItems.length > 0) {
-      return { kind: 'mention', items: mentionItems, title: null, emptyLabel: null };
-    }
-    if (slashQuery && skillItems.length > 0) {
-      return { kind: 'skill', items: skillItems, title: null, emptyLabel: null };
-    }
-    return null;
-  }, [menuDismissed, pickTaskMode, pickItems, pickTaskLabel, t, mentionQuery, mentionItems, slashQuery, skillItems]);
+  // 📖 The @ menu carries either the mention matches or, in pick-task mode,
+  // the whole-board list; the / menu carries the skill rows. The BUI
+  // component resets its keyboard highlight when the menu or its rows change,
+  // which is exactly the round 3 "start from the top on refinement" rule.
+  const atRows = pickTaskMode ? pickRows : mentionRows;
 
-  // 📖 Keyboard highlight resets whenever the row set changes, so a filter
-  // refinement always starts from the top and never points at a gone row.
-  const menuSignature = menu ? menu.items.map(item => item.key).join('|') : '';
-  useEffect(() => {
-    setMenuIndex(0);
-  }, [menuSignature, menu?.kind]);
-
-  const updateDraft = useCallback((nextValue: string, nextCaret: number) => {
-    setValue(nextValue);
-    setCaret(nextCaret);
-    setMenuDismissed(false);
-  }, []);
-
-  /** 📖 Rewrites exactly the active trigger token (`text.slice(tokenStart,
-   * caret)`) with `replacement`, then restores the caret after the commit. */
-  const replaceActiveToken = useCallback((replacement: string, query: MentionQuery) => {
-    const nextValue = value.slice(0, query.tokenStart) + replacement + value.slice(caret);
-    const nextCaret = query.tokenStart + replacement.length;
-    setValue(nextValue);
-    setCaret(nextCaret);
-    setMenuDismissed(false);
-    requestAnimationFrame(() => {
-      const el = textareaRef.current;
-      if (el) el.setSelectionRange(nextCaret, nextCaret);
-    });
-  }, [value, caret]);
-
-  const submit = useCallback(() => {
+  const submit = useCallback((text: string) => {
     // 📖 Mentions stay visible in the message; only the ids travel as data.
-    const trimmed = stripMentionMarkers(value.trim());
+    const trimmed = stripMentionMarkers(text.trim());
     if (!trimmed || disabled || sending) return;
     // 📖 The delivery choice only means something on an interactive harness;
     // ChatSidebar keeps the control hidden otherwise, so the param stays
     // undefined there and the runtime keeps its default.
     onSend(trimmed, extractMentionedTaskIds(trimmed), deliveryEnabled ? delivery : undefined);
-    setValue('');
-    setCaret(0);
-    setMenuDismissed(false);
-  }, [value, disabled, sending, onSend, deliveryEnabled, delivery]);
+  }, [disabled, sending, onSend, deliveryEnabled, delivery]);
 
-  const handleMenuSelect = useCallback((index: number) => {
-    if (!menu) return;
-    const item = menu.items[index];
-    if (!item) return;
-    if (menu.kind === 'mention' && mentionQuery) {
-      // 📖 Selecting completes the token: "@t2" becomes "@t271 " with a
-      // trailing space so the menu closes and the next word starts clean.
-      replaceActiveToken(`@${item.key} `, mentionQuery);
-      return;
-    }
-    if (menu.kind === 'skill') {
-      const skill = chatSkills.find(entry => entry.skillId === item.key);
-      if (!skill) return;
-      // 📖 The slash token did its job; remove it so the draft stays clean
-      // (or empty when the skill launch opens the pick-task prompt next).
-      if (slashQuery) replaceActiveToken('', slashQuery);
-      onLaunchSkill(skill);
-      return;
-    }
-    if (menu.kind === 'pickTask') {
-      onPickTask(item.key);
-    }
-  }, [menu, mentionQuery, slashQuery, chatSkills, replaceActiveToken, onLaunchSkill, onPickTask]);
+  const handlePickAt = useCallback((row: PromptBarRow) => {
+    // 📖 In pick-task mode a pick launches the parked skill; in mention mode
+    // the BUI component already committed "@id " into the draft.
+    if (pickTaskMode) onPickTask(row.key);
+  }, [pickTaskMode, onPickTask]);
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (menu && menu.items.length > 0) {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setMenuIndex(index => (index + 1) % menu.items.length);
-        return;
-      }
-      if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setMenuIndex(index => (index - 1 + menu.items.length) % menu.items.length);
-        return;
-      }
-      // 📖 Enter and Tab both commit the highlighted row; Enter would
-      // otherwise send, which is suspended while a menu is open.
-      if ((e.key === 'Enter' && !e.shiftKey) || e.key === 'Tab') {
-        e.preventDefault();
-        handleMenuSelect(menuIndex);
-        return;
-      }
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        if (menu.kind === 'pickTask') {
-          onDismissPickTask();
-        } else {
-          setMenuDismissed(true);
-        }
-        return;
-      }
-    }
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      if (turnActive) return;
-      submit();
-    }
-  };
+  const handlePickSlash = useCallback((row: PromptBarRow) => {
+    const skill = chatSkills.find(entry => entry.skillId === row.key);
+    if (!skill) return;
+    onLaunchSkill(skill);
+  }, [chatSkills, onLaunchSkill]);
+
+  const placeholder = disabled
+    ? t('agentChat.daemonGuardTitle', 'Agent chat needs the kandown daemon')
+    : t('agentChat.placeholder', 'Ask the agent...');
+
+  const pickHeading = pickTaskMode
+    ? t('agentChat.pickTaskTitle', {
+        defaultValue: 'Pick the task to run {{skill}} on',
+        skill: pickTaskLabel ?? '',
+      })
+    : undefined;
 
   return (
-    // 📖 BeautifulUI 08: the composer lives in ONE rounded container. The
-    // dropdown menus anchor to this outer wrapper (bottom-full, above it).
+    // 📖 Official BeautifulUI 08 PromptBar in external mode: it owns the draft
+    // surface, the menus, the model menu and the send/stop squares; kandown
+    // semantics ride in through the props below.
     <div className="relative flex-none border-t border-border bg-bg px-2.5 pb-2.5 pt-2">
-      {menu && (
-        <TaskMentionDropdown
-          title={menu.title}
-          items={menu.items}
-          activeIndex={menuIndex}
-          emptyLabel={menu.emptyLabel}
-          onSelect={handleMenuSelect}
-          onActiveIndexChange={setMenuIndex}
-        />
-      )}
-      <div className="rounded-[14px] border border-border bg-bg-1 transition-colors focus-within:border-border-focus">
-        {toolbar && (
-          // 📖 Slim context row inside the container: harness for new chats,
-          // model pick, permission mode (ChatSidebar's cluster).
-          <div className="flex flex-wrap items-center gap-1.5 px-2 pt-2">{toolbar}</div>
-        )}
-        <textarea
-          ref={textareaRef}
-          rows={1}
-          value={value}
-          disabled={disabled}
-          onChange={e => updateDraft(e.target.value, e.target.selectionStart ?? 0)}
-          onSelect={e => setCaret(e.currentTarget.selectionStart ?? 0)}
-          onKeyDown={handleKeyDown}
-          placeholder={disabled
-            ? t('agentChat.daemonGuardTitle', 'Agent chat needs the kandown daemon')
-           : t('agentChat.placeholder', 'Ask the agent...')}
-          className="max-h-[140px] w-full resize-none bg-transparent px-2.5 pb-1 pt-2 text-[13.5px] leading-snug text-fg outline-none placeholder:text-fg-faint disabled:opacity-60"
-        />
-        <div className="flex items-center gap-1.5 px-2 pb-2 pt-0.5">
-          {/* 📖 Round 4: steer/queue for interactive harnesses, inline in the
-           * control row. Queue is default: steer injects into the live turn
-           * (pi: next tool-call boundary; ACP: immediately, the agent
-           * arbitrates), queue delivers after the turn. The full delivery
-           * explanation rides the buttons' title attributes. */}
-          {deliveryEnabled && (
-            <div
-              role="group"
-              aria-label={t('agentChat.deliveryLabel', 'Follow-up delivery')}
-              className="flex flex-none items-center rounded-full border border-border bg-bg p-0.5"
-            >
-              <button
-                type="button"
-                onClick={() => setDelivery('steer')}
-                aria-pressed={delivery === 'steer'}
-                title={t('agentChat.deliverySteerTitle', 'Deliver into the live turn (pi: at the next tool-call boundary, ACP agents: immediately)')}
-                className={`rounded-full px-2 py-0.5 text-[10.5px] transition-colors ${
-                  delivery === 'steer' ? 'bg-bg-2 text-fg' : 'text-fg-muted hover:text-fg'
-                }`}
-              >
-                {t('agentChat.deliverySteer', 'Steer')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setDelivery('queue')}
-                aria-pressed={delivery === 'queue'}
-                title={t('agentChat.deliveryQueueTitle', 'Deliver after the current turn completes')}
-                className={`rounded-full px-2 py-0.5 text-[10.5px] transition-colors ${
-                  delivery === 'queue' ? 'bg-bg-2 text-fg' : 'text-fg-muted hover:text-fg'
-                }`}
-              >
-                {t('agentChat.deliveryQueue', 'Queue')}
-              </button>
-            </div>
-          )}
-          <span className="min-w-0 flex-1" />
-          <button
-            type="button"
-            onClick={() => setSkillsOpen(true)}
-            title={t('agentSkills.skillsLabel', 'Skills')}
-            aria-label={t('agentSkills.skillsLabel', 'Skills')}
-            className="flex h-8 w-8 flex-none items-center justify-center rounded-full text-fg-muted transition-colors hover:bg-bg-2 hover:text-fg"
+      <BuiPromptBar
+        demo={false}
+        value={value}
+        onValueChange={(nextValue, nextCaret) => {
+          setValue(nextValue);
+          setCaret(nextCaret);
+        }}
+        atRows={atRows}
+        slashRows={slashRows}
+        onPickAt={handlePickAt}
+        onPickSlash={handlePickSlash}
+        onSend={submit}
+        disabled={disabled}
+        sendDisabled={sending}
+        turnActive={turnActive}
+        onStop={onStop}
+        onSkillClick={() => setSkillsOpen(true)}
+        leftSlot={deliveryEnabled ? (
+          <div
+            role="group"
+            aria-label={t('agentChat.deliveryLabel', 'Follow-up delivery')}
+            className="flex items-center rounded-full border border-line bg-surface p-0.5"
           >
-            <IconSparkles size={15} stroke={1.8} />
-          </button>
-          {turnActive ? (
             <button
               type="button"
-              onClick={onStop}
-              disabled={disabled}
-              title={t('agentChat.stop', 'Stop')}
-              aria-label={t('agentChat.stop', 'Stop')}
-              className="flex h-8 w-8 flex-none items-center justify-center rounded-full border border-border-strong bg-bg text-fg transition-colors hover:border-danger hover:text-danger disabled:opacity-50"
+              onClick={() => setDelivery('steer')}
+              aria-pressed={delivery === 'steer'}
+              title={t('agentChat.deliverySteerTitle', 'Deliver into the live turn (pi: at the next tool-call boundary, ACP agents: immediately)')}
+              className={`rounded-full px-2 py-0.5 text-[10.5px] transition-colors ${
+                delivery === 'steer' ? 'bg-hover-2 text-ink' : 'text-ink-3 hover:text-ink'
+              }`}
             >
-              <IconPlayerStop size={15} stroke={1.8} />
+              {t('agentChat.deliverySteer', 'Steer')}
             </button>
-          ): (
-            // 📖 The accent-circle send button: the catalog composer's one
-            // saturated control, everything else stays quiet chrome.
             <button
               type="button"
-              onClick={submit}
-              disabled={disabled || sending || !value.trim()}
-              title={t('agentChat.send', 'Send')}
-              aria-label={t('agentChat.send', 'Send')}
-              className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-transform hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-40"
+              onClick={() => setDelivery('queue')}
+              aria-pressed={delivery === 'queue'}
+              title={t('agentChat.deliveryQueueTitle', 'Deliver after the current turn completes')}
+              className={`rounded-full px-2 py-0.5 text-[10.5px] transition-colors ${
+                delivery === 'queue' ? 'bg-hover-2 text-ink' : 'text-ink-3 hover:text-ink'
+              }`}
             >
-              <IconArrowUp size={15} stroke={1.8} />
+              {t('agentChat.deliveryQueue', 'Queue')}
             </button>
-          )}
-        </div>
-      </div>
+          </div>
+        ) : undefined}
+        toolbar={toolbar}
+        menuHeading={pickHeading}
+        menuOverride={pickTaskMode}
+        onDismissMenu={pickTaskMode ? onDismissPickTask : undefined}
+        placeholder={placeholder}
+        models={models}
+        model={model}
+        onModelChange={onModelChange}
+        labels={{
+          send: t('agentChat.send', 'Send'),
+          stop: t('agentChat.stop', 'Stop'),
+          model: t('agentChat.modelTitle', 'Model for new chats, empty uses the harness default'),
+          sources: t('agentChat.atMenuButton', 'Browse tasks'),
+          skills: t('agentSkills.skillsLabel', 'Skills'),
+          atHint: t('agentChat.menuHintAt', 'Type to match tasks'),
+          slashHint: t('agentChat.menuHintSlash', 'Type to match skills'),
+          interactive: t('agentSkills.interactiveBadge', 'Interactive'),
+        }}
+      />
       <SkillsModal open={skillsOpen} onClose={() => setSkillsOpen(false)} />
     </div>
   );

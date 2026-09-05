@@ -6,6 +6,14 @@
  * the primary action confirms. Written against the scoped `.bui` tokens
  * from styles/beautifului.css.
  *
+ * 📖 Kandown embedding (round 7): passing `title` (or wiring `onAccept` /
+ * `onDismiss`) switches the card to external mode: the headline carries the
+ * proposed action, the alternatives drawer is hidden (a chat proposal has
+ * none) and the footer shows the confidence meter plus Dismiss and Accept.
+ * `signal` drives the meter (0 to 3, default 2), `disabled` freezes the
+ * buttons while the turn streams. Without these props the demo card (three
+ * alternatives, drawer, accepted state) is untouched.
+ *
  * @exports RecommendationCard
  * @exports RecommendationOption
  * @exports RecommendationLabels
@@ -33,6 +41,10 @@ export type RecommendationLabels = {
   alternatives: string;
   otherOptions: string;
   accepted: string;
+  /** 📖 Kandown embedding: quiet dismiss action of the external card. */
+  dismiss: string;
+  /** 📖 Kandown embedding: primary action of the external card. */
+  accept: string;
 };
 
 const DEFAULT_LABELS: RecommendationLabels = {
@@ -40,6 +52,8 @@ const DEFAULT_LABELS: RecommendationLabels = {
   alternatives: "Alternatives",
   otherOptions: "Other options",
   accepted: "Accepted",
+  dismiss: "Dismiss",
+  accept: "Accept",
 };
 
 function Meter({ signal, tone }: { signal: number; tone: string }) {
@@ -89,9 +103,27 @@ const OPTIONS: RecommendationOption[] = [
 export default function RecommendationCard({
   options = OPTIONS,
   labels,
+  title,
+  body,
+  signal,
+  disabled = false,
+  onAccept,
+  onDismiss,
 }: {
   options?: RecommendationOption[];
   labels?: Partial<RecommendationLabels>;
+  /** 📖 Kandown embedding: the proposed action, rendered as the headline. */
+  title?: string;
+  /** 📖 Kandown embedding: optional supporting paragraph under the headline. */
+  body?: string;
+  /** 📖 Kandown embedding: confidence meter bars, 0 to 3 (default 2). */
+  signal?: number;
+  /** 📖 Kandown embedding: freezes the actions while the turn streams. */
+  disabled?: boolean;
+  /** 📖 Kandown embedding: fired by the primary action. */
+  onAccept?: () => void;
+  /** 📖 Kandown embedding: fired by the quiet dismiss action. */
+  onDismiss?: () => void;
   variant?: string;
 } = {}) {
   const t = { ...DEFAULT_LABELS, ...labels };
@@ -99,56 +131,76 @@ export default function RecommendationCard({
   const [open, setOpen] = useState(false);
   const [accepted, setAccepted] = useState(false);
 
-  const active = options[selected];
-  const others = options.map((o, i) => ({ o, i })).filter(({ i }) => i !== selected);
+  // 📖 External (chat) mode: a single synthetic option carries the meter and
+  // the actions; the alternatives drawer has nothing to list.
+  const external = title !== undefined || body !== undefined || onAccept !== undefined || onDismiss !== undefined;
+  const active: RecommendationOption = external
+    ? {
+        key: "external",
+        body: body ?? "",
+        short: title ?? "",
+        signal: signal ?? 2,
+        tone: "var(--orange)",
+        label: t.title,
+        cta: t.accept,
+      }
+    : options[selected];
+  const others = external
+    ? []
+    : options.map((o, i) => ({ o, i })).filter(({ i }) => i !== selected);
+  const headline = external ? (title ?? t.title) : t.title;
 
   return (
     <div className="w-full max-w-95 overflow-hidden rounded-card bg-surface shadow-card">
       <div className="primitive-card-pad">
         <span className="text-[14px] font-medium text-ink">
-          {t.title}
+          {headline}
         </span>
-        <p
-          key={active.key}
-          className="mt-1.5 min-h-12 text-[13px] leading-relaxed text-ink-2"
-          style={{ animation: "fade-in 180ms ease-out both" }}
-        >
-          {active.body}
-        </p>
+        {active.body !== "" && (
+          <p
+            key={active.key}
+            className="mt-1.5 min-h-12 text-[13px] leading-relaxed text-ink-2"
+            style={{ animation: "fade-in 180ms ease-out both" }}
+          >
+            {active.body}
+          </p>
+        )}
       </div>
 
-      <div
-        className="grid transition-[grid-template-rows,opacity] duration-300"
-        style={{
-          gridTemplateRows: open ? "1fr" : "0fr",
-          opacity: open ? 1 : 0,
-          transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
-        }}
-      >
-        <div className="overflow-hidden">
-          <div className="border-t border-line bg-surface px-2 py-2">
-            <p className="px-1.5 pb-1 text-[11px] font-medium text-ink-3">
-              {t.otherOptions}
-            </p>
-            {others.map(({ o, i }) => (
-              <button
-                key={o.key}
-                type="button"
-                onClick={() => {
-                  setSelected(i);
-                  setAccepted(false);
-                }}
-                className="flex w-full items-center gap-2.5 rounded-control px-1.5 py-1.5
-                  text-left transition-colors duration-100 hover:bg-hover"
-              >
-                <Meter signal={o.signal} tone={o.tone} />
-                <span className="min-w-0 flex-1 truncate text-[12.5px] text-ink">{o.short}</span>
-                <span className="shrink-0 text-[11px] text-ink-3">{o.label}</span>
-              </button>
-            ))}
+      {!external && (
+        <div
+          className="grid transition-[grid-template-rows,opacity] duration-300"
+          style={{
+            gridTemplateRows: open ? "1fr" : "0fr",
+            opacity: open ? 1 : 0,
+            transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+        >
+          <div className="overflow-hidden">
+            <div className="border-t border-line bg-surface px-2 py-2">
+              <p className="px-1.5 pb-1 text-[11px] font-medium text-ink-3">
+                {t.otherOptions}
+              </p>
+              {others.map(({ o, i }) => (
+                <button
+                  key={o.key}
+                  type="button"
+                  onClick={() => {
+                    setSelected(i);
+                    setAccepted(false);
+                  }}
+                  className="flex w-full items-center gap-2.5 rounded-control px-1.5 py-1.5
+                    text-left transition-colors duration-100 hover:bg-hover"
+                >
+                  <Meter signal={o.signal} tone={o.tone} />
+                  <span className="min-w-0 flex-1 truncate text-[12.5px] text-ink">{o.short}</span>
+                  <span className="shrink-0 text-[11px] text-ink-3">{o.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="primitive-card-footer flex items-center justify-between gap-3 bg-surface">
         <span className="flex items-center gap-2">
@@ -157,18 +209,33 @@ export default function RecommendationCard({
         </span>
 
         <span className="-mr-0.5 flex items-center gap-2">
+          {onDismiss && (
+            <button
+              type="button"
+              onClick={onDismiss}
+              disabled={disabled}
+              className="rounded-control px-2.5 py-1 text-[12.5px] text-ink-2 transition-colors duration-150 hover:bg-hover hover:text-ink disabled:opacity-50"
+            >
+              {t.dismiss}
+            </button>
+          )}
+          {!external && (
+            <button
+              type="button"
+              aria-expanded={open}
+              onClick={() => setOpen((current) => !current)}
+              className="rounded-control px-2.5 py-1 text-[12.5px] text-ink-2 transition-colors duration-150 hover:bg-hover hover:text-ink"
+            >
+              {t.alternatives}
+            </button>
+          )}
           <button
             type="button"
-            aria-expanded={open}
-            onClick={() => setOpen((current) => !current)}
-            className="rounded-control px-2.5 py-1 text-[12.5px] text-ink-2 transition-colors duration-150 hover:bg-hover hover:text-ink"
-          >
-            {t.alternatives}
-          </button>
-          <button
-            type="button"
-            onClick={() => setAccepted(true)}
-            disabled={accepted}
+            onClick={() => {
+              setAccepted(true);
+              onAccept?.();
+            }}
+            disabled={accepted || disabled}
             className="rounded-control bg-accent px-2.5 py-1 text-[12.5px] font-medium text-white shadow-btn transition-all duration-150 hover:brightness-105 disabled:opacity-60"
           >
             {accepted ? t.accepted : active.cta}

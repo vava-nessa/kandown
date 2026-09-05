@@ -4,6 +4,14 @@
  * the stack slides vertically between questions while the card height
  * animates to fit, so the agent never continues without an explicit
  * human answer. Used by the agent chat surface.
+ *
+ * 📖 Kandown embedding (round 7): the chat renders every parsed ```options
+ * block through this card (one radio question). The adaptations are all
+ * optional props: `disabled` freezes the card while the turn streams,
+ * `dismissible`/`custom` drop the demo-only X and free-text row, `onSkip`
+ * hands the "let me type instead" action to the chat, and `answeredIndex`
+ * renders the settled answered state (chosen radio filled, others dimmed).
+ * Without them the demo behaves exactly as the faithful copy.
  */
 
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
@@ -152,18 +160,34 @@ export default function ApprovalCard({
   onSubmitted,
   onAnswerChange,
   resettable = true,
+  disabled = false,
+  dismissible = true,
+  custom = true,
+  onSkip,
+  answeredIndex = null,
 }: {
   questions?: ApprovalQuestion[];
   labels?: Partial<ApprovalLabels>;
   onSubmitted?: (answers: Record<number, number[]>) => void;
   onAnswerChange?: (questionIndex: number, answer: number[]) => void;
   resettable?: boolean;
+  /** 📖 Kandown embedding: true while the turn streams; every control freezes. */
+  disabled?: boolean;
+  /** 📖 Hides the corner X (the chat drops the card through onSkip instead). */
+  dismissible?: boolean;
+  /** 📖 Hides the free-text answer row (the chat offers a Skip action). */
+  custom?: boolean;
+  /** 📖 Called when the last question is skipped; the chat removes the card. */
+  onSkip?: () => void;
+  /** 📖 Settled answered state: index of the chosen radio. Renders the card
+   * read-only (chosen highlighted, others dimmed) with no footer. */
+  answeredIndex?: number | null;
   variant?: string;
 } = {}) {
   const t = { ...DEFAULT_LABELS, ...labels };
   const [qi, setQi] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number[]>>({});
-  const [custom, setCustom] = useState<Record<number, string>>({});
+  const [custom_, setCustom] = useState<Record<number, string>>({});
   const [sent, setSent] = useState(false);
   const [open, setOpen] = useState(true);
 
@@ -177,7 +201,7 @@ export default function ApprovalCard({
 
   const last = qi === questions.length - 1;
   const selected = answers[qi] ?? [];
-  const hasAnswer = selected.length > 0 || Boolean(custom[qi]?.trim());
+  const hasAnswer = selected.length > 0 || Boolean(custom_[qi]?.trim());
 
   const sync = (withAnim: boolean) => {
     const item = questionRefs.current[qi];
@@ -194,7 +218,7 @@ export default function ApprovalCard({
     sync(withAnim);
     setReady(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [qi, answers, custom, open, sent]);
+  }, [qi, answers, custom_, open, sent]);
 
   useEffect(() => {
     const id = requestAnimationFrame(() => sync(measured.current));
@@ -209,10 +233,17 @@ export default function ApprovalCard({
     setQi(Math.min(Math.max(next, 0), questions.length - 1));
   };
 
+  // 📖 The auto-advance timer fires `send` from the render where the pick
+  // happened, so reading `answers` directly would submit the PRE-pick state
+  // (the kandown chat would send nothing). The ref carries the fresh answers
+  // into the deferred callback.
+  const answersRef = useRef(answers);
+  answersRef.current = answers;
+
   const send = () => {
     if (advanceTimer.current) clearTimeout(advanceTimer.current);
     setSent(true);
-    onSubmitted?.(answers);
+    onSubmitted?.(answersRef.current);
   };
 
   const advance = () => {
@@ -221,6 +252,7 @@ export default function ApprovalCard({
   };
 
   const toggle = (index: number) => {
+    if (disabled) return;
     const type = questions[qi].type;
     setAnswers((current) => {
       const picked = current[qi] ?? [];
@@ -251,6 +283,48 @@ export default function ApprovalCard({
     measured.current = false;
   };
 
+  // 📖 Kandown embedding: the settled answered state. The chosen radio keeps
+  // its filled dot and full-contrast text, the others dim, and the footer is
+  // gone: nothing left to answer. Replaces the interactive card entirely.
+  if (answeredIndex !== null && questions.length > 0) {
+    const question = questions[0];
+    return (
+      <div className="w-full max-w-80">
+        <div className="rounded-card bg-surface shadow-card" style={{ animation: "pop-in 260ms cubic-bezier(0.23,1,0.32,1) both" }}>
+          <div className="primitive-card-pad">
+            <div className="pr-7 text-[14px] font-medium text-ink">{question.q}</div>
+            <div className="mt-2.5 flex flex-col gap-1">
+              {question.options.map((option, i) => {
+                const on = i === answeredIndex;
+                return (
+                  <div
+                    key={option}
+                    className={`flex items-center gap-1.5 rounded-control py-1 pl-1 pr-2 ${on ? "" : "opacity-45"}`}
+                  >
+                    <span
+                      className={`flex size-4 shrink-0 items-center justify-center rounded-full transition-colors duration-200
+                        ${on ? "bg-ink text-canvas" : "shadow-[inset_0_0_0_1.5px_var(--line-strong)] text-transparent"}`}
+                    >
+                      <span className="size-1.5 rounded-full bg-canvas transition-transform duration-200" style={{ transform: on ? "scale(1)" : "scale(0)" }} />
+                    </span>
+                    <span className={`text-[13px] leading-none ${on ? "font-medium text-ink" : "text-ink-2"}`}>
+                      {option}
+                    </span>
+                    {on && (
+                      <svg className="ml-auto shrink-0 text-green" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 6L9 17l-5-5" />
+                      </svg>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!open) {
     return (
       <button type="button" onClick={() => setOpen(true)} className="rounded-control bg-surface px-3 py-2 text-[12.5px] font-medium text-ink shadow-btn transition-colors duration-150 hover:bg-hover">
@@ -280,14 +354,16 @@ export default function ApprovalCard({
   return (
     <div className="w-full max-w-80">
       <div className="relative overflow-hidden rounded-card bg-surface shadow-card" style={{ animation: "fade-up 380ms cubic-bezier(0.23,1,0.32,1) both" }}>
-        <button
-          type="button"
-          aria-label="Dismiss"
-          onClick={() => setOpen(false)}
-          className="primitive-icon-button absolute right-2.5 top-2.5 z-10 text-ink-3 transition-colors duration-100 hover:bg-hover hover:text-ink"
-        >
-          <Ico size={14} sw={2.2} path={<path d="M18 6L6 18M6 6l12 12" />} />
-        </button>
+        {dismissible && (
+          <button
+            type="button"
+            aria-label="Dismiss"
+            onClick={() => setOpen(false)}
+            className="primitive-icon-button absolute right-2.5 top-2.5 z-10 text-ink-3 transition-colors duration-100 hover:bg-hover hover:text-ink"
+          >
+            <Ico size={14} sw={2.2} path={<path d="M18 6L6 18M6 6l12 12" />} />
+          </button>
+        )}
         <div className="primitive-card-pad">
           <div
             className="overflow-hidden"
@@ -351,26 +427,28 @@ export default function ApprovalCard({
                           </button>
                         );
                       })}
-                      <label data-menu-row className="relative z-10 flex items-center gap-1.5 rounded-control pl-1 pr-2 py-1 transition-colors duration-100">
-                        <input
-                          value={custom[qIdx] ?? ""}
-                          tabIndex={active ? 0 : -1}
-                          onChange={(event) => {
-                            if (!active) return;
-                            setCustom((current) => ({ ...current, [qIdx]: event.target.value }));
-                            if (question.type === "radio") setAnswers((current) => ({ ...current, [qIdx]: [] }));
-                          }}
-                          onKeyDown={(event) => {
-                            if (event.key === "Enter" && hasAnswer) {
-                              event.preventDefault();
-                              advance();
-                            }
-                          }}
-                          placeholder={t.customPlaceholder}
-                          aria-label="Custom answer"
-                          className="min-w-0 flex-1 bg-transparent pl-1.5 text-[13px] text-ink outline-none placeholder:text-ink-3"
-                        />
-                      </label>
+                      {custom && (
+                        <label data-menu-row className="relative z-10 flex items-center gap-1.5 rounded-control pl-1 pr-2 py-1 transition-colors duration-100">
+                          <input
+                            value={custom_[qIdx] ?? ""}
+                            tabIndex={active ? 0 : -1}
+                            onChange={(event) => {
+                              if (!active || disabled) return;
+                              setCustom((current) => ({ ...current, [qIdx]: event.target.value }));
+                              if (question.type === "radio") setAnswers((current) => ({ ...current, [qIdx]: [] }));
+                            }}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" && hasAnswer) {
+                                event.preventDefault();
+                                advance();
+                              }
+                            }}
+                            placeholder={t.customPlaceholder}
+                            aria-label="Custom answer"
+                            className="min-w-0 flex-1 bg-transparent pl-1.5 text-[13px] text-ink outline-none placeholder:text-ink-3"
+                          />
+                        </label>
+                      )}
                     </GlideMenu>
                   </div>
                 );
@@ -405,10 +483,25 @@ export default function ApprovalCard({
           </div>
 
           <div className="-mr-0.5 flex items-center gap-1.5">
-            <Button variant="ghost" size="sm" onClick={() => (last ? setOpen(false) : goTo(qi + 1))}>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={disabled}
+              onClick={() => {
+                if (!last) {
+                  goTo(qi + 1);
+                  return;
+                }
+                // 📖 Kandown embedding: skipping the last question hands the
+                // decision to the caller (the chat drops the card) instead of
+                // collapsing to the demo's "Open approval" button.
+                if (onSkip) onSkip();
+                else setOpen(false);
+              }}
+            >
               {t.skip}
             </Button>
-            <Button variant="accent" size="sm" disabled={!hasAnswer} onClick={advance}>
+            <Button variant="accent" size="sm" disabled={disabled || !hasAnswer} onClick={advance}>
               {last ? t.send : t.continue}
             </Button>
           </div>
