@@ -36,7 +36,8 @@
   "header": {
     "tasks": "tasks",
     "recentProjects": "Recent projects",
-    "openFolder...": "Open folder..."
+    "openFolder...": "Open folder...",
+    "allCategories": "എല്ലാ വിഭാഗങ്ങളും"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -337,6 +338,20 @@
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
   },
   "agentChat": {
+    "working": "പ്രവർത്തിക്കുന്നു...",
+    "staleAuthTitle": "kandown daemon വീണ്ടും ആരംഭിച്ചു",
+    "staleAuthBody": "വീണ്ടും കണക്റ്റുചെയ്യാൻ ഈ പേജ് Reload ചെയ്യുക.",
+    "reload": "Reload",
+    "pickTaskTitle": "{{skill}} പ്രവർത്തിപ്പിക്കാൻ ഒരു ടാസ്ക് തിരഞ്ഞെടുക്കുക",
+    "pickTaskEmpty": "ബോർഡിൽ ഇതുവരെ ടാസ്കുകൾ ഇല്ല",
+    "mentionDropdownLabel": "നിർദ്ദേശങ്ങൾ",
+    "modelPlaceholder": "മോഡൽ",
+    "modelTitle": "പുതിയ ചാറ്റുകൾക്കുള്ള മോഡൽ, ശൂന്യമാണെങ്കിൽ ഹാർനസിന്റെ സ്ഥിരസ്ഥിതി ഉപയോഗിക്കും",
+    "deliveryLabel": "ഫോളോ-അപ്പ് സന്ദേശ ഡെലിവറി",
+    "deliverySteer": "സ്റ്റീർ",
+    "deliveryQueue": "ക്യൂ",
+    "deliverySteerTitle": "നിലവിലെ ടേണിനുള്ളിൽ ഡെലിവർ ചെയ്യുന്നു (pi: അടുത്ത ടൂൾ-കോൾ അതിർത്തിയിൽ, ACP ഏജന്റുകൾ: ഉടനെ)",
+    "deliveryQueueTitle": "നിലവിലെ ടേൺ അവസാനിച്ചതിന് ശേഷം ഡെലിവർ ചെയ്യുന്നു",
     "title": "ഏജന്റ് ചാറ്റ്",
     "askAgent": "ഏജന്റിനോട് ചോദിക്കുക",
     "askAgentTitle": "ഈ ജോലിയെക്കുറിച്ച് ഏജന്റിനോട് ചോദിക്കുക",
@@ -369,6 +384,10 @@
     "daemonGuardBody": "നിങ്ങളുടെ കോഡിംഗ് ഏജന്റുകളുമായി സംസാരിക്കാൻ ലോക്കൽ daemon ആരംഭിക്കുക: ഈ പ്രോജക്റ്റിൽ npx kandown റൺ ചെയ്യുക."
   },
   "agentSkills": {
+    "skillsModalTitle": "കഴിവുകൾ",
+    "skillsModalEmpty": "ഇൻസ്റ്റാൾ ചെയ്ത കഴിവുകളില്ല",
+    "activeTitle": "സജീവം",
+    "inactiveTitle": "നിഷ്ക്രിയം",
     "skillsLabel": "കഴിവുകൾ",
     "needsTaskContext": "ഒരു ജോലിയുടെ സന്ദർഭം വേണം",
     "interactiveBadge": "ഇന്ററാക്ടീവ്",

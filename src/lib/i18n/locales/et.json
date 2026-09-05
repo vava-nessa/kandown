@@ -36,7 +36,8 @@
   "header": {
     "tasks": "ülesanded",
     "recentProjects": "Hiljutised projektid",
-    "openFolder...": "Ava kaust..."
+    "openFolder...": "Ava kaust...",
+    "allCategories": "Kõik kategooriad"
   },
   "filterBar": {
     "searchPlaceholder": "Otsi ülesandeid...",
@@ -315,6 +316,20 @@
     "settingsUpdatedExternally": "Sätteid värskendati väliselt — ümber laaditud"
   },
   "agentChat": {
+    "working": "Töötab...",
+    "staleAuthTitle": "Daemon taaskäivitati",
+    "staleAuthBody": "Ühenduse taastamiseks laadi see leht ümber.",
+    "reload": "Laadi ümber",
+    "pickTaskTitle": "Vali ülesanne, millel käivitada {{skill}}",
+    "pickTaskEmpty": "Töölaual ei ole veel ülesandeid",
+    "mentionDropdownLabel": "Soovitused",
+    "modelPlaceholder": "Mudel",
+    "modelTitle": "Mudel uutele vestlustele, tühi välj kasutab Harnessi vaikeseadet",
+    "deliveryLabel": "Järelsõnumite edastamine",
+    "deliverySteer": "Juhi",
+    "deliveryQueue": "Järjekorda",
+    "deliverySteerTitle": "Edastab käimasoleva vooru sisse (pi: järgmise tööriistakutse piiril, ACP agendid: kohe)",
+    "deliveryQueueTitle": "Edastab pärast praeguse vooru lõppu",
     "title": "Agendiga vestlus",
     "askAgent": "Küsi agendilt",
     "askAgentTitle": "Küsi agendilt selle ülesande kohta",
@@ -347,6 +362,10 @@
     "daemonGuardBody": "Käivita kohalik daemon, et vestleda oma koodimisagentidega: käivita selles projektis npx kandown."
   },
   "agentSkills": {
+    "skillsModalTitle": "Oskused",
+    "skillsModalEmpty": "Paigaldatud oskusi pole",
+    "activeTitle": "Aktiivsed",
+    "inactiveTitle": "Mitteaktiivsed",
     "skillsLabel": "Oskused",
     "needsTaskContext": "Vajab ülesande konteksti",
     "interactiveBadge": "Interaktiivne",

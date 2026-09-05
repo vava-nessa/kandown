@@ -36,7 +36,8 @@
   "header": {
     "tasks": "zadania",
     "recentProjects": "Ostatnie projekty",
-    "openFolder...": "Otwórz folder..."
+    "openFolder...": "Otwórz folder...",
+    "allCategories": "Wszystkie kategorie"
   },
   "filterBar": {
     "searchPlaceholder": "Szukaj zadań...",
@@ -300,6 +301,20 @@
     "settingsUpdatedExternally": "Ustawienia zaktualizowane zewnętrznie — przeładowano"
   },
   "agentChat": {
+    "working": "Pracuje...",
+    "staleAuthTitle": "Daemon został ponownie uruchomiony",
+    "staleAuthBody": "Przeładuj stronę, aby połączyć się ponownie.",
+    "reload": "Przeładuj",
+    "pickTaskTitle": "Wybierz zadanie, na którym ma zostać uruchomiony {{skill}}",
+    "pickTaskEmpty": "Na tablicy nie ma jeszcze zadań",
+    "mentionDropdownLabel": "Sugestie",
+    "modelPlaceholder": "Model",
+    "modelTitle": "Model dla nowych czatów, puste pole używa wartości domyślnej Harnessa",
+    "deliveryLabel": "Doręczanie wiadomości follow-up",
+    "deliverySteer": "Steruj",
+    "deliveryQueue": "Kolejka",
+    "deliverySteerTitle": "Doręcza w trakcie bieżącej tury (pi: na granicy następnego wywołania narzędzia, agenci ACP: natychmiast)",
+    "deliveryQueueTitle": "Doręcza po zakończeniu bieżącej tury",
     "title": "Czat agenta",
     "askAgent": "Zapytaj agenta",
     "askAgentTitle": "Zapytaj agenta o to zadanie",
@@ -332,6 +347,10 @@
     "daemonGuardBody": "Uruchom lokalny daemon, aby czatować z agentami kodującymi: wykonaj npx kandown w tym projekcie."
   },
   "agentSkills": {
+    "skillsModalTitle": "Skills",
+    "skillsModalEmpty": "Brak zainstalowanych skillów",
+    "activeTitle": "Aktywne",
+    "inactiveTitle": "Nieaktywne",
     "skillsLabel": "Skills",
     "needsTaskContext": "Wymaga kontekstu zadania",
     "interactiveBadge": "Interaktywne",

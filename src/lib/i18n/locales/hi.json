@@ -36,7 +36,8 @@
   "header": {
     "tasks": "कार्य",
     "recentProjects": "हाल की परियोजनाएं",
-    "openFolder...": "फ़ोल्डर खोलें..."
+    "openFolder...": "फ़ोल्डर खोलें...",
+    "allCategories": "सभी श्रेणियाँ"
   },
   "filterBar": {
     "searchPlaceholder": "कार्य खोजें...",
@@ -315,6 +316,20 @@
     "settingsUpdatedExternally": "सेटिंग्स बाहरी रूप से अपडेट की गईं — पुनः लोड की गईं"
   },
   "agentChat": {
+    "working": "काम कर रहा है...",
+    "staleAuthTitle": "kandown daemon फिर से शुरू हुआ है",
+    "staleAuthBody": "फिर से कनेक्ट होने के लिए इस पेज को पुनः लोड करें।",
+    "reload": "पुनः लोड करें",
+    "pickTaskTitle": "{{skill}} चलाने के लिए कार्य चुनें",
+    "pickTaskEmpty": "बोर्ड पर अभी कोई कार्य नहीं है",
+    "mentionDropdownLabel": "सुझाव",
+    "modelPlaceholder": "मॉडल",
+    "modelTitle": "नई चैट के लिए मॉडल, खाली छोड़ने पर हार्नेस का डिफ़ॉल्ट उपयोग होगा",
+    "deliveryLabel": "अनुवर्ती संदेशों की डिलीवरी",
+    "deliverySteer": "निर्देशित करें",
+    "deliveryQueue": "कतार में",
+    "deliverySteerTitle": "चालू टर्न में भेजा जाता है (pi: अगली टूल-कॉल सीमा पर, ACP एजेंट: तुरंत)",
+    "deliveryQueueTitle": "मौजूदा टर्न पूरा होने के बाद भेजा जाता है",
     "title": "एजेंट चैट",
     "askAgent": "एजेंट से पूछें",
     "askAgentTitle": "इस कार्य के बारे में एजेंट से पूछें",
@@ -347,6 +362,10 @@
     "daemonGuardBody": "अपने कोडिंग एजेंटों से बात करने के लिए लोकल daemon शुरू करें: इस प्रोजेक्ट में npx kandown चलाएँ।"
   },
   "agentSkills": {
+    "skillsModalTitle": "कौशल",
+    "skillsModalEmpty": "कोई कौशल इंस्टॉल नहीं है",
+    "activeTitle": "सक्रिय",
+    "inactiveTitle": "निष्क्रिय",
     "skillsLabel": "कौशल",
     "needsTaskContext": "किसी कार्य के संदर्भ की ज़रूरत है",
     "interactiveBadge": "इंटरैक्टिव",

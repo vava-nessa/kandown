@@ -36,7 +36,8 @@
   "header": {
     "tasks": "tasks",
     "recentProjects": "Recent projects",
-    "openFolder...": "Open folder..."
+    "openFolder...": "Open folder...",
+    "allCategories": "Toate categoriile"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -300,6 +301,20 @@
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
   },
   "agentChat": {
+    "working": "Lucrează...",
+    "staleAuthTitle": "Daemonul a fost repornit",
+    "staleAuthBody": "Reîncărcați această pagină pentru a vă reconecta.",
+    "reload": "Reload",
+    "pickTaskTitle": "Alegeți sarcina pe care să ruleze {{skill}}",
+    "pickTaskEmpty": "Nu există încă sarcini pe tablă",
+    "mentionDropdownLabel": "Sugestii",
+    "modelPlaceholder": "Model",
+    "modelTitle": "Model pentru conversații noi, lăsând gol se folosește valoarea implicită din Harness",
+    "deliveryLabel": "Livrarea mesajelor ulterioare",
+    "deliverySteer": "Dirijează",
+    "deliveryQueue": "La coadă",
+    "deliverySteerTitle": "Livrează în cadrul turei active (pi: la limita următorului apel de unealtă, agenții ACP: imediat)",
+    "deliveryQueueTitle": "Livrează după finalizarea turei curente",
     "title": "Chat cu agentul",
     "askAgent": "Întreabă agentul",
     "askAgentTitle": "Întreabă agentul despre această sarcină",
@@ -332,6 +347,10 @@
     "daemonGuardBody": "Pornește daemonul local pentru a discuta cu agenții tăi de cod: rulează npx kandown în acest proiect."
   },
   "agentSkills": {
+    "skillsModalTitle": "Abilități",
+    "skillsModalEmpty": "Nu există abilități instalate",
+    "activeTitle": "Active",
+    "inactiveTitle": "Inactive",
     "skillsLabel": "Abilități",
     "needsTaskContext": "Necesită contextul unei sarcini",
     "interactiveBadge": "Interactiv",

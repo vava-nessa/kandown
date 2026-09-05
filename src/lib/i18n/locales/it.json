@@ -36,7 +36,8 @@
   "header": {
     "tasks": "attività",
     "recentProjects": "Progetti recenti",
-    "openFolder...": "Apri cartella..."
+    "openFolder...": "Apri cartella...",
+    "allCategories": "Tutte le categorie"
   },
   "filterBar": {
     "searchPlaceholder": "Cerca attività...",
@@ -315,6 +316,20 @@
     "settingsUpdatedExternally": "Impostazioni aggiornate esternamente — ricaricate"
   },
   "agentChat": {
+    "working": "Al lavoro...",
+    "staleAuthTitle": "Il daemon è stato riavviato",
+    "staleAuthBody": "Ricarica questa pagina per riconnetterti.",
+    "reload": "Ricarica",
+    "pickTaskTitle": "Scegli l'attività su cui eseguire {{skill}}",
+    "pickTaskEmpty": "Non ci sono ancora attività sulla lavagna",
+    "mentionDropdownLabel": "Suggerimenti",
+    "modelPlaceholder": "Modello",
+    "modelTitle": "Modello per le nuove chat, vuoto usa il valore predefinito dell'Harness",
+    "deliveryLabel": "Consegna dei messaggi di follow-up",
+    "deliverySteer": "Dirotta",
+    "deliveryQueue": "In coda",
+    "deliverySteerTitle": "Consegna nel turno in corso (pi: al limite della prossima chiamata di strumento, agenti ACP: immediatamente)",
+    "deliveryQueueTitle": "Consegna al termine del turno corrente",
     "title": "Chat dell'agente",
     "askAgent": "Chiedi all'agente",
     "askAgentTitle": "Chiedi all'agente informazioni su questa attività",
@@ -347,6 +362,10 @@
     "daemonGuardBody": "Avvia il daemon locale per chattare con i tuoi agenti di codice: esegui npx kandown in questo progetto."
   },
   "agentSkills": {
+    "skillsModalTitle": "Skill",
+    "skillsModalEmpty": "Nessuna skill installata",
+    "activeTitle": "Attive",
+    "inactiveTitle": "Inattive",
     "skillsLabel": "Skill",
     "needsTaskContext": "Richiede il contesto di un'attività",
     "interactiveBadge": "Interattivo",

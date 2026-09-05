@@ -36,7 +36,8 @@
   "header": {
     "tasks": "タスク",
     "recentProjects": "最近のプロジェクト",
-    "openFolder...": "フォルダを開く..."
+    "openFolder...": "フォルダを開く...",
+    "allCategories": "すべてのカテゴリ"
   },
   "filterBar": {
     "searchPlaceholder": "タスクを検索...",
@@ -282,6 +283,20 @@
     "settingsUpdatedExternally": "設定が外部で更新されました — 再読み込みしました"
   },
   "agentChat": {
+    "working": "作業中...",
+    "staleAuthTitle": "kandown daemon が再起動しました",
+    "staleAuthBody": "再接続するにはこのページを再読み込みしてください。",
+    "reload": "再読み込み",
+    "pickTaskTitle": "{{skill}} を実行するタスクを選択",
+    "pickTaskEmpty": "ボードにはまだタスクがありません",
+    "mentionDropdownLabel": "候補",
+    "modelPlaceholder": "モデル",
+    "modelTitle": "新規チャットのモデル。空欄の場合はハーネスのデフォルトを使用",
+    "deliveryLabel": "フォローアップメッセージの送信方法",
+    "deliverySteer": "割り込み",
+    "deliveryQueue": "キュー",
+    "deliverySteerTitle": "実行中のターン内に送信します (pi: 次のツール呼び出しの境界で、ACP エージェント: 即時)",
+    "deliveryQueueTitle": "現在のターン終了後に送信します",
     "title": "エージェントチャット",
     "askAgent": "エージェントに質問",
     "askAgentTitle": "このタスクについてエージェントに質問",
@@ -314,6 +329,10 @@
     "daemonGuardBody": "ローカル daemon を起動してコーディングエージェントとチャットしましょう: このプロジェクトで npx kandown を実行してください。"
   },
   "agentSkills": {
+    "skillsModalTitle": "スキル",
+    "skillsModalEmpty": "インストール済みのスキルはありません",
+    "activeTitle": "有効",
+    "inactiveTitle": "無効",
     "skillsLabel": "スキル",
     "needsTaskContext": "タスクのコンテキストが必要",
     "interactiveBadge": "対話型",

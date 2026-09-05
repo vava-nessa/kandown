@@ -36,7 +36,8 @@
   "header": {
     "tasks": "задачи",
     "recentProjects": "Скорошни проекти",
-    "openFolder...": "Отвори папка..."
+    "openFolder...": "Отвори папка...",
+    "allCategories": "Всички категории"
   },
   "filterBar": {
     "searchPlaceholder": "Търсене на задачи...",
@@ -315,6 +316,20 @@
     "settingsUpdatedExternally": "Настройките са актуализирани външно — презаредени"
   },
   "agentChat": {
+    "working": "Работи...",
+    "staleAuthTitle": "kandown daemon беше рестартиран",
+    "staleAuthBody": "Презаредете страницата, за да се свържете отново.",
+    "reload": "Презареди",
+    "pickTaskTitle": "Изберете задачата, върху която да се изпълни {{skill}}",
+    "pickTaskEmpty": "На дъската все още няма задачи",
+    "mentionDropdownLabel": "Предложения",
+    "modelPlaceholder": "Модел",
+    "modelTitle": "Модел за нови чатове; ако е празно, се използва Harness по подразбиране",
+    "deliveryLabel": "Доставка на последващи съобщения",
+    "deliverySteer": "Насочване",
+    "deliveryQueue": "Опашка",
+    "deliverySteerTitle": "Доставя в текущия ход (pi: на границата на следващото извикване на инструмент, ACP агентите: веднага)",
+    "deliveryQueueTitle": "Доставя след края на текущия ход",
     "title": "Чат с агента",
     "askAgent": "Попитай агента",
     "askAgentTitle": "Попитай агента за тази задача",
@@ -347,6 +362,10 @@
     "daemonGuardBody": "Стартирайте локалния daemon, за да си пишете с кодиращите агенти: изпълнете npx kandown в този проект."
   },
   "agentSkills": {
+    "skillsModalTitle": "Умения",
+    "skillsModalEmpty": "Няма инсталирани умения",
+    "activeTitle": "Активни",
+    "inactiveTitle": "Неактивни",
     "skillsLabel": "Умения",
     "needsTaskContext": "Нужен е контекст на задача",
     "interactiveBadge": "Интерактивно",

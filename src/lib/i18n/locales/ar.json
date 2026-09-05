@@ -36,7 +36,8 @@
   "header": {
     "tasks": "المهام",
     "recentProjects": "المشاريع الأخيرة",
-    "openFolder...": "فتح مجلد..."
+    "openFolder...": "فتح مجلد...",
+    "allCategories": "كل الفئات"
   },
   "filterBar": {
     "searchPlaceholder": "البحث في المهام...",
@@ -282,6 +283,20 @@
     "settingsUpdatedExternally": "تم تحديث الإعدادات خارجيًا - تم إعادة التحميل"
   },
   "agentChat": {
+    "working": "يعمل...",
+    "staleAuthTitle": "تمت إعادة تشغيل الـ daemon",
+    "staleAuthBody": "أعد تحميل هذه الصفحة لإعادة الاتصال.",
+    "reload": "إعادة تحميل",
+    "pickTaskTitle": "اختر المهمة التي سيتم تشغيل {{skill}} عليها",
+    "pickTaskEmpty": "لا توجد مهام على اللوحة بعد",
+    "mentionDropdownLabel": "اقتراحات",
+    "modelPlaceholder": "النموذج",
+    "modelTitle": "النموذج للمحادثات الجديدة، اتركه فارغًا لاستخدام الافتراضي في Harness",
+    "deliveryLabel": "تسليم رسائل المتابعة",
+    "deliverySteer": "توجيه",
+    "deliveryQueue": "قائمة الانتظار",
+    "deliverySteerTitle": "يُسلَّم ضمن الدور الحالي (pi: عند حد استدعاء الأداة التالي، وكلاء ACP: فورًا)",
+    "deliveryQueueTitle": "يُسلَّم بعد انتهاء الدور الحالي",
     "title": "دردشة الوكيل",
     "askAgent": "اسأل الوكيل",
     "askAgentTitle": "اسأل الوكيل عن هذه المهمة",
@@ -314,6 +329,10 @@
     "daemonGuardBody": "شغّل الـ daemon المحلي للتحدث مع وكلاء البرمجة لديك: شغّل npx kandown في هذا المشروع."
   },
   "agentSkills": {
+    "skillsModalTitle": "المهارات",
+    "skillsModalEmpty": "لا توجد مهارات مثبتة",
+    "activeTitle": "نشط",
+    "inactiveTitle": "غير نشط",
     "skillsLabel": "المهارات",
     "needsTaskContext": "يحتاج سياق مهمة",
     "interactiveBadge": "تفاعلي",

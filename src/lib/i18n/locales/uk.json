@@ -36,7 +36,8 @@
   "header": {
     "tasks": "tasks",
     "recentProjects": "Recent projects",
-    "openFolder...": "Open folder..."
+    "openFolder...": "Open folder...",
+    "allCategories": "Усі категорії"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -300,6 +301,20 @@
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
   },
   "agentChat": {
+    "working": "Працює...",
+    "staleAuthTitle": "kandown daemon перезапущено",
+    "staleAuthBody": "Перезавантажте сторінку, щоб підключитися знову.",
+    "reload": "Reload",
+    "pickTaskTitle": "Виберіть задачу, на якій потрібно запустити {{skill}}",
+    "pickTaskEmpty": "На дошці ще немає задач",
+    "mentionDropdownLabel": "Пропозиції",
+    "modelPlaceholder": "Модель",
+    "modelTitle": "Модель для нових чатів, порожнє значення використовує налаштування Harness за замовчуванням",
+    "deliveryLabel": "Доставка наступних повідомлень",
+    "deliverySteer": "Направити",
+    "deliveryQueue": "У чергу",
+    "deliverySteerTitle": "Доставляє в поточний хід (pi: на межі наступного виклику інструменту, агенти ACP: одразу)",
+    "deliveryQueueTitle": "Доставляє після завершення поточного ходу",
     "title": "Чат з агентом",
     "askAgent": "Запитати агента",
     "askAgentTitle": "Запитати агента про це завдання",
@@ -332,6 +347,10 @@
     "daemonGuardBody": "Запустіть локальний daemon, щоб спілкуватися з кодинг-агентами: виконайте npx kandown у цьому проєкті."
   },
   "agentSkills": {
+    "skillsModalTitle": "Навички",
+    "skillsModalEmpty": "Немає встановлених навичок",
+    "activeTitle": "Активні",
+    "inactiveTitle": "Неактивні",
     "skillsLabel": "Навички",
     "needsTaskContext": "Потрібен контекст завдання",
     "interactiveBadge": "Інтерактивно",

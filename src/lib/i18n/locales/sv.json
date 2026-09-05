@@ -36,7 +36,8 @@
   "header": {
     "tasks": "uppgifter",
     "recentProjects": "Senaste projekt",
-    "openFolder...": "Öppna mapp..."
+    "openFolder...": "Öppna mapp...",
+    "allCategories": "Alla kategorier"
   },
   "filterBar": {
     "searchPlaceholder": "Sök uppgifter...",
@@ -315,6 +316,20 @@
     "settingsUpdatedExternally": "Inställningar uppdaterades externt — omladdade"
   },
   "agentChat": {
+    "working": "Arbetar...",
+    "staleAuthTitle": "Daemonen startades om",
+    "staleAuthBody": "Ladda om sidan för att ansluta igen.",
+    "reload": "Ladda om",
+    "pickTaskTitle": "Välj uppgiften som {{skill}} ska köras på",
+    "pickTaskEmpty": "Inga uppgifter på styret ännu",
+    "mentionDropdownLabel": "Förslag",
+    "modelPlaceholder": "Modell",
+    "modelTitle": "Modell för nya chatter, tomt använder Harness-standard",
+    "deliveryLabel": "Leverans av uppföljningsmeddelanden",
+    "deliverySteer": "Styr",
+    "deliveryQueue": "Köa",
+    "deliverySteerTitle": "Levereras i pågående tur (pi: vid nästa verktygsanrop, ACP-agenter: omedelbart)",
+    "deliveryQueueTitle": "Levereras när aktuell tur är klar",
     "title": "Agentchatt",
     "askAgent": "Fråga agenten",
     "askAgentTitle": "Fråga agenten om den här uppgiften",
@@ -347,6 +362,10 @@
     "daemonGuardBody": "Starta den lokala daemonen för att chatta med dina kodningsagenter: kör npx kandown i det här projektet."
   },
   "agentSkills": {
+    "skillsModalTitle": "Färdigheter",
+    "skillsModalEmpty": "Inga färdigheter installerade",
+    "activeTitle": "Aktiva",
+    "inactiveTitle": "Inaktiva",
     "skillsLabel": "Färdigheter",
     "needsTaskContext": "Kräver uppgiftskontext",
     "interactiveBadge": "Interaktiv",

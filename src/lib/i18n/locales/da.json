@@ -36,7 +36,8 @@
   "header": {
     "tasks": "opgaver",
     "recentProjects": "Seneste projekter",
-    "openFolder...": "Åbn mappe..."
+    "openFolder...": "Åbn mappe...",
+    "allCategories": "Alle kategorier"
   },
   "filterBar": {
     "searchPlaceholder": "Søg opgaver...",
@@ -315,6 +316,20 @@
     "settingsUpdatedExternally": "Indstillinger opdateret eksternt — genindlæst"
   },
   "agentChat": {
+    "working": "Arbejder...",
+    "staleAuthTitle": "Daemonen er genstartet",
+    "staleAuthBody": "Genindlæs siden for at forbinde igen.",
+    "reload": "Genindlæs",
+    "pickTaskTitle": "Vælg den opgave, {{skill}} skal køres på",
+    "pickTaskEmpty": "Der er ingen opgaver på boardet endnu",
+    "mentionDropdownLabel": "Forslag",
+    "modelPlaceholder": "Model",
+    "modelTitle": "Model til nye chats, tom bruger Harness-standard",
+    "deliveryLabel": "Levering af opfølgningsbeskeder",
+    "deliverySteer": "Styr",
+    "deliveryQueue": "Sæt i kø",
+    "deliverySteerTitle": "Leveres i den kørende tur (pi: ved næste værktøjskald, ACP-agenter: med det samme)",
+    "deliveryQueueTitle": "Leveres når den aktuelle tur er færdig",
     "title": "Agentchat",
     "askAgent": "Spørg agenten",
     "askAgentTitle": "Spørg agenten om denne opgave",
@@ -347,6 +362,10 @@
     "daemonGuardBody": "Start den lokale daemon for at chatte med dine kodeagenter: kør npx kandown i dette projekt."
   },
   "agentSkills": {
+    "skillsModalTitle": "Skills",
+    "skillsModalEmpty": "Ingen skills installeret",
+    "activeTitle": "Aktive",
+    "inactiveTitle": "Inaktive",
     "skillsLabel": "Skills",
     "needsTaskContext": "Kræver opgavekontekst",
     "interactiveBadge": "Interaktiv",

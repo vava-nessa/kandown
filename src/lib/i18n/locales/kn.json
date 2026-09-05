@@ -36,7 +36,8 @@
   "header": {
     "tasks": "tasks",
     "recentProjects": "Recent projects",
-    "openFolder...": "Open folder..."
+    "openFolder...": "Open folder...",
+    "allCategories": "ಎಲ್ಲಾ ವರ್ಗಗಳು"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -337,6 +338,20 @@
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
   },
   "agentChat": {
+    "working": "ಕೆಲಸ ಮಾಡುತ್ತಿದೆ...",
+    "staleAuthTitle": "kandown daemon ಮರುಪ್ರಾರಂಭಗೊಂಡಿದೆ",
+    "staleAuthBody": "ಮತ್ತೆ ಸಂಪರ್ಕಿಸಲು ಈ ಪುಟವನ್ನು Reload ಮಾಡಿ.",
+    "reload": "Reload",
+    "pickTaskTitle": "{{skill}} ಚಲಾಯಿಸಲು ಕಾರ್ಯವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+    "pickTaskEmpty": "ಬೋರ್ಡ್‌ನಲ್ಲಿ ಇನ್ನೂ ಯಾವುದೇ ಕಾರ್ಯಗಳಿಲ್ಲ",
+    "mentionDropdownLabel": "ಸಲಹೆಗಳು",
+    "modelPlaceholder": "ಮಾಡೆಲ್",
+    "modelTitle": "ಹೊಸ ಚಾಟ್‌ಗಳಿಗೆ ಮಾಡೆಲ್, ಖಾಲಿ ಬಿಟ್ಟರೆ ಹಾರ್ನೆಸ್‌ನ ಡೀಫಾಲ್ಟ್ ಬಳಸುತ್ತದೆ",
+    "deliveryLabel": "ಫಾಲೋ-ಅಪ್ ಸಂದೇಶ ವಿತರಣೆ",
+    "deliverySteer": "ಸ್ಟೀರ್",
+    "deliveryQueue": "ಸರದಿ",
+    "deliverySteerTitle": "ಚಾಲ್ತಿಯ ಟರ್ನ್‌ಗೆ ವಿತರಿಸುತ್ತದೆ (pi: ಮುಂದಿನ ಟೂಲ್-ಕಾಲ್ ಗಡಿಯಲ್ಲಿ, ACP ಏಜೆಂಟ್: ತಕ್ಷಣ)",
+    "deliveryQueueTitle": "ಪ್ರಸ್ತುತ ಟರ್ನ್ ಮುಗಿದ ನಂತರ ವಿತರಿಸುತ್ತದೆ",
     "title": "ಏಜೆಂಟ್ ಚಾಟ್",
     "askAgent": "ಏಜೆಂಟ್‌ಗೆ ಕೇಳಿ",
     "askAgentTitle": "ಈ ಕಾರ್ಯದ ಬಗ್ಗೆ ಏಜೆಂಟ್‌ಗೆ ಕೇಳಿ",
@@ -369,6 +384,10 @@
     "daemonGuardBody": "ನಿಮ್ಮ ಕೋಡಿಂಗ್ ಏಜೆಂಟ್‌ಗಳೊಂದಿಗೆ ಮಾತನಾಡಲು ಲೋಕಲ್ daemon ಆರಂಭಿಸಿ: ಈ ಪ್ರಾಜೆಕ್ಟ್‌ನಲ್ಲಿ npx kandown ಚಲಾಯಿಸಿ."
   },
   "agentSkills": {
+    "skillsModalTitle": "ಕೌಶಲ್ಯಗಳು",
+    "skillsModalEmpty": "ಯಾವುದೇ ಕೌಶಲ್ಯ ಸ್ಥಾಪಿಸಲಾಗಿಲ್ಲ",
+    "activeTitle": "ಸಕ್ರಿಯ",
+    "inactiveTitle": "ನಿಷ್ಕ್ರಿಯ",
     "skillsLabel": "ಕೌಶಲ್ಯಗಳು",
     "needsTaskContext": "ಒಂದು ಕಾರ್ಯದ ಸಂದರ್ಭ ಬೇಕು",
     "interactiveBadge": "ಇಂಟರಾಕ್ಟಿವ್",

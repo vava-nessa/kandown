@@ -36,7 +36,8 @@
   "header": {
     "tasks": "tasks",
     "recentProjects": "Recent projects",
-    "openFolder...": "Open folder..."
+    "openFolder...": "Open folder...",
+    "allCategories": "ทุกหมวดหมู่"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -337,6 +338,20 @@
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
   },
   "agentChat": {
+    "working": "กำลังทำงาน...",
+    "staleAuthTitle": "kandown daemon รีสตาร์ทแล้ว",
+    "staleAuthBody": "โหลดหน้านี้ใหม่เพื่อเชื่อมต่ออีกครั้ง",
+    "reload": "Reload",
+    "pickTaskTitle": "เลือกงานที่จะรัน {{skill}}",
+    "pickTaskEmpty": "ยังไม่มีงานบนบอร์ด",
+    "mentionDropdownLabel": "คำแนะนำ",
+    "modelPlaceholder": "โมเดล",
+    "modelTitle": "โมเดลสำหรับแชทใหม่ หากว่างจะใช้ค่าเริ่มต้นของ Harness",
+    "deliveryLabel": "การส่งข้อความติดตาม",
+    "deliverySteer": "ควบคุม",
+    "deliveryQueue": "เข้าคิว",
+    "deliverySteerTitle": "ส่งเข้ารอบที่กำลังทำงาน (pi: ที่ขอบเขตของ tool call ถัดไป, เอเจนต์ ACP: ทันที)",
+    "deliveryQueueTitle": "ส่งหลังจากรอบปัจจุบันเสร็จสิ้น",
     "title": "แชทกับเอเจนต์",
     "askAgent": "ถามเอเจนต์",
     "askAgentTitle": "ถามเอเจนต์เกี่ยวกับงานนี้",
@@ -369,6 +384,10 @@
     "daemonGuardBody": "เริ่ม daemon ในเครื่องเพื่อแชทกับเอเจนต์เขียนโค้ดของคุณ: รัน npx kandown ในโปรเจกต์นี้"
   },
   "agentSkills": {
+    "skillsModalTitle": "ทักษะ",
+    "skillsModalEmpty": "ยังไม่มีทักษะที่ติดตั้ง",
+    "activeTitle": "ใช้งาน",
+    "inactiveTitle": "ไม่ใช้งาน",
     "skillsLabel": "ทักษะ",
     "needsTaskContext": "ต้องมีบริบทของงาน",
     "interactiveBadge": "โต้ตอบได้",

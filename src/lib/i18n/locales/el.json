@@ -36,7 +36,8 @@
   "header": {
     "tasks": "εργασίες",
     "recentProjects": "Πρόσφατα έργα",
-    "openFolder...": "Άνοιγμα φακέλου..."
+    "openFolder...": "Άνοιγμα φακέλου...",
+    "allCategories": "Όλες οι κατηγορίες"
   },
   "filterBar": {
     "searchPlaceholder": "Αναζήτηση εργασιών...",
@@ -315,6 +316,20 @@
     "settingsUpdatedExternally": "Οι ρυθμίσεις ενημερώθηκαν εξωτερικά — επαναφορτώθηκαν"
   },
   "agentChat": {
+    "working": "Εργάζεται...",
+    "staleAuthTitle": "Ο daemon επανεκκινήθηκε",
+    "staleAuthBody": "Επαναφορτώστε τη σελίδα για να επανασυνδεθείτε.",
+    "reload": "Επαναφόρτωση",
+    "pickTaskTitle": "Επιλέξτε την εργασία στην οποία θα εκτελεστεί το {{skill}}",
+    "pickTaskEmpty": "Δεν υπάρχουν ακόμη εργασίες στον πίνακα",
+    "mentionDropdownLabel": "Προτάσεις",
+    "modelPlaceholder": "Μοντέλο",
+    "modelTitle": "Μοντέλο για νέες συνομιλίες, κενό σημαίνει προεπιλογή του Harness",
+    "deliveryLabel": "Παράδοση μηνυμάτων συνέχειας",
+    "deliverySteer": "Καθοδήγηση",
+    "deliveryQueue": "Ουρά",
+    "deliverySteerTitle": "Παράδοση στον τρέχοντα γύρο (pi: στο όριο της επόμενης κλήσης εργαλείου, πράκτορες ACP: αμέσως)",
+    "deliveryQueueTitle": "Παράδοση μετά την ολοκλήρωση του τρέχοντος γύρου",
     "title": "Συνομιλία με τον agent",
     "askAgent": "Ρώτησε τον agent",
     "askAgentTitle": "Ρώτησε τον agent για αυτή την εργασία",
@@ -347,6 +362,10 @@
     "daemonGuardBody": "Ξεκίνα το τοπικό daemon για να συνομιλείς με τους coding agents σου: εκτέλεσε npx kandown σε αυτό το έργο."
   },
   "agentSkills": {
+    "skillsModalTitle": "Δεξιότητες",
+    "skillsModalEmpty": "Δεν υπάρχουν εγκατεστημένες δεξιότητες",
+    "activeTitle": "Ενεργές",
+    "inactiveTitle": "Ανενεργές",
     "skillsLabel": "Δεξιότητες",
     "needsTaskContext": "Χρειάζεται πλαίσιο εργασίας",
     "interactiveBadge": "Διαδραστικό",

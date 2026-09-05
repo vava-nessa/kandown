@@ -36,7 +36,8 @@
   "header": {
     "tasks": "naloge",
     "recentProjects": "Nedavni projekti",
-    "openFolder...": "Odpri mapo..."
+    "openFolder...": "Odpri mapo...",
+    "allCategories": "Vse kategorije"
   },
   "filterBar": {
     "searchPlaceholder": "Iskanje nalog...",
@@ -315,6 +316,20 @@
     "settingsUpdatedExternally": "Nastavitve so bile zunanje posodobljene — osveženo"
   },
   "agentChat": {
+    "working": "Dela...",
+    "staleAuthTitle": "Daemon se je znova zagnal",
+    "staleAuthBody": "Za ponovno povezavo osvežite stran.",
+    "reload": "Osveži",
+    "pickTaskTitle": "Izberite nalogo, na kateri naj se zažene {{skill}}",
+    "pickTaskEmpty": "Na deski še ni nalog",
+    "mentionDropdownLabel": "Predlogi",
+    "modelPlaceholder": "Model",
+    "modelTitle": "Model za nove klepete, prazno uporabi privzeto vrednost Harnessa",
+    "deliveryLabel": "Dostava nadaljnjih sporočil",
+    "deliverySteer": "Vodenje",
+    "deliveryQueue": "V vrsto",
+    "deliverySteerTitle": "Dostavi v tekoči krog (pi: na meji naslednjega klica orodja, ACP agenti: takoj)",
+    "deliveryQueueTitle": "Dostavi po zaključku trenutnega kroga",
     "title": "Klepet agenta",
     "askAgent": "Vprašaj agenta",
     "askAgentTitle": "Vprašaj agenta o tej nalogi",
@@ -347,6 +362,10 @@
     "daemonGuardBody": "Zaženite lokalni daemon in klepetajte s svojimi kodirnimi agenti: zaženite npx kandown v tem projektu."
   },
   "agentSkills": {
+    "skillsModalTitle": "Veščine",
+    "skillsModalEmpty": "Ni nameščenih veščin",
+    "activeTitle": "Aktivne",
+    "inactiveTitle": "Neaktivne",
     "skillsLabel": "Veščine",
     "needsTaskContext": "Potreben je kontekst naloge",
     "interactiveBadge": "Interaktivno",

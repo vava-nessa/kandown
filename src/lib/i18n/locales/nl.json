@@ -36,7 +36,8 @@
   "header": {
     "tasks": "taken",
     "recentProjects": "Recente projecten",
-    "openFolder...": "Map openen..."
+    "openFolder...": "Map openen...",
+    "allCategories": "Alle categorieën"
   },
   "filterBar": {
     "searchPlaceholder": "Taken zoeken...",
@@ -300,6 +301,20 @@
     "settingsUpdatedExternally": "Instellingen extern bijgewerkt — herladen"
   },
   "agentChat": {
+    "working": "Bezig...",
+    "staleAuthTitle": "De daemon is herstart",
+    "staleAuthBody": "Herlaad deze pagina om opnieuw te verbinden.",
+    "reload": "Herladen",
+    "pickTaskTitle": "Kies de taak waarop {{skill}} moet worden uitgevoerd",
+    "pickTaskEmpty": "Er zijn nog geen taken op het board",
+    "mentionDropdownLabel": "Suggesties",
+    "modelPlaceholder": "Model",
+    "modelTitle": "Model voor nieuwe chats, leeg gebruikt de Harness-standaard",
+    "deliveryLabel": "Levering van vervolgberichten",
+    "deliverySteer": "Sturen",
+    "deliveryQueue": "In wachtrij",
+    "deliverySteerTitle": "Levert in de lopende beurt (pi: bij de volgende tool-aanroep, ACP-agenten: direct)",
+    "deliveryQueueTitle": "Levert nadat de huidige beurt is afgerond",
     "title": "Agentchat",
     "askAgent": "Vraag de agent",
     "askAgentTitle": "Vraag de agent naar deze taak",
@@ -332,6 +347,10 @@
     "daemonGuardBody": "Start de lokale daemon om met je coding agents te chatten: voer npx kandown uit in dit project."
   },
   "agentSkills": {
+    "skillsModalTitle": "Skills",
+    "skillsModalEmpty": "Geen skills geïnstalleerd",
+    "activeTitle": "Actief",
+    "inactiveTitle": "Inactief",
     "skillsLabel": "Skills",
     "needsTaskContext": "Vereist een taakcontext",
     "interactiveBadge": "Interactief",

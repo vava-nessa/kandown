@@ -36,7 +36,8 @@
   "header": {
     "tasks": "užduotys",
     "recentProjects": "Paskutiniai projektai",
-    "openFolder...": "Atverti aplanką..."
+    "openFolder...": "Atverti aplanką...",
+    "allCategories": "Visos kategorijos"
   },
   "filterBar": {
     "searchPlaceholder": "Ieškoti užduočių...",
@@ -315,6 +316,20 @@
     "settingsUpdatedExternally": "Nustatymai buvo atnaujinti iš išorės — perkrauta"
   },
   "agentChat": {
+    "working": "Dirba...",
+    "staleAuthTitle": "Daemon paleistas iš naujo",
+    "staleAuthBody": "Iš naujo įkelkite puslapį, kad prisijungtumėte iš naujo.",
+    "reload": "Perkrauti",
+    "pickTaskTitle": "Pasirinkite užduotį, kurioje vykdyti {{skill}}",
+    "pickTaskEmpty": "Lentoje kol kas nėra užduočių",
+    "mentionDropdownLabel": "Pasiūlymai",
+    "modelPlaceholder": "Modelis",
+    "modelTitle": "Modelis naujiems pokalbiams, tuščias laukas naudoja Harness numatytąją reikšmę",
+    "deliveryLabel": "Vėlesnių žinučių pristatymas",
+    "deliverySteer": "Valdyti",
+    "deliveryQueue": "Eilė",
+    "deliverySteerTitle": "Pristato į vykstantį ėjimą (pi: prie kito įrankio kvietimo ribos, ACP agentai: nedelsiant)",
+    "deliveryQueueTitle": "Pristato baigus dabartinį ėjimą",
     "title": "Pokalbis su agentu",
     "askAgent": "Klausk agento",
     "askAgentTitle": "Paklausk agento apie šią užduotį",
@@ -347,6 +362,10 @@
     "daemonGuardBody": "Paleisti vietinį daemon, kad galėtumėte kalbėtis su savo kodavimo agentais: paleiskite npx kandown šiame projekte."
   },
   "agentSkills": {
+    "skillsModalTitle": "Įgūdžiai",
+    "skillsModalEmpty": "Nėra įdiegtų įgūdžių",
+    "activeTitle": "Aktyvūs",
+    "inactiveTitle": "Neaktyvūs",
     "skillsLabel": "Įgūdžiai",
     "needsTaskContext": "Reikia užduoties konteksto",
     "interactiveBadge": "Interaktyvu",

@@ -36,7 +36,8 @@
   "header": {
     "tasks": "görevler",
     "recentProjects": "Son projeler",
-    "openFolder...": "Klasör aç..."
+    "openFolder...": "Klasör aç...",
+    "allCategories": "Tüm kategoriler"
   },
   "filterBar": {
     "searchPlaceholder": "Görevleri ara...",
@@ -282,6 +283,20 @@
     "settingsUpdatedExternally": "Ayarlar dışarıdan güncellendi — yeniden yüklendi"
   },
   "agentChat": {
+    "working": "Çalışıyor...",
+    "staleAuthTitle": "Daemon yeniden başlatıldı",
+    "staleAuthBody": "Yeniden bağlanmak için bu sayfayı yeniden yükleyin.",
+    "reload": "Yenile",
+    "pickTaskTitle": "{{skill}} çalıştırılacak görevi seçin",
+    "pickTaskEmpty": "Panoda henüz görev yok",
+    "mentionDropdownLabel": "Öneriler",
+    "modelPlaceholder": "Model",
+    "modelTitle": "Yeni sohbetler için model, boş bırakılırsa Harness varsayılanı kullanılır",
+    "deliveryLabel": "Takip mesajı teslimi",
+    "deliverySteer": "Yönlendir",
+    "deliveryQueue": "Kuyruğa al",
+    "deliverySteerTitle": "Devam eden tura teslim eder (pi: bir sonraki araç çağrısı sınırında, ACP ajanları: hemen)",
+    "deliveryQueueTitle": "Mevcut tur tamamlandıktan sonra teslim eder",
     "title": "Ajan sohbeti",
     "askAgent": "Ajana sor",
     "askAgentTitle": "Bu görev hakkında ajana sor",
@@ -314,6 +329,10 @@
     "daemonGuardBody": "Kodlama ajanlarınızla sohbet etmek için yerel daemonu başlatın: bu projede npx kandown çalıştırın."
   },
   "agentSkills": {
+    "skillsModalTitle": "Beceriler",
+    "skillsModalEmpty": "Yüklü beceri yok",
+    "activeTitle": "Etkin",
+    "inactiveTitle": "Devre dışı",
     "skillsLabel": "Beceriler",
     "needsTaskContext": "Görev bağlamı gerekiyor",
     "interactiveBadge": "Etkileşimli",

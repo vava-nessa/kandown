@@ -36,7 +36,8 @@
   "header": {
     "tasks": "tasks",
     "recentProjects": "Recent projects",
-    "openFolder...": "Open folder..."
+    "openFolder...": "Open folder...",
+    "allCategories": "Semua kategori"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -337,6 +338,20 @@
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
   },
   "agentChat": {
+    "working": "Sedang bekerja...",
+    "staleAuthTitle": "Daemon telah dimulakan semula",
+    "staleAuthBody": "Muat semula halaman ini untuk menyambung semula.",
+    "reload": "Reload",
+    "pickTaskTitle": "Pilih tugas untuk menjalankan {{skill}}",
+    "pickTaskEmpty": "Belum ada tugas di papan",
+    "mentionDropdownLabel": "Cadangan",
+    "modelPlaceholder": "Model",
+    "modelTitle": "Model untuk sembang baru, kosong guna lalai Harness",
+    "deliveryLabel": "Penghantaran mesej susulan",
+    "deliverySteer": "Arahkan",
+    "deliveryQueue": "Baris",
+    "deliverySteerTitle": "Dihantar ke dalam giliran yang sedang berjalan (pi: pada had panggilan alat seterusnya, ejen ACP: serta-merta)",
+    "deliveryQueueTitle": "Dihantar selepas giliran semasa selesai",
     "title": "Sembang ejen",
     "askAgent": "Tanya ejen",
     "askAgentTitle": "Tanya ejen tentang tugasan ini",
@@ -369,6 +384,10 @@
     "daemonGuardBody": "Mulakan daemon tempatan untuk berbual dengan ejen kod anda: jalankan npx kandown dalam projek ini."
   },
   "agentSkills": {
+    "skillsModalTitle": "Kemahiran",
+    "skillsModalEmpty": "Tiada kemahiran dipasang",
+    "activeTitle": "Aktif",
+    "inactiveTitle": "Tidak aktif",
     "skillsLabel": "Kemahiran",
     "needsTaskContext": "Perlu konteks tugasan",
     "interactiveBadge": "Interaktif",

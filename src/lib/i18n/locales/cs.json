@@ -36,7 +36,8 @@
   "header": {
     "tasks": "úkoly",
     "recentProjects": "Nedávné projekty",
-    "openFolder...": "Otevřít složku..."
+    "openFolder...": "Otevřít složku...",
+    "allCategories": "Všechny kategorie"
   },
   "filterBar": {
     "searchPlaceholder": "Hledat úkoly...",
@@ -315,6 +316,20 @@
     "settingsUpdatedExternally": "Nastavení bylo externě aktualizováno — obnoveno"
   },
   "agentChat": {
+    "working": "Pracuje...",
+    "staleAuthTitle": "Daemon byl restartován",
+    "staleAuthBody": "Obnovte stránku, abyste se znovu připojili.",
+    "reload": "Obnovit",
+    "pickTaskTitle": "Zvolte úlohu, na které se má spustit {{skill}}",
+    "pickTaskEmpty": "Na nástěnce zatím nejsou žádné úlohy",
+    "mentionDropdownLabel": "Návrhy",
+    "modelPlaceholder": "Model",
+    "modelTitle": "Model pro nové chaty, prázdné pole použije výchozí nastavení Harnessu",
+    "deliveryLabel": "Doručení navazujících zpráv",
+    "deliverySteer": "Řídit",
+    "deliveryQueue": "Do fronty",
+    "deliverySteerTitle": "Doručí do probíhajícího tahu (pi: na hranici dalšího volání nástroje, agenti ACP: okamžitě)",
+    "deliveryQueueTitle": "Doručí po dokončení aktuálního tahu",
     "title": "Chat agenta",
     "askAgent": "Zeptat se agenta",
     "askAgentTitle": "Zeptat se agenta na tento úkol",
@@ -347,6 +362,10 @@
     "daemonGuardBody": "Spusťte lokální daemon a ptejte se svých kódovacích agentů: spusťte npx kandown v tomto projektu."
   },
   "agentSkills": {
+    "skillsModalTitle": "Dovednosti",
+    "skillsModalEmpty": "Žádné nainstalované dovednosti",
+    "activeTitle": "Aktivní",
+    "inactiveTitle": "Neaktivní",
     "skillsLabel": "Dovednosti",
     "needsTaskContext": "Vyžaduje kontext úkolu",
     "interactiveBadge": "Interaktivní",

@@ -36,7 +36,8 @@
   "header": {
     "tasks": "tasks",
     "recentProjects": "Recent projects",
-    "openFolder...": "Open folder..."
+    "openFolder...": "Open folder...",
+    "allCategories": "ប្រភេទទាំងអស់"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -337,6 +338,20 @@
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
   },
   "agentChat": {
+    "working": "កំពុងធ្វើការ...",
+    "staleAuthTitle": "kandown daemon បានចាប់ផ្ដើមឡើងវិញ",
+    "staleAuthBody": "ដើម្បីភ្ជាប់ឡើងវិញ សូមផ្ទុកទំព័រនេះឡើងវិញ។",
+    "reload": "Reload",
+    "pickTaskTitle": "ជ្រើសរើសភារកិច្ចដើម្បីដំណើរការ {{skill}}",
+    "pickTaskEmpty": "មិនទាន់មានភារកិច្ចនៅលើបន្ទះការងារទេ",
+    "mentionDropdownLabel": "ការណែនាំ",
+    "modelPlaceholder": "ម៉ូដែល",
+    "modelTitle": "ម៉ូដែលសម្រាប់ការជជែកថ្មី បើទទេ នឹងប្រើលំនាំដើមរបស់ Harness",
+    "deliveryLabel": "ការផ្ញើសារបន្ត",
+    "deliverySteer": "ដឹកនាំ",
+    "deliveryQueue": "ជួរ",
+    "deliverySteerTitle": "ផ្ញើក្នុងវេនដែលកំពុងដំណើរការ (pi: នៅចំណុចហៅឧបករណ៍បន្ទាប់, អេជេនត៍ ACP: ភ្លាមៗ)",
+    "deliveryQueueTitle": "ផ្ញើបន្ទាប់ពីវេនបច្ចុប្បន្នបញ្ចប់",
     "title": "ការជជែកជាមួយអេជេន",
     "askAgent": "សួរអេជេន",
     "askAgentTitle": "សួរអេជេនអំពីភារកិច្ចនេះ",
@@ -369,6 +384,10 @@
     "daemonGuardBody": "ចាប់ផ្ដើម daemon ក្នុងស្រុកដើម្បីជជែកជាមួយភ្នាក់ងារសរសេរកូដរបស់អ្នក: ដំណើរការ npx kandown ក្នុងគម្រោងនេះ។"
   },
   "agentSkills": {
+    "skillsModalTitle": "ជំនាញ",
+    "skillsModalEmpty": "មិនមានជំនាញដែលបានដំឡើងទេ",
+    "activeTitle": "សកម្ម",
+    "inactiveTitle": "អសកម្ម",
     "skillsLabel": "ជំនាញ",
     "needsTaskContext": "ត្រូវការបរិបទរបស់ភារកិច្ច",
     "interactiveBadge": "អន្តរកម្ម",

@@ -36,7 +36,8 @@
   "header": {
     "tasks": "tasks",
     "recentProjects": "Recent projects",
-    "openFolder...": "Open folder..."
+    "openFolder...": "Open folder...",
+    "allCategories": "सर्व श्रेणी"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -337,6 +338,20 @@
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
   },
   "agentChat": {
+    "working": "काम करत आहे...",
+    "staleAuthTitle": "kandown daemon पुन्हा सुरू झाला",
+    "staleAuthBody": "पुन्हा कनेक्ट होण्यासाठी हे पेज Reload करा.",
+    "reload": "Reload",
+    "pickTaskTitle": "{{skill}} चालवण्यासाठी काम निवडा",
+    "pickTaskEmpty": "बोर्डवर अजून कामे नाहीत",
+    "mentionDropdownLabel": "सूचना",
+    "modelPlaceholder": "मॉडेल",
+    "modelTitle": "नवीन चॅटसाठी मॉडेल, रिकामे ठेवल्यास हार्नेसचे डीफॉल्ट वापरले जाईल",
+    "deliveryLabel": "फॉलो-अप संदेश पाठवणे",
+    "deliverySteer": "स्टीयर",
+    "deliveryQueue": "रांग",
+    "deliverySteerTitle": "चालू टर्नमध्ये पाठवते (pi: पुढील टूल-कॉल सीमेवर, ACP एजंट: लगेच)",
+    "deliveryQueueTitle": "सध्याचा टर्न पूर्ण झाल्यावर पाठवते",
     "title": "एजंट चॅट",
     "askAgent": "एजंटला विचारा",
     "askAgentTitle": "या कामाबद्दल एजंटला विचारा",
@@ -369,6 +384,10 @@
     "daemonGuardBody": "तुमच्या कोडिंग एजंटशी बोलण्यासाठी लोकल daemon सुरू करा: या प्रोजेक्टमध्ये npx kandown चालवा."
   },
   "agentSkills": {
+    "skillsModalTitle": "कौशल्ये",
+    "skillsModalEmpty": "कोणतीही कौशल्ये स्थापित नाहीत",
+    "activeTitle": "सक्रिय",
+    "inactiveTitle": "निष्क्रिय",
     "skillsLabel": "कौशल्ये",
     "needsTaskContext": "एका कामाच्या संदर्भाची गरज आहे",
     "interactiveBadge": "संवादी",

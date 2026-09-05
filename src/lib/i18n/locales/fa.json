@@ -36,7 +36,8 @@
   "header": {
     "tasks": "کارها",
     "recentProjects": "پروژه‌های اخیر",
-    "openFolder...": "باز کردن پوشه..."
+    "openFolder...": "باز کردن پوشه...",
+    "allCategories": "همه دسته‌ها"
   },
   "filterBar": {
     "searchPlaceholder": "جستجوی کارها...",
@@ -282,6 +283,20 @@
     "settingsUpdatedExternally": "تنظیمات خارجاً به‌روزرسانی شد — بارگذاری مجدد شد"
   },
   "agentChat": {
+    "working": "در حال کار...",
+    "staleAuthTitle": "kandown daemon دوباره راه‌اندازی شد",
+    "staleAuthBody": "برای اتصال مجدد این صفحه را بارگذاری مجدد کنید.",
+    "reload": "بارگذاری مجدد",
+    "pickTaskTitle": "تسکی را که {{skill}} باید روی آن اجرا شود انتخاب کنید",
+    "pickTaskEmpty": "هنوز هیچ کاری روی تخته نیست",
+    "mentionDropdownLabel": "پیشنهادها",
+    "modelPlaceholder": "مدل",
+    "modelTitle": "مدل برای گفت‌وگوهای جدید، اگر خالی باشد از پیش‌فرض هارنس استفاده می‌شود",
+    "deliveryLabel": "تحویل پیام‌های پیگیری",
+    "deliverySteer": "هدایت",
+    "deliveryQueue": "صف",
+    "deliverySteerTitle": "تحویل درون نوبت زنده (pi: در مرز فراخوانی ابزار بعدی، ایجنت‌های ACP: بلافاصله)",
+    "deliveryQueueTitle": "تحویل پس از پایان نوبت فعلی",
     "title": "گفت‌وگو با ایجنت",
     "askAgent": "از ایجنت بپرس",
     "askAgentTitle": "درباره این کار از ایجنت بپرس",
@@ -314,6 +329,10 @@
     "daemonGuardBody": "برای چت با ایجنت‌های کدنویسی‌ات دیمن محلی را اجرا کن: در این پروژه npx kandown را اجرا کن."
   },
   "agentSkills": {
+    "skillsModalTitle": "مهارت‌ها",
+    "skillsModalEmpty": "هیچ مهارتی نصب نشده است",
+    "activeTitle": "فعال",
+    "inactiveTitle": "غیرفعال",
     "skillsLabel": "مهارت‌ها",
     "needsTaskContext": "به زمینه یک کار نیاز دارد",
     "interactiveBadge": "تعاملی",

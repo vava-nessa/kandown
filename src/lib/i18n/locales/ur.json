@@ -36,7 +36,8 @@
   "header": {
     "tasks": "ٹاسک",
     "recentProjects": "حالیہ پروجیکٹس",
-    "openFolder...": "فولڈر کھولیں..."
+    "openFolder...": "فولڈر کھولیں...",
+    "allCategories": "تمام اقسام"
   },
   "filterBar": {
     "searchPlaceholder": "ٹاسک تلاش کریں...",
@@ -282,6 +283,20 @@
     "settingsUpdatedExternally": "ترتیبات باہر سے اپ ڈیٹ ہوئیں — ری لوڈ ہو گئیں"
   },
   "agentChat": {
+    "working": "کام کر رہا ہے...",
+    "staleAuthTitle": "kandown daemon دوبارہ شروع ہوا ہے",
+    "staleAuthBody": "دوبارہ جڑنے کے لیے اس صفحے کو ری لوڈ کریں۔",
+    "reload": "ری لوڈ",
+    "pickTaskTitle": "{{skill}} چلانے کے لیے ٹاسک منتخب کریں",
+    "pickTaskEmpty": "بورڈ پر ابھی کوئی ٹاسک نہیں ہے",
+    "mentionDropdownLabel": "تجاویز",
+    "modelPlaceholder": "ماڈل",
+    "modelTitle": "نئی چیٹس کے لیے ماڈل، خالی چھوڑیں تو ہارنس کی ڈیفالٹ استعمال ہوگی",
+    "deliveryLabel": "فالو اپ پیغامات کی ترسیل",
+    "deliverySteer": "رہنمائی",
+    "deliveryQueue": "قطار",
+    "deliverySteerTitle": "زندہ موڑ کے اندر بھیجتا ہے (pi: اگلی ٹول کال کی حد پر, ACP ایجنٹس: فوراً)",
+    "deliveryQueueTitle": "موجودہ موڑ مکمل ہونے کے بعد بھیجتا ہے",
     "title": "ایجنٹ چیٹ",
     "askAgent": "ایجنٹ سے پوچھیں",
     "askAgentTitle": "اس کام کے بارے میں ایجنٹ سے پوچھیں",
@@ -314,6 +329,10 @@
     "daemonGuardBody": "اپنے کوڈنگ ایجنٹس سے بات کرنے کے لیے لوکل daemon شروع کریں: اس پروجیکٹ میں npx kandown چلائیں۔"
   },
   "agentSkills": {
+    "skillsModalTitle": "مہارتیں",
+    "skillsModalEmpty": "کوئی مہارت انسٹال نہیں ہے",
+    "activeTitle": "فعال",
+    "inactiveTitle": "غیر فعال",
     "skillsLabel": "مہارتیں",
     "needsTaskContext": "کسی کام کے سیاق کی ضرورت ہے",
     "interactiveBadge": "انٹرایکٹو",

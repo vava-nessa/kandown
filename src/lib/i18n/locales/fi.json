@@ -36,7 +36,8 @@
   "header": {
     "tasks": "tehtävää",
     "recentProjects": "Viimeaikaiset projektit",
-    "openFolder...": "Avaa kansio..."
+    "openFolder...": "Avaa kansio...",
+    "allCategories": "Kaikki kategoriat"
   },
   "filterBar": {
     "searchPlaceholder": "Hae tehtäviä...",
@@ -315,6 +316,20 @@
     "settingsUpdatedExternally": "Asetukset päivitettiin ulkoisesti — ladattu uudelleen"
   },
   "agentChat": {
+    "working": "Työskentelee...",
+    "staleAuthTitle": "Daemon käynnistyi uudelleen",
+    "staleAuthBody": "Lataa sivu uudelleen yhdistääksesi uudelleen.",
+    "reload": "Lataa uudelleen",
+    "pickTaskTitle": "Valitse tehtävä, jolla {{skill}} suoritetaan",
+    "pickTaskEmpty": "Boardilla ei ole vielä tehtäviä",
+    "mentionDropdownLabel": "Ehdotukset",
+    "modelPlaceholder": "Malli",
+    "modelTitle": "Malli uusille chatteille, tyhjä käyttää Harnessin oletusta",
+    "deliveryLabel": "Jatkoviestien toimitus",
+    "deliverySteer": "Ohjaa",
+    "deliveryQueue": "Jono",
+    "deliverySteerTitle": "Toimitetaan käynnissä olevan vuoron sisään (pi: seuraavan työkalukutsun kohdalla, ACP-agentit: heti)",
+    "deliveryQueueTitle": "Toimitetaan, kun nykyinen vuoro päättyy",
     "title": "Agenttichatti",
     "askAgent": "Kysy agentilta",
     "askAgentTitle": "Kysy agentilta tästä tehtävästä",
@@ -347,6 +362,10 @@
     "daemonGuardBody": "Käynnistä paikallinen daemon juttaaksesi koodausagenttiesi kanssa: aja npx kandown tässä projektissa."
   },
   "agentSkills": {
+    "skillsModalTitle": "Taidot",
+    "skillsModalEmpty": "Ei asennettuja taitoja",
+    "activeTitle": "Aktiiviset",
+    "inactiveTitle": "Passiiviset",
     "skillsLabel": "Taidot",
     "needsTaskContext": "Vaatii tehtävän kontekstin",
     "interactiveBadge": "Interaktiivinen",

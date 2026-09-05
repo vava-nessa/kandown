@@ -36,7 +36,8 @@
   "header": {
     "tasks": "uzdevumi",
     "recentProjects": "Nesenie projekti",
-    "openFolder...": "Atvērt mapi..."
+    "openFolder...": "Atvērt mapi...",
+    "allCategories": "Visas kategorijas"
   },
   "filterBar": {
     "searchPlaceholder": "Meklēt uzdevumus...",
@@ -315,6 +316,20 @@
     "settingsUpdatedExternally": "Iestatījumi atjaunināti ārēji — pārlādēti"
   },
   "agentChat": {
+    "working": "Strādā...",
+    "staleAuthTitle": "Daemons tika restartēts",
+    "staleAuthBody": "Pārlādējiet lapu, lai atjaunotu savienojumu.",
+    "reload": "Pārlādēt",
+    "pickTaskTitle": "Izvēlaties uzdevumu, kurā palaist {{skill}}",
+    "pickTaskEmpty": "Uz tāfeles vēl nav uzdevumu",
+    "mentionDropdownLabel": "Ieteikumi",
+    "modelPlaceholder": "Modelis",
+    "modelTitle": "Modelis jauniem čatiem, tukšs nozīmē Harness noklusējumu",
+    "deliveryLabel": "Turpmāko ziņu piegāde",
+    "deliverySteer": "Vadīt",
+    "deliveryQueue": "Rinda",
+    "deliverySteerTitle": "Piegādā tekošajā gājienā (pi: pie nākamā rīka izsaukuma robežas, ACP aģenti: tūlīt)",
+    "deliveryQueueTitle": "Piegādā pēc pašreizējā gājiena pabeigšanas",
     "title": "Sarakste ar aģentu",
     "askAgent": "Jautā aģentam",
     "askAgentTitle": "Jautā aģentam par šo uzdevumu",
@@ -347,6 +362,10 @@
     "daemonGuardBody": "Palaid lokālo daemon, lai tērzētu ar saviem kodēšanas aģentiem: palaid npx kandown šajā projektā."
   },
   "agentSkills": {
+    "skillsModalTitle": "Prasmes",
+    "skillsModalEmpty": "Nav instalētu prasmju",
+    "activeTitle": "Aktīvās",
+    "inactiveTitle": "Neaktīvās",
     "skillsLabel": "Prasmes",
     "needsTaskContext": "Vajadzīgs uzdevuma konteksts",
     "interactiveBadge": "Interaktīvi",

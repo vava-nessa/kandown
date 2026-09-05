@@ -36,7 +36,8 @@
   "header": {
     "tasks": "tasks",
     "recentProjects": "Recent projects",
-    "openFolder...": "Open folder..."
+    "openFolder...": "Open folder...",
+    "allCategories": "అన్ని వర్గాలు"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -337,6 +338,20 @@
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
   },
   "agentChat": {
+    "working": "పనిచేస్తోంది...",
+    "staleAuthTitle": "kandown daemon పునఃప్రారంభించబడింది",
+    "staleAuthBody": "మళ్లీ కనెక్ట్ కావడానికి ఈ పేజీని Reload చేయండి.",
+    "reload": "Reload",
+    "pickTaskTitle": "{{skill}} నడపడానికి టాస్క్‌ను ఎంచుకోండి",
+    "pickTaskEmpty": "బోర్డుపై ఇంకా టాస్క్‌లు లేవు",
+    "mentionDropdownLabel": "సూచనలు",
+    "modelPlaceholder": "మోడల్",
+    "modelTitle": "కొత్త చాట్‌ల కోసం మోడల్, ఖాళీగా ఉంచితే హార్నెస్ డిఫాల్ట్ వాడుతుంది",
+    "deliveryLabel": "ఫాలో-అప్ సందేశ డెలివరీ",
+    "deliverySteer": "స్టీర్",
+    "deliveryQueue": "క్యూ",
+    "deliverySteerTitle": "నడుస్తున్న టర్న్‌లోకి పంపుతుంది (pi: తర్వాతి టూల్-కాల్ సరిహద్దులో, ACP ఏజెంట్: వెంటనే)",
+    "deliveryQueueTitle": "ప్రస్తుత టర్న్ ముగిసిన తర్వాత పంపుతుంది",
     "title": "ఏజెంట్ చాట్",
     "askAgent": "ఏజెంట్‌ను అడగండి",
     "askAgentTitle": "ఈ పని గురించి ఏజెంట్‌ను అడగండి",
@@ -369,6 +384,10 @@
     "daemonGuardBody": "మీ కోడింగ్ ఏజెంట్లతో మాట్లాడటానికి లోకల్ daemon ప్రారంభించండి: ఈ ప్రాజెక్ట్‌లో npx kandown నడపండి."
   },
   "agentSkills": {
+    "skillsModalTitle": "నైపుణ్యాలు",
+    "skillsModalEmpty": "ఇన్‌స్టాల్ చేసిన నైపుణ్యాలు లేవు",
+    "activeTitle": "సక్రియం",
+    "inactiveTitle": "నిష్క్రియం",
     "skillsLabel": "నైపుణ్యాలు",
     "needsTaskContext": "ఒక పని సందర్భం అవసరం",
     "interactiveBadge": "ఇంటరాక్టివ్",

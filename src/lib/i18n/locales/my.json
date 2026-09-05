@@ -36,7 +36,8 @@
   "header": {
     "tasks": "tasks",
     "recentProjects": "Recent projects",
-    "openFolder...": "Open folder..."
+    "openFolder...": "Open folder...",
+    "allCategories": "ကဏ္ဍအားလုံး"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -337,6 +338,20 @@
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
   },
   "agentChat": {
+    "working": "လုပ်ဆောင်နေသည်...",
+    "staleAuthTitle": "kandown daemon ပြန်လည်စတင်ခဲ့သည်",
+    "staleAuthBody": "ပြန်ချိတ်ဆက်ရန် ဤစာမျက်နှာကို Reload လုပ်ပါ။",
+    "reload": "Reload",
+    "pickTaskTitle": "{{skill}} ကို လည်ပတ်ရန် တာစ်က် ရွေးချယ်ပါ",
+    "pickTaskEmpty": "ဘုတ်ပေါ်တွင် တာစ်က် မရှိသေးပါ",
+    "mentionDropdownLabel": "အကြံပြုချက်များ",
+    "modelPlaceholder": "မော်ဒယ်",
+    "modelTitle": "ချတ်အသစ်များအတွက် မော်ဒယ်၊ အလွတ်ချန်ပါက harness ၏ ပုံသေကို အသုံးပြုသည်",
+    "deliveryLabel": "နောက်ဆက်စာများ ပို့ခြင်း",
+    "deliverySteer": "ညွှန်း",
+    "deliveryQueue": "တန်းစီ",
+    "deliverySteerTitle": "လက်ရှိလည်ပတ်မှုထဲသို့ ပို့သည် (pi: နောက်ထပ် tool ခေါ်ဆိုမှုနယ်နိမိတ်တွင်, ACP အေဂျင့်: ချက်ချင်း)",
+    "deliveryQueueTitle": "လက်ရှိလည်ပတ်မှု ပြီးဆုံးပြီးနောက် ပို့သည်",
     "title": "အေဂျင့် ချတ်",
     "askAgent": "အေဂျင့်ကို မေးပါ",
     "askAgentTitle": "ဤတာဝန်အကြောင်း အေဂျင့်ကို မေးပါ",
@@ -369,6 +384,10 @@
     "daemonGuardBody": "သင့်ကုဒ်ရေးအေဂျင့်များနှင့် စကားပြောရန် local daemon ကို စတင်ပါ: ဤပရောဂျက်တွင် npx kandown ကို run ပါ။"
   },
   "agentSkills": {
+    "skillsModalTitle": "ကျွမ်းကျင်မှုများ",
+    "skillsModalEmpty": "တပ်ဆင်ထားသော ကျွမ်းကျင်မှု မရှိပါ",
+    "activeTitle": "အသက်ဝင်",
+    "inactiveTitle": "အသက်မဝင်",
     "skillsLabel": "ကျွမ်းကျင်မှုများ",
     "needsTaskContext": "တာဝန်တစ်ခု၏ အကြောင်းအရာ လိုအပ်သည်",
     "interactiveBadge": "အင်တာအက်တီဗ်",

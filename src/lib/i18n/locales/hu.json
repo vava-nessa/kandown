@@ -36,7 +36,8 @@
   "header": {
     "tasks": "feladat",
     "recentProjects": "Legutóbbi projektek",
-    "openFolder...": "Mappa megnyitása..."
+    "openFolder...": "Mappa megnyitása...",
+    "allCategories": "Minden kategória"
   },
   "filterBar": {
     "searchPlaceholder": "Feladatok keresése...",
@@ -315,6 +316,20 @@
     "settingsUpdatedExternally": "Beállítások külsőleg frissítve — újratöltve"
   },
   "agentChat": {
+    "working": "Dolgozik...",
+    "staleAuthTitle": "A daemon újraindult",
+    "staleAuthBody": "Az újracsatlakozáshoz töltsd újra az oldalt.",
+    "reload": "Újratöltés",
+    "pickTaskTitle": "Válaszd ki a feladatot, amelyen a {{skill}} fut",
+    "pickTaskEmpty": "A táblán még nincsenek feladatok",
+    "mentionDropdownLabel": "Javaslatok",
+    "modelPlaceholder": "Modell",
+    "modelTitle": "Modell az új csevegésekhez, üresen a Harness alapértelmezését használja",
+    "deliveryLabel": "Követő üzenetek kézbesítése",
+    "deliverySteer": "Irányítás",
+    "deliveryQueue": "Sorba állítás",
+    "deliverySteerTitle": "A folyamatban lévő körbe kézbesíti (pi: a következő eszközhívás határán, ACP ügynökök: azonnal)",
+    "deliveryQueueTitle": "A jelenlegi kör befejezése után kézbesíti",
     "title": "Ügynökchat",
     "askAgent": "Kérdezd meg az ügynököt",
     "askAgentTitle": "Kérdezd meg az ügynököt erről a feladatról",
@@ -347,6 +362,10 @@
     "daemonGuardBody": "Indítsd el a helyi daemonbot, hogy csevegj a kódoló ügynökeiddel: futtasd az npx kandown parancsot ebben a projektben."
   },
   "agentSkills": {
+    "skillsModalTitle": "Készségek",
+    "skillsModalEmpty": "Nincsenek telepített készségek",
+    "activeTitle": "Aktív",
+    "inactiveTitle": "Inaktív",
     "skillsLabel": "Készségek",
     "needsTaskContext": "Feladatkörnyezet szükséges",
     "interactiveBadge": "Interaktív",

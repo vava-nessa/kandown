@@ -36,7 +36,8 @@
   "header": {
     "tasks": "tarefas",
     "recentProjects": "Projetos recentes",
-    "openFolder...": "Abrir pasta..."
+    "openFolder...": "Abrir pasta...",
+    "allCategories": "Todas as categorias"
   },
   "filterBar": {
     "searchPlaceholder": "Buscar tarefas...",
@@ -315,6 +316,20 @@
     "settingsUpdatedExternally": "Configurações atualizadas externamente — recarregadas"
   },
   "agentChat": {
+    "working": "Trabalhando...",
+    "staleAuthTitle": "O daemon foi reiniciado",
+    "staleAuthBody": "Recarregue esta página para reconectar.",
+    "reload": "Recarregar",
+    "pickTaskTitle": "Escolha a tarefa na qual executar {{skill}}",
+    "pickTaskEmpty": "Ainda não há tarefas no quadro",
+    "mentionDropdownLabel": "Sugestões",
+    "modelPlaceholder": "Modelo",
+    "modelTitle": "Modelo para novos chats, vazio usa o padrão do Harness",
+    "deliveryLabel": "Entrega de mensagens de acompanhamento",
+    "deliverySteer": "Direcionar",
+    "deliveryQueue": "Na fila",
+    "deliverySteerTitle": "Entrega no turno em andamento (pi: no limite da próxima chamada de ferramenta, agentes ACP: imediatamente)",
+    "deliveryQueueTitle": "Entrega quando o turno atual terminar",
     "title": "Chat do agente",
     "askAgent": "Pergunte ao agente",
     "askAgentTitle": "Pergunte ao agente sobre esta tarefa",
@@ -347,6 +362,10 @@
     "daemonGuardBody": "Inicie o daemon local para conversar com seus agentes de código: execute npx kandown neste projeto."
   },
   "agentSkills": {
+    "skillsModalTitle": "Skills",
+    "skillsModalEmpty": "Nenhuma skill instalada",
+    "activeTitle": "Ativas",
+    "inactiveTitle": "Inativas",
     "skillsLabel": "Skills",
     "needsTaskContext": "Precisa do contexto de uma tarefa",
     "interactiveBadge": "Interativo",

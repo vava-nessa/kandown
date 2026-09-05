@@ -36,7 +36,8 @@
   "header": {
     "tasks": "tasks",
     "recentProjects": "Recent projects",
-    "openFolder...": "Open folder..."
+    "openFolder...": "Open folder...",
+    "allCategories": "සියලු ප්‍රවර්ග"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -337,6 +338,20 @@
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
   },
   "agentChat": {
+    "working": "වැඩ කරයි...",
+    "staleAuthTitle": "kandown daemon නැවත ආරම්භ විය",
+    "staleAuthBody": "නැවත සම්බන්ධ වීමට මෙම පිටුව Reload කරන්න.",
+    "reload": "Reload",
+    "pickTaskTitle": "{{skill}} ධාවනය කිරීමට කාර්යයක් තෝරන්න",
+    "pickTaskEmpty": "පුවරුවේ තවම කාර්යයන් නැත",
+    "mentionDropdownLabel": "යෝජනා",
+    "modelPlaceholder": "ආකෘතිය",
+    "modelTitle": "නව චැට් සඳහා ආකෘතිය, හිස් නම් හානස් හි පෙරනිමිය භාවිත වේ",
+    "deliveryLabel": "පසුවිපරම් පණිවිඩ ලබාදීම",
+    "deliverySteer": "යොමු කිරීම",
+    "deliveryQueue": "පෝලිම",
+    "deliverySteerTitle": "ධාවමන වටය තුළට ලබාදේ (pi: ඊළඟ මෙවලම් ඇමතුම් සීමාවේදී, ACP ඒජන්ත: ක්ෂණිකව)",
+    "deliveryQueueTitle": "වත්මන් වටය අවසන් වූ පසු ලබාදේ",
     "title": "ඒජන්ත චැට්",
     "askAgent": "ඒජන්තයාගෙන් අසන්න",
     "askAgentTitle": "මෙම කාර්යය ගැන ඒජන්තයාගෙන් අසන්න",
@@ -369,6 +384,10 @@
     "daemonGuardBody": "ඔබේ කෝඩිං ඒජන්තයන් සමඟ කතාබහ කිරීමට ලෝකල් daemon ආරම්භ කරන්න: මෙම ව්‍යාපෘතිය තුළ npx kandown ධාවනය කරන්න."
   },
   "agentSkills": {
+    "skillsModalTitle": "කුසලතා",
+    "skillsModalEmpty": "ස්ථාපිත කුසලතා නැත",
+    "activeTitle": "සක්‍රීය",
+    "inactiveTitle": "අක්‍රීය",
     "skillsLabel": "කුසලතා",
     "needsTaskContext": "යම් කාර්යයක සන්දර්භයක් අවශ්‍යයි",
     "interactiveBadge": "අන්තර්ක්‍රියාකාරී",

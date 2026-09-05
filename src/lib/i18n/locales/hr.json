@@ -36,7 +36,8 @@
   "header": {
     "tasks": "zadaci",
     "recentProjects": "Nedavni projekti",
-    "openFolder...": "Otvori mapu..."
+    "openFolder...": "Otvori mapu...",
+    "allCategories": "Sve kategorije"
   },
   "filterBar": {
     "searchPlaceholder": "Pretraži zadatke...",
@@ -315,6 +316,20 @@
     "settingsUpdatedExternally": "Postavke su ažurirane izvana — osvježeno"
   },
   "agentChat": {
+    "working": "Radi...",
+    "staleAuthTitle": "Daemon se ponovno pokrenuo",
+    "staleAuthBody": "Osvježite stranicu da se ponovno povežete.",
+    "reload": "Osvježi",
+    "pickTaskTitle": "Odaberite zadatak na kojem će se pokrenuti {{skill}}",
+    "pickTaskEmpty": "Na ploči još nema zadataka",
+    "mentionDropdownLabel": "Prijedlozi",
+    "modelPlaceholder": "Model",
+    "modelTitle": "Model za nove razgovore, prazno koristi zadane postavke Harnessa",
+    "deliveryLabel": "Isporuka naknadnih poruka",
+    "deliverySteer": "Usmjeri",
+    "deliveryQueue": "U red čekanja",
+    "deliverySteerTitle": "Isporučuje u trenutni tijek (pi: na granici sljedećeg poziva alata, ACP agenti: odmah)",
+    "deliveryQueueTitle": "Isporučuje nakon završetka trenutnog tijeka",
     "title": "Razgovor s agentom",
     "askAgent": "Pitaj agenta",
     "askAgentTitle": "Pitaj agenta o ovom zadatku",
@@ -347,6 +362,10 @@
     "daemonGuardBody": "Pokreni lokalni daemon kako bi razgovarao sa svojim agentima za kodiranje: pokreni npx kandown u ovom projektu."
   },
   "agentSkills": {
+    "skillsModalTitle": "Vještine",
+    "skillsModalEmpty": "Nema instaliranih vještina",
+    "activeTitle": "Aktivne",
+    "inactiveTitle": "Neaktivne",
     "skillsLabel": "Vještine",
     "needsTaskContext": "Treba kontekst zadatka",
     "interactiveBadge": "Interaktivno",

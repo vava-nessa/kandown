@@ -36,7 +36,8 @@
   "header": {
     "tasks": "tugas",
     "recentProjects": "Proyek terbaru",
-    "openFolder...": "Buka folder..."
+    "openFolder...": "Buka folder...",
+    "allCategories": "Semua kategori"
   },
   "filterBar": {
     "searchPlaceholder": "Mencari tugas...",
@@ -282,6 +283,20 @@
     "settingsUpdatedExternally": "Pengaturan diperbarui secara eksternal — dimuat ulang"
   },
   "agentChat": {
+    "working": "Bekerja...",
+    "staleAuthTitle": "Daemon telah dimulai ulang",
+    "staleAuthBody": "Muat ulang halaman ini untuk menyambung kembali.",
+    "reload": "Muat ulang",
+    "pickTaskTitle": "Pilih tugas untuk menjalankan {{skill}}",
+    "pickTaskEmpty": "Belum ada tugas di papan",
+    "mentionDropdownLabel": "Saran",
+    "modelPlaceholder": "Model",
+    "modelTitle": "Model untuk obrolan baru, kosong memakai bawaan Harness",
+    "deliveryLabel": "Pengiriman pesan lanjutan",
+    "deliverySteer": "Arahkan",
+    "deliveryQueue": "Antrekan",
+    "deliverySteerTitle": "Dikirim ke dalam giliran yang sedang berjalan (pi: pada batas panggilan alat berikutnya, agen ACP: segera)",
+    "deliveryQueueTitle": "Dikirim setelah giliran saat ini selesai",
     "title": "Obrolan agen",
     "askAgent": "Tanya agen",
     "askAgentTitle": "Tanya agen tentang tugas ini",
@@ -314,6 +329,10 @@
     "daemonGuardBody": "Jalankan daemon lokal untuk mengobrol dengan agen kode kamu: jalankan npx kandown di proyek ini."
   },
   "agentSkills": {
+    "skillsModalTitle": "Skill",
+    "skillsModalEmpty": "Belum ada skill terpasang",
+    "activeTitle": "Aktif",
+    "inactiveTitle": "Nonaktif",
     "skillsLabel": "Skill",
     "needsTaskContext": "Butuh konteks tugas",
     "interactiveBadge": "Interaktif",

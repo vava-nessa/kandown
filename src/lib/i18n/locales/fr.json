@@ -40,7 +40,8 @@
     "archives": "Archives",
     "backToBoard": "Retour au board",
     "showMetadata": "Afficher les métadonnées",
-    "hideMetadata": "Masquer les métadonnées"
+    "hideMetadata": "Masquer les métadonnées",
+    "allCategories": "Toutes les catégories"
   },
   "filterBar": {
     "searchPlaceholder": "Rechercher des tâches...",
@@ -366,6 +367,20 @@
     "backToCards": "Retour aux cartes"
   },
   "agentChat": {
+    "working": "En cours...",
+    "staleAuthTitle": "Le daemon a redémarré",
+    "staleAuthBody": "Rechargez cette page pour vous reconnecter.",
+    "reload": "Recharger",
+    "pickTaskTitle": "Choisissez la tâche sur laquelle exécuter {{skill}}",
+    "pickTaskEmpty": "Aucune tâche sur le tableau pour le moment",
+    "mentionDropdownLabel": "Suggestions",
+    "modelPlaceholder": "Modèle",
+    "modelTitle": "Modèle pour les nouvelles conversations, laisser vide utilise la valeur par défaut du Harness",
+    "deliveryLabel": "Envoi des messages de suivi",
+    "deliverySteer": "Piloter",
+    "deliveryQueue": "File d'attente",
+    "deliverySteerTitle": "Livré dans le tour en cours (pi: à la frontière du prochain appel d'outils, agents ACP: immédiatement)",
+    "deliveryQueueTitle": "Livré après la fin du tour en cours",
     "title": "Chat de l'agent",
     "askAgent": "Demander à l'agent",
     "askAgentTitle": "Demander à l'agent à propos de cette tâche",
@@ -398,6 +413,10 @@
     "daemonGuardBody": "Démarrez le daemon local pour discuter avec vos agents de code : lancez npx kandown dans ce projet."
   },
   "agentSkills": {
+    "skillsModalTitle": "Skills",
+    "skillsModalEmpty": "Aucun Skill installé",
+    "activeTitle": "Actives",
+    "inactiveTitle": "Inactives",
     "skillsLabel": "Skills",
     "needsTaskContext": "Nécessite le contexte d'une tâche",
     "interactiveBadge": "Interactif",

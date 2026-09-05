@@ -36,7 +36,8 @@
   "header": {
     "tasks": "tasks",
     "recentProjects": "Recent projects",
-    "openFolder...": "Open folder..."
+    "openFolder...": "Open folder...",
+    "allCategories": "அனைத்து வகைகளும்"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -337,6 +338,20 @@
     "settingsUpdatedExternally": "Settings updated externally — reloaded"
   },
   "agentChat": {
+    "working": "வேலை செய்கிறது...",
+    "staleAuthTitle": "kandown daemon மறுதொடக்கம் செய்யப்பட்டது",
+    "staleAuthBody": "மீண்டும் இணைக்க இந்தப் பக்கத்தை Reload செய்யவும்.",
+    "reload": "Reload",
+    "pickTaskTitle": "{{skill}} இயக்க வேண்டிய பணியைத் தேர்ந்தெடுக்கவும்",
+    "pickTaskEmpty": "பலகையில் இன்னும் பணிகள் இல்லை",
+    "mentionDropdownLabel": "பரிந்துரைகள்",
+    "modelPlaceholder": "மாடல்",
+    "modelTitle": "புதிய அரட்டைகளுக்கான மாடல், காலியாக இருந்தால் ஹார்னஸின் இயல்புநிலை பயன்படும்",
+    "deliveryLabel": "பின்தொடர் செய்திகள் அனுப்புதல்",
+    "deliverySteer": "ஸ்டீயர்",
+    "deliveryQueue": "வரிசை",
+    "deliverySteerTitle": "நடந்து கொண்டிருக்கும் சுற்றுக்குள் அனுப்பப்படும் (pi: அடுத்த டூல்-கால் எல்லையில், ACP ஏஜென்ட்: உடனடியாக)",
+    "deliveryQueueTitle": "தற்போதைய சுற்று முடிந்த பிறகு அனுப்பப்படும்",
     "title": "ஏஜென்ட் அரட்டை",
     "askAgent": "ஏஜென்டிடம் கேள்",
     "askAgentTitle": "இந்தப் பணி பற்றி ஏஜென்டிடம் கேள்",
@@ -369,6 +384,10 @@
     "daemonGuardBody": "உங்கள் கோடிங் ஏஜென்ட்களுடன் பேச உள்ளூர் daemon ஐத் தொடங்குங்கள்: இந்தத் திட்டத்தில் npx kandown இயக்கவும்."
   },
   "agentSkills": {
+    "skillsModalTitle": "திறன்கள்",
+    "skillsModalEmpty": "நிறுவப்பட்ட திறன்கள் எதுவும் இல்லை",
+    "activeTitle": "செயல்பாட்டில்",
+    "inactiveTitle": "செயல்பாட்டில் இல்லை",
     "skillsLabel": "திறன்கள்",
     "needsTaskContext": "ஒரு பணியின் சூழல் தேவை",
     "interactiveBadge": "ஊடாடும்",

@@ -36,7 +36,8 @@
   "header": {
     "tasks": "个任务",
     "recentProjects": "最近项目",
-    "openFolder...": "打开文件夹..."
+    "openFolder...": "打开文件夹...",
+    "allCategories": "所有分类"
   },
   "filterBar": {
     "searchPlaceholder": "搜索任务...",
@@ -326,6 +327,20 @@
     "settingsUpdatedExternally": "设置已从外部更新 — 已重新加载"
   },
   "agentChat": {
+    "working": "工作中...",
+    "staleAuthTitle": "kandown daemon 已重启",
+    "staleAuthBody": "请重新加载此页面以重新连接。",
+    "reload": "重新加载",
+    "pickTaskTitle": "选择要运行 {{skill}} 的任务",
+    "pickTaskEmpty": "看板上还没有任务",
+    "mentionDropdownLabel": "建议",
+    "modelPlaceholder": "模型",
+    "modelTitle": "新聊天使用的模型，留空则使用 Harness 默认值",
+    "deliveryLabel": "后续消息送达方式",
+    "deliverySteer": "转向",
+    "deliveryQueue": "排队",
+    "deliverySteerTitle": "在当前回合内送达 (pi: 在下一个工具调用边界，ACP 智能体：立即)",
+    "deliveryQueueTitle": "在当前回合结束后送达",
     "title": "智能体聊天",
     "askAgent": "问智能体",
     "askAgentTitle": "就这个任务询问智能体",
@@ -358,6 +373,10 @@
     "daemonGuardBody": "启动本地 daemon 即可与编码智能体聊天：在本项目中运行 npx kandown。"
   },
   "agentSkills": {
+    "skillsModalTitle": "技能",
+    "skillsModalEmpty": "尚未安装技能",
+    "activeTitle": "已启用",
+    "inactiveTitle": "未启用",
     "skillsLabel": "技能",
     "needsTaskContext": "需要任务上下文",
     "interactiveBadge": "交互式",

@@ -36,7 +36,8 @@
   "header": {
     "tasks": "টাস্ক",
     "recentProjects": "সাম্প্রতিক প্রজেক্ট",
-    "openFolder...": "ফোল্ডার খুলুন..."
+    "openFolder...": "ফোল্ডার খুলুন...",
+    "allCategories": "সব বিভাগ"
   },
   "filterBar": {
     "searchPlaceholder": "টাস্ক অনুসন্ধান করুন...",
@@ -282,6 +283,20 @@
     "settingsUpdatedExternally": "সেটিংস বাহ্যিকভাবে আপডেট হয়েছে — পুনরায় লোড হয়েছে"
   },
   "agentChat": {
+    "working": "কাজ করছে...",
+    "staleAuthTitle": "kandown daemon পুনরায় চালু হয়েছে",
+    "staleAuthBody": "পুনরায় সংযোগ করতে এই পেজটি পুনরায় লোড করুন।",
+    "reload": "পুনরায় লোড",
+    "pickTaskTitle": "{{skill}} চালানোর জন্য টাস্ক বেছে নিন",
+    "pickTaskEmpty": "বোর্ডে এখনও কোনো টাস্ক নেই",
+    "mentionDropdownLabel": "প্রস্তাবনা",
+    "modelPlaceholder": "মডেল",
+    "modelTitle": "নতুন চ্যাটের জন্য মডেল, খালি রাখলে হার্নেসের ডিফল্ট ব্যবহৃত হবে",
+    "deliveryLabel": "ফলো-আপ মেসেজ পাঠানো",
+    "deliverySteer": "নিয়ন্ত্রণ",
+    "deliveryQueue": "সারি",
+    "deliverySteerTitle": "চলমান টার্নের মধ্যে পাঠানো হয় (pi: পরের টুল-কল সীমায়, ACP এজেন্ট: সাথে সাথে)",
+    "deliveryQueueTitle": "বর্তমান টার্ন শেষ হলে পাঠানো হয়",
     "title": "এজেন্ট চ্যাট",
     "askAgent": "এজেন্টকে জিজ্ঞাসা করুন",
     "askAgentTitle": "এই কাজ সম্পর্কে এজেন্টকে জিজ্ঞাসা করুন",
@@ -314,6 +329,10 @@
     "daemonGuardBody": "কোডিং এজেন্টের সাথে কথা বলতে লোকাল daemon চালু করুন: এই প্রকল্পে npx kandown চালান।"
   },
   "agentSkills": {
+    "skillsModalTitle": "দক্ষতা",
+    "skillsModalEmpty": "কোনো দক্ষতা ইনস্টল করা নেই",
+    "activeTitle": "সক্রিয়",
+    "inactiveTitle": "নিষ্ক্রিয়",
     "skillsLabel": "দক্ষতা",
     "needsTaskContext": "একটি কাজের প্রেক্ষাপট প্রয়োজন",
     "interactiveBadge": "ইন্টারঅ্যাক্টিভ",

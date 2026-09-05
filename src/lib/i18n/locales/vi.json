@@ -36,7 +36,8 @@
   "header": {
     "tasks": "công việc",
     "recentProjects": "Dự án gần đây",
-    "openFolder...": "Mở thư mục..."
+    "openFolder...": "Mở thư mục...",
+    "allCategories": "Tất cả danh mục"
   },
   "filterBar": {
     "searchPlaceholder": "Tìm kiếm công việc...",
@@ -282,6 +283,20 @@
     "settingsUpdatedExternally": "Cài đặt đã được cập nhật bên ngoài — đã tải lại"
   },
   "agentChat": {
+    "working": "Đang làm việc...",
+    "staleAuthTitle": "Daemon đã khởi động lại",
+    "staleAuthBody": "Tải lại trang này để kết nối lại.",
+    "reload": "Tải lại",
+    "pickTaskTitle": "Chọn công việc để chạy {{skill}}",
+    "pickTaskEmpty": "Chưa có công việc nào trên bảng",
+    "mentionDropdownLabel": "Gợi ý",
+    "modelPlaceholder": "Mô hình",
+    "modelTitle": "Mô hình cho các đoạn chat mới, để trống sẽ dùng mặc định của Harness",
+    "deliveryLabel": "Cách gửi tin nhắn tiếp theo",
+    "deliverySteer": "Điều hướng",
+    "deliveryQueue": "Hàng đợi",
+    "deliverySteerTitle": "Gửi vào lượt đang chạy (pi: tại ranh giới lời gọi công cụ tiếp theo, agent ACP: ngay lập tức)",
+    "deliveryQueueTitle": "Gửi sau khi lượt hiện tại kết thúc",
     "title": "Trò chuyện với agent",
     "askAgent": "Hỏi agent",
     "askAgentTitle": "Hỏi agent về tác vụ này",
@@ -314,6 +329,10 @@
     "daemonGuardBody": "Khởi động daemon cục bộ để trò chuyện với các agent lập trình của bạn: chạy npx kandown trong dự án này."
   },
   "agentSkills": {
+    "skillsModalTitle": "Kỹ năng",
+    "skillsModalEmpty": "Chưa cài kỹ năng nào",
+    "activeTitle": "Đang hoạt động",
+    "inactiveTitle": "Không hoạt động",
     "skillsLabel": "Kỹ năng",
     "needsTaskContext": "Cần ngữ cảnh tác vụ",
     "interactiveBadge": "Tương tác",
