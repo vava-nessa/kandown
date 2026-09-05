@@ -76,6 +76,27 @@ export interface ChatSkillButton {
   interactive: boolean;
 }
 
+/** 📖 Presence marker set when a completed assistant turn carried a
+ * `[show: tXXX]` directive: the chat has (or is about to) open that task and
+ * the session's blobatar hovers near its editor header while the session
+ * stays the active one. This is presence only: it never locks the editor (the
+ * live-edit lock in agentEdits is a separate, stronger signal). */
+export interface AgentShowTaskPresence {
+  /** Chat session that emitted the directive. */
+  sessionId: string;
+  /** Task the directive points at (canonical lowercase id, e.g. `t42`). */
+  taskId: string;
+  /** Section to scroll to, when the directive carried a known anchor. */
+  anchor: 'description' | 'subtasks' | 'report' | null;
+  /** Increments per directive so re-showing the same task re-triggers the
+   * scroll effect in the editor headers. */
+  nonce: number;
+  /** Tail of the assistant message that carried the directive: an SSE history
+   * replay of the same turn_completed has the same fingerprint and is
+   * ignored, a fresh directive always differs. */
+  fingerprint: string;
+}
+
 /** 📖 Everything the agent chat sidebar reads. Chat state lives here, never in
  * tasks/: harnesses own their transcripts, this is session state only. */
 export interface AgentChatState {
@@ -103,6 +124,10 @@ export interface AgentChatState {
   chatSkills: ChatSkillButton[];
   /** Skill the active session was launched from, kept through the fusion step. */
   activeSkill: ActiveSkillRef | null;
+  /** 📖 Presence from the last `[show: tXXX]` directive (see
+   * AgentShowTaskPresence): null until an assistant turn asks the app to open
+   * a task, reset on conversation switches. */
+  showTask: AgentShowTaskPresence | null;
   /** True when the answer form is visible (interactive skill asked questions). */
   answersRequested: boolean;
   /** Questions captured from the interactive first turn, backing the form and

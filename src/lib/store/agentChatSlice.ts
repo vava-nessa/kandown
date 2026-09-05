@@ -19,8 +19,10 @@
  *
  * @functions
  *  → createAgentChatSlice: sidebar state, session index, SSE lifecycle, sends,
- *    plus the t310 interactive skill flow (chat skills list, activeSkill chip,
- *    answersRequested form trigger, sendAnswers / dismissAnswers)
+ *    the t310 interactive skill flow (chat skills list, activeSkill chip,
+ *    answersRequested form trigger, sendAnswers / dismissAnswers) and the
+ *    [show: tXXX] directive flow (presence marker + canonical openDrawer call
+ *    once a turn carrying the directive completes)
  *
  * @exports AgentChatSlice, createAgentChatSlice, createInitialAgentChatState
  * @see src/lib/agent-chat-events.ts: the pure event fold this slice feeds
@@ -48,6 +50,7 @@ import {
   type ChatFoldState,
 } from '../agent-chat-events';
 import { formatAnswers, parseNumberedQuestions } from '../agent-chat-skills';
+import { findShowDirective } from '../task-links';
 import type { State, AgentChatStartInput, AgentChatState, ChatSkillButton } from './types';
 
 /** 📖 Live EventSource per session id. Module state, not store state: the UI
@@ -114,6 +117,7 @@ export function createInitialAgentChatState(): AgentChatState {
     harnesses: [],
     chatSkills: [],
     activeSkill: null,
+    showTask: null,
     answersRequested: false,
     skillQuestions: [],
     answersSent: false,
@@ -353,6 +357,7 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
           ...state.agentChat,
           starting: false,
           activeSkill: null,
+          showTask: null,
           answersRequested: false,
           skillQuestions: [],
           answersSent: false,
@@ -369,6 +374,7 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
           activeSessionId: null,
           preContextTaskId: null,
           activeSkill: null,
+          showTask: null,
           answersRequested: false,
           skillQuestions: [],
           answersSent: false,
@@ -487,6 +493,9 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
             ...state.agentChat,
             sessions: state.agentChat.sessions.filter(entry => entry.id !== id),
             live,
+            // 📖 A forgotten session cannot be the active one anymore, so its
+            // presence badge would never render; drop it to keep state honest.
+            showTask: state.agentChat.showTask?.sessionId === id ? null : state.agentChat.showTask,
             activeSessionId: state.agentChat.activeSessionId === id ? null: state.agentChat.activeSessionId,
           },
         };
@@ -494,6 +503,9 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
     },
 
     ingestAgentEvent: (sessionId, event: AgentChatEvent) => {
+      // 📖 Presence nonce before the fold: if the event bumps it, this very
+      // event carried a fresh [show:] directive and the task must open below.
+      const previousShowNonce = get().agentChat.showTask?.nonce ?? 0;
       set(state => {
         const current = state.agentChat.live[sessionId] ?? { status: 'running', fold: createChatFoldState() };
         const status = event.type === 'session_started'
@@ -520,10 +532,40 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
             skillPatch = { skillQuestions: questions, answersRequested: true };
           }
         }
+        // 📖 [show: tXXX] directive: a completed turn can point the user at a
+        // task. Presence is recorded here; the actual openDrawer fires right
+        // after the set, so the updater stays side-effect free. The
+        // fingerprint (message tail) makes SSE history replays of an already
+        // handled turn a no-op, while any fresh directive differs.
+        let showTaskPatch: Partial<AgentChatState> = {};
+        if (
+          event.type === 'turn_completed'
+          && sessionId === state.agentChat.activeSessionId
+          && current.fold.turnActive
+        ) {
+          const text = lastAssistantText(fold);
+          const fingerprint = `${sessionId}|${text.slice(-160)}`;
+          const previous = state.agentChat.showTask;
+          if (!previous || previous.fingerprint !== fingerprint) {
+            const directive = findShowDirective(text);
+            if (directive) {
+              showTaskPatch = {
+                showTask: {
+                  sessionId,
+                  taskId: directive.taskId,
+                  anchor: directive.anchor,
+                  nonce: (previous?.nonce ?? 0) + 1,
+                  fingerprint,
+                },
+              };
+            }
+          }
+        }
         return {
           agentChat: {
             ...state.agentChat,
             ...skillPatch,
+            ...showTaskPatch,
             live: {
               ...state.agentChat.live,
               [sessionId]: { status, fold },
@@ -531,6 +573,14 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
           },
         };
       });
+      // 📖 Canonical open-task path, identical to clicking the task on the
+      // board: the drawer slice loads the file and the workspace (desktop) or
+      // the Drawer (mobile) shows it. replace keeps the history clean when a
+      // task was already open.
+      const presence = get().agentChat.showTask;
+      if (presence && presence.nonce !== previousShowNonce) {
+        void get().openDrawer(presence.taskId, { replace: true });
+      }
     },
   };
 };

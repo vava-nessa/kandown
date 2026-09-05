@@ -51,6 +51,7 @@ import { BlockNoteMarkdownEditor } from './ui/BlockNoteMarkdownEditor';
 import { DependenciesHeaderMenu } from './DependenciesHeaderMenu';
 import { TaskExtensionSurface } from './TaskExtensionSurface';
 import { AgentBlobatar } from './agent/Blobatar';
+import { AgentPresenceBadge } from './agent/AgentPresenceBadge';
 import { DiffOverlay } from './agent/DiffOverlay';
 import { parseTaskTitle } from '../lib/task-title-category';
 import { categoryColor, categoryIcon } from '../lib/category-color';
@@ -647,6 +648,9 @@ export function TaskWorkspace() {
             {/* 📖 Live agent edit (t309): session blob + read-only notice while
                 an agent owns this task. */}
             {editLockSession && <AgentBlobatar sessionId={editLockSession.sessionId} size={20} />}
+            {/* 📖 Chat presence: the session blob while an active chat session
+                pointed here with [show: tXXX] (non-locking). */}
+            <AgentPresenceBadge taskId={drawerTaskId} />
             {editLocked && (
               <span className="text-[11px] font-medium text-amber-600 dark:text-amber-300">
                 {t('agentEdits.editorLocked', 'An agent is editing this task. Fields are read-only until it finishes.')}
@@ -733,7 +737,7 @@ export function TaskWorkspace() {
                 refresh-free. Self-hiding while the task has no diff yet. */}
             {drawerTaskId && <DiffOverlay taskId={drawerTaskId} />}
 
-            <div>
+            <div data-task-section="description" className="scroll-mt-3">
               <div className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted mb-2">
                 {t('drawer.description')}
               </div>
@@ -753,14 +757,17 @@ export function TaskWorkspace() {
 
             <div className="h-px bg-border -mx-5" />
 
-            <SubtaskEditor
-              subtasks={drawerData.subtasks}
-              onSubtasksChange={handleSubtasksChange}
-            />
+            {/* 📖 data-task-section: the chat [show:] directive anchor target. */}
+            <div data-task-section="subtasks" className="scroll-mt-3">
+              <SubtaskEditor
+                subtasks={drawerData.subtasks}
+                onSubtasksChange={handleSubtasksChange}
+              />
+            </div>
 
             <div className="h-px bg-border -mx-5" />
 
-            <div>
+            <div data-task-section="report" className="scroll-mt-3">
               <div className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted mb-2">
                 {t('drawer.report')}
               </div>

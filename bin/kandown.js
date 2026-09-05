@@ -11292,6 +11292,15 @@ function selfOrigin(port) {
 var START_PORT_RANGE = 2050;
 var END_PORT_RANGE = 2099;
 var UNSAFE_PORTS = /* @__PURE__ */ new Set([2049, 4045, 6e3, 6665, 6666, 6667, 6668, 6669, 6697]);
+var CHAT_AFFORDANCES_PROMPT = [
+  "## Chat affordances",
+  "",
+  "Your reply renders as Markdown in the kandown chat sidebar: headings, lists, bold, inline code and fenced code blocks all work.",
+  "Reference a task inline as [[t123]] (a bare t123 works too): the UI renders it as a clickable chip that opens the task.",
+  "To point the user at a task, end your reply with the directive on its own line: [show: t123], optionally with a tight anchor suffix: [show: t123]#description, #subtasks or #report.",
+  "With the directive, the app opens that task automatically and scrolls to the section when your turn completes.",
+  "Use [show: t123] whenever the user asks you to find or show something: they get one click to the right task."
+].join("\n");
 var sseClients = [];
 var nextClientId = 1;
 var activeToken = null;
@@ -11769,6 +11778,9 @@ async function handleApi(req, res, url, kandownDir) {
       skillAutoApply = skill.chat?.autoApply === true;
     }
     const message = typeof body.message === "string" && body.message.trim() ? body.message.trim() : void 0;
+    prompt = `${prompt}
+
+${CHAT_AFFORDANCES_PROMPT}`;
     if (message) prompt = `${prompt}
 
 ---

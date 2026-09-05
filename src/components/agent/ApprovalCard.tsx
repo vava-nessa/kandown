@@ -53,7 +53,9 @@ export function ApprovalCard({ permission }: { permission: AgentPermissionReques
       className="w-[290px] max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-card p-3 shadow-xl"
     >
       <div className="flex items-center gap-1.5">
-        <span aria-hidden="true" className="h-1.5 w-1.5 flex-none rounded-full bg-amber-500" />
+        {/* 📖 BeautifulUI working-state glyph (loading/working patterns,
+            beautifului.dev): the amber dot pulses while the request waits. */}
+        <span aria-hidden="true" className="h-1.5 w-1.5 flex-none animate-pulse rounded-full bg-amber-500" />
         <span className="text-[10.5px] font-semibold uppercase tracking-wider text-fg-muted">
           {t('agentEdits.permissionTitle', 'Agent permission requested')}
         </span>

@@ -99,6 +99,8 @@
     "lucide-react": "1.8.0",
     "mathjs": "^15.2.0",
     "react-devtools-core": ">=6.1.2",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "signal-exit": "^3.0.7",
     "tailwind-merge": "3.5.0"
   },

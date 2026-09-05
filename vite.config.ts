@@ -10,6 +10,22 @@ const CLOSING_HEAD_TAG = '</head>';
 // 📖 Keep the local web UI dev server predictable so agents and humans can share the same URL.
 const DEFAULT_DEV_SERVER_PORT = 5176;
 
+/** 📖 Chat affordances (t312), appended to the compiled prompt of chat
+ * sessions created through POST /api/agent/sessions in this dev mirror.
+ * MUST stay byte-identical with CHAT_AFFORDANCES_PROMPT in
+ * src/cli/lib/server.ts (the daemon and this plugin load in different
+ * runtimes, so the literal is duplicated on purpose, like the mirrored
+ * route handlers). */
+const CHAT_AFFORDANCES_PROMPT = [
+  '## Chat affordances',
+  '',
+  'Your reply renders as Markdown in the kandown chat sidebar: headings, lists, bold, inline code and fenced code blocks all work.',
+  'Reference a task inline as [[t123]] (a bare t123 works too): the UI renders it as a clickable chip that opens the task.',
+  'To point the user at a task, end your reply with the directive on its own line: [show: t123], optionally with a tight anchor suffix: [show: t123]#description, #subtasks or #report.',
+  'With the directive, the app opens that task automatically and scrolls to the section when your turn completes.',
+  'Use [show: t123] whenever the user asks you to find or show something: they get one click to the right task.',
+].join('\n');
+
 /**
  * 📖 Demo build (`vite build --mode demo`, i.e. `pnpm build:demo`).
  *
@@ -257,6 +273,9 @@ function kandownDevPlugin() {
                   prompt = skillsModule.buildSkillSessionPrompt(prompt, skill);
                 }
                 const message = typeof body.message === 'string' && body.message.trim() ? body.message.trim() : undefined;
+                // 📖 Chat affordances, same contract as the daemon: chat
+                // sessions only, after the skill section, before the message.
+                prompt = `${prompt}\n\n${CHAT_AFFORDANCES_PROMPT}`;
                 if (message) prompt = `${prompt}\n\n---\n\n${message}`;
                 const permissionMode = body.permissionMode === 'accept-edits' || body.permissionMode === 'yolo'
                   ? body.permissionMode

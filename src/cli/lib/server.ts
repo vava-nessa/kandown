@@ -67,6 +67,25 @@ const START_PORT_RANGE = 2050;
 const END_PORT_RANGE = 2099;
 const UNSAFE_PORTS = new Set([2049, 4045, 6000, 6665, 6666, 6667, 6668, 6669, 6697]);
 
+/** 📖 Chat affordances (t312): appended to the compiled prompt of every chat
+ * session created through POST /api/agent/sessions. Teaches agents the markup
+ * the chat sidebar renders: [[tXXX]] (or bare tXXX) references become
+ * clickable task chips, and a final `[show: tXXX]` line makes the web UI open
+ * that task automatically (scrolling to the anchored section) once the turn
+ * completes. Keep byte-identical with the Vite dev mirror copy in
+ * vite.config.ts: the daemon bundle and the dev plugin load in different
+ * runtimes, so the literal is duplicated on purpose (same pattern as the
+ * route handlers the mirror reimplements). */
+const CHAT_AFFORDANCES_PROMPT = [
+  '## Chat affordances',
+  '',
+  'Your reply renders as Markdown in the kandown chat sidebar: headings, lists, bold, inline code and fenced code blocks all work.',
+  'Reference a task inline as [[t123]] (a bare t123 works too): the UI renders it as a clickable chip that opens the task.',
+  'To point the user at a task, end your reply with the directive on its own line: [show: t123], optionally with a tight anchor suffix: [show: t123]#description, #subtasks or #report.',
+  'With the directive, the app opens that task automatically and scrolls to the section when your turn completes.',
+  'Use [show: t123] whenever the user asks you to find or show something: they get one click to the right task.',
+].join('\n');
+
 interface SseClient {
   id: number;
   res: ServerResponse;
@@ -691,6 +710,9 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       skillAutoApply = skill.chat?.autoApply === true;
     }
     const message = typeof body.message === 'string' && body.message.trim() ? body.message.trim() : undefined;
+    // 📖 Chat affordances: chat sessions only, after the skill section so the
+    // directive markup sits next to the user's first message.
+    prompt = `${prompt}\n\n${CHAT_AFFORDANCES_PROMPT}`;
     if (message) prompt = `${prompt}\n\n---\n\n${message}`;
     const permissionMode: PermissionMode = body.permissionMode === 'accept-edits' || body.permissionMode === 'yolo'
       ? body.permissionMode

@@ -231,7 +231,7 @@ export interface ChatAssistantEntry {
   streaming: boolean;
   /** Reasoning channel, kept separate from the answer text. */
   thinking: string;
-  /** True while the latest delta was thinking (drives the open ThinkingBlock). */
+  /** True while the latest delta was thinking (drives the live ActivityBlock). */
   thinkingActive: boolean;
   tools: ChatToolEntry[];
 }

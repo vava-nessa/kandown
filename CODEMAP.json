@@ -8,7 +8,7 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 14378,
+      "lines": 14390,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
@@ -1202,7 +1202,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 1363,
+      "lines": 1385,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
@@ -1590,6 +1590,32 @@
       "exports": "run"
     },
     {
+      "path": "src/components/agent/ActivityBlock.tsx",
+      "lines": 156,
+      "title": "One collapsible activity block per assistant turn",
+      "summary": "Replaces the pile of interleaved thinking blocks and tool chips the chat used to render: every assistant turn gets a SINGLE panel that updates in place while the turn streams.",
+      "functions": [
+        {
+          "name": "ActivityBlock: the single collapsible activity panel of one turn",
+          "summary": null
+        }
+      ],
+      "exports": "ActivityBlock"
+    },
+    {
+      "path": "src/components/agent/AgentPresenceBadge.tsx",
+      "lines": 71,
+      "title": "Agent chat presence badge for the task editor headers",
+      "summary": "Shows the chat session's blobatar near the task id in the TaskWorkspace (desktop) and Drawer (mobile) headers while a `[show: tXXX]` directive from the ACTIVE chat session points at the open task.",
+      "functions": [
+        {
+          "name": "AgentPresenceBadge: header blob + anchor scroll (null when inactive)",
+          "summary": null
+        }
+      ],
+      "exports": "AgentPresenceBadge"
+    },
+    {
       "path": "src/components/agent/AnswerForm.tsx",
       "lines": 100,
       "title": "Answer form for interactive chat skills (t310)",
@@ -1604,7 +1630,7 @@
     },
     {
       "path": "src/components/agent/ApprovalCard.tsx",
-      "lines": 109,
+      "lines": 111,
       "title": "Agent permission approval cards (t309)",
       "summary": "ApprovalCard renders one pending harness permission request (title, kind chip, short session id, Approve / Reject); ApprovalCardStack is the fixed bottom-right container fed by the agentEdits permission queue.",
       "functions": [
@@ -1744,19 +1770,32 @@
       "exports": "GitInitBanner"
     },
     {
-      "path": "src/components/agent/MessageList.tsx",
-      "lines": 185,
-      "title": "Message list for the agent chat sidebar",
-      "summary": "Renders the folded conversation: user bubbles, assistant turns (streaming text, collapsible thinking block, tool chips), error entries in the destructive tint, and the quiet \"edited ...\" line for files the agent touched during the turn.",
+      "path": "src/components/agent/MarkdownContent.tsx",
+      "lines": 215,
+      "title": "Markdown renderer for assistant chat messages",
+      "summary": "Renders an assistant message as Markdown: headings, lists, bold, links, blockquotes, GFM tables (remark-gfm) and fenced code blocks on the project's code-block token surface with a Copy button.",
       "functions": [
         {
-          "name": "ThinkingBlock: collapsible reasoning channel of one assistant turn",
+          "name": "TaskChip: clickable task reference chip",
           "summary": null
         },
         {
-          "name": "ToolChips: one chip per tool call, tinted by outcome",
+          "name": "CodeBlock: fenced code panel with a Copy button",
           "summary": null
         },
+        {
+          "name": "MarkdownContent: the markdown root, with element overrides",
+          "summary": null
+        }
+      ],
+      "exports": "MarkdownContent"
+    },
+    {
+      "path": "src/components/agent/MessageList.tsx",
+      "lines": 122,
+      "title": "Message list for the agent chat sidebar",
+      "summary": "Renders the folded conversation: user bubbles (plain text), assistant turns as a BeautifulUI-style full-width panel (ONE collapsible activity block that updates in place while the turn streams, then the Markdown answer below it), error…",
+      "functions": [
         {
           "name": "MessageList: the full conversation, with empty state",
           "summary": null
@@ -1813,12 +1852,12 @@
     },
     {
       "path": "src/components/agent/StreamingText.tsx",
-      "lines": 35,
+      "lines": 51,
       "title": "Streaming text with a live caret",
-      "summary": "Renders an assistant message that is still arriving: the text is shown as-is and a blinking caret marks the write position while `streaming`.",
+      "summary": "Renders an assistant message that is still arriving.",
       "functions": [
         {
-          "name": "StreamingText: assistant text with a blinking caret while streaming",
+          "name": "StreamingText: assistant text with a live caret while streaming",
           "summary": null
         }
       ],
@@ -2047,7 +2086,7 @@
     },
     {
       "path": "src/components/Drawer.tsx",
-      "lines": 541,
+      "lines": 548,
       "title": "Task drawer editor",
       "summary": "Full-height task detail editor for title, description, subtasks, report, save/close, autosave, and deletion.",
       "functions": [
@@ -2380,7 +2419,7 @@
     },
     {
       "path": "src/components/TaskWorkspace.tsx",
-      "lines": 849,
+      "lines": 856,
       "title": "Desktop opened-task workspace",
       "summary": "Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…",
       "functions": [
@@ -2690,6 +2729,12 @@
       "lines": 302,
       "title": "Tests for task filename slugs and id resolution",
       "summary": "Guards the module that decides which file on disk holds a task."
+    },
+    {
+      "path": "src/lib/__tests__/task-links.spec.ts",
+      "lines": 88,
+      "title": "Tests for the agent chat task link parser",
+      "summary": "Locks the pure contract of src/lib/task-links.ts: the `[show: tXXX]` directive (last one wins, known anchors kept, unknown anchors and malformed forms rejected), the stripping of directives from displayed text without leaving ragged…"
     },
     {
       "path": "src/lib/__tests__/workflow-skills.spec.ts",
@@ -3514,7 +3559,7 @@
     },
     {
       "path": "src/lib/store/agentChatSlice.ts",
-      "lines": 537,
+      "lines": 587,
       "title": "Zustand store slice: agent chat sidebar (t308)",
       "summary": "Sidebar open state, the project's chat session index, the live per-session chat folds, and the SSE lifecycle that feeds them.",
       "functions": [
@@ -3623,7 +3668,7 @@
     },
     {
       "path": "src/lib/store/types.ts",
-      "lines": 441,
+      "lines": 466,
       "title": "Zustand store — shared types",
       "summary": "State shape and supporting interfaces used across every store slice."
     },
@@ -3691,6 +3736,27 @@
         }
       ],
       "exports": "SLUG_MAX_WORDS, SLUG_MAX_LENGTH, CATEGORY_MAX_LENGTH, slugifyTitle, categorySegmentFromTitle, categorySegmentFromFrontmatter, normalizeCategorySegment, buildTaskFilename, isTaskFilename, parseTaskFilename, taskIdFromFilename, resolveTaskFilename, hasDescriptiveSlug, hasCategorySegment, ParsedTaskFilename, TaskFilenameMatch"
+    },
+    {
+      "path": "src/lib/task-links.ts",
+      "lines": 142,
+      "title": "Task link parser for agent chat messages",
+      "summary": "Pure, framework-free parsing of the two task affordances the chat prompt teaches every agent session (see CHAT_AFFORDANCES_PROMPT in the daemon server): inline task references that render as clickable chips, and the `[show: t123]`…",
+      "functions": [
+        {
+          "name": "findShowDirective: last `[show: tXXX]` (with optional `#anchor`) in a message",
+          "summary": null
+        },
+        {
+          "name": "stripShowDirectives: removes directive markup from the displayed text",
+          "summary": null
+        },
+        {
+          "name": "linkifyTaskReferences: rewrites references as `task:` markdown links",
+          "summary": null
+        }
+      ],
+      "exports": "TaskSectionAnchor, ShowTaskDirective, findShowDirective, stripShowDirectives, linkifyTaskReferences"
     },
     {
       "path": "src/lib/task-meta.ts",
