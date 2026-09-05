@@ -133,6 +133,7 @@ export default function ToolChips({
   onToggleRow,
   live = false,
   defaultOpen = true,
+  demoMinHeight = true,
 }: {
   /** Accepted for gallery/registry parity; ToolChips has no visual variants. */
   variant?: string;
@@ -150,6 +151,10 @@ export default function ToolChips({
   /** 📖 Kandown embedding: start collapsed so a streaming turn shows only
    * the run header. The gallery keeps its default-open demo look. */
   defaultOpen?: boolean;
+  /** 📖 Kandown embedding: drop the demo's reserved min-height. The staged
+   * demo reveal needs the room; a settled chat block must hug its collapsed
+   * header, or every finished turn leaves 200px of dead space under it. */
+  demoMinHeight?: boolean;
 } = {}) {
   const copy = { ...DEFAULT_LABELS, ...labels };
   const [step, setStep] = useState(0);
@@ -199,7 +204,7 @@ export default function ToolChips({
     });
 
   return (
-    <div className={`w-full max-w-80 pb-1${live ? "" : " min-h-[220px]"}${className ? ` ${className}` : ""}`}>
+    <div className={`w-full max-w-80 pb-1${live || !demoMinHeight ? "" : " min-h-[220px]"}${className ? ` ${className}` : ""}`}>
       {/* collapsed run header */}
       <button
         type="button"

@@ -223,6 +223,7 @@ export function ChatSidebar() {
   // send and the first event), or the turn already started but has produced no
   // renderable output yet (no text, no thinking, no tools: the fold lazily
   // creates the assistant entry, so its emptiness is the "nothing yet" signal).
+  const messageCount = fold?.messages.length ?? 0;
   const lastEntry = fold?.messages.length ? fold.messages[fold.messages.length - 1] : undefined;
   const turnJustStarted = turnActive
     && lastEntry !== undefined
@@ -231,7 +232,20 @@ export function ChatSidebar() {
     && lastEntry.text.length === 0
     && lastEntry.thinking.length === 0
     && lastEntry.tools.length === 0;
-  const waiting = sending || turnJustStarted;
+  // 📖 Boot phase: a brand-new session whose fold holds only the user's own
+  // message. The harness binary boot plus the model's first token can take
+  // several seconds, the fold's assistant entry is created lazily on the
+  // first delta, and without this the user stares at nothing after Enter
+  // (vava's round 9 feedback). A resumed session replays assistant entries
+  // instantly, so `every user` stays true only for a genuine boot.
+  const sessionStatus = activeSessionId ? live[activeSessionId]?.status : undefined;
+  const onlyUserMessages = (fold?.messages ?? []).every(entry => entry.kind === 'user');
+  const booting = (starting
+    || (activeSessionId !== null
+      && (sessionStatus === 'starting' || sessionStatus === 'running')
+      && onlyUserMessages
+      && !turnActive));
+  const waiting = booting || sending || turnJustStarted;
 
   // 📖 Stick-to-bottom: follow the stream unless the user scrolled up, in which
   // case show the jump-to-bottom pill instead of yanking the scroll position.
@@ -253,8 +267,7 @@ export function ChatSidebar() {
     stickToBottomRef.current = true;
     setShowJump(false);
   }, []);
-  const messageCount = fold?.messages.length ?? 0;
-  const lastMessage = fold?.messages[messageCount - 1];
+  const lastMessage = fold?.messages[fold.messages.length - 1];
   useEffect(() => {
     if (stickToBottomRef.current) scrollToBottom('auto');
   }, [messageCount, lastMessage, scrollToBottom]);

@@ -130,6 +130,7 @@ export function ActivityBlock({ entry }: ActivityBlockProps) {
           labels={{ header }}
           live={toolsLive}
           defaultOpen={false}
+          demoMinHeight={false}
           className="mt-1"
         />
       )}

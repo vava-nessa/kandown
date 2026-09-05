@@ -221,6 +221,10 @@ export function MessageList({ messages, changedFiles, preContextTaskId, waiting 
   }, [sendMessage]);
 
   if (messages.length === 0) {
+    // 📖 A brand-new session starts with zero messages: the working loader
+    // must still render here, or the harness boot shows as pure silence
+    // after Enter (round 9). Once the first message lands, the normal
+    // branch below takes over.
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center">
         <p className="text-[13.5px] text-fg-muted">{t('agentChat.emptyState', 'No messages yet. Ask anything about this project.')}</p>
@@ -229,6 +233,7 @@ export function MessageList({ messages, changedFiles, preContextTaskId, waiting 
             {t('agentChat.context', 'Context')}: {preContextTaskId.toUpperCase()}
           </span>
         )}
+        {waiting && <WorkingLoader />}
       </div>
     );
   }

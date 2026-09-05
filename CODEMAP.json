@@ -1792,7 +1792,7 @@
     },
     {
       "path": "src/components/agent/ActivityBlock.tsx",
-      "lines": 139,
+      "lines": 140,
       "title": "One activity area per assistant turn, on the shared BeautifulUI parts",
       "summary": "Every assistant turn gets one activity area that updates in place while the turn streams: the reasoning channel renders through the official bui ThinkingState (Reasoning-style prose trace, shimmer header while live, single-line ticker…",
       "functions": [
@@ -1936,7 +1936,7 @@
     },
     {
       "path": "src/components/agent/ChatSidebar.tsx",
-      "lines": 538,
+      "lines": 551,
       "title": "Agent chat sidebar (t308)",
       "summary": "The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.",
       "functions": [
@@ -2038,7 +2038,7 @@
     },
     {
       "path": "src/components/agent/MessageList.tsx",
-      "lines": 285,
+      "lines": 290,
       "title": "Message list for the agent chat sidebar",
       "summary": "Renders the folded conversation: user bubbles with the BeautifulUI context cards for every @task mention above the bubble, assistant turns as a BeautifulUI-style full-width panel (ONE activity block that updates in place while the turn…",
       "functions": [
@@ -2473,7 +2473,7 @@
     },
     {
       "path": "src/components/bui/ToolChips.tsx",
-      "lines": 371,
+      "lines": 376,
       "title": "Tool Chips of the BeautifulUI design system",
       "summary": "An agent run as compact tool rows with inline chips, then file-diff chips summarizing the edits; hovering a file chip opens its diff preview in a body portal.",
       "exports": "ToolChips"
@@ -3354,7 +3354,7 @@
     },
     {
       "path": "src/lib/agent-chat-events.ts",
-      "lines": 496,
+      "lines": 509,
       "title": "Agent chat event model (t308)",
       "summary": "Pure, framework-free model of the JSON events the daemon streams on GET /api/agent/sessions/:id/events, plus the reducer that folds them into the chat message list rendered by the agent chat sidebar.",
       "functions": [
@@ -4208,7 +4208,7 @@
     },
     {
       "path": "src/lib/store/agentChatSlice.ts",
-      "lines": 625,
+      "lines": 640,
       "title": "Zustand store slice: agent chat sidebar (t308)",
       "summary": "Sidebar open state, the project's chat session index, the live per-session chat folds, and the SSE lifecycle that feeds them.",
       "functions": [

@@ -325,6 +325,19 @@ function ensureStreamingAssistant(messages: ChatEntry[]): { messages: ChatEntry[
   return { messages: [...messages, entry], entry };
 }
 
+/**
+ * 📖 Opens the streaming assistant entry the moment a message is DELIVERED,
+ * before the harness emits anything: the turn's activity area (working
+ * loader, then thinking/tools) must start at the send, not at the first
+ * delta several seconds later. No-op while a turn is already active (steer
+ * deliveries land inside the live turn). Pure.
+ */
+export function openPendingTurn(state: ChatFoldState): ChatFoldState {
+  if (state.turnActive) return state;
+  const { messages, entry } = ensureStreamingAssistant(state.messages);
+  return { ...state, messages, turnActive: true };
+}
+
 /** 📖 Closes every streaming assistant entry (at most one exists per fold).
  * A turn that finalized with no text, no thinking and no tools is dropped
  * entirely: nothing to render. Works positionally independent because error

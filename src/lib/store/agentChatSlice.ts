@@ -56,6 +56,7 @@ import {
   appendUserMessage,
   createChatFoldState,
   removeChatEntry,
+  openPendingTurn,
   isAgentChatEvent,
   type AgentChatEvent,
   type ChatFoldState,
@@ -451,7 +452,21 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
         get().toast(result?.error || 'Message not delivered. Is the kandown daemon running?', 'error');
         return;
       }
-      set(state => ({ agentChat: { ...state.agentChat, sending: false } }));
+      // 📖 Open the turn's activity area at delivery: the working loader (and
+      // later thinking/tools) must start with the send, not with the first
+      // delta seconds later (round 9). The fold entry stays empty-streaming,
+      // which MessageList skips until real content lands.
+      set(state => {
+        const live = state.agentChat.live[sessionId];
+        if (!live) return { agentChat: { ...state.agentChat, sending: false } };
+        return {
+          agentChat: {
+            ...state.agentChat,
+            sending: false,
+            live: { ...state.agentChat.live, [sessionId]: { ...live, fold: openPendingTurn(live.fold) } },
+          },
+        };
+      });
       // 📖 A follow-up on a finished session resumes it server-side under the
       // same id: make sure the stream is open to see the new turn.
       connectAgentEventStream(sessionId);
