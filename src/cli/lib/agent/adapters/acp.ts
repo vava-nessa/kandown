@@ -23,8 +23,9 @@
  *
  * 📖 Inbound requests: ACP lets the agent ask the client for permissions
  * (session/request_permission) and file reads. In yolo mode kandown auto-
- * selects the first allow-once permission option (the session was launched in
- * the mode the user chose). In accept-edits mode, edit-like requests are
+ * selects the first allow option (allow_once preferred, allow_always as the
+ * fallback; the session was launched in the mode the user chose). In
+ * accept-edits mode, edit-like requests are
  * ROUTED: parseLine does not answer, the runtime hands the request to the
  * daemon, the web UI decides, and buildPermissionResponse produces the reply
  * line that goes back over stdin. Read-like requests and every other agent

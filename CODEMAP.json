@@ -8,7 +8,7 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 14576,
+      "lines": 14577,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
@@ -531,7 +531,7 @@
     },
     {
       "path": "src/cli/lib/agent/adapters/acp.ts",
-      "lines": 369,
+      "lines": 370,
       "title": "Generic ACP harness adapter (Agent Client Protocol over stdio)",
       "summary": "Speaks ACP, the open JSON-RPC 2.0 newline-delimited protocol introduced by Zed, so every ACP-capable agent (opencode, gemini, and the long tail) appears in kandown without a bespoke integration.",
       "functions": [

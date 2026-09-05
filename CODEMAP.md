@@ -26,7 +26,7 @@ source to edit instead.
 
 ## `bin/` — Published CLI entrypoints — GENERATED, never edit
 
-- **`kandown.js`** · 14576 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
+- **`kandown.js`** · 14577 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
 - **`tui.js`** · 62831 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
 
 ## `src/` — Web app root
@@ -143,7 +143,7 @@ source to edit instead.
 
 ## `src/cli/lib/agent/adapters/`
 
-- **`acp.ts`** · 369 lines — Speaks ACP, the open JSON-RPC 2.0 newline-delimited protocol introduced by Zed, so every ACP-capable agent (opencode, gemini, and the long tail) appears in kandown without a bespoke integration.
+- **`acp.ts`** · 370 lines — Speaks ACP, the open JSON-RPC 2.0 newline-delimited protocol introduced by Zed, so every ACP-capable agent (opencode, gemini, and the long tail) appears in kandown without a bespoke integration.
 - **`claude-code.ts`** · 166 lines — Drives `claude -p <prompt> --output-format stream-json` and normalizes its JSONL stdout into kandown agent events.
 - **`codex.ts`** · 167 lines — Drives `codex exec --json` and normalizes its JSONL event stream into kandown agent events.
 - **`pi.ts`** · 230 lines — Drives `pi --mode rpc`, pi's newline-delimited JSON protocol over stdin/stdout (documented in badlogic/pi-mono, packages/coding-agent/ docs/rpc.md).
