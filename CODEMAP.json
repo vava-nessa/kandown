@@ -8,14 +8,14 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 13873,
+      "lines": 13946,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 62745,
+      "lines": 62792,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -383,7 +383,7 @@
     },
     {
       "path": "src/cli/lib/__tests__/skills.spec.ts",
-      "lines": 37,
+      "lines": 120,
       "title": "Node workflow skill discovery tests",
       "summary": "Verifies bundled skill discovery plus missing configured skill diagnostics without relying on network or executable package content."
     },
@@ -1152,13 +1152,13 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 1289,
+      "lines": 1306,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
     {
       "path": "src/cli/lib/skills.ts",
-      "lines": 118,
+      "lines": 152,
       "title": "Node workflow skill discovery",
       "summary": "Discovers immutable built-in, global, and project data-only Markdown skill packages with deterministic override precedence.",
       "functions": [
@@ -1169,9 +1169,17 @@
         {
           "name": "loadConfiguredWorkflowSkills: resolve configured ids for the compiler",
           "summary": null
+        },
+        {
+          "name": "findSessionSkill: resolve a chat skill id for an agent session",
+          "summary": null
+        },
+        {
+          "name": "buildSkillSessionPrompt: append the skill section and directive to a prompt",
+          "summary": null
         }
       ],
-      "exports": "WorkflowSkillSource, WorkflowSkillListing, listWorkflowSkills, loadConfiguredWorkflowSkills"
+      "exports": "WorkflowSkillSource, WorkflowSkillListing, listWorkflowSkills, loadConfiguredWorkflowSkills, findSessionSkill, buildSkillSessionPrompt"
     },
     {
       "path": "src/cli/lib/task-move.ts",
@@ -1532,6 +1540,19 @@
       "exports": "run"
     },
     {
+      "path": "src/components/agent/AnswerForm.tsx",
+      "lines": 100,
+      "title": "Answer form for interactive chat skills (t310)",
+      "summary": "Compact panel rendered above the skill buttons when an interactive skill (grill-me) finishes its first turn: one small textarea per parsed question, \"Send answers\" forwards them through sendAnswers (the slice formats a plain follow-up…",
+      "functions": [
+        {
+          "name": "AnswerForm: per-question textareas with send / skip controls",
+          "summary": null
+        }
+      ],
+      "exports": "AnswerForm"
+    },
+    {
       "path": "src/components/agent/ApprovalCard.tsx",
       "lines": 109,
       "title": "Agent permission approval cards (t309)",
@@ -1554,22 +1575,10 @@
     },
     {
       "path": "src/components/agent/Blobatar.tsx",
-      "lines": 212,
+      "lines": 61,
       "title": "Agent blob avatar (t309)",
-      "summary": "Deterministic, dependency-free SVG \"blobatar\" identifying the agent session that is currently editing a task: the same sessionId always renders the same blob (shape, hue, animation phase all derive from a djb2 hash of the id), so a…",
+      "summary": "Deterministic blob avatar identifying the agent session that is currently editing a task: the same sessionId always renders the same creature (shape, face, colors all derive from the id by the blobatar generator), so a session keeps its…",
       "functions": [
-        {
-          "name": "hashSessionId: djb2 string hash, the determinism seed",
-          "summary": null
-        },
-        {
-          "name": "blobPath: seeded closed spline path in a 64x64 viewBox",
-          "summary": null
-        },
-        {
-          "name": "ensureBlobatarStyles: idempotent one-time style injection",
-          "summary": null
-        },
         {
           "name": "AgentBlobatar: the avatar (optionally with its editing bubble)",
           "summary": null
@@ -1596,7 +1605,7 @@
     },
     {
       "path": "src/components/agent/ChatSidebar.tsx",
-      "lines": 264,
+      "lines": 309,
       "title": "Agent chat sidebar (t308)",
       "summary": "The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.",
       "functions": [
@@ -1696,6 +1705,23 @@
         }
       ],
       "exports": "SessionSwitcher"
+    },
+    {
+      "path": "src/components/agent/SkillButtons.tsx",
+      "lines": 128,
+      "title": "Skill pill buttons for the agent chat sidebar (t310)",
+      "summary": "Renders the installed skills that declare a `chat` block as compact pill buttons above the PromptBar.",
+      "functions": [
+        {
+          "name": "resolveSkillIcon: maps a manifest icon string to a tabler icon, silent",
+          "summary": null
+        },
+        {
+          "name": "SkillButtons: the pill row (plus the running-skill chip)",
+          "summary": null
+        }
+      ],
+      "exports": "SkillButtons"
     },
     {
       "path": "src/components/agent/StreamingText.tsx",
@@ -2488,6 +2514,12 @@
       "summary": "Locks the reducer contract the chat sidebar renders from: streaming text accumulates then finalizes, thinking stays on its own channel, tool calls pair by toolCallId, usage accumulates, errors append entries (and fatal ones close the…"
     },
     {
+      "path": "src/lib/__tests__/agent-chat-skills.spec.ts",
+      "lines": 68,
+      "title": "Agent chat skill helper tests",
+      "summary": "Locks the pure interactive-skill contract (t310): the numbered question parser the answer form is built from, and the answer formatter the sidebar sends back as a plain follow-up message."
+    },
+    {
       "path": "src/lib/__tests__/agent-edits.spec.ts",
       "lines": 190,
       "title": "Unit tests for the live agent edits pure core (t309)",
@@ -2567,9 +2599,9 @@
     },
     {
       "path": "src/lib/__tests__/workflow-skills.spec.ts",
-      "lines": 93,
+      "lines": 197,
       "title": "Workflow skill package tests",
-      "summary": "Locks data-only skill validation, compatibility filtering, and semantic role diagnostics for additive workflow guidance."
+      "summary": "Locks data-only skill validation, compatibility filtering, semantic role diagnostics, and optional chat button metadata for additive workflow guidance."
     },
     {
       "path": "src/lib/__tests__/workflows.spec.ts",
@@ -2630,6 +2662,23 @@
         }
       ],
       "exports": "AgentChatEvent, SessionStartedEvent, MessageDeltaEvent, ToolStartedEvent, ToolFinishedEvent, FileChangedEvent, UsageEvent, TurnCompletedEvent, ErrorEvent, StoppedEvent, ChatEntry, ChatUserEntry, ChatAssistantEntry, ChatErrorEntry, ChatToolEntry, ChatUsageTotals, ChatFoldState, isAgentChatEvent, createChatFoldState, applyChatEvent, appendUserMessage, removeChatEntry, nextChatEntryId"
+    },
+    {
+      "path": "src/lib/agent-chat-skills.ts",
+      "lines": 70,
+      "title": "Agent chat skill helpers (t310)",
+      "summary": "Pure parsing/formatting for the interactive skill flow in the agent chat sidebar: when an interactive skill (grill-me) runs, the daemon's first assistant turn contains numbered questions, the sidebar extracts them to render an answer…",
+      "functions": [
+        {
+          "name": "parseNumberedQuestions: extracts \"N. question\" lines from a turn",
+          "summary": null
+        },
+        {
+          "name": "formatAnswers: renders questions + answers as a readable chat message",
+          "summary": null
+        }
+      ],
+      "exports": "parseNumberedQuestions, formatAnswers"
     },
     {
       "path": "src/lib/category-color.ts",
@@ -3000,7 +3049,7 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 1516,
+      "lines": 1537,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [
@@ -3338,7 +3387,7 @@
     },
     {
       "path": "src/lib/store.ts",
-      "lines": 2058,
+      "lines": 2062,
       "title": "Kandown Zustand store",
       "summary": "Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.",
       "functions": [
@@ -3371,16 +3420,16 @@
     },
     {
       "path": "src/lib/store/agentChatSlice.ts",
-      "lines": 408,
+      "lines": 537,
       "title": "Zustand store slice: agent chat sidebar (t308)",
       "summary": "Sidebar open state, the project's chat session index, the live per-session chat folds, and the SSE lifecycle that feeds them.",
       "functions": [
         {
-          "name": "createAgentChatSlice: sidebar state, session index, SSE lifecycle, sends",
+          "name": "createAgentChatSlice: sidebar state, session index, SSE lifecycle, sends,",
           "summary": null
         }
       ],
-      "exports": "AgentChatSlice, createAgentChatSlice"
+      "exports": "AgentChatSlice, createAgentChatSlice, createInitialAgentChatState"
     },
     {
       "path": "src/lib/store/agentEditsSlice.ts",
@@ -3447,7 +3496,7 @@
     },
     {
       "path": "src/lib/store/types.ts",
-      "lines": 338,
+      "lines": 382,
       "title": "Zustand store — shared types",
       "summary": "State shape and supporting interfaces used across every store slice."
     },
@@ -3762,12 +3811,16 @@
     },
     {
       "path": "src/lib/workflows/skills.ts",
-      "lines": 70,
+      "lines": 126,
       "title": "Data-only workflow skill packages",
-      "summary": "Validates additive Markdown skill manifests with optional workflow compatibility and semantic column-role requirements.",
+      "summary": "Validates additive Markdown skill manifests with optional workflow compatibility, optional chat button metadata, and semantic column-role requirements.",
       "functions": [
         {
           "name": "loadWorkflowSkill: validate a manifest and its declared Markdown file",
+          "summary": null
+        },
+        {
+          "name": "validateSkillChat: check the optional chat declaration structurally",
           "summary": null
         }
       ],
@@ -3775,10 +3828,10 @@
     },
     {
       "path": "src/lib/workflows/types.ts",
-      "lines": 124,
+      "lines": 153,
       "title": "Pure workflow package contracts",
       "summary": "Defines Kandown's version 1 data-only workflow manifest, loaded package, board-role, source-file, and typed validation result shapes.",
-      "exports": "WorkflowBoardRole, WorkflowTaskTemplateManifest, WorkflowAttribution, WorkflowManifest, WorkflowTextFile, WorkflowBoardPresetFile, LoadedWorkflowTaskTemplate, LoadedWorkflowPackage, WorkflowSourceFiles, WorkflowErrorCode, WorkflowFormatError, WorkflowResult"
+      "exports": "WorkflowBoardRole, WorkflowTaskTemplateManifest, WorkflowAttribution, WorkflowManifest, WorkflowTextFile, WorkflowBoardPresetFile, LoadedWorkflowTaskTemplate, LoadedWorkflowPackage, WorkflowSourceFiles, WorkflowSkillChatScope, WorkflowSkillChatButton, WorkflowSkillChat, WorkflowSkillChatResolved, WorkflowErrorCode, WorkflowFormatError, WorkflowResult"
     },
     {
       "path": "src/lib/workflows/validation.ts",

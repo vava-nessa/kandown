@@ -26,8 +26,8 @@ source to edit instead.
 
 ## `bin/` — Published CLI entrypoints — GENERATED, never edit
 
-- **`kandown.js`** · 13873 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
-- **`tui.js`** · 62745 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
+- **`kandown.js`** · 13946 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
+- **`tui.js`** · 62792 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
 
 ## `src/` — Web app root
 
@@ -83,8 +83,8 @@ source to edit instead.
 - **`plugin-cli.ts`** · 296 lines — The agent-first façade over the extension system.
 - **`plugin-dev.ts`** · 154 lines — Watches one plugin directory and, on every save, rebuilds the browser bundles, re-runs the validator and asks the running daemon to hot reload the board.
 - **`plugin-scaffold.ts`** · 342 lines — Generates a ready-to-run plugin directory for `kandown plugin create`.
-- **`server.ts`** · 1289 lines — Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application.
-- **`skills.ts`** · 118 lines — Discovers immutable built-in, global, and project data-only Markdown skill packages with deterministic override precedence.
+- **`server.ts`** · 1306 lines — Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application.
+- **`skills.ts`** · 152 lines — Discovers immutable built-in, global, and project data-only Markdown skill packages with deterministic override precedence.
 - **`task-move.ts`** · 198 lines — Runs the shared dependency policy and enabled extension gates before persisting a web move.
 - **`themes-cli.ts`** · 255 lines — Implements the `kandown theme <subcommand>` verb: list installed themes, install from the registry or a pasted URL, scaffold a starter theme, and emit the prefilled GitHub URL the user clicks to propose their theme via a one-click PR.
 - **`themes-meta.ts`** · 15 lines — Centralizes the GitHub coordinates of the community theme registry so the CLI, daemon and web editor all propose themes into the same place.
@@ -110,7 +110,7 @@ source to edit instead.
 - **`resolve-kandown-dir.spec.ts`** · 127 lines — Pins down the three behaviors that prevent bare `kandown` from silently attaching to a foreign project: 1.
 - **`session-edits.spec.ts`** · 259 lines — Locks the daemon half of the live editing experience (t309): the session-to-task path mapping (descriptive names, bare ids, the archive directory, non-task rejection), the started/ended broadcast idempotence, the task_diff gating on…
 - **`session-index.spec.ts`** · 213 lines — Pins the t308 chat-session index contract against a disposable fake home directory (the module's `~/.kandown/sessions` base is redirected by mocking `os.homedir`, so no real home state is ever touched): 1. upsert writes one JSON file…
-- **`skills.spec.ts`** · 37 lines — Verifies bundled skill discovery plus missing configured skill diagnostics without relying on network or executable package content.
+- **`skills.spec.ts`** · 120 lines — Verifies bundled skill discovery plus missing configured skill diagnostics without relying on network or executable package content.
 - **`task-filename-cli.spec.ts`** · 207 lines — Spawns `bin/kandown.js` (the published CLI bundle) against a throwaway project whose `tasks/` folder deliberately mixes both naming forms: the legacy bare `t1.md` and the descriptive `t2_add_dark_mode.md`.
 - **`task-move.spec.ts`** · 264 lines — Exercises the Node move coordinator against real task files and a real jiti-loaded extension.
 - **`tasks-list.spec.ts`** · 130 lines — Pins the behaviour that broke when cmdList rebuilt its rows by hand instead of going through `buildColumnsFromTasks`.
@@ -193,16 +193,18 @@ source to edit instead.
 
 ## `src/components/agent/`
 
+- **`AnswerForm.tsx`** · 100 lines — Compact panel rendered above the skill buttons when an interactive skill (grill-me) finishes its first turn: one small textarea per parsed question, "Send answers" forwards them through sendAnswers (the slice formats a plain follow-up…
 - **`ApprovalCard.tsx`** · 109 lines — ApprovalCard renders one pending harness permission request (title, kind chip, short session id, Approve / Reject); ApprovalCardStack is the fixed bottom-right container fed by the agentEdits permission queue.
-- **`Blobatar.tsx`** · 212 lines — Deterministic, dependency-free SVG "blobatar" identifying the agent session that is currently editing a task: the same sessionId always renders the same blob (shape, hue, animation phase all derive from a djb2 hash of the id), so a…
+- **`Blobatar.tsx`** · 61 lines — Deterministic blob avatar identifying the agent session that is currently editing a task: the same sessionId always renders the same creature (shape, face, colors all derive from the id by the blobatar generator), so a session keeps its…
 - **`CardBeam.tsx`** · 128 lines — Animated border-beam overlay marking a task an agent session is currently editing.
-- **`ChatSidebar.tsx`** · 264 lines — The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.
+- **`ChatSidebar.tsx`** · 309 lines — The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.
 - **`DaemonGuardCard.tsx`** · 57 lines — Shown instead of the conversation UI when the session index reported no daemon (standalone File System Access mode, the demo, or an old daemon without the agent routes).
 - **`DiffOverlay.tsx`** · 94 lines — Renders the latest `task_diff` snapshot for a task as a readable, dependency-free line diff: removed lines tinted red, added lines green, unchanged context collapsed to a couple of lines around the change.
 - **`GitInitBanner.tsx`** · 56 lines — Dismissible info banner shown when the daemon reports that the project folder is not a git repository (`gitWarning: 'not-a-git-repo'` on the POST /api/agent/sessions response): agent edits then leave no git history to diff, revert or…
 - **`MessageList.tsx`** · 185 lines — Renders the folded conversation: user bubbles, assistant turns (streaming text, collapsible thinking block, tool chips), error entries in the destructive tint, and the quiet "edited ..." line for files the agent touched during the turn.
 - **`PromptBar.tsx`** · 97 lines — Auto-sizing textarea plus send/stop controls.
 - **`SessionSwitcher.tsx`** · 152 lines — Dropdown over the project's chat session index: title, relative last-activity time, and a harness chip per row.
+- **`SkillButtons.tsx`** · 128 lines — Renders the installed skills that declare a `chat` block as compact pill buttons above the PromptBar.
 - **`StreamingText.tsx`** · 35 lines — Renders an assistant message that is still arriving: the text is shown as-is and a blinking caret marks the write position while `streaming`.
 - **`UsageBadge.tsx`** · 51 lines — Shows the running token totals and USD cost of the active session, accumulated by the event fold from `usage` SSE events.
 
@@ -239,6 +241,7 @@ source to edit instead.
 
 - **`agent-aliases.ts`** · 245 lines — The single source of truth for mapping a free-form assignee string (as typed in a task's `assignee:` frontmatter or quick-add `@token`) to a canonical agent id.
 - **`agent-chat-events.ts`** · 466 lines — Pure, framework-free model of the JSON events the daemon streams on GET /api/agent/sessions/:id/events, plus the reducer that folds them into the chat message list rendered by the agent chat sidebar.
+- **`agent-chat-skills.ts`** · 70 lines — Pure parsing/formatting for the interactive skill flow in the agent chat sidebar: when an interactive skill (grill-me) runs, the daemon's first assistant turn contains numbered questions, the sidebar extracts them to render an answer…
 - **`category-color.ts`** · 168 lines — Maps a category name (WEB, CLI, ARCHITECTURE, THEMES...) to a stable accent color and a stable icon by hashing the name: the same string always yields the same color and icon, nothing is stored, nothing to maintain.
 - **`columnUtils.ts`** · 223 lines — Provides column color maps, color swatches, and tabler icon resolvers shared across Board and List views.
 - **`config.ts`** · 414 lines — Converts unknown kandown.json input into the canonical config contract used by browser and Node adapters.
@@ -247,7 +250,7 @@ source to edit instead.
 - **`dependencies.ts`** · 333 lines — Pure module that owns the single rule for moving tasks between board columns: a task may only enter the configured terminal status (and be archived) when every blocking dependency is resolved.
 - **`dependency-chip-format.ts`** · 54 lines — Shared text formatter for the "depends on" chip shown on task cards (web board view) and TUI list rows.
 - **`errors.ts`** · 138 lines — Typed errors used across the web UI to distinguish failure modes (browser support, permissions, disk full, corruption, parse errors) instead of relying on generic `Error` + string matching.
-- **`filesystem.ts`** · 1516 lines — Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.
+- **`filesystem.ts`** · 1537 lines — Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.
 - **`githubStars.ts`** · 122 lines — Client-side GitHub star count for the Kandown web app, with a localStorage cache.
 - **`globalErrors.ts`** · 108 lines — Last-resort safety net that catches uncaught JavaScript errors and unhandled promise rejections, logs them, and shows a throttled toast so the user is informed without being spammed.
 - **`grouping.ts`** · 136 lines — Pure functions that group board tasks by category (frontmatter `category:` field, legacy leading `[bracket]` title tag) or `#hashtag` markers in their titles.
@@ -259,7 +262,7 @@ source to edit instead.
 - **`quick-add-parser.ts`** · 94 lines — Parses inline metadata annotations in task title strings: - `p1` / `p2` / `p3` / `p4` → priority (`P1`, `P2`, `P3`, `P4`) - `#tag` → tags array (`['tag']`) - `@assignee` → assignee string (`'assignee'`) - `due:friday` / `due:today` /…
 - **`retry.ts`** · 65 lines — Small, dependency-free helper that retries a fallible async operation a bounded number of times, only when the error is transient.
 - **`serializer.ts`** · 73 lines — Converts task frontmatter/body data back into Kandown's plain markdown task file format.
-- **`store.ts`** · 2058 lines — Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.
+- **`store.ts`** · 2062 lines — Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.
 - **`task-filename.ts`** · 482 lines — Owns the whole relationship between a task id and the name of the file that holds it, for every surface (CLI, daemon, TUI, web File System Access, desktop).
 - **`task-meta.ts`** · 129 lines — Owns the `updated:` frontmatter field — the single source of truth for "when did this task last change" — and the compact relative-age formatting the TUI list view renders in its `Age` column.
 - **`task-title-category.ts`** · 57 lines — Provides the canonical way to read a task's category (frontmatter `category:` field first, legacy leading bracket in the title as fallback) and title parsing utilities.
@@ -273,6 +276,7 @@ source to edit instead.
 ## `src/lib/__tests__/`
 
 - **`agent-chat-events.spec.ts`** · 204 lines — Locks the reducer contract the chat sidebar renders from: streaming text accumulates then finalizes, thinking stays on its own channel, tool calls pair by toolCallId, usage accumulates, errors append entries (and fatal ones close the…
+- **`agent-chat-skills.spec.ts`** · 68 lines — Locks the pure interactive-skill contract (t310): the numbered question parser the answer form is built from, and the answer formatter the sidebar sends back as a plain follow-up message.
 - **`agent-edits.spec.ts`** · 190 lines — Covers the event fold (applyAgentEditsEvent), the permission queue helpers, diff pruning and the LCS-free line diff exported by src/lib/store/agentEditsSlice.ts, plus the board-event type guards exported by src/lib/watcher.ts (the…
 - **`browser-extension-runtime.spec.ts`** · 207 lines — Uses a minimal in-memory File System Access implementation to prove project-local discovery, bundled index.js activation, typed badge rendering, web module loading, failure isolation and persistent quarantine.
 - **`category-color.spec.ts`** · 62 lines — Verifies the deterministic contract of src/lib/category-color.ts: same category string always yields the same color and icon, the foreground is always a legible dark or white on the chosen background, and the palette covers the full…
@@ -286,7 +290,7 @@ source to edit instead.
 - **`kandown-work.spec.ts`** · 63 lines — Verifies immutable-core density, fixed nine-layer ordering, tracking cadence, semantic column placeholders, and structured diagnostics.
 - **`parser-serializer.spec.ts`** · 174 lines — Vitest suite locking the `parseSimpleYaml` / `parseTaskFile` ↔ `serializeTaskFile` round-trip.
 - **`task-filename.spec.ts`** · 302 lines — Guards the module that decides which file on disk holds a task.
-- **`workflow-skills.spec.ts`** · 93 lines — Locks data-only skill validation, compatibility filtering, and semantic role diagnostics for additive workflow guidance.
+- **`workflow-skills.spec.ts`** · 197 lines — Locks data-only skill validation, compatibility filtering, semantic role diagnostics, and optional chat button metadata for additive workflow guidance.
 - **`workflows.spec.ts`** · 280 lines — Locks the pure version 1 workflow contract across valid source folders, malformed manifests, portable path security, duplicate template declarations, loaded-package validation, Markdown capsule round trips, strict section parsing,…
 
 ## `src/lib/extensions/`
@@ -309,14 +313,14 @@ source to edit instead.
 
 ## `src/lib/store/` — Zustand store slices
 
-- **`agentChatSlice.ts`** · 408 lines — Sidebar open state, the project's chat session index, the live per-session chat folds, and the SSE lifecycle that feeds them.
+- **`agentChatSlice.ts`** · 537 lines — Sidebar open state, the project's chat session index, the live per-session chat folds, and the SSE lifecycle that feeds them.
 - **`agentEditsSlice.ts`** · 381 lines — Makes agent edits visible on the board: tracks which task each agent session is currently editing (border beam + blobatar), keeps the latest before/after diff per task (live diff panel in the editor shells) and queues harness permission…
 - **`agentSearchSlice.ts`** · 127 lines — Lazy content-loading for search (>10 tasks defers full reads until search is used), the CLI daemon's optional "send to agent" hook, and resolving a drawer edit-conflict flagged by the file watcher.
 - **`boardSlice.ts`** · 590 lines — Column CRUD, task move/reorder/create/delete/archive, task selection, and bulk operations.
 - **`drawerSlice.ts`** · 189 lines — Opening/closing the task detail drawer, editing its in-memory data, saving (full or metadata-only autosave), and the unsaved-edits recovery buffer used when the drawer is force-closed before a save completes (t110).
 - **`helpers.ts`** · 221 lines — Pure/async helpers plus the module-level mutable state (toast counter, notification snapshots, watcher timers, in-flight bulk-mutation guard) that multiple store slices need to read or write.
 - **`projectSlice.ts`** · 401 lines — Opening a project (file-picker or recent), server-mode auto-open, config load/update, and the full board reload.
-- **`types.ts`** · 338 lines — State shape and supporting interfaces used across every store slice.
+- **`types.ts`** · 382 lines — State shape and supporting interfaces used across every store slice.
 - **`uiSlice.ts`** · 72 lines — View mode/density (persisted to localStorage), filters, the command palette / cheatsheet open flags, current page routing, and the toast queue used across every other slice for user-facing feedback.
 - **`watcherSlice.ts`** · 229 lines — Starts either the browser file-system watcher or the server-mode REST polling loop, translates watcher events into board reloads / conflict detection / notifications, and exposes a manual restart for when the watcher auto-disables…
 
@@ -335,8 +339,8 @@ source to edit instead.
 - **`builtins.ts`** · 35 lines — Bundles the same readable templates/workflows source packages shipped to the CLI and validates them with the shared pure loader for standalone File System Access mode.
 - **`capsule.ts`** · 345 lines — Exports and imports a complete workflow package as one readable Markdown document with YAML frontmatter and length-delimited Kandown sections.
 - **`index.ts`** · 39 lines — Re-exports the pure version 1 workflow package contracts, validation and source-map loader APIs, plus portable Markdown capsule import and export.
-- **`skills.ts`** · 70 lines — Validates additive Markdown skill manifests with optional workflow compatibility and semantic column-role requirements.
-- **`types.ts`** · 124 lines — Defines Kandown's version 1 data-only workflow manifest, loaded package, board-role, source-file, and typed validation result shapes.
+- **`skills.ts`** · 126 lines — Validates additive Markdown skill manifests with optional workflow compatibility, optional chat button metadata, and semantic column-role requirements.
+- **`types.ts`** · 153 lines — Defines Kandown's version 1 data-only workflow manifest, loaded package, board-role, source-file, and typed validation result shapes.
 - **`validation.ts`** · 623 lines — Validates raw version 1 workflow manifests, resolves complete data-only packages from caller-provided file maps, and validates already loaded packages without throwing.
 
 ## `src/types/` — Ambient type declarations
@@ -363,6 +367,6 @@ source to edit instead.
 
 ## Coverage
 
-246 of 246 eligible files carry an `@description` header.
+250 of 250 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

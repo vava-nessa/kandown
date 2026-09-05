@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@blobatar/react':
+        specifier: ^2.7.0
+        version: 2.7.0(blobatar@2.7.0(react@19.2.5))(react@19.2.5)
       '@blocknote/code-block':
         specifier: 0.49.0
         version: 0.49.0(@blocknote/core@0.49.0(@types/hast@3.0.4)(supports-color@7.2.0))
@@ -23,6 +26,9 @@ importers:
       '@radix-ui/react-slot':
         specifier: 1.2.4
         version: 1.2.4(@types/react@19.2.14)(react@19.2.5)
+      blobatar:
+        specifier: ^2.7.0
+        version: 2.7.0(react@19.2.5)
       chokidar:
         specifier: ^4.0.0
         version: 4.0.3
@@ -236,6 +242,12 @@ packages:
 
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
+
+  '@blobatar/react@2.7.0':
+    resolution: {integrity: sha512-rysDM1+2qoeIwIezVw/em+ZxOMyqqjqJOGNEvtOOU1nFp0jmzyEjlXtJTDM6xPKamq59pq6wcG9+mHIUZV572A==}
+    peerDependencies:
+      blobatar: 2.x
+      react: '>=18'
 
   '@blocknote/code-block@0.49.0':
     resolution: {integrity: sha512-GwDjtmaVp4aPosXpVRAo+pKLfUX8hXQiP6XM+MH3Mks5tHXkI0Fb3ik92Yscd6ZJz3HX3OH0x+vz5Xchd8Ji5g==}
@@ -1501,6 +1513,17 @@ packages:
   binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
     engines: {node: '>=8'}
+
+  blobatar@2.7.0:
+    resolution: {integrity: sha512-tL1p2J3dXE/Z9U/ITwHqU7HBHmTH+Am+hif1J1hWAhvFT1VYC2HG+eXtN7081yuY+L2lrp9bs/VaF7dVH3S2jw==}
+    peerDependencies:
+      react: '>=18'
+      vue: '>=3'
+    peerDependenciesMeta:
+      react:
+        optional: true
+      vue:
+        optional: true
 
   brace-expansion@2.1.2:
     resolution: {integrity: sha512-w5JZcKgdhDOgOwm8H+KgbosopHMuGcl6qbulwjtz3SM7I7P3yW1eAjzMPLrIE+NQ9vjgANKHWeMHnrT0OXW1oA==}
@@ -3282,6 +3305,11 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
+  '@blobatar/react@2.7.0(blobatar@2.7.0(react@19.2.5))(react@19.2.5)':
+    dependencies:
+      blobatar: 2.7.0(react@19.2.5)
+      react: 19.2.5
+
   '@blocknote/code-block@0.49.0(@blocknote/core@0.49.0(@types/hast@3.0.4)(supports-color@7.2.0))':
     dependencies:
       '@blocknote/core': 0.49.0(@types/hast@3.0.4)(supports-color@7.2.0)
@@ -4281,6 +4309,10 @@ snapshots:
   baseline-browser-mapping@2.10.19: {}
 
   binary-extensions@2.3.0: {}
+
+  blobatar@2.7.0(react@19.2.5):
+    optionalDependencies:
+      react: 19.2.5
 
   brace-expansion@2.1.2:
     dependencies:
