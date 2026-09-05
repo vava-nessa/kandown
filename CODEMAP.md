@@ -26,7 +26,7 @@ source to edit instead.
 
 ## `bin/` — Published CLI entrypoints — GENERATED, never edit
 
-- **`kandown.js`** · 14577 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
+- **`kandown.js`** · 14690 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
 - **`tui.js`** · 62831 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
 
 ## `src/` — Web app root
@@ -37,7 +37,7 @@ source to edit instead.
 ## `src/cli/` — CLI + terminal UI (source of the bin/ bundles)
 
 - **`app.tsx`** · 106 lines — Routes to the correct screen based on the `screen` prop and wraps every screen in a fixed-height fullscreen frame.
-- **`cli.ts`** · 224 lines — Entrypoint for the kandown command line tool.
+- **`cli.ts`** · 229 lines — Entrypoint for the kandown command line tool.
 - **`tui.tsx`** · 64 lines — Launches the fixed-screen terminal UI using Ink (React for CLI).
 
 ## `src/cli/commands/` — One-shot CLI commands
@@ -48,6 +48,7 @@ source to edit instead.
 - **`reslug.ts`** · 208 lines — Renames task files so their name says what they are: `tasks/t232.md` becomes `tasks/t232_remove_dead_code.md`.
 - **`run.ts`** · 117 lines — Parses flags, prints the cascade plan (always, so the user sees what is about to happen), then drives the orchestrator in `src/cli/lib/cascade.ts` and prints a per-task summary.
 - **`tasks.ts`** · 346 lines — Handlers for `kandown list/show/create/move/assign/commit` plus `export`/`import`/`projects`.
+- **`undo.ts`** · 100 lines — Reverts the most recent journalized board change (move, create, delete or archive), or lists the journal with `--list`.
 
 ## `src/cli/components/` — Shared Ink components
 
@@ -70,7 +71,7 @@ source to edit instead.
 - **`board-reader.ts`** · 687 lines — Provides filesystem-based reading and writing of Kandown task files for the CLI.
 - **`browser.ts`** · 26 lines — Resolves and spawns the platform default browser for the given URL.
 - **`cascade.ts`** · 465 lines — The synchronous task-cascade engine.
-- **`cli-shared.ts`** · 376 lines — Argument parsing, deterministic nearest-ancestor project resolution, colored console output, and task-file path helpers shared across every `cmdX` command handler and the TUI launcher in src/cli/cli.ts.
+- **`cli-shared.ts`** · 378 lines — Argument parsing, deterministic nearest-ancestor project resolution, colored console output, and task-file path helpers shared across every `cmdX` command handler and the TUI launcher in src/cli/cli.ts.
 - **`config.ts`** · 138 lines — Keeps Node file I/O around the canonical shared Kandown config normalizer, plus nested value access used by the terminal settings screen.
 - **`daemon-auth.ts`** · 85 lines — Generates, validates and carries the per-project auth token shared between the daemon server, the web client and the TUI.
 - **`daemon.ts`** · 367 lines — Reads and controls the per-project web daemon from the terminal UI.
@@ -93,6 +94,7 @@ source to edit instead.
 - **`themes-cli.ts`** · 255 lines — Implements the `kandown theme <subcommand>` verb: list installed themes, install from the registry or a pasted URL, scaffold a starter theme, and emit the prefilled GitHub URL the user clicks to propose their theme via a one-click PR.
 - **`themes-meta.ts`** · 15 lines — Centralizes the GitHub coordinates of the community theme registry so the CLI, daemon and web editor all propose themes into the same place.
 - **`themes-store.ts`** · 211 lines — Fetches the community themes index from its canonical home (a JSON file in the kandown repo, served via `raw.githubusercontent.com`) and installs themes by writing a single JSON file into the project's `.kandown/themes/<id>.json`.
+- **`undo.ts`** · 92 lines — Exposes the contents of `.kandown/.undo/log.json` to callers that must LOOK at the journal without owning its writes.
 - **`updater.ts`** · 321 lines — Manages npm registry version checks, global package updates, PATH binary resolution, and update throttling.
 - **`workflows-cli.ts`** · 392 lines — Discovers built-in and project-local data-only workflows, exposes list/show/use/validate/pack/import commands, and persists imported capsules without executing package content.
 - **`workflows-store.ts`** · 163 lines — Fetches an approved GitHub-hosted workflow index, installs only pinned and checksum-verified Markdown capsules, records provenance, previews upstream updates as a text diff, and applies them only after confirmation.
@@ -126,6 +128,7 @@ source to edit instead.
 - **`task-filename-cli.spec.ts`** · 207 lines — Spawns `bin/kandown.js` (the published CLI bundle) against a throwaway project whose `tasks/` folder deliberately mixes both naming forms: the legacy bare `t1.md` and the descriptive `t2_add_dark_mode.md`.
 - **`task-move.spec.ts`** · 264 lines — Exercises the Node move coordinator against real task files and a real jiti-loaded extension.
 - **`tasks-list.spec.ts`** · 130 lines — Pins the behaviour that broke when cmdList rebuilt its rows by hand instead of going through `buildColumnsFromTasks`.
+- **`undo.spec.ts`** · 179 lines — `listUndoRecords` is the read half of the undo safety net: the `kandown undo` command peeks at the journal through it BEFORE reverting, so a missing, corrupted or partially written journal must come back as an empty (or filtered) list…
 - **`updater-semver.spec.ts`** · 62 lines — `semverGt` decides whether the npm registry is offering a newer kandown than the one running, which in turn decides whether the CLI nags the user and whether a live daemon self-upgrades.
 - **`workflows-cli.spec.ts`** · 64 lines — Exercises built-in discovery, provenance-preserving local forks, validated Markdown editing, and no-orphan board preset previews against real temporary Kandown projects.
 - **`workflows-store.spec.ts`** · 59 lines — Verifies pinned registry validation, capsule checksum enforcement, immutable install provenance, and explicit update confirmation without network.
@@ -451,6 +454,6 @@ source to edit instead.
 
 ## Coverage
 
-316 of 316 eligible files carry an `@description` header.
+319 of 319 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

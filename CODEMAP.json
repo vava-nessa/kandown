@@ -8,7 +8,7 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 14577,
+      "lines": 14690,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
@@ -172,7 +172,7 @@
     },
     {
       "path": "src/cli/cli.ts",
-      "lines": 224,
+      "lines": 229,
       "title": "Main Kandown CLI Entrypoint",
       "summary": "Entrypoint for the kandown command line tool."
     },
@@ -235,6 +235,23 @@
       "title": "CLI commands — task CRUD & board data",
       "summary": "Handlers for `kandown list/show/create/move/assign/commit` plus `export`/`import`/`projects`.",
       "exports": "cmdList, cmdShow, cmdCreate, cmdMove, cmdAssign, cmdCommit, cmdExport, cmdProjects, cmdImport"
+    },
+    {
+      "path": "src/cli/commands/undo.ts",
+      "lines": 100,
+      "title": "`kandown undo` command",
+      "summary": "Reverts the most recent journalized board change (move, create, delete or archive), or lists the journal with `--list`.",
+      "functions": [
+        {
+          "name": "describe: one short sentence saying what a reverted record did to the board",
+          "summary": null
+        },
+        {
+          "name": "cmdUndo: the `kandown undo [--list]` handler",
+          "summary": null
+        }
+      ],
+      "exports": "cmdUndo"
     },
     {
       "path": "src/cli/components/task-context-menu.tsx",
@@ -493,6 +510,12 @@
       "lines": 130,
       "title": "`kandown list` integration tests",
       "summary": "Pins the behaviour that broke when cmdList rebuilt its rows by hand instead of going through `buildColumnsFromTasks`."
+    },
+    {
+      "path": "src/cli/lib/__tests__/undo.spec.ts",
+      "lines": 179,
+      "title": "Unit and integration tests for the undo journal reader",
+      "summary": "`listUndoRecords` is the read half of the undo safety net: the `kandown undo` command peeks at the journal through it BEFORE reverting, so a missing, corrupted or partially written journal must come back as an empty (or filtered) list…"
     },
     {
       "path": "src/cli/lib/__tests__/updater-semver.spec.ts",
@@ -970,7 +993,7 @@
     },
     {
       "path": "src/cli/lib/cli-shared.ts",
-      "lines": 376,
+      "lines": 378,
       "title": "CLI shared utilities",
       "summary": "Argument parsing, deterministic nearest-ancestor project resolution, colored console output, and task-file path helpers shared across every `cmdX` command handler and the TUI launcher in src/cli/cli.ts.",
       "functions": [
@@ -1438,6 +1461,23 @@
       "lines": 211,
       "title": "Community theme store wiring",
       "summary": "Fetches the community themes index from its canonical home (a JSON file in the kandown repo, served via `raw.githubusercontent.com`) and installs themes by writing a single JSON file into the project's `.kandown/themes/<id>.json`."
+    },
+    {
+      "path": "src/cli/lib/undo.ts",
+      "lines": 92,
+      "title": "Read-only reader for the undo journal",
+      "summary": "Exposes the contents of `.kandown/.undo/log.json` to callers that must LOOK at the journal without owning its writes.",
+      "functions": [
+        {
+          "name": "isUndoRecord: narrowing guard for one journal entry",
+          "summary": null
+        },
+        {
+          "name": "listUndoRecords: the validated journal, most recent entry first",
+          "summary": null
+        }
+      ],
+      "exports": "UndoRecord, listUndoRecords"
     },
     {
       "path": "src/cli/lib/updater.ts",

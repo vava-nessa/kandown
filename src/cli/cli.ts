@@ -25,6 +25,7 @@ import {
   cmdExport, cmdProjects, cmdImport,
 } from './commands/tasks';
 import { cmdReslug } from './commands/reslug';
+import { cmdUndo } from './commands/undo';
 import { cmdDaemon } from './commands/daemon';
 import { cmdRun } from './commands/run';
 import { cmdAgents } from './commands/agents';
@@ -101,6 +102,10 @@ async function main() {
 
     case 'reslug':
       cmdReslug(rest);
+      break;
+
+    case 'undo':
+      cmdUndo(rest);
       break;
 
     case 'assign':

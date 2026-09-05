@@ -82,7 +82,7 @@ export const COMMANDS = new Set([
   'init', 'update', 'upgrade', 'doctor', 'work', 'list', 'ls', 'show', 'move',
   'help', 'daemon', 'board', 'settings', 'tasks', 'create', 'new', 'assign',
   'commit', 'projects', 'export', 'import', 'mcp', 'version', 'run', 'agents', 'reslug',
-  'extension', 'extensions', 'plugin', 'plugins', 'theme', 'themes', 'workflow', 'workflows',
+  'undo', 'extension', 'extensions', 'plugin', 'plugins', 'theme', 'themes', 'workflow', 'workflows',
 ]);
 
 export function splitCommand(args: string[]): { cmd: string | undefined; rest: string[] } {
@@ -200,6 +200,7 @@ ${c.bold}COMMANDS:${c.reset}
   move <id> <status>  Move task column
   assign <id> <agent> Assign task to an agent (e.g. claude)
   reslug <id>|--all   Rename task files descriptively (t232_remove_dead_code.md)
+  undo [--list]       Undo the last board change (or list the journal)
   run [id]            Cascade: run ready tasks via assigned agents (DAG chain)
   agents              List detected AI agents + catalog (.kandown/agents.json)
   extension           Manage extensions (list/enable/disable/install/create)
@@ -350,6 +351,7 @@ ${c.bold}Kandown task commands${c.reset}
   kandown show <id>
   kandown create "title" [-p P1] [-a user] [-t tag] [--to status] [--id id] [--json]
   kandown move <id> <status|archived>
+  kandown undo [--list]
   kandown assign <id> [user]
   kandown commit [-m "message"]
 `);
