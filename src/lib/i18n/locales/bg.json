@@ -26,12 +26,15 @@
     "settings": "Настройки",
     "board": "Дъска",
     "reload": "Презареди",
-    "newTask": "Нова задача"
+    "newTask": "Нова задача",
+    "list": "Списък",
+    "run": "Изпълни"
   },
   "emptyState": {
     "unsupportedBrowser": "Неподдържан браузър",
     "unsupportedBrowserDesc": "Тази система изисква <code>File System Access API</code>. Използвайте Chrome, Edge, Brave или Opera. Firefox и Safari все още не го поддържат.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Свързване със сървъра..."
   },
   "header": {
     "tasks": "задачи",
@@ -130,7 +133,8 @@
     "priority": "Приоритет",
     "body": "Съдържание",
     "subtasks": "Подзадачи",
-    "none": "(няма)"
+    "none": "(няма)",
+    "tags": "Етикети"
   },
   "languageNames": {
     "en": "Английски",
@@ -172,6 +176,8 @@
     "delete": "Изтриване",
     "confirmDelete": "Потвърдете изтриване",
     "selectAll": "Избери всички",
+    "select": "Избери задачата",
+    "deselect": "Премахни избора на задачата",
     "clear": "Изчисти избора",
     "selectedOne": "selected",
     "selectedMany": "selected",
@@ -219,6 +225,11 @@
     "boardDesc": "Поведение на ID на задачите и общи настройки за дъската.",
     "fields": "Полета",
     "fieldsDesc": "Незадължителни полета, показвани върху задачи и карти на дъската.",
+    "extensions": "Разширения",
+    "extensionsDesc": "Управление на инсталираните разширения: включване, изключване и ограничен режим.",
+    "kickerExtensions": "Приставки и интеграции",
+    "navigate": "Навигирай",
+    "select": "Избери",
     "language": "Език",
     "languageDesc": "Езикът на интерфейса се съхранява в конфигурацията на този проект.",
     "mode": "Режим",
@@ -355,12 +366,11 @@
     "emptyState": "Започнете разговора: питайте за таблото, за задача или за предстоящата работа.",
     "sessionUntitled": "Разговор без заглавие",
     "sessionsEmpty": "Още няма разговори в този проект.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness за нови чатове",
     "noHarness": "Няма инсталиран harness на тази машина",
     "copy": "Копирай",
     "daemonGuardTitle": "Чатът с агента се нуждае от kandown daemon",
-    "daemonGuardBody": "Стартирайте локалния daemon, за да си пишете с кодиращите агенти: изпълнете npx kandown в този проект."
-  ,
+    "daemonGuardBody": "Стартирайте локалния daemon, за да си пишете с кодиращите агенти: изпълнете npx kandown в този проект.",
     "optionsTitle": "Изберете опция",
     "optionsSkip": "Ще напиша вместо това",
     "suggestionsLabel": "Предложения за продължение",

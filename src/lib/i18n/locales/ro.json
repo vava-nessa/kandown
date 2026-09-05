@@ -26,12 +26,15 @@
     "settings": "Settings",
     "board": "Board",
     "reload": "Reload",
-    "newTask": "New task"
+    "newTask": "New task",
+    "list": "Listă",
+    "run": "Rulează"
   },
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Se conectează la server..."
   },
   "header": {
     "tasks": "tasks",
@@ -130,7 +133,8 @@
     "priority": "Priority",
     "body": "Body",
     "subtasks": "Subtasks",
-    "none": "(none)"
+    "none": "(none)",
+    "tags": "Etichete"
   },
   "languageNames": {
     "en": "Engleză",
@@ -157,6 +161,8 @@
     "delete": "Șterge",
     "confirmDelete": "Confirmă ștergerea",
     "selectAll": "Selectează tot",
+    "select": "Selectează sarcina",
+    "deselect": "Deselectează sarcina",
     "clear": "Șterge selecția",
     "selectedOne": "selected",
     "selectedMany": "selected",
@@ -204,6 +210,11 @@
     "boardDesc": "Task id behavior and board-level defaults.",
     "fields": "Fields",
     "fieldsDesc": "Optional fields shown on tasks and board cards.",
+    "extensions": "Extensii",
+    "extensionsDesc": "Gestionează extensiile instalate: activare, dezactivare și mod restricționat.",
+    "kickerExtensions": "Pluginuri și integrări",
+    "navigate": "Navigate",
+    "select": "Select",
     "language": "Language",
     "languageDesc": "UI language stored in this project config.",
     "mode": "Mode",
@@ -340,12 +351,11 @@
     "emptyState": "Începe conversația: întreabă despre această tablă, o sarcină sau munca care urmează.",
     "sessionUntitled": "Conversație fără titlu",
     "sessionsEmpty": "Încă nu există conversații în acest proiect.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness pentru conversații noi",
     "noHarness": "Niciun harness instalat pe acest calculator",
     "copy": "Copiază",
     "daemonGuardTitle": "Chatul cu agentul are nevoie de kandown daemon",
-    "daemonGuardBody": "Pornește daemonul local pentru a discuta cu agenții tăi de cod: rulează npx kandown în acest proiect."
-  ,
+    "daemonGuardBody": "Pornește daemonul local pentru a discuta cu agenții tăi de cod: rulează npx kandown în acest proiect.",
     "optionsTitle": "Alegeți o opțiune",
     "optionsSkip": "Prefer să scriu eu",
     "suggestionsLabel": "Sugestii de continuare",

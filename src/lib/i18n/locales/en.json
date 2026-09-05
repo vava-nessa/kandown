@@ -34,8 +34,8 @@
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
-    "serverModeDesc": "Kandown is running in server mode. Click below to open your project — the browser will remember your choice for next time.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeDesc": "Kandown is running in server mode. Click below to open your project: the browser will remember your choice for next time.",
     "openThisProject": "Open this project",
     "serverModeLoadingDesc": "Connecting to the server..."
   },
@@ -410,7 +410,7 @@
     "priority": "Priority"
   },
   "toast": {
-    "settingsUpdatedExternally": "Settings updated externally — reloaded"
+    "settingsUpdatedExternally": "Settings updated externally, reloaded"
   },
   "errors": {
     "boundaryTitle": "Something went wrong",
@@ -496,7 +496,7 @@
     "clear": "Clear selection"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "agentChat": {
     "title": "Agent",

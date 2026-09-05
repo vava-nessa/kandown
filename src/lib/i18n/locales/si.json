@@ -26,12 +26,15 @@
     "settings": "Settings",
     "board": "Board",
     "reload": "Reload",
-    "newTask": "New task"
+    "newTask": "New task",
+    "list": "ලැයිස්තුව",
+    "run": "ධාවනය කරන්න"
   },
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "සේවාදායකයට සම්බන්ධ වෙමින්..."
   },
   "header": {
     "tasks": "tasks",
@@ -130,7 +133,8 @@
     "priority": "Priority",
     "body": "Body",
     "subtasks": "Subtasks",
-    "none": "(none)"
+    "none": "(none)",
+    "tags": "Tags"
   },
   "languageNames": {
     "en": "English",
@@ -202,6 +206,8 @@
     "delete": "Delete",
     "confirmDelete": "Confirm delete",
     "selectAll": "Select all",
+    "select": "කාර්යය තෝරන්න",
+    "deselect": "කාර්යය තේරීම ඉවත් කරන්න",
     "selectAllHint": "Select all (visible)",
     "clear": "Clear selection"
   },
@@ -241,6 +247,11 @@
     "boardDesc": "Task id behavior and board-level defaults.",
     "fields": "Fields",
     "fieldsDesc": "Optional fields shown on tasks and board cards.",
+    "extensions": "දිගුවන්",
+    "extensionsDesc": "ස්ථාපිත දිගුවන් කළමනාකරණය කරන්න: සබල කිරීම, අක්‍රීය කිරීම සහ සීමිත ප්‍රකාරය.",
+    "kickerExtensions": "ප්ලගින සහ ඒකාබද්ධතා",
+    "navigate": "Navigate",
+    "select": "Select",
     "language": "Language",
     "languageDesc": "UI language stored in this project config.",
     "mode": "Mode",
@@ -377,12 +388,11 @@
     "emptyState": "සංවාදය අරඹන්න: මෙම පුවරුව, කාර්යයක් හෝ ඉදිරි වැඩ ගැන අසන්න.",
     "sessionUntitled": "නම් නොකළ සංවාදය",
     "sessionsEmpty": "මෙම ව්‍යාපෘතියේ තවම සංවාද නැත.",
-    "harnessLabel": "හානස්",
+    "harnessLabel": "නව චැට් සඳහා හානස්",
     "noHarness": "මෙම යන්ත්‍රයේ හානස් එකක්වත් ස්ථාපනය කර නැත",
     "copy": "පිටපත් කරන්න",
     "daemonGuardTitle": "ඒජන්ත චැට් සඳහා kandown daemon අවශ්‍ය වේ",
-    "daemonGuardBody": "ඔබේ කෝඩිං ඒජන්තයන් සමඟ කතාබහ කිරීමට ලෝකල් daemon ආරම්භ කරන්න: මෙම ව්‍යාපෘතිය තුළ npx kandown ධාවනය කරන්න."
-  ,
+    "daemonGuardBody": "ඔබේ කෝඩිං ඒජන්තයන් සමඟ කතාබහ කිරීමට ලෝකල් daemon ආරම්භ කරන්න: මෙම ව්‍යාපෘතිය තුළ npx kandown ධාවනය කරන්න.",
     "optionsTitle": "විකල්පයක් තෝරන්න",
     "optionsSkip": "මම විසින්ම ටයිප් කරන්නම්",
     "suggestionsLabel": "ඉදිරි ප්‍රශ්නවලට යෝජනා",

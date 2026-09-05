@@ -26,12 +26,15 @@
     "settings": "Settings",
     "board": "Board",
     "reload": "Reload",
-    "newTask": "New task"
+    "newTask": "New task",
+    "list": "பட்டியல்",
+    "run": "இயக்கு"
   },
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "சேவையகத்துடன் இணைக்கிறது..."
   },
   "header": {
     "tasks": "tasks",
@@ -130,7 +133,8 @@
     "priority": "Priority",
     "body": "Body",
     "subtasks": "Subtasks",
-    "none": "(none)"
+    "none": "(none)",
+    "tags": "Tags"
   },
   "languageNames": {
     "en": "English",
@@ -202,6 +206,8 @@
     "delete": "Delete",
     "confirmDelete": "Confirm delete",
     "selectAll": "Select all",
+    "select": "பணியைத் தேர்ந்தெடு",
+    "deselect": "பணித் தேர்வை நீக்கு",
     "selectAllHint": "Select all (visible)",
     "clear": "Clear selection"
   },
@@ -241,6 +247,11 @@
     "boardDesc": "Task id behavior and board-level defaults.",
     "fields": "Fields",
     "fieldsDesc": "Optional fields shown on tasks and board cards.",
+    "extensions": "நீட்டிப்புகள்",
+    "extensionsDesc": "நிறுவப்பட்ட நீட்டிப்புகளை நிர்வகிக்கவும்: இயக்குதல், முடக்குதல் மற்றும் வரையறுக்கப்பட்ட முறை.",
+    "kickerExtensions": "பிளகின்கள் மற்றும் ஒருங்கிணைப்புகள்",
+    "navigate": "Navigate",
+    "select": "Select",
     "language": "Language",
     "languageDesc": "UI language stored in this project config.",
     "mode": "Mode",
@@ -377,12 +388,11 @@
     "emptyState": "உரையாடலைத் தொடங்குங்கள்: இந்தப் பலகை, ஒரு பணி அல்லது முன்னிருக்கும் வேலை பற்றி கேளுங்கள்.",
     "sessionUntitled": "தலைப்பிடாத உரையாடல்",
     "sessionsEmpty": "இந்தத் திட்டத்தில் இன்னும் உரையாடல்கள் இல்லை.",
-    "harnessLabel": "ஹார்னஸ்",
+    "harnessLabel": "புதிய அரட்டைகளுக்கான ஹார்னஸ்",
     "noHarness": "இந்தக் கணினியில் எந்த ஹார்னஸும் நிறுவப்படவில்லை",
     "copy": "நகலெடு",
     "daemonGuardTitle": "ஏஜென்ட் அரட்டைக்கு kandown daemon தேவை",
-    "daemonGuardBody": "உங்கள் கோடிங் ஏஜென்ட்களுடன் பேச உள்ளூர் daemon ஐத் தொடங்குங்கள்: இந்தத் திட்டத்தில் npx kandown இயக்கவும்."
-  ,
+    "daemonGuardBody": "உங்கள் கோடிங் ஏஜென்ட்களுடன் பேச உள்ளூர் daemon ஐத் தொடங்குங்கள்: இந்தத் திட்டத்தில் npx kandown இயக்கவும்.",
     "optionsTitle": "ஒரு விருப்பத்தைத் தேர்ந்தெடுக்கவும்",
     "optionsSkip": "நானே தட்டச்சு செய்கிறேன்",
     "suggestionsLabel": "தொடர் கேள்விப் பரிந்துரைகள்",

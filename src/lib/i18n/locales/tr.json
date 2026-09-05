@@ -26,12 +26,15 @@
     "settings": "Ayarlar",
     "board": "Pano",
     "reload": "Yenile",
-    "newTask": "Yeni görev"
+    "newTask": "Yeni görev",
+    "list": "Liste",
+    "run": "Çalıştır"
   },
   "emptyState": {
     "unsupportedBrowser": "Desteklenmeyen tarayıcı",
     "unsupportedBrowserDesc": "Bu motor <code>File System Access API</code> gerektirir. Chrome, Edge, Brave veya Opera kullanın. Firefox ve Safari henüz desteklenmiyor.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Sunucuya bağlanılıyor..."
   },
   "header": {
     "tasks": "görevler",
@@ -130,7 +133,8 @@
     "priority": "Öncelik",
     "body": "İçerik",
     "subtasks": "Alt görevler",
-    "none": "(yok)"
+    "none": "(yok)",
+    "tags": "Etiketler"
   },
   "bulk": {
     "priority": "Öncelik",
@@ -143,6 +147,8 @@
     "delete": "Sil",
     "confirmDelete": "Silmeyi onayla",
     "selectAll": "Tümünü seç",
+    "select": "Görevi seç",
+    "deselect": "Görev seçimini kaldır",
     "clear": "Seçimi temizle",
     "selectedOne": "selected",
     "selectedMany": "selected",
@@ -190,6 +196,11 @@
     "boardDesc": "Görev kimliği davranışı ve pano düzeyinde varsayılanlar.",
     "fields": "Alanlar",
     "fieldsDesc": "Görevler ve pano kartlarında gösterilen isteğe bağlı alanlar.",
+    "extensions": "Uzantılar",
+    "extensionsDesc": "Kurulu uzantıları yönetin: etkinleştirme, devre dışı bırakma ve kısıtlı mod.",
+    "kickerExtensions": "Eklentiler ve entegrasyonlar",
+    "navigate": "Navigasyon",
+    "select": "Seç",
     "language": "Dil",
     "languageDesc": "UI dili bu proje yapılandırmasında saklanır.",
     "mode": "Mod",
@@ -322,12 +333,11 @@
     "emptyState": "Sohbeti başlat: bu pano, bir görev veya yapılacak iş hakkında sor.",
     "sessionUntitled": "Başlıksız sohbet",
     "sessionsEmpty": "Bu projede henüz sohbet yok.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Yeni sohbetler için Harness",
     "noHarness": "Bu makinede kurulu bir harness yok",
     "copy": "Kopyala",
     "daemonGuardTitle": "Ajan sohbeti kandown daemon gerektirir",
-    "daemonGuardBody": "Kodlama ajanlarınızla sohbet etmek için yerel daemonu başlatın: bu projede npx kandown çalıştırın."
-  ,
+    "daemonGuardBody": "Kodlama ajanlarınızla sohbet etmek için yerel daemonu başlatın: bu projede npx kandown çalıştırın.",
     "optionsTitle": "Bir seçenek seçin",
     "optionsSkip": "Kendim yazmayı tercih ederim",
     "suggestionsLabel": "Devam önerileri",

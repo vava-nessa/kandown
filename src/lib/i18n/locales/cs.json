@@ -26,12 +26,15 @@
     "settings": "Nastavení",
     "board": "Nástěnka",
     "reload": "Obnovit",
-    "newTask": "Nový úkol"
+    "newTask": "Nový úkol",
+    "list": "Seznam",
+    "run": "Spustit"
   },
   "emptyState": {
     "unsupportedBrowser": "Nepodporovaný prohlížeč",
     "unsupportedBrowserDesc": "Tento engine vyžaduje <code>File System Access API</code>. Použijte Chrome, Edge, Brave nebo Opera. Firefox a Safari zatím nejsou podporovány.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Připojování k serveru..."
   },
   "header": {
     "tasks": "úkoly",
@@ -130,7 +133,8 @@
     "priority": "Priorita",
     "body": "Obsah",
     "subtasks": "Dílčí úkoly",
-    "none": "(žádný)"
+    "none": "(žádný)",
+    "tags": "Štítky"
   },
   "languageNames": {
     "en": "Angličtina",
@@ -172,6 +176,8 @@
     "delete": "Smazat",
     "confirmDelete": "Potvrdit smazání",
     "selectAll": "Vybrat vše",
+    "select": "Vybrat úkol",
+    "deselect": "Zrušit výběr úkolu",
     "clear": "Vymazat výběr",
     "selectedOne": "selected",
     "selectedMany": "selected",
@@ -219,6 +225,11 @@
     "boardDesc": "Chování ID úkolů a výchozí nastavení nástěnky.",
     "fields": "Pole",
     "fieldsDesc": "Volitelná pole zobrazená u úkolů a na kartách.",
+    "extensions": "Rozšíření",
+    "extensionsDesc": "Správa nainstalovaných rozšíření: povolování, zakazování a omezený režim.",
+    "kickerExtensions": "Pluginy a integrace",
+    "navigate": "Navigovat",
+    "select": "Vybrat",
     "language": "Jazyk",
     "languageDesc": "Jazyk rozhraní uložený v konfiguraci projektu.",
     "mode": "Režim",
@@ -355,12 +366,11 @@
     "emptyState": "Zahajte konverzaci: ptejte se na tuto nástěnku, úkol nebo nadcházející práci.",
     "sessionUntitled": "Konverzace bez názvu",
     "sessionsEmpty": "V tomto projektu zatím žádné konverzace.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness pro nové chaty",
     "noHarness": "Na tomto počítači není nainstalován žádný harness",
     "copy": "Kopírovat",
     "daemonGuardTitle": "Chat agenta potřebuje kandown daemon",
-    "daemonGuardBody": "Spusťte lokální daemon a ptejte se svých kódovacích agentů: spusťte npx kandown v tomto projektu."
-  ,
+    "daemonGuardBody": "Spusťte lokální daemon a ptejte se svých kódovacích agentů: spusťte npx kandown v tomto projektu.",
     "optionsTitle": "Zvolte možnost",
     "optionsSkip": "Radši to napíšu",
     "suggestionsLabel": "Navrhovaná pokračování",

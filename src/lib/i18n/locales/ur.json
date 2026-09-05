@@ -26,12 +26,15 @@
     "settings": "ترتیبات",
     "board": "بورڈ",
     "reload": "ری لوڈ",
-    "newTask": "نیا ٹاسک"
+    "newTask": "نیا ٹاسک",
+    "list": "فہرست",
+    "run": "چلائیں"
   },
   "emptyState": {
     "unsupportedBrowser": "براؤزر تعاون یافتہ نہیں",
     "unsupportedBrowserDesc": "اس انجن کو <code>File System Access API</code> درکار ہے۔ Chrome، Edge، Brave یا Opera استعمال کریں۔ Firefox اور Safari ابھی تک تعاون یافتہ نہیں ہیں۔",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "سرور سے منسلک ہو رہا ہے..."
   },
   "header": {
     "tasks": "ٹاسک",
@@ -130,7 +133,8 @@
     "priority": "ترجیح",
     "body": "بڈی",
     "subtasks": "ذیلی ٹاسک",
-    "none": "(کچھ نہیں)"
+    "none": "(کچھ نہیں)",
+    "tags": "ٹیگز"
   },
   "bulk": {
     "selectedOne": "selected",
@@ -151,6 +155,8 @@
     "delete": "Delete",
     "confirmDelete": "Confirm delete",
     "selectAll": "Select all",
+    "select": "ٹاسک منتخب کریں",
+    "deselect": "ٹاسک کا انتخاب ہٹائیں",
     "selectAllHint": "Select all (visible)",
     "clear": "Clear selection"
   },
@@ -190,6 +196,11 @@
     "boardDesc": "ٹاسک ID رویہ اور بورڈ سطح کی ڈیفالٹس۔",
     "fields": "فیلڈز",
     "fieldsDesc": "اختیاری فیلڈز جو ٹاسکس اور بورڈ کارڈز پر دکھائی جاتی ہیں۔",
+    "extensions": "ایکسٹینشنز",
+    "extensionsDesc": "انسٹال شدہ ایکسٹینشنز کا انتظام کریں: فعال کریں، غیر فعال کریں اور محدود موڈ۔",
+    "kickerExtensions": "پلگ انز اور انٹیگریشنز",
+    "navigate": "نیویگیٹ",
+    "select": "منتخب",
     "language": "زبان",
     "languageDesc": "UI زبان اس پروجیکٹ کنفگ میں محفوظ ہے۔",
     "mode": "موڈ",
@@ -322,12 +333,11 @@
     "emptyState": "گفتگو شروع کریں: اس بورڈ، کسی کام یا آنے والے کام کے بارے میں پوچھیں۔",
     "sessionUntitled": "بےنام گفتگو",
     "sessionsEmpty": "اس پروجیکٹ میں ابھی کوئی گفتگو نہیں ہے۔",
-    "harnessLabel": "ہارنس",
+    "harnessLabel": "نئی چیٹس کے لیے ہارنس",
     "noHarness": "اس مشین پر کوئی ہارنس انسٹال نہیں ہے",
     "copy": "کاپی",
     "daemonGuardTitle": "ایجنٹ چیٹ کو kandown daemon کی ضرورت ہے",
-    "daemonGuardBody": "اپنے کوڈنگ ایجنٹس سے بات کرنے کے لیے لوکل daemon شروع کریں: اس پروجیکٹ میں npx kandown چلائیں۔"
-  ,
+    "daemonGuardBody": "اپنے کوڈنگ ایجنٹس سے بات کرنے کے لیے لوکل daemon شروع کریں: اس پروجیکٹ میں npx kandown چلائیں۔",
     "optionsTitle": "ایک آپشن منتخب کریں",
     "optionsSkip": "اس کے بجائے ٹائپ کریں",
     "suggestionsLabel": "اگلے سوالات کی تجاویز",

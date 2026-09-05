@@ -26,12 +26,15 @@
     "settings": "Impostazioni",
     "board": "Lavagna",
     "reload": "Ricarica",
-    "newTask": "Nuova attività"
+    "newTask": "Nuova attività",
+    "list": "Lista",
+    "run": "Esegui"
   },
   "emptyState": {
     "unsupportedBrowser": "Browser non supportato",
     "unsupportedBrowserDesc": "Questo motore richiede la <code>File System Access API</code>. Usa Chrome, Edge, Brave o Opera. Firefox e Safari non la supportano ancora.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Connessione al server in corso..."
   },
   "header": {
     "tasks": "attività",
@@ -130,7 +133,8 @@
     "priority": "Priorità",
     "body": "Corpo",
     "subtasks": "Sottoattività",
-    "none": "(nessuna)"
+    "none": "(nessuna)",
+    "tags": "Tag"
   },
   "languageNames": {
     "en": "Inglese",
@@ -180,6 +184,8 @@
     "delete": "Elimina",
     "confirmDelete": "Conferma eliminazione",
     "selectAll": "Seleziona tutto",
+    "select": "Seleziona attività",
+    "deselect": "Deseleziona attività",
     "selectAllHint": "Seleziona tutto (visibili)",
     "clear": "Annulla selezione"
   },
@@ -219,6 +225,11 @@
     "boardDesc": "Comportamento dell'ID attività e impostazioni predefinite della lavagna.",
     "fields": "Campi",
     "fieldsDesc": "Campi opzionali mostrati su attività e schede della lavagna.",
+    "extensions": "Estensioni",
+    "extensionsDesc": "Gestisci le estensioni installate: attivazione, disattivazione e modalità con restrizioni.",
+    "kickerExtensions": "Plugin e integrazioni",
+    "navigate": "Naviga",
+    "select": "Seleziona",
     "language": "Lingua",
     "languageDesc": "Lingua dell'UI memorizzata nella config del progetto.",
     "mode": "Modalità",
@@ -355,12 +366,11 @@
     "emptyState": "Inizia la conversazione: chiedi della board, di un'attività o del lavoro da fare.",
     "sessionUntitled": "Conversazione senza titolo",
     "sessionsEmpty": "Ancora nessuna conversazione in questo progetto.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness per le nuove chat",
     "noHarness": "Nessun harness installato su questa macchina",
     "copy": "Copia",
     "daemonGuardTitle": "La chat dell'agente richiede il kandown daemon",
-    "daemonGuardBody": "Avvia il daemon locale per chattare con i tuoi agenti di codice: esegui npx kandown in questo progetto."
-  ,
+    "daemonGuardBody": "Avvia il daemon locale per chattare con i tuoi agenti di codice: esegui npx kandown in questo progetto.",
     "optionsTitle": "Scegli un'opzione",
     "optionsSkip": "Preferisco scrivere",
     "suggestionsLabel": "Suggerimenti per continuare",

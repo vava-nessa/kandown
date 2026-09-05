@@ -26,12 +26,15 @@
     "settings": "Indstillinger",
     "board": "Board",
     "reload": "Genindlæs",
-    "newTask": "Ny opgave"
+    "newTask": "Ny opgave",
+    "list": "Liste",
+    "run": "Kør"
   },
   "emptyState": {
     "unsupportedBrowser": "Ikke understøttet browser",
     "unsupportedBrowserDesc": "Denne motor kræver <code>File System Access API</code>. Brug Chrome, Edge, Brave eller Opera. Firefox og Safari understøtter det ikke endnu.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Opretter forbindelse til serveren..."
   },
   "header": {
     "tasks": "opgaver",
@@ -130,7 +133,8 @@
     "priority": "Prioritet",
     "body": "Indhold",
     "subtasks": "Underopgaver",
-    "none": "(ingen)"
+    "none": "(ingen)",
+    "tags": "Tags"
   },
   "languageNames": {
     "en": "Engelsk",
@@ -172,6 +176,8 @@
     "delete": "Slet",
     "confirmDelete": "Bekræft sletning",
     "selectAll": "Vælg alle",
+    "select": "Vælg opgave",
+    "deselect": "Fravælg opgave",
     "clear": "Ryd valg",
     "selectedOne": "selected",
     "selectedMany": "selected",
@@ -219,6 +225,11 @@
     "boardDesc": "Opgave-ID-adfærd og board-niveau standarder.",
     "fields": "Felter",
     "fieldsDesc": "Valgfrie felter vist på opgaver og board-kort.",
+    "extensions": "Udvidelser",
+    "extensionsDesc": "Administrer installerede udvidelser: aktiver, deaktiver og begrænset tilstand.",
+    "kickerExtensions": "Plugins og integrationer",
+    "navigate": "Navigér",
+    "select": "Vælg",
     "language": "Sprog",
     "languageDesc": "UI-sprog gemt i denne projektkonfiguration.",
     "mode": "Tilstand",
@@ -355,12 +366,11 @@
     "emptyState": "Start samtalen: spørg om brættet, en opgave eller det arbejde, der ligger forude.",
     "sessionUntitled": "Samtale uden titel",
     "sessionsEmpty": "Ingen samtaler endnu i dette projekt.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness til nye chats",
     "noHarness": "Ingen harness installeret på denne maskine",
     "copy": "Kopiér",
     "daemonGuardTitle": "Agentchatten skal bruge kandown daemon",
-    "daemonGuardBody": "Start den lokale daemon for at chatte med dine kodeagenter: kør npx kandown i dette projekt."
-  ,
+    "daemonGuardBody": "Start den lokale daemon for at chatte med dine kodeagenter: kør npx kandown i dette projekt.",
     "optionsTitle": "Vælg en mulighed",
     "optionsSkip": "Jeg skriver hellere selv",
     "suggestionsLabel": "Forslag til opfølgning",

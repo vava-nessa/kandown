@@ -26,12 +26,15 @@
     "settings": "Settings",
     "board": "Board",
     "reload": "Reload",
-    "newTask": "New task"
+    "newTask": "New task",
+    "list": "ಪಟ್ಟಿ",
+    "run": "ಚಲಾಯಿಸಿ"
   },
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "ಸರ್ವರ್‌ಗೆ ಸಂಪರ್ಕಿಸಲಾಗುತ್ತಿದೆ..."
   },
   "header": {
     "tasks": "tasks",
@@ -130,7 +133,8 @@
     "priority": "Priority",
     "body": "Body",
     "subtasks": "Subtasks",
-    "none": "(none)"
+    "none": "(none)",
+    "tags": "ಟ್ಯಾಗ್‌ಗಳು"
   },
   "languageNames": {
     "en": "English",
@@ -202,6 +206,8 @@
     "delete": "Delete",
     "confirmDelete": "Confirm delete",
     "selectAll": "Select all",
+    "select": "ಕಾರ್ಯವನ್ನು ಆಯ್ಕೆ ಮಾಡಿ",
+    "deselect": "ಕಾರ್ಯದ ಆಯ್ಕೆಯನ್ನು ತೆಗೆದುಹಾಕಿ",
     "selectAllHint": "Select all (visible)",
     "clear": "Clear selection"
   },
@@ -241,6 +247,11 @@
     "boardDesc": "Task id behavior and board-level defaults.",
     "fields": "Fields",
     "fieldsDesc": "Optional fields shown on tasks and board cards.",
+    "extensions": "ವಿಸ್ತರಣೆಗಳು",
+    "extensionsDesc": "ಸ್ಥಾಪಿತ ವಿಸ್ತರಣೆಗಳನ್ನು ನಿರ್ವಹಿಸಿ: ಸಕ್ರಿಯಗೊಳಿಸಿ, ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ ಮತ್ತು ನಿಯಂತ್ರಿತ ಮೋಡ್.",
+    "kickerExtensions": "ಪ್ಲಗಿನ್‌ಗಳು ಮತ್ತು ಏಕೀಕರಣಗಳು",
+    "navigate": "Navigate",
+    "select": "Select",
     "language": "Language",
     "languageDesc": "UI language stored in this project config.",
     "mode": "Mode",
@@ -377,12 +388,11 @@
     "emptyState": "ಸಂಭಾಷಣೆ ಆರಂಭಿಸಿ: ಈ ಬೋರ್ಡ್, ಯಾವುದೇ ಕಾರ್ಯ ಅಥವಾ ಮುಂಬರುವ ಕೆಲಸದ ಬಗ್ಗೆ ಕೇಳಿ.",
     "sessionUntitled": "ಶೀರ್ಷಿಕೆ ಇಲ್ಲದ ಸಂಭಾಷಣೆ",
     "sessionsEmpty": "ಈ ಪ್ರಾಜೆಕ್ಟ್‌ನಲ್ಲಿ ಇನ್ನೂ ಸಂಭಾಷಣೆಗಳಿಲ್ಲ.",
-    "harnessLabel": "ಹಾರ್ನೆಸ್",
+    "harnessLabel": "ಹೊಸ ಚಾಟ್‌ಗಳಿಗೆ ಹಾರ್ನೆಸ್",
     "noHarness": "ಈ ಯಂತ್ರದಲ್ಲಿ ಯಾವುದೇ ಹಾರ್ನೆಸ್ ಸ್ಥಾಪಿತವಾಗಿಲ್ಲ",
     "copy": "ನಕಲಿಸಿ",
     "daemonGuardTitle": "ಏಜೆಂಟ್ ಚಾಟ್‌ಗೆ kandown daemon ಬೇಕು",
-    "daemonGuardBody": "ನಿಮ್ಮ ಕೋಡಿಂಗ್ ಏಜೆಂಟ್‌ಗಳೊಂದಿಗೆ ಮಾತನಾಡಲು ಲೋಕಲ್ daemon ಆರಂಭಿಸಿ: ಈ ಪ್ರಾಜೆಕ್ಟ್‌ನಲ್ಲಿ npx kandown ಚಲಾಯಿಸಿ."
-  ,
+    "daemonGuardBody": "ನಿಮ್ಮ ಕೋಡಿಂಗ್ ಏಜೆಂಟ್‌ಗಳೊಂದಿಗೆ ಮಾತನಾಡಲು ಲೋಕಲ್ daemon ಆರಂಭಿಸಿ: ಈ ಪ್ರಾಜೆಕ್ಟ್‌ನಲ್ಲಿ npx kandown ಚಲಾಯಿಸಿ.",
     "optionsTitle": "ಒಂದು ಆಯ್ಕೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
     "optionsSkip": "ನಾನೇ ಟೈಪ್ ಮಾಡುತ್ತೇನೆ",
     "suggestionsLabel": "ಮುಂದಿನ ಪ್ರಶ್ನೆಗಳ ಸಲಹೆಗಳು",

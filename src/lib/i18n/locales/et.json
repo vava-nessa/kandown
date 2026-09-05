@@ -26,12 +26,15 @@
     "settings": "Sätted",
     "board": "Töölaud",
     "reload": "Laadi ümber",
-    "newTask": "Uus ülesanne"
+    "newTask": "Uus ülesanne",
+    "list": "Nimekiri",
+    "run": "Käivita"
   },
   "emptyState": {
     "unsupportedBrowser": "Toetamata brauser",
     "unsupportedBrowserDesc": "See mootor nõuab <code>File System Access API</code>-d. Kasuta Chrome, Edge, Brave või Opera. Firefox ja Safari seda veel ei toeta.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Ühenduse loomine serveriga..."
   },
   "header": {
     "tasks": "ülesanded",
@@ -130,7 +133,8 @@
     "priority": "Tähtsus",
     "body": "Sisu",
     "subtasks": "Alamülesanded",
-    "none": "(puudub)"
+    "none": "(puudub)",
+    "tags": "Sildid"
   },
   "languageNames": {
     "en": "Inglise",
@@ -172,6 +176,8 @@
     "delete": "Kustuta",
     "confirmDelete": "Kinnita kustutamine",
     "selectAll": "Vali kõik",
+    "select": "Vali ülesanne",
+    "deselect": "Tühista ülesande valik",
     "clear": "Tühjenda valik",
     "selectedOne": "selected",
     "selectedMany": "selected",
@@ -219,6 +225,11 @@
     "boardDesc": "Ülesande ID käitumine ja töölaua taseme vaikeseaded.",
     "fields": "Väljad",
     "fieldsDesc": "Valikulised väljad, mida ülesannetel ja töölaua kaartidel kuvatakse.",
+    "extensions": "Laiendid",
+    "extensionsDesc": "Halda installitud laiendeid: luba, keela ja piiratud režiim.",
+    "kickerExtensions": "Pluginad ja integratsioonid",
+    "navigate": "Navigeerimine",
+    "select": "Vali",
     "language": "Keel",
     "languageDesc": "UI keelt salvestatakse selle projekti konfiguratsioonis.",
     "mode": "Režiim",
@@ -355,12 +366,11 @@
     "emptyState": "Alusta vestlust: küsi selle tahvli, ülesande või ees oleva töö kohta.",
     "sessionUntitled": "Pealkirjata vestlus",
     "sessionsEmpty": "Selles projektis pole veel vestlusi.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness uutele vestlustele",
     "noHarness": "Selles masinas pole ühtegi harnessit installitud",
     "copy": "Kopeeri",
     "daemonGuardTitle": "Agendivestlus vajab kandown daemonit",
-    "daemonGuardBody": "Käivita kohalik daemon, et vestleda oma koodimisagentidega: käivita selles projektis npx kandown."
-  ,
+    "daemonGuardBody": "Käivita kohalik daemon, et vestleda oma koodimisagentidega: käivita selles projektis npx kandown.",
     "optionsTitle": "Vali variant",
     "optionsSkip": "Eelistan ise kirjutada",
     "suggestionsLabel": "Jätkusoovitused",

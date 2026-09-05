@@ -26,12 +26,15 @@
     "settings": "Settings",
     "board": "Board",
     "reload": "Reload",
-    "newTask": "New task"
+    "newTask": "New task",
+    "list": "បញ្ជី",
+    "run": "ដំណើរការ"
   },
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "កំពុងតភ្ជាប់ទៅសារ៉ាវើ..."
   },
   "header": {
     "tasks": "tasks",
@@ -130,7 +133,8 @@
     "priority": "Priority",
     "body": "Body",
     "subtasks": "Subtasks",
-    "none": "(none)"
+    "none": "(none)",
+    "tags": "ស្លាក"
   },
   "languageNames": {
     "en": "English",
@@ -202,6 +206,8 @@
     "delete": "Delete",
     "confirmDelete": "Confirm delete",
     "selectAll": "Select all",
+    "select": "ជ្រើសរើសភារកិច្ច",
+    "deselect": "លុបការជ្រើសរើសភារកិច្ច",
     "selectAllHint": "Select all (visible)",
     "clear": "Clear selection"
   },
@@ -241,6 +247,11 @@
     "boardDesc": "Task id behavior and board-level defaults.",
     "fields": "Fields",
     "fieldsDesc": "Optional fields shown on tasks and board cards.",
+    "extensions": "ផ្នែកបន្ថែម",
+    "extensionsDesc": "គ្រប់គ្រងផ្នែកបន្ថែមដែលបានដំឡើង: បើក បិទ និងរបៀបកំណត់។",
+    "kickerExtensions": "Plugin និងការតភ្ជាប់",
+    "navigate": "Navigate",
+    "select": "Select",
     "language": "Language",
     "languageDesc": "UI language stored in this project config.",
     "mode": "Mode",
@@ -377,12 +388,11 @@
     "emptyState": "ចាប់ផ្ដើមការសន្ទនា: សួរអំពីបន្ទះនេះ ភារកិច្ចណាមួយ ឬការងារដែលនៅមុខ។",
     "sessionUntitled": "ការសន្ទនាគ្មានចំណងជើង",
     "sessionsEmpty": "មិនទាន់មានការសន្ទនានៅក្នុងគម្រោងនេះទេ។",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness សម្រាប់ការជជែកថ្មី",
     "noHarness": "មិនមាន harness ដំឡើងនៅលើម៉ាស៊ីននេះទេ",
     "copy": "ចម្លង",
     "daemonGuardTitle": "ការជជែកជាមួយអេជេនត្រូវការ kandown daemon",
-    "daemonGuardBody": "ចាប់ផ្ដើម daemon ក្នុងស្រុកដើម្បីជជែកជាមួយភ្នាក់ងារសរសេរកូដរបស់អ្នក: ដំណើរការ npx kandown ក្នុងគម្រោងនេះ។"
-  ,
+    "daemonGuardBody": "ចាប់ផ្ដើម daemon ក្នុងស្រុកដើម្បីជជែកជាមួយភ្នាក់ងារសរសេរកូដរបស់អ្នក: ដំណើរការ npx kandown ក្នុងគម្រោងនេះ។",
     "optionsTitle": "ជ្រើសរើសជម្រើសមួយ",
     "optionsSkip": "ខ្ញុំនឹងវាយបញ្ចូលខ្លួនឯង",
     "suggestionsLabel": "ការណែនាំបន្ទាប់",

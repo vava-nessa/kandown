@@ -26,12 +26,15 @@
     "settings": "設定",
     "board": "ボード",
     "reload": "再読み込み",
-    "newTask": "新しいタスク"
+    "newTask": "新しいタスク",
+    "list": "リスト",
+    "run": "実行"
   },
   "emptyState": {
     "unsupportedBrowser": "サポートされていないブラウザ",
     "unsupportedBrowserDesc": "このエンジンは <code>File System Access API</code> を必要とします。Chrome、Edge、Brave、または Opera を使用してください。Firefox と Safari はまだサポートされていません。",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "サーバーに接続中..."
   },
   "header": {
     "tasks": "タスク",
@@ -130,7 +133,8 @@
     "priority": "優先度",
     "body": "ボディ",
     "subtasks": "サブタスク",
-    "none": "(なし)"
+    "none": "(なし)",
+    "tags": "タグ"
   },
   "bulk": {
     "priority": "優先度",
@@ -149,6 +153,8 @@
     "delete": "削除",
     "confirmDelete": "削除を確認",
     "selectAll": "すべて選択",
+    "select": "タスクを選択",
+    "deselect": "タスクの選択を解除",
     "selectAllHint": "すべて選択 (表示中)",
     "clear": "選択をクリア",
     "selectedOne": "selected",
@@ -190,6 +196,11 @@
     "boardDesc": "タスクIDの動作とボードレベルのデフォルト。",
     "fields": "フィールド",
     "fieldsDesc": "タスクとボードカードに表示されるオプションフィールド。",
+    "extensions": "拡張機能",
+    "extensionsDesc": "インストール済みの拡張機能を管理: 有効化、無効化、制限モード。",
+    "kickerExtensions": "プラグインと連携",
+    "navigate": "ナビゲート",
+    "select": "選択",
     "language": "言語",
     "languageDesc": "UI言語はこのプロジェクト設定に保存されます。",
     "mode": "モード",
@@ -322,12 +333,11 @@
     "emptyState": "会話を始めましょう: このボードやタスク、今後の作業について質問できます。",
     "sessionUntitled": "無題の会話",
     "sessionsEmpty": "このプロジェクトにはまだ会話がありません。",
-    "harnessLabel": "ハーネス",
+    "harnessLabel": "新規チャットのハーネス",
     "noHarness": "このマシンにハーネスがインストールされていません",
     "copy": "コピー",
     "daemonGuardTitle": "エージェントチャットには kandown daemon が必要です",
-    "daemonGuardBody": "ローカル daemon を起動してコーディングエージェントとチャットしましょう: このプロジェクトで npx kandown を実行してください。"
-  ,
+    "daemonGuardBody": "ローカル daemon を起動してコーディングエージェントとチャットしましょう: このプロジェクトで npx kandown を実行してください。",
     "optionsTitle": "選択肢を選ぶ",
     "optionsSkip": "自分で入力する",
     "suggestionsLabel": "次の質問の候補",

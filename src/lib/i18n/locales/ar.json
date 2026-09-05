@@ -26,12 +26,15 @@
     "settings": "الإعدادات",
     "board": "اللوحة",
     "reload": "إعادة تحميل",
-    "newTask": "مهمة جديدة"
+    "newTask": "مهمة جديدة",
+    "list": "قائمة",
+    "run": "تشغيل"
   },
   "emptyState": {
     "unsupportedBrowser": "المتصفح غير مدعوم",
     "unsupportedBrowserDesc": "يتطلب هذا المحرك <code>File System Access API</code>. استخدم Chrome أو Edge أو Brave أو Opera. Firefox وSafari غير مدعومين حتى الآن.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "جارٍ الاتصال بالخادم..."
   },
   "header": {
     "tasks": "المهام",
@@ -130,7 +133,8 @@
     "priority": "الأولوية",
     "body": "المحتوى",
     "subtasks": "المهام الفرعية",
-    "none": "(لا شيء)"
+    "none": "(لا شيء)",
+    "tags": "الوسوم"
   },
   "bulk": {
     "selectedOne": "محدد",
@@ -151,6 +155,8 @@
     "delete": "حذف",
     "confirmDelete": "تأكيد الحذف",
     "selectAll": "تحديد الكل",
+    "select": "تحديد المهمة",
+    "deselect": "إلغاء تحديد المهمة",
     "selectAllHint": "تحديد الكل (المرئي)",
     "clear": "مسح التحديد"
   },
@@ -190,6 +196,11 @@
     "boardDesc": "سلوك معرف المهمة والإعدادات الافتراضية على مستوى اللوحة.",
     "fields": "الحقول",
     "fieldsDesc": "حقول اختيارية معروضة على المهام وبطاقات اللوحة.",
+    "extensions": "الإضافات",
+    "extensionsDesc": "إدارة الإضافات المثبتة: التمكين والتعطيل والوضع المقيد.",
+    "kickerExtensions": "الإضافات والتكاملات",
+    "navigate": "تنقل",
+    "select": "اختيار",
     "language": "اللغة",
     "languageDesc": "لغة الواجهة المخزنة في إعداد المشروع.",
     "mode": "الوضع",
@@ -322,12 +333,11 @@
     "emptyState": "ابدأ المحادثة: اسأل عن هذه اللوحة أو مهمة ما أو العمل القادم.",
     "sessionUntitled": "محادثة بدون عنوان",
     "sessionsEmpty": "لا توجد محادثات بعد في هذا المشروع.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness للمحادثات الجديدة",
     "noHarness": "لا يوجد harness مثبت على هذه الآلة",
     "copy": "نسخ",
     "daemonGuardTitle": "دردشة الوكيل تحتاج إلى kandown daemon",
-    "daemonGuardBody": "شغّل الـ daemon المحلي للتحدث مع وكلاء البرمجة لديك: شغّل npx kandown في هذا المشروع."
-  ,
+    "daemonGuardBody": "شغّل الـ daemon المحلي للتحدث مع وكلاء البرمجة لديك: شغّل npx kandown في هذا المشروع.",
     "optionsTitle": "اختر خيارًا",
     "optionsSkip": "سأكتب بنفسي",
     "suggestionsLabel": "اقتراحات للمتابعة",

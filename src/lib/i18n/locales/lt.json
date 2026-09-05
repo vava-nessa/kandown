@@ -26,12 +26,15 @@
     "settings": "Nustatymai",
     "board": " lenta",
     "reload": "Perkrauti",
-    "newTask": "Nauja užduotis"
+    "newTask": "Nauja užduotis",
+    "list": "Sąrašas",
+    "run": "Vykdyti"
   },
   "emptyState": {
     "unsupportedBrowser": "Naršyklė nepalaikoma",
     "unsupportedBrowserDesc": "Šiai sistemai reikalingas <code>File System Access API</code>. Naudokite Chrome, Edge, Brave arba Opera. Firefox ir Safari šiuo metu nepalaiko.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Jungiamasi prie serverio..."
   },
   "header": {
     "tasks": "užduotys",
@@ -130,7 +133,8 @@
     "priority": "Prioritetas",
     "body": "Turinys",
     "subtasks": "Dalinės užduotys",
-    "none": "(nėra)"
+    "none": "(nėra)",
+    "tags": "Žymės"
   },
   "languageNames": {
     "en": "Anglų",
@@ -172,6 +176,8 @@
     "delete": "Ištrinti",
     "confirmDelete": "Patvirtinti šalinimą",
     "selectAll": "Pasirinkti visus",
+    "select": "Pasirinkti užduotį",
+    "deselect": "Atšaukti užduoties pasirinkimą",
     "clear": "Išvalyti pasirinkimą",
     "selectedOne": "selected",
     "selectedMany": "selected",
@@ -219,6 +225,11 @@
     "boardDesc": "Užduoties ID elgesys ir lentos lygio numatytieji nustatymai.",
     "fields": "Laukai",
     "fieldsDesc": "Pasirenkami laukai rodomi užduotyse ir lentos kortelėse.",
+    "extensions": "Plėtiniai",
+    "extensionsDesc": "Valdykite įdiegtus plėtinius: įjungimas, išjungimas ir ribotas režimas.",
+    "kickerExtensions": "Priedai ir integracijos",
+    "navigate": "Naviguoti",
+    "select": "Pasirinkti",
     "language": "Kalba",
     "languageDesc": "Sąsajos kalba saugoma šio projekto konfigūracijoje.",
     "mode": "Režimas",
@@ -355,12 +366,11 @@
     "emptyState": "Pradėk pokalbį: klausk apie šią lentą, užduotį arba būsimą darbą.",
     "sessionUntitled": "Nepavadintas pokalbis",
     "sessionsEmpty": "Šiame projekte dar nėra pokalbių.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness naujiems pokalbiams",
     "noHarness": "Šioje mašinoje neįdiegtas joks harness",
     "copy": "Kopijuoti",
     "daemonGuardTitle": "Pokalbiui su agentu reikia kandown daemon",
-    "daemonGuardBody": "Paleisti vietinį daemon, kad galėtumėte kalbėtis su savo kodavimo agentais: paleiskite npx kandown šiame projekte."
-  ,
+    "daemonGuardBody": "Paleisti vietinį daemon, kad galėtumėte kalbėtis su savo kodavimo agentais: paleiskite npx kandown šiame projekte.",
     "optionsTitle": "Pasirinkite variantą",
     "optionsSkip": "Rašysiu savo žodžiais",
     "suggestionsLabel": "Pasiūlymai tęsti",

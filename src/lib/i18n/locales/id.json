@@ -26,12 +26,15 @@
     "settings": "Pengaturan",
     "board": "Papan",
     "reload": "Muat ulang",
-    "newTask": "Tugas baru"
+    "newTask": "Tugas baru",
+    "list": "Daftar",
+    "run": "Jalankan"
   },
   "emptyState": {
     "unsupportedBrowser": "Browser tidak didukung",
     "unsupportedBrowserDesc": "Mesin ini memerlukan <code>File System Access API</code>. Gunakan Chrome, Edge, Brave, atau Opera. Firefox dan Safari belum didukung.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Menghubungkan ke server..."
   },
   "header": {
     "tasks": "tugas",
@@ -130,7 +133,8 @@
     "priority": "Prioritas",
     "body": "Isi",
     "subtasks": "Subtugas",
-    "none": "(tidak ada)"
+    "none": "(tidak ada)",
+    "tags": "Tag"
   },
   "bulk": {
     "priority": "Prioritas",
@@ -143,6 +147,8 @@
     "delete": "Hapus",
     "confirmDelete": "Konfirmasi hapus",
     "selectAll": "Pilih semua",
+    "select": "Pilih tugas",
+    "deselect": "Batalkan pilihan tugas",
     "clear": "Bersihkan pilihan",
     "selectedOne": "selected",
     "selectedMany": "selected",
@@ -190,6 +196,11 @@
     "boardDesc": "Perilaku ID tugas dan default tingkat papan.",
     "fields": "Bidang",
     "fieldsDesc": "Bidang opsional yang ditampilkan pada tugas dan kartu papan.",
+    "extensions": "Ekstensi",
+    "extensionsDesc": "Kelola ekstensi yang terpasang: aktifkan, nonaktifkan, dan mode terbatas.",
+    "kickerExtensions": "Plugin dan integrasi",
+    "navigate": "Navigasi",
+    "select": "Pilih",
     "language": "Bahasa",
     "languageDesc": "Bahasa UI disimpan dalam konfigurasi proyek ini.",
     "mode": "Mode",
@@ -322,12 +333,11 @@
     "emptyState": "Mulai percakapan: tanyakan tentang papan ini, sebuah tugas, atau pekerjaan yang akan datang.",
     "sessionUntitled": "Percakapan tanpa judul",
     "sessionsEmpty": "Belum ada percakapan di proyek ini.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness untuk obrolan baru",
     "noHarness": "Tidak ada harness yang terpasang di mesin ini",
     "copy": "Salin",
     "daemonGuardTitle": "Obrolan agen membutuhkan kandown daemon",
-    "daemonGuardBody": "Jalankan daemon lokal untuk mengobrol dengan agen kode kamu: jalankan npx kandown di proyek ini."
-  ,
+    "daemonGuardBody": "Jalankan daemon lokal untuk mengobrol dengan agen kode kamu: jalankan npx kandown di proyek ini.",
     "optionsTitle": "Pilih salah satu opsi",
     "optionsSkip": "Saya akan mengetik sendiri",
     "suggestionsLabel": "Saran lanjutan",

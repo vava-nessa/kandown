@@ -26,12 +26,15 @@
     "settings": "Настройки",
     "board": "Доска",
     "reload": "Перезагрузить",
-    "newTask": "Новая задача"
+    "newTask": "Новая задача",
+    "list": "Список",
+    "run": "Запустить"
   },
   "emptyState": {
     "unsupportedBrowser": "Браузер не поддерживается",
     "unsupportedBrowserDesc": "Этому движку требуется <code>File System Access API</code>. Используйте Chrome, Edge, Brave или Opera. Firefox и Safari пока не поддерживаются.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Подключение к серверу..."
   },
   "header": {
     "tasks": "задачи",
@@ -130,7 +133,8 @@
     "priority": "Приоритет",
     "body": "Содержимое",
     "subtasks": "Подзадачи",
-    "none": "(нет)"
+    "none": "(нет)",
+    "tags": "Теги"
   },
   "bulk": {
     "priority": "Приоритет",
@@ -149,6 +153,8 @@
     "delete": "Удалить",
     "confirmDelete": "Подтвердить удаление",
     "selectAll": "Выбрать все",
+    "select": "Выбрать задачу",
+    "deselect": "Снять выделение с задачи",
     "selectAllHint": "Выбрать все (видимые)",
     "clear": "Снять выбор",
     "selectedOne": "selected",
@@ -190,6 +196,11 @@
     "boardDesc": "Поведение ID задач и настройки по умолчанию для доски.",
     "fields": "Поля",
     "fieldsDesc": "Дополнительные поля, показываемые на задачах и карточках доски.",
+    "extensions": "Расширения",
+    "extensionsDesc": "Управление установленными расширениями: включение, отключение и ограниченный режим.",
+    "kickerExtensions": "Плагины и интеграции",
+    "navigate": "Навигация",
+    "select": "Выбрать",
     "language": "Язык",
     "languageDesc": "Язык интерфейса, сохраненный в конфиге проекта.",
     "mode": "Режим",
@@ -322,12 +333,11 @@
     "emptyState": "Начните диалог: спросите о доске, задаче или предстоящей работе.",
     "sessionUntitled": "Диалог без названия",
     "sessionsEmpty": "В этом проекте пока нет диалогов.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness для новых чатов",
     "noHarness": "На этой машине не установлен ни один harness",
     "copy": "Копировать",
     "daemonGuardTitle": "Чату с агентом нужен kandown daemon",
-    "daemonGuardBody": "Запустите локальный daemon, чтобы общаться с кодинг-агентами: выполните npx kandown в этом проекте."
-  ,
+    "daemonGuardBody": "Запустите локальный daemon, чтобы общаться с кодинг-агентами: выполните npx kandown в этом проекте.",
     "optionsTitle": "Выберите вариант",
     "optionsSkip": "Лучше напишу текст",
     "suggestionsLabel": "Варианты продолжения",

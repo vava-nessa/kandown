@@ -26,12 +26,15 @@
     "settings": "Asetukset",
     "board": "K board",
     "reload": "Lataa uudelleen",
-    "newTask": "Uusi tehtävä"
+    "newTask": "Uusi tehtävä",
+    "list": "Lista",
+    "run": "Suorita"
   },
   "emptyState": {
     "unsupportedBrowser": "Selain ei ole tuettu",
     "unsupportedBrowserDesc": "Tämä moottori vaatii <code>File System Access API</code>:n. Käytä Chromea, Edgeä, Bravea tai Operaa. Firefox ja Safari eivät vielä tue sitä.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Yhdistetään palvelimeen..."
   },
   "header": {
     "tasks": "tehtävää",
@@ -130,7 +133,8 @@
     "priority": "Prioriteetti",
     "body": "Sisältö",
     "subtasks": "Alitehtävät",
-    "none": "(ei mitään)"
+    "none": "(ei mitään)",
+    "tags": "Tunnisteet"
   },
   "languageNames": {
     "en": "Englanti",
@@ -172,6 +176,8 @@
     "delete": "Poista",
     "confirmDelete": "Vahvista poisto",
     "selectAll": "Valitse kaikki",
+    "select": "Valitse tehtävä",
+    "deselect": "Poista tehtävän valinta",
     "clear": "Tyhjennä valinta",
     "selectedOne": "selected",
     "selectedMany": "selected",
@@ -219,6 +225,11 @@
     "boardDesc": "Tehtävä-ID-käyttäytyminen ja boardi-tason oletukset.",
     "fields": "Kentät",
     "fieldsDesc": "Valinnaiset kentät, jotka näytetään tehtävissä ja board-korteissa.",
+    "extensions": "Laajennukset",
+    "extensionsDesc": "Hallitse asennettuja laajennuksia: ota käyttöön, poista käytöstä ja rajoitettu tila.",
+    "kickerExtensions": "Lisäosat ja integraatiot",
+    "navigate": "Navigoi",
+    "select": "Valitse",
     "language": "Kieli",
     "languageDesc": "Käyttöliittymän kieli tallennetaan tämän projektin asetuksiin.",
     "mode": "Tila",
@@ -250,7 +261,7 @@
     "autopilotRunCostCapUsdDesc": "Kustannusbudjetti dollareina koko Autopilot-ajolle, daemon purkaa ajoa, kun raja täyttyy. 0 tarkoittaa ei rajaa.",
     "harnesses": {
       "title": "Agenttiharnessit",
-      "description": "Kandown ohjaa koodausagenttien CLI-työkaluja, jotka on jo asennettu ja jo validoitu tällä koneella. Se ei koskaan pyydä API-avainta.",
+      "description": "Kandown ohjaa koodausagenttien CLI-työkaluja, jotka on jo asennettu ja jo todennettu tällä koneella. Se ei koskaan pyydä API-avainta.",
       "installed": "asennettu",
       "notInstalled": "ei asennettu",
       "native": "natiivi",
@@ -355,12 +366,11 @@
     "emptyState": "Aloita keskustelu: kysy taulusta, tehtävästä tai tulevasta työstä.",
     "sessionUntitled": "Nimetön keskustelu",
     "sessionsEmpty": "Ei vielä keskusteluja tässä projektissa.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness uusille chatteille",
     "noHarness": "Harnessia ei ole asennettu tälle koneelle",
     "copy": "Kopioi",
     "daemonGuardTitle": "Agenttichatti vaatii kandown daemonin",
-    "daemonGuardBody": "Käynnistä paikallinen daemon juttaaksesi koodausagenttiesi kanssa: aja npx kandown tässä projektissa."
-  ,
+    "daemonGuardBody": "Käynnistä paikallinen daemon juttaaksesi koodausagenttiesi kanssa: aja npx kandown tässä projektissa.",
     "optionsTitle": "Valitse vaihtoehto",
     "optionsSkip": "Kirjoitan mieluummin itse",
     "suggestionsLabel": "Jatkoehdotukset",

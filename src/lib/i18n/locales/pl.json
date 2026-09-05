@@ -26,12 +26,15 @@
     "settings": "Ustawienia",
     "board": "Tablica",
     "reload": "Przeładuj",
-    "newTask": "Nowe zadanie"
+    "newTask": "Nowe zadanie",
+    "list": "Lista",
+    "run": "Uruchom"
   },
   "emptyState": {
     "unsupportedBrowser": "Nieobsługiwana przeglądarka",
     "unsupportedBrowserDesc": "Ta silnik wymaga <code>File System Access API</code>. Użyj Chrome, Edge, Brave lub Opera. Firefox i Safari jeszcze nie obsługują tej funkcji.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Łączenie z serwerem..."
   },
   "header": {
     "tasks": "zadania",
@@ -130,7 +133,8 @@
     "priority": "Priorytet",
     "body": "Treść",
     "subtasks": "Podzadania",
-    "none": "(brak)"
+    "none": "(brak)",
+    "tags": "Tagi"
   },
   "languageNames": {
     "en": "Angielski",
@@ -163,6 +167,8 @@
     "delete": "Usuń",
     "confirmDelete": "Potwierdź usunięcie",
     "selectAll": "Zaznacz wszystko",
+    "select": "Zaznacz zadanie",
+    "deselect": "Odznacz zadanie",
     "selectAllHint": "Zaznacz wszystko (widoczne)",
     "clear": "Wyczyść zaznaczenie",
     "selectedOne": "selected",
@@ -204,6 +210,11 @@
     "boardDesc": "Zachowanie ID zadań i domyślne ustawienia na poziomie tablicy.",
     "fields": "Pola",
     "fieldsDesc": "Opcjonalne pola wyświetlane na zadaniach i kartach tablicy.",
+    "extensions": "Rozszerzenia",
+    "extensionsDesc": "Zarządzaj zainstalowanymi rozszerzeniami: włączanie, wyłączanie i tryb ograniczony.",
+    "kickerExtensions": "Wtyczki i integracje",
+    "navigate": "Nawiguj",
+    "select": "Wybierz",
     "language": "Język",
     "languageDesc": "Język interfejsu użytkownika przechowywany w konfiguracji projektu.",
     "mode": "Tryb",
@@ -340,12 +351,11 @@
     "emptyState": "Rozpocznij rozmowę: zapytaj o tablicę, zadanie lub nadchodzącą pracę.",
     "sessionUntitled": "Rozmowa bez tytułu",
     "sessionsEmpty": "Brak rozmów w tym projekcie.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness dla nowych czatów",
     "noHarness": "Brak harnessa zainstalowanego na tej maszynie",
     "copy": "Kopiuj",
     "daemonGuardTitle": "Czat agenta wymaga kandown daemon",
-    "daemonGuardBody": "Uruchom lokalny daemon, aby czatować z agentami kodującymi: wykonaj npx kandown w tym projekcie."
-  ,
+    "daemonGuardBody": "Uruchom lokalny daemon, aby czatować z agentami kodującymi: wykonaj npx kandown w tym projekcie.",
     "optionsTitle": "Wybierz opcję",
     "optionsSkip": "Wolę wpisać własny tekst",
     "suggestionsLabel": "Sugerowane dalsze pytania",

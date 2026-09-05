@@ -26,12 +26,15 @@
     "settings": "Configurações",
     "board": "Quadro",
     "reload": "Recarregar",
-    "newTask": "Nova tarefa"
+    "newTask": "Nova tarefa",
+    "list": "Lista",
+    "run": "Executar"
   },
   "emptyState": {
     "unsupportedBrowser": "Navegador não suportado",
     "unsupportedBrowserDesc": "Este motor requer a <code>File System Access API</code>. Use Chrome, Edge, Brave ou Opera. Firefox e Safari ainda não suportam.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "A conectar ao servidor..."
   },
   "header": {
     "tasks": "tarefas",
@@ -130,7 +133,8 @@
     "priority": "Prioridade",
     "body": "Corpo",
     "subtasks": "Subtarefas",
-    "none": "(nenhum)"
+    "none": "(nenhum)",
+    "tags": "Tags"
   },
   "languageNames": {
     "en": "Inglês",
@@ -180,6 +184,8 @@
     "delete": "Excluir",
     "confirmDelete": "Confirmar exclusão",
     "selectAll": "Selecionar tudo",
+    "select": "Selecionar tarefa",
+    "deselect": "Desselecionar tarefa",
     "selectAllHint": "Selecionar tudo (visíveis)",
     "clear": "Limpar seleção"
   },
@@ -219,6 +225,11 @@
     "boardDesc": "Comportamento do ID da tarefa e padrões do quadro.",
     "fields": "Campos",
     "fieldsDesc": "Campos opcionais mostrados em tarefas e cartões do quadro.",
+    "extensions": "Extensões",
+    "extensionsDesc": "Gerencie as extensões instaladas: ativar, desativar e modo restrito.",
+    "kickerExtensions": "Plugins e integrações",
+    "navigate": "Navegar",
+    "select": "Selecionar",
     "language": "Idioma",
     "languageDesc": "Idioma da UI armazenado na config do projeto.",
     "mode": "Modo",
@@ -355,12 +366,11 @@
     "emptyState": "Comece a conversa: pergunte sobre o quadro, uma tarefa ou o trabalho a fazer.",
     "sessionUntitled": "Conversa sem título",
     "sessionsEmpty": "Ainda não há conversas neste projeto.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness para novos chats",
     "noHarness": "Nenhum harness instalado nesta máquina",
     "copy": "Copiar",
     "daemonGuardTitle": "O chat do agente precisa do kandown daemon",
-    "daemonGuardBody": "Inicie o daemon local para conversar com seus agentes de código: execute npx kandown neste projeto."
-  ,
+    "daemonGuardBody": "Inicie o daemon local para conversar com seus agentes de código: execute npx kandown neste projeto.",
     "optionsTitle": "Escolha uma opção",
     "optionsSkip": "Prefiro digitar",
     "suggestionsLabel": "Sugestões de continuação",

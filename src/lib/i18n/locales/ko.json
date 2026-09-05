@@ -26,12 +26,15 @@
     "settings": "설정",
     "board": "보드",
     "reload": "새로고침",
-    "newTask": "새 작업"
+    "newTask": "새 작업",
+    "list": "목록",
+    "run": "실행"
   },
   "emptyState": {
     "unsupportedBrowser": "지원되지 않는 브라우저",
     "unsupportedBrowserDesc": "이 엔진은 <code>File System Access API</code>가 필요합니다. Chrome, Edge, Brave 또는 Opera를 사용하세요. Firefox와 Safari는 아직 지원되지 않습니다.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "서버에 연결 중..."
   },
   "header": {
     "tasks": "작업",
@@ -130,7 +133,8 @@
     "priority": "우선순위",
     "body": "본문",
     "subtasks": "하위 작업",
-    "none": "(없음)"
+    "none": "(없음)",
+    "tags": "태그"
   },
   "bulk": {
     "priority": "우선순위",
@@ -149,6 +153,8 @@
     "delete": "삭제",
     "confirmDelete": "삭제 확인",
     "selectAll": "모두 선택",
+    "select": "작업 선택",
+    "deselect": "작업 선택 해제",
     "selectAllHint": "모두 선택 (보이는 항목)",
     "clear": "선택 해제",
     "selectedOne": "selected",
@@ -190,6 +196,11 @@
     "boardDesc": "작업 ID 동작 및 보드 수준 기본값.",
     "fields": "필드",
     "fieldsDesc": "작업 및 보드 카드에 표시되는 선택적 필드.",
+    "extensions": "확장",
+    "extensionsDesc": "설치된 확장을 관리합니다: 활성화, 비활성화 및 제한 모드.",
+    "kickerExtensions": "플러그인 및 통합",
+    "navigate": "탐색",
+    "select": "선택",
     "language": "언어",
     "languageDesc": "UI 언어는 이 프로젝트 설정에 저장됩니다.",
     "mode": "모드",
@@ -322,12 +333,11 @@
     "emptyState": "대화를 시작하세요: 이 보드, 작업, 앞으로 할 일에 대해 물어보세요.",
     "sessionUntitled": "제목 없는 대화",
     "sessionsEmpty": "이 프로젝트에는 아직 대화가 없습니다.",
-    "harnessLabel": "하네스",
+    "harnessLabel": "새 채팅에 사용할 하네스",
     "noHarness": "이 머신에 설치된 하네스가 없습니다",
     "copy": "복사",
     "daemonGuardTitle": "에이전트 채팅에는 kandown daemon이 필요합니다",
-    "daemonGuardBody": "로컬 daemon을 시작해 코딩 에이전트와 채팅하세요: 이 프로젝트에서 npx kandown을 실행하세요."
-  ,
+    "daemonGuardBody": "로컬 daemon을 시작해 코딩 에이전트와 채팅하세요: 이 프로젝트에서 npx kandown을 실행하세요.",
     "optionsTitle": "옵션 선택",
     "optionsSkip": "직접 입력할게요",
     "suggestionsLabel": "이어서 물어볼 제안",

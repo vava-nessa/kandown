@@ -26,12 +26,15 @@
     "settings": "Instellingen",
     "board": "Board",
     "reload": "Herladen",
-    "newTask": "Nieuwe taak"
+    "newTask": "Nieuwe taak",
+    "list": "Lijst",
+    "run": "Uitvoeren"
   },
   "emptyState": {
     "unsupportedBrowser": "Niet-ondersteunde browser",
     "unsupportedBrowserDesc": "Deze engine vereist de <code>File System Access API</code>. Gebruik Chrome, Edge, Brave of Opera. Firefox en Safari worden nog niet ondersteund.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Verbinding maken met de server..."
   },
   "header": {
     "tasks": "taken",
@@ -130,7 +133,8 @@
     "priority": "Prioriteit",
     "body": "Inhoud",
     "subtasks": "Subtaken",
-    "none": "(geen)"
+    "none": "(geen)",
+    "tags": "Tags"
   },
   "languageNames": {
     "en": "Engels",
@@ -165,6 +169,8 @@
     "delete": "Verwijderen",
     "confirmDelete": "Verwijderen bevestigen",
     "selectAll": "Alles selecteren",
+    "select": "Taak selecteren",
+    "deselect": "Taak deselecteren",
     "selectAllHint": "Alles selecteren (zichtbare)",
     "clear": "Selectie wissen"
   },
@@ -204,6 +210,11 @@
     "boardDesc": "Gedrag van taak-IDs en board-brede standaardwaarden.",
     "fields": "Velden",
     "fieldsDesc": "Optionele velden getoond bij taken en board-kaarten.",
+    "extensions": "Extensies",
+    "extensionsDesc": "Beheer geïnstalleerde extensies: in- of uitschakelen en beperkte modus.",
+    "kickerExtensions": "Plugins & integraties",
+    "navigate": "Navigeer",
+    "select": "Selecteer",
     "language": "Taal",
     "languageDesc": "UI-taal opgeslagen in de projectconfiguratie.",
     "mode": "Modus",
@@ -340,12 +351,11 @@
     "emptyState": "Begin het gesprek: vraag naar dit bord, een taak of het werk dat voor de deur ligt.",
     "sessionUntitled": "Naamloos gesprek",
     "sessionsEmpty": "Nog geen gesprekken in dit project.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness voor nieuwe chats",
     "noHarness": "Geen harness op deze machine geïnstalleerd",
     "copy": "Kopiëren",
     "daemonGuardTitle": "Agentchat heeft de kandown daemon nodig",
-    "daemonGuardBody": "Start de lokale daemon om met je coding agents te chatten: voer npx kandown uit in dit project."
-  ,
+    "daemonGuardBody": "Start de lokale daemon om met je coding agents te chatten: voer npx kandown uit in dit project.",
     "optionsTitle": "Kies een optie",
     "optionsSkip": "Ik typ liever zelf",
     "suggestionsLabel": "Vervolgsuggesties",

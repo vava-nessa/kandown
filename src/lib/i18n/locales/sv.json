@@ -26,12 +26,15 @@
     "settings": "Inställningar",
     "board": "Styrning",
     "reload": "Ladda om",
-    "newTask": "Ny uppgift"
+    "newTask": "Ny uppgift",
+    "list": "Lista",
+    "run": "Kör"
   },
   "emptyState": {
     "unsupportedBrowser": "Webbläsaren stöds inte",
     "unsupportedBrowserDesc": "Den här motorn kräver <code>File System Access API</code>. Använd Chrome, Edge, Brave eller Opera. Firefox och Safari stöds ännu inte.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Ansluter till servern..."
   },
   "header": {
     "tasks": "uppgifter",
@@ -130,7 +133,8 @@
     "priority": "Prioritet",
     "body": "Innehåll",
     "subtasks": "Delauppgifter",
-    "none": "(ingen)"
+    "none": "(ingen)",
+    "tags": "Taggar"
   },
   "languageNames": {
     "en": "Engelska",
@@ -172,6 +176,8 @@
     "delete": "Ta bort",
     "confirmDelete": "Bekräfta borttagning",
     "selectAll": "Markera alla",
+    "select": "Välj uppgift",
+    "deselect": "Avmarkera uppgift",
     "clear": "Rensa val",
     "selectedOne": "selected",
     "selectedMany": "selected",
@@ -219,6 +225,11 @@
     "boardDesc": "Uppgifts-ID-beteende och standardvärden för styret.",
     "fields": "Fält",
     "fieldsDesc": "Valfria fält som visas på uppgifter och kort.",
+    "extensions": "Tillägg",
+    "extensionsDesc": "Hantera installerade tillägg: aktivera, inaktivera och begränsat läge.",
+    "kickerExtensions": "Plugin och integrationer",
+    "navigate": "Navigera",
+    "select": "Välj",
     "language": "Språk",
     "languageDesc": "UI-språk lagrat i projektkonfigurationen.",
     "mode": "Läge",
@@ -355,12 +366,11 @@
     "emptyState": "Starta konversationen: fråga om tavlan, en uppgift eller arbetet som väntar.",
     "sessionUntitled": "Namnlös konversation",
     "sessionsEmpty": "Inga konversationer än i det här projektet.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness för nya chatter",
     "noHarness": "Ingen harness installerad på den här maskinen",
     "copy": "Kopiera",
     "daemonGuardTitle": "Agentchatten behöver kandown daemon",
-    "daemonGuardBody": "Starta den lokala daemonen för att chatta med dina kodningsagenter: kör npx kandown i det här projektet."
-  ,
+    "daemonGuardBody": "Starta den lokala daemonen för att chatta med dina kodningsagenter: kör npx kandown i det här projektet.",
     "optionsTitle": "Välj ett alternativ",
     "optionsSkip": "Jag skriver hellre själv",
     "suggestionsLabel": "Förslag på uppföljning",

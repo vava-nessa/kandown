@@ -26,12 +26,15 @@
     "settings": "Beállítások",
     "board": "Tábla",
     "reload": "Újratöltés",
-    "newTask": "Új feladat"
+    "newTask": "Új feladat",
+    "list": "Lista",
+    "run": "Futtatás"
   },
   "emptyState": {
     "unsupportedBrowser": "Nem támogatott böngésző",
     "unsupportedBrowserDesc": "Ez a motor a <code>File System Access API</code>-t igényli. Használj Chrome-ot, Edge-et, Brave-et vagy Opera-t. A Firefox és Safari még nem támogatja.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Kapcsolódás a szerverhez..."
   },
   "header": {
     "tasks": "feladat",
@@ -130,7 +133,8 @@
     "priority": "Prioritás",
     "body": "Törzs",
     "subtasks": "Alfeladatok",
-    "none": "(nincs)"
+    "none": "(nincs)",
+    "tags": "Címkék"
   },
   "languageNames": {
     "en": "Angol",
@@ -172,6 +176,8 @@
     "delete": "Törlés",
     "confirmDelete": "Törlés megerősítése",
     "selectAll": "Mind kijelölése",
+    "select": "Feladat kijelölése",
+    "deselect": "Feladat kijelölésének megszüntetése",
     "clear": "Kijelölés törlése",
     "selectedOne": "selected",
     "selectedMany": "selected",
@@ -219,6 +225,11 @@
     "boardDesc": "Feladat azonosító viselkedés és tábla szintű alapértékek.",
     "fields": "Mezők",
     "fieldsDesc": "Opcionális mezők, amelyek a feladatokon és a tábla kártyáin jelennek meg.",
+    "extensions": "Kiterjesztések",
+    "extensionsDesc": "A telepített kiterjesztések kezelése: engedélyezés, letiltás és korlátozott mód.",
+    "kickerExtensions": "Pluginek és integrációk",
+    "navigate": "Navigáció",
+    "select": "Kiválasztás",
     "language": "Nyelv",
     "languageDesc": "A felület nyelve ebben a projekt konfigurációban tárolva.",
     "mode": "Mód",
@@ -355,12 +366,11 @@
     "emptyState": "Indítsd el a beszélgetést: kérdezz a tábláról, egy feladatról vagy a hátralévő munkáról.",
     "sessionUntitled": "Cím nélküli beszélgetés",
     "sessionsEmpty": "Még nincsenek beszélgetések ebben a projektben.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness az új csevegésekhez",
     "noHarness": "Nincs harness telepítve ezen a gépen",
     "copy": "Másolás",
     "daemonGuardTitle": "Az ügynökchatnek szüksége van a kandown daemonra",
-    "daemonGuardBody": "Indítsd el a helyi daemonbot, hogy csevegj a kódoló ügynökeiddel: futtasd az npx kandown parancsot ebben a projektben."
-  ,
+    "daemonGuardBody": "Indítsd el a helyi daemonbot, hogy csevegj a kódoló ügynökeiddel: futtasd az npx kandown parancsot ebben a projektben.",
     "optionsTitle": "Válassz egy lehetőséget",
     "optionsSkip": "Inkább magam írom",
     "suggestionsLabel": "Javasolt további kérdések",

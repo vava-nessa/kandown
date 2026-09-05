@@ -26,12 +26,15 @@
     "settings": "Settings",
     "board": "Board",
     "reload": "Reload",
-    "newTask": "New task"
+    "newTask": "New task",
+    "list": "ലിസ്റ്റ്",
+    "run": "പ്രവർത്തിപ്പിക്കുക"
   },
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "സെർവറുമായി കണക്റ്റ് ചെയ്യുന്നു..."
   },
   "header": {
     "tasks": "tasks",
@@ -130,7 +133,8 @@
     "priority": "Priority",
     "body": "Body",
     "subtasks": "Subtasks",
-    "none": "(none)"
+    "none": "(none)",
+    "tags": "ടാഗുകൾ"
   },
   "languageNames": {
     "en": "English",
@@ -202,6 +206,8 @@
     "delete": "Delete",
     "confirmDelete": "Confirm delete",
     "selectAll": "Select all",
+    "select": "ടാസ്ക്ക് തിരഞ്ഞെടുക്കുക",
+    "deselect": "ടാസ്ക്ക് തിരഞ്ഞെടുപ്പ് നീക്കുക",
     "selectAllHint": "Select all (visible)",
     "clear": "Clear selection"
   },
@@ -241,6 +247,11 @@
     "boardDesc": "Task id behavior and board-level defaults.",
     "fields": "Fields",
     "fieldsDesc": "Optional fields shown on tasks and board cards.",
+    "extensions": "എക്സ്റ്റെൻഷനുകൾ",
+    "extensionsDesc": "ഇൻസ്റ്റാൾ ചെയ്ത എക്സ്റ്റെൻഷനുകൾ കൈകാര്യം ചെയ്യുക: പ്രവർത്തനക്ഷമമാക്കുക, പ്രവർത്തനരഹിതമാക്കുക, പരിമിത മോഡ്.",
+    "kickerExtensions": "പ്ലഗിനുകളും ഇന്റഗ്രേഷനുകളും",
+    "navigate": "Navigate",
+    "select": "Select",
     "language": "Language",
     "languageDesc": "UI language stored in this project config.",
     "mode": "Mode",
@@ -377,12 +388,11 @@
     "emptyState": "സംഭാഷണം തുടങ്ങുക: ഈ ബോർഡ്, ഒരു ജോലി, അല്ലെങ്കിൽ വരാനുള്ള കാര്യങ്ങളെക്കുറിച്ച് ചോദിക്കൂ.",
     "sessionUntitled": "പേരില്ലാത്ത സംഭാഷണം",
     "sessionsEmpty": "ഈ പ്രോജക്റ്റിൽ ഇതുവരെ സംഭാഷണങ്ങളില്ല.",
-    "harnessLabel": "ഹാർനസ്",
+    "harnessLabel": "പുതിയ ചാറ്റുകൾക്കുള്ള ഹാർനസ്",
     "noHarness": "ഈ മെഷീനിൽ ഒരു ഹാർനസും ഇൻസ്റ്റാൾ ചെയ്തിട്ടില്ല",
     "copy": "പകർത്തുക",
     "daemonGuardTitle": "ഏജന്റ് ചാറ്റിന് kandown daemon വേണം",
-    "daemonGuardBody": "നിങ്ങളുടെ കോഡിംഗ് ഏജന്റുകളുമായി സംസാരിക്കാൻ ലോക്കൽ daemon ആരംഭിക്കുക: ഈ പ്രോജക്റ്റിൽ npx kandown റൺ ചെയ്യുക."
-  ,
+    "daemonGuardBody": "നിങ്ങളുടെ കോഡിംഗ് ഏജന്റുകളുമായി സംസാരിക്കാൻ ലോക്കൽ daemon ആരംഭിക്കുക: ഈ പ്രോജക്റ്റിൽ npx kandown റൺ ചെയ്യുക.",
     "optionsTitle": "ഒരു ഓപ്ഷൻ തിരഞ്ഞെടുക്കുക",
     "optionsSkip": "ഞാൻ തന്നെ ടൈപ്പ് ചെയ്യാം",
     "suggestionsLabel": "തുടർന്നുള്ള നിർദ്ദേശങ്ങൾ",

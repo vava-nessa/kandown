@@ -26,12 +26,15 @@
     "settings": "Nastavitve",
     "board": "Deska",
     "reload": "Osveži",
-    "newTask": "Nova naloga"
+    "newTask": "Nova naloga",
+    "list": "Seznam",
+    "run": "Zaženi"
   },
   "emptyState": {
     "unsupportedBrowser": "Nepodprta brskalnik",
     "unsupportedBrowserDesc": "Ta pogon zahteva <code>File System Access API</code>. Uporabite Chrome, Edge, Brave ali Opera. Firefox in Safari tega še ne podpirata.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Povezovanje s strežnikom..."
   },
   "header": {
     "tasks": "naloge",
@@ -130,7 +133,8 @@
     "priority": "Prioriteta",
     "body": "Vsebina",
     "subtasks": "Podnaloge",
-    "none": "(nič)"
+    "none": "(nič)",
+    "tags": "Oznake"
   },
   "languageNames": {
     "en": "Angleščina",
@@ -172,6 +176,8 @@
     "delete": "Izbriši",
     "confirmDelete": "Potrdi brisanje",
     "selectAll": "Izberi vse",
+    "select": "Izberi nalogo",
+    "deselect": "Prekliči izbiro naloge",
     "clear": "Počisti izbor",
     "selectedOne": "selected",
     "selectedMany": "selected",
@@ -219,6 +225,11 @@
     "boardDesc": "Vedenje ID-ja naloge in privzete nastavitve na ravni deske.",
     "fields": "Polja",
     "fieldsDesc": "Neobvezna polja, prikazana na nalogah in karticah deske.",
+    "extensions": "Razširitve",
+    "extensionsDesc": "Upravljanje nameščenih razširitev: omogočanje, onemogočanje in omejen način.",
+    "kickerExtensions": "Vtičniki in integracije",
+    "navigate": "Krmarjenje",
+    "select": "Izberi",
     "language": "Jezik",
     "languageDesc": "Jezik vmesnika shranjen v konfiguraciji tega projekta.",
     "mode": "Način",
@@ -355,12 +366,11 @@
     "emptyState": "Začnite pogovor: vprašajte o tej plošči, nalogi ali prihajajočem delu.",
     "sessionUntitled": "Pogovor brez naslova",
     "sessionsEmpty": "V tem projektu še ni pogovorov.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness za nove klepete",
     "noHarness": "Na tem računalniku ni nameščen noben harness",
     "copy": "Kopiraj",
     "daemonGuardTitle": "Klepet agenta potrebuje kandown daemon",
-    "daemonGuardBody": "Zaženite lokalni daemon in klepetajte s svojimi kodirnimi agenti: zaženite npx kandown v tem projektu."
-  ,
+    "daemonGuardBody": "Zaženite lokalni daemon in klepetajte s svojimi kodirnimi agenti: zaženite npx kandown v tem projektu.",
     "optionsTitle": "Izberite možnost",
     "optionsSkip": "Raje vnesem besedilo",
     "suggestionsLabel": "Predlogi za nadaljevanje",

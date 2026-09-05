@@ -26,12 +26,15 @@
     "settings": "Подешавања",
     "board": "Табла",
     "reload": "Освежи",
-    "newTask": "Нови задатак"
+    "newTask": "Нови задатак",
+    "list": "Листа",
+    "run": "Покрени"
   },
   "emptyState": {
     "unsupportedBrowser": "Неподржан прегледач",
     "unsupportedBrowserDesc": "Овај систем захтева <code>File System Access API</code>. Користите Chrome, Edge, Brave или Opera. Firefox и Safari тојјош не подржавају.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Повезивање на сервер..."
   },
   "header": {
     "tasks": "задаци",
@@ -130,7 +133,8 @@
     "priority": "Приоритет",
     "body": "Садржај",
     "subtasks": "Подзадаци",
-    "none": "(ниједно)"
+    "none": "(ниједно)",
+    "tags": "Ознаке"
   },
   "languageNames": {
     "en": "Енглески",
@@ -172,6 +176,8 @@
     "delete": "Obriši",
     "confirmDelete": "Potvrdi brisanje",
     "selectAll": "Izaberi sve",
+    "select": "Изабери задатак",
+    "deselect": "Поништи избор задатка",
     "clear": "Očisti izbor",
     "selectedOne": "selected",
     "selectedMany": "selected",
@@ -219,6 +225,11 @@
     "boardDesc": "Понашање ID-а задатака и подразумевана подешавања табле.",
     "fields": "Поља",
     "fieldsDesc": "Опциона поља приказана на задацима и картама табле.",
+    "extensions": "Проширења",
+    "extensionsDesc": "Управљајте инсталираним проширењима: омогућавање, онемогућавање и ограничени режим.",
+    "kickerExtensions": "Додаци и интеграције",
+    "navigate": "Навигирај",
+    "select": "Изабери",
     "language": "Језик",
     "languageDesc": "Језик интерфејса се чува у конфигурацији пројекта.",
     "mode": "Режим",
@@ -258,7 +269,7 @@
       "refresh": "Освежи",
       "loading": "Откривање харнеса…",
       "needsDaemonTitle": "Сесије агената захтевају kandown daemon",
-      "needsDaemonBody": "Изврши npx kandown у овом пројекту да би покрено daemon: он открива инсталиране харнесе и покреће сесије агената.",
+      "needsDaemonBody": "Изврши npx kandown у овом пројекту да би покренуо daemon: он открива инсталиране харнесе и покреће сесије агената.",
       "copyHint": "Копирај команду за инсталацију",
       "copied": "Копирано",
       "currentMode": "Тренутни режим",
@@ -355,12 +366,11 @@
     "emptyState": "Започни разговор: питај о овој табли, задатку или послу који следи.",
     "sessionUntitled": "Разговор без наслова",
     "sessionsEmpty": "Још нема разговора у овом пројекту.",
-    "harnessLabel": "Харнесс",
+    "harnessLabel": "Харнесс за нове разговоре",
     "noHarness": "Ниједан харнесс није инсталиран на овом рачунару",
     "copy": "Копирај",
     "daemonGuardTitle": "Ћаскање са агентом захтева kandown daemon",
-    "daemonGuardBody": "Покрени локални daemon да би разговарао са агентима за кодирање: изврши npx kandown у овом пројекту."
-  ,
+    "daemonGuardBody": "Покрени локални daemon да би разговарао са агентима за кодирање: изврши npx kandown у овом пројекту.",
     "optionsTitle": "Изаберите опцију",
     "optionsSkip": "Радије ћу сам да напишем",
     "suggestionsLabel": "Предлози за наставак",

@@ -26,12 +26,15 @@
     "settings": "Settings",
     "board": "Board",
     "reload": "Reload",
-    "newTask": "New task"
+    "newTask": "New task",
+    "list": "စာရင်း",
+    "run": "လုပ်ဆောင်ပါ"
   },
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "ဆာဗာနှင့် ချိတ်ဆက်နေသည်..."
   },
   "header": {
     "tasks": "tasks",
@@ -130,7 +133,8 @@
     "priority": "Priority",
     "body": "Body",
     "subtasks": "Subtasks",
-    "none": "(none)"
+    "none": "(none)",
+    "tags": "Tags"
   },
   "languageNames": {
     "en": "English",
@@ -202,6 +206,8 @@
     "delete": "Delete",
     "confirmDelete": "Confirm delete",
     "selectAll": "Select all",
+    "select": "တာဝန် ရွေးချယ်ပါ",
+    "deselect": "တာဝန် ရွေးချယ်မှု ဖျက်ပါ",
     "selectAllHint": "Select all (visible)",
     "clear": "Clear selection"
   },
@@ -241,6 +247,11 @@
     "boardDesc": "Task id behavior and board-level defaults.",
     "fields": "Fields",
     "fieldsDesc": "Optional fields shown on tasks and board cards.",
+    "extensions": "Extension များ",
+    "extensionsDesc": "ထည့်သွင်းထားသော extension များကို စီမံပါ: ဖွင့်ခြင်း ပိတ်ခြင်း နှင့် ကန့်သတ်မုဒ်။",
+    "kickerExtensions": "Plugin များ နှင့် ချိတ်ဆက်မှုများ",
+    "navigate": "Navigate",
+    "select": "Select",
     "language": "Language",
     "languageDesc": "UI language stored in this project config.",
     "mode": "Mode",
@@ -377,12 +388,11 @@
     "emptyState": "စကားဝိုင်းစတင်ပါ: ဤဘုတ်၊ တာဝန်တစ်ခု သို့မဟုတ် ရှေ့တွင်ရှိသော အလုပ်အကြောင်း မေးမြန်းပါ။",
     "sessionUntitled": "ခေါင်းစဉ်မဲ့ စကားဝိုင်း",
     "sessionsEmpty": "ဤပရောဂျက်တွင် စကားဝိုင်း မရှိသေးပါ။",
-    "harnessLabel": "harness",
+    "harnessLabel": "ချတ်အသစ်များအတွက် harness",
     "noHarness": "ဤစက်တွင် harness ထည့်သွင်းထားခြင်း မရှိပါ",
     "copy": "ကူးယူမည်",
     "daemonGuardTitle": "အေဂျင့် ချတ်အတွက် kandown daemon လိုအပ်သည်",
-    "daemonGuardBody": "သင့်ကုဒ်ရေးအေဂျင့်များနှင့် စကားပြောရန် local daemon ကို စတင်ပါ: ဤပရောဂျက်တွင် npx kandown ကို run ပါ။"
-  ,
+    "daemonGuardBody": "သင့်ကုဒ်ရေးအေဂျင့်များနှင့် စကားပြောရန် local daemon ကို စတင်ပါ: ဤပရောဂျက်တွင် npx kandown ကို run ပါ။",
     "optionsTitle": "ရွေးချယ်စရာ တစ်ခု ရွေးပါ",
     "optionsSkip": "ကိုယ်တိုင် ရိုက်ထည့်မည်",
     "suggestionsLabel": "နောက်ထပ် မေးခွန်း အကြံပြုချက်များ",

@@ -26,12 +26,15 @@
     "settings": "সেটিংস",
     "board": "বোর্ড",
     "reload": "পুনরায় লোড",
-    "newTask": "নতুন টাস্ক"
+    "newTask": "নতুন টাস্ক",
+    "list": "লিস্ট",
+    "run": "চালান"
   },
   "emptyState": {
     "unsupportedBrowser": "ব্রাউজার সমর্থিত নয়",
     "unsupportedBrowserDesc": "এই ইঞ্জিনের জন্য <code>File System Access API</code> প্রয়োজন। Chrome, Edge, Brave বা Opera ব্যবহার করুন। Firefox এবং Safari এখনও সমর্থিত নয়।",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "সার্ভারের সাথে সংযোগ করা হচ্ছে..."
   },
   "header": {
     "tasks": "টাস্ক",
@@ -130,7 +133,8 @@
     "priority": "প্রাধান্য",
     "body": "বডি",
     "subtasks": "সাবটাস্ক",
-    "none": "(কিছু নয়)"
+    "none": "(কিছু নয়)",
+    "tags": "ট্যাগ"
   },
   "bulk": {
     "selectedOne": "selected",
@@ -151,6 +155,8 @@
     "delete": "Delete",
     "confirmDelete": "Confirm delete",
     "selectAll": "Select all",
+    "select": "টাস্ক নির্বাচন করুন",
+    "deselect": "টাস্ক নির্বাচন বাতিল করুন",
     "selectAllHint": "Select all (visible)",
     "clear": "Clear selection"
   },
@@ -190,6 +196,11 @@
     "boardDesc": "টাস্ক আইডি আচরণ এবং বোর্ড-স্তরের ডিফল্ট।",
     "fields": "ফিল্ড",
     "fieldsDesc": "টাস্ক এবং বোর্ড কার্ডে দেখানো ঐচ্ছিক ফিল্ড।",
+    "extensions": "এক্সটেনশন",
+    "extensionsDesc": "ইনস্টল করা এক্সটেনশন পরিচালনা করুন: চালু, বন্ধ এবং সীমিত মোড।",
+    "kickerExtensions": "প্লাগইন ও ইন্টিগ্রেশন",
+    "navigate": "নেভিগেট",
+    "select": "নির্বাচন করুন",
     "language": "ভাষা",
     "languageDesc": "UI ভাষা এই প্রজেক্ট কনফিগে সংরক্ষিত।",
     "mode": "মোড",
@@ -322,12 +333,11 @@
     "emptyState": "কথোপকথন শুরু করুন: এই বোর্ড, কোনো কাজ বা সামনের কাজ নিয়ে জিজ্ঞাসা করুন।",
     "sessionUntitled": "শিরোনামহীন কথোপকথন",
     "sessionsEmpty": "এই প্রকল্পে এখনো কোনো কথোপকথন নেই।",
-    "harnessLabel": "হার্নেস",
+    "harnessLabel": "নতুন চ্যাটের জন্য হার্নেস",
     "noHarness": "এই মেশিনে কোনো হার্নেস ইনস্টল নেই",
     "copy": "কপি",
     "daemonGuardTitle": "এজেন্ট চ্যাটের জন্য kandown daemon দরকার",
-    "daemonGuardBody": "কোডিং এজেন্টের সাথে কথা বলতে লোকাল daemon চালু করুন: এই প্রকল্পে npx kandown চালান।"
-  ,
+    "daemonGuardBody": "কোডিং এজেন্টের সাথে কথা বলতে লোকাল daemon চালু করুন: এই প্রকল্পে npx kandown চালান।",
     "optionsTitle": "একটি বিকল্প বেছে নিন",
     "optionsSkip": "আমি নিজেই লিখব",
     "suggestionsLabel": "পরবর্তী প্রশ্নের প্রস্তাবনা",

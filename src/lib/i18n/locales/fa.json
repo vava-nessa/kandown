@@ -26,12 +26,15 @@
     "settings": "تنظیمات",
     "board": "تخته",
     "reload": "بارگذاری مجدد",
-    "newTask": "کار جدید"
+    "newTask": "کار جدید",
+    "list": "لیست",
+    "run": "اجرا"
   },
   "emptyState": {
     "unsupportedBrowser": "مرورگر پشتیبانی نمی‌شود",
     "unsupportedBrowserDesc": "این موتور به <code>File System Access API</code> نیاز دارد. از Chrome، Edge، Brave یا Opera استفاده کنید. Firefox و Safari هنوز پشتیبانی نمی‌شوند.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "در حال اتصال به سرور..."
   },
   "header": {
     "tasks": "کارها",
@@ -130,7 +133,8 @@
     "priority": "اولویت",
     "body": "بدنه",
     "subtasks": "زیرکارها",
-    "none": "(هیچ)"
+    "none": "(هیچ)",
+    "tags": "برچسب‌ها"
   },
   "bulk": {
     "priority": "اولویت",
@@ -143,6 +147,8 @@
     "delete": "حذف",
     "confirmDelete": "تأیید حذف",
     "selectAll": "انتخاب همه",
+    "select": "انتخاب کار",
+    "deselect": "لغو انتخاب کار",
     "clear": "پاک کردن انتخاب",
     "selectedOne": "selected",
     "selectedMany": "selected",
@@ -190,6 +196,11 @@
     "boardDesc": "رفتار شناسه کار و پیش‌فرض‌های سطح تخته.",
     "fields": "فیلدها",
     "fieldsDesc": "فیلدهای اختیاری که روی کارها و کارت‌های تخته نمایش داده می‌شوند.",
+    "extensions": "افزونه‌ها",
+    "extensionsDesc": "مدیریت افزونه‌های نصب‌شده: فعال‌سازی، غیرفعال‌سازی و حالت محدود.",
+    "kickerExtensions": "افزونه‌ها و یکپارچگی‌ها",
+    "navigate": "ناوبری",
+    "select": "انتخاب",
     "language": "زبان",
     "languageDesc": "زبان رابط کاربری در این پیکربندی پروژه ذخیره می‌شود.",
     "mode": "حالت",
@@ -322,12 +333,11 @@
     "emptyState": "گفت‌وگو را شروع کن: درباره این بورد، یک کار یا کارهای پیش رو بپرس.",
     "sessionUntitled": "گفت‌وگوی بی‌نام",
     "sessionsEmpty": "هنوز گفت‌وگویی در این پروژه نیست.",
-    "harnessLabel": "هارنس",
+    "harnessLabel": "هارنس برای گفت‌وگوهای جدید",
     "noHarness": "هیچ هارنسی روی این ماشین نصب نیست",
     "copy": "کپی",
     "daemonGuardTitle": "گفت‌وگو با ایجنت به kandown daemon نیاز دارد",
-    "daemonGuardBody": "برای چت با ایجنت‌های کدنویسی‌ات دیمن محلی را اجرا کن: در این پروژه npx kandown را اجرا کن."
-  ,
+    "daemonGuardBody": "برای چت با ایجنت‌های کدنویسی‌ات دیمن محلی را اجرا کن: در این پروژه npx kandown را اجرا کن.",
     "optionsTitle": "یک گزینه را انتخاب کن",
     "optionsSkip": "خودم تایپ می‌کنم",
     "suggestionsLabel": "پیشنهادهای ادامه",

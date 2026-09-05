@@ -26,12 +26,15 @@
     "settings": "Ajustes",
     "board": "Tablero",
     "reload": "Recargar",
-    "newTask": "Nueva tarea"
+    "newTask": "Nueva tarea",
+    "list": "Lista",
+    "run": "Ejecutar"
   },
   "emptyState": {
     "unsupportedBrowser": "Navegador no soportado",
     "unsupportedBrowserDesc": "Este motor requiere la <code>File System Access API</code>. Usa Chrome, Edge, Brave u Opera. Firefox y Safari aún no la soportan.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Conectando con el servidor..."
   },
   "header": {
     "tasks": "tareas",
@@ -130,7 +133,8 @@
     "priority": "Prioridad",
     "body": "Cuerpo",
     "subtasks": "Subtareas",
-    "none": "(ninguno)"
+    "none": "(ninguno)",
+    "tags": "Etiquetas"
   },
   "languageNames": {
     "en": "Inglés",
@@ -191,6 +195,8 @@
     "delete": "Eliminar",
     "confirmDelete": "Confirmar eliminación",
     "selectAll": "Seleccionar todo",
+    "select": "Seleccionar tarea",
+    "deselect": "Deseleccionar tarea",
     "selectAllHint": "Seleccionar todo (visibles)",
     "clear": "Borrar selección"
   },
@@ -230,6 +236,11 @@
     "boardDesc": "Comportamiento del ID de tarea y valores predeterminados del tablero.",
     "fields": "Campos",
     "fieldsDesc": "Campos opcionales mostrados en tareas y tarjetas del tablero.",
+    "extensions": "Extensiones",
+    "extensionsDesc": "Gestiona las extensiones instaladas: activar, desactivar y modo restringido.",
+    "kickerExtensions": "Plugins e integraciones",
+    "navigate": "Navegar",
+    "select": "Seleccionar",
     "language": "Idioma",
     "languageDesc": "Idioma de la UI almacenado en la config del proyecto.",
     "mode": "Modo",
@@ -366,12 +377,11 @@
     "emptyState": "Inicia la conversación: pregunta sobre este tablero, una tarea o el trabajo pendiente.",
     "sessionUntitled": "Conversación sin título",
     "sessionsEmpty": "Aún no hay conversaciones en este proyecto.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness para nuevos chats",
     "noHarness": "No hay ningún harness instalado en esta máquina",
     "copy": "Copiar",
     "daemonGuardTitle": "El chat del agente necesita el kandown daemon",
-    "daemonGuardBody": "Inicia el daemon local para chatear con tus agentes de código: ejecuta npx kandown en este proyecto."
-  ,
+    "daemonGuardBody": "Inicia el daemon local para chatear con tus agentes de código: ejecuta npx kandown en este proyecto.",
     "optionsTitle": "Elige una opción",
     "optionsSkip": "Prefiero escribirlo",
     "suggestionsLabel": "Sugerencias de continuación",

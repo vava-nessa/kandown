@@ -26,12 +26,15 @@
     "settings": "Cài đặt",
     "board": "Bảng",
     "reload": "Tải lại",
-    "newTask": "Công việc mới"
+    "newTask": "Công việc mới",
+    "list": "Danh sách",
+    "run": "Chạy"
   },
   "emptyState": {
     "unsupportedBrowser": "Trình duyệt không được hỗ trợ",
     "unsupportedBrowserDesc": "Công cụ này yêu cầu <code>File System Access API</code>. Sử dụng Chrome, Edge, Brave hoặc Opera. Firefox và Safari chưa được hỗ trợ.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Đang kết nối tới máy chủ..."
   },
   "header": {
     "tasks": "công việc",
@@ -130,7 +133,8 @@
     "priority": "Ưu tiên",
     "body": "Nội dung",
     "subtasks": "Công việc con",
-    "none": "(không)"
+    "none": "(không)",
+    "tags": "Thẻ"
   },
   "bulk": {
     "priority": "Ưu tiên",
@@ -143,6 +147,8 @@
     "delete": "Xoá",
     "confirmDelete": "Xác nhận xoá",
     "selectAll": "Chọn tất cả",
+    "select": "Chọn công việc",
+    "deselect": "Bỏ chọn công việc",
     "clear": "Xoá lựa chọn",
     "selectedOne": "selected",
     "selectedMany": "selected",
@@ -190,6 +196,11 @@
     "boardDesc": "Hành vi ID công việc và mặc định cấp bảng.",
     "fields": "Trường",
     "fieldsDesc": "Các trường tùy chọn hiển thị trên công việc và thẻ bảng.",
+    "extensions": "Tiện ích mở rộng",
+    "extensionsDesc": "Quản lý các tiện ích mở rộng đã cài: bật, tắt và chế độ hạn chế.",
+    "kickerExtensions": "Plugin và tích hợp",
+    "navigate": "Điều hướng",
+    "select": "Chọn",
     "language": "Ngôn ngữ",
     "languageDesc": "Ngôn ngữ UI được lưu trong cấu hình dự án này.",
     "mode": "Chế độ",
@@ -322,12 +333,11 @@
     "emptyState": "Bắt đầu trò chuyện: hỏi về bảng này, một tác vụ hoặc công việc phía trước.",
     "sessionUntitled": "Cuộc trò chuyện không tiêu đề",
     "sessionsEmpty": "Chưa có cuộc trò chuyện nào trong dự án này.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness cho các đoạn chat mới",
     "noHarness": "Không có harness nào được cài trên máy này",
     "copy": "Sao chép",
     "daemonGuardTitle": "Trò chuyện với agent cần kandown daemon",
-    "daemonGuardBody": "Khởi động daemon cục bộ để trò chuyện với các agent lập trình của bạn: chạy npx kandown trong dự án này."
-  ,
+    "daemonGuardBody": "Khởi động daemon cục bộ để trò chuyện với các agent lập trình của bạn: chạy npx kandown trong dự án này.",
     "optionsTitle": "Chọn một lựa chọn",
     "optionsSkip": "Tôi sẽ tự nhập",
     "suggestionsLabel": "Gợi ý tiếp theo",

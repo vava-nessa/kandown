@@ -26,12 +26,15 @@
     "settings": "Ρυθμίσεις",
     "board": "Πίνακας",
     "reload": "Επαναφόρτωση",
-    "newTask": "Νέα εργασία"
+    "newTask": "Νέα εργασία",
+    "list": "Λίστα",
+    "run": "Εκτέλεση"
   },
   "emptyState": {
     "unsupportedBrowser": "Μη υποστηριζόμενος browser",
     "unsupportedBrowserDesc": "Αυτή η μηχανή απαιτεί το <code>File System Access API</code>. Χρησιμοποιήστε Chrome, Edge, Brave ή Opera. Τα Firefox και Safari δεν το υποστηρίζουν ακόμη.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Σύνδεση στον διακομιστή..."
   },
   "header": {
     "tasks": "εργασίες",
@@ -130,7 +133,8 @@
     "priority": "Προτεραιότητα",
     "body": "Σώμα",
     "subtasks": "Υποεκκρεμούντα",
-    "none": "(καμία)"
+    "none": "(καμία)",
+    "tags": "Ετικέτες"
   },
   "languageNames": {
     "en": "Αγγλικά",
@@ -172,6 +176,8 @@
     "delete": "Διαγραφή",
     "confirmDelete": "Επιβεβαίωση διαγραφής",
     "selectAll": "Επιλογή όλων",
+    "select": "Επιλογή εργασίας",
+    "deselect": "Κατάργηση επιλογής εργασίας",
     "clear": "Καθαρισμός επιλογής",
     "selectedOne": "selected",
     "selectedMany": "selected",
@@ -219,6 +225,11 @@
     "boardDesc": "Συμπεριφορά αναγνωριστικού εργασίας και προεπιλογές επιπέδου πίνακα.",
     "fields": "Πεδία",
     "fieldsDesc": "Προαιρετικά πεδία που εμφανίζονται σε εργασίες και κάρτες πίνακα.",
+    "extensions": "Επεκτάσεις",
+    "extensionsDesc": "Διαχείριση εγκατεστημένων επεκτάσεων: ενεργοποίηση, απενεργοποίηση και περιορισμένη λειτουργία.",
+    "kickerExtensions": "Πρόσθετα και ενσωματώσεις",
+    "navigate": "Πλοήγηση",
+    "select": "Επιλογή",
     "language": "Γλώσσα",
     "languageDesc": "Γλώσσα διεπαφής αποθηκευμένη στη διαμόρφωση αυτού του έργου.",
     "mode": "Λειτουργία",
@@ -355,12 +366,11 @@
     "emptyState": "Ξεκίνα τη συνομιλία: ρώτησε για αυτόν τον πίνακα, μια εργασία ή τη δουλειά που έρχεται.",
     "sessionUntitled": "Συνομιλία χωρίς τίτλο",
     "sessionsEmpty": "Δεν υπάρχουν ακόμη συνομιλίες σε αυτό το έργο.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness για νέες συνομιλίες",
     "noHarness": "Κανένα harness δεν είναι εγκατεστημένο σε αυτό το μηχάνημα",
     "copy": "Αντιγραφή",
     "daemonGuardTitle": "Η συνομιλία με τον agent χρειάζεται το kandown daemon",
-    "daemonGuardBody": "Ξεκίνα το τοπικό daemon για να συνομιλείς με τους coding agents σου: εκτέλεσε npx kandown σε αυτό το έργο."
-  ,
+    "daemonGuardBody": "Ξεκίνα το τοπικό daemon για να συνομιλείς με τους coding agents σου: εκτέλεσε npx kandown σε αυτό το έργο.",
     "optionsTitle": "Επιλέξτε μια επιλογή",
     "optionsSkip": "Προτιμώ να γράψω",
     "suggestionsLabel": "Προτάσεις συνέχειας",

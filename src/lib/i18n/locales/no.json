@@ -26,12 +26,15 @@
     "settings": "Innstillinger",
     "board": "Tavle",
     "reload": "Last på nytt",
-    "newTask": "Ny oppgave"
+    "newTask": "Ny oppgave",
+    "list": "Liste",
+    "run": "Kjør"
   },
   "emptyState": {
     "unsupportedBrowser": "Nettleseren støttes ikke",
     "unsupportedBrowserDesc": "Denne motoren krever <code>File System Access API</code>. Bruk Chrome, Edge, Brave eller Opera. Firefox og Safari støttes ennå ikke.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Kobler til serveren..."
   },
   "header": {
     "tasks": "oppgaver",
@@ -130,7 +133,8 @@
     "priority": "Prioritet",
     "body": "Innhold",
     "subtasks": "Underoppgaver",
-    "none": "(ingen)"
+    "none": "(ingen)",
+    "tags": "Merker"
   },
   "languageNames": {
     "en": "Engelsk",
@@ -172,6 +176,8 @@
     "delete": "Slett",
     "confirmDelete": "Bekreft sletting",
     "selectAll": "Velg alle",
+    "select": "Velg oppgave",
+    "deselect": "Opphev valg av oppgave",
     "clear": "Tøm valg",
     "selectedOne": "selected",
     "selectedMany": "selected",
@@ -219,6 +225,11 @@
     "boardDesc": "Oppgave-ID-atferd og tavlenivå standarder.",
     "fields": "Felt",
     "fieldsDesc": "Valgfrie felt vist på oppgaver og tavlekort.",
+    "extensions": "Utvidelser",
+    "extensionsDesc": "Administrer installerte utvidelser: slå på, slå av og begrenset modus.",
+    "kickerExtensions": "Plugin og integrasjoner",
+    "navigate": "Naviger",
+    "select": "Velg",
     "language": "Språk",
     "languageDesc": "UI-språk lagret i denne prosjektkonfigurasjonen.",
     "mode": "Modus",
@@ -355,12 +366,11 @@
     "emptyState": "Start samtalen: spør om tavla, en oppgave eller arbeidet som ligger foran.",
     "sessionUntitled": "Samtale uten tittel",
     "sessionsEmpty": "Ingen samtaler ennå i dette prosjektet.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness for nye chatter",
     "noHarness": "Ingen harness installert på denne maskinen",
     "copy": "Kopier",
     "daemonGuardTitle": "Agentchatten trenger kandown daemon",
-    "daemonGuardBody": "Start den lokale daemonen for å chatte med kodeagentene dine: kjør npx kandown i dette prosjektet."
-  ,
+    "daemonGuardBody": "Start den lokale daemonen for å chatte med kodeagentene dine: kjør npx kandown i dette prosjektet.",
     "optionsTitle": "Velg et alternativ",
     "optionsSkip": "Jeg skriver heller selv",
     "suggestionsLabel": "Forslag til oppfølging",

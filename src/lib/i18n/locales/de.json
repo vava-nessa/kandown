@@ -26,12 +26,15 @@
     "settings": "Einstellungen",
     "board": "Board",
     "reload": "Neu laden",
-    "newTask": "Neue Aufgabe"
+    "newTask": "Neue Aufgabe",
+    "list": "Liste",
+    "run": "Ausführen"
   },
   "emptyState": {
     "unsupportedBrowser": "Nicht unterstützter Browser",
     "unsupportedBrowserDesc": "Diese Engine benötigt die <code>File System Access API</code>. Verwenden Sie Chrome, Edge, Brave oder Opera. Firefox und Safari unterstützen diese noch nicht.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Verbindung zum Server wird hergestellt..."
   },
   "header": {
     "tasks": "Aufgaben",
@@ -130,7 +133,8 @@
     "priority": "Priorität",
     "body": "Inhalt",
     "subtasks": "Unteraufgaben",
-    "none": "(keine)"
+    "none": "(keine)",
+    "tags": "Tags"
   },
   "languageNames": {
     "en": "Englisch",
@@ -178,6 +182,8 @@
     "delete": "Löschen",
     "confirmDelete": "Löschen bestätigen",
     "selectAll": "Alle auswählen",
+    "select": "Aufgabe auswählen",
+    "deselect": "Auswahl der Aufgabe aufheben",
     "selectAllHint": "Alle auswählen (sichtbare)",
     "clear": "Auswahl aufheben",
     "selectedOne": "selected",
@@ -219,6 +225,11 @@
     "boardDesc": "Aufgaben-ID-Verhalten und Board-Standardwerte.",
     "fields": "Felder",
     "fieldsDesc": "Optionale Felder, die auf Aufgaben und Board-Karten angezeigt werden.",
+    "extensions": "Erweiterungen",
+    "extensionsDesc": "Installierte Erweiterungen verwalten: aktivieren, deaktivieren und eingeschränkter Modus.",
+    "kickerExtensions": "Plugins & Integrationen",
+    "navigate": "Navigieren",
+    "select": "Auswählen",
     "language": "Sprache",
     "languageDesc": "UI-Sprache in der Projektkonfiguration gespeichert.",
     "mode": "Modus",
@@ -355,12 +366,11 @@
     "emptyState": "Starte die Unterhaltung: Frag nach diesem Board, einer Aufgabe oder der anstehenden Arbeit.",
     "sessionUntitled": "Unbenannte Unterhaltung",
     "sessionsEmpty": "Noch keine Unterhaltungen in diesem Projekt.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness für neue Chats",
     "noHarness": "Kein Harness auf dieser Maschine installiert",
     "copy": "Kopieren",
     "daemonGuardTitle": "Der Agenten-Chat braucht den kandown daemon",
-    "daemonGuardBody": "Starte den lokalen Daemon, um mit deinen Coding-Agents zu chatten: Führe npx kandown in diesem Projekt aus."
-  ,
+    "daemonGuardBody": "Starte den lokalen Daemon, um mit deinen Coding-Agents zu chatten: Führe npx kandown in diesem Projekt aus.",
     "optionsTitle": "Option wählen",
     "optionsSkip": "Lieber selbst tippen",
     "suggestionsLabel": "Folgevorschläge",

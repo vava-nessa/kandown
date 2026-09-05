@@ -26,12 +26,15 @@
     "settings": "Paramètres",
     "board": "Tableau",
     "reload": "Recharger",
-    "newTask": "Nouvelle tâche"
+    "newTask": "Nouvelle tâche",
+    "list": "Liste",
+    "run": "Exécuter"
   },
   "emptyState": {
     "unsupportedBrowser": "Navigateur non supporté",
     "unsupportedBrowserDesc": "Ce moteur nécessite l'<code>API File System Access</code>. Utilisez Chrome, Edge, Brave ou Opera. Firefox et Safari ne la supportent pas encore.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Connexion au serveur..."
   },
   "header": {
     "tasks": "tâches",
@@ -150,7 +153,8 @@
     "priority": "Priorité",
     "body": "Corps",
     "subtasks": "Sous-tâches",
-    "none": "(aucun)"
+    "none": "(aucun)",
+    "tags": "Tags"
   },
   "languageNames": {
     "en": "Anglais",
@@ -212,6 +216,8 @@
     "delete": "Supprimer",
     "confirmDelete": "Confirmer la suppression",
     "selectAll": "Tout sélectionner",
+    "select": "Sélectionner la tâche",
+    "deselect": "Désélectionner la tâche",
     "clear": "Effacer la sélection"
   },
   "agent": {
@@ -254,6 +260,11 @@
     "boardDesc": "Comportement de l'identifiant de tâche et paramètres par défaut du tableau.",
     "fields": "Champs",
     "fieldsDesc": "Champs optionnels affichés sur les tâches et les cartes du tableau.",
+    "extensions": "Extensions",
+    "extensionsDesc": "Gérez les extensions installées : activation, désactivation et mode restreint.",
+    "kickerExtensions": "Plugins et intégrations",
+    "navigate": "Naviguer",
+    "select": "Sélectionner",
     "language": "Langue",
     "languageDesc": "Langue de l'interface stockée dans la config du projet.",
     "mode": "Mode",
@@ -406,12 +417,11 @@
     "emptyState": "Lancez la conversation : interrogez le tableau, une tâche ou le travail à venir.",
     "sessionUntitled": "Conversation sans titre",
     "sessionsEmpty": "Aucune conversation dans ce projet pour le moment.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness pour les nouvelles conversations",
     "noHarness": "Aucun harness installé sur cette machine",
     "copy": "Copier",
     "daemonGuardTitle": "Le chat de l'agent a besoin du kandown daemon",
-    "daemonGuardBody": "Démarrez le daemon local pour discuter avec vos agents de code : lancez npx kandown dans ce projet."
-  ,
+    "daemonGuardBody": "Démarrez le daemon local pour discuter avec vos agents de code : lancez npx kandown dans ce projet.",
     "optionsTitle": "Choisir une option",
     "optionsSkip": "Je préfère taper moi-même",
     "suggestionsLabel": "Suggestions de suivi",

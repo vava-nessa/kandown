@@ -26,12 +26,15 @@
     "settings": "Settings",
     "board": "Board",
     "reload": "Reload",
-    "newTask": "New task"
+    "newTask": "New task",
+    "list": "รายการ",
+    "run": "เรียกใช้"
   },
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "กำลังเชื่อมต่อกับเซิร์ฟเวอร์..."
   },
   "header": {
     "tasks": "tasks",
@@ -130,7 +133,8 @@
     "priority": "Priority",
     "body": "Body",
     "subtasks": "Subtasks",
-    "none": "(none)"
+    "none": "(none)",
+    "tags": "แท็ก"
   },
   "languageNames": {
     "en": "English",
@@ -194,6 +198,8 @@
     "delete": "ลบ",
     "confirmDelete": "ยืนยันการลบ",
     "selectAll": "เลือกทั้งหมด",
+    "select": "เลือกงาน",
+    "deselect": "ยกเลิกการเลือกงาน",
     "clear": "ล้างการเลือก",
     "selectedOne": "selected",
     "selectedMany": "selected",
@@ -241,6 +247,11 @@
     "boardDesc": "Task id behavior and board-level defaults.",
     "fields": "Fields",
     "fieldsDesc": "Optional fields shown on tasks and board cards.",
+    "extensions": "ส่วนขยาย",
+    "extensionsDesc": "จัดการส่วนขยายที่ติดตั้ง: เปิดใช้ ปิดใช้ และโหมดจำกัด",
+    "kickerExtensions": "ปลั๊กอินและการเชื่อมต่อ",
+    "navigate": "Navigate",
+    "select": "Select",
     "language": "Language",
     "languageDesc": "UI language stored in this project config.",
     "mode": "Mode",
@@ -377,12 +388,11 @@
     "emptyState": "เริ่มบทสนทนา: ถามเกี่ยวกับบอร์ดนี้ งานใดงานหนึ่ง หรืองานที่รออยู่",
     "sessionUntitled": "บทสนทนาไม่มีชื่อ",
     "sessionsEmpty": "ยังไม่มีบทสนทนาในโปรเจกต์นี้",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness สำหรับแชทใหม่",
     "noHarness": "ไม่มี harness ติดตั้งอยู่บนเครื่องนี้",
     "copy": "คัดลอก",
     "daemonGuardTitle": "แชทกับเอเจนต์ต้องใช้ kandown daemon",
-    "daemonGuardBody": "เริ่ม daemon ในเครื่องเพื่อแชทกับเอเจนต์เขียนโค้ดของคุณ: รัน npx kandown ในโปรเจกต์นี้"
-  ,
+    "daemonGuardBody": "เริ่ม daemon ในเครื่องเพื่อแชทกับเอเจนต์เขียนโค้ดของคุณ: รัน npx kandown ในโปรเจกต์นี้",
     "optionsTitle": "เลือกตัวเลือก",
     "optionsSkip": "ฉันจะพิมพ์เอง",
     "suggestionsLabel": "คำแนะนำถัดไป",

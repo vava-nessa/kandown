@@ -26,12 +26,15 @@
     "settings": "设置",
     "board": "看板",
     "reload": "重新加载",
-    "newTask": "新建任务"
+    "newTask": "新建任务",
+    "list": "列表",
+    "run": "运行"
   },
   "emptyState": {
     "unsupportedBrowser": "不支持的浏览器",
     "unsupportedBrowserDesc": "此引擎需要 <code>File System Access API</code>。请使用 Chrome、Edge、Brave 或 Opera。Firefox 和 Safari 尚不支持。",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "正在连接服务器..."
   },
   "header": {
     "tasks": "个任务",
@@ -130,7 +133,8 @@
     "priority": "优先级",
     "body": "正文",
     "subtasks": "子任务",
-    "none": "（无）"
+    "none": "（无）",
+    "tags": "标签"
   },
   "languageNames": {
     "en": "英语",
@@ -189,6 +193,8 @@
     "delete": "删除",
     "confirmDelete": "确认删除",
     "selectAll": "全选",
+    "select": "选择任务",
+    "deselect": "取消选择任务",
     "selectAllHint": "全选 (可见的)",
     "clear": "清除选择",
     "selectedOne": "selected",
@@ -230,6 +236,11 @@
     "boardDesc": "任务ID行为和看板级默认值。",
     "fields": "字段",
     "fieldsDesc": "显示在任务和看板卡上的可选字段。",
+    "extensions": "扩展",
+    "extensionsDesc": "管理已安装的扩展：启用、禁用和受限模式。",
+    "kickerExtensions": "插件与集成",
+    "navigate": "导航",
+    "select": "选择",
     "language": "语言",
     "languageDesc": "UI语言存储在此项目配置中。",
     "mode": "模式",
@@ -366,12 +377,11 @@
     "emptyState": "开始对话：可以问看板、某个任务或接下来的工作。",
     "sessionUntitled": "未命名对话",
     "sessionsEmpty": "这个项目还没有对话。",
-    "harnessLabel": "Harness",
+    "harnessLabel": "新聊天使用的 Harness",
     "noHarness": "这台机器上没有安装 harness",
     "copy": "复制",
     "daemonGuardTitle": "智能体聊天需要 kandown daemon",
-    "daemonGuardBody": "启动本地 daemon 即可与编码智能体聊天：在本项目中运行 npx kandown。"
-  ,
+    "daemonGuardBody": "启动本地 daemon 即可与编码智能体聊天：在本项目中运行 npx kandown。",
     "optionsTitle": "选择一个选项",
     "optionsSkip": "我自己输入",
     "suggestionsLabel": "后续问题建议",

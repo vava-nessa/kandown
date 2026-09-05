@@ -26,12 +26,15 @@
     "settings": "Postavke",
     "board": "Ploča",
     "reload": "Osvježi",
-    "newTask": "Novi zadatak"
+    "newTask": "Novi zadatak",
+    "list": "Popis",
+    "run": "Pokreni"
   },
   "emptyState": {
     "unsupportedBrowser": "Nepodržan preglednik",
     "unsupportedBrowserDesc": "Ovaj engine zahtijeva <code>File System Access API</code>. Koristite Chrome, Edge, Brave ili Opera. Firefox i Safari još ne podržavaju.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Povezivanje s poslužiteljem..."
   },
   "header": {
     "tasks": "zadaci",
@@ -130,7 +133,8 @@
     "priority": "Prioritet",
     "body": "Sadržaj",
     "subtasks": "Podzadaci",
-    "none": "(nema)"
+    "none": "(nema)",
+    "tags": "Oznake"
   },
   "languageNames": {
     "en": "Engleski",
@@ -172,6 +176,8 @@
     "delete": "Izbriši",
     "confirmDelete": "Potvrdi brisanje",
     "selectAll": "Odaberi sve",
+    "select": "Odaberi zadatak",
+    "deselect": "Poništi odabir zadatka",
     "clear": "Očisti odabir",
     "selectedOne": "selected",
     "selectedMany": "selected",
@@ -219,6 +225,11 @@
     "boardDesc": "Ponašanje ID-a zadatka i zadane postavke na razini ploče.",
     "fields": "Polja",
     "fieldsDesc": "Neobavezna polja prikazana na zadacima i karticama ploče.",
+    "extensions": "Proširenja",
+    "extensionsDesc": "Upravljajte instaliranim proširenjima: omogućavanje, onemogućavanje i ograničeni način rada.",
+    "kickerExtensions": "Dodaci i integracije",
+    "navigate": "Navigiraj",
+    "select": "Odaberi",
     "language": "Jezik",
     "languageDesc": "Jezik sučelja spremljen u konfiguraciji ovog projekta.",
     "mode": "Način",
@@ -355,12 +366,11 @@
     "emptyState": "Započni razgovor: pitaj o ovoj ploči, zadatku ili poslu koji predstoji.",
     "sessionUntitled": "Razgovor bez naslova",
     "sessionsEmpty": "Još nema razgovora u ovom projektu.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness za nove razgovore",
     "noHarness": "Na ovom računalu nije instaliran nijedan harness",
     "copy": "Kopiraj",
     "daemonGuardTitle": "Razgovor s agentom treba kandown daemon",
-    "daemonGuardBody": "Pokreni lokalni daemon kako bi razgovarao sa svojim agentima za kodiranje: pokreni npx kandown u ovom projektu."
-  ,
+    "daemonGuardBody": "Pokreni lokalni daemon kako bi razgovarao sa svojim agentima za kodiranje: pokreni npx kandown u ovom projektu.",
     "optionsTitle": "Odaberite opciju",
     "optionsSkip": "Radije ću sam upisati",
     "suggestionsLabel": "Prijedlozi za nastavak",

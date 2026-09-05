@@ -26,12 +26,15 @@
     "settings": "Settings",
     "board": "Board",
     "reload": "Reload",
-    "newTask": "New task"
+    "newTask": "New task",
+    "list": "జాబితా",
+    "run": "అమలు చేయండి"
   },
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "సర్వర్‌కు కనెక్ట్ అవుతోంది..."
   },
   "header": {
     "tasks": "tasks",
@@ -130,7 +133,8 @@
     "priority": "Priority",
     "body": "Body",
     "subtasks": "Subtasks",
-    "none": "(none)"
+    "none": "(none)",
+    "tags": "Tags"
   },
   "languageNames": {
     "en": "English",
@@ -202,6 +206,8 @@
     "delete": "Delete",
     "confirmDelete": "Confirm delete",
     "selectAll": "Select all",
+    "select": "పనిని ఎంచుకోండి",
+    "deselect": "పని ఎంపికను తీసివేయండి",
     "selectAllHint": "Select all (visible)",
     "clear": "Clear selection"
   },
@@ -241,6 +247,11 @@
     "boardDesc": "Task id behavior and board-level defaults.",
     "fields": "Fields",
     "fieldsDesc": "Optional fields shown on tasks and board cards.",
+    "extensions": "ఎక్స్‌టెన్షన్‌లు",
+    "extensionsDesc": "ఇన్‌స్టాల్ చేసిన ఎక్స్‌టెన్షన్‌లను నిర్వహించండి: ప్రారంభించడం, నిలిపివేయడం మరియు పరిమిత మోడ్.",
+    "kickerExtensions": "ప్లగిన్‌లు మరియు ఇంటిగ్రేషన్‌లు",
+    "navigate": "Navigate",
+    "select": "Select",
     "language": "Language",
     "languageDesc": "UI language stored in this project config.",
     "mode": "Mode",
@@ -377,12 +388,11 @@
     "emptyState": "సంభాషణ మొదలుపెట్టండి: ఈ బోర్డు, ఏదైనా పని లేదా ముందున్న పని గురించి అడగండి.",
     "sessionUntitled": "పేరులేని సంభాషణ",
     "sessionsEmpty": "ఈ ప్రాజెక్ట్‌లో ఇంకా సంభాషణలు లేవు.",
-    "harnessLabel": "హార్నెస్",
+    "harnessLabel": "కొత్త చాట్‌ల కోసం హార్నెస్",
     "noHarness": "ఈ యంత్రంలో ఏ హార్నెస్ కూడా ఇన్‌స్టాల్ చేయలేదు",
     "copy": "కాపీ",
     "daemonGuardTitle": "ఏజెంట్ చాట్‌కు kandown daemon కావాలి",
-    "daemonGuardBody": "మీ కోడింగ్ ఏజెంట్లతో మాట్లాడటానికి లోకల్ daemon ప్రారంభించండి: ఈ ప్రాజెక్ట్‌లో npx kandown నడపండి."
-  ,
+    "daemonGuardBody": "మీ కోడింగ్ ఏజెంట్లతో మాట్లాడటానికి లోకల్ daemon ప్రారంభించండి: ఈ ప్రాజెక్ట్‌లో npx kandown నడపండి.",
     "optionsTitle": "ఒక ఎంపికను ఎంచుకోండి",
     "optionsSkip": "నేనే టైప్ చేస్తాను",
     "suggestionsLabel": "తర్వాతి ప్రశ్నల సూచనలు",

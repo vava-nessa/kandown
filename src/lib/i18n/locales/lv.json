@@ -26,12 +26,15 @@
     "settings": "Iestatījumi",
     "board": "Tāfele",
     "reload": "Pārlādēt",
-    "newTask": "Jauns uzdevums"
+    "newTask": "Jauns uzdevums",
+    "list": "Saraksts",
+    "run": "Palaist"
   },
   "emptyState": {
     "unsupportedBrowser": "Neatbalstīta pārlūkprogramma",
     "unsupportedBrowserDesc": "Šim dzinējam nepieciešams <code>File System Access API</code>. Izmantojiet Chrome, Edge, Brave vai Opera. Firefox un Safari vēl to neatbalsta.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "Notiek savienojuma izveide ar serveri..."
   },
   "header": {
     "tasks": "uzdevumi",
@@ -130,7 +133,8 @@
     "priority": "Prioritāte",
     "body": "Saturs",
     "subtasks": "Apakšuzdevumi",
-    "none": "(neviens)"
+    "none": "(neviens)",
+    "tags": "Birka"
   },
   "languageNames": {
     "en": "Angļu",
@@ -172,6 +176,8 @@
     "delete": "Dzēst",
     "confirmDelete": "Apstiprināt dzēšanu",
     "selectAll": "Atlasīt visus",
+    "select": "Atlasīt uzdevumu",
+    "deselect": "Noņemt uzdevuma atlasi",
     "clear": "Notīrīt atlasi",
     "selectedOne": "selected",
     "selectedMany": "selected",
@@ -219,6 +225,11 @@
     "boardDesc": "Uzdevuma ID uzvedība un tāfeles līmeņa noklusējumi.",
     "fields": "Lauki",
     "fieldsDesc": "Neobligāti lauki, kas parādās uz uzdevumiem un tāfeles kartēm.",
+    "extensions": "Papildinājumi",
+    "extensionsDesc": "Pārvaldiet instalētos papildinājumus: iespējošana, atspējošana un ierobežotais režīms.",
+    "kickerExtensions": "Spraudņi un integrācijas",
+    "navigate": "Navigācija",
+    "select": "Izvēlēties",
     "language": "Valoda",
     "languageDesc": "UI valoda saglabāta šī projekta konfigurācijā.",
     "mode": "Režīms",
@@ -355,12 +366,11 @@
     "emptyState": "Sāc sarunu: jautā par šo dēli, uzdevumu vai gaidāmo darbu.",
     "sessionUntitled": "Saruna bez nosaukuma",
     "sessionsEmpty": "Šajā projektā vēl nav sarunu.",
-    "harnessLabel": "Harness",
+    "harnessLabel": "Harness jauniem čatiem",
     "noHarness": "Šajā datorā nav instalēts neviens harness",
     "copy": "Kopēt",
     "daemonGuardTitle": "Sarakstei ar aģentu nepieciešams kandown daemon",
-    "daemonGuardBody": "Palaid lokālo daemon, lai tērzētu ar saviem kodēšanas aģentiem: palaid npx kandown šajā projektā."
-  ,
+    "daemonGuardBody": "Palaid lokālo daemon, lai tērzētu ar saviem kodēšanas aģentiem: palaid npx kandown šajā projektā.",
     "optionsTitle": "Izvēlieties opciju",
     "optionsSkip": "Labāk rakstīšu tekstu",
     "suggestionsLabel": "Ieteikumi turpinājumam",

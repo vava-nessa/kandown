@@ -26,12 +26,15 @@
     "settings": "Settings",
     "board": "Board",
     "reload": "Reload",
-    "newTask": "New task"
+    "newTask": "New task",
+    "list": "યાદી",
+    "run": "ચલાવો"
   },
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>."
+    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "serverModeLoadingDesc": "સર્વર સાથે કનેક્ટ થઈ રહ્યું છે..."
   },
   "header": {
     "tasks": "tasks",
@@ -130,7 +133,8 @@
     "priority": "Priority",
     "body": "Body",
     "subtasks": "Subtasks",
-    "none": "(none)"
+    "none": "(none)",
+    "tags": "ટૅગ્સ"
   },
   "languageNames": {
     "en": "English",
@@ -202,6 +206,8 @@
     "delete": "Delete",
     "confirmDelete": "Confirm delete",
     "selectAll": "Select all",
+    "select": "કાર્ય પસંદ કરો",
+    "deselect": "કાર્યની પસંદગી દૂર કરો",
     "selectAllHint": "Select all (visible)",
     "clear": "Clear selection"
   },
@@ -241,6 +247,11 @@
     "boardDesc": "Task id behavior and board-level defaults.",
     "fields": "Fields",
     "fieldsDesc": "Optional fields shown on tasks and board cards.",
+    "extensions": "એક્સ્ટેન્શન્સ",
+    "extensionsDesc": "ઇન્સ્ટોલ કરેલા એક્સ્ટેન્શન્સ મેનેજ કરો: ચાલુ, બંધ અને પ્રતિબંધિત મોડ.",
+    "kickerExtensions": "પ્લગઇન અને ઇન્ટિગ્રેશન",
+    "navigate": "Navigate",
+    "select": "Select",
     "language": "Language",
     "languageDesc": "UI language stored in this project config.",
     "mode": "Mode",
@@ -377,12 +388,11 @@
     "emptyState": "વાતચીત શરૂ કરો: આ બોર્ડ, કોઈ કાર્ય કે આગળનાં કામ વિશે પૂછો.",
     "sessionUntitled": "શીર્ષક વિનાની વાતચીત",
     "sessionsEmpty": "આ પ્રોજેક્ટમાં હજી કોઈ વાતચીત નથી.",
-    "harnessLabel": "હાર્નેસ",
+    "harnessLabel": "નવી ચેટ માટે હાર્નેસ",
     "noHarness": "આ મશીન પર કોઈ હાર્નેસ ઇન્સ્ટોલ નથી",
     "copy": "કૉપિ",
     "daemonGuardTitle": "એજન્ટ ચેટને kandown daemon જોઈએ છે",
-    "daemonGuardBody": "તમારા કોડિંગ એજન્ટ સાથે વાત કરવા લોકલ daemon શરૂ કરો: આ પ્રોજેક્ટમાં npx kandown ચલાવો."
-  ,
+    "daemonGuardBody": "તમારા કોડિંગ એજન્ટ સાથે વાત કરવા લોકલ daemon શરૂ કરો: આ પ્રોજેક્ટમાં npx kandown ચલાવો.",
     "optionsTitle": "એક વિકલ્પ પસંદ કરો",
     "optionsSkip": "હું જાતે ટાઇપ કરીશ",
     "suggestionsLabel": "આગળના પ્રશ્નોના સૂચનો",
