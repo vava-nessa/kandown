@@ -21,15 +21,17 @@
  * malformed harness line can never take the daemon down.
  *
  * @functions
- *  → createAgentSession   : resolve the harness, spawn, start streaming
- *  → listAgentSessions    : JSON-safe registry snapshot
- *  → getAgentSession      : one session snapshot or undefined
- *  → subscribeAgentSession: live listener + buffered replay (SSE backing)
- *  → sendToSession        : steer a running turn or resume a finished one
- *  → stopAgentSession     : graceful stop, then SIGTERM
- *  → resetAgentSessions   : test-only registry wipe
+ *  → createAgentSession         : resolve the harness, spawn, start streaming
+ *  → listAgentSessions          : JSON-safe registry snapshot
+ *  → getAgentSession            : one session snapshot or undefined
+ *  → subscribeAgentSession      : live listener + buffered replay (SSE backing)
+ *  → sendToSession              : steer a running turn or resume a finished one
+ *  → setAgentPermissionHandler  : per-session callback for routed permissions
+ *  → deliverRawLine             : write one pre-built protocol line to stdin
+ *  → stopAgentSession           : graceful stop, then SIGTERM
+ *  → resetAgentSessions         : test-only registry wipe
  *
- * @exports createAgentSession, listAgentSessions, getAgentSession, subscribeAgentSession, sendToSession, stopAgentSession, resetAgentSessions, MAX_SESSIONS, EVENT_BUFFER_LIMIT
+ * @exports createAgentSession, listAgentSessions, getAgentSession, subscribeAgentSession, sendToSession, setAgentPermissionHandler, deliverRawLine, stopAgentSession, resetAgentSessions, AgentPermissionRequest, PermissionRoutingAdapter, MAX_SESSIONS, EVENT_BUFFER_LIMIT
  * @see src/cli/lib/agent/types.ts: the event model
  * @see src/cli/lib/agent/detect.ts: the harness catalog and PATH resolution
  */
@@ -51,6 +53,29 @@ export const MAX_SESSIONS = 50;
  *  turn started still sees the full history. */
 export const EVENT_BUFFER_LIMIT = 500;
 
+/** 📖 One permission request an adapter extracted from the harness stream and
+ *  wants a decision for (t309). Protocol-neutral: `requestId` and `options`
+ *  are opaque continuation data the adapter needs to build the reply later,
+ *  `title` and `kind` are what the approval UI shows. */
+export interface AgentPermissionRequest {
+  /** Adapter-specific id of the inbound request (for ACP: the JSON-RPC id). */
+  requestId: number | string;
+  toolCallId?: string;
+  title: string;
+  kind: string;
+  options: unknown[];
+}
+
+/** 📖 Optional adapter capability for permission routing. `extractPermissionRequest`
+ *  recognizes one raw stdout line as a permission request (protocol knowledge
+ *  stays inside the adapter); `onPermissionRequest` decides: `allow` lets the
+ *  adapter's own parseLine auto-answer as before, `route` hands the decision
+ *  to the daemon so the web UI can approve or reject it. */
+export interface PermissionRoutingAdapter {
+  extractPermissionRequest?(line: string): AgentPermissionRequest | null;
+  onPermissionRequest?(state: AdapterState, request: AgentPermissionRequest): 'allow' | 'route';
+}
+
 const ADAPTERS: Record<string, HarnessAdapter> = {
   'claude-stream-json': claudeCodeAdapter,
   'codex-exec-json': codexAdapter,
@@ -71,6 +96,9 @@ interface SessionRecord {
   stderrTail: string;
   /** Absolute harness binary path, resolved once at creation for re-spawns. */
   resolvedBinPath: string;
+  /** 📖 Daemon-registered callback for routed permission requests; null unless
+   *  the server asked to be the decider, and nulled again on process exit. */
+  permissionHandler: ((request: AgentPermissionRequest) => void) | null;
 }
 
 const sessions = new Map<string, SessionRecord>();
@@ -108,9 +136,26 @@ function recordEvent(record: SessionRecord, event: AgentEvent): void {
 }
 
 /** 📖 Runs one stdout line through the adapter and fans the normalized events
- *  out to the buffer and subscribers. Never throws. */
+ *  out to the buffer and subscribers. Never throws.
+ *
+ *  📖 Permission routing (t309): a permission-aware adapter first gets the
+ *  chance to recognize the line as a permission request and route it. On
+ *  `route` with a daemon-registered handler the line is consumed here and the
+ *  answer comes later through deliverRawLine. Any other outcome (`allow`, no
+ *  hook, no handler) falls through to parseLine, whose auto-answer keeps the
+ *  harness from ever deadlocking on kandown. */
 function handleLine(record: SessionRecord, line: string): void {
   if (!line.trim()) return;
+  const routable = record.adapter as HarnessAdapter & PermissionRoutingAdapter;
+  const permission = routable.extractPermissionRequest?.(line) ?? null;
+  if (
+    permission
+    && record.permissionHandler
+    && routable.onPermissionRequest?.(record.state, permission) === 'route'
+  ) {
+    record.permissionHandler(permission);
+    return;
+  }
   let result;
   try {
     result = record.adapter.parseLine(line, record.state, record.config);
@@ -154,6 +199,9 @@ function attachChild(record: SessionRecord, child: ChildProcess): void {
     record.child = null;
     record.state.busy = false;
     record.info.exitCode = code;
+    // 📖 No decision can reach a dead process: drop the permission handler so
+    // a routed request can never be answered after exit.
+    record.permissionHandler = null;
     // 📖 A crash before any turn is useless without context: surface the last
     // stderr lines as the error the UI will actually show the user.
     if (reason === 'crash' && !record.turnSeen && record.stderrTail.trim()) {
@@ -253,6 +301,7 @@ export function createAgentSession(config: AgentSessionConfig): AgentSessionInfo
     turnSeen: false,
     stderrTail: '',
     resolvedBinPath: resolved.binPath,
+    permissionHandler: null,
   };
   sessions.set(record.info.id, record);
   startChild(record);
@@ -340,6 +389,32 @@ export function sendToSession(id: string, text: string): { ok: boolean; error?: 
   }
 
   return { ok: false, error: `Session is ${record.info.status}; cannot send now.` };
+}
+
+/** 📖 Registers (or clears, with null) the daemon-side decider for routed
+ *  permission requests on one session. Only called by the runtime when the
+ *  adapter both extracts a permission request and routes it, so sessions on
+ *  non-routing adapters never invoke the handler. False for an unknown
+ *  session. */
+export function setAgentPermissionHandler(
+  sessionId: string,
+  handler: ((request: AgentPermissionRequest) => void) | null,
+): boolean {
+  const record = sessions.get(sessionId);
+  if (!record) return false;
+  record.permissionHandler = handler;
+  return true;
+}
+
+/** 📖 Writes one fully built protocol line to a session's stdin. Used to answer
+ *  a routed permission request after the user decides (the reply line comes
+ *  from the adapter's response builder). False when the session is unknown or
+ *  its process is gone, which makes a late answer a harmless no-op. */
+export function deliverRawLine(sessionId: string, line: string): boolean {
+  const record = sessions.get(sessionId);
+  if (!record?.child?.stdin || record.child.stdin.destroyed) return false;
+  record.child.stdin.write(`${line}\n`);
+  return true;
 }
 
 /** 📖 Graceful stop: protocol goodbye (pi abort), then SIGTERM after a short

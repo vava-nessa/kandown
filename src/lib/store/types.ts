@@ -7,7 +7,7 @@
 
 import type { Column, Filters, BoardTask, Density, ViewMode, Subtask, TaskFrontmatter, KandownConfig, TaskContent, SearchMatch, SessionIndexEntryPayload, DetectedHarness, PermissionMode } from '../types';
 import type { RecentProject, ServerAgentHook } from '../filesystem';
-import type { ConflictType } from '../watcher';
+import type { ConflictType, AgentEditsBoardEvent } from '../watcher';
 import type { AgentChatEvent, ChatFoldState } from '../agent-chat-events';
 
 /** 📖 Toast severity. `warning` is used for partial-failure / corruption /
@@ -74,6 +74,9 @@ export interface AgentChatState {
   permissionModeSnapshot: PermissionMode | null;
   /** Task the sidebar was opened for ("Ask the agent" on a card / editor). */
   preContextTaskId: string | null;
+  /** 📖 Daemon advisory from the last session create: the project root is not
+   *  a git work tree, so agent edits have no safety net (t309). */
+  gitWarning: 'not-a-git-repo' | null;
   /** Installed harnesses for the new-conversation selector (lazy, on open). */
   harnesses: DetectedHarness[];
   starting: boolean;
@@ -86,6 +89,50 @@ export interface AgentChatStartInput {
   harnessId: string;
   taskId?: string;
   message?: string;
+}
+
+/** 📖 One live agent edit on a task (t309): the session touching the file,
+ * its harness, and when the edit started. Keyed by task id in AgentEditsState. */
+export interface AgentEditSession {
+  sessionId: string;
+  harnessId: string;
+  /** ISO 8601 instant the edit started (from the board event). */
+  since: string;
+}
+
+/** 📖 Latest before/after snapshot for a task the agent has written, as
+ * delivered by `task_diff` board events. Rendered by the DiffOverlay panel. */
+export interface AgentEditDiff {
+  before: string;
+  after: string;
+  truncated: boolean;
+  path: string;
+  /** ISO 8601 instant of the write (from the board event). */
+  at: string;
+}
+
+/** 📖 A pending harness permission request waiting for Approve / Reject.
+ * Rendered as a card in the fixed bottom-right stack. */
+export interface AgentPermissionRequest {
+  sessionId: string;
+  permissionId: string;
+  title: string;
+  kind: string;
+  /** ISO 8601 instant the request arrived (from the board event or fetch). */
+  at: string;
+}
+
+/** 📖 Everything the live-editing experience reads (t309). Presence per task,
+ * the latest diff per task, and the pending permission queue. Diffs are pruned
+ * to the 20 most recently touched tasks; permissions are ephemeral UI state,
+ * the daemon owns the authoritative pending list. */
+export interface AgentEditsState {
+  /** Task id → the agent session currently editing it. */
+  edits: Record<string, AgentEditSession>;
+  /** Task id → latest known before/after diff. */
+  diffs: Record<string, AgentEditDiff>;
+  /** Pending permission requests, oldest first. */
+  permissions: AgentPermissionRequest[];
 }
 
 /** 📖 A metadata change applied in bulk to one or more tasks (t116). Each field
@@ -271,4 +318,20 @@ export interface State {
   forgetSession: (id: string) => Promise<void>;
   /** Internal: folds one SSE event into the session's chat state. */
   ingestAgentEvent: (sessionId: string, event: AgentChatEvent) => void;
+
+  // Live agent edit presence (t309). State lives under `agentEdits`.
+  agentEdits: AgentEditsState;
+  /** Subscribes the slice to the board SSE agent-edit events and starts the
+   * stream in server mode. Called from setupWatcher (idempotent). */
+  setupAgentEdits: () => void;
+  /** Folds one board agent-edit event into the agentEdits state. */
+  ingestAgentEditEvent: (event: AgentEditsBoardEvent) => void;
+  /** Fetches pending permissions for one session (GET .../pending) and merges
+   * them into the queue. Best-effort: silently no-ops when unreachable. */
+  fetchPendingPermissions: (sessionId: string) => Promise<void>;
+  /** Removes a permission request locally without answering it. */
+  dismissPermission: (permissionId: string) => void;
+  /** Answers a permission request (POST .../resolve). Optimistically removes
+   * the card, restores it and toasts when the daemon cannot be reached. */
+  resolvePermission: (sessionId: string, permissionId: string, approve: boolean) => Promise<void>;
 }

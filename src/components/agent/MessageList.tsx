@@ -16,7 +16,7 @@
  * @see src/lib/agent-chat-events.ts: the fold that produces these entries
  */
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconAlertTriangle, IconBrain, IconChevronDown, IconTool } from '@tabler/icons-react';
 import { AnimatePresence, motion } from 'motion/react';
@@ -24,15 +24,20 @@ import { MOTION } from '../../lib/motion-presets';
 import type { ChatAssistantEntry, ChatEntry } from '../../lib/agent-chat-events';
 import { StreamingText } from './StreamingText';
 
-/** 📖 Collapsible thinking channel. Auto-opens while thinking is the live
- * phase, auto-collapses back once answer text starts flowing. */
+/** 📖 Collapsible thinking channel, two states:
+ *  compact (default): the word "Thinking" with a shimmer effect while live,
+ *  next to the latest thinking fragment scrolling on a single line, fast
+ *  enough to feel the agent think but readable only when expanded;
+ *  expanded (click): the full reasoning text, like a classic collapsible.
+ *  The compact line never auto-opens: reading is opt-in by design. */
 function ThinkingBlock({ entry }: { entry: ChatAssistantEntry }) {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(entry.thinkingActive);
+  const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    if (entry.thinkingActive) setOpen(true);
-  }, [entry.thinkingActive]);
+  // 📖 The ticker shows the tail of the accumulated thinking: every delta
+  // replaces the previous fragment, which is what makes it feel alive while
+  // staying unreadable unless the user deliberately clicks.
+  const ticker = entry.thinking.replace(/\s+/g, ' ').trim().slice(-120);
 
   if (!entry.thinking) return null;
 
@@ -45,15 +50,31 @@ function ThinkingBlock({ entry }: { entry: ChatAssistantEntry }) {
         aria-expanded={open}
       >
         <IconBrain size={12} stroke={1.8} className={entry.thinkingActive ? 'animate-pulse text-accent': ''} />
-        <span>{t('agentChat.thinking', 'Thinking')}</span>
-        <motion.span {...MOTION.rotate(open)} className="ml-auto inline-flex">
+        <span className={entry.thinkingActive ? 'thinking-shimmer flex-none': 'flex-none'}>
+          {t('agentChat.thinking', 'Thinking')}
+        </span>
+        {entry.thinkingActive && (
+          <span className="flex flex-none items-end gap-[2px]" aria-hidden="true">
+            {[0, 1, 2].map(delay => (
+              <span
+                key={delay}
+                className="size-[3px] animate-bounce rounded-full bg-fg-muted/70"
+                style={{ animationDelay: `${delay * 140}ms` }}
+              />
+            ))}
+          </span>
+        )}
+        <span className={`min-w-0 flex-1 truncate font-normal ${entry.thinkingActive ? 'text-fg-faint': 'text-fg-faint/70'}`}>
+          {ticker}
+        </span>
+        <motion.span {...MOTION.rotate(open)} className="ml-auto inline-flex flex-none">
           <IconChevronDown size={12} stroke={1.8} />
         </motion.span>
       </button>
       <AnimatePresence initial={false}>
         {open && (
           <motion.div {...MOTION.panel}>
-            <p className="whitespace-pre-wrap break-words border-t border-border px-2.5 py-2 text-[12px] leading-relaxed text-fg-muted">
+            <p className="max-h-56 overflow-y-auto whitespace-pre-wrap break-words border-t border-border px-2.5 py-2 text-[12px] leading-relaxed text-fg-muted">
               {entry.thinking}
             </p>
           </motion.div>

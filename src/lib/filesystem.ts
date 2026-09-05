@@ -451,7 +451,15 @@ export interface CreateAgentSessionInput {
  * in the demo, or when the backend refuses (unknown harness, missing task),
  * so callers can surface their own "daemon required" affordance.
  */
-export async function createAgentSession(input: CreateAgentSessionInput): Promise<{ session: AgentSessionPayload } | null> {
+/** 📖 Session creation result. `gitWarning` carries the daemon's advisory when
+ *  the project is not inside a git work tree: in accept-edits mode git is the
+ *  only safety net, so the UI offers "git init" or forced acceptance. */
+export interface CreateAgentSessionResult {
+  session: AgentSessionPayload;
+  gitWarning?: 'not-a-git-repo';
+}
+
+export async function createAgentSession(input: CreateAgentSessionInput): Promise<CreateAgentSessionResult | null> {
   if (!isServerMode() || isDemoMode()) return null;
   try {
     const res = await rawApiFetch('/api/agent/sessions', {
@@ -460,8 +468,12 @@ export async function createAgentSession(input: CreateAgentSessionInput): Promis
       body: JSON.stringify(input),
     });
     if (!res.ok) return null;
-    const data = await res.json() as { session?: unknown };
-    return isAgentSessionPayload(data.session) ? { session: data.session } : null;
+    const data = await res.json() as { session?: unknown; gitWarning?: unknown };
+    if (!isAgentSessionPayload(data.session)) return null;
+    return {
+      session: data.session,
+      ...(data.gitWarning === 'not-a-git-repo' ? { gitWarning: 'not-a-git-repo' as const } : {}),
+    };
   } catch {
     return null;
   }

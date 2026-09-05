@@ -322,3 +322,34 @@ code {
 .blocknote-editor-wrapper .bn-editor .ProseMirror:focus {
   outline: none;
 }
+
+/* 📖 Thinking ticker shimmer (agent chat sidebar): the word "Thinking"
+   carries a soft light sweep while the harness is streaming its reasoning.
+   Pure CSS so prefers-reduced-motion users just get a static tinted word:
+   the animation simply never starts. Color tokens are raw HSL triplets, so
+   they must go through hsl(). */
+@keyframes thinking-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.thinking-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted-foreground)) 0%,
+    hsl(var(--foreground)) 50%,
+    hsl(var(--muted-foreground)) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: thinking-shimmer 1.8s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .thinking-shimmer {
+    animation: none;
+    background: none;
+    -webkit-text-fill-color: currentcolor;
+    color: hsl(var(--muted-foreground));
+  }
+}

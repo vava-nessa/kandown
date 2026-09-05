@@ -2,7 +2,8 @@
  * @file File watcher for Kandown
  * @description Watches project state through content-hashed File System Access
  * polling or daemon SSE. It translates task, config, board and extension events
- * into reload, notification, conflict and extension-runtime refresh signals.
+ * into reload, notification, conflict and extension-runtime refresh signals,
+ * and re-broadcasts the live agent-edit board events (t309) as typed callbacks.
  *
  * 📖 Uses SHA-256 content hashing to avoid parsing on every tick — only
  * triggers a reload event when the file content actually changed.
@@ -11,18 +12,125 @@
  * separate `tasksDirHandle` (sibling of `.kandown/`). `kandown.json` is
  * read from a derived `.kandown/` handle.
  *
- * @functions
- *  → FileWatcher — polling watcher with content hashing
- *  → fileWatcher — singleton instance
- *  → readConfigFileText / readTaskFileText — raw text helpers
+ * 📖 Agent edits (t309): the daemon emits `agent_edit_started`,
+ * `agent_edit_ended`, `task_diff` and `agent_permission` on the same
+ * `/api/events` SSE stream as the board events. Each payload is narrowed by a
+ * type guard before the matching callback fires, so a malformed event from a
+ * newer daemon is ignored instead of crashing the consumer.
  *
- * @exports FileWatcher, fileWatcher
+ * @functions
+ *  → FileWatcher: polling watcher with content hashing and SSE parsing
+ *  → fileWatcher: singleton instance
+ *  → isAgentEditStartedEvent / isAgentEditEndedEvent / isTaskDiffEvent /
+ *    isAgentPermissionEvent / isAgentEditsBoardEvent: payload guards
+ *  → readConfigFileText / readTaskFileText: raw text helpers
+ *
+ * @exports FileWatcher, fileWatcher, AgentEditStartedEvent, AgentEditEndedEvent,
+ * TaskDiffEvent, AgentPermissionEvent, AgentEditsBoardEvent,
+ * isAgentEditStartedEvent, isAgentEditEndedEvent, isTaskDiffEvent,
+ * isAgentPermissionEvent, isAgentEditsBoardEvent
  */
 
 import { isTaskFilename, resolveTaskFilename, taskIdFromFilename } from './task-filename';
 import { isServerMode } from './filesystem';
 
 export type ConflictType = 'none' | 'body-only' | 'metadata-only' | 'full';
+
+/* ═════════════ Agent edit board events (t309, frozen daemon contract) ═════════════ */
+
+/** 📖 An agent session started editing one task. The UI shows a border beam
+ * on the card and locks the open editor for that task. */
+export interface AgentEditStartedEvent {
+  type: 'agent_edit_started';
+  sessionId: string;
+  taskId: string;
+  harnessId: string;
+  /** ISO 8601 instant the edit started. */
+  at: string;
+}
+
+/** 📖 An agent session stopped editing one task. Unlocks the editor and
+ * dismounts the beam. */
+export interface AgentEditEndedEvent {
+  type: 'agent_edit_ended';
+  sessionId: string;
+  taskId: string;
+  at: string;
+}
+
+/** 📖 One file write the agent made on a task, with the before/after file
+ * content so the editor can render a live diff without refetching. */
+export interface TaskDiffEvent {
+  type: 'task_diff';
+  taskId: string;
+  sessionId: string;
+  /** Relative path of the written file (usually under tasks/). */
+  path: string;
+  before: string;
+  after: string;
+  /** True when the daemon clipped the payload; the diff is then partial. */
+  truncated: boolean;
+  at: string;
+}
+
+/** 📖 A permission request from the harness, surfaced as an approval card
+ * with Approve / Reject actions. */
+export interface AgentPermissionEvent {
+  type: 'agent_permission';
+  sessionId: string;
+  permissionId: string;
+  title: string;
+  /** Harness-specific kind (e.g. 'bash', 'edit', 'fetch'). Rendered as a chip. */
+  kind: string;
+  at: string;
+}
+
+export type AgentEditsBoardEvent =
+  | AgentEditStartedEvent
+  | AgentEditEndedEvent
+  | TaskDiffEvent
+  | AgentPermissionEvent;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function isString(value: unknown): value is string {
+  return typeof value === 'string';
+}
+
+export function isAgentEditStartedEvent(value: unknown): value is AgentEditStartedEvent {
+  return isRecord(value) && value.type === 'agent_edit_started'
+    && isString(value.sessionId) && isString(value.taskId)
+    && isString(value.harnessId) && isString(value.at);
+}
+
+export function isAgentEditEndedEvent(value: unknown): value is AgentEditEndedEvent {
+  return isRecord(value) && value.type === 'agent_edit_ended'
+    && isString(value.sessionId) && isString(value.taskId) && isString(value.at);
+}
+
+export function isTaskDiffEvent(value: unknown): value is TaskDiffEvent {
+  return isRecord(value) && value.type === 'task_diff'
+    && isString(value.taskId) && isString(value.sessionId) && isString(value.path)
+    && isString(value.before) && isString(value.after)
+    && typeof value.truncated === 'boolean' && isString(value.at);
+}
+
+export function isAgentPermissionEvent(value: unknown): value is AgentPermissionEvent {
+  return isRecord(value) && value.type === 'agent_permission'
+    && isString(value.sessionId) && isString(value.permissionId)
+    && isString(value.title) && isString(value.kind) && isString(value.at);
+}
+
+/** 📖 One-stop narrowing for the board SSE payloads this file re-broadcasts:
+ * returns false for heartbeats, garbage, and events from a newer daemon. */
+export function isAgentEditsBoardEvent(value: unknown): value is AgentEditsBoardEvent {
+  return isAgentEditStartedEvent(value)
+    || isAgentEditEndedEvent(value)
+    || isTaskDiffEvent(value)
+    || isAgentPermissionEvent(value);
+}
 
 export interface WatcherEvents {
   configChanged: () => void;
@@ -32,6 +140,11 @@ export interface WatcherEvents {
    * when it encounters a fatal error. The UI uses this to show a "watcher
    * disabled" banner (t107). */
   watcherError: (message: string) => void;
+  /** 📖 Live agent-edit board events (t309), re-broadcast after narrowing. */
+  agentEditStarted: (event: AgentEditStartedEvent) => void;
+  agentEditEnded: (event: AgentEditEndedEvent) => void;
+  taskDiff: (event: TaskDiffEvent) => void;
+  agentPermission: (event: AgentPermissionEvent) => void;
 }
 
 type EventHandler<K extends keyof WatcherEvents> = WatcherEvents[K];
@@ -92,6 +205,14 @@ export class FileWatcher {
             this.emit('configChanged');
           } else if (data.type === 'extensions') {
             window.dispatchEvent(new Event('kandown:extensions-changed'));
+          } else if (data.type === 'agent_edit_started' && isAgentEditStartedEvent(data)) {
+            this.emit('agentEditStarted', data);
+          } else if (data.type === 'agent_edit_ended' && isAgentEditEndedEvent(data)) {
+            this.emit('agentEditEnded', data);
+          } else if (data.type === 'task_diff' && isTaskDiffEvent(data)) {
+            this.emit('taskDiff', data);
+          } else if (data.type === 'agent_permission' && isAgentPermissionEvent(data)) {
+            this.emit('agentPermission', data);
           }
         } catch {
           // ignore heartbeats
@@ -289,9 +410,30 @@ export class FileWatcher {
         (handler as WatcherEvents['newTaskDetected'])(taskId);
         return;
       }
-      // watcherError
-      const [message] = args as Parameters<WatcherEvents['watcherError']>;
-      (handler as WatcherEvents['watcherError'])(message);
+      if (event === 'watcherError') {
+        const [message] = args as Parameters<WatcherEvents['watcherError']>;
+        (handler as WatcherEvents['watcherError'])(message);
+        return;
+      }
+      // 📖 Agent-edit board events (t309): each payload is emitted whole, the
+      // narrowing already happened in the SSE parse branch above.
+      if (event === 'agentEditStarted') {
+        const [evt] = args as Parameters<WatcherEvents['agentEditStarted']>;
+        (handler as WatcherEvents['agentEditStarted'])(evt);
+        return;
+      }
+      if (event === 'agentEditEnded') {
+        const [evt] = args as Parameters<WatcherEvents['agentEditEnded']>;
+        (handler as WatcherEvents['agentEditEnded'])(evt);
+        return;
+      }
+      if (event === 'taskDiff') {
+        const [evt] = args as Parameters<WatcherEvents['taskDiff']>;
+        (handler as WatcherEvents['taskDiff'])(evt);
+        return;
+      }
+      const [evt] = args as Parameters<WatcherEvents['agentPermission']>;
+      (handler as WatcherEvents['agentPermission'])(evt);
     });
   }
 }

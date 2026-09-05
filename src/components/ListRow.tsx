@@ -22,6 +22,9 @@
  * selected, so multi-select + bulk actions feel like Linear) and `archive`
  * (not draggable, shows a Restore button on hover). Both modes share one
  * renderer — see `ArchiveView`.
+ * 📖 Live agent edits (t309): the row hosts the animated border beam while an
+ * agent edits the task, and the single "stack host" row mounts the fixed
+ * permission approval stack (mount-point agnostic, see isApprovalStackHost).
  *
  * @functions
  *  → ListRow — modern linear-style list row component
@@ -30,6 +33,7 @@
  * @see src/components/ListView.tsx
  * @see src/components/ArchiveView.tsx
  * @see src/components/Card.tsx
+ * @see src/components/agent/CardBeam.tsx
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -39,6 +43,8 @@ import { AssigneeAvatar } from './agentIcons';
 import type { BoardTask, Density, SearchMatch } from '../lib/types';
 import { useStore } from '../lib/store';
 import { CategoryChip } from './CategoryChip';
+import { CardBeam } from './agent/CardBeam';
+import { ApprovalCardStack, isApprovalStackHost } from './agent/ApprovalCard';
 
 const priorityBadges: Record<string, { bg: string; text: string; border: string }> = {
   P1: { bg: 'bg-red-500/10 dark:bg-red-500/20', text: 'text-red-600 dark:text-red-400', border: 'border-red-500/30' },
@@ -236,6 +242,11 @@ export function ListRow({
   const prioKey = task.priority || 'P4';
   const prioStyle = priorityBadges[prioKey] || priorityBadges.P4;
 
+  // 📖 Live agent edit (t309): whether this row is the single host of the
+  // fixed permission approval stack (first task of the first non-empty
+  // column, so exactly one stack exists per rendered view).
+  const isStackHost = useStore(s => isApprovalStackHost(s.columns, task.id));
+
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
@@ -281,6 +292,9 @@ export function ListRow({
           : 'hover:bg-black/[0.03] dark:hover:bg-white/[0.04]'
       } ${task.checked ? 'opacity-60' : ''}`}
     >
+      {/* 📖 Live agent edit (t309): animated border beam while a session edits
+          this task. Self-hiding, insets itself inside the row (variant "row"). */}
+      <CardBeam taskId={task.id} variant="row" />
       {/* Title row: checkbox | category chip | title (flex-1) | #id + priority + right chips.
           - Wide layout: title grows freely, the meta cluster (#id, priority, tags,
             subtask counter) sits right-aligned AFTER the title. Category chip is
@@ -532,6 +546,14 @@ export function ListRow({
       )}
 
       <MetadataBlock frontmatter={task.frontmatter} hidden={showMetadata} />
+
+      {/* 📖 Pending agent permission requests (t309): the fixed bottom-right
+          approval stack. Mount-point agnostic: it is position:fixed, so which
+          row mounts it does not matter; every row renders this JSX but only
+          the single stack host (see isApprovalStackHost) actually mounts it,
+          and the stack itself returns null while the queue is empty. Mounted
+          here too so the list and workspace views cover the queue. */}
+      {isStackHost && <ApprovalCardStack />}
     </div>
   );
 }

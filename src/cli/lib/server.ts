@@ -9,7 +9,8 @@ import { createServer, IncomingMessage, ServerResponse } from 'node:http';
 import { existsSync, readFileSync, copyFileSync, unlinkSync, mkdirSync, readdirSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { homedir } from 'node:os';
-import { spawn } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
+import { promisify } from 'node:util';
 import { getProjectRoot, getTasksDir, findTaskPath, listTaskFilenames, newTaskFilePath, readTask, listTaskIds, writeTaskContent } from './board-reader';
 import { resolveTaskFilename } from '../../lib/task-filename';
 import { parseTaskFile } from '../../lib/parser';
@@ -18,11 +19,18 @@ import { detectCatalogJSON } from './agents';
 import { detectHarnessesJSON } from './agent/detect';
 import {
   createAgentSession,
+  deliverRawLine,
+  getAgentSession,
   listAgentSessions,
   sendToSession,
+  setAgentPermissionHandler,
   stopAgentSession,
   subscribeAgentSession,
 } from './agent/agent-runtime';
+import { buildPermissionResponse } from './agent/adapters/acp';
+import { createPermissionQueue } from './agent/permission-queue';
+import { createSessionEditTracker, type SessionEditTracker } from './agent/session-edits';
+import { createWatcher, type FileWatcher } from './file-watcher';
 import {
   forgetSessionIndexEntry,
   indexEntryForPrompt,
@@ -31,7 +39,7 @@ import {
   upsertSessionIndexEntry,
   type SessionIndexEntry,
 } from './agent/session-index';
-import type { AgentEvent } from './agent/types';
+import type { AgentEvent, AgentSessionInfo } from './agent/types';
 import type { PermissionMode } from '../../lib/types';
 import { getCurrentVersion, getInstalledVersion, semverGt, performGlobalPackageUpdate, PKG_ROOT } from './updater';
 import { atomicWriteFileSync } from './atomic-write';
@@ -121,6 +129,76 @@ async function getExtensionHost(kandownDir: string): Promise<ExtensionHost> {
 export function broadcastSseEvent(data: Record<string, unknown>): void {
   const payload = `data: ${JSON.stringify(data)}\n\n`;
   sseClients.forEach(c => c.res.write(payload));
+}
+
+// ─── Live editing: tracker + watcher + approvals (t309) ─────────────────────
+
+interface AgentEditRuntime {
+  tracker: SessionEditTracker;
+  watcher: FileWatcher;
+}
+
+/** 📖 One live-edit runtime per daemon process, created lazily on the first
+ *  agent session so projects that never use harnesses pay for no watcher.
+ *  Rebuilt if the daemon is pointed at a different project. The watcher feeds
+ *  real disk writes (cached before text plus freshly read after text) into the
+ *  tracker, which gates them into task_diff broadcasts for active pairs. */
+let agentEditRuntime: AgentEditRuntime | null = null;
+let agentEditRuntimeDir: string | null = null;
+
+function getAgentEditRuntime(kandownDir: string): AgentEditRuntime {
+  if (agentEditRuntime && agentEditRuntimeDir === kandownDir) return agentEditRuntime;
+  agentEditRuntime?.watcher.stop();
+  agentEditRuntime?.tracker.dispose();
+  const tracker = createSessionEditTracker(
+    getProjectRoot(kandownDir),
+    getTasksDir(kandownDir),
+    broadcastSseEvent,
+  );
+  const watcher = createWatcher();
+  watcher.setOnTaskContentChange((absolutePath, before, after) => {
+    tracker.recordChange(absolutePath, before, after);
+  });
+  watcher.start(kandownDir);
+  agentEditRuntime = { tracker, watcher };
+  agentEditRuntimeDir = kandownDir;
+  return agentEditRuntime;
+}
+
+/** 📖 Approval queue for routed permission requests; entries are parked here
+ *  until the web UI resolves them (see the two /api/agent/sessions routes). */
+const permissionQueue = createPermissionQueue();
+
+/** 📖 Git work-tree detection, cached per project root for the process
+ *  lifetime: `.git` present, or git itself confirming. The two-second guard
+ *  keeps a hung git binary from stalling a session-create request. */
+const gitWorkTreeCache = new Map<string, boolean>();
+const execFileAsync = promisify(execFile);
+
+async function isGitWorkTree(projectRoot: string): Promise<boolean> {
+  const cached = gitWorkTreeCache.get(projectRoot);
+  if (cached !== undefined) return cached;
+  let inside = existsSync(join(projectRoot, '.git'));
+  if (!inside) {
+    try {
+      const { stdout } = await execFileAsync('git', ['rev-parse', '--is-inside-work-tree'], {
+        cwd: projectRoot,
+        timeout: 2000,
+      });
+      inside = stdout.trim() === 'true';
+    } catch {
+      inside = false;
+    }
+  }
+  gitWorkTreeCache.set(projectRoot, inside);
+  return inside;
+}
+
+interface AgentSessionCreatedResponse {
+  session: AgentSessionInfo;
+  /** Present when the project root sits outside any git work tree: the UI
+   *  should soften its diff story since no git safety net exists. */
+  gitWarning?: 'not-a-git-repo';
 }
 
 function localPort(res: ServerResponse): number {
@@ -598,9 +676,40 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
         updatedAt: now,
       };
       upsertSessionIndexEntry(projectRoot, indexEntry);
+      // 📖 t309 live editing: track which task files this session touches and
+      // give it a decision hook for routed permission requests. The watcher
+      // inside the runtime turns real disk writes into task_diff events while
+      // a pair is active.
+      const editRuntime = getAgentEditRuntime(kandownDir);
+      editRuntime.tracker.attachSession(session.id, session.harnessId);
+      setAgentPermissionHandler(session.id, (request) => {
+        const stored = permissionQueue.push({
+          sessionId: session.id,
+          title: request.title,
+          kind: request.kind,
+          respond: (answer) => {
+            // 📖 The reply is the adapter's own JSON-RPC line. A dead stdin
+            // makes delivery a harmless false; the queue entry is already out.
+            const line = buildPermissionResponse(
+              { requestId: request.requestId, options: request.options },
+              answer === 'allow',
+            );
+            deliverRawLine(session.id, line);
+          },
+        });
+        broadcastSseEvent({
+          type: 'agent_permission',
+          sessionId: session.id,
+          permissionId: stored.permissionId,
+          title: stored.title,
+          kind: stored.kind,
+          at: new Date().toISOString(),
+        });
+      });
       // 📖 Internal watcher: the harness session id arrives with the
       // session_started event; the first stopped event closes the bookkeeping
-      // and unsubscribes so a finished session costs nothing.
+      // (index, live-edit pairs, pending approvals) and unsubscribes so a
+      // finished session costs nothing.
       let unsubscribeIndex: (() => void) | null = null;
       let sawStopped = false;
       unsubscribeIndex = subscribeAgentSession(session.id, (event: AgentEvent) => {
@@ -609,10 +718,15 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
         } else if (event.type === 'stopped' && !sawStopped) {
           sawStopped = true;
           patchSessionIndexEntry(projectRoot, session.id, { updatedAt: new Date().toISOString() });
+          editRuntime.tracker.detachSession(session.id);
+          permissionQueue.clearSession(session.id);
+          setAgentPermissionHandler(session.id, null);
           unsubscribeIndex?.();
         }
       });
-      return writeJson(res, 201, { session });
+      const responseBody: AgentSessionCreatedResponse = { session };
+      if (!(await isGitWorkTree(projectRoot))) responseBody.gitWarning = 'not-a-git-repo';
+      return writeJson(res, 201, responseBody);
     } catch (error) {
       return writeJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
     }
@@ -637,6 +751,35 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
     // 📖 Index-only removal: a live runtime session is never stopped here.
     forgetSessionIndexEntry(projectRoot, entryId);
     return writeJson(res, 200, { ok: true });
+  }
+
+  // 📖 Live-edit approvals (t309). The UI lists a session's pending permission
+  // requests and resolves them; both routes answer 404 for an unknown session
+  // so a stale sidebar cannot invent state. Resolve on an already answered or
+  // unknown permission id is also a 404, never a second answer to the harness.
+  const pendingMatch = path.match(/^\/api\/agent\/sessions\/([^/]+)\/pending$/);
+  if (pendingMatch && method === 'GET') {
+    const sessionId = decodeURIComponent(pendingMatch[1]);
+    if (!getAgentSession(sessionId)) return writeJson(res, 404, { error: 'Session not found' });
+    return writeJson(res, 200, { permissions: permissionQueue.listPending(sessionId) });
+  }
+
+  const resolveMatch = path.match(/^\/api\/agent\/sessions\/([^/]+)\/permissions\/([^/]+)\/resolve$/);
+  if (resolveMatch && method === 'POST') {
+    const sessionId = decodeURIComponent(resolveMatch[1]);
+    const permissionId = decodeURIComponent(resolveMatch[2]);
+    if (!getAgentSession(sessionId)) return writeJson(res, 404, { error: 'Session not found' });
+    let body: { approve?: unknown } = {};
+    try {
+      body = JSON.parse(await readRequestBody(req)) as typeof body;
+    } catch {
+      // 📖 An unreadable body counts as "not approved"; the harness gets the
+      // reject rather than hanging on a malformed request.
+    }
+    const resolved = permissionQueue.resolve(sessionId, permissionId, body.approve === true);
+    return resolved
+      ? writeJson(res, 200, { ok: true })
+      : writeJson(res, 404, { error: 'Permission not found' });
   }
 
   const agentSessionMatch = path.match(/^\/api\/agent\/sessions\/([^/]+)(\/events|\/stop|\/send)?$/);

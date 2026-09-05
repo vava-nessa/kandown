@@ -8,14 +8,14 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 13159,
+      "lines": 13873,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 62683,
+      "lines": 62745,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -332,6 +332,19 @@
       "summary": "Proves fresh projects print the exact shared compiler output on stdout and that an explicit task replaces the general board digest."
     },
     {
+      "path": "src/cli/lib/__tests__/permission-queue.spec.ts",
+      "lines": 126,
+      "title": "Permission queue tests",
+      "summary": "Locks the FIFO approval store behind the t309 live-edit endpoints: per-session ordering, resolve answering exactly once with the right decision, the found/not-found contract for unknown sessions, unknown ids and double resolves, and the…",
+      "functions": [
+        {
+          "name": "(vitest suites)",
+          "summary": null
+        }
+      ],
+      "exports": "(tests)"
+    },
+    {
       "path": "src/cli/lib/__tests__/plugin-authoring.spec.ts",
       "lines": 277,
       "title": "Plugin authoring loop",
@@ -348,6 +361,19 @@
       "lines": 127,
       "title": "Regression tests for resolveKandownDir boundary rules",
       "summary": "Pins down the three behaviors that prevent bare `kandown` from silently attaching to a foreign project: 1."
+    },
+    {
+      "path": "src/cli/lib/__tests__/session-edits.spec.ts",
+      "lines": 259,
+      "title": "Session edit tracker tests",
+      "summary": "Locks the daemon half of the live editing experience (t309): the session-to-task path mapping (descriptive names, bare ids, the archive directory, non-task rejection), the started/ended broadcast idempotence, the task_diff gating on…",
+      "functions": [
+        {
+          "name": "(vitest suites)",
+          "summary": null
+        }
+      ],
+      "exports": "(tests)"
     },
     {
       "path": "src/cli/lib/__tests__/session-index.spec.ts",
@@ -410,24 +436,32 @@
     },
     {
       "path": "src/cli/lib/agent/adapters/acp.ts",
-      "lines": 247,
+      "lines": 328,
       "title": "Generic ACP harness adapter (Agent Client Protocol over stdio)",
       "summary": "Speaks ACP, the open JSON-RPC 2.0 newline-delimited protocol introduced by Zed, so every ACP-capable agent (opencode, gemini, and the long tail) appears in kandown without a bespoke integration.",
       "functions": [
         {
-          "name": "buildArgs   : harness binary plus its ACP entry flag",
+          "name": "buildArgs               : harness binary plus its ACP entry flag",
           "summary": null
         },
         {
-          "name": "initialStdin: the initialize request",
+          "name": "initialStdin            : the initialize request",
           "summary": null
         },
         {
-          "name": "parseLine   : one stdout line → normalized events (+ JSON-RPC replies)",
+          "name": "extractPermissionRequest: recognize one stdout line as a permission request",
+          "summary": null
+        },
+        {
+          "name": "buildPermissionResponse : the JSON-RPC reply line for a deferred decision",
+          "summary": null
+        },
+        {
+          "name": "parseLine               : one stdout line → normalized events (+ JSON-RPC replies)",
           "summary": null
         }
       ],
-      "exports": "acpAdapter"
+      "exports": "acpAdapter, extractPermissionRequest, buildPermissionResponse, isEditLikePermissionKind"
     },
     {
       "path": "src/cli/lib/agent/adapters/claude-code.ts",
@@ -490,40 +524,48 @@
     },
     {
       "path": "src/cli/lib/agent/agent-runtime.ts",
-      "lines": 378,
+      "lines": 453,
       "title": "AgentRuntime: the harness session facade",
       "summary": "Spawns and drives harness sessions, normalizing every protocol into the shared event model.",
       "functions": [
         {
-          "name": "createAgentSession   : resolve the harness, spawn, start streaming",
+          "name": "createAgentSession         : resolve the harness, spawn, start streaming",
           "summary": null
         },
         {
-          "name": "listAgentSessions    : JSON-safe registry snapshot",
+          "name": "listAgentSessions          : JSON-safe registry snapshot",
           "summary": null
         },
         {
-          "name": "getAgentSession      : one session snapshot or undefined",
+          "name": "getAgentSession            : one session snapshot or undefined",
           "summary": null
         },
         {
-          "name": "subscribeAgentSession: live listener + buffered replay (SSE backing)",
+          "name": "subscribeAgentSession      : live listener + buffered replay (SSE backing)",
           "summary": null
         },
         {
-          "name": "sendToSession        : steer a running turn or resume a finished one",
+          "name": "sendToSession              : steer a running turn or resume a finished one",
           "summary": null
         },
         {
-          "name": "stopAgentSession     : graceful stop, then SIGTERM",
+          "name": "setAgentPermissionHandler  : per-session callback for routed permissions",
           "summary": null
         },
         {
-          "name": "resetAgentSessions   : test-only registry wipe",
+          "name": "deliverRawLine             : write one pre-built protocol line to stdin",
+          "summary": null
+        },
+        {
+          "name": "stopAgentSession           : graceful stop, then SIGTERM",
+          "summary": null
+        },
+        {
+          "name": "resetAgentSessions         : test-only registry wipe",
           "summary": null
         }
       ],
-      "exports": "createAgentSession, listAgentSessions, getAgentSession, subscribeAgentSession, sendToSession, stopAgentSession, resetAgentSessions, MAX_SESSIONS, EVENT_BUFFER_LIMIT"
+      "exports": "createAgentSession, listAgentSessions, getAgentSession, subscribeAgentSession, sendToSession, setAgentPermissionHandler, deliverRawLine, stopAgentSession, resetAgentSessions, AgentPermissionRequest, PermissionRoutingAdapter, MAX_SESSIONS, EVENT_BUFFER_LIMIT"
     },
     {
       "path": "src/cli/lib/agent/detect.ts",
@@ -545,6 +587,32 @@
         }
       ],
       "exports": "HARNESS_DEFS, detectHarnessesJSON, getHarnessDef, resolveHarness"
+    },
+    {
+      "path": "src/cli/lib/agent/permission-queue.ts",
+      "lines": 121,
+      "title": "Pending permission queue for routed harness permission requests",
+      "summary": "When a harness session runs in accept-edits mode and the adapter routes an edit-like permission request to kandown (t309), the daemon parks it here until the web UI answers through the resolve endpoint.",
+      "functions": [
+        {
+          "name": "createPermissionQueue: the FIFO store factory (push, listPending, resolve, clearSession)",
+          "summary": null
+        }
+      ],
+      "exports": "PermissionAnswer, PermissionQueueEntry, PendingPermissionView, PermissionQueue, createPermissionQueue"
+    },
+    {
+      "path": "src/cli/lib/agent/session-edits.ts",
+      "lines": 379,
+      "title": "Session edit tracker: which live harness session is touching which task",
+      "summary": "The daemon-side half of the live editing experience (t309).",
+      "functions": [
+        {
+          "name": "createSessionEditTracker: the factory; attach/detach sessions, map paths",
+          "summary": null
+        }
+      ],
+      "exports": "DIFF_CHAR_CAP, IDLE_TIMEOUT_MS, TURN_LINGER_MS, SessionEditPair, SessionEditTrackerOptions, SessionEventSubscriber, SessionEditTracker, createSessionEditTracker"
     },
     {
       "path": "src/cli/lib/agent/session-index.ts",
@@ -912,20 +980,24 @@
     },
     {
       "path": "src/cli/lib/file-watcher.ts",
-      "lines": 321,
+      "lines": 418,
       "title": "Node.js file watcher for CLI",
       "summary": "Uses chokidar for filesystem events and SHA-256 content hashing to detect actual content changes.",
       "functions": [
         {
-          "name": "FileWatcher",
-          "summary": "content-hashing watcher class"
+          "name": "FileWatcher                  : content-hashing watcher class",
+          "summary": null
         },
         {
-          "name": "createWatcher",
-          "summary": "factory, returns ready-to-use watcher"
+          "name": "setOnTaskContentChange       : optional live-diff callback (path, before, after)",
+          "summary": null
+        },
+        {
+          "name": "createWatcher                : factory, returns ready-to-use watcher",
+          "summary": null
         }
       ],
-      "exports": "FileWatcher, createWatcher"
+      "exports": "FileWatcher, TaskContentChangeCallback, createWatcher"
     },
     {
       "path": "src/cli/lib/home-workspace.ts",
@@ -1080,7 +1152,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 1146,
+      "lines": 1289,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
@@ -1460,8 +1532,71 @@
       "exports": "run"
     },
     {
+      "path": "src/components/agent/ApprovalCard.tsx",
+      "lines": 109,
+      "title": "Agent permission approval cards (t309)",
+      "summary": "ApprovalCard renders one pending harness permission request (title, kind chip, short session id, Approve / Reject); ApprovalCardStack is the fixed bottom-right container fed by the agentEdits permission queue.",
+      "functions": [
+        {
+          "name": "isApprovalStackHost: true for the one task that should mount the stack",
+          "summary": null
+        },
+        {
+          "name": "ApprovalCard: one permission request card",
+          "summary": null
+        },
+        {
+          "name": "ApprovalCardStack: fixed bottom-right queue (null when empty)",
+          "summary": null
+        }
+      ],
+      "exports": "isApprovalStackHost, ApprovalCard, ApprovalCardStack"
+    },
+    {
+      "path": "src/components/agent/Blobatar.tsx",
+      "lines": 212,
+      "title": "Agent blob avatar (t309)",
+      "summary": "Deterministic, dependency-free SVG \"blobatar\" identifying the agent session that is currently editing a task: the same sessionId always renders the same blob (shape, hue, animation phase all derive from a djb2 hash of the id), so a…",
+      "functions": [
+        {
+          "name": "hashSessionId: djb2 string hash, the determinism seed",
+          "summary": null
+        },
+        {
+          "name": "blobPath: seeded closed spline path in a 64x64 viewBox",
+          "summary": null
+        },
+        {
+          "name": "ensureBlobatarStyles: idempotent one-time style injection",
+          "summary": null
+        },
+        {
+          "name": "AgentBlobatar: the avatar (optionally with its editing bubble)",
+          "summary": null
+        }
+      ],
+      "exports": "AgentBlobatar"
+    },
+    {
+      "path": "src/components/agent/CardBeam.tsx",
+      "lines": 128,
+      "title": "Agent edit border beam (t309)",
+      "summary": "Animated border-beam overlay marking a task an agent session is currently editing.",
+      "functions": [
+        {
+          "name": "ensureBeamStyles: idempotent one-time style injection into document.head",
+          "summary": null
+        },
+        {
+          "name": "CardBeam: self-subscribing beam overlay for one task id",
+          "summary": null
+        }
+      ],
+      "exports": "CardBeam"
+    },
+    {
       "path": "src/components/agent/ChatSidebar.tsx",
-      "lines": 256,
+      "lines": 264,
       "title": "Agent chat sidebar (t308)",
       "summary": "The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.",
       "functions": [
@@ -1486,8 +1621,34 @@
       "exports": "DaemonGuardCard"
     },
     {
+      "path": "src/components/agent/DiffOverlay.tsx",
+      "lines": 94,
+      "title": "Live agent diff panel (t309)",
+      "summary": "Renders the latest `task_diff` snapshot for a task as a readable, dependency-free line diff: removed lines tinted red, added lines green, unchanged context collapsed to a couple of lines around the change.",
+      "functions": [
+        {
+          "name": "DiffOverlay: live diff panel for one task id",
+          "summary": null
+        }
+      ],
+      "exports": "DiffOverlay"
+    },
+    {
+      "path": "src/components/agent/GitInitBanner.tsx",
+      "lines": 56,
+      "title": "Git initialization banner (t309)",
+      "summary": "Dismissible info banner shown when the daemon reports that the project folder is not a git repository (`gitWarning: 'not-a-git-repo'` on the POST /api/agent/sessions response): agent edits then leave no git history to diff, revert or…",
+      "functions": [
+        {
+          "name": "GitInitBanner: dismissible info banner",
+          "summary": null
+        }
+      ],
+      "exports": "GitInitBanner"
+    },
+    {
       "path": "src/components/agent/MessageList.tsx",
-      "lines": 164,
+      "lines": 185,
       "title": "Message list for the agent chat sidebar",
       "summary": "Renders the folded conversation: user bubbles, assistant turns (streaming text, collapsible thinking block, tool chips), error entries in the destructive tint, and the quiet \"edited ...\" line for files the agent touched during the turn.",
       "functions": [
@@ -1640,7 +1801,7 @@
     },
     {
       "path": "src/components/Card.tsx",
-      "lines": 494,
+      "lines": 529,
       "title": "Task card",
       "summary": "Displays one board task as a clean, rounded card inside a column.",
       "functions": [
@@ -1772,7 +1933,7 @@
     },
     {
       "path": "src/components/Drawer.tsx",
-      "lines": 506,
+      "lines": 541,
       "title": "Task drawer editor",
       "summary": "Full-height task detail editor for title, description, subtasks, report, save/close, autosave, and deletion.",
       "functions": [
@@ -1889,7 +2050,7 @@
     },
     {
       "path": "src/components/ListRow.tsx",
-      "lines": 539,
+      "lines": 561,
       "title": "List row component",
       "summary": "Renders a single task as a compact, Linear-style list item for the list view, with priority indicators, title, status, metadata badges, inline subtask progress slider, and hover quick actions.",
       "functions": [
@@ -2105,7 +2266,7 @@
     },
     {
       "path": "src/components/TaskWorkspace.tsx",
-      "lines": 814,
+      "lines": 849,
       "title": "Desktop opened-task workspace",
       "summary": "Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…",
       "functions": [
@@ -2325,6 +2486,12 @@
       "lines": 204,
       "title": "Tests for the agent chat event fold",
       "summary": "Locks the reducer contract the chat sidebar renders from: streaming text accumulates then finalizes, thinking stays on its own channel, tool calls pair by toolCallId, usage accumulates, errors append entries (and fatal ones close the…"
+    },
+    {
+      "path": "src/lib/__tests__/agent-edits.spec.ts",
+      "lines": 190,
+      "title": "Unit tests for the live agent edits pure core (t309)",
+      "summary": "Covers the event fold (applyAgentEditsEvent), the permission queue helpers, diff pruning and the LCS-free line diff exported by src/lib/store/agentEditsSlice.ts, plus the board-event type guards exported by src/lib/watcher.ts (the…"
     },
     {
       "path": "src/lib/__tests__/browser-extension-runtime.spec.ts",
@@ -2833,7 +3000,7 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 1504,
+      "lines": 1516,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [
@@ -3171,7 +3338,7 @@
     },
     {
       "path": "src/lib/store.ts",
-      "lines": 2032,
+      "lines": 2058,
       "title": "Kandown Zustand store",
       "summary": "Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.",
       "functions": [
@@ -3204,7 +3371,7 @@
     },
     {
       "path": "src/lib/store/agentChatSlice.ts",
-      "lines": 405,
+      "lines": 408,
       "title": "Zustand store slice: agent chat sidebar (t308)",
       "summary": "Sidebar open state, the project's chat session index, the live per-session chat folds, and the SSE lifecycle that feeds them.",
       "functions": [
@@ -3214,6 +3381,39 @@
         }
       ],
       "exports": "AgentChatSlice, createAgentChatSlice"
+    },
+    {
+      "path": "src/lib/store/agentEditsSlice.ts",
+      "lines": 381,
+      "title": "Zustand store slice: live agent edit presence (t309)",
+      "summary": "Makes agent edits visible on the board: tracks which task each agent session is currently editing (border beam + blobatar), keeps the latest before/after diff per task (live diff panel in the editor shells) and queues harness permission…",
+      "functions": [
+        {
+          "name": "createInitialAgentEditsState: empty agentEdits state",
+          "summary": null
+        },
+        {
+          "name": "createAgentEditsSlice: SSE wiring, pending-permission fetch, resolve",
+          "summary": null
+        },
+        {
+          "name": "applyAgentEditsEvent: fold one board event into the state (pure)",
+          "summary": null
+        },
+        {
+          "name": "mergePermissions / withoutPermission / restorePermissions: queue helpers (pure)",
+          "summary": null
+        },
+        {
+          "name": "pruneDiffs: keep the 20 most recently touched task diffs (pure)",
+          "summary": null
+        },
+        {
+          "name": "computeLineDiff: LCS-free line diff with collapsed context (pure)",
+          "summary": null
+        }
+      ],
+      "exports": "AgentEditsSlice, createAgentEditsSlice, createInitialAgentEditsState, applyAgentEditsEvent, mergePermissions, withoutPermission, restorePermissions, pruneDiffs, computeLineDiff, DiffRow"
     },
     {
       "path": "src/lib/store/agentSearchSlice.ts",
@@ -3247,7 +3447,7 @@
     },
     {
       "path": "src/lib/store/types.ts",
-      "lines": 275,
+      "lines": 338,
       "title": "Zustand store — shared types",
       "summary": "State shape and supporting interfaces used across every store slice."
     },
@@ -3487,24 +3687,28 @@
     },
     {
       "path": "src/lib/watcher.ts",
-      "lines": 322,
+      "lines": 464,
       "title": "File watcher for Kandown",
       "summary": "Watches project state through content-hashed File System Access polling or daemon SSE.",
       "functions": [
         {
-          "name": "FileWatcher",
-          "summary": "polling watcher with content hashing"
+          "name": "FileWatcher: polling watcher with content hashing and SSE parsing",
+          "summary": null
         },
         {
-          "name": "fileWatcher",
-          "summary": "singleton instance"
+          "name": "fileWatcher: singleton instance",
+          "summary": null
         },
         {
-          "name": "readConfigFileText / readTaskFileText",
-          "summary": "raw text helpers"
+          "name": "isAgentEditStartedEvent / isAgentEditEndedEvent / isTaskDiffEvent /",
+          "summary": null
+        },
+        {
+          "name": "readConfigFileText / readTaskFileText: raw text helpers",
+          "summary": null
         }
       ],
-      "exports": "FileWatcher, fileWatcher"
+      "exports": "FileWatcher, fileWatcher, AgentEditStartedEvent, AgentEditEndedEvent, TaskDiffEvent, AgentPermissionEvent, AgentEditsBoardEvent, isAgentEditStartedEvent, isAgentEditEndedEvent, isTaskDiffEvent, isAgentPermissionEvent, isAgentEditsBoardEvent"
     },
     {
       "path": "src/lib/workflows/builtin-skills.ts",

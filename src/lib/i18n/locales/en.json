@@ -502,5 +502,19 @@
     "copy": "Copy",
     "daemonGuardTitle": "Agent chat needs the kandown daemon",
     "daemonGuardBody": "Run kandown in this project to chat with your coding agents right from the sidebar."
+  },
+  "agentEdits": {
+    "editingBubble": "I am editing this task...",
+    "editingAria": "An agent is editing this task",
+    "editorLocked": "An agent is editing this task. Fields are read-only until it finishes.",
+    "liveDiffTitle": "Live diff",
+    "noChanges": "Agent connected: no file changes yet.",
+    "truncatedNotice": "This diff was truncated by the daemon; earlier lines are missing.",
+    "approve": "Approve",
+    "reject": "Reject",
+    "permissionTitle": "Agent permission requested",
+    "gitWarningTitle": "Project folder is not a git repository",
+    "gitWarningBody": "Agent edits cannot be tracked or reverted without git. Run git init in the project folder so every change stays recoverable.",
+    "dismiss": "Dismiss"
   }
 }

@@ -3261,15 +3261,15 @@ __export(workflows_store_exports, {
   installStoreWorkflow: () => installStoreWorkflow,
   previewWorkflowUpdate: () => previewWorkflowUpdate
 });
-import { createHash as createHash2 } from "crypto";
-import { existsSync as existsSync21, readFileSync as readFileSync19 } from "fs";
-import { join as join24 } from "path";
+import { createHash as createHash3 } from "crypto";
+import { existsSync as existsSync21, readFileSync as readFileSync20 } from "fs";
+import { join as join28 } from "path";
 function installFilePath(kandownDir) {
-  return join24(kandownDir, "workflow-installs.json");
+  return join28(kandownDir, "workflow-installs.json");
 }
 function readInstalls(kandownDir) {
   try {
-    const parsed = JSON.parse(readFileSync19(installFilePath(kandownDir), "utf8"));
+    const parsed = JSON.parse(readFileSync20(installFilePath(kandownDir), "utf8"));
     return parsed.version === 1 && parsed.installs && typeof parsed.installs === "object" ? parsed : { version: 1, installs: {} };
   } catch {
     return { version: 1, installs: {} };
@@ -3307,7 +3307,7 @@ async function fetchPackage(entry) {
   const response = await fetch(`${rawBase(entry)}/${entry.capsule}`, { headers: { Accept: "text/markdown" } });
   if (!response.ok) throw new Error(`Capsule fetch failed: HTTP ${response.status}`);
   const capsule = await response.text();
-  const checksum = createHash2("sha256").update(capsule).digest("hex");
+  const checksum = createHash3("sha256").update(capsule).digest("hex");
   if (checksum !== entry.sha256.toLowerCase()) throw new Error("Workflow capsule checksum does not match the approved index.");
   const imported = importWorkflowCapsule(capsule);
   if (!imported.ok) throw new Error(imported.errors.map((item) => `${item.path}: ${item.message}`).join("; "));
@@ -3325,7 +3325,7 @@ async function fetchPackage(entry) {
 }
 async function installStoreWorkflow(kandownDir, entry) {
   try {
-    if (existsSync21(join24(kandownDir, "workflows", entry.id))) return { ok: false, error: `Workflow ${entry.id} already exists.` };
+    if (existsSync21(join28(kandownDir, "workflows", entry.id))) return { ok: false, error: `Workflow ${entry.id} already exists.` };
     const { workflow } = await fetchPackage(entry);
     writeWorkflowPackage(kandownDir, workflow);
     const installs = readInstalls(kandownDir);
@@ -3389,38 +3389,38 @@ var init_workflows_store = __esm({
 });
 
 // src/cli/lib/workflows-cli.ts
-import { existsSync as existsSync22, mkdirSync as mkdirSync12, readFileSync as readFileSync20, readdirSync as readdirSync9, statSync as statSync6, unlinkSync as unlinkSync7 } from "fs";
-import { basename as basename6, join as join25, resolve as resolve8 } from "path";
+import { existsSync as existsSync22, mkdirSync as mkdirSync12, readFileSync as readFileSync21, readdirSync as readdirSync9, statSync as statSync7, unlinkSync as unlinkSync7 } from "fs";
+import { basename as basename10, join as join29, resolve as resolve10 } from "path";
 function sourceFiles(directory, prefix = "") {
   const files = {};
   for (const name of readdirSync9(directory)) {
-    const absolute = join25(directory, name);
+    const absolute = join29(directory, name);
     const relative3 = prefix ? `${prefix}/${name}` : name;
-    if (statSync6(absolute).isDirectory()) Object.assign(files, sourceFiles(absolute, relative3));
-    else files[relative3] = readFileSync20(absolute, "utf8");
+    if (statSync7(absolute).isDirectory()) Object.assign(files, sourceFiles(absolute, relative3));
+    else files[relative3] = readFileSync21(absolute, "utf8");
   }
   return files;
 }
 function workflowRoots(kandownDir) {
   return [
-    { directory: join25(kandownDir, "workflows"), source: "local" },
-    { directory: join25(PKG_ROOT, "templates", "workflows"), source: "built-in" }
+    { directory: join29(kandownDir, "workflows"), source: "local" },
+    { directory: join29(PKG_ROOT, "templates", "workflows"), source: "built-in" }
   ];
 }
 function installedStoreIds(kandownDir) {
   try {
-    const raw = JSON.parse(readFileSync20(join25(kandownDir, "workflow-installs.json"), "utf8"));
+    const raw = JSON.parse(readFileSync21(join29(kandownDir, "workflow-installs.json"), "utf8"));
     return new Set(Object.keys(raw.installs ?? {}));
   } catch {
     return /* @__PURE__ */ new Set();
   }
 }
 function workflowDirectory(kandownDir, id) {
-  return workflowRoots(kandownDir).map((root) => ({ directory: join25(root.directory, id), source: root.source })).find((item) => existsSync22(join25(item.directory, "manifest.json"))) ?? null;
+  return workflowRoots(kandownDir).map((root) => ({ directory: join29(root.directory, id), source: root.source })).find((item) => existsSync22(join29(item.directory, "manifest.json"))) ?? null;
 }
 function packageDirectories(root) {
   if (!existsSync22(root)) return [];
-  return readdirSync9(root, { withFileTypes: true }).filter((entry) => entry.isDirectory() && existsSync22(join25(root, entry.name, "manifest.json"))).map((entry) => join25(root, entry.name));
+  return readdirSync9(root, { withFileTypes: true }).filter((entry) => entry.isDirectory() && existsSync22(join29(root, entry.name, "manifest.json"))).map((entry) => join29(root, entry.name));
 }
 function compatibilityError(workflow) {
   const minimum = workflow.manifest.minKandownVersion;
@@ -3432,7 +3432,7 @@ function listWorkflowPackages(kandownDir) {
   const summaries = /* @__PURE__ */ new Map();
   for (const root of workflowRoots(kandownDir)) {
     for (const directory of packageDirectories(root.directory)) {
-      let rawId = basename6(directory);
+      let rawId = basename10(directory);
       let name = rawId;
       let version = "unknown";
       let description = "";
@@ -3470,8 +3470,8 @@ function listWorkflowPackages(kandownDir) {
 function loadWorkflowById(kandownDir, id) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) throw new Error("Workflow id must be kebab-case.");
   for (const root of workflowRoots(kandownDir)) {
-    const directory = join25(root.directory, id);
-    if (!existsSync22(join25(directory, "manifest.json"))) continue;
+    const directory = join29(root.directory, id);
+    if (!existsSync22(join29(directory, "manifest.json"))) continue;
     const result = loadWorkflowPackage(sourceFiles(directory));
     if (!result.ok) throw new Error(result.errors.map((item) => `${item.path}: ${item.message}`).join("; "));
     const incompatible = compatibilityError(result.value);
@@ -3520,7 +3520,7 @@ function updateLocalWorkflowFile(kandownDir, id, path, content) {
   const nextFiles = { ...sourceFiles(located.directory), [path]: content };
   const validated = loadWorkflowPackage(nextFiles);
   if (!validated.ok) throw new Error(validated.errors.map((item) => `${item.path}: ${item.message}`).join("; "));
-  atomicWriteFileSync(join25(located.directory, path), content);
+  atomicWriteFileSync(join29(located.directory, path), content);
   return validated.value;
 }
 function presetColumns(workflow) {
@@ -3580,32 +3580,32 @@ function applyBoardPreset(kandownDir, id) {
   return preview;
 }
 function writeWorkflowPackage(kandownDir, workflow) {
-  const directory = join25(kandownDir, "workflows", workflow.manifest.id);
+  const directory = join29(kandownDir, "workflows", workflow.manifest.id);
   if (existsSync22(directory)) throw new Error(`Local workflow "${workflow.manifest.id}" already exists.`);
-  mkdirSync12(join25(directory, "templates"), { recursive: true });
-  atomicWriteFileSync(join25(directory, "manifest.json"), `${JSON.stringify(workflow.manifest, null, 2)}
+  mkdirSync12(join29(directory, "templates"), { recursive: true });
+  atomicWriteFileSync(join29(directory, "manifest.json"), `${JSON.stringify(workflow.manifest, null, 2)}
 `);
-  atomicWriteFileSync(join25(directory, workflow.protocol.path), workflow.protocol.content);
-  if (workflow.guide) atomicWriteFileSync(join25(directory, workflow.guide.path), workflow.guide.content);
-  if (workflow.boardPreset) atomicWriteFileSync(join25(directory, workflow.boardPreset.path), workflow.boardPreset.content);
-  for (const template of workflow.taskTemplates) atomicWriteFileSync(join25(directory, template.file), template.content);
+  atomicWriteFileSync(join29(directory, workflow.protocol.path), workflow.protocol.content);
+  if (workflow.guide) atomicWriteFileSync(join29(directory, workflow.guide.path), workflow.guide.content);
+  if (workflow.boardPreset) atomicWriteFileSync(join29(directory, workflow.boardPreset.path), workflow.boardPreset.content);
+  for (const template of workflow.taskTemplates) atomicWriteFileSync(join29(directory, template.file), template.content);
   return directory;
 }
 function replaceStoreWorkflowPackage(kandownDir, workflow) {
   if (!installedStoreIds(kandownDir).has(workflow.manifest.id)) throw new Error("Only store-installed workflows can be updated in place.");
-  const directory = join25(kandownDir, "workflows", workflow.manifest.id);
+  const directory = join29(kandownDir, "workflows", workflow.manifest.id);
   const declared = new Set(["manifest.json", workflow.protocol.path, workflow.guide?.path, workflow.boardPreset?.path, ...workflow.taskTemplates.map((item) => item.file)].filter((item) => Boolean(item)));
   if (existsSync22(directory)) {
-    for (const path of Object.keys(sourceFiles(directory))) if (!declared.has(path)) unlinkSync7(join25(directory, path));
-  } else mkdirSync12(join25(directory, "templates"), { recursive: true });
-  atomicWriteFileSync(join25(directory, "manifest.json"), `${JSON.stringify(workflow.manifest, null, 2)}
+    for (const path of Object.keys(sourceFiles(directory))) if (!declared.has(path)) unlinkSync7(join29(directory, path));
+  } else mkdirSync12(join29(directory, "templates"), { recursive: true });
+  atomicWriteFileSync(join29(directory, "manifest.json"), `${JSON.stringify(workflow.manifest, null, 2)}
 `);
-  atomicWriteFileSync(join25(directory, workflow.protocol.path), workflow.protocol.content);
-  if (workflow.guide) atomicWriteFileSync(join25(directory, workflow.guide.path), workflow.guide.content);
-  if (workflow.boardPreset) atomicWriteFileSync(join25(directory, workflow.boardPreset.path), workflow.boardPreset.content);
+  atomicWriteFileSync(join29(directory, workflow.protocol.path), workflow.protocol.content);
+  if (workflow.guide) atomicWriteFileSync(join29(directory, workflow.guide.path), workflow.guide.content);
+  if (workflow.boardPreset) atomicWriteFileSync(join29(directory, workflow.boardPreset.path), workflow.boardPreset.content);
   for (const template of workflow.taskTemplates) {
-    mkdirSync12(join25(directory, "templates"), { recursive: true });
-    atomicWriteFileSync(join25(directory, template.file), template.content);
+    mkdirSync12(join29(directory, "templates"), { recursive: true });
+    atomicWriteFileSync(join29(directory, template.file), template.content);
   }
   return directory;
 }
@@ -3706,8 +3706,8 @@ ${workflow.guide.content}` : ""}`);
       return;
     }
     if (sub === "validate" || sub === "pack") {
-      const directory = resolve8(args.positional[1] ?? "");
-      if (!existsSync22(join25(directory, "manifest.json"))) throw new Error("Expected a workflow directory containing manifest.json.");
+      const directory = resolve10(args.positional[1] ?? "");
+      if (!existsSync22(join29(directory, "manifest.json"))) throw new Error("Expected a workflow directory containing manifest.json.");
       const result = loadWorkflowPackage(sourceFiles(directory));
       if (!result.ok) throw new Error(result.errors.map((item) => `${item.path}: ${item.message}`).join("\n"));
       if (sub === "validate") {
@@ -3716,14 +3716,14 @@ ${workflow.guide.content}` : ""}`);
       }
       const capsule = exportWorkflowCapsule(result.value);
       if (!capsule.ok) throw new Error(capsule.errors.map((item) => item.message).join("; "));
-      const destination = resolve8(String(args.flags.output || `${result.value.manifest.id}.kandown-workflow.md`));
+      const destination = resolve10(String(args.flags.output || `${result.value.manifest.id}.kandown-workflow.md`));
       atomicWriteFileSync(destination, capsule.value);
       success(`Packed ${destination}.`);
       return;
     }
     if (sub === "import") {
-      const capsulePath = resolve8(args.positional[1] ?? "");
-      const result = importWorkflowCapsule(readFileSync20(capsulePath, "utf8"));
+      const capsulePath = resolve10(args.positional[1] ?? "");
+      const result = importWorkflowCapsule(readFileSync21(capsulePath, "utf8"));
       if (!result.ok) throw new Error(result.errors.map((item) => `${item.path}: ${item.message}`).join("\n"));
       success(`Imported ${writeWorkflowPackage(kandownDir, result.value)}.`);
       return;
@@ -3752,7 +3752,7 @@ var init_workflows_cli = __esm({
 // src/cli/cli.ts
 init_updater();
 import { existsSync as existsSync31 } from "fs";
-import { join as join38 } from "path";
+import { join as join40 } from "path";
 
 // src/cli/lib/daemon.ts
 init_updater();
@@ -6800,7 +6800,7 @@ function cmdImport(rawArgs) {
 }
 
 // src/cli/commands/daemon.ts
-import { join as join27 } from "path";
+import { join as join31 } from "path";
 
 // src/cli/lib/server.ts
 init_board_reader();
@@ -6808,9 +6808,10 @@ init_task_filename();
 init_parser();
 init_config2();
 import { createServer } from "http";
-import { existsSync as existsSync23, readFileSync as readFileSync21, copyFileSync as copyFileSync3, unlinkSync as unlinkSync8, mkdirSync as mkdirSync13 } from "fs";
-import { basename as basename7, join as join26 } from "path";
-import { spawn as spawn7 } from "child_process";
+import { existsSync as existsSync23, readFileSync as readFileSync22, copyFileSync as copyFileSync3, unlinkSync as unlinkSync8, mkdirSync as mkdirSync13 } from "fs";
+import { basename as basename11, join as join30 } from "path";
+import { execFile, spawn as spawn7 } from "child_process";
+import { promisify } from "util";
 
 // src/cli/lib/agent/detect.ts
 import { execFileSync as execFileSync3 } from "child_process";
@@ -7461,11 +7462,66 @@ function parseLine4(line, state, config) {
   }
   return { events };
 }
+function isEditLikePermissionKind(kind) {
+  return /edit|write|create|patch|delete|move|rename/.test(kind.toLowerCase());
+}
+function extractPermissionRequest(line) {
+  if (!line.includes("session/request_permission")) return null;
+  let parsed;
+  try {
+    parsed = JSON.parse(line.trim());
+  } catch {
+    return null;
+  }
+  if (parsed === null || typeof parsed !== "object") return null;
+  const message = parsed;
+  if (message.method !== "session/request_permission") return null;
+  if (message.id === void 0 || message.id === null) return null;
+  const params = message.params && typeof message.params === "object" ? message.params : {};
+  const toolCall = params.toolCall && typeof params.toolCall === "object" ? params.toolCall : {};
+  const kind = typeof toolCall.kind === "string" ? toolCall.kind : "unknown";
+  return {
+    requestId: message.id,
+    toolCallId: typeof toolCall.toolCallId === "string" ? toolCall.toolCallId : void 0,
+    title: typeof toolCall.title === "string" && toolCall.title.trim() ? toolCall.title : `Permission: ${kind}`,
+    kind,
+    options: Array.isArray(params.options) ? params.options : []
+  };
+}
+function buildPermissionResponse(request, approve) {
+  const wantedKinds = approve ? ["allow_once", "allow_always"] : ["reject_once", "reject_always"];
+  let optionId;
+  for (const kind of wantedKinds) {
+    for (const option of request.options) {
+      const record = option && typeof option === "object" ? option : {};
+      if (record.kind === kind && typeof record.optionId === "string") {
+        optionId = record.optionId;
+        break;
+      }
+    }
+    if (optionId) break;
+  }
+  return JSON.stringify({
+    jsonrpc: JSONRPC_VERSION,
+    id: request.requestId,
+    result: {
+      outcome: optionId ? { outcome: "selected", optionId } : { outcome: "cancelled" }
+    }
+  });
+}
 var acpAdapter = {
   protocol: "acp",
   buildArgs: buildArgs4,
   initialStdin: () => initialStdin2(),
-  parseLine: parseLine4
+  parseLine: parseLine4,
+  extractPermissionRequest,
+  // 📖 yolo keeps the parseLine auto-allow. accept-edits routes edit-like
+  // requests to the kandown approval sheet; reads and unknown kinds stay on
+  // the auto-allow path so a session is never blocked on trivia.
+  onPermissionRequest(state, request) {
+    if (state.permissionMode === "accept-edits" && isEditLikePermissionKind(request.kind)) return "route";
+    return "allow";
+  }
 };
 
 // src/cli/lib/agent/agent-runtime.ts
@@ -7507,6 +7563,12 @@ function recordEvent(record, event) {
 }
 function handleLine(record, line) {
   if (!line.trim()) return;
+  const routable = record.adapter;
+  const permission = routable.extractPermissionRequest?.(line) ?? null;
+  if (permission && record.permissionHandler && routable.onPermissionRequest?.(record.state, permission) === "route") {
+    record.permissionHandler(permission);
+    return;
+  }
   let result;
   try {
     result = record.adapter.parseLine(line, record.state, record.config);
@@ -7545,6 +7607,7 @@ function attachChild(record, child) {
     record.child = null;
     record.state.busy = false;
     record.info.exitCode = code;
+    record.permissionHandler = null;
     if (reason === "crash" && !record.turnSeen && record.stderrTail.trim()) {
       recordEvent(record, {
         type: "error",
@@ -7628,7 +7691,8 @@ function createAgentSession(config) {
     stopRequested: false,
     turnSeen: false,
     stderrTail: "",
-    resolvedBinPath: resolved.binPath
+    resolvedBinPath: resolved.binPath,
+    permissionHandler: null
   };
   sessions.set(record.info.id, record);
   startChild(record);
@@ -7636,6 +7700,10 @@ function createAgentSession(config) {
 }
 function listAgentSessions() {
   return [...sessions.values()].map((record) => ({ ...record.info }));
+}
+function getAgentSession(id) {
+  const record = sessions.get(id);
+  return record ? { ...record.info } : void 0;
 }
 function subscribeAgentSession(id, listener) {
   const record = sessions.get(id);
@@ -7694,6 +7762,19 @@ function sendToSession(id, text) {
   }
   return { ok: false, error: `Session is ${record.info.status}; cannot send now.` };
 }
+function setAgentPermissionHandler(sessionId, handler) {
+  const record = sessions.get(sessionId);
+  if (!record) return false;
+  record.permissionHandler = handler;
+  return true;
+}
+function deliverRawLine(sessionId, line) {
+  const record = sessions.get(sessionId);
+  if (!record?.child?.stdin || record.child.stdin.destroyed) return false;
+  record.child.stdin.write(`${line}
+`);
+  return true;
+}
 function stopAgentSession(id) {
   const record = sessions.get(id);
   if (!record) return false;
@@ -7717,2742 +7798,268 @@ function stopAgentSession(id) {
   return true;
 }
 
-// src/cli/lib/agent/session-index.ts
-import { mkdirSync as mkdirSync9, readFileSync as readFileSync18, readdirSync as readdirSync8, realpathSync as realpathSync2, unlinkSync as unlinkSync6 } from "fs";
-import { homedir as homedir10 } from "os";
-import { join as join21 } from "path";
-init_atomic_write();
-function sessionIndexBaseDir() {
-  return join21(homedir10(), ".kandown", "sessions");
-}
-function sessionIndexDir(projectRoot) {
-  const canonicalProject = canonicalizeProjectPath(projectRoot, realpathSync2);
-  return join21(sessionIndexBaseDir(), projectHash(canonicalProject));
-}
-function entryFileName(id) {
-  if (typeof id !== "string") return null;
-  const safe = id.replace(/[^A-Za-z0-9._-]/g, "_");
-  return safe ? `${safe}.json` : null;
-}
-function entryPath(projectRoot, id) {
-  const fileName = entryFileName(id);
-  return fileName ? join21(sessionIndexDir(projectRoot), fileName) : null;
-}
-function isSessionIndexEntry(value) {
-  if (!value || typeof value !== "object") return false;
-  const item = value;
-  if (typeof item.id !== "string" || !item.id) return false;
-  if (typeof item.harnessId !== "string" || !item.harnessId) return false;
-  if (typeof item.title !== "string") return false;
-  if (typeof item.createdAt !== "string" || typeof item.updatedAt !== "string") return false;
-  if (item.harnessSessionId !== void 0 && typeof item.harnessSessionId !== "string") return false;
-  if (item.taskId !== void 0 && typeof item.taskId !== "string") return false;
-  return true;
-}
-function readEntry(projectRoot, id) {
-  const file = entryPath(projectRoot, id);
-  if (!file) return null;
-  try {
-    const parsed = JSON.parse(readFileSync18(file, "utf8"));
-    return isSessionIndexEntry(parsed) ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-function upsertSessionIndexEntry(projectRoot, entry) {
-  const file = entryPath(projectRoot, entry?.id ?? "");
-  if (!file) return;
-  try {
-    mkdirSync9(sessionIndexDir(projectRoot), { recursive: true });
-    atomicWriteFileSync(file, `${JSON.stringify(entry, null, 2)}
-`);
-  } catch {
-  }
-}
-function patchSessionIndexEntry(projectRoot, id, patch) {
-  if (typeof id !== "string" || !id) return;
-  const existing = readEntry(projectRoot, id);
-  if (!existing) return;
-  const next = {
-    ...existing,
-    ...patch.harnessSessionId !== void 0 ? { harnessSessionId: patch.harnessSessionId } : {},
-    ...patch.title !== void 0 ? { title: patch.title } : {},
-    ...patch.taskId !== void 0 ? { taskId: patch.taskId } : {},
-    updatedAt: patch.updatedAt ?? (/* @__PURE__ */ new Date()).toISOString()
-  };
-  upsertSessionIndexEntry(projectRoot, next);
-}
-function forgetSessionIndexEntry(projectRoot, id) {
-  const file = entryPath(projectRoot, id);
-  if (!file) return;
-  try {
-    unlinkSync6(file);
-  } catch {
-  }
-}
-function listSessionIndexEntries(projectRoot) {
-  const dir = sessionIndexDir(projectRoot);
-  let fileNames;
-  try {
-    fileNames = readdirSync8(dir);
-  } catch {
-    return [];
-  }
-  const entries = [];
-  for (const fileName of fileNames) {
-    if (!fileName.endsWith(".json")) continue;
-    try {
-      const parsed = JSON.parse(readFileSync18(join21(dir, fileName), "utf8"));
-      if (isSessionIndexEntry(parsed)) entries.push(parsed);
-    } catch {
-      continue;
+// src/cli/lib/agent/permission-queue.ts
+import { randomUUID as randomUUID2 } from "crypto";
+function createPermissionQueue() {
+  const bySession = /* @__PURE__ */ new Map();
+  return {
+    push(entry) {
+      const stored = {
+        ...entry,
+        permissionId: entry.permissionId ?? `perm_${randomUUID2()}`
+      };
+      const list = bySession.get(stored.sessionId) ?? [];
+      list.push(stored);
+      bySession.set(stored.sessionId, list);
+      return stored;
+    },
+    listPending(sessionId) {
+      return (bySession.get(sessionId) ?? []).map((entry) => ({
+        permissionId: entry.permissionId,
+        title: entry.title,
+        kind: entry.kind
+      }));
+    },
+    resolve(sessionId, permissionId, approve) {
+      const list = bySession.get(sessionId);
+      if (!list) return false;
+      const index = list.findIndex((entry2) => entry2.permissionId === permissionId);
+      if (index === -1) return false;
+      const [entry] = list.splice(index, 1);
+      if (list.length === 0) bySession.delete(sessionId);
+      try {
+        entry.respond(approve ? "allow" : "reject");
+      } catch {
+      }
+      return true;
+    },
+    clearSession(sessionId) {
+      bySession.delete(sessionId);
+    },
+    pendingCount() {
+      let total = 0;
+      for (const list of bySession.values()) total += list.length;
+      return total;
     }
-  }
-  return entries.sort(
-    (a, b) => b.updatedAt.localeCompare(a.updatedAt) || b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id)
-  );
-}
-function indexEntryForPrompt(prompt) {
-  const firstLine = prompt.split("\n").map((line) => line.trim()).find((line) => line.length > 0) ?? "";
-  const collapsed = firstLine.replace(/\s+/g, " ").trim();
-  return collapsed.slice(0, 60).trimEnd();
-}
-
-// src/cli/lib/server.ts
-init_updater();
-init_atomic_write();
-
-// src/cli/lib/task-move.ts
-init_atomic_write();
-init_board_reader();
-init_config2();
-init_dependencies();
-init_serializer();
-init_task_meta();
-function userReadyExtensionReason(taskId, target, reason) {
-  return `Cannot move ${taskId} to ${target}: ${reason ?? "blocked by an extension"}`;
-}
-var moveLocks = /* @__PURE__ */ new Map();
-async function withProjectMoveLock(projectKey, operation) {
-  const previous = moveLocks.get(projectKey) ?? Promise.resolve();
-  let release = () => {
   };
-  const current = new Promise((resolveLock) => {
-    release = resolveLock;
-  });
-  const tail = previous.then(() => current);
-  moveLocks.set(projectKey, tail);
-  await previous;
-  try {
-    return await operation();
-  } finally {
-    release();
-    if (moveLocks.get(projectKey) === tail) moveLocks.delete(projectKey);
-  }
 }
-async function performTaskMove(host, kandownDir, taskId, targetStatus, toIndex) {
-  const taskPath = findTaskPath(kandownDir, taskId);
-  if (!taskPath) {
-    return { ok: false, kind: "not-found", reason: `Task not found: ${taskId}` };
+
+// src/cli/lib/agent/session-edits.ts
+init_board_reader();
+init_task_filename();
+import { basename as basename6, isAbsolute, join as join21, resolve as resolvePath, sep as sep2 } from "path";
+var DIFF_CHAR_CAP = 24e3;
+var IDLE_TIMEOUT_MS = 12e4;
+var TURN_LINGER_MS = 1e4;
+var LISTING_TTL_MS = 1e3;
+function pairKey(sessionId, taskId) {
+  return `${sessionId}::${taskId}`;
+}
+function createSessionEditTracker(projectRoot, tasksDir, broadcast, options = {}) {
+  const idleTimeoutMs = options.idleTimeoutMs ?? IDLE_TIMEOUT_MS;
+  const turnLingerMs = options.turnLingerMs ?? TURN_LINGER_MS;
+  const subscribe = options.subscribe ?? subscribeAgentSession;
+  const now = options.now ?? (() => Date.now());
+  const archiveDir = join21(tasksDir, "archive");
+  const sessions2 = /* @__PURE__ */ new Map();
+  const unsubscribes = /* @__PURE__ */ new Map();
+  const idleTimers = /* @__PURE__ */ new Map();
+  const closeTimers = /* @__PURE__ */ new Map();
+  let listingCache = null;
+  const iso = () => new Date(now()).toISOString();
+  function listTaskNames(dir) {
+    if (listingCache && listingCache.dir === dir && now() - listingCache.atMs < LISTING_TTL_MS) {
+      return listingCache.names;
+    }
+    const names = listTaskFilenames(dir);
+    listingCache = { dir, names, atMs: now() };
+    return names;
   }
-  const config = loadConfig(kandownDir);
-  const board = readBoard(kandownDir);
-  const sourceColumn = board.columns.find((column) => column.tasks.some((task) => task.id === taskId));
-  const targetColumn = board.columns.find((column) => column.name.toLowerCase() === targetStatus.toLowerCase());
-  if (!sourceColumn) {
-    return { ok: false, kind: "not-found", reason: `Task is not active: ${taskId}` };
-  }
-  if (!targetColumn) {
-    return { ok: false, kind: "invalid-target", reason: `Unknown status: ${targetStatus}` };
-  }
-  const target = targetColumn.name;
-  const parsed = readTask(kandownDir, taskId);
-  const from = typeof parsed.frontmatter.status === "string" ? parsed.frontmatter.status : sourceColumn.name;
-  const allTasks = listTaskIds(kandownDir).map((id) => {
+  function taskIdForPath(absolutePath) {
+    let normalized;
     try {
-      return readTask(kandownDir, id);
+      normalized = resolvePath(absolutePath);
     } catch {
       return null;
     }
-  }).filter((task) => task !== null);
-  const snapshot = resolveDependencyStatus(allTasks, config);
-  const dependencyVerdict = resolveTransition(parsed, target, snapshot, config);
-  if (!dependencyVerdict.allowed) {
-    const error = new DependencyGateError(taskId, target, dependencyVerdict.blockedBy);
-    return {
-      ok: false,
-      kind: "dependency",
-      reason: error.message,
-      blockedBy: dependencyVerdict.blockedBy
-    };
-  }
-  const extensionVerdict = await runExtensionMoveGates(host, kandownDir, taskId, from, target);
-  if (!extensionVerdict.allowed) {
-    return {
-      ok: false,
-      kind: "extension",
-      reason: userReadyExtensionReason(taskId, target, extensionVerdict.reason)
-    };
-  }
-  const sourceIds = sourceColumn.tasks.map((task) => task.id).filter((id) => id !== taskId);
-  const targetIds = sourceColumn === targetColumn ? sourceIds : targetColumn.tasks.map((task) => task.id).filter((id) => id !== taskId);
-  const insertionIndex = toIndex === void 0 ? targetIds.length : Math.max(0, Math.min(Math.trunc(toIndex), targetIds.length));
-  targetIds.splice(insertionIndex, 0, taskId);
-  const layouts = sourceColumn === targetColumn ? [{ status: target, ids: targetIds }] : [
-    // 📖 Persist the target first, and the moved task first within it. If
-    // that authoritative write fails, no neighbor order has changed.
-    { status: target, ids: targetIds },
-    { status: sourceColumn.name, ids: sourceIds }
-  ];
-  const failedIds = [];
-  for (const layout of layouts) {
-    const entries = layout.ids.map((id, order) => ({ id, order }));
-    entries.sort((left, right) => left.id === taskId ? -1 : right.id === taskId ? 1 : left.order - right.order);
-    for (const { id, order } of entries) {
-      const path = findTaskPath(kandownDir, id);
-      if (!path) {
-        failedIds.push(id);
-        continue;
-      }
-      try {
-        const current = readTask(kandownDir, id);
-        const nextContent = serializeTaskFile(stampUpdated({
-          ...current.frontmatter,
-          id,
-          status: layout.status,
-          order
-        }), current.body);
-        atomicWriteFileSync(path, nextContent);
-      } catch {
-        failedIds.push(id);
-      }
+    for (const dir of [archiveDir, tasksDir]) {
+      const dirNormalized = resolvePath(dir);
+      const prefix = dirNormalized.endsWith(sep2) ? dirNormalized : dirNormalized + sep2;
+      if (!normalized.startsWith(prefix)) continue;
+      const name = basename6(normalized);
+      if (!isTaskFilename(name)) return null;
+      const id = taskIdFromFilename(name);
+      if (!id) return null;
+      const match = resolveTaskFilename(id, listTaskNames(dirNormalized));
+      return match ? id : null;
     }
-  }
-  const uniqueFailedIds = [...new Set(failedIds)];
-  if (uniqueFailedIds.includes(taskId)) {
-    return {
-      ok: false,
-      kind: "write",
-      reason: `Failed to persist move for ${taskId}`
-    };
-  }
-  try {
-    const moved = readTask(kandownDir, taskId);
-    const frontmatter = moved.frontmatter;
-    const event = {
-      type: "task:afterMove",
-      task: {
-        id: taskId,
-        frontmatter,
-        plugins: frontmatter.plugins
-      },
-      from,
-      to: target
-    };
-    host.dispatchSync(event);
-    host.dispatchLifecycle(event);
-  } catch {
-  }
-  return { ok: true, from, to: target, failedIds: uniqueFailedIds };
-}
-async function moveTaskWithGates(host, kandownDir, taskId, targetStatus, toIndex) {
-  return withProjectMoveLock(kandownDir, () => performTaskMove(host, kandownDir, taskId, targetStatus, toIndex));
-}
-
-// src/cli/lib/extensions-store.ts
-import { mkdirSync as mkdirSync10, writeFileSync as writeFileSync6 } from "fs";
-import { join as join22 } from "path";
-var DEFAULT_REGISTRY_URL = "https://raw.githubusercontent.com/vava-nessa/kandown/main/registry/extensions.json";
-var REGISTRY_FILES = ["manifest.json", "index.js", "index.ts", "web.js", "styles.css"];
-async function fetchRegistry(url = DEFAULT_REGISTRY_URL) {
-  try {
-    const res = await fetch(url, { headers: { Accept: "application/json" } });
-    if (!res.ok) return { entries: [], url, error: `HTTP ${res.status}` };
-    const data = await res.json();
-    const entries = Array.isArray(data) ? data : data.entries ?? [];
-    return { entries: Array.isArray(entries) ? entries : [], url };
-  } catch (e) {
-    return { entries: [], url, error: e instanceof Error ? e.message : String(e) };
-  }
-}
-function githubRawBase(repo, ref) {
-  const cleaned = repo.replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "");
-  return `https://raw.githubusercontent.com/${cleaned}/${ref}`;
-}
-function githubRawBaseHead(repo) {
-  return githubRawBase(repo, "HEAD");
-}
-async function installExtension2(projectDir, input) {
-  let baseUrl;
-  let manifestPath;
-  if (input.entry) {
-    const ref = input.entry.ref || "HEAD";
-    baseUrl = `${githubRawBase(input.entry.repo, ref)}/${input.entry.path || ""}`.replace(/\/$/, "");
-    manifestPath = "manifest.json";
-  } else if (input.url) {
-    baseUrl = githubRawBaseHead(input.url).replace(/\/$/, "");
-    manifestPath = "manifest.json";
-  } else {
-    return { ok: false, error: "Provide a registry entry or a GitHub URL." };
-  }
-  const manifestUrl = `${baseUrl}/${manifestPath}`;
-  let manifestJson;
-  try {
-    const res = await fetch(manifestUrl, { headers: { Accept: "application/json" } });
-    if (!res.ok) return { ok: false, error: `manifest fetch failed: HTTP ${res.status}` };
-    manifestJson = await res.text();
-  } catch (e) {
-    return { ok: false, error: `manifest fetch failed: ${e instanceof Error ? e.message : String(e)}` };
-  }
-  let manifest;
-  try {
-    manifest = JSON.parse(manifestJson);
-  } catch {
-    return { ok: false, error: "manifest.json is not valid JSON" };
-  }
-  if (!manifest.id || !/^[a-z][a-z0-9-]{0,63}$/.test(manifest.id)) {
-    return { ok: false, error: "manifest.json is missing a valid id" };
-  }
-  const destDir = join22(projectDir, ".kandown", "extensions", manifest.id);
-  mkdirSync10(destDir, { recursive: true });
-  const copied = [];
-  const write = (relPath, content) => {
-    writeFileSync6(join22(destDir, relPath), content, "utf8");
-    copied.push(relPath);
-  };
-  write("manifest.json", manifestJson);
-  const otherFiles = REGISTRY_FILES.filter((f) => f !== "manifest.json");
-  const results = await Promise.allSettled(
-    otherFiles.map(async (f) => {
-      const r = await fetch(`${baseUrl}/${f}`);
-      if (!r.ok) return null;
-      const text = await r.text();
-      write(f, text);
-      return f;
-    })
-  );
-  return {
-    ok: true,
-    id: manifest.id
-  };
-}
-
-// src/cli/lib/themes-store.ts
-import { existsSync as existsSync20, mkdirSync as mkdirSync11, writeFileSync as writeFileSync7 } from "fs";
-import { join as join23 } from "path";
-
-// src/lib/themes/shared.ts
-var sharedLight = {
-  "destructive": "0 72% 51%",
-  "destructive-foreground": "0 0% 100%",
-  "success": "148 55% 39%",
-  "warning": "38 82% 49%",
-  "grid": "220 13% 0% / 0.05",
-  "grid-strong": "220 13% 0% / 0.085"
-};
-var sharedDark = {
-  "destructive": "358 74% 59%",
-  "destructive-foreground": "0 0% 100%",
-  "success": "151 55% 42%",
-  "warning": "38 82% 57%",
-  "grid": "0 0% 100% / 0.018",
-  "grid-strong": "0 0% 100% / 0.04"
-};
-
-// src/lib/themes/shadcn.ts
-var shadcnTheme = {
-  id: "shadcn",
-  name: "Shadcn",
-  author: "Kandown",
-  description: "Ultra-clean zinc palette, near-black primary, crisp borders. The shadcn/ui look as a default.",
-  appearance: { radius: "8px", borderWidth: "1px", shadows: "soft", density: "comfortable", glass: true, motion: "subtle" },
-  fonts: { sans: "'Inter var', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", display: "'Inter Tight', 'Inter var', Inter, sans-serif", mono: "'SF Mono', Menlo, Monaco, Consolas, monospace" },
-  light: {
-    ...sharedLight,
-    "background": "0 0% 100%",
-    "foreground": "240 10% 3.9%",
-    "card": "0 0% 100%",
-    "card-foreground": "240 10% 3.9%",
-    "popover": "0 0% 100%",
-    "popover-foreground": "240 10% 3.9%",
-    "primary": "240 5.9% 10%",
-    "primary-foreground": "0 0% 98%",
-    "secondary": "240 4.8% 95.9%",
-    "secondary-foreground": "240 5.9% 10%",
-    "muted": "240 4.8% 95.9%",
-    "muted-foreground": "240 3.8% 46.1%",
-    "accent": "240 4.8% 95.9%",
-    "accent-foreground": "240 5.9% 10%",
-    "border": "240 5.9% 90%",
-    "border-strong": "240 5.9% 80%",
-    "border-focus": "240 5.9% 10%",
-    "input": "240 5.9% 90%",
-    "ring": "240 5.9% 10%",
-    "grid": "240 10% 3.9% / 0.04",
-    "grid-strong": "240 10% 3.9% / 0.07",
-    "glass": "0 0% 100% / 0.8",
-    "glass-border": "240 5.9% 90% / 0.8",
-    // 📖 Code blocks: very light gray (github-light-ish) so the bundled
-    // Shiki palette keeps WCAG-AA contrast. Inline code is a zinc pill.
-    "code-bg": "240 6% 96%",
-    "code-fg": "240 10% 12%",
-    "code-inline-bg": "240 5% 94%",
-    "code-inline-fg": "240 8% 18%",
-    "code-block-border": "240 6% 88%"
-  },
-  dark: {
-    ...sharedDark,
-    "background": "240 10% 3.9%",
-    "foreground": "0 0% 98%",
-    "card": "240 7% 6%",
-    "card-foreground": "0 0% 98%",
-    "popover": "240 8% 7%",
-    "popover-foreground": "0 0% 98%",
-    "primary": "0 0% 98%",
-    "primary-foreground": "240 5.9% 10%",
-    "secondary": "240 3.7% 15.9%",
-    "secondary-foreground": "0 0% 98%",
-    "muted": "240 3.7% 15.9%",
-    "muted-foreground": "240 5% 64.9%",
-    "accent": "240 3.7% 15.9%",
-    "accent-foreground": "0 0% 98%",
-    "border": "240 3.7% 15.9%",
-    "border-strong": "240 5% 26%",
-    "border-focus": "240 4.9% 83.9%",
-    "input": "240 3.7% 15.9%",
-    "ring": "240 4.9% 83.9%",
-    "grid": "0 0% 98% / 0.03",
-    "grid-strong": "0 0% 98% / 0.06",
-    "glass": "240 7% 6% / 0.8",
-    "glass-border": "240 5% 16% / 0.8",
-    // 📖 Code blocks: zinc-950 close to github-dark's #0d1117 so the dark
-    // Shiki palette stays readable; inline code is a slightly lighter pill.
-    "code-bg": "240 5% 8%",
-    "code-fg": "0 0% 93%",
-    "code-inline-bg": "240 4% 13%",
-    "code-inline-fg": "240 8% 75%",
-    "code-block-border": "240 4% 18%"
-  }
-};
-
-// src/lib/themes/vercel.ts
-var vercelTheme = {
-  id: "vercel",
-  name: "Vercel",
-  author: "Kandown",
-  description: "Black and white, mono display type, compact density. The Vercel high-contrast look.",
-  appearance: { radius: "6px", borderWidth: "1px", shadows: "soft", density: "compact", glass: true, motion: "subtle" },
-  fonts: { sans: "'Inter var', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", display: "ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, 'Liberation Mono', monospace", mono: "'SF Mono', Menlo, Monaco, Consolas, 'Liberation Mono', monospace" },
-  light: {
-    ...sharedLight,
-    "background": "0 0% 98%",
-    "foreground": "0 0% 4%",
-    "card": "0 0% 100%",
-    "card-foreground": "0 0% 4%",
-    "popover": "0 0% 100%",
-    "popover-foreground": "0 0% 4%",
-    "primary": "0 0% 4%",
-    "primary-foreground": "0 0% 100%",
-    "secondary": "0 0% 96%",
-    "secondary-foreground": "0 0% 10%",
-    "muted": "0 0% 96%",
-    "muted-foreground": "0 0% 44%",
-    "accent": "0 0% 93%",
-    "accent-foreground": "0 0% 8%",
-    "border": "0 0% 90%",
-    "border-strong": "0 0% 78%",
-    "border-focus": "0 0% 4%",
-    "input": "0 0% 90%",
-    "ring": "0 0% 4%",
-    "grid": "0 0% 4% / 0.05",
-    "grid-strong": "0 0% 4% / 0.09",
-    "glass": "0 0% 100% / 0.8",
-    "glass-border": "0 0% 90% / 0.8",
-    "code-bg": "0 0% 95%",
-    "code-fg": "0 0% 12%",
-    "code-inline-bg": "0 0% 92%",
-    "code-inline-fg": "0 0% 15%",
-    "code-block-border": "0 0% 86%"
-  },
-  dark: {
-    ...sharedDark,
-    "background": "0 0% 4%",
-    "foreground": "0 0% 98%",
-    "card": "0 0% 6%",
-    "card-foreground": "0 0% 98%",
-    "popover": "0 0% 7%",
-    "popover-foreground": "0 0% 98%",
-    "primary": "0 0% 98%",
-    "primary-foreground": "0 0% 4%",
-    "secondary": "0 0% 13%",
-    "secondary-foreground": "0 0% 96%",
-    "muted": "0 0% 12%",
-    "muted-foreground": "0 0% 58%",
-    "accent": "0 0% 15%",
-    "accent-foreground": "0 0% 96%",
-    "border": "0 0% 14%",
-    "border-strong": "0 0% 24%",
-    "border-focus": "0 0% 90%",
-    "input": "0 0% 14%",
-    "ring": "0 0% 90%",
-    "grid": "0 0% 100% / 0.03",
-    "grid-strong": "0 0% 100% / 0.06",
-    "glass": "0 0% 6% / 0.8",
-    "glass-border": "0 0% 16% / 0.8",
-    "code-bg": "0 0% 8%",
-    "code-fg": "0 0% 92%",
-    "code-inline-bg": "0 0% 14%",
-    "code-inline-fg": "0 0% 80%",
-    "code-block-border": "0 0% 18%"
-  }
-};
-
-// src/lib/themes/linear.ts
-var linearTheme = {
-  id: "linear",
-  name: "Linear",
-  author: "Kandown",
-  description: "Dark-first aesthetic, Plus Jakarta Sans, electric violet accent, sleek elevated popovers.",
-  appearance: { radius: "8px", borderWidth: "1px", shadows: "elevated", density: "comfortable", glass: true, motion: "subtle", glassIntensity: 24, shadowCard: "0 1px 2px rgb(8 8 16 / 0.06), 0 4px 12px rgb(8 8 16 / 0.10)", shadowPopover: "0 12px 32px rgb(8 8 16 / 0.22)" },
-  fonts: { sans: "'Plus Jakarta Sans', Outfit, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", display: "'Plus Jakarta Sans', Outfit, -apple-system, BlinkMacSystemFont, sans-serif", mono: "'SF Mono', Menlo, Consolas, monospace" },
-  light: {
-    ...sharedLight,
-    "background": "220 20% 98%",
-    "foreground": "224 24% 12%",
-    "card": "0 0% 100%",
-    "card-foreground": "224 24% 12%",
-    "popover": "0 0% 100%",
-    "popover-foreground": "224 24% 12%",
-    "primary": "235 59% 60%",
-    "primary-foreground": "0 0% 100%",
-    "secondary": "235 25% 95%",
-    "secondary-foreground": "235 59% 30%",
-    "muted": "220 16% 94%",
-    "muted-foreground": "220 12% 42%",
-    "accent": "235 45% 92%",
-    "accent-foreground": "235 59% 35%",
-    "border": "220 15% 88%",
-    "border-strong": "220 15% 80%",
-    "border-focus": "235 59% 60%",
-    "input": "220 15% 90%",
-    "ring": "235 59% 60%",
-    "grid": "235 30% 12% / 0.04",
-    "grid-strong": "235 30% 12% / 0.08",
-    "glass": "0 0% 100% / 0.8",
-    "glass-border": "220 15% 86% / 0.85",
-    "code-bg": "220 14% 96%",
-    "code-fg": "224 24% 12%",
-    "code-inline-bg": "235 30% 92%",
-    "code-inline-fg": "235 40% 30%",
-    "code-block-border": "220 14% 88%"
-  },
-  dark: {
-    ...sharedDark,
-    "background": "210 11% 4%",
-    "foreground": "210 14% 94%",
-    "card": "216 7% 8%",
-    "card-foreground": "210 14% 94%",
-    "popover": "216 7% 8%",
-    "popover-foreground": "210 14% 94%",
-    "primary": "235 59% 60%",
-    "primary-foreground": "0 0% 100%",
-    "secondary": "218 9% 13%",
-    "secondary-foreground": "210 14% 94%",
-    "muted": "218 9% 11%",
-    "muted-foreground": "215 8% 58%",
-    "accent": "235 30% 15%",
-    "accent-foreground": "210 14% 94%",
-    "border": "225 9% 14%",
-    "border-strong": "225 9% 20%",
-    "border-focus": "235 59% 60%",
-    "input": "225 9% 14%",
-    "ring": "235 59% 60%",
-    "grid": "0 0% 100% / 0.018",
-    "grid-strong": "0 0% 100% / 0.04",
-    "glass": "216 7% 8% / 0.78",
-    "glass-border": "225 9% 18% / 0.85",
-    "code-bg": "216 9% 10%",
-    "code-fg": "210 14% 90%",
-    "code-inline-bg": "235 25% 18%",
-    "code-inline-fg": "235 60% 78%",
-    "code-block-border": "225 9% 20%"
-  }
-};
-
-// src/lib/themes/kandown.ts
-var kandownTheme = {
-  id: "kandown",
-  name: "Kandown",
-  author: "Kandown",
-  description: "The house theme: brand lime (#88E138) on near-neutral surfaces, pale lime accents, 4px radius.",
-  appearance: { radius: "4px", borderWidth: "1px", shadows: "soft", density: "comfortable", glass: true, motion: "subtle" },
-  fonts: { sans: "'Inter var', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", display: "'Inter Tight', 'Inter var', Inter, sans-serif", mono: "'SF Mono', Menlo, Monaco, Consolas, monospace" },
-  light: {
-    ...sharedLight,
-    "background": "80 40% 99%",
-    "foreground": "120 10% 10%",
-    "card": "0 0% 100%",
-    "card-foreground": "120 10% 10%",
-    "popover": "0 0% 100%",
-    "popover-foreground": "120 10% 10%",
-    "primary": "91 67% 47%",
-    "primary-foreground": "96 55% 9%",
-    "secondary": "75 45% 94%",
-    "secondary-foreground": "96 40% 18%",
-    "muted": "75 12% 95%",
-    "muted-foreground": "120 5% 40%",
-    "accent": "72 100% 90%",
-    "accent-foreground": "96 50% 18%",
-    "border": "0 0% 92%",
-    "border-strong": "0 0% 85%",
-    "border-focus": "91 67% 47%",
-    "input": "0 0% 90%",
-    "ring": "91 67% 47%",
-    "success": "130 90% 28%",
-    "grid": "92 40% 20% / 0.05",
-    "grid-strong": "92 40% 20% / 0.09",
-    "glass": "0 0% 100% / 0.78",
-    "glass-border": "75 30% 88% / 0.85",
-    // 📖 Code blocks: very light gray background so github-light's dark
-    // token colors (blues / reds / greens) keep a WCAG-AA contrast.
-    // Inline code is slightly tinted with the page accent so single
-    // backticks in body prose still pop without competing with the block.
-    "code-bg": "220 14% 96%",
-    "code-fg": "220 30% 12%",
-    "code-inline-bg": "75 35% 90%",
-    "code-inline-fg": "120 25% 18%",
-    "code-block-border": "220 14% 88%"
-  },
-  dark: {
-    ...sharedDark,
-    "background": "120 8% 7%",
-    "foreground": "80 15% 93%",
-    "card": "120 7% 10%",
-    "card-foreground": "80 15% 93%",
-    "popover": "120 7% 11%",
-    "popover-foreground": "80 15% 93%",
-    "primary": "92 74% 55%",
-    "primary-foreground": "120 30% 7%",
-    "secondary": "120 6% 16%",
-    "secondary-foreground": "80 15% 93%",
-    "muted": "120 6% 14%",
-    "muted-foreground": "90 6% 60%",
-    "accent": "92 30% 18%",
-    "accent-foreground": "92 74% 70%",
-    "border": "120 6% 18%",
-    "border-strong": "120 6% 26%",
-    "border-focus": "92 74% 55%",
-    "input": "120 6% 18%",
-    "ring": "92 74% 55%",
-    "success": "130 90% 48%",
-    "grid": "92 60% 60% / 0.03",
-    "grid-strong": "92 60% 60% / 0.06",
-    "glass": "120 7% 10% / 0.78",
-    "glass-border": "92 20% 24% / 0.8",
-    // 📖 Code blocks: a deeper neutral background, close to github-dark's
-    // own `#0d1117` (≈ 220 15% 9%) so the bundled Shiki palette's light
-    // token colors stay readable. Inline code is warmer so it reads as a
-    // deliberate pill, not a missed selection.
-    "code-bg": "220 15% 11%",
-    "code-fg": "80 20% 92%",
-    "code-inline-bg": "92 20% 22%",
-    "code-inline-fg": "92 50% 78%",
-    "code-block-border": "220 14% 22%"
-  }
-};
-
-// src/lib/themes/index.ts
-var THEME_PRESETS = [shadcnTheme, vercelTheme, linearTheme, kandownTheme];
-
-// src/lib/theme.ts
-var LEGACY_SKIN_MAP = {};
-var SKIN_OPTIONS = THEME_PRESETS.map((t) => ({
-  id: t.id,
-  label: t.name,
-  description: t.description ?? "",
-  light: t.light,
-  dark: t.dark
-}));
-var customThemesRegistry = [];
-function getAllThemes() {
-  return [...THEME_PRESETS, ...customThemesRegistry];
-}
-function normalizeSkinId(value) {
-  if (typeof value !== "string") return "shadcn";
-  const all = getAllThemes();
-  const target = LEGACY_SKIN_MAP[value] ?? value;
-  return all.some((t) => t.id === target) ? target : "shadcn";
-}
-
-// src/cli/lib/themes-store.ts
-var DEFAULT_REGISTRY_URL2 = "https://raw.githubusercontent.com/vava-nessa/kandown/main/registry/themes.json";
-async function fetchRegistry2(url = DEFAULT_REGISTRY_URL2) {
-  try {
-    const res = await fetch(url, { headers: { Accept: "application/json" } });
-    if (!res.ok) return { entries: [], url, error: `HTTP ${res.status}` };
-    const data = await res.json();
-    const entries = Array.isArray(data) ? data : data.entries ?? [];
-    return { entries: Array.isArray(entries) ? entries : [], url };
-  } catch (e) {
-    return { entries: [], url, error: e instanceof Error ? e.message : String(e) };
-  }
-}
-function githubRawBase2(repo, ref) {
-  const cleaned = repo.replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "");
-  return `https://raw.githubusercontent.com/${cleaned}/${ref}`;
-}
-async function installTheme(projectDir, input) {
-  let themeUrl;
-  if (input.entry) {
-    const ref = input.entry.ref || "HEAD";
-    const base = githubRawBase2(input.entry.repo, ref);
-    const path = input.entry.path || `registry/themes/${input.entry.id}.json`;
-    themeUrl = `${base}/${path}`.replace(/\/+$/, "");
-  } else if (input.url) {
-    const trimmed = input.url.replace(/\/+$/, "");
-    if (trimmed.includes("raw.githubusercontent.com")) {
-      themeUrl = trimmed;
-    } else {
-      const base = githubRawBase2(trimmed, "HEAD");
-      themeUrl = `${base}/registry/themes/${guessIdFromUrl(trimmed)}.json`;
-    }
-  } else {
-    return { ok: false, error: "Provide a registry entry or a GitHub URL." };
-  }
-  let themeJson;
-  try {
-    const res = await fetch(themeUrl, { headers: { Accept: "application/json" } });
-    if (!res.ok) return { ok: false, error: `theme fetch failed: HTTP ${res.status}` };
-    themeJson = await res.text();
-  } catch (e) {
-    return { ok: false, error: `theme fetch failed: ${e instanceof Error ? e.message : String(e)}` };
-  }
-  let theme;
-  try {
-    theme = JSON.parse(themeJson);
-  } catch {
-    return { ok: false, error: "theme file is not valid JSON" };
-  }
-  if (!theme.id || !/^[a-z][a-z0-9-]{0,63}$/.test(theme.id)) {
-    return { ok: false, error: "theme is missing a valid id" };
-  }
-  normalizeSkinId(theme.id);
-  const { description: _desc, author: _author, name: _name, ..._rest } = theme;
-  const destDir = join23(projectDir, ".kandown", "themes");
-  mkdirSync11(destDir, { recursive: true });
-  writeFileSync7(join23(destDir, `${theme.id}.json`), `${themeJson}
-`, "utf8");
-  return { ok: true, id: theme.id };
-}
-function guessIdFromUrl(url) {
-  const m = url.match(/\/([a-z0-9_-]+?)(?:\.git)?$/i);
-  return m ? m[1].toLowerCase().replace(/[^a-z0-9-]/g, "-") : "unknown";
-}
-function base64EncodeUtf8(input) {
-  if (typeof Buffer !== "undefined") {
-    return Buffer.from(input, "utf8").toString("base64");
-  }
-  return btoa(unescape(encodeURIComponent(input)));
-}
-function buildProposeUrl(opts) {
-  const branch = opts.branch ?? "main";
-  const dir = (opts.dir ?? "registry/themes").replace(/\/+$/, "");
-  const params = new URLSearchParams({
-    filename: `${dir}/${opts.themeId}.json`,
-    value: base64EncodeUtf8(opts.json)
-  });
-  return `https://github.com/${opts.githubOwner}/${opts.githubRepo}/new/${branch}/${dir}?${params.toString()}`;
-}
-function listInstalledThemes(projectDir) {
-  const dir = join23(projectDir, ".kandown", "themes");
-  if (!existsSync20(dir)) return [];
-  const themes = [];
-  const { readFileSync: readFileSync26, readdirSync: readdirSync13 } = __require("fs");
-  for (const file of readdirSync13(dir)) {
-    if (!file.endsWith(".json")) continue;
-    try {
-      const raw = readFileSync26(join23(dir, file), "utf8");
-      const parsed = JSON.parse(raw);
-      if (parsed && parsed.id && parsed.light && parsed.dark) {
-        themes.push({ ...parsed, isCustom: true });
-      }
-    } catch {
-    }
-  }
-  return themes;
-}
-
-// src/cli/lib/server.ts
-init_workflows_cli();
-init_workflows_store();
-
-// src/cli/lib/daemon-auth.ts
-import { randomBytes, timingSafeEqual } from "crypto";
-var TOKEN_HEADER = "X-Kandown-Token";
-var TOKEN_QUERY = "token";
-function generateToken() {
-  return randomBytes(32).toString("hex");
-}
-function extractToken(req, url) {
-  const headerValue = req.headers[TOKEN_HEADER.toLowerCase()];
-  const fromHeader = Array.isArray(headerValue) ? headerValue[0] : headerValue;
-  if (typeof fromHeader === "string" && fromHeader.length > 0) return fromHeader;
-  const fromQuery = url?.searchParams.get(TOKEN_QUERY);
-  return typeof fromQuery === "string" && fromQuery.length > 0 ? fromQuery : null;
-}
-function verifyToken(expected, candidate) {
-  const expectedBuffer = Buffer.from(expected, "utf8");
-  const candidateBuffer = Buffer.from(candidate, "utf8");
-  if (expectedBuffer.length !== candidateBuffer.length) return false;
-  return timingSafeEqual(expectedBuffer, candidateBuffer);
-}
-function selfOrigin(port) {
-  return `http://127.0.0.1:${port}`;
-}
-
-// src/cli/lib/server.ts
-var START_PORT_RANGE = 2050;
-var END_PORT_RANGE = 2099;
-var UNSAFE_PORTS = /* @__PURE__ */ new Set([2049, 4045, 6e3, 6665, 6666, 6667, 6668, 6669, 6697]);
-var sseClients = [];
-var nextClientId = 1;
-var activeToken = null;
-function setActiveToken(token) {
-  activeToken = token;
-}
-function corsHeaders(port) {
-  return {
-    "Access-Control-Allow-Origin": selfOrigin(port),
-    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-Kandown-Token"
-  };
-}
-function authenticateHttp(req, url, res) {
-  if (activeToken === null) return true;
-  const candidate = extractToken(req, url);
-  if (candidate === null || !verifyToken(activeToken, candidate)) {
-    res.writeHead(401, {
-      "Content-Type": "application/json",
-      ...corsHeaders(localPort(res))
-    });
-    res.end(JSON.stringify({ error: "Token missing or invalid" }));
-    return false;
-  }
-  return true;
-}
-var extensionHost = null;
-var extensionHostDir = null;
-async function getExtensionHost(kandownDir) {
-  if (!extensionHost || extensionHostDir !== kandownDir) {
-    extensionHost = await loadExtensionHost(kandownDir);
-    extensionHostDir = kandownDir;
-  }
-  return extensionHost;
-}
-function broadcastSseEvent(data) {
-  const payload = `data: ${JSON.stringify(data)}
-
-`;
-  sseClients.forEach((c2) => c2.res.write(payload));
-}
-function localPort(res) {
-  const socket = res.socket;
-  return socket && typeof socket.localPort === "number" ? socket.localPort : 0;
-}
-function handleCors(res) {
-  res.writeHead(204, corsHeaders(localPort(res)));
-  res.end();
-}
-function writeJson(res, status, data) {
-  res.writeHead(status, {
-    "Content-Type": "application/json",
-    ...corsHeaders(localPort(res))
-  });
-  res.end(JSON.stringify(data));
-}
-function writeText(res, status, text) {
-  res.writeHead(status, {
-    "Content-Type": "text/plain; charset=utf-8",
-    ...corsHeaders(localPort(res))
-  });
-  res.end(text);
-}
-function readRequestBody(req) {
-  return new Promise((resolveBody, rejectBody) => {
-    let body = "";
-    req.setEncoding("utf8");
-    req.on("data", (chunk) => {
-      body += chunk;
-    });
-    req.on("end", () => resolveBody(body));
-    req.on("error", rejectBody);
-  });
-}
-function syncProjectKandownHtml(kandownDir) {
-  try {
-    const projectHtml = join26(kandownDir, "kandown.html");
-    const distHtml = join26(PKG_ROOT, "dist", "index.html");
-    if (!existsSync23(distHtml)) return false;
-    if (!existsSync23(projectHtml)) {
-      copyFileSync3(distHtml, projectHtml);
-      return true;
-    }
-    const currentContent = readFileSync21(projectHtml, "utf8");
-    const newContent = readFileSync21(distHtml, "utf8");
-    if (currentContent !== newContent) {
-      atomicWriteFileSync(projectHtml, newContent);
-      return true;
-    }
-  } catch {
-  }
-  return false;
-}
-function readDaemonPort(kandownDir) {
-  try {
-    const raw = JSON.parse(readFileSync21(join26(kandownDir, "daemon.json"), "utf8"));
-    return typeof raw.port === "number" && Number.isInteger(raw.port) ? raw.port : null;
-  } catch {
     return null;
   }
-}
-function restartDaemonAfterUpdateResponse(res, kandownDir) {
-  const cliPath = process.argv[1];
-  if (!cliPath) return;
-  const args = ["--no-update-check", "daemon", "run", "--path", kandownDir];
-  const port = readDaemonPort(kandownDir);
-  if (port !== null) args.push("--port", String(port));
-  const launcher = `
-const { spawn } = require('node:child_process');
-const [nodeBin, cliPath, ...cliArgs] = process.argv.slice(1);
-setTimeout(() => {
-  const child = spawn(nodeBin, [cliPath, ...cliArgs], {
-    detached: true,
-    stdio: 'ignore',
-    env: { ...process.env, KANDOWN_DAEMON: '1' },
-  });
-  child.unref();
-}, 350);
-`;
-  res.on("finish", () => {
-    const child = spawn7(process.execPath, ["-e", launcher, process.execPath, cliPath, ...args], {
-      detached: true,
-      stdio: "ignore",
-      env: { ...process.env, KANDOWN_DAEMON: "1" }
-    });
-    child.unref();
-    setTimeout(() => process.exit(0), 50).unref();
-  });
-}
-async function handleApi(req, res, url, kandownDir) {
-  const path = url.pathname;
-  const method = req.method || "GET";
-  if (path === "/api/daemon" && method === "GET") {
-    return writeJson(res, 200, {
-      ok: true,
-      pid: process.pid,
-      kandownDir,
-      version: getCurrentVersion(),
-      startedAt: (/* @__PURE__ */ new Date()).toISOString(),
-      agentHook: process.env.KANDOWN_AGENT_HOOK_URL ? { enabled: true, label: process.env.KANDOWN_AGENT_HOOK_LABEL || "Send to Agent" } : null
-    });
+  function clearTimers(key) {
+    const idle = idleTimers.get(key);
+    if (idle) {
+      clearTimeout(idle);
+      idleTimers.delete(key);
+    }
+    const close = closeTimers.get(key);
+    if (close) {
+      clearTimeout(close);
+      closeTimers.delete(key);
+    }
   }
-  if (!authenticateHttp(req, url, res)) return;
-  if (path === "/api/version" && method === "GET") {
-    return writeJson(res, 200, {
-      version: getCurrentVersion()
-    });
+  function armIdleTimer(sessionId, taskId) {
+    const key = pairKey(sessionId, taskId);
+    const existing = idleTimers.get(key);
+    if (existing) clearTimeout(existing);
+    const timer = setTimeout(() => {
+      idleTimers.delete(key);
+      deactivate(sessionId, taskId);
+    }, idleTimeoutMs);
+    timer.unref?.();
+    idleTimers.set(key, timer);
   }
-  if (path === "/api/update/check" && method === "GET") {
-    const current = getCurrentVersion();
-    const latest = await new Promise((resolve12) => {
-      const child = spawn7("npm", ["view", "kandown", "version"], {
-        timeout: 4e3,
-        stdio: ["pipe", "pipe", "pipe"],
-        env: { ...process.env },
-        detached: false
+  function activatePair(sessionId, taskId, harnessId) {
+    const byTask = sessions2.get(sessionId) ?? /* @__PURE__ */ new Map();
+    const existing = byTask.get(taskId);
+    const pendingClose = closeTimers.get(pairKey(sessionId, taskId));
+    if (pendingClose) {
+      clearTimeout(pendingClose);
+      closeTimers.delete(pairKey(sessionId, taskId));
+    }
+    if (!existing) {
+      byTask.set(taskId, { taskId, harnessId, startedAtMs: now(), lastActivityMs: now() });
+      sessions2.set(sessionId, byTask);
+      broadcast({
+        type: "agent_edit_started",
+        sessionId,
+        taskId,
+        harnessId,
+        at: iso()
       });
-      let stdout = "";
-      child.stdout.on("data", (d) => {
-        stdout += d;
-      });
-      child.stderr.on("data", () => {
-      });
-      child.on("error", () => resolve12(null));
-      child.on("close", (code) => {
-        if (code !== 0) return resolve12(null);
-        resolve12(stdout.trim().replace(/^"|"$/g, "") || null);
-      });
-    });
-    const installed = getInstalledVersion() ?? current;
-    const updateAvailable = latest ? semverGt(latest, installed) > 0 : false;
-    const restartRequired = semverGt(installed, current) > 0;
-    return writeJson(res, 200, {
-      current: installed,
-      running: current,
-      latest: latest || installed,
-      updateAvailable,
-      restartRequired
-    });
-  }
-  if (path === "/api/update/apply" && method === "POST") {
-    const current = getCurrentVersion();
-    const latest = await new Promise((resolve12) => {
-      const child = spawn7("npm", ["view", "kandown", "version"], {
-        timeout: 4e3,
-        stdio: ["pipe", "pipe", "pipe"],
-        env: { ...process.env },
-        detached: false
-      });
-      let stdout = "";
-      child.stdout.on("data", (d) => {
-        stdout += d;
-      });
-      child.on("error", () => resolve12(null));
-      child.on("close", (code) => resolve12(code === 0 ? stdout.trim() : null));
-    });
-    const targetVersion = latest || current;
-    const ok = await performGlobalPackageUpdate(`kandown@${targetVersion}`);
-    syncProjectKandownHtml(kandownDir);
-    if (ok) {
-      restartDaemonAfterUpdateResponse(res, kandownDir);
-      writeJson(res, 200, { ok: true, version: targetVersion, message: "Update installed successfully; daemon is restarting" });
-      broadcastSseEvent({ type: "update", version: targetVersion });
     } else {
-      writeJson(res, 500, { ok: false, message: "Global package installation failed" });
+      existing.lastActivityMs = now();
     }
-    return;
+    armIdleTimer(sessionId, taskId);
   }
-  if (path === "/api/events" && method === "GET") {
-    res.writeHead(200, {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      "Connection": "keep-alive",
-      ...corsHeaders(localPort(res))
+  function deactivate(sessionId, taskId) {
+    const byTask = sessions2.get(sessionId);
+    if (!byTask?.delete(taskId)) return;
+    if (byTask.size === 0) sessions2.delete(sessionId);
+    clearTimers(pairKey(sessionId, taskId));
+    broadcast({
+      type: "agent_edit_ended",
+      sessionId,
+      taskId,
+      at: iso()
     });
-    res.write("retry: 2000\n\n");
-    const id = nextClientId++;
-    sseClients.push({ id, res });
-    req.on("close", () => {
-      sseClients = sseClients.filter((c2) => c2.id !== id);
-    });
-    return;
   }
-  if (path === "/api/board") {
-    if (method === "GET") {
-      const tasksDir = getTasksDir(kandownDir);
-      const boardPath = join26(tasksDir, "board.md");
-      const text = existsSync23(boardPath) ? readFileSync21(boardPath, "utf8") : "";
-      return writeText(res, 200, text);
-    }
-    if (method === "PUT") {
-      let body = "";
-      req.on("data", (chunk) => {
-        body += chunk;
-      });
-      req.on("end", () => {
-        const tasksDir = getTasksDir(kandownDir);
-        if (!existsSync23(tasksDir)) mkdirSync13(tasksDir, { recursive: true });
-        atomicWriteFileSync(join26(tasksDir, "board.md"), body);
-        broadcastSseEvent({ type: "board" });
-        writeJson(res, 200, { ok: true });
-      });
-      return;
-    }
+  function deactivateSession(sessionId) {
+    const byTask = sessions2.get(sessionId);
+    if (!byTask) return;
+    for (const taskId of [...byTask.keys()]) deactivate(sessionId, taskId);
   }
-  if (path === "/api/config") {
-    if (method === "GET") {
-      return writeJson(res, 200, loadConfig(kandownDir));
-    }
-    if (method === "PUT") {
-      let body = "";
-      req.on("data", (chunk) => {
-        body += chunk;
-      });
-      req.on("end", () => {
-        try {
-          const parsed = JSON.parse(body);
-          saveConfig(kandownDir, parsed);
-          if (extensionHostDir === kandownDir) {
-            extensionHost = null;
-            extensionHostDir = null;
+  function clip(text) {
+    return text.length > DIFF_CHAR_CAP ? { text: text.slice(0, DIFF_CHAR_CAP), clipped: true } : { text, clipped: false };
+  }
+  const tracker = {
+    attachSession(sessionId, harnessId) {
+      if (unsubscribes.has(sessionId)) return;
+      const unsubscribe = subscribe(sessionId, (event) => {
+        if (event.type === "file_changed") {
+          const absolute = isAbsolute(event.path) ? event.path : join21(projectRoot, event.path);
+          const taskId = taskIdForPath(absolute);
+          if (taskId) activatePair(sessionId, taskId, harnessId);
+        } else if (event.type === "turn_completed") {
+          const byTask = sessions2.get(sessionId);
+          if (!byTask) return;
+          for (const taskId of [...byTask.keys()]) {
+            const key = pairKey(sessionId, taskId);
+            const existing = closeTimers.get(key);
+            if (existing) clearTimeout(existing);
+            const timer = setTimeout(() => {
+              closeTimers.delete(key);
+              deactivate(sessionId, taskId);
+            }, turnLingerMs);
+            timer.unref?.();
+            closeTimers.set(key, timer);
           }
-          broadcastSseEvent({ type: "config" });
-          writeJson(res, 200, { ok: true });
-        } catch (error) {
-          writeJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
+        } else if (event.type === "stopped") {
+          tracker.detachSession(sessionId);
         }
       });
-      return;
-    }
-  }
-  if (path === "/api/instructions") {
-    const instructionsPath = join26(kandownDir, "kandown_work.md");
-    if (method === "GET") return writeText(res, 200, existsSync23(instructionsPath) ? readFileSync21(instructionsPath, "utf8") : "");
-    if (method === "PUT") {
-      try {
-        atomicWriteFileSync(instructionsPath, await readRequestBody(req));
-        broadcastSseEvent({ type: "instructions" });
-        return writeJson(res, 200, { ok: true });
-      } catch (error) {
-        return writeJson(res, 500, { error: error instanceof Error ? error.message : String(error) });
+      if (!unsubscribe) return;
+      unsubscribes.set(sessionId, unsubscribe);
+    },
+    detachSession(sessionId) {
+      const unsubscribe = unsubscribes.get(sessionId);
+      if (unsubscribe) {
+        unsubscribe();
+        unsubscribes.delete(sessionId);
       }
-    }
-  }
-  if (path === "/api/skills" && method === "GET") {
-    const config = loadConfig(kandownDir);
-    const active = new Set(config.workflow.skills);
-    const roles = new Set(Object.values(config.board.columnMeta).map((meta2) => meta2.role));
-    const skills = listWorkflowSkills(kandownDir).map((skill) => {
-      const missingRole = skill.requiredRoles?.find((role) => !roles.has(role));
-      const wrongWorkflow = skill.compatibleWorkflows?.length && !skill.compatibleWorkflows.includes(config.workflow.active);
-      const reason = !skill.valid ? skill.errors.join("; ") : wrongWorkflow ? `Compatible with: ${skill.compatibleWorkflows?.join(", ")}` : missingRole ? `Requires column role: ${missingRole}` : void 0;
-      return { ...skill, active: active.has(skill.id), compatible: !reason, ...reason ? { compatibilityReason: reason } : {} };
-    });
-    return writeJson(res, 200, { skills });
-  }
-  if (path === "/api/workflows" && method === "GET") {
-    try {
-      const config = loadConfig(kandownDir);
-      const selected = loadWorkflowById(kandownDir, config.workflow.active);
-      const compiled = compileProjectKandownWork(kandownDir);
-      return writeJson(res, 200, {
-        workflows: listWorkflowPackages(kandownDir),
-        selected,
-        preview: compiled.markdown,
-        stats: compiled.stats,
-        diagnostics: compiled.diagnostics,
-        boardPresetPreview: selected.boardPreset ? previewBoardPreset(kandownDir, selected.manifest.id) : null
-      });
-    } catch (error) {
-      return writeJson(res, 500, { error: error instanceof Error ? error.message : String(error) });
-    }
-  }
-  if (path === "/api/workflows/registry" && method === "GET") {
-    return writeJson(res, 200, await fetchWorkflowRegistry());
-  }
-  if (path === "/api/workflows/install" && method === "POST") {
-    try {
-      const body = JSON.parse(await readRequestBody(req));
-      if (!body.entry) return writeJson(res, 400, { ok: false, error: "Registry entry is required." });
-      const result = await installStoreWorkflow(kandownDir, body.entry);
-      broadcastSseEvent({ type: "workflows" });
-      return writeJson(res, result.ok ? 200 : 400, result);
-    } catch (error) {
-      return writeJson(res, 400, { ok: false, error: error instanceof Error ? error.message : String(error) });
-    }
-  }
-  if (path === "/api/workflows/update" && method === "POST") {
-    try {
-      const body = JSON.parse(await readRequestBody(req));
-      if (!body.entry) return writeJson(res, 400, { ok: false, error: "Registry entry is required." });
-      if (body.confirm !== true) return writeJson(res, 200, { ok: true, preview: await previewWorkflowUpdate(kandownDir, body.entry) });
-      const result = await applyWorkflowUpdate(kandownDir, body.entry, true);
-      broadcastSseEvent({ type: "workflows" });
-      return writeJson(res, result.ok ? 200 : 400, result);
-    } catch (error) {
-      return writeJson(res, 400, { ok: false, error: error instanceof Error ? error.message : String(error) });
-    }
-  }
-  if (path.startsWith("/api/workflows/") && method === "POST") {
-    const action = path.slice("/api/workflows/".length);
-    let body = {};
-    try {
-      body = JSON.parse(await readRequestBody(req));
-    } catch (error) {
-      return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
-    }
-    if (typeof body.id !== "string") return writeJson(res, 400, { error: "Workflow id is required." });
-    try {
-      if (action === "use") {
-        const workflow = loadWorkflowById(kandownDir, body.id);
-        const missing = missingWorkflowRoles(kandownDir, workflow);
-        if (missing.length > 0) return writeJson(res, 409, { error: `Missing required column roles: ${missing.join(", ")}.`, missing, boardPresetPreview: workflow.boardPreset ? previewBoardPreset(kandownDir, body.id) : null });
-        const config = loadConfig(kandownDir);
-        config.workflow.active = workflow.manifest.id;
-        saveConfig(kandownDir, config);
-        broadcastSseEvent({ type: "config" });
-        return writeJson(res, 200, { ok: true });
+      deactivateSession(sessionId);
+    },
+    isTaskBeingEditedByAgent(absolutePath) {
+      const taskId = taskIdForPath(absolutePath);
+      if (!taskId) return null;
+      for (const [sessionId, byTask] of sessions2) {
+        if (byTask.has(taskId)) return { taskId, sessionId };
       }
-      if (action === "fork") {
-        const workflow = forkWorkflow(kandownDir, body.id);
-        broadcastSseEvent({ type: "workflows" });
-        return writeJson(res, 200, { ok: true, workflow });
-      }
-      if (action === "edit") {
-        if (typeof body.path !== "string" || typeof body.content !== "string") return writeJson(res, 400, { error: "path and content are required." });
-        const workflow = updateLocalWorkflowFile(kandownDir, body.id, body.path, body.content);
-        broadcastSseEvent({ type: "workflows" });
-        return writeJson(res, 200, { ok: true, workflow });
-      }
-      if (action === "apply-preset") {
-        const preview = previewBoardPreset(kandownDir, body.id);
-        if (body.confirm !== true) return writeJson(res, 409, { error: "Explicit confirmation is required.", preview });
-        const applied = applyBoardPreset(kandownDir, body.id);
-        broadcastSseEvent({ type: "config" });
-        broadcastSseEvent({ type: "board" });
-        return writeJson(res, 200, { ok: true, preview: applied });
-      }
-      return writeJson(res, 404, { error: "Unknown workflow action." });
-    } catch (error) {
-      return writeJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
-    }
-  }
-  if (path === "/api/tasks" && method === "GET") {
-    return writeJson(res, 200, listTaskIds(kandownDir));
-  }
-  if (path === "/api/agents" && method === "GET") {
-    return writeJson(res, 200, detectCatalogJSON(kandownDir));
-  }
-  if (path === "/api/agent/harnesses" && method === "GET") {
-    return writeJson(res, 200, detectHarnessesJSON());
-  }
-  if (path === "/api/agent/sessions" && method === "GET") {
-    return writeJson(res, 200, { sessions: listAgentSessions() });
-  }
-  if (path === "/api/agent/sessions" && method === "POST") {
-    let body;
-    try {
-      body = JSON.parse(await readRequestBody(req));
-    } catch (error) {
-      return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
-    }
-    if (typeof body.harnessId !== "string" || !body.harnessId.trim()) {
-      return writeJson(res, 400, { error: "harnessId is required" });
-    }
-    const taskId = typeof body.taskId === "string" && body.taskId.trim() ? body.taskId.trim() : void 0;
-    let compiled;
-    try {
-      compiled = compileProjectKandownWork(kandownDir, taskId);
-    } catch {
-      return writeJson(res, 404, { error: `Task not found: ${taskId}` });
-    }
-    const message = typeof body.message === "string" && body.message.trim() ? body.message.trim() : void 0;
-    const prompt = message ? `${compiled.markdown}
-
----
-
-${message}` : compiled.markdown;
-    const config = loadConfig(kandownDir);
-    const permissionMode = body.permissionMode === "accept-edits" || body.permissionMode === "yolo" ? body.permissionMode : config.agent.permissionMode;
-    const projectRoot = getProjectRoot(kandownDir);
-    try {
-      const session = createAgentSession({
-        harnessId: body.harnessId.trim(),
-        projectRoot,
-        prompt,
-        permissionMode,
-        ...typeof body.resumeSessionId === "string" && body.resumeSessionId ? { resumeSessionId: body.resumeSessionId } : {}
-      });
-      const titleOverride = typeof body.title === "string" && body.title.trim() ? body.title.trim() : void 0;
-      const now = (/* @__PURE__ */ new Date()).toISOString();
-      const indexEntry = {
-        id: session.id,
-        harnessId: session.harnessId,
-        title: titleOverride ?? indexEntryForPrompt(message ?? compiled.markdown),
-        ...taskId ? { taskId } : {},
-        createdAt: now,
-        updatedAt: now
-      };
-      upsertSessionIndexEntry(projectRoot, indexEntry);
-      let unsubscribeIndex = null;
-      let sawStopped = false;
-      unsubscribeIndex = subscribeAgentSession(session.id, (event) => {
-        if (event.type === "session_started" && event.harnessSessionId) {
-          patchSessionIndexEntry(projectRoot, session.id, { harnessSessionId: event.harnessSessionId });
-        } else if (event.type === "stopped" && !sawStopped) {
-          sawStopped = true;
-          patchSessionIndexEntry(projectRoot, session.id, { updatedAt: (/* @__PURE__ */ new Date()).toISOString() });
-          unsubscribeIndex?.();
-        }
-      });
-      return writeJson(res, 201, { session });
-    } catch (error) {
-      return writeJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
-    }
-  }
-  if (path === "/api/agent/sessions-index" && method === "GET") {
-    return writeJson(res, 200, { sessions: listSessionIndexEntries(getProjectRoot(kandownDir)) });
-  }
-  if (path.startsWith("/api/agent/sessions-index/") && method === "DELETE") {
-    let entryId;
-    try {
-      entryId = decodeURIComponent(path.slice("/api/agent/sessions-index/".length).split("?")[0] ?? "");
-    } catch {
-      return writeJson(res, 400, { error: "Invalid session id" });
-    }
-    const projectRoot = getProjectRoot(kandownDir);
-    const known = listSessionIndexEntries(projectRoot).some((entry) => entry.id === entryId);
-    if (!known) return writeJson(res, 404, { error: "Session not found" });
-    forgetSessionIndexEntry(projectRoot, entryId);
-    return writeJson(res, 200, { ok: true });
-  }
-  const agentSessionMatch = path.match(/^\/api\/agent\/sessions\/([^/]+)(\/events|\/stop|\/send)?$/);
-  if (agentSessionMatch) {
-    const sessionId = decodeURIComponent(agentSessionMatch[1]);
-    const sub = agentSessionMatch[2];
-    if (!sub && method === "GET") {
-      const session = listAgentSessions().find((entry) => entry.id === sessionId);
-      return session ? writeJson(res, 200, { session }) : writeJson(res, 404, { error: "Session not found" });
-    }
-    if (sub === "/events" && method === "GET") {
-      const unsubscribe = subscribeAgentSession(sessionId, (event) => {
-        res.write(`data: ${JSON.stringify(event)}
-
-`);
-      });
-      if (!unsubscribe) return writeJson(res, 404, { error: "Session not found" });
-      res.writeHead(200, {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
-        ...corsHeaders(localPort(res))
-      });
-      res.write("retry: 2000\n\n");
-      req.on("close", unsubscribe);
-      return;
-    }
-    if (sub === "/stop" && method === "POST") {
-      const stopped = stopAgentSession(sessionId);
-      if (stopped) patchSessionIndexEntry(getProjectRoot(kandownDir), sessionId, { updatedAt: (/* @__PURE__ */ new Date()).toISOString() });
-      return stopped ? writeJson(res, 200, { ok: true }) : writeJson(res, 404, { error: "Session not found" });
-    }
-    if (sub === "/send" && method === "POST") {
-      let body;
-      try {
-        body = JSON.parse(await readRequestBody(req));
-      } catch (error) {
-        return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
-      }
-      if (typeof body.message !== "string" || !body.message.trim()) {
-        return writeJson(res, 400, { error: "message is required" });
-      }
-      const result = sendToSession(sessionId, body.message);
-      return result.ok ? writeJson(res, 200, { ok: true }) : writeJson(res, 400, { ok: false, error: result.error ?? "Send failed" });
-    }
-  }
-  if (path === "/api/extensions" && method === "GET") {
-    const host = await getExtensionHost(kandownDir);
-    const badges = await host.renderBadges();
-    return writeJson(res, 200, { extensions: host.installedSummary(), badges });
-  }
-  if (path === "/api/extensions/reload" && method === "POST") {
-    extensionHost = null;
-    extensionHostDir = null;
-    await getExtensionHost(kandownDir);
-    broadcastSseEvent({ type: "extensions" });
-    return writeJson(res, 200, { ok: true });
-  }
-  if (path.startsWith("/api/extensions/")) {
-    const parts = path.slice("/api/extensions/".length).split("/").filter(Boolean);
-    let id;
-    try {
-      id = decodeURIComponent(parts[0] ?? "");
-    } catch {
-      return writeJson(res, 400, { error: "Invalid extension id" });
-    }
-    if (!/^[a-z][a-z0-9-]{0,63}$/.test(id)) return writeJson(res, 400, { error: "Invalid extension id" });
-    const host = await getExtensionHost(kandownDir);
-    if (parts.length === 2 && parts[1] === "enable" && method === "POST") {
-      const ok = await host.enable(id);
-      broadcastSseEvent({ type: "extensions" });
-      return writeJson(res, 200, { ok, summary: host.installedSummary() });
-    }
-    if (parts.length === 2 && parts[1] === "disable" && method === "POST") {
-      const ok = host.disable(id);
-      broadcastSseEvent({ type: "extensions" });
-      return writeJson(res, 200, { ok });
-    }
-    if (parts.length === 2 && parts[1] === "health" && method === "POST") {
-      let body;
-      try {
-        body = JSON.parse(await readRequestBody(req));
-      } catch (error) {
-        return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
-      }
-      if (body.outcome !== "success" && body.outcome !== "failure") {
-        return writeJson(res, 400, { error: "outcome must be success or failure" });
-      }
-      const ext = body.outcome === "success" ? host.reportSuccess(id) : host.reportFailure(id, typeof body.message === "string" ? body.message : "web panel failed");
-      if (!ext) return writeJson(res, 404, { error: "Extension not found" });
-      if (ext.health === "quarantined") broadcastSseEvent({ type: "extensions" });
-      return writeJson(res, 200, {
-        health: ext.health,
-        failures: ext.failures,
-        error: ext.error
-      });
-    }
-    if (parts.length >= 2 && parts[1] === "files" && method === "GET") {
-      const ext = host.get(id);
-      if (!ext) return writeText(res, 404, "Extension not found");
-      const rel = parts.slice(2).join("/");
-      if (!/^[a-zA-Z0-9._\/-]+$/.test(rel) || rel.includes("..")) return writeText(res, 400, "Bad path");
-      const file = join26(ext.dir, rel);
-      if (!existsSync23(file)) return writeText(res, 404, "File not found");
-      return writeText(res, 200, readFileSync21(file, "utf8"));
-    }
-  }
-  if (path === "/api/extensions/registry" && method === "GET") {
-    const result = await fetchRegistry();
-    return writeJson(res, 200, result);
-  }
-  if (path === "/api/extensions/install" && method === "POST") {
-    try {
-      const body = JSON.parse(await readRequestBody(req));
-      const projectDir = getProjectRoot(kandownDir);
-      const result = await installExtension2(projectDir, { entry: body.entry, url: body.url });
-      if (result.ok) await (await getExtensionHost(kandownDir)).loadAll();
-      broadcastSseEvent({ type: "extensions" });
-      return writeJson(res, result.ok ? 200 : 400, result);
-    } catch (e) {
-      return writeJson(res, 500, { ok: false, error: e instanceof Error ? e.message : String(e) });
-    }
-  }
-  if (path === "/api/themes" && method === "GET") {
-    const projectDir = getProjectRoot(kandownDir);
-    const themes = listInstalledThemes(projectDir);
-    return writeJson(res, 200, { themes });
-  }
-  if (path === "/api/themes/registry" && method === "GET") {
-    const result = await fetchRegistry2();
-    return writeJson(res, 200, result);
-  }
-  if (path === "/api/themes/install" && method === "POST") {
-    try {
-      const body = JSON.parse(await readRequestBody(req));
-      const projectDir = getProjectRoot(kandownDir);
-      const result = await installTheme(projectDir, { entry: body.entry, url: body.url });
-      broadcastSseEvent({ type: "themes" });
-      return writeJson(res, result.ok ? 200 : 400, result);
-    } catch (e) {
-      return writeJson(res, 500, { ok: false, error: e instanceof Error ? e.message : String(e) });
-    }
-  }
-  if (path.startsWith("/api/themes/") && method === "DELETE") {
-    const rawId = decodeURIComponent(path.slice("/api/themes/".length).split("?")[0] ?? "");
-    if (!/^[a-z][a-z0-9-]{0,63}$/.test(rawId)) return writeJson(res, 400, { error: "Invalid theme id" });
-    const { unlinkSync: unlinkSync9, existsSync: existsSync32 } = await import("fs");
-    const { join: join39 } = await import("path");
-    const file = join39(getProjectRoot(kandownDir), ".kandown", "themes", `${rawId}.json`);
-    if (!existsSync32(file)) return writeJson(res, 404, { error: "Theme not installed" });
-    try {
-      unlinkSync9(file);
-      broadcastSseEvent({ type: "themes" });
-      return writeJson(res, 200, { ok: true, id: rawId });
-    } catch (e) {
-      return writeJson(res, 500, { ok: false, error: e instanceof Error ? e.message : String(e) });
-    }
-  }
-  if (path.startsWith("/api/tasks/") && path.endsWith("/field") && method === "POST") {
-    const parts = path.slice("/api/tasks/".length).split("/").filter(Boolean);
-    const taskId = decodeURIComponent(parts[0] ?? "");
-    if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return writeText(res, 400, "Invalid task id");
-    if (!findTaskPath(kandownDir, taskId)) return writeText(res, 404, "Task not found");
-    let body;
-    try {
-      body = JSON.parse(await readRequestBody(req));
-    } catch (error) {
-      return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
-    }
-    if (typeof body.extId !== "string" || typeof body.key !== "string") {
-      return writeJson(res, 400, { error: "extId and key required" });
-    }
-    try {
-      const host = await getExtensionHost(kandownDir);
-      await host.setFieldValue(taskId, body.extId, body.key, body.value);
-      const updated = readTask(kandownDir, taskId).frontmatter;
-      broadcastSseEvent({ type: "task", id: taskId });
-      return writeJson(res, 200, {
-        ok: true,
-        plugins: updated.plugins && typeof updated.plugins === "object" ? updated.plugins : void 0
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      const status = message.startsWith("permission denied") ? 403 : message.startsWith("extension is not enabled") ? 409 : 400;
-      return writeJson(res, status, { error: message });
-    }
-  }
-  if (path.startsWith("/api/tasks/") && path.endsWith("/agent") && method === "POST") {
-    const taskId = decodeURIComponent(path.slice("/api/tasks/".length, -"/agent".length));
-    if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return writeText(res, 400, "Invalid task id");
-    const taskPath = findTaskPath(kandownDir, taskId);
-    if (!taskPath) return writeText(res, 404, "Task not found");
-    const hookUrl = process.env.KANDOWN_AGENT_HOOK_URL?.trim();
-    if (!hookUrl) {
-      return writeJson(res, 400, { ok: false, error: "No agent hook is configured on this daemon (KANDOWN_AGENT_HOOK_URL is not set)." });
-    }
-    const content = readFileSync21(taskPath, "utf8");
-    const parsed = parseTaskFile(content);
-    const fm = parsed.frontmatter;
-    const payload = {
-      id: taskId,
-      title: typeof fm.title === "string" ? fm.title : taskId,
-      status: typeof fm.status === "string" ? fm.status : null,
-      priority: typeof fm.priority === "string" ? fm.priority : null,
-      assignee: typeof fm.assignee === "string" ? fm.assignee : null,
-      content,
-      kandownDir
-    };
-    try {
-      const hookResponse = await fetch(hookUrl, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(2e4)
-      });
-      const raw = await hookResponse.text();
-      let forwarded = null;
-      try {
-        forwarded = raw === "" ? null : JSON.parse(raw);
-      } catch {
-        forwarded = raw;
-      }
-      if (!hookResponse.ok) {
-        const message = forwarded !== null && typeof forwarded === "object" && "error" in forwarded ? String(forwarded.error) : raw.slice(0, 500);
-        return writeJson(res, 502, { ok: false, error: message || `Agent hook responded ${hookResponse.status}` });
-      }
-      return writeJson(res, 200, typeof forwarded === "object" && forwarded !== null ? { ok: true, ...forwarded } : { ok: true, forwarded: raw });
-    } catch (error) {
-      return writeJson(res, 502, { ok: false, error: `Agent hook unreachable: ${error instanceof Error ? error.message : String(error)}` });
-    }
-  }
-  if (path.startsWith("/api/tasks/")) {
-    const routeParts = path.slice("/api/tasks/".length).split("/").filter(Boolean);
-    let taskId;
-    try {
-      taskId = decodeURIComponent(routeParts[0] ?? "");
-    } catch {
-      return writeText(res, 400, "Invalid task id");
-    }
-    if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return writeText(res, 400, "Invalid task id");
-    const tasksDir = getTasksDir(kandownDir);
-    const archiveDir = join26(tasksDir, "archive");
-    const resolveIn = (directory) => {
-      const match = resolveTaskFilename(taskId, listTaskFilenames(directory));
-      return match ? join26(directory, match.filename) : null;
-    };
-    const activePath = resolveIn(tasksDir);
-    const archivedPath = resolveIn(archiveDir);
-    const action = routeParts[1];
-    if (method === "POST" && action === "move") {
-      if (routeParts.length !== 2) return writeText(res, 400, "Invalid task route");
-      let input;
-      try {
-        input = JSON.parse(await readRequestBody(req));
-      } catch (error) {
-        return writeJson(res, 400, {
-          ok: false,
-          kind: "invalid-target",
-          reason: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}`
-        });
-      }
-      if (typeof input.to !== "string" || !input.to.trim()) {
-        return writeJson(res, 400, {
-          ok: false,
-          kind: "invalid-target",
-          reason: "Move target is required"
-        });
-      }
-      if (input.toIndex !== void 0 && (typeof input.toIndex !== "number" || !Number.isFinite(input.toIndex))) {
-        return writeJson(res, 400, {
-          ok: false,
-          kind: "invalid-target",
-          reason: "Move target index must be a finite number"
-        });
-      }
-      try {
-        const host = await getExtensionHost(kandownDir);
-        const result = await moveTaskWithGates(
-          host,
-          kandownDir,
+      return null;
+    },
+    recordChange(absolutePath, before, after) {
+      const taskId = taskIdForPath(absolutePath);
+      if (!taskId) return;
+      for (const [sessionId, byTask] of sessions2) {
+        const pair = byTask.get(taskId);
+        if (!pair) continue;
+        pair.lastActivityMs = now();
+        armIdleTimer(sessionId, taskId);
+        const clippedBefore = clip(before ?? "");
+        const clippedAfter = clip(after);
+        broadcast({
+          type: "task_diff",
           taskId,
-          input.to.trim(),
-          input.toIndex
-        );
-        const status = result.ok ? 200 : result.kind === "not-found" ? 404 : result.kind === "invalid-target" ? 400 : result.kind === "write" ? 500 : 409;
-        if (result.ok) broadcastSseEvent({ type: "task", id: taskId });
-        return writeJson(res, status, result);
-      } catch (error) {
-        return writeJson(res, 500, {
-          ok: false,
-          kind: "write",
-          reason: `Move failed: ${error instanceof Error ? error.message : String(error)}`
+          sessionId,
+          path: absolutePath,
+          before: clippedBefore.text,
+          after: clippedAfter.text,
+          truncated: clippedBefore.clipped || clippedAfter.clipped,
+          at: iso()
         });
-      }
-    }
-    if (method === "POST" && (action === "archive" || action === "unarchive")) {
-      if (routeParts.length !== 2) return writeText(res, 400, "Invalid task route");
-      const archiving = action === "archive";
-      const source = archiving ? activePath : archivedPath;
-      const existingDestination = archiving ? archivedPath : activePath;
-      if (!source && !existingDestination) {
-        return writeText(res, 404, "Task not found");
-      }
-      const destinationDir = archiving ? archiveDir : tasksDir;
-      const destination = existingDestination ?? join26(destinationDir, basename7(source));
-      try {
-        if (!existsSync23(tasksDir)) mkdirSync13(tasksDir, { recursive: true });
-        if (!existsSync23(archiveDir)) mkdirSync13(archiveDir, { recursive: true });
-        const body = await readRequestBody(req);
-        atomicWriteFileSync(destination, body);
-        if (source && source !== destination && existsSync23(source)) unlinkSync8(source);
-        broadcastSseEvent({ type: "task", id: taskId });
-        return writeJson(res, 200, { ok: true });
-      } catch (error) {
-        return writeJson(res, 500, {
-          error: `Failed to ${action} task: ${error instanceof Error ? error.message : String(error)}`
-        });
-      }
-    }
-    if (routeParts.length !== 1) return writeText(res, 404, "Route not found");
-    if (method === "GET") {
-      const taskPath = findTaskPath(kandownDir, taskId);
-      if (!taskPath) return writeText(res, 404, "Task not found");
-      return writeText(res, 200, readFileSync21(taskPath, "utf8"));
-    }
-    if (method === "PUT") {
-      try {
-        if (!existsSync23(tasksDir)) mkdirSync13(tasksDir, { recursive: true });
-        const body = await readRequestBody(req);
-        const { path: taskPath } = writeTaskContent(kandownDir, taskId, body, { useGit: false });
-        broadcastSseEvent({ type: "task", id: taskId });
-        return writeJson(res, 200, { ok: true });
-      } catch (error) {
-        return writeJson(res, 500, {
-          error: `Failed to write task: ${error instanceof Error ? error.message : String(error)}`
-        });
-      }
-    }
-    if (method === "DELETE") {
-      try {
-        if (activePath && existsSync23(activePath)) unlinkSync8(activePath);
-        if (archivedPath && existsSync23(archivedPath)) unlinkSync8(archivedPath);
-        broadcastSseEvent({ type: "task_delete", id: taskId });
-        return writeJson(res, 200, { ok: true });
-      } catch (error) {
-        return writeJson(res, 500, {
-          error: `Failed to delete task: ${error instanceof Error ? error.message : String(error)}`
-        });
-      }
-    }
-  }
-  writeJson(res, 404, { error: "Route not found" });
-}
-function injectServerRoot(html, kandownDir) {
-  const marker = "</head>";
-  const markerIndex = html.toLowerCase().lastIndexOf(marker);
-  const safeRoot = JSON.stringify(kandownDir).replace(/</g, "\\u003c");
-  const tokenLiteral = activeToken === null ? "null" : JSON.stringify(activeToken).replace(/</g, "\\u003c");
-  const script = `<script>window.__KANDOWN_ROOT__ = ${safeRoot};
-window.__KANDOWN_TOKEN__ = ${tokenLiteral};</script>
-`;
-  if (markerIndex === -1) return script + html;
-  return html.slice(0, markerIndex) + script + html.slice(markerIndex);
-}
-function serveApp(res, kandownDir) {
-  syncProjectKandownHtml(kandownDir);
-  const htmlPath = join26(kandownDir, "kandown.html");
-  if (existsSync23(htmlPath)) {
-    const html = readFileSync21(htmlPath, "utf8");
-    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-    res.end(injectServerRoot(html, kandownDir));
-  } else {
-    writeText(res, 404, "kandown.html not found");
-  }
-}
-function createServeServer(kandownDir) {
-  syncProjectKandownHtml(kandownDir);
-  return createServer((req, res) => {
-    const url = new URL(req.url || "/", "http://localhost");
-    if (req.method === "OPTIONS") return handleCors(res);
-    if (url.pathname === "/" || url.pathname === "/kandown.html" || !url.pathname.startsWith("/api/")) {
-      return serveApp(res, kandownDir);
-    }
-    if (url.pathname.startsWith("/api/")) {
-      return handleApi(req, res, url, kandownDir);
-    }
-    writeText(res, 404, "Not found");
-  });
-}
-function listen(server, port) {
-  return new Promise((resolveListen, rejectListen) => {
-    const onError = (e) => {
-      server.off("listening", onListening);
-      rejectListen(e);
-    };
-    const onListening = () => {
-      server.off("error", onError);
-      resolveListen();
-    };
-    server.once("error", onError);
-    server.once("listening", onListening);
-    server.listen(port, "127.0.0.1");
-  });
-}
-async function listenOnAvailablePort(kandownDir, preferredPort) {
-  const startPort = preferredPort ?? START_PORT_RANGE;
-  for (let p = startPort; p <= END_PORT_RANGE; p++) {
-    if (UNSAFE_PORTS.has(p)) continue;
-    const server = createServeServer(kandownDir);
-    try {
-      await listen(server, p);
-      return { server, port: p };
-    } catch (e) {
-      if (e.code !== "EADDRINUSE" && e.code !== "EACCES") throw e;
-    }
-  }
-  throw new Error(`No free port in range ${START_PORT_RANGE}-${END_PORT_RANGE}`);
-}
-
-// src/cli/commands/daemon.ts
-init_atomic_write();
-init_updater();
-init_cli_shared();
-async function cmdDaemon(rest) {
-  const parsedDaemonArgs = parseArgs(rest);
-  const subcommand = parsedDaemonArgs.positional[0] || "status";
-  const daemonArgs = subcommand ? stripFirstPositional(rest, subcommand) : rest;
-  const { kandownDir } = ensureKandownDir(daemonArgs);
-  if (subcommand === "run") {
-    const daemonOptions = parseArgs(daemonArgs);
-    const preferredPort = typeof daemonOptions.flags.port === "string" ? Number(daemonOptions.flags.port) : null;
-    const token = generateToken();
-    setActiveToken(token);
-    const { port } = await listenOnAvailablePort(kandownDir, Number.isInteger(preferredPort) ? preferredPort : null);
-    const url = `http://localhost:${port}`;
-    const metadataPath2 = join27(kandownDir, "daemon.json");
-    atomicWriteFileSync(metadataPath2, JSON.stringify({
-      pid: process.pid,
-      port,
-      url,
-      kandownDir,
-      startedAt: (/* @__PURE__ */ new Date()).toISOString(),
-      version: getCurrentVersion(),
-      token
-    }, null, 2));
-    info(`Kandown daemon running on port ${port} (PID ${process.pid})`);
-    scheduleDaemonSelfUpgrade(kandownDir);
-    await new Promise(() => {
-    });
-  } else if (subcommand === "start") {
-    const daemonOptions = parseArgs(daemonArgs);
-    const preferredPort = typeof daemonOptions.flags.port === "string" ? Number(daemonOptions.flags.port) : null;
-    const status = await startProjectDaemon(kandownDir, Number.isInteger(preferredPort) ? preferredPort : null);
-    if (status.running && status.metadata) success(`Daemon running on port ${status.metadata.port} (PID ${status.metadata.pid})`);
-    else {
-      err("Daemon failed to start");
-      process.exit(1);
-    }
-  } else if (subcommand === "restart") {
-    await stopProjectDaemon(kandownDir);
-    const status = await startProjectDaemon(kandownDir);
-    if (status.running && status.metadata) success(`Daemon restarted on port ${status.metadata.port} (PID ${status.metadata.pid})`);
-    else {
-      err("Daemon failed to restart");
-      process.exit(1);
-    }
-  } else if (subcommand === "stop") {
-    const stopped = await stopProjectDaemon(kandownDir);
-    if (stopped) success("Daemon stopped");
-    else info("Daemon not running");
-  } else if (subcommand === "status") {
-    const status = await getDaemonStatus(kandownDir);
-    if (status.running && status.metadata) {
-      success(`Daemon running on port ${status.metadata.port} (PID ${status.metadata.pid})`);
-    } else {
-      info("Daemon not running");
-    }
-  } else if (subcommand === "refresh-all") {
-    const status = await getDaemonStatus(kandownDir);
-    if (status.running) await stopProjectDaemon(kandownDir);
-    const restarted = await startProjectDaemon(kandownDir);
-    if (restarted.running && restarted.metadata) success(`Refreshed current project daemon on port ${restarted.metadata.port}`);
-    else info("No running daemon refreshed");
-  } else {
-    err(`Unknown daemon command: ${subcommand}`);
-    log(`  Use ${c.cyan}kandown daemon start|stop|restart|status|refresh-all${c.reset}`);
-    process.exit(1);
-  }
-}
-
-// src/cli/commands/run.ts
-init_cli_shared();
-
-// src/cli/lib/cascade.ts
-init_board_reader();
-
-// src/cli/lib/launcher.ts
-init_board_reader();
-import { execSync as execSync2, spawn as spawn8 } from "child_process";
-import { writeFileSync as writeFileSync8 } from "fs";
-import { join as join28 } from "path";
-import { tmpdir } from "os";
-init_config2();
-init_config();
-function prepareLaunch(opts) {
-  const { taskId, agentId, kandownDir, handoff, queue } = opts;
-  const agentDef = getAgentById(agentId, kandownDir);
-  if (!agentDef) {
-    throw new Error(`Unknown agent: ${agentId}`);
-  }
-  let task;
-  try {
-    task = readTask(kandownDir, taskId);
-  } catch (e) {
-    throw new Error(`Failed to read task ${taskId}: ${e.message}`);
-  }
-  const config = loadConfig(kandownDir);
-  const originalStatus = task.frontmatter.status || config.board.columns[0];
-  const activeStatus = resolveColumnNameByRole(config, "active") ?? config.board.columns[0];
-  const terminalStatus2 = resolveColumnNameByRole(config, "terminal") ?? config.board.columns.at(-1);
-  const agentDoc = compileProjectKandownWork(kandownDir, taskId).markdown;
-  const taskFileContent = [
-    `---`,
-    `id: ${task.frontmatter.id}`,
-    `title: ${task.frontmatter.title}`,
-    `status: ${task.frontmatter.status ?? "unknown"}`,
-    `---`,
-    "",
-    task.body.trim()
-  ].join("\n");
-  const { systemPrompt, taskPrompt } = buildPrompt(agentDoc, taskFileContent, taskId, kandownDir, activeStatus, terminalStatus2, handoff, queue);
-  assignTaskToAgent(kandownDir, taskId, agentDef.id);
-  const taskMoved = moveTaskToColumn(kandownDir, taskId, activeStatus);
-  if (!taskMoved) {
-    throw new Error(`Could not move task ${taskId} to ${activeStatus}: task file missing or unwritable.`);
-  }
-  const contextFile = join28(tmpdir(), `kandown-${taskId}-context.md`);
-  try {
-    writeFileSync8(contextFile, `${systemPrompt}
-
----
-
-${taskPrompt}`, "utf8");
-  } catch (e) {
-    console.warn(`[kandown] Failed to write context file (${e.message}); launching anyway.`);
-  }
-  const launchOpts = { systemPrompt, taskPrompt, kandownDir, taskId };
-  const [binary, ...args] = buildAgentCommand(agentDef, launchOpts);
-  if (!binary) {
-    rollbackTaskStatus(kandownDir, taskId, originalStatus);
-    throw new Error(`Agent ${agentId} returned an empty command`);
-  }
-  return { agentName: agentDef.name, binary, args, contextFile, originalStatus, taskMoved };
-}
-function launchEnv(contextFile, taskId, kandownDir) {
-  return {
-    ...process.env,
-    KANDOWN_CONTEXT_FILE: contextFile,
-    KANDOWN_TASK_ID: taskId,
-    KANDOWN_DIR: kandownDir
-  };
-}
-function runAgentSync(opts) {
-  const { taskId, kandownDir } = opts;
-  const prepared = prepareLaunch(opts);
-  const { binary, args, contextFile, originalStatus, agentName } = prepared;
-  return new Promise((resolve12, reject) => {
-    const child = spawn8(binary, args, { stdio: "inherit", env: launchEnv(contextFile, taskId, kandownDir) });
-    child.on("error", (e) => {
-      rollbackTaskStatus(kandownDir, taskId, originalStatus);
-      reject(new Error(`Failed to launch ${agentName}: ${e.message}`));
-    });
-    child.on("exit", (code) => {
-      resolve12({ exitCode: code ?? 0 });
-    });
-  });
-}
-function rollbackTaskStatus(kandownDir, taskId, originalStatus) {
-  const ok = moveTaskToColumn(kandownDir, taskId, originalStatus);
-  if (!ok) {
-    console.warn(`[kandown] Could not roll back task ${taskId} to ${originalStatus} \u2014 update it manually.`);
-  }
-}
-
-// src/cli/lib/cascade.ts
-init_config();
-init_dependencies();
-init_config2();
-function loadAllTasks(kandownDir) {
-  const tasks = [];
-  for (const id of listTaskIds(kandownDir)) {
-    try {
-      const t = readTask(kandownDir, id);
-      const archived = String(t.frontmatter.archived) === "true";
-      if (archived) continue;
-      tasks.push({ ...t, frontmatter: { ...t.frontmatter, id: t.frontmatter.id || id } });
-    } catch (e) {
-      console.error(`[kandown] Skipping unreadable task ${id}:`, e.message);
-    }
-  }
-  return tasks;
-}
-var PRIORITY_RANK = { P1: 1, P2: 2, P3: 3, P4: 4 };
-function reachedTerminal(status, cfg) {
-  const s = (status || "").trim().toLowerCase();
-  if (!s) return false;
-  if (s === "archived") return true;
-  return s === terminalStatus(cfg).trim().toLowerCase();
-}
-function priorityAndIdKey(t) {
-  const rank = PRIORITY_RANK[String(t.priority ?? "").toUpperCase()] ?? 99;
-  return `${rank.toString().padStart(2, "0")}	${t.id.padStart(6, "0")}`;
-}
-function downstreamClosure(all, startId) {
-  const depsOf = /* @__PURE__ */ new Map();
-  for (const t of all) depsOf.set(t.frontmatter.id || "", Array.isArray(t.frontmatter.depends_on) ? t.frontmatter.depends_on.filter((d) => typeof d === "string") : []);
-  const closure = /* @__PURE__ */ new Set([startId]);
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (const t of all) {
-      const id = t.frontmatter.id || "";
-      if (closure.has(id)) continue;
-      const deps = depsOf.get(id) ?? [];
-      if (deps.some((d) => closure.has(d))) {
-        closure.add(id);
-        changed = true;
-      }
-    }
-  }
-  return closure;
-}
-function buildCascadePlan(kandownDir, opts = {}) {
-  const cfg = loadConfig(kandownDir);
-  const all = loadAllTasks(kandownDir);
-  const scope = opts.startTaskId ? downstreamClosure(all, opts.startTaskId) : null;
-  const resolution = resolveDependencyStatus(all, cfg);
-  const activeStatus = resolveColumnNameByRole(cfg, "active");
-  const candidates = [];
-  for (const t of all) {
-    const id = t.frontmatter.id || "";
-    if (scope && !scope.has(id)) continue;
-    const status = t.frontmatter.status || cfg.board.columns[0];
-    if (reachedTerminal(status, cfg)) continue;
-    if (activeStatus && status.toLowerCase() === activeStatus.toLowerCase() && !opts.includeInProgress) continue;
-    candidates.push(toCascadeTask(t, cfg.board.columns[0]));
-  }
-  const candidateIds = new Set(candidates.map((c2) => c2.id));
-  const orderable = [];
-  const blocked = [];
-  for (const t of candidates) {
-    const stuckOn = t.dependsOn.find((d) => {
-      const r = resolution.get(d);
-      const resolved = !r || r.resolved;
-      return !resolved && !candidateIds.has(d);
-    });
-    if (stuckOn) blocked.push(t);
-    else orderable.push(t);
-  }
-  const orderableIds = new Set(orderable.map((r) => r.id));
-  const depsWithin = /* @__PURE__ */ new Map();
-  for (const r of orderable) {
-    depsWithin.set(r.id, r.dependsOn.filter((d) => orderableIds.has(d)));
-  }
-  const orderedIds = topoSort([...orderableIds], depsWithin, orderable);
-  const ordered = orderedIds.map((id) => orderable.find((r) => r.id === id)).filter(Boolean);
-  const cascadeCfg = getCascadeConfig(kandownDir);
-  const skippedNoAgent = [];
-  const withAgent = [];
-  for (const t of ordered) {
-    if (resolveAgentFor(t, opts.agentOverride, cascadeCfg.preferred, kandownDir)) {
-      withAgent.push(t);
-    } else {
-      skippedNoAgent.push(t);
-    }
-  }
-  return { order: withAgent, skippedNoAgent, blocked };
-}
-function resolveAgentFor(task, override, preferred, kandownDir) {
-  if (override) {
-    return isAgentInstalled(getBinFor(override, kandownDir)) ? override : void 0;
-  }
-  const byAssignee = task.assignee ? resolveAgentEntry(task.assignee, kandownDir) : void 0;
-  if (byAssignee && isAgentInstalled(byAssignee.bin)) return byAssignee.id;
-  if (!task.assignee) {
-    const cascadeCfg = getCascadeConfig(kandownDir);
-    if (cascadeCfg.unassignedBehavior === "preferred" && preferred) {
-      return isAgentInstalled(getBinFor(preferred, kandownDir)) ? preferred : void 0;
-    }
-  }
-  return void 0;
-}
-function getBinFor(agentId, kandownDir) {
-  return getAgentById(agentId, kandownDir)?.bin ?? agentId;
-}
-function toCascadeTask(t, fallbackStatus) {
-  return {
-    id: t.frontmatter.id || "",
-    title: typeof t.frontmatter.title === "string" ? t.frontmatter.title : "",
-    status: t.frontmatter.status || fallbackStatus,
-    ...typeof t.frontmatter.assignee === "string" ? { assignee: t.frontmatter.assignee } : {},
-    ...typeof t.frontmatter.priority === "string" ? { priority: t.frontmatter.priority } : {},
-    dependsOn: Array.isArray(t.frontmatter.depends_on) ? t.frontmatter.depends_on.filter((d) => typeof d === "string") : []
-  };
-}
-function topoSort(ids, depsWithin, ready) {
-  const inDegree = /* @__PURE__ */ new Map();
-  const dependents = /* @__PURE__ */ new Map();
-  for (const id of ids) {
-    inDegree.set(id, 0);
-    dependents.set(id, []);
-  }
-  for (const id of ids) {
-    for (const dep of depsWithin.get(id) ?? []) {
-      if (!ids.includes(dep)) continue;
-      inDegree.set(id, (inDegree.get(id) ?? 0) + 1);
-      dependents.get(dep).push(id);
-    }
-  }
-  const byTask = new Map(ready.map((r) => [r.id, r]));
-  const remaining = new Set(ids);
-  const out = [];
-  while (remaining.size > 0) {
-    const freed = [...remaining].filter((id) => (inDegree.get(id) ?? 0) === 0);
-    if (freed.length === 0) break;
-    freed.sort((a, b) => priorityAndIdKey(byTask.get(a)).localeCompare(priorityAndIdKey(byTask.get(b))));
-    const pick = freed[0];
-    out.push(pick);
-    remaining.delete(pick);
-    for (const d of dependents.get(pick) ?? []) inDegree.set(d, (inDegree.get(d) ?? 0) - 1);
-  }
-  if (remaining.size > 0) {
-    out.push(...[...remaining].sort((a, b) => priorityAndIdKey(byTask.get(a)).localeCompare(priorityAndIdKey(byTask.get(b)))));
-  }
-  return out;
-}
-async function runCascade(kandownDir, opts = {}) {
-  warmupDetection(loadCatalog(kandownDir));
-  const plan = buildCascadePlan(kandownDir, opts);
-  if (opts.dryRun) {
-    return { mode: "multi-agent", steps: plan.order.map((t) => ({ taskId: t.id, outcome: "skipped", note: "dry-run" })), completed: [], incomplete: [] };
-  }
-  const cascadeCfg = getCascadeConfig(kandownDir);
-  const sameSession = opts.sameSession ?? cascadeCfg.sameSessionChain;
-  if (plan.order.length === 0) {
-    return { mode: sameSession ? "same-session" : "multi-agent", steps: [], completed: [], incomplete: [] };
-  }
-  if (sameSession) {
-    return runSameSession(kandownDir, plan, opts);
-  }
-  return runMultiAgent(kandownDir, plan, opts);
-}
-async function runMultiAgent(kandownDir, plan, opts) {
-  const cascadeCfg = getCascadeConfig(kandownDir);
-  const cfg = loadConfig(kandownDir);
-  const steps = [];
-  const completed = [];
-  const incomplete = [];
-  const handoff = [];
-  for (const task of plan.order) {
-    const fresh = loadAllTasks(kandownDir);
-    const freshRes = resolveDependencyStatus(fresh, cfg);
-    const tp = fresh.find((x) => (x.frontmatter.id || "") === task.id);
-    if (tp) {
-      const status = tp.frontmatter.status || "";
-      if (reachedTerminal(status, cfg)) {
-        steps.push({ taskId: task.id, outcome: "done", note: "already terminal" });
-        completed.push(task.id);
-        const report = typeof tp.frontmatter.report === "string" ? tp.frontmatter.report : "";
-        handoff.push({ taskId: task.id, title: task.title, report });
-        continue;
-      }
-      if (unresolvedDependencyIds(tp, freshRes).length > 0) {
-        steps.push({ taskId: task.id, outcome: "skipped", note: "dependency not done" });
-        incomplete.push(task.id);
-        continue;
-      }
-    }
-    const agentId = resolveAgentFor(task, opts.agentOverride, cascadeCfg.preferred, kandownDir);
-    if (!agentId) {
-      steps.push({ taskId: task.id, outcome: "skipped", note: "no resolvable agent" });
-      continue;
-    }
-    try {
-      const { exitCode } = await runAgentSync({
-        taskId: task.id,
-        agentId,
-        kandownDir,
-        handoff: handoff.length > 0 ? handoff : void 0
-      });
-      const after = readTask(kandownDir, task.id);
-      const afterStatus = after.frontmatter.status || "";
-      const done = reachedTerminal(afterStatus, cfg);
-      const report = typeof after.frontmatter.report === "string" ? after.frontmatter.report : "";
-      if (done) {
-        steps.push({ taskId: task.id, agentId, outcome: "done", exitCode });
-        completed.push(task.id);
-        handoff.push({ taskId: task.id, title: task.title, report });
-      } else {
-        steps.push({ taskId: task.id, agentId, outcome: "not-done", exitCode, note: `status is "${afterStatus || "unknown"}", expected terminal` });
-        incomplete.push(task.id);
-        break;
-      }
-    } catch (e) {
-      steps.push({ taskId: task.id, agentId, outcome: "failed", note: e.message });
-      incomplete.push(task.id);
-      break;
-    }
-  }
-  return { mode: "multi-agent", steps, completed, incomplete };
-}
-async function runSameSession(kandownDir, plan, opts) {
-  const cascadeCfg = getCascadeConfig(kandownDir);
-  const first = plan.order[0];
-  const agentId = opts.agentOverride ?? resolveAgentFor(first, void 0, cascadeCfg.preferred, kandownDir) ?? cascadeCfg.preferred;
-  if (!agentId) {
-    return { mode: "same-session", steps: plan.order.map((t) => ({ taskId: t.id, outcome: "skipped", note: "no agent for queue" })), completed: [], incomplete: plan.order.map((t) => t.id) };
-  }
-  const queue = plan.order.map((t) => ({ id: t.id, title: t.title }));
-  try {
-    const { exitCode } = await runAgentSync({
-      taskId: first.id,
-      agentId,
-      kandownDir,
-      queue
-    });
-    const cfg = loadConfig(kandownDir);
-    const steps = [];
-    const completed = [];
-    const incomplete = [];
-    for (const t of plan.order) {
-      const after = readTask(kandownDir, t.id);
-      const status = after.frontmatter.status || "";
-      if (reachedTerminal(status, cfg)) {
-        steps.push({ taskId: t.id, agentId, outcome: "done", exitCode });
-        completed.push(t.id);
-      } else {
-        steps.push({ taskId: t.id, agentId, outcome: "not-done", exitCode, note: `status is "${status || "unknown"}"` });
-        incomplete.push(t.id);
-      }
-    }
-    return { mode: "same-session", steps, completed, incomplete };
-  } catch (e) {
-    return { mode: "same-session", steps: [{ taskId: first.id, agentId, outcome: "failed", note: e.message }], completed: [], incomplete: plan.order.map((t) => t.id) };
-  }
-}
-
-// src/cli/commands/run.ts
-init_config2();
-init_dependencies();
-async function cmdRun(rawArgs) {
-  const args = parseArgs(rawArgs);
-  const kandownDir = resolveKandownDir(args.path, process.cwd());
-  const opts = {
-    startTaskId: args.positional[0],
-    agentOverride: typeof args.flags["agent"] === "string" ? args.flags["agent"] : void 0,
-    includeInProgress: args.flags["resume"] === true,
-    sameSession: args.flags["same-session"] === true,
-    dryRun: args.flags["dry-run"] === true
-  };
-  if (opts.agentOverride) {
-    const def = loadCatalog(kandownDir).find((a) => a.id === opts.agentOverride);
-    if (!def) {
-      err(`Unknown agent: ${opts.agentOverride}`);
-      log(`  Available: ${loadCatalog(kandownDir).map((a) => a.id).join(", ")}`);
-      process.exit(1);
-    }
-    if (!isAgentInstalled(def.bin)) {
-      err(`Agent ${opts.agentOverride} (${def.bin}) is not installed in your $PATH.`);
-      process.exit(1);
-    }
-  }
-  const plan = buildCascadePlan(kandownDir, opts);
-  const mode = opts.sameSession ? "same-session" : "multi-agent";
-  log("");
-  log(`${c.bold}Cascade plan${c.reset} ${c.dim}(${mode})${c.reset}`);
-  if (opts.startTaskId) log(`${c.dim}scoped to ${opts.startTaskId} + downstream dependents${c.reset}`);
-  log("");
-  if (plan.order.length === 0) {
-    info("No ready tasks with a resolvable agent. Nothing to run.");
-    if (plan.blocked.length > 0) {
-      log(`${c.dim}  Blocked (unresolved deps): ${plan.blocked.map((t) => t.id).join(", ") || "\u2014"}${c.reset}`);
-    }
-    if (plan.skippedNoAgent.length > 0) {
-      log(`${c.dim}  Skipped (no agent): ${plan.skippedNoAgent.map((t) => `${t.id}${t.assignee ? `(@${t.assignee})` : ""}`).join(", ")}${c.reset}`);
-    }
-    log("");
-    return;
-  }
-  for (let i = 0; i < plan.order.length; i++) {
-    const t = plan.order[i];
-    const agent = opts.agentOverride ?? t.assignee ?? "(preferred)";
-    log(`  ${c.cyan}${i + 1}.${c.reset} ${c.bold}${t.id}${c.reset} ${t.title}`);
-    log(`     ${c.dim}agent: ${agent} \xB7 status: ${t.status}${t.priority ? ` \xB7 ${t.priority}` : ""}${t.dependsOn.length ? ` \xB7 after ${t.dependsOn.join(",")}` : ""}${c.reset}`);
-  }
-  if (plan.skippedNoAgent.length > 0) {
-    log("");
-    log(`${c.dim}Skipping (no agent assigned): ${plan.skippedNoAgent.map((t) => t.id).join(", ")}${c.reset}`);
-  }
-  log("");
-  if (opts.dryRun) {
-    info("Dry run \u2014 nothing launched.");
-    return;
-  }
-  const result = await runCascade(kandownDir, opts);
-  log("");
-  log(`${c.bold}Cascade result${c.reset} ${c.dim}(${result.mode})${c.reset}`);
-  for (const step of result.steps) {
-    const mark = step.outcome === "done" ? `${c.green}\u2713${c.reset}` : step.outcome === "not-done" ? `${c.yellow}~${c.reset}` : step.outcome === "failed" ? `${c.red}\u2717${c.reset}` : `${c.dim}\xB7${c.reset}`;
-    const tail = step.agentId ? ` ${c.dim}via ${step.agentId}${c.reset}` : "";
-    const note = step.note ? ` ${c.dim}\u2014 ${step.note}${c.reset}` : "";
-    log(`  ${mark} ${step.taskId}${tail}${note}`);
-  }
-  log("");
-  if (result.incomplete.length === 0 && result.completed.length > 0) {
-    success(`All ${result.completed.length} task(s) reached ${terminalStatus(loadConfig(kandownDir))}.`);
-  } else if (result.completed.length > 0) {
-    info(`${result.completed.length} done, ${result.incomplete.length} not done. Chain stopped at the first non-done task.`);
-  } else {
-    err("No tasks completed.");
-  }
-}
-
-// src/cli/commands/agents.ts
-init_cli_shared();
-import { existsSync as existsSync24 } from "fs";
-import { join as join29 } from "path";
-function cmdAgents(rawArgs) {
-  const args = parseArgs(rawArgs);
-  const kandownDir = resolveKandownDir(args.path, process.cwd());
-  const sub = args.positional[0];
-  if (sub === "init") {
-    const target = join29(kandownDir, "agents.json");
-    if (existsSync24(target)) {
-      info(`${c.bold}agents.json${c.reset} already exists at ${target}`);
-      return;
-    }
-    saveAgentsConfig(kandownDir, defaultAgentsConfig());
-    success(`Wrote default ${c.bold}agents.json${c.reset} to ${target}`);
-    log(`${c.dim}  Commit it so your team shares the same agent catalog + aliases.${c.reset}`);
-    return;
-  }
-  warmupDetection(loadCatalog(kandownDir));
-  const catalog = loadCatalog(kandownDir);
-  const installed = detectInstalledAgents(kandownDir);
-  const cascade = getCascadeConfig(kandownDir);
-  const agentsFile = join29(kandownDir, "agents.json");
-  log("");
-  log(`${c.bold}Agent catalog${c.reset} ${c.dim}(${installed.length}/${catalog.length} installed)${c.reset}`);
-  log(`${c.dim}catalog: ${existsSync24(agentsFile) ? agentsFile : "built-in defaults (run `kandown agents init` to commit one)"}${c.reset}`);
-  log("");
-  for (const a of catalog) {
-    const ok = isAgentInstalled(a.bin);
-    const mark = ok ? `${c.green}\u2713${c.reset}` : `${c.dim}\xB7${c.reset}`;
-    const interactive = a.interactive ? "" : `${c.dim} (one-shot)${c.reset}`;
-    const preferred = cascade.preferred === a.id ? ` ${c.cyan}[preferred]${c.reset}` : "";
-    log(`  ${mark} ${c.bold}${a.id.padEnd(10)}${c.reset} ${a.name}${preferred}${interactive}`);
-    log(`     ${c.dim}${a.bin}${a.aliases && a.aliases.length ? ` \xB7 aliases: ${a.aliases.join(", ")}` : ""}${c.reset}`);
-    if (a.extraArgs && a.extraArgs.length) {
-      log(`     ${c.dim}extraArgs: ${a.extraArgs.join(" ")}${c.reset}`);
-    }
-  }
-  log("");
-  log(`${c.dim}cascade: unassignedBehavior=${cascade.unassignedBehavior} \xB7 sameSessionChain=${cascade.sameSessionChain}${c.reset}`);
-  log(`${c.dim}assign a task with: kandown assign <id> <agent>   \xB7   run a chain with: kandown run${c.reset}`);
-  log("");
-}
-
-// src/cli/lib/plugin-cli.ts
-import { spawn as spawn9 } from "child_process";
-import { existsSync as existsSync29, readFileSync as readFileSync24 } from "fs";
-import { basename as basename13, join as join36 } from "path";
-
-// src/lib/extensions/agent-brief.ts
-var EXTENSION_AGENT_BRIEF = "# Kandown plugin brief (for coding agents)\n\n<!-- Generated by scripts/build-extension-brief.js from src/lib/extensions/types.ts.\n     Do not edit by hand: run `pnpm extension-brief`. -->\n\nYou are writing a **kandown plugin**. This document is the complete contract.\nEverything below is extracted from the shipped type definitions, so it matches\nthe runtime you will be loaded into. Read it once, write the code, then run the\nloop at the bottom until it is green.\n\n## 1. What a plugin is\n\nA directory under `.kandown/extensions/<id>/` containing:\n\n| File | Required | Purpose |\n|---|---|---|\n| `manifest.json` | yes | identity, permissions, display hints |\n| `index.ts` | yes | the Node entry, loaded with jiti (no build step in dev) |\n| `index.js` | to ship | bundled entry, the only thing the browser can execute |\n| `web.tsx` / `web.js` | panels only | the panel module, bundled the same way |\n| `README.md` | no | human documentation |\n\n`index.ts` default-exports a factory. It is called once at load, it registers\ncontributions, and it must not do slow or throwing work at module scope.\n\n```typescript\nimport type { KandownExtensionAPI } from 'kandown';\n\nexport default function (kd: KandownExtensionAPI) {\n  // register here\n}\n```\n\n## 2. The API you are handed\n\n```typescript\nexport interface KandownExtensionAPI {\n  readonly id: string;\n  contributeField(def: FieldContribution): void;\n  contributeWebPanel(def: WebPanelContribution): void;\n  contributeCommand(name: string, def: CommandContribution): void;\n  contributeGate(def: GateContribution): void;\n  contributeSync(def: SyncContribution): void;\n  on(event: 'task:afterCreate' | 'task:afterMove' | 'task:afterArchive' | 'board:load', handler: LifecycleHandler): void;\n}\n```\n\nContribution shapes, verbatim:\n\n```typescript\nexport interface FieldContribution {\n  key: string;\n  label: string;\n  type: FieldType;\n  options?: { value: string; label: string }[];\n  badge?: (value: unknown, task: TaskLike) => string | null;\n  editorComponentId?: string;\n}\n\nexport interface WebPanelContribution {\n  id: string;\n  title: string;\n  entry: string;\n  icon?: string;\n}\n\nexport interface CommandContribution {\n  name: string;\n  description?: string;\n  handler: (args: string, ctx: ExtensionCommandContext) => void | Promise<void>;\n}\n\nexport interface GateContribution {\n  id?: string;\n  on: 'task:beforeMove' | 'task:beforeCreate' | 'task:beforeArchive' | 'task:beforeDelete';\n  to?: string;\n  handler: (event: GateEvent, ctx: ExtensionContext) => void | Promise<void | GateVerdict>;\n}\n\nexport interface SyncContribution {\n  id?: string;\n  on: 'task:afterMove' | 'task:afterCreate' | 'task:afterArchive';\n  to?: string;\n  handler: (event: TaskEvent, ctx: ExtensionContext) => void | Promise<void>;\n}\n\nexport interface GateVerdict {\n  block?: boolean;\n  reason?: string;\n}\n```\n\n## 3. The context handlers receive\n\n```typescript\nexport interface ExtensionContext {\n  extId: string;\n  signal?: AbortSignal;\n  board: {\n    readAll(): Promise<TaskLike[]>;\n    read(taskId: string): Promise<TaskLike | null>;\n  };\n  setField(taskId: string, key: string, value: unknown): Promise<void>;\n  log: {\n    info(msg: string): void;\n    warn(msg: string): void;\n    error(msg: string): void;\n  };\n  fetch?: typeof fetch;\n}\n\nexport interface TaskLike {\n  id: string;\n  frontmatter: Record<string, unknown>;\n  plugins?: Record<string, unknown>;\n}\n```\n\n`ctx.fetch` is present **only** when a `net:` permission is declared. `ctx.board`\nthrows without `read:tasks`. `ctx.setField` throws without\n`write:field:plugins.<id>.<key>` (a trailing `*` covers every key).\n\n## 4. Events\n\n| Kind | Names | Semantics |\n|---|---|---|\n| Gates (`contributeGate`) | `task:beforeMove`, `task:beforeCreate`, `task:beforeArchive`, `task:beforeDelete` | may veto by returning `{ block: true, reason }`; a throw is treated as no objection |\n| Syncs (`contributeSync`) | `task:afterMove`, `task:afterCreate`, `task:afterArchive` | fire and forget, after the file is written |\n| Lifecycle (`kd.on`) | `task:afterCreate`, `task:afterMove`, `task:afterArchive`, `board:load` | observation only, never blocks |\n\nBoth gates and syncs accept an optional `to` to restrict them to one target\ncolumn. A move is allowed only when **every** gate abstains or permits.\n\n## 5. Field types\n\n`string`, `number`, `boolean`, `date`, `select`. Scalars are persisted as strings and coerced back on read,\nso a `number` field reads back as a number. A `select` field must declare\n`options: [{ value, label }]`, and a value outside that list is rejected.\n\n## 6. Where your data lives\n\nOnly under `plugins.<id>.*` in the task frontmatter, opaque to the core:\n\n```yaml\n---\ntitle: Ship the thing\nstatus: Done\nplugins:\n  my-plugin:\n    points: 5\n---\n```\n\nRead it from `event.task.plugins`, write it with `ctx.setField(taskId, key, value)`.\n**Never** write a core field (`title`, `status`, `depends_on`, `created`, ...),\nnever write a second file, never call the serializer.\n\n## 7. Permissions\n\n| Declare | Unlocks |\n|---|---|\n| `read:tasks` | `ctx.board.readAll()`, `ctx.board.read(id)` |\n| `write:field:plugins.<id>.*` | `ctx.setField(...)` for your namespace |\n| `net:*` or `net:<url-prefix>` | `ctx.fetch` |\n| `*` | everything, avoid it |\n\nUndeclared calls throw at runtime. Declare exactly what you use, nothing more:\n`kandown plugin check` reports both missing and unused permissions.\n\n## 8. Web panels\n\nDeclare the panel in `index.ts`, implement it in `web.tsx`:\n\n```typescript\nkd.contributeWebPanel({ id: 'chart', title: 'Burndown', entry: './web.js' });\n```\n\n```javascript\nfunction Chart({ task, api, ui }) {\n  const [tasks, setTasks] = ui.useState([]);\n  ui.useEffect(() => { void api.readAllTasks().then(setTasks); }, [api]);\n  return ui.createElement('div', null, tasks.length + ' tasks');\n}\n\nexport const panels = { chart: Chart };\n```\n\nHard rules for panel modules:\n\n- **Never import React.** The host React runtime arrives as the `ui` prop\n  (`ui.createElement`, `ui.useState`, `ui.useEffect`, `ui.Fragment`). A second\n  React copy in the bundle breaks hooks.\n- The module must be self-contained: it is imported through a Blob URL and\n  cannot resolve sibling files. `kandown plugin build` bundles it for you.\n- Props are exactly `{ task, api, ui }` where `api` is\n  `{ readField(key), readAllTasks(), setField(key, value), refresh() }`.\n- Three consecutive render failures quarantine the plugin.\n\n## 9. The build and verify loop\n\n```bash\nkandown plugin build <id>          # index.ts -> index.js, web.tsx -> web.js\nkandown plugin check <id> --json   # structured verdict, exit code 1 on failure\nkandown plugin enable <id>         # trust + enable\nkandown plugin dev <id>            # watch: rebuild, recheck, hot reload the web UI\n```\n\n`check --json` returns `{ ok, id, checks: [{ id, status, message, fix }] }`.\nRead `fix` on any failing check, apply it, run again. Do not stop until `ok`\nis `true`.\n\n## 10. Failure table\n\n| Symptom from `plugin check` | Fix |\n|---|---|\n| `manifest` invalid id | id must match `^[a-z][a-z0-9-]{0,63}$` |\n| `entry` default export is not a function | export the factory as `export default function (kd) {}` |\n| `permissions` missing | add the exact permission string the check names to `manifest.json` |\n| `bundle` missing index.js | run `kandown plugin build <id>` |\n| `panel` module exports nothing | export `panels` (a map) or a `default` component |\n| `panel` imports react | drop the import, use the `ui` prop |\n| `namespace` write outside plugins.\\<id\\> | only `ctx.setField` may write, and only your own keys |\n| `roundtrip` frontmatter drift | store plain JSON values, no class instances, no `undefined` |\n| quarantined | fix the throw, then `kandown plugin enable <id>` clears the counter |\n\n## 11. Style rules for this codebase\n\n- Never use an em dash or an en dash in any string, comment or document you write.\n- Comment the why, not the what, and open explanatory comments with `\u{1F4D6}`.\n- Keep the factory synchronous unless you genuinely need to await something.\n- Handle your own errors: a throw inside a gate is silently fail-open, which\n  hides bugs. Log with `ctx.log.warn` instead of throwing.\n";
-
-// src/cli/lib/plugin-build.ts
-import { existsSync as existsSync25, readdirSync as readdirSync11, readFileSync as readFileSync22 } from "fs";
-import { basename as basename8, extname as extname2, join as join30 } from "path";
-var SOURCE_EXTENSIONS = [".ts", ".tsx", ".jsx", ".mts"];
-function findSource(dir, stem) {
-  for (const extension of SOURCE_EXTENSIONS) {
-    const candidate = join30(dir, `${stem}${extension}`);
-    if (existsSync25(candidate)) return candidate;
-  }
-  return null;
-}
-function discoverEntries(dir) {
-  const entries = [];
-  const index = findSource(dir, "index");
-  if (index) entries.push({ stem: "index", source: index });
-  let names = [];
-  try {
-    names = readdirSync11(dir);
-  } catch {
-    return entries;
-  }
-  for (const name of names.sort()) {
-    const extension = extname2(name);
-    if (!SOURCE_EXTENSIONS.includes(extension)) continue;
-    const stem = basename8(name, extension);
-    if (!stem.startsWith("web")) continue;
-    if (entries.some((entry) => entry.stem === stem)) continue;
-    entries.push({ stem, source: join30(dir, name) });
-  }
-  return entries;
-}
-async function loadEsbuild() {
-  try {
-    return await import("esbuild");
-  } catch {
-    return null;
-  }
-}
-async function buildPlugin(dir) {
-  const result = { ok: true, outputs: [], errors: [], warnings: [] };
-  const entries = discoverEntries(dir);
-  if (entries.length === 0) {
-    return { ...result, ok: false, errors: ["no TypeScript entry found (expected index.ts or web.tsx)"] };
-  }
-  const esbuild = await loadEsbuild();
-  if (!esbuild) {
-    return {
-      ...result,
-      ok: false,
-      errors: ['esbuild is unavailable; reinstall kandown or run "npm install esbuild" in this project']
-    };
-  }
-  for (const entry of entries) {
-    const out = join30(dir, `${entry.stem}.js`);
-    try {
-      const built = await esbuild.build({
-        entryPoints: [entry.source],
-        outfile: out,
-        bundle: true,
-        format: "esm",
-        platform: "neutral",
-        target: "es2022",
-        // 📖 `neutral` keeps the output browser-safe; these stay external so a
-        // Node-flavoured plugin still compiles and a panel never ships React.
-        external: ["react", "react-dom", "react/jsx-runtime", "kandown", "node:*"],
-        jsx: "automatic",
-        legalComments: "none",
-        logLevel: "silent",
-        write: true
-      });
-      for (const warning of built.warnings) result.warnings.push(`${entry.stem}: ${warning.text}`);
-      const source = readFileSync22(out, "utf8");
-      if (/from\s*["']react(?:-dom|\/jsx-runtime)?["']/.test(source)) {
-        result.errors.push(
-          `${entry.stem}: bundle imports react; panels must use the "ui" prop instead of importing React`
-        );
-        result.ok = false;
-      }
-      result.outputs.push({ entry: entry.source, out, bytes: Buffer.byteLength(source) });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      result.errors.push(`${entry.stem}: ${message.replace(/\n+/g, " ").trim()}`);
-      result.ok = false;
-    }
-  }
-  return result;
-}
-
-// src/cli/lib/plugin-check.ts
-import { existsSync as existsSync26, readFileSync as readFileSync23, statSync as statSync7 } from "fs";
-import { basename as basename9, extname as extname3, join as join31 } from "path";
-init_parser();
-init_serializer();
-init_updater();
-init_config2();
-init_cli_shared();
-function syntheticTasks() {
-  const make = (id, title2, status) => ({
-    id,
-    frontmatter: { id, title: title2, status, created: "2026-01-01", priority: "P2" },
-    plugins: void 0
-  });
-  return [
-    make("check-1", "Synthetic backlog task", "Backlog"),
-    make("check-2", "Synthetic active task", "In Progress"),
-    make("check-3", "Synthetic finished task", "Done")
-  ];
-}
-function stubUi() {
-  const noop = () => void 0;
-  return {
-    createElement: (type, props, ...children) => ({ type, props, children }),
-    Fragment: /* @__PURE__ */ Symbol("Fragment"),
-    useState: (initial) => [typeof initial === "function" ? initial() : initial, noop],
-    // 📖 Effects run so a panel that explodes on mount is caught, but their
-    // async results are dropped: the checker asserts "does not throw", not
-    // "renders the right numbers".
-    useEffect: (effect) => {
-      try {
-        effect();
-      } catch {
       }
     },
-    useLayoutEffect: (effect) => {
-      try {
-        effect();
-      } catch {
-      }
-    },
-    useMemo: (factory) => factory(),
-    useCallback: (callback) => callback,
-    useRef: (initial) => ({ current: initial }),
-    useReducer: (_reducer, initial) => [initial, noop],
-    useId: () => "check-id",
-    memo: (component) => component
-  };
-}
-function check(id, status, message, fix) {
-  return fix ? { id, status, message, fix } : { id, status, message };
-}
-function newestMtime(paths) {
-  let newest = 0;
-  for (const path of paths) {
-    try {
-      newest = Math.max(newest, statSync7(path).mtimeMs);
-    } catch {
-    }
-  }
-  return newest;
-}
-function scanPermissionUsage(source) {
-  const usesRead = /\.board\s*\.\s*(readAll|read)\s*\(/.test(source);
-  const usesWrite = /\.setField\s*\(/.test(source);
-  const usesFetch = /\.fetch\s*(\?\.)?\s*\(/.test(source);
-  const needs = [];
-  if (usesRead) needs.push("read:tasks");
-  if (usesFetch) needs.push("net:*");
-  return { needs, uses: { read: usesRead, write: usesWrite, fetch: usesFetch } };
-}
-async function checkPlugin(kandownDir, projectDir, id) {
-  const checks = [];
-  const discovered = discoverExtensions(projectDir);
-  const found = discovered.find((entry) => entry.manifestResult.ok ? entry.manifestResult.manifest.id === id : basename9(entry.dir) === id);
-  if (!found) {
-    return {
-      ok: false,
-      id,
-      dir: null,
-      checks: [check(
-        "discovery",
-        "fail",
-        `no plugin "${id}" found under .kandown/extensions/ or ~/.kandown/extensions/`,
-        `Create it with "kandown plugin create ${id}", or check the directory name.`
-      )]
-    };
-  }
-  const dir = found.dir;
-  if (!found.manifestResult.ok) {
-    return {
-      ok: false,
-      id,
-      dir,
-      checks: [check(
-        "manifest",
-        "fail",
-        found.manifestResult.error,
-        "Fix manifest.json. Required: id (kebab-case), name, version, apiVersion (1)."
-      )]
-    };
-  }
-  const manifest = found.manifestResult.manifest;
-  checks.push(check("manifest", "pass", `manifest.json is valid (v${manifest.version}, apiVersion ${manifest.apiVersion})`));
-  if (basename9(dir) !== manifest.id) {
-    checks.push(check(
-      "manifest-dir",
-      "warn",
-      `directory is "${basename9(dir)}" but the manifest id is "${manifest.id}"`,
-      `Rename the directory to "${manifest.id}" so install and purge target the same namespace.`
-    ));
-  }
-  const tasks = syntheticTasks();
-  const writes = [];
-  const logs = [];
-  const env = {
-    projectDir,
-    kandownVersion: getCurrentVersion(),
-    config: loadConfig(kandownDir),
-    readAll: async () => tasks,
-    read: async (taskId) => tasks.find((task) => task.id === taskId) ?? null,
-    applyField: async (taskId, extId, key, value) => {
-      if (extId !== manifest.id) throw new Error(`refused a write to plugins.${extId}.*`);
-      writes.push({ taskId, key, value });
-    },
-    log: {
-      info: (message) => logs.push(message),
-      warn: (message) => logs.push(`[warn] ${message}`),
-      error: (message) => logs.push(`[error] ${message}`)
-    }
-  };
-  const host = new ExtensionHost(env);
-  await host.loadAll({ only: manifest.id, inspect: true });
-  const loaded2 = host.get(manifest.id);
-  if (!loaded2 || loaded2.health !== "enabled") {
-    checks.push(check(
-      "entry",
-      "fail",
-      loaded2?.error ?? "the plugin did not load",
-      "The default export of index.ts must be a function receiving the kd API, and must not throw while registering."
-    ));
-    return { ok: false, id: manifest.id, dir, checks };
-  }
-  checks.push(check("entry", "pass", "index loaded and the factory ran"));
-  const summary = host.installedSummary().find((entry) => entry.id === manifest.id);
-  const counts = {
-    fields: summary?.fields.length ?? 0,
-    panels: summary?.panels.length ?? 0,
-    commands: summary?.commands.length ?? 0,
-    gates: summary?.gates ?? 0,
-    syncs: summary?.syncs ?? 0
-  };
-  const total = Object.values(counts).reduce((sum, value) => sum + value, 0);
-  if (total === 0) {
-    checks.push(check(
-      "contributions",
-      "fail",
-      "the factory registered nothing",
-      "Call at least one of contributeField, contributeWebPanel, contributeCommand, contributeGate or contributeSync."
-    ));
-  } else {
-    checks.push(check(
-      "contributions",
-      "pass",
-      `${counts.fields} field(s), ${counts.panels} panel(s), ${counts.commands} command(s), ${counts.gates} gate(s), ${counts.syncs} sync(s)`
-    ));
-  }
-  const sources = ["index.ts", "index.tsx", "index.js", "index.mjs"].map((name) => join31(dir, name)).filter((path) => existsSync26(path));
-  const sourceText = sources.map((path) => readFileSync23(path, "utf8")).join("\n");
-  const declared = manifest.permissions ?? [];
-  const usage = scanPermissionUsage(sourceText);
-  const missing = [];
-  for (const permission of usage.needs) {
-    if (!isAllowed(declared, permission)) missing.push(permission);
-  }
-  const needsWrite = usage.uses.write || counts.fields > 0;
-  if (needsWrite && !declared.some((entry) => entry === "*" || entry.startsWith(`write:field:plugins.${manifest.id}.`))) {
-    missing.push(`write:field:plugins.${manifest.id}.*`);
-  }
-  const unused = declared.filter((permission) => {
-    if (permission === "*") return false;
-    if (permission === "read:tasks") return !usage.uses.read;
-    if (permission.startsWith("net:")) return !usage.uses.fetch;
-    if (permission.startsWith("write:field:")) return !needsWrite;
-    return false;
-  });
-  if (missing.length > 0) {
-    checks.push(check(
-      "permissions",
-      "fail",
-      `code calls capabilities the manifest does not declare: ${missing.join(", ")}`,
-      `Add ${JSON.stringify(missing)} to "permissions" in manifest.json.`
-    ));
-  } else if (unused.length > 0) {
-    checks.push(check(
-      "permissions",
-      "warn",
-      `declared but never used: ${unused.join(", ")}`,
-      `Remove ${JSON.stringify(unused)} from "permissions"; an over-broad declaration makes the model meaningless.`
-    ));
-  } else if (declared.includes("*")) {
-    checks.push(check(
-      "permissions",
-      "warn",
-      'the manifest declares "*"',
-      'Replace "*" with the exact permissions used: read:tasks, write:field:plugins.<id>.*, net:*.'
-    ));
-  } else {
-    checks.push(check("permissions", "pass", declared.length > 0 ? `declares ${declared.join(", ")}` : "needs no permission"));
-  }
-  const bundleTargets = [{ stem: "index", sources: sources.filter((path) => extname3(path) === ".ts" || extname3(path) === ".tsx") }];
-  for (const panel of summary?.panels ?? []) {
-    const stem = basename9(panel.entry.replace(/^\.\//, ""), ".js");
-    if (bundleTargets.some((target) => target.stem === stem)) continue;
-    bundleTargets.push({
-      stem,
-      sources: [".tsx", ".ts", ".jsx"].map((extension) => join31(dir, `${stem}${extension}`)).filter((path) => existsSync26(path))
-    });
-  }
-  const staleBundles = [];
-  const missingBundles = [];
-  for (const target of bundleTargets) {
-    const out = join31(dir, `${target.stem}.js`);
-    if (!existsSync26(out)) {
-      if (target.sources.length > 0 || target.stem !== "index") missingBundles.push(`${target.stem}.js`);
-      continue;
-    }
-    if (target.sources.length > 0 && statSync7(out).mtimeMs < newestMtime(target.sources)) {
-      staleBundles.push(`${target.stem}.js`);
-    }
-  }
-  if (missingBundles.length > 0) {
-    checks.push(check(
-      "bundle",
-      "fail",
-      `missing browser bundle(s): ${missingBundles.join(", ")}`,
-      `Run "kandown plugin build ${manifest.id}". The web UI can only execute bundled JavaScript.`
-    ));
-  } else if (staleBundles.length > 0) {
-    checks.push(check(
-      "bundle",
-      "warn",
-      `bundle(s) older than their source: ${staleBundles.join(", ")}`,
-      `Run "kandown plugin build ${manifest.id}" so the browser sees your latest changes.`
-    ));
-  } else {
-    checks.push(check("bundle", "pass", bundleTargets.length > 0 ? "browser bundles are present and current" : "nothing to bundle"));
-  }
-  if ((summary?.panels.length ?? 0) === 0) {
-    checks.push(check("panel", "skip", "no web panel declared"));
-  } else {
-    for (const panel of summary?.panels ?? []) {
-      const entry = panel.entry.replace(/^\.\//, "");
-      const out = join31(dir, entry);
-      if (!existsSync26(out)) {
-        checks.push(check(
-          `panel:${panel.id}`,
-          "fail",
-          `declared entry ${panel.entry} does not exist`,
-          `Run "kandown plugin build ${manifest.id}", or point entry at the bundle it produces.`
-        ));
-        continue;
-      }
-      const source = readFileSync23(out, "utf8");
-      if (/from\s*["']react["']/.test(source)) {
-        checks.push(check(
-          `panel:${panel.id}`,
-          "fail",
-          "the panel bundle imports react",
-          'Delete the React import and use the "ui" prop (ui.createElement, ui.useState, ui.useEffect).'
-        ));
-        continue;
-      }
-      try {
-        const module = await import(`data:text/javascript;charset=utf-8,${encodeURIComponent(source)}`);
-        const component = module.panels?.[panel.id] ?? module.default;
-        if (typeof component !== "function") {
-          checks.push(check(
-            `panel:${panel.id}`,
-            "fail",
-            `the module exports no component for panel "${panel.id}"`,
-            `Export it as "export const panels = { ${panel.id}: Component }" or as the default export.`
-          ));
-          continue;
+    pendingPairs() {
+      const result = [];
+      for (const [sessionId, byTask] of sessions2) {
+        for (const pair of byTask.values()) {
+          result.push({
+            sessionId,
+            taskId: pair.taskId,
+            harnessId: pair.harnessId,
+            startedAt: new Date(pair.startedAtMs).toISOString(),
+            lastActivityAt: new Date(pair.lastActivityMs).toISOString()
+          });
         }
-        component({
-          task: tasks[0],
-          api: {
-            readField: () => void 0,
-            readAllTasks: async () => tasks,
-            setField: async () => void 0,
-            refresh: async () => void 0
-          },
-          ui: stubUi()
-        });
-        checks.push(check(`panel:${panel.id}`, "pass", "panel module renders once without throwing"));
-      } catch (error) {
-        checks.push(check(
-          `panel:${panel.id}`,
-          "fail",
-          `panel failed to load or render: ${error instanceof Error ? error.message : String(error)}`,
-          "Keep the module self-contained and side-effect free at import time; three render failures quarantine the plugin."
-        ));
       }
+      return result;
+    },
+    dispose() {
+      for (const sessionId of [...unsubscribes.keys()]) tracker.detachSession(sessionId);
+      for (const timer of idleTimers.values()) clearTimeout(timer);
+      for (const timer of closeTimers.values()) clearTimeout(timer);
+      idleTimers.clear();
+      closeTimers.clear();
+      sessions2.clear();
+      listingCache = null;
     }
-  }
-  if (counts.gates === 0 && counts.syncs === 0 && counts.commands === 0) {
-    checks.push(check("runtime", "skip", "no gate, sync or command to exercise"));
-  } else {
-    const failuresBefore = host.get(manifest.id)?.failures ?? 0;
-    for (const task of tasks) {
-      for (const to of ["Todo", "In Progress", "Done"]) {
-        await host.runGates({ type: "task:beforeMove", task, from: String(task.frontmatter.status ?? ""), to });
-      }
-    }
-    for (const task of tasks) {
-      host.dispatchSync({ type: "task:afterMove", task, from: "In Progress", to: "Done" });
-      host.dispatchLifecycle({ type: "task:afterMove", task, from: "In Progress", to: "Done" });
-    }
-    const commandErrors = [];
-    for (const name of summary?.commands ?? []) {
-      try {
-        await host.runCommand(name, "");
-      } catch (error) {
-        commandErrors.push(`${name}: ${error instanceof Error ? error.message : String(error)}`);
-      }
-    }
-    await new Promise((resolve12) => setTimeout(resolve12, 25));
-    const after = host.get(manifest.id);
-    const newFailures = (after?.failures ?? 0) - failuresBefore;
-    if (commandErrors.length > 0) {
-      const denied = commandErrors.map((entry) => /permission denied: (\S+)/.exec(entry)?.[1]).filter((permission) => Boolean(permission));
-      checks.push(check(
-        "runtime",
-        "fail",
-        `contributed command threw: ${commandErrors.join("; ")}`,
-        denied.length > 0 ? `Declare ${JSON.stringify([...new Set(denied)])} in "permissions" in manifest.json.` : "Handle your own errors inside the command handler and report them with ctx.log.error."
-      ));
-    } else if (newFailures > 0 || after?.health === "quarantined") {
-      checks.push(check(
-        "runtime",
-        "fail",
-        `${newFailures} handler failure(s) against a synthetic board: ${after?.error ?? "see logs"}`,
-        "A throwing gate fails open and a throwing sync is swallowed. Guard your handlers and log with ctx.log.warn."
-      ));
-    } else {
-      checks.push(check(
-        "runtime",
-        "pass",
-        `gates, syncs and commands ran clean on 3 synthetic tasks (${writes.length} field write(s))`
-      ));
-    }
-  }
-  if (writes.length === 0) {
-    checks.push(check("roundtrip", "skip", "the plugin wrote no field during the run"));
-  } else {
-    const problems = [];
-    for (const write of writes) {
-      const frontmatter = setField({ id: "check-1", title: "Round trip", status: "Todo" }, manifest.id, write.key, write.value);
-      const reparsed = parseTaskFile(serializeTaskFile(frontmatter, "body")).frontmatter;
-      const namespace = reparsed.plugins?.[manifest.id];
-      if (!namespace || !(write.key in namespace)) {
-        problems.push(`${write.key} disappeared through the serializer`);
-        continue;
-      }
-      if (String(namespace[write.key]) !== String(write.value)) {
-        problems.push(`${write.key}: wrote ${JSON.stringify(write.value)}, read back ${JSON.stringify(namespace[write.key])}`);
-      }
-    }
-    if (problems.length > 0) {
-      checks.push(check(
-        "roundtrip",
-        "fail",
-        problems.join("; "),
-        "Store plain JSON scalars or plain objects under plugins.<id>.*; class instances, undefined and functions do not survive the file."
-      ));
-    } else {
-      checks.push(check("roundtrip", "pass", `${writes.length} field write(s) survive the frontmatter round-trip`));
-    }
-  }
-  return {
-    ok: checks.every((entry) => entry.status !== "fail"),
-    id: manifest.id,
-    dir,
-    checks
   };
+  return tracker;
 }
-var MARK = {
-  pass: `${c.green}\u2713${c.reset}`,
-  fail: `${c.red}\u2717${c.reset}`,
-  warn: `${c.yellow}!${c.reset}`,
-  skip: `${c.dim}-${c.reset}`
-};
-function formatCheckReport(report) {
-  const lines = [];
-  for (const entry of report.checks) {
-    lines.push(`${MARK[entry.status]} ${c.bold}${entry.id.padEnd(14)}${c.reset} ${entry.message}`);
-    if (entry.fix) lines.push(`  ${c.dim}\u21B3 fix: ${entry.fix}${c.reset}`);
-  }
-  const failed = report.checks.filter((entry) => entry.status === "fail").length;
-  const warned = report.checks.filter((entry) => entry.status === "warn").length;
-  lines.push("");
-  lines.push(report.ok ? `${c.green}${report.id} passes${c.reset}${warned > 0 ? ` ${c.dim}(${warned} warning(s))${c.reset}` : ""}` : `${c.red}${report.id} fails ${failed} check(s)${c.reset}`);
-  return lines.join("\n");
-}
+
+// src/cli/lib/file-watcher.ts
+import { createReadStream, readFileSync as readFileSync18, statSync as statSync6 } from "fs";
+import { createHash as createHash2 } from "crypto";
+import { basename as basename9, join as join24 } from "path";
 
 // node_modules/.pnpm/chokidar@4.0.3/node_modules/chokidar/esm/index.js
 import { stat as statcb } from "fs";
@@ -10607,10 +8214,10 @@ var ReaddirpStream = class extends Readable {
   }
   async _formatEntry(dirent, path) {
     let entry;
-    const basename14 = this._isDirent ? dirent.name : dirent;
+    const basename16 = this._isDirent ? dirent.name : dirent;
     try {
-      const fullPath = presolve(pjoin(path, basename14));
-      entry = { path: prelative(this._root, fullPath), fullPath, basename: basename14 };
+      const fullPath = presolve(pjoin(path, basename16));
+      entry = { path: prelative(this._root, fullPath), fullPath, basename: basename16 };
       entry[this._statsProp] = this._isDirent ? dirent : await this._stat(fullPath);
     } catch (err3) {
       this._onError(err3);
@@ -11149,9 +8756,9 @@ var NodeFsHandler = class {
   _watchWithNodeFs(path, listener) {
     const opts = this.fsw.options;
     const directory = sysPath.dirname(path);
-    const basename14 = sysPath.basename(path);
+    const basename16 = sysPath.basename(path);
     const parent = this.fsw._getWatchedDir(directory);
-    parent.add(basename14);
+    parent.add(basename16);
     const absolutePath = sysPath.resolve(path);
     const options = {
       persistent: opts.persistent
@@ -11161,7 +8768,7 @@ var NodeFsHandler = class {
     let closer;
     if (opts.usePolling) {
       const enableBin = opts.interval !== opts.binaryInterval;
-      options.interval = enableBin && isBinaryPath(basename14) ? opts.binaryInterval : opts.interval;
+      options.interval = enableBin && isBinaryPath(basename16) ? opts.binaryInterval : opts.interval;
       closer = setFsWatchFileListener(path, absolutePath, options, {
         listener,
         rawEmitter: this.fsw._emitRaw
@@ -11184,10 +8791,10 @@ var NodeFsHandler = class {
       return;
     }
     const dirname9 = sysPath.dirname(file);
-    const basename14 = sysPath.basename(file);
+    const basename16 = sysPath.basename(file);
     const parent = this.fsw._getWatchedDir(dirname9);
     let prevStats = stats;
-    if (parent.has(basename14))
+    if (parent.has(basename16))
       return;
     const listener = async (path, newStats) => {
       if (!this.fsw._throttle(THROTTLE_MODE_WATCH, file, 5))
@@ -11212,9 +8819,9 @@ var NodeFsHandler = class {
             prevStats = newStats2;
           }
         } catch (error) {
-          this.fsw._remove(dirname9, basename14);
+          this.fsw._remove(dirname9, basename16);
         }
-      } else if (parent.has(basename14)) {
+      } else if (parent.has(basename16)) {
         const at = newStats.atimeMs;
         const mt = newStats.mtimeMs;
         if (!at || at <= mt || mt !== prevStats.mtimeMs) {
@@ -12144,15 +9751,3122 @@ function watch(paths, options = {}) {
   return watcher;
 }
 
+// src/cli/lib/file-watcher.ts
+init_board_reader();
+init_task_filename();
+var CONTENT_CACHE_LIMIT = 200;
+var CONTENT_CACHE_MAX_BYTES = 512 * 1024;
+function hashFile(filePath) {
+  return new Promise((resolve12, reject) => {
+    const hash = createHash2("sha256");
+    const stream = createReadStream(filePath);
+    stream.on("data", (chunk) => hash.update(chunk));
+    stream.on("end", () => resolve12(hash.digest("hex")));
+    stream.on("error", reject);
+  });
+}
+function hashFileSync(filePath) {
+  const content = __require("fs").readFileSync(filePath, "utf8");
+  return createHash2("sha256").update(content).digest("hex");
+}
+function taskFilePath(tasksDir, taskId) {
+  for (const directory of [tasksDir, join24(tasksDir, "archive")]) {
+    const match = resolveTaskFilename(taskId, listTaskFilenames(directory));
+    if (match) return join24(directory, match.filename);
+  }
+  return join24(tasksDir, "archive", `${taskId}.md`);
+}
+var FileWatcher = class {
+  watcher = null;
+  taskHashes = /* @__PURE__ */ new Map();
+  knownTaskIds = /* @__PURE__ */ new Set();
+  listeners = /* @__PURE__ */ new Map();
+  debounceTimers = /* @__PURE__ */ new Map();
+  debounceDelay = 30;
+  watchDebounceDelay = 75;
+  pollInterval = null;
+  stopped = false;
+  /** 📖 Bounded LRU of recent task file contents, keyed by absolute path.
+   *  Insertion order is the recency order: a hit re-inserts, an overflow
+   *  evicts the oldest entry. */
+  contentCache = /* @__PURE__ */ new Map();
+  onTaskContentChange = null;
+  /** 📖 Wires the live-diff callback (the daemon connects this to the agent
+   *  session edit tracker). Pass null to disconnect. Never throws. */
+  setOnTaskContentChange(callback) {
+    this.onTaskContentChange = callback;
+  }
+  /**
+   * 📖 Start watching task files and kandown.json.
+   * Uses chokidar for immediate FS event detection, plus a fallback 500ms
+   * poll to catch any races or network-mounted file changes.
+   *
+   * Tasks live at the project root (`./tasks/`, sibling of `.kandown/`);
+   * kandown.json lives inside `.kandown/`.
+   */
+  start(kandownDir) {
+    const tasksDir = getTasksDir(kandownDir);
+    const configPath = join24(kandownDir, "kandown.json");
+    const existingIds = listTaskIds(kandownDir);
+    for (const id of existingIds) {
+      this.knownTaskIds.add(id);
+      try {
+        const filePath = taskFilePath(tasksDir, id);
+        this.taskHashes.set(id, hashFileSync(filePath));
+        const content = this.readSmallFile(filePath);
+        if (content !== void 0) this.contentCacheSet(filePath, content);
+      } catch {
+      }
+    }
+    this.watcher = watch([join24(tasksDir, "*.md"), join24(tasksDir, "archive", "*.md"), configPath], {
+      ignoreInitial: true,
+      awaitWriteFinish: { stabilityThreshold: 25, pollInterval: 25 },
+      alwaysStat: true
+    });
+    this.watcher.on("all", (event, path) => {
+      this.handleFsEvent(event, path, kandownDir);
+    });
+    this.pollInterval = setInterval(() => {
+      this.pollHashes(kandownDir);
+    }, 300);
+  }
+  /**
+   * 📖 Stop watching and clean up all resources.
+   */
+  stop() {
+    this.stopped = true;
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+      this.pollInterval = null;
+    }
+    if (this.watcher) {
+      this.watcher.close();
+      this.watcher = null;
+    }
+    this.debounceTimers.forEach((t) => clearTimeout(t));
+    this.debounceTimers.clear();
+    this.taskHashes.clear();
+    this.knownTaskIds.clear();
+    this.contentCache.clear();
+    this.onTaskContentChange = null;
+    this.emit("stopped");
+  }
+  /** 📖 Register an event handler. Returns an unsubscribe function. */
+  on(event, handler) {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, /* @__PURE__ */ new Set());
+    }
+    this.listeners.get(event).add(handler);
+    return () => {
+      this.listeners.get(event)?.delete(handler);
+    };
+  }
+  /** 📖 Current set of known task IDs. */
+  getKnownTaskIds() {
+    return Array.from(this.knownTaskIds);
+  }
+  // ─── Private ───────────────────────────────────────────────────────────────
+  handleFsEvent(event, filePath, kandownDir) {
+    if (this.stopped) return;
+    const tasksDir = getTasksDir(kandownDir);
+    const configPath = join24(kandownDir, "kandown.json");
+    if (filePath === configPath) {
+      const key = `config:${event}`;
+      const existing = this.debounceTimers.get(key);
+      if (existing) clearTimeout(existing);
+      this.debounceTimers.set(key, setTimeout(() => {
+        this.debounceTimers.delete(key);
+        this.emit("configChanged");
+      }, this.watchDebounceDelay));
+      return;
+    }
+    const taskId = taskIdFromFilename(basename9(filePath.replace(/\\/g, "/")));
+    if (!taskId) return;
+    if (event === "add" || event === "change") {
+      const key = `task:${taskId}:${event}`;
+      const existing = this.debounceTimers.get(key);
+      if (existing) clearTimeout(existing);
+      this.debounceTimers.set(key, setTimeout(() => {
+        this.debounceTimers.delete(key);
+        void this.checkTaskContentChange(taskId, filePath, true);
+      }, this.watchDebounceDelay));
+    } else if (event === "unlink") {
+      this.taskHashes.delete(taskId);
+      this.knownTaskIds.delete(taskId);
+      this.contentCache.delete(filePath);
+    }
+  }
+  // ─── Content cache (live-edit support) ──────────────────────────────────────
+  /** 📖 Reads a file only when it is small enough to cache; undefined when it
+   *  is too big, unreadable or gone. */
+  readSmallFile(filePath) {
+    try {
+      if (statSync6(filePath).size > CONTENT_CACHE_MAX_BYTES) return void 0;
+      return readFileSync18(filePath, "utf8");
+    } catch {
+      return void 0;
+    }
+  }
+  contentCacheGet(filePath) {
+    const hit = this.contentCache.get(filePath);
+    if (hit !== void 0) {
+      this.contentCache.delete(filePath);
+      this.contentCache.set(filePath, hit);
+    }
+    return hit;
+  }
+  contentCacheSet(filePath, content) {
+    this.contentCache.delete(filePath);
+    this.contentCache.set(filePath, content);
+    while (this.contentCache.size > CONTENT_CACHE_LIMIT) {
+      const oldest = this.contentCache.keys().next();
+      if (oldest.done) break;
+      this.contentCache.delete(oldest.value);
+    }
+  }
+  /** 📖 After a real content change: read the fresh text, pair it with the
+   *  cached before text and notify the live-edit callback. Also refreshes the
+   *  cache so the NEXT change has a real before text. Silent no-op when the
+   *  file is gone or too big to read. */
+  noteContent(filePath) {
+    const after = this.readSmallFile(filePath);
+    if (after === void 0) return;
+    const before = this.contentCacheGet(filePath);
+    this.contentCacheSet(filePath, after);
+    if (before !== after) this.onTaskContentChange?.(filePath, before, after);
+  }
+  async checkTaskContentChange(taskId, filePath, isNew) {
+    try {
+      const newHash = await hashFile(filePath);
+      const oldHash = this.taskHashes.get(taskId);
+      if (isNew && !this.knownTaskIds.has(taskId)) {
+        this.knownTaskIds.add(taskId);
+        this.taskHashes.set(taskId, newHash);
+        this.noteContent(filePath);
+        this.emit("newTaskDetected", taskId);
+        return;
+      }
+      if (oldHash !== void 0 && newHash !== oldHash) {
+        this.taskHashes.set(taskId, newHash);
+        this.noteContent(filePath);
+        this.emit("taskChanged", taskId);
+      } else if (oldHash === void 0) {
+        this.knownTaskIds.add(taskId);
+        this.taskHashes.set(taskId, newHash);
+        this.noteContent(filePath);
+        if (isNew) {
+          this.emit("newTaskDetected", taskId);
+        }
+      }
+    } catch {
+    }
+  }
+  /** 📖 Fallback poll — catches changes that chokidar missed (network mounts, exotic FS). */
+  async pollHashes(kandownDir) {
+    if (this.stopped) return;
+    const tasksDir = getTasksDir(kandownDir);
+    const configPath = join24(kandownDir, "kandown.json");
+    try {
+      const newHash = hashFileSync(configPath);
+    } catch {
+    }
+    for (const taskId of this.knownTaskIds) {
+      const filePath = taskFilePath(tasksDir, taskId);
+      try {
+        statSync6(filePath);
+        const newHash = await hashFile(filePath);
+        const oldHash = this.taskHashes.get(taskId);
+        if (oldHash !== void 0 && newHash !== oldHash) {
+          this.taskHashes.set(taskId, newHash);
+          this.noteContent(filePath);
+          this.emit("taskChanged", taskId);
+        }
+      } catch {
+        this.taskHashes.delete(taskId);
+        this.knownTaskIds.delete(taskId);
+        this.contentCache.delete(filePath);
+      }
+    }
+    const currentIds = listTaskIds(kandownDir);
+    for (const id of currentIds) {
+      if (!this.knownTaskIds.has(id)) {
+        const filePath = taskFilePath(tasksDir, id);
+        try {
+          const newHash = await hashFile(filePath);
+          this.knownTaskIds.add(id);
+          this.taskHashes.set(id, newHash);
+          this.noteContent(filePath);
+          this.emit("newTaskDetected", id);
+        } catch {
+        }
+      }
+    }
+  }
+  debouncedEmit(event, ...args) {
+    const key = event + JSON.stringify(args);
+    const existing = this.debounceTimers.get(key);
+    if (existing) clearTimeout(existing);
+    const timer = setTimeout(() => {
+      this.debounceTimers.delete(key);
+      this.emit(event, ...args);
+    }, this.debounceDelay);
+    this.debounceTimers.set(key, timer);
+  }
+  emit(event, ...args) {
+    if (this.stopped) return;
+    const handlers = this.listeners.get(event);
+    handlers?.forEach((handler) => {
+      if (event === "configChanged") {
+        handler();
+      } else if (event === "taskChanged") {
+        handler(...args);
+      } else if (event === "newTaskDetected") {
+        handler(...args);
+      } else {
+        handler();
+      }
+    });
+  }
+};
+function createWatcher() {
+  return new FileWatcher();
+}
+
+// src/cli/lib/agent/session-index.ts
+import { mkdirSync as mkdirSync9, readFileSync as readFileSync19, readdirSync as readdirSync8, realpathSync as realpathSync2, unlinkSync as unlinkSync6 } from "fs";
+import { homedir as homedir10 } from "os";
+import { join as join25 } from "path";
+init_atomic_write();
+function sessionIndexBaseDir() {
+  return join25(homedir10(), ".kandown", "sessions");
+}
+function sessionIndexDir(projectRoot) {
+  const canonicalProject = canonicalizeProjectPath(projectRoot, realpathSync2);
+  return join25(sessionIndexBaseDir(), projectHash(canonicalProject));
+}
+function entryFileName(id) {
+  if (typeof id !== "string") return null;
+  const safe = id.replace(/[^A-Za-z0-9._-]/g, "_");
+  return safe ? `${safe}.json` : null;
+}
+function entryPath(projectRoot, id) {
+  const fileName = entryFileName(id);
+  return fileName ? join25(sessionIndexDir(projectRoot), fileName) : null;
+}
+function isSessionIndexEntry(value) {
+  if (!value || typeof value !== "object") return false;
+  const item = value;
+  if (typeof item.id !== "string" || !item.id) return false;
+  if (typeof item.harnessId !== "string" || !item.harnessId) return false;
+  if (typeof item.title !== "string") return false;
+  if (typeof item.createdAt !== "string" || typeof item.updatedAt !== "string") return false;
+  if (item.harnessSessionId !== void 0 && typeof item.harnessSessionId !== "string") return false;
+  if (item.taskId !== void 0 && typeof item.taskId !== "string") return false;
+  return true;
+}
+function readEntry(projectRoot, id) {
+  const file = entryPath(projectRoot, id);
+  if (!file) return null;
+  try {
+    const parsed = JSON.parse(readFileSync19(file, "utf8"));
+    return isSessionIndexEntry(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+function upsertSessionIndexEntry(projectRoot, entry) {
+  const file = entryPath(projectRoot, entry?.id ?? "");
+  if (!file) return;
+  try {
+    mkdirSync9(sessionIndexDir(projectRoot), { recursive: true });
+    atomicWriteFileSync(file, `${JSON.stringify(entry, null, 2)}
+`);
+  } catch {
+  }
+}
+function patchSessionIndexEntry(projectRoot, id, patch) {
+  if (typeof id !== "string" || !id) return;
+  const existing = readEntry(projectRoot, id);
+  if (!existing) return;
+  const next = {
+    ...existing,
+    ...patch.harnessSessionId !== void 0 ? { harnessSessionId: patch.harnessSessionId } : {},
+    ...patch.title !== void 0 ? { title: patch.title } : {},
+    ...patch.taskId !== void 0 ? { taskId: patch.taskId } : {},
+    updatedAt: patch.updatedAt ?? (/* @__PURE__ */ new Date()).toISOString()
+  };
+  upsertSessionIndexEntry(projectRoot, next);
+}
+function forgetSessionIndexEntry(projectRoot, id) {
+  const file = entryPath(projectRoot, id);
+  if (!file) return;
+  try {
+    unlinkSync6(file);
+  } catch {
+  }
+}
+function listSessionIndexEntries(projectRoot) {
+  const dir = sessionIndexDir(projectRoot);
+  let fileNames;
+  try {
+    fileNames = readdirSync8(dir);
+  } catch {
+    return [];
+  }
+  const entries = [];
+  for (const fileName of fileNames) {
+    if (!fileName.endsWith(".json")) continue;
+    try {
+      const parsed = JSON.parse(readFileSync19(join25(dir, fileName), "utf8"));
+      if (isSessionIndexEntry(parsed)) entries.push(parsed);
+    } catch {
+      continue;
+    }
+  }
+  return entries.sort(
+    (a, b) => b.updatedAt.localeCompare(a.updatedAt) || b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id)
+  );
+}
+function indexEntryForPrompt(prompt) {
+  const firstLine = prompt.split("\n").map((line) => line.trim()).find((line) => line.length > 0) ?? "";
+  const collapsed = firstLine.replace(/\s+/g, " ").trim();
+  return collapsed.slice(0, 60).trimEnd();
+}
+
+// src/cli/lib/server.ts
+init_updater();
+init_atomic_write();
+
+// src/cli/lib/task-move.ts
+init_atomic_write();
+init_board_reader();
+init_config2();
+init_dependencies();
+init_serializer();
+init_task_meta();
+function userReadyExtensionReason(taskId, target, reason) {
+  return `Cannot move ${taskId} to ${target}: ${reason ?? "blocked by an extension"}`;
+}
+var moveLocks = /* @__PURE__ */ new Map();
+async function withProjectMoveLock(projectKey, operation) {
+  const previous = moveLocks.get(projectKey) ?? Promise.resolve();
+  let release = () => {
+  };
+  const current = new Promise((resolveLock) => {
+    release = resolveLock;
+  });
+  const tail = previous.then(() => current);
+  moveLocks.set(projectKey, tail);
+  await previous;
+  try {
+    return await operation();
+  } finally {
+    release();
+    if (moveLocks.get(projectKey) === tail) moveLocks.delete(projectKey);
+  }
+}
+async function performTaskMove(host, kandownDir, taskId, targetStatus, toIndex) {
+  const taskPath = findTaskPath(kandownDir, taskId);
+  if (!taskPath) {
+    return { ok: false, kind: "not-found", reason: `Task not found: ${taskId}` };
+  }
+  const config = loadConfig(kandownDir);
+  const board = readBoard(kandownDir);
+  const sourceColumn = board.columns.find((column) => column.tasks.some((task) => task.id === taskId));
+  const targetColumn = board.columns.find((column) => column.name.toLowerCase() === targetStatus.toLowerCase());
+  if (!sourceColumn) {
+    return { ok: false, kind: "not-found", reason: `Task is not active: ${taskId}` };
+  }
+  if (!targetColumn) {
+    return { ok: false, kind: "invalid-target", reason: `Unknown status: ${targetStatus}` };
+  }
+  const target = targetColumn.name;
+  const parsed = readTask(kandownDir, taskId);
+  const from = typeof parsed.frontmatter.status === "string" ? parsed.frontmatter.status : sourceColumn.name;
+  const allTasks = listTaskIds(kandownDir).map((id) => {
+    try {
+      return readTask(kandownDir, id);
+    } catch {
+      return null;
+    }
+  }).filter((task) => task !== null);
+  const snapshot = resolveDependencyStatus(allTasks, config);
+  const dependencyVerdict = resolveTransition(parsed, target, snapshot, config);
+  if (!dependencyVerdict.allowed) {
+    const error = new DependencyGateError(taskId, target, dependencyVerdict.blockedBy);
+    return {
+      ok: false,
+      kind: "dependency",
+      reason: error.message,
+      blockedBy: dependencyVerdict.blockedBy
+    };
+  }
+  const extensionVerdict = await runExtensionMoveGates(host, kandownDir, taskId, from, target);
+  if (!extensionVerdict.allowed) {
+    return {
+      ok: false,
+      kind: "extension",
+      reason: userReadyExtensionReason(taskId, target, extensionVerdict.reason)
+    };
+  }
+  const sourceIds = sourceColumn.tasks.map((task) => task.id).filter((id) => id !== taskId);
+  const targetIds = sourceColumn === targetColumn ? sourceIds : targetColumn.tasks.map((task) => task.id).filter((id) => id !== taskId);
+  const insertionIndex = toIndex === void 0 ? targetIds.length : Math.max(0, Math.min(Math.trunc(toIndex), targetIds.length));
+  targetIds.splice(insertionIndex, 0, taskId);
+  const layouts = sourceColumn === targetColumn ? [{ status: target, ids: targetIds }] : [
+    // 📖 Persist the target first, and the moved task first within it. If
+    // that authoritative write fails, no neighbor order has changed.
+    { status: target, ids: targetIds },
+    { status: sourceColumn.name, ids: sourceIds }
+  ];
+  const failedIds = [];
+  for (const layout of layouts) {
+    const entries = layout.ids.map((id, order) => ({ id, order }));
+    entries.sort((left, right) => left.id === taskId ? -1 : right.id === taskId ? 1 : left.order - right.order);
+    for (const { id, order } of entries) {
+      const path = findTaskPath(kandownDir, id);
+      if (!path) {
+        failedIds.push(id);
+        continue;
+      }
+      try {
+        const current = readTask(kandownDir, id);
+        const nextContent = serializeTaskFile(stampUpdated({
+          ...current.frontmatter,
+          id,
+          status: layout.status,
+          order
+        }), current.body);
+        atomicWriteFileSync(path, nextContent);
+      } catch {
+        failedIds.push(id);
+      }
+    }
+  }
+  const uniqueFailedIds = [...new Set(failedIds)];
+  if (uniqueFailedIds.includes(taskId)) {
+    return {
+      ok: false,
+      kind: "write",
+      reason: `Failed to persist move for ${taskId}`
+    };
+  }
+  try {
+    const moved = readTask(kandownDir, taskId);
+    const frontmatter = moved.frontmatter;
+    const event = {
+      type: "task:afterMove",
+      task: {
+        id: taskId,
+        frontmatter,
+        plugins: frontmatter.plugins
+      },
+      from,
+      to: target
+    };
+    host.dispatchSync(event);
+    host.dispatchLifecycle(event);
+  } catch {
+  }
+  return { ok: true, from, to: target, failedIds: uniqueFailedIds };
+}
+async function moveTaskWithGates(host, kandownDir, taskId, targetStatus, toIndex) {
+  return withProjectMoveLock(kandownDir, () => performTaskMove(host, kandownDir, taskId, targetStatus, toIndex));
+}
+
+// src/cli/lib/extensions-store.ts
+import { mkdirSync as mkdirSync10, writeFileSync as writeFileSync6 } from "fs";
+import { join as join26 } from "path";
+var DEFAULT_REGISTRY_URL = "https://raw.githubusercontent.com/vava-nessa/kandown/main/registry/extensions.json";
+var REGISTRY_FILES = ["manifest.json", "index.js", "index.ts", "web.js", "styles.css"];
+async function fetchRegistry(url = DEFAULT_REGISTRY_URL) {
+  try {
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    if (!res.ok) return { entries: [], url, error: `HTTP ${res.status}` };
+    const data = await res.json();
+    const entries = Array.isArray(data) ? data : data.entries ?? [];
+    return { entries: Array.isArray(entries) ? entries : [], url };
+  } catch (e) {
+    return { entries: [], url, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+function githubRawBase(repo, ref) {
+  const cleaned = repo.replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "");
+  return `https://raw.githubusercontent.com/${cleaned}/${ref}`;
+}
+function githubRawBaseHead(repo) {
+  return githubRawBase(repo, "HEAD");
+}
+async function installExtension2(projectDir, input) {
+  let baseUrl;
+  let manifestPath;
+  if (input.entry) {
+    const ref = input.entry.ref || "HEAD";
+    baseUrl = `${githubRawBase(input.entry.repo, ref)}/${input.entry.path || ""}`.replace(/\/$/, "");
+    manifestPath = "manifest.json";
+  } else if (input.url) {
+    baseUrl = githubRawBaseHead(input.url).replace(/\/$/, "");
+    manifestPath = "manifest.json";
+  } else {
+    return { ok: false, error: "Provide a registry entry or a GitHub URL." };
+  }
+  const manifestUrl = `${baseUrl}/${manifestPath}`;
+  let manifestJson;
+  try {
+    const res = await fetch(manifestUrl, { headers: { Accept: "application/json" } });
+    if (!res.ok) return { ok: false, error: `manifest fetch failed: HTTP ${res.status}` };
+    manifestJson = await res.text();
+  } catch (e) {
+    return { ok: false, error: `manifest fetch failed: ${e instanceof Error ? e.message : String(e)}` };
+  }
+  let manifest;
+  try {
+    manifest = JSON.parse(manifestJson);
+  } catch {
+    return { ok: false, error: "manifest.json is not valid JSON" };
+  }
+  if (!manifest.id || !/^[a-z][a-z0-9-]{0,63}$/.test(manifest.id)) {
+    return { ok: false, error: "manifest.json is missing a valid id" };
+  }
+  const destDir = join26(projectDir, ".kandown", "extensions", manifest.id);
+  mkdirSync10(destDir, { recursive: true });
+  const copied = [];
+  const write = (relPath, content) => {
+    writeFileSync6(join26(destDir, relPath), content, "utf8");
+    copied.push(relPath);
+  };
+  write("manifest.json", manifestJson);
+  const otherFiles = REGISTRY_FILES.filter((f) => f !== "manifest.json");
+  const results = await Promise.allSettled(
+    otherFiles.map(async (f) => {
+      const r = await fetch(`${baseUrl}/${f}`);
+      if (!r.ok) return null;
+      const text = await r.text();
+      write(f, text);
+      return f;
+    })
+  );
+  return {
+    ok: true,
+    id: manifest.id
+  };
+}
+
+// src/cli/lib/themes-store.ts
+import { existsSync as existsSync20, mkdirSync as mkdirSync11, writeFileSync as writeFileSync7 } from "fs";
+import { join as join27 } from "path";
+
+// src/lib/themes/shared.ts
+var sharedLight = {
+  "destructive": "0 72% 51%",
+  "destructive-foreground": "0 0% 100%",
+  "success": "148 55% 39%",
+  "warning": "38 82% 49%",
+  "grid": "220 13% 0% / 0.05",
+  "grid-strong": "220 13% 0% / 0.085"
+};
+var sharedDark = {
+  "destructive": "358 74% 59%",
+  "destructive-foreground": "0 0% 100%",
+  "success": "151 55% 42%",
+  "warning": "38 82% 57%",
+  "grid": "0 0% 100% / 0.018",
+  "grid-strong": "0 0% 100% / 0.04"
+};
+
+// src/lib/themes/shadcn.ts
+var shadcnTheme = {
+  id: "shadcn",
+  name: "Shadcn",
+  author: "Kandown",
+  description: "Ultra-clean zinc palette, near-black primary, crisp borders. The shadcn/ui look as a default.",
+  appearance: { radius: "8px", borderWidth: "1px", shadows: "soft", density: "comfortable", glass: true, motion: "subtle" },
+  fonts: { sans: "'Inter var', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", display: "'Inter Tight', 'Inter var', Inter, sans-serif", mono: "'SF Mono', Menlo, Monaco, Consolas, monospace" },
+  light: {
+    ...sharedLight,
+    "background": "0 0% 100%",
+    "foreground": "240 10% 3.9%",
+    "card": "0 0% 100%",
+    "card-foreground": "240 10% 3.9%",
+    "popover": "0 0% 100%",
+    "popover-foreground": "240 10% 3.9%",
+    "primary": "240 5.9% 10%",
+    "primary-foreground": "0 0% 98%",
+    "secondary": "240 4.8% 95.9%",
+    "secondary-foreground": "240 5.9% 10%",
+    "muted": "240 4.8% 95.9%",
+    "muted-foreground": "240 3.8% 46.1%",
+    "accent": "240 4.8% 95.9%",
+    "accent-foreground": "240 5.9% 10%",
+    "border": "240 5.9% 90%",
+    "border-strong": "240 5.9% 80%",
+    "border-focus": "240 5.9% 10%",
+    "input": "240 5.9% 90%",
+    "ring": "240 5.9% 10%",
+    "grid": "240 10% 3.9% / 0.04",
+    "grid-strong": "240 10% 3.9% / 0.07",
+    "glass": "0 0% 100% / 0.8",
+    "glass-border": "240 5.9% 90% / 0.8",
+    // 📖 Code blocks: very light gray (github-light-ish) so the bundled
+    // Shiki palette keeps WCAG-AA contrast. Inline code is a zinc pill.
+    "code-bg": "240 6% 96%",
+    "code-fg": "240 10% 12%",
+    "code-inline-bg": "240 5% 94%",
+    "code-inline-fg": "240 8% 18%",
+    "code-block-border": "240 6% 88%"
+  },
+  dark: {
+    ...sharedDark,
+    "background": "240 10% 3.9%",
+    "foreground": "0 0% 98%",
+    "card": "240 7% 6%",
+    "card-foreground": "0 0% 98%",
+    "popover": "240 8% 7%",
+    "popover-foreground": "0 0% 98%",
+    "primary": "0 0% 98%",
+    "primary-foreground": "240 5.9% 10%",
+    "secondary": "240 3.7% 15.9%",
+    "secondary-foreground": "0 0% 98%",
+    "muted": "240 3.7% 15.9%",
+    "muted-foreground": "240 5% 64.9%",
+    "accent": "240 3.7% 15.9%",
+    "accent-foreground": "0 0% 98%",
+    "border": "240 3.7% 15.9%",
+    "border-strong": "240 5% 26%",
+    "border-focus": "240 4.9% 83.9%",
+    "input": "240 3.7% 15.9%",
+    "ring": "240 4.9% 83.9%",
+    "grid": "0 0% 98% / 0.03",
+    "grid-strong": "0 0% 98% / 0.06",
+    "glass": "240 7% 6% / 0.8",
+    "glass-border": "240 5% 16% / 0.8",
+    // 📖 Code blocks: zinc-950 close to github-dark's #0d1117 so the dark
+    // Shiki palette stays readable; inline code is a slightly lighter pill.
+    "code-bg": "240 5% 8%",
+    "code-fg": "0 0% 93%",
+    "code-inline-bg": "240 4% 13%",
+    "code-inline-fg": "240 8% 75%",
+    "code-block-border": "240 4% 18%"
+  }
+};
+
+// src/lib/themes/vercel.ts
+var vercelTheme = {
+  id: "vercel",
+  name: "Vercel",
+  author: "Kandown",
+  description: "Black and white, mono display type, compact density. The Vercel high-contrast look.",
+  appearance: { radius: "6px", borderWidth: "1px", shadows: "soft", density: "compact", glass: true, motion: "subtle" },
+  fonts: { sans: "'Inter var', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", display: "ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, 'Liberation Mono', monospace", mono: "'SF Mono', Menlo, Monaco, Consolas, 'Liberation Mono', monospace" },
+  light: {
+    ...sharedLight,
+    "background": "0 0% 98%",
+    "foreground": "0 0% 4%",
+    "card": "0 0% 100%",
+    "card-foreground": "0 0% 4%",
+    "popover": "0 0% 100%",
+    "popover-foreground": "0 0% 4%",
+    "primary": "0 0% 4%",
+    "primary-foreground": "0 0% 100%",
+    "secondary": "0 0% 96%",
+    "secondary-foreground": "0 0% 10%",
+    "muted": "0 0% 96%",
+    "muted-foreground": "0 0% 44%",
+    "accent": "0 0% 93%",
+    "accent-foreground": "0 0% 8%",
+    "border": "0 0% 90%",
+    "border-strong": "0 0% 78%",
+    "border-focus": "0 0% 4%",
+    "input": "0 0% 90%",
+    "ring": "0 0% 4%",
+    "grid": "0 0% 4% / 0.05",
+    "grid-strong": "0 0% 4% / 0.09",
+    "glass": "0 0% 100% / 0.8",
+    "glass-border": "0 0% 90% / 0.8",
+    "code-bg": "0 0% 95%",
+    "code-fg": "0 0% 12%",
+    "code-inline-bg": "0 0% 92%",
+    "code-inline-fg": "0 0% 15%",
+    "code-block-border": "0 0% 86%"
+  },
+  dark: {
+    ...sharedDark,
+    "background": "0 0% 4%",
+    "foreground": "0 0% 98%",
+    "card": "0 0% 6%",
+    "card-foreground": "0 0% 98%",
+    "popover": "0 0% 7%",
+    "popover-foreground": "0 0% 98%",
+    "primary": "0 0% 98%",
+    "primary-foreground": "0 0% 4%",
+    "secondary": "0 0% 13%",
+    "secondary-foreground": "0 0% 96%",
+    "muted": "0 0% 12%",
+    "muted-foreground": "0 0% 58%",
+    "accent": "0 0% 15%",
+    "accent-foreground": "0 0% 96%",
+    "border": "0 0% 14%",
+    "border-strong": "0 0% 24%",
+    "border-focus": "0 0% 90%",
+    "input": "0 0% 14%",
+    "ring": "0 0% 90%",
+    "grid": "0 0% 100% / 0.03",
+    "grid-strong": "0 0% 100% / 0.06",
+    "glass": "0 0% 6% / 0.8",
+    "glass-border": "0 0% 16% / 0.8",
+    "code-bg": "0 0% 8%",
+    "code-fg": "0 0% 92%",
+    "code-inline-bg": "0 0% 14%",
+    "code-inline-fg": "0 0% 80%",
+    "code-block-border": "0 0% 18%"
+  }
+};
+
+// src/lib/themes/linear.ts
+var linearTheme = {
+  id: "linear",
+  name: "Linear",
+  author: "Kandown",
+  description: "Dark-first aesthetic, Plus Jakarta Sans, electric violet accent, sleek elevated popovers.",
+  appearance: { radius: "8px", borderWidth: "1px", shadows: "elevated", density: "comfortable", glass: true, motion: "subtle", glassIntensity: 24, shadowCard: "0 1px 2px rgb(8 8 16 / 0.06), 0 4px 12px rgb(8 8 16 / 0.10)", shadowPopover: "0 12px 32px rgb(8 8 16 / 0.22)" },
+  fonts: { sans: "'Plus Jakarta Sans', Outfit, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", display: "'Plus Jakarta Sans', Outfit, -apple-system, BlinkMacSystemFont, sans-serif", mono: "'SF Mono', Menlo, Consolas, monospace" },
+  light: {
+    ...sharedLight,
+    "background": "220 20% 98%",
+    "foreground": "224 24% 12%",
+    "card": "0 0% 100%",
+    "card-foreground": "224 24% 12%",
+    "popover": "0 0% 100%",
+    "popover-foreground": "224 24% 12%",
+    "primary": "235 59% 60%",
+    "primary-foreground": "0 0% 100%",
+    "secondary": "235 25% 95%",
+    "secondary-foreground": "235 59% 30%",
+    "muted": "220 16% 94%",
+    "muted-foreground": "220 12% 42%",
+    "accent": "235 45% 92%",
+    "accent-foreground": "235 59% 35%",
+    "border": "220 15% 88%",
+    "border-strong": "220 15% 80%",
+    "border-focus": "235 59% 60%",
+    "input": "220 15% 90%",
+    "ring": "235 59% 60%",
+    "grid": "235 30% 12% / 0.04",
+    "grid-strong": "235 30% 12% / 0.08",
+    "glass": "0 0% 100% / 0.8",
+    "glass-border": "220 15% 86% / 0.85",
+    "code-bg": "220 14% 96%",
+    "code-fg": "224 24% 12%",
+    "code-inline-bg": "235 30% 92%",
+    "code-inline-fg": "235 40% 30%",
+    "code-block-border": "220 14% 88%"
+  },
+  dark: {
+    ...sharedDark,
+    "background": "210 11% 4%",
+    "foreground": "210 14% 94%",
+    "card": "216 7% 8%",
+    "card-foreground": "210 14% 94%",
+    "popover": "216 7% 8%",
+    "popover-foreground": "210 14% 94%",
+    "primary": "235 59% 60%",
+    "primary-foreground": "0 0% 100%",
+    "secondary": "218 9% 13%",
+    "secondary-foreground": "210 14% 94%",
+    "muted": "218 9% 11%",
+    "muted-foreground": "215 8% 58%",
+    "accent": "235 30% 15%",
+    "accent-foreground": "210 14% 94%",
+    "border": "225 9% 14%",
+    "border-strong": "225 9% 20%",
+    "border-focus": "235 59% 60%",
+    "input": "225 9% 14%",
+    "ring": "235 59% 60%",
+    "grid": "0 0% 100% / 0.018",
+    "grid-strong": "0 0% 100% / 0.04",
+    "glass": "216 7% 8% / 0.78",
+    "glass-border": "225 9% 18% / 0.85",
+    "code-bg": "216 9% 10%",
+    "code-fg": "210 14% 90%",
+    "code-inline-bg": "235 25% 18%",
+    "code-inline-fg": "235 60% 78%",
+    "code-block-border": "225 9% 20%"
+  }
+};
+
+// src/lib/themes/kandown.ts
+var kandownTheme = {
+  id: "kandown",
+  name: "Kandown",
+  author: "Kandown",
+  description: "The house theme: brand lime (#88E138) on near-neutral surfaces, pale lime accents, 4px radius.",
+  appearance: { radius: "4px", borderWidth: "1px", shadows: "soft", density: "comfortable", glass: true, motion: "subtle" },
+  fonts: { sans: "'Inter var', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", display: "'Inter Tight', 'Inter var', Inter, sans-serif", mono: "'SF Mono', Menlo, Monaco, Consolas, monospace" },
+  light: {
+    ...sharedLight,
+    "background": "80 40% 99%",
+    "foreground": "120 10% 10%",
+    "card": "0 0% 100%",
+    "card-foreground": "120 10% 10%",
+    "popover": "0 0% 100%",
+    "popover-foreground": "120 10% 10%",
+    "primary": "91 67% 47%",
+    "primary-foreground": "96 55% 9%",
+    "secondary": "75 45% 94%",
+    "secondary-foreground": "96 40% 18%",
+    "muted": "75 12% 95%",
+    "muted-foreground": "120 5% 40%",
+    "accent": "72 100% 90%",
+    "accent-foreground": "96 50% 18%",
+    "border": "0 0% 92%",
+    "border-strong": "0 0% 85%",
+    "border-focus": "91 67% 47%",
+    "input": "0 0% 90%",
+    "ring": "91 67% 47%",
+    "success": "130 90% 28%",
+    "grid": "92 40% 20% / 0.05",
+    "grid-strong": "92 40% 20% / 0.09",
+    "glass": "0 0% 100% / 0.78",
+    "glass-border": "75 30% 88% / 0.85",
+    // 📖 Code blocks: very light gray background so github-light's dark
+    // token colors (blues / reds / greens) keep a WCAG-AA contrast.
+    // Inline code is slightly tinted with the page accent so single
+    // backticks in body prose still pop without competing with the block.
+    "code-bg": "220 14% 96%",
+    "code-fg": "220 30% 12%",
+    "code-inline-bg": "75 35% 90%",
+    "code-inline-fg": "120 25% 18%",
+    "code-block-border": "220 14% 88%"
+  },
+  dark: {
+    ...sharedDark,
+    "background": "120 8% 7%",
+    "foreground": "80 15% 93%",
+    "card": "120 7% 10%",
+    "card-foreground": "80 15% 93%",
+    "popover": "120 7% 11%",
+    "popover-foreground": "80 15% 93%",
+    "primary": "92 74% 55%",
+    "primary-foreground": "120 30% 7%",
+    "secondary": "120 6% 16%",
+    "secondary-foreground": "80 15% 93%",
+    "muted": "120 6% 14%",
+    "muted-foreground": "90 6% 60%",
+    "accent": "92 30% 18%",
+    "accent-foreground": "92 74% 70%",
+    "border": "120 6% 18%",
+    "border-strong": "120 6% 26%",
+    "border-focus": "92 74% 55%",
+    "input": "120 6% 18%",
+    "ring": "92 74% 55%",
+    "success": "130 90% 48%",
+    "grid": "92 60% 60% / 0.03",
+    "grid-strong": "92 60% 60% / 0.06",
+    "glass": "120 7% 10% / 0.78",
+    "glass-border": "92 20% 24% / 0.8",
+    // 📖 Code blocks: a deeper neutral background, close to github-dark's
+    // own `#0d1117` (≈ 220 15% 9%) so the bundled Shiki palette's light
+    // token colors stay readable. Inline code is warmer so it reads as a
+    // deliberate pill, not a missed selection.
+    "code-bg": "220 15% 11%",
+    "code-fg": "80 20% 92%",
+    "code-inline-bg": "92 20% 22%",
+    "code-inline-fg": "92 50% 78%",
+    "code-block-border": "220 14% 22%"
+  }
+};
+
+// src/lib/themes/index.ts
+var THEME_PRESETS = [shadcnTheme, vercelTheme, linearTheme, kandownTheme];
+
+// src/lib/theme.ts
+var LEGACY_SKIN_MAP = {};
+var SKIN_OPTIONS = THEME_PRESETS.map((t) => ({
+  id: t.id,
+  label: t.name,
+  description: t.description ?? "",
+  light: t.light,
+  dark: t.dark
+}));
+var customThemesRegistry = [];
+function getAllThemes() {
+  return [...THEME_PRESETS, ...customThemesRegistry];
+}
+function normalizeSkinId(value) {
+  if (typeof value !== "string") return "shadcn";
+  const all = getAllThemes();
+  const target = LEGACY_SKIN_MAP[value] ?? value;
+  return all.some((t) => t.id === target) ? target : "shadcn";
+}
+
+// src/cli/lib/themes-store.ts
+var DEFAULT_REGISTRY_URL2 = "https://raw.githubusercontent.com/vava-nessa/kandown/main/registry/themes.json";
+async function fetchRegistry2(url = DEFAULT_REGISTRY_URL2) {
+  try {
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    if (!res.ok) return { entries: [], url, error: `HTTP ${res.status}` };
+    const data = await res.json();
+    const entries = Array.isArray(data) ? data : data.entries ?? [];
+    return { entries: Array.isArray(entries) ? entries : [], url };
+  } catch (e) {
+    return { entries: [], url, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+function githubRawBase2(repo, ref) {
+  const cleaned = repo.replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "");
+  return `https://raw.githubusercontent.com/${cleaned}/${ref}`;
+}
+async function installTheme(projectDir, input) {
+  let themeUrl;
+  if (input.entry) {
+    const ref = input.entry.ref || "HEAD";
+    const base = githubRawBase2(input.entry.repo, ref);
+    const path = input.entry.path || `registry/themes/${input.entry.id}.json`;
+    themeUrl = `${base}/${path}`.replace(/\/+$/, "");
+  } else if (input.url) {
+    const trimmed = input.url.replace(/\/+$/, "");
+    if (trimmed.includes("raw.githubusercontent.com")) {
+      themeUrl = trimmed;
+    } else {
+      const base = githubRawBase2(trimmed, "HEAD");
+      themeUrl = `${base}/registry/themes/${guessIdFromUrl(trimmed)}.json`;
+    }
+  } else {
+    return { ok: false, error: "Provide a registry entry or a GitHub URL." };
+  }
+  let themeJson;
+  try {
+    const res = await fetch(themeUrl, { headers: { Accept: "application/json" } });
+    if (!res.ok) return { ok: false, error: `theme fetch failed: HTTP ${res.status}` };
+    themeJson = await res.text();
+  } catch (e) {
+    return { ok: false, error: `theme fetch failed: ${e instanceof Error ? e.message : String(e)}` };
+  }
+  let theme;
+  try {
+    theme = JSON.parse(themeJson);
+  } catch {
+    return { ok: false, error: "theme file is not valid JSON" };
+  }
+  if (!theme.id || !/^[a-z][a-z0-9-]{0,63}$/.test(theme.id)) {
+    return { ok: false, error: "theme is missing a valid id" };
+  }
+  normalizeSkinId(theme.id);
+  const { description: _desc, author: _author, name: _name, ..._rest } = theme;
+  const destDir = join27(projectDir, ".kandown", "themes");
+  mkdirSync11(destDir, { recursive: true });
+  writeFileSync7(join27(destDir, `${theme.id}.json`), `${themeJson}
+`, "utf8");
+  return { ok: true, id: theme.id };
+}
+function guessIdFromUrl(url) {
+  const m = url.match(/\/([a-z0-9_-]+?)(?:\.git)?$/i);
+  return m ? m[1].toLowerCase().replace(/[^a-z0-9-]/g, "-") : "unknown";
+}
+function base64EncodeUtf8(input) {
+  if (typeof Buffer !== "undefined") {
+    return Buffer.from(input, "utf8").toString("base64");
+  }
+  return btoa(unescape(encodeURIComponent(input)));
+}
+function buildProposeUrl(opts) {
+  const branch = opts.branch ?? "main";
+  const dir = (opts.dir ?? "registry/themes").replace(/\/+$/, "");
+  const params = new URLSearchParams({
+    filename: `${dir}/${opts.themeId}.json`,
+    value: base64EncodeUtf8(opts.json)
+  });
+  return `https://github.com/${opts.githubOwner}/${opts.githubRepo}/new/${branch}/${dir}?${params.toString()}`;
+}
+function listInstalledThemes(projectDir) {
+  const dir = join27(projectDir, ".kandown", "themes");
+  if (!existsSync20(dir)) return [];
+  const themes = [];
+  const { readFileSync: readFileSync27, readdirSync: readdirSync13 } = __require("fs");
+  for (const file of readdirSync13(dir)) {
+    if (!file.endsWith(".json")) continue;
+    try {
+      const raw = readFileSync27(join27(dir, file), "utf8");
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.id && parsed.light && parsed.dark) {
+        themes.push({ ...parsed, isCustom: true });
+      }
+    } catch {
+    }
+  }
+  return themes;
+}
+
+// src/cli/lib/server.ts
+init_workflows_cli();
+init_workflows_store();
+
+// src/cli/lib/daemon-auth.ts
+import { randomBytes, timingSafeEqual } from "crypto";
+var TOKEN_HEADER = "X-Kandown-Token";
+var TOKEN_QUERY = "token";
+function generateToken() {
+  return randomBytes(32).toString("hex");
+}
+function extractToken(req, url) {
+  const headerValue = req.headers[TOKEN_HEADER.toLowerCase()];
+  const fromHeader = Array.isArray(headerValue) ? headerValue[0] : headerValue;
+  if (typeof fromHeader === "string" && fromHeader.length > 0) return fromHeader;
+  const fromQuery = url?.searchParams.get(TOKEN_QUERY);
+  return typeof fromQuery === "string" && fromQuery.length > 0 ? fromQuery : null;
+}
+function verifyToken(expected, candidate) {
+  const expectedBuffer = Buffer.from(expected, "utf8");
+  const candidateBuffer = Buffer.from(candidate, "utf8");
+  if (expectedBuffer.length !== candidateBuffer.length) return false;
+  return timingSafeEqual(expectedBuffer, candidateBuffer);
+}
+function selfOrigin(port) {
+  return `http://127.0.0.1:${port}`;
+}
+
+// src/cli/lib/server.ts
+var START_PORT_RANGE = 2050;
+var END_PORT_RANGE = 2099;
+var UNSAFE_PORTS = /* @__PURE__ */ new Set([2049, 4045, 6e3, 6665, 6666, 6667, 6668, 6669, 6697]);
+var sseClients = [];
+var nextClientId = 1;
+var activeToken = null;
+function setActiveToken(token) {
+  activeToken = token;
+}
+function corsHeaders(port) {
+  return {
+    "Access-Control-Allow-Origin": selfOrigin(port),
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-Kandown-Token"
+  };
+}
+function authenticateHttp(req, url, res) {
+  if (activeToken === null) return true;
+  const candidate = extractToken(req, url);
+  if (candidate === null || !verifyToken(activeToken, candidate)) {
+    res.writeHead(401, {
+      "Content-Type": "application/json",
+      ...corsHeaders(localPort(res))
+    });
+    res.end(JSON.stringify({ error: "Token missing or invalid" }));
+    return false;
+  }
+  return true;
+}
+var extensionHost = null;
+var extensionHostDir = null;
+async function getExtensionHost(kandownDir) {
+  if (!extensionHost || extensionHostDir !== kandownDir) {
+    extensionHost = await loadExtensionHost(kandownDir);
+    extensionHostDir = kandownDir;
+  }
+  return extensionHost;
+}
+function broadcastSseEvent(data) {
+  const payload = `data: ${JSON.stringify(data)}
+
+`;
+  sseClients.forEach((c2) => c2.res.write(payload));
+}
+var agentEditRuntime = null;
+var agentEditRuntimeDir = null;
+function getAgentEditRuntime(kandownDir) {
+  if (agentEditRuntime && agentEditRuntimeDir === kandownDir) return agentEditRuntime;
+  agentEditRuntime?.watcher.stop();
+  agentEditRuntime?.tracker.dispose();
+  const tracker = createSessionEditTracker(
+    getProjectRoot(kandownDir),
+    getTasksDir(kandownDir),
+    broadcastSseEvent
+  );
+  const watcher = createWatcher();
+  watcher.setOnTaskContentChange((absolutePath, before, after) => {
+    tracker.recordChange(absolutePath, before, after);
+  });
+  watcher.start(kandownDir);
+  agentEditRuntime = { tracker, watcher };
+  agentEditRuntimeDir = kandownDir;
+  return agentEditRuntime;
+}
+var permissionQueue = createPermissionQueue();
+var gitWorkTreeCache = /* @__PURE__ */ new Map();
+var execFileAsync = promisify(execFile);
+async function isGitWorkTree(projectRoot) {
+  const cached = gitWorkTreeCache.get(projectRoot);
+  if (cached !== void 0) return cached;
+  let inside = existsSync23(join30(projectRoot, ".git"));
+  if (!inside) {
+    try {
+      const { stdout } = await execFileAsync("git", ["rev-parse", "--is-inside-work-tree"], {
+        cwd: projectRoot,
+        timeout: 2e3
+      });
+      inside = stdout.trim() === "true";
+    } catch {
+      inside = false;
+    }
+  }
+  gitWorkTreeCache.set(projectRoot, inside);
+  return inside;
+}
+function localPort(res) {
+  const socket = res.socket;
+  return socket && typeof socket.localPort === "number" ? socket.localPort : 0;
+}
+function handleCors(res) {
+  res.writeHead(204, corsHeaders(localPort(res)));
+  res.end();
+}
+function writeJson(res, status, data) {
+  res.writeHead(status, {
+    "Content-Type": "application/json",
+    ...corsHeaders(localPort(res))
+  });
+  res.end(JSON.stringify(data));
+}
+function writeText(res, status, text) {
+  res.writeHead(status, {
+    "Content-Type": "text/plain; charset=utf-8",
+    ...corsHeaders(localPort(res))
+  });
+  res.end(text);
+}
+function readRequestBody(req) {
+  return new Promise((resolveBody, rejectBody) => {
+    let body = "";
+    req.setEncoding("utf8");
+    req.on("data", (chunk) => {
+      body += chunk;
+    });
+    req.on("end", () => resolveBody(body));
+    req.on("error", rejectBody);
+  });
+}
+function syncProjectKandownHtml(kandownDir) {
+  try {
+    const projectHtml = join30(kandownDir, "kandown.html");
+    const distHtml = join30(PKG_ROOT, "dist", "index.html");
+    if (!existsSync23(distHtml)) return false;
+    if (!existsSync23(projectHtml)) {
+      copyFileSync3(distHtml, projectHtml);
+      return true;
+    }
+    const currentContent = readFileSync22(projectHtml, "utf8");
+    const newContent = readFileSync22(distHtml, "utf8");
+    if (currentContent !== newContent) {
+      atomicWriteFileSync(projectHtml, newContent);
+      return true;
+    }
+  } catch {
+  }
+  return false;
+}
+function readDaemonPort(kandownDir) {
+  try {
+    const raw = JSON.parse(readFileSync22(join30(kandownDir, "daemon.json"), "utf8"));
+    return typeof raw.port === "number" && Number.isInteger(raw.port) ? raw.port : null;
+  } catch {
+    return null;
+  }
+}
+function restartDaemonAfterUpdateResponse(res, kandownDir) {
+  const cliPath = process.argv[1];
+  if (!cliPath) return;
+  const args = ["--no-update-check", "daemon", "run", "--path", kandownDir];
+  const port = readDaemonPort(kandownDir);
+  if (port !== null) args.push("--port", String(port));
+  const launcher = `
+const { spawn } = require('node:child_process');
+const [nodeBin, cliPath, ...cliArgs] = process.argv.slice(1);
+setTimeout(() => {
+  const child = spawn(nodeBin, [cliPath, ...cliArgs], {
+    detached: true,
+    stdio: 'ignore',
+    env: { ...process.env, KANDOWN_DAEMON: '1' },
+  });
+  child.unref();
+}, 350);
+`;
+  res.on("finish", () => {
+    const child = spawn7(process.execPath, ["-e", launcher, process.execPath, cliPath, ...args], {
+      detached: true,
+      stdio: "ignore",
+      env: { ...process.env, KANDOWN_DAEMON: "1" }
+    });
+    child.unref();
+    setTimeout(() => process.exit(0), 50).unref();
+  });
+}
+async function handleApi(req, res, url, kandownDir) {
+  const path = url.pathname;
+  const method = req.method || "GET";
+  if (path === "/api/daemon" && method === "GET") {
+    return writeJson(res, 200, {
+      ok: true,
+      pid: process.pid,
+      kandownDir,
+      version: getCurrentVersion(),
+      startedAt: (/* @__PURE__ */ new Date()).toISOString(),
+      agentHook: process.env.KANDOWN_AGENT_HOOK_URL ? { enabled: true, label: process.env.KANDOWN_AGENT_HOOK_LABEL || "Send to Agent" } : null
+    });
+  }
+  if (!authenticateHttp(req, url, res)) return;
+  if (path === "/api/version" && method === "GET") {
+    return writeJson(res, 200, {
+      version: getCurrentVersion()
+    });
+  }
+  if (path === "/api/update/check" && method === "GET") {
+    const current = getCurrentVersion();
+    const latest = await new Promise((resolve12) => {
+      const child = spawn7("npm", ["view", "kandown", "version"], {
+        timeout: 4e3,
+        stdio: ["pipe", "pipe", "pipe"],
+        env: { ...process.env },
+        detached: false
+      });
+      let stdout = "";
+      child.stdout.on("data", (d) => {
+        stdout += d;
+      });
+      child.stderr.on("data", () => {
+      });
+      child.on("error", () => resolve12(null));
+      child.on("close", (code) => {
+        if (code !== 0) return resolve12(null);
+        resolve12(stdout.trim().replace(/^"|"$/g, "") || null);
+      });
+    });
+    const installed = getInstalledVersion() ?? current;
+    const updateAvailable = latest ? semverGt(latest, installed) > 0 : false;
+    const restartRequired = semverGt(installed, current) > 0;
+    return writeJson(res, 200, {
+      current: installed,
+      running: current,
+      latest: latest || installed,
+      updateAvailable,
+      restartRequired
+    });
+  }
+  if (path === "/api/update/apply" && method === "POST") {
+    const current = getCurrentVersion();
+    const latest = await new Promise((resolve12) => {
+      const child = spawn7("npm", ["view", "kandown", "version"], {
+        timeout: 4e3,
+        stdio: ["pipe", "pipe", "pipe"],
+        env: { ...process.env },
+        detached: false
+      });
+      let stdout = "";
+      child.stdout.on("data", (d) => {
+        stdout += d;
+      });
+      child.on("error", () => resolve12(null));
+      child.on("close", (code) => resolve12(code === 0 ? stdout.trim() : null));
+    });
+    const targetVersion = latest || current;
+    const ok = await performGlobalPackageUpdate(`kandown@${targetVersion}`);
+    syncProjectKandownHtml(kandownDir);
+    if (ok) {
+      restartDaemonAfterUpdateResponse(res, kandownDir);
+      writeJson(res, 200, { ok: true, version: targetVersion, message: "Update installed successfully; daemon is restarting" });
+      broadcastSseEvent({ type: "update", version: targetVersion });
+    } else {
+      writeJson(res, 500, { ok: false, message: "Global package installation failed" });
+    }
+    return;
+  }
+  if (path === "/api/events" && method === "GET") {
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      "Connection": "keep-alive",
+      ...corsHeaders(localPort(res))
+    });
+    res.write("retry: 2000\n\n");
+    const id = nextClientId++;
+    sseClients.push({ id, res });
+    req.on("close", () => {
+      sseClients = sseClients.filter((c2) => c2.id !== id);
+    });
+    return;
+  }
+  if (path === "/api/board") {
+    if (method === "GET") {
+      const tasksDir = getTasksDir(kandownDir);
+      const boardPath = join30(tasksDir, "board.md");
+      const text = existsSync23(boardPath) ? readFileSync22(boardPath, "utf8") : "";
+      return writeText(res, 200, text);
+    }
+    if (method === "PUT") {
+      let body = "";
+      req.on("data", (chunk) => {
+        body += chunk;
+      });
+      req.on("end", () => {
+        const tasksDir = getTasksDir(kandownDir);
+        if (!existsSync23(tasksDir)) mkdirSync13(tasksDir, { recursive: true });
+        atomicWriteFileSync(join30(tasksDir, "board.md"), body);
+        broadcastSseEvent({ type: "board" });
+        writeJson(res, 200, { ok: true });
+      });
+      return;
+    }
+  }
+  if (path === "/api/config") {
+    if (method === "GET") {
+      return writeJson(res, 200, loadConfig(kandownDir));
+    }
+    if (method === "PUT") {
+      let body = "";
+      req.on("data", (chunk) => {
+        body += chunk;
+      });
+      req.on("end", () => {
+        try {
+          const parsed = JSON.parse(body);
+          saveConfig(kandownDir, parsed);
+          if (extensionHostDir === kandownDir) {
+            extensionHost = null;
+            extensionHostDir = null;
+          }
+          broadcastSseEvent({ type: "config" });
+          writeJson(res, 200, { ok: true });
+        } catch (error) {
+          writeJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
+        }
+      });
+      return;
+    }
+  }
+  if (path === "/api/instructions") {
+    const instructionsPath = join30(kandownDir, "kandown_work.md");
+    if (method === "GET") return writeText(res, 200, existsSync23(instructionsPath) ? readFileSync22(instructionsPath, "utf8") : "");
+    if (method === "PUT") {
+      try {
+        atomicWriteFileSync(instructionsPath, await readRequestBody(req));
+        broadcastSseEvent({ type: "instructions" });
+        return writeJson(res, 200, { ok: true });
+      } catch (error) {
+        return writeJson(res, 500, { error: error instanceof Error ? error.message : String(error) });
+      }
+    }
+  }
+  if (path === "/api/skills" && method === "GET") {
+    const config = loadConfig(kandownDir);
+    const active = new Set(config.workflow.skills);
+    const roles = new Set(Object.values(config.board.columnMeta).map((meta2) => meta2.role));
+    const skills = listWorkflowSkills(kandownDir).map((skill) => {
+      const missingRole = skill.requiredRoles?.find((role) => !roles.has(role));
+      const wrongWorkflow = skill.compatibleWorkflows?.length && !skill.compatibleWorkflows.includes(config.workflow.active);
+      const reason = !skill.valid ? skill.errors.join("; ") : wrongWorkflow ? `Compatible with: ${skill.compatibleWorkflows?.join(", ")}` : missingRole ? `Requires column role: ${missingRole}` : void 0;
+      return { ...skill, active: active.has(skill.id), compatible: !reason, ...reason ? { compatibilityReason: reason } : {} };
+    });
+    return writeJson(res, 200, { skills });
+  }
+  if (path === "/api/workflows" && method === "GET") {
+    try {
+      const config = loadConfig(kandownDir);
+      const selected = loadWorkflowById(kandownDir, config.workflow.active);
+      const compiled = compileProjectKandownWork(kandownDir);
+      return writeJson(res, 200, {
+        workflows: listWorkflowPackages(kandownDir),
+        selected,
+        preview: compiled.markdown,
+        stats: compiled.stats,
+        diagnostics: compiled.diagnostics,
+        boardPresetPreview: selected.boardPreset ? previewBoardPreset(kandownDir, selected.manifest.id) : null
+      });
+    } catch (error) {
+      return writeJson(res, 500, { error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+  if (path === "/api/workflows/registry" && method === "GET") {
+    return writeJson(res, 200, await fetchWorkflowRegistry());
+  }
+  if (path === "/api/workflows/install" && method === "POST") {
+    try {
+      const body = JSON.parse(await readRequestBody(req));
+      if (!body.entry) return writeJson(res, 400, { ok: false, error: "Registry entry is required." });
+      const result = await installStoreWorkflow(kandownDir, body.entry);
+      broadcastSseEvent({ type: "workflows" });
+      return writeJson(res, result.ok ? 200 : 400, result);
+    } catch (error) {
+      return writeJson(res, 400, { ok: false, error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+  if (path === "/api/workflows/update" && method === "POST") {
+    try {
+      const body = JSON.parse(await readRequestBody(req));
+      if (!body.entry) return writeJson(res, 400, { ok: false, error: "Registry entry is required." });
+      if (body.confirm !== true) return writeJson(res, 200, { ok: true, preview: await previewWorkflowUpdate(kandownDir, body.entry) });
+      const result = await applyWorkflowUpdate(kandownDir, body.entry, true);
+      broadcastSseEvent({ type: "workflows" });
+      return writeJson(res, result.ok ? 200 : 400, result);
+    } catch (error) {
+      return writeJson(res, 400, { ok: false, error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+  if (path.startsWith("/api/workflows/") && method === "POST") {
+    const action = path.slice("/api/workflows/".length);
+    let body = {};
+    try {
+      body = JSON.parse(await readRequestBody(req));
+    } catch (error) {
+      return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
+    }
+    if (typeof body.id !== "string") return writeJson(res, 400, { error: "Workflow id is required." });
+    try {
+      if (action === "use") {
+        const workflow = loadWorkflowById(kandownDir, body.id);
+        const missing = missingWorkflowRoles(kandownDir, workflow);
+        if (missing.length > 0) return writeJson(res, 409, { error: `Missing required column roles: ${missing.join(", ")}.`, missing, boardPresetPreview: workflow.boardPreset ? previewBoardPreset(kandownDir, body.id) : null });
+        const config = loadConfig(kandownDir);
+        config.workflow.active = workflow.manifest.id;
+        saveConfig(kandownDir, config);
+        broadcastSseEvent({ type: "config" });
+        return writeJson(res, 200, { ok: true });
+      }
+      if (action === "fork") {
+        const workflow = forkWorkflow(kandownDir, body.id);
+        broadcastSseEvent({ type: "workflows" });
+        return writeJson(res, 200, { ok: true, workflow });
+      }
+      if (action === "edit") {
+        if (typeof body.path !== "string" || typeof body.content !== "string") return writeJson(res, 400, { error: "path and content are required." });
+        const workflow = updateLocalWorkflowFile(kandownDir, body.id, body.path, body.content);
+        broadcastSseEvent({ type: "workflows" });
+        return writeJson(res, 200, { ok: true, workflow });
+      }
+      if (action === "apply-preset") {
+        const preview = previewBoardPreset(kandownDir, body.id);
+        if (body.confirm !== true) return writeJson(res, 409, { error: "Explicit confirmation is required.", preview });
+        const applied = applyBoardPreset(kandownDir, body.id);
+        broadcastSseEvent({ type: "config" });
+        broadcastSseEvent({ type: "board" });
+        return writeJson(res, 200, { ok: true, preview: applied });
+      }
+      return writeJson(res, 404, { error: "Unknown workflow action." });
+    } catch (error) {
+      return writeJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+  if (path === "/api/tasks" && method === "GET") {
+    return writeJson(res, 200, listTaskIds(kandownDir));
+  }
+  if (path === "/api/agents" && method === "GET") {
+    return writeJson(res, 200, detectCatalogJSON(kandownDir));
+  }
+  if (path === "/api/agent/harnesses" && method === "GET") {
+    return writeJson(res, 200, detectHarnessesJSON());
+  }
+  if (path === "/api/agent/sessions" && method === "GET") {
+    return writeJson(res, 200, { sessions: listAgentSessions() });
+  }
+  if (path === "/api/agent/sessions" && method === "POST") {
+    let body;
+    try {
+      body = JSON.parse(await readRequestBody(req));
+    } catch (error) {
+      return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
+    }
+    if (typeof body.harnessId !== "string" || !body.harnessId.trim()) {
+      return writeJson(res, 400, { error: "harnessId is required" });
+    }
+    const taskId = typeof body.taskId === "string" && body.taskId.trim() ? body.taskId.trim() : void 0;
+    let compiled;
+    try {
+      compiled = compileProjectKandownWork(kandownDir, taskId);
+    } catch {
+      return writeJson(res, 404, { error: `Task not found: ${taskId}` });
+    }
+    const message = typeof body.message === "string" && body.message.trim() ? body.message.trim() : void 0;
+    const prompt = message ? `${compiled.markdown}
+
+---
+
+${message}` : compiled.markdown;
+    const config = loadConfig(kandownDir);
+    const permissionMode = body.permissionMode === "accept-edits" || body.permissionMode === "yolo" ? body.permissionMode : config.agent.permissionMode;
+    const projectRoot = getProjectRoot(kandownDir);
+    try {
+      const session = createAgentSession({
+        harnessId: body.harnessId.trim(),
+        projectRoot,
+        prompt,
+        permissionMode,
+        ...typeof body.resumeSessionId === "string" && body.resumeSessionId ? { resumeSessionId: body.resumeSessionId } : {}
+      });
+      const titleOverride = typeof body.title === "string" && body.title.trim() ? body.title.trim() : void 0;
+      const now = (/* @__PURE__ */ new Date()).toISOString();
+      const indexEntry = {
+        id: session.id,
+        harnessId: session.harnessId,
+        title: titleOverride ?? indexEntryForPrompt(message ?? compiled.markdown),
+        ...taskId ? { taskId } : {},
+        createdAt: now,
+        updatedAt: now
+      };
+      upsertSessionIndexEntry(projectRoot, indexEntry);
+      const editRuntime = getAgentEditRuntime(kandownDir);
+      editRuntime.tracker.attachSession(session.id, session.harnessId);
+      setAgentPermissionHandler(session.id, (request) => {
+        const stored = permissionQueue.push({
+          sessionId: session.id,
+          title: request.title,
+          kind: request.kind,
+          respond: (answer) => {
+            const line = buildPermissionResponse(
+              { requestId: request.requestId, options: request.options },
+              answer === "allow"
+            );
+            deliverRawLine(session.id, line);
+          }
+        });
+        broadcastSseEvent({
+          type: "agent_permission",
+          sessionId: session.id,
+          permissionId: stored.permissionId,
+          title: stored.title,
+          kind: stored.kind,
+          at: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      });
+      let unsubscribeIndex = null;
+      let sawStopped = false;
+      unsubscribeIndex = subscribeAgentSession(session.id, (event) => {
+        if (event.type === "session_started" && event.harnessSessionId) {
+          patchSessionIndexEntry(projectRoot, session.id, { harnessSessionId: event.harnessSessionId });
+        } else if (event.type === "stopped" && !sawStopped) {
+          sawStopped = true;
+          patchSessionIndexEntry(projectRoot, session.id, { updatedAt: (/* @__PURE__ */ new Date()).toISOString() });
+          editRuntime.tracker.detachSession(session.id);
+          permissionQueue.clearSession(session.id);
+          setAgentPermissionHandler(session.id, null);
+          unsubscribeIndex?.();
+        }
+      });
+      const responseBody = { session };
+      if (!await isGitWorkTree(projectRoot)) responseBody.gitWarning = "not-a-git-repo";
+      return writeJson(res, 201, responseBody);
+    } catch (error) {
+      return writeJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+  if (path === "/api/agent/sessions-index" && method === "GET") {
+    return writeJson(res, 200, { sessions: listSessionIndexEntries(getProjectRoot(kandownDir)) });
+  }
+  if (path.startsWith("/api/agent/sessions-index/") && method === "DELETE") {
+    let entryId;
+    try {
+      entryId = decodeURIComponent(path.slice("/api/agent/sessions-index/".length).split("?")[0] ?? "");
+    } catch {
+      return writeJson(res, 400, { error: "Invalid session id" });
+    }
+    const projectRoot = getProjectRoot(kandownDir);
+    const known = listSessionIndexEntries(projectRoot).some((entry) => entry.id === entryId);
+    if (!known) return writeJson(res, 404, { error: "Session not found" });
+    forgetSessionIndexEntry(projectRoot, entryId);
+    return writeJson(res, 200, { ok: true });
+  }
+  const pendingMatch = path.match(/^\/api\/agent\/sessions\/([^/]+)\/pending$/);
+  if (pendingMatch && method === "GET") {
+    const sessionId = decodeURIComponent(pendingMatch[1]);
+    if (!getAgentSession(sessionId)) return writeJson(res, 404, { error: "Session not found" });
+    return writeJson(res, 200, { permissions: permissionQueue.listPending(sessionId) });
+  }
+  const resolveMatch = path.match(/^\/api\/agent\/sessions\/([^/]+)\/permissions\/([^/]+)\/resolve$/);
+  if (resolveMatch && method === "POST") {
+    const sessionId = decodeURIComponent(resolveMatch[1]);
+    const permissionId = decodeURIComponent(resolveMatch[2]);
+    if (!getAgentSession(sessionId)) return writeJson(res, 404, { error: "Session not found" });
+    let body = {};
+    try {
+      body = JSON.parse(await readRequestBody(req));
+    } catch {
+    }
+    const resolved = permissionQueue.resolve(sessionId, permissionId, body.approve === true);
+    return resolved ? writeJson(res, 200, { ok: true }) : writeJson(res, 404, { error: "Permission not found" });
+  }
+  const agentSessionMatch = path.match(/^\/api\/agent\/sessions\/([^/]+)(\/events|\/stop|\/send)?$/);
+  if (agentSessionMatch) {
+    const sessionId = decodeURIComponent(agentSessionMatch[1]);
+    const sub = agentSessionMatch[2];
+    if (!sub && method === "GET") {
+      const session = listAgentSessions().find((entry) => entry.id === sessionId);
+      return session ? writeJson(res, 200, { session }) : writeJson(res, 404, { error: "Session not found" });
+    }
+    if (sub === "/events" && method === "GET") {
+      const unsubscribe = subscribeAgentSession(sessionId, (event) => {
+        res.write(`data: ${JSON.stringify(event)}
+
+`);
+      });
+      if (!unsubscribe) return writeJson(res, 404, { error: "Session not found" });
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        ...corsHeaders(localPort(res))
+      });
+      res.write("retry: 2000\n\n");
+      req.on("close", unsubscribe);
+      return;
+    }
+    if (sub === "/stop" && method === "POST") {
+      const stopped = stopAgentSession(sessionId);
+      if (stopped) patchSessionIndexEntry(getProjectRoot(kandownDir), sessionId, { updatedAt: (/* @__PURE__ */ new Date()).toISOString() });
+      return stopped ? writeJson(res, 200, { ok: true }) : writeJson(res, 404, { error: "Session not found" });
+    }
+    if (sub === "/send" && method === "POST") {
+      let body;
+      try {
+        body = JSON.parse(await readRequestBody(req));
+      } catch (error) {
+        return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
+      }
+      if (typeof body.message !== "string" || !body.message.trim()) {
+        return writeJson(res, 400, { error: "message is required" });
+      }
+      const result = sendToSession(sessionId, body.message);
+      return result.ok ? writeJson(res, 200, { ok: true }) : writeJson(res, 400, { ok: false, error: result.error ?? "Send failed" });
+    }
+  }
+  if (path === "/api/extensions" && method === "GET") {
+    const host = await getExtensionHost(kandownDir);
+    const badges = await host.renderBadges();
+    return writeJson(res, 200, { extensions: host.installedSummary(), badges });
+  }
+  if (path === "/api/extensions/reload" && method === "POST") {
+    extensionHost = null;
+    extensionHostDir = null;
+    await getExtensionHost(kandownDir);
+    broadcastSseEvent({ type: "extensions" });
+    return writeJson(res, 200, { ok: true });
+  }
+  if (path.startsWith("/api/extensions/")) {
+    const parts = path.slice("/api/extensions/".length).split("/").filter(Boolean);
+    let id;
+    try {
+      id = decodeURIComponent(parts[0] ?? "");
+    } catch {
+      return writeJson(res, 400, { error: "Invalid extension id" });
+    }
+    if (!/^[a-z][a-z0-9-]{0,63}$/.test(id)) return writeJson(res, 400, { error: "Invalid extension id" });
+    const host = await getExtensionHost(kandownDir);
+    if (parts.length === 2 && parts[1] === "enable" && method === "POST") {
+      const ok = await host.enable(id);
+      broadcastSseEvent({ type: "extensions" });
+      return writeJson(res, 200, { ok, summary: host.installedSummary() });
+    }
+    if (parts.length === 2 && parts[1] === "disable" && method === "POST") {
+      const ok = host.disable(id);
+      broadcastSseEvent({ type: "extensions" });
+      return writeJson(res, 200, { ok });
+    }
+    if (parts.length === 2 && parts[1] === "health" && method === "POST") {
+      let body;
+      try {
+        body = JSON.parse(await readRequestBody(req));
+      } catch (error) {
+        return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
+      }
+      if (body.outcome !== "success" && body.outcome !== "failure") {
+        return writeJson(res, 400, { error: "outcome must be success or failure" });
+      }
+      const ext = body.outcome === "success" ? host.reportSuccess(id) : host.reportFailure(id, typeof body.message === "string" ? body.message : "web panel failed");
+      if (!ext) return writeJson(res, 404, { error: "Extension not found" });
+      if (ext.health === "quarantined") broadcastSseEvent({ type: "extensions" });
+      return writeJson(res, 200, {
+        health: ext.health,
+        failures: ext.failures,
+        error: ext.error
+      });
+    }
+    if (parts.length >= 2 && parts[1] === "files" && method === "GET") {
+      const ext = host.get(id);
+      if (!ext) return writeText(res, 404, "Extension not found");
+      const rel = parts.slice(2).join("/");
+      if (!/^[a-zA-Z0-9._\/-]+$/.test(rel) || rel.includes("..")) return writeText(res, 400, "Bad path");
+      const file = join30(ext.dir, rel);
+      if (!existsSync23(file)) return writeText(res, 404, "File not found");
+      return writeText(res, 200, readFileSync22(file, "utf8"));
+    }
+  }
+  if (path === "/api/extensions/registry" && method === "GET") {
+    const result = await fetchRegistry();
+    return writeJson(res, 200, result);
+  }
+  if (path === "/api/extensions/install" && method === "POST") {
+    try {
+      const body = JSON.parse(await readRequestBody(req));
+      const projectDir = getProjectRoot(kandownDir);
+      const result = await installExtension2(projectDir, { entry: body.entry, url: body.url });
+      if (result.ok) await (await getExtensionHost(kandownDir)).loadAll();
+      broadcastSseEvent({ type: "extensions" });
+      return writeJson(res, result.ok ? 200 : 400, result);
+    } catch (e) {
+      return writeJson(res, 500, { ok: false, error: e instanceof Error ? e.message : String(e) });
+    }
+  }
+  if (path === "/api/themes" && method === "GET") {
+    const projectDir = getProjectRoot(kandownDir);
+    const themes = listInstalledThemes(projectDir);
+    return writeJson(res, 200, { themes });
+  }
+  if (path === "/api/themes/registry" && method === "GET") {
+    const result = await fetchRegistry2();
+    return writeJson(res, 200, result);
+  }
+  if (path === "/api/themes/install" && method === "POST") {
+    try {
+      const body = JSON.parse(await readRequestBody(req));
+      const projectDir = getProjectRoot(kandownDir);
+      const result = await installTheme(projectDir, { entry: body.entry, url: body.url });
+      broadcastSseEvent({ type: "themes" });
+      return writeJson(res, result.ok ? 200 : 400, result);
+    } catch (e) {
+      return writeJson(res, 500, { ok: false, error: e instanceof Error ? e.message : String(e) });
+    }
+  }
+  if (path.startsWith("/api/themes/") && method === "DELETE") {
+    const rawId = decodeURIComponent(path.slice("/api/themes/".length).split("?")[0] ?? "");
+    if (!/^[a-z][a-z0-9-]{0,63}$/.test(rawId)) return writeJson(res, 400, { error: "Invalid theme id" });
+    const { unlinkSync: unlinkSync9, existsSync: existsSync32 } = await import("fs");
+    const { join: join41 } = await import("path");
+    const file = join41(getProjectRoot(kandownDir), ".kandown", "themes", `${rawId}.json`);
+    if (!existsSync32(file)) return writeJson(res, 404, { error: "Theme not installed" });
+    try {
+      unlinkSync9(file);
+      broadcastSseEvent({ type: "themes" });
+      return writeJson(res, 200, { ok: true, id: rawId });
+    } catch (e) {
+      return writeJson(res, 500, { ok: false, error: e instanceof Error ? e.message : String(e) });
+    }
+  }
+  if (path.startsWith("/api/tasks/") && path.endsWith("/field") && method === "POST") {
+    const parts = path.slice("/api/tasks/".length).split("/").filter(Boolean);
+    const taskId = decodeURIComponent(parts[0] ?? "");
+    if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return writeText(res, 400, "Invalid task id");
+    if (!findTaskPath(kandownDir, taskId)) return writeText(res, 404, "Task not found");
+    let body;
+    try {
+      body = JSON.parse(await readRequestBody(req));
+    } catch (error) {
+      return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
+    }
+    if (typeof body.extId !== "string" || typeof body.key !== "string") {
+      return writeJson(res, 400, { error: "extId and key required" });
+    }
+    try {
+      const host = await getExtensionHost(kandownDir);
+      await host.setFieldValue(taskId, body.extId, body.key, body.value);
+      const updated = readTask(kandownDir, taskId).frontmatter;
+      broadcastSseEvent({ type: "task", id: taskId });
+      return writeJson(res, 200, {
+        ok: true,
+        plugins: updated.plugins && typeof updated.plugins === "object" ? updated.plugins : void 0
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const status = message.startsWith("permission denied") ? 403 : message.startsWith("extension is not enabled") ? 409 : 400;
+      return writeJson(res, status, { error: message });
+    }
+  }
+  if (path.startsWith("/api/tasks/") && path.endsWith("/agent") && method === "POST") {
+    const taskId = decodeURIComponent(path.slice("/api/tasks/".length, -"/agent".length));
+    if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return writeText(res, 400, "Invalid task id");
+    const taskPath = findTaskPath(kandownDir, taskId);
+    if (!taskPath) return writeText(res, 404, "Task not found");
+    const hookUrl = process.env.KANDOWN_AGENT_HOOK_URL?.trim();
+    if (!hookUrl) {
+      return writeJson(res, 400, { ok: false, error: "No agent hook is configured on this daemon (KANDOWN_AGENT_HOOK_URL is not set)." });
+    }
+    const content = readFileSync22(taskPath, "utf8");
+    const parsed = parseTaskFile(content);
+    const fm = parsed.frontmatter;
+    const payload = {
+      id: taskId,
+      title: typeof fm.title === "string" ? fm.title : taskId,
+      status: typeof fm.status === "string" ? fm.status : null,
+      priority: typeof fm.priority === "string" ? fm.priority : null,
+      assignee: typeof fm.assignee === "string" ? fm.assignee : null,
+      content,
+      kandownDir
+    };
+    try {
+      const hookResponse = await fetch(hookUrl, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(2e4)
+      });
+      const raw = await hookResponse.text();
+      let forwarded = null;
+      try {
+        forwarded = raw === "" ? null : JSON.parse(raw);
+      } catch {
+        forwarded = raw;
+      }
+      if (!hookResponse.ok) {
+        const message = forwarded !== null && typeof forwarded === "object" && "error" in forwarded ? String(forwarded.error) : raw.slice(0, 500);
+        return writeJson(res, 502, { ok: false, error: message || `Agent hook responded ${hookResponse.status}` });
+      }
+      return writeJson(res, 200, typeof forwarded === "object" && forwarded !== null ? { ok: true, ...forwarded } : { ok: true, forwarded: raw });
+    } catch (error) {
+      return writeJson(res, 502, { ok: false, error: `Agent hook unreachable: ${error instanceof Error ? error.message : String(error)}` });
+    }
+  }
+  if (path.startsWith("/api/tasks/")) {
+    const routeParts = path.slice("/api/tasks/".length).split("/").filter(Boolean);
+    let taskId;
+    try {
+      taskId = decodeURIComponent(routeParts[0] ?? "");
+    } catch {
+      return writeText(res, 400, "Invalid task id");
+    }
+    if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) return writeText(res, 400, "Invalid task id");
+    const tasksDir = getTasksDir(kandownDir);
+    const archiveDir = join30(tasksDir, "archive");
+    const resolveIn = (directory) => {
+      const match = resolveTaskFilename(taskId, listTaskFilenames(directory));
+      return match ? join30(directory, match.filename) : null;
+    };
+    const activePath = resolveIn(tasksDir);
+    const archivedPath = resolveIn(archiveDir);
+    const action = routeParts[1];
+    if (method === "POST" && action === "move") {
+      if (routeParts.length !== 2) return writeText(res, 400, "Invalid task route");
+      let input;
+      try {
+        input = JSON.parse(await readRequestBody(req));
+      } catch (error) {
+        return writeJson(res, 400, {
+          ok: false,
+          kind: "invalid-target",
+          reason: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}`
+        });
+      }
+      if (typeof input.to !== "string" || !input.to.trim()) {
+        return writeJson(res, 400, {
+          ok: false,
+          kind: "invalid-target",
+          reason: "Move target is required"
+        });
+      }
+      if (input.toIndex !== void 0 && (typeof input.toIndex !== "number" || !Number.isFinite(input.toIndex))) {
+        return writeJson(res, 400, {
+          ok: false,
+          kind: "invalid-target",
+          reason: "Move target index must be a finite number"
+        });
+      }
+      try {
+        const host = await getExtensionHost(kandownDir);
+        const result = await moveTaskWithGates(
+          host,
+          kandownDir,
+          taskId,
+          input.to.trim(),
+          input.toIndex
+        );
+        const status = result.ok ? 200 : result.kind === "not-found" ? 404 : result.kind === "invalid-target" ? 400 : result.kind === "write" ? 500 : 409;
+        if (result.ok) broadcastSseEvent({ type: "task", id: taskId });
+        return writeJson(res, status, result);
+      } catch (error) {
+        return writeJson(res, 500, {
+          ok: false,
+          kind: "write",
+          reason: `Move failed: ${error instanceof Error ? error.message : String(error)}`
+        });
+      }
+    }
+    if (method === "POST" && (action === "archive" || action === "unarchive")) {
+      if (routeParts.length !== 2) return writeText(res, 400, "Invalid task route");
+      const archiving = action === "archive";
+      const source = archiving ? activePath : archivedPath;
+      const existingDestination = archiving ? archivedPath : activePath;
+      if (!source && !existingDestination) {
+        return writeText(res, 404, "Task not found");
+      }
+      const destinationDir = archiving ? archiveDir : tasksDir;
+      const destination = existingDestination ?? join30(destinationDir, basename11(source));
+      try {
+        if (!existsSync23(tasksDir)) mkdirSync13(tasksDir, { recursive: true });
+        if (!existsSync23(archiveDir)) mkdirSync13(archiveDir, { recursive: true });
+        const body = await readRequestBody(req);
+        atomicWriteFileSync(destination, body);
+        if (source && source !== destination && existsSync23(source)) unlinkSync8(source);
+        broadcastSseEvent({ type: "task", id: taskId });
+        return writeJson(res, 200, { ok: true });
+      } catch (error) {
+        return writeJson(res, 500, {
+          error: `Failed to ${action} task: ${error instanceof Error ? error.message : String(error)}`
+        });
+      }
+    }
+    if (routeParts.length !== 1) return writeText(res, 404, "Route not found");
+    if (method === "GET") {
+      const taskPath = findTaskPath(kandownDir, taskId);
+      if (!taskPath) return writeText(res, 404, "Task not found");
+      return writeText(res, 200, readFileSync22(taskPath, "utf8"));
+    }
+    if (method === "PUT") {
+      try {
+        if (!existsSync23(tasksDir)) mkdirSync13(tasksDir, { recursive: true });
+        const body = await readRequestBody(req);
+        const { path: taskPath } = writeTaskContent(kandownDir, taskId, body, { useGit: false });
+        broadcastSseEvent({ type: "task", id: taskId });
+        return writeJson(res, 200, { ok: true });
+      } catch (error) {
+        return writeJson(res, 500, {
+          error: `Failed to write task: ${error instanceof Error ? error.message : String(error)}`
+        });
+      }
+    }
+    if (method === "DELETE") {
+      try {
+        if (activePath && existsSync23(activePath)) unlinkSync8(activePath);
+        if (archivedPath && existsSync23(archivedPath)) unlinkSync8(archivedPath);
+        broadcastSseEvent({ type: "task_delete", id: taskId });
+        return writeJson(res, 200, { ok: true });
+      } catch (error) {
+        return writeJson(res, 500, {
+          error: `Failed to delete task: ${error instanceof Error ? error.message : String(error)}`
+        });
+      }
+    }
+  }
+  writeJson(res, 404, { error: "Route not found" });
+}
+function injectServerRoot(html, kandownDir) {
+  const marker = "</head>";
+  const markerIndex = html.toLowerCase().lastIndexOf(marker);
+  const safeRoot = JSON.stringify(kandownDir).replace(/</g, "\\u003c");
+  const tokenLiteral = activeToken === null ? "null" : JSON.stringify(activeToken).replace(/</g, "\\u003c");
+  const script = `<script>window.__KANDOWN_ROOT__ = ${safeRoot};
+window.__KANDOWN_TOKEN__ = ${tokenLiteral};</script>
+`;
+  if (markerIndex === -1) return script + html;
+  return html.slice(0, markerIndex) + script + html.slice(markerIndex);
+}
+function serveApp(res, kandownDir) {
+  syncProjectKandownHtml(kandownDir);
+  const htmlPath = join30(kandownDir, "kandown.html");
+  if (existsSync23(htmlPath)) {
+    const html = readFileSync22(htmlPath, "utf8");
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    res.end(injectServerRoot(html, kandownDir));
+  } else {
+    writeText(res, 404, "kandown.html not found");
+  }
+}
+function createServeServer(kandownDir) {
+  syncProjectKandownHtml(kandownDir);
+  return createServer((req, res) => {
+    const url = new URL(req.url || "/", "http://localhost");
+    if (req.method === "OPTIONS") return handleCors(res);
+    if (url.pathname === "/" || url.pathname === "/kandown.html" || !url.pathname.startsWith("/api/")) {
+      return serveApp(res, kandownDir);
+    }
+    if (url.pathname.startsWith("/api/")) {
+      return handleApi(req, res, url, kandownDir);
+    }
+    writeText(res, 404, "Not found");
+  });
+}
+function listen(server, port) {
+  return new Promise((resolveListen, rejectListen) => {
+    const onError = (e) => {
+      server.off("listening", onListening);
+      rejectListen(e);
+    };
+    const onListening = () => {
+      server.off("error", onError);
+      resolveListen();
+    };
+    server.once("error", onError);
+    server.once("listening", onListening);
+    server.listen(port, "127.0.0.1");
+  });
+}
+async function listenOnAvailablePort(kandownDir, preferredPort) {
+  const startPort = preferredPort ?? START_PORT_RANGE;
+  for (let p = startPort; p <= END_PORT_RANGE; p++) {
+    if (UNSAFE_PORTS.has(p)) continue;
+    const server = createServeServer(kandownDir);
+    try {
+      await listen(server, p);
+      return { server, port: p };
+    } catch (e) {
+      if (e.code !== "EADDRINUSE" && e.code !== "EACCES") throw e;
+    }
+  }
+  throw new Error(`No free port in range ${START_PORT_RANGE}-${END_PORT_RANGE}`);
+}
+
+// src/cli/commands/daemon.ts
+init_atomic_write();
+init_updater();
+init_cli_shared();
+async function cmdDaemon(rest) {
+  const parsedDaemonArgs = parseArgs(rest);
+  const subcommand = parsedDaemonArgs.positional[0] || "status";
+  const daemonArgs = subcommand ? stripFirstPositional(rest, subcommand) : rest;
+  const { kandownDir } = ensureKandownDir(daemonArgs);
+  if (subcommand === "run") {
+    const daemonOptions = parseArgs(daemonArgs);
+    const preferredPort = typeof daemonOptions.flags.port === "string" ? Number(daemonOptions.flags.port) : null;
+    const token = generateToken();
+    setActiveToken(token);
+    const { port } = await listenOnAvailablePort(kandownDir, Number.isInteger(preferredPort) ? preferredPort : null);
+    const url = `http://localhost:${port}`;
+    const metadataPath2 = join31(kandownDir, "daemon.json");
+    atomicWriteFileSync(metadataPath2, JSON.stringify({
+      pid: process.pid,
+      port,
+      url,
+      kandownDir,
+      startedAt: (/* @__PURE__ */ new Date()).toISOString(),
+      version: getCurrentVersion(),
+      token
+    }, null, 2));
+    info(`Kandown daemon running on port ${port} (PID ${process.pid})`);
+    scheduleDaemonSelfUpgrade(kandownDir);
+    await new Promise(() => {
+    });
+  } else if (subcommand === "start") {
+    const daemonOptions = parseArgs(daemonArgs);
+    const preferredPort = typeof daemonOptions.flags.port === "string" ? Number(daemonOptions.flags.port) : null;
+    const status = await startProjectDaemon(kandownDir, Number.isInteger(preferredPort) ? preferredPort : null);
+    if (status.running && status.metadata) success(`Daemon running on port ${status.metadata.port} (PID ${status.metadata.pid})`);
+    else {
+      err("Daemon failed to start");
+      process.exit(1);
+    }
+  } else if (subcommand === "restart") {
+    await stopProjectDaemon(kandownDir);
+    const status = await startProjectDaemon(kandownDir);
+    if (status.running && status.metadata) success(`Daemon restarted on port ${status.metadata.port} (PID ${status.metadata.pid})`);
+    else {
+      err("Daemon failed to restart");
+      process.exit(1);
+    }
+  } else if (subcommand === "stop") {
+    const stopped = await stopProjectDaemon(kandownDir);
+    if (stopped) success("Daemon stopped");
+    else info("Daemon not running");
+  } else if (subcommand === "status") {
+    const status = await getDaemonStatus(kandownDir);
+    if (status.running && status.metadata) {
+      success(`Daemon running on port ${status.metadata.port} (PID ${status.metadata.pid})`);
+    } else {
+      info("Daemon not running");
+    }
+  } else if (subcommand === "refresh-all") {
+    const status = await getDaemonStatus(kandownDir);
+    if (status.running) await stopProjectDaemon(kandownDir);
+    const restarted = await startProjectDaemon(kandownDir);
+    if (restarted.running && restarted.metadata) success(`Refreshed current project daemon on port ${restarted.metadata.port}`);
+    else info("No running daemon refreshed");
+  } else {
+    err(`Unknown daemon command: ${subcommand}`);
+    log(`  Use ${c.cyan}kandown daemon start|stop|restart|status|refresh-all${c.reset}`);
+    process.exit(1);
+  }
+}
+
+// src/cli/commands/run.ts
+init_cli_shared();
+
+// src/cli/lib/cascade.ts
+init_board_reader();
+
+// src/cli/lib/launcher.ts
+init_board_reader();
+import { execSync as execSync2, spawn as spawn8 } from "child_process";
+import { writeFileSync as writeFileSync8 } from "fs";
+import { join as join32 } from "path";
+import { tmpdir } from "os";
+init_config2();
+init_config();
+function prepareLaunch(opts) {
+  const { taskId, agentId, kandownDir, handoff, queue } = opts;
+  const agentDef = getAgentById(agentId, kandownDir);
+  if (!agentDef) {
+    throw new Error(`Unknown agent: ${agentId}`);
+  }
+  let task;
+  try {
+    task = readTask(kandownDir, taskId);
+  } catch (e) {
+    throw new Error(`Failed to read task ${taskId}: ${e.message}`);
+  }
+  const config = loadConfig(kandownDir);
+  const originalStatus = task.frontmatter.status || config.board.columns[0];
+  const activeStatus = resolveColumnNameByRole(config, "active") ?? config.board.columns[0];
+  const terminalStatus2 = resolveColumnNameByRole(config, "terminal") ?? config.board.columns.at(-1);
+  const agentDoc = compileProjectKandownWork(kandownDir, taskId).markdown;
+  const taskFileContent = [
+    `---`,
+    `id: ${task.frontmatter.id}`,
+    `title: ${task.frontmatter.title}`,
+    `status: ${task.frontmatter.status ?? "unknown"}`,
+    `---`,
+    "",
+    task.body.trim()
+  ].join("\n");
+  const { systemPrompt, taskPrompt } = buildPrompt(agentDoc, taskFileContent, taskId, kandownDir, activeStatus, terminalStatus2, handoff, queue);
+  assignTaskToAgent(kandownDir, taskId, agentDef.id);
+  const taskMoved = moveTaskToColumn(kandownDir, taskId, activeStatus);
+  if (!taskMoved) {
+    throw new Error(`Could not move task ${taskId} to ${activeStatus}: task file missing or unwritable.`);
+  }
+  const contextFile = join32(tmpdir(), `kandown-${taskId}-context.md`);
+  try {
+    writeFileSync8(contextFile, `${systemPrompt}
+
+---
+
+${taskPrompt}`, "utf8");
+  } catch (e) {
+    console.warn(`[kandown] Failed to write context file (${e.message}); launching anyway.`);
+  }
+  const launchOpts = { systemPrompt, taskPrompt, kandownDir, taskId };
+  const [binary, ...args] = buildAgentCommand(agentDef, launchOpts);
+  if (!binary) {
+    rollbackTaskStatus(kandownDir, taskId, originalStatus);
+    throw new Error(`Agent ${agentId} returned an empty command`);
+  }
+  return { agentName: agentDef.name, binary, args, contextFile, originalStatus, taskMoved };
+}
+function launchEnv(contextFile, taskId, kandownDir) {
+  return {
+    ...process.env,
+    KANDOWN_CONTEXT_FILE: contextFile,
+    KANDOWN_TASK_ID: taskId,
+    KANDOWN_DIR: kandownDir
+  };
+}
+function runAgentSync(opts) {
+  const { taskId, kandownDir } = opts;
+  const prepared = prepareLaunch(opts);
+  const { binary, args, contextFile, originalStatus, agentName } = prepared;
+  return new Promise((resolve12, reject) => {
+    const child = spawn8(binary, args, { stdio: "inherit", env: launchEnv(contextFile, taskId, kandownDir) });
+    child.on("error", (e) => {
+      rollbackTaskStatus(kandownDir, taskId, originalStatus);
+      reject(new Error(`Failed to launch ${agentName}: ${e.message}`));
+    });
+    child.on("exit", (code) => {
+      resolve12({ exitCode: code ?? 0 });
+    });
+  });
+}
+function rollbackTaskStatus(kandownDir, taskId, originalStatus) {
+  const ok = moveTaskToColumn(kandownDir, taskId, originalStatus);
+  if (!ok) {
+    console.warn(`[kandown] Could not roll back task ${taskId} to ${originalStatus} \u2014 update it manually.`);
+  }
+}
+
+// src/cli/lib/cascade.ts
+init_config();
+init_dependencies();
+init_config2();
+function loadAllTasks(kandownDir) {
+  const tasks = [];
+  for (const id of listTaskIds(kandownDir)) {
+    try {
+      const t = readTask(kandownDir, id);
+      const archived = String(t.frontmatter.archived) === "true";
+      if (archived) continue;
+      tasks.push({ ...t, frontmatter: { ...t.frontmatter, id: t.frontmatter.id || id } });
+    } catch (e) {
+      console.error(`[kandown] Skipping unreadable task ${id}:`, e.message);
+    }
+  }
+  return tasks;
+}
+var PRIORITY_RANK = { P1: 1, P2: 2, P3: 3, P4: 4 };
+function reachedTerminal(status, cfg) {
+  const s = (status || "").trim().toLowerCase();
+  if (!s) return false;
+  if (s === "archived") return true;
+  return s === terminalStatus(cfg).trim().toLowerCase();
+}
+function priorityAndIdKey(t) {
+  const rank = PRIORITY_RANK[String(t.priority ?? "").toUpperCase()] ?? 99;
+  return `${rank.toString().padStart(2, "0")}	${t.id.padStart(6, "0")}`;
+}
+function downstreamClosure(all, startId) {
+  const depsOf = /* @__PURE__ */ new Map();
+  for (const t of all) depsOf.set(t.frontmatter.id || "", Array.isArray(t.frontmatter.depends_on) ? t.frontmatter.depends_on.filter((d) => typeof d === "string") : []);
+  const closure = /* @__PURE__ */ new Set([startId]);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const t of all) {
+      const id = t.frontmatter.id || "";
+      if (closure.has(id)) continue;
+      const deps = depsOf.get(id) ?? [];
+      if (deps.some((d) => closure.has(d))) {
+        closure.add(id);
+        changed = true;
+      }
+    }
+  }
+  return closure;
+}
+function buildCascadePlan(kandownDir, opts = {}) {
+  const cfg = loadConfig(kandownDir);
+  const all = loadAllTasks(kandownDir);
+  const scope = opts.startTaskId ? downstreamClosure(all, opts.startTaskId) : null;
+  const resolution = resolveDependencyStatus(all, cfg);
+  const activeStatus = resolveColumnNameByRole(cfg, "active");
+  const candidates = [];
+  for (const t of all) {
+    const id = t.frontmatter.id || "";
+    if (scope && !scope.has(id)) continue;
+    const status = t.frontmatter.status || cfg.board.columns[0];
+    if (reachedTerminal(status, cfg)) continue;
+    if (activeStatus && status.toLowerCase() === activeStatus.toLowerCase() && !opts.includeInProgress) continue;
+    candidates.push(toCascadeTask(t, cfg.board.columns[0]));
+  }
+  const candidateIds = new Set(candidates.map((c2) => c2.id));
+  const orderable = [];
+  const blocked = [];
+  for (const t of candidates) {
+    const stuckOn = t.dependsOn.find((d) => {
+      const r = resolution.get(d);
+      const resolved = !r || r.resolved;
+      return !resolved && !candidateIds.has(d);
+    });
+    if (stuckOn) blocked.push(t);
+    else orderable.push(t);
+  }
+  const orderableIds = new Set(orderable.map((r) => r.id));
+  const depsWithin = /* @__PURE__ */ new Map();
+  for (const r of orderable) {
+    depsWithin.set(r.id, r.dependsOn.filter((d) => orderableIds.has(d)));
+  }
+  const orderedIds = topoSort([...orderableIds], depsWithin, orderable);
+  const ordered = orderedIds.map((id) => orderable.find((r) => r.id === id)).filter(Boolean);
+  const cascadeCfg = getCascadeConfig(kandownDir);
+  const skippedNoAgent = [];
+  const withAgent = [];
+  for (const t of ordered) {
+    if (resolveAgentFor(t, opts.agentOverride, cascadeCfg.preferred, kandownDir)) {
+      withAgent.push(t);
+    } else {
+      skippedNoAgent.push(t);
+    }
+  }
+  return { order: withAgent, skippedNoAgent, blocked };
+}
+function resolveAgentFor(task, override, preferred, kandownDir) {
+  if (override) {
+    return isAgentInstalled(getBinFor(override, kandownDir)) ? override : void 0;
+  }
+  const byAssignee = task.assignee ? resolveAgentEntry(task.assignee, kandownDir) : void 0;
+  if (byAssignee && isAgentInstalled(byAssignee.bin)) return byAssignee.id;
+  if (!task.assignee) {
+    const cascadeCfg = getCascadeConfig(kandownDir);
+    if (cascadeCfg.unassignedBehavior === "preferred" && preferred) {
+      return isAgentInstalled(getBinFor(preferred, kandownDir)) ? preferred : void 0;
+    }
+  }
+  return void 0;
+}
+function getBinFor(agentId, kandownDir) {
+  return getAgentById(agentId, kandownDir)?.bin ?? agentId;
+}
+function toCascadeTask(t, fallbackStatus) {
+  return {
+    id: t.frontmatter.id || "",
+    title: typeof t.frontmatter.title === "string" ? t.frontmatter.title : "",
+    status: t.frontmatter.status || fallbackStatus,
+    ...typeof t.frontmatter.assignee === "string" ? { assignee: t.frontmatter.assignee } : {},
+    ...typeof t.frontmatter.priority === "string" ? { priority: t.frontmatter.priority } : {},
+    dependsOn: Array.isArray(t.frontmatter.depends_on) ? t.frontmatter.depends_on.filter((d) => typeof d === "string") : []
+  };
+}
+function topoSort(ids, depsWithin, ready) {
+  const inDegree = /* @__PURE__ */ new Map();
+  const dependents = /* @__PURE__ */ new Map();
+  for (const id of ids) {
+    inDegree.set(id, 0);
+    dependents.set(id, []);
+  }
+  for (const id of ids) {
+    for (const dep of depsWithin.get(id) ?? []) {
+      if (!ids.includes(dep)) continue;
+      inDegree.set(id, (inDegree.get(id) ?? 0) + 1);
+      dependents.get(dep).push(id);
+    }
+  }
+  const byTask = new Map(ready.map((r) => [r.id, r]));
+  const remaining = new Set(ids);
+  const out = [];
+  while (remaining.size > 0) {
+    const freed = [...remaining].filter((id) => (inDegree.get(id) ?? 0) === 0);
+    if (freed.length === 0) break;
+    freed.sort((a, b) => priorityAndIdKey(byTask.get(a)).localeCompare(priorityAndIdKey(byTask.get(b))));
+    const pick = freed[0];
+    out.push(pick);
+    remaining.delete(pick);
+    for (const d of dependents.get(pick) ?? []) inDegree.set(d, (inDegree.get(d) ?? 0) - 1);
+  }
+  if (remaining.size > 0) {
+    out.push(...[...remaining].sort((a, b) => priorityAndIdKey(byTask.get(a)).localeCompare(priorityAndIdKey(byTask.get(b)))));
+  }
+  return out;
+}
+async function runCascade(kandownDir, opts = {}) {
+  warmupDetection(loadCatalog(kandownDir));
+  const plan = buildCascadePlan(kandownDir, opts);
+  if (opts.dryRun) {
+    return { mode: "multi-agent", steps: plan.order.map((t) => ({ taskId: t.id, outcome: "skipped", note: "dry-run" })), completed: [], incomplete: [] };
+  }
+  const cascadeCfg = getCascadeConfig(kandownDir);
+  const sameSession = opts.sameSession ?? cascadeCfg.sameSessionChain;
+  if (plan.order.length === 0) {
+    return { mode: sameSession ? "same-session" : "multi-agent", steps: [], completed: [], incomplete: [] };
+  }
+  if (sameSession) {
+    return runSameSession(kandownDir, plan, opts);
+  }
+  return runMultiAgent(kandownDir, plan, opts);
+}
+async function runMultiAgent(kandownDir, plan, opts) {
+  const cascadeCfg = getCascadeConfig(kandownDir);
+  const cfg = loadConfig(kandownDir);
+  const steps = [];
+  const completed = [];
+  const incomplete = [];
+  const handoff = [];
+  for (const task of plan.order) {
+    const fresh = loadAllTasks(kandownDir);
+    const freshRes = resolveDependencyStatus(fresh, cfg);
+    const tp = fresh.find((x) => (x.frontmatter.id || "") === task.id);
+    if (tp) {
+      const status = tp.frontmatter.status || "";
+      if (reachedTerminal(status, cfg)) {
+        steps.push({ taskId: task.id, outcome: "done", note: "already terminal" });
+        completed.push(task.id);
+        const report = typeof tp.frontmatter.report === "string" ? tp.frontmatter.report : "";
+        handoff.push({ taskId: task.id, title: task.title, report });
+        continue;
+      }
+      if (unresolvedDependencyIds(tp, freshRes).length > 0) {
+        steps.push({ taskId: task.id, outcome: "skipped", note: "dependency not done" });
+        incomplete.push(task.id);
+        continue;
+      }
+    }
+    const agentId = resolveAgentFor(task, opts.agentOverride, cascadeCfg.preferred, kandownDir);
+    if (!agentId) {
+      steps.push({ taskId: task.id, outcome: "skipped", note: "no resolvable agent" });
+      continue;
+    }
+    try {
+      const { exitCode } = await runAgentSync({
+        taskId: task.id,
+        agentId,
+        kandownDir,
+        handoff: handoff.length > 0 ? handoff : void 0
+      });
+      const after = readTask(kandownDir, task.id);
+      const afterStatus = after.frontmatter.status || "";
+      const done = reachedTerminal(afterStatus, cfg);
+      const report = typeof after.frontmatter.report === "string" ? after.frontmatter.report : "";
+      if (done) {
+        steps.push({ taskId: task.id, agentId, outcome: "done", exitCode });
+        completed.push(task.id);
+        handoff.push({ taskId: task.id, title: task.title, report });
+      } else {
+        steps.push({ taskId: task.id, agentId, outcome: "not-done", exitCode, note: `status is "${afterStatus || "unknown"}", expected terminal` });
+        incomplete.push(task.id);
+        break;
+      }
+    } catch (e) {
+      steps.push({ taskId: task.id, agentId, outcome: "failed", note: e.message });
+      incomplete.push(task.id);
+      break;
+    }
+  }
+  return { mode: "multi-agent", steps, completed, incomplete };
+}
+async function runSameSession(kandownDir, plan, opts) {
+  const cascadeCfg = getCascadeConfig(kandownDir);
+  const first = plan.order[0];
+  const agentId = opts.agentOverride ?? resolveAgentFor(first, void 0, cascadeCfg.preferred, kandownDir) ?? cascadeCfg.preferred;
+  if (!agentId) {
+    return { mode: "same-session", steps: plan.order.map((t) => ({ taskId: t.id, outcome: "skipped", note: "no agent for queue" })), completed: [], incomplete: plan.order.map((t) => t.id) };
+  }
+  const queue = plan.order.map((t) => ({ id: t.id, title: t.title }));
+  try {
+    const { exitCode } = await runAgentSync({
+      taskId: first.id,
+      agentId,
+      kandownDir,
+      queue
+    });
+    const cfg = loadConfig(kandownDir);
+    const steps = [];
+    const completed = [];
+    const incomplete = [];
+    for (const t of plan.order) {
+      const after = readTask(kandownDir, t.id);
+      const status = after.frontmatter.status || "";
+      if (reachedTerminal(status, cfg)) {
+        steps.push({ taskId: t.id, agentId, outcome: "done", exitCode });
+        completed.push(t.id);
+      } else {
+        steps.push({ taskId: t.id, agentId, outcome: "not-done", exitCode, note: `status is "${status || "unknown"}"` });
+        incomplete.push(t.id);
+      }
+    }
+    return { mode: "same-session", steps, completed, incomplete };
+  } catch (e) {
+    return { mode: "same-session", steps: [{ taskId: first.id, agentId, outcome: "failed", note: e.message }], completed: [], incomplete: plan.order.map((t) => t.id) };
+  }
+}
+
+// src/cli/commands/run.ts
+init_config2();
+init_dependencies();
+async function cmdRun(rawArgs) {
+  const args = parseArgs(rawArgs);
+  const kandownDir = resolveKandownDir(args.path, process.cwd());
+  const opts = {
+    startTaskId: args.positional[0],
+    agentOverride: typeof args.flags["agent"] === "string" ? args.flags["agent"] : void 0,
+    includeInProgress: args.flags["resume"] === true,
+    sameSession: args.flags["same-session"] === true,
+    dryRun: args.flags["dry-run"] === true
+  };
+  if (opts.agentOverride) {
+    const def = loadCatalog(kandownDir).find((a) => a.id === opts.agentOverride);
+    if (!def) {
+      err(`Unknown agent: ${opts.agentOverride}`);
+      log(`  Available: ${loadCatalog(kandownDir).map((a) => a.id).join(", ")}`);
+      process.exit(1);
+    }
+    if (!isAgentInstalled(def.bin)) {
+      err(`Agent ${opts.agentOverride} (${def.bin}) is not installed in your $PATH.`);
+      process.exit(1);
+    }
+  }
+  const plan = buildCascadePlan(kandownDir, opts);
+  const mode = opts.sameSession ? "same-session" : "multi-agent";
+  log("");
+  log(`${c.bold}Cascade plan${c.reset} ${c.dim}(${mode})${c.reset}`);
+  if (opts.startTaskId) log(`${c.dim}scoped to ${opts.startTaskId} + downstream dependents${c.reset}`);
+  log("");
+  if (plan.order.length === 0) {
+    info("No ready tasks with a resolvable agent. Nothing to run.");
+    if (plan.blocked.length > 0) {
+      log(`${c.dim}  Blocked (unresolved deps): ${plan.blocked.map((t) => t.id).join(", ") || "\u2014"}${c.reset}`);
+    }
+    if (plan.skippedNoAgent.length > 0) {
+      log(`${c.dim}  Skipped (no agent): ${plan.skippedNoAgent.map((t) => `${t.id}${t.assignee ? `(@${t.assignee})` : ""}`).join(", ")}${c.reset}`);
+    }
+    log("");
+    return;
+  }
+  for (let i = 0; i < plan.order.length; i++) {
+    const t = plan.order[i];
+    const agent = opts.agentOverride ?? t.assignee ?? "(preferred)";
+    log(`  ${c.cyan}${i + 1}.${c.reset} ${c.bold}${t.id}${c.reset} ${t.title}`);
+    log(`     ${c.dim}agent: ${agent} \xB7 status: ${t.status}${t.priority ? ` \xB7 ${t.priority}` : ""}${t.dependsOn.length ? ` \xB7 after ${t.dependsOn.join(",")}` : ""}${c.reset}`);
+  }
+  if (plan.skippedNoAgent.length > 0) {
+    log("");
+    log(`${c.dim}Skipping (no agent assigned): ${plan.skippedNoAgent.map((t) => t.id).join(", ")}${c.reset}`);
+  }
+  log("");
+  if (opts.dryRun) {
+    info("Dry run \u2014 nothing launched.");
+    return;
+  }
+  const result = await runCascade(kandownDir, opts);
+  log("");
+  log(`${c.bold}Cascade result${c.reset} ${c.dim}(${result.mode})${c.reset}`);
+  for (const step of result.steps) {
+    const mark = step.outcome === "done" ? `${c.green}\u2713${c.reset}` : step.outcome === "not-done" ? `${c.yellow}~${c.reset}` : step.outcome === "failed" ? `${c.red}\u2717${c.reset}` : `${c.dim}\xB7${c.reset}`;
+    const tail = step.agentId ? ` ${c.dim}via ${step.agentId}${c.reset}` : "";
+    const note = step.note ? ` ${c.dim}\u2014 ${step.note}${c.reset}` : "";
+    log(`  ${mark} ${step.taskId}${tail}${note}`);
+  }
+  log("");
+  if (result.incomplete.length === 0 && result.completed.length > 0) {
+    success(`All ${result.completed.length} task(s) reached ${terminalStatus(loadConfig(kandownDir))}.`);
+  } else if (result.completed.length > 0) {
+    info(`${result.completed.length} done, ${result.incomplete.length} not done. Chain stopped at the first non-done task.`);
+  } else {
+    err("No tasks completed.");
+  }
+}
+
+// src/cli/commands/agents.ts
+init_cli_shared();
+import { existsSync as existsSync24 } from "fs";
+import { join as join33 } from "path";
+function cmdAgents(rawArgs) {
+  const args = parseArgs(rawArgs);
+  const kandownDir = resolveKandownDir(args.path, process.cwd());
+  const sub = args.positional[0];
+  if (sub === "init") {
+    const target = join33(kandownDir, "agents.json");
+    if (existsSync24(target)) {
+      info(`${c.bold}agents.json${c.reset} already exists at ${target}`);
+      return;
+    }
+    saveAgentsConfig(kandownDir, defaultAgentsConfig());
+    success(`Wrote default ${c.bold}agents.json${c.reset} to ${target}`);
+    log(`${c.dim}  Commit it so your team shares the same agent catalog + aliases.${c.reset}`);
+    return;
+  }
+  warmupDetection(loadCatalog(kandownDir));
+  const catalog = loadCatalog(kandownDir);
+  const installed = detectInstalledAgents(kandownDir);
+  const cascade = getCascadeConfig(kandownDir);
+  const agentsFile = join33(kandownDir, "agents.json");
+  log("");
+  log(`${c.bold}Agent catalog${c.reset} ${c.dim}(${installed.length}/${catalog.length} installed)${c.reset}`);
+  log(`${c.dim}catalog: ${existsSync24(agentsFile) ? agentsFile : "built-in defaults (run `kandown agents init` to commit one)"}${c.reset}`);
+  log("");
+  for (const a of catalog) {
+    const ok = isAgentInstalled(a.bin);
+    const mark = ok ? `${c.green}\u2713${c.reset}` : `${c.dim}\xB7${c.reset}`;
+    const interactive = a.interactive ? "" : `${c.dim} (one-shot)${c.reset}`;
+    const preferred = cascade.preferred === a.id ? ` ${c.cyan}[preferred]${c.reset}` : "";
+    log(`  ${mark} ${c.bold}${a.id.padEnd(10)}${c.reset} ${a.name}${preferred}${interactive}`);
+    log(`     ${c.dim}${a.bin}${a.aliases && a.aliases.length ? ` \xB7 aliases: ${a.aliases.join(", ")}` : ""}${c.reset}`);
+    if (a.extraArgs && a.extraArgs.length) {
+      log(`     ${c.dim}extraArgs: ${a.extraArgs.join(" ")}${c.reset}`);
+    }
+  }
+  log("");
+  log(`${c.dim}cascade: unassignedBehavior=${cascade.unassignedBehavior} \xB7 sameSessionChain=${cascade.sameSessionChain}${c.reset}`);
+  log(`${c.dim}assign a task with: kandown assign <id> <agent>   \xB7   run a chain with: kandown run${c.reset}`);
+  log("");
+}
+
+// src/cli/lib/plugin-cli.ts
+import { spawn as spawn9 } from "child_process";
+import { existsSync as existsSync29, readFileSync as readFileSync25 } from "fs";
+import { basename as basename15, join as join38 } from "path";
+
+// src/lib/extensions/agent-brief.ts
+var EXTENSION_AGENT_BRIEF = "# Kandown plugin brief (for coding agents)\n\n<!-- Generated by scripts/build-extension-brief.js from src/lib/extensions/types.ts.\n     Do not edit by hand: run `pnpm extension-brief`. -->\n\nYou are writing a **kandown plugin**. This document is the complete contract.\nEverything below is extracted from the shipped type definitions, so it matches\nthe runtime you will be loaded into. Read it once, write the code, then run the\nloop at the bottom until it is green.\n\n## 1. What a plugin is\n\nA directory under `.kandown/extensions/<id>/` containing:\n\n| File | Required | Purpose |\n|---|---|---|\n| `manifest.json` | yes | identity, permissions, display hints |\n| `index.ts` | yes | the Node entry, loaded with jiti (no build step in dev) |\n| `index.js` | to ship | bundled entry, the only thing the browser can execute |\n| `web.tsx` / `web.js` | panels only | the panel module, bundled the same way |\n| `README.md` | no | human documentation |\n\n`index.ts` default-exports a factory. It is called once at load, it registers\ncontributions, and it must not do slow or throwing work at module scope.\n\n```typescript\nimport type { KandownExtensionAPI } from 'kandown';\n\nexport default function (kd: KandownExtensionAPI) {\n  // register here\n}\n```\n\n## 2. The API you are handed\n\n```typescript\nexport interface KandownExtensionAPI {\n  readonly id: string;\n  contributeField(def: FieldContribution): void;\n  contributeWebPanel(def: WebPanelContribution): void;\n  contributeCommand(name: string, def: CommandContribution): void;\n  contributeGate(def: GateContribution): void;\n  contributeSync(def: SyncContribution): void;\n  on(event: 'task:afterCreate' | 'task:afterMove' | 'task:afterArchive' | 'board:load', handler: LifecycleHandler): void;\n}\n```\n\nContribution shapes, verbatim:\n\n```typescript\nexport interface FieldContribution {\n  key: string;\n  label: string;\n  type: FieldType;\n  options?: { value: string; label: string }[];\n  badge?: (value: unknown, task: TaskLike) => string | null;\n  editorComponentId?: string;\n}\n\nexport interface WebPanelContribution {\n  id: string;\n  title: string;\n  entry: string;\n  icon?: string;\n}\n\nexport interface CommandContribution {\n  name: string;\n  description?: string;\n  handler: (args: string, ctx: ExtensionCommandContext) => void | Promise<void>;\n}\n\nexport interface GateContribution {\n  id?: string;\n  on: 'task:beforeMove' | 'task:beforeCreate' | 'task:beforeArchive' | 'task:beforeDelete';\n  to?: string;\n  handler: (event: GateEvent, ctx: ExtensionContext) => void | Promise<void | GateVerdict>;\n}\n\nexport interface SyncContribution {\n  id?: string;\n  on: 'task:afterMove' | 'task:afterCreate' | 'task:afterArchive';\n  to?: string;\n  handler: (event: TaskEvent, ctx: ExtensionContext) => void | Promise<void>;\n}\n\nexport interface GateVerdict {\n  block?: boolean;\n  reason?: string;\n}\n```\n\n## 3. The context handlers receive\n\n```typescript\nexport interface ExtensionContext {\n  extId: string;\n  signal?: AbortSignal;\n  board: {\n    readAll(): Promise<TaskLike[]>;\n    read(taskId: string): Promise<TaskLike | null>;\n  };\n  setField(taskId: string, key: string, value: unknown): Promise<void>;\n  log: {\n    info(msg: string): void;\n    warn(msg: string): void;\n    error(msg: string): void;\n  };\n  fetch?: typeof fetch;\n}\n\nexport interface TaskLike {\n  id: string;\n  frontmatter: Record<string, unknown>;\n  plugins?: Record<string, unknown>;\n}\n```\n\n`ctx.fetch` is present **only** when a `net:` permission is declared. `ctx.board`\nthrows without `read:tasks`. `ctx.setField` throws without\n`write:field:plugins.<id>.<key>` (a trailing `*` covers every key).\n\n## 4. Events\n\n| Kind | Names | Semantics |\n|---|---|---|\n| Gates (`contributeGate`) | `task:beforeMove`, `task:beforeCreate`, `task:beforeArchive`, `task:beforeDelete` | may veto by returning `{ block: true, reason }`; a throw is treated as no objection |\n| Syncs (`contributeSync`) | `task:afterMove`, `task:afterCreate`, `task:afterArchive` | fire and forget, after the file is written |\n| Lifecycle (`kd.on`) | `task:afterCreate`, `task:afterMove`, `task:afterArchive`, `board:load` | observation only, never blocks |\n\nBoth gates and syncs accept an optional `to` to restrict them to one target\ncolumn. A move is allowed only when **every** gate abstains or permits.\n\n## 5. Field types\n\n`string`, `number`, `boolean`, `date`, `select`. Scalars are persisted as strings and coerced back on read,\nso a `number` field reads back as a number. A `select` field must declare\n`options: [{ value, label }]`, and a value outside that list is rejected.\n\n## 6. Where your data lives\n\nOnly under `plugins.<id>.*` in the task frontmatter, opaque to the core:\n\n```yaml\n---\ntitle: Ship the thing\nstatus: Done\nplugins:\n  my-plugin:\n    points: 5\n---\n```\n\nRead it from `event.task.plugins`, write it with `ctx.setField(taskId, key, value)`.\n**Never** write a core field (`title`, `status`, `depends_on`, `created`, ...),\nnever write a second file, never call the serializer.\n\n## 7. Permissions\n\n| Declare | Unlocks |\n|---|---|\n| `read:tasks` | `ctx.board.readAll()`, `ctx.board.read(id)` |\n| `write:field:plugins.<id>.*` | `ctx.setField(...)` for your namespace |\n| `net:*` or `net:<url-prefix>` | `ctx.fetch` |\n| `*` | everything, avoid it |\n\nUndeclared calls throw at runtime. Declare exactly what you use, nothing more:\n`kandown plugin check` reports both missing and unused permissions.\n\n## 8. Web panels\n\nDeclare the panel in `index.ts`, implement it in `web.tsx`:\n\n```typescript\nkd.contributeWebPanel({ id: 'chart', title: 'Burndown', entry: './web.js' });\n```\n\n```javascript\nfunction Chart({ task, api, ui }) {\n  const [tasks, setTasks] = ui.useState([]);\n  ui.useEffect(() => { void api.readAllTasks().then(setTasks); }, [api]);\n  return ui.createElement('div', null, tasks.length + ' tasks');\n}\n\nexport const panels = { chart: Chart };\n```\n\nHard rules for panel modules:\n\n- **Never import React.** The host React runtime arrives as the `ui` prop\n  (`ui.createElement`, `ui.useState`, `ui.useEffect`, `ui.Fragment`). A second\n  React copy in the bundle breaks hooks.\n- The module must be self-contained: it is imported through a Blob URL and\n  cannot resolve sibling files. `kandown plugin build` bundles it for you.\n- Props are exactly `{ task, api, ui }` where `api` is\n  `{ readField(key), readAllTasks(), setField(key, value), refresh() }`.\n- Three consecutive render failures quarantine the plugin.\n\n## 9. The build and verify loop\n\n```bash\nkandown plugin build <id>          # index.ts -> index.js, web.tsx -> web.js\nkandown plugin check <id> --json   # structured verdict, exit code 1 on failure\nkandown plugin enable <id>         # trust + enable\nkandown plugin dev <id>            # watch: rebuild, recheck, hot reload the web UI\n```\n\n`check --json` returns `{ ok, id, checks: [{ id, status, message, fix }] }`.\nRead `fix` on any failing check, apply it, run again. Do not stop until `ok`\nis `true`.\n\n## 10. Failure table\n\n| Symptom from `plugin check` | Fix |\n|---|---|\n| `manifest` invalid id | id must match `^[a-z][a-z0-9-]{0,63}$` |\n| `entry` default export is not a function | export the factory as `export default function (kd) {}` |\n| `permissions` missing | add the exact permission string the check names to `manifest.json` |\n| `bundle` missing index.js | run `kandown plugin build <id>` |\n| `panel` module exports nothing | export `panels` (a map) or a `default` component |\n| `panel` imports react | drop the import, use the `ui` prop |\n| `namespace` write outside plugins.\\<id\\> | only `ctx.setField` may write, and only your own keys |\n| `roundtrip` frontmatter drift | store plain JSON values, no class instances, no `undefined` |\n| quarantined | fix the throw, then `kandown plugin enable <id>` clears the counter |\n\n## 11. Style rules for this codebase\n\n- Never use an em dash or an en dash in any string, comment or document you write.\n- Comment the why, not the what, and open explanatory comments with `\u{1F4D6}`.\n- Keep the factory synchronous unless you genuinely need to await something.\n- Handle your own errors: a throw inside a gate is silently fail-open, which\n  hides bugs. Log with `ctx.log.warn` instead of throwing.\n";
+
+// src/cli/lib/plugin-build.ts
+import { existsSync as existsSync25, readdirSync as readdirSync11, readFileSync as readFileSync23 } from "fs";
+import { basename as basename12, extname as extname3, join as join34 } from "path";
+var SOURCE_EXTENSIONS = [".ts", ".tsx", ".jsx", ".mts"];
+function findSource(dir, stem) {
+  for (const extension of SOURCE_EXTENSIONS) {
+    const candidate = join34(dir, `${stem}${extension}`);
+    if (existsSync25(candidate)) return candidate;
+  }
+  return null;
+}
+function discoverEntries(dir) {
+  const entries = [];
+  const index = findSource(dir, "index");
+  if (index) entries.push({ stem: "index", source: index });
+  let names = [];
+  try {
+    names = readdirSync11(dir);
+  } catch {
+    return entries;
+  }
+  for (const name of names.sort()) {
+    const extension = extname3(name);
+    if (!SOURCE_EXTENSIONS.includes(extension)) continue;
+    const stem = basename12(name, extension);
+    if (!stem.startsWith("web")) continue;
+    if (entries.some((entry) => entry.stem === stem)) continue;
+    entries.push({ stem, source: join34(dir, name) });
+  }
+  return entries;
+}
+async function loadEsbuild() {
+  try {
+    return await import("esbuild");
+  } catch {
+    return null;
+  }
+}
+async function buildPlugin(dir) {
+  const result = { ok: true, outputs: [], errors: [], warnings: [] };
+  const entries = discoverEntries(dir);
+  if (entries.length === 0) {
+    return { ...result, ok: false, errors: ["no TypeScript entry found (expected index.ts or web.tsx)"] };
+  }
+  const esbuild = await loadEsbuild();
+  if (!esbuild) {
+    return {
+      ...result,
+      ok: false,
+      errors: ['esbuild is unavailable; reinstall kandown or run "npm install esbuild" in this project']
+    };
+  }
+  for (const entry of entries) {
+    const out = join34(dir, `${entry.stem}.js`);
+    try {
+      const built = await esbuild.build({
+        entryPoints: [entry.source],
+        outfile: out,
+        bundle: true,
+        format: "esm",
+        platform: "neutral",
+        target: "es2022",
+        // 📖 `neutral` keeps the output browser-safe; these stay external so a
+        // Node-flavoured plugin still compiles and a panel never ships React.
+        external: ["react", "react-dom", "react/jsx-runtime", "kandown", "node:*"],
+        jsx: "automatic",
+        legalComments: "none",
+        logLevel: "silent",
+        write: true
+      });
+      for (const warning of built.warnings) result.warnings.push(`${entry.stem}: ${warning.text}`);
+      const source = readFileSync23(out, "utf8");
+      if (/from\s*["']react(?:-dom|\/jsx-runtime)?["']/.test(source)) {
+        result.errors.push(
+          `${entry.stem}: bundle imports react; panels must use the "ui" prop instead of importing React`
+        );
+        result.ok = false;
+      }
+      result.outputs.push({ entry: entry.source, out, bytes: Buffer.byteLength(source) });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      result.errors.push(`${entry.stem}: ${message.replace(/\n+/g, " ").trim()}`);
+      result.ok = false;
+    }
+  }
+  return result;
+}
+
+// src/cli/lib/plugin-check.ts
+import { existsSync as existsSync26, readFileSync as readFileSync24, statSync as statSync8 } from "fs";
+import { basename as basename13, extname as extname4, join as join35 } from "path";
+init_parser();
+init_serializer();
+init_updater();
+init_config2();
+init_cli_shared();
+function syntheticTasks() {
+  const make = (id, title2, status) => ({
+    id,
+    frontmatter: { id, title: title2, status, created: "2026-01-01", priority: "P2" },
+    plugins: void 0
+  });
+  return [
+    make("check-1", "Synthetic backlog task", "Backlog"),
+    make("check-2", "Synthetic active task", "In Progress"),
+    make("check-3", "Synthetic finished task", "Done")
+  ];
+}
+function stubUi() {
+  const noop = () => void 0;
+  return {
+    createElement: (type, props, ...children) => ({ type, props, children }),
+    Fragment: /* @__PURE__ */ Symbol("Fragment"),
+    useState: (initial) => [typeof initial === "function" ? initial() : initial, noop],
+    // 📖 Effects run so a panel that explodes on mount is caught, but their
+    // async results are dropped: the checker asserts "does not throw", not
+    // "renders the right numbers".
+    useEffect: (effect) => {
+      try {
+        effect();
+      } catch {
+      }
+    },
+    useLayoutEffect: (effect) => {
+      try {
+        effect();
+      } catch {
+      }
+    },
+    useMemo: (factory) => factory(),
+    useCallback: (callback) => callback,
+    useRef: (initial) => ({ current: initial }),
+    useReducer: (_reducer, initial) => [initial, noop],
+    useId: () => "check-id",
+    memo: (component) => component
+  };
+}
+function check(id, status, message, fix) {
+  return fix ? { id, status, message, fix } : { id, status, message };
+}
+function newestMtime(paths) {
+  let newest = 0;
+  for (const path of paths) {
+    try {
+      newest = Math.max(newest, statSync8(path).mtimeMs);
+    } catch {
+    }
+  }
+  return newest;
+}
+function scanPermissionUsage(source) {
+  const usesRead = /\.board\s*\.\s*(readAll|read)\s*\(/.test(source);
+  const usesWrite = /\.setField\s*\(/.test(source);
+  const usesFetch = /\.fetch\s*(\?\.)?\s*\(/.test(source);
+  const needs = [];
+  if (usesRead) needs.push("read:tasks");
+  if (usesFetch) needs.push("net:*");
+  return { needs, uses: { read: usesRead, write: usesWrite, fetch: usesFetch } };
+}
+async function checkPlugin(kandownDir, projectDir, id) {
+  const checks = [];
+  const discovered = discoverExtensions(projectDir);
+  const found = discovered.find((entry) => entry.manifestResult.ok ? entry.manifestResult.manifest.id === id : basename13(entry.dir) === id);
+  if (!found) {
+    return {
+      ok: false,
+      id,
+      dir: null,
+      checks: [check(
+        "discovery",
+        "fail",
+        `no plugin "${id}" found under .kandown/extensions/ or ~/.kandown/extensions/`,
+        `Create it with "kandown plugin create ${id}", or check the directory name.`
+      )]
+    };
+  }
+  const dir = found.dir;
+  if (!found.manifestResult.ok) {
+    return {
+      ok: false,
+      id,
+      dir,
+      checks: [check(
+        "manifest",
+        "fail",
+        found.manifestResult.error,
+        "Fix manifest.json. Required: id (kebab-case), name, version, apiVersion (1)."
+      )]
+    };
+  }
+  const manifest = found.manifestResult.manifest;
+  checks.push(check("manifest", "pass", `manifest.json is valid (v${manifest.version}, apiVersion ${manifest.apiVersion})`));
+  if (basename13(dir) !== manifest.id) {
+    checks.push(check(
+      "manifest-dir",
+      "warn",
+      `directory is "${basename13(dir)}" but the manifest id is "${manifest.id}"`,
+      `Rename the directory to "${manifest.id}" so install and purge target the same namespace.`
+    ));
+  }
+  const tasks = syntheticTasks();
+  const writes = [];
+  const logs = [];
+  const env = {
+    projectDir,
+    kandownVersion: getCurrentVersion(),
+    config: loadConfig(kandownDir),
+    readAll: async () => tasks,
+    read: async (taskId) => tasks.find((task) => task.id === taskId) ?? null,
+    applyField: async (taskId, extId, key, value) => {
+      if (extId !== manifest.id) throw new Error(`refused a write to plugins.${extId}.*`);
+      writes.push({ taskId, key, value });
+    },
+    log: {
+      info: (message) => logs.push(message),
+      warn: (message) => logs.push(`[warn] ${message}`),
+      error: (message) => logs.push(`[error] ${message}`)
+    }
+  };
+  const host = new ExtensionHost(env);
+  await host.loadAll({ only: manifest.id, inspect: true });
+  const loaded2 = host.get(manifest.id);
+  if (!loaded2 || loaded2.health !== "enabled") {
+    checks.push(check(
+      "entry",
+      "fail",
+      loaded2?.error ?? "the plugin did not load",
+      "The default export of index.ts must be a function receiving the kd API, and must not throw while registering."
+    ));
+    return { ok: false, id: manifest.id, dir, checks };
+  }
+  checks.push(check("entry", "pass", "index loaded and the factory ran"));
+  const summary = host.installedSummary().find((entry) => entry.id === manifest.id);
+  const counts = {
+    fields: summary?.fields.length ?? 0,
+    panels: summary?.panels.length ?? 0,
+    commands: summary?.commands.length ?? 0,
+    gates: summary?.gates ?? 0,
+    syncs: summary?.syncs ?? 0
+  };
+  const total = Object.values(counts).reduce((sum, value) => sum + value, 0);
+  if (total === 0) {
+    checks.push(check(
+      "contributions",
+      "fail",
+      "the factory registered nothing",
+      "Call at least one of contributeField, contributeWebPanel, contributeCommand, contributeGate or contributeSync."
+    ));
+  } else {
+    checks.push(check(
+      "contributions",
+      "pass",
+      `${counts.fields} field(s), ${counts.panels} panel(s), ${counts.commands} command(s), ${counts.gates} gate(s), ${counts.syncs} sync(s)`
+    ));
+  }
+  const sources = ["index.ts", "index.tsx", "index.js", "index.mjs"].map((name) => join35(dir, name)).filter((path) => existsSync26(path));
+  const sourceText = sources.map((path) => readFileSync24(path, "utf8")).join("\n");
+  const declared = manifest.permissions ?? [];
+  const usage = scanPermissionUsage(sourceText);
+  const missing = [];
+  for (const permission of usage.needs) {
+    if (!isAllowed(declared, permission)) missing.push(permission);
+  }
+  const needsWrite = usage.uses.write || counts.fields > 0;
+  if (needsWrite && !declared.some((entry) => entry === "*" || entry.startsWith(`write:field:plugins.${manifest.id}.`))) {
+    missing.push(`write:field:plugins.${manifest.id}.*`);
+  }
+  const unused = declared.filter((permission) => {
+    if (permission === "*") return false;
+    if (permission === "read:tasks") return !usage.uses.read;
+    if (permission.startsWith("net:")) return !usage.uses.fetch;
+    if (permission.startsWith("write:field:")) return !needsWrite;
+    return false;
+  });
+  if (missing.length > 0) {
+    checks.push(check(
+      "permissions",
+      "fail",
+      `code calls capabilities the manifest does not declare: ${missing.join(", ")}`,
+      `Add ${JSON.stringify(missing)} to "permissions" in manifest.json.`
+    ));
+  } else if (unused.length > 0) {
+    checks.push(check(
+      "permissions",
+      "warn",
+      `declared but never used: ${unused.join(", ")}`,
+      `Remove ${JSON.stringify(unused)} from "permissions"; an over-broad declaration makes the model meaningless.`
+    ));
+  } else if (declared.includes("*")) {
+    checks.push(check(
+      "permissions",
+      "warn",
+      'the manifest declares "*"',
+      'Replace "*" with the exact permissions used: read:tasks, write:field:plugins.<id>.*, net:*.'
+    ));
+  } else {
+    checks.push(check("permissions", "pass", declared.length > 0 ? `declares ${declared.join(", ")}` : "needs no permission"));
+  }
+  const bundleTargets = [{ stem: "index", sources: sources.filter((path) => extname4(path) === ".ts" || extname4(path) === ".tsx") }];
+  for (const panel of summary?.panels ?? []) {
+    const stem = basename13(panel.entry.replace(/^\.\//, ""), ".js");
+    if (bundleTargets.some((target) => target.stem === stem)) continue;
+    bundleTargets.push({
+      stem,
+      sources: [".tsx", ".ts", ".jsx"].map((extension) => join35(dir, `${stem}${extension}`)).filter((path) => existsSync26(path))
+    });
+  }
+  const staleBundles = [];
+  const missingBundles = [];
+  for (const target of bundleTargets) {
+    const out = join35(dir, `${target.stem}.js`);
+    if (!existsSync26(out)) {
+      if (target.sources.length > 0 || target.stem !== "index") missingBundles.push(`${target.stem}.js`);
+      continue;
+    }
+    if (target.sources.length > 0 && statSync8(out).mtimeMs < newestMtime(target.sources)) {
+      staleBundles.push(`${target.stem}.js`);
+    }
+  }
+  if (missingBundles.length > 0) {
+    checks.push(check(
+      "bundle",
+      "fail",
+      `missing browser bundle(s): ${missingBundles.join(", ")}`,
+      `Run "kandown plugin build ${manifest.id}". The web UI can only execute bundled JavaScript.`
+    ));
+  } else if (staleBundles.length > 0) {
+    checks.push(check(
+      "bundle",
+      "warn",
+      `bundle(s) older than their source: ${staleBundles.join(", ")}`,
+      `Run "kandown plugin build ${manifest.id}" so the browser sees your latest changes.`
+    ));
+  } else {
+    checks.push(check("bundle", "pass", bundleTargets.length > 0 ? "browser bundles are present and current" : "nothing to bundle"));
+  }
+  if ((summary?.panels.length ?? 0) === 0) {
+    checks.push(check("panel", "skip", "no web panel declared"));
+  } else {
+    for (const panel of summary?.panels ?? []) {
+      const entry = panel.entry.replace(/^\.\//, "");
+      const out = join35(dir, entry);
+      if (!existsSync26(out)) {
+        checks.push(check(
+          `panel:${panel.id}`,
+          "fail",
+          `declared entry ${panel.entry} does not exist`,
+          `Run "kandown plugin build ${manifest.id}", or point entry at the bundle it produces.`
+        ));
+        continue;
+      }
+      const source = readFileSync24(out, "utf8");
+      if (/from\s*["']react["']/.test(source)) {
+        checks.push(check(
+          `panel:${panel.id}`,
+          "fail",
+          "the panel bundle imports react",
+          'Delete the React import and use the "ui" prop (ui.createElement, ui.useState, ui.useEffect).'
+        ));
+        continue;
+      }
+      try {
+        const module = await import(`data:text/javascript;charset=utf-8,${encodeURIComponent(source)}`);
+        const component = module.panels?.[panel.id] ?? module.default;
+        if (typeof component !== "function") {
+          checks.push(check(
+            `panel:${panel.id}`,
+            "fail",
+            `the module exports no component for panel "${panel.id}"`,
+            `Export it as "export const panels = { ${panel.id}: Component }" or as the default export.`
+          ));
+          continue;
+        }
+        component({
+          task: tasks[0],
+          api: {
+            readField: () => void 0,
+            readAllTasks: async () => tasks,
+            setField: async () => void 0,
+            refresh: async () => void 0
+          },
+          ui: stubUi()
+        });
+        checks.push(check(`panel:${panel.id}`, "pass", "panel module renders once without throwing"));
+      } catch (error) {
+        checks.push(check(
+          `panel:${panel.id}`,
+          "fail",
+          `panel failed to load or render: ${error instanceof Error ? error.message : String(error)}`,
+          "Keep the module self-contained and side-effect free at import time; three render failures quarantine the plugin."
+        ));
+      }
+    }
+  }
+  if (counts.gates === 0 && counts.syncs === 0 && counts.commands === 0) {
+    checks.push(check("runtime", "skip", "no gate, sync or command to exercise"));
+  } else {
+    const failuresBefore = host.get(manifest.id)?.failures ?? 0;
+    for (const task of tasks) {
+      for (const to of ["Todo", "In Progress", "Done"]) {
+        await host.runGates({ type: "task:beforeMove", task, from: String(task.frontmatter.status ?? ""), to });
+      }
+    }
+    for (const task of tasks) {
+      host.dispatchSync({ type: "task:afterMove", task, from: "In Progress", to: "Done" });
+      host.dispatchLifecycle({ type: "task:afterMove", task, from: "In Progress", to: "Done" });
+    }
+    const commandErrors = [];
+    for (const name of summary?.commands ?? []) {
+      try {
+        await host.runCommand(name, "");
+      } catch (error) {
+        commandErrors.push(`${name}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+    await new Promise((resolve12) => setTimeout(resolve12, 25));
+    const after = host.get(manifest.id);
+    const newFailures = (after?.failures ?? 0) - failuresBefore;
+    if (commandErrors.length > 0) {
+      const denied = commandErrors.map((entry) => /permission denied: (\S+)/.exec(entry)?.[1]).filter((permission) => Boolean(permission));
+      checks.push(check(
+        "runtime",
+        "fail",
+        `contributed command threw: ${commandErrors.join("; ")}`,
+        denied.length > 0 ? `Declare ${JSON.stringify([...new Set(denied)])} in "permissions" in manifest.json.` : "Handle your own errors inside the command handler and report them with ctx.log.error."
+      ));
+    } else if (newFailures > 0 || after?.health === "quarantined") {
+      checks.push(check(
+        "runtime",
+        "fail",
+        `${newFailures} handler failure(s) against a synthetic board: ${after?.error ?? "see logs"}`,
+        "A throwing gate fails open and a throwing sync is swallowed. Guard your handlers and log with ctx.log.warn."
+      ));
+    } else {
+      checks.push(check(
+        "runtime",
+        "pass",
+        `gates, syncs and commands ran clean on 3 synthetic tasks (${writes.length} field write(s))`
+      ));
+    }
+  }
+  if (writes.length === 0) {
+    checks.push(check("roundtrip", "skip", "the plugin wrote no field during the run"));
+  } else {
+    const problems = [];
+    for (const write of writes) {
+      const frontmatter = setField({ id: "check-1", title: "Round trip", status: "Todo" }, manifest.id, write.key, write.value);
+      const reparsed = parseTaskFile(serializeTaskFile(frontmatter, "body")).frontmatter;
+      const namespace = reparsed.plugins?.[manifest.id];
+      if (!namespace || !(write.key in namespace)) {
+        problems.push(`${write.key} disappeared through the serializer`);
+        continue;
+      }
+      if (String(namespace[write.key]) !== String(write.value)) {
+        problems.push(`${write.key}: wrote ${JSON.stringify(write.value)}, read back ${JSON.stringify(namespace[write.key])}`);
+      }
+    }
+    if (problems.length > 0) {
+      checks.push(check(
+        "roundtrip",
+        "fail",
+        problems.join("; "),
+        "Store plain JSON scalars or plain objects under plugins.<id>.*; class instances, undefined and functions do not survive the file."
+      ));
+    } else {
+      checks.push(check("roundtrip", "pass", `${writes.length} field write(s) survive the frontmatter round-trip`));
+    }
+  }
+  return {
+    ok: checks.every((entry) => entry.status !== "fail"),
+    id: manifest.id,
+    dir,
+    checks
+  };
+}
+var MARK = {
+  pass: `${c.green}\u2713${c.reset}`,
+  fail: `${c.red}\u2717${c.reset}`,
+  warn: `${c.yellow}!${c.reset}`,
+  skip: `${c.dim}-${c.reset}`
+};
+function formatCheckReport(report) {
+  const lines = [];
+  for (const entry of report.checks) {
+    lines.push(`${MARK[entry.status]} ${c.bold}${entry.id.padEnd(14)}${c.reset} ${entry.message}`);
+    if (entry.fix) lines.push(`  ${c.dim}\u21B3 fix: ${entry.fix}${c.reset}`);
+  }
+  const failed = report.checks.filter((entry) => entry.status === "fail").length;
+  const warned = report.checks.filter((entry) => entry.status === "warn").length;
+  lines.push("");
+  lines.push(report.ok ? `${c.green}${report.id} passes${c.reset}${warned > 0 ? ` ${c.dim}(${warned} warning(s))${c.reset}` : ""}` : `${c.red}${report.id} fails ${failed} check(s)${c.reset}`);
+  return lines.join("\n");
+}
+
 // src/cli/lib/plugin-dev.ts
 import { existsSync as existsSync27 } from "fs";
-import { basename as basename12, dirname as dirname8, extname as extname5, join as join34, sep as sep2 } from "path";
+import { basename as basename14, dirname as dirname8, extname as extname5, join as join36, sep as sep3 } from "path";
 init_cli_shared();
 function isGeneratedBundle(dir, path) {
-  if (path.includes(`${sep2}node_modules${sep2}`) || basename12(path).startsWith(".")) return true;
+  if (path.includes(`${sep3}node_modules${sep3}`) || basename14(path).startsWith(".")) return true;
   if (extname5(path) !== ".js") return false;
-  const stem = basename12(path, ".js");
-  return [".ts", ".tsx", ".jsx", ".mts"].some((extension) => existsSync27(join34(dirname8(path) || dir, `${stem}${extension}`)));
+  const stem = basename14(path, ".js");
+  return [".ts", ".tsx", ".jsx", ".mts"].some((extension) => existsSync27(join36(dirname8(path) || dir, `${stem}${extension}`)));
 }
 async function requestDaemonReload(kandownDir) {
   try {
@@ -12234,7 +12948,7 @@ async function runPluginDev(kandownDir, projectDir, id, dir) {
 
 // src/cli/lib/plugin-scaffold.ts
 import { existsSync as existsSync28, mkdirSync as mkdirSync14, writeFileSync as writeFileSync9 } from "fs";
-import { join as join35 } from "path";
+import { join as join37 } from "path";
 var PLUGIN_KINDS = ["field", "panel", "gate", "sync", "command", "full"];
 function isValidPluginId(id) {
   return /^[a-z][a-z0-9-]{0,63}$/.test(id);
@@ -12475,7 +13189,7 @@ function scaffoldPlugin(projectDir, id, kind) {
   if (!isValidPluginId(id)) {
     throw new Error("plugin id must be kebab-case (lowercase letters, digits, hyphens)");
   }
-  const dir = join35(projectDir, ".kandown", "extensions", id);
+  const dir = join37(projectDir, ".kandown", "extensions", id);
   if (existsSync28(dir)) throw new Error(`already exists: ${dir}`);
   const parts = partsFor(kind, id);
   mkdirSync14(dir, { recursive: true });
@@ -12494,7 +13208,7 @@ function scaffoldPlugin(projectDir, id, kind) {
   };
   const files = [];
   const write = (name, content) => {
-    writeFileSync9(join35(dir, name), content, "utf8");
+    writeFileSync9(join37(dir, name), content, "utf8");
     files.push(name);
   };
   write("manifest.json", `${JSON.stringify(manifest, null, 2)}
@@ -12523,7 +13237,7 @@ var USAGE = `${c.cyan}kandown plugin${c.reset} ${c.dim}<create|build|check|dev|b
   ${c.bold}brief${c.reset}                  print the full authoring contract
   ${c.bold}publish${c.reset} <id>           verify, then print the store entry`;
 function resolvePluginDir(projectDir, id) {
-  const found = discoverExtensions(projectDir).find((entry) => entry.manifestResult.ok ? entry.manifestResult.manifest.id === id : basename13(entry.dir) === id);
+  const found = discoverExtensions(projectDir).find((entry) => entry.manifestResult.ok ? entry.manifestResult.manifest.id === id : basename15(entry.dir) === id);
   return found?.dir ?? null;
 }
 function buildAgentPrompt(id, dir, kind, description) {
@@ -12637,7 +13351,7 @@ async function cmdPlugin(rawArgs) {
         for (const file of created.files) log(`  ${c.dim}+${c.reset} ${file}`);
         log("");
         log(`${c.bold}Next${c.reset}`);
-        log(`  1. edit ${join36(created.dir, "index.ts")}`);
+        log(`  1. edit ${join38(created.dir, "index.ts")}`);
         log(`  2. ${c.cyan}kandown plugin build ${id}${c.reset}`);
         log(`  3. ${c.cyan}kandown plugin check ${id} --json${c.reset}   ${c.dim}fix every "fail", repeat${c.reset}`);
         log(`  4. ${c.cyan}kandown plugin dev ${id}${c.reset}            ${c.dim}watch and hot reload the board${c.reset}`);
@@ -12668,7 +13382,7 @@ async function cmdPlugin(rawArgs) {
       } else {
         for (const warning of result.warnings) info(warning);
         for (const output of result.outputs) {
-          success(`${basename13(output.out)} ${c.dim}${(output.bytes / 1024).toFixed(1)}kb${c.reset}`);
+          success(`${basename15(output.out)} ${c.dim}${(output.bytes / 1024).toFixed(1)}kb${c.reset}`);
         }
         for (const error of result.errors) err(error);
       }
@@ -12725,8 +13439,8 @@ async function cmdPlugin(rawArgs) {
         process.exitCode = 1;
         return;
       }
-      const manifestPath = join36(dir, "manifest.json");
-      const manifest = existsSync29(manifestPath) ? JSON.parse(readFileSync24(manifestPath, "utf8")) : {};
+      const manifestPath = join38(dir, "manifest.json");
+      const manifest = existsSync29(manifestPath) ? JSON.parse(readFileSync25(manifestPath, "utf8")) : {};
       const entry = {
         id: manifest.id ?? id,
         name: manifest.name ?? id,
@@ -12759,8 +13473,8 @@ async function cmdPlugin(rawArgs) {
 }
 
 // src/cli/lib/themes-cli.ts
-import { existsSync as existsSync30, mkdirSync as mkdirSync15, readFileSync as readFileSync25, readdirSync as readdirSync12, writeFileSync as writeFileSync10 } from "fs";
-import { join as join37, resolve as resolve11 } from "path";
+import { existsSync as existsSync30, mkdirSync as mkdirSync15, readFileSync as readFileSync26, readdirSync as readdirSync12, writeFileSync as writeFileSync10 } from "fs";
+import { join as join39, resolve as resolve11 } from "path";
 init_board_reader();
 init_cli_shared();
 
@@ -12841,24 +13555,24 @@ async function cmdTheme(rawArgs) {
 async function installFromTarget(projectDir, target) {
   const src = resolve11(target);
   if (existsSync30(src) && src.endsWith(".json")) {
-    const text = readFileSync25(src, "utf8");
+    const text = readFileSync26(src, "utf8");
     const parsed = JSON.parse(text);
     if (!parsed.id) return { ok: false, error: "theme JSON is missing id" };
-    const destDir = join37(projectDir, ".kandown", "themes");
+    const destDir = join39(projectDir, ".kandown", "themes");
     mkdirSync15(destDir, { recursive: true });
-    writeFileSync10(join37(destDir, `${parsed.id}.json`), text, "utf8");
+    writeFileSync10(join39(destDir, `${parsed.id}.json`), text, "utf8");
     return { ok: true, id: parsed.id };
   }
   return installTheme(projectDir, { url: target });
 }
 function listInstalledThemesForCli(projectDir) {
-  const dir = join37(projectDir, ".kandown", "themes");
+  const dir = join39(projectDir, ".kandown", "themes");
   if (!existsSync30(dir)) return [];
   const out = [];
   for (const file of readdirSync12(dir)) {
     if (!file.endsWith(".json")) continue;
     try {
-      const raw = readFileSync25(join37(dir, file), "utf8");
+      const raw = readFileSync26(join39(dir, file), "utf8");
       const parsed = JSON.parse(raw);
       if (parsed.id) out.push({ id: parsed.id, name: parsed.name ?? parsed.id, author: parsed.author, description: parsed.description, version: parsed.version });
     } catch {
@@ -12867,9 +13581,9 @@ function listInstalledThemesForCli(projectDir) {
   return out;
 }
 function scaffoldTheme(projectDir, name) {
-  const destDir = join37(projectDir, ".kandown", "themes");
+  const destDir = join39(projectDir, ".kandown", "themes");
   mkdirSync15(destDir, { recursive: true });
-  const dest = join37(destDir, `${name}.json`);
+  const dest = join39(destDir, `${name}.json`);
   if (existsSync30(dest)) {
     err(`Already exists: ${dest}`);
     process.exit(1);
@@ -12956,7 +13670,7 @@ function publishTheme(file, githubUser) {
     err(`Theme file not found: ${file}`);
     process.exit(1);
   }
-  const raw = readFileSync25(resolved, "utf8");
+  const raw = readFileSync26(resolved, "utf8");
   let theme;
   try {
     theme = JSON.parse(raw);
@@ -12979,7 +13693,7 @@ function publishTheme(file, githubUser) {
     } catch {
     }
   }
-  const json = existsSync30(resolved) ? readFileSync25(resolved, "utf8") : raw;
+  const json = existsSync30(resolved) ? readFileSync26(resolved, "utf8") : raw;
   const url = buildProposeUrl({
     githubOwner: KANDOWN_THEME_REPO_OWNER,
     githubRepo: KANDOWN_THEME_REPO_NAME,
@@ -13116,13 +13830,13 @@ async function main() {
     case void 0: {
       const parsed = parseArgs(rest);
       const kandownDir = resolveKandownDir(parsed.path, process.cwd());
-      if (existsSync31(join38(kandownDir, "kandown.json"))) {
+      if (existsSync31(join40(kandownDir, "kandown.json"))) {
         let status = await getDaemonStatus(kandownDir);
         if (!status.running) {
           status = await startProjectDaemon(kandownDir);
         }
         if (!parsed.flags["no-open"]) {
-          const urlToOpen = status.metadata?.url || join38(kandownDir, "kandown.html");
+          const urlToOpen = status.metadata?.url || join40(kandownDir, "kandown.html");
           openBrowser(urlToOpen);
         }
       } else if (!process.stdin.isTTY) {
@@ -13139,7 +13853,7 @@ async function main() {
       }
       const parsed = parseArgs(rest);
       const kandownDir = resolveKandownDir(parsed.path, process.cwd());
-      if (existsSync31(join38(kandownDir, "kandown.json"))) {
+      if (existsSync31(join40(kandownDir, "kandown.json"))) {
         const positional = rest.filter((a) => !a.startsWith("-") && !a.startsWith("--path"));
         const ran = await dispatchContributedCommand(kandownDir, cmd, positional.join(" "));
         if (ran) break;

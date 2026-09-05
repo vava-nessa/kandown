@@ -81,8 +81,10 @@ import { parseQuickAddInput } from './quick-add-parser';
 import { parseTaskTitle } from './task-title-category';
 import { buildBoardUrl, buildTaskUrl, getTaskIdFromLocation } from './task-url';
 import { createAgentChatSlice, createInitialAgentChatState } from './store/agentChatSlice';
-import type { AgentChatState, AgentChatStartInput } from './store/types';
+import { createAgentEditsSlice, createInitialAgentEditsState } from './store/agentEditsSlice';
+import type { AgentChatState, AgentChatStartInput, AgentEditsState } from './store/types';
 import type { AgentChatEvent } from './agent-chat-events';
+import type { AgentEditsBoardEvent } from './watcher';
 
 function updateBrowserUrl(nextUrl: string, replace = false): void {
   if (typeof window === 'undefined') return;
@@ -329,6 +331,16 @@ interface State {
   stopSession: (id: string) => Promise<void>;
   forgetSession: (id: string) => Promise<void>;
   ingestAgentEvent: (sessionId: string, event: AgentChatEvent) => void;
+
+  // Live agent edit presence (t309). Full shape documented in store/types.ts;
+  // this inline mirror exists because store.ts still owns its own State
+  // declaration (same pattern as the agentChat block above).
+  agentEdits: AgentEditsState;
+  setupAgentEdits: () => void;
+  ingestAgentEditEvent: (event: AgentEditsBoardEvent) => void;
+  fetchPendingPermissions: (sessionId: string) => Promise<void>;
+  dismissPermission: (permissionId: string) => void;
+  resolvePermission: (sessionId: string, permissionId: string, approve: boolean) => Promise<void>;
 }
 
 function nextTaskId(columns: Column[], archivedTasks: BoardTask[] = []): string {
@@ -1821,6 +1833,9 @@ export const useStore = create<State>((set, get, api) => ({
       serverPollInterval = setInterval(() => {
         void get().reloadBoard();
       }, 2000);
+      // 📖 t309: wire the live agent-edit slice (subscribes to the board SSE
+      // events and opens the /api/events stream, the only server-mode reader).
+      get().setupAgentEdits();
       return;
     }
 
@@ -1994,6 +2009,11 @@ export const useStore = create<State>((set, get, api) => ({
       set({ watcherError: message });
       get().toast(message, 'warning', 10000);
     });
+
+    // 📖 t309: subscribe the live agent-edit slice after fileWatcher.start()
+    // (stop() above clears every listener, so the slice must resubscribe after
+    // it). In local mode startServerSse is a no-op: there is no daemon.
+    get().setupAgentEdits();
   },
 
   restartWatcher: () => {
@@ -2011,6 +2031,12 @@ export const useStore = create<State>((set, get, api) => ({
   // identical so the slice composes with no casts.
   agentChat: createInitialAgentChatState(),
   ...createAgentChatSlice(set, get, api),
+
+  // 📖 t309 live agent edits: presence per task, latest diff per task and the
+  // pending permission queue. setupWatcher wires the slice to the board SSE
+  // stream (and starts it in server mode).
+  agentEdits: createInitialAgentEditsState(),
+  ...createAgentEditsSlice(set, get, api),
 }));
 
 // Hydrate recent projects on load. IndexedDB may be unavailable (private

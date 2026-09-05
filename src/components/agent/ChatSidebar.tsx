@@ -31,6 +31,7 @@ import { MessageList } from './MessageList';
 import { PromptBar } from './PromptBar';
 import { UsageBadge } from './UsageBadge';
 import { DaemonGuardCard } from './DaemonGuardCard';
+import { GitInitBanner } from './GitInitBanner';
 
 export function ChatSidebar() {
   const { t } = useTranslation();
@@ -41,6 +42,7 @@ export function ChatSidebar() {
   const guard = useStore(s => s.agentChat.guard);
   const permissionMode = useStore(s => s.agentChat.permissionModeSnapshot ?? s.config.agent.permissionMode);
   const preContextTaskId = useStore(s => s.agentChat.preContextTaskId);
+  const gitWarning = useStore(s => s.agentChat.gitWarning);
   const harnesses = useStore(s => s.agentChat.harnesses);
   const columns = useStore(s => s.columns);
   const closeSidebar = useStore(s => s.closeSidebar);
@@ -51,6 +53,9 @@ export function ChatSidebar() {
   const stopSession = useStore(s => s.stopSession);
   const forgetSession = useStore(s => s.forgetSession);
   const sending = useStore(s => s.agentChat.sending);
+  // 📖 Local dismissal only: the banner comes back for the next session that
+  // reports the advisory, which is the right lifetime for a safety reminder.
+  const [gitBannerDismissed, setGitBannerDismissed] = useState(false);
 
   // 📖 Mobile detection mirrors Drawer.tsx: same 768px breakpoint, same
   // fullscreen-overlay treatment below it.
@@ -205,6 +210,9 @@ export function ChatSidebar() {
               <DaemonGuardCard />
             ): (
               <>
+                {gitWarning && !gitBannerDismissed && (
+                  <GitInitBanner className="mx-3 mt-2 flex-none" onDismiss={() => setGitBannerDismissed(true)} />
+                )}
                 {/* Messages */}
                 <div
                   ref={scrollRef}

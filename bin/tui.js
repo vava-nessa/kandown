@@ -56062,7 +56062,7 @@ async function stopProjectDaemon(kandownDir) {
 var CHECK_INTERVAL_MS = 5 * 6e4;
 
 // src/cli/lib/file-watcher.ts
-import { createReadStream, statSync as statSync3 } from "fs";
+import { createReadStream, readFileSync as readFileSync6, statSync as statSync3 } from "fs";
 import { createHash } from "crypto";
 import { basename as basename4, join as join7 } from "path";
 
@@ -57757,6 +57757,8 @@ function watch(paths, options = {}) {
 }
 
 // src/cli/lib/file-watcher.ts
+var CONTENT_CACHE_LIMIT = 200;
+var CONTENT_CACHE_MAX_BYTES = 512 * 1024;
 function hashFile(filePath) {
   return new Promise((resolve6, reject) => {
     const hash = createHash("sha256");
@@ -57787,6 +57789,16 @@ var FileWatcher = class {
   watchDebounceDelay = 75;
   pollInterval = null;
   stopped = false;
+  /** 📖 Bounded LRU of recent task file contents, keyed by absolute path.
+   *  Insertion order is the recency order: a hit re-inserts, an overflow
+   *  evicts the oldest entry. */
+  contentCache = /* @__PURE__ */ new Map();
+  onTaskContentChange = null;
+  /** 📖 Wires the live-diff callback (the daemon connects this to the agent
+   *  session edit tracker). Pass null to disconnect. Never throws. */
+  setOnTaskContentChange(callback) {
+    this.onTaskContentChange = callback;
+  }
   /**
    * 📖 Start watching task files and kandown.json.
    * Uses chokidar for immediate FS event detection, plus a fallback 500ms
@@ -57804,6 +57816,8 @@ var FileWatcher = class {
       try {
         const filePath = taskFilePath(tasksDir, id);
         this.taskHashes.set(id, hashFileSync(filePath));
+        const content = this.readSmallFile(filePath);
+        if (content !== void 0) this.contentCacheSet(filePath, content);
       } catch {
       }
     }
@@ -57836,6 +57850,8 @@ var FileWatcher = class {
     this.debounceTimers.clear();
     this.taskHashes.clear();
     this.knownTaskIds.clear();
+    this.contentCache.clear();
+    this.onTaskContentChange = null;
     this.emit("stopped");
   }
   /** 📖 Register an event handler. Returns an unsubscribe function. */
@@ -57880,7 +57896,47 @@ var FileWatcher = class {
     } else if (event === "unlink") {
       this.taskHashes.delete(taskId);
       this.knownTaskIds.delete(taskId);
+      this.contentCache.delete(filePath);
     }
+  }
+  // ─── Content cache (live-edit support) ──────────────────────────────────────
+  /** 📖 Reads a file only when it is small enough to cache; undefined when it
+   *  is too big, unreadable or gone. */
+  readSmallFile(filePath) {
+    try {
+      if (statSync3(filePath).size > CONTENT_CACHE_MAX_BYTES) return void 0;
+      return readFileSync6(filePath, "utf8");
+    } catch {
+      return void 0;
+    }
+  }
+  contentCacheGet(filePath) {
+    const hit = this.contentCache.get(filePath);
+    if (hit !== void 0) {
+      this.contentCache.delete(filePath);
+      this.contentCache.set(filePath, hit);
+    }
+    return hit;
+  }
+  contentCacheSet(filePath, content) {
+    this.contentCache.delete(filePath);
+    this.contentCache.set(filePath, content);
+    while (this.contentCache.size > CONTENT_CACHE_LIMIT) {
+      const oldest = this.contentCache.keys().next();
+      if (oldest.done) break;
+      this.contentCache.delete(oldest.value);
+    }
+  }
+  /** 📖 After a real content change: read the fresh text, pair it with the
+   *  cached before text and notify the live-edit callback. Also refreshes the
+   *  cache so the NEXT change has a real before text. Silent no-op when the
+   *  file is gone or too big to read. */
+  noteContent(filePath) {
+    const after = this.readSmallFile(filePath);
+    if (after === void 0) return;
+    const before = this.contentCacheGet(filePath);
+    this.contentCacheSet(filePath, after);
+    if (before !== after) this.onTaskContentChange?.(filePath, before, after);
   }
   async checkTaskContentChange(taskId, filePath, isNew) {
     try {
@@ -57889,15 +57945,18 @@ var FileWatcher = class {
       if (isNew && !this.knownTaskIds.has(taskId)) {
         this.knownTaskIds.add(taskId);
         this.taskHashes.set(taskId, newHash);
+        this.noteContent(filePath);
         this.emit("newTaskDetected", taskId);
         return;
       }
       if (oldHash !== void 0 && newHash !== oldHash) {
         this.taskHashes.set(taskId, newHash);
+        this.noteContent(filePath);
         this.emit("taskChanged", taskId);
       } else if (oldHash === void 0) {
         this.knownTaskIds.add(taskId);
         this.taskHashes.set(taskId, newHash);
+        this.noteContent(filePath);
         if (isNew) {
           this.emit("newTaskDetected", taskId);
         }
@@ -57922,11 +57981,13 @@ var FileWatcher = class {
         const oldHash = this.taskHashes.get(taskId);
         if (oldHash !== void 0 && newHash !== oldHash) {
           this.taskHashes.set(taskId, newHash);
+          this.noteContent(filePath);
           this.emit("taskChanged", taskId);
         }
       } catch {
         this.taskHashes.delete(taskId);
         this.knownTaskIds.delete(taskId);
+        this.contentCache.delete(filePath);
       }
     }
     const currentIds = listTaskIds(kandownDir);
@@ -57937,6 +57998,7 @@ var FileWatcher = class {
           const newHash = await hashFile(filePath);
           this.knownTaskIds.add(id);
           this.taskHashes.set(id, newHash);
+          this.noteContent(filePath);
           this.emit("newTaskDetected", id);
         } catch {
         }
@@ -57977,7 +58039,7 @@ function createWatcher() {
 import { execFileSync as execFileSync3 } from "child_process";
 
 // src/cli/lib/agents-config.ts
-import { existsSync as existsSync6, readFileSync as readFileSync6 } from "fs";
+import { existsSync as existsSync6, readFileSync as readFileSync7 } from "fs";
 import { join as join8 } from "path";
 var AGENTS_CONFIG_VERSION = 1;
 var DEFAULT_CASCADE = {
@@ -58021,7 +58083,7 @@ function loadAgentsConfig(kandownDir) {
   if (!existsSync6(path)) return defaultAgentsConfig();
   let raw;
   try {
-    raw = JSON.parse(readFileSync6(path, "utf8"));
+    raw = JSON.parse(readFileSync7(path, "utf8"));
   } catch (e) {
     const err2 = e;
     if (err2.code === "ENOENT") return defaultAgentsConfig();
@@ -58482,7 +58544,7 @@ import { join as join18 } from "path";
 import { tmpdir } from "os";
 
 // src/cli/lib/kandown-work.ts
-import { existsSync as existsSync13, readFileSync as readFileSync14, readdirSync as readdirSync6, statSync as statSync6 } from "fs";
+import { existsSync as existsSync13, readFileSync as readFileSync15, readdirSync as readdirSync6, statSync as statSync6 } from "fs";
 import { homedir as homedir7 } from "os";
 import { join as join17 } from "path";
 
@@ -59060,7 +59122,7 @@ import { createHash as createHash2 } from "crypto";
 import {
   existsSync as existsSync7,
   mkdirSync as mkdirSync3,
-  readFileSync as readFileSync7,
+  readFileSync as readFileSync8,
   renameSync as renameSync3,
   unlinkSync as unlinkSync5
 } from "fs";
@@ -59074,7 +59136,7 @@ var DEFAULT_KNOWN_HASHES = /* @__PURE__ */ new Set([
   "889ff6069c3a7e7881fb59b1dc10a469805f3e866eccf5f29c906c268f02b2f6"
 ]);
 function sha256(path) {
-  return createHash2("sha256").update(readFileSync7(path)).digest("hex");
+  return createHash2("sha256").update(readFileSync8(path)).digest("hex");
 }
 function migrateInstructionFile(directory, scope) {
   const oldPath = join9(directory, "instructions.md");
@@ -59192,7 +59254,7 @@ function ensureAgentBootstrap(projectRoot) {
       path: agentsPath
     }];
   }
-  const content = readFileSync7(agentsPath, "utf8");
+  const content = readFileSync8(agentsPath, "utf8");
   const lines = splitPreservingLineEndings(content);
   const markedIndexes = lines.map((line, index) => line.body.includes(AGENT_BOOTSTRAP_MARKER) ? index : -1).filter((index) => index >= 0);
   if (markedIndexes.length === 0) {
@@ -59225,7 +59287,7 @@ function ensureAgentBootstrap(projectRoot) {
 }
 
 // src/lib/extensions/loader.ts
-import { readdirSync as readdirSync3, readFileSync as readFileSync8, existsSync as existsSync8 } from "fs";
+import { readdirSync as readdirSync3, readFileSync as readFileSync9, existsSync as existsSync8 } from "fs";
 import { join as join10 } from "path";
 import { homedir as homedir3 } from "os";
 
@@ -59297,7 +59359,7 @@ function scanLocation(location, source) {
     if (!existsSync8(manifestPath)) continue;
     let raw;
     try {
-      raw = JSON.parse(readFileSync8(manifestPath, "utf8"));
+      raw = JSON.parse(readFileSync9(manifestPath, "utf8"));
     } catch {
       found.push({ dir, source, manifestResult: { ok: false, error: "manifest.json is not valid JSON" } });
       continue;
@@ -59319,7 +59381,7 @@ function discoverExtensions(projectDir) {
 }
 
 // src/lib/extensions/state.ts
-import { readFileSync as readFileSync9, writeFileSync as writeFileSync3, mkdirSync as mkdirSync4, realpathSync, renameSync as renameSync4 } from "fs";
+import { readFileSync as readFileSync10, writeFileSync as writeFileSync3, mkdirSync as mkdirSync4, realpathSync, renameSync as renameSync4 } from "fs";
 import { homedir as homedir4 } from "os";
 import { join as join11 } from "path";
 
@@ -59495,7 +59557,7 @@ function enabledFilePath(projectDir) {
 }
 function loadEnabled(projectDir) {
   try {
-    const raw = readFileSync9(enabledFilePath(projectDir), "utf8");
+    const raw = readFileSync10(enabledFilePath(projectDir), "utf8");
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) return new Set(parsed.filter((x) => typeof x === "string"));
     return /* @__PURE__ */ new Set();
@@ -59508,7 +59570,7 @@ function healthFilePath(projectDir) {
 }
 function loadFailureState(projectDir) {
   try {
-    const parsed = JSON.parse(readFileSync9(healthFilePath(projectDir), "utf8"));
+    const parsed = JSON.parse(readFileSync10(healthFilePath(projectDir), "utf8"));
     if (parsed.version !== 1 || !parsed.extensions || typeof parsed.extensions !== "object") {
       return /* @__PURE__ */ new Map();
     }
@@ -59531,7 +59593,7 @@ function loadFailureState(projectDir) {
 }
 
 // src/lib/extensions/trust.ts
-import { readFileSync as readFileSync10, writeFileSync as writeFileSync4, mkdirSync as mkdirSync5 } from "fs";
+import { readFileSync as readFileSync11, writeFileSync as writeFileSync4, mkdirSync as mkdirSync5 } from "fs";
 import { join as join12 } from "path";
 function isRestricted(config) {
   const flag = config?.extensions?.restricted;
@@ -59542,7 +59604,7 @@ function trustFilePath(projectDir) {
 }
 function loadProjectTrust(projectDir) {
   try {
-    const raw = readFileSync10(trustFilePath(projectDir), "utf8");
+    const raw = readFileSync11(trustFilePath(projectDir), "utf8");
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) return new Set(parsed.filter((x) => typeof x === "string"));
     return /* @__PURE__ */ new Set();
@@ -59552,7 +59614,7 @@ function loadProjectTrust(projectDir) {
 }
 
 // src/cli/lib/skills.ts
-import { existsSync as existsSync9, readFileSync as readFileSync11, readdirSync as readdirSync4, statSync as statSync4 } from "fs";
+import { existsSync as existsSync9, readFileSync as readFileSync12, readdirSync as readdirSync4, statSync as statSync4 } from "fs";
 import { homedir as homedir5 } from "os";
 import { join as join13 } from "path";
 function readSourceFiles(directory, prefix = "") {
@@ -59561,7 +59623,7 @@ function readSourceFiles(directory, prefix = "") {
     const absolute = join13(directory, name);
     const relative3 = prefix ? `${prefix}/${name}` : name;
     if (statSync4(absolute).isDirectory()) Object.assign(files, readSourceFiles(absolute, relative3));
-    else files[relative3] = readFileSync11(absolute, "utf8");
+    else files[relative3] = readFileSync12(absolute, "utf8");
   }
   return files;
 }
@@ -59601,7 +59663,7 @@ function listWorkflowSkills(kandownDir) {
           version: "0.0.0",
           description: "Legacy Markdown skill",
           source: location.source,
-          content: readFileSync11(absolute, "utf8"),
+          content: readFileSync12(absolute, "utf8"),
           valid: true,
           errors: []
         });
@@ -59636,12 +59698,12 @@ function loadConfiguredWorkflowSkills(kandownDir, ids) {
 }
 
 // src/cli/commands/reslug.ts
-import { existsSync as existsSync12, renameSync as renameSync5, readFileSync as readFileSync13 } from "fs";
+import { existsSync as existsSync12, renameSync as renameSync5, readFileSync as readFileSync14 } from "fs";
 import { join as join16, basename as basename7, dirname as dirname7 } from "path";
 import { spawnSync } from "child_process";
 
 // src/cli/lib/cli-shared.ts
-import { existsSync as existsSync11, readFileSync as readFileSync12 } from "fs";
+import { existsSync as existsSync11, readFileSync as readFileSync13 } from "fs";
 import { homedir as homedir6 } from "os";
 import { join as join15, resolve as resolve5, basename as basename6, dirname as dirname6 } from "path";
 import { spawn as spawn3 } from "child_process";
@@ -59731,7 +59793,7 @@ function planFor(directory, filename) {
   if (!id) return null;
   let frontmatter = null;
   try {
-    frontmatter = parseTaskFile(readFileSync13(join16(directory, filename), "utf8")).frontmatter;
+    frontmatter = parseTaskFile(readFileSync14(join16(directory, filename), "utf8")).frontmatter;
   } catch {
     return null;
   }
@@ -59769,7 +59831,7 @@ function readSourceFiles2(directory, prefix = "") {
     const absolute = join17(directory, name);
     const relative3 = prefix ? `${prefix}/${name}` : name;
     if (statSync6(absolute).isDirectory()) Object.assign(files, readSourceFiles2(absolute, relative3));
-    else files[relative3] = readFileSync14(absolute, "utf8");
+    else files[relative3] = readFileSync15(absolute, "utf8");
   }
   return files;
 }
@@ -59784,7 +59846,7 @@ function loadSelectedWorkflow(kandownDir, id) {
 function readOptional(path) {
   if (!existsSync13(path)) return void 0;
   try {
-    return readFileSync14(path, "utf8");
+    return readFileSync15(path, "utf8");
   } catch {
     return void 0;
   }

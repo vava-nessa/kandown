@@ -14,22 +14,29 @@
  * advisory: the diff shows after the fact (t309).
  *
  * 📖 Inbound requests: ACP lets the agent ask the client for permissions
- * (session/request_permission) and file reads. kandown v1 auto-selects the
- * first allow-once permission option (the session was launched in the mode
- * the user chose) and answers file-read callbacks with a JSON-RPC error:
- * harnesses that do their own filesystem work are unaffected, client-fs
- * agents degrade and kandown does not open an arbitrary-read surface.
+ * (session/request_permission) and file reads. In yolo mode kandown auto-
+ * selects the first allow-once permission option (the session was launched in
+ * the mode the user chose). In accept-edits mode, edit-like requests are
+ * ROUTED: parseLine does not answer, the runtime hands the request to the
+ * daemon, the web UI decides, and buildPermissionResponse produces the reply
+ * line that goes back over stdin. Read-like requests and every other agent
+ * request keep the legacy answers, and file reads are still declined with a
+ * JSON-RPC error: harnesses that do their own filesystem work are unaffected,
+ * client-fs agents degrade and kandown does not open an arbitrary-read surface.
  *
  * @functions
- *  → buildArgs   : harness binary plus its ACP entry flag
- *  → initialStdin: the initialize request
- *  → parseLine   : one stdout line → normalized events (+ JSON-RPC replies)
+ *  → buildArgs               : harness binary plus its ACP entry flag
+ *  → initialStdin            : the initialize request
+ *  → extractPermissionRequest: recognize one stdout line as a permission request
+ *  → buildPermissionResponse : the JSON-RPC reply line for a deferred decision
+ *  → parseLine               : one stdout line → normalized events (+ JSON-RPC replies)
  *
- * @exports acpAdapter
+ * @exports acpAdapter, extractPermissionRequest, buildPermissionResponse, isEditLikePermissionKind
  * @see src/cli/lib/agent/agent-runtime.ts
  */
 
 import type { AdapterParseResult, AdapterState, AgentSessionConfig, HarnessAdapter } from '../types.js';
+import type { AgentPermissionRequest, PermissionRoutingAdapter } from '../agent-runtime.js';
 
 const JSONRPC_VERSION = '2.0';
 
@@ -238,9 +245,83 @@ export function parseLine(line: string, state: AdapterState, config: AgentSessio
   return { events };
 }
 
-export const acpAdapter: HarnessAdapter = {
+/** 📖 Edit-like ACP tool kinds: the ones accept-edits mode should surface to
+ *  the user instead of auto-allowing. Reads and everything unknown stay on the
+ *  legacy auto-allow path. */
+export function isEditLikePermissionKind(kind: string): boolean {
+  return /edit|write|create|patch|delete|move|rename/.test(kind.toLowerCase());
+}
+
+/** 📖 Recognizes one raw stdout line as an ACP permission request and extracts
+ *  the protocol-neutral decision data. Pure and total: null for anything that
+ *  is not a well-formed session/request_permission request. */
+export function extractPermissionRequest(line: string): AgentPermissionRequest | null {
+  if (!line.includes('session/request_permission')) return null;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(line.trim());
+  } catch {
+    return null;
+  }
+  if (parsed === null || typeof parsed !== 'object') return null;
+  const message = parsed as JsonRpcMessage;
+  if (message.method !== 'session/request_permission') return null;
+  if (message.id === undefined || message.id === null) return null;
+  const params = message.params && typeof message.params === 'object' ? message.params as Record<string, unknown>: {};
+  const toolCall = params.toolCall && typeof params.toolCall === 'object' ? params.toolCall as Record<string, unknown>: {};
+  const kind = typeof toolCall.kind === 'string' ? toolCall.kind : 'unknown';
+  return {
+    requestId: message.id,
+    toolCallId: typeof toolCall.toolCallId === 'string' ? toolCall.toolCallId : undefined,
+    title: typeof toolCall.title === 'string' && toolCall.title.trim() ? toolCall.title : `Permission: ${kind}`,
+    kind,
+    options: Array.isArray(params.options) ? params.options : [],
+  };
+}
+
+/** 📖 Builds the JSON-RPC reply line for a permission request whose decision
+ *  was deferred to the kandown UI. Approve picks the first allow option
+ *  (allow_once preferred, then allow_always); reject picks the first reject
+ *  option the same way; when the agent offered nothing usable the outcome is
+ *  `cancelled`, which is the ACP way to say "no decision was made". */
+export function buildPermissionResponse(
+  request: { requestId: number | string; options: unknown[] },
+  approve: boolean,
+): string {
+  const wantedKinds = approve ? ['allow_once', 'allow_always'] : ['reject_once', 'reject_always'];
+  let optionId: string | undefined;
+  for (const kind of wantedKinds) {
+    for (const option of request.options) {
+      const record = option && typeof option === 'object' ? option as Record<string, unknown>: {};
+      if (record.kind === kind && typeof record.optionId === 'string') {
+        optionId = record.optionId;
+        break;
+      }
+    }
+    if (optionId) break;
+  }
+  return JSON.stringify({
+    jsonrpc: JSONRPC_VERSION,
+    id: request.requestId,
+    result: {
+      outcome: optionId
+        ? { outcome: 'selected', optionId }
+       : { outcome: 'cancelled' },
+    },
+  });
+}
+
+export const acpAdapter: HarnessAdapter & PermissionRoutingAdapter = {
   protocol: 'acp',
   buildArgs,
   initialStdin: () => initialStdin(),
   parseLine,
+  extractPermissionRequest,
+  // 📖 yolo keeps the parseLine auto-allow. accept-edits routes edit-like
+  // requests to the kandown approval sheet; reads and unknown kinds stay on
+  // the auto-allow path so a session is never blocked on trivia.
+  onPermissionRequest(state, request) {
+    if (state.permissionMode === 'accept-edits' && isEditLikePermissionKind(request.kind)) return 'route';
+    return 'allow';
+  },
 };

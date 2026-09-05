@@ -4,6 +4,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 import type { ExtensionHost } from './src/lib/extensions/host';
+import type { PermissionQueue } from './src/cli/lib/agent/permission-queue';
 
 const CLOSING_HEAD_TAG = '</head>';
 // 📖 Keep the local web UI dev server predictable so agents and humans can share the same URL.
@@ -81,6 +82,10 @@ function kandownSingleFileRepairPlugin() {
 
 function kandownDevPlugin() {
   let extensionHost: ExtensionHost | null = null;
+  // 📖 t309 approvals: the dev mirror keeps its own tiny queue so the two
+  // permission routes share state. Live task_diff streaming still needs the
+  // real daemon (it owns the file watcher and the tracker).
+  let permissionQueue: PermissionQueue | null = null;
 
   return {
     name: 'kandown-dev-api',
@@ -316,6 +321,58 @@ function kandownDevPlugin() {
                 }
                 res.writeHead(ok ? 200 : 404, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(ok ? { ok: true } : { error: 'Session not found' }));
+                return;
+              }
+
+              // 📖 t309 permission approvals (DEV mirror). Same contract as the
+              // daemon: 404 for an unknown session or permission id, 200 with
+              // the pending list otherwise. In dev nothing pushes into this
+              // queue (that needs the daemon's tracker wiring), so pending is
+              // empty and resolve answers 404; the routes exist so the UI code
+              // path is exercised end to end against real modules.
+              if (parts[2] && parts[3] === 'pending' && req.method === 'GET') {
+                const sessionId = decodeURIComponent(parts[2]);
+                if (!runtimeModule.getAgentSession(sessionId)) {
+                  res.writeHead(404, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: 'Session not found' }));
+                  return;
+                }
+                if (!permissionQueue) {
+                  const queueModule = await server.ssrLoadModule('/src/cli/lib/agent/permission-queue.ts') as typeof import('./src/cli/lib/agent/permission-queue');
+                  permissionQueue = queueModule.createPermissionQueue();
+                }
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ permissions: permissionQueue.listPending(sessionId) }));
+                return;
+              }
+
+              if (parts[2] && parts[3] === 'permissions' && parts[5] === 'resolve' && req.method === 'POST') {
+                const sessionId = decodeURIComponent(parts[2]);
+                const permissionId = decodeURIComponent(parts[4] ?? '');
+                if (!runtimeModule.getAgentSession(sessionId)) {
+                  res.writeHead(404, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: 'Session not found' }));
+                  return;
+                }
+                const chunks: Buffer[] = [];
+                await new Promise<void>((resolveBody, rejectBody) => {
+                  req.on('data', chunk => chunks.push(chunk));
+                  req.on('end', resolveBody);
+                  req.on('error', rejectBody);
+                });
+                let body: { approve?: unknown } = {};
+                try {
+                  body = JSON.parse(Buffer.concat(chunks).toString('utf8')) as typeof body;
+                } catch {
+                  // 📖 Same rule as the daemon: unreadable body means reject.
+                }
+                if (!permissionQueue) {
+                  const queueModule = await server.ssrLoadModule('/src/cli/lib/agent/permission-queue.ts') as typeof import('./src/cli/lib/agent/permission-queue');
+                  permissionQueue = queueModule.createPermissionQueue();
+                }
+                const resolved = permissionQueue.resolve(sessionId, permissionId, body.approve === true);
+                res.writeHead(resolved ? 200 : 404, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(resolved ? { ok: true } : { error: 'Permission not found' }));
                 return;
               }
 

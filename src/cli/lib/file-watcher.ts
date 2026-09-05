@@ -9,14 +9,23 @@
  * refreshes. Only new task detection fires a brief status message since that
  * is user-relevant information.
  *
- * @functions
- *  → FileWatcher       — content-hashing watcher class
- *  → createWatcher     — factory, returns ready-to-use watcher
+ * 📖 Live-edit support (t309): the watcher keeps a bounded LRU cache of recent
+ * task file contents so it can hand real before/after text to an optional
+ * `onTaskContentChange` callback. The daemon wires that callback to the agent
+ * session edit tracker, which turns it into `task_diff` SSE events while a
+ * harness session is editing the task. The callback is injected with a setter
+ * (never imported) so this module stays free of agent-runtime dependencies,
+ * and the existing hash/dedupe behavior is untouched when no callback is set.
  *
- * @exports FileWatcher, createWatcher
+ * @functions
+ *  → FileWatcher                  : content-hashing watcher class
+ *  → setOnTaskContentChange       : optional live-diff callback (path, before, after)
+ *  → createWatcher                : factory, returns ready-to-use watcher
+ *
+ * @exports FileWatcher, TaskContentChangeCallback, createWatcher
  */
 
-import { createReadStream, statSync } from 'node:fs';
+import { createReadStream, readFileSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { basename, join } from 'node:path';
 import { watch, FSWatcher } from 'chokidar';
@@ -24,6 +33,23 @@ import { listTaskIds, listTaskFilenames, getTasksDir } from './board-reader.js';
 import { resolveTaskFilename, taskIdFromFilename } from '../../lib/task-filename.js';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
+
+/** 📖 Max files kept in the before/after content cache. A board has dozens of
+ *  small files; 200 covers every realistic project with room to spare. */
+const CONTENT_CACHE_LIMIT = 200;
+
+/** 📖 Files larger than this never enter the content cache: the point is real
+ *  before/after text for task files, not a general-purpose file cache. */
+const CONTENT_CACHE_MAX_BYTES = 512 * 1024;
+
+/** 📖 Live-edit hook (t309): called after a task file's content actually
+ *  changed on disk. `before` is the previously cached content, undefined when
+ *  the watcher sees the file for the first time (a brand-new task file). */
+export type TaskContentChangeCallback = (
+  absolutePath: string,
+  before: string | undefined,
+  after: string,
+) => void;
 
 export interface CliWatcherEvents {
   /** Fired when any task file content actually changed (not just touched). */
@@ -84,6 +110,17 @@ export class FileWatcher {
   private watchDebounceDelay = 75;
   private pollInterval: ReturnType<typeof setInterval> | null = null;
   private stopped = false;
+  /** 📖 Bounded LRU of recent task file contents, keyed by absolute path.
+   *  Insertion order is the recency order: a hit re-inserts, an overflow
+   *  evicts the oldest entry. */
+  private contentCache: Map<string, string> = new Map();
+  private onTaskContentChange: TaskContentChangeCallback | null = null;
+
+  /** 📖 Wires the live-diff callback (the daemon connects this to the agent
+   *  session edit tracker). Pass null to disconnect. Never throws. */
+  setOnTaskContentChange(callback: TaskContentChangeCallback | null): void {
+    this.onTaskContentChange = callback;
+  }
 
   /**
    * 📖 Start watching task files and kandown.json.
@@ -104,6 +141,10 @@ export class FileWatcher {
       try {
         const filePath = taskFilePath(tasksDir, id);
         this.taskHashes.set(id, hashFileSync(filePath));
+        // 📖 Seed the content cache silently (no callback): the file did not
+        // just change, but the FIRST future change needs a real before text.
+        const content = this.readSmallFile(filePath);
+        if (content !== undefined) this.contentCacheSet(filePath, content);
       } catch {
         // File may have been deleted between listTaskIds and now
       }
@@ -144,6 +185,8 @@ export class FileWatcher {
     this.debounceTimers.clear();
     this.taskHashes.clear();
     this.knownTaskIds.clear();
+    this.contentCache.clear();
+    this.onTaskContentChange = null;
     this.emit('stopped');
   }
 
@@ -201,8 +244,54 @@ export class FileWatcher {
       // Task deleted — remove from tracking
       this.taskHashes.delete(taskId);
       this.knownTaskIds.delete(taskId);
+      this.contentCache.delete(filePath);
       // Don't emit anything — board will re-read and the task will simply vanish
     }
+  }
+
+  // ─── Content cache (live-edit support) ──────────────────────────────────────
+
+  /** 📖 Reads a file only when it is small enough to cache; undefined when it
+   *  is too big, unreadable or gone. */
+  private readSmallFile(filePath: string): string | undefined {
+    try {
+      if (statSync(filePath).size > CONTENT_CACHE_MAX_BYTES) return undefined;
+      return readFileSync(filePath, 'utf8');
+    } catch {
+      return undefined;
+    }
+  }
+
+  private contentCacheGet(filePath: string): string | undefined {
+    const hit = this.contentCache.get(filePath);
+    if (hit !== undefined) {
+      // 📖 Re-insert to mark the entry most recently used.
+      this.contentCache.delete(filePath);
+      this.contentCache.set(filePath, hit);
+    }
+    return hit;
+  }
+
+  private contentCacheSet(filePath: string, content: string): void {
+    this.contentCache.delete(filePath);
+    this.contentCache.set(filePath, content);
+    while (this.contentCache.size > CONTENT_CACHE_LIMIT) {
+      const oldest = this.contentCache.keys().next();
+      if (oldest.done) break;
+      this.contentCache.delete(oldest.value);
+    }
+  }
+
+  /** 📖 After a real content change: read the fresh text, pair it with the
+   *  cached before text and notify the live-edit callback. Also refreshes the
+   *  cache so the NEXT change has a real before text. Silent no-op when the
+   *  file is gone or too big to read. */
+  private noteContent(filePath: string): void {
+    const after = this.readSmallFile(filePath);
+    if (after === undefined) return;
+    const before = this.contentCacheGet(filePath);
+    this.contentCacheSet(filePath, after);
+    if (before !== after) this.onTaskContentChange?.(filePath, before, after);
   }
 
   private async checkTaskContentChange(taskId: string, filePath: string, isNew: boolean): Promise<void> {
@@ -214,6 +303,9 @@ export class FileWatcher {
         // New task file
         this.knownTaskIds.add(taskId);
         this.taskHashes.set(taskId, newHash);
+        // 📖 First sight: before is unknown (undefined), the diff callback
+        // still fires so an agent-created task shows up as a live edit.
+        this.noteContent(filePath);
         this.emit('newTaskDetected', taskId);
         return;
       }
@@ -221,11 +313,13 @@ export class FileWatcher {
       if (oldHash !== undefined && newHash !== oldHash) {
         // Content actually changed
         this.taskHashes.set(taskId, newHash);
+        this.noteContent(filePath);
         this.emit('taskChanged', taskId);
       } else if (oldHash === undefined) {
         // First time seeing this file
         this.knownTaskIds.add(taskId);
         this.taskHashes.set(taskId, newHash);
+        this.noteContent(filePath);
         if (isNew) {
           this.emit('newTaskDetected', taskId);
         }
@@ -260,12 +354,14 @@ export class FileWatcher {
         const oldHash = this.taskHashes.get(taskId);
         if (oldHash !== undefined && newHash !== oldHash) {
           this.taskHashes.set(taskId, newHash);
+          this.noteContent(filePath);
           this.emit('taskChanged', taskId);
         }
       } catch {
         // File deleted — remove from tracking
         this.taskHashes.delete(taskId);
         this.knownTaskIds.delete(taskId);
+        this.contentCache.delete(filePath);
       }
     }
 
@@ -278,6 +374,7 @@ export class FileWatcher {
           const newHash = await hashFile(filePath);
           this.knownTaskIds.add(id);
           this.taskHashes.set(id, newHash);
+          this.noteContent(filePath);
           this.emit('newTaskDetected', id);
         } catch {
           // Skip

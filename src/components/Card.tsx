@@ -32,6 +32,10 @@
  * 📖 The hover delete control requires two clicks: first arm, then confirm.
  * This keeps fast board scanning safe while avoiding a modal confirmation for
  * every card delete.
+ * 📖 Live agent edits (t309): the card hosts the animated border beam and the
+ * session's blob avatar while an agent edits the task, and the single
+ * "stack host" card mounts the fixed permission approval stack (mount-point
+ * agnostic, see isApprovalStackHost).
  *
  * @functions
  *  → HighlightedText — highlights a matched keyword inside preview text
@@ -40,6 +44,7 @@
  * @exports Card
  * @see src/components/Column.tsx
  * @see src/components/Drawer.tsx
+ * @see src/components/agent/CardBeam.tsx
  */
 
 import { useMemo, useRef } from 'react';
@@ -48,6 +53,9 @@ import { IconMessage } from '@tabler/icons-react';
 import { Icon } from './Icons';
 import { AssigneeAvatar } from './agentIcons';
 import { CategoryChip } from './CategoryChip';
+import { CardBeam } from './agent/CardBeam';
+import { AgentBlobatar } from './agent/Blobatar';
+import { ApprovalCardStack, isApprovalStackHost } from './agent/ApprovalCard';
 import type { BoardTask, Density, SearchMatch } from '../lib/types';
 import { useStore } from '../lib/store';
 import { useExtensionRuntime } from './ExtensionRuntimeProvider';
@@ -279,6 +287,12 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
     ? formatDependencyChip(task.dependsOn, titleById)
     : '';
 
+  // 📖 Live agent edit (t309): presence, and whether this card is the single
+  // host of the fixed permission stack (first task of the first non-empty
+  // column, so exactly one stack exists per rendered view).
+  const editSession = useStore(s => s.agentEdits.edits[task.id]);
+  const isStackHost = useStore(s => isApprovalStackHost(s.columns, task.id));
+
   // 📖 Density drives vertical padding + title size, never truncation. Both
   // modes grow freely with the title length.
   const containerPadding = isCompact ? 'px-3 py-1.5' : 'px-3.5 py-2.5';
@@ -340,6 +354,19 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       } ${task.checked ? 'opacity-70' : ''}`}
       style={categoryBorderColor ? { borderColor: categoryBorderColor } : undefined}
     >
+      {/* 📖 Live agent edit (t309): animated border beam while a session edits
+          this task (self-hiding), plus the session's deterministic blob avatar
+          with its "I am editing..." bubble. The blob sits left of the
+          hover-revealed "Ask the agent" button so the two never collide. */}
+      <CardBeam taskId={task.id} variant="card" />
+      {editSession && (
+        <AgentBlobatar
+          sessionId={editSession.sessionId}
+          size={24}
+          bubble
+          className={`absolute z-20 ${isCompact ? 'right-7 top-[2px]' : 'right-7 top-[6px]'}`}
+        />
+      )}
       {/* Title row: checkbox (hover) | # | title. The title grows with its
           content — no line-clamp, no truncation. */}
       <div className="flex items-start gap-2">
@@ -488,6 +515,14 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       >
         {task.id.replace(/^t/i, '')}
       </span>
+
+      {/* 📖 Pending agent permission requests (t309): the fixed bottom-right
+          approval stack. Mount-point agnostic: it is position:fixed, so which
+          card mounts it does not matter; every card renders this JSX but only
+          the single stack host (see isApprovalStackHost) actually mounts it,
+          and the stack itself returns null while the queue is empty. Mounted
+          from the board card because it must stay visible across all views. */}
+      {isStackHost && <ApprovalCardStack />}
     </div>
   );
 }

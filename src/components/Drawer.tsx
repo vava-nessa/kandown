@@ -12,6 +12,11 @@
  * 📖 Layout keeps the writing surface focused: title, dependencies,
  * DESCRIPTION, editable SUBTASKS, then REPORT. Subtasks remain markdown-backed
  * checklist items so agents and the UI share the same source of truth.
+ * 📖 Live agent edits (t309): while an agent session edits the open task
+ * (`agent_edit_started` board events), the editor locks to read-only
+ * (title, category, description, subtasks, report, dependencies), shows the
+ * session's blob avatar in the header and renders the DiffOverlay live-diff
+ * panel under the title. Unlocks on `agent_edit_ended`.
  *
  * @functions
  *  → Drawer — task editor panel with keyboard shortcuts and autosave
@@ -30,6 +35,8 @@ import { SubtaskEditor } from './SubtaskEditor';
 import { BlockNoteMarkdownEditor } from './ui/BlockNoteMarkdownEditor';
 import { DependenciesHeaderMenu } from './DependenciesHeaderMenu';
 import { TaskExtensionSurface } from './TaskExtensionSurface';
+import { AgentBlobatar } from './agent/Blobatar';
+import { DiffOverlay } from './agent/DiffOverlay';
 import { parseTaskTitle } from '../lib/task-title-category';
 import { CategoryChip } from './CategoryChip';
 import { useStore } from '../lib/store';
@@ -58,6 +65,11 @@ export function Drawer() {
   const lastSaveError = useStore(s => s.lastSaveError);
   const markDrawerDirty = useStore(s => s.markDrawerDirty);
   const forceCloseDrawer = useStore(s => s.forceCloseDrawer);
+
+  // 📖 Live agent edit (t309): when a session is editing the open task, the
+  // editor locks to read-only and shows the live diff + the session blob.
+  const editLockSession = useStore(s => (s.drawerTaskId ? s.agentEdits.edits[s.drawerTaskId] : undefined));
+  const editLocked = editLockSession !== undefined;
 
   const isTaskArchived = String(drawerData?.frontmatter.archived) === 'true';
   const updateDrawerData = useStore(s => s.updateDrawerData);
@@ -222,10 +234,12 @@ export function Drawer() {
   }, [isOpen, isDesktop, handleProtectedClose, handleClose, handleDelete]);
 
   const handleSubtasksChange = useCallback((subtasks: Subtask[]) => {
+    // 📖 Live agent edit (t309): read-only lock while a session edits the task.
+    if (editLocked) return;
     updateDrawerData(data => ({ ...data, subtasks }));
     markDrawerDirty();
     triggerAutoSave();
-  }, [markDrawerDirty, triggerAutoSave, updateDrawerData]);
+  }, [editLocked, markDrawerDirty, triggerAutoSave, updateDrawerData]);
 
   if (!drawerData || isDesktop) return null;
 
@@ -233,6 +247,9 @@ export function Drawer() {
     key: K,
     value: (typeof drawerData.frontmatter)[K]
   ) => {
+    // 📖 Live agent edit (t309): single choke point for every frontmatter
+    // field (title, category, report, dependencies): no writes while locked.
+    if (editLocked) return;
     updateDrawerData(d => ({
       ...d,
       frontmatter: { ...d.frontmatter, [key]: value },
@@ -304,6 +321,15 @@ export function Drawer() {
                     {drawerTaskId?.toUpperCase()}
                   </span>
 
+                  {/* 📖 Live agent edit (t309): session blob + read-only notice
+                      while an agent owns this task. */}
+                  {editLockSession && <AgentBlobatar sessionId={editLockSession.sessionId} size={20} />}
+                  {editLocked && (
+                    <span className="text-[11px] font-medium text-amber-600 dark:text-amber-300">
+                      {t('agentEdits.editorLocked', 'An agent is editing this task. Fields are read-only until it finishes.')}
+                    </span>
+                  )}
+
                   {/* Category Tag on header line */}
                   {isEditingCategory ? (
                     <input
@@ -319,12 +345,13 @@ export function Drawer() {
                       className="font-mono text-[12px] uppercase px-1.5 py-0.5 bg-accent/15 border border-accent/40 rounded text-accent-foreground font-semibold outline-none w-28"
                     />
                   ) : displayCategory ? (
-                    <CategoryChip category={displayCategory} onClick={() => setIsEditingCategory(true)} />
+                    <CategoryChip category={displayCategory} onClick={editLocked ? undefined : () => setIsEditingCategory(true)} />
                   ) : (
                     <button
                       type="button"
                       onClick={() => setIsEditingCategory(true)}
-                      className="text-[11.5px] text-fg-faint hover:text-fg-muted border border-dashed border-border px-1.5 py-0.5 rounded transition-colors"
+                      disabled={editLocked}
+                      className="text-[11.5px] text-fg-faint hover:text-fg-muted border border-dashed border-border px-1.5 py-0.5 rounded transition-colors disabled:pointer-events-none disabled:opacity-50"
                       title="Add category tag"
                     >
                       + Category
@@ -374,12 +401,17 @@ export function Drawer() {
                   ref={titleInputRef}
                   value={parsedTitle.cleanTitle}
                   onChange={e => handleCleanTitleChange(e.target.value)}
+                  readOnly={editLocked}
                   placeholder={t('drawer.taskTitle')}
                   rows={1}
-                  className="w-full bg-transparent border-none outline-none text-fg text-[22px] font-semibold tracking-tight leading-tight resize-none placeholder:text-fg-faint"
+                  className="w-full bg-transparent border-none outline-none text-fg text-[22px] font-semibold tracking-tight leading-tight resize-none placeholder:text-fg-faint read-only:opacity-90"
                 />
 
                 <div className="h-px bg-border -mx-5" />
+
+                {/* 📖 Live agent edit (t309): live diff of the agent's writes,
+                    refresh-free. Self-hiding while the task has no diff yet. */}
+                {drawerTaskId && <DiffOverlay taskId={drawerTaskId} />}
 
                 {/* Description (full width) */}
                 <div>
@@ -388,7 +420,9 @@ export function Drawer() {
                   </div>
                   <BlockNoteMarkdownEditor
                     value={drawerData.body}
+                    readOnly={editLocked}
                     onChange={val => {
+                      if (editLocked) return;
                       updateDrawerData(d => ({ ...d, body: val }));
                       markDrawerDirty();
                       triggerAutoSave();
@@ -414,6 +448,7 @@ export function Drawer() {
                   </div>
                   <BlockNoteMarkdownEditor
                     value={drawerData.frontmatter.report as string || ''}
+                    readOnly={editLocked}
                     onChange={val => updateField('report', val)}
                     placeholder={t('drawer.reportPlaceholder')}
                     minHeight="180px"

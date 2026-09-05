@@ -100,6 +100,7 @@ export function createInitialAgentChatState(): AgentChatState {
     guard: 'unknown',
     permissionModeSnapshot: null,
     preContextTaskId: null,
+    gitWarning: null,
     harnesses: [],
     starting: false,
     sending: false,
@@ -252,7 +253,9 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
         firstMessage: input.message,
         title,
       });
-      set(state => ({ agentChat: { ...state.agentChat, starting: false } }));
+      set(state => ({
+        agentChat: { ...state.agentChat, starting: false, gitWarning: result.gitWarning ?? null },
+      }));
     },
 
     resumeSession: async (entry) => {
