@@ -21,6 +21,7 @@ Markdown, installed into other projects with `npx kandown init`.
 | 7 | [`docs/EXTENSIONS.md`](docs/EXTENSIONS.md) | Before touching the extension/plugin system, or anything under `plugins.*` |
 | 8 | [`docs/EXTENSIONS-AUTHORING.md`](docs/EXTENSIONS-AUTHORING.md) | When building or scaffolding an extension |
 | 9 | [`docs/EXTENSIONS-AGENT.md`](docs/EXTENSIONS-AGENT.md) | When *writing* a plugin: the generated contract, also printed by `kandown plugin brief` |
+| 10 | [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md) | Before touching the `kandown work` compiler, a workflow package, a skill, or anything under `workflow.*` |
 
 Then run **`kandown work`**: it prints the current agent rules plus a live board
 digest and the next actionable task.
