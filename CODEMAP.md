@@ -172,7 +172,7 @@ source to edit instead.
 
 - **`agentIcons.tsx`** · 305 lines — Local, self-contained brand glyphs for the coding agents kandown can assign tasks to, plus the resolver that turns a task's `assignee` string into either a branded agent logo or a human fallback avatar.
 - **`ArchiveView.tsx`** · 89 lines — Lists every archived task (frontmatter `archived: true`, files living under `tasks/archive/` at the project root) as a flat list.
-- **`Board.tsx`** · 397 lines — Renders the horizontal kanban board, filters tasks per column, wires drag-and-drop state, and forwards content-search matches to cards.
+- **`Board.tsx`** · 404 lines — Renders the horizontal kanban board, filters tasks per column, wires drag-and-drop state, and forwards content-search matches to cards.
 - **`BulkActionBar.tsx`** · 537 lines — Appears when one or more tasks are selected in the web UI and behaves like Linear's selection bar: a floating pill at the bottom of the screen that exposes every action that makes sense for a group of tasks — change priority, assign,…
 - **`Card.tsx`** · 551 lines — Displays one board task as a clean, rounded card inside a column.
 - **`CardStack.tsx`** · 332 lines — Renders a group of 2+ cards that share the same `[bracket]` or `#hashtag` title tag as a visually stacked card.
@@ -189,11 +189,11 @@ source to edit instead.
 - **`ErrorBoundary.tsx`** · 164 lines — Catches render-time errors in the child tree and displays a recoverable fallback instead of letting React unmount the whole app to a blank page.
 - **`ExtensionRuntimeProvider.tsx`** · 176 lines — Hydrates one project-wide extension snapshot for fields, panels and card badges.
 - **`FilterBar.tsx`** · 125 lines — Renders global task filters for text search, owner type, and active filter chips that can be cleared individually.
-- **`Header.tsx`** · 607 lines — Top navigation bar for project switching, task search, filters (including the category dropdown next to the task count), view mode, density, settings, command palette, reload, and task creation.
+- **`Header.tsx`** · 645 lines — Top navigation bar for project switching, task search, filters (including the category dropdown next to the task count), view mode, density, settings, command palette, reload, and task creation.
 - **`Icons.tsx`** · 220 lines — Centralizes small stroke icons used by the Kandown web UI.
 - **`KbdButton.tsx`** · 109 lines — A unified button component that handles icons, labels, and keyboard shortcuts with consistent styling and improved visibility.
 - **`ListRow.tsx`** · 580 lines — Renders a single task as a compact, Linear-style list item for the list view, with priority indicators, title, status, metadata badges, inline subtask progress slider, and hover quick actions.
-- **`ListView.tsx`** · 536 lines — Renders board columns as vertically stacked horizontal sections, with dense task rows, filter/search previews, task drops between sections, and vertical section reordering.
+- **`ListView.tsx`** · 541 lines — Renders board columns as vertically stacked horizontal sections, with dense task rows, filter/search previews, task drops between sections, and vertical section reordering.
 - **`LogoSvg.tsx`** · 54 lines — Renders the official Kandown vector logo from logo.svg.
 - **`OnboardingTour.tsx`** · 293 lines — Centered dialog that introduces Kandown the first time a user opens a project, then disappears for good on that project.
 - **`SettingsPage.tsx`** · 386 lines — Dense settings workspace with an iOS-style sidebar, global option search, section navigation, and compact controls for kandown.json.
@@ -239,16 +239,33 @@ source to edit instead.
 
 ## `src/components/bui/`
 
-- **`ApprovalCard.tsx`** · 412 lines — _no @description_
+- **`ApprovalCard.tsx`** · 420 lines — Renders one approval question at a time for agent sessions: the stack slides vertically between questions while the card height animates to fit, so the agent never continues without an explicit human answer.
 - **`BuiGallery.tsx`** · 70 lines — Development surface for the BeautifulUI ports (beautifului.dev, MIT): every component and every variant rendered on one page, inside the scoped `.bui` design system.
-- **`LoadingState.tsx`** · 150 lines — _no @description_
-- **`StreamingText.tsx`** · 236 lines — _no @description_
-- **`ThinkingState.tsx`** · 271 lines — _no @description_
+- **`ContextCards.tsx`** · 129 lines — Faithful port of the BeautifulUI ContextCards (beautifului.dev, MIT): retrieved chunks enter once with a staggered fade-up, then remain available; source chips pop in after a beat.
+- **`DiffTable.tsx`** · 253 lines — Faithful port of the BeautifulUI DiffTable (beautifului.dev, MIT): the proposed edit plays once and rests on the completed diff; each changed row is the control, so a click includes or excludes that specific addition or removal before…
+- **`FilterTable.tsx`** · 153 lines — Faithful port of the BeautifulUI FilterTable (beautifului.dev, MIT): the status chips directly filter the task table and rows collapse through an animated grid-rows transition.
+- **`FineTuneCard.tsx`** · 345 lines — Faithful port of the BeautifulUI FineTuneCard (beautifului.dev, MIT): a compact interactive inspector whose number fields scrub (drag the label, use the arrow keys, or type), with a segment switch and a GlideMenu type select.
+- **`InsightCards.tsx`** · 559 lines — Faithful port of the BeautifulUI InsightCards (beautifului.dev, MIT): embedded mini-visualizations in an "Insights N < >" carousel whose autoplay yields as soon as a person uses it.
+- **`LoadingState.tsx`** · 158 lines — Long-running-work loaders built on a pixel grid, in four variants (Drive, Dots, Orbit, Surfer).
+- **`RecommendationCard.tsx`** · 181 lines — Faithful port of the BeautifulUI RecommendationCard (beautifului.dev, MIT): the card holds its shape, pressing "Alternatives" opens the options drawer, picking one promotes it and the primary action confirms.
+- **`RecordsTable.tsx`** · 1067 lines — Faithful port of the BeautifulUI RecordsTable (beautifului.dev, MIT): an AI spreadsheet grid whose columns are properties.
+- **`SelectionActions.tsx`** · 574 lines — Faithful port of the BeautifulUI SelectionActions (beautifului.dev, MIT): a contextual AI bar attached beneath selected text.
+- **`SidebarNav.tsx`** · 466 lines — Faithful port of the BeautifulUI SidebarNav (beautifului.dev, MIT): compact workspace switcher, primary navigation, searchable chat history, and a collapse that preserves icon alignment.
+- **`StreamingText.tsx`** · 244 lines — Animates incoming agent text: words resolve out of blur, inline citations appear in context, then actions and follow-up prompts become usable once the stream settles.
+- **`TaskRows.tsx`** · 275 lines — Faithful port of the BeautifulUI TaskRows component (beautifului.dev, MIT): a progress list where each row carries a spinner ring or a success/failure badge plus an expandable details grid.
+- **`ThinkingState.tsx`** · 279 lines — Renders an agent trace that runs once, settles, and stays expandable, in four variants (Steps, Reasoning, Search, Coding).
+
+## `src/components/bui/atoms/`
+
+- **`EntityChip.tsx`** · 39 lines — Faithful-enough port of the BeautifulUI atoms/EntityChip (beautifului.dev, MIT): a small inline chip that prefixes an entity name with a colored dot holding the initial letter, for inline @-mentions and entity references inside prose.
+- **`Shimmer.tsx`** · 36 lines — Faithful port of the BeautifulUI atoms/Shimmer (beautifului.dev, MIT): a span whose text is clipped to a moving accent gradient, driven by the `shimmer-text` keyframe from styles/beautifului.css.
+- **`StreamText.tsx`** · 55 lines — Faithful-enough port of the BeautifulUI atoms/StreamText (beautifului.dev, MIT): streams a string word by word on an interval.
+- **`ValuePill.tsx`** · 36 lines — Faithful-enough port of the BeautifulUI atoms/ValuePill (beautifului.dev, MIT): a compact monospace pill for numeric values and deltas, with an optional green tone for positive readings.
 
 ## `src/components/bui/primitives/`
 
-- **`Button.tsx`** · 41 lines — Faithful port of the BeautifulUI atoms/Button used by its components (beautifului.dev, MIT): two variants (`ghost`, `accent`) and compact sizes, written against the scoped `.bui` tokens from styles/beautifului.css.
-- **`GlideMenu.tsx`** · 55 lines — Faithful port of the BeautifulUI primitives/GlideMenu (beautifului.dev, MIT): a menu container whose highlight pill glides to the hovered row instead of jumping.
+- **`Button.tsx`** · 49 lines — Faithful port of the BeautifulUI atoms/Button used by its components (beautifului.dev, MIT): variants (`ghost`, `accent`, `secondary`, `success`, `primary`, `quiet`) and compact sizes, written against the scoped `.bui` tokens from…
+- **`GlideMenu.tsx`** · 61 lines — Faithful port of the BeautifulUI primitives/GlideMenu (beautifului.dev, MIT): a menu container whose highlight pill glides to the hovered row instead of jumping.
 
 ## `src/components/settings/` — Settings page sections
 
@@ -314,7 +331,7 @@ source to edit instead.
 - **`task-title-category.ts`** · 57 lines — Provides the canonical way to read a task's category (frontmatter `category:` field first, legacy leading bracket in the title as fallback) and title parsing utilities.
 - **`task-url.ts`** · 65 lines — Parses and writes deep-link URLs for task drawers.
 - **`theme.ts`** · 326 lines — Manages customizable JSON themes, appearance tokens (--radius, --shadow-*, --font-display, --motion-scale), four bundled presets (shadcn, vercel, linear, kandown), installed community themes, and dynamic inheritance.
-- **`types.ts`** · 608 lines — Defines the board, task, config, filter, search, and appearance contracts shared by the Kandown web UI, CLI, TUI, and persistence adapters.
+- **`types.ts`** · 609 lines — Defines the board, task, config, filter, search, and appearance contracts shared by the Kandown web UI, CLI, TUI, and persistence adapters.
 - **`utils.ts`** · 24 lines — Provides `cn`, the single utility used across every web component to compose conditional class names.
 - **`version.ts`** · 9 lines · ⚠️ **GENERATED** by scripts/inject-version.js — edit `package.json` instead
 - **`watcher.ts`** · 518 lines — Watches project state through content-hashed File System Access polling or daemon SSE.
@@ -422,11 +439,6 @@ source to edit instead.
 
 ## Coverage
 
-289 of 293 eligible files carry an `@description` header.
+307 of 307 eligible files carry an `@description` header.
 
-Missing a header (add one — `--check` fails on these):
-
-- `src/components/bui/ApprovalCard.tsx`
-- `src/components/bui/LoadingState.tsx`
-- `src/components/bui/StreamingText.tsx`
-- `src/components/bui/ThinkingState.tsx`
+Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

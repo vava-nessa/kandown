@@ -1,3 +1,11 @@
+/**
+ * @file Human-in-the-loop approval card
+ * @description Renders one approval question at a time for agent sessions:
+ * the stack slides vertically between questions while the card height
+ * animates to fit, so the agent never continues without an explicit
+ * human answer. Used by the agent chat surface.
+ */
+
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Button } from "./primitives/Button";
 import GlideMenu from "./primitives/GlideMenu";

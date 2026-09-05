@@ -1,3 +1,11 @@
+/**
+ * @file Expandable agent thinking trace
+ * @description Renders an agent trace that runs once, settles, and stays
+ * expandable, in four variants (Steps, Reasoning, Search, Coding). Lets
+ * the chat surface show live progress without permanently occupying
+ * vertical space.
+ */
+
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 /* ─────────────────────────────────────────────────────────

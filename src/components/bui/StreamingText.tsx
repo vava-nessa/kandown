@@ -1,3 +1,11 @@
+/**
+ * @file Streaming text reveal
+ * @description Animates incoming agent text: words resolve out of blur,
+ * inline citations appear in context, then actions and follow-up prompts
+ * become usable once the stream settles. Faithful copy from
+ * beautifului.dev (MIT).
+ */
+
 import { useEffect, useState, type ReactNode } from "react";
 
 /* ─────────────────────────────────────────────────────────

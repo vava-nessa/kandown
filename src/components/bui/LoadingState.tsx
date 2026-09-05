@@ -1,3 +1,11 @@
+/**
+ * @file Pixel-grid loading states
+ * @description Long-running-work loaders built on a pixel grid, in four
+ * variants (Drive, Dots, Orbit, Surfer). Shown while agent sessions or
+ * other slow operations are in flight, so waiting reads as motion
+ * instead of a frozen UI.
+ */
+
 import { useEffect, useState } from "react";
 
 /* ─────────────────────────────────────────────────────────
