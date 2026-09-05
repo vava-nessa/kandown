@@ -1,0 +1,150 @@
+/*
+ * 📖 BeautifulUI design system (beautifului.dev, MIT)
+ *
+ * This file is the faithful port of the BeautifulUI theme: the color
+ * variables, shadows, radii, easings and keyframes its components are
+ * written against. Everything is scoped under `.bui` so the rest of
+ * Kandown keeps its own theme untouched: inside a `.bui` wrapper the
+ * BeautifulUI classes (bg-surface, text-ink-2, shadow-hairline,
+ * rounded-control, ...) resolve exactly like on beautifului.dev.
+ *
+ * The site ships its tokens in oklch; they are converted here to HSL
+ * triplets so they can piggyback on Tailwind's hsl(var(--x) / alpha)
+ * color functions. Light values under `.bui`, dark values under
+ * `.dark .bui` (Kandown toggles dark with a class).
+ */
+
+.bui {
+  --page: 240 8% 98%;
+  --canvas: 210 9% 95%;
+  --surface: 0 0% 100%;
+  --inset: 210 17% 97%;
+  --hover: 210 12% 96%;
+  --hover-2: 210 8% 91%;
+  --ink: 216 7% 13%;
+  --ink-2: 220 4% 40%;
+  --ink-3: 220 4% 62%;
+  --line: 220 9% 93%;
+  --line-strong: 216 10% 89%;
+  --line-soft: 220 9% 96%;
+  --field: 210 12% 96%;
+  --stripe: 0 0% 100% / 0.6;
+  --stripe-bg: 210 9% 95%;
+  --accent: 209 100% 50%;
+  --accent-ink: 210 100% 43%;
+  --accent-tint: 213 97% 96%;
+  --green: 144 72% 35%;
+  --green-tint: 143 39% 94%;
+  --orange: 27 89% 49%;
+  --orange-tint: 30 87% 94%;
+  --red: 358 73% 58%;
+  --red-tint: 0 71% 96%;
+  --tooltip-bg: 220 9% 18%;
+  --tooltip-fg: 0 0% 100%;
+  --tooltip-muted: 220 4% 62%;
+  --tooltip-border: 220 9% 93%;
+
+  /* layered shadow scales from the BeautifulUI theme */
+  --shadow-xs: 0 0 4px 0 #0000000a;
+  --shadow-sm: 0 18px 47px 0 #00000008, 0 7.5px 19px 0 #00000005, 0 4px 10.5px 0 #00000005, 0 2.3px 5.8px 0 #00000003, 0 1.2px 3.1px 0 #00000003, 0 0.5px 1.3px 0 #00000003;
+  --shadow-md: 0 17.54px 23.39px 0 #0000000a, 0 9.4px 12.5px 0 #00000008, 0 5.25px 7px 0 #00000005, 0 2.79px 3.72px -2px #00000003, 0 1.16px 1.5px 0 #00000003;
+  --shadow-lg: 0 25px 50px 0 #0000000d, 0 12px 24px 0 #0000000a, 0 6px 12px 0 #00000008, 0 3px 6px 0 #00000005, 0 1.5px 3px 0 #00000005;
+  --shadow-hairline: 0 0 0 1px var(--line);
+  --shadow-btn: 0 0 0 1px var(--line-strong), var(--shadow-xs);
+  --shadow-inset-field: inset 0 0 0 1px var(--line);
+  --shadow-card: 0 0 0 1px var(--line), var(--shadow-sm);
+  --shadow-raised: 0 0 0 1px var(--line), var(--shadow-md);
+  --shadow-overlay: 0 0 0 1px var(--line), var(--shadow-lg);
+
+  /* easings the components reference by name */
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-link: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark .bui {
+  --page: 220 6% 10%;
+  --canvas: 220 5% 12%;
+  --surface: 225 6% 14%;
+  --inset: 220 5% 13%;
+  --hover: 225 5% 17%;
+  --hover-2: 228 5% 20%;
+  --ink: 210 10% 95%;
+  --ink-2: 217 5% 66%;
+  --ink-3: 220 4% 44%;
+  --line: 216 5% 19%;
+  --line-strong: 220 5% 24%;
+  --line-soft: 216 6% 16%;
+  --field: 225 5% 18%;
+  --stripe: 0 0% 100% / 0.055;
+  --stripe-bg: 220 5% 11%;
+  --accent: 211 100% 62%;
+  --accent-ink: 209 100% 75%;
+  --accent-tint: 211 100% 62% / 0.16;
+  --green: 145 51% 48%;
+  --green-tint: 145 51% 48% / 0.14;
+  --orange: 27 91% 60%;
+  --orange-tint: 27 91% 60% / 0.14;
+  --red: 358 81% 65%;
+  --red-tint: 358 81% 65% / 0.14;
+  --tooltip-bg: 220 7% 7%;
+  --tooltip-fg: 210 10% 95%;
+  --tooltip-muted: 217 5% 66%;
+  --tooltip-border: 216 5% 19%;
+}
+
+/* ── keyframes the BeautifulUI components animate with ── */
+
+@keyframes pixel-on {
+  0%, to { opacity: 0.15; }
+  18%, 42% { opacity: 1; }
+  62% { opacity: 0.15; }
+}
+
+@keyframes shimmer-text {
+  0% { background-position: 150%; }
+  to { background-position: -50%; }
+}
+
+@keyframes fade-in {
+  0% { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-up {
+  0% { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ── small utility classes referenced by the components ── */
+
+.bui .animated-underline {
+  display: inline-block;
+  position: relative;
+}
+
+.bui .source-avatar {
+  box-shadow: 0 0 0 1px hsl(var(--ink) / 0.1);
+}
+
+.bui .primitive-icon-button {
+  border-radius: var(--radius-control, 8px);
+  justify-content: center;
+  align-items: center;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+}
+
+.bui .primitive-card-pad {
+  padding: 12px;
+}
+
+.bui .primitive-card-footer {
+  padding: 10px;
+}

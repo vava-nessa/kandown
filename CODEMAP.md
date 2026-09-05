@@ -32,7 +32,7 @@ source to edit instead.
 ## `src/` — Web app root
 
 - **`App.tsx`** · 308 lines — Composes the Kandown web UI, hydrates recent projects from the URL, and owns global keyboard shortcuts for board navigation, creation, reload, search focus, and command palette access.
-- **`main.tsx`** · 55 lines — Mounts the Kandown React app into the Vite-provided root node, initializes i18n, and imports the global Tailwind/CSS-variable theme layer.
+- **`main.tsx`** · 69 lines — Mounts the Kandown React app into the Vite-provided root node, initializes i18n, and imports the global Tailwind/CSS-variable theme layer.
 
 ## `src/cli/` — CLI + terminal UI (source of the bin/ bundles)
 
@@ -237,6 +237,19 @@ source to edit instead.
 - **`TaskMentionDropdown.tsx`** · 99 lines — One small list, three uses, anchored above the PromptBar textarea: @task mentions (mono @id chip + task title), /skill tokens (mono /id + chat button label + interactive badge) and the "pick one task" mode a task-scoped skill falls back…
 - **`UsageBadge.tsx`** · 51 lines — Shows the running token totals and USD cost of the active session, accumulated by the event fold from `usage` SSE events.
 
+## `src/components/bui/`
+
+- **`ApprovalCard.tsx`** · 412 lines — _no @description_
+- **`BuiGallery.tsx`** · 70 lines — Development surface for the BeautifulUI ports (beautifului.dev, MIT): every component and every variant rendered on one page, inside the scoped `.bui` design system.
+- **`LoadingState.tsx`** · 150 lines — _no @description_
+- **`StreamingText.tsx`** · 236 lines — _no @description_
+- **`ThinkingState.tsx`** · 271 lines — _no @description_
+
+## `src/components/bui/primitives/`
+
+- **`Button.tsx`** · 41 lines — Faithful port of the BeautifulUI atoms/Button used by its components (beautifului.dev, MIT): two variants (`ghost`, `accent`) and compact sizes, written against the scoped `.bui` tokens from styles/beautifului.css.
+- **`GlideMenu.tsx`** · 55 lines — Faithful port of the BeautifulUI primitives/GlideMenu (beautifului.dev, MIT): a menu container whose highlight pill glides to the hovered row instead of jumping.
+
 ## `src/components/settings/` — Settings page sections
 
 - **`AboutVersionCard.tsx`** · 205 lines — Shows the running version, checks npm for a newer release, and can trigger the server-side self-update (serverApplyUpdate) followed by a page reload once the daemon confirms it restarted on the new build.
@@ -409,6 +422,11 @@ source to edit instead.
 
 ## Coverage
 
-286 of 286 eligible files carry an `@description` header.
+289 of 293 eligible files carry an `@description` header.
 
-Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.
+Missing a header (add one — `--check` fails on these):
+
+- `src/components/bui/ApprovalCard.tsx`
+- `src/components/bui/LoadingState.tsx`
+- `src/components/bui/StreamingText.tsx`
+- `src/components/bui/ThinkingState.tsx`

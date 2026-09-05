@@ -21,7 +21,9 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { initI18n } from './lib/i18n';
 import { setupGlobalErrorHandlers } from './lib/globalErrors';
+import BuiGallery from './components/bui/BuiGallery';
 import './styles/globals.css';
+import './styles/beautifului.css';
 
 // 📖 Install global error handlers BEFORE React mounts so we catch any failure
 // during initial render / hydration. Safe to call early — the module imports
@@ -47,8 +49,20 @@ if (__KANDOWN_DEMO_BUILD__) {
   installDemoBackend();
 }
 
+// 📖 Hidden BeautifulUI gallery: opening the app on #bui renders the component
+// gallery instead of the board. Undocumented on purpose; it is a development
+// surface for the ported BeautifulUI components.
+const showBuiGallery = window.location.hash === '#bui';
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    {showBuiGallery ? (
+      <div className="bui">
+        <BuiGallery />
+      </div>
+    ) : (
+      <App />
+    )}
   </StrictMode>
 );
+

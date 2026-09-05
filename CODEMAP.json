@@ -2185,6 +2185,49 @@
       "exports": "Board"
     },
     {
+      "path": "src/components/bui/ApprovalCard.tsx",
+      "lines": 412
+    },
+    {
+      "path": "src/components/bui/BuiGallery.tsx",
+      "lines": 70,
+      "title": "Hidden BeautifulUI component gallery",
+      "summary": "Development surface for the BeautifulUI ports (beautifului.dev, MIT): every component and every variant rendered on one page, inside the scoped `.bui` design system.",
+      "functions": [
+        {
+          "name": "BuiGallery: the one-page gallery",
+          "summary": null
+        }
+      ],
+      "exports": "BuiGallery"
+    },
+    {
+      "path": "src/components/bui/LoadingState.tsx",
+      "lines": 150
+    },
+    {
+      "path": "src/components/bui/primitives/Button.tsx",
+      "lines": 41,
+      "title": "Button primitive of the BeautifulUI design system",
+      "summary": "Faithful port of the BeautifulUI atoms/Button used by its components (beautifului.dev, MIT): two variants (`ghost`, `accent`) and compact sizes, written against the scoped `.bui` tokens from styles/beautifului.css.",
+      "exports": "Button"
+    },
+    {
+      "path": "src/components/bui/primitives/GlideMenu.tsx",
+      "lines": 55,
+      "title": "GlideMenu primitive of the BeautifulUI design system",
+      "summary": "Faithful port of the BeautifulUI primitives/GlideMenu (beautifului.dev, MIT): a menu container whose highlight pill glides to the hovered row instead of jumping.",
+      "exports": "GlideMenu"
+    },
+    {
+      "path": "src/components/bui/StreamingText.tsx",
+      "lines": 236
+    },
+    {
+      "path": "src/components/bui/ThinkingState.tsx",
+      "lines": 271
+    },
+    {
       "path": "src/components/BulkActionBar.tsx",
       "lines": 537,
       "title": "Floating Bulk Action Bar component",
@@ -4417,7 +4460,7 @@
     },
     {
       "path": "src/main.tsx",
-      "lines": 55,
+      "lines": 69,
       "title": "Browser entry point",
       "summary": "Mounts the Kandown React app into the Vite-provided root node, initializes i18n, and imports the global Tailwind/CSS-variable theme layer.",
       "functions": [
@@ -4440,5 +4483,10 @@
     }
   ],
   "collapsed": [],
-  "undocumented": []
+  "undocumented": [
+    "src/components/bui/ApprovalCard.tsx",
+    "src/components/bui/LoadingState.tsx",
+    "src/components/bui/StreamingText.tsx",
+    "src/components/bui/ThinkingState.tsx"
+  ]
 }
