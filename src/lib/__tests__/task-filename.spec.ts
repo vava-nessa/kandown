@@ -135,6 +135,24 @@ describe('buildTaskFilename', () => {
     expect(buildTaskFilename('t232', '[CLEANUP] Remove dead code')).toBe('t232_CLEANUP_remove_dead_code.md');
   });
 
+  it('leaves a digitless custom id bare, so it stays resolvable', () => {
+    // 📖 `resolveTaskFilename` only treats the first underscore as a slug
+    // boundary when the prefix contains a digit (see ID_LIKE). Slugging a
+    // digitless id (`kandown create --id assignable`) produced
+    // `assignable_assign_me.md`, which claims the id `assignable_assign_me` —
+    // the task became unreachable by its own id, for `show`, `move`, `assign`
+    // and every `depends_on` pointing at it.
+    expect(buildTaskFilename('assignable', 'Assign me')).toBe('assignable.md');
+    expect(buildTaskFilename('assignable', '[UI] Assign me')).toBe('assignable.md');
+    expect(resolveTaskFilename('assignable', ['assignable.md'])?.filename).toBe('assignable.md');
+  });
+
+  it('still slugs every id shape the resolver can split back out', () => {
+    expect(buildTaskFilename('t292', 'Fix login')).toBe('t292_fix_login.md');
+    expect(buildTaskFilename('BUG-001', 'Fix login')).toBe('BUG-001_fix_login.md');
+    expect(buildTaskFilename('custom-1', 'Fix login')).toBe('custom-1_fix_login.md');
+  });
+
   it('refuses an id that would escape the tasks directory', () => {
     expect(() => buildTaskFilename('../t292', 'x')).toThrow();
     expect(() => buildTaskFilename('a/b', 'x')).toThrow();

@@ -310,9 +310,18 @@ export function buildTaskFilename(
   if (!safeId) throw new Error('buildTaskFilename requires a task id');
   if (/[\\/]|^\.+$/.test(safeId)) throw new Error(`Unsafe task id for a filename: ${safeId}`);
 
-  const categorySegment =
-    normalizeCategorySegment(category ?? null) ?? categorySegmentFromTitle(title ?? '');
-  const slug = slugifyTitle(title ?? '');
+  // 📖 A slug is only safe on an id the resolver can split back out, i.e. one
+  // matching ID_LIKE (`t232`, `BUG-001`). On a digitless custom id
+  // (`kandown create --id assignable`) the underscore is not read as a slug
+  // boundary, so `assignable_assign_me.md` would claim the id
+  // `assignable_assign_me` and the task would be unreachable by its own id
+  // forever. Falling back to the bare `<id>.md` keeps decoration from breaking
+  // identity — the whole point of the id/filename split.
+  const sluggable = ID_LIKE.test(safeId);
+  const categorySegment = sluggable
+    ? normalizeCategorySegment(category ?? null) ?? categorySegmentFromTitle(title ?? '')
+    : null;
+  const slug = sluggable ? slugifyTitle(title ?? '') : '';
   // 📖 No category and no slug → bare id; one or the other → single segment;
   // both → category first so the id is always followed by CATEGORY before prose.
   let body: string;

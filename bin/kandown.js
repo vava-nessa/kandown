@@ -1754,13 +1754,19 @@ function pushUndo(kandownDir, record) {
   } catch {
   }
 }
-function undoLastAction(kandownDir) {
+function undoLastActionDetailed(kandownDir) {
+  let list = [];
+  let record;
   try {
     const logPath = join4(kandownDir, ".undo", "log.json");
-    if (!existsSync4(logPath)) return false;
-    const list = JSON.parse(readFileSync4(logPath, "utf8"));
-    if (!list || list.length === 0) return false;
-    const record = list.shift();
+    if (!existsSync4(logPath)) return { ok: false, reason: "empty" };
+    list = JSON.parse(readFileSync4(logPath, "utf8"));
+    if (!list || list.length === 0) return { ok: false, reason: "empty" };
+    record = list[0];
+    const currentContent = existsSync4(record.path) ? readFileSync4(record.path, "utf8") : null;
+    const drifted = currentContent === null ? record.newContent !== null : record.newContent === null || currentContent !== record.newContent;
+    if (drifted) return { ok: false, reason: "drifted", record };
+    list.shift();
     atomicWriteFileSync(logPath, JSON.stringify(list, null, 2));
     if (record.previousContent === null) {
       if (existsSync4(record.path)) unlinkSync4(record.path);
@@ -1773,9 +1779,9 @@ function undoLastAction(kandownDir) {
         if (existsSync4(activePath)) unlinkSync4(activePath);
       }
     }
-    return true;
+    return { ok: true, record };
   } catch {
-    return false;
+    return { ok: false, reason: record ? "write-failed" : "empty", record };
   }
 }
 function createTaskInBoard(kandownDir, rawInput, status) {
@@ -6991,28 +6997,27 @@ function cmdUndo(rawArgs) {
     return;
   }
   if (args.flags.list === true || args.flags.l === true) {
-    const records2 = listUndoRecords(kandownDir);
-    if (records2.length === 0) {
+    const records = listUndoRecords(kandownDir);
+    if (records.length === 0) {
       info("The undo journal is empty.");
       return;
     }
-    for (const record of records2) {
+    for (const record of records) {
       const when = new Date(record.timestamp).toISOString();
       log(`${record.type.padEnd(8)}${record.taskId.padEnd(10)}${when}  ${record.path}`);
     }
     return;
   }
-  const records = listUndoRecords(kandownDir);
-  const next = records[0];
-  if (!next) {
+  const outcome = undoLastActionDetailed(kandownDir);
+  if (!outcome.ok) {
+    if (outcome.reason === "drifted" && outcome.record) {
+      err(`Cannot undo ${outcome.record.type} of ${outcome.record.taskId}: ${outcome.record.path} changed after the journalized mutation. The journal entry is kept; resolve the file by hand.`);
+      process.exit(1);
+    }
     err("Nothing to undo: the journal is empty.");
     process.exit(1);
   }
-  if (!undoLastAction(kandownDir)) {
-    err(`Failed to undo ${next.type} of ${next.taskId}: the revert did not complete.`);
-    process.exit(1);
-  }
-  success(describe(next));
+  success(describe(outcome.record));
 }
 
 // src/cli/commands/daemon.ts

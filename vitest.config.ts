@@ -25,6 +25,10 @@ export default defineConfig({
       // in plain .ts next to the components, and those files are as worth
       // testing as anything under lib/.
       'src/cli/screens/**/__tests__/**/*.spec.ts',
+      // 📖 Same reasoning for the hooks: `parseMouseInput` is a pure decoder
+      // living next to a React hook, and it is the whole reason the TUI board
+      // is clickable.
+      'src/cli/hooks/__tests__/**/*.spec.ts',
       'website/src/**/__tests__/**/*.spec.ts',
     ],
     coverage: {

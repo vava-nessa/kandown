@@ -55734,13 +55734,19 @@ function pushUndo(kandownDir, record) {
   } catch {
   }
 }
-function undoLastAction(kandownDir) {
+function undoLastActionDetailed(kandownDir) {
+  let list = [];
+  let record;
   try {
     const logPath = join2(kandownDir, ".undo", "log.json");
-    if (!existsSync3(logPath)) return false;
-    const list = JSON.parse(readFileSync3(logPath, "utf8"));
-    if (!list || list.length === 0) return false;
-    const record = list.shift();
+    if (!existsSync3(logPath)) return { ok: false, reason: "empty" };
+    list = JSON.parse(readFileSync3(logPath, "utf8"));
+    if (!list || list.length === 0) return { ok: false, reason: "empty" };
+    record = list[0];
+    const currentContent = existsSync3(record.path) ? readFileSync3(record.path, "utf8") : null;
+    const drifted = currentContent === null ? record.newContent !== null : record.newContent === null || currentContent !== record.newContent;
+    if (drifted) return { ok: false, reason: "drifted", record };
+    list.shift();
     atomicWriteFileSync(logPath, JSON.stringify(list, null, 2));
     if (record.previousContent === null) {
       if (existsSync3(record.path)) unlinkSync2(record.path);
@@ -55753,10 +55759,13 @@ function undoLastAction(kandownDir) {
         if (existsSync3(activePath)) unlinkSync2(activePath);
       }
     }
-    return true;
+    return { ok: true, record };
   } catch {
-    return false;
+    return { ok: false, reason: record ? "write-failed" : "empty", record };
   }
+}
+function undoLastAction(kandownDir) {
+  return undoLastActionDetailed(kandownDir).ok;
 }
 function createTaskInBoard(kandownDir, rawInput, status) {
   const tasksDir = getTasksDir(kandownDir);
