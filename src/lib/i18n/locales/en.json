@@ -503,6 +503,16 @@
     "daemonGuardTitle": "Agent chat needs the kandown daemon",
     "daemonGuardBody": "Run kandown in this project to chat with your coding agents right from the sidebar."
   },
+  "agentSkills": {
+    "skillsLabel": "Skills",
+    "needsTaskContext": "Needs a task context",
+    "interactiveBadge": "Interactive",
+    "answerFormTitle": "Answer the questions",
+    "answerPlaceholder": "Your answer...",
+    "sendAnswers": "Send answers",
+    "skip": "Skip",
+    "skillRunning": "Skill running"
+  },
   "agentEdits": {
     "editingBubble": "I am editing this task...",
     "editingAria": "An agent is editing this task",

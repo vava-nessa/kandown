@@ -8,7 +8,7 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 13946,
+      "lines": 13949,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
@@ -524,7 +524,7 @@
     },
     {
       "path": "src/cli/lib/agent/agent-runtime.ts",
-      "lines": 453,
+      "lines": 456,
       "title": "AgentRuntime: the harness session facade",
       "summary": "Spawns and drives harness sessions, normalizing every protocol into the shared event model.",
       "functions": [
@@ -653,7 +653,7 @@
     },
     {
       "path": "src/cli/lib/agent/types.ts",
-      "lines": 137,
+      "lines": 142,
       "title": "Agent harness contracts: the normalized event model and session types",
       "summary": "Defines the single event vocabulary every harness adapter normalizes to, the session configuration the runtime accepts, and the adapter interface each protocol backend implements.",
       "functions": [
@@ -1152,7 +1152,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 1306,
+      "lines": 1311,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },

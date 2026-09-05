@@ -1,0 +1,13 @@
+{
+  "formatVersion": 1,
+  "id": "grill-me",
+  "name": "Grill me",
+  "version": "1.0.0",
+  "description": "Ask pointed questions about a task's blind spots before any work starts.",
+  "instructions": "instructions.md",
+  "chat": {
+    "button": { "label": "Grill me" },
+    "scope": "task",
+    "interactive": true
+  }
+}

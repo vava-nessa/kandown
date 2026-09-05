@@ -5,7 +5,7 @@
  * contracts intentionally import no filesystem, browser, or runtime APIs so a
  * Node loader and a browser loader can share the same validation foundation.
  *
- * @exports WorkflowBoardRole, WorkflowTaskTemplateManifest, WorkflowAttribution, WorkflowManifest, WorkflowTextFile, WorkflowBoardPresetFile, LoadedWorkflowTaskTemplate, LoadedWorkflowPackage, WorkflowSourceFiles, WorkflowErrorCode, WorkflowFormatError, WorkflowResult
+ * @exports WorkflowBoardRole, WorkflowTaskTemplateManifest, WorkflowAttribution, WorkflowManifest, WorkflowTextFile, WorkflowBoardPresetFile, LoadedWorkflowTaskTemplate, LoadedWorkflowPackage, WorkflowSourceFiles, WorkflowSkillChatScope, WorkflowSkillChatButton, WorkflowSkillChat, WorkflowSkillChatResolved, WorkflowErrorCode, WorkflowFormatError, WorkflowResult
  */
 
 /** Semantic roles let workflows describe intent without fixing column names. */
@@ -91,6 +91,35 @@ export interface LoadedWorkflowPackage {
 
 /** Portable file map accepted by pure loaders before filesystem integration. */
 export type WorkflowSourceFiles = Readonly<Record<string, string>>;
+
+/** Where a chat skill applies: the task it was opened from, or the whole board. */
+export type WorkflowSkillChatScope = 'task' | 'board';
+
+/** Button metadata a chat UI renders to trigger the skill. */
+export interface WorkflowSkillChatButton {
+  /** Button text, 1 to 40 characters. */
+  label: string;
+  /** Free-form icon hint; the UI maps it and falls back on unknown values. */
+  icon?: string;
+}
+
+/** Optional chat surface a skill manifest declares for the web chat. */
+export interface WorkflowSkillChat {
+  button: WorkflowSkillChatButton;
+  scope: WorkflowSkillChatScope;
+  /** When true the skill asks questions first and waits for answers. */
+  interactive?: boolean;
+  /** When true the UI may apply the skill result without extra confirmation. */
+  autoApply?: boolean;
+}
+
+/** Validated chat declaration with the interactive and autoApply defaults applied. */
+export interface WorkflowSkillChatResolved {
+  button: WorkflowSkillChatButton;
+  scope: WorkflowSkillChatScope;
+  interactive: boolean;
+  autoApply: boolean;
+}
 
 /** Stable machine-readable categories returned by every workflow API. */
 export type WorkflowErrorCode =

@@ -197,7 +197,7 @@ function kandownDevPlugin() {
                   req.on('error', rejectBody);
                 });
                 const body = JSON.parse(Buffer.concat(chunks).toString('utf8')) as {
-                  harnessId?: unknown; taskId?: unknown; message?: unknown; title?: unknown; permissionMode?: unknown;
+                  harnessId?: unknown; taskId?: unknown; message?: unknown; title?: unknown; permissionMode?: unknown; skillId?: unknown;
                 };
                 if (typeof body.harnessId !== 'string' || !body.harnessId.trim()) {
                   res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -216,9 +216,24 @@ function kandownDevPlugin() {
                   res.end(JSON.stringify({ error: `Task not found: ${taskId}` }));
                   return;
                 }
-                const message = typeof body.message === 'string' && body.message.trim() ? body.message.trim() : undefined;
-                const prompt = message ? `${compiled.markdown}\n\n---\n\n${message}` : compiled.markdown;
                 const config = configModule.loadConfig(kandownPath);
+                // 📖 Skill launch (t310), same contract as the daemon: resolve
+                // the id server-side against built-ins plus configured skills,
+                // then append the skill section and its directive to the prompt.
+                const skillId = typeof body.skillId === 'string' && body.skillId.trim() ? body.skillId.trim() : undefined;
+                let prompt = compiled.markdown;
+                if (skillId) {
+                  const skillsModule = await server.ssrLoadModule('/src/cli/lib/skills.ts') as typeof import('./src/cli/lib/skills');
+                  const skill = skillsModule.findSessionSkill(kandownPath, skillId, config.workflow.skills);
+                  if (!skill) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: `Unknown or inactive skill: ${skillId}` }));
+                    return;
+                  }
+                  prompt = skillsModule.buildSkillSessionPrompt(prompt, skill);
+                }
+                const message = typeof body.message === 'string' && body.message.trim() ? body.message.trim() : undefined;
+                if (message) prompt = `${prompt}\n\n---\n\n${message}`;
                 const permissionMode = body.permissionMode === 'accept-edits' || body.permissionMode === 'yolo'
                   ? body.permissionMode
                   : config.agent.permissionMode;

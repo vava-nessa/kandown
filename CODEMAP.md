@@ -26,7 +26,7 @@ source to edit instead.
 
 ## `bin/` — Published CLI entrypoints — GENERATED, never edit
 
-- **`kandown.js`** · 13946 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
+- **`kandown.js`** · 13949 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
 - **`tui.js`** · 62792 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
 
 ## `src/` — Web app root
@@ -83,7 +83,7 @@ source to edit instead.
 - **`plugin-cli.ts`** · 296 lines — The agent-first façade over the extension system.
 - **`plugin-dev.ts`** · 154 lines — Watches one plugin directory and, on every save, rebuilds the browser bundles, re-runs the validator and asks the running daemon to hot reload the board.
 - **`plugin-scaffold.ts`** · 342 lines — Generates a ready-to-run plugin directory for `kandown plugin create`.
-- **`server.ts`** · 1306 lines — Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application.
+- **`server.ts`** · 1311 lines — Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application.
 - **`skills.ts`** · 152 lines — Discovers immutable built-in, global, and project data-only Markdown skill packages with deterministic override precedence.
 - **`task-move.ts`** · 198 lines — Runs the shared dependency policy and enabled extension gates before persisting a web move.
 - **`themes-cli.ts`** · 255 lines — Implements the `kandown theme <subcommand>` verb: list installed themes, install from the registry or a pasted URL, scaffold a starter theme, and emit the prefilled GitHub URL the user clicks to propose their theme via a one-click PR.
@@ -119,12 +119,12 @@ source to edit instead.
 
 ## `src/cli/lib/agent/`
 
-- **`agent-runtime.ts`** · 453 lines — Spawns and drives harness sessions, normalizing every protocol into the shared event model.
+- **`agent-runtime.ts`** · 456 lines — Spawns and drives harness sessions, normalizing every protocol into the shared event model.
 - **`detect.ts`** · 151 lines — Extends the PATH scan from src/cli/lib/agents.ts with the harness contract of t307: kandown never embeds an LLM and never asks for an API key, it drives harnesses the user already installed and authenticated.
 - **`permission-queue.ts`** · 121 lines — When a harness session runs in accept-edits mode and the adapter routes an edit-like permission request to kandown (t309), the daemon parks it here until the web UI answers through the resolve endpoint.
 - **`session-edits.ts`** · 379 lines — The daemon-side half of the live editing experience (t309).
 - **`session-index.ts`** · 199 lines — Kandown never stores conversations: each harness (claude, codex, pi, ACP) persists its own transcript wherever it keeps its data.
-- **`types.ts`** · 137 lines — Defines the single event vocabulary every harness adapter normalizes to, the session configuration the runtime accepts, and the adapter interface each protocol backend implements.
+- **`types.ts`** · 142 lines — Defines the single event vocabulary every harness adapter normalizes to, the session configuration the runtime accepts, and the adapter interface each protocol backend implements.
 
 ## `src/cli/lib/agent/adapters/`
 

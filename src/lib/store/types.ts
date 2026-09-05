@@ -57,6 +57,25 @@ export interface AgentChatLiveSession {
   fold: ChatFoldState;
 }
 
+/** 📖 The skill a chat session was launched from (t310). Kept after the
+ * questions turn so the UI keeps showing the skill chip through the fusion
+ * step; cleared on new conversation or on a start without a skill. */
+export interface ActiveSkillRef {
+  skillId: string;
+  label: string;
+  interactive: boolean;
+}
+
+/** 📖 One chat-launchable skill button (t310): the lean UI projection of a
+ * SkillPayload that declares a `chat` block on /api/skills. */
+export interface ChatSkillButton {
+  skillId: string;
+  label: string;
+  icon?: string;
+  scope: 'task' | 'board';
+  interactive: boolean;
+}
+
 /** 📖 Everything the agent chat sidebar reads. Chat state lives here, never in
  * tasks/: harnesses own their transcripts, this is session state only. */
 export interface AgentChatState {
@@ -79,16 +98,35 @@ export interface AgentChatState {
   gitWarning: 'not-a-git-repo' | null;
   /** Installed harnesses for the new-conversation selector (lazy, on open). */
   harnesses: DetectedHarness[];
+  /** Installed skills declaring a chat button, for the sidebar pill row (t310,
+   * lazy, fetched once on first sidebar use). */
+  chatSkills: ChatSkillButton[];
+  /** Skill the active session was launched from, kept through the fusion step. */
+  activeSkill: ActiveSkillRef | null;
+  /** True when the answer form is visible (interactive skill asked questions). */
+  answersRequested: boolean;
+  /** Questions captured from the interactive first turn, backing the form and
+   * the sendAnswers fallback when the live fold cannot be parsed. */
+  skillQuestions: string[];
+  /** True once the interactive question phase is over (answers sent or form
+   * dismissed), so a later turn_completed never reopens the form. */
+  answersSent: boolean;
   starting: boolean;
   sending: boolean;
 }
 
 /** 📖 Everything startSession accepts. `message` becomes the first user turn
- * appended under the compiled task/board context the daemon builds. */
+ * appended under the compiled task/board context the daemon builds. `skillId`
+ * (t310) is passed through to createAgentSession so the daemon folds the
+ * skill's instructions into the compiled prompt; `label` and `interactive` are
+ * UI-only (they drive the skill chip and the answer form, never sent). */
 export interface AgentChatStartInput {
   harnessId: string;
   taskId?: string;
   message?: string;
+  skillId?: string;
+  label?: string;
+  interactive?: boolean;
 }
 
 /** 📖 One live agent edit on a task (t309): the session touching the file,
@@ -312,6 +350,12 @@ export interface State {
   newConversation: () => void;
   /** Sends a follow-up message with optimistic append + rollback on failure. */
   sendMessage: (text: string) => Promise<void>;
+  /** 📖 Sends the interactive skill answers (t310): formats them with the
+   * captured questions and forwards as a normal follow-up message. */
+  sendAnswers: (answers: string[]) => Promise<void>;
+  /** 📖 Hides the interactive answer form without sending (t310). Ends the
+   * question phase so a later turn never reopens it. */
+  dismissAnswers: () => void;
   /** Stops a live session via POST /api/agent/sessions/:id/stop. */
   stopSession: (id: string) => Promise<void>;
   /** Forgets one session index entry (sidebar-only removal). */

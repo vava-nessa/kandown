@@ -91,9 +91,9 @@ source id, version, repository, ref, and fork timestamp retained as provenance.
 
 ## Skill packages
 
-Kandown ships Code Review, Test Driven, and Release Readiness. A project can also
-install data-only skill packages in `.kandown/skills/<id>/` or global packages in
-`~/.kandown/skills/<id>/`:
+Kandown ships Code Review, Grill me, Refine, Test Driven, and Release Readiness. A
+project can also install data-only skill packages in `.kandown/skills/<id>/` or
+global packages in `~/.kandown/skills/<id>/`:
 
 ```text
 code-review/
@@ -105,6 +105,43 @@ The manifest declares id, name, version, description, and the Markdown instructi
 file. Optional `compatibleWorkflows` and `requiredRoles` constraints are checked
 before guidance reaches the compiler. Project packages override global packages,
 which override immutable built-ins. Legacy flat `<id>.md` skills remain readable.
+
+### Chat buttons
+
+A valid skill manifest may declare one optional top-level `chat` object. When it
+does, the web chat renders a button for the skill (GET /api/skills carries the
+resolved metadata) and launching it posts `skillId` to POST /api/agent/sessions,
+where the daemon assembles the prompt server-side:
+
+| Field | Type | Required | Meaning |
+|---|---|---|---|
+| `chat.button.label` | string, 1 to 40 chars | yes | Text shown on the chat button |
+| `chat.button.icon` | string | no | Icon hint; unknown icons fall back to the default |
+| `chat.scope` | `"task"` or `"board"` | yes | Whether the button applies to one task or the board |
+| `chat.interactive` | boolean | no | True means the skill asks questions first and waits for answers (default false) |
+| `chat.autoApply` | boolean | no | True means the UI may apply the result without extra confirmation (default false) |
+
+Example, the shipped Grill me skill:
+
+```json
+{
+  "formatVersion": 1,
+  "id": "grill-me",
+  "name": "Grill me",
+  "version": "1.0.0",
+  "description": "Ask pointed questions about a task's blind spots before any work starts.",
+  "instructions": "instructions.md",
+  "chat": {
+    "button": { "label": "Grill me" },
+    "scope": "task",
+    "interactive": true
+  }
+}
+```
+
+Interactive skills (like Grill me) produce only their first step, the numbered
+questions, then stop; the session prompt tells the agent to wait for answers.
+Non-interactive skills (like Refine) are applied to the task context in one turn.
 
 ## Community store
 

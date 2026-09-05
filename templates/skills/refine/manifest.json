@@ -1,0 +1,12 @@
+{
+  "formatVersion": 1,
+  "id": "refine",
+  "name": "Refine",
+  "version": "1.0.0",
+  "description": "Rewrite a task cleanly and break it into a subtask checklist.",
+  "instructions": "instructions.md",
+  "chat": {
+    "button": { "label": "Refine" },
+    "scope": "task"
+  }
+}

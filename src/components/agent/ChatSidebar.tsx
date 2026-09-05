@@ -5,7 +5,9 @@
  * mirroring the Drawer pattern. Owns the scroll behavior (stick to bottom while
  * streaming, jump-to-bottom pill when the user scrolls up), the session
  * switcher, the harness selector for NEW conversations, the permission mode
- * chip, the usage badge, and the daemon guard card when there is no daemon.
+ * chip, the usage badge, the daemon guard card when there is no daemon, and
+ * the t310 skill surface: chat skill pill buttons plus the interactive answer
+ * form, both mounted above the PromptBar.
  *
  * 📖 Mounted once in App.tsx, outside the board layout, like Drawer and
  * CommandPalette, so it overlays every view and a board crash never takes the
@@ -17,6 +19,7 @@
  * @exports ChatSidebar
  * @see src/lib/store/agentChatSlice.ts
  * @see src/components/agent/MessageList.tsx
+ * @see src/components/agent/SkillButtons.tsx
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -29,9 +32,12 @@ import { matchAgent } from '../../lib/agent-aliases';
 import { SessionSwitcher } from './SessionSwitcher';
 import { MessageList } from './MessageList';
 import { PromptBar } from './PromptBar';
+import { SkillButtons } from './SkillButtons';
+import { AnswerForm } from './AnswerForm';
 import { UsageBadge } from './UsageBadge';
 import { DaemonGuardCard } from './DaemonGuardCard';
 import { GitInitBanner } from './GitInitBanner';
+import type { ChatSkillButton } from '../../lib/store/types';
 
 export function ChatSidebar() {
   const { t } = useTranslation();
@@ -44,14 +50,21 @@ export function ChatSidebar() {
   const preContextTaskId = useStore(s => s.agentChat.preContextTaskId);
   const gitWarning = useStore(s => s.agentChat.gitWarning);
   const harnesses = useStore(s => s.agentChat.harnesses);
+  const chatSkills = useStore(s => s.agentChat.chatSkills);
+  const activeSkill = useStore(s => s.agentChat.activeSkill);
+  const answersRequested = useStore(s => s.agentChat.answersRequested);
+  const skillQuestions = useStore(s => s.agentChat.skillQuestions);
   const columns = useStore(s => s.columns);
   const closeSidebar = useStore(s => s.closeSidebar);
   const newConversation = useStore(s => s.newConversation);
   const resumeSession = useStore(s => s.resumeSession);
   const startSession = useStore(s => s.startSession);
   const sendMessage = useStore(s => s.sendMessage);
+  const sendAnswers = useStore(s => s.sendAnswers);
+  const dismissAnswers = useStore(s => s.dismissAnswers);
   const stopSession = useStore(s => s.stopSession);
   const forgetSession = useStore(s => s.forgetSession);
+  const starting = useStore(s => s.agentChat.starting);
   const sending = useStore(s => s.agentChat.sending);
   // 📖 Local dismissal only: the banner comes back for the next session that
   // reports the advisory, which is the right lifetime for a safety reminder.
@@ -134,6 +147,20 @@ export function ChatSidebar() {
       message: text,
     });
   }, [activeSessionId, sendMessage, selectedHarness, preContextTaskId, startSession]);
+
+  // 📖 t310: a skill button always starts a NEW session whose daemon-compiled
+  // prompt folds the skill instructions in; the same harness selector the
+  // plain prompt uses picks the runner.
+  const handleLaunchSkill = useCallback((skill: ChatSkillButton) => {
+    if (!selectedHarness) return;
+    void startSession({
+      harnessId: selectedHarness,
+      ...(preContextTaskId ? { taskId: preContextTaskId }: {}),
+      skillId: skill.skillId,
+      label: skill.label,
+      interactive: skill.interactive,
+    });
+  }, [selectedHarness, preContextTaskId, startSession]);
 
   return (
     <AnimatePresence>
@@ -243,6 +270,24 @@ export function ChatSidebar() {
                     </motion.button>
                   )}
                 </AnimatePresence>
+                {/* 📖 t310: interactive skill answer form first, then the
+                 * skill pill row, then the composer. Each renders null when
+                 * there is nothing to show, so the prompt area stays quiet. */}
+                {answersRequested && skillQuestions.length > 0 && (
+                  <AnswerForm
+                    questions={skillQuestions}
+                    sending={sending}
+                    onSend={answers => void sendAnswers(answers)}
+                    onSkip={dismissAnswers}
+                  />
+                )}
+                <SkillButtons
+                  skills={chatSkills}
+                  disabled={starting || installedHarnesses.length === 0}
+                  hasTaskContext={preContextTaskId !== null}
+                  activeSkillLabel={activeSkill?.label ?? null}
+                  onLaunch={handleLaunchSkill}
+                />
                 <PromptBar
                   // 📖 The harness picker only gates NEW sessions: follow-ups on
                   // an active conversation are always sendable when the daemon

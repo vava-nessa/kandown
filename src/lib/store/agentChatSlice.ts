@@ -18,10 +18,13 @@
  * window.__KANDOWN_TOKEN__. Never throws; failures surface as toasts.
  *
  * @functions
- *  → createAgentChatSlice: sidebar state, session index, SSE lifecycle, sends
+ *  → createAgentChatSlice: sidebar state, session index, SSE lifecycle, sends,
+ *    plus the t310 interactive skill flow (chat skills list, activeSkill chip,
+ *    answersRequested form trigger, sendAnswers / dismissAnswers)
  *
- * @exports AgentChatSlice, createAgentChatSlice
+ * @exports AgentChatSlice, createAgentChatSlice, createInitialAgentChatState
  * @see src/lib/agent-chat-events.ts: the pure event fold this slice feeds
+ * @see src/lib/agent-chat-skills.ts: question parse + answer formatting
  * @see src/lib/store/types.ts: AgentChatState shape
  */
 
@@ -32,6 +35,7 @@ import {
   listSessionIndex,
   forgetSessionIndex,
   fetchAgentHarnesses,
+  serverListWorkflowSkills,
 } from '../filesystem';
 import type { SessionIndexEntryPayload, AgentSessionPayload } from '../types';
 import {
@@ -41,8 +45,10 @@ import {
   removeChatEntry,
   isAgentChatEvent,
   type AgentChatEvent,
+  type ChatFoldState,
 } from '../agent-chat-events';
-import type { State, AgentChatStartInput, AgentChatState } from './types';
+import { formatAnswers, parseNumberedQuestions } from '../agent-chat-skills';
+import type { State, AgentChatStartInput, AgentChatState, ChatSkillButton } from './types';
 
 /** 📖 Live EventSource per session id. Module state, not store state: the UI
  * never renders it, and EventSource instances must survive store snapshots. */
@@ -84,6 +90,10 @@ export interface AgentChatSlice {
   /** Switches the sidebar to an empty draft: the next send starts a new session. */
   newConversation: State['newConversation'];
   sendMessage: State['sendMessage'];
+  /** Interactive skill answers (t310): format + forward as a follow-up. */
+  sendAnswers: State['sendAnswers'];
+  /** Hides the interactive answer form without sending (t310). */
+  dismissAnswers: State['dismissAnswers'];
   stopSession: State['stopSession'];
   forgetSession: State['forgetSession'];
   ingestAgentEvent: State['ingestAgentEvent'];
@@ -102,9 +112,25 @@ export function createInitialAgentChatState(): AgentChatState {
     preContextTaskId: null,
     gitWarning: null,
     harnesses: [],
+    chatSkills: [],
+    activeSkill: null,
+    answersRequested: false,
+    skillQuestions: [],
+    answersSent: false,
     starting: false,
     sending: false,
   };
+}
+
+/** 📖 Text of the last assistant entry in a fold, or the empty string. The
+ * interactive skill questions live in the newest assistant turn. */
+function lastAssistantText(fold: ChatFoldState): string {
+  for (let i = fold.messages.length - 1; i >= 0; i -= 1) {
+    const entry = fold.messages[i];
+    // 📖 `kind` is a discriminated union field, so this narrows without a cast.
+    if (entry.kind === 'assistant') return entry.text;
+  }
+  return '';
 }
 
 export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> = (set, get) => {
@@ -220,6 +246,28 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
         }
       }
 
+      // 📖 Chat-launchable skills (t310): same lazy once-per-page-life pattern.
+      // The daemon only attaches `chat` to valid skills, so its presence gates
+      // the projection; a backend without the field simply yields no buttons.
+      if (get().agentChat.chatSkills.length === 0) {
+        const skills = await serverListWorkflowSkills();
+        const chatSkills: ChatSkillButton[] = [];
+        for (const skill of skills) {
+          const chat = skill.chat;
+          if (!chat) continue;
+          chatSkills.push({
+            skillId: skill.id,
+            label: chat.button.label,
+            ...(chat.button.icon ? { icon: chat.button.icon } : {}),
+            scope: chat.scope,
+            interactive: chat.interactive,
+          });
+        }
+        if (chatSkills.length > 0) {
+          set(state => ({ agentChat: { ...state.agentChat, chatSkills } }));
+        }
+      }
+
       // 📖 Sidebar reopen: reconnect the live stream for the active session.
       const { sidebarOpen, activeSessionId } = get().agentChat;
       if (sidebarOpen && activeSessionId) {
@@ -238,6 +286,7 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
         harnessId: input.harnessId,
         ...(input.taskId ? { taskId: input.taskId }: {}),
         ...(input.message ? { message: input.message }: {}),
+        ...(input.skillId ? { skillId: input.skillId }: {}),
         permissionMode,
       });
       if (!result) {
@@ -246,6 +295,7 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
         return;
       }
       const title = (input.message ?? '').split('\n')[0]?.trim().slice(0, 60)
+        || input.label
         || input.taskId
         || result.session.id;
       activateSession(result.session, {
@@ -254,7 +304,21 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
         title,
       });
       set(state => ({
-        agentChat: { ...state.agentChat, starting: false, gitWarning: result.gitWarning ?? null },
+        agentChat: {
+          ...state.agentChat,
+          starting: false,
+          gitWarning: result.gitWarning ?? null,
+          // 📖 t310: remember the launching skill so the UI can show the chip
+          // and, for interactive skills, open the answer form when the first
+          // turn (the questions) completes. A start without a skill resets the
+          // whole skill flow.
+          activeSkill: input.skillId
+            ? { skillId: input.skillId, label: input.label ?? input.skillId, interactive: input.interactive ?? false }
+            : null,
+          answersRequested: false,
+          skillQuestions: [],
+          answersSent: false,
+        },
       }));
     },
 
@@ -282,7 +346,18 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
         taskId: entry.taskId,
         title: entry.title || result.session.id,
       });
-      set(state => ({ agentChat: { ...state.agentChat, starting: false } }));
+      // 📖 Resume is a context switch: any lingering skill flow belongs to the
+      // previous session and must not leak a chip or an answer form into it.
+      set(state => ({
+        agentChat: {
+          ...state.agentChat,
+          starting: false,
+          activeSkill: null,
+          answersRequested: false,
+          skillQuestions: [],
+          answersSent: false,
+        },
+      }));
     },
 
     newConversation: () => {
@@ -293,6 +368,10 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
           ...state.agentChat,
           activeSessionId: null,
           preContextTaskId: null,
+          activeSkill: null,
+          answersRequested: false,
+          skillQuestions: [],
+          answersSent: false,
         },
       }));
     },
@@ -332,6 +411,36 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
       // 📖 A follow-up on a finished session resumes it server-side under the
       // same id: make sure the stream is open to see the new turn.
       connectAgentEventStream(sessionId);
+    },
+
+    sendAnswers: async (answers) => {
+      const agentChat = get().agentChat;
+      const sessionId = agentChat.activeSessionId;
+      if (!sessionId || agentChat.sending) return;
+      // 📖 Questions source of truth: the newest assistant turn (it is the one
+      // that asked), falling back to the questions captured at turn_completed
+      // when the fold no longer parses (edits, truncation, follow-up noise).
+      const live = agentChat.live[sessionId];
+      const questions = live
+        ? parseNumberedQuestions(lastAssistantText(live.fold))
+        : [];
+      const effective = questions.length > 0 ? questions : agentChat.skillQuestions;
+      const text = formatAnswers(effective, answers);
+      // 📖 The form goes away at once but the skill chip stays through the
+      // fusion turn; answersSent locks the question phase so a later
+      // turn_completed cannot reopen the form.
+      set(state => ({
+        agentChat: { ...state.agentChat, answersRequested: false, answersSent: true, skillQuestions: [] },
+      }));
+      await get().sendMessage(text);
+    },
+
+    dismissAnswers: () => {
+      // 📖 Skipping ends the question phase for good (answersSent): the user
+      // chose free-form chat, a later turn_completed must not bring it back.
+      set(state => ({
+        agentChat: { ...state.agentChat, answersRequested: false, answersSent: true, skillQuestions: [] },
+      }));
     },
 
     stopSession: async (id) => {
@@ -392,12 +501,32 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
          : event.type === 'stopped'
             ? 'stopped'
            : current.status;
+        const fold = applyChatEvent(current.fold, event);
+        // 📖 t310 interactive skills: the FIRST completed turn after a skill
+        // start carries the numbered questions. Parse them out of the newest
+        // assistant entry and open the answer form; anything after that (the
+        // fusion turn, manual messages) is a normal conversation.
+        let skillPatch: Partial<AgentChatState> = {};
+        const skill = state.agentChat.activeSkill;
+        if (
+          event.type === 'turn_completed'
+          && sessionId === state.agentChat.activeSessionId
+          && skill?.interactive
+          && !state.agentChat.answersSent
+          && !state.agentChat.answersRequested
+        ) {
+          const questions = parseNumberedQuestions(lastAssistantText(fold));
+          if (questions.length > 0) {
+            skillPatch = { skillQuestions: questions, answersRequested: true };
+          }
+        }
         return {
           agentChat: {
             ...state.agentChat,
+            ...skillPatch,
             live: {
               ...state.agentChat.live,
-              [sessionId]: { status, fold: applyChatEvent(current.fold, event) },
+              [sessionId]: { status, fold },
             },
           },
         };

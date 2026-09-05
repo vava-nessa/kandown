@@ -110,6 +110,11 @@ export interface AgentSessionConfig {
    *  Shape depends on the harness: claude/codex take an id, pi takes the
    *  session file path. */
   resumeSessionId?: string;
+  /** 📖 True when the session was launched with a skill whose manifest sets
+   *  chat.autoApply (t310): routed permission requests are auto-allowed
+   *  instead of surfacing an Approval Card. Server-authoritative, derived
+   *  from the resolved skill; the client never sends this flag. */
+  skillAutoApply?: boolean;
   /** 📖 Extra argv that switch the binary into its harness-wire mode (ACP
    *  agents need a flag; one-protocol harnesses need none). Copied from the
    *  harness definition by the runtime at session creation. */

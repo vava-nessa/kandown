@@ -151,6 +151,9 @@ function handleLine(record: SessionRecord, line: string): void {
   if (
     permission
     && record.permissionHandler
+    // 📖 autoApply skills (t310) short-circuit the approval UI in
+    // accept-edits mode: parseLine's auto-answer below picks allow_once.
+    && !record.config.skillAutoApply
     && routable.onPermissionRequest?.(record.state, permission) === 'route'
   ) {
     record.permissionHandler(permission);

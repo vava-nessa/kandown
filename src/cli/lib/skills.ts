@@ -3,13 +3,16 @@
  * @description Discovers immutable built-in, global, and project data-only
  * Markdown skill packages with deterministic override precedence. Legacy flat
  * Markdown skills remain readable while package validation supplies metadata,
- * compatibility, and structured diagnostics to the compiler and Settings.
+ * compatibility, chat button metadata, and structured diagnostics to the
+ * compiler, Settings, and the agent session routes.
  *
  * @functions
  *  → listWorkflowSkills: discover every effective skill and validation state
  *  → loadConfiguredWorkflowSkills: resolve configured ids for the compiler
+ *  → findSessionSkill: resolve a chat skill id for an agent session
+ *  → buildSkillSessionPrompt: append the skill section and directive to a prompt
  *
- * @exports WorkflowSkillSource, WorkflowSkillListing, listWorkflowSkills, loadConfiguredWorkflowSkills
+ * @exports WorkflowSkillSource, WorkflowSkillListing, listWorkflowSkills, loadConfiguredWorkflowSkills, findSessionSkill, buildSkillSessionPrompt
  */
 
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
@@ -30,9 +33,20 @@ export interface WorkflowSkillListing {
   content: string;
   compatibleWorkflows?: string[];
   requiredRoles?: LoadedWorkflowSkill['requiredRoles'];
+  /** Present only when a valid manifest declares `chat`; defaults already applied. */
+  chat?: LoadedWorkflowSkill['chat'];
   valid: boolean;
   errors: string[];
 }
+
+/** 📖 Directive appended to non-interactive skill sessions: the agent applies
+ *  the skill to the compiled context in one turn. */
+const APPLY_SKILL_DIRECTIVE = 'Apply this skill to the context above now.';
+
+/** 📖 Directive appended to interactive skill sessions: the agent produces only
+ *  the skill's first step (the numbered questions), then waits. The numbered
+ *  lines are what the web chat parses into answer inputs. */
+const INTERACTIVE_SKILL_DIRECTIVE = "Follow this skill's process: produce only what its first step asks for (the numbered questions), then stop and wait for the user's answers.";
 
 function readSourceFiles(directory: string, prefix = ''): WorkflowSourceFiles {
   const files: Record<string, string> = {};
@@ -114,4 +128,24 @@ export function loadConfiguredWorkflowSkills(
     });
   }
   return { skills, diagnostics };
+}
+
+/** 📖 Resolves a chat skill id for an agent session. A skill qualifies when it
+ *  is valid AND either a bundled built-in (always available) or one of the
+ *  project's configured workflow skills; anything else is unknown or inactive.
+ *  Both the daemon route and the Vite dev mirror call this so there is exactly
+ *  one resolution rule. */
+export function findSessionSkill(kandownDir: string, skillId: string, configuredIds: readonly string[]): WorkflowSkillListing | undefined {
+  const listing = listWorkflowSkills(kandownDir).find(item => item.id === skillId);
+  if (!listing || !listing.valid) return undefined;
+  return listing.source === 'built-in' || configuredIds.includes(skillId) ? listing : undefined;
+}
+
+/** 📖 Assembles the agent session prompt for a skill launch: the compiled
+ *  kandown-work document, then a Skill section carrying the instructions
+ *  content, then the directive whose wording depends on whether the skill is
+ *  interactive. Assembled server-side so the client only sends a skill id. */
+export function buildSkillSessionPrompt(compiled: string, skill: WorkflowSkillListing): string {
+  const directive = skill.chat?.interactive ? INTERACTIVE_SKILL_DIRECTIVE : APPLY_SKILL_DIRECTIVE;
+  return `${compiled}\n\n---\n\n# Skill: ${skill.id}\n\n${skill.content.trim()}\n\n${directive}`;
 }

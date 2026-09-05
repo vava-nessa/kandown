@@ -59070,11 +59070,56 @@ function loadWorkflowPackage(rawFiles) {
 var ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 var VERSION = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
 var ROLES2 = /* @__PURE__ */ new Set(["backlog", "ready", "active", "review", "terminal", "custom"]);
+var CHAT_SCOPES = /* @__PURE__ */ new Set(["task", "board"]);
+var CHAT_LABEL_MAX = 40;
 function fail(errors) {
   return { ok: false, errors };
 }
 function addError2(errors, code, path, message) {
   errors.push({ code, path, message });
+}
+function isRecord3(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function validateSkillChat(item, errors) {
+  const raw = item.chat;
+  if (raw === void 0) return;
+  if (!isRecord3(raw)) {
+    addError2(errors, "invalid_type", "manifest.chat", "chat must be an object");
+    return;
+  }
+  const chatAllowed = /* @__PURE__ */ new Set(["button", "scope", "interactive", "autoApply"]);
+  for (const key of Object.keys(raw)) if (!chatAllowed.has(key)) addError2(errors, "unknown_field", `manifest.chat.${key}`, `Unknown chat field "${key}"`);
+  if (raw.button === void 0) addError2(errors, "missing_field", "manifest.chat.button", "chat.button is required");
+  else if (!isRecord3(raw.button)) addError2(errors, "invalid_type", "manifest.chat.button", "chat.button must be an object");
+  else {
+    const button = raw.button;
+    const buttonAllowed = /* @__PURE__ */ new Set(["label", "icon"]);
+    for (const key of Object.keys(button)) if (!buttonAllowed.has(key)) addError2(errors, "unknown_field", `manifest.chat.button.${key}`, `Unknown chat button field "${key}"`);
+    const label = button.label;
+    if (label === void 0) addError2(errors, "missing_field", "manifest.chat.button.label", "label must be a non-empty string");
+    else if (typeof label !== "string" || !label.trim()) addError2(errors, "invalid_value", "manifest.chat.button.label", "label must be a non-empty string");
+    else if (label.length > CHAT_LABEL_MAX) addError2(errors, "invalid_value", "manifest.chat.button.label", `label must be at most ${CHAT_LABEL_MAX} characters`);
+    const icon = button.icon;
+    if (icon !== void 0 && (typeof icon !== "string" || !icon.trim())) addError2(errors, "invalid_value", "manifest.chat.button.icon", "icon must be a non-empty string");
+  }
+  const scope = raw.scope;
+  if (scope === void 0) addError2(errors, "missing_field", "manifest.chat.scope", 'scope must be "task" or "board"');
+  else if (typeof scope !== "string" || !CHAT_SCOPES.has(scope)) addError2(errors, "invalid_value", "manifest.chat.scope", 'scope must be "task" or "board"');
+  for (const flag of ["interactive", "autoApply"]) {
+    if (raw[flag] !== void 0 && typeof raw[flag] !== "boolean") addError2(errors, "invalid_type", `manifest.chat.${flag}`, `${flag} must be a boolean`);
+  }
+}
+function parseSkillChat(item) {
+  if (!isRecord3(item.chat) || !isRecord3(item.chat.button)) return void 0;
+  const chat = item.chat;
+  const button = chat.button;
+  return {
+    button: { label: button.label, ...typeof button.icon === "string" ? { icon: button.icon } : {} },
+    scope: chat.scope,
+    interactive: chat.interactive === true,
+    autoApply: chat.autoApply === true
+  };
 }
 function loadWorkflowSkill(files) {
   const errors = [];
@@ -59086,7 +59131,7 @@ function loadWorkflowSkill(files) {
   }
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return fail([{ code: "invalid_type", path: "manifest", message: "Skill manifest must be an object" }]);
   const item = raw;
-  const allowed = /* @__PURE__ */ new Set(["formatVersion", "id", "name", "version", "description", "instructions", "compatibleWorkflows", "requiredRoles"]);
+  const allowed = /* @__PURE__ */ new Set(["formatVersion", "id", "name", "version", "description", "instructions", "compatibleWorkflows", "requiredRoles", "chat"]);
   for (const key of Object.keys(item)) if (!allowed.has(key)) addError2(errors, "unknown_field", `manifest.${key}`, `Unknown skill field "${key}"`);
   const string = (key) => {
     const value = item[key];
@@ -59109,12 +59154,14 @@ function loadWorkflowSkill(files) {
   if (item.compatibleWorkflows !== void 0 && !compatibleWorkflows) addError2(errors, "invalid_type", "manifest.compatibleWorkflows", "compatibleWorkflows must contain kebab-case ids");
   const requiredRoles = item.requiredRoles === void 0 ? void 0 : Array.isArray(item.requiredRoles) && item.requiredRoles.every((value) => ROLES2.has(value)) ? [...new Set(item.requiredRoles)] : void 0;
   if (item.requiredRoles !== void 0 && !requiredRoles) addError2(errors, "invalid_type", "manifest.requiredRoles", "requiredRoles contains an unknown role");
+  validateSkillChat(item, errors);
   const expected = /* @__PURE__ */ new Set(["manifest.json", instructions]);
   for (const path of Object.keys(files)) if (!expected.has(path)) addError2(errors, "unknown_file", path, `Undeclared skill file "${path}"`);
   const content = files[instructions];
   if (instructions && typeof content !== "string") addError2(errors, "missing_file", instructions, `Missing skill instructions "${instructions}"`);
   if (errors.length) return fail(errors);
-  return { ok: true, value: { formatVersion: 1, id, name, version, description, instructions, ...compatibleWorkflows ? { compatibleWorkflows } : {}, ...requiredRoles ? { requiredRoles } : {}, content } };
+  const chat = parseSkillChat(item);
+  return { ok: true, value: { formatVersion: 1, id, name, version, description, instructions, ...compatibleWorkflows ? { compatibleWorkflows } : {}, ...requiredRoles ? { requiredRoles } : {}, ...chat ? { chat } : {}, content } };
 }
 
 // src/cli/lib/agent-migration.ts

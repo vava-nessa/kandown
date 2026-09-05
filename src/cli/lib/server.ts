@@ -59,7 +59,7 @@ import {
 } from './workflows-cli';
 import { compileProjectKandownWork } from './kandown-work';
 import { applyWorkflowUpdate, fetchWorkflowRegistry, installStoreWorkflow, previewWorkflowUpdate, type WorkflowRegistryEntry } from './workflows-store';
-import { listWorkflowSkills } from './skills';
+import { buildSkillSessionPrompt, findSessionSkill, listWorkflowSkills } from './skills';
 import { extractToken, selfOrigin, verifyToken } from './daemon-auth';
 
 const START_PORT_RANGE = 2050;
@@ -494,6 +494,10 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
     }
   }
 
+  // 📖 Skill catalog for the web UI. Chat metadata (`chat`) rides along from
+  // the listing itself: present only when a valid manifest declares it, with
+  // interactive/autoApply defaults already applied by the loader, so this route
+  // needs no chat logic of its own.
   if (path === '/api/skills' && method === 'GET') {
     const config = loadConfig(kandownDir);
     const active = new Set(config.workflow.skills);
@@ -632,6 +636,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       title?: unknown;
       permissionMode?: unknown;
       resumeSessionId?: unknown;
+      skillId?: unknown;
     };
     try {
       body = JSON.parse(await readRequestBody(req)) as typeof body;
@@ -642,15 +647,31 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       return writeJson(res, 400, { error: 'harnessId is required' });
     }
     const taskId = typeof body.taskId === 'string' && body.taskId.trim() ? body.taskId.trim() : undefined;
+    const skillId = typeof body.skillId === 'string' && body.skillId.trim() ? body.skillId.trim() : undefined;
     let compiled;
     try {
       compiled = compileProjectKandownWork(kandownDir, taskId);
     } catch {
       return writeJson(res, 404, { error: `Task not found: ${taskId}` });
     }
-    const message = typeof body.message === 'string' && body.message.trim() ? body.message.trim() : undefined;
-    const prompt = message ? `${compiled.markdown}\n\n---\n\n${message}` : compiled.markdown;
     const config = loadConfig(kandownDir);
+    // 📖 Skill launch (t310): the client sends only a skill id; the prompt is
+    // assembled server-side from the compiled doc plus the skill instructions
+    // and a directive tuned to whether the skill is interactive. An unknown,
+    // invalid, or unconfigured (non built-in) id is rejected before any
+    // harness process is spawned.
+    let prompt = compiled.markdown;
+    let skillAutoApply = false;
+    if (skillId) {
+      const skill = findSessionSkill(kandownDir, skillId, config.workflow.skills);
+      if (!skill) return writeJson(res, 400, { error: `Unknown or inactive skill: ${skillId}` });
+      prompt = buildSkillSessionPrompt(prompt, skill);
+      // 📖 t310: autoApply is decided here, from the resolved skill, never
+      // from a client flag: routed permission requests are auto-allowed.
+      skillAutoApply = skill.chat?.autoApply === true;
+    }
+    const message = typeof body.message === 'string' && body.message.trim() ? body.message.trim() : undefined;
+    if (message) prompt = `${prompt}\n\n---\n\n${message}`;
     const permissionMode: PermissionMode = body.permissionMode === 'accept-edits' || body.permissionMode === 'yolo'
       ? body.permissionMode
       : config.agent.permissionMode;
@@ -661,6 +682,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
         projectRoot,
         prompt,
         permissionMode,
+        ...(skillAutoApply ? { skillAutoApply: true } : {}),
         ...(typeof body.resumeSessionId === 'string' && body.resumeSessionId ? { resumeSessionId: body.resumeSessionId } : {}),
       });
       // 📖 t308 bookkeeping: kandown never stores conversations, only this thin

@@ -328,6 +328,10 @@ interface State {
   resumeSession: (entry: SessionIndexEntryPayload) => Promise<void>;
   newConversation: () => void;
   sendMessage: (text: string) => Promise<void>;
+  /** Interactive skill answers (t310): format + forward as a follow-up. */
+  sendAnswers: (answers: string[]) => Promise<void>;
+  /** Hides the interactive answer form without sending (t310). */
+  dismissAnswers: () => void;
   stopSession: (id: string) => Promise<void>;
   forgetSession: (id: string) => Promise<void>;
   ingestAgentEvent: (sessionId: string, event: AgentChatEvent) => void;

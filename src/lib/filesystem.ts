@@ -293,6 +293,21 @@ export interface WorkflowWorkspacePayload {
   boardPresetPreview: BoardPresetPreviewPayload | null;
 }
 
+/** 📖 Chat button metadata a skill manifest can declare (t310). The daemon
+ *  only attaches `chat` to /api/skills entries whose manifest declares it and
+ *  whose skill is valid, so its presence is itself the gate for rendering the
+ *  button. Keep in sync with the backend's skill chat declaration (frozen
+ *  contract, see docs for task t310). */
+export interface SkillChatPayload {
+  button: { label: string; icon?: string };
+  /** 'task' buttons need a task context (preContextTaskId); 'board' ones do not. */
+  scope: 'task' | 'board';
+  /** Interactive skills ask numbered questions in their first turn and fuse the
+   *  user's answers in a second step (the sidebar shows an answer form). */
+  interactive: boolean;
+  autoApply: boolean;
+}
+
 export interface SkillPayload {
   id: string;
   name: string;
@@ -303,6 +318,9 @@ export interface SkillPayload {
   content: string;
   compatible: boolean;
   compatibilityReason?: string;
+  /** Present only when the skill manifest declares a chat button (t310). Keep
+   *  in sync with the daemon's /api/skills shape. */
+  chat?: SkillChatPayload;
 }
 export interface WorkflowRegistryEntryPayload { id: string; name: string; description?: string; author: string; repo: string; ref: string; capsule: string; sha256: string; version: string }
 export interface WorkflowUpdatePreviewPayload { id: string; currentVersion: string; nextVersion: string; changed: boolean; diff: string; entry: WorkflowRegistryEntryPayload }
@@ -435,7 +453,9 @@ function isAgentSessionPayload(value: unknown): value is AgentSessionPayload {
  *  user message appended to the compiled task document; `title` overrides the
  *  auto-derived sidebar title; `permissionMode` overrides the project default;
  *  `resumeSessionId` continues a harness-native conversation (claude session
- *  id, codex thread id, pi session file path). */
+ *  id, codex thread id, pi session file path); `skillId` (t310) asks the daemon
+ *  to assemble the prompt from the compiled context plus that skill's
+ *  instructions. */
 export interface CreateAgentSessionInput {
   harnessId: string;
   taskId?: string;
@@ -443,6 +463,7 @@ export interface CreateAgentSessionInput {
   title?: string;
   permissionMode?: PermissionMode;
   resumeSessionId?: string;
+  skillId?: string;
 }
 
 /**
