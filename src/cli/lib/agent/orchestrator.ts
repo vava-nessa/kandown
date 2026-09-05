@@ -618,11 +618,17 @@ export function createOrchestrator(
       running = true;
       // 📖 Crash recovery: orphans are re-queued FIRST (files are the truth:
       // a task in progress without a session is resumable), then every ready
-      // task in priority order.
+      // task in priority order. An orphan whose dependency was regressed or
+      // reverted since it went mid-column is NOT re-queued: the gate that
+      // rules the board rules the queue too, and the autopilot directives tell
+      // sessions to never bypass a dependency. It still shows up in the
+      // snapshot's orphans list for the human to resolve.
       const tasks = readAllTasks();
       const terminal = terminalStatus(config);
       const backlog = resolveColumnNameByRole(config, 'backlog');
-      const orphans = computeOrphanTaskIds(tasks, terminal, backlog, [...active.values()], []);
+      const readyIds = new Set(computeReadyTasks(tasks, terminal, [...active.values()]).map(task => task.id));
+      const orphans = computeOrphanTaskIds(tasks, terminal, backlog, [...active.values()], [])
+        .filter(id => readyIds.has(id));
       queue = [...orphans];
       const readyExcluded = new Set(orphans);
       for (const task of orderQueue(computeReadyTasks(tasks, terminal, readyExcluded))) {
