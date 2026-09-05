@@ -554,7 +554,7 @@ export const useStore = create<State>((set, get, api) => ({
 
   viewMode: (localStorage.getItem('kandown:view') as ViewMode) || 'board',
   density: (localStorage.getItem('kandown:density') as Density) || 'comfortable',
-  filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null, category: null },
+  filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null, category: [] },
   commandOpen: false,
   cheatsheetOpen: false,
   drawerTaskId: null,
@@ -1808,7 +1808,7 @@ export const useStore = create<State>((set, get, api) => ({
     }
   },
   clearFilters: () =>
-    set({ filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null, category: null }, searchMatches: new Map() }),
+    set({ filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null, category: [] }, searchMatches: new Map() }),
 
   setCommandOpen: (open) => set({ commandOpen: open }),
   setCheatsheetOpen: (open) => set({ cheatsheetOpen: open }),

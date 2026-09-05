@@ -137,6 +137,12 @@ export function ListView() {
   const [draggedColIndex, setDraggedColIndex] = useState<number | null>(null);
   const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
 
+  // 📖 Same multi-select category filter as the board, folded once here.
+  const selectedCategoryKeys = useMemo(
+    () => new Set(filters.category.map(c => c.trim().toLowerCase())),
+    [filters.category],
+  );
+
   const filteredColumns = useMemo<FilteredColumn[]>(() => {
     return columns.map(col => {
       const filtered = col.tasks.filter((task: BoardTask) => {
@@ -150,11 +156,13 @@ export function ListView() {
         if (fields.tags && filters.tag && !(task.tags || []).includes(filters.tag)) return false;
         if (fields.assignee && filters.assignee && task.assignee !== filters.assignee) return false;
         if (fields.ownerType && filters.ownerType && task.ownerType !== filters.ownerType) return false;
+        // 📖 A task passes when its canonical category matches ANY selected one.
+        if (selectedCategoryKeys.size > 0 && !selectedCategoryKeys.has((task.category ?? '').trim().toLowerCase())) return false;
         return true;
       });
       return { column: col, filtered };
     });
-  }, [columns, fields, filters, searchMatches]);
+  }, [columns, fields, filters, searchMatches, selectedCategoryKeys]);
 
   const totalVisibleRows = useMemo(() => {
     return filteredColumns.reduce((sum, { filtered }) => sum + filtered.length, 0);
@@ -496,8 +504,9 @@ export function ListView() {
                                 onCardDragStart={(taskId, fromCol) => handleTaskDragStart({} as React.DragEvent, taskId, fromCol)}
                                 onCardDragEnd={handleTaskDragEnd}
                                 defaultExpanded={
-                                  config.board.stackDefaultState === 'expanded' || !!filters.search
+                                  config.board.stackDefaultState === 'expanded' || !!filters.search || filters.category.length > 0
                                 }
+                                lockedExpanded={filters.category.length > 0}
                               />
                             )
                           )}

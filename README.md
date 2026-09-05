@@ -283,6 +283,7 @@ Browse community themes at [kandown.dev/themes](https://kandown.dev/themes).
 
 Horizontal kanban with drag-and-drop · sectioned list view with filters and search ·
 full-text search across titles, bodies, subtasks, tags, assignee and priority ·
+multi-category filter in the header (filtered stacks stay expanded and locked) ·
 command palette (`⌘K`) · freely editable columns · group-by
 (priority / assignee / epic) · due-date banner · guarded double-click deletion ·
 bulk archive or delete of a whole column.

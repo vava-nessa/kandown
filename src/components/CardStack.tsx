@@ -22,6 +22,10 @@
  *
  * 📖 Collapsed stacks are NOT draggable (v1). Expanded cards retain full drag.
  *
+ * 📖 `lockedExpanded` renders the stack open with no way to collapse it: it is
+ * how the header's category filter displays its results (every visible stack
+ * already belongs to the filtered category, so collapsing would add nothing).
+ *
  * @functions
  *  → CardStack — animated collapsible card stack
  *
@@ -51,6 +55,11 @@ interface CardStackProps {
   onCardDragStart: (taskId: string, fromCol: string) => void;
   onCardDragEnd: () => void;
   defaultExpanded?: boolean;
+  /** 📖 When true the stack renders expanded and cannot be collapsed: the
+   * header loses its chevron and click target. Used by the category filter
+   * (header dropdown), where every visible stack belongs to the one filtered
+   * category, so a collapsible stack would only get in the way. */
+  lockedExpanded?: boolean;
   doneTags?: Set<string>;
   viewMode?: 'board' | 'list';
 }
@@ -63,6 +72,7 @@ export function CardStack({
   onCardDragStart,
   onCardDragEnd,
   defaultExpanded = false,
+  lockedExpanded = false,
   doneTags,
   viewMode = 'board',
 }: CardStackProps) {
@@ -129,15 +139,23 @@ export function CardStack({
       >
         {/* Expanded header: minimal. Just the centered category (chip or
          * group key) with a small collapse chevron; the colored block around
-         * already announces the group, so no pill, no border, no count. */}
-        <button
-          type="button"
-          onClick={() => setExpanded(false)}
-          className="flex items-center gap-1.5 py-1 my-1 mx-auto text-[11px] font-semibold text-fg-muted/70 uppercase tracking-wide hover:opacity-75 transition-opacity w-fit cursor-pointer"
-        >
-          {stackCategory ? <CategoryChip category={stackCategory} /> : <span>{group.displayKey}</span>}
-          <IconChevronUp size={13} stroke={2} />
-        </button>
+         * already announces the group, so no pill, no border, no count.
+         * Locked mode (category filter active): same header minus the
+         * chevron and the click-to-collapse, rendered as a plain div. */}
+        {lockedExpanded ? (
+          <div className="flex items-center gap-1.5 py-1 my-1 mx-auto text-[11px] font-semibold text-fg-muted/70 uppercase tracking-wide w-fit">
+            {stackCategory ? <CategoryChip category={stackCategory} /> : <span>{group.displayKey}</span>}
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setExpanded(false)}
+            className="flex items-center gap-1.5 py-1 my-1 mx-auto text-[11px] font-semibold text-fg-muted/70 uppercase tracking-wide hover:opacity-75 transition-opacity w-fit cursor-pointer"
+          >
+            {stackCategory ? <CategoryChip category={stackCategory} /> : <span>{group.displayKey}</span>}
+            <IconChevronUp size={13} stroke={2} />
+          </button>
+        )}
 
         {/* Individual cards/rows: fully interactive, draggable */}
         {group.tasks.map(task =>

@@ -363,6 +363,12 @@ export interface Filters {
   tag: string | null;
   assignee: string | null;
   ownerType: OwnerType | null;
+  /** 📖 Active category filter, multi-select: an empty array filters nothing.
+   * A task passes when its canonical category (see taskCategory) matches ANY
+   * selected entry, case-folded. While non-empty, the board and list views
+   * hide every other category and render stacks expanded and locked (see
+   * CardStack.lockedExpanded). */
+  category: string[];
   groupBy?: 'none' | 'assignee' | 'priority' | 'epic';
 }
 

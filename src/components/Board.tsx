@@ -98,6 +98,13 @@ export function Board() {
   const [draggedColIndex, setDraggedColIndex] = useState<number | null>(null);
   const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
 
+  // 📖 Multi-select category filter, case-folded once for the whole board
+  // pass. Empty selection filters nothing.
+  const selectedCategoryKeys = useMemo(
+    () => new Set(filters.category.map(c => c.trim().toLowerCase())),
+    [filters.category],
+  );
+
   const filteredColumns = useMemo(() => {
     return columns.map(col => {
       const filtered = col.tasks.filter((t: BoardTask) => {
@@ -111,11 +118,14 @@ export function Board() {
         if (config.fields.tags && filters.tag && !(t.tags || []).includes(filters.tag)) return false;
         if (config.fields.assignee && filters.assignee && t.assignee !== filters.assignee) return false;
         if (config.fields.ownerType && filters.ownerType && t.ownerType !== filters.ownerType) return false;
+        // 📖 Category filter (header dropdown): a task passes when its
+        // canonical category matches ANY selected category.
+        if (selectedCategoryKeys.size > 0 && !selectedCategoryKeys.has((t.category ?? '').trim().toLowerCase())) return false;
         return true;
       });
       return { column: col, filtered };
     });
-  }, [columns, config.fields, filters, searchMatches]);
+  }, [columns, config.fields, filters, searchMatches, selectedCategoryKeys]);
 
   const columnGroups = useMemo((): ColumnGroup[] => {
     if (density !== 'compact') {

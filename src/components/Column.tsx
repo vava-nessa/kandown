@@ -345,8 +345,9 @@ export function Column({
                     onCardDragStart={onCardDragStart}
                     onCardDragEnd={onCardDragEnd}
                     defaultExpanded={
-                      config.board.stackDefaultState === 'expanded' || !!filters.search
+                      config.board.stackDefaultState === 'expanded' || !!filters.search || filters.category.length > 0
                     }
+                    lockedExpanded={filters.category.length > 0}
                   />
                 )
               )

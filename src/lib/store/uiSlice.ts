@@ -51,7 +51,7 @@ export const createUiSlice: StateCreator<State, [], [], UiSlice> = (set, get) =>
     }
   },
   clearFilters: () =>
-    set({ filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null } as Filters, searchMatches: new Map() }),
+    set({ filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null, category: [] } as Filters, searchMatches: new Map() }),
 
   setCommandOpen: (open) => set({ commandOpen: open }),
   setCheatsheetOpen: (open) => set({ cheatsheetOpen: open }),
