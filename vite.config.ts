@@ -5,6 +5,10 @@ import react from '@vitejs/plugin-react';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 import type { ExtensionHost } from './src/lib/extensions/host';
 import type { PermissionQueue } from './src/cli/lib/agent/permission-queue';
+// 📖 Pure, dependency-free hash shared with the daemon's PUT /api/tasks route
+// (round 4 optimistic concurrency). The same 16-char digest must be computed
+// by both backends or the 409 guard would misfire, so both import it.
+import { contentHash } from './src/lib/task-content-hash';
 
 const CLOSING_HEAD_TAG = '</head>';
 // 📖 Keep the local web UI dev server predictable so agents and humans can share the same URL.
@@ -166,7 +170,7 @@ function kandownDevPlugin() {
 
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Kandown-Token, X-Kandown-Base-Hash');
 
         if (req.method === 'OPTIONS') {
           res.writeHead(204);
@@ -280,12 +284,24 @@ function kandownDevPlugin() {
                   req.on('error', rejectBody);
                 });
                 const body = JSON.parse(Buffer.concat(chunks).toString('utf8')) as {
-                  harnessId?: unknown; taskId?: unknown; message?: unknown; title?: unknown; permissionMode?: unknown; skillId?: unknown; mentionedTaskIds?: unknown;
+                  harnessId?: unknown; taskId?: unknown; message?: unknown; title?: unknown; permissionMode?: unknown; skillId?: unknown; mentionedTaskIds?: unknown; model?: unknown;
                 };
                 if (typeof body.harnessId !== 'string' || !body.harnessId.trim()) {
                   res.writeHead(400, { 'Content-Type': 'application/json' });
                   res.end(JSON.stringify({ error: 'harnessId is required' }));
                   return;
+                }
+                // 📖 Optional model override (round 4), same validation and
+                // character class as the daemon: letters, digits, dot,
+                // underscore, colon, slash, dash; 80 chars max.
+                let model: string | undefined;
+                if (typeof body.model === 'string' && body.model.trim()) {
+                  model = body.model.trim();
+                  if (model.length > 80 || !/^[A-Za-z0-9._:\/-]+$/.test(model)) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: 'Invalid model: use at most 80 characters of letters, digits, dot, underscore, colon, slash or dash' }));
+                    return;
+                  }
                 }
                 const workModule = await server.ssrLoadModule('/src/cli/lib/kandown-work.ts') as typeof import('./src/cli/lib/kandown-work');
                 const configModule = await server.ssrLoadModule('/src/cli/lib/config.ts') as typeof import('./src/cli/lib/config');
@@ -335,6 +351,7 @@ function kandownDevPlugin() {
                     projectRoot: boardModule.getProjectRoot(kandownPath),
                     prompt,
                     permissionMode,
+                    ...(model ? { model } : {}),
                   });
                   // 📖 t308 index bookkeeping, same contract as the daemon:
                   // thin entry now, harnessSessionId on session_started,
@@ -399,7 +416,7 @@ function kandownDevPlugin() {
                   req.on('end', resolveBody);
                   req.on('error', rejectBody);
                 });
-                let body: { message?: unknown; mentionedTaskIds?: unknown };
+                let body: { message?: unknown; mentionedTaskIds?: unknown; deliveryMode?: unknown };
                 try {
                   body = JSON.parse(Buffer.concat(chunks).toString('utf8')) as typeof body;
                 } catch (error) {
@@ -412,6 +429,11 @@ function kandownDevPlugin() {
                   res.end(JSON.stringify({ error: 'message is required' }));
                   return;
                 }
+                // 📖 Round 4 delivery mode, same contract as the daemon:
+                // 'steer' or 'queue', anything else keeps the runtime default.
+                const deliveryMode = body.deliveryMode === 'steer' || body.deliveryMode === 'queue'
+                  ? body.deliveryMode
+                  : undefined;
                 // 📖 Round 3 @task mentions, same contract as the daemon: the
                 // integral task sections precede the user's line; with no
                 // mentions (or none resolvable) the original text is delivered
@@ -422,7 +444,7 @@ function kandownDevPlugin() {
                 const delivered = mentionSections
                   ? `${mentionSections}## User message\n\n${body.message}`
                   : body.message;
-                const result = runtimeModule.sendToSession(decodeURIComponent(id), delivered);
+                const result = runtimeModule.sendToSession(decodeURIComponent(id), delivered, deliveryMode);
                 res.writeHead(result.ok ? 200 : 400, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(result.ok ? { ok: true } : { ok: false, error: result.error ?? 'Send failed' }));
                 return;
@@ -769,6 +791,24 @@ function kandownDevPlugin() {
                 req.on('error', reject);
               });
               const body = Buffer.concat(chunks).toString('utf8');
+              // 📖 Optimistic concurrency (round 4), same contract as the
+              // daemon: a base hash header that no longer matches the file on
+              // disk answers 409 with the current text and writes nothing.
+              const rawBaseHash = req.headers['x-kandown-base-hash'];
+              const baseHash = Array.isArray(rawBaseHash) ? rawBaseHash[0] : rawBaseHash;
+              if (typeof baseHash === 'string' && baseHash.trim()) {
+                const inTasksNow = join(tasksDir, `${id}.md`);
+                const inArchiveNow = join(archiveDir, `${id}.md`);
+                const currentPath = existsSync(inTasksNow) ? inTasksNow : existsSync(inArchiveNow) ? inArchiveNow : null;
+                if (currentPath) {
+                  const currentContent = readFileSync(currentPath, 'utf8');
+                  if (contentHash(currentContent) !== baseHash.trim()) {
+                    res.writeHead(409, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: 'conflict', currentContent }));
+                    return;
+                  }
+                }
+              }
               // 📖 Write in place: an archived task stays inside archive/.
               const inArchive = existsSync(join(archiveDir, `${id}.md`));
               const targetDir = inArchive ? archiveDir : tasksDir;

@@ -32,7 +32,8 @@ import type { AdapterParseResult, AdapterState, AgentSessionConfig, HarnessAdapt
 
 /** 📖 Builds the headless argv. `bypassPermissions` is claude's yolo mode;
  *  `acceptEdits` auto-approves file edits but still gates other tools, which
- *  is exactly the kandown accept-edits contract. */
+ *  is exactly the kandown accept-edits contract. `config.model` (round 4)
+ *  maps onto claude's own `--model` launch flag; no flag when unset. */
 export function buildArgs(config: AgentSessionConfig, binPath: string): string[] {
   const args = [
     binPath,
@@ -44,6 +45,7 @@ export function buildArgs(config: AgentSessionConfig, binPath: string): string[]
     '--permission-mode',
     config.permissionMode === 'yolo' ? 'bypassPermissions': 'acceptEdits',
   ];
+  if (config.model) args.push('--model', config.model);
   if (config.resumeSessionId) args.push('--resume', config.resumeSessionId);
   return args;
 }

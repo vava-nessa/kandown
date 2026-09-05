@@ -42,6 +42,7 @@ import {
 } from './agent/session-index';
 import type { AgentEvent, AgentSessionInfo } from './agent/types';
 import type { PermissionMode } from '../../lib/types';
+import { contentHash } from '../../lib/task-content-hash';
 import { getCurrentVersion, getInstalledVersion, semverGt, performGlobalPackageUpdate, PKG_ROOT } from './updater';
 import { atomicWriteFileSync } from './atomic-write';
 import { loadExtensionHost } from './extensions-cli';
@@ -152,7 +153,9 @@ function corsHeaders(port: number): Record<string, string> {
   return {
     'Access-Control-Allow-Origin': selfOrigin(port),
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Kandown-Token',
+    // 📖 X-Kandown-Base-Hash carries the optimistic-concurrency digest of the
+    // content a client loaded before editing (see the PUT /api/tasks route).
+    'Access-Control-Allow-Headers': 'Content-Type, X-Kandown-Token, X-Kandown-Base-Hash',
   };
 }
 
@@ -717,6 +720,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       resumeSessionId?: unknown;
       skillId?: unknown;
       mentionedTaskIds?: unknown;
+      model?: unknown;
     };
     try {
       body = JSON.parse(await readRequestBody(req)) as typeof body;
@@ -725,6 +729,18 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
     }
     if (typeof body.harnessId !== 'string' || !body.harnessId.trim()) {
       return writeJson(res, 400, { error: 'harnessId is required' });
+    }
+    // 📖 Optional model override (round 4): validated before anything spawns.
+    // The character class matches every model id the harnesses document
+    // (claude/codex/pi) while refusing shell metacharacters; the value only
+    // ever reaches a spawn argv element, but validating here keeps a bad pick
+    // a 400 instead of a harness launch failure.
+    let model: string | undefined;
+    if (typeof body.model === 'string' && body.model.trim()) {
+      model = body.model.trim();
+      if (model.length > 80 || !/^[A-Za-z0-9._:\/-]+$/.test(model)) {
+        return writeJson(res, 400, { error: 'Invalid model: use at most 80 characters of letters, digits, dot, underscore, colon, slash or dash' });
+      }
     }
     const taskId = typeof body.taskId === 'string' && body.taskId.trim() ? body.taskId.trim() : undefined;
     const skillId = typeof body.skillId === 'string' && body.skillId.trim() ? body.skillId.trim() : undefined;
@@ -774,6 +790,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
         permissionMode,
         ...(skillAutoApply ? { skillAutoApply: true } : {}),
         ...(typeof body.resumeSessionId === 'string' && body.resumeSessionId ? { resumeSessionId: body.resumeSessionId } : {}),
+        ...(model ? { model } : {}),
       });
       // 📖 t308 bookkeeping: kandown never stores conversations, only this thin
       // index entry so the sidebar can list, title and resume the session.
@@ -965,7 +982,10 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       // the finished one under the same kandown session id. `mentionedTaskIds`
       // (round 3, optional) prepends the integral @task sections so the
       // harness reads the referenced tasks in full before the user's line.
-      let body: { message?: unknown; mentionedTaskIds?: unknown };
+      // `deliveryMode` (round 4, optional) asks for 'steer' (deliver into the
+      // live turn) or 'queue' (deliver after it); absent means the runtime's
+      // own default, which preserves the pre-round-4 behavior.
+      let body: { message?: unknown; mentionedTaskIds?: unknown; deliveryMode?: unknown };
       try {
         body = JSON.parse(await readRequestBody(req)) as typeof body;
       } catch (error) {
@@ -974,13 +994,16 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       if (typeof body.message !== 'string' || !body.message.trim()) {
         return writeJson(res, 400, { error: 'message is required' });
       }
+      const deliveryMode = body.deliveryMode === 'steer' || body.deliveryMode === 'queue'
+        ? body.deliveryMode
+        : undefined;
       // 📖 No mentions (or none resolvable): the original text goes out as-is,
       // byte-identical to the pre-round-3 wire shape.
       const mentionSections = buildMentionSections(kandownDir, body.mentionedTaskIds);
       const delivered = mentionSections
         ? `${mentionSections}## User message\n\n${body.message}`
         : body.message;
-      const result = sendToSession(sessionId, delivered);
+      const result = sendToSession(sessionId, delivered, deliveryMode);
       return result.ok
         ? writeJson(res, 200, { ok: true })
         : writeJson(res, 400, { ok: false, error: result.error ?? 'Send failed' });
@@ -1327,11 +1350,35 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       try {
         if (!existsSync(tasksDir)) mkdirSync(tasksDir, { recursive: true });
         const body = await readRequestBody(req);
+        // 📖 Optimistic concurrency: when the client sends the hash of the
+        // content it loaded before editing (X-Kandown-Base-Hash) and the file
+        // on disk no longer matches, refuse with 409 and hand back the current
+        // text so the UI can run its conflict flow instead of silently
+        // overwriting the newer version. Header absent (CLI, TUI, bulk
+        // writers): behave exactly as before, unconditional write.
+        const rawBaseHash = req.headers['x-kandown-base-hash'];
+        const baseHash = Array.isArray(rawBaseHash) ? rawBaseHash[0] : rawBaseHash;
+        if (typeof baseHash === 'string' && baseHash.trim()) {
+          const currentPath = activePath ?? archivedPath;
+          if (currentPath && existsSync(currentPath)) {
+            let currentContent = '';
+            try {
+              currentContent = readFileSync(currentPath, 'utf8');
+            } catch (readError) {
+              return writeJson(res, 500, {
+                error: `Failed to read current task before write: ${readError instanceof Error ? readError.message : String(readError)}`,
+              });
+            }
+            if (contentHash(currentContent) !== baseHash.trim()) {
+              return writeJson(res, 409, { error: 'conflict', currentContent });
+            }
+          }
+        }
         // 📖 One write path: writes in place, renames on bracket change (the
         // only auto-sync the user asked for). `useGit: false` because the web
         // app does not know whether the project is a git worktree, and a half-
         // renamed worktree is worse than a delete-plus-add commit.
-        const { path: taskPath } = writeTaskContent(kandownDir, taskId, body, { useGit: false });
+        writeTaskContent(kandownDir, taskId, body, { useGit: false });
         broadcastSseEvent({ type: 'task', id: taskId });
         return writeJson(res, 200, { ok: true });
       } catch (error) {

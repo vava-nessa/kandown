@@ -23,6 +23,10 @@
  * the read-only SkillsModal, and sendMessage / startSession forward
  * mentionedTaskIds so the daemon inlines the integral @task files.
  *
+ * 📖 Round 4: startSession forwards the ModelPicker's model choice, and
+ * sendMessage forwards the composer's delivery choice ('steer' | 'queue') so
+ * interactive harnesses get follow-ups at the boundary the user asked for.
+ *
  * @functions
  *  → createAgentChatSlice: sidebar state, session index, SSE lifecycle, sends,
  *    the t310 interactive skill flow (chat skills list, activeSkill chip,
@@ -310,14 +314,17 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
       const permissionMode = get().config.agent.permissionMode;
       const result = await createAgentSession({
         harnessId: input.harnessId,
-        ...(input.taskId ? { taskId: input.taskId }: {}),
-        ...(input.message ? { message: input.message }: {}),
-        ...(input.skillId ? { skillId: input.skillId }: {}),
+        ...(input.taskId ? { taskId: input.taskId } : {}),
+        ...(input.message ? { message: input.message } : {}),
+        ...(input.skillId ? { skillId: input.skillId } : {}),
         // 📖 Round 3: @task mentions on the first message make the daemon
         // inline the integral task files into the compiled prompt.
         ...(input.mentionedTaskIds && input.mentionedTaskIds.length > 0
           ? { mentionedTaskIds: input.mentionedTaskIds }
          : {}),
+        // 📖 Round 4: model picked in the sidebar header; empty means the
+        // harness default (nothing is sent).
+        ...(input.model && input.model.trim() ? { model: input.model.trim() } : {}),
         permissionMode,
       });
       if (!result) {
@@ -409,7 +416,7 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
       }));
     },
 
-    sendMessage: async (text, mentionedTaskIds) => {
+    sendMessage: async (text, mentionedTaskIds, delivery) => {
       const trimmed = text.trim();
       const sessionId = get().agentChat.activeSessionId;
       if (!trimmed || !sessionId || get().agentChat.sending) return;
@@ -426,8 +433,9 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
       }));
       // 📖 Round 3: the visible user text is sent untouched; mentioned task
       // ids ride along as structured data so the daemon can inline the
-      // integral task files ahead of the message.
-      const result = await sendAgentSessionMessage(sessionId, trimmed, mentionedTaskIds);
+      // integral task files ahead of the message. Round 4: the delivery
+      // choice (steer/queue) rides along only when the composer sent one.
+      const result = await sendAgentSessionMessage(sessionId, trimmed, mentionedTaskIds, delivery);
       if (result === null || !result.ok) {
         set(state => {
           const live = state.agentChat.live[sessionId];

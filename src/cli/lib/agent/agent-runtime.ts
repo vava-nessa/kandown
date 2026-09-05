@@ -26,6 +26,11 @@
  * so the totals exposed on AgentSessionInfo always match what subscribers
  * saw. The autopilot orchestrator reads these to enforce session budget caps.
  *
+ * 📖 Model selection (round 4): `config.model` is adapter-owned. The pi,
+ * claude and codex adapters translate it into their own launch flag in
+ * buildArgs; the ACP adapters deliberately ignore it (their agents
+ * self-select models), so an unset model is the normal case, never an error.
+ *
  * @functions
  *  → createAgentSession         : resolve the harness, spawn, start streaming
  *  → listAgentSessions          : JSON-safe registry snapshot
@@ -37,7 +42,7 @@
  *  → stopAgentSession           : graceful stop, then SIGTERM
  *  → resetAgentSessions         : test-only registry wipe
  *
- * @exports createAgentSession, listAgentSessions, getAgentSession, subscribeAgentSession, sendToSession, setAgentPermissionHandler, deliverRawLine, stopAgentSession, resetAgentSessions, AgentPermissionRequest, PermissionRoutingAdapter, MAX_SESSIONS, EVENT_BUFFER_LIMIT
+ * @exports createAgentSession, listAgentSessions, getAgentSession, subscribeAgentSession, sendToSession, DeliveryMode, piFollowUpCommand, setAgentPermissionHandler, deliverRawLine, stopAgentSession, resetAgentSessions, AgentPermissionRequest, PermissionRoutingAdapter, MAX_SESSIONS, EVENT_BUFFER_LIMIT
  * @see src/cli/lib/agent/types.ts: the event model
  * @see src/cli/lib/agent/detect.ts: the harness catalog and PATH resolution
  */
@@ -105,6 +110,15 @@ interface SessionRecord {
   /** 📖 Daemon-registered callback for routed permission requests; null unless
    *  the server asked to be the decider, and nulled again on process exit. */
   permissionHandler: ((request: AgentPermissionRequest) => void) | null;
+  /** 📖 ACP queue-mode FIFO (round 4): session/prompt requests parked here by
+   *  sendToSession when the caller asked for 'queue' delivery, flushed into
+   *  stdin by handleLine's turn_completed path (the ACP turn ends with its
+   *  session/prompt response). Entries carry their own request id because the
+   *  "current prompt" pointer (acpPendingPromptId) must only move at drain
+   *  time, never at queue time: moving it early would orphan the response of
+   *  the in-flight turn and its turn_completed would never fire. Cleared on
+   *  process exit so a dead stdin is never written. */
+  pendingAcp: Array<{ id: number; line: string }>;
 }
 
 const sessions = new Map<string, SessionRecord>();
@@ -205,15 +219,30 @@ function handleLine(record: SessionRecord, line: string): void {
     });
     return;
   }
+  // 📖 ACP queue-mode drain (round 4): a turn_completed means the agent is
+  // done with the current turn, which is exactly when parked follow-ups may
+  // start the next one. Splice first so a failure below cannot re-deliver.
+  let turnJustCompleted = false;
   for (const event of result.events ?? []) {
     if (event.type === 'session_started') {
       record.info.harnessSessionId = event.harnessSessionId || record.state.harnessSessionId;
     }
-    if (event.type === 'turn_completed') record.turnSeen = true;
+    if (event.type === 'turn_completed') {
+      record.turnSeen = true;
+      turnJustCompleted = true;
+    }
     recordEvent(record, { ...event, ...meta(record) } as AgentEvent);
   }
   if (result.outbound && record.child?.stdin && !record.child.stdin.destroyed) {
     for (const line of result.outbound) record.child.stdin.write(`${line}\n`);
+  }
+  if (turnJustCompleted && record.pendingAcp.length > 0 && record.child?.stdin && !record.child.stdin.destroyed) {
+    const queued = record.pendingAcp.splice(0);
+    // 📖 Point the adapter's "current prompt" at the last drained request so
+    // its completion is the one recognized as the next turn end.
+    const last = queued[queued.length - 1];
+    if (last) record.state.acpPendingPromptId = last.id;
+    for (const entry of queued) record.child.stdin.write(`${entry.line}\n`);
   }
 }
 
@@ -239,6 +268,9 @@ function attachChild(record: SessionRecord, child: ChildProcess): void {
     // 📖 No decision can reach a dead process: drop the permission handler so
     // a routed request can never be answered after exit.
     record.permissionHandler = null;
+    // 📖 Queued ACP follow-ups belong to the process that just died: drop
+    // them, a resumed session re-sends its message through the normal path.
+    record.pendingAcp = [];
     // 📖 A crash before any turn is useless without context: surface the last
     // stderr lines as the error the UI will actually show the user.
     if (reason === 'crash' && !record.turnSeen && record.stderrTail.trim()) {
@@ -323,6 +355,7 @@ export function createAgentSession(config: AgentSessionConfig): AgentSessionInfo
       status: 'starting',
       startedAt: new Date().toISOString(),
       usageTotals: { tokens: 0, costUsd: 0 },
+      ...(config.model ? { model: config.model } : {}),
     },
     config: { ...config, protocolArgs: [...resolved.def.protocolArgs] },
     adapter,
@@ -340,6 +373,7 @@ export function createAgentSession(config: AgentSessionConfig): AgentSessionInfo
     stderrTail: '',
     resolvedBinPath: resolved.binPath,
     permissionHandler: null,
+    pendingAcp: [],
   };
   sessions.set(record.info.id, record);
   startChild(record);
@@ -377,32 +411,84 @@ function promptAcpSession(sessionId: string, id: number, text: string): string {
   });
 }
 
+/** 📖 Delivery modes for a follow-up message (round 4).
+ *  - 'steer': deliver into the LIVE turn where the protocol allows it (pi
+ *    injects at the next tool-call boundary; ACP sends the prompt right away
+ *    and lets the agent arbitrate).
+ *  - 'queue': never interrupt; pi queues with streamingBehavior 'followUp'
+ *    (a no-op when idle, since there is nothing to queue behind), ACP parks
+ *    the message on the session record until the next turn_completed.
+ *  Absent means the protocol's pre-round-4 default, which the pi and ACP
+ *  branches preserve exactly. One-shot adapters (claude, codex) accept the
+ *  parameter and ignore it: their follow-ups always resume after the current
+ *  process exits, so both modes behave identically there. */
+export type DeliveryMode = 'steer' | 'queue';
+
+/** 📖 Pure pi follow-up routing (round 4): the exact stdin line a follow-up
+ *  becomes, decided from busy state and the requested delivery alone.
+ *  - steer + busy: pi's `steer` command, injected at the next tool-call
+ *    boundary.
+ *  - busy (queue or no delivery): a `prompt` with streamingBehavior
+ *    'followUp', pi's queue.
+ *  - idle (any delivery): a plain prompt, because steering or queueing behind
+ *    nothing both mean "start the turn now".
+ *  Extracted as a pure function so the routing table is unit-testable
+ *  without spawning a harness; sendToSession only does the stdin write. */
+export function piFollowUpCommand(message: string, busy: boolean, delivery: DeliveryMode | undefined, promptId: string): string {
+  if (delivery === 'steer' && busy) {
+    return JSON.stringify({ type: 'steer', message });
+  }
+  return JSON.stringify(
+    busy
+      ? { type: 'prompt', message, streamingBehavior: 'followUp' }
+      : { id: promptId, type: 'prompt', message },
+  );
+}
+
+/** 📖 Parks a queued ACP session/prompt request on the record, assigning its
+ *  future request id. Deliberately does NOT touch acpPendingPromptId: the
+ *  in-flight turn keeps the pointer until the drain (see handleLine). */
+function queueAcpPrompt(record: SessionRecord, text: string): void {
+  const sessionId = record.state.acpSessionId;
+  if (!sessionId) return;
+  const nextId = record.state.acpNextRequestId ?? 3;
+  record.state.acpNextRequestId = nextId + 1;
+  record.pendingAcp.push({ id: nextId, line: promptAcpSession(sessionId, nextId, text) });
+}
+
 /** 📖 Sends a follow-up user message. Interactive protocols steer or queue the
  *  live process; one-shot protocols re-spawn with their native resume flag so
  *  the conversation continues under the same kandown session id. */
-export function sendToSession(id: string, text: string): { ok: boolean; error?: string } {
+export function sendToSession(id: string, text: string, delivery?: DeliveryMode): { ok: boolean; error?: string } {
   const record = sessions.get(id);
   if (!record) return { ok: false, error: 'Unknown session' };
   const trimmed = text.trim();
   if (!trimmed) return { ok: false, error: 'Message is empty' };
 
   // 📖 Live process: hand the message to stdin via the protocol's own
-  // steering mechanism (pi queue modes, ACP re-prompt).
+  // steering mechanism (pi steer/queue modes, ACP re-prompt or FIFO).
   if (record.child?.stdin && !record.child.stdin.destroyed) {
     if (record.adapter === piAdapter) {
-      const command = record.state.busy
-        ? { type: 'prompt', message: trimmed, streamingBehavior: 'followUp' }
-       : { id: `kandown-prompt-${Date.now()}`, type: 'prompt', message: trimmed };
-      record.child.stdin.write(`${JSON.stringify(command)}\n`);
+      record.child.stdin.write(`${piFollowUpCommand(trimmed, record.state.busy === true, delivery, `kandown-prompt-${Date.now()}`)}\n`);
       return { ok: true };
     }
     if (record.adapter === acpAdapter && record.state.acpSessionId) {
+      // 📖 Queue mode parks the line; the next turn_completed (handled in
+      // handleLine) flushes the FIFO. Steer and the default deliver the
+      // prompt immediately, even mid turn: ACP agents arbitrate concurrent
+      // prompts themselves.
+      if (delivery === 'queue') {
+        queueAcpPrompt(record, trimmed);
+        return { ok: true };
+      }
       const nextId = record.state.acpNextRequestId ?? 3;
       record.state.acpNextRequestId = nextId + 1;
       record.state.acpPendingPromptId = nextId;
       record.child.stdin.write(`${promptAcpSession(record.state.acpSessionId, nextId, trimmed)}\n`);
       return { ok: true };
     }
+    // 📖 One-shot harness mid turn: the delivery parameter is accepted and
+    // ignored; resuming is only possible once the process has exited.
     return { ok: false, error: 'This harness is one-shot; wait for the turn to finish.' };
   }
 

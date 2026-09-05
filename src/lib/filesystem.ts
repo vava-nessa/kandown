@@ -46,6 +46,7 @@
  *  → serverReadConfig / serverWriteConfig — kandown.json via REST
  *  → serverListTasks: list task IDs via REST
  *  → serverReadTask / serverWriteTask / serverDeleteTask: task CRUD via REST
+ *  → readTaskFileRaw: raw Markdown of one task (base-hash capture)
  *  → serverMoveTask: authoritative managed move intent
  *  → fetchDetectedAgents / fetchAgentHarnesses: Node-side agent and harness detection
  *  → createAgentSession / sendAgentSessionMessage: harness chat runtime actions
@@ -58,7 +59,7 @@
  *  → serverMigrateTasks: triggers the legacy to new layout migration via REST
  *  → readProjectInstructions / writeProjectInstructions — edits `.kandown/kandown_work.md`
  *
- * @exports supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, fetchDetectedAgents, fetchAgentHarnesses, createAgentSession, sendAgentSessionMessage, listSessionIndex, forgetSessionIndex, serverAuthState, ServerAuthState, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks
+ * @exports supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, readTaskFileRaw, writeTaskFile, WriteTaskFileOptions, ServerWriteTaskResult, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, fetchDetectedAgents, fetchAgentHarnesses, createAgentSession, sendAgentSessionMessage, listSessionIndex, forgetSessionIndex, serverAuthState, ServerAuthState, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks
  * @see src/lib/store.ts
  * @see src/lib/parser.ts
  */
@@ -469,6 +470,10 @@ export interface CreateAgentSessionInput {
   resumeSessionId?: string;
   skillId?: string;
   mentionedTaskIds?: string[];
+  /** 📖 Optional model the session should run on (round 4). The daemon
+   * validates it and maps it onto the harness launch flag; empty or absent
+   * means the harness default. */
+  model?: string;
 }
 
 /**
@@ -510,12 +515,20 @@ export async function createAgentSession(input: CreateAgentSessionInput): Promis
  * The runtime steers the live turn or resumes the finished session under the
  * same kandown id. `mentionedTaskIds` (@task mentions, round 3) asks the
  * daemon to prepend the integral content of those tasks to the delivered
- * message; the visible user text is never rewritten. Returns
+ * message; the visible user text is never rewritten. `delivery` (round 4)
+ * asks for 'steer' (deliver into the live turn) or 'queue' (deliver after
+ * it); absent lets the runtime apply its own default, which preserves the
+ * pre-round-4 behavior on every harness. Returns
  * `{ ok: false, error }` carrying the backend's readable error (empty
  * message, one-shot harness mid-turn, unknown session), or `null` outside
  * server mode. Never throws.
  */
-export async function sendAgentSessionMessage(id: string, message: string, mentionedTaskIds?: string[]): Promise<{ ok: boolean; error?: string } | null> {
+export async function sendAgentSessionMessage(
+  id: string,
+  message: string,
+  mentionedTaskIds?: string[],
+  delivery?: 'steer' | 'queue',
+): Promise<{ ok: boolean; error?: string } | null> {
   if (!isServerMode() || isDemoMode()) return null;
   try {
     const res = await rawApiFetch(`/api/agent/sessions/${encodeURIComponent(id)}/send`, {
@@ -526,6 +539,9 @@ export async function sendAgentSessionMessage(id: string, message: string, menti
         // 📖 Unchanged wire shape when there is nothing to mention: older
         // daemons keep parsing the exact same body.
         ...(mentionedTaskIds && mentionedTaskIds.length > 0 ? { mentionedTaskIds } : {}),
+        // 📖 deliveryMode rides along only when explicitly requested, so the
+        // body stays byte-identical to the pre-round-4 shape otherwise.
+        ...(delivery ? { deliveryMode: delivery } : {}),
       }),
     });
     if (res.ok) return { ok: true };
@@ -763,6 +779,36 @@ export async function serverReadTask(id: string): Promise<string> {
   return res.text();
 }
 
+/**
+ * 📖 Raw Markdown of one task, exactly as stored: the input the
+ * optimistic-concurrency guard hashes. Returns null when the file cannot be
+ * read (missing, revoked access), in which case callers simply skip the
+ * guard: a write without a base hash keeps today's unconditional behavior.
+ * Works in server mode and against a picked directory; the local read mirrors
+ * readTaskFile's active-then-archive resolution.
+ */
+export async function readTaskFileRaw(_tasksDir: FileSystemDirectoryHandle | null, id: string): Promise<string | null> {
+  if (isServerMode()) {
+    try {
+      return await serverReadTask(id);
+    } catch {
+      return null;
+    }
+  }
+  const tryRead = async (dir: FileSystemDirectoryHandle): Promise<string | null> => {
+    try {
+      const name = await resolveTaskFilenameIn(dir, id);
+      if (!name) return null;
+      const h = await dir.getFileHandle(name);
+      const file = await h.getFile();
+      return await file.text();
+    } catch {
+      return null;
+    }
+  };
+  return (await tryRead(_tasksDir!)) ?? (await tryArchiveRead(_tasksDir!, id));
+}
+
 /** 📖 Sends a move intent to the managed backend. Gate refusals are domain
  * results rather than thrown transport errors, so the store can roll back its
  * optimistic state and show the exact reason. */
@@ -788,11 +834,53 @@ export async function serverMoveTask(
   return result;
 }
 
+/** 📖 Result of a guarded server task write (round 4). `conflict` means the
+ * file changed on disk after the caller loaded it: `currentContent` carries
+ * the file's current text so the UI can run its conflict flow instead of
+ * silently overwriting. `error` covers 401/404/5xx transport or auth
+ * failures; the HTTP error text is available in the rejected fetch when the
+ * caller needs it, so the shape stays three-way and total. */
+export type ServerWriteTaskResult =
+  | { ok: true }
+  | { ok: false; kind: 'conflict'; currentContent: string }
+  | { ok: false; kind: 'error' };
+
+/** 📖 Options for {@link writeTaskFile}. `baseHash` is the contentHash of the
+ * raw file the caller loaded before editing; when provided in server mode it
+ * travels as the `X-Kandown-Base-Hash` header and the daemon answers 409
+ * with the current text if the file moved underneath the editor. Absent
+ * means "write unconditionally", exactly like every pre-round-4 caller. */
+export interface WriteTaskFileOptions {
+  baseHash?: string;
+}
+
 /**
- * @description Writes a task file via the CLI server.
+ * 📖 Server-mode task write with optimistic concurrency. Uses rawApiFetch
+ * (not apiFetch) because 409 is a domain answer, not a transport failure:
+ * the result object carries it back to the caller untouched.
  */
-async function serverWriteTask(id: string, content: string): Promise<void> {
-  await apiFetch(`/api/tasks/${encodeURIComponent(id)}`, { method: 'PUT', body: content, headers: { 'Content-Type': 'text/plain' } });
+async function serverWriteTask(id: string, content: string, options?: WriteTaskFileOptions): Promise<ServerWriteTaskResult> {
+  const res = await rawApiFetch(`/api/tasks/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: content,
+    headers: {
+      'Content-Type': 'text/plain',
+      ...(options?.baseHash ? { 'X-Kandown-Base-Hash': options.baseHash } : {}),
+    },
+  });
+  if (res.ok) return { ok: true };
+  if (res.status === 409) {
+    let currentContent = '';
+    try {
+      const payload = await res.json() as { currentContent?: unknown };
+      if (typeof payload.currentContent === 'string') currentContent = payload.currentContent;
+    } catch {
+      // 📖 A 409 without a readable body is still a conflict; the caller just
+      // gets no remote snapshot to diff against.
+    }
+    return { ok: false, kind: 'conflict', currentContent };
+  }
+  return { ok: false, kind: 'error' };
 }
 
 /**
@@ -1258,16 +1346,26 @@ export async function readTaskFileStrict(
   }
 }
 
+/**
+ * 📖 Writes a task file. In server mode the optional `options.baseHash`
+ * (round 4) turns the write into an optimistic-concurrency check and the
+ * returned result says whether it landed (`ok`), hit a conflict (`conflict`,
+ * with the file's current content), or failed otherwise (`error`). Without
+ * the option, and in local (File System Access) mode where the browser owns
+ * the only handle, the write is unconditional and the result is always
+ * `{ ok: true }` (failures still throw, preserving the legacy contract).
+ */
 export async function writeTaskFile(
   _tasksDir: FileSystemDirectoryHandle | null,
   id: string,
   frontmatter: TaskFrontmatter,
-  body: string
-): Promise<void> {
+  body: string,
+  options?: WriteTaskFileOptions,
+): Promise<ServerWriteTaskResult> {
   // 📖 Every web write stamps `updated:` too, so the TUI Age column stays
   // honest whichever interface touched the task last (see task-meta.ts).
   const content = serializeTaskFile(stampUpdated(frontmatter), body);
-  if (isServerMode()) return serverWriteTask(id, content);
+  if (isServerMode()) return serverWriteTask(id, content, options);
   try {
     // 📖 Write in place: an archived task stays inside archive/ on save so its
     // file location never drifts from its archived flag.
@@ -1286,6 +1384,7 @@ export async function writeTaskFile(
     } finally {
       await w.close();
     }
+    return { ok: true };
   } catch (e) {
     throw toWriteError(e, `${id}.md`);
   }

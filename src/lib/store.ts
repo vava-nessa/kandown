@@ -42,6 +42,7 @@ import {
   writeConfigFile,
   readTaskFile as fsReadTaskFile,
   readTaskFileStrict,
+  readTaskFileRaw as fsReadTaskFileRaw,
   writeTaskFile as fsWriteTaskFile,
   deleteTaskFile as fsDeleteTaskFile,
   archiveTaskFile as fsArchiveTaskFile,
@@ -66,7 +67,8 @@ import {
   type ServerAgentHook,
   type RecentProject,
 } from './filesystem';
-import { buildColumnsFromTasks, extractSubtasks, injectSubtasks, searchTaskContent, extractArchivedTasks } from './parser';
+import { buildColumnsFromTasks, extractSubtasks, injectSubtasks, parseTaskFile, searchTaskContent, extractArchivedTasks } from './parser';
+import { contentHash } from './task-content-hash';
 import { resolveTransition, resolveDependencyStatus } from './dependencies';
 import { applyProjectTheme } from './theme';
 import { fileWatcher } from './watcher';
@@ -233,6 +235,13 @@ interface State {
 
   // File watcher support
   drawerBaseVersion: DrawerSnapshot | null;
+  /** 📖 contentHash of the raw task file as it was when the drawer loaded it
+   *  (round 4). Sent as `X-Kandown-Base-Hash` on guarded saves so the daemon
+   *  can answer 409 when a harness overwrote the file in the meantime, which
+   *  routes into the ConflictModal flow instead of losing the edit. Null
+   *  means "no guard" (raw read failed, or the last write was unconditional).
+   */
+  loadedBaseHash: string | null;
   conflictState: ConflictState | null;
   showConflictModal: boolean;
 
@@ -289,6 +298,10 @@ interface State {
   updateDrawerData: (updater: (data: NonNullable<State['drawerData']>) => NonNullable<State['drawerData']>) => void;
   saveDrawer: () => Promise<void>;
   saveDrawerMetadata: () => Promise<void>;
+  /** 📖 Opens the existing conflict flow for a 409 write (round 4): parses the
+   *  file text the server returned and fills conflictState (type 'full', so
+   *  the modal shows) with the drawer's loaded snapshot as the local side. */
+  raiseWriteConflict: (taskId: string, currentContent: string) => void;
   /** Marks the drawer as having unsaved edits (called from Drawer on each change). */
   markDrawerDirty: () => void;
   /** Forcibly closes the drawer even when there are unsaved edits, after
@@ -328,7 +341,7 @@ interface State {
   startSession: (input: AgentChatStartInput) => Promise<void>;
   resumeSession: (entry: SessionIndexEntryPayload) => Promise<void>;
   newConversation: () => void;
-  sendMessage: (text: string) => Promise<void>;
+  sendMessage: (text: string, mentionedTaskIds?: string[], delivery?: 'steer' | 'queue') => Promise<void>;
   /** Interactive skill answers (t310): format + forward as a follow-up. */
   sendAnswers: (answers: string[]) => Promise<void>;
   /** Hides the interactive answer form without sending (t310). */
@@ -541,7 +554,7 @@ export const useStore = create<State>((set, get, api) => ({
 
   viewMode: (localStorage.getItem('kandown:view') as ViewMode) || 'board',
   density: (localStorage.getItem('kandown:density') as Density) || 'comfortable',
-  filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null },
+  filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null, category: null },
   commandOpen: false,
   cheatsheetOpen: false,
   drawerTaskId: null,
@@ -761,6 +774,7 @@ export const useStore = create<State>((set, get, api) => ({
   },
 
   drawerBaseVersion: null,
+  loadedBaseHash: null,
   conflictState: null,
   showConflictModal: false,
 
@@ -1545,6 +1559,11 @@ export const useStore = create<State>((set, get, api) => ({
     try {
       const { frontmatter, body } = await fsReadTaskFile(tasksDirHandle, taskId);
       const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
+      // 📖 Round 4: hash the raw file as it is RIGHT NOW, so every save from
+      // this drawer session can be checked against disk. Null (unreadable)
+      // just means the next save goes out unguarded, like before.
+      const raw = await fsReadTaskFileRaw(tasksDirHandle, taskId);
+      const loadedBaseHash = raw !== null ? contentHash(raw) : null;
       const snapshot: DrawerSnapshot = {
         frontmatter,
         subtasks,
@@ -1567,6 +1586,7 @@ export const useStore = create<State>((set, get, api) => ({
         drawerTaskId: taskId,
         drawerData: initialDrawerData,
         drawerBaseVersion: snapshot,
+        loadedBaseHash,
         conflictState: null,
         showConflictModal: false,
         hasUnsavedDrawerEdits: !!recovery,
@@ -1589,6 +1609,7 @@ export const useStore = create<State>((set, get, api) => ({
       drawerTaskId: null,
       drawerData: null,
       drawerBaseVersion: null,
+      loadedBaseHash: null,
       conflictState: null,
       showConflictModal: false,
       hasUnsavedDrawerEdits: false,
@@ -1623,23 +1644,66 @@ export const useStore = create<State>((set, get, api) => ({
     set({ drawerData: updater(drawerData) });
   },
 
+  /** 📖 Fills conflictState from a 409's currentContent and shows the
+   * ConflictModal (type 'full'). The drawer keeps the user's edits intact:
+   * the modal's overwrite/reload actions decide what happens next. Mirror of
+   * the drawerSlice action (the drawer logic is still inline here). */
+  raiseWriteConflict: (taskId, currentContent) => {
+    const { drawerData, drawerBaseVersion } = get();
+    if (!drawerData) return;
+    let remote: ConflictState['remote'];
+    try {
+      const parsed = parseTaskFile(currentContent);
+      const { subtasks, bodyWithoutSubtasks } = extractSubtasks(parsed.body);
+      remote = { frontmatter: parsed.frontmatter, body: bodyWithoutSubtasks, subtasks };
+    } catch {
+      remote = { frontmatter: { id: taskId, title: '' }, body: currentContent, subtasks: [] };
+    }
+    const local: DrawerSnapshot = drawerBaseVersion
+      ? drawerBaseVersion
+      : { frontmatter: drawerData.frontmatter, subtasks: drawerData.subtasks, body: drawerData.body, savedAt: Date.now() };
+    set({
+      conflictState: { taskId, type: 'full', local, remote },
+      showConflictModal: true,
+    });
+  },
+
   saveDrawer: async () => {
-    const { drawerTaskId, drawerData, tasksDirHandle, taskContents } = get();
+    const { drawerTaskId, drawerData, tasksDirHandle, taskContents, loadedBaseHash } = get();
     if (!drawerTaskId || !drawerData) return;
 
     const fullBody = injectSubtasks(drawerData.body, drawerData.subtasks);
     const fm = { ...drawerData.frontmatter, id: drawerTaskId };
     try {
-      await withRetry(() => fsWriteTaskFile(tasksDirHandle || null, drawerTaskId, fm, fullBody), { maxAttempts: 3 });
+      // 📖 Round 4: the save carries the hash of the content the drawer
+      // loaded. A 409 means the file changed on disk underneath the editor;
+      // the conflict modal opens and the edits stay in the drawer. A refused
+      // write (401/404/5xx) throws inside the retried closure so it keeps the
+      // exact pre-guard behavior: retries, error toast, edits intact.
+      const result = await withRetry(async () => {
+        const write = await fsWriteTaskFile(tasksDirHandle || null, drawerTaskId, fm, fullBody, { baseHash: loadedBaseHash ?? undefined });
+        if (!write.ok && write.kind === 'error') throw new Error('write refused by the kandown backend');
+        return write;
+      }, { maxAttempts: 3 });
+      if (!result.ok && result.kind === 'conflict') {
+        get().raiseWriteConflict(drawerTaskId, result.currentContent);
+        set({ lastSaveError: null });
+        return;
+      }
 
       get().toast('Saved');
       // Clear recovery data for this task now that the save succeeded.
       const newRecovery = new Map(get().drawerRecoveryData);
       newRecovery.delete(drawerTaskId);
       updateBrowserUrl(buildBoardUrl(get().projectName));
+      // 📖 Refresh the base hash from the bytes now on disk so the NEXT save
+      // keeps its guard. Re-serializing locally would not do: `updated:` is
+      // stamped at write time, so a local re-hash could drift from the file.
+      const freshRaw = await fsReadTaskFileRaw(tasksDirHandle || null, drawerTaskId);
       set({
         drawerTaskId: null,
         drawerData: null,
+        loadedBaseHash: freshRaw !== null ? contentHash(freshRaw) : null,
         hasUnsavedDrawerEdits: false,
         lastSaveError: null,
         drawerRecoveryData: newRecovery,
@@ -1667,12 +1731,28 @@ export const useStore = create<State>((set, get, api) => ({
   },
 
   saveDrawerMetadata: async () => {
-    const { drawerTaskId, drawerData, tasksDirHandle, taskContents } = get();
+    const { drawerTaskId, drawerData, tasksDirHandle, taskContents, loadedBaseHash } = get();
     if (!drawerTaskId || !drawerData) return;
     try {
       const fullBody = injectSubtasks(drawerData.body, drawerData.subtasks);
       const fm = { ...drawerData.frontmatter, id: drawerTaskId };
-      await withRetry(() => fsWriteTaskFile(tasksDirHandle || null, drawerTaskId, fm, fullBody), { maxAttempts: 3 });
+      // 📖 Same guarded save as saveDrawer (round 4): an autosave that hits a
+      // 409 opens the conflict modal instead of overwriting, and flags the
+      // unsaved state so the drawer footer stays honest. Refused writes throw
+      // inside the retried closure (same retry + banner behavior as before).
+      const result = await withRetry(async () => {
+        const write = await fsWriteTaskFile(tasksDirHandle || null, drawerTaskId, fm, fullBody, { baseHash: loadedBaseHash ?? undefined });
+        if (!write.ok && write.kind === 'error') throw new Error('write refused by the kandown backend');
+        return write;
+      }, { maxAttempts: 3 });
+      if (!result.ok && result.kind === 'conflict') {
+        get().raiseWriteConflict(drawerTaskId, result.currentContent);
+        set({ hasUnsavedDrawerEdits: true, lastSaveError: null });
+        return;
+      }
+
+      // 📖 Keep the guard live across consecutive autosaves (see saveDrawer).
+      const freshRaw = await fsReadTaskFileRaw(tasksDirHandle || null, drawerTaskId);
 
       // Update content cache
       const newContents = new Map(taskContents);
@@ -1681,7 +1761,12 @@ export const useStore = create<State>((set, get, api) => ({
         subtasks: drawerData.subtasks,
         body: drawerData.body,
       });
-      set({ taskContents: newContents, hasUnsavedDrawerEdits: false, lastSaveError: null });
+      set({
+        taskContents: newContents,
+        loadedBaseHash: freshRaw !== null ? contentHash(freshRaw) : null,
+        hasUnsavedDrawerEdits: false,
+        lastSaveError: null,
+      });
       await get().reloadBoard();
     } catch (e) {
       const err = e as Error;
@@ -1723,7 +1808,7 @@ export const useStore = create<State>((set, get, api) => ({
     }
   },
   clearFilters: () =>
-    set({ filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null }, searchMatches: new Map() }),
+    set({ filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null, category: null }, searchMatches: new Map() }),
 
   setCommandOpen: (open) => set({ commandOpen: open }),
   setCheatsheetOpen: (open) => set({ cheatsheetOpen: open }),
@@ -1806,14 +1891,22 @@ export const useStore = create<State>((set, get, api) => ({
 
   resolveConflict: async (resolution) => {
     const { conflictState, drawerData, tasksDirHandle, drawerTaskId, drawerBaseVersion } = get();
-    if (!conflictState || !tasksDirHandle || !drawerTaskId) return;
+    // 📖 Server mode has no directory handle (every op goes through the REST
+    // API), so the guard mirrors openDrawer's: a handle OR server mode. The
+    // round-4 write-conflict flow opens this modal from server-mode saves, so
+    // the actions must actually work there.
+    if (!conflictState || (!tasksDirHandle && !isServerMode()) || !drawerTaskId) return;
 
     if (resolution === 'reload') {
       const { frontmatter, body } = await fsReadTaskFile(tasksDirHandle, drawerTaskId);
       const { subtasks, bodyWithoutSubtasks } = extractSubtasks(body);
+      // 📖 Round 4: re-hash the freshly loaded file so the next save keeps
+      // its conflict guard against whatever wrote underneath us.
+      const freshRaw = await fsReadTaskFileRaw(tasksDirHandle, drawerTaskId);
       set({
         drawerData: { frontmatter, subtasks, body: bodyWithoutSubtasks },
         drawerBaseVersion: { frontmatter, subtasks, body: bodyWithoutSubtasks, savedAt: Date.now() },
+        loadedBaseHash: freshRaw !== null ? contentHash(freshRaw) : null,
         conflictState: null,
         showConflictModal: false,
       });
@@ -1823,9 +1916,16 @@ export const useStore = create<State>((set, get, api) => ({
         const fullBody = injectSubtasks(drawerData.body, drawerData.subtasks);
         const fm = { ...drawerData.frontmatter, id: drawerTaskId };
         try {
+          // 📖 Deliberately NO baseHash here: overwrite is the user choosing
+          // to force their version through, so the write must be
+          // unconditional even though the disk hash moved.
           await fsWriteTaskFile(tasksDirHandle, drawerTaskId, fm, fullBody);
+          // 📖 Re-read for the next guard; null just means the next save is
+          // unguarded, like every pre-round-4 write.
+          const freshRaw = await fsReadTaskFileRaw(tasksDirHandle, drawerTaskId);
           set({
             drawerBaseVersion: { ...drawerData, savedAt: Date.now() },
+            loadedBaseHash: freshRaw !== null ? contentHash(freshRaw) : null,
             conflictState: null,
             showConflictModal: false,
           });

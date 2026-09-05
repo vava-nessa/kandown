@@ -111,10 +111,16 @@ export interface AgentSessionConfig {
    *  session file path. */
   resumeSessionId?: string;
   /** 📖 True when the session was launched with a skill whose manifest sets
-   *  chat.autoApply (t310): routed permission requests are auto-allowed
-   *  instead of surfacing an Approval Card. Server-authoritative, derived
-   *  from the resolved skill; the client never sends this flag. */
+   * chat.autoApply (t310): routed permission requests are auto-allowed
+   * instead of surfacing an Approval Card. Server-authoritative, derived
+   * from the resolved skill; the client never sends this flag. */
   skillAutoApply?: boolean;
+  /** 📖 Optional model the session should run on (round 4), validated by the
+   * endpoint before it reaches here. Adapters map it onto their own launch
+   * flag in buildArgs (claude `--model`, codex `-m`, pi `--model`); the ACP
+   * adapters ignore it (their agents self-select models), which is why the
+   * field is optional and why nothing here assumes a value. */
+  model?: string;
   /** 📖 Extra argv that switch the binary into its harness-wire mode (ACP
    *  agents need a flag; one-protocol harnesses need none). Copied from the
    *  harness definition by the runtime at session creation. */
@@ -143,9 +149,14 @@ export interface AgentSessionInfo {
   harnessId: string;
   status: AgentSessionStatus;
   /** Session id reported by the harness itself (claude session id, codex
-   *  thread id, pi session id, ACP session id), or undefined until known.
-   *  Persisted by the t308 index so conversations can resume. */
+   * thread id, pi session id, ACP session id), or undefined until known.
+   * Persisted by the t308 index so conversations can resume. */
   harnessSessionId?: string;
+  /** 📖 Model the session was launched with (round 4), echoed from the
+   * session config for display. Absent when the caller did not pick one
+   * (the harness then uses its own default) and on snapshots served by
+   * daemons that predate the field. */
+  model?: string;
   startedAt: string;
   exitCode?: number | null;
   /** 📖 Running usage totals, zeroed at creation and accumulated as `usage`

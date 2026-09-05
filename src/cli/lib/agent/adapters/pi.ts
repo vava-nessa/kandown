@@ -27,7 +27,8 @@
  * "diff shown after the fact".
  *
  * @functions
- *  → buildArgs     : argv: rpc mode (session persistence stays pi's own)
+ *  → buildArgs     : argv: rpc mode, optional `--model` (session persistence
+ *                    stays pi's own)
  *  → initialStdin  : optional session switch, state probe, initial prompt
  *  → parseLine     : one stdout line → normalized events (+ stdin replies)
  *  → onStop        : graceful `abort` command before SIGTERM
@@ -40,8 +41,13 @@ import { EDIT_TOOL_NAMES } from '../types.js';
 import { excerptFromToolInput } from '../tool-excerpt.js';
 import type { AdapterParseResult, AdapterState, AgentSessionConfig, HarnessAdapter } from '../types.js';
 
+/** 📖 Builds the rpc argv. `--model` (round 4) is pi's documented launch
+ *  option; steering an already-running pi session onto another model would
+ *  need RPC set_model, which is out of scope here. No flag when unset. */
 export function buildArgs(config: AgentSessionConfig, binPath: string): string[] {
-  return [binPath, '--mode', 'rpc'];
+  return config.model
+    ? [binPath, '--mode', 'rpc', '--model', config.model]
+   : [binPath, '--mode', 'rpc'];
 }
 
 /** 📖 Seeds the RPC conversation: resume goes through `switch_session` (pi

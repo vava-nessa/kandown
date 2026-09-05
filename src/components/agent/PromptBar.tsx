@@ -6,6 +6,12 @@
  * "Ask the agent" never kicks off a harness run the user did not ask for);
  * without a daemon the bar is disabled.
  *
+ * 📖 Round 4: when the active session runs on an interactive harness (pi, ACP
+ * agents), a tiny Steer/Queue segmented control sits above the textarea and
+ * the choice rides along on send as the follow-up's delivery mode ('steer'
+ * delivers into the live turn, 'queue' after it). One-shot harnesses hide the
+ * control: their follow-ups always resume after the turn.
+ *
  * 📖 Round 3 additions, all anchored above the textarea through the shared
  * TaskMentionDropdown: typing `@` opens the task mention picker (ArrowUp/Down
  * move, Enter/Tab select, Esc closes; selecting rewrites the active @token in
@@ -54,7 +60,10 @@ interface PromptBarProps {
   disabled: boolean;
   turnActive: boolean;
   sending: boolean;
-  onSend: (text: string, mentionedTaskIds: string[]) => void;
+  /** 📖 Round 4: true when the active session's harness is interactive (pi,
+   * ACP). Renders the Steer/Queue control and forwards the choice on send. */
+  deliveryEnabled: boolean;
+  onSend: (text: string, mentionedTaskIds: string[], delivery?: 'steer' | 'queue') => void;
   onStop: () => void;
   /** Slash-token launches: ChatSidebar wires the same handler the pill
    * buttons use, including the pick-a-task fallback for task-scoped skills. */
@@ -74,6 +83,7 @@ export function PromptBar({
   disabled,
   turnActive,
   sending,
+  deliveryEnabled,
   onSend,
   onStop,
   onLaunchSkill,
@@ -92,6 +102,10 @@ export function PromptBar({
   // the draft, so retyping or moving back into it reopens the menu.
   const [menuDismissed, setMenuDismissed] = useState(false);
   const [skillsOpen, setSkillsOpen] = useState(false);
+  // 📖 Round 4 delivery mode for interactive harnesses. Queue is the default:
+  // never interrupting a running turn is the safe choice; steering is a
+  // deliberate opt-in.
+  const [delivery, setDelivery] = useState<'steer' | 'queue'>('queue');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const columns = useStore(s => s.columns);
@@ -222,11 +236,14 @@ export function PromptBar({
     // 📖 Mentions stay visible in the message; only the ids travel as data.
     const trimmed = stripMentionMarkers(value.trim());
     if (!trimmed || disabled || sending) return;
-    onSend(trimmed, extractMentionedTaskIds(trimmed));
+    // 📖 The delivery choice only means something on an interactive harness;
+    // ChatSidebar keeps the control hidden otherwise, so the param stays
+    // undefined there and the runtime keeps its default.
+    onSend(trimmed, extractMentionedTaskIds(trimmed), deliveryEnabled ? delivery : undefined);
     setValue('');
     setCaret(0);
     setMenuDismissed(false);
-  }, [value, disabled, sending, onSend]);
+  }, [value, disabled, sending, onSend, deliveryEnabled, delivery]);
 
   const handleMenuSelect = useCallback((index: number) => {
     if (!menu) return;
@@ -289,7 +306,48 @@ export function PromptBar({
   };
 
   return (
-    <div className="relative flex flex-none items-end gap-1.5 border-t border-border bg-bg px-2.5 py-2.5">
+    <div className="relative flex flex-none flex-col border-t border-border bg-bg">
+      {/* 📖 Round 4: steer/queue for interactive harnesses. Queue is default:
+       * steer injects into the live turn (pi: next tool-call boundary; ACP:
+       * immediately, the agent arbitrates), queue delivers after the turn. */}
+      {deliveryEnabled && (
+        <div className="flex items-center gap-2 px-2.5 pt-2">
+          <div
+            role="group"
+            aria-label={t('agentChat.deliveryLabel', 'Follow-up delivery')}
+            className="flex flex-none items-center rounded-md border border-border bg-bg-1 p-0.5"
+          >
+            <button
+              type="button"
+              onClick={() => setDelivery('steer')}
+              aria-pressed={delivery === 'steer'}
+              title={t('agentChat.deliverySteerTitle', 'Deliver into the live turn (pi: at the next tool-call boundary, ACP agents: immediately)')}
+              className={`rounded-[5px] px-2 py-0.5 text-[10.5px] transition-colors ${
+                delivery === 'steer' ? 'bg-bg-2 text-fg' : 'text-fg-muted hover:text-fg'
+              }`}
+            >
+              {t('agentChat.deliverySteer', 'Steer')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setDelivery('queue')}
+              aria-pressed={delivery === 'queue'}
+              title={t('agentChat.deliveryQueueTitle', 'Deliver after the current turn completes')}
+              className={`rounded-[5px] px-2 py-0.5 text-[10.5px] transition-colors ${
+                delivery === 'queue' ? 'bg-bg-2 text-fg' : 'text-fg-muted hover:text-fg'
+              }`}
+            >
+              {t('agentChat.deliveryQueue', 'Queue')}
+            </button>
+          </div>
+          <span className="truncate text-[10.5px] text-fg-faint">
+            {delivery === 'steer'
+              ? t('agentChat.deliverySteerTitle', 'Deliver into the live turn (pi: at the next tool-call boundary, ACP agents: immediately)')
+              : t('agentChat.deliveryQueueTitle', 'Deliver after the current turn completes')}
+          </span>
+        </div>
+      )}
+      <div className="relative flex items-end gap-1.5 px-2.5 py-2.5">
       {menu && (
         <TaskMentionDropdown
           title={menu.title}
@@ -346,6 +404,7 @@ export function PromptBar({
         </button>
       )}
       <SkillsModal open={skillsOpen} onClose={() => setSkillsOpen(false)} />
+      </div>
     </div>
   );
 }

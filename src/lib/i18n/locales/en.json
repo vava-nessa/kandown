@@ -43,7 +43,8 @@
     "archives": "Archives",
     "backToBoard": "Back to board",
     "showMetadata": "Show metadata",
-    "hideMetadata": "Hide metadata"
+    "hideMetadata": "Hide metadata",
+    "allCategories": "All categories"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -523,7 +524,14 @@
     "reload": "Reload",
     "pickTaskTitle": "Pick the task to run {{skill}} on",
     "pickTaskEmpty": "No tasks on the board yet",
-    "mentionDropdownLabel": "Suggestions"
+    "mentionDropdownLabel": "Suggestions",
+    "modelPlaceholder": "Model",
+    "modelTitle": "Model for new chats, empty uses the harness default",
+    "deliveryLabel": "Follow-up delivery",
+    "deliverySteer": "Steer",
+    "deliveryQueue": "Queue",
+    "deliverySteerTitle": "Deliver into the live turn (pi: at the next tool-call boundary, ACP agents: immediately)",
+    "deliveryQueueTitle": "Deliver after the current turn completes"
   },
   "agentSkills": {
     "skillsLabel": "Skills",

@@ -8,7 +8,7 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 14485,
+      "lines": 14554,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
@@ -283,6 +283,19 @@
       "summary": "Covers the three pieces the TUI's `a` key now leans on: - `assignTaskToAgent` writes the canonical agent id into `assignee:`, preserves the rest of the frontmatter and the body, is idempotent, and fails soft on an unknown task."
     },
     {
+      "path": "src/cli/lib/__tests__/agent-delivery.spec.ts",
+      "lines": 82,
+      "title": "Round 4 agent-chat routing tests: follow-up delivery and model flags",
+      "summary": "Locks the pure surfaces of the steer/queue delivery split and the model pass-through.",
+      "functions": [
+        {
+          "name": "(vitest suites)",
+          "summary": null
+        }
+      ],
+      "exports": "(tests)"
+    },
+    {
       "path": "src/cli/lib/__tests__/agent-migration.spec.ts",
       "lines": 238,
       "title": "Safe agent instruction migration tests",
@@ -508,7 +521,7 @@
     },
     {
       "path": "src/cli/lib/agent/adapters/claude-code.ts",
-      "lines": 164,
+      "lines": 166,
       "title": "Claude Code harness adapter (stream-json protocol)",
       "summary": "Drives `claude -p <prompt> --output-format stream-json` and normalizes its JSONL stdout into kandown agent events.",
       "functions": [
@@ -525,7 +538,7 @@
     },
     {
       "path": "src/cli/lib/agent/adapters/codex.ts",
-      "lines": 164,
+      "lines": 167,
       "title": "OpenAI Codex harness adapter (exec json protocol)",
       "summary": "Drives `codex exec --json` and normalizes its JSONL event stream into kandown agent events.",
       "functions": [
@@ -542,12 +555,12 @@
     },
     {
       "path": "src/cli/lib/agent/adapters/pi.ts",
-      "lines": 224,
+      "lines": 230,
       "title": "Pi harness adapter (RPC mode protocol)",
       "summary": "Drives `pi --mode rpc`, pi's newline-delimited JSON protocol over stdin/stdout (documented in badlogic/pi-mono, packages/coding-agent/ docs/rpc.md).",
       "functions": [
         {
-          "name": "buildArgs     : argv: rpc mode (session persistence stays pi's own)",
+          "name": "buildArgs     : argv: rpc mode, optional `--model` (session persistence",
           "summary": null
         },
         {
@@ -567,7 +580,7 @@
     },
     {
       "path": "src/cli/lib/agent/agent-runtime.ts",
-      "lines": 491,
+      "lines": 577,
       "title": "AgentRuntime: the harness session facade",
       "summary": "Spawns and drives harness sessions, normalizing every protocol into the shared event model.",
       "functions": [
@@ -608,7 +621,7 @@
           "summary": null
         }
       ],
-      "exports": "createAgentSession, listAgentSessions, getAgentSession, subscribeAgentSession, sendToSession, setAgentPermissionHandler, deliverRawLine, stopAgentSession, resetAgentSessions, AgentPermissionRequest, PermissionRoutingAdapter, MAX_SESSIONS, EVENT_BUFFER_LIMIT"
+      "exports": "createAgentSession, listAgentSessions, getAgentSession, subscribeAgentSession, sendToSession, DeliveryMode, piFollowUpCommand, setAgentPermissionHandler, deliverRawLine, stopAgentSession, resetAgentSessions, AgentPermissionRequest, PermissionRoutingAdapter, MAX_SESSIONS, EVENT_BUFFER_LIMIT"
     },
     {
       "path": "src/cli/lib/agent/detect.ts",
@@ -746,7 +759,7 @@
     },
     {
       "path": "src/cli/lib/agent/types.ts",
-      "lines": 157,
+      "lines": 168,
       "title": "Agent harness contracts: the normalized event model and session types",
       "summary": "Defines the single event vocabulary every harness adapter normalizes to, the session configuration the runtime accepts, and the adapter interface each protocol backend implements.",
       "functions": [
@@ -1311,7 +1324,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 1441,
+      "lines": 1488,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
@@ -1832,7 +1845,7 @@
     },
     {
       "path": "src/components/agent/ChatSidebar.tsx",
-      "lines": 407,
+      "lines": 441,
       "title": "Agent chat sidebar (t308)",
       "summary": "The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.",
       "functions": [
@@ -1933,8 +1946,25 @@
       "exports": "MessageList"
     },
     {
+      "path": "src/components/agent/ModelPicker.tsx",
+      "lines": 116,
+      "title": "Model picker for the agent chat sidebar header",
+      "summary": "A compact free-text input with a short datalist of common model suggestions, rendered next to the harness selector.",
+      "functions": [
+        {
+          "name": "ModelPicker: the input itself, owning persistence per harness",
+          "summary": null
+        },
+        {
+          "name": "loadStoredModel: reads one harness's persisted pick (exported for tests)",
+          "summary": null
+        }
+      ],
+      "exports": "ModelPicker, loadStoredModel"
+    },
+    {
       "path": "src/components/agent/PromptBar.tsx",
-      "lines": 352,
+      "lines": 411,
       "title": "Prompt bar for the agent chat sidebar",
       "summary": "Auto-sizing textarea plus send/stop controls.",
       "functions": [
@@ -2071,7 +2101,7 @@
     },
     {
       "path": "src/components/Board.tsx",
-      "lines": 394,
+      "lines": 397,
       "title": "Board view",
       "summary": "Renders the horizontal kanban board, filters tasks per column, wires drag-and-drop state, and forwards content-search matches to cards.",
       "functions": [
@@ -2126,7 +2156,7 @@
     },
     {
       "path": "src/components/CardStack.tsx",
-      "lines": 314,
+      "lines": 332,
       "title": "Collapsible card stack component",
       "summary": "Renders a group of 2+ cards that share the same `[bracket]` or `#hashtag` title tag as a visually stacked card.",
       "functions": [
@@ -2159,7 +2189,7 @@
     },
     {
       "path": "src/components/Column.tsx",
-      "lines": 370,
+      "lines": 371,
       "title": "Board column component",
       "summary": "Renders a single kanban column, accepts dropped cards, shows the filtered task count, and creates new tasks directly in the column.",
       "functions": [
@@ -2322,9 +2352,9 @@
     },
     {
       "path": "src/components/Header.tsx",
-      "lines": 482,
+      "lines": 607,
       "title": "App header",
-      "summary": "Top navigation bar for project switching, task search, filters, view mode, density, settings, command palette, reload, and task creation.",
+      "summary": "Top navigation bar for project switching, task search, filters (including the category dropdown next to the task count), view mode, density, settings, command palette, reload, and task creation.",
       "functions": [
         {
           "name": "LogoSvg",
@@ -2371,7 +2401,7 @@
     },
     {
       "path": "src/components/ListView.tsx",
-      "lines": 532,
+      "lines": 536,
       "title": "List view",
       "summary": "Renders board columns as vertically stacked horizontal sections, with dense task rows, filter/search previews, task drops between sections, and vertical section reordering.",
       "functions": [
@@ -2904,6 +2934,12 @@
       "summary": "`parseQuickAddInput` is what turns one typed line (\"Fix login p1 #auth @vava due:2026-01-30 +t12\") into task frontmatter, in both the web quick-add bar and the TUI."
     },
     {
+      "path": "src/lib/__tests__/task-content-hash.spec.ts",
+      "lines": 45,
+      "title": "Tests for the shared task-content hash",
+      "summary": "Covers the three properties the optimistic-concurrency guard depends on: stability (same content, same digest, across calls), sensitivity (any content change produces a different digest) and the 16-character slice length."
+    },
+    {
       "path": "src/lib/__tests__/task-filename.spec.ts",
       "lines": 320,
       "title": "Tests for task filename slugs and id resolution",
@@ -3086,7 +3122,7 @@
     },
     {
       "path": "src/lib/demoBackend.ts",
-      "lines": 398,
+      "lines": 403,
       "title": "In-memory backend for the website demo",
       "summary": "Implements the Kandown REST API against a `Map` instead of a disk, so the whole web UI can run in a browser tab with no CLI, no server and no storage.",
       "functions": [
@@ -3396,7 +3432,7 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 1584,
+      "lines": 1683,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [
@@ -3481,6 +3517,10 @@
           "summary": null
         },
         {
+          "name": "readTaskFileRaw: raw Markdown of one task (base-hash capture)",
+          "summary": null
+        },
+        {
           "name": "serverMoveTask: authoritative managed move intent",
           "summary": null
         },
@@ -3525,7 +3565,7 @@
           "summary": "edits `.kandown/kandown_work.md`"
         }
       ],
-      "exports": "supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, fetchDetectedAgents, fetchAgentHarnesses, createAgentSession, sendAgentSessionMessage, listSessionIndex, forgetSessionIndex, serverAuthState, ServerAuthState, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks"
+      "exports": "supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, readTaskFileRaw, writeTaskFile, WriteTaskFileOptions, ServerWriteTaskResult, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, fetchDetectedAgents, fetchAgentHarnesses, createAgentSession, sendAgentSessionMessage, listSessionIndex, forgetSessionIndex, serverAuthState, ServerAuthState, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks"
     },
     {
       "path": "src/lib/githubStars.ts",
@@ -3738,7 +3778,7 @@
     },
     {
       "path": "src/lib/store.ts",
-      "lines": 2085,
+      "lines": 2184,
       "title": "Kandown Zustand store",
       "summary": "Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.",
       "functions": [
@@ -3771,7 +3811,7 @@
     },
     {
       "path": "src/lib/store/agentChatSlice.ts",
-      "lines": 617,
+      "lines": 625,
       "title": "Zustand store slice: agent chat sidebar (t308)",
       "summary": "Sidebar open state, the project's chat session index, the live per-session chat folds, and the SSE lifecycle that feeds them.",
       "functions": [
@@ -3862,9 +3902,9 @@
     },
     {
       "path": "src/lib/store/drawerSlice.ts",
-      "lines": 189,
+      "lines": 275,
       "title": "Zustand store slice — task drawer",
-      "summary": "Opening/closing the task detail drawer, editing its in-memory data, saving (full or metadata-only autosave), and the unsaved-edits recovery buffer used when the drawer is force-closed before a save completes (t110)."
+      "summary": "Opening/closing the task detail drawer, editing its in-memory data, saving (full or metadata-only autosave), the unsaved-edits recovery buffer used when the drawer is force-closed before a save completes (t110), and the round-4…"
     },
     {
       "path": "src/lib/store/helpers.ts",
@@ -3880,7 +3920,7 @@
     },
     {
       "path": "src/lib/store/types.ts",
-      "lines": 478,
+      "lines": 494,
       "title": "Zustand store — shared types",
       "summary": "State shape and supporting interfaces used across every store slice."
     },
@@ -3895,6 +3935,19 @@
       "lines": 229,
       "title": "Zustand store slice — file watcher wiring",
       "summary": "Starts either the browser file-system watcher or the server-mode REST polling loop, translates watcher events into board reloads / conflict detection / notifications, and exposes a manual restart for when the watcher auto-disables…"
+    },
+    {
+      "path": "src/lib/task-content-hash.ts",
+      "lines": 38,
+      "title": "Shared task-content hash for optimistic concurrency",
+      "summary": "One pure `contentHash` used by every writer that guards a task save against stale in-memory content.",
+      "functions": [
+        {
+          "name": "contentHash: 16 hex chars of SHA-256 over a task's raw content",
+          "summary": null
+        }
+      ],
+      "exports": "contentHash"
     },
     {
       "path": "src/lib/task-filename.ts",
@@ -4112,7 +4165,7 @@
     },
     {
       "path": "src/lib/types.ts",
-      "lines": 603,
+      "lines": 608,
       "title": "Shared domain types",
       "summary": "Defines the board, task, config, filter, search, and appearance contracts shared by the Kandown web UI, CLI, TUI, and persistence adapters.",
       "exports": "Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, ColumnRole, ColumnAgentMeta, WorkflowSelectionConfig, TaskTrackingCadence, WorkOutputDetailMode, TuiConfig, AgentsConfig, AutopilotConfig, KandownConfig, DEFAULT_COLUMNS, DEFAULT_WORK_OUTPUT, DEFAULT_COLUMN_META, DEFAULT_CONFIG, PermissionMode, PERMISSION_MODES, PermissionSupport, DetectedHarness, SessionIndexEntryPayload, AgentSessionPayload"

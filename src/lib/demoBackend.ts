@@ -330,6 +330,11 @@ export async function demoApi(path: string, options?: RequestInit): Promise<Resp
       }
       if (method === 'PUT') {
         const body = await readBody(options);
+        // 📖 The daemon answers 409 when an `X-Kandown-Base-Hash` header no
+        // longer matches the file on disk (optimistic concurrency). The demo
+        // is a single in-memory writer with no harness processes editing
+        // behind the app, so a conflict is impossible here: the header is
+        // accepted and deliberately ignored, keeping the demo 409-free.
         // 📖 Write in place: editing an archived task must not resurrect it
         // onto the board. Same rule as the CLI's PUT handler.
         if (store.archived.has(id)) store.archived.set(id, body);

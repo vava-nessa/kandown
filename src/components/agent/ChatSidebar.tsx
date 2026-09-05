@@ -11,7 +11,9 @@
  * (daemon restarted: reload to reconnect) in place of the daemon card, the
  * pick-a-task flow when a task-scoped skill launches with no preselected
  * task, and the shared skill launch handler the PromptBar slash-token picker
- * reuses. The header also hosts the t311
+ * reuses. Round 4 adds the ModelPicker next to the harness selector (per-
+ * harness persisted model for new conversations) and the steer/queue delivery
+ * control in the composer for interactive harnesses. The header also hosts the t311
  * autopilot controls (start/kill switch + run totals) as a third compact row.
  *
  * 📖 Mounted once in App.tsx, outside the board layout, like Drawer and
@@ -37,6 +39,7 @@ import { matchAgent } from '../../lib/agent-aliases';
 import { SessionSwitcher } from './SessionSwitcher';
 import { MessageList } from './MessageList';
 import { PromptBar } from './PromptBar';
+import { ModelPicker } from './ModelPicker';
 import { SkillButtons } from './SkillButtons';
 import { AnswerForm } from './AnswerForm';
 import { UsageBadge } from './UsageBadge';
@@ -122,6 +125,26 @@ export function ChatSidebar() {
     setSelectedHarness((preferred ?? installedHarnesses[0])?.id ?? null);
   }, [installedHarnesses, taskAssignee, selectedHarness]);
 
+  // 📖 Round 4: model for the NEXT new conversation. The ModelPicker owns the
+  // per-harness localStorage persistence; this state is only the forwarding
+  // copy the session-start calls read.
+  const [selectedModel, setSelectedModel] = useState('');
+  const handleModelChange = useCallback((model: string) => setSelectedModel(model), []);
+
+  // 📖 Round 4: delivery control visibility. Only interactive harnesses (pi,
+  // ACP agents) can accept a steer/queue choice for follow-ups; one-shot
+  // harnesses always resume after the turn, so the control hides there. The
+  // active session's harness comes from its session-index entry.
+  const activeHarnessId = useMemo(
+    () => (activeSessionId ? sessions.find(entry => entry.id === activeSessionId)?.harnessId ?? null : null),
+    [activeSessionId, sessions],
+  );
+  const activeHarnessProtocol = useMemo(
+    () => harnesses.find(harness => harness.id === activeHarnessId)?.protocol ?? null,
+    [harnesses, activeHarnessId],
+  );
+  const deliveryEnabled = activeHarnessProtocol === 'pi-rpc' || activeHarnessProtocol === 'acp';
+
   const activeLive = activeSessionId ? live[activeSessionId]: undefined;
   const fold = activeLive?.fold;
   const turnActive = fold?.turnActive ?? false;
@@ -168,9 +191,11 @@ export function ChatSidebar() {
 
   // 📖 Round 3: @task mentions ride along as structured ids so the daemon can
   // inline the integral task files; the visible text is sent untouched.
-  const handleSend = useCallback((text: string, mentionedTaskIds: string[]) => {
+  // Round 4: the composer's delivery choice rides along for follow-ups on an
+  // active interactive session.
+  const handleSend = useCallback((text: string, mentionedTaskIds: string[], delivery?: 'steer' | 'queue') => {
     if (activeSessionId) {
-      void sendMessage(text, mentionedTaskIds);
+      void sendMessage(text, mentionedTaskIds, delivery);
       return;
     }
     // 📖 Lazy start: no session yet, so the first message opens one with the
@@ -178,11 +203,12 @@ export function ChatSidebar() {
     if (!selectedHarness) return;
     void startSession({
       harnessId: selectedHarness,
-      ...(preContextTaskId ? { taskId: preContextTaskId }: {}),
+      ...(preContextTaskId ? { taskId: preContextTaskId } : {}),
       ...(mentionedTaskIds.length > 0 ? { mentionedTaskIds } : {}),
+      ...(selectedModel.trim() ? { model: selectedModel.trim() } : {}),
       message: text,
     });
-  }, [activeSessionId, sendMessage, selectedHarness, preContextTaskId, startSession]);
+  }, [activeSessionId, sendMessage, selectedHarness, selectedModel, preContextTaskId, startSession]);
 
   // 📖 t310: a skill button always starts a NEW session whose daemon-compiled
   // prompt folds the skill instructions in; the same harness selector the
@@ -198,12 +224,13 @@ export function ChatSidebar() {
     }
     void startSession({
       harnessId: selectedHarness,
-      ...(preContextTaskId ? { taskId: preContextTaskId }: {}),
+      ...(preContextTaskId ? { taskId: preContextTaskId } : {}),
+      ...(selectedModel.trim() ? { model: selectedModel.trim() } : {}),
       skillId: skill.skillId,
       label: skill.label,
       interactive: skill.interactive,
     });
-  }, [selectedHarness, preContextTaskId, boardTaskCount, startSession]);
+  }, [selectedHarness, selectedModel, preContextTaskId, boardTaskCount, startSession]);
 
   /** 📖 The pick-a-task menu resolved: launch the parked skill on the chosen
    * task and clear the pending state in the same breath. */
@@ -214,11 +241,12 @@ export function ChatSidebar() {
     void startSession({
       harnessId: selectedHarness,
       taskId,
+      ...(selectedModel.trim() ? { model: selectedModel.trim() } : {}),
       skillId: parked.skill.skillId,
       label: parked.skill.label,
       interactive: parked.skill.interactive,
     });
-  }, [pendingSkill, selectedHarness, startSession]);
+  }, [pendingSkill, selectedHarness, selectedModel, startSession]);
 
   /** 📖 Esc in the pick-a-task menu: forget the parked skill, nothing launched. */
   const handleDismissPickTask = useCallback(() => {
@@ -285,6 +313,9 @@ export function ChatSidebar() {
                     <option key={harness.id} value={harness.id}>{harness.name}</option>
                   ))}
                 </select>
+                {/* 📖 Round 4: model for the next new conversation, persisted
+                 * per harness; empty means the harness default. */}
+                <ModelPicker harnessId={selectedHarness} onModelChange={handleModelChange} />
                 <span
                   className="inline-flex items-center rounded-full border border-border bg-bg-2 px-2 py-0.5 text-[10.5px] text-fg-muted"
                   title={t('settings.permissionMode', 'Permission mode')}
@@ -388,6 +419,9 @@ export function ChatSidebar() {
                   disabled={activeSessionId === null && installedHarnesses.length === 0}
                   turnActive={turnActive}
                   sending={sending}
+                  // 📖 Round 4: steer/queue only makes sense for interactive
+                  // harnesses; one-shot sessions hide the control entirely.
+                  deliveryEnabled={deliveryEnabled}
                   onSend={handleSend}
                   onStop={() => { if (activeSessionId) void stopSession(activeSessionId); }}
                   onLaunchSkill={handleLaunchSkill}

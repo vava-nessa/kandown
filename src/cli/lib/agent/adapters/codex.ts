@@ -31,16 +31,19 @@ import type { AdapterParseResult, AdapterState, AgentSessionConfig, HarnessAdapt
 
 /** 📖 Builds the exec argv. `--skip-git-repo-check` is required because a
  *  kandown project is not necessarily a git repo and codex refuses to run
- *  outside one without it. Resume uses the `codex exec resume <id>` subform. */
+ *  outside one without it. Resume uses the `codex exec resume <id>` subform.
+ *  `config.model` (round 4) maps onto codex's `-m` launch flag; no flag when
+ *  unset. */
 export function buildArgs(config: AgentSessionConfig, binPath: string): string[] {
   const modeFlags = config.permissionMode === 'yolo'
     ? ['--dangerously-bypass-approvals-and-sandbox']
    : ['--sandbox', 'workspace-write'];
+  const modelFlags = config.model ? ['-m', config.model] : [];
   const jsonAndCheck = ['--json', '--skip-git-repo-check'];
   if (config.resumeSessionId) {
-    return [binPath, 'exec', 'resume', config.resumeSessionId, ...jsonAndCheck, ...modeFlags, config.prompt];
+    return [binPath, 'exec', 'resume', config.resumeSessionId, ...jsonAndCheck, ...modeFlags, ...modelFlags, config.prompt];
   }
-  return [binPath, 'exec', ...jsonAndCheck, ...modeFlags, config.prompt];
+  return [binPath, 'exec', ...jsonAndCheck, ...modeFlags, ...modelFlags, config.prompt];
 }
 
 /** 📖 Codex items are loosely typed; this narrows the fields kandown consumes

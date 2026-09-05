@@ -162,6 +162,9 @@ export interface AgentChatStartInput {
   label?: string;
   interactive?: boolean;
   mentionedTaskIds?: string[];
+  /** 📖 Optional model for the session (round 4), persisted per harness in
+   *  the sidebar's ModelPicker. Empty means the harness default. */
+  model?: string;
 }
 
 /** 📖 One live agent edit on a task (t309): the session touching the file,
@@ -330,6 +333,13 @@ export interface State {
 
   // File watcher support
   drawerBaseVersion: DrawerSnapshot | null;
+  /** 📖 contentHash of the raw task file as it was when the drawer loaded it
+   *  (round 4). Sent as `X-Kandown-Base-Hash` on guarded saves so the daemon
+   *  can answer 409 when a harness overwrote the file in the meantime, which
+   *  routes into the ConflictModal flow instead of losing the edit. Null
+   *  means "no guard" (raw read failed, or the last write was unconditional).
+   */
+  loadedBaseHash: string | null;
   conflictState: ConflictState | null;
   showConflictModal: boolean;
 
@@ -379,6 +389,10 @@ export interface State {
   updateDrawerData: (updater: (data: NonNullable<State['drawerData']>) => NonNullable<State['drawerData']>) => void;
   saveDrawer: () => Promise<void>;
   saveDrawerMetadata: () => Promise<void>;
+  /** 📖 Opens the existing conflict flow for a 409 write (round 4): parses the
+   *  file text the server returned and fills conflictState (type 'full', so
+   *  the modal shows) with the drawer's loaded snapshot as the local side. */
+  raiseWriteConflict: (taskId: string, currentContent: string) => void;
   /** Marks the drawer as having unsaved edits (called from Drawer on each change). */
   markDrawerDirty: () => void;
   /** Forcibly closes the drawer even when there are unsaved edits, after
@@ -425,8 +439,10 @@ export interface State {
   newConversation: () => void;
   /** Sends a follow-up message with optimistic append + rollback on failure.
    * `mentionedTaskIds` (@task mentions, round 3) rides along so the daemon
-   * inlines the integral task files ahead of the message. */
-  sendMessage: (text: string, mentionedTaskIds?: string[]) => Promise<void>;
+   * inlines the integral task files ahead of the message. `delivery` (round
+   * 4) asks for 'steer' or 'queue' on interactive harnesses; absent keeps the
+   * runtime default. */
+  sendMessage: (text: string, mentionedTaskIds?: string[], delivery?: 'steer' | 'queue') => Promise<void>;
   /** 📖 Sends the interactive skill answers (t310): formats them with the
    * captured questions and forwards as a normal follow-up message. */
   sendAnswers: (answers: string[]) => Promise<void>;
