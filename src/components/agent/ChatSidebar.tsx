@@ -15,6 +15,9 @@
  * harness persisted model for new conversations) and the steer/queue delivery
  * control in the composer for interactive harnesses. The header also hosts the t311
  * autopilot controls (start/kill switch + run totals) as a third compact row.
+ * Round 5 moves the harness/model/permission cluster into the composer
+ * container (BeautifulUI 08: PromptBar's toolbar slot), leaving the header
+ * with the switcher, usage badge and autopilot row only.
  *
  * 📖 Mounted once in App.tsx, outside the board layout, like Drawer and
  * CommandPalette, so it overlays every view and a board crash never takes the
@@ -297,39 +300,13 @@ export function ChatSidebar() {
                 </button>
               </div>
               <div className="flex items-center gap-2">
-                {/* 📖 Harness picker applies to the NEXT new conversation; a
-                 * live session is already bound to its harness. */}
-                <select
-                  value={selectedHarness ?? ''}
-                  onChange={e => setSelectedHarness(e.target.value)}
-                  disabled={installedHarnesses.length === 0}
-                  title={t('agentChat.harnessLabel', 'Harness for new chats')}
-                  className="h-6 min-w-0 max-w-[160px] flex-none rounded-md border border-border bg-bg-1 px-1.5 text-[11.5px] text-fg-muted outline-none transition-colors hover:text-fg focus:border-border-focus disabled:opacity-50"
-                >
-                  {installedHarnesses.length === 0 && (
-                    <option value="">{t('agentChat.noHarness', 'No harness installed')}</option>
-                  )}
-                  {installedHarnesses.map(harness => (
-                    <option key={harness.id} value={harness.id}>{harness.name}</option>
-                  ))}
-                </select>
-                {/* 📖 Round 4: model for the next new conversation, persisted
-                 * per harness; empty means the harness default. */}
-                <ModelPicker harnessId={selectedHarness} onModelChange={handleModelChange} />
-                <span
-                  className="inline-flex items-center rounded-full border border-border bg-bg-2 px-2 py-0.5 text-[10.5px] text-fg-muted"
-                  title={t('settings.permissionMode', 'Permission mode')}
-                >
-                  {permissionMode === 'accept-edits'
-                    ? t('settings.acceptEdits', 'Accept edits')
-                   : t('settings.yolo', 'Yolo')}
-                </span>
+                {/* 📖 Round 5: the harness/model/permission cluster moved into
+                 * the composer (BeautifulUI 08: controls live inside the
+                 * rounded prompt bar container, mounted through PromptBar's
+                 * toolbar slot); the header keeps the switcher + autopilot
+                 * rows only. */}
+                <AutopilotControls />
               </div>
-              {/* 📖 t311: autopilot row: play/stop toggle (kill-switch styling
-               * while running) + compact run totals. Third compact header row
-               * so it never squeezes the switcher; it disables itself when
-               * the daemon guard reports no daemon. */}
-              <AutopilotControls />
             </div>
 
             {guard === 'no-daemon' ? (
@@ -429,6 +406,37 @@ export function ChatSidebar() {
                   pickTaskLabel={pendingSkill?.skill.label ?? null}
                   onPickTask={handlePickTask}
                   onDismissPickTask={handleDismissPickTask}
+                  // 📖 Round 5: the conversation controls ride inside the
+                  // composer container (BeautifulUI 08 layout). The harness
+                  // picker applies to the NEXT new conversation; a live
+                  // session is already bound to its harness.
+                  toolbar={
+                    <>
+                      <select
+                        value={selectedHarness ?? ''}
+                        onChange={e => setSelectedHarness(e.target.value)}
+                        disabled={installedHarnesses.length === 0}
+                        title={t('agentChat.harnessLabel', 'Harness for new chats')}
+                        className="h-6 min-w-0 max-w-[130px] flex-none rounded-md border border-border bg-bg px-1.5 text-[11px] text-fg-muted outline-none transition-colors hover:text-fg focus:border-border-focus disabled:opacity-50"
+                      >
+                        {installedHarnesses.length === 0 && (
+                          <option value="">{t('agentChat.noHarness', 'No harness installed')}</option>
+                        )}
+                        {installedHarnesses.map(harness => (
+                          <option key={harness.id} value={harness.id}>{harness.name}</option>
+                        ))}
+                      </select>
+                      <ModelPicker harnessId={selectedHarness} onModelChange={handleModelChange} />
+                      <span
+                        className="ml-auto inline-flex flex-none items-center rounded-full border border-border bg-bg px-2 py-0.5 text-[10px] text-fg-muted"
+                        title={t('settings.permissionMode', 'Permission mode')}
+                      >
+                        {permissionMode === 'accept-edits'
+                          ? t('settings.acceptEdits', 'Accept edits')
+                         : t('settings.yolo', 'Yolo')}
+                      </span>
+                    </>
+                  }
                 />
               </>
             )}

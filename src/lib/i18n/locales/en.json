@@ -531,7 +531,18 @@
     "deliverySteer": "Steer",
     "deliveryQueue": "Queue",
     "deliverySteerTitle": "Deliver into the live turn (pi: at the next tool-call boundary, ACP agents: immediately)",
-    "deliveryQueueTitle": "Deliver after the current turn completes"
+    "deliveryQueueTitle": "Deliver after the current turn completes",
+    "optionsTitle": "Choose an option",
+    "optionsSkip": "Let me type instead",
+    "suggestionsLabel": "Suggested follow-ups",
+    "suggestShowTask": "Show me the task",
+    "suggestApply": "Apply this",
+    "suggestExplainMore": "Explain more",
+    "proposeTitle": "Proposed action",
+    "proposeAccept": "Accept",
+    "proposeDismiss": "Dismiss",
+    "contextCardsLabel": "Referenced tasks",
+    "toolDurationTitle": "Duration"
   },
   "agentSkills": {
     "skillsLabel": "Skills",

@@ -26,7 +26,7 @@ source to edit instead.
 
 ## `bin/` — Published CLI entrypoints — GENERATED, never edit
 
-- **`kandown.js`** · 14554 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
+- **`kandown.js`** · 14562 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
 - **`tui.js`** · 62831 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
 
 ## `src/` — Web app root
@@ -87,7 +87,7 @@ source to edit instead.
 - **`plugin-cli.ts`** · 296 lines — The agent-first façade over the extension system.
 - **`plugin-dev.ts`** · 154 lines — Watches one plugin directory and, on every save, rebuilds the browser bundles, re-runs the validator and asks the running daemon to hot reload the board.
 - **`plugin-scaffold.ts`** · 342 lines — Generates a ready-to-run plugin directory for `kandown plugin create`.
-- **`server.ts`** · 1488 lines — Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application.
+- **`server.ts`** · 1503 lines — Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application.
 - **`skills.ts`** · 152 lines — Discovers immutable built-in, global, and project data-only Markdown skill packages with deterministic override precedence.
 - **`task-move.ts`** · 198 lines — Runs the shared dependency policy and enabled extension gates before persisting a web move.
 - **`themes-cli.ts`** · 255 lines — Implements the `kandown theme <subcommand>` verb: list installed themes, install from the registry or a pasted URL, scaffold a starter theme, and emit the prefilled GitHub URL the user clicks to propose their theme via a one-click PR.
@@ -210,7 +210,7 @@ source to edit instead.
 
 ## `src/components/agent/`
 
-- **`ActivityBlock.tsx`** · 163 lines — Replaces the pile of interleaved thinking blocks and tool chips the chat used to render: every assistant turn gets a SINGLE panel that updates in place while the turn streams.
+- **`ActivityBlock.tsx`** · 195 lines — Replaces the pile of interleaved thinking blocks and tool chips the chat used to render: every assistant turn gets a SINGLE panel that updates in place while the turn streams.
 - **`AgentPresenceBadge.tsx`** · 83 lines — Shows the chat session's blobatar near the task id in the TaskWorkspace (desktop) and Drawer (mobile) headers while a `[show: tXXX]` directive from the ACTIVE chat session points at the open task: a small header avatar, plus the…
 - **`AnswerForm.tsx`** · 100 lines — Compact panel rendered above the skill buttons when an interactive skill (grill-me) finishes its first turn: one small textarea per parsed question, "Send answers" forwards them through sendAnswers (the slice formats a plain follow-up…
 - **`ApprovalCard.tsx`** · 111 lines — ApprovalCard renders one pending harness permission request (title, kind chip, short session id, Approve / Reject); ApprovalCardStack is the fixed bottom-right container fed by the agentEdits permission queue.
@@ -218,18 +218,22 @@ source to edit instead.
 - **`Blobatar.tsx`** · 125 lines — Deterministic blob avatar identifying the agent session that is currently editing a task: the same sessionId always renders the same creature (shape, face, colors all derive from the id by the blobatar generator), so a session keeps its…
 - **`CardBeam.tsx`** · 128 lines — Animated border-beam overlay marking a task an agent session is currently editing.
 - **`CardStopButton.tsx`** · 110 lines — The board-surface half of the autopilot UI.
-- **`ChatSidebar.tsx`** · 441 lines — The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.
+- **`ChatSidebar.tsx`** · 449 lines — The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.
+- **`ContextCards.tsx`** · 92 lines — BeautifulUI 10 Context Cards port: when a user message carries
 - **`DaemonGuardCard.tsx`** · 57 lines — Shown instead of the conversation UI when the session index reported no daemon (standalone File System Access mode, the demo, or an old daemon without the agent routes).
 - **`DiffOverlay.tsx`** · 94 lines — Renders the latest `task_diff` snapshot for a task as a readable, dependency-free line diff: removed lines tinted red, added lines green, unchanged context collapsed to a couple of lines around the change.
 - **`GitInitBanner.tsx`** · 56 lines — Dismissible info banner shown when the daemon reports that the project folder is not a git repository (`gitWarning: 'not-a-git-repo'` on the POST /api/agent/sessions response): agent edits then leave no git history to diff, revert or…
-- **`MarkdownContent.tsx`** · 293 lines — Renders an assistant message as Markdown: headings, lists, bold, links, blockquotes, GFM tables (remark-gfm) and fenced code blocks on the project's code-block token surface with a Copy button.
-- **`MessageList.tsx`** · 162 lines — Renders the folded conversation: user bubbles (plain text), assistant turns as a BeautifulUI-style full-width panel (ONE collapsible activity block that updates in place while the turn streams, then the Markdown answer below it), error…
+- **`MarkdownContent.tsx`** · 309 lines — Renders an assistant message as Markdown: headings, lists, bold, links, blockquotes, GFM tables (remark-gfm) and fenced code blocks on the project's code-block token surface with a Copy button.
+- **`MessageList.tsx`** · 304 lines — Renders the folded conversation: user bubbles (plain text, with BeautifulUI-10-style context cards for every @task mention above the bubble), assistant turns as a BeautifulUI-style full-width panel (ONE collapsible activity block that…
 - **`ModelPicker.tsx`** · 116 lines — A compact free-text input with a short datalist of common model suggestions, rendered next to the harness selector.
-- **`PromptBar.tsx`** · 411 lines — Auto-sizing textarea plus send/stop controls.
+- **`OptionsChoiceCard.tsx`** · 85 lines — BeautifulUI 04 Approval Card port ("choices + skip/continue"): when an assistant reply carries an ```options fenced block (one choice per line, parsed by agent-chat-options.ts), the block is NOT rendered as code; every choice becomes a…
+- **`PromptBar.tsx`** · 429 lines — BeautifulUI 08 Prompt Bar port, in kandown tokens: one rounded container that holds the whole composer, the auto-sizing textarea on top, the control row under it (delivery choice for interactive harnesses on the left, sparkles + the…
+- **`RecommendationCard.tsx`** · 74 lines — BeautifulUI 09 Recommendation Card port: when an assistant message contains a `PROPOSE: <action>` line on its own (the Kandown agent charter documents the convention: the agent suggests a board action), the line is lifted out of the…
 - **`SessionSwitcher.tsx`** · 152 lines — Dropdown over the project's chat session index: title, relative last-activity time, and a harness chip per row.
 - **`SkillButtons.tsx`** · 128 lines — Renders the installed skills that declare a `chat` block as compact pill buttons above the PromptBar.
 - **`SkillsModal.tsx`** · 135 lines — A compact centered modal listing EVERY skill the daemon reports on /api/skills, not just the chat-capable subset the pill row shows: mono id, chat button label when the manifest declares one, scope chip, an interactive badge, the active…
 - **`StreamingText.tsx`** · 61 lines — Renders an assistant message that is still arriving.
+- **`SuggestionChips.tsx`** · 53 lines — BeautifulUI 03 Streaming Text follow-ups port: once a turn completes, a quiet row of 2-3 small suggestion chips appears under the reply; clicking one sends its text as the follow-up message.
 - **`TaskMentionDropdown.tsx`** · 99 lines — One small list, three uses, anchored above the PromptBar textarea: @task mentions (mono @id chip + task title), /skill tokens (mono /id + chat button label + interactive badge) and the "pick one task" mode a task-scoped skill falls back…
 - **`UsageBadge.tsx`** · 51 lines — Shows the running token totals and USD cost of the active session, accumulated by the event fold from `usage` SSE events.
 
@@ -266,6 +270,7 @@ source to edit instead.
 
 - **`agent-aliases.ts`** · 245 lines — The single source of truth for mapping a free-form assignee string (as typed in a task's `assignee:` frontmatter or quick-add `@token`) to a canonical agent id.
 - **`agent-chat-events.ts`** · 496 lines — Pure, framework-free model of the JSON events the daemon streams on GET /api/agent/sessions/:id/events, plus the reducer that folds them into the chat message list rendered by the agent chat sidebar.
+- **`agent-chat-options.ts`** · 206 lines — Pure, framework-free parsing of the two interactive answer conventions the Kandown agent charter teaches every chat session (see CHAT_AFFORDANCES_PROMPT in the daemon server): → an ```options fenced code block, one choice per line,…
 - **`agent-chat-skills.ts`** · 70 lines — Pure parsing/formatting for the interactive skill flow in the agent chat sidebar: when an interactive skill (grill-me) runs, the daemon's first assistant turn contains numbered questions, the sidebar extracts them to render an answer…
 - **`category-color.ts`** · 168 lines — Maps a category name (WEB, CLI, ARCHITECTURE, THEMES...) to a stable accent color and a stable icon by hashing the name: the same string always yields the same color and icon, nothing is stored, nothing to maintain.
 - **`chat-mentions.ts`** · 88 lines — All the caret-level text surgery the PromptBar needs to detect what the user is typing right before the caret: an unfinished `@task` mention (opens the task picker), an unfinished `/skill` token (opens the skill picker), and the list of…
@@ -304,6 +309,7 @@ source to edit instead.
 ## `src/lib/__tests__/`
 
 - **`agent-chat-events.spec.ts`** · 252 lines — Locks the reducer contract the chat sidebar renders from: streaming text accumulates then finalizes, thinking stays on its own channel, tool calls pair by toolCallId, usage accumulates, errors append entries (and fatal ones close the…
+- **`agent-chat-options.spec.ts`** · 158 lines — Locks the pure contract of src/lib/agent-chat-options.ts: the ```options fenced block (choices capped at 6, clipped at 90 chars, empty lines skipped, fences still open mid-stream tolerated, foreign fences protective) and the PROPOSE…
 - **`agent-chat-skills.spec.ts`** · 68 lines — Locks the pure interactive-skill contract (t310): the numbered question parser the answer form is built from, and the answer formatter the sidebar sends back as a plain follow-up message.
 - **`agent-edits.spec.ts`** · 190 lines — Covers the event fold (applyAgentEditsEvent), the permission queue helpers, diff pruning and the LCS-free line diff exported by src/lib/store/agentEditsSlice.ts, plus the board-event type guards exported by src/lib/watcher.ts (the…
 - **`autopilot.spec.ts`** · 246 lines — Covers the snapshot fold (ingestAutopilotSnapshot), the board event fold (applyAutopilotEvent), the failed kill-switch rollback (rollbackAutopilotStop) and the per-task lookups (autopilotTaskStatus, activeSessionForTask) exported by…
@@ -403,6 +409,6 @@ source to edit instead.
 
 ## Coverage
 
-280 of 280 eligible files carry an `@description` header.
+286 of 286 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

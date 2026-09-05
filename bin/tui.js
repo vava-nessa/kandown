@@ -55891,7 +55891,7 @@ import { spawn, execSync } from "child_process";
 import { homedir } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.54.0";
+var KANDOWN_VERSION = "0.55.0";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath } from "url";

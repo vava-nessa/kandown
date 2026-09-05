@@ -1,16 +1,21 @@
 /**
  * @file Prompt bar for the agent chat sidebar
- * @description Auto-sizing textarea plus send/stop controls. Enter sends,
- * Shift+Enter inserts a newline. While a turn is live the send button becomes a
- * stop button; when no session is active the first send starts one (lazily, so
- * "Ask the agent" never kicks off a harness run the user did not ask for);
- * without a daemon the bar is disabled.
+ * @description BeautifulUI 08 Prompt Bar port, in kandown tokens: one rounded
+ * container that holds the whole composer, the auto-sizing textarea on top,
+ * the control row under it (delivery choice for interactive harnesses on the
+ * left, sparkles + the accent-circle send/stop button on the right) and an
+ * optional slim `toolbar` row above the textarea where ChatSidebar mounts the
+ * harness/model/permission cluster (they concern the NEXT new conversation).
+ * Enter sends, Shift+Enter inserts a newline. While a turn is live the send
+ * circle becomes a stop circle; when no session is active the first send
+ * starts one (lazily, so "Ask the agent" never kicks off a harness run the
+ * user did not ask for); without a daemon the bar is disabled.
  *
  * 📖 Round 4: when the active session runs on an interactive harness (pi, ACP
- * agents), a tiny Steer/Queue segmented control sits above the textarea and
- * the choice rides along on send as the follow-up's delivery mode ('steer'
- * delivers into the live turn, 'queue' after it). One-shot harnesses hide the
- * control: their follow-ups always resume after the turn.
+ * agents), a tiny Steer/Queue segmented control sits inline in the control
+ * row and the choice rides along on send as the follow-up's delivery mode
+ * ('steer' delivers into the live turn, 'queue' after it). One-shot harnesses
+ * hide the control: their follow-ups always resume after the turn.
  *
  * 📖 Round 3 additions, all anchored above the textarea through the shared
  * TaskMentionDropdown: typing `@` opens the task mention picker (ArrowUp/Down
@@ -24,15 +29,15 @@
  * visible text is never rewritten.
  *
  * @functions
- *  → PromptBar: message composer with send/stop, mention/skill pickers and
- *    lazy session start
+ *  → PromptBar: composer with send/stop, mention/skill pickers, toolbar slot
+ *    and lazy session start
  *
  * @exports PromptBar
  * @see src/components/agent/ChatSidebar.tsx
  * @see src/lib/chat-mentions.ts: the pure token detection this composes
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconArrowUp, IconPlayerStop, IconSparkles } from '@tabler/icons-react';
 import { useStore } from '../../lib/store';
@@ -77,6 +82,11 @@ interface PromptBarProps {
   onPickTask: (taskId: string) => void;
   /** Esc (or dismiss) out of pick-task mode. */
   onDismissPickTask: () => void;
+  /** 📖 Round 5 (BeautifulUI 08): slim control row rendered inside the
+   * rounded container, above the textarea. ChatSidebar mounts the
+   * harness/model/permission cluster here so the composer carries the
+   * conversation controls the way the catalog composer does. */
+  toolbar?: ReactNode;
 }
 
 export function PromptBar({
@@ -91,6 +101,7 @@ export function PromptBar({
   pickTaskLabel,
   onPickTask,
   onDismissPickTask,
+  toolbar,
 }: PromptBarProps) {
   const { t } = useTranslation();
   const [value, setValue] = useState('');
@@ -306,48 +317,9 @@ export function PromptBar({
   };
 
   return (
-    <div className="relative flex flex-none flex-col border-t border-border bg-bg">
-      {/* 📖 Round 4: steer/queue for interactive harnesses. Queue is default:
-       * steer injects into the live turn (pi: next tool-call boundary; ACP:
-       * immediately, the agent arbitrates), queue delivers after the turn. */}
-      {deliveryEnabled && (
-        <div className="flex items-center gap-2 px-2.5 pt-2">
-          <div
-            role="group"
-            aria-label={t('agentChat.deliveryLabel', 'Follow-up delivery')}
-            className="flex flex-none items-center rounded-md border border-border bg-bg-1 p-0.5"
-          >
-            <button
-              type="button"
-              onClick={() => setDelivery('steer')}
-              aria-pressed={delivery === 'steer'}
-              title={t('agentChat.deliverySteerTitle', 'Deliver into the live turn (pi: at the next tool-call boundary, ACP agents: immediately)')}
-              className={`rounded-[5px] px-2 py-0.5 text-[10.5px] transition-colors ${
-                delivery === 'steer' ? 'bg-bg-2 text-fg' : 'text-fg-muted hover:text-fg'
-              }`}
-            >
-              {t('agentChat.deliverySteer', 'Steer')}
-            </button>
-            <button
-              type="button"
-              onClick={() => setDelivery('queue')}
-              aria-pressed={delivery === 'queue'}
-              title={t('agentChat.deliveryQueueTitle', 'Deliver after the current turn completes')}
-              className={`rounded-[5px] px-2 py-0.5 text-[10.5px] transition-colors ${
-                delivery === 'queue' ? 'bg-bg-2 text-fg' : 'text-fg-muted hover:text-fg'
-              }`}
-            >
-              {t('agentChat.deliveryQueue', 'Queue')}
-            </button>
-          </div>
-          <span className="truncate text-[10.5px] text-fg-faint">
-            {delivery === 'steer'
-              ? t('agentChat.deliverySteerTitle', 'Deliver into the live turn (pi: at the next tool-call boundary, ACP agents: immediately)')
-              : t('agentChat.deliveryQueueTitle', 'Deliver after the current turn completes')}
-          </span>
-        </div>
-      )}
-      <div className="relative flex items-end gap-1.5 px-2.5 py-2.5">
+    // 📖 BeautifulUI 08: the composer lives in ONE rounded container. The
+    // dropdown menus anchor to this outer wrapper (bottom-full, above it).
+    <div className="relative flex-none border-t border-border bg-bg px-2.5 pb-2.5 pt-2">
       {menu && (
         <TaskMentionDropdown
           title={menu.title}
@@ -358,53 +330,99 @@ export function PromptBar({
           onActiveIndexChange={setMenuIndex}
         />
       )}
-      <textarea
-        ref={textareaRef}
-        rows={1}
-        value={value}
-        disabled={disabled}
-        onChange={e => updateDraft(e.target.value, e.target.selectionStart ?? 0)}
-        onSelect={e => setCaret(e.currentTarget.selectionStart ?? 0)}
-        onKeyDown={handleKeyDown}
-        placeholder={disabled
-          ? t('agentChat.daemonGuardTitle', 'Agent chat needs the kandown daemon')
-         : t('agentChat.placeholder', 'Ask the agent...')}
-        className="max-h-[140px] flex-1 resize-none rounded-[8px] border border-border bg-bg-1 px-2.5 py-2 text-[13.5px] leading-snug text-fg outline-none transition-colors placeholder:text-fg-faint focus:border-border-focus disabled:opacity-60"
-      />
-      <button
-        type="button"
-        onClick={() => setSkillsOpen(true)}
-        title={t('agentSkills.skillsLabel', 'Skills')}
-        aria-label={t('agentSkills.skillsLabel', 'Skills')}
-        className="flex h-9 w-9 flex-none items-center justify-center rounded-[8px] border border-border bg-bg-1 text-fg-muted transition-colors hover:border-border-focus hover:text-fg"
-      >
-        <IconSparkles size={15} stroke={1.8} />
-      </button>
-      {turnActive ? (
-        <button
-          type="button"
-          onClick={onStop}
+      <div className="rounded-[14px] border border-border bg-bg-1 transition-colors focus-within:border-border-focus">
+        {toolbar && (
+          // 📖 Slim context row inside the container: harness for new chats,
+          // model pick, permission mode (ChatSidebar's cluster).
+          <div className="flex flex-wrap items-center gap-1.5 px-2 pt-2">{toolbar}</div>
+        )}
+        <textarea
+          ref={textareaRef}
+          rows={1}
+          value={value}
           disabled={disabled}
-          title={t('agentChat.stop', 'Stop')}
-          aria-label={t('agentChat.stop', 'Stop')}
-          className="flex h-9 w-9 flex-none items-center justify-center rounded-[8px] border border-border-strong bg-bg-1 text-fg transition-colors hover:border-danger hover:text-danger disabled:opacity-50"
-        >
-          <IconPlayerStop size={15} stroke={1.8} />
-        </button>
-      ): (
-        <button
-          type="button"
-          onClick={submit}
-          disabled={disabled || sending || !value.trim()}
-          title={t('agentChat.send', 'Send')}
-          aria-label={t('agentChat.send', 'Send')}
-          className="flex h-9 w-9 flex-none items-center justify-center rounded-[8px] bg-primary text-primary-foreground transition-transform hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-40"
-        >
-          <IconArrowUp size={15} stroke={1.8} />
-        </button>
-      )}
-      <SkillsModal open={skillsOpen} onClose={() => setSkillsOpen(false)} />
+          onChange={e => updateDraft(e.target.value, e.target.selectionStart ?? 0)}
+          onSelect={e => setCaret(e.currentTarget.selectionStart ?? 0)}
+          onKeyDown={handleKeyDown}
+          placeholder={disabled
+            ? t('agentChat.daemonGuardTitle', 'Agent chat needs the kandown daemon')
+           : t('agentChat.placeholder', 'Ask the agent...')}
+          className="max-h-[140px] w-full resize-none bg-transparent px-2.5 pb-1 pt-2 text-[13.5px] leading-snug text-fg outline-none placeholder:text-fg-faint disabled:opacity-60"
+        />
+        <div className="flex items-center gap-1.5 px-2 pb-2 pt-0.5">
+          {/* 📖 Round 4: steer/queue for interactive harnesses, inline in the
+           * control row. Queue is default: steer injects into the live turn
+           * (pi: next tool-call boundary; ACP: immediately, the agent
+           * arbitrates), queue delivers after the turn. The full delivery
+           * explanation rides the buttons' title attributes. */}
+          {deliveryEnabled && (
+            <div
+              role="group"
+              aria-label={t('agentChat.deliveryLabel', 'Follow-up delivery')}
+              className="flex flex-none items-center rounded-full border border-border bg-bg p-0.5"
+            >
+              <button
+                type="button"
+                onClick={() => setDelivery('steer')}
+                aria-pressed={delivery === 'steer'}
+                title={t('agentChat.deliverySteerTitle', 'Deliver into the live turn (pi: at the next tool-call boundary, ACP agents: immediately)')}
+                className={`rounded-full px-2 py-0.5 text-[10.5px] transition-colors ${
+                  delivery === 'steer' ? 'bg-bg-2 text-fg' : 'text-fg-muted hover:text-fg'
+                }`}
+              >
+                {t('agentChat.deliverySteer', 'Steer')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setDelivery('queue')}
+                aria-pressed={delivery === 'queue'}
+                title={t('agentChat.deliveryQueueTitle', 'Deliver after the current turn completes')}
+                className={`rounded-full px-2 py-0.5 text-[10.5px] transition-colors ${
+                  delivery === 'queue' ? 'bg-bg-2 text-fg' : 'text-fg-muted hover:text-fg'
+                }`}
+              >
+                {t('agentChat.deliveryQueue', 'Queue')}
+              </button>
+            </div>
+          )}
+          <span className="min-w-0 flex-1" />
+          <button
+            type="button"
+            onClick={() => setSkillsOpen(true)}
+            title={t('agentSkills.skillsLabel', 'Skills')}
+            aria-label={t('agentSkills.skillsLabel', 'Skills')}
+            className="flex h-8 w-8 flex-none items-center justify-center rounded-full text-fg-muted transition-colors hover:bg-bg-2 hover:text-fg"
+          >
+            <IconSparkles size={15} stroke={1.8} />
+          </button>
+          {turnActive ? (
+            <button
+              type="button"
+              onClick={onStop}
+              disabled={disabled}
+              title={t('agentChat.stop', 'Stop')}
+              aria-label={t('agentChat.stop', 'Stop')}
+              className="flex h-8 w-8 flex-none items-center justify-center rounded-full border border-border-strong bg-bg text-fg transition-colors hover:border-danger hover:text-danger disabled:opacity-50"
+            >
+              <IconPlayerStop size={15} stroke={1.8} />
+            </button>
+          ): (
+            // 📖 The accent-circle send button: the catalog composer's one
+            // saturated control, everything else stays quiet chrome.
+            <button
+              type="button"
+              onClick={submit}
+              disabled={disabled || sending || !value.trim()}
+              title={t('agentChat.send', 'Send')}
+              aria-label={t('agentChat.send', 'Send')}
+              className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-transform hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-40"
+            >
+              <IconArrowUp size={15} stroke={1.8} />
+            </button>
+          )}
+        </div>
       </div>
+      <SkillsModal open={skillsOpen} onClose={() => setSkillsOpen(false)} />
     </div>
   );
 }

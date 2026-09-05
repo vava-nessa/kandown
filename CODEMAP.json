@@ -8,7 +8,7 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 14554,
+      "lines": 14562,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
@@ -1324,7 +1324,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 1488,
+      "lines": 1503,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
@@ -1713,10 +1713,14 @@
     },
     {
       "path": "src/components/agent/ActivityBlock.tsx",
-      "lines": 163,
+      "lines": 195,
       "title": "One collapsible activity block per assistant turn",
       "summary": "Replaces the pile of interleaved thinking blocks and tool chips the chat used to render: every assistant turn gets a SINGLE panel that updates in place while the turn streams.",
       "functions": [
+        {
+          "name": "ToolRow: one 05/06-style tool step of the trace (name, excerpt,",
+          "summary": null
+        },
         {
           "name": "ActivityBlock: the single collapsible activity panel of one turn",
           "summary": null
@@ -1845,7 +1849,7 @@
     },
     {
       "path": "src/components/agent/ChatSidebar.tsx",
-      "lines": 441,
+      "lines": 449,
       "title": "Agent chat sidebar (t308)",
       "summary": "The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.",
       "functions": [
@@ -1855,6 +1859,19 @@
         }
       ],
       "exports": "ChatSidebar"
+    },
+    {
+      "path": "src/components/agent/ContextCards.tsx",
+      "lines": 92,
+      "title": "Context cards above a user chat message (round 5)",
+      "summary": "BeautifulUI 10 Context Cards port: when a user message carries",
+      "functions": [
+        {
+          "name": "ContextCards: the referenced-task cards of one user message",
+          "summary": null
+        }
+      ],
+      "exports": "ContextCards"
     },
     {
       "path": "src/components/agent/DaemonGuardCard.tsx",
@@ -1897,7 +1914,7 @@
     },
     {
       "path": "src/components/agent/MarkdownContent.tsx",
-      "lines": 293,
+      "lines": 309,
       "title": "Markdown renderer for assistant chat messages",
       "summary": "Renders an assistant message as Markdown: headings, lists, bold, links, blockquotes, GFM tables (remark-gfm) and fenced code blocks on the project's code-block token surface with a Copy button.",
       "functions": [
@@ -1918,7 +1935,7 @@
           "summary": null
         },
         {
-          "name": "CodeBlock: fenced code panel with a Copy button",
+          "name": "CodeBlock: fenced code panel with a line-number gutter and a Copy button",
           "summary": null
         },
         {
@@ -1934,10 +1951,22 @@
     },
     {
       "path": "src/components/agent/MessageList.tsx",
-      "lines": 162,
+      "lines": 304,
       "title": "Message list for the agent chat sidebar",
-      "summary": "Renders the folded conversation: user bubbles (plain text), assistant turns as a BeautifulUI-style full-width panel (ONE collapsible activity block that updates in place while the turn streams, then the Markdown answer below it), error…",
+      "summary": "Renders the folded conversation: user bubbles (plain text, with BeautifulUI-10-style context cards for every @task mention above the bubble), assistant turns as a BeautifulUI-style full-width panel (ONE collapsible activity block that…",
       "functions": [
+        {
+          "name": "PixelGridLoader: BeautifulUI-01 loading state (pixel grid + shimmer +",
+          "summary": null
+        },
+        {
+          "name": "UserMessage: bubble + @mention context cards",
+          "summary": null
+        },
+        {
+          "name": "AssistantMessage: activity block, markdown, choice/proposal cards,",
+          "summary": null
+        },
         {
           "name": "MessageList: the full conversation, with empty state",
           "summary": null
@@ -1963,17 +1992,43 @@
       "exports": "ModelPicker, loadStoredModel"
     },
     {
-      "path": "src/components/agent/PromptBar.tsx",
-      "lines": 411,
-      "title": "Prompt bar for the agent chat sidebar",
-      "summary": "Auto-sizing textarea plus send/stop controls.",
+      "path": "src/components/agent/OptionsChoiceCard.tsx",
+      "lines": 85,
+      "title": "Choice card for assistant ```options blocks (round 5)",
+      "summary": "BeautifulUI 04 Approval Card port (\"choices + skip/continue\"): when an assistant reply carries an ```options fenced block (one choice per line, parsed by agent-chat-options.ts), the block is NOT rendered as code; every choice becomes a…",
       "functions": [
         {
-          "name": "PromptBar: message composer with send/stop, mention/skill pickers and",
+          "name": "OptionsChoiceCard: the clickable choices of one ```options block",
+          "summary": null
+        }
+      ],
+      "exports": "OptionsChoiceCard"
+    },
+    {
+      "path": "src/components/agent/PromptBar.tsx",
+      "lines": 429,
+      "title": "Prompt bar for the agent chat sidebar",
+      "summary": "BeautifulUI 08 Prompt Bar port, in kandown tokens: one rounded container that holds the whole composer, the auto-sizing textarea on top, the control row under it (delivery choice for interactive harnesses on the left, sparkles + the…",
+      "functions": [
+        {
+          "name": "PromptBar: composer with send/stop, mention/skill pickers, toolbar slot",
           "summary": null
         }
       ],
       "exports": "PromptBar"
+    },
+    {
+      "path": "src/components/agent/RecommendationCard.tsx",
+      "lines": 74,
+      "title": "Recommendation card for assistant PROPOSE lines (round 5)",
+      "summary": "BeautifulUI 09 Recommendation Card port: when an assistant message contains a `PROPOSE: <action>` line on its own (the Kandown agent charter documents the convention: the agent suggests a board action), the line is lifted out of the…",
+      "functions": [
+        {
+          "name": "RecommendationCard: action text + Accept / Dismiss",
+          "summary": null
+        }
+      ],
+      "exports": "RecommendationCard"
     },
     {
       "path": "src/components/agent/SessionSwitcher.tsx",
@@ -2034,6 +2089,19 @@
         }
       ],
       "exports": "StreamingText"
+    },
+    {
+      "path": "src/components/agent/SuggestionChips.tsx",
+      "lines": 53,
+      "title": "Follow-up suggestion chips under a settled assistant turn (round 5)",
+      "summary": "BeautifulUI 03 Streaming Text follow-ups port: once a turn completes, a quiet row of 2-3 small suggestion chips appears under the reply; clicking one sends its text as the follow-up message.",
+      "functions": [
+        {
+          "name": "SuggestionChips: the static follow-up chip row",
+          "summary": null
+        }
+      ],
+      "exports": "SuggestionChips"
     },
     {
       "path": "src/components/agent/TaskMentionDropdown.tsx",
@@ -2826,6 +2894,12 @@
       "summary": "Locks the reducer contract the chat sidebar renders from: streaming text accumulates then finalizes, thinking stays on its own channel, tool calls pair by toolCallId, usage accumulates, errors append entries (and fatal ones close the…"
     },
     {
+      "path": "src/lib/__tests__/agent-chat-options.spec.ts",
+      "lines": 158,
+      "title": "Tests for the agent chat choice/proposal parser",
+      "summary": "Locks the pure contract of src/lib/agent-chat-options.ts: the ```options fenced block (choices capped at 6, clipped at 90 chars, empty lines skipped, fences still open mid-stream tolerated, foreign fences protective) and the PROPOSE…"
+    },
+    {
       "path": "src/lib/__tests__/agent-chat-skills.spec.ts",
       "lines": 68,
       "title": "Agent chat skill helper tests",
@@ -3020,6 +3094,31 @@
         }
       ],
       "exports": "AgentChatEvent, SessionStartedEvent, MessageDeltaEvent, ToolStartedEvent, ToolFinishedEvent, FileChangedEvent, UsageEvent, TurnCompletedEvent, ErrorEvent, StoppedEvent, ChatEntry, ChatUserEntry, ChatAssistantEntry, ChatErrorEntry, ChatToolEntry, ChatUsageTotals, ChatFoldState, isAgentChatEvent, createChatFoldState, applyChatEvent, toolExcerpt, appendUserMessage, removeChatEntry, nextChatEntryId"
+    },
+    {
+      "path": "src/lib/agent-chat-options.ts",
+      "lines": 206,
+      "title": "Agent chat choice/proposal parser (round 5)",
+      "summary": "Pure, framework-free parsing of the two interactive answer conventions the Kandown agent charter teaches every chat session (see CHAT_AFFORDANCES_PROMPT in the daemon server): → an ```options fenced code block, one choice per line,…",
+      "functions": [
+        {
+          "name": "extractOptionsBlocks: every ```options block with its choices + span",
+          "summary": null
+        },
+        {
+          "name": "stripOptionsBlocks: removes options blocks from the displayed text",
+          "summary": null
+        },
+        {
+          "name": "extractProposals: every PROPOSE line with its action + span",
+          "summary": null
+        },
+        {
+          "name": "stripProposals: removes PROPOSE lines from the displayed text",
+          "summary": null
+        }
+      ],
+      "exports": "OptionsBlock, Proposal, MAX_OPTIONS, MAX_OPTION_LENGTH, extractOptionsBlocks, stripOptionsBlocks, extractProposals, stripProposals"
     },
     {
       "path": "src/lib/agent-chat-skills.ts",

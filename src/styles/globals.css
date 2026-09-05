@@ -380,3 +380,23 @@ code {
     -webkit-text-fill-color: currentcolor;
   }
 }
+
+/* 📖 Pixel-grid loader (agent chat working state, round 5): BeautifulUI 01
+   Loading State port (beautifului.dev, MIT). A 3x3 grid of tiny cells; each
+   cell pulses on a staggered diagonal delay (MessageList sets
+   animation-delay per cell), which reads as a light chasing through the
+   grid while the first event of the turn is awaited. Pure CSS so
+   prefers-reduced-motion users get a calm static grid instead. */
+@keyframes agent-pixel-cell {
+  0%, 100% { opacity: 0.18; }
+  45% { opacity: 1; }
+}
+.agent-pixel-cell {
+  animation: agent-pixel-cell 1.25s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .agent-pixel-cell {
+    animation: none;
+    opacity: 0.45;
+  }
+}

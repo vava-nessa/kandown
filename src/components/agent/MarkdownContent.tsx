@@ -25,7 +25,7 @@
  *  → splitStreamingTail: splits the last few words off for the shimmer sweep
  *  → withShimmerTail: wraps the rendered tree's tail text in the shimmer span
  *  → TaskChip: clickable task reference chip (a button, no navigation)
- *  → CodeBlock: fenced code panel with a Copy button
+ *  → CodeBlock: fenced code panel with a line-number gutter and a Copy button
  *  → buildComponents: element overrides, chat-scale typography
  *  → MarkdownContent: the markdown root
  *
@@ -124,10 +124,13 @@ function TaskChip({ taskId, onOpenTask }: { taskId: string; onOpenTask?: (taskId
 }
 
 /** 📖 Fenced code panel: the same code-bg, code-fg and border tokens the
- * BlockNote editor uses, a mono face, horizontal scroll, and the BeautifulUI
- * Code Block copy affordance (a quiet top-right button that flips to a check).
- * The inner code element resets the global inline-code pill via inline styles,
- * which win over the unlayered element rule in globals.css. */
+ * BlockNote editor uses, a mono face, horizontal scroll, the BeautifulUI
+ * Code Block copy affordance (a quiet top-right button that flips to a check)
+ * and its line-number gutter (18 Code Block port: a select-none right-aligned
+ * column carved out of the same surface, one row per line, matching the
+ * code's leading so the numbers stay glued to their lines). The inner code
+ * element resets the global inline-code pill via inline styles, which win
+ * over the unlayered element rule in globals.css. */
 function CodeBlock({ codeText, children }: { codeText: string; children: ReactElement }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
@@ -137,11 +140,24 @@ function CodeBlock({ codeText, children }: { codeText: string; children: ReactEl
       window.setTimeout(() => setCopied(false), 1500);
     });
   };
+  // 📖 One gutter row per line, ignoring the trailing newline that fenced
+  // blocks conventionally carry before the closing fence.
+  const lineCount = Math.max(1, codeText.replace(/\n$/, '').split('\n').length);
   return (
     <div className="group/code relative my-3.5 overflow-hidden rounded-[8px] border border-border">
-      <pre className="overflow-x-auto bg-[hsl(var(--code-bg))] p-2.5 text-[12px] leading-relaxed text-[hsl(var(--code-fg))]">
-        {children}
-      </pre>
+      <div className="flex">
+        <div
+          aria-hidden="true"
+          className="flex-none select-none border-r border-border/60 bg-bg-2/40 px-1.5 py-2.5 text-right font-mono text-[12px] leading-relaxed text-fg-faint/60"
+        >
+          {Array.from({ length: lineCount }, (_, line) => (
+            <div key={line}>{line + 1}</div>
+          ))}
+        </div>
+        <pre className="min-w-0 flex-1 overflow-x-auto bg-[hsl(var(--code-bg))] p-2.5 text-[12px] leading-relaxed text-[hsl(var(--code-fg))]">
+          {children}
+        </pre>
+      </div>
       <button
         type="button"
         onClick={handleCopy}

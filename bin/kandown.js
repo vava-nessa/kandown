@@ -24,7 +24,7 @@ var KANDOWN_VERSION;
 var init_version = __esm({
   "src/lib/version.ts"() {
     "use strict";
-    KANDOWN_VERSION = "0.54.0";
+    KANDOWN_VERSION = "0.55.0";
   }
 });
 
@@ -7073,6 +7073,7 @@ function buildArgs(config, binPath) {
     "--permission-mode",
     config.permissionMode === "yolo" ? "bypassPermissions" : "acceptEdits"
   ];
+  if (config.model) args.push("--model", config.model);
   if (config.resumeSessionId) args.push("--resume", config.resumeSessionId);
   return args;
 }
@@ -7180,11 +7181,12 @@ var claudeCodeAdapter = {
 // src/cli/lib/agent/adapters/codex.ts
 function buildArgs2(config, binPath) {
   const modeFlags = config.permissionMode === "yolo" ? ["--dangerously-bypass-approvals-and-sandbox"] : ["--sandbox", "workspace-write"];
+  const modelFlags = config.model ? ["-m", config.model] : [];
   const jsonAndCheck = ["--json", "--skip-git-repo-check"];
   if (config.resumeSessionId) {
-    return [binPath, "exec", "resume", config.resumeSessionId, ...jsonAndCheck, ...modeFlags, config.prompt];
+    return [binPath, "exec", "resume", config.resumeSessionId, ...jsonAndCheck, ...modeFlags, ...modelFlags, config.prompt];
   }
-  return [binPath, "exec", ...jsonAndCheck, ...modeFlags, config.prompt];
+  return [binPath, "exec", ...jsonAndCheck, ...modeFlags, ...modelFlags, config.prompt];
 }
 function itemFields(item) {
   const empty = { type: "", paths: [] };
@@ -7295,7 +7297,7 @@ var codexAdapter = {
 
 // src/cli/lib/agent/adapters/pi.ts
 function buildArgs3(config, binPath) {
-  return [binPath, "--mode", "rpc"];
+  return config.model ? [binPath, "--mode", "rpc", "--model", config.model] : [binPath, "--mode", "rpc"];
 }
 function initialStdin(config) {
   const lines = [];
@@ -7744,15 +7746,26 @@ function handleLine(record, line) {
     });
     return;
   }
+  let turnJustCompleted = false;
   for (const event of result.events ?? []) {
     if (event.type === "session_started") {
       record.info.harnessSessionId = event.harnessSessionId || record.state.harnessSessionId;
     }
-    if (event.type === "turn_completed") record.turnSeen = true;
+    if (event.type === "turn_completed") {
+      record.turnSeen = true;
+      turnJustCompleted = true;
+    }
     recordEvent(record, { ...event, ...meta(record) });
   }
   if (result.outbound && record.child?.stdin && !record.child.stdin.destroyed) {
     for (const line2 of result.outbound) record.child.stdin.write(`${line2}
+`);
+  }
+  if (turnJustCompleted && record.pendingAcp.length > 0 && record.child?.stdin && !record.child.stdin.destroyed) {
+    const queued = record.pendingAcp.splice(0);
+    const last = queued[queued.length - 1];
+    if (last) record.state.acpPendingPromptId = last.id;
+    for (const entry of queued) record.child.stdin.write(`${entry.line}
 `);
   }
 }
@@ -7771,6 +7784,7 @@ function attachChild(record, child) {
     record.state.busy = false;
     record.info.exitCode = code;
     record.permissionHandler = null;
+    record.pendingAcp = [];
     if (reason === "crash" && !record.turnSeen && record.stderrTail.trim()) {
       recordEvent(record, {
         type: "error",
@@ -7839,7 +7853,8 @@ function createAgentSession(config) {
       harnessId: config.harnessId,
       status: "starting",
       startedAt: (/* @__PURE__ */ new Date()).toISOString(),
-      usageTotals: { tokens: 0, costUsd: 0 }
+      usageTotals: { tokens: 0, costUsd: 0 },
+      ...config.model ? { model: config.model } : {}
     },
     config: { ...config, protocolArgs: [...resolved.def.protocolArgs] },
     adapter,
@@ -7856,7 +7871,8 @@ function createAgentSession(config) {
     turnSeen: false,
     stderrTail: "",
     resolvedBinPath: resolved.binPath,
-    permissionHandler: null
+    permissionHandler: null,
+    pendingAcp: []
   };
   sessions.set(record.info.id, record);
   startChild(record);
@@ -7884,19 +7900,37 @@ function promptAcpSession(sessionId, id, text) {
     params: { sessionId, prompt: [{ type: "text", text }] }
   });
 }
-function sendToSession(id, text) {
+function piFollowUpCommand(message, busy, delivery, promptId) {
+  if (delivery === "steer" && busy) {
+    return JSON.stringify({ type: "steer", message });
+  }
+  return JSON.stringify(
+    busy ? { type: "prompt", message, streamingBehavior: "followUp" } : { id: promptId, type: "prompt", message }
+  );
+}
+function queueAcpPrompt(record, text) {
+  const sessionId = record.state.acpSessionId;
+  if (!sessionId) return;
+  const nextId = record.state.acpNextRequestId ?? 3;
+  record.state.acpNextRequestId = nextId + 1;
+  record.pendingAcp.push({ id: nextId, line: promptAcpSession(sessionId, nextId, text) });
+}
+function sendToSession(id, text, delivery) {
   const record = sessions.get(id);
   if (!record) return { ok: false, error: "Unknown session" };
   const trimmed = text.trim();
   if (!trimmed) return { ok: false, error: "Message is empty" };
   if (record.child?.stdin && !record.child.stdin.destroyed) {
     if (record.adapter === piAdapter) {
-      const command = record.state.busy ? { type: "prompt", message: trimmed, streamingBehavior: "followUp" } : { id: `kandown-prompt-${Date.now()}`, type: "prompt", message: trimmed };
-      record.child.stdin.write(`${JSON.stringify(command)}
+      record.child.stdin.write(`${piFollowUpCommand(trimmed, record.state.busy === true, delivery, `kandown-prompt-${Date.now()}`)}
 `);
       return { ok: true };
     }
     if (record.adapter === acpAdapter && record.state.acpSessionId) {
+      if (delivery === "queue") {
+        queueAcpPrompt(record, trimmed);
+        return { ok: true };
+      }
       const nextId = record.state.acpNextRequestId ?? 3;
       record.state.acpNextRequestId = nextId + 1;
       record.state.acpPendingPromptId = nextId;
@@ -10655,6 +10689,12 @@ function indexEntryForPrompt(prompt) {
   return collapsed.slice(0, 60).trimEnd();
 }
 
+// src/lib/task-content-hash.ts
+var CONTENT_HASH_LENGTH = 16;
+function contentHash(content) {
+  return sha256Hex(content).slice(0, CONTENT_HASH_LENGTH);
+}
+
 // src/cli/lib/server.ts
 init_updater();
 init_atomic_write();
@@ -11352,13 +11392,21 @@ var START_PORT_RANGE = 2050;
 var END_PORT_RANGE = 2099;
 var UNSAFE_PORTS = /* @__PURE__ */ new Set([2049, 4045, 6e3, 6665, 6666, 6667, 6668, 6669, 6697]);
 var CHAT_AFFORDANCES_PROMPT = [
-  "## Chat affordances",
+  "## Kandown agent charter",
   "",
-  "Your reply renders as Markdown in the kandown chat sidebar: headings, lists, bold, inline code and fenced code blocks all work.",
-  "Reference a task inline as [[t123]] (a bare t123 works too): the UI renders it as a clickable chip that opens the task.",
-  "To point the user at a task, end your reply with the directive on its own line: [show: t123], optionally with a tight anchor suffix: [show: t123]#description, #subtasks or #report.",
-  "With the directive, the app opens that task automatically and scrolls to the section when your turn completes.",
-  "Use [show: t123] whenever the user asks you to find or show something: they get one click to the right task."
+  "Your role here is managing this project's task board: reading, creating, editing and moving TASK MARKDOWN FILES (tasks/*.md) and writing clear task content. This is not a coding session: do not write or refactor application code unless the user explicitly asks.",
+  "Your replies render as Markdown in the kandown chat sidebar: be structured and airy (short paragraphs, headings, lists, no walls of text).",
+  "",
+  "Affordances: reference a task inline as [[t123]] (a bare t123 works too) and it renders as a clickable chip. To point the user at a task, end your reply with the directive on its own line: [show: t123], optionally with a tight anchor: [show: t123]#description, #subtasks or #report (the app opens that task and scrolls to the section when your turn completes). When the user @mentions a task, read that task file integrally before answering.",
+  "",
+  "When you ask the user a question that has clear options, end your reply with an options block instead of a plain list, one choice per line; the chat renders it as clickable choice cards:",
+  "```options",
+  "First option",
+  "Second option",
+  "Third option",
+  "```",
+  "",
+  `To propose a board action on your own initiative, write it on its own line as PROPOSE: move t271 to Done. The chat renders an Accept/Dismiss card; Accept sends "Approved: <your line>" as the user's reply.`
 ].join("\n");
 var MAX_MENTIONED_TASKS = 5;
 function buildMentionSections(kandownDir, mentionedTaskIds) {
@@ -11398,7 +11446,9 @@ function corsHeaders(port) {
   return {
     "Access-Control-Allow-Origin": selfOrigin(port),
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-Kandown-Token"
+    // 📖 X-Kandown-Base-Hash carries the optimistic-concurrency digest of the
+    // content a client loaded before editing (see the PUT /api/tasks route).
+    "Access-Control-Allow-Headers": "Content-Type, X-Kandown-Token, X-Kandown-Base-Hash"
   };
 }
 function authenticateHttp(req, url, res) {
@@ -11847,6 +11897,13 @@ async function handleApi(req, res, url, kandownDir) {
     if (typeof body.harnessId !== "string" || !body.harnessId.trim()) {
       return writeJson(res, 400, { error: "harnessId is required" });
     }
+    let model;
+    if (typeof body.model === "string" && body.model.trim()) {
+      model = body.model.trim();
+      if (model.length > 80 || !/^[A-Za-z0-9._:\/-]+$/.test(model)) {
+        return writeJson(res, 400, { error: "Invalid model: use at most 80 characters of letters, digits, dot, underscore, colon, slash or dash" });
+      }
+    }
     const taskId = typeof body.taskId === "string" && body.taskId.trim() ? body.taskId.trim() : void 0;
     const skillId = typeof body.skillId === "string" && body.skillId.trim() ? body.skillId.trim() : void 0;
     let compiled;
@@ -11886,7 +11943,8 @@ ${message}`;
         prompt,
         permissionMode,
         ...skillAutoApply ? { skillAutoApply: true } : {},
-        ...typeof body.resumeSessionId === "string" && body.resumeSessionId ? { resumeSessionId: body.resumeSessionId } : {}
+        ...typeof body.resumeSessionId === "string" && body.resumeSessionId ? { resumeSessionId: body.resumeSessionId } : {},
+        ...model ? { model } : {}
       });
       const titleOverride = typeof body.title === "string" && body.title.trim() ? body.title.trim() : void 0;
       const now = (/* @__PURE__ */ new Date()).toISOString();
@@ -12038,11 +12096,12 @@ ${message}`;
       if (typeof body.message !== "string" || !body.message.trim()) {
         return writeJson(res, 400, { error: "message is required" });
       }
+      const deliveryMode = body.deliveryMode === "steer" || body.deliveryMode === "queue" ? body.deliveryMode : void 0;
       const mentionSections = buildMentionSections(kandownDir, body.mentionedTaskIds);
       const delivered = mentionSections ? `${mentionSections}## User message
 
 ${body.message}` : body.message;
-      const result = sendToSession(sessionId, delivered);
+      const result = sendToSession(sessionId, delivered, deliveryMode);
       return result.ok ? writeJson(res, 200, { ok: true }) : writeJson(res, 400, { ok: false, error: result.error ?? "Send failed" });
     }
   }
@@ -12329,7 +12388,25 @@ ${body.message}` : body.message;
       try {
         if (!existsSync23(tasksDir)) mkdirSync13(tasksDir, { recursive: true });
         const body = await readRequestBody(req);
-        const { path: taskPath } = writeTaskContent(kandownDir, taskId, body, { useGit: false });
+        const rawBaseHash = req.headers["x-kandown-base-hash"];
+        const baseHash = Array.isArray(rawBaseHash) ? rawBaseHash[0] : rawBaseHash;
+        if (typeof baseHash === "string" && baseHash.trim()) {
+          const currentPath = activePath ?? archivedPath;
+          if (currentPath && existsSync23(currentPath)) {
+            let currentContent = "";
+            try {
+              currentContent = readFileSync22(currentPath, "utf8");
+            } catch (readError) {
+              return writeJson(res, 500, {
+                error: `Failed to read current task before write: ${readError instanceof Error ? readError.message : String(readError)}`
+              });
+            }
+            if (contentHash(currentContent) !== baseHash.trim()) {
+              return writeJson(res, 409, { error: "conflict", currentContent });
+            }
+          }
+        }
+        writeTaskContent(kandownDir, taskId, body, { useGit: false });
         broadcastSseEvent({ type: "task", id: taskId });
         return writeJson(res, 200, { ok: true });
       } catch (error) {

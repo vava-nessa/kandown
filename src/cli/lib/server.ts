@@ -68,23 +68,37 @@ const START_PORT_RANGE = 2050;
 const END_PORT_RANGE = 2099;
 const UNSAFE_PORTS = new Set([2049, 4045, 6000, 6665, 6666, 6667, 6668, 6669, 6697]);
 
-/** 📖 Chat affordances (t312): appended to the compiled prompt of every chat
- * session created through POST /api/agent/sessions. Teaches agents the markup
- * the chat sidebar renders: [[tXXX]] (or bare tXXX) references become
- * clickable task chips, and a final `[show: tXXX]` line makes the web UI open
- * that task automatically (scrolling to the anchored section) once the turn
- * completes. Keep byte-identical with the Vite dev mirror copy in
- * vite.config.ts: the daemon bundle and the dev plugin load in different
- * runtimes, so the literal is duplicated on purpose (same pattern as the
- * route handlers the mirror reimplements). */
+/** 📖 Kandown agent charter (t312, round 5): appended to the compiled prompt
+ * of every chat session created through POST /api/agent/sessions. Two jobs:
+ * the ROLE section tells the agent, whatever the harness, that it is here to
+ * manage the task board (tasks/*.md), not to write application code; the
+ * AFFORDANCES section teaches the markup the chat sidebar renders: [[tXXX]]
+ * (or bare tXXX) references become clickable task chips, a final
+ * `[show: tXXX]` line opens that task automatically once the turn completes,
+ * an ```options fenced block renders as clickable choice cards, and a
+ * `PROPOSE:` line renders an Accept/Dismiss recommendation card. Kept tight:
+ * it ships in every chat session's prompt. The constant keeps its historical
+ * CHAT_AFFORDANCES name (task-links.ts documentation points at it). Keep
+ * byte-identical with the Vite dev mirror copy in vite.config.ts: the daemon
+ * bundle and the dev plugin load in different runtimes, so the literal is
+ * duplicated on purpose (same pattern as the route handlers the mirror
+ * reimplements). */
 const CHAT_AFFORDANCES_PROMPT = [
-  '## Chat affordances',
+  '## Kandown agent charter',
   '',
-  'Your reply renders as Markdown in the kandown chat sidebar: headings, lists, bold, inline code and fenced code blocks all work.',
-  'Reference a task inline as [[t123]] (a bare t123 works too): the UI renders it as a clickable chip that opens the task.',
-  'To point the user at a task, end your reply with the directive on its own line: [show: t123], optionally with a tight anchor suffix: [show: t123]#description, #subtasks or #report.',
-  'With the directive, the app opens that task automatically and scrolls to the section when your turn completes.',
-  'Use [show: t123] whenever the user asks you to find or show something: they get one click to the right task.',
+  'Your role here is managing this project\'s task board: reading, creating, editing and moving TASK MARKDOWN FILES (tasks/*.md) and writing clear task content. This is not a coding session: do not write or refactor application code unless the user explicitly asks.',
+  'Your replies render as Markdown in the kandown chat sidebar: be structured and airy (short paragraphs, headings, lists, no walls of text).',
+  '',
+  'Affordances: reference a task inline as [[t123]] (a bare t123 works too) and it renders as a clickable chip. To point the user at a task, end your reply with the directive on its own line: [show: t123], optionally with a tight anchor: [show: t123]#description, #subtasks or #report (the app opens that task and scrolls to the section when your turn completes). When the user @mentions a task, read that task file integrally before answering.',
+  '',
+  'When you ask the user a question that has clear options, end your reply with an options block instead of a plain list, one choice per line; the chat renders it as clickable choice cards:',
+  '```options',
+  'First option',
+  'Second option',
+  'Third option',
+  '```',
+  '',
+  'To propose a board action on your own initiative, write it on its own line as PROPOSE: move t271 to Done. The chat renders an Accept/Dismiss card; Accept sends "Approved: <your line>" as the user\'s reply.',
 ].join('\n');
 
 /** 📖 Maximum @task mentions inlined per message. Matches the client cap in
@@ -767,13 +781,14 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       skillAutoApply = skill.chat?.autoApply === true;
     }
     const message = typeof body.message === 'string' && body.message.trim() ? body.message.trim() : undefined;
-    // 📖 Chat affordances: chat sessions only, after the skill section so the
-    // directive markup sits next to the user's first message.
+    // 📖 Kandown agent charter: chat sessions only, after the skill section
+    // so the charter's role + affordance markup sits next to the user's
+    // first message.
     prompt = `${prompt}\n\n${CHAT_AFFORDANCES_PROMPT}`;
     // 📖 Round 3 @task mentions: the integral task files land AFTER the
-    // compiled context, the skill section and the affordances, and BEFORE the
+    // compiled context, the skill section and the charter, and BEFORE the
     // user message, so the harness reads: project/task context, skill
-    // instructions, chat affordances, referenced tasks in full, user request.
+    // instructions, agent charter, referenced tasks in full, user request.
     // Unknown ids are skipped silently inside buildMentionSections.
     const mentionSections = buildMentionSections(kandownDir, body.mentionedTaskIds);
     if (mentionSections) prompt = `${prompt}\n\n${mentionSections.trimEnd()}`;

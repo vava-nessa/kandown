@@ -14,20 +14,30 @@ const CLOSING_HEAD_TAG = '</head>';
 // 📖 Keep the local web UI dev server predictable so agents and humans can share the same URL.
 const DEFAULT_DEV_SERVER_PORT = 5176;
 
-/** 📖 Chat affordances (t312), appended to the compiled prompt of chat
- * sessions created through POST /api/agent/sessions in this dev mirror.
- * MUST stay byte-identical with CHAT_AFFORDANCES_PROMPT in
- * src/cli/lib/server.ts (the daemon and this plugin load in different
- * runtimes, so the literal is duplicated on purpose, like the mirrored
- * route handlers). */
+/** 📖 Kandown agent charter (t312, round 5), appended to the compiled prompt
+ * of chat sessions created through POST /api/agent/sessions in this dev
+ * mirror. Role (manage tasks/*.md, not application code) plus the affordances
+ * the chat sidebar renders: [[tXXX]] chips, [show: tXXX] auto-open,
+ * @mention integral reads, ```options choice cards and PROPOSE: cards. MUST
+ * stay byte-identical with CHAT_AFFORDANCES_PROMPT in src/cli/lib/server.ts
+ * (the daemon and this plugin load in different runtimes, so the literal is
+ * duplicated on purpose, like the mirrored route handlers). */
 const CHAT_AFFORDANCES_PROMPT = [
-  '## Chat affordances',
+  '## Kandown agent charter',
   '',
-  'Your reply renders as Markdown in the kandown chat sidebar: headings, lists, bold, inline code and fenced code blocks all work.',
-  'Reference a task inline as [[t123]] (a bare t123 works too): the UI renders it as a clickable chip that opens the task.',
-  'To point the user at a task, end your reply with the directive on its own line: [show: t123], optionally with a tight anchor suffix: [show: t123]#description, #subtasks or #report.',
-  'With the directive, the app opens that task automatically and scrolls to the section when your turn completes.',
-  'Use [show: t123] whenever the user asks you to find or show something: they get one click to the right task.',
+  'Your role here is managing this project\'s task board: reading, creating, editing and moving TASK MARKDOWN FILES (tasks/*.md) and writing clear task content. This is not a coding session: do not write or refactor application code unless the user explicitly asks.',
+  'Your replies render as Markdown in the kandown chat sidebar: be structured and airy (short paragraphs, headings, lists, no walls of text).',
+  '',
+  'Affordances: reference a task inline as [[t123]] (a bare t123 works too) and it renders as a clickable chip. To point the user at a task, end your reply with the directive on its own line: [show: t123], optionally with a tight anchor: [show: t123]#description, #subtasks or #report (the app opens that task and scrolls to the section when your turn completes). When the user @mentions a task, read that task file integrally before answering.',
+  '',
+  'When you ask the user a question that has clear options, end your reply with an options block instead of a plain list, one choice per line; the chat renders it as clickable choice cards:',
+  '```options',
+  'First option',
+  'Second option',
+  'Third option',
+  '```',
+  '',
+  'To propose a board action on your own initiative, write it on its own line as PROPOSE: move t271 to Done. The chat renders an Accept/Dismiss card; Accept sends "Approved: <your line>" as the user\'s reply.',
 ].join('\n');
 
 // 📖 Maximum @task mentions inlined per message. Keep in sync with
@@ -332,12 +342,12 @@ function kandownDevPlugin() {
                   prompt = skillsModule.buildSkillSessionPrompt(prompt, skill);
                 }
                 const message = typeof body.message === 'string' && body.message.trim() ? body.message.trim() : undefined;
-                // 📖 Chat affordances, same contract as the daemon: chat
+                // 📖 Kandown agent charter, same contract as the daemon: chat
                 // sessions only, after the skill section, before the message.
                 prompt = `${prompt}\n\n${CHAT_AFFORDANCES_PROMPT}`;
                 // 📖 Round 3 @task mentions, same contract as the daemon: the
                 // integral task files land after the compiled context, the
-                // skill section and the affordances, before the user message.
+                // skill section and the charter, before the user message.
                 const parserModule = await server.ssrLoadModule('/src/lib/parser.ts') as typeof import('./src/lib/parser');
                 const mentionSections = buildMentionSections(boardModule.findTaskPath, parserModule.parseTaskFile, kandownPath, body.mentionedTaskIds);
                 if (mentionSections) prompt = `${prompt}\n\n${mentionSections.trimEnd()}`;

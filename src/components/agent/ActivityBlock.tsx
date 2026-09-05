@@ -6,23 +6,26 @@
  * status glyph and summary (shimmering "Thinking" while the reasoning channel
  * is active, a spinning tool glyph plus a "3 tools: 2 ok, 1 failed" counter
  * once tools run, a check once the turn settles); the latest thinking fragment
- * ticks on the header line. Expanding reveals the full reasoning text and one
- * row per tool call, retries included, so repeated bash runs stack inside the
- * same block instead of scattering chips through the message. Each tool row
- * carries a muted one-line excerpt of what ran (the fold's tool summary,
- * see toolExcerpt) so the panel shows work even when collapsed rows are
- * glanced at. Finished turns keep the collapsed summary.
+ * ticks on the header line. Expanding reveals the BeautifulUI 02 Thinking
+ * reasoning-trace look: a dot-line timeline (one status dot per step, all
+ * threaded on a vertical line) where the thinking text is the trace in muted
+ * mono and each tool call is a 05/06-style row (status dot, mono name, one
+ * line excerpt of what ran, a reserved duration slot), retries included, so
+ * repeated bash runs stack inside the same block instead of scattering chips
+ * through the message. Finished turns keep the collapsed summary.
  *
  * 📖 Pure render: the data comes from the event fold (agent-chat-events.ts)
- * unchanged; the grouping happens here, at render time. Visual patterns ported
- * from BeautifulUI, https://www.beautifului.dev (MIT): the Thinking expandable
- * trace (shimmer label, chevron, smooth height motion), the Tool Chips summary
- * counter, the Chat inline tool entries (name + outcome rows), and the
+ * unchanged; the grouping happens here, at render time. Visual patterns
+ * ported from BeautifulUI, https://www.beautifului.dev (MIT): the Thinking
+ * expandable trace (shimmer label, chevron, smooth height motion), the Tool
+ * Chips summary counter, the Task Rows live status look, and the
  * Loading/working state glyphs, all restyled with kandown tokens and motion
  * presets. The shimmer, pulse and spin are pure CSS or Tailwind animation
  * utilities, so prefers-reduced-motion users get static, calm states.
  *
  * @functions
+ *  → ToolRow: one 05/06-style tool step of the trace (name, excerpt,
+ *    duration placeholder; the status dot lives on the timeline)
  *  → ActivityBlock: the single collapsible activity panel of one turn
  *
  * @exports ActivityBlock
@@ -32,28 +35,23 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconBrain, IconCheck, IconChevronRight, IconTool, IconX } from '@tabler/icons-react';
+import { IconBrain, IconCheck, IconChevronRight, IconTool } from '@tabler/icons-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { MOTION } from '../../lib/motion-presets';
 import { toolExcerpt } from '../../lib/agent-chat-events';
 import type { ChatAssistantEntry, ChatToolEntry } from '../../lib/agent-chat-events';
 
-/** 📖 Outcome tint + glyph of one tool row: running (pulse, neutral), success
- * (emerald check), failure (red cross). The muted mono excerpt next to the
- * name shows WHAT ran (command, edit path) from the fold's summary when the
- * harness sent one; rows without a detail stay name-only. The full summary,
- * untruncated, rides the title attribute. */
+/** 📖 One tool step of the reasoning trace: mono name, muted one-line excerpt
+ * of WHAT ran (the fold's tool summary, see toolExcerpt; the full summary,
+ * untruncated, rides the title attribute) and the reserved duration slot on
+ * the right (the fold carries no timings yet: a hairline placeholder keeps
+ * the 06 Task Rows geometry honest, pulsing while the call runs). The status
+ * dot lives on the timeline, so the row itself stays text. */
 function ToolRow({ tool }: { tool: ChatToolEntry }) {
+  const { t } = useTranslation();
   const excerpt = toolExcerpt(tool);
   return (
-    <div className="flex items-center gap-1.5 px-2.5 py-1 text-[11px]" title={tool.summary ?? tool.toolName}>
-      {tool.ok === true ? (
-        <IconCheck size={11} stroke={2.2} className="flex-none text-emerald-500" />
-      ) : tool.ok === false ? (
-        <IconX size={11} stroke={2.2} className="flex-none text-red-500" />
-      ) : (
-        <IconTool size={11} stroke={1.8} className="flex-none animate-pulse text-fg-muted" />
-      )}
+    <div className="flex min-w-0 items-center gap-1.5 py-0.5 text-[11px]" title={tool.summary ?? tool.toolName}>
       <span className={`flex-none font-mono font-medium ${tool.ok === false ? 'text-red-600 dark:text-red-400' : 'text-fg-muted'}`}>
         {tool.toolName}
       </span>
@@ -63,8 +61,26 @@ function ToolRow({ tool }: { tool: ChatToolEntry }) {
       {tool.ok === false && (
         <span className="flex-none font-semibold text-red-600 dark:text-red-400">failed</span>
       )}
+      {/* 📖 Duration placeholder: a reserved right-aligned slot (hairline,
+       * pulsing while the call runs) so finished and running rows share the
+       * same geometry once real timings land. */}
+      <span
+        className="ml-auto flex-none"
+        title={t('agentChat.toolDurationTitle', 'Duration')}
+        aria-hidden="true"
+      >
+        <span className={`block h-px w-5 rounded ${tool.finished ? 'bg-border/80' : 'animate-pulse bg-border-strong'}`} />
+      </span>
     </div>
   );
+}
+
+/** 📖 Timeline dot tint of one step: live steps pulse in the accent tint,
+ * settled tools take their outcome color, thinking history goes quiet. */
+function stepDotClass(tool: ChatToolEntry | null, thinkingLive: boolean): string {
+  if (tool === null) return thinkingLive ? 'animate-pulse bg-accent' : 'bg-fg-faint/50';
+  if (!tool.finished) return 'animate-pulse bg-accent';
+  return tool.ok === false ? 'bg-red-500' : 'bg-emerald-500';
 }
 
 interface ActivityBlockProps {
@@ -140,19 +156,35 @@ export function ActivityBlock({ entry }: ActivityBlockProps) {
       <AnimatePresence initial={false}>
         {open && (
           <motion.div {...MOTION.panel}>
-            <div className="border-t border-border">
-              {thinking.length > 0 && (
-                <p className="max-h-56 overflow-y-auto whitespace-pre-wrap break-words px-2.5 py-2 text-[12px] leading-relaxed text-fg-muted">
-                  {thinking}
-                </p>
-              )}
-              {tools.length > 0 && (
-                <div className={`flex flex-col ${thinking.length > 0 ? 'border-t border-border/60' : ''}`}>
-                  {tools.map((tool, i) => (
-                    <ToolRow key={tool.toolCallId ?? `${tool.toolName}-${i}`} tool={tool} />
-                  ))}
-                </div>
-              )}
+            <div className="border-t border-border px-2.5 py-2">
+              {/* 📖 BeautifulUI 02 Thinking, expanded: a dot-line timeline.
+               * One vertical hairline threads every step; each step carries a
+               * status dot centered on the line (pulsing accent while live,
+               * emerald/red outcome once settled). The reasoning text is the
+               * trace: muted mono, softly capped in height. */}
+              <div className="relative flex flex-col gap-2 pl-4">
+                <span aria-hidden="true" className="absolute bottom-1.5 left-[3.5px] top-1.5 w-px bg-border/70" />
+                {thinking.length > 0 && (
+                  <div className="relative">
+                    <span
+                      aria-hidden="true"
+                      className={`absolute -left-4 top-[5px] size-2 rounded-full ${stepDotClass(null, thinkingLive)}`}
+                    />
+                    <p className="max-h-56 overflow-y-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed text-fg-muted">
+                      {thinking}
+                    </p>
+                  </div>
+                )}
+                {tools.map((tool, i) => (
+                  <div key={tool.toolCallId ?? `${tool.toolName}-${i}`} className="relative">
+                    <span
+                      aria-hidden="true"
+                      className={`absolute -left-4 top-[3px] size-2 rounded-full ${stepDotClass(tool, thinkingLive)}`}
+                    />
+                    <ToolRow tool={tool} />
+                  </div>
+                ))}
+              </div>
             </div>
           </motion.div>
         )}
