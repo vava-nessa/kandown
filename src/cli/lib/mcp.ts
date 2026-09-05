@@ -9,7 +9,7 @@
  * @exports startMcpServer
  */
 
-import { readBoard, readTask, moveTaskToColumn, createTaskInBoard, getTasksDir } from './board-reader.js';
+import { readBoard, readTask, moveTaskToColumnDetailed, createTaskInBoard, getTasksDir } from './board-reader.js';
 import { loadConfig } from './config.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -199,10 +199,12 @@ function handleJsonRpc(kandownDir: string, req: JsonRpcRequest): void {
     }
 
     if (name === 'move_task') {
-      const ok = moveTaskToColumn(kandownDir, args.id, args.status);
-      sendResponse(id, ok
+      // 📖 Agents act on the error text, so hand them the real verdict
+      // ("blocked by t2") rather than a guess covering three causes at once.
+      const outcome = moveTaskToColumnDetailed(kandownDir, args.id, args.status);
+      sendResponse(id, outcome.ok
         ? { result: { content: [{ type: 'text', text: `Moved ${args.id} to ${args.status}` }] } }
-        : { error: { code: -32602, message: `Cannot move ${args.id} to ${args.status} (gate refused or file missing)` } },
+        : { error: { code: -32602, message: outcome.message } },
       );
       return;
     }

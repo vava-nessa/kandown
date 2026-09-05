@@ -12,7 +12,7 @@
 import { existsSync, readFileSync, mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { archiveTaskInBoard, getTasksDir, readBoard, readTask, moveTaskToColumn, listTaskIds } from '../lib/board-reader';
+import { archiveTaskInBoard, getTasksDir, readBoard, readTask, moveTaskToColumnDetailed, listTaskIds } from '../lib/board-reader';
 import { loadExtensionHost, runExtensionMoveGates } from '../lib/extensions-cli';
 import { loadConfig } from '../lib/config';
 import { resolveAgentEntry } from '../lib/agents';
@@ -201,8 +201,12 @@ export async function cmdMove(rawArgs: string[]) {
     process.exit(1);
   }
 
-  if (!moveTaskToColumn(kandownDir, id, status)) {
-    err(`Move failed: ${id}`);
+  // 📖 The detailed form so the user reads the actual reason ("blocked by t2",
+  // "Task not found: t9") instead of a generic "Move failed" followed by a
+  // separate `[kandown] …` line logged from inside the library.
+  const outcome = moveTaskToColumnDetailed(kandownDir, id, status);
+  if (!outcome.ok) {
+    err(outcome.message);
     process.exit(1);
   }
 

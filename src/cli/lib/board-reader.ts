@@ -23,10 +23,11 @@
  *  → newTaskFilePath     — the path a task about to be created should be written to
  *  → readBoard           — scans ./tasks/*.md and returns a ParsedBoard shape
  *  → readTask            — reads a task file by ID and returns a ParsedTask
- *  → moveTaskToColumn    — updates a task frontmatter status
+ *  → moveTaskToColumn    — updates a task frontmatter status (boolean)
+ *  → moveTaskToColumnDetailed — same move, returning the gate verdict
  *  → assignTaskToAgent   — writes a canonical agent id into `assignee:`
  *
- * @exports getProjectRoot, getTasksDir, listTaskIds, listTaskFilenames, findTaskPath, newTaskFilePath, readBoard, readTask, moveTaskToColumn, assignTaskToAgent
+ * @exports getProjectRoot, getTasksDir, listTaskIds, listTaskFilenames, findTaskPath, newTaskFilePath, readBoard, readTask, moveTaskToColumn, moveTaskToColumnDetailed, MoveOutcome, MoveRefusal, assignTaskToAgent
  * @see src/lib/parser.ts — pure string parsers reused here
  * @see src/lib/task-filename.ts — the shared id ↔ filename policy, including slugs
  */
@@ -334,18 +335,53 @@ export function readTask(kandownDir: string, taskId: string, defaultStatus?: str
 }
 
 /**
- * 📖 Updates the task frontmatter status to move it between board columns.
- * @returns true when the task file exists and was written, false otherwise.
- * Wraps the read+write in try/catch so a locked / unwritable file surfaces a
- * clean false instead of crashing the launcher pipeline (t112).
+ * 📖 Why a move was refused.
+ *  - `not-found`    — no task file carries that id (typo, or already deleted).
+ *  - `blocked`      — the shared dependency gate said no; `blockedBy` lists the
+ *                     unresolved dependency ids.
+ *  - `write-failed` — the task exists and the gate allowed it, but the read or
+ *                     the atomic rewrite threw (locked file, full disk, EACCES).
  */
-export function moveTaskToColumn(
+export type MoveRefusal = 'not-found' | 'blocked' | 'write-failed';
+
+/**
+ * 📖 The verdict of one `moveTaskToColumn` attempt. `message` is a complete,
+ * user-facing sentence ready to be printed by a CLI, returned as an MCP error
+ * or shown in a TUI toast, so no caller has to reconstruct the reason from a
+ * bare `false` (the reason used to reach the user only as a stray
+ * `console.error` from deep inside this module — which in Ink lands on top of
+ * the rendered board).
+ */
+export interface MoveOutcome {
+  ok: boolean;
+  /** Set only when `ok` is false. */
+  reason?: MoveRefusal;
+  /** Unresolved dependency ids. Non-empty only when `reason === 'blocked'`. */
+  blockedBy: string[];
+  /** Ready-to-print sentence. Empty string when the move succeeded. */
+  message: string;
+}
+
+/**
+ * 📖 Moves a task between board columns and reports *why* when it cannot.
+ * Same write path as `moveTaskToColumn` — the boolean version below is a thin
+ * wrapper over this one — but it returns the gate verdict instead of swallowing
+ * it, which is what lets `kandown move`, the MCP server and the TUI each phrase
+ * the refusal in their own idiom from one shared decision.
+ *
+ * Never throws: a locked or unwritable file comes back as
+ * `{ ok: false, reason: 'write-failed' }` rather than crashing the launcher
+ * pipeline (t112).
+ */
+export function moveTaskToColumnDetailed(
   kandownDir: string,
   taskId: string,
   targetColumn: string,
-): boolean {
+): MoveOutcome {
   const taskPath = findTaskPath(kandownDir, taskId);
-  if (!taskPath) return false;
+  if (!taskPath) {
+    return { ok: false, reason: 'not-found', blockedBy: [], message: `Task not found: ${taskId}` };
+  }
 
   try {
     const parsed = readTask(kandownDir, taskId);
@@ -360,10 +396,12 @@ export function moveTaskToColumn(
     const snap = resolveDependencyStatus(allTasks, cfg);
     const verdict = resolveTransition(parsed, targetColumn, snap, cfg);
     if (!verdict.allowed) {
-      console.error(
-        `[kandown] Cannot move ${taskId} to ${targetColumn}: blocked by ${verdict.blockedBy.join(', ')}`,
-      );
-      return false;
+      return {
+        ok: false,
+        reason: 'blocked',
+        blockedBy: [...verdict.blockedBy],
+        message: `Cannot move ${taskId} to ${targetColumn}: blocked by ${verdict.blockedBy.join(', ')}`,
+      };
     }
 
     const prevContent = readFileSync(taskPath, 'utf8');
@@ -381,11 +419,38 @@ export function moveTaskToColumn(
       newContent,
       timestamp: Date.now(),
     });
-    return true;
+    return { ok: true, blockedBy: [], message: '' };
   } catch (e) {
-    console.error(`[kandown] Failed to move task ${taskId} to ${targetColumn}:`, (e as Error).message);
-    return false;
+    return {
+      ok: false,
+      reason: 'write-failed',
+      blockedBy: [],
+      message: `Failed to move task ${taskId} to ${targetColumn}: ${(e as Error).message}`,
+    };
   }
+}
+
+/**
+ * 📖 Updates the task frontmatter status to move it between board columns.
+ * @returns true when the task file exists, the gate allowed it and it was
+ * written, false otherwise.
+ *
+ * 📖 Kept as the compatibility surface for the callers that only branch on
+ * success (the TUI, which pre-checks the gate itself, and the launcher). It
+ * logs the refusal on stderr so nothing that used to be reported goes silent;
+ * callers that want to *render* the reason should use
+ * `moveTaskToColumnDetailed` instead of parsing this log line.
+ */
+export function moveTaskToColumn(
+  kandownDir: string,
+  taskId: string,
+  targetColumn: string,
+): boolean {
+  const outcome = moveTaskToColumnDetailed(kandownDir, taskId, targetColumn);
+  if (!outcome.ok && outcome.reason !== 'not-found') {
+    console.error(`[kandown] ${outcome.message}`);
+  }
+  return outcome.ok;
 }
 
 /**

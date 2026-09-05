@@ -216,7 +216,7 @@ source to edit instead.
 
 ## `src/components/agent/`
 
-- **`ActivityBlock.tsx`** · 136 lines — Every assistant turn gets one activity area that updates in place while the turn streams: the reasoning channel renders through the official bui ThinkingState (Reasoning-style prose trace, shimmer header while live, single-line ticker…
+- **`ActivityBlock.tsx`** · 139 lines — Every assistant turn gets one activity area that updates in place while the turn streams: the reasoning channel renders through the official bui ThinkingState (Reasoning-style prose trace, shimmer header while live, single-line ticker…
 - **`AgentPresenceBadge.tsx`** · 83 lines — Shows the chat session's blobatar near the task id in the TaskWorkspace (desktop) and Drawer (mobile) headers while a `[show: tXXX]` directive from the ACTIVE chat session points at the open task: a small header avatar, plus the…
 - **`AnswerForm.tsx`** · 142 lines — Compact panel rendered above the skill buttons when an interactive skill (grill-me) finishes its first turn.
 - **`ApprovalCard.tsx`** · 111 lines — ApprovalCard renders one pending harness permission request (title, kind chip, short session id, Approve / Reject); ApprovalCardStack is the fixed bottom-right container fed by the agentEdits permission queue.
@@ -224,13 +224,13 @@ source to edit instead.
 - **`Blobatar.tsx`** · 125 lines — Deterministic blob avatar identifying the agent session that is currently editing a task: the same sessionId always renders the same creature (shape, face, colors all derive from the id by the blobatar generator), so a session keeps its…
 - **`CardBeam.tsx`** · 128 lines — Animated border-beam overlay marking a task an agent session is currently editing.
 - **`CardStopButton.tsx`** · 110 lines — The board-surface half of the autopilot UI.
-- **`ChatSidebar.tsx`** · 510 lines — The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.
+- **`ChatSidebar.tsx`** · 538 lines — The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.
 - **`ContextCards.tsx`** · 83 lines — BeautifulUI 10 Context Cards, shared bui/ edition: when a user message carries @task mentions, the official bui cards render above the bubble, right-aligned like it.
 - **`DaemonGuardCard.tsx`** · 57 lines — Shown instead of the conversation UI when the session index reported no daemon (standalone File System Access mode, the demo, or an old daemon without the agent routes).
 - **`DiffOverlay.tsx`** · 94 lines — Renders the latest `task_diff` snapshot for a task as a readable, dependency-free line diff: removed lines tinted red, added lines green, unchanged context collapsed to a couple of lines around the change.
 - **`GitInitBanner.tsx`** · 56 lines — Dismissible info banner shown when the daemon reports that the project folder is not a git repository (`gitWarning: 'not-a-git-repo'` on the POST /api/agent/sessions response): agent edits then leave no git history to diff, revert or…
 - **`MarkdownContent.tsx`** · 309 lines — Renders an assistant message as Markdown: headings, lists, bold, links, blockquotes, GFM tables (remark-gfm) and fenced code blocks on the project's code-block token surface with a Copy button.
-- **`MessageList.tsx`** · 284 lines — Renders the folded conversation: user bubbles with the BeautifulUI context cards for every @task mention above the bubble, assistant turns as a BeautifulUI-style full-width panel (ONE activity block that updates in place while the turn…
+- **`MessageList.tsx`** · 285 lines — Renders the folded conversation: user bubbles with the BeautifulUI context cards for every @task mention above the bubble, assistant turns as a BeautifulUI-style full-width panel (ONE activity block that updates in place while the turn…
 - **`ModelPicker.tsx`** · 116 lines — A compact free-text input with a short datalist of common model suggestions, rendered next to the harness selector.
 - **`OptionsChoiceCard.tsx`** · 83 lines — BeautifulUI 04 Approval Card, shared bui/ edition: when an assistant reply carries an ```options fenced block (one choice per line, parsed by agent-chat-options.ts), the block is NOT rendered as code; it becomes the official bui…
 - **`PromptBar.tsx`** · 298 lines — The agent chat composer, rebuilt ON the official BeautifulUI PromptBar (src/components/bui/PromptBar.tsx, beautifului.dev, MIT) in its external mode (demo={false}): the BUI component owns the exact visual structure (rounded composer,…
@@ -262,8 +262,8 @@ source to edit instead.
 - **`SidebarNav.tsx`** · 466 lines — Faithful port of the BeautifulUI SidebarNav (beautifului.dev, MIT): compact workspace switcher, primary navigation, searchable chat history, and a collapse that preserves icon alignment.
 - **`StreamingText.tsx`** · 244 lines — Animates incoming agent text: words resolve out of blur, inline citations appear in context, then actions and follow-up prompts become usable once the stream settles.
 - **`TaskRows.tsx`** · 275 lines — Faithful port of the BeautifulUI TaskRows component (beautifului.dev, MIT): a progress list where each row carries a spinner ring or a success/failure badge plus an expandable details grid.
-- **`ThinkingState.tsx`** · 335 lines — Renders an agent trace that runs once, settles, and stays expandable, in four variants (Steps, Reasoning, Search, Coding).
-- **`ToolChips.tsx`** · 367 lines — An agent run as compact tool rows with inline chips, then file-diff chips summarizing the edits; hovering a file chip opens its diff preview in a body portal.
+- **`ThinkingState.tsx`** · 338 lines — Renders an agent trace that runs once, settles, and stays expandable, in four variants (Steps, Reasoning, Search, Coding).
+- **`ToolChips.tsx`** · 371 lines — An agent run as compact tool rows with inline chips, then file-diff chips summarizing the edits; hovering a file chip opens its diff preview in a body portal.
 
 ## `src/components/bui/atoms/`
 
