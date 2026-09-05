@@ -360,6 +360,18 @@
     "copy": "Kopēt",
     "daemonGuardTitle": "Sarakstei ar aģentu nepieciešams kandown daemon",
     "daemonGuardBody": "Palaid lokālo daemon, lai tērzētu ar saviem kodēšanas aģentiem: palaid npx kandown šajā projektā."
+  ,
+    "optionsTitle": "Izvēlieties opciju",
+    "optionsSkip": "Labāk rakstīšu tekstu",
+    "suggestionsLabel": "Ieteikumi turpinājumam",
+    "suggestShowTask": "Rādīt uzdevumu",
+    "suggestApply": "Piemērot",
+    "suggestExplainMore": "Izskaidrot vairāk",
+    "proposeTitle": "Ieteiktā darbība",
+    "proposeAccept": "Pieņemt",
+    "proposeDismiss": "Noraidīt",
+    "contextCardsLabel": "Norādītie uzdevumi",
+    "toolDurationTitle": "Ilgums"
   },
   "agentSkills": {
     "skillsModalTitle": "Prasmes",

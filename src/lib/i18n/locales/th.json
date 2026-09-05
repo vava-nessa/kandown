@@ -382,6 +382,18 @@
     "copy": "คัดลอก",
     "daemonGuardTitle": "แชทกับเอเจนต์ต้องใช้ kandown daemon",
     "daemonGuardBody": "เริ่ม daemon ในเครื่องเพื่อแชทกับเอเจนต์เขียนโค้ดของคุณ: รัน npx kandown ในโปรเจกต์นี้"
+  ,
+    "optionsTitle": "เลือกตัวเลือก",
+    "optionsSkip": "ฉันจะพิมพ์เอง",
+    "suggestionsLabel": "คำแนะนำถัดไป",
+    "suggestShowTask": "แสดงงานให้ดู",
+    "suggestApply": "ใช้สิ่งนี้",
+    "suggestExplainMore": "อธิบายเพิ่มเติม",
+    "proposeTitle": "การดำเนินการที่เสนอ",
+    "proposeAccept": "ยอมรับ",
+    "proposeDismiss": "ปิด",
+    "contextCardsLabel": "งานที่อ้างถึง",
+    "toolDurationTitle": "ระยะเวลา"
   },
   "agentSkills": {
     "skillsModalTitle": "ทักษะ",

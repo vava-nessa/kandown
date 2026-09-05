@@ -360,6 +360,18 @@
     "copy": "Kopiraj",
     "daemonGuardTitle": "Razgovor s agentom treba kandown daemon",
     "daemonGuardBody": "Pokreni lokalni daemon kako bi razgovarao sa svojim agentima za kodiranje: pokreni npx kandown u ovom projektu."
+  ,
+    "optionsTitle": "Odaberite opciju",
+    "optionsSkip": "Radije ću sam upisati",
+    "suggestionsLabel": "Prijedlozi za nastavak",
+    "suggestShowTask": "Prikaži zadatak",
+    "suggestApply": "Primijeni",
+    "suggestExplainMore": "Objasni više",
+    "proposeTitle": "Predložena radnja",
+    "proposeAccept": "Prihvati",
+    "proposeDismiss": "Odbaci",
+    "contextCardsLabel": "Spomenuti zadaci",
+    "toolDurationTitle": "Trajanje"
   },
   "agentSkills": {
     "skillsModalTitle": "Vještine",

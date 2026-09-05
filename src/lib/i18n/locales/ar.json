@@ -327,6 +327,18 @@
     "copy": "نسخ",
     "daemonGuardTitle": "دردشة الوكيل تحتاج إلى kandown daemon",
     "daemonGuardBody": "شغّل الـ daemon المحلي للتحدث مع وكلاء البرمجة لديك: شغّل npx kandown في هذا المشروع."
+  ,
+    "optionsTitle": "اختر خيارًا",
+    "optionsSkip": "سأكتب بنفسي",
+    "suggestionsLabel": "اقتراحات للمتابعة",
+    "suggestShowTask": "أرني المهمة",
+    "suggestApply": "طبّق هذا",
+    "suggestExplainMore": "اشرح أكثر",
+    "proposeTitle": "إجراء مقترح",
+    "proposeAccept": "قبول",
+    "proposeDismiss": "تجاهل",
+    "contextCardsLabel": "المهام المُشار إليها",
+    "toolDurationTitle": "المدة"
   },
   "agentSkills": {
     "skillsModalTitle": "المهارات",

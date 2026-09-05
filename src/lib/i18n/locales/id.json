@@ -327,6 +327,18 @@
     "copy": "Salin",
     "daemonGuardTitle": "Obrolan agen membutuhkan kandown daemon",
     "daemonGuardBody": "Jalankan daemon lokal untuk mengobrol dengan agen kode kamu: jalankan npx kandown di proyek ini."
+  ,
+    "optionsTitle": "Pilih salah satu opsi",
+    "optionsSkip": "Saya akan mengetik sendiri",
+    "suggestionsLabel": "Saran lanjutan",
+    "suggestShowTask": "Tampilkan tugasnya",
+    "suggestApply": "Terapkan ini",
+    "suggestExplainMore": "Jelaskan lebih lanjut",
+    "proposeTitle": "Tindakan yang diusulkan",
+    "proposeAccept": "Terima",
+    "proposeDismiss": "Abaikan",
+    "contextCardsLabel": "Tugas yang dirujuk",
+    "toolDurationTitle": "Durasi"
   },
   "agentSkills": {
     "skillsModalTitle": "Skill",

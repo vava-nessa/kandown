@@ -327,6 +327,18 @@
     "copy": "Sao chép",
     "daemonGuardTitle": "Trò chuyện với agent cần kandown daemon",
     "daemonGuardBody": "Khởi động daemon cục bộ để trò chuyện với các agent lập trình của bạn: chạy npx kandown trong dự án này."
+  ,
+    "optionsTitle": "Chọn một lựa chọn",
+    "optionsSkip": "Tôi sẽ tự nhập",
+    "suggestionsLabel": "Gợi ý tiếp theo",
+    "suggestShowTask": "Cho tôi xem công việc",
+    "suggestApply": "Áp dụng",
+    "suggestExplainMore": "Giải thích thêm",
+    "proposeTitle": "Hành động đề xuất",
+    "proposeAccept": "Chấp nhận",
+    "proposeDismiss": "Đóng",
+    "contextCardsLabel": "Công việc được nhắc đến",
+    "toolDurationTitle": "Thời lượng"
   },
   "agentSkills": {
     "skillsModalTitle": "Kỹ năng",

@@ -327,6 +327,18 @@
     "copy": "কপি",
     "daemonGuardTitle": "এজেন্ট চ্যাটের জন্য kandown daemon দরকার",
     "daemonGuardBody": "কোডিং এজেন্টের সাথে কথা বলতে লোকাল daemon চালু করুন: এই প্রকল্পে npx kandown চালান।"
+  ,
+    "optionsTitle": "একটি বিকল্প বেছে নিন",
+    "optionsSkip": "আমি নিজেই লিখব",
+    "suggestionsLabel": "পরবর্তী প্রশ্নের প্রস্তাবনা",
+    "suggestShowTask": "কাজটি দেখান",
+    "suggestApply": "এটি প্রয়োগ করুন",
+    "suggestExplainMore": "আরও ব্যাখ্যা করুন",
+    "proposeTitle": "প্রস্তাবিত পদক্ষেপ",
+    "proposeAccept": "গ্রহণ করুন",
+    "proposeDismiss": "বাতিল করুন",
+    "contextCardsLabel": "উল্লিখিত কাজ",
+    "toolDurationTitle": "সময়কাল"
   },
   "agentSkills": {
     "skillsModalTitle": "দক্ষতা",

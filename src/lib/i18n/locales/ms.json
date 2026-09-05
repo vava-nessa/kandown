@@ -382,6 +382,18 @@
     "copy": "Salin",
     "daemonGuardTitle": "Sembang ejen memerlukan kandown daemon",
     "daemonGuardBody": "Mulakan daemon tempatan untuk berbual dengan ejen kod anda: jalankan npx kandown dalam projek ini."
+  ,
+    "optionsTitle": "Pilih satu pilihan",
+    "optionsSkip": "Saya akan taip sendiri",
+    "suggestionsLabel": "Cadangan susulan",
+    "suggestShowTask": "Tunjukkan tugasan ini",
+    "suggestApply": "Guna ini",
+    "suggestExplainMore": "Terangkan dengan lebih lanjut",
+    "proposeTitle": "Tindakan yang dicadangkan",
+    "proposeAccept": "Terima",
+    "proposeDismiss": "Ketepikan",
+    "contextCardsLabel": "Tugasan yang dirujuk",
+    "toolDurationTitle": "Tempoh"
   },
   "agentSkills": {
     "skillsModalTitle": "Kemahiran",

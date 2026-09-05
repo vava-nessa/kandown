@@ -360,6 +360,18 @@
     "copy": "Kopiraj",
     "daemonGuardTitle": "Klepet agenta potrebuje kandown daemon",
     "daemonGuardBody": "Zaženite lokalni daemon in klepetajte s svojimi kodirnimi agenti: zaženite npx kandown v tem projektu."
+  ,
+    "optionsTitle": "Izberite možnost",
+    "optionsSkip": "Raje vnesem besedilo",
+    "suggestionsLabel": "Predlogi za nadaljevanje",
+    "suggestShowTask": "Prikaži nalogo",
+    "suggestApply": "Uporabi",
+    "suggestExplainMore": "Razloži več",
+    "proposeTitle": "Predlagano dejanje",
+    "proposeAccept": "Sprejmi",
+    "proposeDismiss": "Zavrni",
+    "contextCardsLabel": "Omenjene naloge",
+    "toolDurationTitle": "Trajanje"
   },
   "agentSkills": {
     "skillsModalTitle": "Veščine",

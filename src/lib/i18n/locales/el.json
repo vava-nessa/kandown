@@ -360,6 +360,18 @@
     "copy": "Αντιγραφή",
     "daemonGuardTitle": "Η συνομιλία με τον agent χρειάζεται το kandown daemon",
     "daemonGuardBody": "Ξεκίνα το τοπικό daemon για να συνομιλείς με τους coding agents σου: εκτέλεσε npx kandown σε αυτό το έργο."
+  ,
+    "optionsTitle": "Επιλέξτε μια επιλογή",
+    "optionsSkip": "Προτιμώ να γράψω",
+    "suggestionsLabel": "Προτάσεις συνέχειας",
+    "suggestShowTask": "Δείξε μου την εργασία",
+    "suggestApply": "Εφαρμογή",
+    "suggestExplainMore": "Εξήγησε περισσότερα",
+    "proposeTitle": "Προτεινόμενη ενέργεια",
+    "proposeAccept": "Αποδοχή",
+    "proposeDismiss": "Απόρριψη",
+    "contextCardsLabel": "Αναφερόμενες εργασίες",
+    "toolDurationTitle": "Διάρκεια"
   },
   "agentSkills": {
     "skillsModalTitle": "Δεξιότητες",

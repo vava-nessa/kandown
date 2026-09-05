@@ -371,6 +371,18 @@
     "copy": "Copiar",
     "daemonGuardTitle": "El chat del agente necesita el kandown daemon",
     "daemonGuardBody": "Inicia el daemon local para chatear con tus agentes de código: ejecuta npx kandown en este proyecto."
+  ,
+    "optionsTitle": "Elige una opción",
+    "optionsSkip": "Prefiero escribirlo",
+    "suggestionsLabel": "Sugerencias de continuación",
+    "suggestShowTask": "Muéstrame la tarea",
+    "suggestApply": "Aplicar esto",
+    "suggestExplainMore": "Explica más",
+    "proposeTitle": "Acción propuesta",
+    "proposeAccept": "Aceptar",
+    "proposeDismiss": "Descartar",
+    "contextCardsLabel": "Tareas referenciadas",
+    "toolDurationTitle": "Duración"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

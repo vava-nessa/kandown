@@ -382,6 +382,18 @@
     "copy": "ನಕಲಿಸಿ",
     "daemonGuardTitle": "ಏಜೆಂಟ್ ಚಾಟ್‌ಗೆ kandown daemon ಬೇಕು",
     "daemonGuardBody": "ನಿಮ್ಮ ಕೋಡಿಂಗ್ ಏಜೆಂಟ್‌ಗಳೊಂದಿಗೆ ಮಾತನಾಡಲು ಲೋಕಲ್ daemon ಆರಂಭಿಸಿ: ಈ ಪ್ರಾಜೆಕ್ಟ್‌ನಲ್ಲಿ npx kandown ಚಲಾಯಿಸಿ."
+  ,
+    "optionsTitle": "ಒಂದು ಆಯ್ಕೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+    "optionsSkip": "ನಾನೇ ಟೈಪ್ ಮಾಡುತ್ತೇನೆ",
+    "suggestionsLabel": "ಮುಂದಿನ ಪ್ರಶ್ನೆಗಳ ಸಲಹೆಗಳು",
+    "suggestShowTask": "ಕಾರ್ಯವನ್ನು ತೋರಿಸಿ",
+    "suggestApply": "ಇದನ್ನು ಅನ್ವಯಿಸಿ",
+    "suggestExplainMore": "ಇನ್ನಷ್ಟು ವಿವರಿಸಿ",
+    "proposeTitle": "ಸೂಚಿಸಿದ ಕ್ರಿಯೆ",
+    "proposeAccept": "ಸ್ವೀಕರಿಸಿ",
+    "proposeDismiss": "ತಿರಸ್ಕರಿಸಿ",
+    "contextCardsLabel": "ಉಲ್ಲೇಖಿಸಿದ ಕಾರ್ಯಗಳು",
+    "toolDurationTitle": "ಅವಧಿ"
   },
   "agentSkills": {
     "skillsModalTitle": "ಕೌಶಲ್ಯಗಳು",

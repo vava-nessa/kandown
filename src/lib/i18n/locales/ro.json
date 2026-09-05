@@ -345,6 +345,18 @@
     "copy": "Copiază",
     "daemonGuardTitle": "Chatul cu agentul are nevoie de kandown daemon",
     "daemonGuardBody": "Pornește daemonul local pentru a discuta cu agenții tăi de cod: rulează npx kandown în acest proiect."
+  ,
+    "optionsTitle": "Alegeți o opțiune",
+    "optionsSkip": "Prefer să scriu eu",
+    "suggestionsLabel": "Sugestii de continuare",
+    "suggestShowTask": "Arată-mi sarcina",
+    "suggestApply": "Aplică asta",
+    "suggestExplainMore": "Explică mai mult",
+    "proposeTitle": "Acțiune propusă",
+    "proposeAccept": "Acceptă",
+    "proposeDismiss": "Respinge",
+    "contextCardsLabel": "Sarcini menționate",
+    "toolDurationTitle": "Durată"
   },
   "agentSkills": {
     "skillsModalTitle": "Abilități",

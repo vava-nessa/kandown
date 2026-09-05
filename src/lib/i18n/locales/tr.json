@@ -327,6 +327,18 @@
     "copy": "Kopyala",
     "daemonGuardTitle": "Ajan sohbeti kandown daemon gerektirir",
     "daemonGuardBody": "Kodlama ajanlarınızla sohbet etmek için yerel daemonu başlatın: bu projede npx kandown çalıştırın."
+  ,
+    "optionsTitle": "Bir seçenek seçin",
+    "optionsSkip": "Kendim yazmayı tercih ederim",
+    "suggestionsLabel": "Devam önerileri",
+    "suggestShowTask": "Görevi göster",
+    "suggestApply": "Bunu uygula",
+    "suggestExplainMore": "Daha fazla açıkla",
+    "proposeTitle": "Önerilen işlem",
+    "proposeAccept": "Kabul et",
+    "proposeDismiss": "Yoksay",
+    "contextCardsLabel": "Bahsedilen görevler",
+    "toolDurationTitle": "Süre"
   },
   "agentSkills": {
     "skillsModalTitle": "Beceriler",

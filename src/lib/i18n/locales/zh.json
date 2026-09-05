@@ -371,6 +371,18 @@
     "copy": "复制",
     "daemonGuardTitle": "智能体聊天需要 kandown daemon",
     "daemonGuardBody": "启动本地 daemon 即可与编码智能体聊天：在本项目中运行 npx kandown。"
+  ,
+    "optionsTitle": "选择一个选项",
+    "optionsSkip": "我自己输入",
+    "suggestionsLabel": "后续问题建议",
+    "suggestShowTask": "看看这个任务",
+    "suggestApply": "应用此项",
+    "suggestExplainMore": "再解释一下",
+    "proposeTitle": "建议的操作",
+    "proposeAccept": "接受",
+    "proposeDismiss": "忽略",
+    "contextCardsLabel": "引用的任务",
+    "toolDurationTitle": "耗时"
   },
   "agentSkills": {
     "skillsModalTitle": "技能",

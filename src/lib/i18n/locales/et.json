@@ -360,6 +360,18 @@
     "copy": "Kopeeri",
     "daemonGuardTitle": "Agendivestlus vajab kandown daemonit",
     "daemonGuardBody": "Käivita kohalik daemon, et vestleda oma koodimisagentidega: käivita selles projektis npx kandown."
+  ,
+    "optionsTitle": "Vali variant",
+    "optionsSkip": "Eelistan ise kirjutada",
+    "suggestionsLabel": "Jätkusoovitused",
+    "suggestShowTask": "Näita ülesannet",
+    "suggestApply": "Rakenda",
+    "suggestExplainMore": "Selgita rohkem",
+    "proposeTitle": "Soovitatav toiming",
+    "proposeAccept": "Nõustu",
+    "proposeDismiss": "Loobu",
+    "contextCardsLabel": "Viidatud ülesanded",
+    "toolDurationTitle": "Kestus"
   },
   "agentSkills": {
     "skillsModalTitle": "Oskused",

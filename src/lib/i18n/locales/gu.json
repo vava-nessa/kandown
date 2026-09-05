@@ -382,6 +382,18 @@
     "copy": "કૉપિ",
     "daemonGuardTitle": "એજન્ટ ચેટને kandown daemon જોઈએ છે",
     "daemonGuardBody": "તમારા કોડિંગ એજન્ટ સાથે વાત કરવા લોકલ daemon શરૂ કરો: આ પ્રોજેક્ટમાં npx kandown ચલાવો."
+  ,
+    "optionsTitle": "એક વિકલ્પ પસંદ કરો",
+    "optionsSkip": "હું જાતે ટાઇપ કરીશ",
+    "suggestionsLabel": "આગળના પ્રશ્નોના સૂચનો",
+    "suggestShowTask": "કાર્ય બતાવો",
+    "suggestApply": "આ લાગુ કરો",
+    "suggestExplainMore": "વધુ સમજાવો",
+    "proposeTitle": "સૂચવેલી ક્રિયા",
+    "proposeAccept": "સ્વીકારો",
+    "proposeDismiss": "રદ કરો",
+    "contextCardsLabel": "સંદર્ભિત કાર્યો",
+    "toolDurationTitle": "સમયગાળો"
   },
   "agentSkills": {
     "skillsModalTitle": "કૌશલ્યો",

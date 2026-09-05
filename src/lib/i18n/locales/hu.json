@@ -360,6 +360,18 @@
     "copy": "Másolás",
     "daemonGuardTitle": "Az ügynökchatnek szüksége van a kandown daemonra",
     "daemonGuardBody": "Indítsd el a helyi daemonbot, hogy csevegj a kódoló ügynökeiddel: futtasd az npx kandown parancsot ebben a projektben."
+  ,
+    "optionsTitle": "Válassz egy lehetőséget",
+    "optionsSkip": "Inkább magam írom",
+    "suggestionsLabel": "Javasolt további kérdések",
+    "suggestShowTask": "Mutasd a feladatot",
+    "suggestApply": "Alkalmazás",
+    "suggestExplainMore": "Magyarázd el bővebben",
+    "proposeTitle": "Javasolt művelet",
+    "proposeAccept": "Elfogadás",
+    "proposeDismiss": "Elvetés",
+    "contextCardsLabel": "Hivatkozott feladatok",
+    "toolDurationTitle": "Időtartam"
   },
   "agentSkills": {
     "skillsModalTitle": "Készségek",

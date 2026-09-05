@@ -345,6 +345,18 @@
     "copy": "Kopiëren",
     "daemonGuardTitle": "Agentchat heeft de kandown daemon nodig",
     "daemonGuardBody": "Start de lokale daemon om met je coding agents te chatten: voer npx kandown uit in dit project."
+  ,
+    "optionsTitle": "Kies een optie",
+    "optionsSkip": "Ik typ liever zelf",
+    "suggestionsLabel": "Vervolgsuggesties",
+    "suggestShowTask": "Laat de taak zien",
+    "suggestApply": "Dit toepassen",
+    "suggestExplainMore": "Meer uitleggen",
+    "proposeTitle": "Voorgestelde actie",
+    "proposeAccept": "Accepteren",
+    "proposeDismiss": "Verwerpen",
+    "contextCardsLabel": "Verwezen taken",
+    "toolDurationTitle": "Duur"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

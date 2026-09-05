@@ -382,6 +382,18 @@
     "copy": "ကူးယူမည်",
     "daemonGuardTitle": "အေဂျင့် ချတ်အတွက် kandown daemon လိုအပ်သည်",
     "daemonGuardBody": "သင့်ကုဒ်ရေးအေဂျင့်များနှင့် စကားပြောရန် local daemon ကို စတင်ပါ: ဤပရောဂျက်တွင် npx kandown ကို run ပါ။"
+  ,
+    "optionsTitle": "ရွေးချယ်စရာ တစ်ခု ရွေးပါ",
+    "optionsSkip": "ကိုယ်တိုင် ရိုက်ထည့်မည်",
+    "suggestionsLabel": "နောက်ထပ် မေးခွန်း အကြံပြုချက်များ",
+    "suggestShowTask": "လုပ်ငန်းကို ပြပါ",
+    "suggestApply": "ဤအရာကို အသုံးချမည်",
+    "suggestExplainMore": "ပိုမို ရှင်းပြပါ",
+    "proposeTitle": "အကြံပြုထားသော လုပ်ဆောင်ချက်",
+    "proposeAccept": "လက်ခံမည်",
+    "proposeDismiss": "ပယ်ဖျက်မည်",
+    "contextCardsLabel": "ရည်ညွှန်းထားသော လုပ်ငန်းများ",
+    "toolDurationTitle": "ကြာချိန်"
   },
   "agentSkills": {
     "skillsModalTitle": "ကျွမ်းကျင်မှုများ",

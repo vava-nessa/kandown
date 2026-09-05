@@ -360,6 +360,18 @@
     "copy": "Kopioi",
     "daemonGuardTitle": "Agenttichatti vaatii kandown daemonin",
     "daemonGuardBody": "Käynnistä paikallinen daemon juttaaksesi koodausagenttiesi kanssa: aja npx kandown tässä projektissa."
+  ,
+    "optionsTitle": "Valitse vaihtoehto",
+    "optionsSkip": "Kirjoitan mieluummin itse",
+    "suggestionsLabel": "Jatkoehdotukset",
+    "suggestShowTask": "Näytä tehtävä",
+    "suggestApply": "Käytä tätä",
+    "suggestExplainMore": "Kerro lisää",
+    "proposeTitle": "Ehdotettu toimenpide",
+    "proposeAccept": "Hyväksy",
+    "proposeDismiss": "Hylkää",
+    "contextCardsLabel": "Viitatut tehtävät",
+    "toolDurationTitle": "Kesto"
   },
   "agentSkills": {
     "skillsModalTitle": "Taidot",

@@ -382,6 +382,18 @@
     "copy": "ចម្លង",
     "daemonGuardTitle": "ការជជែកជាមួយអេជេនត្រូវការ kandown daemon",
     "daemonGuardBody": "ចាប់ផ្ដើម daemon ក្នុងស្រុកដើម្បីជជែកជាមួយភ្នាក់ងារសរសេរកូដរបស់អ្នក: ដំណើរការ npx kandown ក្នុងគម្រោងនេះ។"
+  ,
+    "optionsTitle": "ជ្រើសរើសជម្រើសមួយ",
+    "optionsSkip": "ខ្ញុំនឹងវាយបញ្ចូលខ្លួនឯង",
+    "suggestionsLabel": "ការណែនាំបន្ទាប់",
+    "suggestShowTask": "បង្ហាញភារកិច្ច",
+    "suggestApply": "អនុវត្តវា",
+    "suggestExplainMore": "ពន្យល់បន្ថែម",
+    "proposeTitle": "សកម្មភាពដែលបានស្នើ",
+    "proposeAccept": "ទទួលយក",
+    "proposeDismiss": "បោះបង់",
+    "contextCardsLabel": "ភារកិច្ចដែលបានយោង",
+    "toolDurationTitle": "រយៈពេល"
   },
   "agentSkills": {
     "skillsModalTitle": "ជំនាញ",

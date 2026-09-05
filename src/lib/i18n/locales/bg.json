@@ -360,6 +360,18 @@
     "copy": "Копирай",
     "daemonGuardTitle": "Чатът с агента се нуждае от kandown daemon",
     "daemonGuardBody": "Стартирайте локалния daemon, за да си пишете с кодиращите агенти: изпълнете npx kandown в този проект."
+  ,
+    "optionsTitle": "Изберете опция",
+    "optionsSkip": "Ще напиша вместо това",
+    "suggestionsLabel": "Предложения за продължение",
+    "suggestShowTask": "Покажи задачата",
+    "suggestApply": "Приложи",
+    "suggestExplainMore": "Обясни повече",
+    "proposeTitle": "Предложено действие",
+    "proposeAccept": "Приеми",
+    "proposeDismiss": "Отхвърли",
+    "contextCardsLabel": "Споменати задачи",
+    "toolDurationTitle": "Продължителност"
   },
   "agentSkills": {
     "skillsModalTitle": "Умения",

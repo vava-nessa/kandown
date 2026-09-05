@@ -327,6 +327,18 @@
     "copy": "복사",
     "daemonGuardTitle": "에이전트 채팅에는 kandown daemon이 필요합니다",
     "daemonGuardBody": "로컬 daemon을 시작해 코딩 에이전트와 채팅하세요: 이 프로젝트에서 npx kandown을 실행하세요."
+  ,
+    "optionsTitle": "옵션 선택",
+    "optionsSkip": "직접 입력할게요",
+    "suggestionsLabel": "이어서 물어볼 제안",
+    "suggestShowTask": "작업 보기",
+    "suggestApply": "이대로 적용",
+    "suggestExplainMore": "더 자세히 설명",
+    "proposeTitle": "제안된 동작",
+    "proposeAccept": "수락",
+    "proposeDismiss": "거절",
+    "contextCardsLabel": "언급된 작업",
+    "toolDurationTitle": "소요 시간"
   },
   "agentSkills": {
     "skillsModalTitle": "스킬",

@@ -360,6 +360,18 @@
     "copy": "Kopijuoti",
     "daemonGuardTitle": "Pokalbiui su agentu reikia kandown daemon",
     "daemonGuardBody": "Paleisti vietinį daemon, kad galėtumėte kalbėtis su savo kodavimo agentais: paleiskite npx kandown šiame projekte."
+  ,
+    "optionsTitle": "Pasirinkite variantą",
+    "optionsSkip": "Rašysiu savo žodžiais",
+    "suggestionsLabel": "Pasiūlymai tęsti",
+    "suggestShowTask": "Rodyti užduotį",
+    "suggestApply": "Taikyti",
+    "suggestExplainMore": "Paaiškinti daugiau",
+    "proposeTitle": "Siūlomas veiksmas",
+    "proposeAccept": "Priimti",
+    "proposeDismiss": "Atmesti",
+    "contextCardsLabel": "Nurodytos užduotys",
+    "toolDurationTitle": "Trukmė"
   },
   "agentSkills": {
     "skillsModalTitle": "Įgūdžiai",

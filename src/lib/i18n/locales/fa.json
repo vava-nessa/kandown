@@ -327,6 +327,18 @@
     "copy": "کپی",
     "daemonGuardTitle": "گفت‌وگو با ایجنت به kandown daemon نیاز دارد",
     "daemonGuardBody": "برای چت با ایجنت‌های کدنویسی‌ات دیمن محلی را اجرا کن: در این پروژه npx kandown را اجرا کن."
+  ,
+    "optionsTitle": "یک گزینه را انتخاب کن",
+    "optionsSkip": "خودم تایپ می‌کنم",
+    "suggestionsLabel": "پیشنهادهای ادامه",
+    "suggestShowTask": "کار را به من نشان بده",
+    "suggestApply": "این را اعمال کن",
+    "suggestExplainMore": "بیشتر توضیح بده",
+    "proposeTitle": "اقدام پیشنهادی",
+    "proposeAccept": "پذیرفتن",
+    "proposeDismiss": "نادیده گرفتن",
+    "contextCardsLabel": "کارهای ارجاع‌شده",
+    "toolDurationTitle": "مدت"
   },
   "agentSkills": {
     "skillsModalTitle": "مهارت‌ها",

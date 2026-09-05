@@ -382,6 +382,18 @@
     "copy": "പകർത്തുക",
     "daemonGuardTitle": "ഏജന്റ് ചാറ്റിന് kandown daemon വേണം",
     "daemonGuardBody": "നിങ്ങളുടെ കോഡിംഗ് ഏജന്റുകളുമായി സംസാരിക്കാൻ ലോക്കൽ daemon ആരംഭിക്കുക: ഈ പ്രോജക്റ്റിൽ npx kandown റൺ ചെയ്യുക."
+  ,
+    "optionsTitle": "ഒരു ഓപ്ഷൻ തിരഞ്ഞെടുക്കുക",
+    "optionsSkip": "ഞാൻ തന്നെ ടൈപ്പ് ചെയ്യാം",
+    "suggestionsLabel": "തുടർന്നുള്ള നിർദ്ദേശങ്ങൾ",
+    "suggestShowTask": "ടാസ്ക് കാണിക്കൂ",
+    "suggestApply": "ഇത് പ്രയോഗിക്കൂ",
+    "suggestExplainMore": "കൂടുതൽ വിശദീകരിക്കൂ",
+    "proposeTitle": "നിർദ്ദേശിച്ച പ്രവർത്തനം",
+    "proposeAccept": "സ്വീകരിക്കൂ",
+    "proposeDismiss": "ഉപേക്ഷിക്കൂ",
+    "contextCardsLabel": "പരാമർശിച്ച ടാസ്കുകൾ",
+    "toolDurationTitle": "ദൈർഘ്യം"
   },
   "agentSkills": {
     "skillsModalTitle": "കഴിവുകൾ",

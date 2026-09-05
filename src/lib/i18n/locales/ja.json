@@ -327,6 +327,18 @@
     "copy": "コピー",
     "daemonGuardTitle": "エージェントチャットには kandown daemon が必要です",
     "daemonGuardBody": "ローカル daemon を起動してコーディングエージェントとチャットしましょう: このプロジェクトで npx kandown を実行してください。"
+  ,
+    "optionsTitle": "選択肢を選ぶ",
+    "optionsSkip": "自分で入力する",
+    "suggestionsLabel": "次の質問の候補",
+    "suggestShowTask": "タスクを見る",
+    "suggestApply": "これを適用",
+    "suggestExplainMore": "もっと詳しく",
+    "proposeTitle": "提案された操作",
+    "proposeAccept": "受け入れる",
+    "proposeDismiss": "却下",
+    "contextCardsLabel": "参照タスク",
+    "toolDurationTitle": "所要時間"
   },
   "agentSkills": {
     "skillsModalTitle": "スキル",

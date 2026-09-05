@@ -382,6 +382,18 @@
     "copy": "நகலெடு",
     "daemonGuardTitle": "ஏஜென்ட் அரட்டைக்கு kandown daemon தேவை",
     "daemonGuardBody": "உங்கள் கோடிங் ஏஜென்ட்களுடன் பேச உள்ளூர் daemon ஐத் தொடங்குங்கள்: இந்தத் திட்டத்தில் npx kandown இயக்கவும்."
+  ,
+    "optionsTitle": "ஒரு விருப்பத்தைத் தேர்ந்தெடுக்கவும்",
+    "optionsSkip": "நானே தட்டச்சு செய்கிறேன்",
+    "suggestionsLabel": "தொடர் கேள்விப் பரிந்துரைகள்",
+    "suggestShowTask": "பணியைக் காட்டவும்",
+    "suggestApply": "இதைப் பயன்படுத்தவும்",
+    "suggestExplainMore": "மேலும் விளக்கவும்",
+    "proposeTitle": "பரிந்துரைக்கப்பட்ட செயல்",
+    "proposeAccept": "ஏற்கவும்",
+    "proposeDismiss": "நிராகரிக்கவும்",
+    "contextCardsLabel": "குறிப்பிடப்பட்ட பணிகள்",
+    "toolDurationTitle": "கால அளவு"
   },
   "agentSkills": {
     "skillsModalTitle": "திறன்கள்",

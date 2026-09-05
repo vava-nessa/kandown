@@ -360,6 +360,18 @@
     "copy": "Kopiér",
     "daemonGuardTitle": "Agentchatten skal bruge kandown daemon",
     "daemonGuardBody": "Start den lokale daemon for at chatte med dine kodeagenter: kør npx kandown i dette projekt."
+  ,
+    "optionsTitle": "Vælg en mulighed",
+    "optionsSkip": "Jeg skriver hellere selv",
+    "suggestionsLabel": "Forslag til opfølgning",
+    "suggestShowTask": "Vis mig opgaven",
+    "suggestApply": "Anvend dette",
+    "suggestExplainMore": "Forklar mere",
+    "proposeTitle": "Foreslået handling",
+    "proposeAccept": "Acceptér",
+    "proposeDismiss": "Afvis",
+    "contextCardsLabel": "Omtalte opgaver",
+    "toolDurationTitle": "Varighed"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

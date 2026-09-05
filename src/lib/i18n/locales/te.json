@@ -382,6 +382,18 @@
     "copy": "కాపీ",
     "daemonGuardTitle": "ఏజెంట్ చాట్‌కు kandown daemon కావాలి",
     "daemonGuardBody": "మీ కోడింగ్ ఏజెంట్లతో మాట్లాడటానికి లోకల్ daemon ప్రారంభించండి: ఈ ప్రాజెక్ట్‌లో npx kandown నడపండి."
+  ,
+    "optionsTitle": "ఒక ఎంపికను ఎంచుకోండి",
+    "optionsSkip": "నేనే టైప్ చేస్తాను",
+    "suggestionsLabel": "తర్వాతి ప్రశ్నల సూచనలు",
+    "suggestShowTask": "పనిని చూపించండి",
+    "suggestApply": "దీన్ని వర్తింపజేయండి",
+    "suggestExplainMore": "మరింత వివరించండి",
+    "proposeTitle": "సూచించిన చర్య",
+    "proposeAccept": "అంగీకరించండి",
+    "proposeDismiss": "తిరస్కరించండి",
+    "contextCardsLabel": "ప్రస్తావించిన పనులు",
+    "toolDurationTitle": "వ్యవధి"
   },
   "agentSkills": {
     "skillsModalTitle": "నైపుణ్యాలు",

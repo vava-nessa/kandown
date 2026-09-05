@@ -360,6 +360,18 @@
     "copy": "Kopírovať",
     "daemonGuardTitle": "Chat agenta potrebuje kandown daemon",
     "daemonGuardBody": "Spustite lokálny daemon a pokecajte so svojimi kódovacími agentmi: spustite npx kandown v tomto projekte."
+  ,
+    "optionsTitle": "Vyberte možnosť",
+    "optionsSkip": "Radšej to napíšem",
+    "suggestionsLabel": "Navrhované pokračovania",
+    "suggestShowTask": "Zobraziť úlohu",
+    "suggestApply": "Použiť",
+    "suggestExplainMore": "Vysvetlite viac",
+    "proposeTitle": "Navrhovaná akcia",
+    "proposeAccept": "Prijať",
+    "proposeDismiss": "Zamietnuť",
+    "contextCardsLabel": "Odkazované úlohy",
+    "toolDurationTitle": "Trvanie"
   },
   "agentSkills": {
     "skillsModalTitle": "Zručnosti",

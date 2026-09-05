@@ -327,6 +327,18 @@
     "copy": "Копировать",
     "daemonGuardTitle": "Чату с агентом нужен kandown daemon",
     "daemonGuardBody": "Запустите локальный daemon, чтобы общаться с кодинг-агентами: выполните npx kandown в этом проекте."
+  ,
+    "optionsTitle": "Выберите вариант",
+    "optionsSkip": "Лучше напишу текст",
+    "suggestionsLabel": "Варианты продолжения",
+    "suggestShowTask": "Показать задачу",
+    "suggestApply": "Применить",
+    "suggestExplainMore": "Расскажите подробнее",
+    "proposeTitle": "Предлагаемое действие",
+    "proposeAccept": "Принять",
+    "proposeDismiss": "Отклонить",
+    "contextCardsLabel": "Упомянутые задачи",
+    "toolDurationTitle": "Длительность"
   },
   "agentSkills": {
     "skillsModalTitle": "Навыки",

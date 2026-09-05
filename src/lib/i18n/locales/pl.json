@@ -345,6 +345,18 @@
     "copy": "Kopiuj",
     "daemonGuardTitle": "Czat agenta wymaga kandown daemon",
     "daemonGuardBody": "Uruchom lokalny daemon, aby czatować z agentami kodującymi: wykonaj npx kandown w tym projekcie."
+  ,
+    "optionsTitle": "Wybierz opcję",
+    "optionsSkip": "Wolę wpisać własny tekst",
+    "suggestionsLabel": "Sugerowane dalsze pytania",
+    "suggestShowTask": "Pokaż zadanie",
+    "suggestApply": "Zastosuj to",
+    "suggestExplainMore": "Wyjaśnij więcej",
+    "proposeTitle": "Proponowana akcja",
+    "proposeAccept": "Zaakceptuj",
+    "proposeDismiss": "Odrzuć",
+    "contextCardsLabel": "Przywołane zadania",
+    "toolDurationTitle": "Czas trwania"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",
