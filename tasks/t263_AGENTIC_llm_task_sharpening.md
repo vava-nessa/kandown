@@ -1,18 +1,24 @@
 ---
 id: t263
 title: LLM Task Sharpening ("Grill-Me" & Auto-Refine)
-status: Todo
+status: Backlog
 assignee: vava
 priority: P1
 tags: [agentic, llm, refine, grill-me, ai]
 ownerType: human
 created: 2026-07-26
 order: 1
-updated: 2026-08-04T23:16:41Z
+updated: 2026-09-04T23:45:08Z
 category: AGENTIC
 ---
 
 # LLM Task Sharpening ("Grill-Me" & Auto-Refine)
+
+> 2026-09-05 : absorbée par la série kandown agent : [[t307]] (socle harness :
+> détection et adapters), [[t308]] (chat), [[t309]] (édition live et modes),
+> [[t310]] (skills boutons, refine et grill-me). Les workflows Refine et
+> Grill-Me y vivent ; le BYOK direct (clé API, pi-ai) est volontairement
+> re-carté : kandown se branche sur les harnesses déjà installés.
 
 ## Context
 

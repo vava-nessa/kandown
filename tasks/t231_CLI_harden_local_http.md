@@ -8,7 +8,7 @@ tags: [cli, daemon, security]
 ownerType: agent
 created: 2026-07-25
 order: 4
-updated: 2026-08-15T11:10:37Z
+updated: 2026-09-04T10:46:16Z
 category: CLI
 ---
 

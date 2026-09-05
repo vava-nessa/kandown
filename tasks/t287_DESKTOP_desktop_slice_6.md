@@ -3,12 +3,13 @@ id: t287
 title: Desktop slice 6, CI, macOS notarization and Linux packaging
 status: Backlog
 created: 2026-08-10
-updated: 2026-08-10T12:42:23Z
+updated: 2026-09-04T14:49:58Z
 priority: P1
 tags: [desktop, ci, release]
 ownerType: agent
 depends_on: [t285, t289]
 category: DESKTOP
+order: 17
 ---
 
 # Desktop slice 6, CI, macOS notarization and Linux packaging

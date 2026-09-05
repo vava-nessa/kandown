@@ -7,8 +7,8 @@ priority: P2
 tags: [cli, tui, ux]
 ownerType: agent
 created: 2026-07-07
-order: 19
-updated: 2026-07-26T18:18:27Z
+order: 15
+updated: 2026-09-04T14:49:58Z
 category: CLI
 ---
 

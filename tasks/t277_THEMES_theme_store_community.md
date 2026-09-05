@@ -3,7 +3,7 @@ id: t277
 status: In Progress
 order: 3
 created: 2026-07-28
-updated: 2026-08-04T23:16:41Z
+updated: 2026-09-04T23:45:32Z
 title: Theme store, community catalog, floating editor
 priority: P1
 ownerType: agent

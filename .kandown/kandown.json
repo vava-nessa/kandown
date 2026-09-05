@@ -2,7 +2,7 @@
   "ui": {
     "language": "en",
     "theme": "dark",
-    "skin": "shadcn",
+    "skin": "vercel",
     "font": "inter",
     "background": "solid",
     "onboardingCompleted": true,
@@ -11,6 +11,7 @@
   "agent": {
     "suggestFollowUp": true,
     "maxSuggestions": 2,
+    "permissionMode": "yolo",
     "workOutput": {
       "detailMode": "complete",
       "boardDigest": {

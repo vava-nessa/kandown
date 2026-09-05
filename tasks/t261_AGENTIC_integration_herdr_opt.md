@@ -8,7 +8,7 @@ tags: [agentic, herdr, integration, runner, ui]
 ownerType: human
 created: 2026-07-26
 order: 0
-updated: 2026-08-04T23:16:41Z
+updated: 2026-09-04T14:49:58Z
 category: AGENTIC
 ---
 
