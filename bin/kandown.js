@@ -11360,6 +11360,34 @@ var CHAT_AFFORDANCES_PROMPT = [
   "With the directive, the app opens that task automatically and scrolls to the section when your turn completes.",
   "Use [show: t123] whenever the user asks you to find or show something: they get one click to the right task."
 ].join("\n");
+var MAX_MENTIONED_TASKS = 5;
+function buildMentionSections(kandownDir, mentionedTaskIds) {
+  if (!Array.isArray(mentionedTaskIds)) return "";
+  const ids = [];
+  for (const value of mentionedTaskIds) {
+    if (typeof value !== "string") continue;
+    const id = value.trim();
+    if (!id || ids.includes(id)) continue;
+    ids.push(id);
+    if (ids.length >= MAX_MENTIONED_TASKS) break;
+  }
+  let sections = "";
+  for (const id of ids) {
+    const taskPath = findTaskPath(kandownDir, id);
+    if (!taskPath) continue;
+    try {
+      const content = readFileSync22(taskPath, "utf8");
+      const title2 = parseTaskFile(content).frontmatter.title || `Task ${id}`;
+      sections += `## Task ${id}: ${title2}
+
+${content}
+
+`;
+    } catch {
+    }
+  }
+  return sections;
+}
 var sseClients = [];
 var nextClientId = 1;
 var activeToken = null;
@@ -11840,6 +11868,10 @@ async function handleApi(req, res, url, kandownDir) {
     prompt = `${prompt}
 
 ${CHAT_AFFORDANCES_PROMPT}`;
+    const mentionSections = buildMentionSections(kandownDir, body.mentionedTaskIds);
+    if (mentionSections) prompt = `${prompt}
+
+${mentionSections.trimEnd()}`;
     if (message) prompt = `${prompt}
 
 ---
@@ -12006,7 +12038,11 @@ ${message}`;
       if (typeof body.message !== "string" || !body.message.trim()) {
         return writeJson(res, 400, { error: "message is required" });
       }
-      const result = sendToSession(sessionId, body.message);
+      const mentionSections = buildMentionSections(kandownDir, body.mentionedTaskIds);
+      const delivered = mentionSections ? `${mentionSections}## User message
+
+${body.message}` : body.message;
+      const result = sendToSession(sessionId, delivered);
       return result.ok ? writeJson(res, 200, { ok: true }) : writeJson(res, 400, { ok: false, error: result.error ?? "Send failed" });
     }
   }

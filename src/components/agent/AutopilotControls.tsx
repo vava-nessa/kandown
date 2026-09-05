@@ -55,7 +55,10 @@ export function AutopilotControls() {
   const lastKillClickRef = useRef(0);
 
   const running = snapshot?.state === 'running';
-  const disabled = guard === 'no-daemon' || stopping;
+  // 📖 Round 3: a stale token (daemon restarted) blocks starts just like a
+  // missing daemon: the POST would 401 anyway, and the reload banner next to
+  // it is the actual fix.
+  const disabled = guard === 'no-daemon' || guard === 'stale-auth' || stopping;
   const activeCount = snapshot?.active.length ?? 0;
   const queuedCount = snapshot?.queue.length ?? 0;
   const orphanCount = snapshot?.orphans.length ?? 0;

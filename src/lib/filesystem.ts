@@ -50,6 +50,7 @@
  *  → fetchDetectedAgents / fetchAgentHarnesses: Node-side agent and harness detection
  *  → createAgentSession / sendAgentSessionMessage: harness chat runtime actions
  *  → listSessionIndex / forgetSessionIndex: t308 chat sidebar index entries
+ *  → serverAuthState: tokenless liveness + tokened version probe (stale-token detection)
  *  → serverLoadExtensionRuntime: field/panel defs and batched badges
  *  → serverSetExtensionField: persist one host-validated plugins field
  *  → serverReadExtensionFile: authenticated source read for Blob import
@@ -57,7 +58,7 @@
  *  → serverMigrateTasks: triggers the legacy to new layout migration via REST
  *  → readProjectInstructions / writeProjectInstructions — edits `.kandown/kandown_work.md`
  *
- * @exports supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, fetchDetectedAgents, fetchAgentHarnesses, createAgentSession, sendAgentSessionMessage, listSessionIndex, forgetSessionIndex, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks
+ * @exports supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, fetchDetectedAgents, fetchAgentHarnesses, createAgentSession, sendAgentSessionMessage, listSessionIndex, forgetSessionIndex, serverAuthState, ServerAuthState, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks
  * @see src/lib/store.ts
  * @see src/lib/parser.ts
  */
@@ -455,7 +456,10 @@ function isAgentSessionPayload(value: unknown): value is AgentSessionPayload {
  *  `resumeSessionId` continues a harness-native conversation (claude session
  *  id, codex thread id, pi session file path); `skillId` (t310) asks the daemon
  *  to assemble the prompt from the compiled context plus that skill's
- *  instructions. */
+ *  instructions; `mentionedTaskIds` (@task mentions, round 3) asks the daemon
+ *  to inline the integral task files after the compiled/skill prompt and
+ *  before the user message section. Unknown ids are skipped silently
+ *  server-side, never an error. */
 export interface CreateAgentSessionInput {
   harnessId: string;
   taskId?: string;
@@ -464,6 +468,7 @@ export interface CreateAgentSessionInput {
   permissionMode?: PermissionMode;
   resumeSessionId?: string;
   skillId?: string;
+  mentionedTaskIds?: string[];
 }
 
 /**
@@ -503,17 +508,25 @@ export async function createAgentSession(input: CreateAgentSessionInput): Promis
 /**
  * 📖 Sends a follow-up chat message via POST /api/agent/sessions/:id/send.
  * The runtime steers the live turn or resumes the finished session under the
- * same kandown id. Returns `{ ok: false, error }` carrying the backend's
- * readable error (empty message, one-shot harness mid-turn, unknown session),
- * or `null` outside server mode. Never throws.
+ * same kandown id. `mentionedTaskIds` (@task mentions, round 3) asks the
+ * daemon to prepend the integral content of those tasks to the delivered
+ * message; the visible user text is never rewritten. Returns
+ * `{ ok: false, error }` carrying the backend's readable error (empty
+ * message, one-shot harness mid-turn, unknown session), or `null` outside
+ * server mode. Never throws.
  */
-export async function sendAgentSessionMessage(id: string, message: string): Promise<{ ok: boolean; error?: string } | null> {
+export async function sendAgentSessionMessage(id: string, message: string, mentionedTaskIds?: string[]): Promise<{ ok: boolean; error?: string } | null> {
   if (!isServerMode() || isDemoMode()) return null;
   try {
     const res = await rawApiFetch(`/api/agent/sessions/${encodeURIComponent(id)}/send`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({
+        message,
+        // 📖 Unchanged wire shape when there is nothing to mention: older
+        // daemons keep parsing the exact same body.
+        ...(mentionedTaskIds && mentionedTaskIds.length > 0 ? { mentionedTaskIds } : {}),
+      }),
     });
     if (res.ok) return { ok: true };
     const payload = await res.json().catch(() => ({})) as { error?: unknown };
@@ -557,6 +570,40 @@ export async function forgetSessionIndex(id: string): Promise<boolean> {
     return res.ok;
   } catch {
     return false;
+  }
+}
+
+/** 📖 Token health of the daemon the page talks to (round 3). 'ok' means the
+ *  page token authenticates, 'stale' means a daemon is alive but rejects the
+ *  token (it restarted and minted a fresh one), 'none' means no daemon at
+ *  all (or demo / non-server mode). */
+export type ServerAuthState = 'ok' | 'stale' | 'none';
+
+/**
+ * 📖 Distinguishes "daemon down" from "daemon restarted, page token is stale"
+ * so the sidebar can show a reload banner instead of the misleading
+ * "start the daemon" card. Two probes, cheapest first:
+ * 1. GET /api/daemon, deliberately tokenless (raw fetch, no header): the
+ *    daemon answers it before auth by contract. Any failure is 'none'.
+ * 2. GET /api/version WITH the page token: 401 means the token no longer
+ *    matches ('stale'), 200 means it does ('ok'). Any other status or a
+ *    network error is treated as 'none': a daemon answering garbage is not
+ *    one this page can use. Never throws.
+ */
+export async function serverAuthState(): Promise<ServerAuthState> {
+  if (!isServerMode() || isDemoMode()) return 'none';
+  try {
+    const live = await fetch(`${API_BASE}/api/daemon`);
+    if (!live.ok) return 'none';
+  } catch {
+    return 'none';
+  }
+  try {
+    const version = await rawApiFetch('/api/version');
+    if (version.status === 401) return 'stale';
+    return version.ok ? 'ok' : 'none';
+  } catch {
+    return 'none';
   }
 }
 

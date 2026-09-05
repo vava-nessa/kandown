@@ -17,6 +17,12 @@
  * auth the shared rawApiFetch uses: the `X-Kandown-Token` header from
  * window.__KANDOWN_TOKEN__. Never throws; failures surface as toasts.
  *
+ * 📖 Round 3: the daemon guard distinguishes "no daemon" from "stale token"
+ * (serverAuthState probe: daemon alive but /api/version 401s after a restart),
+ * the full /api/skills payload is kept next to the chatSkills projection for
+ * the read-only SkillsModal, and sendMessage / startSession forward
+ * mentionedTaskIds so the daemon inlines the integral @task files.
+ *
  * @functions
  *  → createAgentChatSlice: sidebar state, session index, SSE lifecycle, sends,
  *    the t310 interactive skill flow (chat skills list, activeSkill chip,
@@ -38,6 +44,7 @@ import {
   forgetSessionIndex,
   fetchAgentHarnesses,
   serverListWorkflowSkills,
+  serverAuthState,
 } from '../filesystem';
 import type { SessionIndexEntryPayload, AgentSessionPayload } from '../types';
 import {
@@ -92,6 +99,7 @@ export interface AgentChatSlice {
   resumeSession: State['resumeSession'];
   /** Switches the sidebar to an empty draft: the next send starts a new session. */
   newConversation: State['newConversation'];
+  /** Follow-up send; `mentionedTaskIds` rides along for @task mentions. */
   sendMessage: State['sendMessage'];
   /** Interactive skill answers (t310): format + forward as a follow-up. */
   sendAnswers: State['sendAnswers'];
@@ -116,6 +124,7 @@ export function createInitialAgentChatState(): AgentChatState {
     gitWarning: null,
     harnesses: [],
     chatSkills: [],
+    skills: [],
     activeSkill: null,
     showTask: null,
     answersRequested: false,
@@ -232,14 +241,23 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
       const sorted = index
         ? [...index].sort((a, b) => (a.updatedAt < b.updatedAt ? 1: a.updatedAt > b.updatedAt ? -1: 0))
        : [];
+      // 📖 Round 3: when the index is unreachable, ask WHY before blaming the
+      // daemon. A live daemon that rejects this page's token (it restarted and
+      // minted a fresh one) gets its own guard value so the sidebar shows a
+      // reload banner instead of the "start the daemon" card.
+      let guard: AgentChatState['guard'] = index ? 'available' : 'no-daemon';
+      if (!index) {
+        const auth = await serverAuthState();
+        if (auth === 'stale') guard = 'stale-auth';
+      }
       set(state => ({
         agentChat: {
           ...state.agentChat,
           sessions: sorted,
-          guard: index ? 'available': 'no-daemon',
+          guard,
         },
       }));
-      if (sorted.length === 0 && get().agentChat.guard === 'no-daemon') return;
+      if (sorted.length === 0 && guard !== 'available') return;
 
       // 📖 Harness list for the new-conversation selector: fetched once per
       // page life, lazily, only when the sidebar is actually used.
@@ -250,25 +268,29 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
         }
       }
 
-      // 📖 Chat-launchable skills (t310): same lazy once-per-page-life pattern.
-      // The daemon only attaches `chat` to valid skills, so its presence gates
-      // the projection; a backend without the field simply yields no buttons.
-      if (get().agentChat.chatSkills.length === 0) {
+      // 📖 Skills (t310, extended round 3): same lazy once-per-page-life
+      // pattern. The full /api/skills payload is kept for the read-only
+      // SkillsModal (active state, compatibility reasons), while chatSkills
+      // stays the lean projection of the chat-declaring subset that backs the
+      // pill buttons. The daemon only attaches `chat` to valid skills, so its
+      // presence gates the projection; a backend without the field simply
+      // yields no buttons.
+      if (get().agentChat.skills.length === 0) {
         const skills = await serverListWorkflowSkills();
-        const chatSkills: ChatSkillButton[] = [];
-        for (const skill of skills) {
-          const chat = skill.chat;
-          if (!chat) continue;
-          chatSkills.push({
-            skillId: skill.id,
-            label: chat.button.label,
-            ...(chat.button.icon ? { icon: chat.button.icon } : {}),
-            scope: chat.scope,
-            interactive: chat.interactive,
-          });
-        }
-        if (chatSkills.length > 0) {
-          set(state => ({ agentChat: { ...state.agentChat, chatSkills } }));
+        if (skills.length > 0) {
+          const chatSkills: ChatSkillButton[] = [];
+          for (const skill of skills) {
+            const chat = skill.chat;
+            if (!chat) continue;
+            chatSkills.push({
+              skillId: skill.id,
+              label: chat.button.label,
+              ...(chat.button.icon ? { icon: chat.button.icon } : {}),
+              scope: chat.scope,
+              interactive: chat.interactive,
+            });
+          }
+          set(state => ({ agentChat: { ...state.agentChat, skills, chatSkills } }));
         }
       }
 
@@ -291,6 +313,11 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
         ...(input.taskId ? { taskId: input.taskId }: {}),
         ...(input.message ? { message: input.message }: {}),
         ...(input.skillId ? { skillId: input.skillId }: {}),
+        // 📖 Round 3: @task mentions on the first message make the daemon
+        // inline the integral task files into the compiled prompt.
+        ...(input.mentionedTaskIds && input.mentionedTaskIds.length > 0
+          ? { mentionedTaskIds: input.mentionedTaskIds }
+         : {}),
         permissionMode,
       });
       if (!result) {
@@ -382,7 +409,7 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
       }));
     },
 
-    sendMessage: async (text) => {
+    sendMessage: async (text, mentionedTaskIds) => {
       const trimmed = text.trim();
       const sessionId = get().agentChat.activeSessionId;
       if (!trimmed || !sessionId || get().agentChat.sending) return;
@@ -397,7 +424,10 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
           live: { ...state.agentChat.live, [sessionId]: { ...current, fold: appended.state } },
         },
       }));
-      const result = await sendAgentSessionMessage(sessionId, trimmed);
+      // 📖 Round 3: the visible user text is sent untouched; mentioned task
+      // ids ride along as structured data so the daemon can inline the
+      // integral task files ahead of the message.
+      const result = await sendAgentSessionMessage(sessionId, trimmed, mentionedTaskIds);
       if (result === null || !result.ok) {
         set(state => {
           const live = state.agentChat.live[sessionId];

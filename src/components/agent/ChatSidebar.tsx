@@ -7,7 +7,11 @@
  * switcher, the harness selector for NEW conversations, the permission mode
  * chip, the usage badge, the daemon guard card when there is no daemon, and
  * the t310 skill surface: chat skill pill buttons plus the interactive answer
- * form, both mounted above the PromptBar. The header also hosts the t311
+ * form, both mounted above the PromptBar. Round 3 adds the stale-auth banner
+ * (daemon restarted: reload to reconnect) in place of the daemon card, the
+ * pick-a-task flow when a task-scoped skill launches with no preselected
+ * task, and the shared skill launch handler the PromptBar slash-token picker
+ * reuses. The header also hosts the t311
  * autopilot controls (start/kill switch + run totals) as a third compact row.
  *
  * 📖 Mounted once in App.tsx, outside the board layout, like Drawer and
@@ -71,6 +75,19 @@ export function ChatSidebar() {
   // 📖 Local dismissal only: the banner comes back for the next session that
   // reports the advisory, which is the right lifetime for a safety reminder.
   const [gitBannerDismissed, setGitBannerDismissed] = useState(false);
+  // 📖 Feature 3: a task-scoped skill launched without a task context parks
+  // here and the PromptBar renders its pick-a-task menu until one is chosen
+  // (or Esc dismisses). Null means no pending pick.
+  const [pendingSkill, setPendingSkill] = useState<{ skill: ChatSkillButton } | null>(null);
+  // 📖 Closing the sidebar cancels an unfinished pick: reopening must show a
+  // fresh composer, not a stale "pick a task" menu from the previous visit.
+  useEffect(() => {
+    if (!sidebarOpen) setPendingSkill(null);
+  }, [sidebarOpen]);
+
+  // 📖 Tasks available to pick from: the disabled state of task-scoped skill
+  // buttons only makes sense when the board has nothing to offer at all.
+  const boardTaskCount = useStore(s => s.columns.reduce((total, column) => total + column.tasks.length, 0));
 
   // 📖 Mobile detection mirrors Drawer.tsx: same 768px breakpoint, same
   // fullscreen-overlay treatment below it.
@@ -149,9 +166,11 @@ export function ChatSidebar() {
     if (stickToBottomRef.current) scrollToBottom('auto');
   }, [messageCount, lastMessage, scrollToBottom]);
 
-  const handleSend = useCallback((text: string) => {
+  // 📖 Round 3: @task mentions ride along as structured ids so the daemon can
+  // inline the integral task files; the visible text is sent untouched.
+  const handleSend = useCallback((text: string, mentionedTaskIds: string[]) => {
     if (activeSessionId) {
-      void sendMessage(text);
+      void sendMessage(text, mentionedTaskIds);
       return;
     }
     // 📖 Lazy start: no session yet, so the first message opens one with the
@@ -160,15 +179,23 @@ export function ChatSidebar() {
     void startSession({
       harnessId: selectedHarness,
       ...(preContextTaskId ? { taskId: preContextTaskId }: {}),
+      ...(mentionedTaskIds.length > 0 ? { mentionedTaskIds } : {}),
       message: text,
     });
   }, [activeSessionId, sendMessage, selectedHarness, preContextTaskId, startSession]);
 
   // 📖 t310: a skill button always starts a NEW session whose daemon-compiled
   // prompt folds the skill instructions in; the same harness selector the
-  // plain prompt uses picks the runner.
+  // plain prompt uses picks the runner. Round 3: a task-scoped skill with no
+  // preselected task no longer dead-ends: the PromptBar opens its pick-a-task
+  // menu and the launch happens once a task is chosen.
   const handleLaunchSkill = useCallback((skill: ChatSkillButton) => {
     if (!selectedHarness) return;
+    if (skill.scope === 'task' && !preContextTaskId) {
+      if (boardTaskCount === 0) return;
+      setPendingSkill({ skill });
+      return;
+    }
     void startSession({
       harnessId: selectedHarness,
       ...(preContextTaskId ? { taskId: preContextTaskId }: {}),
@@ -176,7 +203,27 @@ export function ChatSidebar() {
       label: skill.label,
       interactive: skill.interactive,
     });
-  }, [selectedHarness, preContextTaskId, startSession]);
+  }, [selectedHarness, preContextTaskId, boardTaskCount, startSession]);
+
+  /** 📖 The pick-a-task menu resolved: launch the parked skill on the chosen
+   * task and clear the pending state in the same breath. */
+  const handlePickTask = useCallback((taskId: string) => {
+    const parked = pendingSkill;
+    setPendingSkill(null);
+    if (!parked || !selectedHarness) return;
+    void startSession({
+      harnessId: selectedHarness,
+      taskId,
+      skillId: parked.skill.skillId,
+      label: parked.skill.label,
+      interactive: parked.skill.interactive,
+    });
+  }, [pendingSkill, selectedHarness, startSession]);
+
+  /** 📖 Esc in the pick-a-task menu: forget the parked skill, nothing launched. */
+  const handleDismissPickTask = useCallback(() => {
+    setPendingSkill(null);
+  }, []);
 
   return (
     <AnimatePresence>
@@ -256,6 +303,25 @@ export function ChatSidebar() {
 
             {guard === 'no-daemon' ? (
               <DaemonGuardCard />
+            ): guard === 'stale-auth' ? (
+              /* 📖 Round 3: the daemon restarted and minted a fresh token, so
+               * this page's copy went stale. A reload re-handshakes; the old
+               * "start the daemon" card would simply be wrong here. */
+              <div className="mx-3 mt-2 flex-none rounded-[8px] border border-amber-500/40 bg-amber-500/10 px-3 py-2.5">
+                <p className="text-[12.5px] font-medium text-fg">
+                  {t('agentChat.staleAuthTitle', 'The daemon restarted')}
+                </p>
+                <p className="mt-0.5 text-[12px] leading-relaxed text-fg-muted">
+                  {t('agentChat.staleAuthBody', 'Reload this page to reconnect.')}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => window.location.reload()}
+                  className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-border bg-bg-2 px-2.5 py-1.5 text-[12px] text-fg transition-colors hover:border-border-strong"
+                >
+                  {t('agentChat.reload', 'Reload')}
+                </button>
+              </div>
             ): (
               <>
                 {gitWarning && !gitBannerDismissed && (
@@ -306,7 +372,12 @@ export function ChatSidebar() {
                 <SkillButtons
                   skills={chatSkills}
                   disabled={starting || installedHarnesses.length === 0}
-                  hasTaskContext={preContextTaskId !== null}
+                  // 📖 Feature 3: the prop reads "a task-scoped launch can go
+                  // ahead". That is true with a preselected task, and round 3
+                  // also opens the pick-a-task menu when the board has tasks
+                  // to offer; only a genuinely empty board disables the
+                  // buttons now.
+                  hasTaskContext={preContextTaskId !== null || boardTaskCount > 0}
                   activeSkillLabel={activeSkill?.label ?? null}
                   onLaunch={handleLaunchSkill}
                 />
@@ -319,6 +390,11 @@ export function ChatSidebar() {
                   sending={sending}
                   onSend={handleSend}
                   onStop={() => { if (activeSessionId) void stopSession(activeSessionId); }}
+                  onLaunchSkill={handleLaunchSkill}
+                  pickTaskMode={pendingSkill !== null}
+                  pickTaskLabel={pendingSkill?.skill.label ?? null}
+                  onPickTask={handlePickTask}
+                  onDismissPickTask={handleDismissPickTask}
                 />
               </>
             )}

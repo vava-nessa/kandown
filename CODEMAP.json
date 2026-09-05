@@ -8,7 +8,7 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 14449,
+      "lines": 14485,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
@@ -1311,7 +1311,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 1385,
+      "lines": 1441,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
@@ -1760,7 +1760,7 @@
     },
     {
       "path": "src/components/agent/AutopilotControls.tsx",
-      "lines": 132,
+      "lines": 135,
       "title": "Autopilot sidebar controls (t311)",
       "summary": "Compact control row mounted in the agent chat sidebar header: a play/stop toggle for the daemon's autopilot run (with kill-switch styling while running: destructive tint, pulsing dot, active count, and an 800ms click debounce so a…",
       "functions": [
@@ -1832,7 +1832,7 @@
     },
     {
       "path": "src/components/agent/ChatSidebar.tsx",
-      "lines": 331,
+      "lines": 407,
       "title": "Agent chat sidebar (t308)",
       "summary": "The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.",
       "functions": [
@@ -1934,12 +1934,12 @@
     },
     {
       "path": "src/components/agent/PromptBar.tsx",
-      "lines": 97,
+      "lines": 352,
       "title": "Prompt bar for the agent chat sidebar",
       "summary": "Auto-sizing textarea plus send/stop controls.",
       "functions": [
         {
-          "name": "PromptBar: message composer with send/stop and lazy session start",
+          "name": "PromptBar: message composer with send/stop, mention/skill pickers and",
           "summary": null
         }
       ],
@@ -1980,6 +1980,19 @@
       "exports": "SkillButtons"
     },
     {
+      "path": "src/components/agent/SkillsModal.tsx",
+      "lines": 135,
+      "title": "Read-only skills modal for the agent chat sidebar (round 3)",
+      "summary": "A compact centered modal listing EVERY skill the daemon reports on /api/skills, not just the chat-capable subset the pill row shows: mono id, chat button label when the manifest declares one, scope chip, an interactive badge, the active…",
+      "functions": [
+        {
+          "name": "SkillsModal: the fixed-overlay skill catalog (null when closed)",
+          "summary": null
+        }
+      ],
+      "exports": "SkillsModal"
+    },
+    {
       "path": "src/components/agent/StreamingText.tsx",
       "lines": 61,
       "title": "Streaming text with a live caret",
@@ -1991,6 +2004,19 @@
         }
       ],
       "exports": "StreamingText"
+    },
+    {
+      "path": "src/components/agent/TaskMentionDropdown.tsx",
+      "lines": 99,
+      "title": "Shared dropdown list for the agent chat prompt (round 3)",
+      "summary": "One small list, three uses, anchored above the PromptBar textarea: @task mentions (mono @id chip + task title), /skill tokens (mono /id + chat button label + interactive badge) and the \"pick one task\" mode a task-scoped skill falls back…",
+      "functions": [
+        {
+          "name": "TaskMentionDropdown: the anchored list (null when there is nothing to show)",
+          "summary": null
+        }
+      ],
+      "exports": "TaskMentionDropdown, TaskMentionDropdownItem"
     },
     {
       "path": "src/components/agent/UsageBadge.tsx",
@@ -2806,6 +2832,12 @@
       "summary": "Verifies the deterministic contract of src/lib/category-color.ts: same category string always yields the same color and icon, the foreground is always a legible dark or white on the chosen background, and the palette covers the full…"
     },
     {
+      "path": "src/lib/__tests__/chat-mentions.spec.ts",
+      "lines": 102,
+      "title": "Chat mention + slash token helper tests",
+      "summary": "Locks the pure prompt-token contract the PromptBar codes against: the @task mention scanner (active query at the caret), the /skill scanner, the mentioned-id extraction for the transport, and the explicit identity of stripMentionMarkers…"
+    },
+    {
       "path": "src/lib/__tests__/code-block-tokens.spec.ts",
       "lines": 157,
       "title": "Code-block contrast safety net",
@@ -2990,6 +3022,31 @@
         }
       ],
       "exports": "hashString, CATEGORY_PALETTE, CATEGORY_ICONS, categoryColor, categoryIcon"
+    },
+    {
+      "path": "src/lib/chat-mentions.ts",
+      "lines": 88,
+      "title": "Pure helpers for @task mentions and /skill tokens in the chat prompt",
+      "summary": "All the caret-level text surgery the PromptBar needs to detect what the user is typing right before the caret: an unfinished `@task` mention (opens the task picker), an unfinished `/skill` token (opens the skill picker), and the list of…",
+      "functions": [
+        {
+          "name": "findActiveMentionQuery: the @token under the caret, or null",
+          "summary": null
+        },
+        {
+          "name": "findActiveSlashQuery: the /token under the caret, or null",
+          "summary": null
+        },
+        {
+          "name": "extractMentionedTaskIds: unique @ids of a finished message (max 5)",
+          "summary": null
+        },
+        {
+          "name": "stripMentionMarkers: identity by contract (mentions stay visible)",
+          "summary": null
+        }
+      ],
+      "exports": "MentionQuery, findActiveMentionQuery, findActiveSlashQuery, extractMentionedTaskIds, stripMentionMarkers"
     },
     {
       "path": "src/lib/columnUtils.ts",
@@ -3339,7 +3396,7 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 1537,
+      "lines": 1584,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [
@@ -3440,6 +3497,10 @@
           "summary": null
         },
         {
+          "name": "serverAuthState: tokenless liveness + tokened version probe (stale-token detection)",
+          "summary": null
+        },
+        {
           "name": "serverLoadExtensionRuntime: field/panel defs and batched badges",
           "summary": null
         },
@@ -3464,7 +3525,7 @@
           "summary": "edits `.kandown/kandown_work.md`"
         }
       ],
-      "exports": "supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, fetchDetectedAgents, fetchAgentHarnesses, createAgentSession, sendAgentSessionMessage, listSessionIndex, forgetSessionIndex, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks"
+      "exports": "supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, writeTaskFile, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, fetchDetectedAgents, fetchAgentHarnesses, createAgentSession, sendAgentSessionMessage, listSessionIndex, forgetSessionIndex, serverAuthState, ServerAuthState, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks"
     },
     {
       "path": "src/lib/githubStars.ts",
@@ -3677,7 +3738,7 @@
     },
     {
       "path": "src/lib/store.ts",
-      "lines": 2084,
+      "lines": 2085,
       "title": "Kandown Zustand store",
       "summary": "Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.",
       "functions": [
@@ -3710,7 +3771,7 @@
     },
     {
       "path": "src/lib/store/agentChatSlice.ts",
-      "lines": 587,
+      "lines": 617,
       "title": "Zustand store slice: agent chat sidebar (t308)",
       "summary": "Sidebar open state, the project's chat session index, the live per-session chat folds, and the SSE lifecycle that feeds them.",
       "functions": [
@@ -3819,7 +3880,7 @@
     },
     {
       "path": "src/lib/store/types.ts",
-      "lines": 466,
+      "lines": 478,
       "title": "Zustand store — shared types",
       "summary": "State shape and supporting interfaces used across every store slice."
     },

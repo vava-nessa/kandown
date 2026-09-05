@@ -517,7 +517,13 @@
     "noHarness": "No harness installed",
     "copy": "Copy",
     "daemonGuardTitle": "Agent chat needs the kandown daemon",
-    "daemonGuardBody": "Run kandown in this project to chat with your coding agents right from the sidebar."
+    "daemonGuardBody": "Run kandown in this project to chat with your coding agents right from the sidebar.",
+    "staleAuthTitle": "The daemon restarted",
+    "staleAuthBody": "Reload this page to reconnect.",
+    "reload": "Reload",
+    "pickTaskTitle": "Pick the task to run {{skill}} on",
+    "pickTaskEmpty": "No tasks on the board yet",
+    "mentionDropdownLabel": "Suggestions"
   },
   "agentSkills": {
     "skillsLabel": "Skills",
@@ -527,7 +533,11 @@
     "answerPlaceholder": "Your answer...",
     "sendAnswers": "Send answers",
     "skip": "Skip",
-    "skillRunning": "Skill running"
+    "skillRunning": "Skill running",
+    "skillsModalTitle": "Skills",
+    "skillsModalEmpty": "No skills installed",
+    "activeTitle": "Active",
+    "inactiveTitle": "Inactive"
   },
   "agentEdits": {
     "editingBubble": "I am editing this task...",

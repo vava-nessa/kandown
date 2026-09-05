@@ -86,6 +86,46 @@ const CHAT_AFFORDANCES_PROMPT = [
   'Use [show: t123] whenever the user asks you to find or show something: they get one click to the right task.',
 ].join('\n');
 
+/** 📖 Maximum @task mentions inlined per message. Matches the client cap in
+ * src/lib/chat-mentions.ts (extractMentionedTaskIds); the server enforces it
+ * again because the wire can carry anything. */
+const MAX_MENTIONED_TASKS = 5;
+
+/** 📖 Builds the integral @task sections for a chat payload's
+ * `mentionedTaskIds` (round 3): for every resolvable id,
+ * `## Task <id>: <title>` followed by the WHOLE task file, so the harness
+ * reads the task in full instead of trusting a summary. Validation IS
+ * `findTaskPath`: it rejects ids that could escape the tasks directory and
+ * resolves the archive-aware filename; unknown or unreadable ids are skipped
+ * silently, never an error (a stale @mention must not fail the message).
+ * Returns the empty string when nothing resolves, in which case callers
+ * deliver the original message untouched. Mirrored by the Vite dev plugin in
+ * vite.config.ts (duplicated on purpose, like the route handlers). */
+function buildMentionSections(kandownDir: string, mentionedTaskIds: unknown): string {
+  if (!Array.isArray(mentionedTaskIds)) return '';
+  const ids: string[] = [];
+  for (const value of mentionedTaskIds) {
+    if (typeof value !== 'string') continue;
+    const id = value.trim();
+    if (!id || ids.includes(id)) continue;
+    ids.push(id);
+    if (ids.length >= MAX_MENTIONED_TASKS) break;
+  }
+  let sections = '';
+  for (const id of ids) {
+    const taskPath = findTaskPath(kandownDir, id);
+    if (!taskPath) continue;
+    try {
+      const content = readFileSync(taskPath, 'utf8');
+      const title = parseTaskFile(content).frontmatter.title || `Task ${id}`;
+      sections += `## Task ${id}: ${title}\n\n${content}\n\n`;
+    } catch {
+      // 📖 Unreadable file: skip this mention, keep the rest of the message.
+    }
+  }
+  return sections;
+}
+
 interface SseClient {
   id: number;
   res: ServerResponse;
@@ -676,6 +716,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       permissionMode?: unknown;
       resumeSessionId?: unknown;
       skillId?: unknown;
+      mentionedTaskIds?: unknown;
     };
     try {
       body = JSON.parse(await readRequestBody(req)) as typeof body;
@@ -713,6 +754,13 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
     // 📖 Chat affordances: chat sessions only, after the skill section so the
     // directive markup sits next to the user's first message.
     prompt = `${prompt}\n\n${CHAT_AFFORDANCES_PROMPT}`;
+    // 📖 Round 3 @task mentions: the integral task files land AFTER the
+    // compiled context, the skill section and the affordances, and BEFORE the
+    // user message, so the harness reads: project/task context, skill
+    // instructions, chat affordances, referenced tasks in full, user request.
+    // Unknown ids are skipped silently inside buildMentionSections.
+    const mentionSections = buildMentionSections(kandownDir, body.mentionedTaskIds);
+    if (mentionSections) prompt = `${prompt}\n\n${mentionSections.trimEnd()}`;
     if (message) prompt = `${prompt}\n\n---\n\n${message}`;
     const permissionMode: PermissionMode = body.permissionMode === 'accept-edits' || body.permissionMode === 'yolo'
       ? body.permissionMode
@@ -914,8 +962,10 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
     }
     if (sub === '/send' && method === 'POST') {
       // 📖 Follow-up chat message: the runtime steers the live turn or resumes
-      // the finished one under the same kandown session id.
-      let body: { message?: unknown };
+      // the finished one under the same kandown session id. `mentionedTaskIds`
+      // (round 3, optional) prepends the integral @task sections so the
+      // harness reads the referenced tasks in full before the user's line.
+      let body: { message?: unknown; mentionedTaskIds?: unknown };
       try {
         body = JSON.parse(await readRequestBody(req)) as typeof body;
       } catch (error) {
@@ -924,7 +974,13 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
       if (typeof body.message !== 'string' || !body.message.trim()) {
         return writeJson(res, 400, { error: 'message is required' });
       }
-      const result = sendToSession(sessionId, body.message);
+      // 📖 No mentions (or none resolvable): the original text goes out as-is,
+      // byte-identical to the pre-round-3 wire shape.
+      const mentionSections = buildMentionSections(kandownDir, body.mentionedTaskIds);
+      const delivered = mentionSections
+        ? `${mentionSections}## User message\n\n${body.message}`
+        : body.message;
+      const result = sendToSession(sessionId, delivered);
       return result.ok
         ? writeJson(res, 200, { ok: true })
         : writeJson(res, 400, { ok: false, error: result.error ?? 'Send failed' });

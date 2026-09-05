@@ -26,6 +26,49 @@ const CHAT_AFFORDANCES_PROMPT = [
   'Use [show: t123] whenever the user asks you to find or show something: they get one click to the right task.',
 ].join('\n');
 
+// 📖 Maximum @task mentions inlined per message. Keep in sync with
+// MAX_MENTIONED_TASKS in src/cli/lib/server.ts and the client cap in
+// src/lib/chat-mentions.ts.
+const MAX_MENTIONED_TASKS = 5;
+
+/** 📖 Dev mirror of buildMentionSections in src/cli/lib/server.ts (round 3):
+ * for every resolvable `mentionedTaskIds` entry, `## Task <id>: <title>`
+ * followed by the WHOLE task file. The board-reader and parser functions are
+ * injected because this plugin loads them through Vite's SSR loader while the
+ * daemon imports them statically; the duplication of the section format is
+ * on purpose, like every mirrored route handler in this file. Unknown or
+ * unreadable ids are skipped silently, never an error; an empty result means
+ * callers deliver the original message untouched. */
+function buildMentionSections(
+  findTaskPath: (kandownDir: string, taskId: string) => string | null,
+  parseTaskFile: (content: string) => { frontmatter: { title?: string } },
+  kandownDir: string,
+  mentionedTaskIds: unknown,
+): string {
+  if (!Array.isArray(mentionedTaskIds)) return '';
+  const ids: string[] = [];
+  for (const value of mentionedTaskIds) {
+    if (typeof value !== 'string') continue;
+    const id = value.trim();
+    if (!id || ids.includes(id)) continue;
+    ids.push(id);
+    if (ids.length >= MAX_MENTIONED_TASKS) break;
+  }
+  let sections = '';
+  for (const id of ids) {
+    const taskPath = findTaskPath(kandownDir, id);
+    if (!taskPath) continue;
+    try {
+      const content = readFileSync(taskPath, 'utf8');
+      const title = parseTaskFile(content).frontmatter.title || `Task ${id}`;
+      sections += `## Task ${id}: ${title}\n\n${content}\n\n`;
+    } catch {
+      // 📖 Unreadable file: skip this mention, keep the rest of the message.
+    }
+  }
+  return sections;
+}
+
 /**
  * 📖 Demo build (`vite build --mode demo`, i.e. `pnpm build:demo`).
  *
@@ -237,7 +280,7 @@ function kandownDevPlugin() {
                   req.on('error', rejectBody);
                 });
                 const body = JSON.parse(Buffer.concat(chunks).toString('utf8')) as {
-                  harnessId?: unknown; taskId?: unknown; message?: unknown; title?: unknown; permissionMode?: unknown; skillId?: unknown;
+                  harnessId?: unknown; taskId?: unknown; message?: unknown; title?: unknown; permissionMode?: unknown; skillId?: unknown; mentionedTaskIds?: unknown;
                 };
                 if (typeof body.harnessId !== 'string' || !body.harnessId.trim()) {
                   res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -276,6 +319,12 @@ function kandownDevPlugin() {
                 // 📖 Chat affordances, same contract as the daemon: chat
                 // sessions only, after the skill section, before the message.
                 prompt = `${prompt}\n\n${CHAT_AFFORDANCES_PROMPT}`;
+                // 📖 Round 3 @task mentions, same contract as the daemon: the
+                // integral task files land after the compiled context, the
+                // skill section and the affordances, before the user message.
+                const parserModule = await server.ssrLoadModule('/src/lib/parser.ts') as typeof import('./src/lib/parser');
+                const mentionSections = buildMentionSections(boardModule.findTaskPath, parserModule.parseTaskFile, kandownPath, body.mentionedTaskIds);
+                if (mentionSections) prompt = `${prompt}\n\n${mentionSections.trimEnd()}`;
                 if (message) prompt = `${prompt}\n\n---\n\n${message}`;
                 const permissionMode = body.permissionMode === 'accept-edits' || body.permissionMode === 'yolo'
                   ? body.permissionMode
@@ -350,7 +399,7 @@ function kandownDevPlugin() {
                   req.on('end', resolveBody);
                   req.on('error', rejectBody);
                 });
-                let body: { message?: unknown };
+                let body: { message?: unknown; mentionedTaskIds?: unknown };
                 try {
                   body = JSON.parse(Buffer.concat(chunks).toString('utf8')) as typeof body;
                 } catch (error) {
@@ -363,7 +412,17 @@ function kandownDevPlugin() {
                   res.end(JSON.stringify({ error: 'message is required' }));
                   return;
                 }
-                const result = runtimeModule.sendToSession(decodeURIComponent(id), body.message);
+                // 📖 Round 3 @task mentions, same contract as the daemon: the
+                // integral task sections precede the user's line; with no
+                // mentions (or none resolvable) the original text is delivered
+                // untouched.
+                const boardModule = await server.ssrLoadModule('/src/cli/lib/board-reader.ts') as typeof import('./src/cli/lib/board-reader');
+                const parserModule = await server.ssrLoadModule('/src/lib/parser.ts') as typeof import('./src/lib/parser');
+                const mentionSections = buildMentionSections(boardModule.findTaskPath, parserModule.parseTaskFile, kandownPath, body.mentionedTaskIds);
+                const delivered = mentionSections
+                  ? `${mentionSections}## User message\n\n${body.message}`
+                  : body.message;
+                const result = runtimeModule.sendToSession(decodeURIComponent(id), delivered);
                 res.writeHead(result.ok ? 200 : 400, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(result.ok ? { ok: true } : { ok: false, error: result.error ?? 'Send failed' }));
                 return;

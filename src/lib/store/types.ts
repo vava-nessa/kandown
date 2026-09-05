@@ -6,7 +6,7 @@
  */
 
 import type { Column, Filters, BoardTask, Density, ViewMode, Subtask, TaskFrontmatter, KandownConfig, TaskContent, SearchMatch, SessionIndexEntryPayload, DetectedHarness, PermissionMode } from '../types';
-import type { RecentProject, ServerAgentHook } from '../filesystem';
+import type { RecentProject, ServerAgentHook, SkillPayload } from '../filesystem';
 import type { ConflictType, AgentEditsBoardEvent, AgentAutopilotEvent } from '../watcher';
 import type { AgentChatEvent, ChatFoldState } from '../agent-chat-events';
 
@@ -108,8 +108,10 @@ export interface AgentChatState {
    * the page life so reopening the sidebar never loses the conversation. */
   live: Record<string, AgentChatLiveSession>;
   /** 'unknown' before the first index fetch, 'no-daemon' outside server mode /
-   * demo / old daemon, 'available' once the index answered. */
-  guard: 'unknown' | 'available' | 'no-daemon';
+   * demo / old daemon, 'available' once the index answered, 'stale-auth' when
+   * a daemon is alive but rejects this page's token (it restarted and minted
+   * a fresh one: the sidebar offers a reload instead of the daemon card). */
+  guard: 'unknown' | 'available' | 'no-daemon' | 'stale-auth';
   /** Permission mode the active session was started with (project default). */
   permissionModeSnapshot: PermissionMode | null;
   /** Task the sidebar was opened for ("Ask the agent" on a card / editor). */
@@ -122,6 +124,11 @@ export interface AgentChatState {
   /** Installed skills declaring a chat button, for the sidebar pill row (t310,
    * lazy, fetched once on first sidebar use). */
   chatSkills: ChatSkillButton[];
+  /** 📖 Full /api/skills payload (round 3), backing the read-only SkillsModal:
+   * every installed skill, chat-capable or not, with active state and
+   * compatibility reasons. Same lazy fetch as chatSkills, which is projected
+   * from this list. */
+  skills: SkillPayload[];
   /** Skill the active session was launched from, kept through the fusion step. */
   activeSkill: ActiveSkillRef | null;
   /** 📖 Presence from the last `[show: tXXX]` directive (see
@@ -144,7 +151,9 @@ export interface AgentChatState {
  * appended under the compiled task/board context the daemon builds. `skillId`
  * (t310) is passed through to createAgentSession so the daemon folds the
  * skill's instructions into the compiled prompt; `label` and `interactive` are
- * UI-only (they drive the skill chip and the answer form, never sent). */
+ * UI-only (they drive the skill chip and the answer form, never sent).
+ * `mentionedTaskIds` (round 3) rides along on the create call so the daemon
+ * inlines the integral task files into the first prompt. */
 export interface AgentChatStartInput {
   harnessId: string;
   taskId?: string;
@@ -152,6 +161,7 @@ export interface AgentChatStartInput {
   skillId?: string;
   label?: string;
   interactive?: boolean;
+  mentionedTaskIds?: string[];
 }
 
 /** 📖 One live agent edit on a task (t309): the session touching the file,
@@ -413,8 +423,10 @@ export interface State {
   resumeSession: (entry: SessionIndexEntryPayload) => Promise<void>;
   /** Switches the sidebar to an empty draft: the next send starts a new session. */
   newConversation: () => void;
-  /** Sends a follow-up message with optimistic append + rollback on failure. */
-  sendMessage: (text: string) => Promise<void>;
+  /** Sends a follow-up message with optimistic append + rollback on failure.
+   * `mentionedTaskIds` (@task mentions, round 3) rides along so the daemon
+   * inlines the integral task files ahead of the message. */
+  sendMessage: (text: string, mentionedTaskIds?: string[]) => Promise<void>;
   /** 📖 Sends the interactive skill answers (t310): formats them with the
    * captured questions and forwards as a normal follow-up message. */
   sendAnswers: (answers: string[]) => Promise<void>;
