@@ -239,6 +239,14 @@
     "permissionModeDesc": "Cik daudz apstiprinājumu aģenti saņem kandown vadītās sesijās. Yolo ļauj harness tieši veikt izmaiņas, git ir drošības tīkls. Piekrist izmaiņām jautā pirms katras izmaiņas, ja harness to atbalsta, pretējā gadījumā paliek tikai ieteikums.",
     "yolo": "Yolo",
     "acceptEdits": "Piekrist izmaiņām",
+    "autopilotMaxParallel": "Autopilots: paralēli uzdevumi",
+    "autopilotMaxParallelDesc": "Cik uzdevumus daemon autopilota izpilda vienlaikus (no 1 līdz 8).",
+    "autopilotSessionTokenCap": "Autopilots: sesijas tokenu limits",
+    "autopilotSessionTokenCapDesc": "Tokenu budžets vienai autopilota sesijai, daemon aptur sesiju, kad limits sasniegts. 0 nozīmē bez limita.",
+    "autopilotRunTokenCap": "Autopilots: izpildes tokenu limits",
+    "autopilotRunTokenCapDesc": "Tokenu budžets visai autopilota izpildei visās sesijās, daemon pakāpeniski noslēdz izpildi, kad limits sasniegts. 0 nozīmē bez limita.",
+    "autopilotRunCostCapUsd": "Autopilots: izpildes izmaksu limits (USD)",
+    "autopilotRunCostCapUsdDesc": "Izmaksu budžets ASV dolāros visai autopilota izpildei, daemon pakāpeniski noslēdz izpildi, kad limits sasniegts. 0 nozīmē bez limita.",
     "harnesses": {
       "title": "Aģentu harnessi",
       "description": "Kandown vada kodēšanas aģentu CLI rīkus, kas šajā datorā jau ir instalēti un jau autentificēti. Tas nekad neprasa API atslēgu.",
@@ -330,5 +338,44 @@
     "copy": "Kopēt",
     "daemonGuardTitle": "Sarakstei ar aģentu nepieciešams kandown daemon",
     "daemonGuardBody": "Palaid lokālo daemon, lai tērzētu ar saviem kodēšanas aģentiem: palaid npx kandown šajā projektā."
+  },
+  "agentSkills": {
+    "skillsLabel": "Prasmes",
+    "needsTaskContext": "Vajadzīgs uzdevuma konteksts",
+    "interactiveBadge": "Interaktīvi",
+    "answerFormTitle": "Atbildiet uz jautājumiem",
+    "answerPlaceholder": "Jūsu atbilde...",
+    "sendAnswers": "Sūtīt atbildes",
+    "skip": "Izlaist",
+    "skillRunning": "Prasme darbojas"
+  },
+  "agentEdits": {
+    "editingBubble": "Es rediģēju šo uzdevumu...",
+    "editingAria": "Aģents rediģē šo uzdevumu",
+    "editorLocked": "Aģents rediģē šo uzdevumu. Kamēr tas nav pabeidzis, lauki ir tikai lasāmi.",
+    "liveDiffTitle": "Diff reāllaikā",
+    "noChanges": "Aģents pievienots: vēl nav failu izmaiņu.",
+    "truncatedNotice": "Šis diffs tika saīsināts no daemon, trūkst agrāku rindu.",
+    "approve": "Apstiprināt",
+    "reject": "Noraidīt",
+    "permissionTitle": "Pieprasīta aģenta atļauja",
+    "gitWarningTitle": "Projekta mape nav git repozitorijs",
+    "gitWarningBody": "Bez git aģenta labojumus nevar izsekot vai atsaukt. Palaidiet git init projekta mapē, lai katru izmaiņu varētu atgūt.",
+    "dismiss": "Paslēpt"
+  },
+  "agentAutopilot": {
+    "start": "Autopilots",
+    "stopping": "Apturēšana...",
+    "runTooltip": "Autopilots darbojas: {{active}} aktīvi, {{queued}} rindā, {{resumable}} atsākami. Stop aptur visas sesijas.",
+    "idleTooltip": "Autopilots ir dīkstāvē. Palaidiet to, lai daemon pats izvēlas un izpilda uzdevumus.",
+    "totalsTitle": "Izpildes kopsummas (tokeni, izmaksas)",
+    "working": "Strādā",
+    "workingTitle": "Autopilota sesija strādā pie šī uzdevuma",
+    "queued": "Rindā",
+    "queuedTitle": "Gaida brīvu autopilota vietu",
+    "resumable": "Atsākams",
+    "resumableTitle": "Šim uzdevumam ir dzīva sesija, bet tā pameta izpildi, to var atsākt",
+    "stopTask": "Apturēt aģentu, kas strādā pie šī uzdevuma",
+    "stopTaskTitle": "Apturēt šo autopilota sesiju"
   }
 }

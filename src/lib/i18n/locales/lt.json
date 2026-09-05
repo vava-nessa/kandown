@@ -239,6 +239,14 @@
     "permissionModeDesc": "Kiek patvirtinimų agentai gauna kandown valdomuose seansuose. Yolo leidžia harness tiesiogiai taikyti pakeitimus, git yra saugumo tinklas. Priimti pakeitimus klauso prieš kiekvieną pakeitimą, kai harness tai palaiko, kitu atveju lieka tik patarimas.",
     "yolo": "Yolo",
     "acceptEdits": "Priimti pakeitimus",
+    "autopilotMaxParallel": "Autopilotas: lygiagrečios užduotys",
+    "autopilotMaxParallelDesc": "Kiek užduočių daemon autopiloto vykdo vienu metu (nuo 1 iki 8).",
+    "autopilotSessionTokenCap": "Autopilotas: seanso tokenų riba",
+    "autopilotSessionTokenCapDesc": "Tokenų biudžetas vienam autopiloto seansui, daemon sustabdo seansą, jį pasiekus. 0 reiškia be ribos.",
+    "autopilotRunTokenCap": "Autopilotas: vykdymo tokenų riba",
+    "autopilotRunTokenCapDesc": "Tokenų biudžetas visam autopiloto vykdymui per visus seansus, daemon pamažu užbaigia vykdymą, jį pasiekus. 0 reiškia be ribos.",
+    "autopilotRunCostCapUsd": "Autopilotas: vykdymo kainos riba (USD)",
+    "autopilotRunCostCapUsdDesc": "Išlaidų biudžetas dolariais visam autopiloto vykdymui, daemon pamažu užbaigia vykdymą, jį pasiekus. 0 reiškia be ribos.",
     "harnesses": {
       "title": "Agentų harness",
       "description": "Kandown valdo kodavimo agentų CLI įrankius, kurie šioje mašinoje jau įdiegti ir jau autentifikuoti. Jis niekada neprašo API rakto.",
@@ -330,5 +338,44 @@
     "copy": "Kopijuoti",
     "daemonGuardTitle": "Pokalbiui su agentu reikia kandown daemon",
     "daemonGuardBody": "Paleisti vietinį daemon, kad galėtumėte kalbėtis su savo kodavimo agentais: paleiskite npx kandown šiame projekte."
+  },
+  "agentSkills": {
+    "skillsLabel": "Įgūdžiai",
+    "needsTaskContext": "Reikia užduoties konteksto",
+    "interactiveBadge": "Interaktyvu",
+    "answerFormTitle": "Atsakykite į klausimus",
+    "answerPlaceholder": "Jūsų atsakymas...",
+    "sendAnswers": "Siųskite atsakymus",
+    "skip": "Praleisti",
+    "skillRunning": "Įgūdis vykdomas"
+  },
+  "agentEdits": {
+    "editingBubble": "Redaguoju šią užduotį...",
+    "editingAria": "Agentas redaguoja šią užduotį",
+    "editorLocked": "Agentas redaguoja šią užduotį. Kol jis nesibaigė, laukai tik skaitomi.",
+    "liveDiffTitle": "Tiesioginis diff",
+    "noChanges": "Agentas prisijungęs: failų pakeitimų dar nėra.",
+    "truncatedNotice": "Šis diff buvo sutrumpintas daemon, trūksta ankstesnių eilučių.",
+    "approve": "Patvirtinti",
+    "reject": "Atmesti",
+    "permissionTitle": "Agentas prašo leidimo",
+    "gitWarningTitle": "Projekto aplankas nėra git saugykla",
+    "gitWarningBody": "Be git agento pakeitimų negalima sekti ar atšaukti. Paleiskite git init projekto aplanke, kad kiekvienas pakeitimas liktų atkuriamas.",
+    "dismiss": "Paslėpti"
+  },
+  "agentAutopilot": {
+    "start": "Autopilotas",
+    "stopping": "Sustabdymas...",
+    "runTooltip": "Autopilotas veikia: {{active}} aktyvių, {{queued}} eilėje, {{resumable}} tęstinų. Stop sustabdo visus seansus.",
+    "idleTooltip": "Autopilotas yra ramybėje. Paleiskite jį, kad daemon pats rinktų ir vykdytų užduotis.",
+    "totalsTitle": "Vykdymo sumos (tokenai, kaina)",
+    "working": "Dirba",
+    "workingTitle": "Autopiloto seansas dirba su šia užduotimi",
+    "queued": "Eilėje",
+    "queuedTitle": "Laukiama laisvo autopiloto vykdymo vietos",
+    "resumable": "Tęsiamas",
+    "resumableTitle": "Šiai užduočiai yra gyvas seansas, bet jis paliko vykdymą, gali būti tęsiamas",
+    "stopTask": "Sustabdyti agentą, dirbantį su šia užduotimi",
+    "stopTaskTitle": "Sustabdyti šį autopiloto seansą"
   }
 }

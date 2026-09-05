@@ -239,6 +239,14 @@
     "permissionModeDesc": "Hur mycket godkännande agenter får i kandownstyrda sessioner. Yolo låter harnessen tillämpa ändringar direkt, git är säkerhetsnätet. Godta ändringar frågar före varje ändring när harnessen stödjer det, och är annars endast rådgivande.",
     "yolo": "Yolo",
     "acceptEdits": "Godta ändringar",
+    "autopilotMaxParallel": "Autopilot: parallella uppgifter",
+    "autopilotMaxParallelDesc": "Hur många uppgifter Autopilot-daemonen kör samtidigt (1 till 8).",
+    "autopilotSessionTokenCap": "Autopilot: tokengräns per session",
+    "autopilotSessionTokenCapDesc": "Tokenbudget för en Autopilot-session, daemonen stoppar sessionen när gränsen är nådd. 0 betyder ingen gräns.",
+    "autopilotRunTokenCap": "Autopilot: tokengräns för körning",
+    "autopilotRunTokenCapDesc": "Tokenbudget för hela Autopilot-körningen över alla sessioner, daemonen trappar ner körningen när gränsen är nådd. 0 betyder ingen gräns.",
+    "autopilotRunCostCapUsd": "Autopilot: kostnadsgräns för körning (USD)",
+    "autopilotRunCostCapUsdDesc": "Kostnadsbudget i US-dollar för hela Autopilot-körningen, daemonen trappar ner körningen när gränsen är nådd. 0 betyder ingen gräns.",
     "harnesses": {
       "title": "Agentharnesser",
       "description": "Kandown driver kodningsagent-CLI:er som redan är installerade och autentiserade på den här maskinen. Den frågar aldrig efter en API-nyckel.",
@@ -330,5 +338,44 @@
     "copy": "Kopiera",
     "daemonGuardTitle": "Agentchatten behöver kandown daemon",
     "daemonGuardBody": "Starta den lokala daemonen för att chatta med dina kodningsagenter: kör npx kandown i det här projektet."
+  },
+  "agentSkills": {
+    "skillsLabel": "Färdigheter",
+    "needsTaskContext": "Kräver uppgiftskontext",
+    "interactiveBadge": "Interaktiv",
+    "answerFormTitle": "Svara på frågorna",
+    "answerPlaceholder": "Ditt svar...",
+    "sendAnswers": "Skicka svaren",
+    "skip": "Hoppa över",
+    "skillRunning": "Färdighet körs"
+  },
+  "agentEdits": {
+    "editingBubble": "Jag redigerar den här uppgiften...",
+    "editingAria": "En agent redigerar den här uppgiften",
+    "editorLocked": "En agent redigerar den här uppgiften. Fälten är skrivskyddade tills den är klar.",
+    "liveDiffTitle": "Live-diff",
+    "noChanges": "Agenten ansluten: inga filändringar ännu.",
+    "truncatedNotice": "Denna diff trunkerades av daemonen, tidigare rader saknas.",
+    "approve": "Godkänn",
+    "reject": "Avvisa",
+    "permissionTitle": "Agenten har begärt behörighet",
+    "gitWarningTitle": "Projektmappen är inte ett git-repository",
+    "gitWarningBody": "Utan git kan agentändringar inte spåras eller återställas. Kör git init i projektmappen så att varje ändring kan återvinnas.",
+    "dismiss": "Stäng"
+  },
+  "agentAutopilot": {
+    "start": "Autopilot",
+    "stopping": "Stannar...",
+    "runTooltip": "Autopilot kör: {{active}} aktiva, {{queued}} i kö, {{resumable}} kan återupptas. Stoppa avslutar alla sessioner.",
+    "idleTooltip": "Autopilot är inaktiv. Starta den så väljer och kör daemonen uppgifter på egen hand.",
+    "totalsTitle": "Totaler för körningen (tokens, kostnad)",
+    "working": "Arbetar",
+    "workingTitle": "En Autopilot-session arbetar med den här uppgiften",
+    "queued": "I kö",
+    "queuedTitle": "Väntar på en ledig Autopilot-plats",
+    "resumable": "Kan återupptas",
+    "resumableTitle": "En aktiv session finns för uppgiften men har lämnat körningen, den kan återupptas",
+    "stopTask": "Stoppa agenten som arbetar med uppgiften",
+    "stopTaskTitle": "Stoppa denna Autopilot-session"
   }
 }

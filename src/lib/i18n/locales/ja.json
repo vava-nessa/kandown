@@ -210,6 +210,14 @@
     "permissionModeDesc": "kandown が管理するセッションでエージェントに与える承認の範囲です。Yolo はハーネスが直接編集を適用できるモードで、git が安全網になります。編集を承認はハーネスが対応している場合に各変更前に確認を求め、未対応の場合は参考表示のままです。",
     "yolo": "Yolo",
     "acceptEdits": "編集を承認",
+    "autopilotMaxParallel": "オートパイロット: 並列タスク数",
+    "autopilotMaxParallelDesc": "オートパイロットのdaemonが同時に実行するタスク数 (1から8)。",
+    "autopilotSessionTokenCap": "オートパイロット: セッションのトークン上限",
+    "autopilotSessionTokenCapDesc": "1つのオートパイロットセッションのトークン予算。上限に達するとdaemonがセッションを停止します。0は上限なし。",
+    "autopilotRunTokenCap": "オートパイロット: ランのトークン上限",
+    "autopilotRunTokenCapDesc": "全セッションを通じたオートパイロットラン全体のトークン予算。上限に達するとdaemonがランを縮小します。0は上限なし。",
+    "autopilotRunCostCapUsd": "オートパイロット: ランのコスト上限 (USD)",
+    "autopilotRunCostCapUsdDesc": "オートパイロットラン全体の米ドルでのコスト予算。上限に達するとdaemonがランを縮小します。0は上限なし。",
     "harnesses": {
       "title": "エージェントハーネス",
       "description": "Kandown は、このマシンにすでにインストールされ、認証済みのコーディングエージェント CLI を操作します。API キーの入力は求めません。",
@@ -297,5 +305,44 @@
     "copy": "コピー",
     "daemonGuardTitle": "エージェントチャットには kandown daemon が必要です",
     "daemonGuardBody": "ローカル daemon を起動してコーディングエージェントとチャットしましょう: このプロジェクトで npx kandown を実行してください。"
+  },
+  "agentSkills": {
+    "skillsLabel": "スキル",
+    "needsTaskContext": "タスクのコンテキストが必要",
+    "interactiveBadge": "対話型",
+    "answerFormTitle": "質問に答えてください",
+    "answerPlaceholder": "あなたの回答...",
+    "sendAnswers": "回答を送信",
+    "skip": "スキップ",
+    "skillRunning": "スキル実行中"
+  },
+  "agentEdits": {
+    "editingBubble": "このタスクを編集しています...",
+    "editingAria": "エージェントがこのタスクを編集中です",
+    "editorLocked": "エージェントがこのタスクを編集中です。完了するまでフィールドは読み取り専用です。",
+    "liveDiffTitle": "ライブdiff",
+    "noChanges": "エージェントが接続されました: ファイルの変更はまだありません。",
+    "truncatedNotice": "このdiffはdaemonによって切り詰められたため、前の行が欠けています。",
+    "approve": "承認",
+    "reject": "却下",
+    "permissionTitle": "エージェントが権限を要求しました",
+    "gitWarningTitle": "プロジェクトフォルダはgitリポジトリではありません",
+    "gitWarningBody": "gitがないとエージェントの編集を追跡も取り消しもできません。プロジェクトフォルダでgit initを実行すると、すべての変更を復元できる状態が保たれます。",
+    "dismiss": "閉じる"
+  },
+  "agentAutopilot": {
+    "start": "オートパイロット",
+    "stopping": "停止中...",
+    "runTooltip": "オートパイロット実行中: 作業中{{active}}件、待機中{{queued}}件、再開可能{{resumable}}件。停止すると全セッションが終了します。",
+    "idleTooltip": "オートパイロットは待機中です。起動すると、daemonが自分でタスクを選んで実行します。",
+    "totalsTitle": "ランの合計 (トークン、コスト)",
+    "working": "作業中",
+    "workingTitle": "オートパイロットのセッションがこのタスクを作業しています",
+    "queued": "待機中",
+    "queuedTitle": "空きのオートパイロット枠を待っています",
+    "resumable": "再開可能",
+    "resumableTitle": "このタスクには稼働中のセッションがありますが、ランを離れたため再開できます",
+    "stopTask": "このタスクのエージェントを停止",
+    "stopTaskTitle": "このオートパイロットセッションを停止"
   }
 }

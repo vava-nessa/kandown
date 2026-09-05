@@ -239,6 +239,14 @@
     "permissionModeDesc": "Kuinka paljon hyväksyntää agentit saavat kandown-ohjatuissa istunnoissa. Yolo antaa harnessin tehdä muutokset suoraan, git on turvaverkko. Hyväksy muutokset kysyy ennen jokaista muutosta, kun harness tukee sitä, ja muuten pysyy vain ehdotuksena.",
     "yolo": "Yolo",
     "acceptEdits": "Hyväksy muutokset",
+    "autopilotMaxParallel": "Autopilot: rinnakkaiset tehtävät",
+    "autopilotMaxParallelDesc": "Kuinka monta tehtävää Autopilot-daemon ajaa yhtä aikaa (1-8).",
+    "autopilotSessionTokenCap": "Autopilot: istunnon token-raja",
+    "autopilotSessionTokenCapDesc": "Tokenbudjetti yhdelle Autopilot-istunnolle, daemon pysäyttää istunnon, kun raja täyttyy. 0 tarkoittaa ei rajaa.",
+    "autopilotRunTokenCap": "Autopilot: ajon token-raja",
+    "autopilotRunTokenCapDesc": "Tokenbudjetti koko Autopilot-ajolle kaikkien istuntojen osalta, daemon purkaa ajoa, kun raja täyttyy. 0 tarkoittaa ei rajaa.",
+    "autopilotRunCostCapUsd": "Autopilot: ajon kustannusraja (USD)",
+    "autopilotRunCostCapUsdDesc": "Kustannusbudjetti dollareina koko Autopilot-ajolle, daemon purkaa ajoa, kun raja täyttyy. 0 tarkoittaa ei rajaa.",
     "harnesses": {
       "title": "Agenttiharnessit",
       "description": "Kandown ohjaa koodausagenttien CLI-työkaluja, jotka on jo asennettu ja jo validoitu tällä koneella. Se ei koskaan pyydä API-avainta.",
@@ -330,5 +338,44 @@
     "copy": "Kopioi",
     "daemonGuardTitle": "Agenttichatti vaatii kandown daemonin",
     "daemonGuardBody": "Käynnistä paikallinen daemon juttaaksesi koodausagenttiesi kanssa: aja npx kandown tässä projektissa."
+  },
+  "agentSkills": {
+    "skillsLabel": "Taidot",
+    "needsTaskContext": "Vaatii tehtävän kontekstin",
+    "interactiveBadge": "Interaktiivinen",
+    "answerFormTitle": "Vastaa kysymyksiin",
+    "answerPlaceholder": "Vastauksesi...",
+    "sendAnswers": "Lähetä vastaukset",
+    "skip": "Ohita",
+    "skillRunning": "Taito käynnissä"
+  },
+  "agentEdits": {
+    "editingBubble": "Muokkaan tätä tehtävää...",
+    "editingAria": "Agentti muokkaa tätä tehtävää",
+    "editorLocked": "Agentti muokkaa tätä tehtävää. Kentät ovat vain luku -tilassa, kunnes se valmistuu.",
+    "liveDiffTitle": "Live-diff",
+    "noChanges": "Agentti yhdistetty: vielä ei tiedostomuutoksia.",
+    "truncatedNotice": "Tämä diff lyhennettiin daemonin toimest, aiempia rivejä puuttuu.",
+    "approve": "Hyväksy",
+    "reject": "Hylkää",
+    "permissionTitle": "Agentti pyytää käyttöoikeutta",
+    "gitWarningTitle": "Projektikansio ei ole git-repositorio",
+    "gitWarningBody": "Ilman gitia agentin muutoksia ei voi seurata eikä peruuttaa. Aja git init projektikansiossa, jotta jokainen muutos säilyy palautettavana.",
+    "dismiss": "Sulje"
+  },
+  "agentAutopilot": {
+    "start": "Autopilot",
+    "stopping": "Pysäytetään...",
+    "runTooltip": "Autopilot käynnissä: {{active}} aktiivista, {{queued}} jonossa, {{resumable}} jatkettavissa. Pysäytys lopettaa kaikki istunnot.",
+    "idleTooltip": "Autopilot on joutilaana. Käynnistä se, niin daemon valitsee ja ajaa tehtäviä itsekseen.",
+    "totalsTitle": "Ajon yhteenveto (tokenit, kustannus)",
+    "working": "Työskentelee",
+    "workingTitle": "Autopilot-istunto työskentelee tämän tehtävän parissa",
+    "queued": "Jonossa",
+    "queuedTitle": "Odotetaan vapaata Autopilot-paikkaa",
+    "resumable": "Jatkettavissa",
+    "resumableTitle": "Tälle tehtävälle on olemassa aktiivinen istunto, mutta se poistui ajosta, sen voi jatkaa",
+    "stopTask": "Pysäytä agentti, joka työskentelee tämän tehtävän parissa",
+    "stopTaskTitle": "Pysäytä tämä Autopilot-istunto"
   }
 }

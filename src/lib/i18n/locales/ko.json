@@ -210,6 +210,14 @@
     "permissionModeDesc": "kandown이 진행하는 세션에서 에이전트가 받는 승인 수준입니다. Yolo는 하네스가 편집을 바로 적용하게 두고 git이 안전망입니다. 편집 승인은 하네스가 지원할 때 각 변경 전에 확인을 요청하며, 지원하지 않으면 참고용으로만 유지됩니다.",
     "yolo": "Yolo",
     "acceptEdits": "편집 승인",
+    "autopilotMaxParallel": "오토파일럿: 병렬 작업 수",
+    "autopilotMaxParallelDesc": "오토파일럿 daemon이 동시에 실행하는 작업 수 (1에서 8).",
+    "autopilotSessionTokenCap": "오토파일럿: 세션 토큰 한도",
+    "autopilotSessionTokenCapDesc": "하나의 오토파일럿 세션에 대한 토큰 예산입니다. 한도에 도달하면 daemon이 세션을 중지합니다. 0은 한도 없음.",
+    "autopilotRunTokenCap": "오토파일럿: 실행 토큰 한도",
+    "autopilotRunTokenCapDesc": "모든 세션을 통틀어 오토파일럿 실행 전체의 토큰 예산입니다. 한도에 도달하면 daemon이 실행을 서서히 마무리합니다. 0은 한도 없음.",
+    "autopilotRunCostCapUsd": "오토파일럿: 실행 비용 한도 (USD)",
+    "autopilotRunCostCapUsdDesc": "오토파일럿 실행 전체의 달러 기준 비용 예산입니다. 한도에 도달하면 daemon이 실행을 서서히 마무리합니다. 0은 한도 없음.",
     "harnesses": {
       "title": "에이전트 하네스",
       "description": "Kandown은 이 머신에 이미 설치되고 이미 인증된 코딩 에이전트 CLI를 구동합니다. API 키를 요구하지 않습니다.",
@@ -297,5 +305,44 @@
     "copy": "복사",
     "daemonGuardTitle": "에이전트 채팅에는 kandown daemon이 필요합니다",
     "daemonGuardBody": "로컬 daemon을 시작해 코딩 에이전트와 채팅하세요: 이 프로젝트에서 npx kandown을 실행하세요."
+  },
+  "agentSkills": {
+    "skillsLabel": "스킬",
+    "needsTaskContext": "작업 컨텍스트 필요",
+    "interactiveBadge": "대화형",
+    "answerFormTitle": "질문에 답변하세요",
+    "answerPlaceholder": "답변 입력...",
+    "sendAnswers": "답변 보내기",
+    "skip": "건너뛰기",
+    "skillRunning": "스킬 실행 중"
+  },
+  "agentEdits": {
+    "editingBubble": "이 작업을 편집하고 있습니다...",
+    "editingAria": "에이전트가 이 작업을 편집하고 있습니다",
+    "editorLocked": "에이전트가 이 작업을 편집하는 중입니다. 완료될 때까지 필드는 읽기 전용입니다.",
+    "liveDiffTitle": "실시간 diff",
+    "noChanges": "에이전트 연결됨: 아직 파일 변경이 없습니다.",
+    "truncatedNotice": "이 diff는 daemon에 의해 잘렸습니다. 앞부분 일부 줄이 누락되었습니다.",
+    "approve": "승인",
+    "reject": "거부",
+    "permissionTitle": "에이전트 권한 요청됨",
+    "gitWarningTitle": "프로젝트 폴더가 git 저장소가 아닙니다",
+    "gitWarningBody": "git이 없으면 에이전트의 편집을 추적하거나 되돌릴 수 없습니다. 모든 변경 사항을 복구할 수 있도록 프로젝트 폴더에서 git init을 실행하세요.",
+    "dismiss": "닫기"
+  },
+  "agentAutopilot": {
+    "start": "오토파일럿",
+    "stopping": "중지 중...",
+    "runTooltip": "오토파일럿 실행 중: 활성 {{active}}개, 대기 {{queued}}개, 재개 가능 {{resumable}}개. 중지하면 모든 세션이 종료됩니다.",
+    "idleTooltip": "오토파일럿이 대기 중입니다. 시작하면 daemon이 스스로 작업을 골라 실행합니다.",
+    "totalsTitle": "실행 합계 (토큰, 비용)",
+    "working": "작업 중",
+    "workingTitle": "오토파일럿 세션이 이 작업을 처리하고 있습니다",
+    "queued": "대기 중",
+    "queuedTitle": "빈 오토파일럿 슬롯을 기다리는 중",
+    "resumable": "재개 가능",
+    "resumableTitle": "이 작업에 살아 있는 세션이 있지만 실행에서 빠졌으며 재개할 수 있습니다",
+    "stopTask": "이 작업을 하고 있는 에이전트 중지",
+    "stopTaskTitle": "이 오토파일럿 세션 중지"
   }
 }

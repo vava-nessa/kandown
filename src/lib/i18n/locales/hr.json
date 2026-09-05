@@ -239,6 +239,14 @@
     "permissionModeDesc": "Koliko odobrenja agenti dobivaju u sesijama koje vodi kandown. Yolo dopušta harnessu da izmjene primjenjuje izravno, git je sigurnosna mreža. Prihvati izmjene traži potvrdu prije svake izmjene kad harness to podržava, a inače ostaje samo preporuka.",
     "yolo": "Yolo",
     "acceptEdits": "Prihvati izmjene",
+    "autopilotMaxParallel": "Autopilot: paralelni zadaci",
+    "autopilotMaxParallelDesc": "Koliko zadataka daemon autopilota izvodi istovremeno (od 1 do 8).",
+    "autopilotSessionTokenCap": "Autopilot: ograničenje tokena po sesiji",
+    "autopilotSessionTokenCapDesc": "Proračun tokena za jednu sesiju autopilota, daemon zaustavlja sesiju kad se dostigne. 0 znači bez ograničenja.",
+    "autopilotRunTokenCap": "Autopilot: ograničenje tokena po izvođenju",
+    "autopilotRunTokenCapDesc": "Proračun tokena za cijelo izvođenje autopilota kroz sve sesije, daemon postupno završava izvođenje kad se dostigne. 0 znači bez ograničenja.",
+    "autopilotRunCostCapUsd": "Autopilot: ograničenje troška po izvođenju (USD)",
+    "autopilotRunCostCapUsdDesc": "Proračun troškova u američkim dolarima za cijelo izvođenje autopilota, daemon postupno završava izvođenje kad se dostigne. 0 znači bez ograničenja.",
     "harnesses": {
       "title": "Harnessi za agente",
       "description": "Kandown upravlja CLI alatima agenata za kodiranje koji su već instalirani i već autentificirani na ovom računalu. Nikada ne traži API ključ.",
@@ -330,5 +338,44 @@
     "copy": "Kopiraj",
     "daemonGuardTitle": "Razgovor s agentom treba kandown daemon",
     "daemonGuardBody": "Pokreni lokalni daemon kako bi razgovarao sa svojim agentima za kodiranje: pokreni npx kandown u ovom projektu."
+  },
+  "agentSkills": {
+    "skillsLabel": "Vještine",
+    "needsTaskContext": "Treba kontekst zadatka",
+    "interactiveBadge": "Interaktivno",
+    "answerFormTitle": "Odgovori na pitanja",
+    "answerPlaceholder": "Tvoj odgovor...",
+    "sendAnswers": "Pošalji odgovore",
+    "skip": "Preskoči",
+    "skillRunning": "Vještina radi"
+  },
+  "agentEdits": {
+    "editingBubble": "Uređujem ovaj zadatak...",
+    "editingAria": "Agent uređuje ovaj zadatak",
+    "editorLocked": "Agent uređuje ovaj zadatak. Polja su samo za čitanje dok ne završi.",
+    "liveDiffTitle": "Diff uživo",
+    "noChanges": "Agent povezan: još nema promjena datoteka.",
+    "truncatedNotice": "Ovaj diff skratio je daemon, raniji redovi nedostaju.",
+    "approve": "Odobri",
+    "reject": "Odbij",
+    "permissionTitle": "Agent traži dopuštenje",
+    "gitWarningTitle": "Mapa projekta nije git repozitorij",
+    "gitWarningBody": "Bez gita promjene agenta ne mogu se pratiti ni poništiti. Pokreni git init u mapi projekta da svaka promjena ostane oporavljiva.",
+    "dismiss": "Sakrij"
+  },
+  "agentAutopilot": {
+    "start": "Autopilot",
+    "stopping": "Zaustavljanje...",
+    "runTooltip": "Autopilot radi: {{active}} aktivnih, {{queued}} u redu čekanja, {{resumable}} za nastavak. Stop zaustavlja sve sesije.",
+    "idleTooltip": "Autopilot je u mirovanju. Pokreni ga da daemon sam odabire i izvodi zadatke.",
+    "totalsTitle": "Ukupno na izvođenju (tokeni, trošak)",
+    "working": "Radi",
+    "workingTitle": "Sesija autopilota radi na ovom zadatku",
+    "queued": "U redu čekanja",
+    "queuedTitle": "Čeka slobodan slot autopilota",
+    "resumable": "Može se nastaviti",
+    "resumableTitle": "Postoji živa sesija za ovaj zadatak, ali izašla je iz izvođenja, može se nastaviti",
+    "stopTask": "Zaustavi agenta koji radi na ovom zadatku",
+    "stopTaskTitle": "Zaustavi ovu sesiju autopilota"
   }
 }

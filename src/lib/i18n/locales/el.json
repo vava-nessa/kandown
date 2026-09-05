@@ -239,6 +239,14 @@
     "permissionModeDesc": "Πόση έγκριση παίρνουν οι agents σε συνεδρίες που καθοδηγούνται από το kandown. Το Yolo αφήνει το harness να εφαρμόζει αλλαγές απευθείας, το git είναι το δίχτυ ασφαλείας. Η αποδοχή αλλαγών ρωτά πριν από κάθε αλλαγή όταν το harness το υποστηρίζει, και αλλιώς μένει μόνο ενδεικτικό.",
     "yolo": "Yolo",
     "acceptEdits": "Αποδοχή αλλαγών",
+    "autopilotMaxParallel": "Autopilot: παράλληλες εργασίες",
+    "autopilotMaxParallelDesc": "Πόσες εργασίες εκτελεί ταυτόχρονα ο daemon του Autopilot (1 έως 8).",
+    "autopilotSessionTokenCap": "Autopilot: όριο tokens συνεδρίας",
+    "autopilotSessionTokenCapDesc": "Προϋπολογισμός tokens για μία συνεδρία Autopilot, ο daemon σταματά τη συνεδρία όταν εξαντληθεί. 0 σημαίνει χωρίς όριο.",
+    "autopilotRunTokenCap": "Autopilot: όριο tokens εκτέλεσης",
+    "autopilotRunTokenCapDesc": "Προϋπολογισμός tokens για όλη την εκτέλεση του Autopilot σε όλες τις συνεδρίες, ο daemon κλείνει σταδιακά την εκτέλεση όταν εξαντληθεί. 0 σημαίνει χωρίς όριο.",
+    "autopilotRunCostCapUsd": "Autopilot: όριο κόστους εκτέλεσης (USD)",
+    "autopilotRunCostCapUsdDesc": "Προϋπολογισμός κόστους σε δολάρια ΗΠΑ για όλη την εκτέλεση του Autopilot, ο daemon κλείνει σταδιακά την εκτέλεση όταν εξαντληθεί. 0 σημαίνει χωρίς όριο.",
     "harnesses": {
       "title": "Harness για agents",
       "description": "Το kandown χειρίζεται CLI εργαλείων coding agents που είναι ήδη εγκατεστημένα και ήδη πιστοποιημένα σε αυτό το μηχάνημα. Δεν ζητά ποτέ κλειδί API.",
@@ -330,5 +338,44 @@
     "copy": "Αντιγραφή",
     "daemonGuardTitle": "Η συνομιλία με τον agent χρειάζεται το kandown daemon",
     "daemonGuardBody": "Ξεκίνα το τοπικό daemon για να συνομιλείς με τους coding agents σου: εκτέλεσε npx kandown σε αυτό το έργο."
+  },
+  "agentSkills": {
+    "skillsLabel": "Δεξιότητες",
+    "needsTaskContext": "Χρειάζεται πλαίσιο εργασίας",
+    "interactiveBadge": "Διαδραστικό",
+    "answerFormTitle": "Απάντησε στις ερωτήσεις",
+    "answerPlaceholder": "Η απάντησή σου...",
+    "sendAnswers": "Στείλε τις απαντήσεις",
+    "skip": "Παράλειψη",
+    "skillRunning": "Η δεξιότητα εκτελείται"
+  },
+  "agentEdits": {
+    "editingBubble": "Επεξεργάζομαι αυτή την εργασία...",
+    "editingAria": "Ένα agent επεξεργάζεται αυτή την εργασία",
+    "editorLocked": "Ένα agent επεξεργάζεται αυτή την εργασία. Τα πεδία είναι μόνο για ανάγνωση μέχρι να τελειώσει.",
+    "liveDiffTitle": "Live diff",
+    "noChanges": "Agent συνδεδεμένο: δεν υπάρχουν ακόμη αλλαγές σε αρχεία.",
+    "truncatedNotice": "Αυτό το diff περικόπηκε από τον daemon και λείπουν προηγούμενες γραμμές.",
+    "approve": "Έγκριση",
+    "reject": "Απόρριψη",
+    "permissionTitle": "Ο agent ζήτησε άδεια",
+    "gitWarningTitle": "Ο φάκελος του έργου δεν είναι αποθετήριο git",
+    "gitWarningBody": "Χωρίς git οι αλλαγές του agent δεν μπορούν να παρακολουθηθούν ούτε να αναιρεθούν. Εκτέλεσε git init στον φάκελο του έργου ώστε κάθε αλλαγή να παραμένει ανακτήσιμη.",
+    "dismiss": "Απόκρυψη"
+  },
+  "agentAutopilot": {
+    "start": "Autopilot",
+    "stopping": "Διακοπή...",
+    "runTooltip": "Το Autopilot εκτελείται: {{active}} ενεργά, {{queued}} σε αναμονή, {{resumable}} συνεχίσιμα. Το Stop τερματίζει όλες τις συνεδρίες.",
+    "idleTooltip": "Το Autopilot είναι αδρανές. Ξεκίνα το για να επιλέγει και να εκτελεί ο daemon εργασίες μόνος του.",
+    "totalsTitle": "Σύνολα εκτέλεσης (tokens, κόστος)",
+    "working": "Εργάζεται",
+    "workingTitle": "Μια συνεδρία Autopilot εργάζεται σε αυτή την εργασία",
+    "queued": "Σε αναμονή",
+    "queuedTitle": "Περιμένει ελεύθερη θέση Autopilot",
+    "resumable": "Συνεχίσιμο",
+    "resumableTitle": "Υπάρχει ενεργή συνεδρία για αυτή την εργασία αλλά αποχώρησε από την εκτέλεση, μπορεί να συνεχιστεί",
+    "stopTask": "Σταμάτα τον agent που εργάζεται σε αυτή την εργασία",
+    "stopTaskTitle": "Σταμάτα αυτή τη συνεδρία Autopilot"
   }
 }

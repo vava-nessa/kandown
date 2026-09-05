@@ -250,6 +250,14 @@
     "permissionModeDesc": "kandown 驱动的会话中智能体拥有多少审批权。Yolo 让 harness 直接应用修改，git 是安全网。接受编辑在 harness 支持时于每次修改前询问，否则仅作提示。",
     "yolo": "Yolo",
     "acceptEdits": "接受编辑",
+    "autopilotMaxParallel": "自动驾驶：并行任务数",
+    "autopilotMaxParallelDesc": "自动驾驶 daemon 同时运行的任务数量 (1 到 8)。",
+    "autopilotSessionTokenCap": "自动驾驶：会话 tokens 上限",
+    "autopilotSessionTokenCapDesc": "单个自动驾驶会话的 tokens 预算；达到上限时 daemon 会停止该会话。0 表示不设上限。",
+    "autopilotRunTokenCap": "自动驾驶：运行 tokens 上限",
+    "autopilotRunTokenCapDesc": "整个自动驾驶运行（跨所有会话）的 tokens 预算；达到上限时 daemon 会逐步收尾本次运行。0 表示不设上限。",
+    "autopilotRunCostCapUsd": "自动驾驶：运行费用上限 (USD)",
+    "autopilotRunCostCapUsdDesc": "整个自动驾驶运行的美元费用预算；达到上限时 daemon 会逐步收尾本次运行。0 表示不设上限。",
     "harnesses": {
       "title": "智能体 harness",
       "description": "Kandown 驱动本机上已安装且已完成认证的编码智能体 CLI。它从不索要 API key。",
@@ -341,5 +349,44 @@
     "copy": "复制",
     "daemonGuardTitle": "智能体聊天需要 kandown daemon",
     "daemonGuardBody": "启动本地 daemon 即可与编码智能体聊天：在本项目中运行 npx kandown。"
+  },
+  "agentSkills": {
+    "skillsLabel": "技能",
+    "needsTaskContext": "需要任务上下文",
+    "interactiveBadge": "交互式",
+    "answerFormTitle": "回答问题",
+    "answerPlaceholder": "你的回答...",
+    "sendAnswers": "发送回答",
+    "skip": "跳过",
+    "skillRunning": "技能运行中"
+  },
+  "agentEdits": {
+    "editingBubble": "我正在编辑这个任务...",
+    "editingAria": "一个智能体正在编辑此任务",
+    "editorLocked": "智能体正在编辑此任务。在其完成前，字段为只读。",
+    "liveDiffTitle": "实时diff",
+    "noChanges": "已连接智能体：暂无文件更改。",
+    "truncatedNotice": "此diff已被daemon截断，较早的行缺失。",
+    "approve": "批准",
+    "reject": "拒绝",
+    "permissionTitle": "智能体请求权限",
+    "gitWarningTitle": "项目文件夹不是git仓库",
+    "gitWarningBody": "没有git，智能体的编辑无法被跟踪或回滚。请在项目文件夹中运行git init，让每次更改都可恢复。",
+    "dismiss": "忽略"
+  },
+  "agentAutopilot": {
+    "start": "自动驾驶",
+    "stopping": "正在停止...",
+    "runTooltip": "自动驾驶运行中：{{active}} 个进行中，{{queued}} 个排队中，{{resumable}} 个可恢复。停止会结束所有会话。",
+    "idleTooltip": "自动驾驶处于空闲状态。启动它，让 daemon 自动挑选并执行任务。",
+    "totalsTitle": "运行总计 (tokens、费用)",
+    "working": "工作中",
+    "workingTitle": "一个自动驾驶会话正在处理此任务",
+    "queued": "排队中",
+    "queuedTitle": "等待空闲的自动驾驶槽位",
+    "resumable": "可恢复",
+    "resumableTitle": "此任务存在一个活动会话，但它已离开本次运行，可以恢复",
+    "stopTask": "停止处理此任务的智能体",
+    "stopTaskTitle": "停止此自动驾驶会话"
   }
 }

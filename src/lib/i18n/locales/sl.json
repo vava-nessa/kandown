@@ -239,6 +239,14 @@
     "permissionModeDesc": "Koliko odobritev dobijo agenti v sejah, ki jih vodi kandown. Yolo dovoli harnessu, da spremembe uveljavi neposredno, git je varovalka. Sprejmi urejanja se pred vsako spremembo vpraša, kadar harness to podpira, sicer ostane samo svet.",
     "yolo": "Yolo",
     "acceptEdits": "Sprejmi urejanja",
+    "autopilotMaxParallel": "Avtopilot: vzporedne naloge",
+    "autopilotMaxParallelDesc": "Koliko nalog hkrati izvaja demon avtopilota (od 1 do 8).",
+    "autopilotSessionTokenCap": "Avtopilot: omejitev tokens na sejo",
+    "autopilotSessionTokenCapDesc": "Proračun tokens za eno sejo avtopilota, demon ustavi sejo, ko je dosežen. 0 pomeni brez omejitve.",
+    "autopilotRunTokenCap": "Avtopilot: omejitev tokens na zagon",
+    "autopilotRunTokenCapDesc": "Proračun tokens za celoten zagon avtopilota čez vse seje, demon postopoma zaključi zagon, ko je dosežen. 0 pomeni brez omejitve.",
+    "autopilotRunCostCapUsd": "Avtopilot: omejitev stroškov na zagon (USD)",
+    "autopilotRunCostCapUsdDesc": "Proračun stroškov v ameriških dolarjih za celoten zagon avtopilota, demon postopoma zaključi zagon, ko je dosežen. 0 pomeni brez omejitve.",
     "harnesses": {
       "title": "Harnessi agentov",
       "description": "Kandown vodi CLI-je kodirnih agentov, ki so na tem računalniku že nameščeni in že overjeni. Nikoli ne zahteva API ključa.",
@@ -330,5 +338,44 @@
     "copy": "Kopiraj",
     "daemonGuardTitle": "Klepet agenta potrebuje kandown daemon",
     "daemonGuardBody": "Zaženite lokalni daemon in klepetajte s svojimi kodirnimi agenti: zaženite npx kandown v tem projektu."
+  },
+  "agentSkills": {
+    "skillsLabel": "Veščine",
+    "needsTaskContext": "Potreben je kontekst naloge",
+    "interactiveBadge": "Interaktivno",
+    "answerFormTitle": "Odgovorite na vprašanja",
+    "answerPlaceholder": "Vaš odgovor...",
+    "sendAnswers": "Pošljite odgovore",
+    "skip": "Preskoči",
+    "skillRunning": "Veščina se izvaja"
+  },
+  "agentEdits": {
+    "editingBubble": "Urejujem to nalogo...",
+    "editingAria": "Agent urejuje to nalogo",
+    "editorLocked": "Agent urejuje to nalogo. Polja so samo za branje, dokler ne konča.",
+    "liveDiffTitle": "Diff v živo",
+    "noChanges": "Agent povezan: še ni sprememb datotek.",
+    "truncatedNotice": "Ta diff je demon skrajšal, prejšnje vrstice manjkajo.",
+    "approve": "Odobri",
+    "reject": "Zavrni",
+    "permissionTitle": "Agent zahteva dovoljenje",
+    "gitWarningTitle": "Mapa projekta ni git repozitorij",
+    "gitWarningBody": "Brez git sprememb agenta ni mogoče slediti ali razveljaviti. Zaženi git init v mapi projekta, da ostane vsaka sprememba obnovljiva.",
+    "dismiss": "Skrij"
+  },
+  "agentAutopilot": {
+    "start": "Avtopilot",
+    "stopping": "Ustavljanje...",
+    "runTooltip": "Avtopilot deluje: {{active}} aktivnih, {{queued}} v vrsti, {{resumable}} obnovljivih. Ustavi konča vse seje.",
+    "idleTooltip": "Avtopilot je nedejaven. Zaženi ga, da demon sam izbira in izvaja naloge.",
+    "totalsTitle": "Skupno na zagonu (tokens, strošek)",
+    "working": "Dela",
+    "workingTitle": "Seja avtopilota dela na tej nalogi",
+    "queued": "V vrsti",
+    "queuedTitle": "Čaka na prosto mesto avtopilota",
+    "resumable": "Obnovljivo",
+    "resumableTitle": "Za to nalogo obstaja živa seja, a je zapustila zagon, lahko se obnovi",
+    "stopTask": "Ustavi agenta, ki dela na tej nalogi",
+    "stopTaskTitle": "Ustavi to sejo avtopilota"
   }
 }

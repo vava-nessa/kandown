@@ -210,6 +210,14 @@
     "permissionModeDesc": "مقدار الموافقة الذي يحصل عليه الوكلاء في الجلسات التي يقودها kandown. يتيح Yolo للـ harness تطبيق التعديلات مباشرة، وgit هو شبكة الأمان. قبول التعديلات يطلب التأكيد قبل كل تغيير عندما يدعمه harness، وإلا يبقى استشاريًا فقط.",
     "yolo": "Yolo",
     "acceptEdits": "قبول التعديلات",
+    "autopilotMaxParallel": "أوتوبايلوت: المهام المتوازية",
+    "autopilotMaxParallelDesc": "كم مهمة يشغّل daemon الأوتوبايلوت في الوقت نفسه (من 1 إلى 8).",
+    "autopilotSessionTokenCap": "أوتوبايلوت: حد التوكن للجلسة",
+    "autopilotSessionTokenCapDesc": "ميزانية التوكن لجلسة أوتوبايلوت واحدة، يوقف daemon الجلسة عند بلوغها. 0 يعني بلا حد.",
+    "autopilotRunTokenCap": "أوتوبايلوت: حد التوكن للتشغيل",
+    "autopilotRunTokenCapDesc": "ميزانية التوكن لكامل تشغيل الأوتوبايلوت عبر كل الجلسات، ينهي daemon التشغيل تدريجيًا عند بلوغها. 0 يعني بلا حد.",
+    "autopilotRunCostCapUsd": "أوتوبايلوت: حد التكلفة للتشغيل (USD)",
+    "autopilotRunCostCapUsdDesc": "ميزانية التكلفة بالدولار الأمريكي لكامل تشغيل الأوتوبايلوت، ينهي daemon التشغيل تدريجيًا عند بلوغها. 0 يعني بلا حد.",
     "harnesses": {
       "title": "Harness للوكلاء",
       "description": "يشغّل kandown أدوات سطر الأوامر لوكلاء البرمجة المثبتة أصلًا والمصادق عليها أصلًا على هذه الآلة. لا يطلب مفتاح API أبدًا.",
@@ -297,5 +305,44 @@
     "copy": "نسخ",
     "daemonGuardTitle": "دردشة الوكيل تحتاج إلى kandown daemon",
     "daemonGuardBody": "شغّل الـ daemon المحلي للتحدث مع وكلاء البرمجة لديك: شغّل npx kandown في هذا المشروع."
+  },
+  "agentSkills": {
+    "skillsLabel": "المهارات",
+    "needsTaskContext": "يحتاج سياق مهمة",
+    "interactiveBadge": "تفاعلي",
+    "answerFormTitle": "أجب عن الأسئلة",
+    "answerPlaceholder": "إجابتك...",
+    "sendAnswers": "إرسال الإجابات",
+    "skip": "تخطي",
+    "skillRunning": "المهارة قيد التشغيل"
+  },
+  "agentEdits": {
+    "editingBubble": "أعدّل هذه المهمة...",
+    "editingAria": "وكيل يعدّل هذه المهمة",
+    "editorLocked": "وكيل يعدّل هذه المهمة. الحقول للقراءة فقط حتى ينتهي.",
+    "liveDiffTitle": "diff مباشر",
+    "noChanges": "تم توصيل الوكيل: لا تغييرات على الملفات بعد.",
+    "truncatedNotice": "تم تقصير هذا diff بواسطة daemon، والأسطر السابقة مفقودة.",
+    "approve": "موافقة",
+    "reject": "رفض",
+    "permissionTitle": "الوكيل يطلب إذنًا",
+    "gitWarningTitle": "مجلد المشروع ليس مستودع git",
+    "gitWarningBody": "بدون git لا يمكن تتبع تعديلات الوكيل أو التراجع عنها. شغّل git init في مجلد المشروع ليبقى كل تغيير قابلاً للاسترداد.",
+    "dismiss": "تجاهل"
+  },
+  "agentAutopilot": {
+    "start": "أوتوبايلوت",
+    "stopping": "إيقاف...",
+    "runTooltip": "أوتوبايلوت قيد التشغيل: {{active}} نشطة، {{queued}} في الانتظار، {{resumable}} قابلة للاستئناف. الإيقاف ينهي كل الجلسات.",
+    "idleTooltip": "أوتوبايلوت خامل. شغّله ليتولى daemon اختيار المهام وتشغيلها بنفسه.",
+    "totalsTitle": "إجماليات التشغيل (توكن، التكلفة)",
+    "working": "يعمل",
+    "workingTitle": "جلسة أوتوبايلوت تعمل على هذه المهمة",
+    "queued": "في الانتظار",
+    "queuedTitle": "بانتظار خانة أوتوبايلوت متاحة",
+    "resumable": "قابل للاستئناف",
+    "resumableTitle": "توجد جلسة نشطة لهذه المهمة لكنها غادرت التشغيل، ويمكن استئنافها",
+    "stopTask": "إيقاف الوكيل العامل على هذه المهمة",
+    "stopTaskTitle": "إيقاف جلسة الأوتوبايلوت هذه"
   }
 }

@@ -239,6 +239,14 @@
     "permissionModeDesc": "Mennyi jóváhagyást kapnak az ügynökök a kandown által vezetett munkamenetekben. A Yolo lehetővé teszi, hogy a harness közvetlenül alkalmazza a módosításokat, a git a biztonsági háló. A módosítások elfogadása minden változtatás előtt kérdez, ha a harness támogatja, egyébként csak tanácsadó marad.",
     "yolo": "Yolo",
     "acceptEdits": "Módosítások elfogadása",
+    "autopilotMaxParallel": "Autopilot: párhuzamos feladatok",
+    "autopilotMaxParallelDesc": "Hány feladatot futtat egyszerre a daemon Autopilot (1 és 8 között).",
+    "autopilotSessionTokenCap": "Autopilot: munkamenet token korlát",
+    "autopilotSessionTokenCapDesc": "Tokenkeret egy Autopilot munkamenethez, ha eléri, a daemon leállítja a munkamenetet. 0 jelentése: nincs korlát.",
+    "autopilotRunTokenCap": "Autopilot: futtatás token korlát",
+    "autopilotRunTokenCapDesc": "Tokenkeret a teljes Autopilot futtatáshoz az összes munkameneten át, ha eléri, a daemon fokozatosan lezárja a futtatást. 0 jelentése: nincs korlát.",
+    "autopilotRunCostCapUsd": "Autopilot: futtatás költségkeret (USD)",
+    "autopilotRunCostCapUsdDesc": "Költségkeret amerikai dollárban a teljes Autopilot futtatáshoz, ha eléri, a daemon fokozatosan lezárja a futtatást. 0 jelentése: nincs korlát.",
     "harnesses": {
       "title": "Ügynök harnessok",
       "description": "A kandown olyan kódoló ügynök CLI-ket vezérel, amelyek már telepítve és már hitelesítve vannak ezen a gépen. Sosem kér API-kulcsot.",
@@ -330,5 +338,44 @@
     "copy": "Másolás",
     "daemonGuardTitle": "Az ügynökchatnek szüksége van a kandown daemonra",
     "daemonGuardBody": "Indítsd el a helyi daemonbot, hogy csevegj a kódoló ügynökeiddel: futtasd az npx kandown parancsot ebben a projektben."
+  },
+  "agentSkills": {
+    "skillsLabel": "Készségek",
+    "needsTaskContext": "Feladatkörnyezet szükséges",
+    "interactiveBadge": "Interaktív",
+    "answerFormTitle": "Válaszolj a kérdésekre",
+    "answerPlaceholder": "A válaszod...",
+    "sendAnswers": "Válaszok elküldése",
+    "skip": "Kihagyás",
+    "skillRunning": "Készség fut"
+  },
+  "agentEdits": {
+    "editingBubble": "Szerkesztem ezt a feladatot...",
+    "editingAria": "Egy ügynök szerkeszti ezt a feladatot",
+    "editorLocked": "Egy ügynök szerkeszti ezt a feladatot. A mezők csak olvashatók, amíg befejezi.",
+    "liveDiffTitle": "Élő diff",
+    "noChanges": "Ügynök csatlakoztatva: még nincsenek fájlmódosítások.",
+    "truncatedNotice": "Ezt a difffet a daemon csonkolta, a korábbi sorok hiányoznak.",
+    "approve": "Jóváhagyás",
+    "reject": "Elutasítás",
+    "permissionTitle": "Ügynök engedélyt kért",
+    "gitWarningTitle": "A projektmappa nem git tároló",
+    "gitWarningBody": "git nélkül az ügynök módosításai nem követhetők, nem vonhatók vissza. Futtasd a git init parancsot a projektmappában, hogy minden módosítás helyreállítható maradjon.",
+    "dismiss": "Elrejtés"
+  },
+  "agentAutopilot": {
+    "start": "Autopilot",
+    "stopping": "Leállítás...",
+    "runTooltip": "Autopilot fut: {{active}} aktív, {{queued}} sorban álló, {{resumable}} folytatható. Leállítással minden munkamenet befejeződik.",
+    "idleTooltip": "Az Autopilot üresjáratban van. Indítsd el, hogy a daemon magától válasszon és futtasson feladatokat.",
+    "totalsTitle": "Futtatás összegei (token, költség)",
+    "working": "Dolgozik",
+    "workingTitle": "Egy Autopilot munkamenet ezen a feladaton dolgozik",
+    "queued": "Sorban áll",
+    "queuedTitle": "Szabad Autopilot helyre vár",
+    "resumable": "Folytatható",
+    "resumableTitle": "Ehhez a feladathoz van élő munkamenet, de kilépett a futtatásból, folytatható",
+    "stopTask": "Az ezen a feladaton dolgozó ügynök leállítása",
+    "stopTaskTitle": "Ezen Autopilot munkamenet leállítása"
   }
 }

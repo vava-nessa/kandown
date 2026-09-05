@@ -239,6 +239,14 @@
     "permissionModeDesc": "Kolik schválení agenti dostávají v relacích řízených kandownem. Yolo nechá harness přímo aplikovat úpravy, git je pojistka. Přijímat úpravy se před každou změnou ptá, když to harness podporuje, a jinak zůstává jen doporučením.",
     "yolo": "Yolo",
     "acceptEdits": "Přijímat úpravy",
+    "autopilotMaxParallel": "Autopilot: paralelní úkoly",
+    "autopilotMaxParallelDesc": "Kolik úkolů spouští daemon autopilota současně (1 až 8).",
+    "autopilotSessionTokenCap": "Autopilot: limit tokenů relace",
+    "autopilotSessionTokenCapDesc": "Rozpočet tokenů pro jednu relaci autopilota, daemon relaci zastaví po jeho vyčerpání. 0 znamená bez limitu.",
+    "autopilotRunTokenCap": "Autopilot: limit tokenů běhu",
+    "autopilotRunTokenCapDesc": "Rozpočet tokenů pro celý běh autopilota napříč relacemi, daemon běh postupně ukončuje po jeho vyčerpání. 0 znamená bez limitu.",
+    "autopilotRunCostCapUsd": "Autopilot: limit ceny běhu (USD)",
+    "autopilotRunCostCapUsdDesc": "Rozpočet nákladů v amerických dolarech pro celý běh autopilota, daemon běh postupně ukončuje po jeho vyčerpání. 0 znamená bez limitu.",
     "harnesses": {
       "title": "Harnessy agentů",
       "description": "Kandown ovládá CLI kódovacích agentů, které jsou na tomto počítači už nainstalované a už ověřené. Nikdy nežádá o API klíč.",
@@ -330,5 +338,44 @@
     "copy": "Kopírovat",
     "daemonGuardTitle": "Chat agenta potřebuje kandown daemon",
     "daemonGuardBody": "Spusťte lokální daemon a ptejte se svých kódovacích agentů: spusťte npx kandown v tomto projektu."
+  },
+  "agentSkills": {
+    "skillsLabel": "Dovednosti",
+    "needsTaskContext": "Vyžaduje kontext úkolu",
+    "interactiveBadge": "Interaktivní",
+    "answerFormTitle": "Odpovězte na otázky",
+    "answerPlaceholder": "Vaše odpověď...",
+    "sendAnswers": "Odeslat odpovědi",
+    "skip": "Přeskočit",
+    "skillRunning": "Dovednost běží"
+  },
+  "agentEdits": {
+    "editingBubble": "Upravuji tento úkol...",
+    "editingAria": "Agent upravuje tento úkol",
+    "editorLocked": "Agent upravuje tento úkol. Pole jsou pouze pro čtení, dokud neskončí.",
+    "liveDiffTitle": "Živý diff",
+    "noChanges": "Agent připojen: zatím žádné změny souborů.",
+    "truncatedNotice": "Tento diff byl zkrácen daemonem, předchozí řádky chybí.",
+    "approve": "Schválit",
+    "reject": "Zamítnout",
+    "permissionTitle": "Agent žádá o oprávnění",
+    "gitWarningTitle": "Složka projektu není repozitář git",
+    "gitWarningBody": "Bez git nelze úpravy agenta sledovat ani vracet zpět. Spusťte git init ve složce projektu, aby každá změna zůstala obnovitelná.",
+    "dismiss": "Skrýt"
+  },
+  "agentAutopilot": {
+    "start": "Autopilot",
+    "stopping": "Zastavování...",
+    "runTooltip": "Autopilot běží: {{active}} aktivních, {{queued}} ve frontě, {{resumable}} obnovitelných. Stop ukončí všechny relace.",
+    "idleTooltip": "Autopilot je nečinný. Spusťte ho, aby daemon sám vybíral a spouštěl úkoly.",
+    "totalsTitle": "Součty běhu (tokeny, cena)",
+    "working": "Pracuje",
+    "workingTitle": "Relace autopilota pracuje na tomto úkolu",
+    "queued": "Ve frontě",
+    "queuedTitle": "Čeká na volné místo autopilota",
+    "resumable": "Obnovitelná",
+    "resumableTitle": "Pro tento úkol existuje živá relace, ale opustila běh, lze ji obnovit",
+    "stopTask": "Zastavit agenta pracujícího na tomto úkolu",
+    "stopTaskTitle": "Zastavit tuto relaci autopilota"
   }
 }

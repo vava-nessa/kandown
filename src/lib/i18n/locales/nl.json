@@ -224,6 +224,14 @@
     "permissionModeDesc": "Hoeveel goedkeuring agents krijgen in door kandown gestuurde sessies. Yolo laat de harness wijzigingen direct toepassen, git is het vangnet. Wijzigingen accepteren vraagt vóór elke wijziging als de harness dat ondersteunt, en blijft anders alleen advies geven.",
     "yolo": "Yolo",
     "acceptEdits": "Wijzigingen accepteren",
+    "autopilotMaxParallel": "Autopilot: parallelle taken",
+    "autopilotMaxParallelDesc": "Hoeveel taken de Autopilot-daemon tegelijk uitvoert (1 tot 8).",
+    "autopilotSessionTokenCap": "Autopilot: sessietokenlimiet",
+    "autopilotSessionTokenCapDesc": "Tokenbudget voor één Autopilot-sessie; de daemon stopt de sessie zodra het budget op is. 0 betekent zonder limiet.",
+    "autopilotRunTokenCap": "Autopilot: runtokenlimiet",
+    "autopilotRunTokenCapDesc": "Tokenbudget voor de hele Autopilot-run over alle sessies; de daemon schaalt de run af zodra het budget op is. 0 betekent zonder limiet.",
+    "autopilotRunCostCapUsd": "Autopilot: runkostenlimiet (USD)",
+    "autopilotRunCostCapUsdDesc": "Kostenbudget in Amerikaanse dollars voor de hele Autopilot-run; de daemon schaalt de run af zodra het budget op is. 0 betekent zonder limiet.",
     "harnesses": {
       "title": "Agent-harnesses",
       "description": "Kandown stuurt coding agent CLI's aan die op deze machine al geïnstalleerd en al geauthenticeerd zijn. Er wordt nooit om een API-sleutel gevraagd.",
@@ -315,5 +323,44 @@
     "copy": "Kopiëren",
     "daemonGuardTitle": "Agentchat heeft de kandown daemon nodig",
     "daemonGuardBody": "Start de lokale daemon om met je coding agents te chatten: voer npx kandown uit in dit project."
+  },
+  "agentSkills": {
+    "skillsLabel": "Skills",
+    "needsTaskContext": "Vereist een taakcontext",
+    "interactiveBadge": "Interactief",
+    "answerFormTitle": "Beantwoord de vragen",
+    "answerPlaceholder": "Jouw antwoord...",
+    "sendAnswers": "Antwoorden verzenden",
+    "skip": "Overslaan",
+    "skillRunning": "Skill draait"
+  },
+  "agentEdits": {
+    "editingBubble": "Ik bewerk deze taak...",
+    "editingAria": "Een agent bewerkt deze taak",
+    "editorLocked": "Een agent bewerkt deze taak. Velden zijn alleen-lezen totdat die klaar is.",
+    "liveDiffTitle": "Live diff",
+    "noChanges": "Agent verbonden: nog geen bestandswijzigingen.",
+    "truncatedNotice": "Deze diff is afgekapt door de daemon; eerdere regels ontbreken.",
+    "approve": "Goedkeuren",
+    "reject": "Afwijzen",
+    "permissionTitle": "Agenttoestemming aangevraagd",
+    "gitWarningTitle": "De projectmap is geen git-repository",
+    "gitWarningBody": "Zonder git kunnen agentwijzigingen niet worden gevolgd of teruggedraaid. Voer git init uit in de projectmap zodat elke wijziging herstelbaar blijft.",
+    "dismiss": "Sluiten"
+  },
+  "agentAutopilot": {
+    "start": "Autopilot",
+    "stopping": "Stoppen...",
+    "runTooltip": "Autopilot draait: {{active}} actief, {{queued}} in de wachtrij, {{resumable}} hervatbaar. Stop beëindigt elke sessie.",
+    "idleTooltip": "Autopilot is inactief. Start hem zodat de daemon zelf taken kiest en uitvoert.",
+    "totalsTitle": "Run-totalen (tokens, kosten)",
+    "working": "Bezig",
+    "workingTitle": "Een Autopilot-sessie werkt aan deze taak",
+    "queued": "In wachtrij",
+    "queuedTitle": "Wacht op een vrije Autopilot-plek",
+    "resumable": "Hervatbaar",
+    "resumableTitle": "Er bestaat een live sessie voor deze taak, maar die heeft de run verlaten; hervatten is mogelijk",
+    "stopTask": "Stop de agent die aan deze taak werkt",
+    "stopTaskTitle": "Deze Autopilot-sessie stoppen"
   }
 }

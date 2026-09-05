@@ -224,6 +224,14 @@
     "permissionModeDesc": "Câtă aprobare primesc agenții în sesiunile conduse de kandown. Yolo lasă harnessul să aplice modificările direct, git este plasa de siguranță. Acceptă modificările cere confirmarea înainte de fiecare schimbare când harnessul suportă acest lucru, iar în rest rămâne doar consultativ.",
     "yolo": "Yolo",
     "acceptEdits": "Acceptă modificările",
+    "autopilotMaxParallel": "Autopilot: sarcini în paralel",
+    "autopilotMaxParallelDesc": "Câte sarcini rulează simultan daemonul Autopilot (de la 1 la 8).",
+    "autopilotSessionTokenCap": "Autopilot: limită de tokeni pe sesiune",
+    "autopilotSessionTokenCapDesc": "Buget de tokeni pentru o sesiune Autopilot, daemonul oprește sesiunea la atingerea lui. 0 înseamnă fără limită.",
+    "autopilotRunTokenCap": "Autopilot: limită de tokeni pe rulare",
+    "autopilotRunTokenCapDesc": "Buget de tokeni pentru întreaga rulare Autopilot, pe toate sesiunile, daemonul încheie treptat rularea la atingerea lui. 0 înseamnă fără limită.",
+    "autopilotRunCostCapUsd": "Autopilot: limită de cost pe rulare (USD)",
+    "autopilotRunCostCapUsdDesc": "Buget de cost în dolari americani pentru întreaga rulare Autopilot, daemonul încheie treptat rularea la atingerea lui. 0 înseamnă fără limită.",
     "harnesses": {
       "title": "Harnessuri pentru agenți",
       "description": "Kandown controlează CLI-uri de agenți de cod deja instalați și deja autentificați pe acest calculator. Nu cere niciodată o cheie API.",
@@ -315,5 +323,44 @@
     "copy": "Copiază",
     "daemonGuardTitle": "Chatul cu agentul are nevoie de kandown daemon",
     "daemonGuardBody": "Pornește daemonul local pentru a discuta cu agenții tăi de cod: rulează npx kandown în acest proiect."
+  },
+  "agentSkills": {
+    "skillsLabel": "Abilități",
+    "needsTaskContext": "Necesită contextul unei sarcini",
+    "interactiveBadge": "Interactiv",
+    "answerFormTitle": "Răspunde la întrebări",
+    "answerPlaceholder": "Răspunsul tău...",
+    "sendAnswers": "Trimite răspunsurile",
+    "skip": "Omite",
+    "skillRunning": "Abilitate rulează"
+  },
+  "agentEdits": {
+    "editingBubble": "Editez această sarcină...",
+    "editingAria": "Un agent editează această sarcină",
+    "editorLocked": "Un agent editează această sarcină. Câmpurile sunt doar pentru citire până când termină.",
+    "liveDiffTitle": "Diff în timp real",
+    "noChanges": "Agent conectat: încă nu sunt modificări de fișiere.",
+    "truncatedNotice": "Acest diff a fost trunchiat de daemon, lipsesc liniile anterioare.",
+    "approve": "Aprobă",
+    "reject": "Respinge",
+    "permissionTitle": "Agentul a solicitat permisiune",
+    "gitWarningTitle": "Dosarul proiectului nu este un depozit git",
+    "gitWarningBody": "Fără git, modificările agentului nu pot fi urmărite sau anulate. Rulează git init în dosarul proiectului astfel încât fiecare modificare să poată fi recuperată.",
+    "dismiss": "Ignoră"
+  },
+  "agentAutopilot": {
+    "start": "Autopilot",
+    "stopping": "Se oprește...",
+    "runTooltip": "Autopilot rulează: {{active}} active, {{queued}} în coadă, {{resumable}} reluabile. Stop încheie toate sesiunile.",
+    "idleTooltip": "Autopilot este inactiv. Pornește-l pentru ca daemonul să aleagă și să ruleze sarcini de una singură.",
+    "totalsTitle": "Totaluri ale rulării (tokeni, cost)",
+    "working": "Lucrează",
+    "workingTitle": "O sesiune Autopilot lucrează la această sarcină",
+    "queued": "În coadă",
+    "queuedTitle": "Așteaptă un slot Autopilot liber",
+    "resumable": "Reluabil",
+    "resumableTitle": "Există o sesiune activă pentru această sarcină, dar a părăsit rularea, poate fi reluată",
+    "stopTask": "Oprește agentul care lucrează la această sarcină",
+    "stopTaskTitle": "Oprește această sesiune Autopilot"
   }
 }

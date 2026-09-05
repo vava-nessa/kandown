@@ -261,6 +261,14 @@
     "permissionModeDesc": "Berapa banyak kelulusan yang diterima ejen dalam sesi yang dikendalikan kandown. Yolo membenarkan harness memohon suntingan secara langsung, git ialah jaring keselamatan. Terima suntingan bertanya sebelum setiap perubahan apabila harness menyokongnya, dan selain itu kekal sebagai cadangan.",
     "yolo": "Yolo",
     "acceptEdits": "Terima suntingan",
+    "autopilotMaxParallel": "Autopilot: tugasan selari",
+    "autopilotMaxParallelDesc": "Bilangan tugasan yang dijalankan daemon autopilot serentak (1 hingga 8).",
+    "autopilotSessionTokenCap": "Autopilot: had token sesi",
+    "autopilotSessionTokenCapDesc": "Belanjawan token untuk satu sesi autopilot, daemon menghentikan sesi apabila had dicapai. 0 bermakna tanpa had.",
+    "autopilotRunTokenCap": "Autopilot: had token larian",
+    "autopilotRunTokenCapDesc": "Belanjawan token untuk keseluruhan larian autopilot merentas semua sesi, daemon menutup larian secara beransur apabila had dicapai. 0 bermakna tanpa had.",
+    "autopilotRunCostCapUsd": "Autopilot: had kos larian (USD)",
+    "autopilotRunCostCapUsdDesc": "Belanjawan kos dalam dolar AS untuk keseluruhan larian autopilot, daemon menutup larian secara beransur apabila had dicapai. 0 bermakna tanpa had.",
     "harnesses": {
       "title": "Harness ejen",
       "description": "Kandown memacu CLI ejen kod yang sudah dipasang dan sudah disahkan pada mesin ini. Ia tidak pernah meminta kunci API.",
@@ -352,5 +360,44 @@
     "copy": "Salin",
     "daemonGuardTitle": "Sembang ejen memerlukan kandown daemon",
     "daemonGuardBody": "Mulakan daemon tempatan untuk berbual dengan ejen kod anda: jalankan npx kandown dalam projek ini."
+  },
+  "agentSkills": {
+    "skillsLabel": "Kemahiran",
+    "needsTaskContext": "Perlu konteks tugasan",
+    "interactiveBadge": "Interaktif",
+    "answerFormTitle": "Jawab soalan tersebut",
+    "answerPlaceholder": "Jawapan anda...",
+    "sendAnswers": "Hantar jawapan",
+    "skip": "Langkau",
+    "skillRunning": "Kemahiran sedang berjalan"
+  },
+  "agentEdits": {
+    "editingBubble": "Saya sedang menyunting tugasan ini...",
+    "editingAria": "Ejen sedang menyunting tugasan ini",
+    "editorLocked": "Ejen sedang menyunting tugasan ini. Medan hanya boleh dibaca sehingga selesai.",
+    "liveDiffTitle": "Diff langsung",
+    "noChanges": "Ejen bersambung: tiada perubahan fail lagi.",
+    "truncatedNotice": "Diff ini dipotong oleh daemon, baris sebelumnya tiada.",
+    "approve": "Luluskan",
+    "reject": "Tolak",
+    "permissionTitle": "Ejen meminta kebenaran",
+    "gitWarningTitle": "Folder projek bukan repositori git",
+    "gitWarningBody": "Tanpa git, suntingan ejen tidak dapat dijejak atau dikembalikan. Jalankan git init dalam folder projek supaya setiap perubahan kekal boleh dipulihkan.",
+    "dismiss": "Tutup"
+  },
+  "agentAutopilot": {
+    "start": "Autopilot",
+    "stopping": "Menghentikan...",
+    "runTooltip": "Autopilot berjalan: {{active}} aktif, {{queued}} dalam baris, {{resumable}} boleh disambung semula. Stop menghentikan semua sesi.",
+    "idleTooltip": "Autopilot sedang terbiar. Mulakan supaya daemon memilih dan menjalankan tugasan sendiri.",
+    "totalsTitle": "Jumlah larian (token, kos)",
+    "working": "Sedang bekerja",
+    "workingTitle": "Sesi autopilot sedang menjalankan tugasan ini",
+    "queued": "Dalam baris",
+    "queuedTitle": "Menunggu slot autopilot yang kosong",
+    "resumable": "Boleh disambung semula",
+    "resumableTitle": "Ada sesi aktif untuk tugasan ini tetapi keluar dari larian, boleh disambung semula",
+    "stopTask": "Hentikan ejen yang menjalankan tugasan ini",
+    "stopTaskTitle": "Hentikan sesi autopilot ini"
   }
 }

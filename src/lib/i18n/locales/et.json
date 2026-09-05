@@ -239,6 +239,14 @@
     "permissionModeDesc": "Kui palju kinnitust agendid kandowni juhitud sessioonides saavad. Yolo lubab harnessil muudatusi otse rakendada, git on turvavõrk. Nõustu muudatustega küsib iga muudatuse eest, kui harness seda toetab, muidu jääb ainult soovituseks.",
     "yolo": "Yolo",
     "acceptEdits": "Nõustu muudatustega",
+    "autopilotMaxParallel": "Autopilot: paralleelsed ülesanded",
+    "autopilotMaxParallelDesc": "Kui palju ülesandeid autopilodi daemon korraga käivitab (1 kuni 8).",
+    "autopilotSessionTokenCap": "Autopilot: sessiooni tokenite piirang",
+    "autopilotSessionTokenCapDesc": "Tokenite eelarve ühele autopilodi sessioonile, daemon peatab sessiooni, kui piir on saavutatud. 0 tähendab piiranguteta.",
+    "autopilotRunTokenCap": "Autopilot: jooksu tokenite piirang",
+    "autopilotRunTokenCapDesc": "Tokenite eelarve kogu autopilodi jooksule kõigis sessioonides, daemon lõpetab jooksu järk-järgult, kui piir on saavutatud. 0 tähendab piiranguteta.",
+    "autopilotRunCostCapUsd": "Autopilot: jooksu kulupiirang (USD)",
+    "autopilotRunCostCapUsdDesc": "Kulueelarve USA dollarites kogu autopilodi jooksule, daemon lõpetab jooksu järk-järgult, kui piir on saavutatud. 0 tähendab piiranguteta.",
     "harnesses": {
       "title": "Agent-harnessid",
       "description": "Kandown juhib koodimisagentide CLI-tööriistu, mis on selles masinas juba installitud ja juba autenditud. See ei küsi kunagi API-võtit.",
@@ -330,5 +338,44 @@
     "copy": "Kopeeri",
     "daemonGuardTitle": "Agendivestlus vajab kandown daemonit",
     "daemonGuardBody": "Käivita kohalik daemon, et vestleda oma koodimisagentidega: käivita selles projektis npx kandown."
+  },
+  "agentSkills": {
+    "skillsLabel": "Oskused",
+    "needsTaskContext": "Vajab ülesande konteksti",
+    "interactiveBadge": "Interaktiivne",
+    "answerFormTitle": "Vasta küsimustele",
+    "answerPlaceholder": "Sinu vastus...",
+    "sendAnswers": "Saada vastused",
+    "skip": "Jäta vahele",
+    "skillRunning": "Oskus töötab"
+  },
+  "agentEdits": {
+    "editingBubble": "Muudan seda ülesannet...",
+    "editingAria": "Agent muudab seda ülesannet",
+    "editorLocked": "Agent muudab seda ülesannet. Kuni ta lõpetab, on väljad kirjutuskaitstud.",
+    "liveDiffTitle": "Reaalajas diff",
+    "noChanges": "Agent ühendatud: failimuudatusi veel ei ole.",
+    "truncatedNotice": "See diff lühendati daemoni poolt, varasemad read puuduvad.",
+    "approve": "Kinnita",
+    "reject": "Lükka tagasi",
+    "permissionTitle": "Agent küsib luba",
+    "gitWarningTitle": "Projekti kaust ei ole git-hoidla",
+    "gitWarningBody": "Ilma gita ei saa agendi muudatusi jälgida ega tagasi võtta. Käivita git init projekti kaustas, et iga muudatus jääks taastatavaks.",
+    "dismiss": "Peida"
+  },
+  "agentAutopilot": {
+    "start": "Autopilot",
+    "stopping": "Peatamine...",
+    "runTooltip": "Autopilot töötab: {{active}} aktiivset, {{queued}} järjekorras, {{resumable}} jätkatavat. Stop lõpetab kõik sessioonid.",
+    "idleTooltip": "Autopilot on ootel. Käivita see, et daemon ise ülesandeid valiks ja käivitaks.",
+    "totalsTitle": "Jooksu kokkuvõte (tokenid, kulu)",
+    "working": "Töötab",
+    "workingTitle": "Autopilodi sessioon töötab selle ülesande kallal",
+    "queued": "Järjekorras",
+    "queuedTitle": "Ootab vaba autopilodi kohta",
+    "resumable": "Jätkatav",
+    "resumableTitle": "Selle ülesande jaoks on olemas elav sessioon, aga see lahkus jooksust, seda saab jätkata",
+    "stopTask": "Peata agent, kes töötab selle ülesande kallal",
+    "stopTaskTitle": "Peata see autopilodi sessioon"
   }
 }

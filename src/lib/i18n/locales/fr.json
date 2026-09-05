@@ -274,6 +274,14 @@
     "permissionModeDesc": "Le niveau d'approbation accordé aux agents dans les sessions pilotées par kandown. Yolo laisse le harness appliquer les modifications directement, git reste le filet de sécurité. Accepter les modifications demande confirmation avant chaque changement quand le harness le prend en charge, et reste sinon purement indicatif.",
     "yolo": "Yolo",
     "acceptEdits": "Accepter les modifications",
+    "autopilotMaxParallel": "Autopilot : tâches en parallèle",
+    "autopilotMaxParallelDesc": "Nombre de tâches que le daemon Autopilot exécute en même temps (1 à 8).",
+    "autopilotSessionTokenCap": "Autopilot : plafond de tokens par session",
+    "autopilotSessionTokenCapDesc": "Budget de tokens pour une session Autopilot ; le daemon arrête la session une fois atteint. 0 signifie sans plafond.",
+    "autopilotRunTokenCap": "Autopilot : plafond de tokens par run",
+    "autopilotRunTokenCapDesc": "Budget de tokens pour tout le run Autopilot, toutes sessions confondues ; le daemon interrompt progressivement le run une fois atteint. 0 signifie sans plafond.",
+    "autopilotRunCostCapUsd": "Autopilot : plafond de coût par run (USD)",
+    "autopilotRunCostCapUsdDesc": "Budget de coût en dollars US pour tout le run Autopilot ; le daemon interrompt progressivement le run une fois atteint. 0 signifie sans plafond.",
     "harnesses": {
       "title": "Harness d'agents",
       "description": "Kandown pilote des CLIs d'agents de code déjà installés et déjà authentifiés sur cette machine. Il ne demande jamais de clé API.",
@@ -381,5 +389,44 @@
     "copy": "Copier",
     "daemonGuardTitle": "Le chat de l'agent a besoin du kandown daemon",
     "daemonGuardBody": "Démarrez le daemon local pour discuter avec vos agents de code : lancez npx kandown dans ce projet."
+  },
+  "agentSkills": {
+    "skillsLabel": "Skills",
+    "needsTaskContext": "Nécessite le contexte d'une tâche",
+    "interactiveBadge": "Interactif",
+    "answerFormTitle": "Répondez aux questions",
+    "answerPlaceholder": "Votre réponse...",
+    "sendAnswers": "Envoyer les réponses",
+    "skip": "Passer",
+    "skillRunning": "Skill en cours"
+  },
+  "agentEdits": {
+    "editingBubble": "Je modifie cette tâche...",
+    "editingAria": "Un agent modifie cette tâche",
+    "editorLocked": "Un agent modifie cette tâche. Les champs sont en lecture seule jusqu'à ce qu'il ait terminé.",
+    "liveDiffTitle": "Diff en direct",
+    "noChanges": "Agent connecté : aucune modification de fichier pour le moment.",
+    "truncatedNotice": "Ce diff a été tronqué par le daemon : les premières lignes sont manquantes.",
+    "approve": "Approuver",
+    "reject": "Rejeter",
+    "permissionTitle": "Permission d'agent demandée",
+    "gitWarningTitle": "Le dossier du projet n'est pas un dépôt git",
+    "gitWarningBody": "Sans git, les modifications de l'agent ne peuvent être ni suivies ni annulées. Lancez git init dans le dossier du projet pour que chaque modification reste récupérable.",
+    "dismiss": "Ignorer"
+  },
+  "agentAutopilot": {
+    "start": "Autopilot",
+    "stopping": "Arrêt...",
+    "runTooltip": "Autopilot en cours : {{active}} actives, {{queued}} en attente, {{resumable}} reprenables. Stop met fin à toutes les sessions.",
+    "idleTooltip": "Autopilot est inactif. Lancez-le pour que le daemon choisisse et exécute des tâches tout seul.",
+    "totalsTitle": "Totaux du run (tokens, coût)",
+    "working": "En cours",
+    "workingTitle": "Une session Autopilot travaille sur cette tâche",
+    "queued": "En attente",
+    "queuedTitle": "En attente d'un créneau Autopilot libre",
+    "resumable": "Reprenable",
+    "resumableTitle": "Une session active existe pour cette tâche mais a quitté le run ; elle peut être reprise",
+    "stopTask": "Arrêter l'agent qui travaille sur cette tâche",
+    "stopTaskTitle": "Arrêter cette session Autopilot"
   }
 }

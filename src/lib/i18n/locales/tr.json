@@ -210,6 +210,14 @@
     "permissionModeDesc": "kandown yönetimindeki oturumlarda ajanların ne kadar onay aldığı. Yolo, harnessin değişiklikleri doğrudan uygulamasına izin verir, git güvenlik ağıdır. Düzenlemeleri kabul et, harness destekliyorsa her değişiklikten önce sorar, aksi halde yalnızca öneri olarak kalır.",
     "yolo": "Yolo",
     "acceptEdits": "Düzenlemeleri kabul et",
+    "autopilotMaxParallel": "Autopilot: paralel görevler",
+    "autopilotMaxParallelDesc": "Daemon, aynı anda kaç görev çalıştırıyor (1 ile 8 arası).",
+    "autopilotSessionTokenCap": "Autopilot: oturum token sınırı",
+    "autopilotSessionTokenCapDesc": "Bir Autopilot oturumu için token bütçesi, sınıra ulaşınca Daemon oturumu durdurur. 0 sınırsız demektir.",
+    "autopilotRunTokenCap": "Autopilot: çalıştırma token sınırı",
+    "autopilotRunTokenCapDesc": "Tüm oturumlar boyunca tüm Autopilot çalıştırması için token bütçesi, sınıra ulaşınca Daemon çalıştırmayı aşamalı olarak kapatır. 0 sınırsız demektir.",
+    "autopilotRunCostCapUsd": "Autopilot: çalıştırma maliyet sınırı (USD)",
+    "autopilotRunCostCapUsdDesc": "Tüm Autopilot çalıştırması için ABD doları cinsinden maliyet bütçesi, sınıra ulaşınca Daemon çalıştırmayı aşamalı olarak kapatır. 0 sınırsız demektir.",
     "harnesses": {
       "title": "Ajan harness'ları",
       "description": "Kandown, bu makinede zaten kurulu ve zaten kimliği doğrulanmış kodlama ajanı CLI'lerini yönetir. Hiçbir zaman API anahtarı istemez.",
@@ -297,5 +305,44 @@
     "copy": "Kopyala",
     "daemonGuardTitle": "Ajan sohbeti kandown daemon gerektirir",
     "daemonGuardBody": "Kodlama ajanlarınızla sohbet etmek için yerel daemonu başlatın: bu projede npx kandown çalıştırın."
+  },
+  "agentSkills": {
+    "skillsLabel": "Beceriler",
+    "needsTaskContext": "Görev bağlamı gerekiyor",
+    "interactiveBadge": "Etkileşimli",
+    "answerFormTitle": "Soruları yanıtla",
+    "answerPlaceholder": "Yanıtınız...",
+    "sendAnswers": "Yanıtları gönder",
+    "skip": "Atla",
+    "skillRunning": "Beceri çalışıyor"
+  },
+  "agentEdits": {
+    "editingBubble": "Bu görevi düzenliyorum...",
+    "editingAria": "Bir ajan bu görevi düzenliyor",
+    "editorLocked": "Bir ajan bu görevi düzenliyor. Bitene kadar alanlar salt okunur.",
+    "liveDiffTitle": "Canlı diff",
+    "noChanges": "Ajan bağlandı: henüz dosya değişikliği yok.",
+    "truncatedNotice": "Bu diff Daemon tarafından kısaltıldı, önceki satırlar eksik.",
+    "approve": "Onayla",
+    "reject": "Reddet",
+    "permissionTitle": "Ajan izin istedi",
+    "gitWarningTitle": "Proje klasörü bir git deposu değil",
+    "gitWarningBody": "git olmadan ajan düzenlemeleri izlenemez veya geri alınamaz. Her değişikliğin kurtarılabilir kalması için proje klasöründe git init çalıştırın.",
+    "dismiss": "Kapat"
+  },
+  "agentAutopilot": {
+    "start": "Autopilot",
+    "stopping": "Durduruluyor...",
+    "runTooltip": "Autopilot çalışıyor: {{active}} etkin, {{queued}} kuyrukta, {{resumable}} devam edilebilir. Durdur tüm oturumları sonlandırır.",
+    "idleTooltip": "Autopilot boşta. Başlatın, Daemon kendi başına görev seçip çalıştırsın.",
+    "totalsTitle": "Çalıştırma toplamları (token, maliyet)",
+    "working": "Çalışıyor",
+    "workingTitle": "Bir Autopilot oturumu bu görev üzerinde çalışıyor",
+    "queued": "Kuyrukta",
+    "queuedTitle": "Boş bir Autopilot yuvası bekleniyor",
+    "resumable": "Devam edilebilir",
+    "resumableTitle": "Bu görev için canlı bir oturum var ancak çalıştırmadan ayrıldı, devam ettirilebilir",
+    "stopTask": "Bu görevde çalışan ajanı durdur",
+    "stopTaskTitle": "Bu Autopilot oturumunu durdur"
   }
 }

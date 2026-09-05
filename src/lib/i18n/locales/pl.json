@@ -224,6 +224,14 @@
     "permissionModeDesc": "Poziom zgody dla agentów w sesjach sterowanych przez kandown. Yolo pozwala harnessowi stosować zmiany bezpośrednio, git jest siecią bezpieczeństwa. Akceptuj zmiany prosi o potwierdzenie przed każdą zmianą, gdy harness to obsługuje, a w przeciwnym razie pozostaje tylko sugestią.",
     "yolo": "Yolo",
     "acceptEdits": "Akceptuj zmiany",
+    "autopilotMaxParallel": "Autopilot: zadania równoległe",
+    "autopilotMaxParallelDesc": "Ile zadań demon Autopilot wykonuje jednocześnie (od 1 do 8).",
+    "autopilotSessionTokenCap": "Autopilot: limit tokenów sesji",
+    "autopilotSessionTokenCapDesc": "Budżet tokenów dla jednej sesji Autopilot; demon zatrzymuje sesję po jego wyczerpaniu. 0 oznacza brak limitu.",
+    "autopilotRunTokenCap": "Autopilot: limit tokenów przebiegu",
+    "autopilotRunTokenCapDesc": "Budżet tokenów dla całego przebiegu Autopilot we wszystkich sesjach; demon zwija przebieg po jego wyczerpaniu. 0 oznacza brak limitu.",
+    "autopilotRunCostCapUsd": "Autopilot: limit kosztu przebiegu (USD)",
+    "autopilotRunCostCapUsdDesc": "Budżet kosztu w dolarach amerykańskich dla całego przebiegu Autopilot; demon zwija przebieg po jego wyczerpaniu. 0 oznacza brak limitu.",
     "harnesses": {
       "title": "Harnessy agentów",
       "description": "Kandown steruje CLI agentów kodujących, które są już zainstalowane i już uwierzytelnione na tej maszynie. Nigdy nie prosi o klucz API.",
@@ -315,5 +323,44 @@
     "copy": "Kopiuj",
     "daemonGuardTitle": "Czat agenta wymaga kandown daemon",
     "daemonGuardBody": "Uruchom lokalny daemon, aby czatować z agentami kodującymi: wykonaj npx kandown w tym projekcie."
+  },
+  "agentSkills": {
+    "skillsLabel": "Skills",
+    "needsTaskContext": "Wymaga kontekstu zadania",
+    "interactiveBadge": "Interaktywne",
+    "answerFormTitle": "Odpowiedz na pytania",
+    "answerPlaceholder": "Twoja odpowiedź...",
+    "sendAnswers": "Wyślij odpowiedzi",
+    "skip": "Pomiń",
+    "skillRunning": "Skill działa"
+  },
+  "agentEdits": {
+    "editingBubble": "Edytuję to zadanie...",
+    "editingAria": "Agent edytuje to zadanie",
+    "editorLocked": "Agent edytuje to zadanie. Pola są tylko do odczytu, dopóki nie skończy.",
+    "liveDiffTitle": "Diff na żywo",
+    "noChanges": "Agent połączony: na razie brak zmian w plikach.",
+    "truncatedNotice": "Ten diff został skrócony przez demona; brakuje wcześniejszych linii.",
+    "approve": "Zatwierdź",
+    "reject": "Odrzuć",
+    "permissionTitle": "Żądanie uprawnień agenta",
+    "gitWarningTitle": "Folder projektu nie jest repozytorium git",
+    "gitWarningBody": "Bez git zmiany agenta nie mogą być śledzone ani cofane. Uruchom git init w folderze projektu, aby każda zmiana była do odzyskania.",
+    "dismiss": "Zamknij"
+  },
+  "agentAutopilot": {
+    "start": "Autopilot",
+    "stopping": "Zatrzymywanie...",
+    "runTooltip": "Autopilot działa: {{active}} aktywnych, {{queued}} w kolejce, {{resumable}} do wznowienia. Stop kończy wszystkie sesje.",
+    "idleTooltip": "Autopilot jest bezczynny. Uruchom go, aby demon sam wybierał i wykonywał zadania.",
+    "totalsTitle": "Sumy przebiegu (tokeny, koszt)",
+    "working": "Pracuje",
+    "workingTitle": "Sesja Autopilot pracuje nad tym zadaniem",
+    "queued": "W kolejce",
+    "queuedTitle": "Czeka na wolny slot Autopilot",
+    "resumable": "Do wznowienia",
+    "resumableTitle": "Istnieje aktywna sesja dla tego zadania, ale opuściła przebieg; można ją wznowić",
+    "stopTask": "Zatrzymaj agenta pracującego nad tym zadaniem",
+    "stopTaskTitle": "Zatrzymaj tę sesję Autopilot"
   }
 }

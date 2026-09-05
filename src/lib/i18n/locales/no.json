@@ -239,6 +239,14 @@
     "permissionModeDesc": "Hvor mye godkjenning agentene får i kandown-drevne økter. Yolo lar harnessen bruke endringer direkte, git er sikkerhetsnettet. Godta endringer spør før hver endring når harnessen støtter det, og er ellers bare veiledende.",
     "yolo": "Yolo",
     "acceptEdits": "Godta endringer",
+    "autopilotMaxParallel": "Autopilot: parallelle oppgaver",
+    "autopilotMaxParallelDesc": "Hvor mange oppgaver Autopilot-daemonen kjører samtidig (1 til 8).",
+    "autopilotSessionTokenCap": "Autopilot: tokengrense per økt",
+    "autopilotSessionTokenCapDesc": "Tokenbudsjett for én Autopilot-økt, daemonen stopper økten når grensen er nådd. 0 betyr ingen grense.",
+    "autopilotRunTokenCap": "Autopilot: tokengrense for kjøring",
+    "autopilotRunTokenCapDesc": "Tokenbudsjett for hele Autopilot-kjøringen på tvers av alle økter, daemonen trapper ned kjøringen når grensen er nådd. 0 betyr ingen grense.",
+    "autopilotRunCostCapUsd": "Autopilot: kostnadsgrense for kjøring (USD)",
+    "autopilotRunCostCapUsdDesc": "Kostnadsbudsjett i amerikanske dollar for hele Autopilot-kjøringen, daemonen trapper ned kjøringen når grensen er nådd. 0 betyr ingen grense.",
     "harnesses": {
       "title": "Agent-harnesser",
       "description": "Kandown styrer kodeagent-CLI-er som allerede er installert og autentisert på denne maskinen. Den spør aldri etter en API-nøkkel.",
@@ -330,5 +338,44 @@
     "copy": "Kopier",
     "daemonGuardTitle": "Agentchatten trenger kandown daemon",
     "daemonGuardBody": "Start den lokale daemonen for å chatte med kodeagentene dine: kjør npx kandown i dette prosjektet."
+  },
+  "agentSkills": {
+    "skillsLabel": "Skills",
+    "needsTaskContext": "Krever oppgavekontekst",
+    "interactiveBadge": "Interaktiv",
+    "answerFormTitle": "Besvar spørsmålene",
+    "answerPlaceholder": "Svaret ditt...",
+    "sendAnswers": "Send svar",
+    "skip": "Hopp over",
+    "skillRunning": "Skill kjører"
+  },
+  "agentEdits": {
+    "editingBubble": "Jeg redigerer denne oppgaven...",
+    "editingAria": "En agent redigerer denne oppgaven",
+    "editorLocked": "En agent redigerer denne oppgaven. Feltene er skrivebeskyttet til den er ferdig.",
+    "liveDiffTitle": "Live-diff",
+    "noChanges": "Agent tilkoblet: ingen filendringer ennå.",
+    "truncatedNotice": "Denne diffen ble avkortet av daemonen, tidligere linjer mangler.",
+    "approve": "Godkjenn",
+    "reject": "Avvis",
+    "permissionTitle": "Agenten har bedt om tillatelse",
+    "gitWarningTitle": "Prosjektmappen er ikke et git-repository",
+    "gitWarningBody": "Uten git kan agentendringer ikke spores eller angres. Kjør git init i prosjektmappen slik at alle endringer kan gjenopprettes.",
+    "dismiss": "Lukk"
+  },
+  "agentAutopilot": {
+    "start": "Autopilot",
+    "stopping": "Stopper...",
+    "runTooltip": "Autopilot kjører: {{active}} aktive, {{queued}} i kø, {{resumable}} kan gjenopptas. Stop avslutter alle økter.",
+    "idleTooltip": "Autopilot er inaktiv. Start den, så velger og kjører daemonen oppgaver på egen hånd.",
+    "totalsTitle": "Totaler for kjøringen (tokens, kostnad)",
+    "working": "Arbeider",
+    "workingTitle": "En Autopilot-økt arbeider med denne oppgaven",
+    "queued": "I kø",
+    "queuedTitle": "Venter på en ledig Autopilot-plass",
+    "resumable": "Kan gjenopptas",
+    "resumableTitle": "Det finnes en live-økt for denne oppgaven, men den har forlatt kjøringen, den kan gjenopptas",
+    "stopTask": "Stopp agenten som arbeider med denne oppgaven",
+    "stopTaskTitle": "Stopp denne Autopilot-økten"
   }
 }

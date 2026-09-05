@@ -210,6 +210,14 @@
     "permissionModeDesc": "Seberapa banyak persetujuan yang diterima agen dalam sesi yang dikendalikan kandown. Yolo membiarkan harness menerapkan perubahan secara langsung, git adalah jaring pengaman. Terima perubahan meminta sebelum setiap perubahan saat harness mendukungnya, dan selebihnya hanya bersifat saran.",
     "yolo": "Yolo",
     "acceptEdits": "Terima perubahan",
+    "autopilotMaxParallel": "Autopilot: tugas paralel",
+    "autopilotMaxParallelDesc": "Berapa banyak tugas yang dijalankan daemon autopilot bersamaan (1 sampai 8).",
+    "autopilotSessionTokenCap": "Autopilot: batas token sesi",
+    "autopilotSessionTokenCapDesc": "Anggaran token untuk satu sesi autopilot, daemon menghentikan sesi saat batas tercapai. 0 berarti tanpa batas.",
+    "autopilotRunTokenCap": "Autopilot: batas token run",
+    "autopilotRunTokenCapDesc": "Anggaran token untuk seluruh run autopilot di semua sesi, daemon mengurangi run secara bertahap saat batas tercapai. 0 berarti tanpa batas.",
+    "autopilotRunCostCapUsd": "Autopilot: batas biaya run (USD)",
+    "autopilotRunCostCapUsdDesc": "Anggaran biaya dalam dolar AS untuk seluruh run autopilot, daemon mengurangi run secara bertahap saat batas tercapai. 0 berarti tanpa batas.",
     "harnesses": {
       "title": "Harness agen",
       "description": "Kandown menjalankan CLI agen kode yang sudah terpasang dan sudah terautentikasi di mesin ini. Ia tidak pernah meminta kunci API.",
@@ -297,5 +305,44 @@
     "copy": "Salin",
     "daemonGuardTitle": "Obrolan agen membutuhkan kandown daemon",
     "daemonGuardBody": "Jalankan daemon lokal untuk mengobrol dengan agen kode kamu: jalankan npx kandown di proyek ini."
+  },
+  "agentSkills": {
+    "skillsLabel": "Skill",
+    "needsTaskContext": "Butuh konteks tugas",
+    "interactiveBadge": "Interaktif",
+    "answerFormTitle": "Jawab pertanyaannya",
+    "answerPlaceholder": "Jawaban Anda...",
+    "sendAnswers": "Kirim jawaban",
+    "skip": "Lewati",
+    "skillRunning": "Skill berjalan"
+  },
+  "agentEdits": {
+    "editingBubble": "Saya sedang menyunting tugas ini...",
+    "editingAria": "Agen sedang menyunting tugas ini",
+    "editorLocked": "Agen sedang menyunting tugas ini. Kolom hanya bisa dibaca sampai selesai.",
+    "liveDiffTitle": "Diff langsung",
+    "noChanges": "Agen terhubung: belum ada perubahan file.",
+    "truncatedNotice": "Diff ini dipangkas oleh daemon, baris sebelumnya hilang.",
+    "approve": "Setujui",
+    "reject": "Tolak",
+    "permissionTitle": "Agen meminta izin",
+    "gitWarningTitle": "Folder proyek bukan repositori git",
+    "gitWarningBody": "Tanpa git, suntingan agen tidak bisa dilacak atau dipulihkan. Jalankan git init di folder proyek agar setiap perubahan tetap bisa dipulihkan.",
+    "dismiss": "Tutup"
+  },
+  "agentAutopilot": {
+    "start": "Autopilot",
+    "stopping": "Menghentikan...",
+    "runTooltip": "Autopilot berjalan: {{active}} aktif, {{queued}} antre, {{resumable}} bisa dilanjutkan. Stop menghentikan semua sesi.",
+    "idleTooltip": "Autopilot sedang idle. Jalankan agar daemon memilih dan menjalankan tugas dengan sendirinya.",
+    "totalsTitle": "Total run (token, biaya)",
+    "working": "Bekerja",
+    "workingTitle": "Sesi autopilot sedang mengerjakan tugas ini",
+    "queued": "Dalam antrean",
+    "queuedTitle": "Menunggu slot autopilot yang kosong",
+    "resumable": "Bisa dilanjutkan",
+    "resumableTitle": "Ada sesi aktif untuk tugas ini tetapi keluar dari run, bisa dilanjutkan",
+    "stopTask": "Hentikan agen yang mengerjakan tugas ini",
+    "stopTaskTitle": "Hentikan sesi autopilot ini"
   }
 }

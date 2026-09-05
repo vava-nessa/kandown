@@ -210,6 +210,14 @@
     "permissionModeDesc": "Mức phê duyệt mà agent nhận được trong các phiên do kandown điều khiển. Yolo cho phép harness áp dụng chỉnh sửa trực tiếp, git là lưới an toàn. Chấp nhận chỉnh sửa hỏi trước mỗi thay đổi khi harness hỗ trợ, nếu không thì chỉ mang tính tham vấn.",
     "yolo": "Yolo",
     "acceptEdits": "Chấp nhận chỉnh sửa",
+    "autopilotMaxParallel": "Autopilot: số tác vụ song song",
+    "autopilotMaxParallelDesc": "Daemon autopilot chạy bao nhiêu tác vụ cùng lúc (từ 1 đến 8).",
+    "autopilotSessionTokenCap": "Autopilot: giới hạn token mỗi phiên",
+    "autopilotSessionTokenCapDesc": "Ngân sách token cho một phiên autopilot, daemon sẽ dừng phiên khi chạm giới hạn. 0 nghĩa là không giới hạn.",
+    "autopilotRunTokenCap": "Autopilot: giới hạn token mỗi lượt chạy",
+    "autopilotRunTokenCapDesc": "Ngân sách token cho toàn bộ lượt chạy autopilot trên mọi phiên, daemon sẽ kết thúc dần lượt chạy khi chạm giới hạn. 0 nghĩa là không giới hạn.",
+    "autopilotRunCostCapUsd": "Autopilot: giới hạn chi phí mỗi lượt chạy (USD)",
+    "autopilotRunCostCapUsdDesc": "Ngân sách chi phí bằng đô la Mỹ cho toàn bộ lượt chạy autopilot, daemon sẽ kết thúc dần lượt chạy khi chạm giới hạn. 0 nghĩa là không giới hạn.",
     "harnesses": {
       "title": "Harness cho agent",
       "description": "Kandown điều khiển các CLI của agent lập trình đã được cài đặt và đã xác thực trên máy này. Nó không bao giờ yêu cầu khóa API.",
@@ -297,5 +305,44 @@
     "copy": "Sao chép",
     "daemonGuardTitle": "Trò chuyện với agent cần kandown daemon",
     "daemonGuardBody": "Khởi động daemon cục bộ để trò chuyện với các agent lập trình của bạn: chạy npx kandown trong dự án này."
+  },
+  "agentSkills": {
+    "skillsLabel": "Kỹ năng",
+    "needsTaskContext": "Cần ngữ cảnh tác vụ",
+    "interactiveBadge": "Tương tác",
+    "answerFormTitle": "Trả lời các câu hỏi",
+    "answerPlaceholder": "Câu trả lời của bạn...",
+    "sendAnswers": "Gửi câu trả lời",
+    "skip": "Bỏ qua",
+    "skillRunning": "Kỹ năng đang chạy"
+  },
+  "agentEdits": {
+    "editingBubble": "Tôi đang chỉnh sửa tác vụ này...",
+    "editingAria": "Một agent đang chỉnh sửa tác vụ này",
+    "editorLocked": "Một agent đang chỉnh sửa tác vụ này. Các trường chỉ đọc cho tới khi nó xong.",
+    "liveDiffTitle": "Diff trực tiếp",
+    "noChanges": "Agent đã kết nối: chưa có thay đổi tệp nào.",
+    "truncatedNotice": "Diff này bị daemon cắt ngắn, các dòng trước đó bị thiếu.",
+    "approve": "Phê duyệt",
+    "reject": "Từ chối",
+    "permissionTitle": "Agent yêu cầu quyền",
+    "gitWarningTitle": "Thư mục dự án chưa phải là kho git",
+    "gitWarningBody": "Không có git thì không thể theo dõi hay hoàn tác các chỉnh sửa của agent. Chạy git init trong thư mục dự án để mọi thay đổi đều có thể khôi phục.",
+    "dismiss": "Ẩn"
+  },
+  "agentAutopilot": {
+    "start": "Autopilot",
+    "stopping": "Đang dừng...",
+    "runTooltip": "Autopilot đang chạy: {{active}} đang hoạt động, {{queued}} đang chờ, {{resumable}} có thể tiếp tục. Dừng sẽ kết thúc mọi phiên.",
+    "idleTooltip": "Autopilot đang nhàn rỗi. Hãy khởi động để daemon tự chọn và chạy tác vụ.",
+    "totalsTitle": "Tổng của lượt chạy (token, chi phí)",
+    "working": "Đang làm việc",
+    "workingTitle": "Một phiên autopilot đang làm việc trên tác vụ này",
+    "queued": "Đang chờ",
+    "queuedTitle": "Đang chờ một slot autopilot trống",
+    "resumable": "Có thể tiếp tục",
+    "resumableTitle": "Đang có một phiên sống cho tác vụ này nhưng nó đã rời lượt chạy, có thể tiếp tục",
+    "stopTask": "Dừng agent đang làm việc trên tác vụ này",
+    "stopTaskTitle": "Dừng phiên autopilot này"
   }
 }
