@@ -5,14 +5,11 @@
 Every release has its own file in [`changelogs/`](changelogs/). This page is
 the index; click a version for the full notes.
 
-## Unreleased
-
-**[Command Not File](changelogs/unreleased.md)** — 2 fixed · 5 changed · 2 removed
-
 ## 2026
 
 | Version | Date | Release | Changes |
 |---|---|---|---|
+| [0.55.0](changelogs/v0.55.0.md) | 2026-09-05 | Agent Control Tower | 8 added · 7 fixed · 5 changed · 2 removed |
 | [0.54.0](changelogs/v0.54.0.md) | 2026-09-04 | Pastel Columns | 4 added · 2 changed |
 | [0.53.0](changelogs/v0.53.0.md) | 2026-09-04 | Plugin Forge | 15 added · 1 fixed · 3 changed |
 | [0.52.0](changelogs/v0.52.0.md) | 2026-08-15 | Structured Categories | 4 added · 5 changed |
