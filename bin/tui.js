@@ -58173,6 +58173,10 @@ function resolveCascade(raw) {
     sameSessionChain: typeof ssc === "boolean" ? ssc : DEFAULT_CASCADE.sameSessionChain
   };
 }
+function saveAgentsConfig(kandownDir, config) {
+  const path = join8(kandownDir, "agents.json");
+  atomicWriteFileSync(path, JSON.stringify(config, null, 2) + "\n");
+}
 
 // src/cli/lib/agents.ts
 function combinedPrompt(opts) {
@@ -58515,6 +58519,7 @@ function buildAgentCommand(agent, opts) {
   let base;
   if (agent.buildCommand) {
     base = agent.buildCommand(opts);
+    base = [agent.bin, ...base.slice(1)];
   } else {
     base = genericCommand(agent, opts);
   }
@@ -59839,6 +59844,14 @@ daemon.lock
 extensions/enabled.json
 extensions/trust.json
 `;
+function writeAgentsCatalog(kandownDir) {
+  const path = join14(kandownDir, "agents.json");
+  if (existsSync10(path)) return;
+  try {
+    saveAgentsConfig(kandownDir, defaultAgentsConfig());
+  } catch {
+  }
+}
 function writeKandownGitignore(kandownDir) {
   const path = join14(kandownDir, ".gitignore");
   if (existsSync10(path)) return;
@@ -59871,10 +59884,8 @@ function doInit(kandownDir) {
       if (!existsSync10(join14(kandownDir, "kandown.json")) && existsSync10(join14(templatesDir, "kandown.json"))) {
         copyFileSync(join14(templatesDir, "kandown.json"), join14(kandownDir, "kandown.json"));
       }
-      if (!existsSync10(join14(kandownDir, "agents.json")) && existsSync10(join14(templatesDir, "agents.json"))) {
-        copyFileSync(join14(templatesDir, "agents.json"), join14(kandownDir, "agents.json"));
-      }
     }
+    writeAgentsCatalog(kandownDir);
     return true;
   } catch (error) {
     console.error(`Init failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -60046,7 +60057,7 @@ ${task.body.trim()}`;
 function isInTmux() {
   return !!process.env.TMUX;
 }
-function prepareLaunch(opts) {
+function prepareAgentLaunch(opts) {
   const { taskId, agentId, kandownDir, handoff, queue } = opts;
   const agentDef = getAgentById(agentId, kandownDir);
   if (!agentDef) {
@@ -60079,12 +60090,13 @@ function prepareLaunch(opts) {
     throw new Error(`Could not move task ${taskId} to ${activeStatus}: task file missing or unwritable.`);
   }
   const contextFile = join18(tmpdir(), `kandown-${taskId}-context.md`);
-  try {
-    writeFileSync5(contextFile, `${systemPrompt}
+  const prompt = `${systemPrompt}
 
 ---
 
-${taskPrompt}`, "utf8");
+${taskPrompt}`;
+  try {
+    writeFileSync5(contextFile, prompt, "utf8");
   } catch (e) {
     console.warn(`[kandown] Failed to write context file (${e.message}); launching anyway.`);
   }
@@ -60094,7 +60106,7 @@ ${taskPrompt}`, "utf8");
     rollbackTaskStatus(kandownDir, taskId, originalStatus);
     throw new Error(`Agent ${agentId} returned an empty command`);
   }
-  return { agentName: agentDef.name, binary, args, contextFile, originalStatus, taskMoved };
+  return { agentName: agentDef.name, binary, args, prompt, contextFile, originalStatus, taskMoved };
 }
 function launchEnv(contextFile, taskId, kandownDir) {
   return {
@@ -60106,7 +60118,7 @@ function launchEnv(contextFile, taskId, kandownDir) {
 }
 function launchAgent(opts) {
   const { taskId, kandownDir, onBeforeExec } = opts;
-  const prepared = prepareLaunch(opts);
+  const prepared = prepareAgentLaunch(opts);
   const { agentName, binary, args, contextFile, originalStatus } = prepared;
   if (isInTmux()) {
     const shellCmd = buildShellCmd(binary, args);

@@ -316,7 +316,7 @@ export function buildTaskFilename(
   // boundary, so `assignable_assign_me.md` would claim the id
   // `assignable_assign_me` and the task would be unreachable by its own id
   // forever. Falling back to the bare `<id>.md` keeps decoration from breaking
-  // identity — the whole point of the id/filename split.
+  // identity, the whole point of the id/filename split.
   const sluggable = ID_LIKE.test(safeId);
   const categorySegment = sluggable
     ? normalizeCategorySegment(category ?? null) ?? categorySegmentFromTitle(title ?? '')
