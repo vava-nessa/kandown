@@ -44,8 +44,10 @@ Kandown conserve sa promesse d'un outil ultra-léger, installable en 30 secondes
 
 ## Subtasks
 
-- [ ] 1. Architecture Runner (Adapter Pattern & TaskRunner interface)
-- [ ] 2. Auto-détection silencieuse de Herdr (socket/service test)
+- [x] 1. Architecture Runner (Adapter Pattern & TaskRunner interface)
+  report: slice 1 committee e1db7c3 (WIP de l'agent precedent, repris, complete et passe en revue) : contrat TaskRunner (src/cli/lib/runner/types.ts, etats normalises working/blocked/done/gone...), DefaultRunner (enveloppe le runtime t307 sans le changer, transcript evenements -> texte), HerdrRunner (tab label kd:<taskId> = toute la jointure tache/pane, rollback colonne si le lancement echoue, prompt swappe en $(cat contextFile) pour ne pas typer 20KB dans un PTY), registre cache par projet (index.ts). GET /api/agent/runners + miroir vite. launcher.ts : prepareAgentLaunch/rollbackTaskStatus/shellescape exportes pour que le runner herdr reuse exactement la meme politique de prompt/colonne.
+- [x] 2. Auto-détection silencieuse de Herdr (socket/service test)
+  report: slice 1 committee e1db7c3 : detectHerdr() synchrone, cachee 30s, jamais throw (binaire absent, socket absente, serveur mort = {available:false, reason} que seul Settings lit). Socket cherchee : $HERDR_SOCKET puis XDG puis ~/.config/herdr/herdr.sock (decision du 2026-09-05 : la spec annoncait /tmp/herdr.sock). Zero-config respectee : pas de Herdr = pas de warning, pas de composant, pas d'erreur. Tests : runner-herdr.spec.ts + runner-registry.spec.ts.
 - [ ] 3. UI Progressive Disclosure (bouton [⚡ Run with Herdr], badges d'état, preview PTY terminal)
 - [ ] 4. Synchronisation d'événements (socket events, passage à Done, extraction logs dans report)
 
@@ -67,6 +69,22 @@ Kandown conserve sa promesse d'un outil ultra-léger, installable en 30 secondes
   runner, jamais un préalable.
 - **Pas de worktree** : le checkout principal portait déjà un large travail non
   commité (23 fichiers) ; un worktree issu de HEAD aurait perdu ce contexte.
+
+## Decisions (2026-09-06, reprise par kandown-master apres transfert de vava)
+
+- **Slice 3 sans socket** : la synchronisation d'evenements passe par un polling
+  du CLI herdr (pane list / pane read) cote daemon, pas par un client socket
+  maison : meme logique que le client existant, protocol 20 non fige evite.
+- **Recolte idempotente** : le rapport de run n'est ecrit dans la tache que sur
+  transition observee vers un etat terminal (precedent non terminal -> done/
+  failed). Un redemarrage du daemon ne recolte jamais deux fois : sans etat
+  precedent observe, pas de recolte.
+- **Autopilot runner** : le preset gagne un champ runner ('default' | 'herdr',
+  default 'default') ; 'herdr' silencieusement retombe sur default si Herdr
+  est indisponible (promesse zero-config). Le dispatch visible de t322 arrive
+  par la.
+- **Badge carte** : un seul run affiche par tache, le plus actif (working >
+  blocked > starting > idle > done > failed > gone) ; gone = pas de badge.
 
 ## Plan (tranches verticales)
 
