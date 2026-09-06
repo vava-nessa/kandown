@@ -7044,7 +7044,7 @@ init_config2();
 import { createServer } from "http";
 import { existsSync as existsSync25, readFileSync as readFileSync23, copyFileSync as copyFileSync3, unlinkSync as unlinkSync8, mkdirSync as mkdirSync13 } from "fs";
 import { basename as basename11, join as join33 } from "path";
-import { execFile as execFile2, spawn as spawn8 } from "child_process";
+import { execFile as execFile2, spawn as spawn9 } from "child_process";
 import { promisify as promisify2 } from "util";
 
 // src/cli/lib/agent/detect.ts
@@ -7587,7 +7587,6 @@ function buildArgs4(config, binPath) {
   const args = [binPath, ...config.protocolArgs ?? []];
   const modelFlag = config.model ? MODEL_FLAG_BY_HARNESS[config.harnessId] : void 0;
   if (config.model && modelFlag) args.push(...modelFlag, config.model);
-  if (config.resumeSessionId) args.push("--resume", config.resumeSessionId);
   return args;
 }
 function initialStdin2() {
@@ -7656,17 +7655,49 @@ function parseLine4(line, state, config) {
   const events = [];
   const outbound = [];
   if (message.id === 1 && message.method === void 0 && message.result !== void 0) {
-    outbound.push(JSON.stringify({
-      jsonrpc: JSONRPC_VERSION,
-      id: 2,
-      method: "session/new",
-      params: { cwd: config.projectRoot, mcpServers: [] }
-    }));
+    if (config.resumeSessionId && !state.acpResumeFailed) {
+      state.acpAwaitingLoad = true;
+      outbound.push(JSON.stringify({
+        jsonrpc: JSONRPC_VERSION,
+        id: 2,
+        method: "session/load",
+        params: { sessionId: config.resumeSessionId, cwd: config.projectRoot, mcpServers: [] }
+      }));
+    } else {
+      outbound.push(JSON.stringify({
+        jsonrpc: JSONRPC_VERSION,
+        id: 2,
+        method: "session/new",
+        params: { cwd: config.projectRoot, mcpServers: [] }
+      }));
+    }
     return { events, outbound };
+  }
+  if (message.id === 2 && message.method === void 0 && message.error !== void 0 && message.error !== null) {
+    if (state.acpAwaitingLoad) {
+      state.acpAwaitingLoad = false;
+      state.acpResumeFailed = true;
+      events.push({
+        type: "error",
+        message: "Could not restore the previous session; starting a fresh one.",
+        fatal: false
+      });
+      outbound.push(JSON.stringify({
+        jsonrpc: JSONRPC_VERSION,
+        id: 2,
+        method: "session/new",
+        params: { cwd: config.projectRoot, mcpServers: [] }
+      }));
+      return { events, outbound };
+    }
+    events.push({ type: "error", message: `ACP session could not be created: ${JSON.stringify(message.error)}`, fatal: true });
+    return { events };
   }
   if (message.id === 2 && message.method === void 0 && message.result !== void 0) {
     const result = message.result && typeof message.result === "object" ? message.result : {};
-    state.acpSessionId = typeof result.sessionId === "string" ? result.sessionId : void 0;
+    const wasLoad = state.acpAwaitingLoad === true;
+    state.acpAwaitingLoad = false;
+    state.acpSessionId = typeof result.sessionId === "string" ? result.sessionId : wasLoad ? config.resumeSessionId : void 0;
     state.harnessSessionId = state.acpSessionId;
     state.acpNextRequestId = 3;
     const modes = result.modes && typeof result.modes === "object" ? result.modes : void 0;
@@ -7687,6 +7718,24 @@ function parseLine4(line, state, config) {
         params: { sessionId: state.acpSessionId, modeId: matchedModeId }
       }));
     }
+    if (state.acpSessionId && config.model) {
+      const configOptions = Array.isArray(result.configOptions) ? result.configOptions : [];
+      const modelOption = configOptions.find((option) => {
+        return option && typeof option === "object" && option.id === "model";
+      });
+      const current = typeof modelOption?.currentValue === "string" ? modelOption.currentValue : void 0;
+      if (modelOption && current !== config.model) {
+        const configRequestId = state.acpNextRequestId;
+        state.acpNextRequestId += 1;
+        state.acpConfigOptionPendingId = configRequestId;
+        outbound.push(JSON.stringify({
+          jsonrpc: JSONRPC_VERSION,
+          id: configRequestId,
+          method: "session/set_config_option",
+          params: { sessionId: state.acpSessionId, configId: "model", value: config.model }
+        }));
+      }
+    }
     if (state.acpSessionId) {
       state.acpPendingPromptId = state.acpNextRequestId;
       state.acpNextRequestId += 1;
@@ -7700,6 +7749,17 @@ function parseLine4(line, state, config) {
       permissionSupport: state.permissionSupport
     });
     return { events, outbound };
+  }
+  if (message.method === void 0 && message.id !== void 0 && message.id === state.acpConfigOptionPendingId) {
+    state.acpConfigOptionPendingId = void 0;
+    if (message.error !== void 0 && message.error !== null) {
+      events.push({
+        type: "error",
+        message: `The model pick was not applied (${JSON.stringify(message.error)}); the session keeps the agent default.`,
+        fatal: false
+      });
+    }
+    return { events };
   }
   if (message.method === void 0 && message.id !== void 0 && message.id === state.acpPendingPromptId) {
     state.acpPendingPromptId = void 0;
@@ -12081,6 +12141,117 @@ function getRunnerRegistry(kandownDir) {
   return cache;
 }
 
+// src/cli/lib/agent/model-catalog.ts
+import { spawn as spawn8 } from "child_process";
+var BASELINE_MODELS = {
+  claude: ["opus", "sonnet", "haiku"],
+  codex: ["gpt-5.1-codex", "gpt-5.1", "o4-mini"],
+  gemini: ["gemini-2.5-pro", "gemini-2.5-flash"],
+  opencode: []
+};
+function baselineFor(harnessId) {
+  return (BASELINE_MODELS[harnessId] ?? []).map((id) => ({ id, name: id }));
+}
+var DISCOVERY_TTL_MS = 10 * 60 * 1e3;
+var DISCOVERY_TIMEOUT_MS = 25e3;
+var cache2 = /* @__PURE__ */ new Map();
+var inFlight = /* @__PURE__ */ new Map();
+function listHarnessModels(harnessId) {
+  const baseline = baselineFor(harnessId);
+  const def = resolveHarness(harnessId);
+  if (!def || def.def.protocol !== "acp") {
+    return Promise.resolve({ models: baseline, source: "baseline" });
+  }
+  const cached2 = cache2.get(harnessId);
+  if (cached2 && Date.now() - cached2.at < DISCOVERY_TTL_MS) {
+    return Promise.resolve(cached2.list);
+  }
+  let pending = inFlight.get(harnessId);
+  if (!pending) {
+    pending = discoverAcpModels(def.binPath, def.def.protocolArgs).catch(() => null).then((discovered) => {
+      const list = mergeModels(baseline, discovered);
+      cache2.set(harnessId, { at: Date.now(), list });
+      inFlight.delete(harnessId);
+      return list;
+    });
+    inFlight.set(harnessId, pending);
+  }
+  return pending;
+}
+function mergeModels(baseline, discovered) {
+  if (!discovered || discovered.length === 0) return { models: baseline, source: "baseline" };
+  const merged = new Map(baseline.map((model) => [model.id, model]));
+  for (const model of discovered) merged.set(model.id, model);
+  return { models: [...merged.values()], source: "discovered" };
+}
+async function discoverAcpModels(binPath, protocolArgs) {
+  return new Promise((resolve12) => {
+    const child = spawn8(binPath, [...protocolArgs], {
+      cwd: process.cwd(),
+      stdio: ["pipe", "pipe", "ignore"]
+    });
+    let buffer = "";
+    let settled = false;
+    const models = [];
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      child.removeAllListeners();
+      if (!child.killed) child.kill();
+      resolve12(result);
+    };
+    const timer = setTimeout(() => finish(null), DISCOVERY_TIMEOUT_MS);
+    const send = (message) => {
+      child.stdin?.write(`${JSON.stringify(message)}
+`);
+    };
+    child.stdout?.on("data", (chunk) => {
+      buffer += chunk.toString();
+      let index;
+      while ((index = buffer.indexOf("\n")) >= 0) {
+        const line = buffer.slice(0, index);
+        buffer = buffer.slice(index + 1);
+        const brace = line.indexOf("{");
+        if (brace < 0) continue;
+        let message;
+        try {
+          message = JSON.parse(line.slice(brace));
+        } catch {
+          continue;
+        }
+        if (message.id === 1) {
+          send({ jsonrpc: "2.0", id: 2, method: "session/new", params: { cwd: process.cwd(), mcpServers: [] } });
+          continue;
+        }
+        if (message.id !== 2 || !message.result || typeof message.result !== "object") continue;
+        const result = message.result;
+        const options = Array.isArray(result.configOptions) ? result.configOptions : [];
+        const modelOption = options.find((option) => option && typeof option === "object" && option.id === "model");
+        const current = typeof modelOption?.currentValue === "string" ? modelOption.currentValue : void 0;
+        if (Array.isArray(modelOption?.options)) {
+          for (const entry of modelOption.options) {
+            const record = entry && typeof entry === "object" ? entry : null;
+            const id = typeof record?.value === "string" ? record.value : null;
+            if (!id) continue;
+            const name = typeof record?.name === "string" && record.name ? record.name : id;
+            models.push({ id, name, ...current === id ? { current: true } : {} });
+          }
+        }
+        if (typeof result.sessionId === "string") {
+          send({ jsonrpc: "2.0", id: 3, method: "session/close", params: { sessionId: result.sessionId } });
+        }
+        setTimeout(() => finish(models), 250);
+        return;
+      }
+    });
+    child.on("error", () => finish(null));
+    child.stdin?.on("error", () => finish(null));
+    child.on("close", () => finish(models.length > 0 ? models : null));
+    send({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: 1, clientCapabilities: {} } });
+  });
+}
+
 // src/cli/lib/server.ts
 init_workflows_store();
 
@@ -12333,7 +12504,7 @@ setTimeout(() => {
 }, 350);
 `;
   res.on("finish", () => {
-    const child = spawn8(process.execPath, ["-e", launcher, process.execPath, cliPath, ...args], {
+    const child = spawn9(process.execPath, ["-e", launcher, process.execPath, cliPath, ...args], {
       detached: true,
       stdio: "ignore",
       env: { ...process.env, KANDOWN_DAEMON: "1" }
@@ -12364,7 +12535,7 @@ async function handleApi(req, res, url, kandownDir) {
   if (path === "/api/update/check" && method === "GET") {
     const current = getCurrentVersion();
     const latest = await new Promise((resolve12) => {
-      const child = spawn8("npm", ["view", "kandown", "version"], {
+      const child = spawn9("npm", ["view", "kandown", "version"], {
         timeout: 4e3,
         stdio: ["pipe", "pipe", "pipe"],
         env: { ...process.env },
@@ -12396,7 +12567,7 @@ async function handleApi(req, res, url, kandownDir) {
   if (path === "/api/update/apply" && method === "POST") {
     const current = getCurrentVersion();
     const latest = await new Promise((resolve12) => {
-      const child = spawn8("npm", ["view", "kandown", "version"], {
+      const child = spawn9("npm", ["view", "kandown", "version"], {
         timeout: 4e3,
         stdio: ["pipe", "pipe", "pipe"],
         env: { ...process.env },
@@ -12607,6 +12778,10 @@ async function handleApi(req, res, url, kandownDir) {
   }
   if (path === "/api/agent/runners" && method === "GET") {
     return writeJson(res, 200, { runners: getRunnerRegistry(kandownDir).describe() });
+  }
+  if (path === "/api/agent/models" && method === "GET") {
+    const harnessId = url.searchParams.get("harness") ?? "";
+    return writeJson(res, 200, await listHarnessModels(harnessId));
   }
   if (path === "/api/agent/sessions" && method === "GET") {
     return writeJson(res, 200, { sessions: listAgentSessions() });
@@ -13685,7 +13860,7 @@ function cmdAgents(rawArgs) {
 }
 
 // src/cli/lib/plugin-cli.ts
-import { spawn as spawn9 } from "child_process";
+import { spawn as spawn10 } from "child_process";
 import { existsSync as existsSync31, readFileSync as readFileSync26 } from "fs";
 import { basename as basename15, join as join40 } from "path";
 
@@ -14616,7 +14791,7 @@ async function delegateToAgent(kandownDir, id, dir, kind, description, requested
   });
   success(`Handing "${id}" to ${agent.name}`);
   await new Promise((resolve12) => {
-    const child = spawn9(binary, args, { stdio: "inherit", env: process.env });
+    const child = spawn10(binary, args, { stdio: "inherit", env: process.env });
     child.on("error", (error) => {
       err(`Could not launch ${agent.name}: ${error.message}`);
       resolve12();

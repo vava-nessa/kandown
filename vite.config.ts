@@ -234,6 +234,18 @@ function kandownDevPlugin() {
               return;
             }
 
+            // 📖 Dev mirror of GET /api/agent/models (t324). Discovery spawns
+            // the harness binary and is cached inside the module, so the dev
+            // server pays the handshake once, exactly like the daemon. The
+            // query string is split off first: parts[1] still carries it.
+            if ((parts[1] ?? '').split('?')[0] === 'models' && req.method === 'GET') {
+              const modelModule = await server.ssrLoadModule('/src/cli/lib/agent/model-catalog.ts') as typeof import('./src/cli/lib/agent/model-catalog');
+              const harnessId = new URL(req.url ?? '', 'http://localhost').searchParams.get('harness') ?? '';
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify(await modelModule.listHarnessModels(harnessId)));
+              return;
+            }
+
             // 📖 t308 session index (DEV mirror). The project root is computed
             // from the dev tree, never accepted from the client.
             if (parts[1] === 'sessions-index') {

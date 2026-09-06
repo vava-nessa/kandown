@@ -26,7 +26,7 @@ source to edit instead.
 
 ## `bin/` — Published CLI entrypoints — GENERATED, never edit
 
-- **`kandown.js`** · 15204 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
+- **`kandown.js`** · 15379 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
 - **`tui.js`** · 62852 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
 
 ## `src/` — Web app root
@@ -88,7 +88,7 @@ source to edit instead.
 - **`plugin-cli.ts`** · 296 lines — The agent-first façade over the extension system.
 - **`plugin-dev.ts`** · 154 lines — Watches one plugin directory and, on every save, rebuilds the browser bundles, re-runs the validator and asks the running daemon to hot reload the board.
 - **`plugin-scaffold.ts`** · 342 lines — Generates a ready-to-run plugin directory for `kandown plugin create`.
-- **`server.ts`** · 1540 lines — Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application.
+- **`server.ts`** · 1551 lines — Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application.
 - **`skills.ts`** · 152 lines — Discovers immutable built-in, global, and project data-only Markdown skill packages with deterministic override precedence.
 - **`task-move.ts`** · 198 lines — Runs the shared dependency policy and enabled extension gates before persisting a web move.
 - **`themes-cli.ts`** · 255 lines — Implements the `kandown theme <subcommand>` verb: list installed themes, install from the registry or a pasted URL, scaffold a starter theme, and emit the prefilled GitHub URL the user clicks to propose their theme via a one-click PR.
@@ -101,7 +101,8 @@ source to edit instead.
 
 ## `src/cli/lib/__tests__/`
 
-- **`acp-permissions.spec.ts`** · 367 lines — Locks the t309/t322 surface of the ACP adapter: recognizing a session/request_permission line on stdout (extractPermissionRequest), building the deferred JSON-RPC reply after the web UI decides (buildPermissionResponse), the edit-like…
+- **`acp-permissions.spec.ts`** · 371 lines — Locks the t309/t322 surface of the ACP adapter: recognizing a session/request_permission line on stdout (extractPermissionRequest), building the deferred JSON-RPC reply after the web UI decides (buildPermissionResponse), the edit-like…
+- **`acp-resume-model.spec.ts`** · 169 lines — Locks the t324 surface: resume travels as session/load in the handshake (never as an argv flag, which strict parsers reject), a refused load falls back to a fresh session/new with a non-fatal error event, a failed first session/new is…
 - **`active-edits-route.spec.ts`** · 175 lines — Spins up a real `createServeServer` instance and pins the live-edit presence snapshot contract: 1.
 - **`agent-assign.spec.ts`** · 140 lines — Covers the three pieces the TUI's `a` key now leans on: - `assignTaskToAgent` writes the canonical agent id into `assignee:`, preserves the rest of the frontmatter and the body, is idempotent, and fails soft on an unknown task.
 - **`agent-delivery.spec.ts`** · 82 lines — Locks the pure surfaces of the steer/queue delivery split and the model pass-through.
@@ -116,6 +117,7 @@ source to edit instead.
 - **`daemon-self-upgrade.spec.ts`** · 124 lines — The daemon restarts itself when the package on disk moves ahead of the code it is running, so a user with the web UI open never has to be told to run a command.
 - **`home-workspace.spec.ts`** · 83 lines — Pins down `detectHomeWorkspace`: 1.
 - **`kandown-work-cli.spec.ts`** · 48 lines — Proves fresh projects print the exact shared compiler output on stdout and that an explicit task replaces the general board digest.
+- **`model-catalog.spec.ts`** · 51 lines — Locks the parts of listHarnessModels that must hold on every machine: harnesses that do not speak ACP (and unknown ids) answer the curated baseline with source "baseline", ids are normalized entries, and the cache reset clears state.
 - **`move-verdict.spec.ts`** · 136 lines — `moveTaskToColumnDetailed` is the one place a move is decided: it resolves the task, asks the shared dependency gate, writes the file and reports *why* when it refuses.
 - **`orchestrator-orphans.spec.ts`** · 239 lines — Locks the start()-time re-file convention of the autopilot orchestrator: tasks orphaned in a non-terminal, non-backlog column with no live session (typically In Progress or Review after a crash) are re-queued FIRST, before any ready…
 - **`orchestrator.spec.ts`** · 532 lines — Locks the daemon half of autopilot (t311): the pure readiness filter (dependency gating through the shared helpers, terminal and archived detection, live/queued exclusion), the priority/id queue order, the orphan rule, the budget…
@@ -140,16 +142,17 @@ source to edit instead.
 
 - **`agent-runtime.ts`** · 579 lines — Spawns and drives harness sessions, normalizing every protocol into the shared event model.
 - **`detect.ts`** · 151 lines — Extends the PATH scan from src/cli/lib/agents.ts with the harness contract of t307: kandown never embeds an LLM and never asks for an API key, it drives harnesses the user already installed and authenticated.
+- **`model-catalog.ts`** · 215 lines — Answers the chat model menu's question, "what can I pick for this harness?", with real model ids instead of a cosmetic shortlist.
 - **`orchestrator.ts`** · 662 lines — Owns the "who works next" half of autopilot (t311).
 - **`permission-queue.ts`** · 121 lines — When a harness session runs in accept-edits mode and the adapter routes an edit-like permission request to kandown (t309), the daemon parks it here until the web UI answers through the resolve endpoint.
 - **`session-edits.ts`** · 379 lines — The daemon-side half of the live editing experience (t309).
 - **`session-index.ts`** · 199 lines — Kandown never stores conversations: each harness (claude, codex, pi, ACP) persists its own transcript wherever it keeps its data.
 - **`tool-excerpt.ts`** · 59 lines — Extracts a short single-line excerpt from a harness tool input so the chat activity rows show WHAT the agent is doing (the bash command, the touched file) instead of the bare tool name.
-- **`types.ts`** · 169 lines — Defines the single event vocabulary every harness adapter normalizes to, the session configuration the runtime accepts, and the adapter interface each protocol backend implements.
+- **`types.ts`** · 175 lines — Defines the single event vocabulary every harness adapter normalizes to, the session configuration the runtime accepts, and the adapter interface each protocol backend implements.
 
 ## `src/cli/lib/agent/adapters/`
 
-- **`acp.ts`** · 370 lines — Speaks ACP, the open JSON-RPC 2.0 newline-delimited protocol introduced by Zed, so every ACP-capable agent (opencode, gemini, and the long tail) appears in kandown without a bespoke integration.
+- **`acp.ts`** · 468 lines — Speaks ACP, the open JSON-RPC 2.0 newline-delimited protocol introduced by Zed, so every ACP-capable agent (opencode, gemini, and the long tail) appears in kandown without a bespoke integration.
 - **`claude-code.ts`** · 166 lines — Drives `claude -p <prompt> --output-format stream-json` and normalizes its JSONL stdout into kandown agent events.
 - **`codex.ts`** · 167 lines — Drives `codex exec --json` and normalizes its JSONL event stream into kandown agent events.
 - **`pi.ts`** · 230 lines — Drives `pi --mode rpc`, pi's newline-delimited JSON protocol over stdin/stdout (documented in badlogic/pi-mono, packages/coding-agent/ docs/rpc.md).
@@ -230,16 +233,15 @@ source to edit instead.
 - **`Blobatar.tsx`** · 125 lines — Deterministic blob avatar identifying the agent session that is currently editing a task: the same sessionId always renders the same creature (shape, face, colors all derive from the id by the blobatar generator), so a session keeps its…
 - **`CardBeam.tsx`** · 128 lines — Animated border-beam overlay marking a task an agent session is currently editing.
 - **`CardStopButton.tsx`** · 110 lines — The board-surface half of the autopilot UI.
-- **`ChatSidebar.tsx`** · 551 lines — The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.
+- **`ChatSidebar.tsx`** · 591 lines — The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.
 - **`ContextCards.tsx`** · 124 lines — BeautifulUI 10 Context Cards, shared bui/ edition: when a user message carries @task mentions, the official bui cards render above the bubble, right-aligned like it.
 - **`DaemonGuardCard.tsx`** · 57 lines — Shown instead of the conversation UI when the session index reported no daemon (standalone File System Access mode, the demo, or an old daemon without the agent routes).
 - **`DiffOverlay.tsx`** · 94 lines — Renders the latest `task_diff` snapshot for a task as a readable, dependency-free line diff: removed lines tinted red, added lines green, unchanged context collapsed to a couple of lines around the change.
 - **`GitInitBanner.tsx`** · 56 lines — Dismissible info banner shown when the daemon reports that the project folder is not a git repository (`gitWarning: 'not-a-git-repo'` on the POST /api/agent/sessions response): agent edits then leave no git history to diff, revert or…
 - **`MarkdownContent.tsx`** · 302 lines — Renders an assistant message as Markdown: headings, lists, bold, links, blockquotes, GFM tables (remark-gfm) and fenced code blocks on the project's code-block token surface with a Copy button.
 - **`MessageList.tsx`** · 294 lines — Renders the folded conversation: user bubbles with the BeautifulUI context cards for every @task mention above the bubble, assistant turns as a BeautifulUI-style full-width panel (ONE activity block that updates in place while the turn…
-- **`ModelPicker.tsx`** · 116 lines — A compact free-text input with a short datalist of common model suggestions, rendered next to the harness selector.
 - **`OptionsChoiceCard.tsx`** · 83 lines — BeautifulUI 04 Approval Card, shared bui/ edition: when an assistant reply carries an ```options fenced block (one choice per line, parsed by agent-chat-options.ts), the block is NOT rendered as code; it becomes the official bui…
-- **`PromptBar.tsx`** · 299 lines — The agent chat composer, rebuilt ON the official BeautifulUI PromptBar (src/components/bui/PromptBar.tsx, beautifului.dev, MIT) in its external mode (demo={false}): the BUI component owns the exact visual structure (rounded composer,…
+- **`PromptBar.tsx`** · 305 lines — The agent chat composer, rebuilt ON the official BeautifulUI PromptBar (src/components/bui/PromptBar.tsx, beautifului.dev, MIT) in its external mode (demo={false}): the BUI component owns the exact visual structure (rounded composer,…
 - **`RecommendationCard.tsx`** · 62 lines — BeautifulUI 09 Recommendation Card, shared bui/ edition: when an assistant message contains a `PROPOSE: <action>` line on its own (the Kandown agent charter documents the convention: the agent suggests a board action), the line is…
 - **`SessionSwitcher.tsx`** · 152 lines — Dropdown over the project's chat session index: title, relative last-activity time, and a harness chip per row.
 - **`SkillButtons.tsx`** · 128 lines — Renders the installed skills that declare a `chat` block as compact pill buttons above the PromptBar.
@@ -261,7 +263,7 @@ source to edit instead.
 - **`FineTuneCard.tsx`** · 345 lines — Faithful port of the BeautifulUI FineTuneCard (beautifului.dev, MIT): a compact interactive inspector whose number fields scrub (drag the label, use the arrow keys, or type), with a segment switch and a GlideMenu type select.
 - **`InsightCards.tsx`** · 559 lines — Faithful port of the BeautifulUI InsightCards (beautifului.dev, MIT): embedded mini-visualizations in an "Insights N < >" carousel whose autoplay yields as soon as a person uses it.
 - **`LoadingState.tsx`** · 167 lines — Long-running-work loaders built on a pixel grid, in four variants (Drive, Dots, Orbit, Surfer).
-- **`PromptBar.tsx`** · 1004 lines — Faithful port of the official BeautifulUI PromptBar (beautifului.dev, MIT): a composer with real controls, an attach menu, @ data-source and / command menus, a model picker, dictation and send.
+- **`PromptBar.tsx`** · 1069 lines — Faithful port of the official BeautifulUI PromptBar (beautifului.dev, MIT): a composer with real controls, an attach menu, @ data-source and / command menus, a model picker, dictation and send.
 - **`RecommendationCard.tsx`** · 248 lines — Faithful port of the BeautifulUI RecommendationCard (beautifului.dev, MIT): the card holds its shape, pressing "Alternatives" opens the options drawer, picking one promotes it and the primary action confirms.
 - **`RecordsTable.tsx`** · 1067 lines — Faithful port of the BeautifulUI RecordsTable (beautifului.dev, MIT): an AI spreadsheet grid whose columns are properties.
 - **`SearchList.tsx`** · 126 lines — Faithful port of the BeautifulUI SearchList component (beautifului.dev, MIT): a command search with live filtering.
@@ -461,6 +463,6 @@ source to edit instead.
 
 ## Coverage
 
-326 of 326 eligible files carry an `@description` header.
+328 of 328 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

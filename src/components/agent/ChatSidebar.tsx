@@ -49,7 +49,6 @@ import { matchAgent } from '../../lib/agent-aliases';
 import { SessionSwitcher } from './SessionSwitcher';
 import { MessageList } from './MessageList';
 import { PromptBar } from './PromptBar';
-import { loadStoredModel } from './ModelPicker';
 import type { PromptBarModel } from '../bui/PromptBar';
 import { SkillButtons } from './SkillButtons';
 import { AnswerForm } from './AnswerForm';
@@ -59,29 +58,33 @@ import { GitInitBanner } from './GitInitBanner';
 import { AutopilotControls } from './AutopilotControls';
 import type { ChatSkillButton } from '../../lib/store/types';
 
-/** 📖 Short, generic suggestion lists per harness, mirroring the
- * ModelPicker datalist (free text moved into the BUI model menu's Default +
- * suggestion rows). 📖 These are cosmetic suggestions only: "Default" stays
- * the safe entry and any free-text model is still accepted, a shortlist never
- * validates or restricts the pick. The ACP shortlists use the exact harness
- * ids from detect.ts; note the opencode pick is currently inert at spawn (its
- * acp command rejects unknown flags, see MODEL_FLAG_BY_HARNESS in the ACP
- * adapter), the shortlist is ready for the day it accepts one. */
+/** 📖 Fallback suggestion lists per harness, used while the daemon catalog
+ * has not answered (and in demo mode, where there is no daemon). The real
+ * menu comes from GET /api/agent/models: baseline plus live ACP discovery
+ * (t324), so an installed harness shows the model ids it can actually run.
+ * These strings only ever fill the gap, they never restrict: the menu always
+ * ends with a free-text "Custom model" row. */
 const MODEL_SUGGESTIONS: Record<string, string[]> = {
   claude: ['opus', 'sonnet', 'haiku'],
   codex: ['gpt-5.1-codex', 'gpt-5.1', 'o4-mini'],
   gemini: ['gemini-2.5-pro', 'gemini-2.5-flash'],
-  opencode: ['anthropic/claude-sonnet-4-5', 'openai/gpt-5.1'],
 };
 
-/** 📖 localStorage key prefix for the per-harness model pick (round 4).
- * Same slot the ModelPicker datalist writes; the string lives there privately,
- * so it is mirrored here for the menu persistence. */
+/** 📖 localStorage key prefix for the per-harness model pick (round 4). */
 const MODEL_STORAGE_PREFIX = 'kandown.model.';
 
+/** 📖 Reads one harness's persisted model pick, or the empty string. Storage
+ * failures (private mode, quota) degrade to "no pick", never an error. */
+function loadStoredModel(harnessId: string): string {
+  try {
+    return window.localStorage.getItem(`${MODEL_STORAGE_PREFIX}${harnessId}`) ?? '';
+  } catch {
+    return '';
+  }
+}
+
 /** 📖 Persists one harness's model pick ("" removes it: harness default).
- * Mirrors ModelPicker's own persistence; storage failures degrade to "the
- * pick does not survive the page", never an error. */
+ * Storage failures degrade to "the pick does not survive the page". */
 function persistModel(harnessId: string, model: string): void {
   try {
     if (model) window.localStorage.setItem(`${MODEL_STORAGE_PREFIX}${harnessId}`, model);
@@ -89,6 +92,14 @@ function persistModel(harnessId: string, model: string): void {
   } catch {
     // 📖 Storage unavailable: the pick just does not survive the page.
   }
+}
+
+/** 📖 One entry of the daemon's model catalog response (t324). Mirrored here
+ * because the web bundle must not import CLI modules. */
+interface ModelCatalogEntry {
+  id: string;
+  name: string;
+  current?: boolean;
 }
 
 export function ChatSidebar() {
@@ -178,7 +189,7 @@ export function ChatSidebar() {
   // The state is only the forwarding copy the session-start calls read.
   const [selectedModel, setSelectedModel] = useState('');
   // 📖 A harness switch invalidates the previous pick: prefill from that
-  // harness's own persisted slot (ModelPicker's old prefill effect).
+  // harness's own persisted slot.
   useEffect(() => {
     setSelectedModel(selectedHarness ? loadStoredModel(selectedHarness) : '');
   }, [selectedHarness]);
@@ -187,19 +198,47 @@ export function ChatSidebar() {
     setSelectedModel(model);
   }, [selectedHarness]);
 
-  // 📖 Round 7: the BUI model menu entries: Default (empty key, forwards
-  // nothing) then the harness's suggestion shortlist.
+  // 📖 Real model catalog (t324): fetched per harness from the daemon, which
+  // merges its curated baseline with live ACP discovery (the exact model ids
+  // the harness account can run, plus the value it currently uses). Demo mode
+  // and daemon hiccups fall back to the static suggestions; a failure is
+  // never surfaced, a thin menu beats a broken one.
+  const [modelCatalog, setModelCatalog] = useState<ModelCatalogEntry[]>([]);
+  useEffect(() => {
+    if (!selectedHarness || !sidebarOpen) return;
+    let cancelled = false;
+    void fetch(`/api/agent/models?harness=${encodeURIComponent(selectedHarness)}`)
+      .then(response => (response.ok ? response.json() : null))
+      .then((data: { models?: ModelCatalogEntry[] } | null) => {
+        if (cancelled) return;
+        setModelCatalog(Array.isArray(data?.models) ? data!.models : []);
+      })
+      .catch(() => {
+        if (!cancelled) setModelCatalog([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedHarness, sidebarOpen]);
+
+  // 📖 The BUI model menu: Default, then the discovered catalog (or the
+  // static suggestions while discovery has not answered), capped so the
+  // popover stays a menu. A pick outside the list (typed in the custom row)
+  // stays valid: the key is forwarded verbatim at session start.
   const modelMenu = useMemo<PromptBarModel[]>(() => {
-    const suggestions = selectedHarness ? MODEL_SUGGESTIONS[selectedHarness] ?? [] : [];
+    const discovered = modelCatalog.slice(0, 16).map(entry => ({
+      key: entry.id,
+      name: entry.name,
+      tag: entry.current
+        ? t('agentChat.modelCurrentTag', 'Current')
+        : t('agentChat.modelSuggestedTag', 'Suggested'),
+    }));
+    const suggestions = (discovered.length > 0 ? discovered : (selectedHarness ? MODEL_SUGGESTIONS[selectedHarness] ?? [] : []).map(suggestion => ({ key: suggestion, name: suggestion, tag: t('agentChat.modelSuggestedTag', 'Suggested') })));
     return [
       { key: '', name: t('agentChat.modelDefault', 'Harness default'), tag: t('agentChat.modelDefaultTag', 'Auto') },
-      ...suggestions.map(suggestion => ({
-        key: suggestion,
-        name: suggestion,
-        tag: t('agentChat.modelSuggestedTag', 'Suggested'),
-      })),
+      ...suggestions,
     ];
-  }, [selectedHarness, t]);
+  }, [modelCatalog, selectedHarness, t]);
 
   // 📖 Round 4: delivery control visibility. Only interactive harnesses (pi,
   // ACP agents) can accept a steer/queue choice for follow-ups; one-shot
@@ -539,6 +578,7 @@ export function ChatSidebar() {
                   models={modelMenu}
                   model={selectedModel}
                   onModelChange={handleModelChange}
+                  allowCustomModel
                 />
               </>
             )}

@@ -7,7 +7,8 @@
  * mode relies on (isEditLikePermissionKind), the routing verdict
  * acpAdapter.onPermissionRequest hands to the daemon, and the spawn argv
  * buildArgs assembles: protocolArgs first, the per-harness model flag when
- * config.model is set and the harness accepts one, --resume last. Everything
+ * config.model is set and the harness accepts one (resume is never in argv,
+ * t324: it travels as session/load in the handshake). Everything
  * here is pure string/JSON work: no harness process is spawned, every fixture
  * line mirrors the ACP wire format documented in the adapter header.
  *
@@ -359,8 +360,11 @@ describe('buildArgs (t322 model flag)', () => {
       .toEqual(['/bin/mystery', '--experimental-acp']);
   });
 
-  it('keeps both model and resume flags when resuming with a model pick', () => {
+  it('keeps the model flag but never emits --resume when resuming (t324)', () => {
+    // 📖 Resume travels in the handshake (session/load), not in argv: strict
+    // parsers like `opencode acp` exit 1 on the unknown flag.
     expect(buildArgs(acpConfig({ model: 'gemini-2.5-flash', resumeSessionId: 'sess-1' }), '/bin/gemini'))
-      .toEqual(['/bin/gemini', '--experimental-acp', '--model', 'gemini-2.5-flash', '--resume', 'sess-1']);
+      .toEqual(['/bin/gemini', '--experimental-acp', '--model', 'gemini-2.5-flash']);
+    expect(buildArgs(acpConfig({ resumeSessionId: 'sess-1' }), '/bin/gemini')).not.toContain('--resume');
   });
 });

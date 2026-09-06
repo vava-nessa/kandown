@@ -85,6 +85,9 @@ interface PromptBarProps {
   model: string;
   /** 📖 Round 7: forwards a menu pick to ChatSidebar (persists + forwards). */
   onModelChange: (model: string) => void;
+  /** 📖 t324: shows the "Custom model" free-text row in the model menu, so an
+   *  id the catalog does not list can still be typed. */
+  allowCustomModel?: boolean;
 }
 
 export function PromptBar({
@@ -103,6 +106,7 @@ export function PromptBar({
   models,
   model,
   onModelChange,
+  allowCustomModel = false,
 }: PromptBarProps) {
   const { t } = useTranslation();
   // 📖 The caret participates in the trigger detection, so it is tracked on
@@ -281,10 +285,12 @@ export function PromptBar({
         models={models}
         model={model}
         onModelChange={onModelChange}
+        allowCustomModel={allowCustomModel}
         labels={{
           send: t('agentChat.send', 'Send'),
           stop: t('agentChat.stop', 'Stop'),
           model: t('agentChat.modelTitle', 'Model for new chats, empty uses the harness default'),
+          customModel: t('agentChat.modelCustom', 'Custom model...'),
           sources: t('agentChat.atMenuButton', 'Browse tasks'),
           skills: t('agentSkills.skillsLabel', 'Skills'),
           atHint: t('agentChat.menuHintAt', 'Type to match tasks'),

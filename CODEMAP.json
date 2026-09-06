@@ -8,7 +8,7 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 15204,
+      "lines": 15379,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
@@ -295,9 +295,22 @@
     },
     {
       "path": "src/cli/lib/__tests__/acp-permissions.spec.ts",
-      "lines": 367,
+      "lines": 371,
       "title": "ACP adapter tests: permission routing and spawn argv",
       "summary": "Locks the t309/t322 surface of the ACP adapter: recognizing a session/request_permission line on stdout (extractPermissionRequest), building the deferred JSON-RPC reply after the web UI decides (buildPermissionResponse), the edit-like…",
+      "functions": [
+        {
+          "name": "(vitest suites)",
+          "summary": null
+        }
+      ],
+      "exports": "(tests)"
+    },
+    {
+      "path": "src/cli/lib/__tests__/acp-resume-model.spec.ts",
+      "lines": 169,
+      "title": "ACP adapter tests: handshake resume and protocol model application",
+      "summary": "Locks the t324 surface: resume travels as session/load in the handshake (never as an argv flag, which strict parsers reject), a refused load falls back to a fresh session/new with a non-fatal error event, a failed first session/new is…",
       "functions": [
         {
           "name": "(vitest suites)",
@@ -410,6 +423,19 @@
       "lines": 48,
       "title": "Kandown Work CLI adapter tests",
       "summary": "Proves fresh projects print the exact shared compiler output on stdout and that an explicit task replaces the general board digest."
+    },
+    {
+      "path": "src/cli/lib/__tests__/model-catalog.spec.ts",
+      "lines": 51,
+      "title": "Model catalog tests: the deterministic half of the catalog (t324)",
+      "summary": "Locks the parts of listHarnessModels that must hold on every machine: harnesses that do not speak ACP (and unknown ids) answer the curated baseline with source \"baseline\", ids are normalized entries, and the cache reset clears state.",
+      "functions": [
+        {
+          "name": "(vitest suites)",
+          "summary": null
+        }
+      ],
+      "exports": "(tests)"
     },
     {
       "path": "src/cli/lib/__tests__/move-verdict.spec.ts",
@@ -572,7 +598,7 @@
     },
     {
       "path": "src/cli/lib/agent/adapters/acp.ts",
-      "lines": 370,
+      "lines": 468,
       "title": "Generic ACP harness adapter (Agent Client Protocol over stdio)",
       "summary": "Speaks ACP, the open JSON-RPC 2.0 newline-delimited protocol introduced by Zed, so every ACP-capable agent (opencode, gemini, and the long tail) appears in kandown without a bespoke integration.",
       "functions": [
@@ -725,6 +751,23 @@
       "exports": "HARNESS_DEFS, detectHarnessesJSON, getHarnessDef, resolveHarness"
     },
     {
+      "path": "src/cli/lib/agent/model-catalog.ts",
+      "lines": 215,
+      "title": "Model catalog: which models a harness can actually run (t324)",
+      "summary": "Answers the chat model menu's question, \"what can I pick for this harness?\", with real model ids instead of a cosmetic shortlist.",
+      "functions": [
+        {
+          "name": "listHarnessModels : the merged pick list for one harness (never throws)",
+          "summary": null
+        },
+        {
+          "name": "resetModelCatalog : drop the cache (tests)",
+          "summary": null
+        }
+      ],
+      "exports": "HarnessModel, HarnessModelList, listHarnessModels, resetModelCatalog"
+    },
+    {
       "path": "src/cli/lib/agent/orchestrator.ts",
       "lines": 662,
       "title": "Autopilot orchestrator: the daemon-side task loop over harness sessions",
@@ -839,7 +882,7 @@
     },
     {
       "path": "src/cli/lib/agent/types.ts",
-      "lines": 169,
+      "lines": 175,
       "title": "Agent harness contracts: the normalized event model and session types",
       "summary": "Defines the single event vocabulary every harness adapter normalizes to, the session configuration the runtime accepts, and the adapter interface each protocol backend implements.",
       "functions": [
@@ -1489,7 +1532,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 1540,
+      "lines": 1551,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
@@ -2043,7 +2086,7 @@
     },
     {
       "path": "src/components/agent/ChatSidebar.tsx",
-      "lines": 551,
+      "lines": 591,
       "title": "Agent chat sidebar (t308)",
       "summary": "The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.",
       "functions": [
@@ -2169,23 +2212,6 @@
       "exports": "MessageList"
     },
     {
-      "path": "src/components/agent/ModelPicker.tsx",
-      "lines": 116,
-      "title": "Model picker for the agent chat sidebar header",
-      "summary": "A compact free-text input with a short datalist of common model suggestions, rendered next to the harness selector.",
-      "functions": [
-        {
-          "name": "ModelPicker: the input itself, owning persistence per harness",
-          "summary": null
-        },
-        {
-          "name": "loadStoredModel: reads one harness's persisted pick (exported for tests)",
-          "summary": null
-        }
-      ],
-      "exports": "ModelPicker, loadStoredModel"
-    },
-    {
       "path": "src/components/agent/OptionsChoiceCard.tsx",
       "lines": 83,
       "title": "Choice card for assistant ```options blocks (round 5, round 7 renderer)",
@@ -2200,7 +2226,7 @@
     },
     {
       "path": "src/components/agent/PromptBar.tsx",
-      "lines": 299,
+      "lines": 305,
       "title": "Prompt bar for the agent chat sidebar (round 7: official BUI shell)",
       "summary": "The agent chat composer, rebuilt ON the official BeautifulUI PromptBar (src/components/bui/PromptBar.tsx, beautifului.dev, MIT) in its external mode (demo={false}): the BUI component owns the exact visual structure (rounded composer,…",
       "functions": [
@@ -2556,7 +2582,7 @@
     },
     {
       "path": "src/components/bui/PromptBar.tsx",
-      "lines": 1004,
+      "lines": 1069,
       "title": "Prompt bar of the BeautifulUI chat kit",
       "summary": "Faithful port of the official BeautifulUI PromptBar (beautifului.dev, MIT): a composer with real controls, an attach menu, @ data-source and / command menus, a model picker, dictation and send.",
       "exports": "PromptBar (default) : the composer, variant \"Rounded\" | \"Pill\" PromptBarRow, PromptBarModel, PromptBarLabels"

@@ -560,7 +560,9 @@
     "menuHintSlash": "Type to match skills",
     "modelDefault": "Harness default",
     "modelDefaultTag": "Auto",
-    "modelSuggestedTag": "Suggested"
+    "modelSuggestedTag": "Suggested",
+    "modelCurrentTag": "Current",
+    "modelCustom": "Custom model..."
   },
   "agentSkills": {
     "skillsLabel": "Skills",

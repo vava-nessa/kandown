@@ -164,8 +164,8 @@ export interface AgentChatStartInput {
   label?: string;
   interactive?: boolean;
   mentionedTaskIds?: string[];
-  /** 📖 Optional model for the session (round 4), persisted per harness in
-   *  the sidebar's ModelPicker. Empty means the harness default. */
+  /** 📖 Optional model for the session (round 4), persisted per harness by
+   *  the sidebar's model menu. Empty means the harness default. */
   model?: string;
 }
 

@@ -152,6 +152,7 @@ export type PromptBarLabels = {
   send: string;
   stop: string;
   model: string;
+  customModel: string;
   sources: string;
   skills: string;
   atHint: string;
@@ -163,6 +164,7 @@ const DEFAULT_LABELS: PromptBarLabels = {
   send: "Send",
   stop: "Stop",
   model: "Choose model",
+  customModel: "Custom model...",
   sources: "Add attachments and sources",
   skills: "Skills",
   atHint: "Type to search sources & files",
@@ -227,6 +229,7 @@ export default function PromptBar({
   models,
   model,
   onModelChange,
+  allowCustomModel = false,
   disabled = false,
   sendDisabled = false,
   turnActive = false,
@@ -273,6 +276,10 @@ export default function PromptBar({
   model?: string;
   /** 📖 Fired when a model row is picked. */
   onModelChange?: (key: string) => void;
+  /** 📖 Appends a "Custom model" row to the model menu (external mode only):
+   *  it turns into a free-text input, so a model id the catalog does not list
+   *  can still be typed. The catalog is a convenience, never a whitelist. */
+  allowCustomModel?: boolean;
   /** 📖 Disables the textarea and the actions (no daemon). */
   disabled?: boolean;
   /** 📖 Extra send gate (a POST is already in flight). */
@@ -308,6 +315,20 @@ export default function PromptBar({
   const [dismissed, setDismissed] = useState(false);
   const [plusOpen, setPlusOpen] = useState(false);
   const [modelOpen, setModelOpen] = useState(false);
+  /* 📖 Custom-model row state (external + allowCustomModel): the row swaps to
+     a free-text input; Escape cancels, Enter commits the typed id. */
+  const [customEditing, setCustomEditing] = useState(false);
+  const [customDraft, setCustomDraft] = useState("");
+  const customInputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!modelOpen) {
+      setCustomEditing(false);
+      setCustomDraft("");
+    }
+  }, [modelOpen]);
+  useEffect(() => {
+    if (customEditing) customInputRef.current?.focus();
+  }, [customEditing]);
   const [demoModel, setDemoModel] = useState(MODELS[1]);
   const [attachments, setAttachments] = useState<string[]>([]);
   const [connected, setConnected] = useState(false);
@@ -734,13 +755,57 @@ export default function PromptBar({
               }}
               className="relative z-10 flex h-7.5 w-full items-center gap-2 rounded-[6px] px-2 text-left"
             >
-              <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-ink">{m.name}</span>
+              <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-ink" title={m.name}>{m.name}</span>
               <span className="shrink-0 text-[11px] text-ink-3">{m.tag}</span>
               <span className={`shrink-0 text-ink ${m.key === selectedModel.key ? "" : "invisible"}`}>
                 <Icon size={13} strokeWidth={2.5}><path d="M20 6L9 17l-5-5" /></Icon>
               </span>
             </button>
           ))}
+          {/* 📖 Free-text escape hatch (external mode only): the catalog is a
+              convenience, never a whitelist, so an id the discovery does not
+              know can still be typed. Enter commits, Escape reverts. */}
+          {external && allowCustomModel && !customEditing && (
+            <button
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => setCustomEditing(true)}
+              className="relative z-10 flex h-7.5 w-full items-center gap-2 rounded-[6px] border-t border-line px-2 text-left"
+            >
+              <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-ink-3">{l.customModel}</span>
+              <span className={`shrink-0 text-ink ${selectedModel.key !== "" && !modelList.some((m) => m.key === selectedModel.key) ? "" : "invisible"}`}>
+                <Icon size={13} strokeWidth={2.5}><path d="M20 6L9 17l-5-5" /></Icon>
+              </span>
+            </button>
+          )}
+          {external && allowCustomModel && customEditing && (
+            <div className="relative z-10 flex h-7.5 items-center gap-2 border-t border-line px-2">
+              <input
+                ref={customInputRef}
+                value={customDraft}
+                onChange={(event) => setCustomDraft(event.target.value)}
+                placeholder="provider/model-id"
+                aria-label={l.customModel}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    const next = customDraft.trim();
+                    if (next !== "") {
+                      selectModel({ key: next, name: next, tag: "" });
+                    }
+                    setCustomEditing(false);
+                    setCustomDraft("");
+                    inputRef.current?.focus();
+                  } else if (event.key === "Escape") {
+                    event.preventDefault();
+                    setCustomEditing(false);
+                    setCustomDraft("");
+                  }
+                }}
+                className="h-6 min-w-0 flex-1 rounded-[5px] border border-line bg-bg-1 px-1.5 text-[12px] text-ink outline-none placeholder:text-ink-3 focus:border-line-strong"
+              />
+            </div>
+          )}
         </div>
       )}
 

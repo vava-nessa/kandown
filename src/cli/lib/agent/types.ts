@@ -69,6 +69,12 @@ export interface AdapterState {
   acpSessionId?: string;
   acpNextRequestId?: number;
   acpPendingPromptId?: number;
+  /** 📖 ACP resume (t324): a session/load is in flight after initialize, and
+   *  has already failed once (the retry, if any, must be a fresh session/new). */
+  acpAwaitingLoad?: boolean;
+  acpResumeFailed?: boolean;
+  /** 📖 ACP model pick (t324): the id of the in-flight session/set_config_option. */
+  acpConfigOptionPendingId?: number;
 }
 
 /** 📖 Result of parsing one stdout line: zero or more normalized events plus

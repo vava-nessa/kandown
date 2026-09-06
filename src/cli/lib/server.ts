@@ -61,6 +61,7 @@ import {
 } from './workflows-cli';
 import { compileProjectKandownWork } from './kandown-work';
 import { getRunnerRegistry } from './runner';
+import { listHarnessModels } from './agent/model-catalog';
 import { applyWorkflowUpdate, fetchWorkflowRegistry, installStoreWorkflow, previewWorkflowUpdate, type WorkflowRegistryEntry } from './workflows-store';
 import { buildSkillSessionPrompt, findSessionSkill, listWorkflowSkills } from './skills';
 import { extractToken, selfOrigin, verifyToken } from './daemon-auth';
@@ -739,6 +740,16 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
   // demoBackend answers 501 like every other /api/agent surface.
   if (path === '/api/agent/runners' && method === 'GET') {
     return writeJson(res, 200, { runners: getRunnerRegistry(kandownDir).describe() });
+  }
+
+  // 📖 Model catalog (t324): the chat model menu's real options for one
+  // harness. Discovery spawns the harness's ACP entry and is cached, so a
+  // first call can take seconds; the route answers the baseline list whenever
+  // discovery fails, and an unknown harness id degrades the same way, never
+  // an error.
+  if (path === '/api/agent/models' && method === 'GET') {
+    const harnessId = url.searchParams.get('harness') ?? '';
+    return writeJson(res, 200, await listHarnessModels(harnessId));
   }
 
   if (path === '/api/agent/sessions' && method === 'GET') {

@@ -13,13 +13,24 @@
  * advisory to native only when a mode actually matched. Unmatched modes stay
  * advisory: the diff shows after the fact (t309).
  *
- * 📖 Model selection (t322): `config.model` maps onto a per-harness spawn
- * flag in buildArgs (see MODEL_FLAG_BY_HARNESS), the same launch-flag pattern
- * the pi, claude and codex adapters use. session/set_model is deliberately
- * not used: it is not a standard ACP method, so the flag at spawn is the only
- * portable surface. An unset model is the normal case, never an error, and
- * harnesses with no verified spawn flag simply get no flag (the pick stays
- * inert instead of risking a failed spawn).
+ * 📖 Model selection (t322, completed t324): `config.model` is applied through
+ * whichever surface the harness actually exposes, in this order: a per-harness
+ * spawn flag in buildArgs (see MODEL_FLAG_BY_HARNESS, gemini only), then the
+ * ACP config system: session/new and session/load answers carry configOptions,
+ * and when they include the `model` select the adapter issues a
+ * session/set_config_option with the pick before prompting (verified live
+ * against opencode 1.18: the reply echoes configOptions with the new
+ * currentValue, so a refused pick is visible, and a failed application emits a
+ * non-fatal error event instead of killing the session). An unset model is the
+ * normal case, never an error.
+ *
+ * 📖 Resume (t324): the resume travels in the handshake, not in argv. A
+ * `resumeSessionId` turns the post-initialize request into session/load
+ * (agentCapabilities.loadSession), because strict argv parsers like
+ * `opencode acp` exit 1 on unknown flags and --resume was one. A failed load
+ * falls back to a fresh session/new with a non-fatal error event, so a stale
+ * or wiped session id degrades to a working new session instead of a dead
+ * spawn.
  *
  * 📖 Inbound requests: ACP lets the agent ask the client for permissions
  * (session/request_permission) and file reads. In yolo mode kandown auto-
@@ -35,7 +46,7 @@
  *
  * @functions
  *  → buildArgs               : harness binary, ACP entry flag, optional model
- *                              flag, optional --resume
+ *                              spawn flag (gemini); resume is NOT in argv
  *  → initialStdin            : the initialize request
  *  → extractPermissionRequest: recognize one stdout line as a permission request
  *  → buildPermissionResponse : the JSON-RPC reply line for a deferred decision
@@ -52,17 +63,17 @@ import type { AgentPermissionRequest, PermissionRoutingAdapter } from '../agent-
 const JSONRPC_VERSION = '2.0';
 
 /** 📖 Model spawn flag per harness id (detect.ts catalog ids), verified against
- *  the installed binaries (gemini-cli 0.46.0, opencode 1.18.19, 2026-09):
+ *  the installed binaries (gemini-cli 0.46.0, opencode 1.18, 2026-09):
  *  - gemini: `-m/--model` is a global top-level yargs option, accepted in any
  *    position relative to `--experimental-acp` (both orders were run live and
  *    get past argv parsing).
  *  - opencode: `opencode acp` parses with strict yargs and exits 1 on ANY
- *    unknown flag, `--model` included (help text dumped to stderr; the
- *    existing `--resume` argument hits the same rejection). Passing a flag it
- *    does not know would kill the session at spawn, so the pick stays inert
- *    for opencode until its acp command grows a model option.
- *  Unknown ACP harnesses get no flag either: a conservative default keeps a
- *  cosmetic pick from ever breaking a spawn. */
+ *    unknown flag, so it gets NO flag here; its model pick is applied through
+ *    the protocol instead (session/set_config_option, see parseLine), which is
+ *    also what surfaces its real model list as configOptions.
+ *  Other ACP harnesses get no flag either: a conservative default keeps a
+ *  cosmetic pick from ever breaking a spawn. Without configOptions and without
+ *  a flag a pick simply cannot be honored, which beats a dead session. */
 const MODEL_FLAG_BY_HARNESS: Record<string, string[]> = {
   gemini: ['--model'],
 };
@@ -71,15 +82,17 @@ export function buildArgs(config: AgentSessionConfig, binPath: string): string[]
   // 📖 protocolArgs come from the harness definition (opencode: `acp`, gemini:
   // `--experimental-acp`). The runtime passes them after the binary path, so
   // here they ride in through the config already merged by agent-runtime.
-  // 📖 The model flag rides after protocolArgs, the same slot the `--resume`
-  // precedent established for harness-specific arguments: protocolArgs switch
-  // the binary into ACP mode first, session-scoped flags come after. Verified
-  // harmless for gemini, whose parser accepts global options in any position.
+  // 📖 The model flag rides after protocolArgs, the slot for harness-specific
+  // arguments: protocolArgs switch the binary into ACP mode first,
+  // session-scoped flags come after. Verified harmless for gemini, whose
+  // parser accepts global options in any position.
+  // 📖 There is no --resume here on purpose (t324): strict parsers reject it
+  // at spawn, and the ACP way to resume is session/load in the handshake
+  // (parseLine), which works on every conforming agent.
   const args: string[] = [binPath, ...(config.protocolArgs ?? [])];
   // 📖 The map owns the flag form only; the value is always config.model.
   const modelFlag = config.model ? MODEL_FLAG_BY_HARNESS[config.harnessId] : undefined;
   if (config.model && modelFlag) args.push(...modelFlag, config.model);
-  if (config.resumeSessionId) args.push('--resume', config.resumeSessionId);
   return args;
 }
 
@@ -172,21 +185,67 @@ export function parseLine(line: string, state: AdapterState, config: AgentSessio
   const events: AdapterParseResult['events'] = [];
   const outbound: string[] = [];
 
-  // 📖 Response to initialize → create the session on the agent side.
+  // 📖 Response to initialize → open the agent-side session. A resume goes
+  // through session/load (the ACP-standard restore, t324), never through an
+  // argv flag; a failed load falls back to a fresh session/new (see the id-2
+  // error branch below) so a stale id still yields a working session.
   if (message.id === 1 && message.method === undefined && message.result !== undefined) {
-    outbound.push(JSON.stringify({
-      jsonrpc: JSONRPC_VERSION,
-      id: 2,
-      method: 'session/new',
-      params: { cwd: config.projectRoot, mcpServers: [] },
-    }));
+    if (config.resumeSessionId && !state.acpResumeFailed) {
+      state.acpAwaitingLoad = true;
+      outbound.push(JSON.stringify({
+        jsonrpc: JSONRPC_VERSION,
+        id: 2,
+        method: 'session/load',
+        params: { sessionId: config.resumeSessionId, cwd: config.projectRoot, mcpServers: [] },
+      }));
+    } else {
+      outbound.push(JSON.stringify({
+        jsonrpc: JSONRPC_VERSION,
+        id: 2,
+        method: 'session/new',
+        params: { cwd: config.projectRoot, mcpServers: [] },
+      }));
+    }
     return { events, outbound };
   }
 
-  // 📖 Response to session/new → resolve permission mode, then send the prompt.
+  // 📖 Error response for the session open. A refused load is expected with a
+  // stale or wiped id (some agents answer nothing at all, opencode hangs on an
+  // unknown id, so this branch fires only for agents that reply): fall back to
+  // a fresh session and tell the user why their history is not there. A failed
+  // first session/new is fatal: there is nothing to fall back to.
+  if (message.id === 2 && message.method === undefined && message.error !== undefined && message.error !== null) {
+    if (state.acpAwaitingLoad) {
+      state.acpAwaitingLoad = false;
+      state.acpResumeFailed = true;
+      events.push({
+        type: 'error',
+        message: 'Could not restore the previous session; starting a fresh one.',
+        fatal: false,
+      });
+      outbound.push(JSON.stringify({
+        jsonrpc: JSONRPC_VERSION,
+        id: 2,
+        method: 'session/new',
+        params: { cwd: config.projectRoot, mcpServers: [] },
+      }));
+      return { events, outbound };
+    }
+    events.push({ type: 'error', message: `ACP session could not be created: ${JSON.stringify(message.error)}`, fatal: true });
+    return { events };
+  }
+
+  // 📖 Response to session/new or session/load → resolve permission mode,
+  // optionally apply the model pick, then send the prompt.
   if (message.id === 2 && message.method === undefined && message.result !== undefined) {
     const result = message.result && typeof message.result === 'object' ? message.result as Record<string, unknown>: {};
-    state.acpSessionId = typeof result.sessionId === 'string' ? result.sessionId: undefined;
+    // 📖 A restored session is valid even when the answer does not echo an id:
+    // the id we asked to load is then the session id (observed on opencode).
+    const wasLoad = state.acpAwaitingLoad === true;
+    state.acpAwaitingLoad = false;
+    state.acpSessionId = typeof result.sessionId === 'string'
+      ? result.sessionId
+      : wasLoad ? config.resumeSessionId : undefined;
     state.harnessSessionId = state.acpSessionId;
     state.acpNextRequestId = 3;
 
@@ -210,6 +269,30 @@ export function parseLine(line: string, state: AdapterState, config: AgentSessio
         params: { sessionId: state.acpSessionId, modeId: matchedModeId },
       }));
     }
+    // 📖 Model pick through the protocol (t324): when the session exposes a
+    // `model` config option and the pick differs from its current value, set
+    // it before prompting. The reply is awaited as a plain response (id kept
+    // in the state) so a refusal surfaces as a non-fatal event instead of a
+    // dead session; harnesses without configOptions were handled by the spawn
+    // flag in buildArgs, if they have one at all.
+    if (state.acpSessionId && config.model) {
+      const configOptions = Array.isArray(result.configOptions) ? result.configOptions as unknown[]: [];
+      const modelOption = configOptions.find(option => {
+        return option && typeof option === 'object' && (option as Record<string, unknown>).id === 'model';
+      }) as Record<string, unknown> | undefined;
+      const current = typeof modelOption?.currentValue === 'string' ? modelOption.currentValue : undefined;
+      if (modelOption && current !== config.model) {
+        const configRequestId = state.acpNextRequestId;
+        state.acpNextRequestId += 1;
+        state.acpConfigOptionPendingId = configRequestId;
+        outbound.push(JSON.stringify({
+          jsonrpc: JSONRPC_VERSION,
+          id: configRequestId,
+          method: 'session/set_config_option',
+          params: { sessionId: state.acpSessionId, configId: 'model', value: config.model },
+        }));
+      }
+    }
     if (state.acpSessionId) {
       state.acpPendingPromptId = state.acpNextRequestId;
       state.acpNextRequestId += 1;
@@ -223,6 +306,21 @@ export function parseLine(line: string, state: AdapterState, config: AgentSessio
       permissionSupport: state.permissionSupport,
     });
     return { events, outbound };
+  }
+
+  // 📖 Response to session/set_config_option: the model pick was applied or
+  // refused. Either way the turn goes on; a refusal is reported so the user
+  // knows the session runs on the agent's default model instead.
+  if (message.method === undefined && message.id !== undefined && message.id === state.acpConfigOptionPendingId) {
+    state.acpConfigOptionPendingId = undefined;
+    if (message.error !== undefined && message.error !== null) {
+      events.push({
+        type: 'error',
+        message: `The model pick was not applied (${JSON.stringify(message.error)}); the session keeps the agent default.`,
+        fatal: false,
+      });
+    }
+    return { events };
   }
 
   // 📖 Response to session/prompt → the turn is over.

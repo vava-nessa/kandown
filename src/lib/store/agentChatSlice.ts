@@ -23,7 +23,7 @@
  * the read-only SkillsModal, and sendMessage / startSession forward
  * mentionedTaskIds so the daemon inlines the integral @task files.
  *
- * 📖 Round 4: startSession forwards the ModelPicker's model choice, and
+ * 📖 Round 4: startSession forwards the model menu pick, and
  * sendMessage forwards the composer's delivery choice ('steer' | 'queue') so
  * interactive harnesses get follow-ups at the boundary the user asked for.
  *
