@@ -54,7 +54,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "verify": "pnpm typecheck && pnpm test && pnpm build && pnpm codemap:check && pnpm changelog:check && pnpm extension-brief:check && pnpm verify:diff",
+    "verify": "pnpm typecheck && pnpm build && pnpm test && pnpm codemap:check && pnpm changelog:check && pnpm extension-brief:check && pnpm verify:diff",
     "verify:diff": "git diff --check HEAD -- . ':(exclude).kandown/kandown.html' ':(exclude)bin/kandown.js' ':(exclude)bin/tui.js'",
     "prepare": "node scripts/install-hooks.js"
   },

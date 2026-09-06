@@ -4,10 +4,17 @@
 # fires on a v* tag, so a broken typecheck or build surfaced at release time, which
 # is the most expensive moment to find it.
 #
-# The steps mirror `pnpm verify`, the local gate, so a green run here means the same
-# thing it means on a laptop. Order is cheapest-signal-first: the generated-file
-# checks take seconds and catch the most commonly forgotten step, then typecheck,
-# then the suite, then the full build.
+# The steps cover the same ground as `pnpm verify`, the local gate, so a green run
+# here means the same thing it means on a laptop. Order is cheapest-signal-first,
+# with one hard constraint: the generated-file checks and the typecheck run first
+# because they cost seconds and catch the most commonly forgotten step, then the
+# build, then the suite.
+#
+# `pnpm build` MUST stay ahead of `pnpm test`. The CLI tests spawn the real bundle
+# in a tmpdir and `kandown init` copies `dist/index.html` into `.kandown/kandown.html`
+# (src/cli/lib/init.ts). `dist/` is gitignored, so on a clean checkout, which is
+# exactly what CI gets, that file only exists after a build: run the suite first and
+# `cli-lifecycle.spec.ts` fails on a repository that is perfectly healthy.
 #
 # The codemap step is what keeps the generated documentation honest: the pre-commit
 # hook regenerates CODEMAP.md/.json locally, but hooks can be skipped (--no-verify,
@@ -21,6 +28,10 @@ on:
   pull_request:
   push:
     branches: [main]
+
+# 📖 Nothing in this job writes to the repository, so the token stays read-only.
+permissions:
+  contents: read
 
 # 📖 A new push to the same PR makes the in-flight run pointless: cancel it so the
 # queue stays short and feedback stays fast. Runs on main are never cancelled.
@@ -59,8 +70,9 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Test
-        run: pnpm test
-
+      # 📖 Ahead of the suite on purpose: the CLI tests need dist/index.html.
       - name: Build
         run: pnpm build
+
+      - name: Test
+        run: pnpm test

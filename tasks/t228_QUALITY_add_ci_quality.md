@@ -28,6 +28,8 @@ which is exactly when it is most expensive.
       `CODEMAP.md` fails loudly
 - [x] Cache the pnpm store to keep the run under ~2 min
 - [x] report: verified the whole gate against a clean `HEAD` worktree
+- [x] Standards + spec review pass, blocking finding fixed (step order), re-verified
+      on a fresh checkout: `report:` below
 
 ## Notes
 
@@ -46,53 +48,98 @@ means the same thing as a green `pnpm verify` on a laptop.
 
 What changed:
 
-- **`pnpm test` step added.** The suite is fast (about 4 s cold) and was the one
+- **`pnpm test` step added.** The suite is fast (about 7 s cold) and was the one
   piece the workflow was missing.
 - **`pnpm extension-brief:check` added.** `docs/EXTENSIONS-AGENT.md` and
   `src/lib/extensions/agent-brief.ts` are generated from the extension types;
   without this step the plugin authoring contract could silently drift on main,
   exactly like a stale codemap.
-- **pnpm pinned to 11, not 9.** `pnpm-lock.yaml` is written by pnpm 11 locally,
-  and the job runs `--frozen-lockfile`, so the resolver in CI has to match the
-  one that wrote the lockfile.
+- **pnpm pinned to 11, not 9.** `pnpm-lock.yaml` is written by pnpm 11 locally
+  (lockfileVersion 9.0), and the job runs `--frozen-lockfile`, so the resolver in
+  CI has to match the one that wrote the lockfile.
 - **Concurrency group added.** A new push to a PR cancels its in-flight run;
   runs on `main` are never cancelled.
-- **Step order documented** as cheapest-signal-first: generated-file checks,
-  then typecheck, then tests, then the full build.
+- **Build moved ahead of Test** (see the review below: this was a blocking bug).
+- **`permissions: contents: read`** added: nothing in the job writes to the repo.
 
 The pnpm store cache was already handled by `cache: pnpm` on
 `actions/setup-node@v4`, which keys the store on `pnpm-lock.yaml`.
 
+## Review pass
+
+### Standards review
+
+Three findings, all fixed in this pass.
+
+1. **Blocking: the gate was red on a clean checkout.** The steps ran
+   `pnpm test` before `pnpm build`. The CLI suite spawns the real bundle in a
+   tmpdir, and `kandown init` copies `dist/index.html` into
+   `.kandown/kandown.html` (`src/cli/lib/init.ts:74`). `dist/` is gitignored, so
+   on a fresh clone that file does not exist yet and
+   `cli-lifecycle.spec.ts:75` fails with `expected false to be true` on a
+   repository that is perfectly healthy. Reproduced deterministically in a
+   brand-new worktree at `HEAD` (1 failed / 723 passed), and green (724 passed)
+   as soon as `pnpm build` runs first. **Fixed:** Build now precedes Test, with
+   the reason written into the workflow header so nobody reorders it back for
+   the sake of cheapest-signal-first.
+2. **`pnpm verify` carried the same trap.** The local gate was
+   `typecheck && test && build && ...`, so a contributor on a fresh clone hit
+   the identical false failure. **Fixed:** `verify` is now
+   `typecheck && build && test && ...`, which also keeps the local gate and CI
+   in the same order.
+3. **The workflow token was default-scoped.** `publish.yml` declares its
+   permissions; this job did not. **Fixed:** `permissions: contents: read`.
+
+### Spec review
+
+All four subtasks are satisfied by `ci.yml` as it now stands: it triggers on
+`pull_request` and `push` to `main`; it runs install / typecheck / test / build;
+`pnpm codemap:check` fails a PR that changes source without regenerating the
+codemap; and the pnpm store is cached through `cache: pnpm`. Finding 1 above was
+a spec failure as much as a standards one: the step list matched the contract on
+paper while the gate could not go green on the branch it was meant to protect.
+
 ### Verification
 
-The working tree is dirty with someone else's in-progress work, and it does not
-typecheck (`src/components/Card.tsx`, `src/components/agent/Blobatar.tsx`), so
-the gate was run against a clean detached worktree at `HEAD` (3ce67d7) instead,
-which is what CI actually sees:
+Run in a throwaway detached worktree at `HEAD` (a2730e1), which is the clean
+checkout CI actually sees, with the fixed `ci.yml` and `package.json` copied in.
+Steps executed in exactly the workflow's order:
 
-| Step | Result |
-|---|---|
-| `pnpm install --frozen-lockfile` | ok, lockfile in sync |
-| `pnpm codemap:check` | codemap up to date, 266 files, 100% documented |
-| `pnpm changelog:check` | up to date, 117 releases |
-| `pnpm extension-brief:check` | up to date |
-| `pnpm typecheck` | exit 0 |
-| `pnpm test` | 44 files, 506 tests passed, 3.8 s |
-| `pnpm build` | vite + tsup build success |
+| Step | Result | Time |
+|---|---|---|
+| `pnpm install --frozen-lockfile` | exit 0, lockfile in sync | 5 s |
+| `pnpm codemap:check` | **exit 1**, see below | 1 s |
+| `pnpm changelog:check` | exit 0, 120 releases | 0 s |
+| `pnpm extension-brief:check` | exit 0 | 1 s |
+| `pnpm typecheck` | exit 0 | 7 s |
+| `pnpm build` | exit 0, vite + tsup success | 20 s |
+| `pnpm test` | exit 0, 60 files, 724 tests passed | 7 s |
 
-`ci.yml` also parses as valid YAML and the step list resolves in the intended
-order. Wall clock for the four heavy steps is well under a minute locally, so
-the ~2 min target holds once install and the pnpm store cache are added.
+About 41 s of step time, so the run stays comfortably inside the ~2 min target
+once the pnpm store cache is warm. `ci.yml` parses as valid YAML and the step
+list resolves in the intended order.
 
-### Non-blocking follow-ups
+The `codemap:check` failure is **not** produced by this task and not fixable from
+here. `CODEMAP.md` at `HEAD` documents `src/cli/lib/runner/herdr-client.ts` and
+`src/cli/lib/runner/types.ts`, which are still untracked in the working tree: the
+pre-commit hook regenerated the map from the dirty tree and committed it ahead of
+its own sources. Regenerating the map from the main checkout would only reproduce
+the same drift on the next commit. It clears itself the moment the `runner/` work
+is committed.
 
-- `publish.yml` still pins pnpm 9 and installs with `--no-frozen-lockfile`.
-  It works, but the release build resolves dependencies with a different
-  resolver than the one that gated the PR. Worth aligning in a separate task.
-- The two typecheck errors in the uncommitted working tree belong to whoever is
-  mid-feature on the Blobatar card work. They are not touched here, but they
-  will turn CI red the moment that work is pushed.
+### Non-blocking follow-ups for vava
+
+- **CI will be red on `main` until `src/cli/lib/runner/` is committed**, for the
+  codemap reason above. Nothing to fix in the workflow; it is the gate working.
+- `publish.yml` still pins pnpm 9 and installs with `--no-frozen-lockfile`, so
+  the release build resolves dependencies with a different resolver than the one
+  that gated the PR. Worth aligning in a separate task.
+- `publish.yml` comments contain em-dashes (rule #7). Untouched here to keep this
+  diff to the CI gate.
+- CI does not run `pnpm verify:diff`. It is a working-tree whitespace lint that
+  says nothing useful about a fresh checkout, so it was deliberately left out.
 
 ### Proposed move
 
-Ready for **Done** once reviewed. Terminal move left to vava.
+Ready for **Done**. Both review axes pass and the blocking finding is fixed and
+re-verified. Terminal move left to vava.
