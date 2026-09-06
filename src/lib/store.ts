@@ -552,8 +552,10 @@ export const useStore = create<State>((set, get, api) => ({
   taskContents: new Map(),
   searchMatches: new Map(),
 
-  viewMode: (localStorage.getItem('kandown:view') as ViewMode) || 'board',
-  density: (localStorage.getItem('kandown:density') as Density) || 'comfortable',
+  // 📖 Guarded: importing this module must not crash outside a browser
+  // (unit tests, SSR-ish tooling read the store transitively).
+  viewMode: ((typeof localStorage !== 'undefined' && localStorage.getItem('kandown:view')) as ViewMode) || 'board',
+  density: ((typeof localStorage !== 'undefined' && localStorage.getItem('kandown:density')) as Density) || 'comfortable',
   filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null, category: [] },
   commandOpen: false,
   cheatsheetOpen: false,
@@ -2178,6 +2180,10 @@ listRecentProjects()
 
 applyConfigTheme(DEFAULT_CONFIG);
 
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-  applyConfigTheme(useStore.getState().config);
-});
+// 📖 Guarded: unit tests import this module outside a browser, where
+// window.matchMedia does not exist.
+if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    applyConfigTheme(useStore.getState().config);
+  });
+}

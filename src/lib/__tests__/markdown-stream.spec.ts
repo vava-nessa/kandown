@@ -1,4 +1,5 @@
 /**
+ * @vitest-environment jsdom
  * @file Tests for the streaming markdown helpers
  * @description Locks the two pure helpers that keep a streaming assistant
  * message presentable: `closeDanglingCodeFence` (an odd number of ``` markers

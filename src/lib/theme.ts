@@ -233,7 +233,12 @@ export function fillCodeTokens(
 
 function resolveMode(theme: ThemeMode): 'light' | 'dark' {
   if (theme === 'auto') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    // 📖 Guarded: this module is imported transitively by unit tests that run
+    // outside a browser, where window.matchMedia does not exist.
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'light';
   }
   return theme;
 }

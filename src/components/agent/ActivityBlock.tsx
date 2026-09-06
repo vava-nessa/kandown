@@ -12,11 +12,15 @@
  *
  * 📖 Round 7: replaces the hand-rolled BeautifulUI-restyled panel of rounds
  * 5/6 with the shared src/components/bui copies, driven by their new
- * external-mode props. Round 9: while the turn streams, the live signal is
- * the official 01 Loading State with its animation rotating per turn
- * (Drive/Dots/Orbit) plus the thinking tail ticking beside it; once the turn
- * settles, the collapsed reasoning trace and tool chips take over. Visual
- * patterns from BeautifulUI, https://www.beautifului.dev (MIT).
+ * external-mode props. Round 9: while the turn streams, a loading state
+ * carries the "something is happening" signal with its animation rotating
+ * per turn. Round 11: the thinking phase gets its own creature - the
+ * session's blobatar shaking with concentration beside a climbing token
+ * estimate and a throttled thinking excerpt (the raw ticker flickered too
+ * fast to read), tool calls stay a collapsed counter (people do not read
+ * them), and once the thinking settles the rotating loader and the
+ * collapsed reasoning trace take over. Visual patterns from BeautifulUI,
+ * https://www.beautifului.dev (MIT).
  *
  * @functions
  *  → toolIcon: maps a fold tool name onto a ToolChips icon key
@@ -32,10 +36,12 @@
  */
 
 import { useTranslation } from 'react-i18next';
+import { useEffect, useState } from 'react';
 import type { ToolStep } from '../bui/ToolChips';
 import ThinkingState from '../bui/ThinkingState';
 import ToolChips from '../bui/ToolChips';
 import LoadingState from '../bui/LoadingState';
+import { AgentBlobatar } from './Blobatar';
 import { toolExcerpt } from '../../lib/agent-chat-events';
 import type { ChatAssistantEntry, ChatToolEntry } from '../../lib/agent-chat-events';
 
@@ -109,6 +115,42 @@ function loaderVariant(entryId: string): string {
   return LOADER_VARIANTS[hash % LOADER_VARIANTS.length];
 }
 
+/** 📖 Trailing throttle: the thinking channel can tick many times per second
+ * and the excerpt must not flicker at that rate. Value updates at most once
+ * per interval, with a trailing flush so the final value always lands. */
+function useThrottledValue<T>(value: T, intervalMs: number): T {
+  const [throttled, setThrottled] = useState(value);
+  useEffect(() => {
+    const last = lastFlush.at;
+    const elapsed = Date.now() - last;
+    if (elapsed >= intervalMs) {
+      lastFlush.at = Date.now();
+      setThrottled(value);
+      return;
+    }
+    const timer = setTimeout(() => {
+      lastFlush.at = Date.now();
+      setThrottled(value);
+    }, intervalMs - elapsed);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, intervalMs]);
+  return throttled;
+}
+
+/** 📖 Module-level flush clock shared by every throttle instance: the point
+ * is to slow the whole UI down to one refresh per interval, not per hook. */
+const lastFlush = { at: 0 };
+
+/** 📖 Approximate token count of the thinking channel: ~4 characters per
+ * token is the usual rule of thumb. It only ever grows while the channel
+ * streams, which is the point: a number climbing beside the blob reads as
+ * progress (vava, round 11). */
+function thinkingTokenEstimate(thinking: string): string {
+  const tokens = Math.max(1, Math.round(thinking.length / 4));
+  return tokens >= 1000 ? `${(tokens / 1000).toFixed(1)}k` : String(tokens);
+}
+
 interface ActivityBlockProps {
   entry: ChatAssistantEntry;
 }
@@ -135,23 +177,39 @@ export function ActivityBlock({ entry }: ActivityBlockProps) {
     ? `${t('agentChat.thinkingDone', 'Finished thinking')} (${turnsMerged})`
     : t('agentChat.thinkingDone', 'Finished thinking');
 
+  // 📖 Round 11: the thinking excerpt refreshes at a human rate (600ms), not
+  // at the delta rate, so the tail reads as a calm summary instead of a
+  // flickering stock ticker.
+  const liveExcerpt = useThrottledValue(tickerTail(thinking), 600);
+
   return (
     <div className="mb-1.5 min-w-0">
-      {/* 📖 Live phase: the official 01 Loading State carries the "what is the
-       * agent doing right now" signal, with the animation rotating per turn
-       * and the thinking tail ticking beside it (vava, round 9: the static
-       * sparkle read as black on black and the shimmer label never showed).
-       * The reasoning trace stays one click away in the settled block below. */}
+      {/* 📖 Live phase (round 11): while the thinking channel streams, the
+       * session's blobatar shakes with concentration beside the growing
+       * token estimate and a short excerpt; the tools still tick their own
+       * collapsed counter below. Once the thinking settles into tools or
+       * answer text, the rotating 01 Loading State takes over. The full
+       * reasoning trace stays one click away in the settled block. */}
       {entry.streaming ? (
         <div className="flex min-w-0 items-center gap-2.5">
-          <LoadingState
-            variant={loaderVariant(entry.id)}
-            label={thinkingActive
-              ? t('agentChat.thinking', 'Thinking')
-              : t('agentChat.working', 'Working...')}
-          />
-          {thinking.length > 0 && (
-            <span className="min-w-0 truncate text-[12px] text-ink-3">{tickerTail(thinking)}</span>
+          {thinkingActive ? (
+            <>
+              <span className="thinking-shake inline-flex flex-none">
+                <AgentBlobatar sessionId={entry.id} size={26} />
+              </span>
+              <span className="flex-none text-[12.5px] font-medium text-fg">
+                {t('agentChat.thinking', 'Thinking')}
+                <span className="ml-1.5 font-normal text-ink-3">~{thinkingTokenEstimate(thinking)} tokens</span>
+              </span>
+            </>
+          ) : (
+            <LoadingState
+              variant={loaderVariant(entry.id)}
+              label={t('agentChat.working', 'Working...')}
+            />
+          )}
+          {thinkingActive && liveExcerpt && (
+            <span className="min-w-0 truncate text-[12px] text-ink-3">{liveExcerpt}</span>
           )}
         </div>
       ) : (

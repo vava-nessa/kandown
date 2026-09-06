@@ -328,6 +328,25 @@ code {
    Pure CSS so prefers-reduced-motion users just get a static tinted word:
    the animation simply never starts. Color tokens are raw HSL triplets, so
    they must go through hsl(). */
+/* 📖 Concentrated thinking shake (agent chat): the blob avatar wiggles
+ * rapidly while the thinking channel streams, reading as "thinking hard".
+ * Reduced motion freezes it. */
+@keyframes thinking-shake {
+  0%, 100% { transform: rotate(-4deg) translateX(-0.5px); }
+  50% { transform: rotate(4deg) translateX(0.5px); }
+}
+
+.thinking-shake {
+  animation: thinking-shake 320ms ease-in-out infinite;
+  transform-origin: 50% 80%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thinking-shake {
+    animation: none;
+  }
+}
+
 @keyframes thinking-shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }

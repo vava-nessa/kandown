@@ -3,10 +3,11 @@
  * @description Renders an assistant message as Markdown: headings, lists,
  * bold, links, blockquotes, GFM tables (remark-gfm) and fenced code blocks on
  * the project's code-block token surface with a Copy button. Task references
- * linkified by the chat render as clickable chips that open the task through
- * the canonical openDrawer action (a button, never a href: the view never
- * changes by navigation); external links stay real links in a new tab. User
- * messages never go through this component.
+ * linkified by the chat render as clickable chips (TaskReferenceChip, which
+ * adds the round-11 hover preview of the task content) that open the task
+ * through the canonical openDrawer action (a button, never a href: the view
+ * never changes by navigation); external links stay real links in a new tab.
+ * User messages never go through this component.
  *
  * 📖 Renderer choice: react-markdown + remark-gfm (tiny, standard, React 19
  * compatible) instead of a hand-rolled parser, because the acceptance bar
@@ -24,13 +25,14 @@
  *  → closeDanglingCodeFence: appends the closing fence when the stream cut one open
  *  → splitStreamingTail: splits the last few words off for the shimmer sweep
  *  → withShimmerTail: wraps the rendered tree's tail text in the shimmer span
- *  → TaskChip: clickable task reference chip (a button, no navigation)
+ *  → TaskChip: thin delegation to TaskReferenceChip (click + hover preview)
  *  → CodeBlock: fenced code panel with a line-number gutter and a Copy button
  *  → buildComponents: element overrides, chat-scale typography
  *  → MarkdownContent: the markdown root
  *
  * @exports MarkdownContent, closeDanglingCodeFence, splitStreamingTail
  * @see src/lib/task-links.ts: the linkifier that produces `task:` hrefs
+ * @see src/components/agent/TaskHoverCard.tsx: the chip and its hover preview
  * @see src/components/agent/MessageList.tsx
  * @see src/components/agent/StreamingText.tsx
  */
@@ -39,7 +41,8 @@ import { cloneElement, isValidElement, memo, useState, type ReactElement, type R
 import ReactMarkdown, { defaultUrlTransform, type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useTranslation } from 'react-i18next';
-import { IconArrowUpRight, IconCheck, IconCopy } from '@tabler/icons-react';
+import { IconCheck, IconCopy } from '@tabler/icons-react';
+import { TaskReferenceChip } from './TaskHoverCard';
 
 interface MarkdownContentProps {
   /** Assistant message text, already directive-stripped and linkified. */
@@ -107,20 +110,10 @@ function withShimmerTail(node: ReactNode): ReactNode {
   return node;
 }
 
-/** 📖 Task reference chip: the compact mono pill the rest of the app uses for
- * task ids, clickable so the chat can deep-link the board. */
+/** 📖 Task reference chip: a thin delegation to TaskReferenceChip, which owns
+ * the pill markup, the round-11 hover preview and the unchanged click path. */
 function TaskChip({ taskId, onOpenTask }: { taskId: string; onOpenTask?: (taskId: string) => void }) {
-  return (
-    <button
-      type="button"
-      onClick={() => onOpenTask?.(taskId)}
-      title={taskId.toUpperCase()}
-      className="inline-flex items-center gap-0.5 rounded-full border border-accent/40 bg-accent/10 px-1.5 align-baseline font-mono text-[11.5px] font-medium leading-[1.4] text-fg transition-colors hover:border-accent hover:bg-accent/20"
-    >
-      {taskId.toUpperCase()}
-      <IconArrowUpRight size={10} stroke={2} className="text-fg-muted" />
-    </button>
-  );
+  return <TaskReferenceChip taskId={taskId} onOpenTask={onOpenTask} />;
 }
 
 /** 📖 Fenced code panel: the same code-bg, code-fg and border tokens the

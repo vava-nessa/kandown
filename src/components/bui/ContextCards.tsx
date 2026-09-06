@@ -9,8 +9,10 @@
  * these cards, so `chars` and `body` became optional (a mention has no
  * excerpt), each chunk may carry a `taskId`, and `onOpen` turns the source
  * chip into a button that opens the referenced task. `showHeader` hides the
- * "All chunks / 32" counter row in the chat. Without these props the demo
- * cards are untouched.
+ * "All chunks / 32" counter row in the chat. Round 11 adds `onCardHover`, a
+ * purely additive hover hook wired on each card (mouseenter with the card's
+ * rect, mouseleave with nulls): the agent chat uses it to mount a task preview
+ * popover. Without these props the demo cards are untouched, pixel for pixel.
  *
  * @exports ContextCards
  * @exports ContextChunk
@@ -18,7 +20,7 @@
  * @see src/components/bui/gallery/CardsSection.tsx
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type MouseEvent as ReactMouseEvent } from "react";
 
 /* CONTEXT CARDS: BeautifulUI (beautifului.dev, MIT).
  * Retrieved chunks enter once, then remain available. */
@@ -70,6 +72,7 @@ export default function ContextCards({
   labels,
   className,
   onOpen,
+  onCardHover,
   showHeader = true,
 }: {
   variant?: string;
@@ -78,6 +81,10 @@ export default function ContextCards({
   className?: string;
   /** 📖 Kandown embedding: turns each source chip into a button. */
   onOpen?: (chunk: ContextChunk) => void;
+  /** 📖 Kandown embedding (round 11): hover hook per card. Entering a card
+   * reports the chunk plus its rect (captured for popover anchoring), leaving
+   * reports nulls. Purely additive: the rendering is unchanged without it. */
+  onCardHover?: (chunk: ContextChunk | null, anchorRect: DOMRect | null) => void;
   /** 📖 Hides the header counter row (the chat renders bare cards). */
   showHeader?: boolean;
 } = {}) {
@@ -110,6 +117,12 @@ export default function ContextCards({
           style={{
             animation: `fade-up 400ms cubic-bezier(0.23,1,0.32,1) ${i * 100}ms both`,
           }}
+          onMouseEnter={
+            onCardHover
+              ? (event: ReactMouseEvent<HTMLElement>) => onCardHover(chunk, event.currentTarget.getBoundingClientRect())
+              : undefined
+          }
+          onMouseLeave={onCardHover ? () => onCardHover(null, null) : undefined}
         >
           <div className="primitive-card-bar flex items-center gap-2.5 border-b border-line">
             <span className="flex min-w-0 items-center gap-1.5 text-[13px] font-medium text-ink">
