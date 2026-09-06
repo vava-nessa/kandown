@@ -1830,12 +1830,16 @@
     },
     {
       "path": "src/components/agent/AnswerForm.tsx",
-      "lines": 142,
+      "lines": 159,
       "title": "Answer form for interactive chat skills (t310, options since grill-me v2)",
-      "summary": "Compact panel rendered above the skill buttons when an interactive skill (grill-me) finishes its first turn.",
+      "summary": "Panel rendered above the skill buttons when an interactive skill (grill-me) finishes its first turn.",
       "functions": [
         {
-          "name": "AnswerForm: per-question option chips + free text with send / skip",
+          "name": "CHOICE_TINTS: the per-choice tint rotation",
+          "summary": null
+        },
+        {
+          "name": "AnswerForm: per-question tinted choice rows + free text with send / skip",
           "summary": null
         }
       ],

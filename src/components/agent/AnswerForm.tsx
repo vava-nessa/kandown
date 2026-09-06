@@ -1,19 +1,22 @@
 /**
  * @file Answer form for interactive chat skills (t310, options since grill-me v2)
- * @description Compact panel rendered above the skill buttons when an
- * interactive skill (grill-me) finishes its first turn. Each parsed question
- * shows IN FULL (never clamped: a question the user cannot read entirely
- * cannot be answered), followed by the candidate answers the agent proposed
- * as single-select chips, plus a free-text field that stays available all the
- * time: picking a chip fills the field, editing the field deselects the chip.
- * "Send answers" forwards them through sendAnswers (the slice formats a plain
- * follow-up message the skill's fusion step reads), "Skip" closes the form
- * without sending. Enter never submits: the harness turn is expensive and
- * multiline answers are expected, so there is deliberately no keyboard
- * shortcut here.
+ * @description Panel rendered above the skill buttons when an interactive
+ * skill (grill-me) finishes its first turn. Design contract (vava, round 10):
+ * the typography matches the chat exactly (13.5px questions and answers, no
+ * smaller "form font"), choices are full-width rounded rectangles that all
+ * share the same width, each carrying its own subtle tint, the free-text
+ * field is clearly contrasted against them, and there are no nested boxes:
+ * questions are separated by a single hairline instead of a border inside a
+ * border inside a border. Picking a choice fills the field, editing the
+ * field deselects the choice. "Send answers" forwards them through
+ * sendAnswers (the slice formats a plain follow-up message the skill's
+ * fusion step reads), "Skip" closes the form without sending. Enter never
+ * submits: the harness turn is expensive and multiline answers are
+ * expected, so there is deliberately no keyboard shortcut here.
  *
  * @functions
- *  → AnswerForm: per-question option chips + free text with send / skip
+ *  → CHOICE_TINTS: the per-choice tint rotation
+ *  → AnswerForm: per-question tinted choice rows + free text with send / skip
  *
  * @exports AnswerForm
  * @see src/lib/store/agentChatSlice.ts: answersRequested + sendAnswers
@@ -25,6 +28,17 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconHelp } from '@tabler/icons-react';
 import type { ChatSkillQuestion } from '../../lib/agent-chat-skills';
+
+/** 📖 Per-choice tint rotation (round 10): each row of a question wears its
+ * own subtle background so the eye tells them apart without reading, and
+ * the picked one deepens its border. Tailwind arbitrary values resolve the
+ * bui tokens through hsl() because the CSS variables are raw HSL triplets. */
+const CHOICE_TINTS = [
+  'hsl(var(--accent-tint))',
+  'hsl(var(--green-tint))',
+  'hsl(var(--orange-tint))',
+  'hsl(var(--inset))',
+];
 
 interface AnswerFormProps {
   /** Questions parsed from the interactive first turn, index-aligned. */
@@ -40,7 +54,7 @@ interface AnswerFormProps {
 export function AnswerForm({ questions, sending, onSend, onSkip }: AnswerFormProps) {
   const { t } = useTranslation();
   const [answers, setAnswers] = useState<string[]>(() => questions.map(() => ''));
-  // 📖 Index of the option chip currently backing each answer, null when the
+  // 📖 Index of the option row currently backing each answer, null when the
   // answer is free text (or empty): purely visual, the answer string is the
   // single truth the send path reads.
   const [picked, setPicked] = useState<(number | null)[]>(() => questions.map(() => null));
@@ -69,38 +83,41 @@ export function AnswerForm({ questions, sending, onSend, onSkip }: AnswerFormPro
   };
 
   return (
-    <div className="mx-2.5 mb-1 mt-2 flex-none max-h-[60vh] overflow-y-auto rounded-[10px] border border-border bg-bg-1 p-2.5">
-      <div className="mb-1.5 flex items-center gap-1.5 text-[11.5px] font-medium text-fg-muted">
+    // 📖 No bordered panel: the sidebar edge and a top hairline already frame
+    // the form, and nested boxes (border, padding, border, background) are
+    // exactly the "double margin" pile-up this design removes. Questions
+    // separate from each other with a single hairline instead.
+    <div className="mx-3 mb-1 mt-2 flex-none max-h-[60vh] overflow-y-auto">
+      <div className="flex items-center gap-1.5 pb-1 text-[11.5px] font-medium tracking-wide text-fg-muted">
         <IconHelp size={12} stroke={1.8} />
         <span>{t('agentSkills.answerFormTitle', 'Answer the questions')}</span>
       </div>
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col">
         {questions.map((question, index) => (
-          <div key={`${index}-${question.text}`}>
-            {/* 📖 Full question text, no clamping: the form is the primary way
-             * the user reads what the agent asked, a truncated question forces
-             * guessing. */}
-            <label className="block">
-              <span className="sr-only">{t('agentSkills.answerPlaceholder', 'Your answer...')}</span>
-              <p className="mb-1 text-[11.5px] leading-snug text-fg">
-                {index + 1}. {question.text}
-              </p>
-            </label>
+          <div key={`${index}-${question.text}`} className="border-b border-line/70 py-3 last:border-b-0">
+            {/* 📖 Full question text at chat size (13.5px), no clamping and no
+             * smaller form font: the form is the primary way the user reads
+             * what the agent asked. */}
+            <p className="text-[13.5px] leading-relaxed text-fg">
+              {index + 1}. {question.text}
+            </p>
             {question.options.length > 0 && (
-              <div className="mb-1 flex flex-wrap gap-1" role="group" aria-label={question.text}>
+              <div className="mt-2 flex flex-col gap-1.5" role="group" aria-label={question.text}>
                 {question.options.map((option, optionIndex) => {
                   const selected = picked[index] === optionIndex;
+                  const tint = CHOICE_TINTS[optionIndex % CHOICE_TINTS.length];
                   return (
                     <button
                       key={option}
                       type="button"
                       aria-pressed={selected}
                       onClick={() => pickOption(index, optionIndex, option)}
-                      className={`max-w-full rounded-full border px-2 py-0.5 text-left text-[11px] leading-snug transition-colors ${
+                      className={`w-full rounded-[8px] border px-2.5 py-1.5 text-left text-[13px] leading-snug transition-colors ${
                         selected
-                          ? 'border-accent bg-accent/15 font-medium text-fg'
-                          : 'border-border bg-bg text-fg-muted hover:border-border-strong hover:text-fg'
+                          ? 'border-accent font-medium text-fg'
+                          : 'border-transparent text-fg-muted hover:text-fg'
                       }`}
+                      style={{ background: tint }}
                     >
                       {option}
                     </button>
@@ -113,17 +130,17 @@ export function AnswerForm({ questions, sending, onSend, onSkip }: AnswerFormPro
               value={answers[index] ?? ''}
               onChange={e => updateAnswer(index, e.target.value)}
               placeholder={t('agentSkills.answerPlaceholder', 'Your answer...')}
-              className="w-full resize-none rounded-[8px] border border-border bg-bg px-2 py-1.5 text-[12.5px] leading-snug text-fg outline-none transition-colors placeholder:text-fg-faint focus:border-border-focus"
+              className="mt-2 w-full resize-none rounded-[8px] border border-border-strong bg-surface px-2.5 py-2 text-[13.5px] leading-relaxed text-fg shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] outline-none transition-colors placeholder:text-fg-faint focus:border-accent"
             />
           </div>
         ))}
       </div>
-      <div className="mt-2 flex items-center justify-end gap-1.5">
+      <div className="flex items-center justify-end gap-1.5 py-2">
         <button
           type="button"
           onClick={onSkip}
           disabled={sending}
-          className="rounded-md border border-border bg-bg px-2 py-1 text-[11.5px] text-fg-muted transition-colors hover:text-fg disabled:opacity-50"
+          className="rounded-md border border-border bg-surface px-2.5 py-1 text-[12.5px] text-fg-muted transition-colors hover:text-fg disabled:opacity-50"
         >
           {t('agentSkills.skip', 'Skip')}
         </button>
@@ -131,7 +148,7 @@ export function AnswerForm({ questions, sending, onSend, onSkip }: AnswerFormPro
           type="button"
           onClick={() => onSend(answers)}
           disabled={sending || !hasAnswer}
-          className="rounded-md bg-primary px-2 py-1 text-[11.5px] font-medium text-primary-foreground transition-transform hover:-translate-y-px disabled:translate-y-0 disabled:opacity-40"
+          className="rounded-md bg-primary px-2.5 py-1 text-[12.5px] font-medium text-primary-foreground transition-transform hover:-translate-y-px disabled:translate-y-0 disabled:opacity-40"
         >
           {t('agentSkills.sendAnswers', 'Send answers')}
         </button>
