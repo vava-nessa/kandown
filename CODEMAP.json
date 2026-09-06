@@ -1792,7 +1792,7 @@
     },
     {
       "path": "src/components/agent/ActivityBlock.tsx",
-      "lines": 180,
+      "lines": 188,
       "title": "One activity area per assistant turn, on the shared BeautifulUI parts",
       "summary": "Every assistant turn gets one activity area that updates in place while the turn streams: the reasoning channel renders through the official bui ThinkingState (Reasoning-style prose trace, shimmer header while live, single-line ticker…",
       "functions": [
@@ -3183,7 +3183,7 @@
     },
     {
       "path": "src/lib/__tests__/agent-chat-events.spec.ts",
-      "lines": 252,
+      "lines": 314,
       "title": "Tests for the agent chat event fold",
       "summary": "Locks the reducer contract the chat sidebar renders from: streaming text accumulates then finalizes, thinking stays on its own channel, tool calls pair by toolCallId, usage accumulates, errors append entries (and fatal ones close the…"
     },
@@ -3354,7 +3354,7 @@
     },
     {
       "path": "src/lib/agent-chat-events.ts",
-      "lines": 509,
+      "lines": 530,
       "title": "Agent chat event model (t308)",
       "summary": "Pure, framework-free model of the JSON events the daemon streams on GET /api/agent/sessions/:id/events, plus the reducer that folds them into the chat message list rendered by the agent chat sidebar.",
       "functions": [

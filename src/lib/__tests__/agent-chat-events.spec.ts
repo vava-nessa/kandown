@@ -249,3 +249,65 @@ describe('optimistic user messages', () => {
     expect(state.messages).toHaveLength(1);
   });
 });
+
+describe('consecutive activity-only turns merge (round 11)', () => {
+  function toolStart(): AgentChatEvent {
+    return { ...base('tool_started'), toolCallId: 'tc', toolName: 'bash' } as AgentChatEvent;
+  }
+
+  it('extends the previous block instead of stacking a second one', () => {
+    let state = createChatFoldState();
+    state = applyChatEvent(state, delta('reading the board', 'thinking'));
+    state = applyChatEvent(state, toolStart());
+    state = applyChatEvent(state, { ...base('tool_finished'), toolCallId: 'tc', ok: true } as AgentChatEvent);
+    state = applyChatEvent(state, { ...base('turn_completed') });
+    expect(state.messages.filter(entry => entry.kind === 'assistant')).toHaveLength(1);
+
+    // 📖 Turn 2 starts with no user message in between: it extends turn 1.
+    state = applyChatEvent(state, delta('checking the archive', 'thinking'));
+    const merged = lastAssistant(state);
+    expect(state.messages.filter(entry => entry.kind === 'assistant')).toHaveLength(1);
+    expect(merged.turns).toBe(2);
+    expect(merged.thinking).toBe('reading the board\nchecking the archive');
+    expect(merged.streaming).toBe(true);
+  });
+
+  it('aggregates the tools of merged turns under one counter', () => {
+    let state = createChatFoldState();
+    state = applyChatEvent(state, toolStart());
+    state = applyChatEvent(state, { ...base('tool_finished'), toolCallId: 'tc', ok: true } as AgentChatEvent);
+    state = applyChatEvent(state, { ...base('turn_completed') });
+    state = applyChatEvent(state, toolStart());
+    state = applyChatEvent(state, { ...base('tool_finished'), toolCallId: 'tc', ok: true } as AgentChatEvent);
+    const merged = lastAssistant(state);
+    expect(merged.tools).toHaveLength(2);
+    expect(merged.turns).toBe(2);
+  });
+
+  it('an answer closes the run: the next turn opens a fresh entry', () => {
+    let state = createChatFoldState();
+    state = applyChatEvent(state, delta('working', 'thinking'));
+    state = applyChatEvent(state, { ...base('turn_completed') });
+    state = applyChatEvent(state, delta('here is the answer'));
+    state = applyChatEvent(state, { ...base('turn_completed') });
+
+    // 📖 The previous entry carries an answer, so a new activity turn must
+    // NOT fold into it: answers stay their own blocks.
+    state = applyChatEvent(state, delta('more activity', 'thinking'));
+    const assistants = state.messages.filter(entry => entry.kind === 'assistant');
+    expect(assistants).toHaveLength(2);
+    expect((assistants[1] as ChatAssistantEntry).turns).toBeUndefined();
+  });
+
+  it('a user message between turns prevents the merge', () => {
+    let state = createChatFoldState();
+    state = applyChatEvent(state, delta('first run', 'thinking'));
+    state = applyChatEvent(state, { ...base('turn_completed') });
+    const appended = appendUserMessage(state, 'new instruction');
+    state = appended.state;
+    state = applyChatEvent(state, delta('second run', 'thinking'));
+    const assistants = state.messages.filter(entry => entry.kind === 'assistant');
+    expect(assistants).toHaveLength(2);
+    expect((assistants[0] as ChatAssistantEntry).turns).toBeUndefined();
+  });
+});

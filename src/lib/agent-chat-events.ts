@@ -257,6 +257,11 @@ export interface ChatAssistantEntry {
   /** True while the latest delta was thinking (drives the live ActivityBlock). */
   thinkingActive: boolean;
   tools: ChatToolEntry[];
+  /** 📖 Harness turns merged into this entry (round 11): consecutive
+   * activity-only turns (thinking + tools, no answer) extend the previous
+   * block instead of stacking an identical one, and the count rides the
+   * settled header ("Finished thinking (3)"). Absent means 1. */
+  turns?: number;
 }
 
 export interface ChatErrorEntry {
@@ -312,6 +317,22 @@ function ensureStreamingAssistant(messages: ChatEntry[]): { messages: ChatEntry[
   const last = messages[messages.length - 1];
   if (last && last.kind === 'assistant' && last.streaming) {
     return { messages, entry: last };
+  }
+  // 📖 Activity-only continuation (round 11): the previous entry is an
+  // assistant that never said anything (thinking + tools, no answer yet).
+  // A new harness turn extends that block instead of stacking a second
+  // identical one: the settled header carries the turn count and the
+  // expanded view holds every tool call of the run. A thinking newline
+  // keeps the two traces as separate rows.
+  if (last && last.kind === 'assistant' && last.text.length === 0) {
+    const extended: ChatAssistantEntry = {
+      ...last,
+      streaming: true,
+      thinking: last.thinking.length > 0 ? `${last.thinking}\n` : last.thinking,
+      thinkingActive: false,
+      turns: (last.turns ?? 1) + 1,
+    };
+    return { messages: [...messages.slice(0, -1), extended], entry: extended };
   }
   const entry: ChatAssistantEntry = {
     kind: 'assistant',

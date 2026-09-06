@@ -127,6 +127,14 @@ export function ActivityBlock({ entry }: ActivityBlockProps) {
     ? t('agentChat.toolsSummaryRunning', '{{total}} tools: {{ok}} ok, {{running}} running', { total: tools.length, ok: okTools, running: runningTools })
     : t('agentChat.toolsSummary', '{{total}} tools: {{ok}} ok, {{failed}} failed', { total: tools.length, ok: okTools, failed: failedTools });
 
+  // 📖 Consecutive activity-only turns merge into this block (round 11): the
+  // settled header counts them ("Finished thinking (3)") instead of the run
+  // stacking three identical headers.
+  const turnsMerged = entry.turns ?? 1;
+  const settledThinkingLabel = turnsMerged > 1
+    ? `${t('agentChat.thinkingDone', 'Finished thinking')} (${turnsMerged})`
+    : t('agentChat.thinkingDone', 'Finished thinking');
+
   return (
     <div className="mb-1.5 min-w-0">
       {/* 📖 Live phase: the official 01 Loading State carries the "what is the
@@ -153,7 +161,7 @@ export function ActivityBlock({ entry }: ActivityBlockProps) {
             rows={thinkingRows(thinking)}
             live={false}
             activeLabel={t('agentChat.thinking', 'Thinking')}
-            doneLabel={t('agentChat.thinkingDone', 'Finished thinking')}
+            doneLabel={settledThinkingLabel}
           />
         )
       )}
