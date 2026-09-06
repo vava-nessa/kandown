@@ -8,14 +8,14 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 15204,
+      "lines": 14695,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 62852,
+      "lines": 62840,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -346,7 +346,7 @@
     },
     {
       "path": "src/cli/lib/__tests__/agent-runtime.spec.ts",
-      "lines": 273,
+      "lines": 264,
       "title": "Agent harness adapter tests",
       "summary": "Locks the pure half of the t307 harness foundation: each protocol adapter's argv mapping (permission modes, resume flags) and its stdout-line-to-event normalization, plus the runtime's follow-up routing decision surface.",
       "functions": [
@@ -356,12 +356,6 @@
         }
       ],
       "exports": "(tests)"
-    },
-    {
-      "path": "src/cli/lib/__tests__/agents-config.spec.ts",
-      "lines": 230,
-      "title": "Tests for the versioned agent catalog `.kandown/agents.json`",
-      "summary": "Covers the committed team contract behind subtask 2 of t262: 1."
     },
     {
       "path": "src/cli/lib/__tests__/board-reader.spec.ts",
@@ -391,7 +385,7 @@
       "path": "src/cli/lib/__tests__/daemon-lifecycle.spec.ts",
       "lines": 211,
       "title": "Port allocation and daemon start/stop lifecycle",
-      "summary": "Two layers of the same story, both against real sockets and a real detached process, nothing mocked, because everything that goes wrong here (a port already taken, a daemon that outlives its metadata, a stale `daemon.json` pointing at a…"
+      "summary": "Two layers of the same story, both against real sockets and a real detached process — nothing mocked, because everything that goes wrong here (a port already taken, a daemon that outlives its metadata, a stale `daemon.json` pointing at…"
     },
     {
       "path": "src/cli/lib/__tests__/daemon-self-upgrade.spec.ts",
@@ -473,18 +467,6 @@
       "lines": 127,
       "title": "Regression tests for resolveKandownDir boundary rules",
       "summary": "Pins down the three behaviors that prevent bare `kandown` from silently attaching to a foreign project: 1."
-    },
-    {
-      "path": "src/cli/lib/__tests__/runner-herdr.spec.ts",
-      "lines": 215,
-      "title": "Herdr runner unit tests",
-      "summary": "Pins the t261 Herdr integration where it is pure, plus the one behaviour the whole zero-config promise rests on: 1. herdrSocketPath resolves $HERDR_SOCKET, then $XDG_CONFIG_HOME, then the documented `~/.config/herdr/herdr.sock` default."
-    },
-    {
-      "path": "src/cli/lib/__tests__/runner-registry.spec.ts",
-      "lines": 112,
-      "title": "Runner registry and default-runner unit tests",
-      "summary": "Pins the seam the t261 UI codes against: 1. describe() always lists the built-in runner as available, and reports Herdr as unavailable (with a reason, never an exception) on a machine with no Herdr server."
     },
     {
       "path": "src/cli/lib/__tests__/session-edits.spec.ts",
@@ -877,7 +859,7 @@
     },
     {
       "path": "src/cli/lib/agents.ts",
-      "lines": 713,
+      "lines": 706,
       "title": "AI agent registry for the CLI task launcher",
       "summary": "Defines the built-in AI coding agents the CLI knows how to launch, merges them with the versioned team catalog (`.kandown/agents.json`), detects which binaries are installed on the current machine, and builds the shell command — plus…",
       "functions": [
@@ -1204,15 +1186,9 @@
     },
     {
       "path": "src/cli/lib/init.ts",
-      "lines": 141,
+      "lines": 114,
       "title": "Kandown Project Initializer Module",
-      "summary": "Creates .kandown/ configuration, copies singlefile HTML bundle, initializes project-root ./tasks/ with welcome templates, seeds the committed agent catalog (`.kandown/agents.json`), and installs the managed `kandown work` bootstrap line…",
-      "functions": [
-        {
-          "name": "doInit: create/refresh `.kandown/` for a project (idempotent)",
-          "summary": null
-        }
-      ]
+      "summary": "Creates .kandown/ configuration, copies singlefile HTML bundle, initializes project-root ./tasks/ with welcome templates, and installs the managed `kandown work` bootstrap line without generated instruction copies."
     },
     {
       "path": "src/cli/lib/kandown-work.ts",
@@ -1229,40 +1205,28 @@
     },
     {
       "path": "src/cli/lib/launcher.ts",
-      "lines": 309,
+      "lines": 295,
       "title": "CLI agent launcher",
       "summary": "Orchestrates the full task launch flow: read context, build prompt, assign the task to the chosen agent, auto-move it to In Progress, and spawn the agent.",
       "functions": [
         {
-          "name": "isInTmux           : detects if we're running inside a tmux session",
-          "summary": null
+          "name": "isInTmux",
+          "summary": "detects if we're running inside a tmux session"
         },
         {
-          "name": "prepareAgentLaunch : shared preparation (prompt, assign, move, command)",
-          "summary": null
+          "name": "launchAgent",
+          "summary": "interactive TUI launch (tmux split or exec-replace)"
         },
         {
-          "name": "rollbackTaskStatus : best-effort status restore after a failed launch",
-          "summary": null
+          "name": "runAgentSync",
+          "summary": "blocking launch for the cascade orchestrator"
         },
         {
-          "name": "launchAgent        : interactive TUI launch (tmux split or exec-replace)",
-          "summary": null
-        },
-        {
-          "name": "runAgentSync       : blocking launch for the cascade orchestrator",
-          "summary": null
-        },
-        {
-          "name": "buildShellCmd      : constructs a safe shell-escaped command string",
-          "summary": null
-        },
-        {
-          "name": "shellescape        : single-quote escaping for one shell word",
-          "summary": null
+          "name": "buildShellCmd",
+          "summary": "constructs a safe shell-escaped command string for tmux"
         }
       ],
-      "exports": "isInTmux, prepareAgentLaunch, rollbackTaskStatus, buildShellCmd, shellescape, launchAgent, runAgentSync, LaunchAgentOpts, PreparedLaunch"
+      "exports": "isInTmux, launchAgent, runAgentSync, LaunchAgentOpts"
     },
     {
       "path": "src/cli/lib/mcp.ts",
@@ -1359,137 +1323,8 @@
       "exports": "PLUGIN_KINDS, PluginKind, ScaffoldResult, scaffoldPlugin"
     },
     {
-      "path": "src/cli/lib/runner/default-runner.ts",
-      "lines": 207,
-      "title": "DefaultRunner: the daemon-owned harness session, behind the runner seam",
-      "summary": "The runner kandown always has (t261).",
-      "functions": [
-        {
-          "name": "createDefaultRunner : build the runner bound to one .kandown directory",
-          "summary": null
-        },
-        {
-          "name": "mapSessionStatus    : pure: harness session status to a run state",
-          "summary": null
-        },
-        {
-          "name": "renderEventsAsText  : pure: buffered agent events to a terminal transcript",
-          "summary": null
-        }
-      ],
-      "exports": "createDefaultRunner, mapSessionStatus, renderEventsAsText"
-    },
-    {
-      "path": "src/cli/lib/runner/herdr-client.ts",
-      "lines": 355,
-      "title": "Herdr client: silent detection plus a thin typed wrapper over its CLI",
-      "summary": "Everything kandown knows about Herdr (t261) lives here: whether it is present, and how to ask it for workspaces, tabs, panes and terminal output.",
-      "functions": [
-        {
-          "name": "herdrSocketPath      : the socket the local Herdr server would listen on",
-          "summary": null
-        },
-        {
-          "name": "detectHerdr          : cached availability probe, sync, never throws",
-          "summary": null
-        },
-        {
-          "name": "resetHerdrDetection  : drop the cache (tests, and after an install)",
-          "summary": null
-        },
-        {
-          "name": "herdrCall            : run one `herdr ...` command, parse its JSON result",
-          "summary": null
-        },
-        {
-          "name": "herdrCallText        : run one `herdr ...` command, keep stdout as text",
-          "summary": null
-        },
-        {
-          "name": "parseHerdrPanes      : pure: `pane list` payload to typed panes",
-          "summary": null
-        },
-        {
-          "name": "parseHerdrTabs       : pure: `tab list` payload to typed tabs",
-          "summary": null
-        },
-        {
-          "name": "mapHerdrStatus       : pure: Herdr agent status to a normalized run state",
-          "summary": null
-        },
-        {
-          "name": "taskIdFromTabLabel   : pure: read the `kd:<taskId>` tab-label convention",
-          "summary": null
-        },
-        {
-          "name": "tabLabelForTask      : pure: build that label",
-          "summary": null
-        },
-        {
-          "name": "pickWorkspaceForProject : pure: which workspace a project's tab belongs in",
-          "summary": null
-        }
-      ],
-      "exports": "HERDR_TAB_LABEL_PREFIX, HerdrPane, HerdrTab, HerdrCallResult, HerdrTextResult, herdrSocketPath, detectHerdr, resetHerdrDetection, herdrCall, herdrCallText, parseHerdrPanes, parseHerdrTabs, mapHerdrStatus, taskIdFromTabLabel, tabLabelForTask, pickWorkspaceForProject"
-    },
-    {
-      "path": "src/cli/lib/runner/herdr-runner.ts",
-      "lines": 242,
-      "title": "HerdrRunner: a task's agent, running in a real Herdr terminal pane",
-      "summary": "The second runner (t261).",
-      "functions": [
-        {
-          "name": "createHerdrRunner   : build the runner bound to one .kandown directory",
-          "summary": null
-        },
-        {
-          "name": "herdrLaunchCommand  : pure: prepared command to a short shell line",
-          "summary": null
-        },
-        {
-          "name": "runsFromHerdrState  : pure: panes plus tabs to the kandown run list",
-          "summary": null
-        }
-      ],
-      "exports": "createHerdrRunner, herdrLaunchCommand, runsFromHerdrState"
-    },
-    {
-      "path": "src/cli/lib/runner/index.ts",
-      "lines": 93,
-      "title": "Runner registry: the one place that knows which backends exist",
-      "summary": "Assembles the runners for a project (t261) and answers the two questions everything above asks: which backends can this machine use, and what is running right now.",
-      "functions": [
-        {
-          "name": "createRunnerRegistry : build the runners for one .kandown directory",
-          "summary": null
-        },
-        {
-          "name": "getRunnerRegistry    : cached registry for the daemon's current project",
-          "summary": null
-        },
-        {
-          "name": "resetRunnerRegistry  : drop the cache (tests, project switch)",
-          "summary": null
-        }
-      ],
-      "exports": "RunnerRegistry, RunnerDescriptor, createRunnerRegistry, getRunnerRegistry, resetRunnerRegistry"
-    },
-    {
-      "path": "src/cli/lib/runner/types.ts",
-      "lines": 110,
-      "title": "TaskRunner contract: where a task's agent actually runs",
-      "summary": "Kandown can start an agent on a task in more than one place.",
-      "functions": [
-        {
-          "name": "(types only)",
-          "summary": null
-        }
-      ],
-      "exports": "RunnerId, RunnerRunState, RunnerAvailability, RunnerRun, RunnerStartRequest, RunnerOutput, TaskRunner, TERMINAL_RUN_STATES"
-    },
-    {
       "path": "src/cli/lib/server.ts",
-      "lines": 1540,
+      "lines": 1529,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
