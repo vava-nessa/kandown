@@ -30,12 +30,21 @@
  * into the same agent without reopening the picker.
  *
  * @functions
- *  → isInTmux       — detects if we're running inside a tmux session
- *  → launchAgent    — interactive TUI launch (tmux split or exec-replace)
- *  → runAgentSync   — blocking launch for the cascade orchestrator
- *  → buildShellCmd  — constructs a safe shell-escaped command string for tmux
+ *  → isInTmux           : detects if we're running inside a tmux session
+ *  → prepareAgentLaunch : shared preparation (prompt, assign, move, command)
+ *  → rollbackTaskStatus : best-effort status restore after a failed launch
+ *  → launchAgent        : interactive TUI launch (tmux split or exec-replace)
+ *  → runAgentSync       : blocking launch for the cascade orchestrator
+ *  → buildShellCmd      : constructs a safe shell-escaped command string
+ *  → shellescape        : single-quote escaping for one shell word
  *
- * @exports isInTmux, launchAgent, runAgentSync, LaunchAgentOpts
+ * 📖 `prepareAgentLaunch`, `rollbackTaskStatus` and `buildShellCmd` are
+ * exported because a launch can also land somewhere this file does not spawn:
+ * the Herdr runner (t261) opens a real terminal pane and needs the exact same
+ * prompt, assignment and column policy, so it reuses the preparation instead
+ * of growing a second one.
+ *
+ * @exports isInTmux, prepareAgentLaunch, rollbackTaskStatus, buildShellCmd, shellescape, launchAgent, runAgentSync, LaunchAgentOpts, PreparedLaunch
  */
 
 import { execSync, spawn } from 'node:child_process';
@@ -72,10 +81,14 @@ export interface LaunchAgentOpts {
 /** 📖 Prepared launch artefacts, produced once and consumed by whichever spawn
  *  strategy the caller picked. Centralising it keeps the two entry points from
  *  drifting apart on prompt/command construction. */
-interface PreparedLaunch {
+export interface PreparedLaunch {
   agentName: string;
   binary: string;
   args: string[];
+  /** 📖 The exact combined prompt string, also the content of `contextFile`.
+   *  Callers that must not type a 20 KB prompt into a terminal use it to spot
+   *  the prompt argument and swap it for a `cat` of the context file. */
+  prompt: string;
   contextFile: string;
   originalStatus: string;
   /** Whether the task was successfully moved to "In Progress". */
@@ -97,7 +110,7 @@ export function isInTmux(): boolean {
  * or read failure; rolls back status if the move succeeded but a later step
  * throws. The caller owns the spawn strategy.
  */
-function prepareLaunch(opts: LaunchAgentOpts): PreparedLaunch {
+export function prepareAgentLaunch(opts: LaunchAgentOpts): PreparedLaunch {
   const { taskId, agentId, kandownDir, handoff, queue } = opts;
 
   const agentDef = getAgentById(agentId, kandownDir);
@@ -144,8 +157,9 @@ function prepareLaunch(opts: LaunchAgentOpts): PreparedLaunch {
 
   // 📖 Safety net for very large prompts that hit the argv-length limit.
   const contextFile = join(tmpdir(), `kandown-${taskId}-context.md`);
+  const prompt = `${systemPrompt}\n\n---\n\n${taskPrompt}`;
   try {
-    writeFileSync(contextFile, `${systemPrompt}\n\n---\n\n${taskPrompt}`, 'utf8');
+    writeFileSync(contextFile, prompt, 'utf8');
   } catch (e) {
     console.warn(`[kandown] Failed to write context file (${(e as Error).message}); launching anyway.`);
   }
@@ -157,7 +171,7 @@ function prepareLaunch(opts: LaunchAgentOpts): PreparedLaunch {
     throw new Error(`Agent ${agentId} returned an empty command`);
   }
 
-  return { agentName: agentDef.name, binary, args, contextFile, originalStatus, taskMoved };
+  return { agentName: agentDef.name, binary, args, prompt, contextFile, originalStatus, taskMoved };
 }
 
 /** 📖 Shared env extras forwarded to the agent process in every spawn path. */
@@ -178,7 +192,7 @@ function launchEnv(contextFile: string, taskId: string, kandownDir: string): Nod
  */
 export function launchAgent(opts: LaunchAgentOpts): void {
   const { taskId, kandownDir, onBeforeExec } = opts;
-  const prepared = prepareLaunch(opts);
+  const prepared = prepareAgentLaunch(opts);
   const { agentName, binary, args, contextFile, originalStatus } = prepared;
 
   if (isInTmux()) {
@@ -244,7 +258,7 @@ export function launchAgent(opts: LaunchAgentOpts): void {
  */
 export function runAgentSync(opts: LaunchAgentOpts): Promise<{ exitCode: number }> {
   const { taskId, kandownDir } = opts;
-  const prepared = prepareLaunch(opts);
+  const prepared = prepareAgentLaunch(opts);
   const { binary, args, contextFile, originalStatus, agentName } = prepared;
 
   return new Promise((resolve, reject) => {
@@ -266,7 +280,7 @@ export function runAgentSync(opts: LaunchAgentOpts): Promise<{ exitCode: number 
  * a warning if the rollback itself fails so the user is not left with a
  * silently-inconsistent task file (t112).
  */
-function rollbackTaskStatus(kandownDir: string, taskId: string, originalStatus: string): void {
+export function rollbackTaskStatus(kandownDir: string, taskId: string, originalStatus: string): void {
   const ok = moveTaskToColumn(kandownDir, taskId, originalStatus);
   if (!ok) {
     console.warn(`[kandown] Could not roll back task ${taskId} to ${originalStatus} — update it manually.`);
@@ -277,7 +291,7 @@ function rollbackTaskStatus(kandownDir: string, taskId: string, originalStatus: 
  * 📖 Builds a shell command string from binary + args array.
  * Args are shell-escaped so spaces and special chars are safe.
  */
-function buildShellCmd(binary: string, args: string[]): string {
+export function buildShellCmd(binary: string, args: string[]): string {
   const parts = [binary, ...args].map(shellescape);
   return parts.join(' ');
 }
@@ -287,7 +301,7 @@ function buildShellCmd(binary: string, args: string[]): string {
  * single quotes. Handles the common case of prompt strings containing backticks,
  * double quotes, and newlines safely.
  */
-function shellescape(str: string): string {
+export function shellescape(str: string): string {
   // 📖 Single-quote wrap: safe for all chars except single quotes themselves.
   // Embedded single quotes become: '\'' (end quote, escaped quote, reopen quote)
   return `'${str.replace(/'/g, "'\\''")}'`;

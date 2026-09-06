@@ -1,8 +1,14 @@
 /**
  * @file Kandown Project Initializer Module
  * @description Creates .kandown/ configuration, copies singlefile HTML bundle,
- * initializes project-root ./tasks/ with welcome templates, and installs the
- * managed `kandown work` bootstrap line without generated instruction copies.
+ * initializes project-root ./tasks/ with welcome templates, seeds the committed
+ * agent catalog (`.kandown/agents.json`), and installs the managed
+ * `kandown work` bootstrap line without generated instruction copies.
+ *
+ * @functions
+ *  → doInit: create/refresh `.kandown/` for a project (idempotent)
+ *
+ * @see src/cli/lib/agents-config.ts - the agent catalog written on init
  */
 
 import { existsSync, mkdirSync, copyFileSync, readdirSync, statSync } from 'node:fs';
@@ -11,6 +17,7 @@ import { atomicWriteFileSync } from './atomic-write';
 import { getTasksDir } from './board-reader';
 import { PKG_ROOT } from './updater';
 import { ensureAgentBootstrap, migrateAgentInstructions } from './agent-migration';
+import { defaultAgentsConfig, saveAgentsConfig } from './agents-config';
 
 function copyRecursive(src: string, dest: string): string[] {
   const errors: string[] = [];
@@ -40,7 +47,7 @@ function copyRecursive(src: string, dest: string): string[] {
  * 📖 Runtime state that lives inside `.kandown/` but belongs to one machine, not
  * to the repository. Without this file every project picks up a rotating set of
  * untracked leftovers (`daemon.json` changes on every launch) and, worse, is
- * tempted to commit extension trust — which the loader deliberately ignores
+ * tempted to commit extension trust, which the loader deliberately ignores
  * anyway, so that a cloned repo cannot grant itself execution permission.
  *
  * 📖 Written on init and never rewritten afterwards: a project that has tuned
@@ -56,6 +63,32 @@ daemon.lock
 extensions/enabled.json
 extensions/trust.json
 `;
+
+/**
+ * 📖 Seeds `.kandown/agents.json`, the committed team agent catalog (binaries,
+ * aliases, per-agent extra args, cascade prefs) that `kandown init` leaves for
+ * the project to commit.
+ *
+ * 📖 Generated from `defaultAgentsConfig()` rather than copied from a template
+ * file on purpose: the built-in registry in `agents.ts` is the single source of
+ * truth for which agents kandown knows about, and a hand-maintained
+ * `templates/agents.json` silently rotted behind it (it still listed 8 agents
+ * when the registry had 23). Writing it from code means a fresh project always
+ * gets the current catalog.
+ *
+ * 📖 Never overwritten: re-running `init` on a project that already tuned its
+ * catalog must be a no-op. Non-fatal on failure, the merged catalog falls back
+ * to the built-ins when the file is missing.
+ */
+function writeAgentsCatalog(kandownDir: string): void {
+  const path = join(kandownDir, 'agents.json');
+  if (existsSync(path)) return;
+  try {
+    saveAgentsConfig(kandownDir, defaultAgentsConfig());
+  } catch {
+    // 📖 Non-fatal: without the file, loadCatalog serves the built-in defaults.
+  }
+}
 
 function writeKandownGitignore(kandownDir: string): void {
   const path = join(kandownDir, '.gitignore');
@@ -96,15 +129,9 @@ export function doInit(kandownDir: string): boolean {
       if (!existsSync(join(kandownDir, 'kandown.json')) && existsSync(join(templatesDir, 'kandown.json'))) {
         copyFileSync(join(templatesDir, 'kandown.json'), join(kandownDir, 'kandown.json'));
       }
-
-      // 📖 agents.json: the committed team agent catalog (aliases + extra args +
-      // cascade prefs). Seeded from the template so a fresh project shares the
-      // same launch commands as the rest of the team. Not overwritten if it
-      // already exists (idempotent re-init).
-      if (!existsSync(join(kandownDir, 'agents.json')) && existsSync(join(templatesDir, 'agents.json'))) {
-        copyFileSync(join(templatesDir, 'agents.json'), join(kandownDir, 'agents.json'));
-      }
     }
+
+    writeAgentsCatalog(kandownDir);
     return true;
   } catch (error) {
     console.error(`Init failed: ${error instanceof Error ? error.message : String(error)}`);

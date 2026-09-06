@@ -183,7 +183,7 @@ ASSIGN & LAUNCH  t42
 | Cline | `cline` | `cline task`, non-interactive |
 | Crush · OpenClaw · Kimi · Qwen · Mistral Vibe · Grok · OpenHands · Perplexity · Agy | | interactive session |
 
-The catalog is the committed `.kandown/agents.json` — override binaries, add
+The catalog is the committed `.kandown/agents.json`: override binaries, add
 aliases, pin team-wide `extraArgs`, or declare a fully custom agent with a
 [launch mode](#). Run `kandown agents` to see what's installed.
 

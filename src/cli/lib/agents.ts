@@ -580,11 +580,18 @@ export function resolveAgentEntry(assignee: string | null | undefined, kandownDi
  *   - custom agents use a generic builder driven by `launchMode`
  * In both cases the team-wide `extraArgs` are appended last (so they can
  * override earlier flags the way most CLIs resolve duplicates).
+ *
+ * 📖 argv[0] always comes from `agent.bin`, never from the hard-coded name
+ * inside a built-in `buildCommand`. The two are identical for a stock catalog,
+ * but a team that points `bin` at a wrapper script in `.kandown/agents.json`
+ * expects that wrapper to be the process that runs, not just the binary that
+ * gets detection-checked.
  */
 export function buildAgentCommand(agent: AgentDef, opts: LaunchOpts): string[] {
   let base: string[];
   if (agent.buildCommand) {
     base = agent.buildCommand(opts);
+    base = [agent.bin, ...base.slice(1)];
   } else {
     base = genericCommand(agent, opts);
   }

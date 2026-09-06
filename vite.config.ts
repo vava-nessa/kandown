@@ -224,6 +224,16 @@ function kandownDevPlugin() {
               return;
             }
 
+            // 📖 Dev mirror of GET /api/agent/runners (t261). Same registry
+            // the daemon uses, so Herdr detection behaves identically in
+            // `pnpm dev` and in the shipped binary.
+            if (parts[1] === 'runners' && req.method === 'GET') {
+              const runnerModule = await server.ssrLoadModule('/src/cli/lib/runner/index.ts') as typeof import('./src/cli/lib/runner/index');
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ runners: runnerModule.getRunnerRegistry(kandownPath).describe() }));
+              return;
+            }
+
             // 📖 t308 session index (DEV mirror). The project root is computed
             // from the dev tree, never accepted from the client.
             if (parts[1] === 'sessions-index') {

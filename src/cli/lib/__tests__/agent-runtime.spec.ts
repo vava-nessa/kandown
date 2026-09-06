@@ -174,6 +174,15 @@ describe('pi adapter', () => {
       { type: 'file_changed', path: '/p/a.md' },
     ]);
 
+    // 📖 tool_execution_start carries the args: the excerpt rides the duplicate
+    // tool_started so the fold can patch the open row (pi rows are not nameless).
+    const execStart = piParse(JSON.stringify({
+      type: 'tool_execution_start', toolCallId: 'tc1', toolName: 'bash', args: { command: 'ls tasks/' },
+    }), state);
+    expect(execStart.events).toEqual([
+      { type: 'tool_started', toolCallId: 'tc1', toolName: 'bash', summary: 'ls tasks/' },
+    ]);
+
     expect(piParse(JSON.stringify({ type: 'turn_end' }), state).events).toEqual([{ type: 'turn_completed' }]);
 
     expect(piParse(JSON.stringify({ type: 'agent_start' }), state)).toEqual({ events: [] });

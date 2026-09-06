@@ -6,7 +6,7 @@
  * Nothing is mocked and nothing is imported: if the bundle is broken, argument
  * parsing regresses or a write lands in the wrong directory, these fail.
  *
- * 📖 Run `pnpm build:cli` before this suite — it asserts on `bin/kandown.js`,
+ * 📖 Run `pnpm build:cli` before this suite: it asserts on `bin/kandown.js`,
  * the build artifact, not on `src/`. `pnpm verify` already orders it that way.
  *
  * Two guarantees here are load-bearing for agents and shell scripts:
@@ -83,7 +83,7 @@ describe('kandown init', () => {
     expect(rows.every(r => typeof r.id === 'string' && r.id.length > 0)).toBe(true);
   });
 
-  it('is idempotent — a second init does not fail or wipe the tasks', () => {
+  it('is idempotent: a second init does not fail or wipe the tasks', () => {
     const before = taskFiles().length;
     runOk(['init']);
     expect(taskFiles().length).toBe(before);

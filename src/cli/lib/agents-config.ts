@@ -31,7 +31,7 @@
  *
  * @exports AgentCatalogEntry, CascadeConfig, AgentsConfig, AGENTS_CONFIG_VERSION, DEFAULT_CASCADE, loadAgentsConfig, saveAgentsConfig, defaultAgentsConfig, resolveCascade
  * @see src/cli/lib/agents.ts — built-in registry + buildCommand
- * @see templates/agents.json — the committed default written on `kandown init`
+ * @see src/cli/lib/init.ts (writeAgentsCatalog): seeds this file on `kandown init`
  */
 
 import { existsSync, readFileSync } from 'node:fs';

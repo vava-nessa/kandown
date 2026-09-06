@@ -2,12 +2,12 @@
  * @file Unit tests for the SGR mouse sequence parser
  * @description `parseMouseInput` is what makes the TUI board clickable and
  * draggable: every click, drag and wheel tick arrives as a raw SGR escape
- * sequence on stdin and is decoded here. It has no seams to mock — string in,
- * event out — so it is exactly the kind of code that should be pinned by tests
+ * sequence on stdin and is decoded here. It has no seams to mock (string in,
+ * event out), so it is exactly the kind of code that should be pinned by tests
  * rather than by trying a mouse in a terminal.
  *
  * 📖 Ink strips the leading ESC (\x1b) before handing input to `useInput`, so
- * every fixture below starts at `[<` — the real shape the parser sees at
+ * every fixture below starts at `[<`: the real shape the parser sees at
  * runtime, not the textbook `\x1b[<…` form.
  */
 import { describe, it, expect } from 'vitest';

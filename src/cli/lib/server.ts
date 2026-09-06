@@ -60,6 +60,7 @@ import {
   updateLocalWorkflowFile,
 } from './workflows-cli';
 import { compileProjectKandownWork } from './kandown-work';
+import { getRunnerRegistry } from './runner';
 import { applyWorkflowUpdate, fetchWorkflowRegistry, installStoreWorkflow, previewWorkflowUpdate, type WorkflowRegistryEntry } from './workflows-store';
 import { buildSkillSessionPrompt, findSessionSkill, listWorkflowSkills } from './skills';
 import { extractToken, selfOrigin, verifyToken } from './daemon-auth';
@@ -728,6 +729,16 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
   // plugin mirrors these routes and demoBackend answers 501.
   if (path === '/api/agent/harnesses' && method === 'GET') {
     return writeJson(res, 200, detectHarnessesJSON());
+  }
+
+  // 📖 Runner backends (t261). Answers where a task's agent can run on this
+  // machine: always the built-in daemon runner, plus Herdr when a local Herdr
+  // server is up. Detection is silent by contract, so an absent Herdr is a
+  // plain `available: false` row, never an error, and the UI simply renders
+  // nothing extra. Fan-out note: the Vite dev plugin mirrors this route and
+  // demoBackend answers 501 like every other /api/agent surface.
+  if (path === '/api/agent/runners' && method === 'GET') {
+    return writeJson(res, 200, { runners: getRunnerRegistry(kandownDir).describe() });
   }
 
   if (path === '/api/agent/sessions' && method === 'GET') {

@@ -139,7 +139,7 @@ describe('buildTaskFilename', () => {
     // 📖 `resolveTaskFilename` only treats the first underscore as a slug
     // boundary when the prefix contains a digit (see ID_LIKE). Slugging a
     // digitless id (`kandown create --id assignable`) produced
-    // `assignable_assign_me.md`, which claims the id `assignable_assign_me` —
+    // `assignable_assign_me.md`, which claims the id `assignable_assign_me`,
     // the task became unreachable by its own id, for `show`, `move`, `assign`
     // and every `depends_on` pointing at it.
     expect(buildTaskFilename('assignable', 'Assign me')).toBe('assignable.md');

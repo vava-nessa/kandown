@@ -336,10 +336,10 @@ export function readTask(kandownDir: string, taskId: string, defaultStatus?: str
 
 /**
  * 📖 Why a move was refused.
- *  - `not-found`    — no task file carries that id (typo, or already deleted).
- *  - `blocked`      — the shared dependency gate said no; `blockedBy` lists the
+ *  - `not-found`    : no task file carries that id (typo, or already deleted).
+ *  - `blocked`      : the shared dependency gate said no; `blockedBy` lists the
  *                     unresolved dependency ids.
- *  - `write-failed` — the task exists and the gate allowed it, but the read or
+ *  - `write-failed` : the task exists and the gate allowed it, but the read or
  *                     the atomic rewrite threw (locked file, full disk, EACCES).
  */
 export type MoveRefusal = 'not-found' | 'blocked' | 'write-failed';
@@ -349,7 +349,7 @@ export type MoveRefusal = 'not-found' | 'blocked' | 'write-failed';
  * user-facing sentence ready to be printed by a CLI, returned as an MCP error
  * or shown in a TUI toast, so no caller has to reconstruct the reason from a
  * bare `false` (the reason used to reach the user only as a stray
- * `console.error` from deep inside this module — which in Ink lands on top of
+ * `console.error` from deep inside this module, which in Ink lands on top of
  * the rendered board).
  */
 export interface MoveOutcome {
@@ -364,8 +364,8 @@ export interface MoveOutcome {
 
 /**
  * 📖 Moves a task between board columns and reports *why* when it cannot.
- * Same write path as `moveTaskToColumn` — the boolean version below is a thin
- * wrapper over this one — but it returns the gate verdict instead of swallowing
+ * Same write path as `moveTaskToColumn` (the boolean version below is a thin
+ * wrapper over this one), but it returns the gate verdict instead of swallowing
  * it, which is what lets `kandown move`, the MCP server and the TUI each phrase
  * the refusal in their own idiom from one shared decision.
  *

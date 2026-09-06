@@ -26,8 +26,8 @@ source to edit instead.
 
 ## `bin/` — Published CLI entrypoints — GENERATED, never edit
 
-- **`kandown.js`** · 14695 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
-- **`tui.js`** · 62840 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
+- **`kandown.js`** · 15204 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
+- **`tui.js`** · 62852 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
 
 ## `src/` — Web app root
 
@@ -66,7 +66,7 @@ source to edit instead.
 
 - **`agent-migration.ts`** · 258 lines — Migrates old project and user-level Kandown instruction files without discarding edited content.
 - **`agents-config.ts`** · 218 lines — The committed team contract for which AI coding agents a project supports: their binary, aliases, launch mode, and per-agent extra CLI args, plus project-wide cascade preferences (preferred agent, unassigned-task behaviour, same-session…
-- **`agents.ts`** · 706 lines — Defines the built-in AI coding agents the CLI knows how to launch, merges them with the versioned team catalog (`.kandown/agents.json`), detects which binaries are installed on the current machine, and builds the shell command — plus…
+- **`agents.ts`** · 713 lines — Defines the built-in AI coding agents the CLI knows how to launch, merges them with the versioned team catalog (`.kandown/agents.json`), detects which binaries are installed on the current machine, and builds the shell command — plus…
 - **`atomic-write.ts`** · 27 lines — Crash-safe file writes for the CLI: write to a sibling temp file, then rename over the target.
 - **`board-reader.ts`** · 740 lines — Provides filesystem-based reading and writing of Kandown task files for the CLI.
 - **`browser.ts`** · 26 lines — Resolves and spawns the platform default browser for the given URL.
@@ -79,16 +79,16 @@ source to edit instead.
 - **`extensions-store.ts`** · 156 lines — Fetches the community extensions index from its canonical home (a JSON file in the kandown repo, served via `raw.githubusercontent.com`) and installs extensions by copying their files into the project's `.kandown/extensions/` directory.
 - **`file-watcher.ts`** · 418 lines — Uses chokidar for filesystem events and SHA-256 content hashing to detect actual content changes.
 - **`home-workspace.ts`** · 54 lines — Detects the silent footgun where a `pnpm-workspace.yaml` + `package.json` (+ `node_modules`) exist at the user's home directory root, making pnpm treat `~/` as the workspace root for every project below it.
-- **`init.ts`** · 114 lines — Creates .kandown/ configuration, copies singlefile HTML bundle, initializes project-root ./tasks/ with welcome templates, and installs the managed `kandown work` bootstrap line without generated instruction copies.
+- **`init.ts`** · 141 lines — Creates .kandown/ configuration, copies singlefile HTML bundle, initializes project-root ./tasks/ with welcome templates, seeds the committed agent catalog (`.kandown/agents.json`), and installs the managed `kandown work` bootstrap line…
 - **`kandown-work.ts`** · 156 lines — Loads the selected built-in or project-local workflow, user instructions, active skill Markdown, task context, and board digest before delegating policy rendering to the shared pure compiler.
-- **`launcher.ts`** · 295 lines — Orchestrates the full task launch flow: read context, build prompt, assign the task to the chosen agent, auto-move it to In Progress, and spawn the agent.
+- **`launcher.ts`** · 309 lines — Orchestrates the full task launch flow: read context, build prompt, assign the task to the chosen agent, auto-move it to In Progress, and spawn the agent.
 - **`mcp.ts`** · 242 lines — Exposes Kandown task operations to MCP hosts (Claude Desktop, VSCode, etc.) via JSON-RPC 2.0 over stdin/stdout.
 - **`plugin-build.ts`** · 153 lines — Turns a plugin's TypeScript sources into the self-contained JavaScript the browser can execute.
 - **`plugin-check.ts`** · 512 lines — The closed feedback loop that lets an AI agent author a plugin without a human in the middle.
 - **`plugin-cli.ts`** · 296 lines — The agent-first façade over the extension system.
 - **`plugin-dev.ts`** · 154 lines — Watches one plugin directory and, on every save, rebuilds the browser bundles, re-runs the validator and asks the running daemon to hot reload the board.
 - **`plugin-scaffold.ts`** · 342 lines — Generates a ready-to-run plugin directory for `kandown plugin create`.
-- **`server.ts`** · 1529 lines — Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application.
+- **`server.ts`** · 1540 lines — Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application.
 - **`skills.ts`** · 152 lines — Discovers immutable built-in, global, and project data-only Markdown skill packages with deterministic override precedence.
 - **`task-move.ts`** · 198 lines — Runs the shared dependency policy and enabled extension gates before persisting a web move.
 - **`themes-cli.ts`** · 255 lines — Implements the `kandown theme <subcommand>` verb: list installed themes, install from the registry or a pasted URL, scaffold a starter theme, and emit the prefilled GitHub URL the user clicks to propose their theme via a one-click PR.
@@ -106,12 +106,13 @@ source to edit instead.
 - **`agent-assign.spec.ts`** · 140 lines — Covers the three pieces the TUI's `a` key now leans on: - `assignTaskToAgent` writes the canonical agent id into `assignee:`, preserves the rest of the frontmatter and the body, is idempotent, and fails soft on an unknown task.
 - **`agent-delivery.spec.ts`** · 82 lines — Locks the pure surfaces of the steer/queue delivery split and the model pass-through.
 - **`agent-migration.spec.ts`** · 238 lines — Exercises the filesystem migration against disposable project and home directories.
-- **`agent-runtime.spec.ts`** · 264 lines — Locks the pure half of the t307 harness foundation: each protocol adapter's argv mapping (permission modes, resume flags) and its stdout-line-to-event normalization, plus the runtime's follow-up routing decision surface.
+- **`agent-runtime.spec.ts`** · 273 lines — Locks the pure half of the t307 harness foundation: each protocol adapter's argv mapping (permission modes, resume flags) and its stdout-line-to-event normalization, plus the runtime's follow-up routing decision surface.
+- **`agents-config.spec.ts`** · 230 lines — Covers the committed team contract behind subtask 2 of t262: 1.
 - **`board-reader.spec.ts`** · 125 lines — Spawns bin/kandown.js (the published CLI bundle) in a tmpdir, seeds two tasks with a dependency edge, and asserts that: - `kandown move` succeeds when the dependency is already in the terminal column.
 - **`cli-lifecycle.spec.ts`** · 228 lines — Spawns the published bundle (`bin/kandown.js`) in a throwaway tmpdir and drives one full task lifecycle the way a user or an agent would: `init` → `create` → `list --json` → `show` → `assign` → `move` → archive.
 - **`daemon-auth.spec.ts`** · 142 lines — Pins the contract of token generation, extraction and verification.
 - **`daemon-http-auth.spec.ts`** · 203 lines — Spins up a real `createServeServer` instance with `setActiveToken` configured, then pins the contract: 1.
-- **`daemon-lifecycle.spec.ts`** · 211 lines — Two layers of the same story, both against real sockets and a real detached process — nothing mocked, because everything that goes wrong here (a port already taken, a daemon that outlives its metadata, a stale `daemon.json` pointing at…
+- **`daemon-lifecycle.spec.ts`** · 211 lines — Two layers of the same story, both against real sockets and a real detached process, nothing mocked, because everything that goes wrong here (a port already taken, a daemon that outlives its metadata, a stale `daemon.json` pointing at a…
 - **`daemon-self-upgrade.spec.ts`** · 124 lines — The daemon restarts itself when the package on disk moves ahead of the code it is running, so a user with the web UI open never has to be told to run a command.
 - **`home-workspace.spec.ts`** · 83 lines — Pins down `detectHomeWorkspace`: 1.
 - **`kandown-work-cli.spec.ts`** · 48 lines — Proves fresh projects print the exact shared compiler output on stdout and that an explicit task replaces the general board digest.
@@ -122,6 +123,8 @@ source to edit instead.
 - **`plugin-authoring.spec.ts`** · 277 lines — Vitest suite over the `kandown plugin` pipeline: every scaffold kind must bundle and validate clean out of the box, and the validator must catch the failures an author (human or agent) actually produces.
 - **`readTask-archive-flag.spec.ts`** · 133 lines — Pins the invariant that the file's *location* (active folder vs `tasks/archive/`) is the single source of truth for whether a task is archived.
 - **`resolve-kandown-dir.spec.ts`** · 127 lines — Pins down the three behaviors that prevent bare `kandown` from silently attaching to a foreign project: 1.
+- **`runner-herdr.spec.ts`** · 215 lines — Pins the t261 Herdr integration where it is pure, plus the one behaviour the whole zero-config promise rests on: 1. herdrSocketPath resolves $HERDR_SOCKET, then $XDG_CONFIG_HOME, then the documented `~/.config/herdr/herdr.sock` default.
+- **`runner-registry.spec.ts`** · 112 lines — Pins the seam the t261 UI codes against: 1. describe() always lists the built-in runner as available, and reports Herdr as unavailable (with a reason, never an exception) on a machine with no Herdr server.
 - **`session-edits.spec.ts`** · 259 lines — Locks the daemon half of the live editing experience (t309): the session-to-task path mapping (descriptive names, bare ids, the archive directory, non-task rejection), the started/ended broadcast idempotence, the task_diff gating on…
 - **`session-index.spec.ts`** · 213 lines — Pins the t308 chat-session index contract against a disposable fake home directory (the module's `~/.kandown/sessions` base is redirected by mocking `os.homedir`, so no real home state is ever touched): 1. upsert writes one JSON file…
 - **`skills.spec.ts`** · 120 lines — Verifies bundled skill discovery plus missing configured skill diagnostics without relying on network or executable package content.
@@ -150,6 +153,14 @@ source to edit instead.
 - **`claude-code.ts`** · 166 lines — Drives `claude -p <prompt> --output-format stream-json` and normalizes its JSONL stdout into kandown agent events.
 - **`codex.ts`** · 167 lines — Drives `codex exec --json` and normalizes its JSONL event stream into kandown agent events.
 - **`pi.ts`** · 230 lines — Drives `pi --mode rpc`, pi's newline-delimited JSON protocol over stdin/stdout (documented in badlogic/pi-mono, packages/coding-agent/ docs/rpc.md).
+
+## `src/cli/lib/runner/`
+
+- **`default-runner.ts`** · 207 lines — The runner kandown always has (t261).
+- **`herdr-client.ts`** · 355 lines — Everything kandown knows about Herdr (t261) lives here: whether it is present, and how to ask it for workspaces, tabs, panes and terminal output.
+- **`herdr-runner.ts`** · 242 lines — The second runner (t261).
+- **`index.ts`** · 93 lines — Assembles the runners for a project (t261) and answers the two questions everything above asks: which backends can this machine use, and what is running right now.
+- **`types.ts`** · 110 lines — Kandown can start an agent on a task in more than one place.
 
 ## `src/cli/screens/` — Full-screen TUI views
 
@@ -450,6 +461,6 @@ source to edit instead.
 
 ## Coverage
 
-318 of 318 eligible files carry an `@description` header.
+326 of 326 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

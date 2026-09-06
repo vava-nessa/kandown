@@ -1,13 +1,13 @@
 /**
  * @file Port allocation and daemon start/stop lifecycle
  * @description Two layers of the same story, both against real sockets and a
- * real detached process — nothing mocked, because everything that goes wrong
+ * real detached process, nothing mocked, because everything that goes wrong
  * here (a port already taken, a daemon that outlives its metadata, a stale
  * `daemon.json` pointing at a dead PID) only goes wrong against the OS.
  *
- *  1. `listenOnAvailablePort` — walks the 2050-2099 range, skipping ports that
+ *  1. `listenOnAvailablePort` walks the 2050-2099 range, skipping ports that
  *     are already bound, so two projects open side by side never fight.
- *  2. `kandown daemon start|status|stop` — spawns the real detached daemon in a
+ *  2. `kandown daemon start|status|stop` spawns the real detached daemon in a
  *     tmpdir project, checks it answers on its port and that stopping it kills
  *     the process *and* removes the metadata.
  *
@@ -160,7 +160,7 @@ describe('kandown daemon start / status / stop', () => {
     expect(metadata!.kandownDir).toBe(kandownDir);
     expect(isAlive(metadata!.pid)).toBe(true);
 
-    // 📖 The daemon claims *this* project on its own port — the check
+    // 📖 The daemon claims *this* project on its own port, the check
     // `stopProjectDaemon` relies on before it is allowed to send a signal.
     const info = await fetch(`http://127.0.0.1:${metadata!.port}/api/daemon`, {
       signal: AbortSignal.timeout(5000),
@@ -178,7 +178,7 @@ describe('kandown daemon start / status / stop', () => {
     expect(existsSync(join(kandownDir, 'daemon.json'))).toBe(false);
   }, 60_000);
 
-  it('is idempotent — stopping again is a no-op, not an error', () => {
+  it('is idempotent: stopping again is a no-op, not an error', () => {
     const res = run(['daemon', 'stop']);
     expect(res.status).toBe(0);
     expect(res.stdout + res.stderr).toMatch(/not running|Daemon stopped/i);

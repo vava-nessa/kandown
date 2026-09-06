@@ -4,7 +4,7 @@
  * it resolves the task, asks the shared dependency gate, writes the file and
  * reports *why* when it refuses. Every interface (CLI, MCP, TUI, launcher)
  * phrases its own refusal from this verdict, so the shape of the verdict is a
- * contract, not an implementation detail — a missing `blockedBy` or a vague
+ * contract, not an implementation detail: a missing `blockedBy` or a vague
  * `message` turns "blocked by t2" back into "Move failed".
  *
  * These run in-process against a tmpdir board (no spawn), so they cover the
@@ -127,7 +127,7 @@ describe('moveTaskToColumn (boolean compatibility wrapper)', () => {
     expect(spy).toHaveBeenCalledWith('[kandown] Cannot move t1 to Done: blocked by t2');
   });
 
-  it('stays quiet on a missing task — the caller already knows the id it passed', () => {
+  it('stays quiet on a missing task: the caller already knows the id it passed', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(moveTaskToColumn(kandownDir, 'ghost', 'Done')).toBe(false);
     expect(spy).not.toHaveBeenCalled();
