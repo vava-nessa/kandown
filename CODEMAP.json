@@ -2273,7 +2273,7 @@
     },
     {
       "path": "src/components/bui/ApprovalCard.tsx",
-      "lines": 513,
+      "lines": 517,
       "title": "Human-in-the-loop approval card",
       "summary": "Renders one approval question at a time for agent sessions: the stack slides vertically between questions while the card height animates to fit, so the agent never continues without an explicit human answer."
     },

@@ -191,6 +191,10 @@ export default function ApprovalCard({
   const [sent, setSent] = useState(false);
   const [open, setOpen] = useState(true);
 
+  // 📖 `questions` in the deps: the kandown chat streams the options block
+  // in, so the array grows after the card mounted; without re-measuring, the
+  // fixed-height viewport kept the one-option height and clipped every
+  // choice that arrived later (vava, round 10).
   const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const questionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const measured = useRef(false);
@@ -218,7 +222,7 @@ export default function ApprovalCard({
     sync(withAnim);
     setReady(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [qi, answers, custom_, open, sent]);
+  }, [qi, answers, custom_, open, sent, questions]);
 
   useEffect(() => {
     const id = requestAnimationFrame(() => sync(measured.current));

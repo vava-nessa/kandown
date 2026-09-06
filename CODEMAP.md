@@ -245,7 +245,7 @@ source to edit instead.
 
 ## `src/components/bui/`
 
-- **`ApprovalCard.tsx`** · 513 lines — Renders one approval question at a time for agent sessions: the stack slides vertically between questions while the card height animates to fit, so the agent never continues without an explicit human answer.
+- **`ApprovalCard.tsx`** · 517 lines — Renders one approval question at a time for agent sessions: the stack slides vertically between questions while the card height animates to fit, so the agent never continues without an explicit human answer.
 - **`BuiGallery.tsx`** · 74 lines — Development surface for the BeautifulUI ports (beautifului.dev, MIT): every component and every variant rendered on one page, inside the scoped `.bui` design system.
 - **`ChatComposer.tsx`** · 242 lines — Faithful port of the BeautifulUI ChatComposer component (beautifului.dev, MIT): an interactive chat panel with suggestion tabs, header actions, a submitted-prompt bubble and staged assistant replies that blur while resolving.
 - **`ContextCards.tsx`** · 173 lines — Faithful port of the BeautifulUI ContextCards (beautifului.dev, MIT): retrieved chunks enter once with a staggered fade-up, then remain available; source chips pop in after a beat.
