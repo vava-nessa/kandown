@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Nieobsługiwana przeglądarka",
     "unsupportedBrowserDesc": "Ta silnik wymaga <code>File System Access API</code>. Użyj Chrome, Edge, Brave lub Opera. Firefox i Safari jeszcze nie obsługują tej funkcji.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "Łączenie z serwerem..."
   },
   "header": {
@@ -175,7 +175,7 @@
     "selectedMany": "selected"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — nie można połączyć z kandown (aplikacja/desktop, tylko etykieta)"
+    "desktopTooltip": "{{name}}: nie można połączyć z kandown (aplikacja/desktop, tylko etykieta)"
   },
   "onboarding": {
     "stepLabel": "Krok {{current}} z {{total}}",
@@ -309,7 +309,7 @@
     "priority": "Priorytet"
   },
   "toast": {
-    "settingsUpdatedExternally": "Ustawienia zaktualizowane zewnętrznie — przeładowano"
+    "settingsUpdatedExternally": "Ustawienia zaktualizowane zewnętrznie, przeładowano"
   },
   "agentChat": {
     "working": "Pracuje...",
@@ -373,7 +373,9 @@
     "menuHintSlash": "Wpisz, aby znaleźć Skills",
     "modelDefault": "Wartość domyślna Harnessa",
     "modelDefaultTag": "Auto",
-    "modelSuggestedTag": "Zalecany"
+    "modelSuggestedTag": "Zalecany",
+    "modelCurrentTag": "Bieżący",
+    "modelCustom": "Własny model..."
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",
@@ -417,5 +419,34 @@
     "resumableTitle": "Istnieje aktywna sesja dla tego zadania, ale opuściła przebieg; można ją wznowić",
     "stopTask": "Zatrzymaj agenta pracującego nad tym zadaniem",
     "stopTaskTitle": "Zatrzymaj tę sesję Autopilot"
+  },
+  "agentRuns": {
+    "sectionTitle": "Uruchom agenta",
+    "agentLabel": "Agent",
+    "harnessHint": "Wykryto zainstalowane harnessy na tym komputerze",
+    "runnerLabel": "Wykonanie",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Uruchom z Herdr",
+    "runnerKandownTitle": "Działa wewnątrz demona kandown",
+    "runnerHerdrTitle": "Działa w karcie Herdr, do której można się podłączyć",
+    "run": "Uruchom",
+    "starting": "Uruchamianie...",
+    "startFailed": "Nie można uruchomić przebiegu: {{error}}",
+    "stop": "Zatrzymaj",
+    "stopFailed": "Nie można zatrzymać przebiegu",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "Oczekiwanie na wyjście...",
+    "truncated": "Starsze wyjście przycięte",
+    "badgeTitle": "Przebieg agenta: {{state}}",
+    "state": {
+      "starting": "Uruchamianie",
+      "idle": "Bezczynny",
+      "working": "Pracuje",
+      "blocked": "Zablokowany",
+      "done": "Gotowe",
+      "failed": "Niepowodzenie",
+      "unknown": "Nieznany",
+      "gone": "Zniknął"
+    }
   }
 }

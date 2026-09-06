@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Nettleseren støttes ikke",
     "unsupportedBrowserDesc": "Denne motoren krever <code>File System Access API</code>. Bruk Chrome, Edge, Brave eller Opera. Firefox og Safari støttes ennå ikke.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "Kobler til serveren..."
   },
   "header": {
@@ -190,7 +190,7 @@
     "selectAllHint": "Select all (visible)"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "Trinn {{current}} av {{total}}",
@@ -324,7 +324,7 @@
     "priority": "Prioritet"
   },
   "toast": {
-    "settingsUpdatedExternally": "Innstillinger oppdatert eksternt — lastet inn på nytt"
+    "settingsUpdatedExternally": "Innstillinger oppdatert eksternt, lastet inn på nytt"
   },
   "agentChat": {
     "working": "Arbeider...",
@@ -388,7 +388,9 @@
     "menuHintSlash": "Skriv for å finne Skills",
     "modelDefault": "Harness-standard",
     "modelDefaultTag": "Auto",
-    "modelSuggestedTag": "Anbefalt"
+    "modelSuggestedTag": "Anbefalt",
+    "modelCurrentTag": "Nåværende",
+    "modelCustom": "Egen modell..."
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",
@@ -432,5 +434,34 @@
     "resumableTitle": "Det finnes en live-økt for denne oppgaven, men den har forlatt kjøringen, den kan gjenopptas",
     "stopTask": "Stopp agenten som arbeider med denne oppgaven",
     "stopTaskTitle": "Stopp denne Autopilot-økten"
+  },
+  "agentRuns": {
+    "sectionTitle": "Kjør en agent",
+    "agentLabel": "Agent",
+    "harnessHint": "Installerte harness oppdaget på denne maskinen",
+    "runnerLabel": "Kjøring",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Kjør med Herdr",
+    "runnerKandownTitle": "Kjører i kandown-daemonen",
+    "runnerHerdrTitle": "Kjører i en Herdr-fane du kan koble deg til",
+    "run": "Kjør",
+    "starting": "Starter...",
+    "startFailed": "Kunne ikke starte kjøringen: {{error}}",
+    "stop": "Stopp",
+    "stopFailed": "Kunne ikke stoppe kjøringen",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "Venter på utdata...",
+    "truncated": "Eldre utdata fjernet",
+    "badgeTitle": "Agentkjøring: {{state}}",
+    "state": {
+      "starting": "Starter",
+      "idle": "Inaktiv",
+      "working": "Arbeider",
+      "blocked": "Blokkert",
+      "done": "Ferdig",
+      "failed": "Mislyktes",
+      "unknown": "Ukjent",
+      "gone": "Forsvunnet"
+    }
   }
 }

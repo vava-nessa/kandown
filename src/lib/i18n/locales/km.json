@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "កំពុងតភ្ជាប់ទៅសារ៉ាវើ..."
   },
   "header": {
@@ -212,7 +212,7 @@
     "clear": "Clear selection"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "ជំហាន {{current}} នៃ {{total}}",
@@ -346,7 +346,7 @@
     "priority": "Priority"
   },
   "toast": {
-    "settingsUpdatedExternally": "Settings updated externally — reloaded"
+    "settingsUpdatedExternally": "Settings updated externally, reloaded"
   },
   "agentChat": {
     "working": "កំពុងធ្វើការ...",
@@ -410,7 +410,9 @@
     "menuHintSlash": "វាយដើម្បីរកជំនាញ",
     "modelDefault": "លំនាំដើមរបស់ Harness",
     "modelDefaultTag": "ស្វ័យប្រវត្តិ",
-    "modelSuggestedTag": "បានណែនាំ"
+    "modelSuggestedTag": "បានណែនាំ",
+    "modelCurrentTag": "បច្ចុប្បន្ន",
+    "modelCustom": "ម៉ូដែលផ្ទាល់ខ្លួន..."
   },
   "agentSkills": {
     "skillsModalTitle": "ជំនាញ",
@@ -454,5 +456,34 @@
     "resumableTitle": "មានសេស៊ានសកម្មសម្រាប់ភារកិច្ចនេះប៉ុន្តែវាបានចេញពីដំណើរការ, អាចបន្តឡើងវិញបាន",
     "stopTask": "ឈប់អេជេនដែលធ្វើការលើភារកិច្ចនេះ",
     "stopTaskTitle": "ឈប់សេស៊ានអូតូផៃឡូតនេះ"
+  },
+  "agentRuns": {
+    "sectionTitle": "ដំណើរការភ្នាក់ងារ",
+    "agentLabel": "ភ្នាក់ងារ",
+    "harnessHint": "រកឃើញ harness ដែលបានដំឡើងនៅលើម៉ាស៊ីននេះ",
+    "runnerLabel": "អ្នកដំណើរការ",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "ដំណើរការជាមួយ Herdr",
+    "runnerKandownTitle": "ដំណើរការក្នុងដេម៉ុន kandown",
+    "runnerHerdrTitle": "ដំណើរការក្នុងផ្ទាំង Herdr ដែលអ្នកអាចភ្ជាប់បាន",
+    "run": "ដំណើរការ",
+    "starting": "កំពុងចាប់ផ្ដើម...",
+    "startFailed": "មិនអាចចាប់ផ្ដើមការដំណើរការបានទេ: {{error}}",
+    "stop": "ឈប់",
+    "stopFailed": "មិនអាចឈប់ការដំណើរការបានទេ",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "កំពុងរង់ចាំលទ្ធផល...",
+    "truncated": "លទ្ធផលចាស់ត្រូវបានកាត់ចេញ",
+    "badgeTitle": "ការដំណើរការភ្នាក់ងារ: {{state}}",
+    "state": {
+      "starting": "កំពុងចាប់ផ្ដើម",
+      "idle": "ទំនេរ",
+      "working": "កំពុងធ្វើការ",
+      "blocked": "ត្រូវបានទប់ស្កាត់",
+      "done": "បានបញ្ចប់",
+      "failed": "បរាជ័យ",
+      "unknown": "មិនស្គាល់",
+      "gone": "បានបាត់"
+    }
   }
 }

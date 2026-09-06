@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "กำลังเชื่อมต่อกับเซิร์ฟเวอร์..."
   },
   "header": {
@@ -212,7 +212,7 @@
     "selectAllHint": "Select all (visible)"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "ขั้นตอน {{current}} จาก {{total}}",
@@ -346,7 +346,7 @@
     "priority": "Priority"
   },
   "toast": {
-    "settingsUpdatedExternally": "Settings updated externally — reloaded"
+    "settingsUpdatedExternally": "Settings updated externally, reloaded"
   },
   "agentChat": {
     "working": "กำลังทำงาน...",
@@ -410,7 +410,9 @@
     "menuHintSlash": "พิมพ์เพื่อค้นหาทักษะ",
     "modelDefault": "ค่าเริ่มต้นของ Harness",
     "modelDefaultTag": "อัตโนมัติ",
-    "modelSuggestedTag": "แนะนำ"
+    "modelSuggestedTag": "แนะนำ",
+    "modelCurrentTag": "ปัจจุบัน",
+    "modelCustom": "โมเดลกำหนดเอง..."
   },
   "agentSkills": {
     "skillsModalTitle": "ทักษะ",
@@ -454,5 +456,34 @@
     "resumableTitle": "มีเซสชันที่ยังทำงานอยู่สำหรับงานนี้แต่หลุดจากรอบ สามารถกลับมาต่อได้",
     "stopTask": "หยุดเอเจนต์ที่ทำงานกับงานนี้",
     "stopTaskTitle": "หยุดเซสชันออโต้ไพลอตนี้"
+  },
+  "agentRuns": {
+    "sectionTitle": "รันเอเจนต์",
+    "agentLabel": "เอเจนต์",
+    "harnessHint": "ตรวจพบ harness ที่ติดตั้งไว้บนเครื่องนี้",
+    "runnerLabel": "ตัวรัน",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "รันด้วย Herdr",
+    "runnerKandownTitle": "ทำงานภายในดีมอน kandown",
+    "runnerHerdrTitle": "ทำงานในแท็บ Herdr ที่คุณสามารถเข้าร่วมได้",
+    "run": "รัน",
+    "starting": "กำลังเริ่ม...",
+    "startFailed": "ไม่สามารถเริ่มการรันได้: {{error}}",
+    "stop": "หยุด",
+    "stopFailed": "ไม่สามารถหยุดการรันได้",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "กำลังรอเอาต์พุต...",
+    "truncated": "ตัดเอาต์พุตเก่าออก",
+    "badgeTitle": "การรันเอเจนต์: {{state}}",
+    "state": {
+      "starting": "กำลังเริ่ม",
+      "idle": "ว่าง",
+      "working": "กำลังทำงาน",
+      "blocked": "ถูกบล็อก",
+      "done": "เสร็จแล้ว",
+      "failed": "ล้มเหลว",
+      "unknown": "ไม่ทราบ",
+      "gone": "หายไป"
+    }
   }
 }

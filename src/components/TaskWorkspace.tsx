@@ -50,6 +50,7 @@ import { SubtaskEditor } from './SubtaskEditor';
 import { BlockNoteMarkdownEditor } from './ui/BlockNoteMarkdownEditor';
 import { DependenciesHeaderMenu } from './DependenciesHeaderMenu';
 import { TaskExtensionSurface } from './TaskExtensionSurface';
+import { TaskAgentRunControls } from './TaskAgentRunControls';
 import { AgentBlobatar } from './agent/Blobatar';
 import { AgentPresenceBadge } from './agent/AgentPresenceBadge';
 import { DiffOverlay } from './agent/DiffOverlay';
@@ -781,6 +782,10 @@ export function TaskWorkspace() {
                 minHeight="200px"
               />
             </div>
+
+            {drawerTaskId && (
+              <TaskAgentRunControls taskId={drawerTaskId} frontmatter={drawerData.frontmatter} />
+            )}
 
             {drawerTaskId && (
               <TaskExtensionSurface taskId={drawerTaskId} frontmatter={drawerData.frontmatter} />

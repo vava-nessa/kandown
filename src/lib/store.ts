@@ -85,7 +85,8 @@ import { buildBoardUrl, buildTaskUrl, getTaskIdFromLocation } from './task-url';
 import { createAgentChatSlice, createInitialAgentChatState } from './store/agentChatSlice';
 import { createAgentEditsSlice, createInitialAgentEditsState } from './store/agentEditsSlice';
 import { createAutopilotSlice, createInitialAutopilotState } from './store/autopilotSlice';
-import type { AgentChatState, AgentChatStartInput, AgentEditsState, AutopilotState } from './store/types';
+import { createAgentRunsSlice, createInitialAgentRunsState } from './store/agentRunsSlice';
+import type { AgentChatState, AgentChatStartInput, AgentEditsState, AutopilotState, AgentRunsState, RunnerId } from './store/types';
 import type { AgentChatEvent } from './agent-chat-events';
 import type { AgentEditsBoardEvent, AgentAutopilotEvent } from './watcher';
 
@@ -369,6 +370,17 @@ interface State {
   startAutopilot: (harnessId?: string) => Promise<void>;
   stopAutopilot: () => Promise<void>;
   stopAutopilotSession: (sessionId: string) => Promise<boolean>;
+
+  // Agent runs: launch + watch (t261). Full shape documented in
+  // store/types.ts; same inline-mirror pattern as the blocks above.
+  agentRuns: AgentRunsState;
+  setupAgentRuns: () => void;
+  pollRuns: () => Promise<void>;
+  seedRunnerAvailability: () => Promise<void>;
+  startRun: (taskId: string, agentId: string, runner?: RunnerId) => Promise<{ ok: boolean; error?: string }>;
+  stopRun: (runner: RunnerId, runId: string) => Promise<boolean>;
+  startPolling: () => void;
+  stopPolling: () => void;
 }
 
 function nextTaskId(columns: Column[], archivedTasks: BoardTask[] = []): string {
@@ -1956,6 +1968,10 @@ export const useStore = create<State>((set, get, api) => ({
       // 📖 t311: wire the autopilot slice the same way (subscribe, start the
       // stream, fetch the initial snapshot).
       get().setupAutopilot();
+      // 📖 t261: seed runner availability and start the 10s run poll, so the
+      // card pills and the editor's launch controls work without opening the
+      // chat sidebar first. No-op outside server mode.
+      get().setupAgentRuns();
       return;
     }
 
@@ -2165,6 +2181,13 @@ export const useStore = create<State>((set, get, api) => ({
   // setupWatcher wires the slice to the board SSE stream the same way.
   autopilot: createInitialAutopilotState(),
   ...createAutopilotSlice(set, get, api),
+
+  // 📖 t261 agent runs: seeded runner availability (Herdr progressive
+  // disclosure), the live run list backing the card pills and the PTY
+  // preview, and the launch/stop transport. setupWatcher (server branch)
+  // calls setupAgentRuns to seed and start the 10s poll.
+  agentRuns: createInitialAgentRunsState(),
+  ...createAgentRunsSlice(set, get, api),
 }));
 
 // Hydrate recent projects on load. IndexedDB may be unavailable (private

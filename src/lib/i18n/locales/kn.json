@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "ಸರ್ವರ್‌ಗೆ ಸಂಪರ್ಕಿಸಲಾಗುತ್ತಿದೆ..."
   },
   "header": {
@@ -212,7 +212,7 @@
     "clear": "Clear selection"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "ಹಂತ {{current}}/{{total}}",
@@ -346,7 +346,7 @@
     "priority": "Priority"
   },
   "toast": {
-    "settingsUpdatedExternally": "Settings updated externally — reloaded"
+    "settingsUpdatedExternally": "Settings updated externally, reloaded"
   },
   "agentChat": {
     "working": "ಕೆಲಸ ಮಾಡುತ್ತಿದೆ...",
@@ -410,7 +410,9 @@
     "menuHintSlash": "ಕೌಶಲ್ಯಗಳನ್ನು ಹುಡುಕಲು ಟೈಪ್ ಮಾಡಿ",
     "modelDefault": "ಹಾರ್ನೆಸ್‌ನ ಡೀಫಾಲ್ಟ್",
     "modelDefaultTag": "ಆಟೋ",
-    "modelSuggestedTag": "ಶಿಫಾರಸು"
+    "modelSuggestedTag": "ಶಿಫಾರಸು",
+    "modelCurrentTag": "ಪ್ರಸ್ತುತ",
+    "modelCustom": "ಕಸ್ಟಮ್ ಮಾದರಿ..."
   },
   "agentSkills": {
     "skillsModalTitle": "ಕೌಶಲ್ಯಗಳು",
@@ -454,5 +456,34 @@
     "resumableTitle": "ಈ ಕಾರ್ಯಕ್ಕೆ ಒಂದು ಲೈವ್ ಸೆಷನ್ ಇದೆ ಆದರೆ ಅದು ರನ್ ತೊರೆದಿದೆ, ಮರಳಿ ಆರಂಭಿಸಬಹುದು",
     "stopTask": "ಈ ಕಾರ್ಯದಲ್ಲಿ ಕೆಲಸ ಮಾಡುತ್ತಿರುವ ಏಜೆಂಟ್ ಅನ್ನು ನಿಲ್ಲಿಸಿ",
     "stopTaskTitle": "ಈ ಆಟೋಪೈಲಟ್ ಸೆಷನ್ ಅನ್ನು ನಿಲ್ಲಿಸಿ"
+  },
+  "agentRuns": {
+    "sectionTitle": "ಏಜೆಂಟ್ ಅನ್ನು ಚಲಾಯಿಸಿ",
+    "agentLabel": "ಏಜೆಂಟ್",
+    "harnessHint": "ಈ ಯಂತ್ರದಲ್ಲಿ ಸ್ಥಾಪಿತವಾದ ಹಾರ್ನೆಸ್‌ಗಳು ಪತ್ತೆಯಾಗಿವೆ",
+    "runnerLabel": "ರನ್ನರ್",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Herdr ಜೊತೆ ಚಲಾಯಿಸಿ",
+    "runnerKandownTitle": "kandown ಡೆಮನ್ ಒಳಗೆ ಚಲಿಸುತ್ತದೆ",
+    "runnerHerdrTitle": "ನೀವು ಸೇರಿಕೊಳ್ಳಬಹುದಾ Herdr ಟ್ಯಾಬ್‌ನಲ್ಲಿ ಚಲಿಸುತ್ತದೆ",
+    "run": "ಚಲಾಯಿಸಿ",
+    "starting": "ಪ್ರಾರಂಭವಾಗುತ್ತಿದೆ...",
+    "startFailed": "ರನ್ ಪ್ರಾರಂಭಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ: {{error}}",
+    "stop": "ನಿಲ್ಲಿಸಿ",
+    "stopFailed": "ರನ್ ನಿಲ್ಲಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "ಔಟ್‌ಪುಟ್‌ಗಾಗಿ ಕಾಯುತ್ತಿದೆ...",
+    "truncated": "ಹಳೆಯ ಔಟ್‌ಪುಟ್ ತೆಗೆದುಹಾಕಲಾಗಿದೆ",
+    "badgeTitle": "ಏಜೆಂಟ್ ರನ್: {{state}}",
+    "state": {
+      "starting": "ಪ್ರಾರಂಭವಾಗುತ್ತಿದೆ",
+      "idle": "ನಿಷ್ಕ್ರಿಯ",
+      "working": "ಕೆಲಸ ಮಾಡುತ್ತಿದೆ",
+      "blocked": "ನಿರ್ಬಂಧಿತ",
+      "done": "ಪೂರ್ಣಗೊಂಡಿದೆ",
+      "failed": "ವಿಫಲವಾಗಿದೆ",
+      "unknown": "ಅಜ್ಞಾತ",
+      "gone": "ಮಾಯವಾಗಿದೆ"
+    }
   }
 }

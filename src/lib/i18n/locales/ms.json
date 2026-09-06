@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "Menyambung ke pelayan..."
   },
   "header": {
@@ -212,7 +212,7 @@
     "selectAllHint": "Select all (visible)"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "Langkah {{current}} daripada {{total}}",
@@ -346,7 +346,7 @@
     "priority": "Priority"
   },
   "toast": {
-    "settingsUpdatedExternally": "Settings updated externally — reloaded"
+    "settingsUpdatedExternally": "Settings updated externally, reloaded"
   },
   "agentChat": {
     "working": "Sedang bekerja...",
@@ -410,7 +410,9 @@
     "menuHintSlash": "Taip untuk cari Kemahiran",
     "modelDefault": "Lalai Harness",
     "modelDefaultTag": "Auto",
-    "modelSuggestedTag": "Disyorkan"
+    "modelSuggestedTag": "Disyorkan",
+    "modelCurrentTag": "Semasa",
+    "modelCustom": "Model tersuai..."
   },
   "agentSkills": {
     "skillsModalTitle": "Kemahiran",
@@ -454,5 +456,34 @@
     "resumableTitle": "Ada sesi aktif untuk tugasan ini tetapi keluar dari larian, boleh disambung semula",
     "stopTask": "Hentikan ejen yang menjalankan tugasan ini",
     "stopTaskTitle": "Hentikan sesi autopilot ini"
+  },
+  "agentRuns": {
+    "sectionTitle": "Jalankan ejen",
+    "agentLabel": "Ejen",
+    "harnessHint": "Harness terpasang dikesan pada mesin ini",
+    "runnerLabel": "Pelari",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Jalankan dengan Herdr",
+    "runnerKandownTitle": "Berjalan dalam daemon kandown",
+    "runnerHerdrTitle": "Berjalan dalam tab Herdr yang boleh anda sertai",
+    "run": "Jalankan",
+    "starting": "Sedang dimulakan...",
+    "startFailed": "Run gagal dimulakan: {{error}}",
+    "stop": "Hentikan",
+    "stopFailed": "Run gagal dihentikan",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "Menunggu output...",
+    "truncated": "Output lama dipotong",
+    "badgeTitle": "Run ejen: {{state}}",
+    "state": {
+      "starting": "Sedang dimulakan",
+      "idle": "Terbiar",
+      "working": "Sedang bekerja",
+      "blocked": "Disekat",
+      "done": "Selesai",
+      "failed": "Gagal",
+      "unknown": "Tidak diketahui",
+      "gone": "Hilang"
+    }
   }
 }

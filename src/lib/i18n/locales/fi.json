@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Selain ei ole tuettu",
     "unsupportedBrowserDesc": "Tämä moottori vaatii <code>File System Access API</code>:n. Käytä Chromea, Edgeä, Bravea tai Operaa. Firefox ja Safari eivät vielä tue sitä.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "Yhdistetään palvelimeen..."
   },
   "header": {
@@ -190,7 +190,7 @@
     "selectAllHint": "Select all (visible)"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "Vaihe {{current}}/{{total}}",
@@ -324,7 +324,7 @@
     "priority": "Prioriteetti"
   },
   "toast": {
-    "settingsUpdatedExternally": "Asetukset päivitettiin ulkoisesti — ladattu uudelleen"
+    "settingsUpdatedExternally": "Asetukset päivitettiin ulkoisesti, ladattu uudelleen"
   },
   "agentChat": {
     "working": "Työskentelee...",
@@ -388,7 +388,9 @@
     "menuHintSlash": "Kirjoita etsiäksesi taitoja",
     "modelDefault": "Harnessin oletus",
     "modelDefaultTag": "Automaattinen",
-    "modelSuggestedTag": "Suositeltu"
+    "modelSuggestedTag": "Suositeltu",
+    "modelCurrentTag": "Nykyinen",
+    "modelCustom": "Mukautettu malli..."
   },
   "agentSkills": {
     "skillsModalTitle": "Taidot",
@@ -432,5 +434,34 @@
     "resumableTitle": "Tälle tehtävälle on olemassa aktiivinen istunto, mutta se poistui ajosta, sen voi jatkaa",
     "stopTask": "Pysäytä agentti, joka työskentelee tämän tehtävän parissa",
     "stopTaskTitle": "Pysäytä tämä Autopilot-istunto"
+  },
+  "agentRuns": {
+    "sectionTitle": "Käynnistä agentti",
+    "agentLabel": "Agentti",
+    "harnessHint": "Tältä koneelta löytyi asennettuja harnessia",
+    "runnerLabel": "Suoritus",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Käynnistä Herdrillä",
+    "runnerKandownTitle": "Suoritetaan kandown-daemonin sisällä",
+    "runnerHerdrTitle": "Suoritetaan Herdr-välilehdessä, johon voit liittyä",
+    "run": "Käynnistä",
+    "starting": "Käynnistyy...",
+    "startFailed": "Suoritusta ei voitu käynnistää: {{error}}",
+    "stop": "Pysäytä",
+    "stopFailed": "Suoritusta ei voitu pysäyttää",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "Odotetaan tulostetta...",
+    "truncated": "Vanhempi tuloste poistettu",
+    "badgeTitle": "Agentin suoritus: {{state}}",
+    "state": {
+      "starting": "Käynnistyy",
+      "idle": "Jouten",
+      "working": "Työskentelee",
+      "blocked": "Estynyt",
+      "done": "Valmis",
+      "failed": "Epäonnistui",
+      "unknown": "Tuntematon",
+      "gone": "Poistunut"
+    }
   }
 }

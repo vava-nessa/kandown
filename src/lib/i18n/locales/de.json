@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Nicht unterstützter Browser",
     "unsupportedBrowserDesc": "Diese Engine benötigt die <code>File System Access API</code>. Verwenden Sie Chrome, Edge, Brave oder Opera. Firefox und Safari unterstützen diese noch nicht.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "Verbindung zum Server wird hergestellt..."
   },
   "header": {
@@ -190,7 +190,7 @@
     "selectedMany": "selected"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — nicht verkettbar aus kandown (App/Desktop, nur Label)"
+    "desktopTooltip": "{{name}}: nicht verkettbar aus kandown (App/Desktop, nur Label)"
   },
   "onboarding": {
     "stepLabel": "Schritt {{current}} von {{total}}",
@@ -324,7 +324,7 @@
     "priority": "Priorität"
   },
   "toast": {
-    "settingsUpdatedExternally": "Einstellungen extern aktualisiert — neu geladen"
+    "settingsUpdatedExternally": "Einstellungen extern aktualisiert, neu geladen"
   },
   "agentChat": {
     "working": "Beschäftigt...",
@@ -388,7 +388,9 @@
     "menuHintSlash": "Tippen, um Skills zu finden",
     "modelDefault": "Harness-Standard",
     "modelDefaultTag": "Auto",
-    "modelSuggestedTag": "Empfohlen"
+    "modelSuggestedTag": "Empfohlen",
+    "modelCurrentTag": "Aktuell",
+    "modelCustom": "Eigenes Modell..."
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",
@@ -432,5 +434,34 @@
     "resumableTitle": "Für diese Aufgabe existiert eine Live-Sitzung, die den Run verlassen hat; sie kann fortgesetzt werden",
     "stopTask": "Agent für diese Aufgabe stoppen",
     "stopTaskTitle": "Diese Autopilot-Sitzung stoppen"
+  },
+  "agentRuns": {
+    "sectionTitle": "Agenten starten",
+    "agentLabel": "Agent",
+    "harnessHint": "Installierte Harnesses auf diesem Rechner erkannt",
+    "runnerLabel": "Ausführung",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Mit Herdr ausführen",
+    "runnerKandownTitle": "Läuft im kandown-Daemon",
+    "runnerHerdrTitle": "Läuft in einem Herdr-Tab, den Sie anhängen können",
+    "run": "Starten",
+    "starting": "Wird gestartet...",
+    "startFailed": "Run konnte nicht gestartet werden: {{error}}",
+    "stop": "Stoppen",
+    "stopFailed": "Run konnte nicht gestoppt werden",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "Warte auf Ausgabe...",
+    "truncated": "Ältere Ausgabe entfernt",
+    "badgeTitle": "Agent-Run: {{state}}",
+    "state": {
+      "starting": "Startet",
+      "idle": "Inaktiv",
+      "working": "Beschäftigt",
+      "blocked": "Blockiert",
+      "done": "Fertig",
+      "failed": "Fehlgeschlagen",
+      "unknown": "Unbekannt",
+      "gone": "Verschwunden"
+    }
   }
 }

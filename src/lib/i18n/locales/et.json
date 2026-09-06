@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Toetamata brauser",
     "unsupportedBrowserDesc": "See mootor nõuab <code>File System Access API</code>-d. Kasuta Chrome, Edge, Brave või Opera. Firefox ja Safari seda veel ei toeta.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "Ühenduse loomine serveriga..."
   },
   "header": {
@@ -190,7 +190,7 @@
     "selectAllHint": "Select all (visible)"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "Samm {{current}}/{{total}}",
@@ -324,7 +324,7 @@
     "priority": "Tähtsus"
   },
   "toast": {
-    "settingsUpdatedExternally": "Sätteid värskendati väliselt — ümber laaditud"
+    "settingsUpdatedExternally": "Sätteid värskendati väliselt, ümber laaditud"
   },
   "agentChat": {
     "working": "Töötab...",
@@ -388,7 +388,9 @@
     "menuHintSlash": "Kirjuta oskuste leidmiseks",
     "modelDefault": "Harnessi vaikeseade",
     "modelDefaultTag": "Automaatne",
-    "modelSuggestedTag": "Soovitatav"
+    "modelSuggestedTag": "Soovitatav",
+    "modelCurrentTag": "Praegune",
+    "modelCustom": "Kohandatud mudel..."
   },
   "agentSkills": {
     "skillsModalTitle": "Oskused",
@@ -432,5 +434,34 @@
     "resumableTitle": "Selle ülesande jaoks on olemas elav sessioon, aga see lahkus jooksust, seda saab jätkata",
     "stopTask": "Peata agent, kes töötab selle ülesande kallal",
     "stopTaskTitle": "Peata see autopilodi sessioon"
+  },
+  "agentRuns": {
+    "sectionTitle": "Käivita agent",
+    "agentLabel": "Agent",
+    "harnessHint": "Selles arvutis leiti installitud harnessid",
+    "runnerLabel": "Käivitus",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Käivita Herdriga",
+    "runnerKandownTitle": "Käivitub kandown deemoni sees",
+    "runnerHerdrTitle": "Käivitub Herdr kaardil, millega saate ühenduda",
+    "run": "Käivita",
+    "starting": "Käivitub...",
+    "startFailed": "Käivitust ei saanud alustada: {{error}}",
+    "stop": "Peata",
+    "stopFailed": "Käivitust ei saanud peatada",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "Ootab väljundit...",
+    "truncated": "Vanem väljund kärbiti",
+    "badgeTitle": "Agendi käivitus: {{state}}",
+    "state": {
+      "starting": "Käivitub",
+      "idle": "Jõude",
+      "working": "Töötab",
+      "blocked": "Blokeeritud",
+      "done": "Valmis",
+      "failed": "Nurjus",
+      "unknown": "Teadmata",
+      "gone": "Kadunud"
+    }
   }
 }

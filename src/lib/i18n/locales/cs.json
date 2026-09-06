@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Nepodporovaný prohlížeč",
     "unsupportedBrowserDesc": "Tento engine vyžaduje <code>File System Access API</code>. Použijte Chrome, Edge, Brave nebo Opera. Firefox a Safari zatím nejsou podporovány.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "Připojování k serveru..."
   },
   "header": {
@@ -190,7 +190,7 @@
     "selectAllHint": "Select all (visible)"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "Krok {{current}} z {{total}}",
@@ -324,7 +324,7 @@
     "priority": "Priorita"
   },
   "toast": {
-    "settingsUpdatedExternally": "Nastavení bylo externě aktualizováno — obnoveno"
+    "settingsUpdatedExternally": "Nastavení bylo externě aktualizováno, obnoveno"
   },
   "agentChat": {
     "working": "Pracuje...",
@@ -388,7 +388,9 @@
     "menuHintSlash": "Pište pro vyhledání dovedností",
     "modelDefault": "Výchozí nastavení Harnessu",
     "modelDefaultTag": "Auto",
-    "modelSuggestedTag": "Doporučený"
+    "modelSuggestedTag": "Doporučený",
+    "modelCurrentTag": "Aktuální",
+    "modelCustom": "Vlastní model..."
   },
   "agentSkills": {
     "skillsModalTitle": "Dovednosti",
@@ -432,5 +434,34 @@
     "resumableTitle": "Pro tento úkol existuje živá relace, ale opustila běh, lze ji obnovit",
     "stopTask": "Zastavit agenta pracujícího na tomto úkolu",
     "stopTaskTitle": "Zastavit tuto relaci autopilota"
+  },
+  "agentRuns": {
+    "sectionTitle": "Spustit agenta",
+    "agentLabel": "Agent",
+    "harnessHint": "Na tomto počítači byly rozpoznány instalované harnessy",
+    "runnerLabel": "Běh",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Spustit s Herdr",
+    "runnerKandownTitle": "Běží v démonu kandown",
+    "runnerHerdrTitle": "Běží v kartě Herdr, kterou lze otevřít",
+    "run": "Spustit",
+    "starting": "Spouštění...",
+    "startFailed": "Běh se nepodařilo spustit: {{error}}",
+    "stop": "Zastavit",
+    "stopFailed": "Běh se nepodařilo zastavit",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "Čeká se na výstup...",
+    "truncated": "Starší výstup oříznut",
+    "badgeTitle": "Běh agenta: {{state}}",
+    "state": {
+      "starting": "Spouštění",
+      "idle": "Nečinný",
+      "working": "Pracuje",
+      "blocked": "Blokovaný",
+      "done": "Hotovo",
+      "failed": "Selhalo",
+      "unknown": "Neznámý",
+      "gone": "Zmizel"
+    }
   }
 }

@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Nem támogatott böngésző",
     "unsupportedBrowserDesc": "Ez a motor a <code>File System Access API</code>-t igényli. Használj Chrome-ot, Edge-et, Brave-et vagy Opera-t. A Firefox és Safari még nem támogatja.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "Kapcsolódás a szerverhez..."
   },
   "header": {
@@ -190,7 +190,7 @@
     "selectAllHint": "Select all (visible)"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "{{current}} / {{total}} lépés",
@@ -324,7 +324,7 @@
     "priority": "Prioritás"
   },
   "toast": {
-    "settingsUpdatedExternally": "Beállítások külsőleg frissítve — újratöltve"
+    "settingsUpdatedExternally": "Beállítások külsőleg frissítve, újratöltve"
   },
   "agentChat": {
     "working": "Dolgozik...",
@@ -388,7 +388,9 @@
     "menuHintSlash": "Írj a készségek kereséséhez",
     "modelDefault": "Harness alapértelmezés",
     "modelDefaultTag": "Auto",
-    "modelSuggestedTag": "Javasolt"
+    "modelSuggestedTag": "Javasolt",
+    "modelCurrentTag": "Jelenlegi",
+    "modelCustom": "Egyéni modell..."
   },
   "agentSkills": {
     "skillsModalTitle": "Készségek",
@@ -432,5 +434,34 @@
     "resumableTitle": "Ehhez a feladathoz van élő munkamenet, de kilépett a futtatásból, folytatható",
     "stopTask": "Az ezen a feladaton dolgozó ügynök leállítása",
     "stopTaskTitle": "Ezen Autopilot munkamenet leállítása"
+  },
+  "agentRuns": {
+    "sectionTitle": "Ügynök indítása",
+    "agentLabel": "Ügynök",
+    "harnessHint": "Telepített harnessek észlelve ezen a gépen",
+    "runnerLabel": "Futtatás",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Indítás Herdrrel",
+    "runnerKandownTitle": "A kandown démonon belül fut",
+    "runnerHerdrTitle": "Egy csatlakozható Herdr lapon fut",
+    "run": "Indítás",
+    "starting": "Indulás...",
+    "startFailed": "A futtatás indítása sikertelen: {{error}}",
+    "stop": "Leállítás",
+    "stopFailed": "A futtatás leállítása sikertelen",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "Kimenetre vár...",
+    "truncated": "Régebbi kimenet levágva",
+    "badgeTitle": "Ügynökfuttatás: {{state}}",
+    "state": {
+      "starting": "Indul",
+      "idle": "Tétlen",
+      "working": "Dolgozik",
+      "blocked": "Blokkolt",
+      "done": "Kész",
+      "failed": "Sikertelen",
+      "unknown": "Ismeretlen",
+      "gone": "Eltűnt"
+    }
   }
 }

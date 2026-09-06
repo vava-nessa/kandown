@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Navigateur non supporté",
     "unsupportedBrowserDesc": "Ce moteur nécessite l'<code>API File System Access</code>. Utilisez Chrome, Edge, Brave ou Opera. Firefox et Safari ne la supportent pas encore.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "Connexion au serveur..."
   },
   "header": {
@@ -221,7 +221,7 @@
     "clear": "Effacer la sélection"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non chainable depuis kandown (app/desktop, libellé uniquement)"
+    "desktopTooltip": "{{name}}: non chainable depuis kandown (app/desktop, libellé uniquement)"
   },
   "onboarding": {
     "stepLabel": "Étape {{current}} sur {{total}}",
@@ -365,7 +365,7 @@
     "priority": "Priorité"
   },
   "toast": {
-    "settingsUpdatedExternally": "Paramètres mis à jour depuis l'extérieur — rechargés"
+    "settingsUpdatedExternally": "Paramètres mis à jour depuis l'extérieur, rechargés"
   },
   "taskWorkspace": {
     "allTasks": "Toutes les tâches",
@@ -439,7 +439,9 @@
     "menuHintSlash": "Tapez pour rechercher des Skills",
     "modelDefault": "Valeur par défaut du Harness",
     "modelDefaultTag": "Auto",
-    "modelSuggestedTag": "Recommandé"
+    "modelSuggestedTag": "Recommandé",
+    "modelCurrentTag": "Actuel",
+    "modelCustom": "Modèle personnalisé..."
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",
@@ -483,5 +485,34 @@
     "resumableTitle": "Une session active existe pour cette tâche mais a quitté le run ; elle peut être reprise",
     "stopTask": "Arrêter l'agent qui travaille sur cette tâche",
     "stopTaskTitle": "Arrêter cette session Autopilot"
+  },
+  "agentRuns": {
+    "sectionTitle": "Lancer un agent",
+    "agentLabel": "Agent",
+    "harnessHint": "Harness détectés comme installés sur cette machine",
+    "runnerLabel": "Exécution",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Lancer avec Herdr",
+    "runnerKandownTitle": "S'exécute dans le démon kandown",
+    "runnerHerdrTitle": "S'exécute dans un onglet Herdr auquel vous pouvez vous attacher",
+    "run": "Lancer",
+    "starting": "Démarrage...",
+    "startFailed": "Impossible de démarrer le run : {{error}}",
+    "stop": "Arrêter",
+    "stopFailed": "Impossible d'arrêter le run",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "En attente de la sortie...",
+    "truncated": "Sortie antérieure tronquée",
+    "badgeTitle": "Run de l'agent : {{state}}",
+    "state": {
+      "starting": "Démarrage",
+      "idle": "Inactif",
+      "working": "En cours",
+      "blocked": "Bloqué",
+      "done": "Terminé",
+      "failed": "Échoué",
+      "unknown": "Inconnu",
+      "gone": "Disparu"
+    }
   }
 }

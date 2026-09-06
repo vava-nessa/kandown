@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "مرورگر پشتیبانی نمی‌شود",
     "unsupportedBrowserDesc": "این موتور به <code>File System Access API</code> نیاز دارد. از Chrome، Edge، Brave یا Opera استفاده کنید. Firefox و Safari هنوز پشتیبانی نمی‌شوند.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "در حال اتصال به سرور..."
   },
   "header": {
@@ -161,7 +161,7 @@
     "selectAllHint": "Select all (visible)"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "‏مرحله {{current}} از {{total}}‏",
@@ -291,7 +291,7 @@
     "priority": "اولویت"
   },
   "toast": {
-    "settingsUpdatedExternally": "تنظیمات خارجاً به‌روزرسانی شد — بارگذاری مجدد شد"
+    "settingsUpdatedExternally": "تنظیمات خارجاً به‌روزرسانی شد, بارگذاری مجدد شد"
   },
   "agentChat": {
     "working": "در حال کار...",
@@ -355,7 +355,9 @@
     "menuHintSlash": "برای یافتن مهارت‌ها تایپ کنید",
     "modelDefault": "پیش‌فرض هارنس",
     "modelDefaultTag": "خودکار",
-    "modelSuggestedTag": "پیشنهادی"
+    "modelSuggestedTag": "پیشنهادی",
+    "modelCurrentTag": "فعلی",
+    "modelCustom": "مدل سفارشی..."
   },
   "agentSkills": {
     "skillsModalTitle": "مهارت‌ها",
@@ -399,5 +401,34 @@
     "resumableTitle": "برای این کار یک نشست زنده وجود دارد اما از اجرا بیرون آمده، قابل ازسرگیری است",
     "stopTask": "توقف ایجنتی که روی این کار کار می‌کند",
     "stopTaskTitle": "توقف این نشست اتوپایلوت"
+  },
+  "agentRuns": {
+    "sectionTitle": "اجرای ایجنت",
+    "agentLabel": "ایجنت",
+    "harnessHint": "هارنس‌های نصب‌شده روی این ماشین پیدا شد",
+    "runnerLabel": "روش اجرا",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "اجرای با Herdr",
+    "runnerKandownTitle": "داخل دیمون kandown اجرا می‌شود",
+    "runnerHerdrTitle": "در تب Herdr اجرا می‌شود و می‌توانید به آن متصل شوید",
+    "run": "اجرا",
+    "starting": "در حال شروع...",
+    "startFailed": "اجرای run ممکن نشد: {{error}}",
+    "stop": "توقف",
+    "stopFailed": "توقف run ممکن نشد",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "در انتظار خروجی...",
+    "truncated": "خروجی قدیمی‌تر حذف شد",
+    "badgeTitle": "اجرای ایجنت: {{state}}",
+    "state": {
+      "starting": "در حال شروع",
+      "idle": "بیکار",
+      "working": "در حال کار",
+      "blocked": "مسدود",
+      "done": "انجام شد",
+      "failed": "ناموفق",
+      "unknown": "نامشخص",
+      "gone": "بسته شد"
+    }
   }
 }

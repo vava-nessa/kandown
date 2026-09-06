@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Неподдържан браузър",
     "unsupportedBrowserDesc": "Тази система изисква <code>File System Access API</code>. Използвайте Chrome, Edge, Brave или Opera. Firefox и Safari все още не го поддържат.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "Свързване със сървъра..."
   },
   "header": {
@@ -190,7 +190,7 @@
     "selectAllHint": "Select all (visible)"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "Стъпка {{current}} от {{total}}",
@@ -324,7 +324,7 @@
     "priority": "Приоритет"
   },
   "toast": {
-    "settingsUpdatedExternally": "Настройките са актуализирани външно — презаредени"
+    "settingsUpdatedExternally": "Настройките са актуализирани външно, презаредени"
   },
   "agentChat": {
     "working": "Работи...",
@@ -388,7 +388,9 @@
     "menuHintSlash": "Пишете, за да търсите умения",
     "modelDefault": "По подразбиране на Harness",
     "modelDefaultTag": "Авто",
-    "modelSuggestedTag": "Предложен"
+    "modelSuggestedTag": "Предложен",
+    "modelCurrentTag": "Текущ",
+    "modelCustom": "Персонализиран модел..."
   },
   "agentSkills": {
     "skillsModalTitle": "Умения",
@@ -432,5 +434,34 @@
     "resumableTitle": "Има активна сесия за тази задача, но е напуснала изпълнението; може да бъде подновена",
     "stopTask": "Спри агента, работещ по тази задача",
     "stopTaskTitle": "Спри тази сесия на автопилота"
+  },
+  "agentRuns": {
+    "sectionTitle": "Пускане на агент",
+    "agentLabel": "Агент",
+    "harnessHint": "Открити са инсталирани harness на тази машина",
+    "runnerLabel": "Изпълнение",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Пускане с Herdr",
+    "runnerKandownTitle": "Изпълнява се в демона kandown",
+    "runnerHerdrTitle": "Изпълнява се в раздел Herdr, към който можете да се включите",
+    "run": "Пусни",
+    "starting": "Стартиране...",
+    "startFailed": "Изпълнението не можа да бъде стартирано: {{error}}",
+    "stop": "Спри",
+    "stopFailed": "Изпълнението не можа да бъде спряно",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "Изчакване на изход...",
+    "truncated": "По-старият изход е отрязан",
+    "badgeTitle": "Изпълнение на агент: {{state}}",
+    "state": {
+      "starting": "Стартира",
+      "idle": "Бездействащ",
+      "working": "Работи",
+      "blocked": "Блокиран",
+      "done": "Готово",
+      "failed": "Неуспешно",
+      "unknown": "Непознат",
+      "gone": "Изчезнал"
+    }
   }
 }

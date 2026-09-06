@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Desteklenmeyen tarayıcı",
     "unsupportedBrowserDesc": "Bu motor <code>File System Access API</code> gerektirir. Chrome, Edge, Brave veya Opera kullanın. Firefox ve Safari henüz desteklenmiyor.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "Sunucuya bağlanılıyor..."
   },
   "header": {
@@ -161,7 +161,7 @@
     "selectAllHint": "Select all (visible)"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "Adım {{current}} / {{total}}",
@@ -291,7 +291,7 @@
     "priority": "Öncelik"
   },
   "toast": {
-    "settingsUpdatedExternally": "Ayarlar dışarıdan güncellendi — yeniden yüklendi"
+    "settingsUpdatedExternally": "Ayarlar dışarıdan güncellendi, yeniden yüklendi"
   },
   "agentChat": {
     "working": "Çalışıyor...",
@@ -355,7 +355,9 @@
     "menuHintSlash": "Becerileri bulmak için yazın",
     "modelDefault": "Harness varsayılanı",
     "modelDefaultTag": "Otomatik",
-    "modelSuggestedTag": "Önerilen"
+    "modelSuggestedTag": "Önerilen",
+    "modelCurrentTag": "Mevcut",
+    "modelCustom": "Özel model..."
   },
   "agentSkills": {
     "skillsModalTitle": "Beceriler",
@@ -399,5 +401,34 @@
     "resumableTitle": "Bu görev için canlı bir oturum var ancak çalıştırmadan ayrıldı, devam ettirilebilir",
     "stopTask": "Bu görevde çalışan ajanı durdur",
     "stopTaskTitle": "Bu Autopilot oturumunu durdur"
+  },
+  "agentRuns": {
+    "sectionTitle": "Bir ajan çalıştır",
+    "agentLabel": "Ajan",
+    "harnessHint": "Bu makinede kurulu harness algılandı",
+    "runnerLabel": "Çalıştırıcı",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Herdr ile çalıştır",
+    "runnerKandownTitle": "kandown daemon içinde çalışır",
+    "runnerHerdrTitle": "Katılabileceğiniz bir Herdr sekmesinde çalışır",
+    "run": "Çalıştır",
+    "starting": "Başlatılıyor...",
+    "startFailed": "Çalıştırma başlatılamadı: {{error}}",
+    "stop": "Durdur",
+    "stopFailed": "Çalıştırma durdurulamadı",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "Çıktı bekleniyor...",
+    "truncated": "Daha eski çıktı kırpıldı",
+    "badgeTitle": "Ajan çalıştırması: {{state}}",
+    "state": {
+      "starting": "Başlatılıyor",
+      "idle": "Boşta",
+      "working": "Çalışıyor",
+      "blocked": "Engellendi",
+      "done": "Tamamlandı",
+      "failed": "Başarısız",
+      "unknown": "Bilinmiyor",
+      "gone": "Kapandı"
+    }
   }
 }

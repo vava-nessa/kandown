@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "સર્વર સાથે કનેક્ટ થઈ રહ્યું છે..."
   },
   "header": {
@@ -212,7 +212,7 @@
     "clear": "Clear selection"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "પગથિયું {{current}}/{{total}}",
@@ -346,7 +346,7 @@
     "priority": "Priority"
   },
   "toast": {
-    "settingsUpdatedExternally": "Settings updated externally — reloaded"
+    "settingsUpdatedExternally": "Settings updated externally, reloaded"
   },
   "agentChat": {
     "working": "કામ કરી રહ્યું છે...",
@@ -410,7 +410,9 @@
     "menuHintSlash": "કૌશલ્યો શોધવા ટાઇપ કરો",
     "modelDefault": "Harness નું ડિફોલ્ટ",
     "modelDefaultTag": "ઓટો",
-    "modelSuggestedTag": "સૂચવેલું"
+    "modelSuggestedTag": "સૂચવેલું",
+    "modelCurrentTag": "વર્તમાન",
+    "modelCustom": "કસ્ટમ મોડેલ..."
   },
   "agentSkills": {
     "skillsModalTitle": "કૌશલ્યો",
@@ -454,5 +456,34 @@
     "resumableTitle": "આ કાર્ય માટે એક લાઇવ સત્ર છે પણ તે રનમાંથી નીકળી ગયું છે, ફરી શરૂ થઈ શકે",
     "stopTask": "આ કાર્ય પર કામ કરતા એજન્ટને રોકો",
     "stopTaskTitle": "આ ઓટોપાયલટ સત્રને રોકો"
+  },
+  "agentRuns": {
+    "sectionTitle": "એજન્ટ ચલાવો",
+    "agentLabel": "એજન્ટ",
+    "harnessHint": "આ મશીન પર ઇન્સ્ટોલ કરેલા હાર્નેસ મળ્યા",
+    "runnerLabel": "રનર",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Herdr સાથે ચલાવો",
+    "runnerKandownTitle": "kandown ડેમનની અંદર ચાલે છે",
+    "runnerHerdrTitle": "જોડાઈ શકાય તેવા Herdr ટેબમાં ચાલે છે",
+    "run": "ચલાવો",
+    "starting": "શરૂ થઈ રહ્યું છે...",
+    "startFailed": "રન શરૂ કરી શકાયો નથી: {{error}}",
+    "stop": "રોકો",
+    "stopFailed": "રન રોકી શકાયો નથી",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "આઉટપુટની રાહ જોઈ રહ્યું છે...",
+    "truncated": "જૂનું આઉટપુટ દૂર કરાયું",
+    "badgeTitle": "એજન્ટ રન: {{state}}",
+    "state": {
+      "starting": "શરૂ થઈ રહ્યું છે",
+      "idle": "નિષ્ક્રિય",
+      "working": "કામ કરી રહ્યું છે",
+      "blocked": "અવરોધિત",
+      "done": "પૂર્ણ",
+      "failed": "નિષ્ફળ",
+      "unknown": "અજ્ઞાત",
+      "gone": "અદૃશ્ય"
+    }
   }
 }

@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "സെർവറുമായി കണക്റ്റ് ചെയ്യുന്നു..."
   },
   "header": {
@@ -212,7 +212,7 @@
     "clear": "Clear selection"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "ഘട്ടം {{current}}/{{total}}",
@@ -346,7 +346,7 @@
     "priority": "Priority"
   },
   "toast": {
-    "settingsUpdatedExternally": "Settings updated externally — reloaded"
+    "settingsUpdatedExternally": "Settings updated externally, reloaded"
   },
   "agentChat": {
     "working": "പ്രവർത്തിക്കുന്നു...",
@@ -410,7 +410,9 @@
     "menuHintSlash": "കഴിവുകൾ കണ്ടെത്താൻ ടൈപ്പ് ചെയ്യുക",
     "modelDefault": "ഹാർനസിന്റെ സ്ഥിരസ്ഥിതി",
     "modelDefaultTag": "ഓട്ടോ",
-    "modelSuggestedTag": "നിർദ്ദേശിച്ചത്"
+    "modelSuggestedTag": "നിർദ്ദേശിച്ചത്",
+    "modelCurrentTag": "നിലവിലെ",
+    "modelCustom": "ഇഷ്ടാനുസൃത മോഡൽ..."
   },
   "agentSkills": {
     "skillsModalTitle": "കഴിവുകൾ",
@@ -454,5 +456,34 @@
     "resumableTitle": "ഈ ജോലിക്ക് ഒരു ലൈവ് സെഷൻ ഉണ്ട്, പക്ഷേ അത് റണ്ണിൽ നിന്ന് പുറത്തായി, വീണ്ടും തുടങ്ങാം",
     "stopTask": "ഈ ജോലിയിൽ പ്രവർത്തിക്കുന്ന ഏജന്റിനെ നിർത്തൂ",
     "stopTaskTitle": "ഈ ഓട്ടോപൈലറ്റ് സെഷൻ നിർത്തൂ"
+  },
+  "agentRuns": {
+    "sectionTitle": "ഏജന്റ് പ്രവർത്തിപ്പിക്കുക",
+    "agentLabel": "ഏജന്റ്",
+    "harnessHint": "ഈ മെഷീനിൽ ഇൻസ്റ്റാൾ ചെയ്ത ഹാർനെസ്സുകൾ കണ്ടെത്തി",
+    "runnerLabel": "റണ്ണർ",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Herdr ഉപയോഗിച്ച് പ്രവർത്തിപ്പിക്കുക",
+    "runnerKandownTitle": "kandown ഡെമണിനുള്ളിൽ പ്രവർത്തിക്കുന്നു",
+    "runnerHerdrTitle": "ചേരാവുന്ന Herdr ടാബിൽ പ്രവർത്തിക്കുന്നു",
+    "run": "പ്രവർത്തിപ്പിക്കുക",
+    "starting": "ആരംഭിക്കുന്നു...",
+    "startFailed": "റൺ ആരംഭിക്കാനായില്ല: {{error}}",
+    "stop": "നിർത്തുക",
+    "stopFailed": "റൺ നിർത്താനായില്ല",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "ഔട്ട്പുട്ടിനായി കാക്കുന്നു...",
+    "truncated": "പഴയ ഔട്ട്പുട്ട് നീക്കം ചെയ്തു",
+    "badgeTitle": "ഏജന്റ് റൺ: {{state}}",
+    "state": {
+      "starting": "ആരംഭിക്കുന്നു",
+      "idle": "നിഷ്ക്രിയ",
+      "working": "പ്രവർത്തിക്കുന്നു",
+      "blocked": "തടഞ്ഞു",
+      "done": "പൂർത്തിയായി",
+      "failed": "പരാജയപ്പെട്ടു",
+      "unknown": "അജ്ഞാതം",
+      "gone": "അപ്രത്യക്ഷമായി"
+    }
   }
 }

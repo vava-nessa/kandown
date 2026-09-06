@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Naršyklė nepalaikoma",
     "unsupportedBrowserDesc": "Šiai sistemai reikalingas <code>File System Access API</code>. Naudokite Chrome, Edge, Brave arba Opera. Firefox ir Safari šiuo metu nepalaiko.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "Jungiamasi prie serverio..."
   },
   "header": {
@@ -190,7 +190,7 @@
     "selectAllHint": "Select all (visible)"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "Žingsnis {{current}} iš {{total}}",
@@ -324,7 +324,7 @@
     "priority": "Prioritetas"
   },
   "toast": {
-    "settingsUpdatedExternally": "Nustatymai buvo atnaujinti iš išorės — perkrauta"
+    "settingsUpdatedExternally": "Nustatymai buvo atnaujinti iš išorės, perkrauta"
   },
   "agentChat": {
     "working": "Dirba...",
@@ -388,7 +388,9 @@
     "menuHintSlash": "Rašykite, kad rastumėte įgūdžius",
     "modelDefault": "Harness numatytoji reikšmė",
     "modelDefaultTag": "Automatinis",
-    "modelSuggestedTag": "Rekomenduojama"
+    "modelSuggestedTag": "Rekomenduojama",
+    "modelCurrentTag": "Dabartinis",
+    "modelCustom": "Tinkamas modelis..."
   },
   "agentSkills": {
     "skillsModalTitle": "Įgūdžiai",
@@ -432,5 +434,34 @@
     "resumableTitle": "Šiai užduočiai yra gyvas seansas, bet jis paliko vykdymą, gali būti tęsiamas",
     "stopTask": "Sustabdyti agentą, dirbantį su šia užduotimi",
     "stopTaskTitle": "Sustabdyti šį autopiloto seansą"
+  },
+  "agentRuns": {
+    "sectionTitle": "Paleisti agentą",
+    "agentLabel": "Agentas",
+    "harnessHint": "Šiame kompiuteryje aptikta įdiegtų harness",
+    "runnerLabel": "Vykdimas",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Paleisti su Herdr",
+    "runnerKandownTitle": "Vyksta kandown demono viduje",
+    "runnerHerdrTitle": "Vyksta Herdr kortelėje, prie kurios galima prisijungti",
+    "run": "Paleisti",
+    "starting": "Paleidžiama...",
+    "startFailed": "Nepavyko paleisti vykdymo: {{error}}",
+    "stop": "Sustabdyti",
+    "stopFailed": "Nepavyko sustabdyti vykdymo",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "Laukiama išvesties...",
+    "truncated": "Senesnė išvestis apkarpyta",
+    "badgeTitle": "Agento vykdymas: {{state}}",
+    "state": {
+      "starting": "Paleidžiama",
+      "idle": "Neaktyvus",
+      "working": "Dirba",
+      "blocked": "Užblokuotas",
+      "done": "Baigta",
+      "failed": "Nepavyko",
+      "unknown": "Nežinoma",
+      "gone": "Dingo"
+    }
   }
 }

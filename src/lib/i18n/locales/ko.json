@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "지원되지 않는 브라우저",
     "unsupportedBrowserDesc": "이 엔진은 <code>File System Access API</code>가 필요합니다. Chrome, Edge, Brave 또는 Opera를 사용하세요. Firefox와 Safari는 아직 지원되지 않습니다.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "서버에 연결 중..."
   },
   "header": {
@@ -161,7 +161,7 @@
     "selectedMany": "selected"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — kandown 에서 호출할 수 없음 (앱 / 데스크톱, 라벨 전용)"
+    "desktopTooltip": "{{name}}: kandown 에서 호출할 수 없음 (앱 / 데스크톱, 라벨 전용)"
   },
   "onboarding": {
     "stepLabel": "{{total}}단계 중 {{current}}단계",
@@ -291,7 +291,7 @@
     "priority": "우선순위"
   },
   "toast": {
-    "settingsUpdatedExternally": "설정이 외부에서 업데이트되었습니다 — 다시 로드됨"
+    "settingsUpdatedExternally": "설정이 외부에서 업데이트되었습니다, 다시 로드됨"
   },
   "agentChat": {
     "working": "작업 중...",
@@ -355,7 +355,9 @@
     "menuHintSlash": "입력하여 스킬 찾기",
     "modelDefault": "하네스 기본값",
     "modelDefaultTag": "자동",
-    "modelSuggestedTag": "추천"
+    "modelSuggestedTag": "추천",
+    "modelCurrentTag": "현재",
+    "modelCustom": "사용자 지정 모델..."
   },
   "agentSkills": {
     "skillsModalTitle": "스킬",
@@ -399,5 +401,34 @@
     "resumableTitle": "이 작업에 살아 있는 세션이 있지만 실행에서 빠졌으며 재개할 수 있습니다",
     "stopTask": "이 작업을 하고 있는 에이전트 중지",
     "stopTaskTitle": "이 오토파일럿 세션 중지"
+  },
+  "agentRuns": {
+    "sectionTitle": "에이전트 실행",
+    "agentLabel": "에이전트",
+    "harnessHint": "이 머신에서 설치된 하네스를 감지했습니다",
+    "runnerLabel": "실행 방식",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Herdr로 실행",
+    "runnerKandownTitle": "kandown 데몬 안에서 실행됩니다",
+    "runnerHerdrTitle": "연결할 수 있는 Herdr 탭에서 실행됩니다",
+    "run": "실행",
+    "starting": "시작 중...",
+    "startFailed": "실행을 시작하지 못했습니다: {{error}}",
+    "stop": "중지",
+    "stopFailed": "실행을 중지하지 못했습니다",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "출력을 기다리는 중...",
+    "truncated": "오래된 출력은 잘렸습니다",
+    "badgeTitle": "에이전트 실행: {{state}}",
+    "state": {
+      "starting": "시작 중",
+      "idle": "유휴",
+      "working": "작업 중",
+      "blocked": "차단됨",
+      "done": "완료",
+      "failed": "실패",
+      "unknown": "알 수 없음",
+      "gone": "사라짐"
+    }
   }
 }

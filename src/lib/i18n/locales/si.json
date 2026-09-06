@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "සේවාදායකයට සම්බන්ධ වෙමින්..."
   },
   "header": {
@@ -212,7 +212,7 @@
     "clear": "Clear selection"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "පියවර {{current}}/{{total}}",
@@ -346,7 +346,7 @@
     "priority": "Priority"
   },
   "toast": {
-    "settingsUpdatedExternally": "Settings updated externally — reloaded"
+    "settingsUpdatedExternally": "Settings updated externally, reloaded"
   },
   "agentChat": {
     "working": "වැඩ කරයි...",
@@ -410,7 +410,9 @@
     "menuHintSlash": "කුසලතා සෙවීමට ටයිප් කරන්න",
     "modelDefault": "හානස් හි පෙරනිමිය",
     "modelDefaultTag": "ස්වයංක්‍රීය",
-    "modelSuggestedTag": "යෝජිත"
+    "modelSuggestedTag": "යෝජිත",
+    "modelCurrentTag": "වත්මන්",
+    "modelCustom": "අභිරුචි ආකෘතිය..."
   },
   "agentSkills": {
     "skillsModalTitle": "කුසලතා",
@@ -454,5 +456,34 @@
     "resumableTitle": "මෙම කාර්යය සඳහා සජීවී සැසියක් ඇති නමුත් එය ධාවනයෙන් පිටතට ගියේය, නැවත ආරම්භ කළ හැක",
     "stopTask": "මෙම කාර්යය මත වැඩ කරන ඒජන්තයා නවත්වන්න",
     "stopTaskTitle": "මෙම ඔටෝපයිලට් සැසිය නවත්වන්න"
+  },
+  "agentRuns": {
+    "sectionTitle": "ඒජන්තයා ධාවනය කරන්න",
+    "agentLabel": "ඒජන්ත",
+    "harnessHint": "මෙම පරිගණකයේ ස්ථාපිත හාර්නස් හමුවිය",
+    "runnerLabel": "ධාවක",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Herdr සමඟ ධාවනය කරන්න",
+    "runnerKandownTitle": "kandown ඩිමන් තුළ ධාවනය වේ",
+    "runnerHerdrTitle": "ඔබට සම්බන්ධ විය හැකි Herdr ටැබක ධාවනය වේ",
+    "run": "ධාවනය කරන්න",
+    "starting": "ආරම්භ වෙමින්...",
+    "startFailed": "ධාවනය ආරම්භ කළ නොහැකි විය: {{error}}",
+    "stop": "නවත්වන්න",
+    "stopFailed": "ධාවනය නවතා ගැනීමට නොහැකි විය",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "ප්‍රතිදානය සඳහා රැඳී සිටී...",
+    "truncated": "පැරණි ප්‍රතිදාන ඉවත් කරන ලදී",
+    "badgeTitle": "ඒජන්ත ධාවනය: {{state}}",
+    "state": {
+      "starting": "ආරම්භ වෙමින්",
+      "idle": "නිෂ්ක්‍රීය",
+      "working": "වැඩ කරයි",
+      "blocked": "අවහිර විය",
+      "done": "නිමයි",
+      "failed": "අසාර්ථක විය",
+      "unknown": "නොදන්නා",
+      "gone": "නැති විය"
+    }
   }
 }

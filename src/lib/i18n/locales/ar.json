@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "المتصفح غير مدعوم",
     "unsupportedBrowserDesc": "يتطلب هذا المحرك <code>File System Access API</code>. استخدم Chrome أو Edge أو Brave أو Opera. Firefox وSafari غير مدعومين حتى الآن.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "جارٍ الاتصال بالخادم..."
   },
   "header": {
@@ -161,7 +161,7 @@
     "clear": "مسح التحديد"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — غير قابل للتشغيل من kandown (تطبيق/سطح مكتب، تسمية فقط)"
+    "desktopTooltip": "{{name}}: غير قابل للتشغيل من kandown (تطبيق/سطح مكتب، تسمية فقط)"
   },
   "onboarding": {
     "stepLabel": "‏الخطوة {{current}} من {{total}}‏",
@@ -355,7 +355,9 @@
     "menuHintSlash": "اكتب للبحث عن المهارات",
     "modelDefault": "الافتراضي في Harness",
     "modelDefaultTag": "تلقائي",
-    "modelSuggestedTag": "مقترح"
+    "modelSuggestedTag": "مقترح",
+    "modelCurrentTag": "الحالي",
+    "modelCustom": "نموذج مخصص..."
   },
   "agentSkills": {
     "skillsModalTitle": "المهارات",
@@ -399,5 +401,34 @@
     "resumableTitle": "توجد جلسة نشطة لهذه المهمة لكنها غادرت التشغيل، ويمكن استئنافها",
     "stopTask": "إيقاف الوكيل العامل على هذه المهمة",
     "stopTaskTitle": "إيقاف جلسة الأوتوبايلوت هذه"
+  },
+  "agentRuns": {
+    "sectionTitle": "تشغيل وكيل",
+    "agentLabel": "الوكيل",
+    "harnessHint": "تم العثور على harness مثبتة على هذه الآلة",
+    "runnerLabel": "المشغّل",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "تشغيل مع Herdr",
+    "runnerKandownTitle": "يعمل داخل خادم kandown",
+    "runnerHerdrTitle": "يعمل في تبويب Herdr يمكنك الالتحاق به",
+    "run": "تشغيل",
+    "starting": "جارٍ البدء...",
+    "startFailed": "تعذر بدء التشغيل: {{error}}",
+    "stop": "إيقاف",
+    "stopFailed": "تعذر إيقاف التشغيل",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "في انتظار المخرجات...",
+    "truncated": "تم اقتطاع المخرجات الأقدم",
+    "badgeTitle": "تشغيل الوكيل: {{state}}",
+    "state": {
+      "starting": "جارٍ البدء",
+      "idle": "خامل",
+      "working": "يعمل",
+      "blocked": "محظور",
+      "done": "مكتمل",
+      "failed": "فاشل",
+      "unknown": "غير معروف",
+      "gone": "مغلق"
+    }
   }
 }

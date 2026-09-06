@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "サポートされていないブラウザ",
     "unsupportedBrowserDesc": "このエンジンは <code>File System Access API</code> を必要とします。Chrome、Edge、Brave、または Opera を使用してください。Firefox と Safari はまだサポートされていません。",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "サーバーに接続中..."
   },
   "header": {
@@ -161,7 +161,7 @@
     "selectedMany": "selected"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — kandown から起動できません（アプリ / デスクトップ、ラベルのみ）"
+    "desktopTooltip": "{{name}}: kandown から起動できません（アプリ / デスクトップ、ラベルのみ）"
   },
   "onboarding": {
     "stepLabel": "ステップ {{current}} / {{total}}",
@@ -291,7 +291,7 @@
     "priority": "優先度"
   },
   "toast": {
-    "settingsUpdatedExternally": "設定が外部で更新されました — 再読み込みしました"
+    "settingsUpdatedExternally": "設定が外部で更新されました, 再読み込みしました"
   },
   "agentChat": {
     "working": "作業中...",
@@ -355,7 +355,9 @@
     "menuHintSlash": "入力してスキルを検索",
     "modelDefault": "ハーネスのデフォルト",
     "modelDefaultTag": "自動",
-    "modelSuggestedTag": "推奨"
+    "modelSuggestedTag": "推奨",
+    "modelCurrentTag": "現在",
+    "modelCustom": "カスタムモデル..."
   },
   "agentSkills": {
     "skillsModalTitle": "スキル",
@@ -399,5 +401,34 @@
     "resumableTitle": "このタスクには稼働中のセッションがありますが、ランを離れたため再開できます",
     "stopTask": "このタスクのエージェントを停止",
     "stopTaskTitle": "このオートパイロットセッションを停止"
+  },
+  "agentRuns": {
+    "sectionTitle": "エージェントを実行",
+    "agentLabel": "エージェント",
+    "harnessHint": "このマシンにインストール済みのハーネスを検出しました",
+    "runnerLabel": "実行方法",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Herdr で実行",
+    "runnerKandownTitle": "kandown デーモン内で実行されます",
+    "runnerHerdrTitle": "接続できる Herdr タブで実行されます",
+    "run": "実行",
+    "starting": "開始中...",
+    "startFailed": "実行を開始できませんでした: {{error}}",
+    "stop": "停止",
+    "stopFailed": "実行を停止できませんでした",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "出力を待っています...",
+    "truncated": "古い出力は省略されました",
+    "badgeTitle": "エージェント実行: {{state}}",
+    "state": {
+      "starting": "開始中",
+      "idle": "アイドル",
+      "working": "作業中",
+      "blocked": "ブロック中",
+      "done": "完了",
+      "failed": "失敗",
+      "unknown": "不明",
+      "gone": "消滅"
+    }
   }
 }

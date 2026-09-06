@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Browser non supportato",
     "unsupportedBrowserDesc": "Questo motore richiede la <code>File System Access API</code>. Usa Chrome, Edge, Brave o Opera. Firefox e Safari non la supportano ancora.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "Connessione al server in corso..."
   },
   "header": {
@@ -190,7 +190,7 @@
     "clear": "Annulla selezione"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non concatenabile da kandown (app/desktop, solo etichetta)"
+    "desktopTooltip": "{{name}}: non concatenabile da kandown (app/desktop, solo etichetta)"
   },
   "onboarding": {
     "stepLabel": "Passo {{current}} di {{total}}",
@@ -324,7 +324,7 @@
     "priority": "Priorità"
   },
   "toast": {
-    "settingsUpdatedExternally": "Impostazioni aggiornate esternamente — ricaricate"
+    "settingsUpdatedExternally": "Impostazioni aggiornate esternamente, ricaricate"
   },
   "agentChat": {
     "working": "Al lavoro...",
@@ -388,7 +388,9 @@
     "menuHintSlash": "Digita per cercare Skill",
     "modelDefault": "Valore predefinito dell'Harness",
     "modelDefaultTag": "Auto",
-    "modelSuggestedTag": "Consigliato"
+    "modelSuggestedTag": "Consigliato",
+    "modelCurrentTag": "Attuale",
+    "modelCustom": "Modello personalizzato..."
   },
   "agentSkills": {
     "skillsModalTitle": "Skill",
@@ -432,5 +434,34 @@
     "resumableTitle": "Esiste una sessione attiva per questa attività ma ha lasciato l'esecuzione; può essere ripresa",
     "stopTask": "Ferma l'agente che lavora su questa attività",
     "stopTaskTitle": "Ferma questa sessione Autopilot"
+  },
+  "agentRuns": {
+    "sectionTitle": "Esegui un agente",
+    "agentLabel": "Agente",
+    "harnessHint": "Harness installati rilevati su questa macchina",
+    "runnerLabel": "Esecuzione",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Esegui con Herdr",
+    "runnerKandownTitle": "Viene eseguito nel demone kandown",
+    "runnerHerdrTitle": "Viene eseguito in una scheda Herdr a cui puoi collegarti",
+    "run": "Esegui",
+    "starting": "Avvio...",
+    "startFailed": "Impossibile avviare l'esecuzione: {{error}}",
+    "stop": "Ferma",
+    "stopFailed": "Impossibile fermare l'esecuzione",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "In attesa dell'output...",
+    "truncated": "Output precedente tagliato",
+    "badgeTitle": "Esecuzione dell'agente: {{state}}",
+    "state": {
+      "starting": "Avvio",
+      "idle": "Inattivo",
+      "working": "Al lavoro",
+      "blocked": "Bloccato",
+      "done": "Completato",
+      "failed": "Fallito",
+      "unknown": "Sconosciuto",
+      "gone": "Sparito"
+    }
   }
 }

@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Niet-ondersteunde browser",
     "unsupportedBrowserDesc": "Deze engine vereist de <code>File System Access API</code>. Gebruik Chrome, Edge, Brave of Opera. Firefox en Safari worden nog niet ondersteund.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "Verbinding maken met de server..."
   },
   "header": {
@@ -175,7 +175,7 @@
     "clear": "Selectie wissen"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — niet koppelbaar vanuit kandown (app/desktop, alleen label)"
+    "desktopTooltip": "{{name}}: niet koppelbaar vanuit kandown (app/desktop, alleen label)"
   },
   "onboarding": {
     "stepLabel": "Stap {{current}} van {{total}}",
@@ -309,7 +309,7 @@
     "priority": "Prioriteit"
   },
   "toast": {
-    "settingsUpdatedExternally": "Instellingen extern bijgewerkt — herladen"
+    "settingsUpdatedExternally": "Instellingen extern bijgewerkt, herladen"
   },
   "agentChat": {
     "working": "Bezig...",
@@ -373,7 +373,9 @@
     "menuHintSlash": "Typ om Skills te vinden",
     "modelDefault": "Harness-standaard",
     "modelDefaultTag": "Auto",
-    "modelSuggestedTag": "Aanbevolen"
+    "modelSuggestedTag": "Aanbevolen",
+    "modelCurrentTag": "Huidig",
+    "modelCustom": "Aangepast model..."
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",
@@ -417,5 +419,34 @@
     "resumableTitle": "Er bestaat een live sessie voor deze taak, maar die heeft de run verlaten; hervatten is mogelijk",
     "stopTask": "Stop de agent die aan deze taak werkt",
     "stopTaskTitle": "Deze Autopilot-sessie stoppen"
+  },
+  "agentRuns": {
+    "sectionTitle": "Een agent starten",
+    "agentLabel": "Agent",
+    "harnessHint": "Geïnstalleerde harnesses gevonden op deze machine",
+    "runnerLabel": "Uitvoering",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Uitvoeren met Herdr",
+    "runnerKandownTitle": "Draait binnen de kandown-daemon",
+    "runnerHerdrTitle": "Draait in een Herdr-tab waaraan je kunt koppelen",
+    "run": "Uitvoeren",
+    "starting": "Bezig met starten...",
+    "startFailed": "Kon de run niet starten: {{error}}",
+    "stop": "Stoppen",
+    "stopFailed": "Kon de run niet stoppen",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "Wachten op uitvoer...",
+    "truncated": "Oudere uitvoer afgekapt",
+    "badgeTitle": "Agentrun: {{state}}",
+    "state": {
+      "starting": "Start",
+      "idle": "Inactief",
+      "working": "Bezig",
+      "blocked": "Geblokkeerd",
+      "done": "Klaar",
+      "failed": "Mislukt",
+      "unknown": "Onbekend",
+      "gone": "Verdwenen"
+    }
   }
 }

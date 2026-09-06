@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "不支持的浏览器",
     "unsupportedBrowserDesc": "此引擎需要 <code>File System Access API</code>。请使用 Chrome、Edge、Brave 或 Opera。Firefox 和 Safari 尚不支持。",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "正在连接服务器..."
   },
   "header": {
@@ -201,7 +201,7 @@
     "selectedMany": "selected"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — 无法从 kandown 调用（应用 / 桌面，仅作显示标签）"
+    "desktopTooltip": "{{name}}: 无法从 kandown 调用（应用 / 桌面，仅作显示标签）"
   },
   "onboarding": {
     "stepLabel": "第 {{current}} 步，共 {{total}} 步",
@@ -335,7 +335,7 @@
     "priority": "优先级"
   },
   "toast": {
-    "settingsUpdatedExternally": "设置已从外部更新 — 已重新加载"
+    "settingsUpdatedExternally": "设置已从外部更新, 已重新加载"
   },
   "agentChat": {
     "working": "工作中...",
@@ -399,7 +399,9 @@
     "menuHintSlash": "输入以筛选技能",
     "modelDefault": "Harness 默认值",
     "modelDefaultTag": "自动",
-    "modelSuggestedTag": "推荐"
+    "modelSuggestedTag": "推荐",
+    "modelCurrentTag": "当前",
+    "modelCustom": "自定义模型..."
   },
   "agentSkills": {
     "skillsModalTitle": "技能",
@@ -443,5 +445,34 @@
     "resumableTitle": "此任务存在一个活动会话，但它已离开本次运行，可以恢复",
     "stopTask": "停止处理此任务的智能体",
     "stopTaskTitle": "停止此自动驾驶会话"
+  },
+  "agentRuns": {
+    "sectionTitle": "运行智能体",
+    "agentLabel": "智能体",
+    "harnessHint": "检测到本机已安装的 harness",
+    "runnerLabel": "运行方式",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "用 Herdr 运行",
+    "runnerKandownTitle": "在 kandown 守护进程中运行",
+    "runnerHerdrTitle": "在可接入的 Herdr 标签页中运行",
+    "run": "运行",
+    "starting": "启动中...",
+    "startFailed": "无法启动运行：{{error}}",
+    "stop": "停止",
+    "stopFailed": "无法停止运行",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "等待输出...",
+    "truncated": "较早的输出已裁剪",
+    "badgeTitle": "智能体运行：{{state}}",
+    "state": {
+      "starting": "启动中",
+      "idle": "空闲",
+      "working": "工作中",
+      "blocked": "已阻塞",
+      "done": "已完成",
+      "failed": "已失败",
+      "unknown": "未知",
+      "gone": "已消失"
+    }
   }
 }

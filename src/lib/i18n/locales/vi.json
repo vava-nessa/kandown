@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Trình duyệt không được hỗ trợ",
     "unsupportedBrowserDesc": "Công cụ này yêu cầu <code>File System Access API</code>. Sử dụng Chrome, Edge, Brave hoặc Opera. Firefox và Safari chưa được hỗ trợ.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "Đang kết nối tới máy chủ..."
   },
   "header": {
@@ -161,7 +161,7 @@
     "selectAllHint": "Select all (visible)"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "Bước {{current}} / {{total}}",
@@ -291,7 +291,7 @@
     "priority": "Ưu tiên"
   },
   "toast": {
-    "settingsUpdatedExternally": "Cài đặt đã được cập nhật bên ngoài — đã tải lại"
+    "settingsUpdatedExternally": "Cài đặt đã được cập nhật bên ngoài, đã tải lại"
   },
   "agentChat": {
     "working": "Đang làm việc...",
@@ -355,7 +355,9 @@
     "menuHintSlash": "Nhập để tìm kỹ năng",
     "modelDefault": "Mặc định của Harness",
     "modelDefaultTag": "Tự động",
-    "modelSuggestedTag": "Đề xuất"
+    "modelSuggestedTag": "Đề xuất",
+    "modelCurrentTag": "Hiện tại",
+    "modelCustom": "Mô hình tùy chỉnh..."
   },
   "agentSkills": {
     "skillsModalTitle": "Kỹ năng",
@@ -399,5 +401,34 @@
     "resumableTitle": "Đang có một phiên sống cho tác vụ này nhưng nó đã rời lượt chạy, có thể tiếp tục",
     "stopTask": "Dừng agent đang làm việc trên tác vụ này",
     "stopTaskTitle": "Dừng phiên autopilot này"
+  },
+  "agentRuns": {
+    "sectionTitle": "Chạy một agent",
+    "agentLabel": "Agent",
+    "harnessHint": "Phát hiện harness đã cài đặt trên máy này",
+    "runnerLabel": "Cách chạy",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Chạy với Herdr",
+    "runnerKandownTitle": "Chạy bên trong daemon kandown",
+    "runnerHerdrTitle": "Chạy trong tab Herdr mà bạn có thể đính kèm",
+    "run": "Chạy",
+    "starting": "Đang bắt đầu...",
+    "startFailed": "Không thể bắt đầu lần chạy: {{error}}",
+    "stop": "Dừng",
+    "stopFailed": "Không thể dừng lần chạy",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "Đang chờ đầu ra...",
+    "truncated": "Đầu ra cũ hơn đã bị cắt",
+    "badgeTitle": "Lần chạy của agent: {{state}}",
+    "state": {
+      "starting": "Đang bắt đầu",
+      "idle": "Nhàn rỗi",
+      "working": "Đang làm việc",
+      "blocked": "Bị chặn",
+      "done": "Hoàn thành",
+      "failed": "Thất bại",
+      "unknown": "Không rõ",
+      "gone": "Đã biến mất"
+    }
   }
 }

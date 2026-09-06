@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "Se conectează la server..."
   },
   "header": {
@@ -175,7 +175,7 @@
     "selectAllHint": "Select all (visible)"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "Pasul {{current}} din {{total}}",
@@ -309,7 +309,7 @@
     "priority": "Priority"
   },
   "toast": {
-    "settingsUpdatedExternally": "Settings updated externally — reloaded"
+    "settingsUpdatedExternally": "Settings updated externally, reloaded"
   },
   "agentChat": {
     "working": "Lucrează...",
@@ -373,7 +373,9 @@
     "menuHintSlash": "Scrie pentru a găsi abilități",
     "modelDefault": "Valoarea implicită din Harness",
     "modelDefaultTag": "Auto",
-    "modelSuggestedTag": "Recomandat"
+    "modelSuggestedTag": "Recomandat",
+    "modelCurrentTag": "Curent",
+    "modelCustom": "Model personalizat..."
   },
   "agentSkills": {
     "skillsModalTitle": "Abilități",
@@ -417,5 +419,34 @@
     "resumableTitle": "Există o sesiune activă pentru această sarcină, dar a părăsit rularea, poate fi reluată",
     "stopTask": "Oprește agentul care lucrează la această sarcină",
     "stopTaskTitle": "Oprește această sesiune Autopilot"
+  },
+  "agentRuns": {
+    "sectionTitle": "Rulează un agent",
+    "agentLabel": "Agent",
+    "harnessHint": "Harness-uri instalate detectate pe acest calculator",
+    "runnerLabel": "Execuție",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Rulează cu Herdr",
+    "runnerKandownTitle": "Rulează în cadrul demonului kandown",
+    "runnerHerdrTitle": "Rulează într-o filă Herdr la care te poți atașa",
+    "run": "Rulează",
+    "starting": "Se pornește...",
+    "startFailed": "Nu s-a putut porni execuția: {{error}}",
+    "stop": "Oprește",
+    "stopFailed": "Nu s-a putut opri execuția",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "Se așteaptă rezultatul...",
+    "truncated": "Rezultatul mai vechi a fost tăiat",
+    "badgeTitle": "Execuție agent: {{state}}",
+    "state": {
+      "starting": "Se pornește",
+      "idle": "Inactiv",
+      "working": "Lucrează",
+      "blocked": "Blocat",
+      "done": "Finalizat",
+      "failed": "Eșuat",
+      "unknown": "Necunoscut",
+      "gone": "Dispărut"
+    }
   }
 }

@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "براؤزر تعاون یافتہ نہیں",
     "unsupportedBrowserDesc": "اس انجن کو <code>File System Access API</code> درکار ہے۔ Chrome، Edge، Brave یا Opera استعمال کریں۔ Firefox اور Safari ابھی تک تعاون یافتہ نہیں ہیں۔",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "سرور سے منسلک ہو رہا ہے..."
   },
   "header": {
@@ -161,7 +161,7 @@
     "clear": "Clear selection"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "‏مرحلہ {{current}} از {{total}}‏",
@@ -291,7 +291,7 @@
     "priority": "ترجیح"
   },
   "toast": {
-    "settingsUpdatedExternally": "ترتیبات باہر سے اپ ڈیٹ ہوئیں — ری لوڈ ہو گئیں"
+    "settingsUpdatedExternally": "ترتیبات باہر سے اپ ڈیٹ ہوئیں, ری لوڈ ہو گئیں"
   },
   "agentChat": {
     "working": "کام کر رہا ہے...",
@@ -355,7 +355,9 @@
     "menuHintSlash": "مہارتوں کو تلاش کرنے کے لیے ٹائپ کریں",
     "modelDefault": "ہارنس کی ڈیفالٹ",
     "modelDefaultTag": "خودکار",
-    "modelSuggestedTag": "تجویز کردہ"
+    "modelSuggestedTag": "تجویز کردہ",
+    "modelCurrentTag": "موجودہ",
+    "modelCustom": "اپنی مرضی کا ماڈل..."
   },
   "agentSkills": {
     "skillsModalTitle": "مہارتیں",
@@ -399,5 +401,34 @@
     "resumableTitle": "اس کام کے لیے ایک لائیو سیشن موجود ہے مگر وہ رن سے نکل گیا ہے، اسے دوبارہ شروع کیا جا سکتا ہے",
     "stopTask": "اس کام پر کام کرنے والے ایجنٹ کو روکیں",
     "stopTaskTitle": "یہ آٹوپائلٹ سیشن روکیں"
+  },
+  "agentRuns": {
+    "sectionTitle": "ایجنٹ چلائیں",
+    "agentLabel": "ایجنٹ",
+    "harnessHint": "اس مشین پر نصب ہارنس مل گئے",
+    "runnerLabel": "رنر",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Herdr کے ساتھ چلائیں",
+    "runnerKandownTitle": "kandown ڈیمن کے اندر چلتا ہے",
+    "runnerHerdrTitle": "Herdr ٹیب میں چلتا ہے جس سے آپ جڑ سکتے ہیں",
+    "run": "چلائیں",
+    "starting": "شروع ہو رہا ہے...",
+    "startFailed": "رن شروع نہیں ہو سکا: {{error}}",
+    "stop": "روکیں",
+    "stopFailed": "رن روکا نہیں جا سکا",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "آؤٹ پٹ کا انتظار...",
+    "truncated": "پرانا آؤٹ پٹ ہٹا دیا گیا",
+    "badgeTitle": "ایجنٹ رن: {{state}}",
+    "state": {
+      "starting": "شروع ہو رہا ہے",
+      "idle": "بے کار",
+      "working": "کام کر رہا ہے",
+      "blocked": "روکا گیا",
+      "done": "مکمل",
+      "failed": "ناکام",
+      "unknown": "نامعلوم",
+      "gone": "ختم"
+    }
   }
 }

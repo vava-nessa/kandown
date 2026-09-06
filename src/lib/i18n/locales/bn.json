@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "ব্রাউজার সমর্থিত নয়",
     "unsupportedBrowserDesc": "এই ইঞ্জিনের জন্য <code>File System Access API</code> প্রয়োজন। Chrome, Edge, Brave বা Opera ব্যবহার করুন। Firefox এবং Safari এখনও সমর্থিত নয়।",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "সার্ভারের সাথে সংযোগ করা হচ্ছে..."
   },
   "header": {
@@ -161,7 +161,7 @@
     "clear": "Clear selection"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "ধাপ {{current}}/{{total}}",
@@ -291,7 +291,7 @@
     "priority": "প্রাধান্য"
   },
   "toast": {
-    "settingsUpdatedExternally": "সেটিংস বাহ্যিকভাবে আপডেট হয়েছে — পুনরায় লোড হয়েছে"
+    "settingsUpdatedExternally": "সেটিংস বাহ্যিকভাবে আপডেট হয়েছে, পুনরায় লোড হয়েছে"
   },
   "agentChat": {
     "working": "কাজ করছে...",
@@ -355,7 +355,9 @@
     "menuHintSlash": "দক্ষতা মেলাতে টাইপ করুন",
     "modelDefault": "হার্নেসের ডিফল্ট",
     "modelDefaultTag": "অটো",
-    "modelSuggestedTag": "প্রস্তাবিত"
+    "modelSuggestedTag": "প্রস্তাবিত",
+    "modelCurrentTag": "বর্তমান",
+    "modelCustom": "কাস্টম মডেল..."
   },
   "agentSkills": {
     "skillsModalTitle": "দক্ষতা",
@@ -399,5 +401,34 @@
     "resumableTitle": "এই কাজের জন্য একটি লাইভ সেশন আছে কিন্তু তা রান ছেড়ে গেছে, পুনরায় শুরু করা যাবে",
     "stopTask": "এই কাজে কাজ করা এজেন্টকে থামান",
     "stopTaskTitle": "এই অটোপাইলট সেশন থামান"
+  },
+  "agentRuns": {
+    "sectionTitle": "এজেন্ট চালান",
+    "agentLabel": "এজেন্ট",
+    "harnessHint": "এই মেশিনে ইনস্টল করা harness পাওয়া গেছে",
+    "runnerLabel": "রানার",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Herdr দিয়ে চালান",
+    "runnerKandownTitle": "kandown ডেমনের ভেতরে চলে",
+    "runnerHerdrTitle": "Herdr ট্যাবে চলে যেখানে আপনি যুক্ত হতে পারেন",
+    "run": "চালান",
+    "starting": "শুরু হচ্ছে...",
+    "startFailed": "রান শুরু করা যায়নি: {{error}}",
+    "stop": "থামান",
+    "stopFailed": "রান থামানো যায়নি",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "আউটপুটের অপেক্ষায়...",
+    "truncated": "পুরোনো আউটপুট বাদ দেওয়া হয়েছে",
+    "badgeTitle": "এজেন্ট রান: {{state}}",
+    "state": {
+      "starting": "শুরু হচ্ছে",
+      "idle": "অলস",
+      "working": "কাজ করছে",
+      "blocked": "বাধাগ্রস্ত",
+      "done": "সম্পন্ন",
+      "failed": "ব্যর্থ",
+      "unknown": "অজানা",
+      "gone": "মুছে গেছে"
+    }
   }
 }

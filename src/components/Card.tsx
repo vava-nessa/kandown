@@ -60,7 +60,9 @@ import { CardBeam } from './agent/CardBeam';
 import { FloatingAgentBlobatar } from './agent/Blobatar';
 import { ApprovalCardStack, isApprovalStackHost } from './agent/ApprovalCard';
 import { AutopilotStatusChip, CardStopButton } from './agent/CardStopButton';
+import { AgentRunBadge } from './TaskAgentRunControls';
 import { autopilotTaskStatus } from '../lib/store/autopilotSlice';
+import { mostActiveRun } from '../lib/store/agentRunsSlice';
 import type { BoardTask, Density, SearchMatch } from '../lib/types';
 import { useStore } from '../lib/store';
 import { useExtensionRuntime } from './ExtensionRuntimeProvider';
@@ -212,6 +214,13 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
   // button. Both derive from the SSE snapshot in one place (autopilotSlice).
   const autopilotStatus = useStore(s => autopilotTaskStatus(s.autopilot.snapshot, task.id));
 
+  // 📖 Agent run (t261): the most active run on this task drives the pill.
+  // Selector returns a stored object (stable reference), not the array, so
+  // only a real state change re-renders the card.
+  const hasAgentRun = useStore(s => mostActiveRun(
+    s.agentRuns.runs.filter(run => run.taskId?.toLowerCase() === task.id.toLowerCase()),
+  ) !== null);
+
   const progressPct =
     task.progress && task.progress.total > 0
       ? Math.round((task.progress.done / task.progress.total) * 100)
@@ -272,6 +281,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       (task.dependsOn && task.dependsOn.length > 0) ||
       task.assignee ||
       autopilotStatus ||
+      hasAgentRun ||
       extensionBadges.length > 0
   );
 
@@ -482,6 +492,9 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
               ))}
               {/* 📖 Autopilot presence (t311): Working / Queued / Resumable. */}
               <AutopilotStatusChip taskId={task.id} />
+              {/* 📖 Agent run state (t261): Working / Blocked / Done pill,
+                  self-hiding when the task has no run (or its run is gone). */}
+              <AgentRunBadge taskId={task.id} />
               {depsChip && (
                 <span
                   className="inline-flex items-center gap-0.5 px-1.5 h-[16px] rounded text-[10.5px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 max-w-[260px] truncate"

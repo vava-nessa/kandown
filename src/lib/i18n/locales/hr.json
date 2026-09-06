@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Nepodržan preglednik",
     "unsupportedBrowserDesc": "Ovaj engine zahtijeva <code>File System Access API</code>. Koristite Chrome, Edge, Brave ili Opera. Firefox i Safari još ne podržavaju.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "Povezivanje s poslužiteljem..."
   },
   "header": {
@@ -190,7 +190,7 @@
     "selectAllHint": "Select all (visible)"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "Korak {{current}} od {{total}}",
@@ -324,7 +324,7 @@
     "priority": "Prioritet"
   },
   "toast": {
-    "settingsUpdatedExternally": "Postavke su ažurirane izvana — osvježeno"
+    "settingsUpdatedExternally": "Postavke su ažurirane izvana, osvježeno"
   },
   "agentChat": {
     "working": "Radi...",
@@ -388,7 +388,9 @@
     "menuHintSlash": "Upišite za pronalaženje vještina",
     "modelDefault": "Zadano za Harness",
     "modelDefaultTag": "Auto",
-    "modelSuggestedTag": "Preporučeno"
+    "modelSuggestedTag": "Preporučeno",
+    "modelCurrentTag": "Trenutni",
+    "modelCustom": "Prilagođeni model..."
   },
   "agentSkills": {
     "skillsModalTitle": "Vještine",
@@ -432,5 +434,34 @@
     "resumableTitle": "Postoji živa sesija za ovaj zadatak, ali izašla je iz izvođenja, može se nastaviti",
     "stopTask": "Zaustavi agenta koji radi na ovom zadatku",
     "stopTaskTitle": "Zaustavi ovu sesiju autopilota"
+  },
+  "agentRuns": {
+    "sectionTitle": "Pokreni agenta",
+    "agentLabel": "Agent",
+    "harnessHint": "Otkriveni su instalirani harness na ovom računalu",
+    "runnerLabel": "Izvršavanje",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Pokreni s Herdr",
+    "runnerKandownTitle": "Izvršava se u kandown demonu",
+    "runnerHerdrTitle": "Izvršava se u kartici Herdr kojoj se možete priključiti",
+    "run": "Pokreni",
+    "starting": "Pokretanje...",
+    "startFailed": "Izvršavanje nije moguće pokrenuti: {{error}}",
+    "stop": "Zaustavi",
+    "stopFailed": "Izvršavanje nije moguće zaustaviti",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "Čeka se izlaz...",
+    "truncated": "Stariji izlaz je skraćen",
+    "badgeTitle": "Izvršavanje agenta: {{state}}",
+    "state": {
+      "starting": "Pokretanje",
+      "idle": "Neaktivan",
+      "working": "Radi",
+      "blocked": "Blokiran",
+      "done": "Gotovo",
+      "failed": "Neuspjelo",
+      "unknown": "Nepoznato",
+      "gone": "Nestao"
+    }
   }
 }

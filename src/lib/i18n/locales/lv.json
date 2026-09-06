@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Neatbalstīta pārlūkprogramma",
     "unsupportedBrowserDesc": "Šim dzinējam nepieciešams <code>File System Access API</code>. Izmantojiet Chrome, Edge, Brave vai Opera. Firefox un Safari vēl to neatbalsta.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "Notiek savienojuma izveide ar serveri..."
   },
   "header": {
@@ -190,7 +190,7 @@
     "selectAllHint": "Select all (visible)"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "Solis {{current}} no {{total}}",
@@ -324,7 +324,7 @@
     "priority": "Prioritāte"
   },
   "toast": {
-    "settingsUpdatedExternally": "Iestatījumi atjaunināti ārēji — pārlādēti"
+    "settingsUpdatedExternally": "Iestatījumi atjaunināti ārēji, pārlādēti"
   },
   "agentChat": {
     "working": "Strādā...",
@@ -388,7 +388,9 @@
     "menuHintSlash": "Rakstiet, lai atrastu prasmes",
     "modelDefault": "Harness noklusējums",
     "modelDefaultTag": "Auto",
-    "modelSuggestedTag": "Ieteikts"
+    "modelSuggestedTag": "Ieteikts",
+    "modelCurrentTag": "Pašreizējais",
+    "modelCustom": "Pielāgots modelis..."
   },
   "agentSkills": {
     "skillsModalTitle": "Prasmes",
@@ -432,5 +434,34 @@
     "resumableTitle": "Šim uzdevumam ir dzīva sesija, bet tā pameta izpildi, to var atsākt",
     "stopTask": "Apturēt aģentu, kas strādā pie šī uzdevuma",
     "stopTaskTitle": "Apturēt šo autopilota sesiju"
+  },
+  "agentRuns": {
+    "sectionTitle": "Palaist aģentu",
+    "agentLabel": "Aģents",
+    "harnessHint": "Šajā datorā atrasti instalēti harness",
+    "runnerLabel": "Izpilde",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Palaist ar Herdr",
+    "runnerKandownTitle": "Darbojas kandown dēmona ietvaros",
+    "runnerHerdrTitle": "Darbojas Herdr cilnē, kuram var pievienoties",
+    "run": "Palaist",
+    "starting": "Palaižas...",
+    "startFailed": "Nebija iespējams palaist izpildi: {{error}}",
+    "stop": "Apturēt",
+    "stopFailed": "Nebija iespējams apturēt izpildi",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "Gaida izvadi...",
+    "truncated": "Vecāka izvade nogriezta",
+    "badgeTitle": "Aģenta izpilde: {{state}}",
+    "state": {
+      "starting": "Palaižas",
+      "idle": "Neaktīvs",
+      "working": "Strādā",
+      "blocked": "Bloķēts",
+      "done": "Gatavs",
+      "failed": "Neizdevās",
+      "unknown": "Nezināms",
+      "gone": "Pazudis"
+    }
   }
 }

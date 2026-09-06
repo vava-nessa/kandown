@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Μη υποστηριζόμενος browser",
     "unsupportedBrowserDesc": "Αυτή η μηχανή απαιτεί το <code>File System Access API</code>. Χρησιμοποιήστε Chrome, Edge, Brave ή Opera. Τα Firefox και Safari δεν το υποστηρίζουν ακόμη.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "Σύνδεση στον διακομιστή..."
   },
   "header": {
@@ -190,7 +190,7 @@
     "selectAllHint": "Select all (visible)"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "Βήμα {{current}} από {{total}}",
@@ -324,7 +324,7 @@
     "priority": "Προτεραιότητα"
   },
   "toast": {
-    "settingsUpdatedExternally": "Οι ρυθμίσεις ενημερώθηκαν εξωτερικά — επαναφορτώθηκαν"
+    "settingsUpdatedExternally": "Οι ρυθμίσεις ενημερώθηκαν εξωτερικά, επαναφορτώθηκαν"
   },
   "agentChat": {
     "working": "Εργάζεται...",
@@ -388,7 +388,9 @@
     "menuHintSlash": "Πληκτρολογήστε για αναζήτηση δεξιοτήτων",
     "modelDefault": "Προεπιλογή του Harness",
     "modelDefaultTag": "Αυτόματο",
-    "modelSuggestedTag": "Προτεινόμενο"
+    "modelSuggestedTag": "Προτεινόμενο",
+    "modelCurrentTag": "Τρέχον",
+    "modelCustom": "Προσαρμοσμένο μοντέλο..."
   },
   "agentSkills": {
     "skillsModalTitle": "Δεξιότητες",
@@ -432,5 +434,34 @@
     "resumableTitle": "Υπάρχει ενεργή συνεδρία για αυτή την εργασία αλλά αποχώρησε από την εκτέλεση, μπορεί να συνεχιστεί",
     "stopTask": "Σταμάτα τον agent που εργάζεται σε αυτή την εργασία",
     "stopTaskTitle": "Σταμάτα αυτή τη συνεδρία Autopilot"
+  },
+  "agentRuns": {
+    "sectionTitle": "Εκτέλεση agent",
+    "agentLabel": "Agent",
+    "harnessHint": "Εντοπίστηκαν εγκατεστημένα harness σε αυτόν τον υπολογιστή",
+    "runnerLabel": "Εκτέλεση",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Εκτέλεση με Herdr",
+    "runnerKandownTitle": "Εκτελείται στον δαίμονα kandown",
+    "runnerHerdrTitle": "Εκτελείται σε μια καρτέλα Herdr στην οποία μπορείτε να συνδεθείτε",
+    "run": "Εκτέλεση",
+    "starting": "Εκκίνηση...",
+    "startFailed": "Αδύνατη η έναρξη της εκτέλεσης: {{error}}",
+    "stop": "Σταμάτα",
+    "stopFailed": "Αδύνατη η διακοπή της εκτέλεσης",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "Αναμονή εξόδου...",
+    "truncated": "Παλιότερη έξοδος περικόπηκε",
+    "badgeTitle": "Εκτέλεση agent: {{state}}",
+    "state": {
+      "starting": "Εκκίνηση",
+      "idle": "Αδρανής",
+      "working": "Εργάζεται",
+      "blocked": "Μπλοκαρισμένο",
+      "done": "Ολοκληρώθηκε",
+      "failed": "Απέτυχε",
+      "unknown": "Άγνωστο",
+      "gone": "Εξαφανίστηκε"
+    }
   }
 }

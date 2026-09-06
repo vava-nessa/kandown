@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Браузер не поддерживается",
     "unsupportedBrowserDesc": "Этому движку требуется <code>File System Access API</code>. Используйте Chrome, Edge, Brave или Opera. Firefox и Safari пока не поддерживаются.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "Подключение к серверу..."
   },
   "header": {
@@ -161,7 +161,7 @@
     "selectedMany": "selected"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — не запускается из kandown (приложение/десктоп, только подпись)"
+    "desktopTooltip": "{{name}}: не запускается из kandown (приложение/десктоп, только подпись)"
   },
   "onboarding": {
     "stepLabel": "Шаг {{current}} из {{total}}",
@@ -291,7 +291,7 @@
     "priority": "Приоритет"
   },
   "toast": {
-    "settingsUpdatedExternally": "Настройки были обновлены извне — перезагружено"
+    "settingsUpdatedExternally": "Настройки были обновлены извне, перезагружено"
   },
   "agentChat": {
     "working": "Работает...",
@@ -355,7 +355,9 @@
     "menuHintSlash": "Введите для поиска навыков",
     "modelDefault": "Настройка Harness по умолчанию",
     "modelDefaultTag": "Авто",
-    "modelSuggestedTag": "Рекомендуемый"
+    "modelSuggestedTag": "Рекомендуемый",
+    "modelCurrentTag": "Текущий",
+    "modelCustom": "Своя модель..."
   },
   "agentSkills": {
     "skillsModalTitle": "Навыки",
@@ -399,5 +401,34 @@
     "resumableTitle": "Для этой задачи есть живая сессия, но она покинула запуск; её можно возобновить",
     "stopTask": "Остановить агента, работающего над этой задачей",
     "stopTaskTitle": "Остановить эту сессию автопилота"
+  },
+  "agentRuns": {
+    "sectionTitle": "Запустить агента",
+    "agentLabel": "Агент",
+    "harnessHint": "Обнаружены установленные harness на этом компьютере",
+    "runnerLabel": "Запуск",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Запустить через Herdr",
+    "runnerKandownTitle": "Выполняется внутри демона kandown",
+    "runnerHerdrTitle": "Выполняется во вкладке Herdr, к которой можно подключиться",
+    "run": "Запустить",
+    "starting": "Запуск...",
+    "startFailed": "Не удалось запустить выполнение: {{error}}",
+    "stop": "Остановить",
+    "stopFailed": "Не удалось остановить выполнение",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "Ожидание вывода...",
+    "truncated": "Более старый вывод обрезан",
+    "badgeTitle": "Выполнение агента: {{state}}",
+    "state": {
+      "starting": "Запуск",
+      "idle": "Простой",
+      "working": "Работает",
+      "blocked": "Заблокировано",
+      "done": "Готово",
+      "failed": "Ошибка",
+      "unknown": "Неизвестно",
+      "gone": "Исчез"
+    }
   }
 }

@@ -11,6 +11,12 @@ import type { ConflictType, AgentEditsBoardEvent, AgentAutopilotEvent } from '..
 import type { AgentChatEvent, ChatFoldState } from '../agent-chat-events';
 import type { ChatSkillQuestion } from '../agent-chat-skills';
 
+/** 📖 Runner backend ids and lifecycle states, mirrored from the daemon
+ * contract (src/cli/lib/runner/types.ts) so the web bundle never imports
+ * src/cli. Guarded at the boundary by agentRunsSlice's wire guards. */
+export type RunnerId = 'default' | 'herdr';
+export type RunnerRunState = 'starting' | 'idle' | 'working' | 'blocked' | 'done' | 'failed' | 'unknown' | 'gone';
+
 /** 📖 Toast severity. `warning` is used for partial-failure / corruption /
  * disk-full situations where the user must be informed but the app keeps
  * running. `error` is reserved for hard failures. */
@@ -253,6 +259,45 @@ export interface AutopilotState {
   stopping: boolean;
 }
 
+/** 📖 One run as the UI keeps it: the daemon's RunnerRun plus client-side
+ * bookkeeping (`firstSeenAt` anchors the PTY preview's auto-expand for runs
+ * without a daemon-side start time, e.g. adopted Herdr panes). Wire shape
+ * mirrored in agentRunsSlice.ts (the web bundle does not import src/cli). */
+export interface RunnerRunView {
+  runnerId: RunnerId;
+  runId: string;
+  taskId: string | null;
+  agentId: string;
+  state: RunnerRunState;
+  startedAt?: string;
+  label?: string;
+  workspaceId?: string;
+  tabId?: string;
+  firstSeenAt: string;
+}
+
+/** 📖 One runner backend as GET /api/agent/runners describes it: identity
+ * plus availability, enough for the UI to decide whether Herdr affordances
+ * render at all (progressive disclosure, t261 point 3). */
+export interface RunnerDescriptorView {
+  id: RunnerId;
+  name: string;
+  available: boolean;
+  version?: string | null;
+  reason?: string;
+}
+
+/** 📖 Everything the agent-run UI reads (t261): the seeded runner
+ * availability, the live runs, and whether the 10s poll loop is on. */
+export interface AgentRunsState {
+  /** Runner backends with their availability, seeded once in server mode. */
+  runners: RunnerDescriptorView[];
+  /** Live runs across every available runner, refreshed by pollRuns. */
+  runs: RunnerRunView[];
+  /** True while the 10s poll loop is running. */
+  polling: boolean;
+}
+
 /** 📖 A metadata change applied in bulk to one or more tasks (t116). Each field
  * is optional: only the provided ones are merged into each task's frontmatter.
  * Mirrored in store.ts; kept here so the shared State declaration is complete. */
@@ -492,4 +537,22 @@ export interface State {
   /** Stops one task's session (POST /api/agent/sessions/:id/stop), the same
    * route the chat sidebar uses. Returns false and toasts on failure. */
   stopAutopilotSession: (sessionId: string) => Promise<boolean>;
+
+  // Agent runs: launch + watch (t261). State lives under `agentRuns`.
+  agentRuns: AgentRunsState;
+  /** One-time wiring (server mode): seeds runner availability, starts the
+   * 10s run poll. Called from setupWatcher, idempotent, no-op in demo. */
+  setupAgentRuns: () => void;
+  /** GET /api/agent/runs and merge into state. Silently no-ops on failure. */
+  pollRuns: () => Promise<void>;
+  /** GET /api/agent/runners once so the UI knows if Herdr is available. */
+  seedRunnerAvailability: () => Promise<void>;
+  /** POST /api/agent/runs: launch an agent on a task through a runner. */
+  startRun: (taskId: string, agentId: string, runner?: RunnerId) => Promise<{ ok: boolean; error?: string }>;
+  /** POST /api/agent/runs/stop: stop one run. Returns false on failure. */
+  stopRun: (runner: RunnerId, runId: string) => Promise<boolean>;
+  /** Starts the 10s run poll (polls immediately). No-op outside server mode. */
+  startPolling: () => void;
+  /** Stops the run poll loop. */
+  stopPolling: () => void;
 }

@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "సర్వర్‌కు కనెక్ట్ అవుతోంది..."
   },
   "header": {
@@ -212,7 +212,7 @@
     "clear": "Clear selection"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "దశ {{current}}/{{total}}",
@@ -346,7 +346,7 @@
     "priority": "Priority"
   },
   "toast": {
-    "settingsUpdatedExternally": "Settings updated externally — reloaded"
+    "settingsUpdatedExternally": "Settings updated externally, reloaded"
   },
   "agentChat": {
     "working": "పనిచేస్తోంది...",
@@ -410,7 +410,9 @@
     "menuHintSlash": "నైపుణ్యాలను కనుగొనడానికి టైప్ చేయండి",
     "modelDefault": "హార్నెస్ డిఫాల్ట్",
     "modelDefaultTag": "ఆటో",
-    "modelSuggestedTag": "సిఫారసు చేసిన"
+    "modelSuggestedTag": "సిఫారసు చేసిన",
+    "modelCurrentTag": "ప్రస్తుత",
+    "modelCustom": "కస్టమ్ మోడల్..."
   },
   "agentSkills": {
     "skillsModalTitle": "నైపుణ్యాలు",
@@ -454,5 +456,34 @@
     "resumableTitle": "ఈ పనికి ఒక లైవ్ సెషన్ ఉంది కానీ అది రన్ నుంచి వైదొలిగింది, మళ్లీ ప్రారంభించగలదు",
     "stopTask": "ఈ పనిపై పనిచేస్తున్న ఏజెంట్‌ను ఆపు",
     "stopTaskTitle": "ఈ ఆటోపైలట్ సెషన్‌ను ఆపు"
+  },
+  "agentRuns": {
+    "sectionTitle": "ఏజెంట్‌ను అమలు చేయి",
+    "agentLabel": "ఏజెంట్",
+    "harnessHint": "ఈ మెషీన్‌లో ఇన్‌స్టాల్ చేసిన హార్నెస్‌లు కనుగొనబడ్డాయి",
+    "runnerLabel": "రన్నర్",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Herdr తో అమలు చేయి",
+    "runnerKandownTitle": "kandown డెమన్ లోపల అమలవుతుంది",
+    "runnerHerdrTitle": "మీరు అనుసంధానించగల Herdr ట్యాబ్‌లో అమలవుతుంది",
+    "run": "అమలు చేయి",
+    "starting": "ప్రారంభమవుతోంది...",
+    "startFailed": "రన్‌ను ప్రారంభించడం సాధ్యం కాలేదు: {{error}}",
+    "stop": "ఆపు",
+    "stopFailed": "రన్‌ను ఆపడం సాధ్యం కాలేదు",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "అవుట్‌పుట్ కోసం వేచి ఉన్నారు...",
+    "truncated": "పాత అవుట్‌పుట్ తొలగించబడింది",
+    "badgeTitle": "ఏజెంట్ రన్: {{state}}",
+    "state": {
+      "starting": "ప్రారంభమవుతోంది",
+      "idle": "ఖాళీగా",
+      "working": "పనిచేస్తోంది",
+      "blocked": "అడ్డుకోబడింది",
+      "done": "పూర్తయింది",
+      "failed": "విఫలమైంది",
+      "unknown": "తెలియదు",
+      "gone": "కనుమరుగైంది"
+    }
   }
 }

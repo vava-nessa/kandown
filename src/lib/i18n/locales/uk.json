@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "З'єднання із сервером..."
   },
   "header": {
@@ -175,7 +175,7 @@
     "selectAllHint": "Select all (visible)"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "Крок {{current}} з {{total}}",
@@ -309,7 +309,7 @@
     "priority": "Priority"
   },
   "toast": {
-    "settingsUpdatedExternally": "Settings updated externally — reloaded"
+    "settingsUpdatedExternally": "Settings updated externally, reloaded"
   },
   "agentChat": {
     "working": "Працює...",
@@ -373,7 +373,9 @@
     "menuHintSlash": "Введіть для пошуку навичок",
     "modelDefault": "Налаштування Harness за замовчуванням",
     "modelDefaultTag": "Авто",
-    "modelSuggestedTag": "Рекомендований"
+    "modelSuggestedTag": "Рекомендований",
+    "modelCurrentTag": "Поточний",
+    "modelCustom": "Власна модель..."
   },
   "agentSkills": {
     "skillsModalTitle": "Навички",
@@ -417,5 +419,34 @@
     "resumableTitle": "Для цього завдання існує активна сесія, але вона полишила запуск; її можна поновити",
     "stopTask": "Зупинити агента, який працює над цим завданням",
     "stopTaskTitle": "Зупинити цю сесію автопілота"
+  },
+  "agentRuns": {
+    "sectionTitle": "Запустити агента",
+    "agentLabel": "Агент",
+    "harnessHint": "Виявлено встановлені harness на цьому комп'ютері",
+    "runnerLabel": "Виконання",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Запустити з Herdr",
+    "runnerKandownTitle": "Виконується в демоні kandown",
+    "runnerHerdrTitle": "Виконується у вкладці Herdr, до якої можна приєднатися",
+    "run": "Запустити",
+    "starting": "Запуск...",
+    "startFailed": "Не вдалося запустити виконання: {{error}}",
+    "stop": "Зупинити",
+    "stopFailed": "Не вдалося зупинити виконання",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "Очікування виводу...",
+    "truncated": "Старіший вивід обрізано",
+    "badgeTitle": "Виконання агента: {{state}}",
+    "state": {
+      "starting": "Запуск",
+      "idle": "Бездіяльність",
+      "working": "Працює",
+      "blocked": "Заблоковано",
+      "done": "Готово",
+      "failed": "Помилка",
+      "unknown": "Невідомо",
+      "gone": "Зник"
+    }
   }
 }

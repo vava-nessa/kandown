@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Webbläsaren stöds inte",
     "unsupportedBrowserDesc": "Den här motorn kräver <code>File System Access API</code>. Använd Chrome, Edge, Brave eller Opera. Firefox och Safari stöds ännu inte.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "Ansluter till servern..."
   },
   "header": {
@@ -190,7 +190,7 @@
     "selectAllHint": "Select all (visible)"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "Steg {{current}} av {{total}}",
@@ -324,7 +324,7 @@
     "priority": "Prioritet"
   },
   "toast": {
-    "settingsUpdatedExternally": "Inställningar uppdaterades externt — omladdade"
+    "settingsUpdatedExternally": "Inställningar uppdaterades externt, omladdade"
   },
   "agentChat": {
     "working": "Arbetar...",
@@ -388,7 +388,9 @@
     "menuHintSlash": "Skriv för att hitta färdigheter",
     "modelDefault": "Harness-standard",
     "modelDefaultTag": "Auto",
-    "modelSuggestedTag": "Rekommenderad"
+    "modelSuggestedTag": "Rekommenderad",
+    "modelCurrentTag": "Aktuell",
+    "modelCustom": "Egen modell..."
   },
   "agentSkills": {
     "skillsModalTitle": "Färdigheter",
@@ -432,5 +434,34 @@
     "resumableTitle": "En aktiv session finns för uppgiften men har lämnat körningen, den kan återupptas",
     "stopTask": "Stoppa agenten som arbetar med uppgiften",
     "stopTaskTitle": "Stoppa denna Autopilot-session"
+  },
+  "agentRuns": {
+    "sectionTitle": "Kör en agent",
+    "agentLabel": "Agent",
+    "harnessHint": "Installerade harness upptäcktes på den här datorn",
+    "runnerLabel": "Körning",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Kör med Herdr",
+    "runnerKandownTitle": "Kör i kandown-daemonen",
+    "runnerHerdrTitle": "Kör i en Herdr-flik du kan ansluta till",
+    "run": "Kör",
+    "starting": "Startar...",
+    "startFailed": "Kunde inte starta körningen: {{error}}",
+    "stop": "Stoppa",
+    "stopFailed": "Kunde inte stoppa körningen",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "Väntar på utdata...",
+    "truncated": "Äldre utdata borttagen",
+    "badgeTitle": "Agentkörning: {{state}}",
+    "state": {
+      "starting": "Startar",
+      "idle": "Inaktiv",
+      "working": "Arbetar",
+      "blocked": "Blockerad",
+      "done": "Klar",
+      "failed": "Misslyckades",
+      "unknown": "Okänd",
+      "gone": "Försvunnen"
+    }
   }
 }

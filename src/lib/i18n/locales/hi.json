@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "असमर्थित ब्राउज़र",
     "unsupportedBrowserDesc": "इस इंजन को <code>File System Access API</code> की आवश्यकता है। Chrome, Edge, Brave या Opera का उपयोग करें। Firefox और Safari अभी तक इसका समर्थन नहीं करते।",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "सर्वर से कनेक्ट हो रहा है..."
   },
   "header": {
@@ -190,7 +190,7 @@
     "selectAllHint": "Select all (visible)"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "चरण {{current}}/{{total}}",
@@ -324,7 +324,7 @@
     "priority": "प्राथमिकता"
   },
   "toast": {
-    "settingsUpdatedExternally": "सेटिंग्स बाहरी रूप से अपडेट की गईं — पुनः लोड की गईं"
+    "settingsUpdatedExternally": "सेटिंग्स बाहरी रूप से अपडेट की गईं, पुनः लोड की गईं"
   },
   "agentChat": {
     "working": "काम कर रहा है...",
@@ -388,7 +388,9 @@
     "menuHintSlash": "कौशल खोजने के लिए टाइप करें",
     "modelDefault": "हार्नेस का डिफ़ॉल्ट",
     "modelDefaultTag": "ऑटो",
-    "modelSuggestedTag": "सुझाया गया"
+    "modelSuggestedTag": "सुझाया गया",
+    "modelCurrentTag": "वर्तमान",
+    "modelCustom": "कस्टम मॉडल..."
   },
   "agentSkills": {
     "skillsModalTitle": "कौशल",
@@ -432,5 +434,34 @@
     "resumableTitle": "इस कार्य के लिए एक लाइव सेशन मौजूद है, पर वह रन छोड़ चुका है, इसे दोबारा शुरू किया जा सकता है",
     "stopTask": "इस कार्य पर काम कर रहे एजेंट को रोकें",
     "stopTaskTitle": "इस ऑटोपायलट सेशन को रोकें"
+  },
+  "agentRuns": {
+    "sectionTitle": "एजेंट चलाएँ",
+    "agentLabel": "एजेंट",
+    "harnessHint": "इस मशीन पर इंस्टॉल किए गए हार्नेस मिले",
+    "runnerLabel": "रनर",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Herdr से चलाएँ",
+    "runnerKandownTitle": "kandown डेमन के अंदर चलता है",
+    "runnerHerdrTitle": "Herdr टैब में चलता है जिसे आप खोल सकते हैं",
+    "run": "चलाएँ",
+    "starting": "शुरू हो रहा है...",
+    "startFailed": "रन शुरू नहीं हो सका: {{error}}",
+    "stop": "रोकें",
+    "stopFailed": "रन रोका नहीं जा सका",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "आउटपुट की प्रतीक्षा में...",
+    "truncated": "पुराना आउटपुट हटाया गया",
+    "badgeTitle": "एजेंट रन: {{state}}",
+    "state": {
+      "starting": "शुरू हो रहा है",
+      "idle": "निष्क्रिय",
+      "working": "काम कर रहा है",
+      "blocked": "अवरुद्ध",
+      "done": "पूर्ण",
+      "failed": "विफल",
+      "unknown": "अज्ञात",
+      "gone": "समाप्त"
+    }
   }
 }

@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Unsupported browser",
     "unsupportedBrowserDesc": "This engine requires the <code>File System Access API</code>. Use Chrome, Edge, Brave or Opera. Firefox and Safari don't support it yet.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "சேவையகத்துடன் இணைக்கிறது..."
   },
   "header": {
@@ -212,7 +212,7 @@
     "clear": "Clear selection"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — non-chainable from kandown (app/desktop, label only)"
+    "desktopTooltip": "{{name}}: non-chainable from kandown (app/desktop, label only)"
   },
   "onboarding": {
     "stepLabel": "படி {{current}}/{{total}}",
@@ -346,7 +346,7 @@
     "priority": "Priority"
   },
   "toast": {
-    "settingsUpdatedExternally": "Settings updated externally — reloaded"
+    "settingsUpdatedExternally": "Settings updated externally, reloaded"
   },
   "agentChat": {
     "working": "வேலை செய்கிறது...",
@@ -410,7 +410,9 @@
     "menuHintSlash": "திறன்களைத் தேட தட்டச்சு செய்யுங்கள்",
     "modelDefault": "ஹார்னஸின் இயல்புநிலை",
     "modelDefaultTag": "தானியங்கு",
-    "modelSuggestedTag": "பரிந்துரைக்கப்பட்டது"
+    "modelSuggestedTag": "பரிந்துரைக்கப்பட்டது",
+    "modelCurrentTag": "நடப்பு",
+    "modelCustom": "தனிப்பயன் மாதிரி..."
   },
   "agentSkills": {
     "skillsModalTitle": "திறன்கள்",
@@ -454,5 +456,34 @@
     "resumableTitle": "இந்தப் பணிக்கு ஒரு செயலில் உள்ள அமர்வு இருக்கிறது, ஆனால் அது இயக்கத்தை விட்டு வெளியேறியது, மீண்டும் தொடரலாம்",
     "stopTask": "இந்தப் பணியில் வேலை செய்யும் ஏஜென்டை நிறுத்து",
     "stopTaskTitle": "இந்த ஆட்டோபைலட் அமர்வை நிறுத்து"
+  },
+  "agentRuns": {
+    "sectionTitle": "ஏஜென்டை இயக்கு",
+    "agentLabel": "ஏஜென்ட்",
+    "harnessHint": "இந்த கணினியில் நிறுவப்பட்ட ஹார்னெஸ்கள் கண்டறியப்பட்டன",
+    "runnerLabel": "ரன்னர்",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Herdr உடன் இயக்கு",
+    "runnerKandownTitle": "kandown டெமானுக்குள் இயங்குகிறது",
+    "runnerHerdrTitle": "இணைக்கக்கூடிய Herdr தாவலில் இயங்குகிறது",
+    "run": "இயக்கு",
+    "starting": "தொடங்குகிறது...",
+    "startFailed": "ரனைத் தொடங்க முடியவில்லை: {{error}}",
+    "stop": "நிறுத்து",
+    "stopFailed": "ரனை நிறுத்த முடியவில்லை",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "வெளியீட்டுக்காக காத்திருக்கிறது...",
+    "truncated": "பழைய வெளியீடு நீக்கப்பட்டது",
+    "badgeTitle": "ஏஜென்ட் ரன்: {{state}}",
+    "state": {
+      "starting": "தொடங்குகிறது",
+      "idle": "செயலின்றி",
+      "working": "வேலை செய்கிறது",
+      "blocked": "தடுக்கப்பட்டது",
+      "done": "முடிந்தது",
+      "failed": "தோல்வி",
+      "unknown": "தெரியவில்லை",
+      "gone": "மறைந்தது"
+    }
   }
 }

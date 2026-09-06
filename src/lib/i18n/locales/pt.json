@@ -33,7 +33,7 @@
   "emptyState": {
     "unsupportedBrowser": "Navegador não suportado",
     "unsupportedBrowserDesc": "Este motor requer a <code>File System Access API</code>. Use Chrome, Edge, Brave ou Opera. Firefox e Safari ainda não suportam.",
-    "selectFolderDesc": "Select the <strong>project root</strong> — the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
+    "selectFolderDesc": "Select the <strong>project root</strong>: the folder that contains both <code>.kandown/</code> and <code>tasks/</code>.",
     "serverModeLoadingDesc": "A conectar ao servidor..."
   },
   "header": {
@@ -190,7 +190,7 @@
     "clear": "Limpar seleção"
   },
   "agent": {
-    "desktopTooltip": "{{name}} — não encadeável pelo kandown (app/desktop, apenas rótulo)"
+    "desktopTooltip": "{{name}}: não encadeável pelo kandown (app/desktop, apenas rótulo)"
   },
   "onboarding": {
     "stepLabel": "Passo {{current}} de {{total}}",
@@ -324,7 +324,7 @@
     "priority": "Prioridade"
   },
   "toast": {
-    "settingsUpdatedExternally": "Configurações atualizadas externamente — recarregadas"
+    "settingsUpdatedExternally": "Configurações atualizadas externamente, recarregadas"
   },
   "agentChat": {
     "working": "Trabalhando...",
@@ -388,7 +388,9 @@
     "menuHintSlash": "Digite para buscar Skills",
     "modelDefault": "Padrão do Harness",
     "modelDefaultTag": "Auto",
-    "modelSuggestedTag": "Recomendado"
+    "modelSuggestedTag": "Recomendado",
+    "modelCurrentTag": "Atual",
+    "modelCustom": "Modelo personalizado..."
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",
@@ -432,5 +434,34 @@
     "resumableTitle": "Existe uma sessão ativa para esta tarefa, mas ela saiu da execução; pode ser retomada",
     "stopTask": "Parar o agente que trabalha nesta tarefa",
     "stopTaskTitle": "Parar esta sessão do Autopilot"
+  },
+  "agentRuns": {
+    "sectionTitle": "Executar um agente",
+    "agentLabel": "Agente",
+    "harnessHint": "Harness instalados detetados nesta máquina",
+    "runnerLabel": "Execução",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Executar com Herdr",
+    "runnerKandownTitle": "É executado no daemon do kandown",
+    "runnerHerdrTitle": "É executado num separador Herdr ao qual se pode ligar",
+    "run": "Executar",
+    "starting": "A iniciar...",
+    "startFailed": "Não foi possível iniciar a execução: {{error}}",
+    "stop": "Parar",
+    "stopFailed": "Não foi possível parar a execução",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "A aguardar a saída...",
+    "truncated": "Saída anterior aparada",
+    "badgeTitle": "Execução do agente: {{state}}",
+    "state": {
+      "starting": "A iniciar",
+      "idle": "Inativo",
+      "working": "Trabalhando",
+      "blocked": "Bloqueado",
+      "done": "Concluído",
+      "failed": "Falhado",
+      "unknown": "Desconhecido",
+      "gone": "Desaparecido"
+    }
   }
 }

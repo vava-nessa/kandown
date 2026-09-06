@@ -8,7 +8,7 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 15379,
+      "lines": 15441,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
@@ -426,7 +426,7 @@
     },
     {
       "path": "src/cli/lib/__tests__/model-catalog.spec.ts",
-      "lines": 51,
+      "lines": 116,
       "title": "Model catalog tests: the deterministic half of the catalog (t324)",
       "summary": "Locks the parts of listHarnessModels that must hold on every machine: harnesses that do not speak ACP (and unknown ids) answer the curated baseline with source \"baseline\", ids are normalized entries, and the cache reset clears state.",
       "functions": [
@@ -752,20 +752,28 @@
     },
     {
       "path": "src/cli/lib/agent/model-catalog.ts",
-      "lines": 215,
+      "lines": 372,
       "title": "Model catalog: which models a harness can actually run (t324)",
       "summary": "Answers the chat model menu's question, \"what can I pick for this harness?\", with real model ids instead of a cosmetic shortlist.",
       "functions": [
         {
-          "name": "listHarnessModels : the merged pick list for one harness (never throws)",
+          "name": "listHarnessModels   : the merged pick list for one harness (never throws)",
           "summary": null
         },
         {
-          "name": "resetModelCatalog : drop the cache (tests)",
+          "name": "fetchModelsDevCatalog : the cached models.dev catalog (null when offline)",
+          "summary": null
+        },
+        {
+          "name": "modelsDevToHarness  : pure: catalog slice to pickable models, newest first",
+          "summary": null
+        },
+        {
+          "name": "resetModelCatalog   : drop the caches (tests)",
           "summary": null
         }
       ],
-      "exports": "HarnessModel, HarnessModelList, listHarnessModels, resetModelCatalog"
+      "exports": "HarnessModel, HarnessModelList, ModelsDevModel, ModelsDevCatalog, listHarnessModels, fetchModelsDevCatalog, modelsDevToHarness, resetModelCatalog"
     },
     {
       "path": "src/cli/lib/agent/orchestrator.ts",
@@ -1532,7 +1540,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 1551,
+      "lines": 1621,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
@@ -2086,7 +2094,7 @@
     },
     {
       "path": "src/components/agent/ChatSidebar.tsx",
-      "lines": 591,
+      "lines": 600,
       "title": "Agent chat sidebar (t308)",
       "summary": "The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.",
       "functions": [
@@ -2671,7 +2679,7 @@
     },
     {
       "path": "src/components/Card.tsx",
-      "lines": 551,
+      "lines": 564,
       "title": "Task card",
       "summary": "Displays one board task as a clean, rounded card inside a column.",
       "functions": [
@@ -2803,7 +2811,7 @@
     },
     {
       "path": "src/components/Drawer.tsx",
-      "lines": 550,
+      "lines": 555,
       "title": "Task drawer editor",
       "summary": "Full-height task detail editor for title, description, subtasks, report, save/close, autosave, and deletion.",
       "functions": [
@@ -3122,6 +3130,27 @@
       "exports": "SubtaskItem"
     },
     {
+      "path": "src/components/TaskAgentRunControls.tsx",
+      "lines": 363,
+      "title": "Task agent run controls (t261)",
+      "summary": "Shared launch-and-watch surface for agent runs, mounted by BOTH task editor shells (TaskWorkspace on desktop, Drawer on mobile), the same fan-out rule TaskExtensionSurface follows.",
+      "functions": [
+        {
+          "name": "TaskAgentRunControls: harness select, runner toggle, Run button, preview",
+          "summary": null
+        },
+        {
+          "name": "RunOutputPanel: collapsible polled PTY tail with Stop",
+          "summary": null
+        },
+        {
+          "name": "AgentRunBadge: per-card run state pill (board surface)",
+          "summary": null
+        }
+      ],
+      "exports": "TaskAgentRunControls, AgentRunBadge"
+    },
+    {
       "path": "src/components/TaskExtensionSurface.tsx",
       "lines": 384,
       "title": "Task extension surface",
@@ -3136,7 +3165,7 @@
     },
     {
       "path": "src/components/TaskWorkspace.tsx",
-      "lines": 858,
+      "lines": 863,
       "title": "Desktop opened-task workspace",
       "summary": "Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…",
       "functions": [
@@ -3374,6 +3403,12 @@
       "lines": 237,
       "title": "Unit tests for the live agent edits pure core (t309)",
       "summary": "Covers the event fold (applyAgentEditsEvent), the permission queue helpers, diff pruning and the LCS-free line diff exported by src/lib/store/agentEditsSlice.ts, plus the board-event type guards exported by src/lib/watcher.ts (the…"
+    },
+    {
+      "path": "src/lib/__tests__/agent-runs.spec.ts",
+      "lines": 371,
+      "title": "Unit tests for the agent runs slice (t261)",
+      "summary": "Covers the pure core exported by src/lib/store/agentRunsSlice.ts (most-active-run pick, badge tone mapping, terminal-state set, PTY panel decisions, wire guards) and the transport behavior of the slice actions (poll merge with stable…"
     },
     {
       "path": "src/lib/__tests__/autopilot.spec.ts",
@@ -4345,7 +4380,7 @@
     },
     {
       "path": "src/lib/store.ts",
-      "lines": 2190,
+      "lines": 2213,
       "title": "Kandown Zustand store",
       "summary": "Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.",
       "functions": [
@@ -4378,7 +4413,7 @@
     },
     {
       "path": "src/lib/store/agentChatSlice.ts",
-      "lines": 640,
+      "lines": 644,
       "title": "Zustand store slice: agent chat sidebar (t308)",
       "summary": "Sidebar open state, the project's chat session index, the live per-session chat folds, and the SSE lifecycle that feeds them.",
       "functions": [
@@ -4429,6 +4464,39 @@
         }
       ],
       "exports": "AgentEditsSlice, createAgentEditsSlice, createInitialAgentEditsState, applyAgentEditsEvent, seedAgentEditsFromPairs, isActiveEditsPayload, ActiveEditPair, mergePermissions, withoutPermission, restorePermissions, pruneDiffs, computeLineDiff, DiffRow"
+    },
+    {
+      "path": "src/lib/store/agentRunsSlice.ts",
+      "lines": 365,
+      "title": "Zustand store slice: agent runs (t261)",
+      "summary": "Web UI half of the runner system: which runner backends this machine can use (seeded once, so Herdr affordances only render when Herdr answered available), the live runs (board badges and the editor's PTY preview), the launch action and…",
+      "functions": [
+        {
+          "name": "createInitialAgentRunsState: empty agentRuns state",
+          "summary": null
+        },
+        {
+          "name": "createAgentRunsSlice: seeding, polling, start / stop transport",
+          "summary": null
+        },
+        {
+          "name": "setupAgentRuns: one-time wiring called from setupWatcher (server mode)",
+          "summary": null
+        },
+        {
+          "name": "mostActiveRun / runBadgeTone / isTerminalRunState: pure lookups",
+          "summary": null
+        },
+        {
+          "name": "isOutputPinnedToBottom / shouldAutoExpandOutput: pure panel decisions",
+          "summary": null
+        },
+        {
+          "name": "isRunnerRunPayload / isRunnersPayload: wire guards",
+          "summary": null
+        }
+      ],
+      "exports": "AgentRunsSlice, createAgentRunsSlice, createInitialAgentRunsState, mostActiveRun, runBadgeTone, isTerminalRunState, isOutputPinnedToBottom, shouldAutoExpandOutput, isRunnerRunPayload, isRunnersPayload, RunnerRunView, RunnerDescriptorView, RUN_ACTIVITY_ORDER, OUTPUT_AUTO_EXPAND_MS"
     },
     {
       "path": "src/lib/store/agentSearchSlice.ts",
@@ -4495,7 +4563,7 @@
     },
     {
       "path": "src/lib/store/types.ts",
-      "lines": 496,
+      "lines": 559,
       "title": "Zustand store — shared types",
       "summary": "State shape and supporting interfaces used across every store slice."
     },

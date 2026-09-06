@@ -606,5 +606,34 @@
     "resumableTitle": "A live session exists for this task but left the run; it can be resumed",
     "stopTask": "Stop the agent working on this task",
     "stopTaskTitle": "Stop this autopilot session"
+  },
+  "agentRuns": {
+    "sectionTitle": "Run an agent",
+    "agentLabel": "Agent",
+    "harnessHint": "Installed harnesses detected on this machine",
+    "runnerLabel": "Runner",
+    "runnerKandown": "Kandown",
+    "runnerHerdr": "Run with Herdr",
+    "runnerKandownTitle": "Runs inside the kandown daemon",
+    "runnerHerdrTitle": "Runs in a Herdr tab you can attach to",
+    "run": "Run",
+    "starting": "Starting...",
+    "startFailed": "Could not start the run: {{error}}",
+    "stop": "Stop",
+    "stopFailed": "Could not stop the run",
+    "header": "run · {{agent}} · {{state}}",
+    "waiting": "Waiting for output...",
+    "truncated": "Older output trimmed",
+    "badgeTitle": "Agent run: {{state}}",
+    "state": {
+      "starting": "Starting",
+      "idle": "Idle",
+      "working": "Working",
+      "blocked": "Blocked",
+      "done": "Done",
+      "failed": "Failed",
+      "unknown": "Unknown",
+      "gone": "Gone"
+    }
   }
 }
