@@ -175,7 +175,7 @@ export default function StreamingText({
                 key={source.domain}
                 src={source.image}
                 alt=""
-                className="source-avatar size-3.5 rounded-full bg-surface shadow-[0_0_0_1.5px_var(--canvas)]"
+                className="source-avatar size-3.5 rounded-full bg-surface shadow-[0_0_0_1.5px_hsl(var(--canvas))]"
               />
             ))}
           </span>
@@ -229,7 +229,7 @@ export default function StreamingText({
                   : { opacity: 0 }
               }
             >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0" style={{ stroke: "hsl(var(--ink-3))" }}>
                 <path d="M9 10l-5 5 5 5" />
                 <path d="M20 4v7a4 4 0 0 1-4 4H4" />
               </svg>

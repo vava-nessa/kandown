@@ -1792,7 +1792,7 @@
     },
     {
       "path": "src/components/agent/ActivityBlock.tsx",
-      "lines": 140,
+      "lines": 180,
       "title": "One activity area per assistant turn, on the shared BeautifulUI parts",
       "summary": "Every assistant turn gets one activity area that updates in place while the turn streams: the reasoning channel renders through the official bui ThinkingState (Reasoning-style prose trace, shimmer header while live, single-line ticker…",
       "functions": [
@@ -2038,7 +2038,7 @@
     },
     {
       "path": "src/components/agent/MessageList.tsx",
-      "lines": 290,
+      "lines": 294,
       "title": "Message list for the agent chat sidebar",
       "summary": "Renders the folded conversation: user bubbles with the BeautifulUI context cards for every @task mention above the bubble, assistant turns as a BeautifulUI-style full-width panel (ONE activity block that updates in place while the turn…",
       "functions": [
@@ -2460,7 +2460,7 @@
     },
     {
       "path": "src/components/bui/TaskRows.tsx",
-      "lines": 275,
+      "lines": 276,
       "title": "Task rows of the BeautifulUI chat kit",
       "summary": "Faithful port of the BeautifulUI TaskRows component (beautifului.dev, MIT): a progress list where each row carries a spinner ring or a success/failure badge plus an expandable details grid.",
       "exports": "TaskRows (default) : the task list, variant \"Capsules\" | \"List\" TaskDetail : one expandable detail line TaskRowDef : one row definition (status drives the badge) TaskRowsLabels : completion/failure pill copy"

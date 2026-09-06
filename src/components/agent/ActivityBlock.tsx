@@ -12,8 +12,11 @@
  *
  * 📖 Round 7: replaces the hand-rolled BeautifulUI-restyled panel of rounds
  * 5/6 with the shared src/components/bui copies, driven by their new
- * external-mode props. Visual patterns from BeautifulUI,
- * https://www.beautifului.dev (MIT).
+ * external-mode props. Round 9: while the turn streams, the live signal is
+ * the official 01 Loading State with its animation rotating per turn
+ * (Drive/Dots/Orbit) plus the thinking tail ticking beside it; once the turn
+ * settles, the collapsed reasoning trace and tool chips take over. Visual
+ * patterns from BeautifulUI, https://www.beautifului.dev (MIT).
  *
  * @functions
  *  → toolIcon: maps a fold tool name onto a ToolChips icon key
@@ -32,6 +35,7 @@ import { useTranslation } from 'react-i18next';
 import type { ToolStep } from '../bui/ToolChips';
 import ThinkingState from '../bui/ThinkingState';
 import ToolChips from '../bui/ToolChips';
+import LoadingState from '../bui/LoadingState';
 import { toolExcerpt } from '../../lib/agent-chat-events';
 import type { ChatAssistantEntry, ChatToolEntry } from '../../lib/agent-chat-events';
 
@@ -84,6 +88,27 @@ function thinkingRows(thinking: string): string[] {
   return rows.slice(-20);
 }
 
+/** 📖 The single-line tail ticked in the live header. Cut at a word boundary:
+ * a mid-word slice ("roceeding with...") reads like a rendering bug. */
+function tickerTail(thinking: string): string {
+  const flat = thinking.replace(/\s+/g, ' ').trim();
+  if (flat.length <= 110) return flat;
+  const tail = flat.slice(-110);
+  const cut = tail.indexOf(' ');
+  return `... ${cut > 0 ? tail.slice(cut + 1) : tail}`;
+}
+
+/** 📖 The 01 Loading State animation rotates per turn (Drive, Dots, Orbit:
+ * the Surfer variant loads a remote video and stays gallery-only), so two
+ * consecutive turns do not repeat the same motion (vava, round 9). */
+export const LOADER_VARIANTS = ['Drive', 'Dots', 'Orbit'] as const;
+
+function loaderVariant(entryId: string): string {
+  let hash = 0;
+  for (const ch of entryId) hash = (hash * 31 + ch.charCodeAt(0)) % 997;
+  return LOADER_VARIANTS[hash % LOADER_VARIANTS.length];
+}
+
 interface ActivityBlockProps {
   entry: ChatAssistantEntry;
 }
@@ -104,18 +129,33 @@ export function ActivityBlock({ entry }: ActivityBlockProps) {
 
   return (
     <div className="mb-1.5 min-w-0">
-      {/* 📖 Official BeautifulUI 02 Thinking (external mode): our reasoning
-       * trace instead of the demo sequence. Live = the fold's thinking
-       * channel is active; it auto-collapses once the answer starts. */}
-      {(thinking.length > 0 || thinkingActive) && (
-        <ThinkingState
-          variant="Reasoning"
-          rows={thinkingRows(thinking)}
-          live={thinkingActive}
-          activeLabel={t('agentChat.thinking', 'Thinking')}
-          doneLabel={t('agentChat.thinkingDone', 'Finished thinking')}
-          ticker={thinkingActive ? thinking.replace(/\s+/g, ' ').trim().slice(-120) : undefined}
-        />
+      {/* 📖 Live phase: the official 01 Loading State carries the "what is the
+       * agent doing right now" signal, with the animation rotating per turn
+       * and the thinking tail ticking beside it (vava, round 9: the static
+       * sparkle read as black on black and the shimmer label never showed).
+       * The reasoning trace stays one click away in the settled block below. */}
+      {entry.streaming ? (
+        <div className="flex min-w-0 items-center gap-2.5">
+          <LoadingState
+            variant={loaderVariant(entry.id)}
+            label={thinkingActive
+              ? t('agentChat.thinking', 'Thinking')
+              : t('agentChat.working', 'Working...')}
+          />
+          {thinking.length > 0 && (
+            <span className="min-w-0 truncate text-[12px] text-ink-3">{tickerTail(thinking)}</span>
+          )}
+        </div>
+      ) : (
+        (thinking.length > 0) && (
+          <ThinkingState
+            variant="Reasoning"
+            rows={thinkingRows(thinking)}
+            live={false}
+            activeLabel={t('agentChat.thinking', 'Thinking')}
+            doneLabel={t('agentChat.thinkingDone', 'Finished thinking')}
+          />
+        )
       )}
       {/* 📖 Official BeautifulUI 05 Tool Chips (external mode): rows appear
        * as they come while live; settled turns show the failed counter in

@@ -147,7 +147,7 @@ const COMPARE_SERIES: CompareSeries[] = [
     tone: "red",
     dot: "bg-orange",
     color: "#f68f3c",
-    tooltipColor: "var(--orange)",
+    tooltipColor: "hsl(var(--orange))",
   },
   {
     name: "Pistachio",
@@ -156,7 +156,7 @@ const COMPARE_SERIES: CompareSeries[] = [
     tone: "green",
     dot: "bg-accent",
     color: "#3d9aff",
-    tooltipColor: "var(--accent)",
+    tooltipColor: "hsl(var(--accent))",
   },
 ];
 
@@ -276,7 +276,7 @@ function AnomalyCard({ data: anomaly = ANOMALY_DATA }: { data?: AnomalyData }) {
     <div className="min-h-[278px] rounded-card bg-surface p-3 shadow-hairline">
       <div className="flex items-center justify-between">
         <span className="flex items-center gap-1.5 text-[12px] font-medium text-ink">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7" /></svg>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ stroke: "hsl(var(--red))" }}><path d="M12 19V5M5 12l7-7 7 7" /></svg>
           High freezer spend
         </span>
         <span className="rounded-full bg-field px-2 py-0.5 text-[10.5px] font-medium text-ink-2">
@@ -336,7 +336,7 @@ function AnomalyCard({ data: anomaly = ANOMALY_DATA }: { data?: AnomalyData }) {
           {hoverIndex !== null && <>
             <span className="insight-chart-cursor" style={{ left: `${(hoverIndex / (data.length - 1)) * 100}%` }} />
             <span className="insight-chart-tooltip-anchor" style={{ left: `${Math.min(Math.max((hoverIndex / (data.length - 1)) * 100, 28), 72)}%` }}>
-              <ChartTooltip rows={[{ label: metric === "spend" ? "Spend" : "Usage", value: metric === "spend" ? formatMoney(data[hoverIndex].value) : `${Math.round(data[hoverIndex].value)} kWh`, color: "var(--red)" }]} />
+              <ChartTooltip rows={[{ label: metric === "spend" ? "Spend" : "Usage", value: metric === "spend" ? formatMoney(data[hoverIndex].value) : `${Math.round(data[hoverIndex].value)} kWh`, color: "hsl(var(--red))" }]} />
             </span>
           </>}
         </div>

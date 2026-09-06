@@ -56,6 +56,7 @@ import {
 } from '../../lib/agent-chat-options';
 import type { ChatAssistantEntry, ChatEntry, ChatUserEntry } from '../../lib/agent-chat-events';
 import { StreamingText } from './StreamingText';
+import { LOADER_VARIANTS } from './ActivityBlock';
 import { ActivityBlock } from './ActivityBlock';
 import { OptionsChoiceCard } from './OptionsChoiceCard';
 import { RecommendationCard } from './RecommendationCard';
@@ -78,9 +79,12 @@ interface MessageListProps {
  * lands, which also stops the timer. */
 function WorkingLoader() {
   const { t } = useTranslation();
+  // 📖 A different 01 animation each session (vava, round 9): picked once per
+  // mount, so consecutive sessions do not repeat the same motion.
+  const [variant] = useState(() => LOADER_VARIANTS[Math.floor(Math.random() * LOADER_VARIANTS.length)]);
   return (
     <div className="px-1 py-1.5">
-      <LoadingState variant="Drive" label={t('agentChat.working', 'Working...')} />
+      <LoadingState variant={variant} label={t('agentChat.working', 'Working...')} />
     </div>
   );
 }
@@ -93,7 +97,7 @@ function UserMessage({ entry, onOpenTask }: { entry: ChatUserEntry; onOpenTask: 
   return (
     <div className="flex flex-col items-end gap-1">
       <ContextCards text={entry.text} onOpenTask={onOpenTask} />
-      <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-[10px] bg-inset px-2.5 py-1.5 text-[13.5px] leading-relaxed text-ink shadow-[inset_0_0_0_1px_var(--line)]">
+      <div className="max-w-[85%] whitespace-pre-wrap break-words rounded-[10px] bg-inset px-2.5 py-1.5 text-[13.5px] leading-relaxed text-ink shadow-[inset_0_0_0_1px_hsl(var(--line))]">
         {entry.text}
       </div>
     </div>

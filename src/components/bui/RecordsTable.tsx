@@ -39,10 +39,10 @@ const DEFAULT_COLUMN_WIDTHS: Record<ColumnKey, number> = {
 };
 
 const STRENGTH: Record<Strength, { label: string; color: string; rank: number }> = {
-  strong: { label: "Very strong", color: "var(--green)", rank: 3 },
-  weak: { label: "Weak", color: "var(--orange)", rank: 2 },
-  veryweak: { label: "Very weak", color: "var(--red)", rank: 1 },
-  none: { label: "No communication", color: "var(--ink-3)", rank: 0 },
+  strong: { label: "Very strong", color: "hsl(var(--green))", rank: 3 },
+  weak: { label: "Weak", color: "hsl(var(--orange))", rank: 2 },
+  veryweak: { label: "Very weak", color: "hsl(var(--red))", rank: 1 },
+  none: { label: "No communication", color: "hsl(var(--ink-3))", rank: 0 },
 };
 
 // A single mid-lightness base hue per tag. Background, text, and border are
@@ -222,7 +222,7 @@ function Checkbox({ checked, mixed = false, onChange, label }: { checked: boolea
 }
 
 function Tag({ name }: { name: string }) {
-  const color = TAG_COLORS[name] ?? { base: "var(--ink-3)" };
+  const color = TAG_COLORS[name] ?? { base: "hsl(var(--ink-3))" };
   return (
     <span
       className="records-tag"
@@ -300,7 +300,7 @@ function MiniSwitch({ on, onToggle, label }: { on: boolean; onToggle: () => void
       aria-label={label}
       onClick={onToggle}
       className="relative h-4.5 w-7.5 shrink-0 rounded-full transition-colors duration-150"
-      style={{ background: on ? "var(--accent)" : "var(--line-strong)" }}
+      style={{ background: on ? "hsl(var(--accent))" : "hsl(var(--line-strong))" }}
     >
       <span
         className="absolute top-0.5 left-0.5 size-3.5 rounded-full bg-white shadow-btn transition-transform duration-150"
@@ -747,7 +747,7 @@ export default function RecordsTable({ rows = INITIAL_ROWS, fill = false }: { ro
               </td>
               <td className="records-cell records-muted"><span className="records-footer-value">-</span></td>
               <td className="records-cell">
-                <span className="records-footer-value records-average"><span className="records-strength-dot" style={{ background: "var(--orange)" }} />{Math.round(rows.reduce((sum, row) => sum + STRENGTH[row.strength].rank, 0) / rows.length / 3 * 100)}% average</span>
+                <span className="records-footer-value records-average"><span className="records-strength-dot" style={{ background: "hsl(var(--orange))" }} />{Math.round(rows.reduce((sum, row) => sum + STRENGTH[row.strength].rank, 0) / rows.length / 3 * 100)}% average</span>
               </td>
               <td className="records-cell"><span className="records-footer-value records-muted">{rows.filter((row) => row.website).length} links</span></td>
               {aiAdded && <td className="records-cell records-muted"><span className="records-footer-value">{aiDone ? `${rows.length} filled` : "-"}</span></td>}
@@ -835,7 +835,7 @@ export default function RecordsTable({ rows = INITIAL_ROWS, fill = false }: { ro
               </button>
             </span>
             {groundingHelpOpen && (
-              <div className="absolute right-0 top-[30px] z-30 w-[230px] rounded-[10px] px-3 py-2.5 text-[12px] leading-relaxed shadow-overlay" style={{ color: "var(--tooltip-fg)", background: "var(--tooltip-bg)" }} role="status">
+              <div className="absolute right-0 top-[30px] z-30 w-[230px] rounded-[10px] px-3 py-2.5 text-[12px] leading-relaxed shadow-overlay" style={{ color: "hsl(var(--tooltip-fg))", background: "hsl(var(--tooltip-bg))" }} role="status">
                 Grounding lets the model verify generated values against connected sources.
               </div>
             )}
@@ -883,7 +883,7 @@ export default function RecordsTable({ rows = INITIAL_ROWS, fill = false }: { ro
             aria-label={`${prop.col} calculation prompt`}
             aria-multiline="true"
             spellCheck
-            className="mt-2 min-h-[88px] cursor-text rounded-[10px] bg-inset p-3 text-[13px] leading-relaxed shadow-hairline outline-none transition-[box-shadow] duration-150 focus:shadow-[0_0_0_2px_var(--accent)]"
+            className="mt-2 min-h-[88px] cursor-text rounded-[10px] bg-inset p-3 text-[13px] leading-relaxed shadow-hairline outline-none transition-[box-shadow] duration-150 focus:shadow-[0_0_0_2px_hsl(var(--accent))]"
           >
             {meta.prompt ? (
               <span className="text-ink">

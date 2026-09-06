@@ -22,7 +22,7 @@ export function Shimmer({
       className={`bg-clip-text text-transparent ${className}`}
       style={{
         backgroundImage:
-          "linear-gradient(90deg, var(--ink-3) 35%, var(--ink) 50%, var(--ink-3) 65%)",
+          "linear-gradient(90deg, hsl(var(--ink-3)) 35%, hsl(var(--ink)) 50%, hsl(var(--ink-3)) 65%)",
         backgroundSize: "200% 100%",
         animation: "shimmer-text 1.4s linear infinite",
       }}

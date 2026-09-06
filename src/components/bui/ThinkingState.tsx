@@ -187,7 +187,7 @@ export default function ThinkingState({
         className="-mx-1.5 flex w-fit max-w-full items-center gap-2 rounded-control px-1.5 py-1
           transition-colors duration-100 hover:bg-hover-2"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--ink-2)">
+        <svg width="16" height="16" viewBox="0 0 24 24" style={{ fill: "hsl(var(--ink-2))" }}>
           <path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z" />
         </svg>
         <span role="status" className="contents">
@@ -196,7 +196,7 @@ export default function ThinkingState({
               className="bg-clip-text text-[13px] font-medium whitespace-nowrap text-transparent"
               style={{
                 backgroundImage:
-                  "linear-gradient(90deg, var(--ink-3) 35%, var(--ink) 50%, var(--ink-3) 65%)",
+                  "linear-gradient(90deg, hsl(var(--ink-3)) 35%, hsl(var(--ink)) 50%, hsl(var(--ink-3)) 65%)",
                 backgroundSize: "200% 100%",
                 animation: "shimmer-text 1.4s linear infinite",
               }}
@@ -221,9 +221,9 @@ export default function ThinkingState({
           </span>
         )}
         <svg
-          width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+          width="14" height="14" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
           className="transition-transform duration-300"
-          style={{ transform: expanded ? "rotate(180deg)" : "rotate(0)" }}
+          style={{ stroke: "hsl(var(--ink-3))", transform: expanded ? "rotate(180deg)" : "rotate(0)" }}
         >
           <path d="M6 9l6 6 6-6" />
         </svg>
@@ -247,7 +247,7 @@ export default function ThinkingState({
             <div ref={traceRef} className="flex flex-col gap-1 py-1">
             {v.query && (
               <div className="flex h-6 items-center gap-2 px-1.5" style={{ animation: expanded ? "fade-up 300ms cubic-bezier(0.23,1,0.32,1) both" : undefined }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" strokeWidth="2" strokeLinecap="round" className="shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" className="shrink-0" style={{ stroke: "hsl(var(--ink-3))" }}>
                   <circle cx="11" cy="11" r="7" />
                   <path d="M21 21l-4.3-4.3" />
                 </svg>
@@ -260,7 +260,7 @@ export default function ThinkingState({
                 {variant === "Search" && <Dot tone={TONES[i % 3]} />}
                 {variant === "Steps" && (
                   i < visible - 1 || !working ? (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0" style={{ stroke: "hsl(var(--ink-3))" }}>
                       <path d="M20 6L9 17l-5-5" />
                     </svg>
                   ) : (

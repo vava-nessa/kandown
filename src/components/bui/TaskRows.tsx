@@ -42,11 +42,12 @@ function SpinnerRing({ active, children }: { active?: boolean; children?: React.
         width={size} height={size} className="absolute inset-0"
         style={active ? { animation: "spin 1.1s linear infinite" } : undefined}
       >
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--line)" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} style={{ stroke: "hsl(var(--line))" }} />
         {active && (
           <circle
             cx={size / 2} cy={size / 2} r={r} fill="none"
-            stroke="var(--ink-3)" strokeWidth={stroke} strokeLinecap="round"
+            strokeWidth={stroke} strokeLinecap="round"
+            style={{ stroke: "hsl(var(--ink-3))" }}
             strokeDasharray={`${c * 0.28} ${c * 0.72}`}
           />
         )}

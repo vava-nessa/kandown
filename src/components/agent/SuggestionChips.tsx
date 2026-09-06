@@ -62,7 +62,7 @@ export function SuggestionChips({ onPick }: SuggestionChipsProps) {
               height="11"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="var(--ink-3, var(--border))"
+              style={{ stroke: "hsl(var(--ink-3))" }}
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"

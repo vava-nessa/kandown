@@ -128,11 +128,11 @@ export default function DiffTable({
                   className={`border-b border-line transition-[background-color,filter,opacity] duration-150 last:border-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-accent ${
                     interactive ? "cursor-pointer hover:brightness-[0.985]" : ""
                   }`}
-                  style={{ background: out ? "var(--red-tint)" : undefined }}
+                  style={{ background: out ? "hsl(var(--red-tint))" : undefined }}
                 >
                   <td
                     className="primitive-table-cell text-[13px] font-medium tabular-nums transition-colors duration-200"
-                    style={{ color: out ? "var(--red)" : "var(--ink)" }}
+                    style={{ color: out ? "hsl(var(--red))" : "hsl(var(--ink))" }}
                   >
                     {row.id}
                   </td>
@@ -148,9 +148,9 @@ export default function DiffTable({
                   <td
                     className="primitive-table-cell text-[12.5px] whitespace-nowrap transition-colors duration-200"
                     style={{
-                      color: out ? "var(--red)" : "var(--ink-2)",
+                      color: out ? "hsl(var(--red))" : "hsl(var(--ink-2))",
                       textDecorationLine: out ? "line-through" : "none",
-                      textDecorationColor: "color-mix(in srgb, var(--red) 50%, transparent)",
+                      textDecorationColor: "color-mix(in srgb, hsl(var(--red)) 50%, transparent)",
                     }}
                   >
                     <span className="flex items-center justify-between gap-2">
@@ -187,9 +187,9 @@ export default function DiffTable({
                       className={`grid grid-cols-[34%_30%_36%] items-center border-t border-line transition-[background-color,filter,opacity] duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-accent ${
                         accepted ? "" : "cursor-pointer hover:brightness-[0.985]"
                       }`}
-                      style={{ background: edits.pistachio ? "var(--green-tint)" : undefined }}
+                      style={{ background: edits.pistachio ? "hsl(var(--green-tint))" : undefined }}
                     >
-                      <span className="primitive-table-cell text-[13px] font-medium tabular-nums transition-colors duration-200" style={{ color: edits.pistachio ? "var(--green)" : "var(--ink-3)" }}>
+                      <span className="primitive-table-cell text-[13px] font-medium tabular-nums transition-colors duration-200" style={{ color: edits.pistachio ? "hsl(var(--green))" : "hsl(var(--ink-3))" }}>
                         Pistachio
                       </span>
                       <span className="primitive-table-cell">
@@ -198,7 +198,7 @@ export default function DiffTable({
                           <span className="text-ink-2">Seasonal</span>
                         </span>
                       </span>
-                      <span className="primitive-table-cell text-[13px] transition-colors duration-200" style={{ color: edits.pistachio ? "var(--green)" : "var(--ink-3)" }}>
+                      <span className="primitive-table-cell text-[13px] transition-colors duration-200" style={{ color: edits.pistachio ? "hsl(var(--green))" : "hsl(var(--ink-3))" }}>
                         <span className="flex items-center justify-between gap-2">
                           <span className="min-w-0 truncate">maple-orbit</span>
                           <IncludedMark included={edits.pistachio} tone="green" />

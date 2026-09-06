@@ -63,7 +63,7 @@ export default function SearchList({
     <div className="flex min-h-[248px] w-full max-w-72 flex-col items-stretch">
       <div className="w-full self-start overflow-hidden rounded-card bg-surface shadow-raised">
         <div className="flex h-10 items-center gap-2 border-b border-line px-3 transition-colors duration-100 hover:bg-hover">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" strokeWidth="2" strokeLinecap="round" className="shrink-0">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" className="shrink-0" style={{ stroke: "hsl(var(--ink-3))" }}>
             <circle cx="11" cy="11" r="7" />
             <path d="M21 21l-4.3-4.3" />
           </svg>

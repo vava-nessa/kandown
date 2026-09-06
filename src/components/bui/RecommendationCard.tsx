@@ -63,7 +63,7 @@ function Meter({ signal, tone }: { signal: number; tone: string }) {
         <span
           key={bar}
           className="w-1 rounded-full transition-colors duration-300"
-          style={{ height: 10, background: bar < signal ? tone : "var(--line-strong)" }}
+          style={{ height: 10, background: bar < signal ? tone : "hsl(var(--line-strong))" }}
         />
       ))}
     </span>
@@ -76,7 +76,7 @@ const OPTIONS: RecommendationOption[] = [
     body: "Reorder waffle cones from Cone King with a 7-day lead time.",
     short: "Reorder from Cone King · 7-day lead",
     signal: 3,
-    tone: "var(--green)",
+    tone: "hsl(var(--green))",
     label: "High confidence",
     cta: "Accept",
   },
@@ -85,7 +85,7 @@ const OPTIONS: RecommendationOption[] = [
     body: "Switch vanilla to Vanilla Madagascar for peak season.",
     short: "Switch to Vanilla Madagascar",
     signal: 2,
-    tone: "var(--orange)",
+    tone: "hsl(var(--orange))",
     label: "Needs review",
     cta: "Configure",
   },
@@ -94,7 +94,7 @@ const OPTIONS: RecommendationOption[] = [
     body: "Fall back to a full restock across every SKU.",
     short: "Full restock across every SKU",
     signal: 0,
-    tone: "var(--ink-3)",
+    tone: "hsl(var(--ink-3))",
     label: "No signal",
     cta: "Accept full restock",
   },
@@ -140,7 +140,7 @@ export default function RecommendationCard({
         body: body ?? "",
         short: title ?? "",
         signal: signal ?? 2,
-        tone: "var(--orange)",
+        tone: "hsl(var(--orange))",
         label: t.title,
         cta: t.accept,
       }

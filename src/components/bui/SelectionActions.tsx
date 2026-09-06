@@ -326,7 +326,7 @@ export default function SelectionActions({
           {passage.lead}
           <span
             ref={selectionRef}
-            className="box-decoration-clone rounded-[3px] bg-[color-mix(in_srgb,var(--accent)_14%,var(--surface))] text-ink dark:bg-accent-tint"
+            className="box-decoration-clone rounded-[3px] bg-[color-mix(in_srgb,hsl(var(--accent))_14%,hsl(var(--surface)))] text-ink dark:bg-accent-tint"
           >
             {mode === "idle" || mode === "thinking" ? (
               passage.original

@@ -303,7 +303,7 @@ export default function ApprovalCard({
                   >
                     <span
                       className={`flex size-4 shrink-0 items-center justify-center rounded-full transition-colors duration-200
-                        ${on ? "bg-ink text-canvas" : "shadow-[inset_0_0_0_1.5px_var(--line-strong)] text-transparent"}`}
+                        ${on ? "bg-ink text-canvas" : "shadow-[inset_0_0_0_1.5px_hsl(var(--line-strong))] text-transparent"}`}
                     >
                       <span className="size-1.5 rounded-full bg-canvas transition-transform duration-200" style={{ transform: on ? "scale(1)" : "scale(0)" }} />
                     </span>
@@ -413,7 +413,7 @@ export default function ApprovalCard({
                             <span
                               className={`flex size-4 shrink-0 items-center justify-center transition-colors duration-200
                                 ${question.type === "radio" ? "rounded-full" : "rounded-[5px]"}
-                                ${on ? "bg-ink text-canvas" : "shadow-[inset_0_0_0_1.5px_var(--line-strong)] text-transparent"}`}
+                                ${on ? "bg-ink text-canvas" : "shadow-[inset_0_0_0_1.5px_hsl(var(--line-strong))] text-transparent"}`}
                             >
                               {question.type === "radio" ? (
                                 <span className="size-1.5 rounded-full bg-canvas transition-transform duration-200" style={{ transform: on ? "scale(1)" : "scale(0)" }} />

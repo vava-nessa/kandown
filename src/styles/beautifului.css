@@ -461,7 +461,7 @@
   border: 1px solid color-mix(in srgb, var(--tag-base) 32%, transparent);
   border-radius: 9999px;
   background: color-mix(in srgb, var(--tag-base) 14%, transparent);
-  color: color-mix(in srgb, var(--tag-base) 72%, var(--ink));
+  color: color-mix(in srgb, var(--tag-base) 72%, hsl(var(--ink)));
   font-size: 11.5px;
   font-weight: 500;
   white-space: nowrap;

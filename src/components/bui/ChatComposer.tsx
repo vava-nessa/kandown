@@ -225,8 +225,8 @@ export default function ChatComposer({
               className="flex size-7 items-center justify-center rounded-[8px]
                 transition-[background-color,color,transform] duration-200 enabled:active:scale-[0.96]"
               style={{
-                background: canSend ? "var(--ink)" : "var(--line-strong)",
-                color: canSend ? "var(--surface)" : "var(--ink-2)",
+                background: canSend ? "hsl(var(--ink))" : "hsl(var(--line-strong))",
+                color: canSend ? "hsl(var(--surface))" : "hsl(var(--ink-2))",
               }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">

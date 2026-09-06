@@ -108,7 +108,7 @@ export default function LoadingState({
       className="bg-clip-text text-[13px] font-medium text-transparent"
       style={{
         backgroundImage:
-          "linear-gradient(90deg, var(--ink-3) 35%, var(--ink) 50%, var(--ink-3) 65%)",
+          "linear-gradient(90deg, hsl(var(--ink-3)) 35%, hsl(var(--ink)) 50%, hsl(var(--ink-3)) 65%)",
         backgroundSize: "200% 100%",
         animation: "shimmer-text 1.4s linear infinite",
       }}
@@ -131,7 +131,7 @@ export default function LoadingState({
           className="mt-2 w-56 overflow-hidden rounded-[10px] shadow-overlay"
           style={{ animation: "pop-in 200ms cubic-bezier(0.16,1,0.3,1) both", transformOrigin: "top left" }}
         >
-          <div className="relative aspect-video w-full" style={{ background: "var(--tooltip-bg)" }}>
+          <div className="relative aspect-video w-full" style={{ background: "hsl(var(--tooltip-bg))" }}>
             {videoOk ? (
               <video
                 src={videoSrc}
@@ -145,7 +145,7 @@ export default function LoadingState({
             ) : (
               <div className="flex h-full w-full flex-col items-center justify-center gap-1.5">
                 <LoaderGrid {...PATTERNS.Drive} />
-                <span className="px-3 text-center font-mono text-[10px]" style={{ color: "var(--tooltip-muted)" }}>
+                <span className="px-3 text-center font-mono text-[10px]" style={{ color: "hsl(var(--tooltip-muted))" }}>
                   Video unavailable
                 </span>
               </div>

@@ -50,8 +50,8 @@ function ScrubField({
       className="flex h-6.5 min-w-0 items-center gap-1 rounded-chip py-1 pr-1 pl-0.5
         transition-[background-color,box-shadow] duration-200"
       style={{
-        background: active ? "var(--accent-tint)" : "var(--field)",
-        boxShadow: active ? "0 0 0 1px var(--accent)" : "none",
+        background: active ? "hsl(var(--accent-tint))" : "hsl(var(--field))",
+        boxShadow: active ? "0 0 0 1px hsl(var(--accent))" : "none",
       }}
     >
       <span
@@ -224,7 +224,7 @@ export default function FineTuneCard({
         ) : (
           <span className="flex items-center gap-1.5">
             <span className="flex size-4.5 items-center justify-center rounded-[5px] border border-accent/30 bg-accent-tint">
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="var(--accent)">
+              <svg width="9" height="9" viewBox="0 0 24 24" style={{ fill: "hsl(var(--accent))" }}>
                 <path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z" />
               </svg>
             </span>
@@ -232,7 +232,7 @@ export default function FineTuneCard({
               className="bg-clip-text text-[12px] font-medium text-transparent"
               style={{
                 backgroundImage:
-                  "linear-gradient(90deg, var(--accent) 35%, var(--accent-ink) 50%, var(--accent) 65%)",
+                  "linear-gradient(90deg, hsl(var(--accent)) 35%, hsl(var(--accent-ink)) 50%, hsl(var(--accent)) 65%)",
                 backgroundSize: "200% 100%",
                 animation: "shimmer-text 1.4s linear infinite",
               }}
@@ -298,15 +298,15 @@ export default function FineTuneCard({
             onClick={() => setMenuOpen((current) => !current)}
             className="flex h-6.5 w-full items-center justify-between rounded-chip bg-inset py-1 pr-1 pl-2
               shadow-hairline transition-shadow duration-200 focus-visible:outline-none"
-            style={{ boxShadow: menuOpen ? "0 0 0 1px var(--accent)" : undefined }}
+            style={{ boxShadow: menuOpen ? "0 0 0 1px hsl(var(--accent))" : undefined }}
           >
             <span className={`text-[12px] ${typeValue !== text.placeholder ? "text-ink" : "text-ink-3"}`}>
               {typeValue}
             </span>
             <svg
-              width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+              width="11" height="11" viewBox="0 0 24 24" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
               className="transition-transform duration-200"
-              style={{ transform: menuOpen ? "rotate(180deg)" : "rotate(0)" }}
+              style={{ stroke: "hsl(var(--ink-3))", transform: menuOpen ? "rotate(180deg)" : "rotate(0)" }}
             >
               <path d="M6 9l6 6 6-6" />
             </svg>

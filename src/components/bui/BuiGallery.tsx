@@ -34,7 +34,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default function BuiGallery() {
   return (
-    <div className="min-h-screen bg-canvas px-8 py-8 text-ink" style={{ background: 'var(--page)' }}>
+    <div className="min-h-screen bg-canvas px-8 py-8 text-ink" style={{ background: 'hsl(var(--page))' }}>
       <header className="mb-8 flex items-baseline justify-between">
         <div>
           <h1 className="text-[20px] font-semibold tracking-tight">BeautifulUI gallery</h1>

@@ -988,8 +988,8 @@ export default function PromptBar({
                 pill ? "rounded-full" : "rounded-[8px]"
               } ${wide ? "col-start-5 row-start-2" : "col-start-5 row-start-1"}`}
               style={{
-                background: canSend ? "var(--ink)" : "var(--line-strong)",
-                color: canSend ? "var(--surface)" : "var(--ink-2)",
+                background: canSend ? "hsl(var(--ink))" : "hsl(var(--line-strong))",
+                color: canSend ? "hsl(var(--surface))" : "hsl(var(--ink-2))",
               }}
             >
               <Icon size={16} strokeWidth={2.4}><path d="M12 19V5M5 12l7-7 7 7" /></Icon>
