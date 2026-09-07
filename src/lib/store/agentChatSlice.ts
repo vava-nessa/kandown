@@ -281,7 +281,11 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
       // presence gates the projection; a backend without the field simply
       // yields no buttons.
       if (get().agentChat.skills.length === 0) {
-        const skills = await serverListWorkflowSkills();
+        // 📖 A 404 (dev mirror without the route, a daemon older than t310)
+        // must not escape: this runs inside refreshSessions and an uncaught
+        // rejection used to land as console noise on every chat open. An
+        // empty list degrades to "no skill buttons", which is the truth.
+        const skills = await serverListWorkflowSkills().catch(() => []);
         if (skills.length > 0) {
           const chatSkills: ChatSkillButton[] = [];
           for (const skill of skills) {

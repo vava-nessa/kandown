@@ -742,6 +742,76 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
     return writeJson(res, 200, { runners: getRunnerRegistry(kandownDir).describe() });
   }
 
+  // 📖 Runner run lifecycle (t261). Launch an agent on a task through one of
+  // the registered backends, list the live runs (the registry fans out to the
+  // available ones only), read a run's terminal tail and stop it. `start()`
+  // throws on failure (including Herdr's own rollback of the task column), so
+  // the route maps the message to a 400 and lets the UI surface it as a toast.
+  // Fan-out note: the Vite dev plugin mirrors these routes and demoBackend
+  // answers 501 like every other /api/agent surface.
+  if (path === '/api/agent/runs' && method === 'GET') {
+    return writeJson(res, 200, { runs: await getRunnerRegistry(kandownDir).runs() });
+  }
+
+  if (path === '/api/agent/runs' && method === 'POST') {
+    let body: { taskId?: unknown; agentId?: unknown; runner?: unknown };
+    try {
+      body = JSON.parse(await readRequestBody(req)) as typeof body;
+    } catch (error) {
+      return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
+    }
+    if (typeof body.taskId !== 'string' || !body.taskId.trim()) {
+      return writeJson(res, 400, { error: 'taskId is required' });
+    }
+    if (typeof body.agentId !== 'string' || !body.agentId.trim()) {
+      return writeJson(res, 400, { error: 'agentId is required' });
+    }
+    const runnerId = typeof body.runner === 'string' && body.runner.trim() ? body.runner.trim() : 'default';
+    const runner = getRunnerRegistry(kandownDir).get(runnerId);
+    if (!runner) return writeJson(res, 400, { error: `Unknown runner: ${runnerId}` });
+    try {
+      const run = await runner.start({ taskId: body.taskId.trim(), agentId: body.agentId.trim() });
+      return writeJson(res, 200, { run });
+    } catch (error) {
+      return writeJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+
+  if (path === '/api/agent/runs/output' && method === 'GET') {
+    const runnerId = url.searchParams.get('runner') ?? 'default';
+    const runId = url.searchParams.get('runId') ?? '';
+    const lines = Math.min(Math.max(Number.parseInt(url.searchParams.get('lines') ?? '400', 10) || 400, 1), 2000);
+    const runner = getRunnerRegistry(kandownDir).get(runnerId);
+    if (!runner) return writeJson(res, 400, { error: `Unknown runner: ${runnerId}` });
+    if (!runId) return writeJson(res, 400, { error: 'runId is required' });
+    try {
+      return writeJson(res, 200, { output: await runner.read(runId, lines) });
+    } catch (error) {
+      return writeJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+
+  if (path === '/api/agent/runs/stop' && method === 'POST') {
+    let body: { runner?: unknown; runId?: unknown };
+    try {
+      body = JSON.parse(await readRequestBody(req)) as typeof body;
+    } catch (error) {
+      return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
+    }
+    const runnerId = typeof body.runner === 'string' && body.runner.trim() ? body.runner.trim() : 'default';
+    if (typeof body.runId !== 'string' || !body.runId.trim()) {
+      return writeJson(res, 400, { error: 'runId is required' });
+    }
+    const runner = getRunnerRegistry(kandownDir).get(runnerId);
+    if (!runner) return writeJson(res, 400, { error: `Unknown runner: ${runnerId}` });
+    try {
+      await runner.stop(body.runId.trim());
+      return writeJson(res, 200, { ok: true });
+    } catch (error) {
+      return writeJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+
   // 📖 Model catalog (t324): the chat model menu's real options for one
   // harness. Discovery spawns the harness's ACP entry and is cached, so a
   // first call can take seconds; the route answers the baseline list whenever

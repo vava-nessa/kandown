@@ -12145,10 +12145,75 @@ function getRunnerRegistry(kandownDir) {
 import { spawn as spawn8 } from "child_process";
 var BASELINE_MODELS = {
   claude: ["opus", "sonnet", "haiku"],
-  codex: ["gpt-5.1-codex", "gpt-5.1", "o4-mini"],
-  gemini: ["gemini-2.5-pro", "gemini-2.5-flash"],
-  opencode: []
+  codex: ["gpt-5.6", "gpt-5.5"],
+  gemini: ["gemini-3.8-flash"],
+  // 📖 opencode model ids are provider/model slugs (its own catalog format);
+  // these are the common ones worth offering before discovery has answered
+  // (or when it cannot: no binary, broken install, timeout).
+  opencode: ["zai-coding-plan/glm-5.3", "anthropic/claude-sonnet-4-5", "openai/gpt-5.6"]
 };
+var MODELS_DEV_SOURCES = {
+  claude: { providers: ["anthropic"], prefix: false },
+  codex: { providers: ["openai"], prefix: false, filter: /gpt-5|o[3-9]-|codex/ },
+  gemini: { providers: ["google"], prefix: false, filter: /gemini/ },
+  pi: {
+    providers: ["anthropic", "openai", "google", "zai-coding-plan", "zai", "openrouter", "cerebras", "mistral", "minimax", "nvidia", "xai", "groq"],
+    prefix: true
+  }
+};
+var MODELS_DEV_URL = "https://models.dev/api.json";
+var MODELS_DEV_TTL_MS = 24 * 60 * 60 * 1e3;
+var MODELS_DEV_TIMEOUT_MS = 8e3;
+var modelsDevCache = null;
+var modelsDevPending = null;
+async function fetchModelsDevCatalog() {
+  if (modelsDevCache && Date.now() - modelsDevCache.at < MODELS_DEV_TTL_MS) {
+    return modelsDevCache.data;
+  }
+  if (!modelsDevPending) {
+    modelsDevPending = (async () => {
+      try {
+        const response = await fetch(MODELS_DEV_URL, {
+          signal: AbortSignal.timeout(MODELS_DEV_TIMEOUT_MS),
+          headers: { accept: "application/json" }
+        });
+        if (!response.ok) return null;
+        const data = await response.json();
+        if (!data || typeof data !== "object") return null;
+        modelsDevCache = { at: Date.now(), data };
+        return data;
+      } catch {
+        return null;
+      } finally {
+        modelsDevPending = null;
+      }
+    })();
+  }
+  return modelsDevPending;
+}
+function modelsDevToHarness(catalog, source) {
+  const out = [];
+  for (const provider of source.providers) {
+    const models = catalog[provider]?.models;
+    if (!models) continue;
+    for (const [modelId, meta2] of Object.entries(models)) {
+      if (meta2.tool_call === false) continue;
+      if (source.filter && !source.filter.test(modelId)) continue;
+      const id = source.prefix ? `${provider}/${modelId}` : modelId;
+      const name = typeof meta2.name === "string" && meta2.name ? `${meta2.name}${source.prefix ? ` (${provider})` : ""}` : id;
+      out.push({
+        id,
+        name,
+        ...typeof meta2.release_date === "string" ? { release: meta2.release_date } : {}
+      });
+    }
+  }
+  out.sort((a, b) => {
+    if (a.release !== b.release) return (b.release ?? "").localeCompare(a.release ?? "");
+    return a.id.localeCompare(b.id, void 0, { numeric: true });
+  });
+  return out.slice(0, 24);
+}
 function baselineFor(harnessId) {
   return (BASELINE_MODELS[harnessId] ?? []).map((id) => ({ id, name: id }));
 }
@@ -12156,20 +12221,33 @@ var DISCOVERY_TTL_MS = 10 * 60 * 1e3;
 var DISCOVERY_TIMEOUT_MS = 25e3;
 var cache2 = /* @__PURE__ */ new Map();
 var inFlight = /* @__PURE__ */ new Map();
-function listHarnessModels(harnessId) {
+async function listHarnessModels(harnessId) {
   const baseline = baselineFor(harnessId);
   const def = resolveHarness(harnessId);
-  if (!def || def.def.protocol !== "acp") {
-    return Promise.resolve({ models: baseline, source: "baseline" });
+  if (!def) return { models: baseline, source: "baseline" };
+  if (def.def.protocol !== "acp") {
+    const source = MODELS_DEV_SOURCES[harnessId];
+    if (!source) return { models: baseline, source: "baseline" };
+    const catalog = await fetchModelsDevCatalog();
+    if (!catalog) return { models: baseline, source: "baseline" };
+    return mergeModels(baseline, modelsDevToHarness(catalog, source));
   }
   const cached2 = cache2.get(harnessId);
   if (cached2 && Date.now() - cached2.at < DISCOVERY_TTL_MS) {
-    return Promise.resolve(cached2.list);
+    return cached2.list;
   }
   let pending = inFlight.get(harnessId);
   if (!pending) {
-    pending = discoverAcpModels(def.binPath, def.def.protocolArgs).catch(() => null).then((discovered) => {
-      const list = mergeModels(baseline, discovered);
+    pending = discoverAcpModels(def.binPath, def.def.protocolArgs).catch(() => null).then(async (discovered) => {
+      let dynamic = discovered;
+      if (!dynamic || dynamic.length === 0) {
+        const source = MODELS_DEV_SOURCES[harnessId];
+        if (source) {
+          const catalog = await fetchModelsDevCatalog();
+          if (catalog) dynamic = modelsDevToHarness(catalog, source);
+        }
+      }
+      const list = mergeModels(baseline, dynamic);
       cache2.set(harnessId, { at: Date.now(), list });
       inFlight.delete(harnessId);
       return list;
@@ -12778,6 +12856,65 @@ async function handleApi(req, res, url, kandownDir) {
   }
   if (path === "/api/agent/runners" && method === "GET") {
     return writeJson(res, 200, { runners: getRunnerRegistry(kandownDir).describe() });
+  }
+  if (path === "/api/agent/runs" && method === "GET") {
+    return writeJson(res, 200, { runs: await getRunnerRegistry(kandownDir).runs() });
+  }
+  if (path === "/api/agent/runs" && method === "POST") {
+    let body;
+    try {
+      body = JSON.parse(await readRequestBody(req));
+    } catch (error) {
+      return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
+    }
+    if (typeof body.taskId !== "string" || !body.taskId.trim()) {
+      return writeJson(res, 400, { error: "taskId is required" });
+    }
+    if (typeof body.agentId !== "string" || !body.agentId.trim()) {
+      return writeJson(res, 400, { error: "agentId is required" });
+    }
+    const runnerId = typeof body.runner === "string" && body.runner.trim() ? body.runner.trim() : "default";
+    const runner = getRunnerRegistry(kandownDir).get(runnerId);
+    if (!runner) return writeJson(res, 400, { error: `Unknown runner: ${runnerId}` });
+    try {
+      const run = await runner.start({ taskId: body.taskId.trim(), agentId: body.agentId.trim() });
+      return writeJson(res, 200, { run });
+    } catch (error) {
+      return writeJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+  if (path === "/api/agent/runs/output" && method === "GET") {
+    const runnerId = url.searchParams.get("runner") ?? "default";
+    const runId = url.searchParams.get("runId") ?? "";
+    const lines = Math.min(Math.max(Number.parseInt(url.searchParams.get("lines") ?? "400", 10) || 400, 1), 2e3);
+    const runner = getRunnerRegistry(kandownDir).get(runnerId);
+    if (!runner) return writeJson(res, 400, { error: `Unknown runner: ${runnerId}` });
+    if (!runId) return writeJson(res, 400, { error: "runId is required" });
+    try {
+      return writeJson(res, 200, { output: await runner.read(runId, lines) });
+    } catch (error) {
+      return writeJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+  if (path === "/api/agent/runs/stop" && method === "POST") {
+    let body;
+    try {
+      body = JSON.parse(await readRequestBody(req));
+    } catch (error) {
+      return writeJson(res, 400, { error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` });
+    }
+    const runnerId = typeof body.runner === "string" && body.runner.trim() ? body.runner.trim() : "default";
+    if (typeof body.runId !== "string" || !body.runId.trim()) {
+      return writeJson(res, 400, { error: "runId is required" });
+    }
+    const runner = getRunnerRegistry(kandownDir).get(runnerId);
+    if (!runner) return writeJson(res, 400, { error: `Unknown runner: ${runnerId}` });
+    try {
+      await runner.stop(body.runId.trim());
+      return writeJson(res, 200, { ok: true });
+    } catch (error) {
+      return writeJson(res, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
   }
   if (path === "/api/agent/models" && method === "GET") {
     const harnessId = url.searchParams.get("harness") ?? "";

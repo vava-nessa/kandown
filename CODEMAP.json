@@ -8,7 +8,7 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 15441,
+      "lines": 15516,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"

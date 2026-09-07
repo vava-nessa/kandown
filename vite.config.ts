@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
-import { resolve, join } from 'node:path';
+import { resolve, join, basename } from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { viteSingleFile } from 'vite-plugin-singlefile';
@@ -211,6 +211,35 @@ function kandownDevPlugin() {
           return;
         }
 
+        // 📖 Dev mirror of GET /api/skills. Same mapping as the daemon route
+        // (active state, compatibility reason) so the chat skill buttons and
+        // the SkillsModal behave identically in dev; without it every chat
+        // open used to 404 and reject its skills fetch. Top-level resource:
+        // the path has no `agent/` prefix, so this cannot live in the agent
+        // block below.
+        if (resource === 'skills' && req.method === 'GET') {
+          const configModule = await server.ssrLoadModule('/src/cli/lib/config.ts') as typeof import('./src/cli/lib/config');
+          const skillsModule = await server.ssrLoadModule('/src/cli/lib/skills.ts') as typeof import('./src/cli/lib/skills');
+          const config = configModule.loadConfig(kandownPath);
+          const active = new Set(config.workflow.skills);
+          const roles = new Set(Object.values(config.board.columnMeta).map(meta => meta.role));
+          const skills = skillsModule.listWorkflowSkills(kandownPath).map(skill => {
+            const missingRole = skill.requiredRoles?.find(role => !roles.has(role));
+            const wrongWorkflow = skill.compatibleWorkflows?.length && !skill.compatibleWorkflows.includes(config.workflow.active);
+            const reason = !skill.valid
+              ? skill.errors.join('; ')
+              : wrongWorkflow
+                ? `Compatible with: ${skill.compatibleWorkflows?.join(', ')}`
+                : missingRole
+                  ? `Requires column role: ${missingRole}`
+                  : undefined;
+            return { ...skill, active: active.has(skill.id), compatible: !reason, ...(reason ? { compatibilityReason: reason } : {}) };
+          });
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ skills }));
+          return;
+        }
+
         // 📖 Agent harness API (t307, t308) in DEV mode. The Vite dev server is
         // Node, so it can spawn harness processes exactly like the daemon does;
         // the routes mirror src/cli/lib/server.ts and demoBackend.ts answers 501
@@ -232,6 +261,121 @@ function kandownDevPlugin() {
               res.writeHead(200, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify({ runners: runnerModule.getRunnerRegistry(kandownPath).describe() }));
               return;
+            }
+
+            // 📖 Dev mirror of the runner run lifecycle (t261): launch, list,
+            // read output, stop. Same registry and same route semantics as
+            // src/cli/lib/server.ts (start failures answer 400 with the
+            // message, unknown runners too), so the store slice cannot tell
+            // dev from the shipped daemon. The URL keeps its query string in
+            // `parts`, so the sub-path and params are re-parsed from req.url.
+            if ((parts[1] ?? '').split('?')[0] === 'runs') {
+              const requestUrl = new URL(req.url ?? '/api/agent/runs', 'http://localhost');
+              const sub = requestUrl.pathname.replace(/^\/api\/agent\/runs\/?/, '');
+              const runnerModule = await server.ssrLoadModule('/src/cli/lib/runner/index.ts') as typeof import('./src/cli/lib/runner/index');
+              const registry = runnerModule.getRunnerRegistry(kandownPath);
+
+              if (req.method === 'GET' && !sub) {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ runs: await registry.runs() }));
+                return;
+              }
+
+              if (req.method === 'POST' && !sub) {
+                const chunks: Buffer[] = [];
+                await new Promise<void>((resolveBody, rejectBody) => {
+                  req.on('data', chunk => chunks.push(chunk));
+                  req.on('end', resolveBody);
+                  req.on('error', rejectBody);
+                });
+                let body: { taskId?: unknown; agentId?: unknown; runner?: unknown };
+                try {
+                  body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}') as typeof body;
+                } catch (error) {
+                  res.writeHead(400, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` }));
+                  return;
+                }
+                if (typeof body.taskId !== 'string' || !body.taskId.trim()) {
+                  res.writeHead(400, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: 'taskId is required' }));
+                  return;
+                }
+                if (typeof body.agentId !== 'string' || !body.agentId.trim()) {
+                  res.writeHead(400, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: 'agentId is required' }));
+                  return;
+                }
+                const runnerId = typeof body.runner === 'string' && body.runner.trim() ? body.runner.trim() : 'default';
+                const runner = registry.get(runnerId);
+                if (!runner) {
+                  res.writeHead(400, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: `Unknown runner: ${runnerId}` }));
+                  return;
+                }
+                try {
+                  const run = await runner.start({ taskId: body.taskId.trim(), agentId: body.agentId.trim() });
+                  res.writeHead(200, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ run }));
+                } catch (error) {
+                  res.writeHead(400, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }));
+                }
+                return;
+              }
+
+              if (req.method === 'GET' && sub === 'output') {
+                const runnerId = requestUrl.searchParams.get('runner') ?? 'default';
+                const runId = requestUrl.searchParams.get('runId') ?? '';
+                const lines = Math.min(Math.max(Number.parseInt(requestUrl.searchParams.get('lines') ?? '400', 10) || 400, 1), 2000);
+                const runner = registry.get(runnerId);
+                if (!runner || !runId) {
+                  res.writeHead(400, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: !runner ? `Unknown runner: ${runnerId}` : 'runId is required' }));
+                  return;
+                }
+                try {
+                  res.writeHead(200, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ output: await runner.read(runId, lines) }));
+                } catch (error) {
+                  res.writeHead(400, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }));
+                }
+                return;
+              }
+
+              if (req.method === 'POST' && sub === 'stop') {
+                const chunks: Buffer[] = [];
+                await new Promise<void>((resolveBody, rejectBody) => {
+                  req.on('data', chunk => chunks.push(chunk));
+                  req.on('end', resolveBody);
+                  req.on('error', rejectBody);
+                });
+                let body: { runner?: unknown; runId?: unknown };
+                try {
+                  body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}') as typeof body;
+                } catch (error) {
+                  res.writeHead(400, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` }));
+                  return;
+                }
+                const runnerId = typeof body.runner === 'string' && body.runner.trim() ? body.runner.trim() : 'default';
+                const runner = registry.get(runnerId);
+                if (!runner || typeof body.runId !== 'string' || !body.runId.trim()) {
+                  res.writeHead(400, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: !runner ? `Unknown runner: ${runnerId}` : 'runId is required' }));
+                  return;
+                }
+                try {
+                  await runner.stop(body.runId.trim());
+                  res.writeHead(200, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ ok: true }));
+                } catch (error) {
+                  res.writeHead(400, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }));
+                }
+                return;
+              }
             }
 
             // 📖 Dev mirror of GET /api/agent/models (t324). Discovery spawns
@@ -312,15 +456,21 @@ function kandownDevPlugin() {
             }
 
             if (parts[1] === 'sessions') {
+              // 📖 Segment map for /api/agent/sessions/...: parts[1] is the
+              // literal 'sessions', parts[2] the session id, parts[3] the
+              // action. The collection routes test !parts[2]. An earlier
+              // revision read the session id out of parts[1], which is the
+              // constant 'sessions', so every session-scoped route 404'd or
+              // mismatched in dev; the daemon was unaffected.
               const runtimeModule = await server.ssrLoadModule('/src/cli/lib/agent/agent-runtime.ts') as typeof import('./src/cli/lib/agent/agent-runtime');
 
-              if (!id && req.method === 'GET') {
+              if (!parts[2] && req.method === 'GET') {
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ sessions: runtimeModule.listAgentSessions() }));
                 return;
               }
 
-              if (!id && req.method === 'POST') {
+              if (!parts[2] && req.method === 'POST') {
                 const chunks: Buffer[] = [];
                 await new Promise<void>((resolveBody, rejectBody) => {
                   req.on('data', chunk => chunks.push(chunk));
@@ -432,8 +582,8 @@ function kandownDevPlugin() {
                 return;
               }
 
-              if (id && parts[2] === 'events' && req.method === 'GET') {
-                const sessionId = decodeURIComponent(id);
+              if (parts[2] && parts[3] === 'events' && req.method === 'GET') {
+                const sessionId = decodeURIComponent(parts[2]);
                 const unsubscribe = runtimeModule.subscribeAgentSession(sessionId, event => {
                   res.write(`data: ${JSON.stringify(event)}\n\n`);
                 });
@@ -452,7 +602,7 @@ function kandownDevPlugin() {
                 return;
               }
 
-              if (id && parts[2] === 'send' && req.method === 'POST') {
+              if (parts[2] && parts[3] === 'send' && req.method === 'POST') {
                 // 📖 t308 follow-up chat message (DEV mirror of the daemon route).
                 const chunks: Buffer[] = [];
                 await new Promise<void>((resolveBody, rejectBody) => {
@@ -488,19 +638,19 @@ function kandownDevPlugin() {
                 const delivered = mentionSections
                   ? `${mentionSections}## User message\n\n${body.message}`
                   : body.message;
-                const result = runtimeModule.sendToSession(decodeURIComponent(id), delivered, deliveryMode);
+                const result = runtimeModule.sendToSession(decodeURIComponent(parts[2]), delivered, deliveryMode);
                 res.writeHead(result.ok ? 200 : 400, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(result.ok ? { ok: true } : { ok: false, error: result.error ?? 'Send failed' }));
                 return;
               }
 
-              if (id && parts[2] === 'stop' && req.method === 'POST') {
-                const ok = runtimeModule.stopAgentSession(decodeURIComponent(id));
+              if (parts[2] && parts[3] === 'stop' && req.method === 'POST') {
+                const ok = runtimeModule.stopAgentSession(decodeURIComponent(parts[2]));
                 if (ok) {
                   // 📖 Same sidebar reordering as the daemon: stop touches updatedAt.
                   const indexModule = await server.ssrLoadModule('/src/cli/lib/agent/session-index.ts') as typeof import('./src/cli/lib/agent/session-index');
                   const boardModule = await server.ssrLoadModule('/src/cli/lib/board-reader.ts') as typeof import('./src/cli/lib/board-reader');
-                  indexModule.patchSessionIndexEntry(boardModule.getProjectRoot(kandownPath), decodeURIComponent(id), { updatedAt: new Date().toISOString() });
+                  indexModule.patchSessionIndexEntry(boardModule.getProjectRoot(kandownPath), decodeURIComponent(parts[2]), { updatedAt: new Date().toISOString() });
                 }
                 res.writeHead(ok ? 200 : 404, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(ok ? { ok: true } : { error: 'Session not found' }));
@@ -559,8 +709,8 @@ function kandownDevPlugin() {
                 return;
               }
 
-              if (id && !parts[2] && req.method === 'GET') {
-                const session = runtimeModule.listAgentSessions().find(entry => entry.id === decodeURIComponent(id));
+              if (parts[2] && !parts[3] && req.method === 'GET') {
+                const session = runtimeModule.listAgentSessions().find(entry => entry.id === decodeURIComponent(parts[2]));
                 res.writeHead(session ? 200 : 404, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(session ? { session } : { error: 'Session not found' }));
                 return;
@@ -798,10 +948,23 @@ function kandownDevPlugin() {
             return;
           }
           if (req.method === 'GET' && id) {
-            // 📖 Search active dir then archive/ so archived tasks stay readable.
-            const inTasks = join(tasksRoot, `${id}.md`);
-            const inArchive = join(tasksRoot, 'archive', `${id}.md`);
-            const taskPath = existsSync(inTasks) ? inTasks : existsSync(inArchive) ? inArchive : null;
+            // 📖 Resolve through the shared id map (board-reader), then fall
+            // back to a literal <id>.md. Filenames are descriptive since
+            // v0.50 (`t328_test_round_user.md`), so `tasks/<id>.md` only
+            // exists for a small legacy set; resolving naively made every
+            // direct URL / refresh of a real task answer 404 in dev, and the
+            // editor opened an empty skeleton on top of a failed fetch.
+            let taskPath: string | null = null;
+            try {
+              const boardModule = await server.ssrLoadModule('/src/cli/lib/board-reader.ts') as typeof import('./src/cli/lib/board-reader');
+              taskPath = boardModule.findTaskPath(kandownPath, decodeURIComponent(id));
+            } catch { /* fall through to the literal path */ }
+            if (!taskPath) {
+              // 📖 Legacy layout: active dir then archive/.
+              const inTasks = join(tasksRoot, `${id}.md`);
+              const inArchive = join(tasksRoot, 'archive', `${id}.md`);
+              taskPath = existsSync(inTasks) ? inTasks : existsSync(inArchive) ? inArchive : null;
+            }
             if (!taskPath) {
               res.writeHead(404, { 'Content-Type': 'text/plain' });
               res.end('Task not found');
@@ -840,10 +1003,22 @@ function kandownDevPlugin() {
               // disk answers 409 with the current text and writes nothing.
               const rawBaseHash = req.headers['x-kandown-base-hash'];
               const baseHash = Array.isArray(rawBaseHash) ? rawBaseHash[0] : rawBaseHash;
-              if (typeof baseHash === 'string' && baseHash.trim()) {
+              // 📖 Resolve where the task lives TODAY through the shared id
+              // map (descriptive filenames since v0.50): writing the naive
+              // `tasks/<id>.md` used to fork a second file claiming the same
+              // id. Only a task the map has never heard of (legacy plain id
+              // files) falls back to the literal path.
+              let currentPath: string | null = null;
+              try {
+                const boardModule = await server.ssrLoadModule('/src/cli/lib/board-reader.ts') as typeof import('./src/cli/lib/board-reader');
+                currentPath = boardModule.findTaskPath(kandownPath, decodeURIComponent(id));
+              } catch { /* fall through to the literal path */ }
+              if (!currentPath) {
                 const inTasksNow = join(tasksDir, `${id}.md`);
                 const inArchiveNow = join(archiveDir, `${id}.md`);
-                const currentPath = existsSync(inTasksNow) ? inTasksNow : existsSync(inArchiveNow) ? inArchiveNow : null;
+                currentPath = existsSync(inTasksNow) ? inTasksNow : existsSync(inArchiveNow) ? inArchiveNow : null;
+              }
+              if (typeof baseHash === 'string' && baseHash.trim()) {
                 if (currentPath) {
                   const currentContent = readFileSync(currentPath, 'utf8');
                   if (contentHash(currentContent) !== baseHash.trim()) {
@@ -854,9 +1029,10 @@ function kandownDevPlugin() {
                 }
               }
               // 📖 Write in place: an archived task stays inside archive/.
-              const inArchive = existsSync(join(archiveDir, `${id}.md`));
-              const targetDir = inArchive ? archiveDir : tasksDir;
-              writeFileSync(join(targetDir, `${id}.md`), body, 'utf8');
+              const targetDir = currentPath && resolve(currentPath).startsWith(resolve(archiveDir))
+                ? archiveDir
+                : tasksDir;
+              writeFileSync(join(targetDir, basename(currentPath ?? `${id}.md`)), body, 'utf8');
               res.writeHead(200, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify({ ok: true }));
             } catch (e) {
@@ -866,12 +1042,24 @@ function kandownDevPlugin() {
             return;
           }
           if (req.method === 'DELETE' && id) {
-            const inTasks = join(tasksRoot, `${id}.md`);
-            const inArchive = join(tasksRoot, 'archive', `${id}.md`);
             try {
               const { unlinkSync } = await import('node:fs');
-              if (existsSync(inTasks)) unlinkSync(inTasks);
-              if (existsSync(inArchive)) unlinkSync(inArchive);
+              // 📖 Same shared resolution as GET: descriptive filenames mean
+              // the literal <id>.md path is usually wrong, and a DELETE that
+              // silently no-ops is worse than one that deletes the right file.
+              let taskPath: string | null = null;
+              try {
+                const boardModule = await server.ssrLoadModule('/src/cli/lib/board-reader.ts') as typeof import('./src/cli/lib/board-reader');
+                taskPath = boardModule.findTaskPath(kandownPath, decodeURIComponent(id));
+              } catch { /* fall through to the literal path */ }
+              if (taskPath) {
+                unlinkSync(taskPath);
+              } else {
+                const inTasks = join(tasksRoot, `${id}.md`);
+                const inArchive = join(tasksRoot, 'archive', `${id}.md`);
+                if (existsSync(inTasks)) unlinkSync(inTasks);
+                if (existsSync(inArchive)) unlinkSync(inArchive);
+              }
               res.writeHead(200, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify({ ok: true }));
             } catch (e) {
@@ -887,8 +1075,15 @@ function kandownDevPlugin() {
             const archiving = parts[2] === 'archive';
             const tasksDir = tasksRoot;
             const archiveDir = join(tasksDir, 'archive');
-            const src = join(archiving ? tasksDir : archiveDir, `${id}.md`);
-            const dst = join(archiving ? archiveDir : tasksDir, `${id}.md`);
+            // 📖 Resolve the SOURCE through the shared id map: the source file
+            // carries the descriptive filename, only the destination keeps it.
+            let srcResolved: string | null = null;
+            try {
+              const boardModule = await server.ssrLoadModule('/src/cli/lib/board-reader.ts') as typeof import('./src/cli/lib/board-reader');
+              srcResolved = boardModule.findTaskPath(kandownPath, decodeURIComponent(id));
+            } catch { /* fall through to the literal path */ }
+            const src = srcResolved ?? join(archiving ? tasksDir : archiveDir, `${id}.md`);
+            const dst = join(archiving ? archiveDir : tasksDir, basename(src));
             try {
               const { writeFileSync, mkdirSync, unlinkSync } = await import('node:fs');
               if (!existsSync(archiveDir)) mkdirSync(archiveDir, { recursive: true });

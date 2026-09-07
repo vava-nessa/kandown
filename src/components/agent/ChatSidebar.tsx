@@ -66,8 +66,8 @@ import type { ChatSkillButton } from '../../lib/store/types';
  * ends with a free-text "Custom model" row. */
 const MODEL_SUGGESTIONS: Record<string, string[]> = {
   claude: ['opus', 'sonnet', 'haiku'],
-  codex: ['gpt-5.1-codex', 'gpt-5.1', 'o4-mini'],
-  gemini: ['gemini-2.5-pro', 'gemini-2.5-flash'],
+  codex: ['gpt-5.6', 'gpt-5.5'],
+  gemini: ['gemini-3.8-flash'],
 };
 
 /** 📖 localStorage key prefix for the per-harness model pick (round 4). */
@@ -205,6 +205,10 @@ export function ChatSidebar() {
   // never surfaced, a thin menu beats a broken one.
   const [modelCatalog, setModelCatalog] = useState<ModelCatalogEntry[]>([]);
   useEffect(() => {
+    // 📖 Clear the previous harness's list first: discovery can take seconds
+    // (an ACP handshake), and showing the old harness's models under the new
+    // harness's menu made picks point at the wrong backend.
+    setModelCatalog([]);
     if (!selectedHarness || !sidebarOpen) return;
     let cancelled = false;
     void fetch(`/api/agent/models?harness=${encodeURIComponent(selectedHarness)}`)
@@ -221,12 +225,17 @@ export function ChatSidebar() {
     };
   }, [selectedHarness, sidebarOpen]);
 
-  // 📖 The BUI model menu: Default, then the discovered catalog (or the
-  // static suggestions while discovery has not answered), capped so the
-  // popover stays a menu. A pick outside the list (typed in the custom row)
-  // stays valid: the key is forwarded verbatim at session start.
+  // 📖 The BUI model menu: Default, then the catalog (or the static
+  // suggestions while it has not answered), capped so the popover stays a
+  // menu. The server already ordered the catalog newest-release-first (the
+  // models.dev source) or current-first (ACP discovery); only the Current
+  // entry is floated up here, keeping that order otherwise: re-sorting
+  // alphabetically used to bury the newest models behind provider blocks.
+  // A pick outside the list (typed in the custom row) stays valid: the key
+  // is forwarded verbatim at session start.
   const modelMenu = useMemo<PromptBarModel[]>(() => {
-    const discovered = modelCatalog.slice(0, 16).map(entry => ({
+    const sorted = [...modelCatalog].sort((a, b) => (a.current === b.current ? 0 : a.current ? -1 : 1));
+    const discovered = sorted.slice(0, 16).map(entry => ({
       key: entry.id,
       name: entry.name,
       tag: entry.current
