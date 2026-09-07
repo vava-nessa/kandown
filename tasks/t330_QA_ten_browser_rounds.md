@@ -5,7 +5,7 @@ status: In Progress
 priority: P1
 tags: [qa, web, ux, agentic]
 created: 2026-09-07
-updated: 2026-09-07T00:09:09Z
+updated: 2026-09-07T00:14:52Z
 order: 6
 ---
 
@@ -87,6 +87,14 @@ repete 10 fois, puis rapport complet. Sandbox : t328 (In Progress) et t329
 mobile, lancement Herdr reel sur t328 avec preview PTY, mode centre,
 hover previews, recherche). (drag, skills/grill, undo, autopilot, dark mode,
 i18n switch, drawer mobile, lancement Herdr reel sur t328 avec preview PTY).
+
+### Anomalie ouverte (non bloquante, a investiguer)
+A 02:10:50, un `kandown undo` s'est execute une seule fois sans commande
+visible (ligne "Undid move of t328" dans la sortie d'un git commit). Exclues
+par test : hooks pre/post-commit (codemap+changelog only), graphify update
+(execute manuellement apres un move : aucun undo), sessions agent du plugin
+vite (stuck/dead), autres panes herdr (ernesto est dans ernesto_test),
+filters git, automations. Non reproduit depuis. t328 remis en In Progress.
 
 ## Etat a 02:00 (stop quota 03:00)
 
