@@ -4212,7 +4212,7 @@
     },
     {
       "path": "src/lib/i18n/index.ts",
-      "lines": 204,
+      "lines": 208,
       "title": "i18n configuration",
       "summary": "Initializes react-i18next with language detection and namespace-based translation loading for the Kandown UI.",
       "functions": [

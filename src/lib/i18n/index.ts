@@ -188,6 +188,10 @@ export function initI18n(language: SupportedLanguage = 'en') {
       },
       react: {
         useSuspense: false,
+        // 📖 Translation strings may carry light inline markup (the conflict
+        // modal's <code>{{taskId}}</code>); without this, every tag outside
+        // i18next's default keep-list renders as literal "&lt;code&gt;" text.
+        transKeepBasicHtmlNodesFor: ['br', 'strong', 'i', 'p', 'code', 'em'],
       },
     });
 }

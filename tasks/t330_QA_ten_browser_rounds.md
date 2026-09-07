@@ -83,7 +83,19 @@ repete 10 fois, puis rapport complet. Sandbox : t328 (In Progress) et t329
 - (Le test CLI de l'undo a d'abord annule le move t324 au lieu du drag,
   exactement a cause du bug ci-dessus : t324 a ete remis en Done.)
 
-### Rounds 4 a 10 : a jouer (skills/grill, autopilot, i18n switch, drawer
+### Round 4 (creation de tache + conflit) : termine, 1 fix
+- Le New task UI cree bien la tache (t331, Backlog, titre correct).
+- FIX : la modale de conflit affichait "Task &lt;code&gt;T331&lt;/code&gt;"
+  litteral : <code> n'est pas dans la liste par defaut des noeuds HTML
+  conserves par i18next (br/strong/i/p). Ajoute code + em a
+  transKeepBasicHtmlNodesForBreaks. Verifie en live : plus d'echappement.
+- Constats : Save & Close emet deux PUT (le deuxieme part en 409 et ouvre
+  la modale de conflit a la creation : course save/close a confirmer) ;
+  une tache creee depuis l'UI garde un nom nu (t331.md) au lieu du nom
+  descriptif du CLI (t331_test_round_c_create_flow.md) : le PUT sur fichier
+  absent retombe sur <id>.md. Deux ameliorations a derouler plus tard.
+
+### Rounds 5 a 10 : a jouer (skills/grill, autopilot, i18n switch, drawer
 mobile, lancement Herdr reel sur t328 avec preview PTY, mode centre,
 hover previews, recherche). (drag, skills/grill, undo, autopilot, dark mode,
 i18n switch, drawer mobile, lancement Herdr reel sur t328 avec preview PTY).

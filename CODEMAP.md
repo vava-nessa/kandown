@@ -406,7 +406,7 @@ source to edit instead.
 
 ## `src/lib/i18n/` — Internationalisation setup
 
-- **`index.ts`** · 204 lines — Initializes react-i18next with language detection and namespace-based translation loading for the Kandown UI.
+- **`index.ts`** · 208 lines — Initializes react-i18next with language detection and namespace-based translation loading for the Kandown UI.
 
 ## `src/lib/store/` — Zustand store slices
 
