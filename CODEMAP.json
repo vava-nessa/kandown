@@ -8,7 +8,7 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 15516,
+      "lines": 15528,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
@@ -986,7 +986,7 @@
     },
     {
       "path": "src/cli/lib/board-reader.ts",
-      "lines": 740,
+      "lines": 743,
       "title": "Node.js task reader and mutator",
       "summary": "Provides filesystem-based reading and writing of Kandown task files for the CLI.",
       "functions": [
@@ -1571,7 +1571,7 @@
     },
     {
       "path": "src/cli/lib/task-move.ts",
-      "lines": 198,
+      "lines": 214,
       "title": "Authoritative Node task move coordinator",
       "summary": "Runs the shared dependency policy and enabled extension gates before persisting a web move.",
       "functions": [

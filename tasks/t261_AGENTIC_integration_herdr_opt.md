@@ -8,7 +8,7 @@ tags: [agentic, herdr, integration, runner, ui]
 ownerType: human
 created: 2026-07-26
 order: 0
-updated: 2026-09-05T09:42:50Z
+updated: 2026-09-07T00:09:09Z
 category: AGENTIC
 ---
 
@@ -51,6 +51,7 @@ Kandown conserve sa promesse d'un outil ultra-léger, installable en 30 secondes
 - [x] 3. UI Progressive Disclosure (bouton [⚡ Run with Herdr], badges d'état, preview PTY terminal)
   report: slice 2 committee par un sous-agent sous contrat (144f6cd pour les fichiers exclusifs, lot partage en commit paired) : agentRunsSlice (seed disponibilite, poll 10s board-wide, transport start/stop, coeur pur teste 31 specs), TaskAgentRunControls partage workspace desktop + Drawer mobile (select harness, toggle runner Herdr SEULEMENT si disponible, bouton Run, preview PTY collapsible, poll output 2s tant que non terminal, auto-scroll bottom-pinned, Stop en un clic), AgentRunBadge sur les cartes (run le plus actif, gone masque, working pulse). Routes daemon POST/GET /api/agent/runs + /runs/output + /runs/stop. 48 locales : 25 cles agentRuns + propagation modelCustom/modelCurrentTag + sweep em-dash des 3 cles traduites (140 suppressions).
 - [ ] 4. Synchronisation d'événements (socket events, passage à Done, extraction logs dans report)
+  report: NON COMMENCE (slice 3, reste apres le stop quota du 2026-09-07 03:00). Contrat decide (voir Decisions 2026-09-06) : polling pane list/pane read cote daemon, recolte idempotente sur transition observee vers un etat terminal, champ autopilot runner ('default'|'herdr') pour le dispatch visible de t322. Le badge et la preview PTY de la slice 2 couvrent deja le temps reel cote UI.
 
 ## Decisions (2026-09-05, prises pendant l'implémentation)
 

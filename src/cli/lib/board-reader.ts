@@ -506,7 +506,10 @@ interface UndoRecord {
   timestamp: number;
 }
 
-function pushUndo(kandownDir: string, record: UndoRecord): void {
+/** 📖 Exported for the one sibling writer that predates the journal:
+ *  task-move.ts (the gated multi-file move used by the web and the daemon).
+ *  Everything else journals here and only here (rule 6). */
+export function pushUndo(kandownDir: string, record: UndoRecord): void {
   try {
     const undoDir = join(kandownDir, '.undo');
     if (!existsSync(undoDir)) mkdirSync(undoDir, { recursive: true });

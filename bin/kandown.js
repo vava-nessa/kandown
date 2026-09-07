@@ -3487,14 +3487,14 @@ __export(workflows_store_exports, {
   previewWorkflowUpdate: () => previewWorkflowUpdate
 });
 import { createHash as createHash3 } from "crypto";
-import { existsSync as existsSync22, readFileSync as readFileSync21 } from "fs";
+import { existsSync as existsSync22, readFileSync as readFileSync22 } from "fs";
 import { join as join29 } from "path";
 function installFilePath(kandownDir) {
   return join29(kandownDir, "workflow-installs.json");
 }
 function readInstalls(kandownDir) {
   try {
-    const parsed = JSON.parse(readFileSync21(installFilePath(kandownDir), "utf8"));
+    const parsed = JSON.parse(readFileSync22(installFilePath(kandownDir), "utf8"));
     return parsed.version === 1 && parsed.installs && typeof parsed.installs === "object" ? parsed : { version: 1, installs: {} };
   } catch {
     return { version: 1, installs: {} };
@@ -3614,7 +3614,7 @@ var init_workflows_store = __esm({
 });
 
 // src/cli/lib/workflows-cli.ts
-import { existsSync as existsSync23, mkdirSync as mkdirSync12, readFileSync as readFileSync22, readdirSync as readdirSync9, statSync as statSync7, unlinkSync as unlinkSync7 } from "fs";
+import { existsSync as existsSync23, mkdirSync as mkdirSync12, readFileSync as readFileSync23, readdirSync as readdirSync9, statSync as statSync7, unlinkSync as unlinkSync7 } from "fs";
 import { basename as basename10, join as join30, resolve as resolve10 } from "path";
 function sourceFiles(directory, prefix = "") {
   const files = {};
@@ -3622,7 +3622,7 @@ function sourceFiles(directory, prefix = "") {
     const absolute = join30(directory, name);
     const relative3 = prefix ? `${prefix}/${name}` : name;
     if (statSync7(absolute).isDirectory()) Object.assign(files, sourceFiles(absolute, relative3));
-    else files[relative3] = readFileSync22(absolute, "utf8");
+    else files[relative3] = readFileSync23(absolute, "utf8");
   }
   return files;
 }
@@ -3634,7 +3634,7 @@ function workflowRoots(kandownDir) {
 }
 function installedStoreIds(kandownDir) {
   try {
-    const raw = JSON.parse(readFileSync22(join30(kandownDir, "workflow-installs.json"), "utf8"));
+    const raw = JSON.parse(readFileSync23(join30(kandownDir, "workflow-installs.json"), "utf8"));
     return new Set(Object.keys(raw.installs ?? {}));
   } catch {
     return /* @__PURE__ */ new Set();
@@ -3948,7 +3948,7 @@ ${workflow.guide.content}` : ""}`);
     }
     if (sub === "import") {
       const capsulePath = resolve10(args.positional[1] ?? "");
-      const result = importWorkflowCapsule(readFileSync22(capsulePath, "utf8"));
+      const result = importWorkflowCapsule(readFileSync23(capsulePath, "utf8"));
       if (!result.ok) throw new Error(result.errors.map((item) => `${item.path}: ${item.message}`).join("\n"));
       success(`Imported ${writeWorkflowPackage(kandownDir, result.value)}.`);
       return;
@@ -7042,7 +7042,7 @@ init_task_filename();
 init_parser();
 init_config2();
 import { createServer } from "http";
-import { existsSync as existsSync25, readFileSync as readFileSync23, copyFileSync as copyFileSync3, unlinkSync as unlinkSync8, mkdirSync as mkdirSync13 } from "fs";
+import { existsSync as existsSync25, readFileSync as readFileSync24, copyFileSync as copyFileSync3, unlinkSync as unlinkSync8, mkdirSync as mkdirSync13 } from "fs";
 import { basename as basename11, join as join33 } from "path";
 import { execFile as execFile2, spawn as spawn9 } from "child_process";
 import { promisify as promisify2 } from "util";
@@ -10902,6 +10902,7 @@ init_atomic_write();
 init_atomic_write();
 init_board_reader();
 init_config2();
+import { readFileSync as readFileSync21 } from "fs";
 init_dependencies();
 init_serializer();
 init_task_meta();
@@ -10998,7 +10999,18 @@ async function performTaskMove(host, kandownDir, taskId, targetStatus, toIndex) 
           status: layout.status,
           order
         }), current.body);
+        const prevContent = readFileSync21(path, "utf8");
         atomicWriteFileSync(path, nextContent);
+        if (id === taskId) {
+          pushUndo(kandownDir, {
+            type: "move",
+            taskId,
+            path,
+            previousContent: prevContent,
+            newContent: nextContent,
+            timestamp: Date.now()
+          });
+        }
       } catch {
         failedIds.push(id);
       }
@@ -11543,11 +11555,11 @@ function listInstalledThemes(projectDir) {
   const dir = join28(projectDir, ".kandown", "themes");
   if (!existsSync21(dir)) return [];
   const themes = [];
-  const { readFileSync: readFileSync28, readdirSync: readdirSync13 } = __require("fs");
+  const { readFileSync: readFileSync29, readdirSync: readdirSync13 } = __require("fs");
   for (const file of readdirSync13(dir)) {
     if (!file.endsWith(".json")) continue;
     try {
-      const raw = readFileSync28(join28(dir, file), "utf8");
+      const raw = readFileSync29(join28(dir, file), "utf8");
       const parsed = JSON.parse(raw);
       if (parsed && parsed.id && parsed.light && parsed.dark) {
         themes.push({ ...parsed, isCustom: true });
@@ -12394,7 +12406,7 @@ function buildMentionSections(kandownDir, mentionedTaskIds) {
     const taskPath = findTaskPath(kandownDir, id);
     if (!taskPath) continue;
     try {
-      const content = readFileSync23(taskPath, "utf8");
+      const content = readFileSync24(taskPath, "utf8");
       const title2 = parseTaskFile(content).frontmatter.title || `Task ${id}`;
       sections += `## Task ${id}: ${title2}
 
@@ -12545,8 +12557,8 @@ function syncProjectKandownHtml(kandownDir) {
       copyFileSync3(distHtml, projectHtml);
       return true;
     }
-    const currentContent = readFileSync23(projectHtml, "utf8");
-    const newContent = readFileSync23(distHtml, "utf8");
+    const currentContent = readFileSync24(projectHtml, "utf8");
+    const newContent = readFileSync24(distHtml, "utf8");
     if (currentContent !== newContent) {
       atomicWriteFileSync(projectHtml, newContent);
       return true;
@@ -12557,7 +12569,7 @@ function syncProjectKandownHtml(kandownDir) {
 }
 function readDaemonPort(kandownDir) {
   try {
-    const raw = JSON.parse(readFileSync23(join33(kandownDir, "daemon.json"), "utf8"));
+    const raw = JSON.parse(readFileSync24(join33(kandownDir, "daemon.json"), "utf8"));
     return typeof raw.port === "number" && Number.isInteger(raw.port) ? raw.port : null;
   } catch {
     return null;
@@ -12689,7 +12701,7 @@ async function handleApi(req, res, url, kandownDir) {
     if (method === "GET") {
       const tasksDir = getTasksDir(kandownDir);
       const boardPath = join33(tasksDir, "board.md");
-      const text = existsSync25(boardPath) ? readFileSync23(boardPath, "utf8") : "";
+      const text = existsSync25(boardPath) ? readFileSync24(boardPath, "utf8") : "";
       return writeText(res, 200, text);
     }
     if (method === "PUT") {
@@ -12735,7 +12747,7 @@ async function handleApi(req, res, url, kandownDir) {
   }
   if (path === "/api/instructions") {
     const instructionsPath = join33(kandownDir, "kandown_work.md");
-    if (method === "GET") return writeText(res, 200, existsSync25(instructionsPath) ? readFileSync23(instructionsPath, "utf8") : "");
+    if (method === "GET") return writeText(res, 200, existsSync25(instructionsPath) ? readFileSync24(instructionsPath, "utf8") : "");
     if (method === "PUT") {
       try {
         atomicWriteFileSync(instructionsPath, await readRequestBody(req));
@@ -13203,7 +13215,7 @@ ${body.message}` : body.message;
       if (!/^[a-zA-Z0-9._\/-]+$/.test(rel) || rel.includes("..")) return writeText(res, 400, "Bad path");
       const file = join33(ext.dir, rel);
       if (!existsSync25(file)) return writeText(res, 404, "File not found");
-      return writeText(res, 200, readFileSync23(file, "utf8"));
+      return writeText(res, 200, readFileSync24(file, "utf8"));
     }
   }
   if (path === "/api/extensions/registry" && method === "GET") {
@@ -13295,7 +13307,7 @@ ${body.message}` : body.message;
     if (!hookUrl) {
       return writeJson(res, 400, { ok: false, error: "No agent hook is configured on this daemon (KANDOWN_AGENT_HOOK_URL is not set)." });
     }
-    const content = readFileSync23(taskPath, "utf8");
+    const content = readFileSync24(taskPath, "utf8");
     const parsed = parseTaskFile(content);
     const fm = parsed.frontmatter;
     const payload = {
@@ -13422,7 +13434,7 @@ ${body.message}` : body.message;
     if (method === "GET") {
       const taskPath = findTaskPath(kandownDir, taskId);
       if (!taskPath) return writeText(res, 404, "Task not found");
-      return writeText(res, 200, readFileSync23(taskPath, "utf8"));
+      return writeText(res, 200, readFileSync24(taskPath, "utf8"));
     }
     if (method === "PUT") {
       try {
@@ -13435,7 +13447,7 @@ ${body.message}` : body.message;
           if (currentPath && existsSync25(currentPath)) {
             let currentContent = "";
             try {
-              currentContent = readFileSync23(currentPath, "utf8");
+              currentContent = readFileSync24(currentPath, "utf8");
             } catch (readError) {
               return writeJson(res, 500, {
                 error: `Failed to read current task before write: ${readError instanceof Error ? readError.message : String(readError)}`
@@ -13485,7 +13497,7 @@ function serveApp(res, kandownDir) {
   syncProjectKandownHtml(kandownDir);
   const htmlPath = join33(kandownDir, "kandown.html");
   if (existsSync25(htmlPath)) {
-    const html = readFileSync23(htmlPath, "utf8");
+    const html = readFileSync24(htmlPath, "utf8");
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
     res.end(injectServerRoot(html, kandownDir));
   } else {
@@ -13998,14 +14010,14 @@ function cmdAgents(rawArgs) {
 
 // src/cli/lib/plugin-cli.ts
 import { spawn as spawn10 } from "child_process";
-import { existsSync as existsSync31, readFileSync as readFileSync26 } from "fs";
+import { existsSync as existsSync31, readFileSync as readFileSync27 } from "fs";
 import { basename as basename15, join as join40 } from "path";
 
 // src/lib/extensions/agent-brief.ts
 var EXTENSION_AGENT_BRIEF = "# Kandown plugin brief (for coding agents)\n\n<!-- Generated by scripts/build-extension-brief.js from src/lib/extensions/types.ts.\n     Do not edit by hand: run `pnpm extension-brief`. -->\n\nYou are writing a **kandown plugin**. This document is the complete contract.\nEverything below is extracted from the shipped type definitions, so it matches\nthe runtime you will be loaded into. Read it once, write the code, then run the\nloop at the bottom until it is green.\n\n## 1. What a plugin is\n\nA directory under `.kandown/extensions/<id>/` containing:\n\n| File | Required | Purpose |\n|---|---|---|\n| `manifest.json` | yes | identity, permissions, display hints |\n| `index.ts` | yes | the Node entry, loaded with jiti (no build step in dev) |\n| `index.js` | to ship | bundled entry, the only thing the browser can execute |\n| `web.tsx` / `web.js` | panels only | the panel module, bundled the same way |\n| `README.md` | no | human documentation |\n\n`index.ts` default-exports a factory. It is called once at load, it registers\ncontributions, and it must not do slow or throwing work at module scope.\n\n```typescript\nimport type { KandownExtensionAPI } from 'kandown';\n\nexport default function (kd: KandownExtensionAPI) {\n  // register here\n}\n```\n\n## 2. The API you are handed\n\n```typescript\nexport interface KandownExtensionAPI {\n  readonly id: string;\n  contributeField(def: FieldContribution): void;\n  contributeWebPanel(def: WebPanelContribution): void;\n  contributeCommand(name: string, def: CommandContribution): void;\n  contributeGate(def: GateContribution): void;\n  contributeSync(def: SyncContribution): void;\n  on(event: 'task:afterCreate' | 'task:afterMove' | 'task:afterArchive' | 'board:load', handler: LifecycleHandler): void;\n}\n```\n\nContribution shapes, verbatim:\n\n```typescript\nexport interface FieldContribution {\n  key: string;\n  label: string;\n  type: FieldType;\n  options?: { value: string; label: string }[];\n  badge?: (value: unknown, task: TaskLike) => string | null;\n  editorComponentId?: string;\n}\n\nexport interface WebPanelContribution {\n  id: string;\n  title: string;\n  entry: string;\n  icon?: string;\n}\n\nexport interface CommandContribution {\n  name: string;\n  description?: string;\n  handler: (args: string, ctx: ExtensionCommandContext) => void | Promise<void>;\n}\n\nexport interface GateContribution {\n  id?: string;\n  on: 'task:beforeMove' | 'task:beforeCreate' | 'task:beforeArchive' | 'task:beforeDelete';\n  to?: string;\n  handler: (event: GateEvent, ctx: ExtensionContext) => void | Promise<void | GateVerdict>;\n}\n\nexport interface SyncContribution {\n  id?: string;\n  on: 'task:afterMove' | 'task:afterCreate' | 'task:afterArchive';\n  to?: string;\n  handler: (event: TaskEvent, ctx: ExtensionContext) => void | Promise<void>;\n}\n\nexport interface GateVerdict {\n  block?: boolean;\n  reason?: string;\n}\n```\n\n## 3. The context handlers receive\n\n```typescript\nexport interface ExtensionContext {\n  extId: string;\n  signal?: AbortSignal;\n  board: {\n    readAll(): Promise<TaskLike[]>;\n    read(taskId: string): Promise<TaskLike | null>;\n  };\n  setField(taskId: string, key: string, value: unknown): Promise<void>;\n  log: {\n    info(msg: string): void;\n    warn(msg: string): void;\n    error(msg: string): void;\n  };\n  fetch?: typeof fetch;\n}\n\nexport interface TaskLike {\n  id: string;\n  frontmatter: Record<string, unknown>;\n  plugins?: Record<string, unknown>;\n}\n```\n\n`ctx.fetch` is present **only** when a `net:` permission is declared. `ctx.board`\nthrows without `read:tasks`. `ctx.setField` throws without\n`write:field:plugins.<id>.<key>` (a trailing `*` covers every key).\n\n## 4. Events\n\n| Kind | Names | Semantics |\n|---|---|---|\n| Gates (`contributeGate`) | `task:beforeMove`, `task:beforeCreate`, `task:beforeArchive`, `task:beforeDelete` | may veto by returning `{ block: true, reason }`; a throw is treated as no objection |\n| Syncs (`contributeSync`) | `task:afterMove`, `task:afterCreate`, `task:afterArchive` | fire and forget, after the file is written |\n| Lifecycle (`kd.on`) | `task:afterCreate`, `task:afterMove`, `task:afterArchive`, `board:load` | observation only, never blocks |\n\nBoth gates and syncs accept an optional `to` to restrict them to one target\ncolumn. A move is allowed only when **every** gate abstains or permits.\n\n## 5. Field types\n\n`string`, `number`, `boolean`, `date`, `select`. Scalars are persisted as strings and coerced back on read,\nso a `number` field reads back as a number. A `select` field must declare\n`options: [{ value, label }]`, and a value outside that list is rejected.\n\n## 6. Where your data lives\n\nOnly under `plugins.<id>.*` in the task frontmatter, opaque to the core:\n\n```yaml\n---\ntitle: Ship the thing\nstatus: Done\nplugins:\n  my-plugin:\n    points: 5\n---\n```\n\nRead it from `event.task.plugins`, write it with `ctx.setField(taskId, key, value)`.\n**Never** write a core field (`title`, `status`, `depends_on`, `created`, ...),\nnever write a second file, never call the serializer.\n\n## 7. Permissions\n\n| Declare | Unlocks |\n|---|---|\n| `read:tasks` | `ctx.board.readAll()`, `ctx.board.read(id)` |\n| `write:field:plugins.<id>.*` | `ctx.setField(...)` for your namespace |\n| `net:*` or `net:<url-prefix>` | `ctx.fetch` |\n| `*` | everything, avoid it |\n\nUndeclared calls throw at runtime. Declare exactly what you use, nothing more:\n`kandown plugin check` reports both missing and unused permissions.\n\n## 8. Web panels\n\nDeclare the panel in `index.ts`, implement it in `web.tsx`:\n\n```typescript\nkd.contributeWebPanel({ id: 'chart', title: 'Burndown', entry: './web.js' });\n```\n\n```javascript\nfunction Chart({ task, api, ui }) {\n  const [tasks, setTasks] = ui.useState([]);\n  ui.useEffect(() => { void api.readAllTasks().then(setTasks); }, [api]);\n  return ui.createElement('div', null, tasks.length + ' tasks');\n}\n\nexport const panels = { chart: Chart };\n```\n\nHard rules for panel modules:\n\n- **Never import React.** The host React runtime arrives as the `ui` prop\n  (`ui.createElement`, `ui.useState`, `ui.useEffect`, `ui.Fragment`). A second\n  React copy in the bundle breaks hooks.\n- The module must be self-contained: it is imported through a Blob URL and\n  cannot resolve sibling files. `kandown plugin build` bundles it for you.\n- Props are exactly `{ task, api, ui }` where `api` is\n  `{ readField(key), readAllTasks(), setField(key, value), refresh() }`.\n- Three consecutive render failures quarantine the plugin.\n\n## 9. The build and verify loop\n\n```bash\nkandown plugin build <id>          # index.ts -> index.js, web.tsx -> web.js\nkandown plugin check <id> --json   # structured verdict, exit code 1 on failure\nkandown plugin enable <id>         # trust + enable\nkandown plugin dev <id>            # watch: rebuild, recheck, hot reload the web UI\n```\n\n`check --json` returns `{ ok, id, checks: [{ id, status, message, fix }] }`.\nRead `fix` on any failing check, apply it, run again. Do not stop until `ok`\nis `true`.\n\n## 10. Failure table\n\n| Symptom from `plugin check` | Fix |\n|---|---|\n| `manifest` invalid id | id must match `^[a-z][a-z0-9-]{0,63}$` |\n| `entry` default export is not a function | export the factory as `export default function (kd) {}` |\n| `permissions` missing | add the exact permission string the check names to `manifest.json` |\n| `bundle` missing index.js | run `kandown plugin build <id>` |\n| `panel` module exports nothing | export `panels` (a map) or a `default` component |\n| `panel` imports react | drop the import, use the `ui` prop |\n| `namespace` write outside plugins.\\<id\\> | only `ctx.setField` may write, and only your own keys |\n| `roundtrip` frontmatter drift | store plain JSON values, no class instances, no `undefined` |\n| quarantined | fix the throw, then `kandown plugin enable <id>` clears the counter |\n\n## 11. Style rules for this codebase\n\n- Never use an em dash or an en dash in any string, comment or document you write.\n- Comment the why, not the what, and open explanatory comments with `\u{1F4D6}`.\n- Keep the factory synchronous unless you genuinely need to await something.\n- Handle your own errors: a throw inside a gate is silently fail-open, which\n  hides bugs. Log with `ctx.log.warn` instead of throwing.\n";
 
 // src/cli/lib/plugin-build.ts
-import { existsSync as existsSync27, readdirSync as readdirSync11, readFileSync as readFileSync24 } from "fs";
+import { existsSync as existsSync27, readdirSync as readdirSync11, readFileSync as readFileSync25 } from "fs";
 import { basename as basename12, extname as extname3, join as join36 } from "path";
 var SOURCE_EXTENSIONS = [".ts", ".tsx", ".jsx", ".mts"];
 function findSource(dir, stem) {
@@ -14075,7 +14087,7 @@ async function buildPlugin(dir) {
         write: true
       });
       for (const warning of built.warnings) result.warnings.push(`${entry.stem}: ${warning.text}`);
-      const source = readFileSync24(out, "utf8");
+      const source = readFileSync25(out, "utf8");
       if (/from\s*["']react(?:-dom|\/jsx-runtime)?["']/.test(source)) {
         result.errors.push(
           `${entry.stem}: bundle imports react; panels must use the "ui" prop instead of importing React`
@@ -14093,7 +14105,7 @@ async function buildPlugin(dir) {
 }
 
 // src/cli/lib/plugin-check.ts
-import { existsSync as existsSync28, readFileSync as readFileSync25, statSync as statSync8 } from "fs";
+import { existsSync as existsSync28, readFileSync as readFileSync26, statSync as statSync8 } from "fs";
 import { basename as basename13, extname as extname4, join as join37 } from "path";
 init_parser();
 init_serializer();
@@ -14260,7 +14272,7 @@ async function checkPlugin(kandownDir, projectDir, id) {
     ));
   }
   const sources = ["index.ts", "index.tsx", "index.js", "index.mjs"].map((name) => join37(dir, name)).filter((path) => existsSync28(path));
-  const sourceText = sources.map((path) => readFileSync25(path, "utf8")).join("\n");
+  const sourceText = sources.map((path) => readFileSync26(path, "utf8")).join("\n");
   const declared = manifest.permissions ?? [];
   const usage = scanPermissionUsage(sourceText);
   const missing = [];
@@ -14355,7 +14367,7 @@ async function checkPlugin(kandownDir, projectDir, id) {
         ));
         continue;
       }
-      const source = readFileSync25(out, "utf8");
+      const source = readFileSync26(out, "utf8");
       if (/from\s*["']react["']/.test(source)) {
         checks.push(check(
           `panel:${panel.id}`,
@@ -15080,7 +15092,7 @@ async function cmdPlugin(rawArgs) {
         return;
       }
       const manifestPath = join40(dir, "manifest.json");
-      const manifest = existsSync31(manifestPath) ? JSON.parse(readFileSync26(manifestPath, "utf8")) : {};
+      const manifest = existsSync31(manifestPath) ? JSON.parse(readFileSync27(manifestPath, "utf8")) : {};
       const entry = {
         id: manifest.id ?? id,
         name: manifest.name ?? id,
@@ -15113,7 +15125,7 @@ async function cmdPlugin(rawArgs) {
 }
 
 // src/cli/lib/themes-cli.ts
-import { existsSync as existsSync32, mkdirSync as mkdirSync15, readFileSync as readFileSync27, readdirSync as readdirSync12, writeFileSync as writeFileSync10 } from "fs";
+import { existsSync as existsSync32, mkdirSync as mkdirSync15, readFileSync as readFileSync28, readdirSync as readdirSync12, writeFileSync as writeFileSync10 } from "fs";
 import { join as join41, resolve as resolve11 } from "path";
 init_board_reader();
 init_cli_shared();
@@ -15195,7 +15207,7 @@ async function cmdTheme(rawArgs) {
 async function installFromTarget(projectDir, target) {
   const src = resolve11(target);
   if (existsSync32(src) && src.endsWith(".json")) {
-    const text = readFileSync27(src, "utf8");
+    const text = readFileSync28(src, "utf8");
     const parsed = JSON.parse(text);
     if (!parsed.id) return { ok: false, error: "theme JSON is missing id" };
     const destDir = join41(projectDir, ".kandown", "themes");
@@ -15212,7 +15224,7 @@ function listInstalledThemesForCli(projectDir) {
   for (const file of readdirSync12(dir)) {
     if (!file.endsWith(".json")) continue;
     try {
-      const raw = readFileSync27(join41(dir, file), "utf8");
+      const raw = readFileSync28(join41(dir, file), "utf8");
       const parsed = JSON.parse(raw);
       if (parsed.id) out.push({ id: parsed.id, name: parsed.name ?? parsed.id, author: parsed.author, description: parsed.description, version: parsed.version });
     } catch {
@@ -15310,7 +15322,7 @@ function publishTheme(file, githubUser) {
     err(`Theme file not found: ${file}`);
     process.exit(1);
   }
-  const raw = readFileSync27(resolved, "utf8");
+  const raw = readFileSync28(resolved, "utf8");
   let theme;
   try {
     theme = JSON.parse(raw);
@@ -15333,7 +15345,7 @@ function publishTheme(file, githubUser) {
     } catch {
     }
   }
-  const json = existsSync32(resolved) ? readFileSync27(resolved, "utf8") : raw;
+  const json = existsSync32(resolved) ? readFileSync28(resolved, "utf8") : raw;
   const url = buildProposeUrl({
     githubOwner: KANDOWN_THEME_REPO_OWNER,
     githubRepo: KANDOWN_THEME_REPO_NAME,

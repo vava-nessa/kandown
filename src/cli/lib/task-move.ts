@@ -12,8 +12,9 @@
  * @see src/cli/lib/extensions-cli.ts
  */
 
+import { readFileSync } from 'node:fs';
 import { atomicWriteFileSync } from './atomic-write';
-import { findTaskPath, listTaskIds, readBoard, readTask } from './board-reader';
+import { findTaskPath, listTaskIds, pushUndo, readBoard, readTask } from './board-reader';
 import { loadConfig } from './config';
 import { runExtensionMoveGates } from './extensions-cli';
 import { DependencyGateError, resolveDependencyStatus, resolveTransition } from '../../lib/dependencies';
@@ -145,7 +146,22 @@ async function performTaskMove(
           status: layout.status,
           order,
         }), current.body);
+        // 📖 Journal the moved task so `kandown undo` sees web moves too
+        // (vite mirror and daemon both land here). Only the moved task gets
+        // a record: restoring neighbor order fields is beyond one undo step,
+        // exactly like the CLI's single-file move path.
+        const prevContent = readFileSync(path, 'utf8');
         atomicWriteFileSync(path, nextContent);
+        if (id === taskId) {
+          pushUndo(kandownDir, {
+            type: 'move',
+            taskId,
+            path,
+            previousContent: prevContent,
+            newContent: nextContent,
+            timestamp: Date.now(),
+          });
+        }
       } catch {
         failedIds.push(id);
       }

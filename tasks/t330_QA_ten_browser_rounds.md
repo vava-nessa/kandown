@@ -5,7 +5,8 @@ status: In Progress
 priority: P1
 tags: [qa, web, ux, agentic]
 created: 2026-09-07
-updated: 2026-09-07T02:00:00Z
+updated: 2026-09-07T00:09:09Z
+order: 6
 ---
 
 # QA : 10 rounds de tests navigateur en mode utilisateur (fix + repeat)
@@ -67,7 +68,24 @@ repete 10 fois, puis rapport complet. Sandbox : t328 (In Progress) et t329
   ("migrate to Antigravity") : l'erreur est bien surfacée en carte rouge,
   mais gemini chat est inutilisable tant que Google ne remonte pas.
 
-### Rounds 3 a 10 : a jouer (drag, skills/grill, undo, autopilot, dark mode,
+### Round 3 (drag & drop + undo + dark mode) : termine, 1 fix majeur
+- Le drag navigateur de t328 (In Progress -> Review) fonctionne, y compris
+  en dark mode (theme systeme, 2h du matin : le board bascule tout seul).
+- FIX MAJEUR : les moves web (drag) n'ecrivaient PAS dans le journal d'undo
+  : `kandown undo` ne pouvait pas les annuler (le chemin task-move.ts
+  performTaskMove, partage par le miroir vite et le daemon, ecrivait les
+  fichiers sans pushUndo, contrairement au chemin CLI). Fix : pushUndo
+  exporte de board-reader et appele pour la tache deplacee dans la boucle
+  d'ecriture. Verifie en direct : move web Review -> In Progress, undo ->
+  retour a Review, re-move final vers In Progress. Derive connue et
+  documentee : l'ordre des voisines n'est pas restaure par l'undo (hors
+  perimetre d'une etape d'undo, comme le chemin CLI).
+- (Le test CLI de l'undo a d'abord annule le move t324 au lieu du drag,
+  exactement a cause du bug ci-dessus : t324 a ete remis en Done.)
+
+### Rounds 4 a 10 : a jouer (skills/grill, autopilot, i18n switch, drawer
+mobile, lancement Herdr reel sur t328 avec preview PTY, mode centre,
+hover previews, recherche). (drag, skills/grill, undo, autopilot, dark mode,
 i18n switch, drawer mobile, lancement Herdr reel sur t328 avec preview PTY).
 
 ## Etat a 02:00 (stop quota 03:00)

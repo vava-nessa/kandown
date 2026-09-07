@@ -26,7 +26,7 @@ source to edit instead.
 
 ## `bin/` — Published CLI entrypoints — GENERATED, never edit
 
-- **`kandown.js`** · 15516 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
+- **`kandown.js`** · 15528 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
 - **`tui.js`** · 62852 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
 
 ## `src/` — Web app root
@@ -68,7 +68,7 @@ source to edit instead.
 - **`agents-config.ts`** · 218 lines — The committed team contract for which AI coding agents a project supports: their binary, aliases, launch mode, and per-agent extra CLI args, plus project-wide cascade preferences (preferred agent, unassigned-task behaviour, same-session…
 - **`agents.ts`** · 713 lines — Defines the built-in AI coding agents the CLI knows how to launch, merges them with the versioned team catalog (`.kandown/agents.json`), detects which binaries are installed on the current machine, and builds the shell command — plus…
 - **`atomic-write.ts`** · 27 lines — Crash-safe file writes for the CLI: write to a sibling temp file, then rename over the target.
-- **`board-reader.ts`** · 740 lines — Provides filesystem-based reading and writing of Kandown task files for the CLI.
+- **`board-reader.ts`** · 743 lines — Provides filesystem-based reading and writing of Kandown task files for the CLI.
 - **`browser.ts`** · 26 lines — Resolves and spawns the platform default browser for the given URL.
 - **`cascade.ts`** · 465 lines — The synchronous task-cascade engine.
 - **`cli-shared.ts`** · 378 lines — Argument parsing, deterministic nearest-ancestor project resolution, colored console output, and task-file path helpers shared across every `cmdX` command handler and the TUI launcher in src/cli/cli.ts.
@@ -90,7 +90,7 @@ source to edit instead.
 - **`plugin-scaffold.ts`** · 342 lines — Generates a ready-to-run plugin directory for `kandown plugin create`.
 - **`server.ts`** · 1621 lines — Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application.
 - **`skills.ts`** · 152 lines — Discovers immutable built-in, global, and project data-only Markdown skill packages with deterministic override precedence.
-- **`task-move.ts`** · 198 lines — Runs the shared dependency policy and enabled extension gates before persisting a web move.
+- **`task-move.ts`** · 214 lines — Runs the shared dependency policy and enabled extension gates before persisting a web move.
 - **`themes-cli.ts`** · 255 lines — Implements the `kandown theme <subcommand>` verb: list installed themes, install from the registry or a pasted URL, scaffold a starter theme, and emit the prefilled GitHub URL the user clicks to propose their theme via a one-click PR.
 - **`themes-meta.ts`** · 15 lines — Centralizes the GitHub coordinates of the community theme registry so the CLI, daemon and web editor all propose themes into the same place.
 - **`themes-store.ts`** · 211 lines — Fetches the community themes index from its canonical home (a JSON file in the kandown repo, served via `raw.githubusercontent.com`) and installs themes by writing a single JSON file into the project's `.kandown/themes/<id>.json`.
