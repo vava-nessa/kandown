@@ -186,6 +186,9 @@ interface State {
   // UI state
   viewMode: ViewMode;
   density: Density;
+  /** Left navigation rail expanded state. Collapsed by default (vava, UI
+   * redesign t332), remembered in localStorage across sessions. */
+  sidebarExpanded: boolean;
   filters: Filters;
   commandOpen: boolean;
   cheatsheetOpen: boolean;
@@ -311,6 +314,7 @@ interface State {
 
   setViewMode: (mode: ViewMode) => void;
   setDensity: (density: Density) => void;
+  setSidebarExpanded: (expanded: boolean) => void;
   setFilter: <K extends keyof Filters>(key: K, value: Filters[K]) => void;
   clearFilters: () => void;
 
@@ -568,6 +572,7 @@ export const useStore = create<State>((set, get, api) => ({
   // (unit tests, SSR-ish tooling read the store transitively).
   viewMode: ((typeof localStorage !== 'undefined' && localStorage.getItem('kandown:view')) as ViewMode) || 'board',
   density: ((typeof localStorage !== 'undefined' && localStorage.getItem('kandown:density')) as Density) || 'comfortable',
+  sidebarExpanded: typeof localStorage !== 'undefined' && localStorage.getItem('kandown:sidebar') === 'expanded',
   filters: { search: '', priority: null, tag: null, assignee: null, ownerType: null, category: [] },
   commandOpen: false,
   cheatsheetOpen: false,
@@ -1801,6 +1806,10 @@ export const useStore = create<State>((set, get, api) => ({
   setDensity: (density) => {
     localStorage.setItem('kandown:density', density);
     set({ density });
+  },
+  setSidebarExpanded: (expanded) => {
+    localStorage.setItem('kandown:sidebar', expanded ? 'expanded' : 'collapsed');
+    set({ sidebarExpanded: expanded });
   },
   setFilter: (key, value) => {
     set(state => ({ filters: { ...state.filters, [key]: value } }));

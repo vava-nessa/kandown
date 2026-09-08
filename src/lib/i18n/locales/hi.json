@@ -40,7 +40,9 @@
     "tasks": "कार्य",
     "recentProjects": "हाल की परियोजनाएं",
     "openFolder...": "फ़ोल्डर खोलें...",
-    "allCategories": "सभी श्रेणियाँ"
+    "allCategories": "सभी श्रेणियाँ",
+    "more": "अधिक विकल्प",
+    "commandPalette": "कमांड पैलेट"
   },
   "filterBar": {
     "searchPlaceholder": "कार्य खोजें...",
@@ -218,7 +220,7 @@
   "settings": {
     "noProjectOpen": "कोई परियोजना खुली नहीं",
     "appearance": "रूप",
-    "appearanceDesc": "थीम, स्किन, पृष्ठभूमि, फ़ॉन्ट और भाषा।",
+    "appearanceDesc": "भाषा, लाइट या डार्क मोड, और वैकल्पिक कॉलम रंग एक्सेंट।",
     "agent": "एजेंट",
     "agentDesc": "AI-सहायता कार्य कार्य के लिए अनुवर्ती व्यवहार।",
     "board": "बोर्ड",
@@ -311,7 +313,9 @@
     "kickerIdentifiers": "पहचानकर्ता",
     "kickerMetadata": "मेटाडेटा",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "कॉलम रंग एक्सेंट",
+    "columnAccentsDesc": "प्रत्येक कॉलम शीर्षक के बगल में एक छोटा रंगीन बिंदु दिखाता है"
   },
   "sectionLabels": {
     "title": "शीर्षक",
@@ -463,5 +467,14 @@
       "unknown": "अज्ञात",
       "gone": "समाप्त"
     }
+  },
+  "nav": {
+    "expand": "साइडबार विस्तारित करें",
+    "collapse": "साइडबार संकुचित करें",
+    "copyBranch": "शाखा नाम कॉपी करें",
+    "branchCopied": "शाखा नाम कॉपी हो गया",
+    "worktree": "वर्कट्री",
+    "header.more": "अधिक विकल्प",
+    "header.commandPalette": "कमांड पैलेट"
   }
 }

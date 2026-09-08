@@ -40,7 +40,9 @@
     "tasks": "tugas",
     "recentProjects": "Proyek terbaru",
     "openFolder...": "Buka folder...",
-    "allCategories": "Semua kategori"
+    "allCategories": "Semua kategori",
+    "more": "Opsi lainnya",
+    "commandPalette": "Palet perintah"
   },
   "filterBar": {
     "searchPlaceholder": "Mencari tugas...",
@@ -189,7 +191,7 @@
   "settings": {
     "noProjectOpen": "Tidak ada proyek terbuka",
     "appearance": "Tampilan",
-    "appearanceDesc": "Tema, skin, latar belakang, font, dan bahasa.",
+    "appearanceDesc": "Bahasa, mode terang atau gelap, dan aksen warna kolom opsional.",
     "agent": "Agen",
     "agentDesc": "Perilaku tindak lanjut untuk pekerjaan tugas berbantuan AI.",
     "board": "Papan",
@@ -278,7 +280,9 @@
     "matches": "Kecocokan",
     "settingsTitle": "Pengaturan",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Aksen warna kolom",
+    "columnAccentsDesc": "Menampilkan titik warna kecil di sebelah judul setiap kolom"
   },
   "sectionLabels": {
     "title": "Judul",
@@ -430,5 +434,14 @@
       "unknown": "Tidak diketahui",
       "gone": "Hilang"
     }
+  },
+  "nav": {
+    "expand": "Perluas bilah samping",
+    "collapse": "Ciutkan bilah samping",
+    "copyBranch": "Salin nama branch",
+    "branchCopied": "Nama branch disalin",
+    "worktree": "Worktree",
+    "header.more": "Opsi lainnya",
+    "header.commandPalette": "Palet perintah"
   }
 }

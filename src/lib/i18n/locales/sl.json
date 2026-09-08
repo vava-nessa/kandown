@@ -40,7 +40,9 @@
     "tasks": "naloge",
     "recentProjects": "Nedavni projekti",
     "openFolder...": "Odpri mapo...",
-    "allCategories": "Vse kategorije"
+    "allCategories": "Vse kategorije",
+    "more": "Več možnosti",
+    "commandPalette": "Paleta ukazov"
   },
   "filterBar": {
     "searchPlaceholder": "Iskanje nalog...",
@@ -218,7 +220,7 @@
   "settings": {
     "noProjectOpen": "Noben projekt ni odprt",
     "appearance": "Videz",
-    "appearanceDesc": "Tema, videz, ozadje, pisava in jezik.",
+    "appearanceDesc": "Jezik, svetli ali temni način in izbirni barvni poudarki stolpcev.",
     "agent": "Agent",
     "agentDesc": "Nadaljnje obnašanje za AI-podprto delo z nalogami.",
     "board": "Deska",
@@ -311,7 +313,9 @@
     "kickerIdentifiers": "Identifikatorji",
     "kickerMetadata": "Metapodatki",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Barvni poudarki stolpcev",
+    "columnAccentsDesc": "Pokaže majhno barvno piko poleg naslova vsakega stolpca"
   },
   "sectionLabels": {
     "title": "Naslov",
@@ -463,5 +467,14 @@
       "unknown": "Neznano",
       "gone": "Izginil"
     }
+  },
+  "nav": {
+    "expand": "Razpiri stransko vrstico",
+    "collapse": "Zloži stransko vrstico",
+    "copyBranch": "Kopiraj ime veje",
+    "branchCopied": "Ime veje kopirano",
+    "worktree": "Delovno drevo",
+    "header.more": "Več možnosti",
+    "header.commandPalette": "Paleta ukazov"
   }
 }

@@ -40,7 +40,9 @@
     "tasks": "tasks",
     "recentProjects": "Recent projects",
     "openFolder...": "Open folder...",
-    "allCategories": "ทุกหมวดหมู่"
+    "allCategories": "ทุกหมวดหมู่",
+    "more": "ตัวเลือกเพิ่มเติม",
+    "commandPalette": "แป้นคำสั่ง"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -240,7 +242,7 @@
   "settings": {
     "noProjectOpen": "No project open",
     "appearance": "Appearance",
-    "appearanceDesc": "Theme, skin, background, font, and language.",
+    "appearanceDesc": "ภาษา, โหมดสว่างหรือมืด และจุดสีประจำคอลัมน์ตามต้องการ",
     "agent": "Agent",
     "agentDesc": "Follow-up behavior for AI-assisted task work.",
     "board": "Board",
@@ -333,7 +335,9 @@
     "kickerIdentifiers": "Identifiers",
     "kickerMetadata": "Metadata",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "จุดสีประจำคอลัมน์",
+    "columnAccentsDesc": "แสดงจุดสีเล็ก ๆ ถัดจากชื่อคอลัมน์แต่ละคอลัมน์"
   },
   "sectionLabels": {
     "title": "Title",
@@ -485,5 +489,14 @@
       "unknown": "ไม่ทราบ",
       "gone": "หายไป"
     }
+  },
+  "nav": {
+    "expand": "ขยายแถบด้านข้าง",
+    "collapse": "ย่อแถบด้านข้าง",
+    "copyBranch": "คัดลอกชื่อแบรนช์",
+    "branchCopied": "คัดลอกชื่อแบรนช์แล้ว",
+    "worktree": "เวิร์กทรี",
+    "header.more": "ตัวเลือกเพิ่มเติม",
+    "header.commandPalette": "แป้นคำสั่ง"
   }
 }

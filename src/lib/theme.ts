@@ -1,8 +1,10 @@
 /**
  * @file Project theme engine (FABLE_UI)
- * @description Manages customizable JSON themes, appearance tokens (--radius,
- * --shadow-*, --font-display, --motion-scale), four bundled presets (shadcn,
- * vercel, linear, kandown), installed community themes, and dynamic inheritance.
+ * @description Manages appearance tokens (--radius, --shadow-*,
+ * --font-display, --motion-scale), the single bundled `base` preset (t333),
+ * installed community themes, and dynamic inheritance. The engine stays
+ * generic on purpose: future variants inherit from `base` instead of adding
+ * a second system.
  *
  * @functions
  *  → registerCustomThemes — registers user custom themes into runtime
@@ -14,6 +16,8 @@
  * @exports FONT_OPTIONS, BACKGROUND_OPTIONS, THEME_PRESETS, SKIN_OPTIONS,
  *          registerCustomThemes, getAllThemes, resolveTheme, applyProjectTheme,
  *          normalizeThemeMode, normalizeSkinId, normalizeFontId, normalizeBackgroundId
+ *          (the FONT/BACKGROUND/SKIN option tables remain exported for the
+ *          config normalizer and CLI; the in-app pickers were removed in t333)
  * @see src/lib/types.ts
  * @see src/styles/globals.css
  */
@@ -82,8 +86,8 @@ export const BACKGROUND_OPTIONS: BackgroundOption[] = [
   },
 ];
 
-// 📖 Four curated presets ship in the bundle (shadcn, vercel, linear, kandown).
-// Community submissions come from the community registry at
+// 📖 One curated preset ships in the bundle: `base` (t333). Community
+// submissions come from the community registry at
 // `registry/themes.json` and are installed as JSON files under
 // `.kandown/themes/<id>.json`. `registerCustomThemes` folds those in at
 // runtime; `getAllThemes` returns [bundled, ...installed] in that order.
@@ -188,10 +192,13 @@ export function normalizeThemeMode(value: unknown): ThemeMode {
 }
 
 export function normalizeSkinId(value: unknown): SkinId {
-  if (typeof value !== 'string') return 'shadcn';
+  // 📖 Every unknown or legacy id (shadcn, vercel, linear, the pre-redesign
+  // `kandown` preset, ...) collapses to `base`: one theme in the bundle, so
+  // every project lands on the house look without a config migration.
+  if (typeof value !== 'string') return 'base';
   const all = getAllThemes();
   const target = LEGACY_SKIN_MAP[value] ?? value;
-  return all.some(t => t.id === target) ? target : 'shadcn';
+  return all.some(t => t.id === target) ? target : 'base';
 }
 
 export function normalizeFontId(value: unknown): FontId {

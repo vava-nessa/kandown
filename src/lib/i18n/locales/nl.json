@@ -40,7 +40,9 @@
     "tasks": "taken",
     "recentProjects": "Recente projecten",
     "openFolder...": "Map openen...",
-    "allCategories": "Alle categorieën"
+    "allCategories": "Alle categorieën",
+    "more": "Meer opties",
+    "commandPalette": "Opdrachtenpalet"
   },
   "filterBar": {
     "searchPlaceholder": "Taken zoeken...",
@@ -203,7 +205,7 @@
   "settings": {
     "noProjectOpen": "Geen project geopend",
     "appearance": "Uiterlijk",
-    "appearanceDesc": "Thema, skin, achtergrond, lettertype en taal.",
+    "appearanceDesc": "Taal, lichte of donkere modus en optionele kolomkleuraccenten.",
     "agent": "Agent",
     "agentDesc": "Follow-up gedrag voor door AI ondersteunde taakuitvoering.",
     "board": "Board",
@@ -296,7 +298,9 @@
     "kickerIdentifiers": "Identificatoren",
     "kickerMetadata": "Metagegevens",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Kolomkleuraccenten",
+    "columnAccentsDesc": "Toont een klein gekleurd stipje naast elke kolomtitel"
   },
   "sectionLabels": {
     "title": "Titel",
@@ -448,5 +452,14 @@
       "unknown": "Onbekend",
       "gone": "Verdwenen"
     }
+  },
+  "nav": {
+    "expand": "Zijbalk uitklappen",
+    "collapse": "Zijbalk inklappen",
+    "copyBranch": "Branchnaam kopiëren",
+    "branchCopied": "Branchnaam gekopieerd",
+    "worktree": "Worktree",
+    "header.more": "Meer opties",
+    "header.commandPalette": "Opdrachtenpalet"
   }
 }

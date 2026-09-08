@@ -40,7 +40,9 @@
     "tasks": "tasks",
     "recentProjects": "Recent projects",
     "openFolder...": "Open folder...",
-    "allCategories": "සියලු ප්‍රවර්ග"
+    "allCategories": "සියලු ප්‍රවර්ග",
+    "more": "තවත් විකල්ප",
+    "commandPalette": "විධාන පැලට්ටුව"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -240,7 +242,7 @@
   "settings": {
     "noProjectOpen": "No project open",
     "appearance": "Appearance",
-    "appearanceDesc": "Theme, skin, background, font, and language.",
+    "appearanceDesc": "භාෂාව, ලාභ හෝ අඳුරු ප්‍රකාරය, සහ විකල්ප ශ්‍රේණි වර්ණ උච්චාරණ.",
     "agent": "Agent",
     "agentDesc": "Follow-up behavior for AI-assisted task work.",
     "board": "Board",
@@ -333,7 +335,9 @@
     "kickerIdentifiers": "Identifiers",
     "kickerMetadata": "Metadata",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "ශ්‍රේණි වර්ණ උච්චාරණ",
+    "columnAccentsDesc": "සෑම ශ්‍රේණි මාතෘකාවක් අසලම කුඩා වර්ණ ලක්ෂ්‍යයක් පෙන්වයි"
   },
   "sectionLabels": {
     "title": "Title",
@@ -485,5 +489,14 @@
       "unknown": "නොදන්නා",
       "gone": "නැති විය"
     }
+  },
+  "nav": {
+    "expand": "සයිඩ්බාරය පුළුල් කරන්න",
+    "collapse": "සයිඩ්බාරය හකුළන්න",
+    "copyBranch": "ශාඛා නාමය පිටපත් කරන්න",
+    "branchCopied": "ශාඛා නාමය පිටපත් විය",
+    "worktree": "වැඩරුක",
+    "header.more": "තවත් විකල්ප",
+    "header.commandPalette": "විධාන පැලට්ටුව"
   }
 }

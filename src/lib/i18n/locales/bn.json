@@ -40,7 +40,9 @@
     "tasks": "টাস্ক",
     "recentProjects": "সাম্প্রতিক প্রজেক্ট",
     "openFolder...": "ফোল্ডার খুলুন...",
-    "allCategories": "সব বিভাগ"
+    "allCategories": "সব বিভাগ",
+    "more": "আরও বিকল্প",
+    "commandPalette": "কমান্ড প্যালেট"
   },
   "filterBar": {
     "searchPlaceholder": "টাস্ক অনুসন্ধান করুন...",
@@ -189,7 +191,7 @@
   "settings": {
     "noProjectOpen": "কোনো প্রজেক্ট খোলা নেই",
     "appearance": "উপস্থিতি",
-    "appearanceDesc": "থিম, স্কিন, ব্যাকগ্রাউন্ড, ফন্ট এবং ভাষা।",
+    "appearanceDesc": "ভাষা, হালকা বা গাঢ় মোড, এবং ঐচ্ছিক কলাম রঙের অ্যাকসেন্ট।",
     "agent": "এজেন্ট",
     "agentDesc": "AI-সহায়তা টাস্ক কাজের জন্য ফলো-আপ আচরণ।",
     "board": "বোর্ড",
@@ -278,7 +280,9 @@
     "matches": "ম্যাচ",
     "settingsTitle": "সেটিংস",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "কলামের রঙের অ্যাকসেন্ট",
+    "columnAccentsDesc": "প্রতিটি কলামের শিরোনামের পাশে একটি ছোট রঙিন বিন্দু দেখায়"
   },
   "sectionLabels": {
     "title": "শিরোনাম",
@@ -430,5 +434,14 @@
       "unknown": "অজানা",
       "gone": "মুছে গেছে"
     }
+  },
+  "nav": {
+    "expand": "সাইডবার প্রসারিত করুন",
+    "collapse": "সাইডবার সংকুচিত করুন",
+    "copyBranch": "শাখার নাম কপি করুন",
+    "branchCopied": "শাখার নাম কপি হয়েছে",
+    "worktree": "ওয়ার্কট্রি",
+    "header.more": "আরও বিকল্প",
+    "header.commandPalette": "কমান্ড প্যালেট"
   }
 }

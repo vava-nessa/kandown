@@ -40,7 +40,9 @@
     "tasks": "attività",
     "recentProjects": "Progetti recenti",
     "openFolder...": "Apri cartella...",
-    "allCategories": "Tutte le categorie"
+    "allCategories": "Tutte le categorie",
+    "more": "Altre opzioni",
+    "commandPalette": "Palette comandi"
   },
   "filterBar": {
     "searchPlaceholder": "Cerca attività...",
@@ -218,7 +220,7 @@
   "settings": {
     "noProjectOpen": "Nessun progetto aperto",
     "appearance": "Aspetto",
-    "appearanceDesc": "Tema, skin, sfondo, font e lingua.",
+    "appearanceDesc": "Lingua, modalità chiara o scura e accenti colore colonne opzionali.",
     "agent": "Agente",
     "agentDesc": "Comportamento di follow-up per il lavoro di attività assistito dall'IA.",
     "board": "Lavagna",
@@ -311,7 +313,9 @@
     "kickerIdentifiers": "Identificatori",
     "kickerMetadata": "Metadati",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Accenti colore colonne",
+    "columnAccentsDesc": "Mostra un puntino colorato accanto al titolo di ogni colonna"
   },
   "sectionLabels": {
     "title": "Titolo",
@@ -463,5 +467,14 @@
       "unknown": "Sconosciuto",
       "gone": "Sparito"
     }
+  },
+  "nav": {
+    "expand": "Espandi barra laterale",
+    "collapse": "Comprimi barra laterale",
+    "copyBranch": "Copia nome branch",
+    "branchCopied": "Nome branch copiato",
+    "worktree": "Worktree",
+    "header.more": "Altre opzioni",
+    "header.commandPalette": "Palette comandi"
   }
 }

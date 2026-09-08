@@ -40,7 +40,9 @@
     "tasks": "uppgifter",
     "recentProjects": "Senaste projekt",
     "openFolder...": "Öppna mapp...",
-    "allCategories": "Alla kategorier"
+    "allCategories": "Alla kategorier",
+    "more": "Fler alternativ",
+    "commandPalette": "Kommandopalett"
   },
   "filterBar": {
     "searchPlaceholder": "Sök uppgifter...",
@@ -218,7 +220,7 @@
   "settings": {
     "noProjectOpen": "Inget projekt öppet",
     "appearance": "Utseende",
-    "appearanceDesc": "Tema, skinn, bakgrund, typsnitt och språk.",
+    "appearanceDesc": "Språk, ljust eller mörkt läge och valfria kolumnfärgaccenter.",
     "agent": "Agent",
     "agentDesc": "Uppföljningsbeteende för AI-assisterat uppgiftsarbete.",
     "board": "Styrning",
@@ -311,7 +313,9 @@
     "kickerIdentifiers": "Identifierare",
     "kickerMetadata": "Metadata",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Kolumnfärgaccenter",
+    "columnAccentsDesc": "Visar en liten färgprick bredvid varje kolumntitel"
   },
   "sectionLabels": {
     "title": "Titel",
@@ -463,5 +467,14 @@
       "unknown": "Okänd",
       "gone": "Försvunnen"
     }
+  },
+  "nav": {
+    "expand": "Expandera sidpanel",
+    "collapse": "Fäll ihop sidpanel",
+    "copyBranch": "Kopiera grennamn",
+    "branchCopied": "Grennamn kopierat",
+    "worktree": "Worktree",
+    "header.more": "Fler alternativ",
+    "header.commandPalette": "Kommandopalett"
   }
 }

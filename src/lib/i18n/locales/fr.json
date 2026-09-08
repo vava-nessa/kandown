@@ -44,7 +44,9 @@
     "backToBoard": "Retour au board",
     "showMetadata": "Afficher les métadonnées",
     "hideMetadata": "Masquer les métadonnées",
-    "allCategories": "Toutes les catégories"
+    "allCategories": "Toutes les catégories",
+    "more": "Plus d'options",
+    "commandPalette": "Palette de commandes"
   },
   "filterBar": {
     "searchPlaceholder": "Rechercher des tâches...",
@@ -253,7 +255,7 @@
   "settings": {
     "noProjectOpen": "Aucun projet ouvert",
     "appearance": "Apparence",
-    "appearanceDesc": "Thème, skin, arrière-plan, police et langue.",
+    "appearanceDesc": "Langue, mode clair ou sombre, et accents de couleur des colonnes en option.",
     "agent": "Instructions de l'agent",
     "agentDesc": "Règles et instructions générées pour les agents IA lors de l'exécution de kandown work.",
     "board": "Tableau",
@@ -352,7 +354,9 @@
     "kickerIdentifiers": "Identifiants",
     "kickerMetadata": "Métadonnées",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Accents de couleur des colonnes",
+    "columnAccentsDesc": "Affiche un petit point de couleur à côté du titre de chaque colonne"
   },
   "sectionLabels": {
     "title": "Titre",
@@ -514,5 +518,14 @@
       "unknown": "Inconnu",
       "gone": "Disparu"
     }
+  },
+  "nav": {
+    "expand": "Développer la barre latérale",
+    "collapse": "Réduire la barre latérale",
+    "copyBranch": "Copier le nom de branche",
+    "branchCopied": "Nom de branche copié",
+    "worktree": "Arbre de travail",
+    "header.more": "Plus d'options",
+    "header.commandPalette": "Palette de commandes"
   }
 }

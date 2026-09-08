@@ -145,12 +145,12 @@ function TaskSection({
   return (
     <section
       data-category={categoryMode ? dataKey : undefined}
-      className="overflow-hidden rounded-lg border border-border/60 bg-card/40 shadow-none"
+      className="overflow-hidden rounded-lg"
     >
       <button
         type="button"
         onClick={() => onToggle(categoryMode ? (dataKey ?? title) : title)}
-        className="flex w-full items-center justify-between gap-2.5 border-b border-border/40 bg-bg-1/60 px-3 py-2 text-left hover:bg-bg-2 transition-colors"
+        className="flex w-full items-center justify-between gap-2.5 px-1.5 py-2 text-left rounded-md hover:bg-bg-2 transition-colors"
       >
         <span className="flex min-w-0 items-center gap-2">
           <ToggleIcon collapsed={collapsed} />
@@ -160,7 +160,7 @@ function TaskSection({
             <span className="truncate text-[12.5px] font-semibold text-fg">{title}</span>
           )}
         </span>
-        <span className="rounded-full border border-border/60 bg-bg px-2 py-0.5 font-mono text-[10.5px] text-fg-muted">
+        <span className="rounded-full bg-secondary px-2 py-0.5 font-mono text-[10.5px] text-fg-muted tabular-nums">
           {count}
         </span>
       </button>
@@ -172,7 +172,7 @@ function TaskSection({
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.16 }}
-            className="overflow-hidden bg-bg/30"
+            className="overflow-hidden"
           >
             {tasks.length === 0 ? (
               <div className="px-3 py-3 text-[11.5px] text-fg-muted">No tasks in this group.</div>
@@ -576,13 +576,16 @@ export function TaskWorkspace() {
       transition={{ duration: 0.18 }}
       className={`hidden md:flex flex-1 min-h-0 gap-5 p-5 ${config.ui.background === 'solid' ? 'board-bg' : ''}`}
     >
-      <aside className="flex h-full w-1/4 min-w-[260px] max-w-[360px] flex-col overflow-hidden rounded-2xl border border-border bg-card/70 backdrop-blur-xl shadow-xl">
-        <div className="space-y-2 border-b border-border px-4 py-3">
+      {/* 📖 Frameless editor (t335): the task list is a flat index on the page
+       * background, the editing sheet is the only paper surface. No panel
+       * borders, no blur, no shadow: one visible boundary per region. */}
+      <aside className="flex h-full w-1/4 min-w-[260px] max-w-[360px] flex-col overflow-hidden">
+        <div className="space-y-2 px-2 py-3">
           <div className="flex items-center justify-between gap-2">
             <div className="text-[12px] font-semibold uppercase tracking-wider text-fg-muted">
               {t('taskWorkspace.allTasks')}
             </div>
-            <div className="flex items-center gap-0.5 rounded-md border border-border-strong p-0.5">
+            <div className="flex items-center gap-0.5 rounded-md bg-secondary p-0.5">
               {(['status', 'category'] as const).map(mode => (
                 <button
                   key={mode}
@@ -639,12 +642,12 @@ export function TaskWorkspace() {
         </div>
       </aside>
 
-      <main className="flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card/75 backdrop-blur-xl shadow-2xl">
+      <main className="flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl bg-card shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
         {/* 📖 `relative`: the chat presence floating blob (AgentPresenceBadge)
             anchors to this header, hovering over the panel just below it. */}
         <div className="relative flex items-center justify-between gap-3 border-b border-border px-5 py-3 flex-wrap">
           <div className="flex min-w-0 items-center gap-2.5 flex-wrap">
-            <span className="font-mono text-[12.5px] text-fg-muted px-1.5 py-0.5 bg-bg-2 border border-border rounded-[4px]">
+            <span className="font-mono text-[12.5px] text-fg-muted tabular-nums">
               {drawerTaskId?.toUpperCase()}
             </span>
 
@@ -672,7 +675,7 @@ export function TaskWorkspace() {
                   if (e.key === 'Enter') handleCategorySubmit(e.currentTarget.value);
                   if (e.key === 'Escape') setIsEditingCategory(false);
                 }}
-                className="font-mono text-[12px] uppercase px-1.5 py-0.5 bg-accent/15 border border-accent/40 rounded text-accent-foreground font-semibold outline-none w-28"
+                className="font-mono text-[12px] uppercase px-1.5 py-0.5 bg-accent/15 rounded text-accent-foreground font-semibold outline-none w-28"
               />
             ) : displayCategory ? (
               <CategoryChip category={displayCategory} onClick={editLocked ? undefined : () => setIsEditingCategory(true)} />

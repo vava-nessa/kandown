@@ -11,6 +11,7 @@ import { describe, it, expect } from 'vitest';
 import {
   hashString,
   categoryColor,
+  chipHueSat,
   categoryIcon,
   CATEGORY_PALETTE,
   CATEGORY_ICONS,
@@ -33,17 +34,27 @@ describe('categoryColor', () => {
   it('keeps the chip inside the palette', () => {
     for (const name of ['WEB', 'CLI', 'ARCHITECTURE', 'THEMES', 'AGENTIC', 'DESKTOP', 'QUALITY', 'CLEANUP']) {
       const { bg } = categoryColor(name);
-      expect(bg).toMatch(/^hsl\(\d+ \d+% \d+%\)$/);
+      expect(bg).toMatch(/^hsl\(\d+ \d+% 45% \/ 0\.13\)$/);
     }
   });
 
-  it('always uses the pastel background with near-black 90% text', () => {
+  it('always uses the quiet alpha tint with a hue-matched label', () => {
     for (const slot of CATEGORY_PALETTE) {
       const probe = `C${slot.hue}-${slot.sat}`;
       const { bg, fg } = categoryColor(probe);
-      expect(bg).toMatch(/^hsl\(\d+ \d+% 88%\)$/);
-      expect(fg).toBe('rgba(0, 0, 0, 0.9)');
+      // 📖 The probe hashes to an arbitrary slot, so only the fixed shape is
+      // asserted: palette hue/sat, the quiet 45%/0.13 tint, the hue-matched
+      // label at lightness 32 (dark mode overrides via CSS).
+      expect(bg).toMatch(/^hsl\(\d+ \d+% 45% \/ 0\.13\)$/);
+      expect(fg).toMatch(/^hsl\(\d+ 50% 32%\)$/);
     }
+  });
+
+  it('exposes the raw hue/sat for CSS-variable consumers', () => {
+    expect(chipHueSat('WEB')).toEqual(chipHueSat('web'));
+    const { hue, sat } = chipHueSat('WEB');
+    expect(hue).toBeGreaterThan(0);
+    expect(sat).toBeGreaterThan(0);
   });
 
   it('spreads distinct categories across the palette', () => {

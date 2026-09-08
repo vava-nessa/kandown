@@ -40,7 +40,9 @@
     "tasks": "tarefas",
     "recentProjects": "Projetos recentes",
     "openFolder...": "Abrir pasta...",
-    "allCategories": "Todas as categorias"
+    "allCategories": "Todas as categorias",
+    "more": "Mais opções",
+    "commandPalette": "Paleta de comandos"
   },
   "filterBar": {
     "searchPlaceholder": "Buscar tarefas...",
@@ -218,7 +220,7 @@
   "settings": {
     "noProjectOpen": "Nenhum projeto aberto",
     "appearance": "Aparência",
-    "appearanceDesc": "Tema, skin, fundo, fonte e idioma.",
+    "appearanceDesc": "Idioma, modo claro ou escuro e acentos de cor das colunas opcionais.",
     "agent": "Agente",
     "agentDesc": "Comportamento de acompanhamento para trabalho de tarefas assistido por IA.",
     "board": "Quadro",
@@ -311,7 +313,9 @@
     "kickerIdentifiers": "Identificadores",
     "kickerMetadata": "Metadados",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Acentos de cor das colunas",
+    "columnAccentsDesc": "Mostra um ponto colorido ao lado do título de cada coluna"
   },
   "sectionLabels": {
     "title": "Título",
@@ -463,5 +467,14 @@
       "unknown": "Desconhecido",
       "gone": "Desaparecido"
     }
+  },
+  "nav": {
+    "expand": "Expandir barra lateral",
+    "collapse": "Recolher barra lateral",
+    "copyBranch": "Copiar nome da branch",
+    "branchCopied": "Nome da branch copiado",
+    "worktree": "Árvore de trabalho",
+    "header.more": "Mais opções",
+    "header.commandPalette": "Paleta de comandos"
   }
 }

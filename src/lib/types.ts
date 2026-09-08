@@ -452,6 +452,10 @@ export interface KandownConfig {
      * stable hash-derived color and icon (see src/lib/category-color.ts).
      * When false, categories fall back to the monochrome accent text. */
     categoryChips: boolean;
+    /** 📖 Optional color accent next to column titles (t334). Off by
+     * default: columns are neutral containers; users who miss the colored
+     * columns turn the dot on in Settings. */
+    columnAccents?: boolean;
   };
   agent: {
     suggestFollowUp: boolean;
@@ -553,7 +557,7 @@ export const DEFAULT_COLUMN_META: Record<string, ColumnAgentMeta> = {
 };
 
 export const DEFAULT_CONFIG: KandownConfig = {
-  ui: { language: 'en', theme: 'auto', skin: 'shadcn', font: 'inter', background: 'solid', onboardingCompleted: false, categoryChips: true },
+  ui: { language: 'en', theme: 'auto', skin: 'base', font: 'inter', background: 'solid', onboardingCompleted: false, categoryChips: true, columnAccents: false },
   agent: { suggestFollowUp: false, maxSuggestions: 3, permissionMode: 'yolo', workOutput: DEFAULT_WORK_OUTPUT, autopilot: { maxParallel: 2 } },
   workflow: { active: 'kandown-standard', skills: [], trackingCadence: 'balanced' },
   board: {

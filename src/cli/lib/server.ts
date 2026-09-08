@@ -6,7 +6,7 @@
  */
 
 import { createServer, IncomingMessage, ServerResponse } from 'node:http';
-import { existsSync, readFileSync, copyFileSync, unlinkSync, mkdirSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, copyFileSync, unlinkSync, mkdirSync, readdirSync, statSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { homedir } from 'node:os';
 import { execFile, spawn } from 'node:child_process';
@@ -456,6 +456,35 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
     return writeJson(res, 200, {
       version: getCurrentVersion(),
     });
+  }
+
+  // 📖 Read-only git facts for the sidebar footer (t332): the active branch
+  // and whether the served project is a linked git worktree (its `.git` is a
+  // plain file pointing at the main repository's worktree dir). Everything
+  // degrades to null/false: the UI hides the footer when git is absent, so a
+  // non-git project must never surface an error here.
+  if (path === '/api/git' && method === 'GET') {
+    const projectRoot = getProjectRoot(kandownDir);
+    const inside = await isGitWorkTree(projectRoot);
+    if (!inside) return writeJson(res, 200, { branch: null, worktree: false });
+    let branch: string | null = null;
+    let worktree = false;
+    try {
+      const { stdout } = await execFileAsync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
+        cwd: projectRoot,
+        timeout: 2000,
+      });
+      const trimmed = stdout.trim();
+      branch = trimmed.length > 0 ? trimmed : null;
+    } catch {
+      branch = null;
+    }
+    try {
+      worktree = statSync(join(projectRoot, '.git')).isFile();
+    } catch {
+      worktree = false;
+    }
+    return writeJson(res, 200, { branch, worktree });
   }
 
   if (path === '/api/update/check' && method === 'GET') {

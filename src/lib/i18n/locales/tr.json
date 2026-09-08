@@ -40,7 +40,9 @@
     "tasks": "görevler",
     "recentProjects": "Son projeler",
     "openFolder...": "Klasör aç...",
-    "allCategories": "Tüm kategoriler"
+    "allCategories": "Tüm kategoriler",
+    "more": "Diğer seçenekler",
+    "commandPalette": "Komut paleti"
   },
   "filterBar": {
     "searchPlaceholder": "Görevleri ara...",
@@ -189,7 +191,7 @@
   "settings": {
     "noProjectOpen": "Açık proje yok",
     "appearance": "Görünüm",
-    "appearanceDesc": "Tema, cilt, arka plan, yazı tipi ve dil.",
+    "appearanceDesc": "Dil, açık veya koyu mod ve isteğe bağlı sütun renk vurguları.",
     "agent": "Ajan",
     "agentDesc": "AI destekli görev çalışması için takip davranışı.",
     "board": "Pano",
@@ -278,7 +280,9 @@
     "matches": "Eşleşmeler",
     "settingsTitle": "Ayarlar",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Sütun renk vurguları",
+    "columnAccentsDesc": "Her sütun başlığının yanında küçük renkli bir nokta gösterir"
   },
   "sectionLabels": {
     "title": "Başlık",
@@ -430,5 +434,14 @@
       "unknown": "Bilinmiyor",
       "gone": "Kapandı"
     }
+  },
+  "nav": {
+    "expand": "Kenar çubuğunu genişlet",
+    "collapse": "Kenar çubuğunu daralt",
+    "copyBranch": "Dal adını kopyala",
+    "branchCopied": "Dal adı kopyalandı",
+    "worktree": "Çalışma ağacı",
+    "header.more": "Diğer seçenekler",
+    "header.commandPalette": "Komut paleti"
   }
 }

@@ -40,7 +40,9 @@
     "tasks": "zadaci",
     "recentProjects": "Nedavni projekti",
     "openFolder...": "Otvori mapu...",
-    "allCategories": "Sve kategorije"
+    "allCategories": "Sve kategorije",
+    "more": "Više opcija",
+    "commandPalette": "Paleta naredbi"
   },
   "filterBar": {
     "searchPlaceholder": "Pretraži zadatke...",
@@ -218,7 +220,7 @@
   "settings": {
     "noProjectOpen": "Nijedan projekt nije otvoren",
     "appearance": "Izgled",
-    "appearanceDesc": "Tema, presvlaka, pozadina, font i jezik.",
+    "appearanceDesc": "Jezik, svijetli ili tamni način i neobavezni bojni naglasci stupaca.",
     "agent": "Agent",
     "agentDesc": "Ponašanje praćenja za AI potpomognuti rad na zadacima.",
     "board": "Ploča",
@@ -311,7 +313,9 @@
     "kickerIdentifiers": "Identifikatori",
     "kickerMetadata": "Metapodaci",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Bojni naglasci stupaca",
+    "columnAccentsDesc": "Prikazuje malu obojanu točku uz naslov svakog stupca"
   },
   "sectionLabels": {
     "title": "Naslov",
@@ -463,5 +467,14 @@
       "unknown": "Nepoznato",
       "gone": "Nestao"
     }
+  },
+  "nav": {
+    "expand": "Proširi bočnu traku",
+    "collapse": "Sažmi bočnu traku",
+    "copyBranch": "Kopiraj naziv grane",
+    "branchCopied": "Naziv grane kopiran",
+    "worktree": "Radno stablo",
+    "header.more": "Više opcija",
+    "header.commandPalette": "Paleta naredbi"
   }
 }

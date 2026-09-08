@@ -26,12 +26,12 @@ source to edit instead.
 
 ## `bin/` — Published CLI entrypoints — GENERATED, never edit
 
-- **`kandown.js`** · 15528 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
-- **`tui.js`** · 62852 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
+- **`kandown.js`** · 15341 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
+- **`tui.js`** · 62839 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
 
 ## `src/` — Web app root
 
-- **`App.tsx`** · 308 lines — Composes the Kandown web UI, hydrates recent projects from the URL, and owns global keyboard shortcuts for board navigation, creation, reload, search focus, and command palette access.
+- **`App.tsx`** · 295 lines — Composes the Kandown web UI, hydrates recent projects from the URL, and owns global keyboard shortcuts for board navigation, creation, reload, search focus, and command palette access.
 - **`main.tsx`** · 69 lines — Mounts the Kandown React app into the Vite-provided root node, initializes i18n, and imports the global Tailwind/CSS-variable theme layer.
 
 ## `src/cli/` — CLI + terminal UI (source of the bin/ bundles)
@@ -88,7 +88,7 @@ source to edit instead.
 - **`plugin-cli.ts`** · 296 lines — The agent-first façade over the extension system.
 - **`plugin-dev.ts`** · 154 lines — Watches one plugin directory and, on every save, rebuilds the browser bundles, re-runs the validator and asks the running daemon to hot reload the board.
 - **`plugin-scaffold.ts`** · 342 lines — Generates a ready-to-run plugin directory for `kandown plugin create`.
-- **`server.ts`** · 1621 lines — Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application.
+- **`server.ts`** · 1650 lines — Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application.
 - **`skills.ts`** · 152 lines — Discovers immutable built-in, global, and project data-only Markdown skill packages with deterministic override precedence.
 - **`task-move.ts`** · 214 lines — Runs the shared dependency policy and enabled extension gates before persisting a web move.
 - **`themes-cli.ts`** · 255 lines — Implements the `kandown theme <subcommand>` verb: list installed themes, install from the registry or a pasted URL, scaffold a starter theme, and emit the prefilled GitHub URL the user clicks to propose their theme via a one-click PR.
@@ -170,7 +170,7 @@ source to edit instead.
 - **`agent-picker.tsx`** · 150 lines — Modal-style overlay for picking the AI agent a task is assigned to and launched on.
 - **`board.tsx`** · 1710 lines — The Kandown CLI's main screen.
 - **`init-prompt.tsx`** · 54 lines — Shown when `kandown` is launched inside a directory that does not yet have a `.kandown/` config.
-- **`settings.tsx`** · 544 lines — Interactive settings editor for kandown.json.
+- **`settings.tsx`** · 529 lines — Interactive settings editor for kandown.json.
 
 ## `src/cli/screens/board/` — Board view internals
 
@@ -189,11 +189,11 @@ source to edit instead.
 - **`ArchiveView.tsx`** · 89 lines — Lists every archived task (frontmatter `archived: true`, files living under `tasks/archive/` at the project root) as a flat list.
 - **`Board.tsx`** · 404 lines — Renders the horizontal kanban board, filters tasks per column, wires drag-and-drop state, and forwards content-search matches to cards.
 - **`BulkActionBar.tsx`** · 537 lines — Appears when one or more tasks are selected in the web UI and behaves like Linear's selection bar: a floating pill at the bottom of the screen that exposes every action that makes sense for a group of tasks — change priority, assign,…
-- **`Card.tsx`** · 564 lines — Displays one board task as a clean, rounded card inside a column.
-- **`CardStack.tsx`** · 332 lines — Renders a group of 2+ cards that share the same `[bracket]` or `#hashtag` title tag as a visually stacked card.
-- **`CategoryChip.tsx`** · 69 lines — Renders a category name as a chip.
+- **`Card.tsx`** · 552 lines — Displays one board task as a clean, rounded card inside a column.
+- **`CardStack.tsx`** · 326 lines — Renders a group of 2+ cards that share the same `[bracket]` or `#hashtag` title tag as a visually stacked card.
+- **`CategoryChip.tsx`** · 77 lines — Renders a category name as a chip.
 - **`Cheatsheet.tsx`** · 182 lines — Centered modal that lists every keyboard shortcut in Kandown, grouped by context (Global, Board, Drawer, Command Palette).
-- **`Column.tsx`** · 371 lines — Renders a single kanban column, accepts dropped cards, shows the filtered task count, and creates new tasks directly in the column.
+- **`Column.tsx`** · 368 lines — Renders a single kanban column, accepts dropped cards, shows the filtered task count, and creates new tasks directly in the column.
 - **`ColumnColorMenu.tsx`** · 97 lines — 3-dot dropdown menu for selecting column background tint color.
 - **`ColumnHeaderActions.tsx`** · 165 lines — Standardized action buttons (Add Task, Color Picker, Rename, Delete, bulk terminal-task actions, Add to Settings) shared across Board and List view column headers.
 - **`CommandPalette.tsx`** · 363 lines — Provides global quick actions, view switching, task lookup, and content-aware task search with highlighted snippets.
@@ -204,23 +204,20 @@ source to edit instead.
 - **`ErrorBoundary.tsx`** · 164 lines — Catches render-time errors in the child tree and displays a recoverable fallback instead of letting React unmount the whole app to a blank page.
 - **`ExtensionRuntimeProvider.tsx`** · 176 lines — Hydrates one project-wide extension snapshot for fields, panels and card badges.
 - **`FilterBar.tsx`** · 125 lines — Renders global task filters for text search, owner type, and active filter chips that can be cleared individually.
-- **`Header.tsx`** · 645 lines — Top navigation bar for project switching, task search, filters (including the category dropdown next to the task count), view mode, density, settings, command palette, reload, and task creation.
+- **`Header.tsx`** · 515 lines — Top navigation bar for project switching, task search, filters (including the category dropdown next to the task count), view mode, density, settings, command palette, reload, and task creation.
 - **`Icons.tsx`** · 220 lines — Centralizes small stroke icons used by the Kandown web UI.
 - **`KbdButton.tsx`** · 109 lines — A unified button component that handles icons, labels, and keyboard shortcuts with consistent styling and improved visibility.
 - **`ListRow.tsx`** · 580 lines — Renders a single task as a compact, Linear-style list item for the list view, with priority indicators, title, status, metadata badges, inline subtask progress slider, and hover quick actions.
-- **`ListView.tsx`** · 541 lines — Renders board columns as vertically stacked horizontal sections, with dense task rows, filter/search previews, task drops between sections, and vertical section reordering.
+- **`ListView.tsx`** · 539 lines — Renders board columns as vertically stacked horizontal sections, with dense task rows, filter/search previews, task drops between sections, and vertical section reordering.
 - **`LogoSvg.tsx`** · 54 lines — Renders the official Kandown vector logo from logo.svg.
 - **`OnboardingTour.tsx`** · 293 lines — Centered dialog that introduces Kandown the first time a user opens a project, then disappears for good on that project.
-- **`SettingsPage.tsx`** · 386 lines — Dense settings workspace with an iOS-style sidebar, global option search, section navigation, and compact controls for kandown.json.
+- **`SettingsPage.tsx`** · 372 lines — Dense settings workspace with an iOS-style sidebar, global option search, section navigation, and compact controls for kandown.json.
+- **`SideNav.tsx`** · 295 lines — Collapsed-by-default icon rail that expands to a full sidebar on click.
 - **`SubtaskEditor.tsx`** · 164 lines — Reusable checklist editor rendered below a task description in both the mobile drawer and desktop workspace.
 - **`SubtaskItem.tsx`** · 228 lines — Editable row for one markdown checklist item inside the task drawer, with toggle, text edit, enter-to-add, empty-backspace removal, and an expandable panel for per-subtask description and report notes.
 - **`TaskAgentRunControls.tsx`** · 363 lines — Shared launch-and-watch surface for agent runs, mounted by BOTH task editor shells (TaskWorkspace on desktop, Drawer on mobile), the same fan-out rule TaskExtensionSurface follows.
 - **`TaskExtensionSurface.tsx`** · 384 lines — Shared mobile and desktop task-editor section for contributed fields and web panels.
-- **`TaskWorkspace.tsx`** · 863 lines — Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…
-- **`ThemeCustomizerLauncher.tsx`** · 84 lines — Mounts one floating ThemeCustomizerModal at the app shell (App.tsx) so the editor is reachable from anywhere: the skin picker's "Create Custom Theme" and "Edit" actions, the Themes settings panel's "Open editor" button, and any future…
-- **`ThemeCustomizerModal.tsx`** · 722 lines — Draggable, minimizable, compact panel for editing a KandownTheme JSON.
-- **`ThemePreviewCard.tsx`** · 248 lines — Renders a live preview of a KandownTheme with isolated HSL tokens in a mini 3-column kanban board layout.
-- **`ThemeToggle.tsx`** · 83 lines — Light/dark mode switcher for the app header.
+- **`TaskWorkspace.tsx`** · 866 lines — Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…
 - **`Toaster.tsx`** · 47 lines — Renders transient success, info, and error messages emitted by store actions such as saving, creating, deleting, and permission failures.
 - **`UpdateNotificationBanner.tsx`** · 234 lines — Non-intrusive, floating update notification banner and 1-click installer prompt for the Web UI.
 
@@ -299,10 +296,9 @@ source to edit instead.
 - **`ExtensionsPanel.tsx`** · 265 lines — Web UI surface for the extension system: lists installed extensions with their health and contributions, lets the user enable/disable them, and toggles restricted mode (default on).
 - **`GitHubStarsRow.tsx`** · 51 lines — One row in the *About* section: a star + the live GitHub star count, the whole row linking to the repo.
 - **`LanguageDropdown.tsx`** · 141 lines — Searchable flag+name dropdown over ORDERED_LANGUAGES, with arrow-key navigation and Enter-to-select.
-- **`schema.ts`** · 548 lines — Declarative metadata describing every setting (section, type, description, keywords) plus pure functions for reading/writing dotted config paths and building the sidebar search index.
+- **`schema.ts`** · 528 lines — Declarative metadata describing every setting (section, type, description, keywords) plus pure functions for reading/writing dotted config paths and building the sidebar search index.
 - **`SearchResults.tsx`** · 50 lines — Shown in the sidebar below the section nav once the user types a query; lists matching settings across all sections regardless of which section is currently active.
-- **`SettingRow.tsx`** · 269 lines — Renders one SettingDef as either a dense toggle row, a full-width theme gallery (for the 'skin' type), or one of the secondary controls — select dropdown, number stepper, text input, language picker, theme mode switcher, or notification…
-- **`ThemesPanel.tsx`** · 243 lines — Web UI surface for the community theme store: lists installed themes (from `.kandown/themes/<id>.json` via the daemon), lets the user browse and one-click install entries from the curated community registry, and removes installed themes.
+- **`SettingRow.tsx`** · 176 lines — Renders one SettingDef as either a dense toggle row or one of the secondary controls: select dropdown, number stepper, text input, language picker, theme mode switcher, or notification permission button.
 - **`WorkOutputConfigurator.tsx`** · 525 lines — Provides the Workflow, Skills, and Kandown Work tabs backed by the same validated workflow packages and exact compiler output as the CLI.
 
 ## `src/components/ui/` — Primitive UI components
@@ -327,16 +323,16 @@ source to edit instead.
 - **`agent-chat-events.ts`** · 530 lines — Pure, framework-free model of the JSON events the daemon streams on GET /api/agent/sessions/:id/events, plus the reducer that folds them into the chat message list rendered by the agent chat sidebar.
 - **`agent-chat-options.ts`** · 206 lines — Pure, framework-free parsing of the two interactive answer conventions the Kandown agent charter teaches every chat session (see CHAT_AFFORDANCES_PROMPT in the daemon server): → an ```options fenced code block, one choice per line,…
 - **`agent-chat-skills.ts`** · 133 lines — Pure parsing/formatting for the interactive skill flow in the agent chat sidebar: when an interactive skill (grill-me) runs, the daemon's first assistant turn contains numbered questions (optionally each followed by short…
-- **`category-color.ts`** · 168 lines — Maps a category name (WEB, CLI, ARCHITECTURE, THEMES...) to a stable accent color and a stable icon by hashing the name: the same string always yields the same color and icon, nothing is stored, nothing to maintain.
+- **`category-color.ts`** · 187 lines — Maps a category name (WEB, CLI, ARCHITECTURE, THEMES...) to a stable accent color and a stable icon by hashing the name: the same string always yields the same color and icon, nothing is stored, nothing to maintain.
 - **`chat-mentions.ts`** · 88 lines — All the caret-level text surgery the PromptBar needs to detect what the user is typing right before the caret: an unfinished `@task` mention (opens the task picker), an unfinished `/skill` token (opens the skill picker), and the list of…
 - **`columnUtils.ts`** · 223 lines — Provides column color maps, color swatches, and tabler icon resolvers shared across Board and List views.
-- **`config.ts`** · 448 lines — Converts unknown kandown.json input into the canonical config contract used by browser and Node adapters.
+- **`config.ts`** · 449 lines — Converts unknown kandown.json input into the canonical config contract used by browser and Node adapters.
 - **`demoBackend.ts`** · 403 lines — Implements the Kandown REST API against a `Map` instead of a disk, so the whole web UI can run in a browser tab with no CLI, no server and no storage.
 - **`demoSeed.ts`** · 448 lines — The starting contents of the in-memory project served by {@link ./demoBackend.ts} when the app runs in demo mode on the website.
 - **`dependencies.ts`** · 333 lines — Pure module that owns the single rule for moving tasks between board columns: a task may only enter the configured terminal status (and be archived) when every blocking dependency is resolved.
 - **`dependency-chip-format.ts`** · 54 lines — Shared text formatter for the "depends on" chip shown on task cards (web board view) and TUI list rows.
 - **`errors.ts`** · 138 lines — Typed errors used across the web UI to distinguish failure modes (browser support, permissions, disk full, corruption, parse errors) instead of relying on generic `Error` + string matching.
-- **`filesystem.ts`** · 1683 lines — Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.
+- **`filesystem.ts`** · 1700 lines — Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.
 - **`githubStars.ts`** · 122 lines — Client-side GitHub star count for the Kandown web app, with a localStorage cache.
 - **`globalErrors.ts`** · 108 lines — Last-resort safety net that catches uncaught JavaScript errors and unhandled promise rejections, logs them, and shows a throttled toast so the user is informed without being spammed.
 - **`grouping.ts`** · 136 lines — Pure functions that group board tasks by category (frontmatter `category:` field, legacy leading `[bracket]` title tag) or `#hashtag` markers in their titles.
@@ -348,15 +344,15 @@ source to edit instead.
 - **`quick-add-parser.ts`** · 94 lines — Parses inline metadata annotations in task title strings: - `p1` / `p2` / `p3` / `p4` → priority (`P1`, `P2`, `P3`, `P4`) - `#tag` → tags array (`['tag']`) - `@assignee` → assignee string (`'assignee'`) - `due:friday` / `due:today` /…
 - **`retry.ts`** · 65 lines — Small, dependency-free helper that retries a fallible async operation a bounded number of times, only when the error is transient.
 - **`serializer.ts`** · 73 lines — Converts task frontmatter/body data back into Kandown's plain markdown task file format.
-- **`store.ts`** · 2213 lines — Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.
+- **`store.ts`** · 2222 lines — Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.
 - **`task-content-hash.ts`** · 38 lines — One pure `contentHash` used by every writer that guards a task save against stale in-memory content.
 - **`task-filename.ts`** · 491 lines — Owns the whole relationship between a task id and the name of the file that holds it, for every surface (CLI, daemon, TUI, web File System Access, desktop).
 - **`task-links.ts`** · 142 lines — Pure, framework-free parsing of the two task affordances the chat prompt teaches every agent session (see CHAT_AFFORDANCES_PROMPT in the daemon server): inline task references that render as clickable chips, and the `[show: t123]`…
 - **`task-meta.ts`** · 129 lines — Owns the `updated:` frontmatter field — the single source of truth for "when did this task last change" — and the compact relative-age formatting the TUI list view renders in its `Age` column.
 - **`task-title-category.ts`** · 57 lines — Provides the canonical way to read a task's category (frontmatter `category:` field first, legacy leading bracket in the title as fallback) and title parsing utilities.
 - **`task-url.ts`** · 65 lines — Parses and writes deep-link URLs for task drawers.
-- **`theme.ts`** · 331 lines — Manages customizable JSON themes, appearance tokens (--radius, --shadow-*, --font-display, --motion-scale), four bundled presets (shadcn, vercel, linear, kandown), installed community themes, and dynamic inheritance.
-- **`types.ts`** · 609 lines — Defines the board, task, config, filter, search, and appearance contracts shared by the Kandown web UI, CLI, TUI, and persistence adapters.
+- **`theme.ts`** · 338 lines — Manages appearance tokens (--radius, --shadow-*, --font-display, --motion-scale), the single bundled `base` preset (t333), installed community themes, and dynamic inheritance.
+- **`types.ts`** · 613 lines — Defines the board, task, config, filter, search, and appearance contracts shared by the Kandown web UI, CLI, TUI, and persistence adapters.
 - **`utils.ts`** · 24 lines — Provides `cn`, the single utility used across every web component to compose conditional class names.
 - **`version.ts`** · 9 lines · ⚠️ **GENERATED** by scripts/inject-version.js — edit `package.json` instead
 - **`watcher.ts`** · 518 lines — Watches project state through content-hashed File System Access polling or daemon SSE.
@@ -371,7 +367,7 @@ source to edit instead.
 - **`autopilot.spec.ts`** · 246 lines — Covers the snapshot fold (ingestAutopilotSnapshot), the board event fold (applyAutopilotEvent), the failed kill-switch rollback (rollbackAutopilotStop) and the per-task lookups (autopilotTaskStatus, activeSessionForTask) exported by…
 - **`browser-extension-runtime.spec.ts`** · 207 lines — Uses a minimal in-memory File System Access implementation to prove project-local discovery, bundled index.js activation, typed badge rendering, web module loading, failure isolation and persistent quarantine.
 - **`build-columns.spec.ts`** · 106 lines — `buildColumnsFromTasks` is the single function that turns a flat list of parsed task files into the column layout every surface renders (web board, TUI board, demo backend).
-- **`category-color.spec.ts`** · 62 lines — Verifies the deterministic contract of src/lib/category-color.ts: same category string always yields the same color and icon, the foreground is always a legible dark or white on the chosen background, and the palette covers the full…
+- **`category-color.spec.ts`** · 73 lines — Verifies the deterministic contract of src/lib/category-color.ts: same category string always yields the same color and icon, the foreground is always a legible dark or white on the chosen background, and the palette covers the full…
 - **`chat-mentions.spec.ts`** · 102 lines — Locks the pure prompt-token contract the PromptBar codes against: the @task mention scanner (active query at the caret), the /skill scanner, the mentioned-id extraction for the transport, and the explicit identity of stripMentionMarkers…
 - **`code-block-tokens.spec.ts`** · 157 lines — Locks the four invariants that keep markdown code blocks readable on every theme: 1.
 - **`config.spec.ts`** · 153 lines — Locks canonical defaults, legacy instruction density migration, malformed input handling, semantic column lookup, and optional agent config preservation into one suite shared by browser and CLI adapters.
@@ -425,12 +421,9 @@ source to edit instead.
 
 ## `src/lib/themes/` — Theme presets (one module per theme)
 
-- **`index.ts`** · 35 lines — Aggregates every bundled theme preset into the THEME_PRESETS array consumed by the theme engine (src/lib/theme.ts).
-- **`kandown.ts`** · 57 lines — Kandown's own appearance/color-token preset, built from the brand palette published on the website: #88E138 brand lime (logo arrow, primary actions), #7AD12A the contrast-adjusted lime used on light backgrounds, #0CE931 the hero/WebGL…
-- **`linear.ts`** · 48 lines — Linear's dark-first aesthetic ported from the community registry (`registry/themes/linear.json`): near-black blue-tinted surfaces, electric violet primary (#5E6AD2, hsl 235 59% 60%), Plus Jakarta Sans, elevated glass popovers.
-- **`shadcn.ts`** · 53 lines — Ultra-clean neutral palette in the spirit of shadcn/ui and Linear: zinc surfaces, near-black primary, crisp 1px borders, white card on a pure-white background in light mode, zinc-950 surfaces in dark mode.
+- **`base.ts`** · 111 lines — The only bundled theme since the UI redesign.
+- **`index.ts`** · 31 lines — Aggregates the bundled theme presets into the THEME_PRESETS array consumed by the theme engine (src/lib/theme.ts).
 - **`shared.ts`** · 27 lines — Status colors (destructive/success/warning) and grid tokens shared by every theme preset, spread into each preset's light/dark token maps.
-- **`vercel.ts`** · 46 lines — Vercel's black-and-white high-contrast look: pure white on near-black, mono display type, compact density, no colored surfaces.
 
 ## `src/lib/workflows/`
 
@@ -466,6 +459,6 @@ source to edit instead.
 
 ## Coverage
 
-331 of 331 eligible files carry an `@description` header.
+324 of 324 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

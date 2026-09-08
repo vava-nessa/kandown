@@ -40,7 +40,9 @@
     "tasks": "tasks",
     "recentProjects": "Recent projects",
     "openFolder...": "Open folder...",
-    "allCategories": "ប្រភេទទាំងអស់"
+    "allCategories": "ប្រភេទទាំងអស់",
+    "more": "ជម្រើសបន្ថែម",
+    "commandPalette": "ក្ដារពាក្យបញ្ជា"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -240,7 +242,7 @@
   "settings": {
     "noProjectOpen": "No project open",
     "appearance": "Appearance",
-    "appearanceDesc": "Theme, skin, background, font, and language.",
+    "appearanceDesc": "ភាសា របៀបភ្លឺឬងងឹត និងក្បាច់ពណ៌ជួរឈរស្រេចចិត្ត។",
     "agent": "Agent",
     "agentDesc": "Follow-up behavior for AI-assisted task work.",
     "board": "Board",
@@ -333,7 +335,9 @@
     "kickerIdentifiers": "Identifiers",
     "kickerMetadata": "Metadata",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "ក្បាច់ពណ៌នៃជួរឈរ",
+    "columnAccentsDesc": "បង្ហាញចំណុចពណ៌តូចនៅជាប់ចំណងជើងជួរឈរនីមួយៗ"
   },
   "sectionLabels": {
     "title": "Title",
@@ -485,5 +489,14 @@
       "unknown": "មិនស្គាល់",
       "gone": "បានបាត់"
     }
+  },
+  "nav": {
+    "expand": "ពង្រីករបារចំហៀង",
+    "collapse": "បង្រួមរបារចំហៀង",
+    "copyBranch": "ចម្លងឈ្មោះសាខា",
+    "branchCopied": "បានចម្លងឈ្មោះសាខា",
+    "worktree": "ដើមការងារ",
+    "header.more": "ជម្រើសបន្ថែម",
+    "header.commandPalette": "ក្ដារពាក្យបញ្ជា"
   }
 }

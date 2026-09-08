@@ -391,6 +391,23 @@ export async function serverUpdateStoreWorkflow(
  * or Vite dev middleware). Returns `null` when not in server mode or the
  * route is unavailable, so callers can gracefully fall back to a plain
  * free-text assignee field. */
+/**
+ * 📖 Fetches read-only git facts (`/api/git`) for the sidebar footer (t332):
+ * the active branch and whether the served project is a linked git worktree.
+ * Returns `null` when not in server mode or git info is unavailable, so
+ * callers hide the footer instead of rendering an empty state. */
+export async function fetchGitInfo(): Promise<{ branch: string; worktree: boolean } | null> {
+  if (!isServerMode()) return null;
+  try {
+    const res = await apiFetch('/api/git');
+    const data = await res.json() as { branch?: string | null; worktree?: boolean };
+    if (!data.branch) return null;
+    return { branch: data.branch, worktree: !!data.worktree };
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchDetectedAgents(): Promise<DetectedAgent[] | null> {
   if (!isServerMode()) return null;
   try {

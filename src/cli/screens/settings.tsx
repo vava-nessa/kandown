@@ -70,21 +70,6 @@ const SETTINGS: SettingDef[] = [
     type: 'select',
     options: ['auto', 'light', 'dark'],
   },
-  {
-    key: 'ui.skin',
-    label: 'Skin',
-    section: 'Appearance',
-    type: 'select',
-    options: ['kandown', 'graphite', 'sage', 'cobalt', 'rose'],
-  },
-  {
-    key: 'ui.font',
-    label: 'Font',
-    section: 'Appearance',
-    type: 'select',
-    options: ['inter', 'system', 'serif', 'mono', 'rounded'],
-  },
-
   // Agent
   {
     key: 'agent.suggestFollowUp',

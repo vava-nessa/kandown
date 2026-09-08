@@ -66,7 +66,6 @@ import { mostActiveRun } from '../lib/store/agentRunsSlice';
 import type { BoardTask, Density, SearchMatch } from '../lib/types';
 import { useStore } from '../lib/store';
 import { useExtensionRuntime } from './ExtensionRuntimeProvider';
-import { categoryColor } from '../lib/category-color';
 import { formatDependencyChip } from '../lib/dependency-chip-format';
 
 const priorityColors: Record<string, string> = {
@@ -324,21 +323,11 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
     : (isCompact ? 'mb-2.5' : 'mb-3.5');
   const titleSize = isCompact ? 'text-[13.5px]' : 'text-[15px]';
   const metaGap = isCompact ? 'mt-1' : 'mt-1.5';
-  // 📖 Border encodes content shape (vava's hierarchy): a solo card with a
-  // category wears that category's border color, matching its chip; a titled
-  // card without subtasks wears its title color (fg); an untitled card
-  // (renders as its bare id) gets the stronger neutral border-strong; cards
-  // with subtasks keep the quiet hairline.
-  const hasSubtasks = !!task.progress && task.progress.total > 0;
-  const hasTitle = task.title.trim().length > 0;
-  const categoryBorderColor = categoryChips && task.category && !inStack
-    ? categoryColor(task.category).border
-    : null;
-  const borderClass = categoryBorderColor
-    ? 'border'
-    : hasTitle
-      ? (hasSubtasks ? 'border-border/80' : 'border-fg/70')
-      : 'border-border-strong';
+  // 📖 One boundary per card (t334): a single hairline in every state. The
+  // old content-encoded border colors (category tint for solo cards, fg for
+  // titled ones) drew three different card outlines per column and doubled
+  // with the stack envelope; the chip carries the category color now.
+  const borderClass = 'border border-border';
 
   return (
     // 📖 No `motion.div` here: drag uses native HTML5 events, and Tailwind
@@ -365,14 +354,13 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
       }}
       data-task-id={task.id}
       data-col={columnName}
-      className={`group relative cursor-pointer rounded-lg bg-card border-[1.5px] ${borderClass} ${cardMargin}
+      className={`group relative cursor-pointer rounded-lg bg-card ${borderClass} ${cardMargin}
         ${containerPadding}
         ${
         isSelected
-          ? 'border-primary/50 bg-primary/[0.08] shadow-[0_2px_8px_-2px_rgba(0,0,0,0.12)] ring-1 ring-primary/25'
-          : 'shadow-[0_1px_2px_rgba(0,0,0,0.05)] hover:border-border-strong hover:shadow-[0_4px_12px_-3px_rgba(0,0,0,0.14)]'
+          ? 'border-primary/50 bg-primary/[0.08] ring-1 ring-primary/25'
+          : 'hover:border-border-strong hover:shadow-[0_4px_12px_-6px_rgba(0,0,0,0.18)]'
       } ${task.checked ? 'opacity-70' : ''}`}
-      style={categoryBorderColor ? { borderColor: categoryBorderColor } : undefined}
     >
       {/* 📖 Live agent edit (t309): animated border beam while a session edits
           this task (self-hiding), plus the session's deterministic blob as the
@@ -410,7 +398,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
           } ${
             isSelected
               ? 'bg-primary border-primary text-primary-foreground'
-              : `${borderClass} text-transparent hover:border-primary/60 hover:bg-primary/5 ${
+              : `border border-border text-transparent hover:border-primary/60 hover:bg-primary/5 ${
                   (selectedTaskIds?.length ?? 0) > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100'
                 }`
           }`}
@@ -429,7 +417,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
             openSidebar(task.id);
           }}
           onPointerDown={e => e.stopPropagation()}
-          className={`absolute right-[6px] z-20 flex h-[20px] w-[20px] items-center justify-center rounded-[5px] border border-border bg-card text-fg-muted shadow-sm transition-opacity duration-150 hover:border-border-strong hover:text-fg ${
+          className={`absolute right-[34px] z-20 flex h-[20px] w-[20px] items-center justify-center rounded-[5px] border border-border bg-card text-fg-muted shadow-sm transition-opacity duration-150 hover:border-border-strong hover:text-fg ${
             isCompact ? 'top-[4px]' : 'top-[8px]'
           } opacity-0 group-hover:opacity-100 focus-visible:opacity-100`}
         >
@@ -441,7 +429,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
          * null when the task has no active session. */}
         <CardStopButton
           taskId={task.id}
-          className={`absolute right-[30px] z-20 ${isCompact ? 'top-[4px]' : 'top-[8px]'}`}
+          className={`absolute right-[58px] z-20 ${isCompact ? 'top-[4px]' : 'top-[8px]'}`}
         />
         <div className="flex-1 min-w-0">
           <div
@@ -525,7 +513,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
 
       {!isCompact && task.progress && task.progress.total > 0 && (
         <div className={`mt-2.5 flex items-center gap-2`}>
-          <div className="flex-1 h-[3px] bg-black/[0.06] dark:bg-white/[0.1] rounded-full overflow-hidden">
+          <div className="flex-1 h-[6px] bg-black/[0.06] dark:bg-white/[0.1] rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-[width] duration-300 ease-out"
               style={{
@@ -542,11 +530,11 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
 
       <MetadataBlock frontmatter={task.frontmatter} hidden={showMetadata} />
 
-      {/* 📖 Task id badge: absolute bottom-right, glued to the card edge. White
-          box at 50% opacity with black id in light mode, inverted in dark.
-          No `#` prefix, digits only, comfortably readable. */}
+      {/* 📖 Task id badge (vava review): a small dedicated box glued to the
+          card's top-right corner. Digits only, quiet by design so the hover
+          actions (moved left of it) stay the loudest thing in that corner. */}
       <span
-        className="absolute bottom-1 right-1 rounded px-1.5 py-0.5 font-mono text-[12px] font-semibold leading-none bg-white/50 text-black dark:bg-black/50 dark:text-white select-none pointer-events-none"
+        className="absolute top-[6px] right-[6px] rounded bg-secondary/90 px-1.5 py-1 font-mono text-[10px] font-medium leading-none text-fg-muted tabular-nums select-none pointer-events-none"
       >
         {task.id.replace(/^t/i, '')}
       </span>

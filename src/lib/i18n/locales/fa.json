@@ -40,7 +40,9 @@
     "tasks": "کارها",
     "recentProjects": "پروژه‌های اخیر",
     "openFolder...": "باز کردن پوشه...",
-    "allCategories": "همه دسته‌ها"
+    "allCategories": "همه دسته‌ها",
+    "more": "گزینه‌های بیشتر",
+    "commandPalette": "پالت دستورات"
   },
   "filterBar": {
     "searchPlaceholder": "جستجوی کارها...",
@@ -189,7 +191,7 @@
   "settings": {
     "noProjectOpen": "پروژه بازی باز نشده است",
     "appearance": "ظاهر",
-    "appearanceDesc": "تم، پوسته، پس‌زمینه، فونت و زبان.",
+    "appearanceDesc": "زبان، حالت روشن یا تاریک، و تأکیدهای رنگی اختیاری ستون‌ها.",
     "agent": "عامل",
     "agentDesc": "رفتار پیگیری برای کار کمک‌شده توسط AI.",
     "board": "تخته",
@@ -278,7 +280,9 @@
     "matches": "تطابق‌ها",
     "settingsTitle": "تنظیمات",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "تأکیدهای رنگی ستون‌ها",
+    "columnAccentsDesc": "یک نقطه رنگی کوچک کنار عنوان هر ستون نشان می‌دهد"
   },
   "sectionLabels": {
     "title": "عنوان",
@@ -430,5 +434,14 @@
       "unknown": "نامشخص",
       "gone": "بسته شد"
     }
+  },
+  "nav": {
+    "expand": "باز کردن نوار کناری",
+    "collapse": "جمع کردن نوار کناری",
+    "copyBranch": "کپی نام شاخه",
+    "branchCopied": "نام شاخه کپی شد",
+    "worktree": "درخت کاری",
+    "header.more": "گزینه‌های بیشتر",
+    "header.commandPalette": "پالت دستورات"
   }
 }

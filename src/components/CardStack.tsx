@@ -38,10 +38,10 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconChecklist, IconChevronDown, IconChevronUp, IconStack2 } from '@tabler/icons-react';
+import { categoryBarColor } from '../lib/category-color';
 import { Card } from './Card';
 import { ListRow } from './ListRow';
 import { CategoryChip } from './CategoryChip';
-import { categoryColor } from '../lib/category-color';
 import { useStore } from '../lib/store';
 import { Icon } from './Icons';
 import type { TaskGroup } from '../lib/grouping';
@@ -92,15 +92,11 @@ export function CardStack({
   // carry no category and keep the plain text key instead.
   const categoryChips = useStore(s => s.config.ui.categoryChips !== false);
   const stackCategory = categoryChips ? (firstTask?.category ?? null) : null;
+  // 📖 vava review round: the group keeps one 3px category-colored line that
+  // starts at the title (chip) and runs along the children, instead of the
+  // old full tinted envelope. Null keeps legacy #tag stacks neutral.
+  const stackBarColor = stackCategory ? categoryBarColor(stackCategory) : null;
 
-  // 📖 Expanded group block: the tinted envelope around header + children
-  // reuses the exact chip palette (bg + border) so the block reads as the
-  // category's color made spatial. Null style keeps everything neutral for
-  // legacy #tag stacks or when chips are off.
-  const stackColor = stackCategory ? categoryColor(stackCategory) : null;
-  const blockStyle = stackColor
-    ? { backgroundColor: stackColor.bg, borderColor: stackColor.border }
-    : undefined;
 
   // 📖 Per-group selection helpers: a parent checkbox on the collapsed stack
   // lets the user add ALL sibling tasks to the bulk selection at once, which
@@ -134,8 +130,8 @@ export function CardStack({
     const list = viewMode === 'list';
     return (
       <div
-        className={`rounded-xl border-2 border-border ${list ? 'py-1.5' : 'p-1.5'} shadow-[0_1px_3px_rgba(0,0,0,0.06)] ${list ? '' : (density === 'compact' ? 'mb-2.5' : 'mb-3.5')}`}
-        style={list && stackColor ? { borderColor: stackColor.border } : blockStyle}
+        className={`${list ? 'py-1.5' : ''} ${density === 'compact' ? 'mb-2.5' : 'mb-3.5'} border-l-[3px] ${list ? 'pl-2' : 'pl-2.5'}`}
+        style={stackBarColor ? { borderColor: stackBarColor } : undefined}
       >
         {/* Expanded header: minimal. Just the centered category (chip or
          * group key) with a small collapse chevron; the colored block around
@@ -193,8 +189,7 @@ export function CardStack({
     return (
       <div
         onClick={() => setExpanded(true)}
-        className="group/row relative flex items-center gap-2 px-3 py-2 mx-1 my-1 rounded-lg border-2 border-border hover:bg-black/[0.03] dark:hover:bg-white/[0.04] cursor-pointer transition-colors"
-        style={stackColor ? { borderColor: stackColor.border } : undefined}
+        className="group/row relative flex items-center gap-2 px-3 py-2 mx-1 my-1 rounded-lg hover:bg-black/[0.03] dark:hover:bg-white/[0.04] cursor-pointer transition-colors"
       >
         <button
           type="button"
@@ -247,7 +242,7 @@ export function CardStack({
        * card above, which used to hide its top border. */}
       <div
         className="absolute inset-0 rounded-lg border border-border bg-card opacity-60 pointer-events-none"
-        style={{ transform: 'translate(2px, 2px)', zIndex: 0, ...(stackColor ? { borderColor: stackColor.border } : {}) }}
+        style={{ transform: 'translate(2px, 2px)', zIndex: 0 }}
       />
 
       {/* Per-group select-all checkbox (board): hover-revealed, inline in the
@@ -266,9 +261,8 @@ export function CardStack({
             ? 'bg-primary border-primary'
             : stackSomeSelected
               ? 'bg-primary/40 border-primary/60'
-              : 'border-border-strong text-transparent hover:border-primary/60 hover:bg-primary/5 opacity-0 group-hover:opacity-100 focus-visible:opacity-100'
+              : 'border-border text-transparent hover:border-primary/60 hover:bg-primary/5 opacity-0 group-hover:opacity-100 focus-visible:opacity-100'
         }`}
-        style={stackAllSelected || stackSomeSelected ? undefined : stackColor ? { borderColor: stackColor.border } : undefined}
       >
         {stackAllSelected && <Icon.Check size={12} className="text-white" strokeWidth={3} />}
         {!stackAllSelected && stackSomeSelected && <span className="block w-[6px] h-[2px] bg-white rounded-full" />}
@@ -280,14 +274,14 @@ export function CardStack({
        * transitions on the `transform` property only, not `all`. The inner
        * row mirrors a normal card (px-3.5 py-2.5, inline checkbox, then
        * chip + title) so the chip stays aligned with the surrounding cards. */}
-      {/* 📖 Main card surface: 2px border (thicker than single cards) so a
-       * stack reads as a group at a glance; no hover lift (the translate
-       * made the border visually detach), only shadow and border feedback. */}
+      {/* 📖 Main card surface: one hairline, same as every card (t334). The
+       * stack reads as a group through the ghost sheet behind it, not
+       * through a heavier border; no hover lift (the translate made the
+       * border visually detach), only border + shadow feedback. */}
       <div
-        className="relative z-10 rounded-lg border-2 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.05)]
+        className="relative z-10 rounded-lg border border-border bg-card
         transition-[border-color,box-shadow] duration-150 ease-out
-        hover:border-border-strong hover:shadow-[0_4px_12px_-3px_rgba(0,0,0,0.14)]"
-        style={stackColor ? { borderColor: stackColor.border } : undefined}
+        hover:border-border-strong hover:shadow-[0_4px_12px_-6px_rgba(0,0,0,0.18)]"
       >
         <div className={`px-3.5 ${density === 'compact' ? 'py-1.5' : 'py-2.5'}`}>
           <div className="flex items-center gap-2">

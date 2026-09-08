@@ -40,7 +40,9 @@
     "tasks": "tasks",
     "recentProjects": "Recent projects",
     "openFolder...": "Open folder...",
-    "allCategories": "എല്ലാ വിഭാഗങ്ങളും"
+    "allCategories": "എല്ലാ വിഭാഗങ്ങളും",
+    "more": "കൂടുതൽ ഓപ്ഷനുകൾ",
+    "commandPalette": "കമാൻഡ് പാലറ്റ്"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -240,7 +242,7 @@
   "settings": {
     "noProjectOpen": "No project open",
     "appearance": "Appearance",
-    "appearanceDesc": "Theme, skin, background, font, and language.",
+    "appearanceDesc": "ഭാഷ, ലൈറ്റ് അല്ലെങ്കിൽ ഡാർക്ക് മോഡ്, ഒപ്പം ഓപ്ഷനൽ കോളം നിറ അക്സന്റുകൾ.",
     "agent": "Agent",
     "agentDesc": "Follow-up behavior for AI-assisted task work.",
     "board": "Board",
@@ -333,7 +335,9 @@
     "kickerIdentifiers": "Identifiers",
     "kickerMetadata": "Metadata",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "കോളം നിറ അക്സന്റുകൾ",
+    "columnAccentsDesc": "ഓരോ കോളം തലക്കെട്ടിനരികിലും ചെറിയ നിറമുള്ള ഡോട്ട് കാണിക്കുന്നു"
   },
   "sectionLabels": {
     "title": "Title",
@@ -485,5 +489,14 @@
       "unknown": "അജ്ഞാതം",
       "gone": "അപ്രത്യക്ഷമായി"
     }
+  },
+  "nav": {
+    "expand": "സൈഡ്ബാർ വികസിപ്പിക്കുക",
+    "collapse": "സൈഡ്ബാർ ചുരുക്കുക",
+    "copyBranch": "ബ്രാഞ്ച് പേര് പകർത്തുക",
+    "branchCopied": "ബ്രാഞ്ച് പേര് പകർത്തി",
+    "worktree": "വർക്ക്ട്രീ",
+    "header.more": "കൂടുതൽ ഓപ്ഷനുകൾ",
+    "header.commandPalette": "കമാൻഡ് പാലറ്റ്"
   }
 }

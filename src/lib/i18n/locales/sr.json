@@ -40,7 +40,9 @@
     "tasks": "задаци",
     "recentProjects": "Скорашanji пројекти",
     "openFolder...": "Отвори фасциклу...",
-    "allCategories": "Све категорије"
+    "allCategories": "Све категорије",
+    "more": "Више опција",
+    "commandPalette": "Палета команди"
   },
   "filterBar": {
     "searchPlaceholder": "Претрага задатака...",
@@ -218,7 +220,7 @@
   "settings": {
     "noProjectOpen": "Нема отвореног пројекта",
     "appearance": "Изглед",
-    "appearanceDesc": "Тема, маска, позадина, фонт и језик.",
+    "appearanceDesc": "Језик, светли или тамни режим и опционални бојни акценти колона.",
     "agent": "Агент",
     "agentDesc": "Понашање за даље кораке након рада са AI-асистираним задацима.",
     "board": "Табла",
@@ -311,7 +313,9 @@
     "kickerIdentifiers": "Идентификатори",
     "kickerMetadata": "Метаподаци",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Бојни акценти колона",
+    "columnAccentsDesc": "Приказује малу обојену тачку поред наслова сваке колоне"
   },
   "sectionLabels": {
     "title": "Назив",
@@ -463,5 +467,14 @@
       "unknown": "Непознато",
       "gone": "Нестао"
     }
+  },
+  "nav": {
+    "expand": "Прошири бочну траку",
+    "collapse": "Скупчи бочну траку",
+    "copyBranch": "Копирај назив гране",
+    "branchCopied": "Назив гране је копиран",
+    "worktree": "Радно стабло",
+    "header.more": "Више опција",
+    "header.commandPalette": "Палета команди"
   }
 }

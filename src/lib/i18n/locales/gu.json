@@ -40,7 +40,9 @@
     "tasks": "tasks",
     "recentProjects": "Recent projects",
     "openFolder...": "Open folder...",
-    "allCategories": "બધી શ્રેણીઓ"
+    "allCategories": "બધી શ્રેણીઓ",
+    "more": "વધુ વિકલ્પો",
+    "commandPalette": "કમાન્ડ પેલેટ"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -240,7 +242,7 @@
   "settings": {
     "noProjectOpen": "No project open",
     "appearance": "Appearance",
-    "appearanceDesc": "Theme, skin, background, font, and language.",
+    "appearanceDesc": "ભાષા, લાઇટ અથવા ડાર્ક મોડ, અને વૈકલ્પિક કૉલમ કલર એક્સેન્ટ્સ.",
     "agent": "Agent",
     "agentDesc": "Follow-up behavior for AI-assisted task work.",
     "board": "Board",
@@ -333,7 +335,9 @@
     "kickerIdentifiers": "Identifiers",
     "kickerMetadata": "Metadata",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "કૉલમ કલર એક્સેન્ટ્સ",
+    "columnAccentsDesc": "દરેક કૉલમ શીર્ષક પાસે નાનું રંગીન બિંદુ બતાવે છે"
   },
   "sectionLabels": {
     "title": "Title",
@@ -485,5 +489,14 @@
       "unknown": "અજ્ઞાત",
       "gone": "અદૃશ્ય"
     }
+  },
+  "nav": {
+    "expand": "સાઇડબાર વિસ્તૃત કરો",
+    "collapse": "સાઇડબાર સંકુચિત કરો",
+    "copyBranch": "શાખાનું નામ કૉપિ કરો",
+    "branchCopied": "શાખાનું નામ કૉપિ થયું",
+    "worktree": "વર્કટ્રી",
+    "header.more": "વધુ વિકલ્પો",
+    "header.commandPalette": "કમાન્ડ પેલેટ"
   }
 }

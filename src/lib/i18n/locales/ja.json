@@ -40,7 +40,9 @@
     "tasks": "タスク",
     "recentProjects": "最近のプロジェクト",
     "openFolder...": "フォルダを開く...",
-    "allCategories": "すべてのカテゴリ"
+    "allCategories": "すべてのカテゴリ",
+    "more": "その他の操作",
+    "commandPalette": "コマンドパレット"
   },
   "filterBar": {
     "searchPlaceholder": "タスクを検索...",
@@ -189,7 +191,7 @@
   "settings": {
     "noProjectOpen": "プロジェクトが開かれていません",
     "appearance": "外観",
-    "appearanceDesc": "テーマ、スキン、背景、フォント、言語。",
+    "appearanceDesc": "言語、ライト/ダークモード、オプションの列カラーアクセント。",
     "agent": "エージェント",
     "agentDesc": "AI支援タスク作業のフォローアップ動作。",
     "board": "ボード",
@@ -278,7 +280,9 @@
     "matches": "一致",
     "settingsTitle": "設定",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "列のカラーアクセント",
+    "columnAccentsDesc": "各列のタイトルの横に小さな色の点を表示します"
   },
   "sectionLabels": {
     "title": "タイトル",
@@ -430,5 +434,14 @@
       "unknown": "不明",
       "gone": "消滅"
     }
+  },
+  "nav": {
+    "expand": "サイドバーを展開",
+    "collapse": "サイドバーを折りたたむ",
+    "copyBranch": "ブランチ名をコピー",
+    "branchCopied": "ブランチ名をコピーしました",
+    "worktree": "ワークツリー",
+    "header.more": "その他の操作",
+    "header.commandPalette": "コマンドパレット"
   }
 }

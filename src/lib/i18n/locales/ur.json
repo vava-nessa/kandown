@@ -40,7 +40,9 @@
     "tasks": "ٹاسک",
     "recentProjects": "حالیہ پروجیکٹس",
     "openFolder...": "فولڈر کھولیں...",
-    "allCategories": "تمام اقسام"
+    "allCategories": "تمام اقسام",
+    "more": "مزید اختیارات",
+    "commandPalette": "کمانڈ پیلیٹ"
   },
   "filterBar": {
     "searchPlaceholder": "ٹاسک تلاش کریں...",
@@ -189,7 +191,7 @@
   "settings": {
     "noProjectOpen": "کوئی پروجیکٹ کھلا نہیں",
     "appearance": "ظاہری شکل",
-    "appearanceDesc": "تھیم، سکن، بیک گراؤنڈ، فونٹ، اور زبان۔",
+    "appearanceDesc": "زبان، لائٹ یا ڈارک موڈ، اور اختیاری کالم رنگ ایکسنٹس۔",
     "agent": "ایجنٹ",
     "agentDesc": "AI معاون ٹاسک کے کام کے لیے فالو اپ سلوک۔",
     "board": "بورڈ",
@@ -278,7 +280,9 @@
     "matches": "مطابقت",
     "settingsTitle": "ترتیبات",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "کالم رنگ ایکسنٹس",
+    "columnAccentsDesc": "ہر کالم کے عنوان کے پاس ایک چھوٹا رنگین نقطہ دکھاتا ہے"
   },
   "sectionLabels": {
     "title": "عنوان",
@@ -430,5 +434,14 @@
       "unknown": "نامعلوم",
       "gone": "ختم"
     }
+  },
+  "nav": {
+    "expand": "سائیڈ بار پھیلائیں",
+    "collapse": "سائیڈ بار سکیڑیں",
+    "copyBranch": "برانچ کا نام کاپی کریں",
+    "branchCopied": "برانچ کا نام کاپی ہو گیا",
+    "worktree": "ورک ٹری",
+    "header.more": "مزید اختیارات",
+    "header.commandPalette": "کمانڈ پیلیٹ"
   }
 }

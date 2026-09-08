@@ -17,7 +17,8 @@
  * @see src/components/TaskWorkspace.tsx
  */
 
-import { categoryColor, categoryIcon } from '../lib/category-color';
+import { chipHueSat, categoryIcon } from '../lib/category-color';
+import type React from 'react';
 import { useStore } from '../lib/store';
 
 export interface CategoryChipProps {
@@ -31,12 +32,11 @@ export interface CategoryChipProps {
 
 export function CategoryChip({ category, onClick, className = '' }: CategoryChipProps) {
   const chips = useStore(s => s.config.ui.categoryChips !== false);
-  const color = chips ? categoryColor(category) : null;
   const Icon = chips ? categoryIcon(category) : null;
 
   const classes = chips
-    ? `inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${className}`
-    : `font-mono text-[12px] uppercase px-1.5 py-0.5 bg-accent/15 border border-accent/30 rounded text-accent-foreground font-semibold ${className}`;
+    ? `category-chip inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${className}`
+    : `font-mono text-[12px] uppercase px-1.5 py-0.5 bg-accent/15 rounded text-accent-foreground font-semibold ${className}`;
 
   const content = (
     <>
@@ -45,7 +45,15 @@ export function CategoryChip({ category, onClick, className = '' }: CategoryChip
     </>
   );
 
-  const style = color ? { backgroundColor: color.bg, color: color.fg, border: `1px solid ${color.border}` } : undefined;
+  // 📖 The chip ships the hashed hue/sat as CSS variables; the tint fill and
+  // the mode-aware label color live in globals.css (.category-chip), so the
+  // same hash reads correctly in light and dark without a mode prop.
+  const style = chips
+    ? (() => {
+        const { hue, sat } = chipHueSat(category);
+        return { '--chip-hue': hue, '--chip-sat': sat } as React.CSSProperties;
+      })()
+    : undefined;
 
   if (onClick) {
     return (

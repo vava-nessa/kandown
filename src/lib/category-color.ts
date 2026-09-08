@@ -10,18 +10,19 @@
  * whole feature stateless, so renaming a category or opening a repo with new
  * categories never needs a migration or a config entry.
  *
- * 📖 Chip style: pastel. The background is the palette hue at ~88% lightness
- * (a soft tint), the label is near-black at 90% opacity, and a slightly
- * deeper border keeps the chip defined on both the light and the dark page
- * background. Black on pastel clears WCAG AA everywhere, so no luminance
- * gymnastics are needed.
+ * 📖 Chip style: quiet tint. The background is the palette hue at ~13%
+ * alpha, so it reads as a muted wash on both the near-white light card and
+ * the near-black dark card. The chip component (CategoryChip) derives its
+ * label color from the same hue through CSS variables, darkening it in light
+ * mode and lightening it in dark mode; there is no chip border anywhere
+ * (UI redesign t334: one boundary per surface).
  *
  * @functions
  *  → hashString — FNV-1a 32-bit hash of a string
  *  → categoryColor — { bg, fg, border } from a category name
  *  → categoryIcon — a stable tabler icon for a category name
  *
- * @exports hashString, CATEGORY_PALETTE, CATEGORY_ICONS, categoryColor, categoryIcon
+ * @exports hashString, CATEGORY_PALETTE, CATEGORY_ICONS, categoryColor, categoryBarColor, chipHueSat, categoryIcon
  * @see src/components/TaskWorkspace.tsx
  * @see src/components/Drawer.tsx
  */
@@ -67,13 +68,14 @@ export function hashString(input: string): number {
   return hash >>> 0;
 }
 
-/** 📖 Pastel background lightness (0-100). 88% is a soft tint: clearly
- * colored, never neon, and black text stays well above WCAG AA on it. */
-const PASTEL_LIGHTNESS = 88;
-/** 📖 Border lightness, one step deeper so the chip reads as a chip. */
-const PASTEL_BORDER_LIGHTNESS = 80;
-/** 📖 The label: near-black at 90% opacity, per the design brief. */
-const PASTEL_FG = 'rgba(0, 0, 0, 0.9)';
+/** 📖 Tint alpha for the chip background: strong enough to read as color,
+ * quiet enough that forty categories never scream at once. */
+const TINT_ALPHA = 0.13;
+/** 📖 Border alpha for consumers that still need a hairline (dependency
+ * chips, group markers). Same hue, more presence than the fill. */
+const TINT_BORDER_ALPHA = 0.3;
+/** 📖 Label color on light surfaces (dark mode overrides via CSS). */
+const TINT_FG_LIGHTNESS = 32;
 
 /**
  * 📖 40 curated chip hues, spread around the wheel with varied saturation so
@@ -133,10 +135,27 @@ export function categoryColor(category: string): CategoryColor {
   const slot = CATEGORY_PALETTE[hashString(name) % CATEGORY_PALETTE.length] ?? CATEGORY_PALETTE[0];
   const { hue, sat } = slot;
   return {
-    bg: `hsl(${hue} ${sat}% ${PASTEL_LIGHTNESS}%)`,
-    fg: PASTEL_FG,
-    border: `hsl(${hue} ${sat}% ${PASTEL_BORDER_LIGHTNESS}%)`,
+    bg: `hsl(${hue} ${sat}% 45% / ${TINT_ALPHA})`,
+    fg: `hsl(${hue} 50% ${TINT_FG_LIGHTNESS}%)`,
+    border: `hsl(${hue} ${sat}% 45% / ${TINT_BORDER_ALPHA})`,
   };
+}
+
+/** 📖 Solid-enough hue for the 3px group accent bar (vava review): half
+ * alpha keeps it a line, not a wall, while clearly reading as the group's
+ * color on both light and dark cards. */
+export function categoryBarColor(category: string): string {
+  const name = (category || '').trim().toUpperCase();
+  const slot = CATEGORY_PALETTE[hashString(name) % CATEGORY_PALETTE.length] ?? CATEGORY_PALETTE[0];
+  return `hsl(${slot.hue} ${slot.sat}% 45% / 0.55)`;
+}
+
+/** 📖 Raw hashed hue/sat for CSS-variable consumers (CategoryChip). Same
+ * hash as categoryColor, so a category's chip and its tint always agree. */
+export function chipHueSat(category: string): { hue: number; sat: number } {
+  const name = (category || '').trim().toUpperCase();
+  const slot = CATEGORY_PALETTE[hashString(name) % CATEGORY_PALETTE.length] ?? CATEGORY_PALETTE[0];
+  return { hue: slot.hue, sat: slot.sat };
 }
 
 /** 📖 17 generic icons, one picked by hash so a category keeps its icon. */

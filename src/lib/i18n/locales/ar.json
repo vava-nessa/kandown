@@ -40,7 +40,9 @@
     "tasks": "المهام",
     "recentProjects": "المشاريع الأخيرة",
     "openFolder...": "فتح مجلد...",
-    "allCategories": "كل الفئات"
+    "allCategories": "كل الفئات",
+    "more": "خيارات أخرى",
+    "commandPalette": "لوحة الأوامر"
   },
   "filterBar": {
     "searchPlaceholder": "البحث في المهام...",
@@ -189,7 +191,7 @@
   "settings": {
     "noProjectOpen": "لا مشروع مفتوح",
     "appearance": "المظهر",
-    "appearanceDesc": "السمة والجلد والخلفية والخط واللغة.",
+    "appearanceDesc": "اللغة، الوضع الفاتح أو الداكن، ولمسات ألوان الأعمدة الاختيارية.",
     "agent": "الوكيل",
     "agentDesc": "سلوك المتابعة للمهام المساعدة بالذكاء الاصطناعي.",
     "board": "اللوحة",
@@ -278,7 +280,9 @@
     "matches": "التطابقات",
     "settingsTitle": "الإعدادات",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "لمسات ألوان الأعمدة",
+    "columnAccentsDesc": "يعرض نقطة لون صغيرة بجانب عنوان كل عمود"
   },
   "sectionLabels": {
     "title": "العنوان",
@@ -430,5 +434,14 @@
       "unknown": "غير معروف",
       "gone": "مغلق"
     }
+  },
+  "nav": {
+    "expand": "توسيع الشريط الجانبي",
+    "collapse": "تقليص الشريط الجانبي",
+    "copyBranch": "نسخ اسم الفرع",
+    "branchCopied": "تم نسخ اسم الفرع",
+    "worktree": "شجرة العمل",
+    "header.more": "خيارات أخرى",
+    "header.commandPalette": "لوحة الأوامر"
   }
 }

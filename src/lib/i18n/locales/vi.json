@@ -40,7 +40,9 @@
     "tasks": "công việc",
     "recentProjects": "Dự án gần đây",
     "openFolder...": "Mở thư mục...",
-    "allCategories": "Tất cả danh mục"
+    "allCategories": "Tất cả danh mục",
+    "more": "Tùy chọn khác",
+    "commandPalette": "Bảng lệnh"
   },
   "filterBar": {
     "searchPlaceholder": "Tìm kiếm công việc...",
@@ -189,7 +191,7 @@
   "settings": {
     "noProjectOpen": "Không có dự án mở",
     "appearance": "Giao diện",
-    "appearanceDesc": "Chủ đề, giao diện, nền, phông chữ và ngôn ngữ.",
+    "appearanceDesc": "Ngôn ngữ, chế độ sáng hoặc tối và điểm nhấn màu cột tùy chọn.",
     "agent": "Đại lý",
     "agentDesc": "Hành vi theo dõi cho công việc được AI hỗ trợ.",
     "board": "Bảng",
@@ -278,7 +280,9 @@
     "matches": "Kết quả phù hợp",
     "settingsTitle": "Cài đặt",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Điểm nhấn màu cột",
+    "columnAccentsDesc": "Hiển thị một dấu chấm màu nhỏ bên cạnh tiêu đề mỗi cột"
   },
   "sectionLabels": {
     "title": "Tiêu đề",
@@ -430,5 +434,14 @@
       "unknown": "Không rõ",
       "gone": "Đã biến mất"
     }
+  },
+  "nav": {
+    "expand": "Mở rộng thanh bên",
+    "collapse": "Thu gọn thanh bên",
+    "copyBranch": "Sao chép tên nhánh",
+    "branchCopied": "Đã sao chép tên nhánh",
+    "worktree": "Cây làm việc",
+    "header.more": "Tùy chọn khác",
+    "header.commandPalette": "Bảng lệnh"
   }
 }

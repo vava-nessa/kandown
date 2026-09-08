@@ -29,7 +29,7 @@ import { CardStack } from './CardStack';
 import { Icon } from './Icons';
 import { KbdButton } from './KbdButton';
 import { ColumnHeaderActions } from './ColumnHeaderActions';
-import { getColumnIcon, getColumnColorStyles } from '../lib/columnUtils';
+import { getColumnIcon, COLUMN_BAR_MAP } from '../lib/columnUtils';
 import { useStore } from '../lib/store';
 import { groupTasksByTag, extractGroupKey } from '../lib/grouping';
 import { terminalStatus } from '../lib/dependencies';
@@ -104,8 +104,8 @@ export function Column({
   }, []);
 
   const colColorKey = config.board.columnColors?.[column.name.toLowerCase()] ?? 'gray';
+  const columnAccents = config.ui.columnAccents === true;
   // 📖 Column styling: very light pastel in light mode and deep dark in dark mode.
-  const colStyles = getColumnColorStyles(colColorKey);
 
   const handleColorChange = (color: ColumnColor) => {
     updateConfig(c => ({
@@ -167,14 +167,8 @@ export function Column({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           data-column={column.name}
-          className="flex flex-col items-center justify-center w-full h-full min-h-0 px-1 rounded-lg border bg-[var(--col-bg-light)] dark:bg-[var(--col-bg-dark)] border-[var(--col-border-light)] dark:border-[var(--col-border-dark)] transition-[background-color,opacity] duration-200 ease-out"
-          style={{
-            opacity: isOver ? 0.8 : 1,
-            '--col-bg-light': colStyles.lightBg,
-            '--col-bg-dark': colStyles.darkBg,
-            '--col-border-light': colStyles.lightBorder,
-            '--col-border-dark': colStyles.darkBorder,
-          } as React.CSSProperties}
+          className="flex flex-col items-center justify-center w-full h-full min-h-0 px-1 rounded-lg border border-border transition-[background-color,opacity] duration-200 ease-out"
+          style={{ opacity: isOver ? 0.8 : 1 }}
         >
           <ColumnIcon aria-hidden="true" size={16} stroke={1.8} className="text-fg-muted mb-1 shrink-0" />
           <span className="text-[11px] font-medium text-fg-muted text-center leading-tight max-w-full">
@@ -229,18 +223,14 @@ export function Column({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       data-column={column.name}
-      className={`group/column flex flex-col flex-none w-[320px] h-full rounded-xl border
-        bg-[var(--col-bg-light)] dark:bg-[var(--col-bg-dark)]
-        border-[var(--col-border-light)] dark:border-[var(--col-border-dark)]
-        transition-[background-color,opacity,box-shadow,border-color] duration-200 ease-out
-        ${draggedColIndex === columnIndex ? 'opacity-45 shadow-sm' : ''}
-        ${isOver ? 'ring-2 ring-primary/40' : ''}`}
-      style={{
-        '--col-bg-light': colStyles.lightBg,
-        '--col-bg-dark': colStyles.darkBg,
-        '--col-border-light': colStyles.lightBorder,
-        '--col-border-dark': colStyles.darkBorder,
-      } as React.CSSProperties}
+      // 📖 Columns are invisible containers (t334): no fill, no border. The
+      // page background and the cards' own surfaces carry the depth, so two
+      // nested containers never draw two boundaries. The configured column
+      // color survives only as an optional accent dot next to the title.
+      className={`group/column flex flex-col flex-none w-[320px] h-full rounded-xl
+        transition-[background-color,opacity,box-shadow] duration-200 ease-out
+        ${draggedColIndex === columnIndex ? 'opacity-45' : ''}
+        ${isOver ? 'ring-2 ring-primary/40 rounded-xl' : ''}`}
     >
       <div className="flex items-center justify-between px-3.5 pt-3 pb-2">
         <div className="flex items-center gap-2">
@@ -278,6 +268,13 @@ export function Column({
             stroke={1.8}
             className="flex-none text-fg-muted"
           />
+          {columnAccents && (
+            <span
+              aria-hidden="true"
+              className="w-2 h-2 rounded-full flex-none"
+              style={{ backgroundColor: COLUMN_BAR_MAP[colColorKey] ?? COLUMN_BAR_MAP.gray }}
+            />
+          )}
           <span className="text-[12.5px] font-semibold tracking-tight text-fg">{column.name}</span>
           <span className="inline-flex items-center justify-center min-w-[20px] h-[18px] px-1.5 text-[10.5px] font-medium text-fg-muted rounded-md tabular-nums">
             {filteredTasks.length}

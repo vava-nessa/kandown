@@ -297,7 +297,7 @@ export function AssigneeAvatar({
         <HumanAvatar name={assignee} size={size} />
       )}
       {withLabel && (
-        <span className="truncate text-fg-muted">{match ? displayNameFor(match.id, match.kind === 'desktop') : assignee}</span>
+        <span className="truncate text-[10.5px] font-semibold text-fg-muted">{match ? displayNameFor(match.id, match.kind === 'desktop') : assignee}</span>
       )}
     </span>
   );

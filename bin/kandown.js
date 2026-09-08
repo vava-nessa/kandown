@@ -24,7 +24,7 @@ var KANDOWN_VERSION;
 var init_version = __esm({
   "src/lib/version.ts"() {
     "use strict";
-    KANDOWN_VERSION = "0.57.0";
+    KANDOWN_VERSION = "0.58.0";
   }
 });
 
@@ -336,7 +336,7 @@ var init_types = __esm({
       }
     };
     DEFAULT_CONFIG = {
-      ui: { language: "en", theme: "auto", skin: "shadcn", font: "inter", background: "solid", onboardingCompleted: false, categoryChips: true },
+      ui: { language: "en", theme: "auto", skin: "base", font: "inter", background: "solid", onboardingCompleted: false, categoryChips: true, columnAccents: false },
       agent: { suggestFollowUp: false, maxSuggestions: 3, permissionMode: "yolo", workOutput: DEFAULT_WORK_OUTPUT, autopilot: { maxParallel: 2 } },
       workflow: { active: "kandown-standard", skills: [], trackingCadence: "balanced" },
       board: {
@@ -541,6 +541,7 @@ function normalizeKandownConfig(raw) {
         DEFAULT_CONFIG.ui.onboardingCompleted
       ),
       categoryChips: booleanOr(ui.categoryChips, DEFAULT_CONFIG.ui.categoryChips),
+      columnAccents: booleanOr(ui.columnAccents, false),
       ...customThemes ? { customThemes } : {}
     },
     agent: {
@@ -7042,7 +7043,7 @@ init_task_filename();
 init_parser();
 init_config2();
 import { createServer } from "http";
-import { existsSync as existsSync25, readFileSync as readFileSync24, copyFileSync as copyFileSync3, unlinkSync as unlinkSync8, mkdirSync as mkdirSync13 } from "fs";
+import { existsSync as existsSync25, readFileSync as readFileSync24, copyFileSync as copyFileSync3, unlinkSync as unlinkSync8, mkdirSync as mkdirSync13, statSync as statSync8 } from "fs";
 import { basename as basename11, join as join33 } from "path";
 import { execFile as execFile2, spawn as spawn9 } from "child_process";
 import { promisify as promisify2 } from "util";
@@ -11147,264 +11148,54 @@ var sharedDark = {
   "grid-strong": "0 0% 100% / 0.04"
 };
 
-// src/lib/themes/shadcn.ts
-var shadcnTheme = {
-  id: "shadcn",
-  name: "Shadcn",
+// src/lib/themes/base.ts
+var baseTheme = {
+  id: "base",
+  name: "Base",
   author: "Kandown",
-  description: "Ultra-clean zinc palette, near-black primary, crisp borders. The shadcn/ui look as a default.",
-  appearance: { radius: "8px", borderWidth: "1px", shadows: "soft", density: "comfortable", glass: true, motion: "subtle" },
-  fonts: { sans: "'Inter var', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", display: "'Inter Tight', 'Inter var', Inter, sans-serif", mono: "'SF Mono', Menlo, Monaco, Consolas, monospace" },
-  light: {
-    ...sharedLight,
-    "background": "0 0% 100%",
-    "foreground": "240 10% 3.9%",
-    "card": "0 0% 100%",
-    "card-foreground": "240 10% 3.9%",
-    "popover": "0 0% 100%",
-    "popover-foreground": "240 10% 3.9%",
-    "primary": "240 5.9% 10%",
-    "primary-foreground": "0 0% 98%",
-    "secondary": "240 4.8% 95.9%",
-    "secondary-foreground": "240 5.9% 10%",
-    "muted": "240 4.8% 95.9%",
-    "muted-foreground": "240 3.8% 46.1%",
-    "accent": "240 4.8% 95.9%",
-    "accent-foreground": "240 5.9% 10%",
-    "border": "240 5.9% 90%",
-    "border-strong": "240 5.9% 80%",
-    "border-focus": "240 5.9% 10%",
-    "input": "240 5.9% 90%",
-    "ring": "240 5.9% 10%",
-    "grid": "240 10% 3.9% / 0.04",
-    "grid-strong": "240 10% 3.9% / 0.07",
-    "glass": "0 0% 100% / 0.8",
-    "glass-border": "240 5.9% 90% / 0.8",
-    // 📖 Code blocks: very light gray (github-light-ish) so the bundled
-    // Shiki palette keeps WCAG-AA contrast. Inline code is a zinc pill.
-    "code-bg": "240 6% 96%",
-    "code-fg": "240 10% 12%",
-    "code-inline-bg": "240 5% 94%",
-    "code-inline-fg": "240 8% 18%",
-    "code-block-border": "240 6% 88%"
+  description: "The single house theme: neutral paper surfaces, brand lime accents, quiet 6px radius.",
+  appearance: {
+    radius: "6px",
+    borderWidth: "1px",
+    shadows: "soft",
+    density: "comfortable",
+    glass: false,
+    motion: "subtle"
   },
-  dark: {
-    ...sharedDark,
-    "background": "240 10% 3.9%",
-    "foreground": "0 0% 98%",
-    "card": "240 7% 6%",
-    "card-foreground": "0 0% 98%",
-    "popover": "240 8% 7%",
-    "popover-foreground": "0 0% 98%",
-    "primary": "0 0% 98%",
-    "primary-foreground": "240 5.9% 10%",
-    "secondary": "240 3.7% 15.9%",
-    "secondary-foreground": "0 0% 98%",
-    "muted": "240 3.7% 15.9%",
-    "muted-foreground": "240 5% 64.9%",
-    "accent": "240 3.7% 15.9%",
-    "accent-foreground": "0 0% 98%",
-    "border": "240 3.7% 15.9%",
-    "border-strong": "240 5% 26%",
-    "border-focus": "240 4.9% 83.9%",
-    "input": "240 3.7% 15.9%",
-    "ring": "240 4.9% 83.9%",
-    "grid": "0 0% 98% / 0.03",
-    "grid-strong": "0 0% 98% / 0.06",
-    "glass": "240 7% 6% / 0.8",
-    "glass-border": "240 5% 16% / 0.8",
-    // 📖 Code blocks: zinc-950 close to github-dark's #0d1117 so the dark
-    // Shiki palette stays readable; inline code is a slightly lighter pill.
-    "code-bg": "240 5% 8%",
-    "code-fg": "0 0% 93%",
-    "code-inline-bg": "240 4% 13%",
-    "code-inline-fg": "240 8% 75%",
-    "code-block-border": "240 4% 18%"
-  }
-};
-
-// src/lib/themes/vercel.ts
-var vercelTheme = {
-  id: "vercel",
-  name: "Vercel",
-  author: "Kandown",
-  description: "Black and white, mono display type, compact density. The Vercel high-contrast look.",
-  appearance: { radius: "6px", borderWidth: "1px", shadows: "soft", density: "compact", glass: true, motion: "subtle" },
-  fonts: { sans: "'Inter var', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", display: "ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, 'Liberation Mono', monospace", mono: "'SF Mono', Menlo, Monaco, Consolas, 'Liberation Mono', monospace" },
-  light: {
-    ...sharedLight,
-    "background": "0 0% 98%",
-    "foreground": "0 0% 4%",
-    "card": "0 0% 100%",
-    "card-foreground": "0 0% 4%",
-    "popover": "0 0% 100%",
-    "popover-foreground": "0 0% 4%",
-    "primary": "0 0% 4%",
-    "primary-foreground": "0 0% 100%",
-    "secondary": "0 0% 96%",
-    "secondary-foreground": "0 0% 10%",
-    "muted": "0 0% 96%",
-    "muted-foreground": "0 0% 44%",
-    "accent": "0 0% 93%",
-    "accent-foreground": "0 0% 8%",
-    "border": "0 0% 90%",
-    "border-strong": "0 0% 78%",
-    "border-focus": "0 0% 4%",
-    "input": "0 0% 90%",
-    "ring": "0 0% 4%",
-    "grid": "0 0% 4% / 0.05",
-    "grid-strong": "0 0% 4% / 0.09",
-    "glass": "0 0% 100% / 0.8",
-    "glass-border": "0 0% 90% / 0.8",
-    "code-bg": "0 0% 95%",
-    "code-fg": "0 0% 12%",
-    "code-inline-bg": "0 0% 92%",
-    "code-inline-fg": "0 0% 15%",
-    "code-block-border": "0 0% 86%"
+  fonts: {
+    sans: "'Inter var', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    display: "'Inter Tight', 'Inter var', Inter, sans-serif",
+    mono: "'SF Mono', Menlo, Monaco, Consolas, monospace"
   },
-  dark: {
-    ...sharedDark,
-    "background": "0 0% 4%",
-    "foreground": "0 0% 98%",
-    "card": "0 0% 6%",
-    "card-foreground": "0 0% 98%",
-    "popover": "0 0% 7%",
-    "popover-foreground": "0 0% 98%",
-    "primary": "0 0% 98%",
-    "primary-foreground": "0 0% 4%",
-    "secondary": "0 0% 13%",
-    "secondary-foreground": "0 0% 96%",
-    "muted": "0 0% 12%",
-    "muted-foreground": "0 0% 58%",
-    "accent": "0 0% 15%",
-    "accent-foreground": "0 0% 96%",
-    "border": "0 0% 14%",
-    "border-strong": "0 0% 24%",
-    "border-focus": "0 0% 90%",
-    "input": "0 0% 14%",
-    "ring": "0 0% 90%",
-    "grid": "0 0% 100% / 0.03",
-    "grid-strong": "0 0% 100% / 0.06",
-    "glass": "0 0% 6% / 0.8",
-    "glass-border": "0 0% 16% / 0.8",
-    "code-bg": "0 0% 8%",
-    "code-fg": "0 0% 92%",
-    "code-inline-bg": "0 0% 14%",
-    "code-inline-fg": "0 0% 80%",
-    "code-block-border": "0 0% 18%"
-  }
-};
-
-// src/lib/themes/linear.ts
-var linearTheme = {
-  id: "linear",
-  name: "Linear",
-  author: "Kandown",
-  description: "Dark-first aesthetic, Plus Jakarta Sans, electric violet accent, sleek elevated popovers.",
-  appearance: { radius: "8px", borderWidth: "1px", shadows: "elevated", density: "comfortable", glass: true, motion: "subtle", glassIntensity: 24, shadowCard: "0 1px 2px rgb(8 8 16 / 0.06), 0 4px 12px rgb(8 8 16 / 0.10)", shadowPopover: "0 12px 32px rgb(8 8 16 / 0.22)" },
-  fonts: { sans: "'Plus Jakarta Sans', Outfit, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", display: "'Plus Jakarta Sans', Outfit, -apple-system, BlinkMacSystemFont, sans-serif", mono: "'SF Mono', Menlo, Consolas, monospace" },
   light: {
     ...sharedLight,
-    "background": "220 20% 98%",
-    "foreground": "224 24% 12%",
+    "background": "0 0% 99%",
+    "foreground": "0 0% 10%",
     "card": "0 0% 100%",
-    "card-foreground": "224 24% 12%",
+    "card-foreground": "0 0% 10%",
     "popover": "0 0% 100%",
-    "popover-foreground": "224 24% 12%",
-    "primary": "235 59% 60%",
-    "primary-foreground": "0 0% 100%",
-    "secondary": "235 25% 95%",
-    "secondary-foreground": "235 59% 30%",
-    "muted": "220 16% 94%",
-    "muted-foreground": "220 12% 42%",
-    "accent": "235 45% 92%",
-    "accent-foreground": "235 59% 35%",
-    "border": "220 15% 88%",
-    "border-strong": "220 15% 80%",
-    "border-focus": "235 59% 60%",
-    "input": "220 15% 90%",
-    "ring": "235 59% 60%",
-    "grid": "235 30% 12% / 0.04",
-    "grid-strong": "235 30% 12% / 0.08",
-    "glass": "0 0% 100% / 0.8",
-    "glass-border": "220 15% 86% / 0.85",
-    "code-bg": "220 14% 96%",
-    "code-fg": "224 24% 12%",
-    "code-inline-bg": "235 30% 92%",
-    "code-inline-fg": "235 40% 30%",
-    "code-block-border": "220 14% 88%"
-  },
-  dark: {
-    ...sharedDark,
-    "background": "210 11% 4%",
-    "foreground": "210 14% 94%",
-    "card": "216 7% 8%",
-    "card-foreground": "210 14% 94%",
-    "popover": "216 7% 8%",
-    "popover-foreground": "210 14% 94%",
-    "primary": "235 59% 60%",
-    "primary-foreground": "0 0% 100%",
-    "secondary": "218 9% 13%",
-    "secondary-foreground": "210 14% 94%",
-    "muted": "218 9% 11%",
-    "muted-foreground": "215 8% 58%",
-    "accent": "235 30% 15%",
-    "accent-foreground": "210 14% 94%",
-    "border": "225 9% 14%",
-    "border-strong": "225 9% 20%",
-    "border-focus": "235 59% 60%",
-    "input": "225 9% 14%",
-    "ring": "235 59% 60%",
-    "grid": "0 0% 100% / 0.018",
-    "grid-strong": "0 0% 100% / 0.04",
-    "glass": "216 7% 8% / 0.78",
-    "glass-border": "225 9% 18% / 0.85",
-    "code-bg": "216 9% 10%",
-    "code-fg": "210 14% 90%",
-    "code-inline-bg": "235 25% 18%",
-    "code-inline-fg": "235 60% 78%",
-    "code-block-border": "225 9% 20%"
-  }
-};
-
-// src/lib/themes/kandown.ts
-var kandownTheme = {
-  id: "kandown",
-  name: "Kandown",
-  author: "Kandown",
-  description: "The house theme: brand lime (#88E138) on near-neutral surfaces, pale lime accents, 4px radius.",
-  appearance: { radius: "4px", borderWidth: "1px", shadows: "soft", density: "comfortable", glass: true, motion: "subtle" },
-  fonts: { sans: "'Inter var', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", display: "'Inter Tight', 'Inter var', Inter, sans-serif", mono: "'SF Mono', Menlo, Monaco, Consolas, monospace" },
-  light: {
-    ...sharedLight,
-    "background": "80 40% 99%",
-    "foreground": "120 10% 10%",
-    "card": "0 0% 100%",
-    "card-foreground": "120 10% 10%",
-    "popover": "0 0% 100%",
-    "popover-foreground": "120 10% 10%",
-    "primary": "91 67% 47%",
+    "popover-foreground": "0 0% 10%",
+    "primary": "91 67% 40%",
     "primary-foreground": "96 55% 9%",
-    "secondary": "75 45% 94%",
-    "secondary-foreground": "96 40% 18%",
-    "muted": "75 12% 95%",
-    "muted-foreground": "120 5% 40%",
-    "accent": "72 100% 90%",
-    "accent-foreground": "96 50% 18%",
-    "border": "0 0% 92%",
-    "border-strong": "0 0% 85%",
-    "border-focus": "91 67% 47%",
+    "secondary": "0 0% 95%",
+    "secondary-foreground": "0 0% 18%",
+    "muted": "0 0% 95%",
+    "muted-foreground": "0 0% 42%",
+    "accent": "0 0% 93%",
+    "accent-foreground": "0 0% 12%",
+    "border": "0 0% 91%",
+    "border-strong": "0 0% 84%",
+    "border-focus": "91 67% 40%",
     "input": "0 0% 90%",
-    "ring": "91 67% 47%",
+    "ring": "91 67% 40%",
     "success": "130 90% 28%",
-    "grid": "92 40% 20% / 0.05",
-    "grid-strong": "92 40% 20% / 0.09",
-    "glass": "0 0% 100% / 0.78",
-    "glass-border": "75 30% 88% / 0.85",
-    // 📖 Code blocks: very light gray background so github-light's dark
-    // token colors (blues / reds / greens) keep a WCAG-AA contrast.
-    // Inline code is slightly tinted with the page accent so single
-    // backticks in body prose still pop without competing with the block.
+    "grid": "0 0% 20% / 0.05",
+    "grid-strong": "0 0% 20% / 0.09",
+    "glass": "0 0% 100% / 0.8",
+    "glass-border": "0 0% 88% / 0.85",
+    // 📖 Code blocks mirror the BASE_CODE_TOKENS_LIGHT safety net in
+    // src/lib/theme.ts exactly: one source of truth for these values, so a
+    // stripped community theme backfills to the same look as the bundle.
     "code-bg": "220 14% 96%",
     "code-fg": "220 30% 12%",
     "code-inline-bg": "75 35% 90%",
@@ -11413,34 +11204,33 @@ var kandownTheme = {
   },
   dark: {
     ...sharedDark,
-    "background": "120 8% 7%",
-    "foreground": "80 15% 93%",
-    "card": "120 7% 10%",
-    "card-foreground": "80 15% 93%",
-    "popover": "120 7% 11%",
-    "popover-foreground": "80 15% 93%",
+    "background": "0 0% 7%",
+    "foreground": "0 0% 93%",
+    "card": "0 0% 10%",
+    "card-foreground": "0 0% 93%",
+    "popover": "0 0% 11%",
+    "popover-foreground": "0 0% 93%",
     "primary": "92 74% 55%",
-    "primary-foreground": "120 30% 7%",
-    "secondary": "120 6% 16%",
-    "secondary-foreground": "80 15% 93%",
-    "muted": "120 6% 14%",
-    "muted-foreground": "90 6% 60%",
-    "accent": "92 30% 18%",
-    "accent-foreground": "92 74% 70%",
-    "border": "120 6% 18%",
-    "border-strong": "120 6% 26%",
+    "primary-foreground": "0 0% 7%",
+    "secondary": "0 0% 15%",
+    "secondary-foreground": "0 0% 93%",
+    "muted": "0 0% 13%",
+    "muted-foreground": "0 0% 60%",
+    "accent": "0 0% 17%",
+    "accent-foreground": "0 0% 93%",
+    "border": "0 0% 18%",
+    "border-strong": "0 0% 26%",
     "border-focus": "92 74% 55%",
-    "input": "120 6% 18%",
+    "input": "0 0% 18%",
     "ring": "92 74% 55%",
     "success": "130 90% 48%",
-    "grid": "92 60% 60% / 0.03",
-    "grid-strong": "92 60% 60% / 0.06",
-    "glass": "120 7% 10% / 0.78",
-    "glass-border": "92 20% 24% / 0.8",
-    // 📖 Code blocks: a deeper neutral background, close to github-dark's
-    // own `#0d1117` (≈ 220 15% 9%) so the bundled Shiki palette's light
-    // token colors stay readable. Inline code is warmer so it reads as a
-    // deliberate pill, not a missed selection.
+    "grid": "0 0% 60% / 0.03",
+    "grid-strong": "0 0% 60% / 0.06",
+    "glass": "0 0% 10% / 0.8",
+    "glass-border": "0 0% 24% / 0.8",
+    // 📖 Code blocks mirror the BASE_CODE_TOKENS_DARK safety net in
+    // src/lib/theme.ts exactly (deep neutral close to github-dark's own
+    // #0d1117, so the bundled Shiki light tokens stay readable).
     "code-bg": "220 15% 11%",
     "code-fg": "80 20% 92%",
     "code-inline-bg": "92 20% 22%",
@@ -11450,7 +11240,7 @@ var kandownTheme = {
 };
 
 // src/lib/themes/index.ts
-var THEME_PRESETS = [shadcnTheme, vercelTheme, linearTheme, kandownTheme];
+var THEME_PRESETS = [baseTheme];
 
 // src/lib/theme.ts
 var LEGACY_SKIN_MAP = {};
@@ -11466,10 +11256,10 @@ function getAllThemes() {
   return [...THEME_PRESETS, ...customThemesRegistry];
 }
 function normalizeSkinId(value) {
-  if (typeof value !== "string") return "shadcn";
+  if (typeof value !== "string") return "base";
   const all = getAllThemes();
   const target = LEGACY_SKIN_MAP[value] ?? value;
-  return all.some((t) => t.id === target) ? target : "shadcn";
+  return all.some((t) => t.id === target) ? target : "base";
 }
 
 // src/cli/lib/themes-store.ts
@@ -12621,6 +12411,29 @@ async function handleApi(req, res, url, kandownDir) {
     return writeJson(res, 200, {
       version: getCurrentVersion()
     });
+  }
+  if (path === "/api/git" && method === "GET") {
+    const projectRoot = getProjectRoot(kandownDir);
+    const inside = await isGitWorkTree(projectRoot);
+    if (!inside) return writeJson(res, 200, { branch: null, worktree: false });
+    let branch = null;
+    let worktree = false;
+    try {
+      const { stdout } = await execFileAsync2("git", ["rev-parse", "--abbrev-ref", "HEAD"], {
+        cwd: projectRoot,
+        timeout: 2e3
+      });
+      const trimmed = stdout.trim();
+      branch = trimmed.length > 0 ? trimmed : null;
+    } catch {
+      branch = null;
+    }
+    try {
+      worktree = statSync8(join33(projectRoot, ".git")).isFile();
+    } catch {
+      worktree = false;
+    }
+    return writeJson(res, 200, { branch, worktree });
   }
   if (path === "/api/update/check" && method === "GET") {
     const current = getCurrentVersion();
@@ -14105,7 +13918,7 @@ async function buildPlugin(dir) {
 }
 
 // src/cli/lib/plugin-check.ts
-import { existsSync as existsSync28, readFileSync as readFileSync26, statSync as statSync8 } from "fs";
+import { existsSync as existsSync28, readFileSync as readFileSync26, statSync as statSync9 } from "fs";
 import { basename as basename13, extname as extname4, join as join37 } from "path";
 init_parser();
 init_serializer();
@@ -14160,7 +13973,7 @@ function newestMtime(paths) {
   let newest = 0;
   for (const path of paths) {
     try {
-      newest = Math.max(newest, statSync8(path).mtimeMs);
+      newest = Math.max(newest, statSync9(path).mtimeMs);
     } catch {
     }
   }
@@ -14331,7 +14144,7 @@ async function checkPlugin(kandownDir, projectDir, id) {
       if (target.sources.length > 0 || target.stem !== "index") missingBundles.push(`${target.stem}.js`);
       continue;
     }
-    if (target.sources.length > 0 && statSync8(out).mtimeMs < newestMtime(target.sources)) {
+    if (target.sources.length > 0 && statSync9(out).mtimeMs < newestMtime(target.sources)) {
       staleBundles.push(`${target.stem}.js`);
     }
   }

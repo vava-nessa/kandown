@@ -40,7 +40,9 @@
     "tasks": "задачи",
     "recentProjects": "Недавние проекты",
     "openFolder...": "Открыть папку...",
-    "allCategories": "Все категории"
+    "allCategories": "Все категории",
+    "more": "Другие параметры",
+    "commandPalette": "Палитра команд"
   },
   "filterBar": {
     "searchPlaceholder": "Поиск задач...",
@@ -189,7 +191,7 @@
   "settings": {
     "noProjectOpen": "Нет открытого проекта",
     "appearance": "Внешний вид",
-    "appearanceDesc": "Тема, скин, фон, шрифт и язык.",
+    "appearanceDesc": "Язык, светлый или тёмный режим и необязательные цветовые акценты колонок.",
     "agent": "Агент",
     "agentDesc": "Поведение последующих действий для задач с AI-помощью.",
     "board": "Доска",
@@ -278,7 +280,9 @@
     "matches": "Совпадения",
     "settingsTitle": "Настройки",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Цветовые акценты колонок",
+    "columnAccentsDesc": "Показывает маленькую цветную точку рядом с заголовком каждой колонки"
   },
   "sectionLabels": {
     "title": "Название",
@@ -430,5 +434,14 @@
       "unknown": "Неизвестно",
       "gone": "Исчез"
     }
+  },
+  "nav": {
+    "expand": "Развернуть боковую панель",
+    "collapse": "Свернуть боковую панель",
+    "copyBranch": "Копировать имя ветки",
+    "branchCopied": "Имя ветки скопировано",
+    "worktree": "Рабочее дерево",
+    "header.more": "Другие параметры",
+    "header.commandPalette": "Палитра команд"
   }
 }

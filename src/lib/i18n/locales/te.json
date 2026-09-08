@@ -40,7 +40,9 @@
     "tasks": "tasks",
     "recentProjects": "Recent projects",
     "openFolder...": "Open folder...",
-    "allCategories": "అన్ని వర్గాలు"
+    "allCategories": "అన్ని వర్గాలు",
+    "more": "మరిన్ని ఎంపికలు",
+    "commandPalette": "కమాండ్ పాలెట్"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -240,7 +242,7 @@
   "settings": {
     "noProjectOpen": "No project open",
     "appearance": "Appearance",
-    "appearanceDesc": "Theme, skin, background, font, and language.",
+    "appearanceDesc": "భాష, లైట్ లేదా డార్క్ మోడ్, మరియు ఐచ్ఛిక కాలమ్ రంగు ఉచ్ఛారణలు.",
     "agent": "Agent",
     "agentDesc": "Follow-up behavior for AI-assisted task work.",
     "board": "Board",
@@ -333,7 +335,9 @@
     "kickerIdentifiers": "Identifiers",
     "kickerMetadata": "Metadata",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "కాలమ్ రంగు ఉచ్ఛారణలు",
+    "columnAccentsDesc": "ప్రతి కాలమ్ శీర్షిక పక్కన చిన్న రంగు బిందువును చూపుతుంది"
   },
   "sectionLabels": {
     "title": "Title",
@@ -485,5 +489,14 @@
       "unknown": "తెలియదు",
       "gone": "కనుమరుగైంది"
     }
+  },
+  "nav": {
+    "expand": "సైడ్‌బార్ విస్తరించు",
+    "collapse": "సైడ్‌బార్ కుదించు",
+    "copyBranch": "బ్రాంచ్ పేరును కాపీ చేయు",
+    "branchCopied": "బ్రాంచ్ పేరు కాపీ చేయబడింది",
+    "worktree": "వర్క్‌ట్రీ",
+    "header.more": "మరిన్ని ఎంపికలు",
+    "header.commandPalette": "కమాండ్ పాలెట్"
   }
 }

@@ -40,7 +40,9 @@
     "tasks": "tasks",
     "recentProjects": "Recent projects",
     "openFolder...": "Open folder...",
-    "allCategories": "அனைத்து வகைகளும்"
+    "allCategories": "அனைத்து வகைகளும்",
+    "more": "மேலும் விருப்பங்கள்",
+    "commandPalette": "கட்டளை பலகை"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -240,7 +242,7 @@
   "settings": {
     "noProjectOpen": "No project open",
     "appearance": "Appearance",
-    "appearanceDesc": "Theme, skin, background, font, and language.",
+    "appearanceDesc": "மொழி, இலகு அல்லது அடர் முறை, மற்றும் விருப்பத்தேர்வு நிரல் நிற உச்சரிப்புகள்.",
     "agent": "Agent",
     "agentDesc": "Follow-up behavior for AI-assisted task work.",
     "board": "Board",
@@ -333,7 +335,9 @@
     "kickerIdentifiers": "Identifiers",
     "kickerMetadata": "Metadata",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "நிரல் நிற உச்சரிப்புகள்",
+    "columnAccentsDesc": "ஒவ்வொரு நிரல் தலைப்பின் அருகிலும் ஒரு சிறிய வண்ண புள்ளியைக் காட்டுகிறது"
   },
   "sectionLabels": {
     "title": "Title",
@@ -485,5 +489,14 @@
       "unknown": "தெரியவில்லை",
       "gone": "மறைந்தது"
     }
+  },
+  "nav": {
+    "expand": "பக்கப்பட்டியை விரிவாக்கு",
+    "collapse": "பக்கப்பட்டியை சுருக்கு",
+    "copyBranch": "கிளை பெயரை நகலெடு",
+    "branchCopied": "கிளை பெயர் நகலெடுக்கப்பட்டது",
+    "worktree": "வேலை மரம்",
+    "header.more": "மேலும் விருப்பங்கள்",
+    "header.commandPalette": "கட்டளை பலகை"
   }
 }

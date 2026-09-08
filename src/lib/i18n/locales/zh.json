@@ -40,7 +40,9 @@
     "tasks": "个任务",
     "recentProjects": "最近项目",
     "openFolder...": "打开文件夹...",
-    "allCategories": "所有分类"
+    "allCategories": "所有分类",
+    "more": "更多选项",
+    "commandPalette": "命令面板"
   },
   "filterBar": {
     "searchPlaceholder": "搜索任务...",
@@ -229,7 +231,7 @@
   "settings": {
     "noProjectOpen": "未打开项目",
     "appearance": "外观",
-    "appearanceDesc": "主题、皮肤、背景、字体和语言。",
+    "appearanceDesc": "语言、浅色或深色模式，以及可选的列颜色点缀。",
     "agent": "代理",
     "agentDesc": "AI辅助任务工作的后续行为。",
     "board": "看板",
@@ -322,7 +324,9 @@
     "kickerIdentifiers": "标识符",
     "kickerMetadata": "元数据",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "列颜色点缀",
+    "columnAccentsDesc": "在每个列标题旁显示一个小色点"
   },
   "sectionLabels": {
     "title": "标题",
@@ -474,5 +478,14 @@
       "unknown": "未知",
       "gone": "已消失"
     }
+  },
+  "nav": {
+    "expand": "展开侧边栏",
+    "collapse": "收起侧边栏",
+    "copyBranch": "复制分支名称",
+    "branchCopied": "分支名称已复制",
+    "worktree": "工作树",
+    "header.more": "更多选项",
+    "header.commandPalette": "命令面板"
   }
 }

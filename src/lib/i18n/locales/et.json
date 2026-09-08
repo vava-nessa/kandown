@@ -40,7 +40,9 @@
     "tasks": "ülesanded",
     "recentProjects": "Hiljutised projektid",
     "openFolder...": "Ava kaust...",
-    "allCategories": "Kõik kategooriad"
+    "allCategories": "Kõik kategooriad",
+    "more": "Rohkem valikuid",
+    "commandPalette": "Käsupalete"
   },
   "filterBar": {
     "searchPlaceholder": "Otsi ülesandeid...",
@@ -218,7 +220,7 @@
   "settings": {
     "noProjectOpen": "Projekt pole avatud",
     "appearance": "Välimus",
-    "appearanceDesc": "Teema, kujundus, taust, font ja keel.",
+    "appearanceDesc": "Keel, heled või tumerežiim ja valikulised veeru värv aktsendid.",
     "agent": "Agent",
     "agentDesc": "Järelkäitumine AI-abistatud ülesannete töö jaoks.",
     "board": "Töölaud",
@@ -311,7 +313,9 @@
     "kickerIdentifiers": "Identifikaatorid",
     "kickerMetadata": "Metaandmed",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Veeru värv aktsendid",
+    "columnAccentsDesc": "Kuvab iga veeru pealkirja kõrval väikese värvilise täpi"
   },
   "sectionLabels": {
     "title": "Pealkiri",
@@ -463,5 +467,14 @@
       "unknown": "Teadmata",
       "gone": "Kadunud"
     }
+  },
+  "nav": {
+    "expand": "Laienda külgriba",
+    "collapse": "Ahenda külgriba",
+    "copyBranch": "Kopeeri haru nimi",
+    "branchCopied": "Haru nimi kopeeritud",
+    "worktree": "Tööpuu",
+    "header.more": "Rohkem valikuid",
+    "header.commandPalette": "Käsupalete"
   }
 }

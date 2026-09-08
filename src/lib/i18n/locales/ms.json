@@ -40,7 +40,9 @@
     "tasks": "tasks",
     "recentProjects": "Recent projects",
     "openFolder...": "Open folder...",
-    "allCategories": "Semua kategori"
+    "allCategories": "Semua kategori",
+    "more": "Pilihan lain",
+    "commandPalette": "Palet perintah"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -240,7 +242,7 @@
   "settings": {
     "noProjectOpen": "No project open",
     "appearance": "Appearance",
-    "appearanceDesc": "Theme, skin, background, font, and language.",
+    "appearanceDesc": "Bahasa, mod cerah atau gelap, dan aksen warna lajur pilihan.",
     "agent": "Agent",
     "agentDesc": "Follow-up behavior for AI-assisted task work.",
     "board": "Board",
@@ -333,7 +335,9 @@
     "kickerIdentifiers": "Identifiers",
     "kickerMetadata": "Metadata",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Aksen warna lajur",
+    "columnAccentsDesc": "Menunjukkan titik warna kecil di sebelah tajuk setiap lajur"
   },
   "sectionLabels": {
     "title": "Title",
@@ -485,5 +489,14 @@
       "unknown": "Tidak diketahui",
       "gone": "Hilang"
     }
+  },
+  "nav": {
+    "expand": "Kembangkan bar sisi",
+    "collapse": "Runtuhkan bar sisi",
+    "copyBranch": "Salin nama cawangan",
+    "branchCopied": "Nama cawangan disalin",
+    "worktree": "Pepohon kerja",
+    "header.more": "Pilihan lain",
+    "header.commandPalette": "Palet perintah"
   }
 }

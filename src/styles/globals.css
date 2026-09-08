@@ -130,6 +130,18 @@
 }
 
 @layer components {
+  /* 📖 Category chip coloring (t334): the hashed hue/sat arrive as CSS vars
+   * from CategoryChip; the fill is the hue at low alpha (mode-agnostic) and
+   * the label darkens on light pages, lightens on dark ones. No border: a
+   * chip is a tint, not a box. */
+  .category-chip {
+    background-color: hsl(var(--chip-hue) calc(var(--chip-sat) * 1%) 45% / 0.13);
+    color: hsl(var(--chip-hue) 50% 30%);
+  }
+  .dark .category-chip {
+    color: hsl(var(--chip-hue) 45% 74%);
+  }
+
   /* Override prose colors so markdown-content can control them via CSS vars */
   .prose {
     --tw-prose-body: hsl(var(--foreground));

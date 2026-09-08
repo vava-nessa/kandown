@@ -40,7 +40,9 @@
     "tasks": "задачи",
     "recentProjects": "Скорошни проекти",
     "openFolder...": "Отвори папка...",
-    "allCategories": "Всички категории"
+    "allCategories": "Всички категории",
+    "more": "Още опции",
+    "commandPalette": "Палитра с команди"
   },
   "filterBar": {
     "searchPlaceholder": "Търсене на задачи...",
@@ -218,7 +220,7 @@
   "settings": {
     "noProjectOpen": "Няма отворен проект",
     "appearance": "Внешен вид",
-    "appearanceDesc": "Тема, кожа, фон, шрифт и език.",
+    "appearanceDesc": "Език, светъл или тъмен режим и незадължителни цветови акценти на колоните.",
     "agent": "Агент",
     "agentDesc": "Поведение за последващи действия при работа с AI-assisted задачи.",
     "board": "Дъска",
@@ -311,7 +313,9 @@
     "kickerIdentifiers": "Идентификатори",
     "kickerMetadata": "Метаданни",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Цветови акценти на колоните",
+    "columnAccentsDesc": "Показва малка цветна точка до заглавието на всяка колона"
   },
   "sectionLabels": {
     "title": "Задание",
@@ -463,5 +467,14 @@
       "unknown": "Непознат",
       "gone": "Изчезнал"
     }
+  },
+  "nav": {
+    "expand": "Разширяване на страничната лента",
+    "collapse": "Свиване на страничната лента",
+    "copyBranch": "Копиране на името на клона",
+    "branchCopied": "Името на клона е копирано",
+    "worktree": "Работно дърво",
+    "header.more": "Още опции",
+    "header.commandPalette": "Палитра с команди"
   }
 }

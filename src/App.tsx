@@ -18,10 +18,8 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Header } from './components/Header';
-import { Icon } from './components/Icons';
-
+import { SideNav } from './components/SideNav';
 import { Board } from './components/Board';
 import { ArchiveView } from './components/ArchiveView';
 import { ListView } from './components/ListView';
@@ -38,7 +36,6 @@ import { BulkActionBar } from './components/BulkActionBar';
 import { OnboardingTour } from './components/OnboardingTour';
 import { UpdateNotificationBanner } from './components/UpdateNotificationBanner';
 import { ExtensionRuntimeProvider } from './components/ExtensionRuntimeProvider';
-import { ThemeCustomizerLauncher } from './components/ThemeCustomizerLauncher';
 import { ChatSidebar } from './components/agent/ChatSidebar';
 
 
@@ -61,7 +58,6 @@ export function App() {
   const setCheatsheetOpen = useStore(s => s.setCheatsheetOpen);
   const createTask = useStore(s => s.createTask);
   const toast = useStore(s => s.toast);
-  const { t } = useTranslation();
   const reloadBoard = useStore(s => s.reloadBoard);
   const openDrawer = useStore(s => s.openDrawer);
   const closeDrawer = useStore(s => s.closeDrawer);
@@ -70,8 +66,6 @@ export function App() {
   const tryAutoOpenServerProject = useStore(s => s.tryAutoOpenServerProject);
   const currentPage = useStore(s => s.currentPage);
   const showArchives = useStore(s => s.showArchives);
-  const showMetadata = useStore(s => s.showMetadata);
-  const setShowMetadata = useStore(s => s.setShowMetadata);
   const clearTaskSelection = useStore(s => s.clearTaskSelection);
   const setTaskSelection = useStore(s => s.setTaskSelection);
   const config = useStore(s => s.config);
@@ -243,7 +237,14 @@ export function App() {
   return (
     <ErrorBoundary>
       <ExtensionRuntimeProvider>
-        <div className="flex flex-col h-screen">
+        {/* 📖 Two-zone shell (t332): the SideNav rail on the left owns view
+         * navigation and git context, the right column keeps the thin header
+         * plus the active view. Overlays (drawer, chat, palette) mount inside
+         * the right column but are position-fixed, so the split never clips
+         * them. */}
+        <div className="flex h-screen">
+        <SideNav />
+        <div className="flex flex-col flex-1 min-w-0">
         <Header />
         <UpdateNotificationBanner />
         {currentPage === 'settings' ? (
@@ -270,20 +271,6 @@ export function App() {
                 )}
               </ErrorBoundary>
             </div>
-            {/* 📖 Discreet bottom-right master switch for the per-card metadata
-             * block. Hidden by default (showMetadata = true). When flipped, every
-             * card on the board reveals its frontmatter metadata (priority,
-             * assignee, tags, due, ownerType, tools, custom keys) in a single
-             * collapsible block. Fixed so it never collides with the columns. */}
-            <button
-              type="button"
-              onClick={() => setShowMetadata(!showMetadata)}
-              title={showMetadata ? t('header.showMetadata') : t('header.hideMetadata')}
-              className="fixed bottom-3 right-3 z-40 px-2.5 py-1 rounded-md bg-card/80 backdrop-blur border border-border text-[11px] text-fg-muted hover:text-fg hover:border-border-strong transition-colors flex items-center gap-1.5"
-            >
-              {showMetadata ? <Icon.Eye size={12} /> : <Icon.EyeOff size={12} />}
-              <span>{showMetadata ? t('header.showMetadata') : t('header.hideMetadata')}</span>
-            </button>
           </div>
         ) : (
           <EmptyState />
@@ -299,7 +286,7 @@ export function App() {
         <ConflictModal />
         <OnboardingTour />
         <BulkActionBar />
-        <ThemeCustomizerLauncher />
+        </div>
         </div>
       </ExtensionRuntimeProvider>
     </ErrorBoundary>

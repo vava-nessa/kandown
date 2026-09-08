@@ -29,7 +29,7 @@ import { ListRow } from './ListRow';
 import { CardStack } from './CardStack';
 import { KbdButton } from './KbdButton';
 import { groupTasksByTag, extractGroupKey } from '../lib/grouping';
-import { getColumnIcon, getColumnColorStyles } from '../lib/columnUtils';
+import { getColumnIcon, COLUMN_BAR_MAP } from '../lib/columnUtils';
 import { terminalStatus } from '../lib/dependencies';
 import { ColumnHeaderActions } from './ColumnHeaderActions';
 import type { BoardTask, SearchMatch, Column as ColumnType, ColumnColor } from '../lib/types';
@@ -317,7 +317,6 @@ export function ListView() {
             const isFiltered = filtered.length !== column.tasks.length;
             const colColorKey = config.board.columnColors?.[column.name.toLowerCase()] ?? 'gray';
             // 📖 Column styling: very light pastel in light mode and deep dark in dark mode.
-            const colStyles = getColumnColorStyles(colColorKey);
             const ColumnIcon = getColumnIcon(column.name);
             const isConfiguredColumn = config.board.columns.some(name => name.toLowerCase() === column.name.toLowerCase());
             const columnItems = groupTasksByTag(filtered);
@@ -385,20 +384,12 @@ export function ListView() {
               >
                 <SectionDropGuide side="top" active={canShowDropGuide(sectionIndex)} />
                 <section
-                  className={`group/section overflow-hidden rounded-lg border
-                    bg-[var(--col-bg-light)] dark:bg-[var(--col-bg-dark)]
-                    border-[var(--col-border-light)] dark:border-[var(--col-border-dark)]
+                  className={`group/section overflow-hidden rounded-lg border border-border
                     transition-[border-color,background-color,opacity] duration-150 ease-out ${
                     isTaskDropTarget
-                      ? 'border-border-strong shadow-[0_0_0_1px_rgba(255,255,255,0.08)]'
+                      ? 'border-border-strong'
                       : ''
                   } ${draggedColIndex === sectionIndex ? 'opacity-45 scale-[0.995]' : ''}`}
-                  style={{
-                    '--col-bg-light': colStyles.lightBg,
-                    '--col-bg-dark': colStyles.darkBg,
-                    '--col-border-light': colStyles.lightBorder,
-                    '--col-border-dark': colStyles.darkBorder,
-                  } as React.CSSProperties}
                 >
                   <header className="flex items-center justify-between gap-2.5 border-b border-border/40 bg-black/[0.02] dark:bg-white/[0.02] px-3 py-2">
                     <div className="flex min-w-0 items-center gap-2.5">
@@ -429,6 +420,13 @@ export function ListView() {
                         </svg>
                       </div>
                       <ColumnIcon aria-hidden="true" size={16} stroke={1.8} className="flex-none text-fg-muted" />
+                      {config.ui.columnAccents === true && (
+                        <span
+                          aria-hidden="true"
+                          className="w-2 h-2 rounded-full flex-none"
+                          style={{ backgroundColor: COLUMN_BAR_MAP[colColorKey] ?? COLUMN_BAR_MAP.gray }}
+                        />
+                      )}
                       <div className="min-w-0">
                         <h2 className="truncate text-[13px] font-semibold tracking-tight text-fg">{column.name}</h2>
                         <p className="text-[11.5px] text-fg-muted">

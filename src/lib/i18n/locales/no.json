@@ -40,7 +40,9 @@
     "tasks": "oppgaver",
     "recentProjects": "Nylige prosjekter",
     "openFolder...": "Åpne mappe...",
-    "allCategories": "Alle kategorier"
+    "allCategories": "Alle kategorier",
+    "more": "Flere valg",
+    "commandPalette": "Kommandopalett"
   },
   "filterBar": {
     "searchPlaceholder": "Søk etter oppgaver...",
@@ -218,7 +220,7 @@
   "settings": {
     "noProjectOpen": "Ingen prosjekt åpent",
     "appearance": "Utseende",
-    "appearanceDesc": "Tema, skinn, bakgrunn, skrift og språk.",
+    "appearanceDesc": "Språk, lyst eller mørkt tema og valgfrie kolonnefargeaksenter.",
     "agent": "Agent",
     "agentDesc": "Oppfølgingsatferd for KI-assistert oppgavearbeid.",
     "board": "Tavle",
@@ -311,7 +313,9 @@
     "kickerIdentifiers": "Identifikatorer",
     "kickerMetadata": "Metadata",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Kolonnefargeaksenter",
+    "columnAccentsDesc": "Viser et lite farget punkt ved tittelen på hver kolonne"
   },
   "sectionLabels": {
     "title": "Tittel",
@@ -463,5 +467,14 @@
       "unknown": "Ukjent",
       "gone": "Forsvunnet"
     }
+  },
+  "nav": {
+    "expand": "Utvid sidepanel",
+    "collapse": "Skjul sidepanel",
+    "copyBranch": "Kopier grennavn",
+    "branchCopied": "Grennavn kopiert",
+    "worktree": "Worktree",
+    "header.more": "Flere valg",
+    "header.commandPalette": "Kommandopalett"
   }
 }

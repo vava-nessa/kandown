@@ -40,7 +40,9 @@
     "tasks": "úkoly",
     "recentProjects": "Nedávné projekty",
     "openFolder...": "Otevřít složku...",
-    "allCategories": "Všechny kategorie"
+    "allCategories": "Všechny kategorie",
+    "more": "Další možnosti",
+    "commandPalette": "Paleta příkazů"
   },
   "filterBar": {
     "searchPlaceholder": "Hledat úkoly...",
@@ -218,7 +220,7 @@
   "settings": {
     "noProjectOpen": "Žádný otevřený projekt",
     "appearance": "Vzhled",
-    "appearanceDesc": "Motiv, vzhled, pozadí, písmo a jazyk.",
+    "appearanceDesc": "Jazyk, světlý nebo tmavý režim a volitelné barevné akcenty sloupců.",
     "agent": "Agent",
     "agentDesc": "Chování následných úkonů pro úkoly asistované AI.",
     "board": "Nástěnka",
@@ -311,7 +313,9 @@
     "kickerIdentifiers": "Identifikátory",
     "kickerMetadata": "Metadata",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Barevné akcenty sloupců",
+    "columnAccentsDesc": "Zobrazí malou barevnou tečku vedle názvu každého sloupce"
   },
   "sectionLabels": {
     "title": "Název",
@@ -463,5 +467,14 @@
       "unknown": "Neznámý",
       "gone": "Zmizel"
     }
+  },
+  "nav": {
+    "expand": "Rozbalit postranní panel",
+    "collapse": "Sbalit postranní panel",
+    "copyBranch": "Zkopírovat název větve",
+    "branchCopied": "Název větve zkopírován",
+    "worktree": "Pracovní strom",
+    "header.more": "Další možnosti",
+    "header.commandPalette": "Paleta příkazů"
   }
 }

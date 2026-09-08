@@ -8,14 +8,14 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 15528,
+      "lines": 15341,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 62852,
+      "lines": 62839,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -138,7 +138,7 @@
     },
     {
       "path": "src/App.tsx",
-      "lines": 308,
+      "lines": 295,
       "title": "Web application shell",
       "summary": "Composes the Kandown web UI, hydrates recent projects from the URL, and owns global keyboard shortcuts for board navigation, creation, reload, search focus, and command palette access.",
       "functions": [
@@ -1540,7 +1540,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 1621,
+      "lines": 1650,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
@@ -1920,7 +1920,7 @@
     },
     {
       "path": "src/cli/screens/settings.tsx",
-      "lines": 544,
+      "lines": 529,
       "title": "Full-screen settings TUI screen",
       "summary": "Interactive settings editor for kandown.json.",
       "functions": [
@@ -2679,7 +2679,7 @@
     },
     {
       "path": "src/components/Card.tsx",
-      "lines": 564,
+      "lines": 552,
       "title": "Task card",
       "summary": "Displays one board task as a clean, rounded card inside a column.",
       "functions": [
@@ -2696,7 +2696,7 @@
     },
     {
       "path": "src/components/CardStack.tsx",
-      "lines": 332,
+      "lines": 326,
       "title": "Collapsible card stack component",
       "summary": "Renders a group of 2+ cards that share the same `[bracket]` or `#hashtag` title tag as a visually stacked card.",
       "functions": [
@@ -2709,7 +2709,7 @@
     },
     {
       "path": "src/components/CategoryChip.tsx",
-      "lines": 69,
+      "lines": 77,
       "title": "Shared category chip component",
       "summary": "Renders a category name as a chip.",
       "exports": "CategoryChip"
@@ -2729,7 +2729,7 @@
     },
     {
       "path": "src/components/Column.tsx",
-      "lines": 371,
+      "lines": 368,
       "title": "Board column component",
       "summary": "Renders a single kanban column, accepts dropped cards, shows the filtered task count, and creates new tasks directly in the column.",
       "functions": [
@@ -2892,7 +2892,7 @@
     },
     {
       "path": "src/components/Header.tsx",
-      "lines": 645,
+      "lines": 515,
       "title": "App header",
       "summary": "Top navigation bar for project switching, task search, filters (including the category dropdown next to the task count), view mode, density, settings, command palette, reload, and task creation.",
       "functions": [
@@ -2941,7 +2941,7 @@
     },
     {
       "path": "src/components/ListView.tsx",
-      "lines": 541,
+      "lines": 539,
       "title": "List view",
       "summary": "Renders board columns as vertically stacked horizontal sections, with dense task rows, filter/search previews, task drops between sections, and vertical section reordering.",
       "functions": [
@@ -3022,7 +3022,7 @@
     },
     {
       "path": "src/components/settings/schema.ts",
-      "lines": 548,
+      "lines": 528,
       "title": "Settings page — schema & config helpers",
       "summary": "Declarative metadata describing every setting (section, type, description, keywords) plus pure functions for reading/writing dotted config paths and building the sidebar search index.",
       "functions": [
@@ -3054,16 +3054,10 @@
     },
     {
       "path": "src/components/settings/SettingRow.tsx",
-      "lines": 269,
-      "title": "Settings — single setting row + theme gallery",
-      "summary": "Renders one SettingDef as either a dense toggle row, a full-width theme gallery (for the 'skin' type), or one of the secondary controls — select dropdown, number stepper, text input, language picker, theme mode switcher, or notification…",
-      "exports": "SettingRow, ThemeGalleryPicker"
-    },
-    {
-      "path": "src/components/settings/ThemesPanel.tsx",
-      "lines": 243,
-      "title": "Themes settings panel",
-      "summary": "Web UI surface for the community theme store: lists installed themes (from `.kandown/themes/<id>.json` via the daemon), lets the user browse and one-click install entries from the curated community registry, and removes installed themes."
+      "lines": 176,
+      "title": "Settings — single setting row",
+      "summary": "Renders one SettingDef as either a dense toggle row or one of the secondary controls: select dropdown, number stepper, text input, language picker, theme mode switcher, or notification permission button.",
+      "exports": "SettingRow"
     },
     {
       "path": "src/components/settings/WorkOutputConfigurator.tsx",
@@ -3080,7 +3074,7 @@
     },
     {
       "path": "src/components/SettingsPage.tsx",
-      "lines": 386,
+      "lines": 372,
       "title": "Settings page for the web app",
       "summary": "Dense settings workspace with an iOS-style sidebar, global option search, section navigation, and compact controls for kandown.json.",
       "functions": [
@@ -3102,6 +3096,27 @@
         }
       ],
       "exports": "SettingsPage"
+    },
+    {
+      "path": "src/components/SideNav.tsx",
+      "lines": 295,
+      "title": "Left navigation rail (t332)",
+      "summary": "Collapsed-by-default icon rail that expands to a full sidebar on click.",
+      "functions": [
+        {
+          "name": "SideNavItem",
+          "summary": "one rail entry, icon-only when collapsed, icon + label expanded"
+        },
+        {
+          "name": "GitFooter",
+          "summary": "active branch + worktree marker, click to copy"
+        },
+        {
+          "name": "SideNav",
+          "summary": "the rail itself"
+        }
+      ],
+      "exports": "SideNav"
     },
     {
       "path": "src/components/SubtaskEditor.tsx",
@@ -3165,7 +3180,7 @@
     },
     {
       "path": "src/components/TaskWorkspace.tsx",
-      "lines": 863,
+      "lines": 866,
       "title": "Desktop opened-task workspace",
       "summary": "Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…",
       "functions": [
@@ -3179,51 +3194,6 @@
         }
       ],
       "exports": "TaskWorkspace"
-    },
-    {
-      "path": "src/components/ThemeCustomizerLauncher.tsx",
-      "lines": 84,
-      "title": "Theme customizer launcher",
-      "summary": "Mounts one floating ThemeCustomizerModal at the app shell (App.tsx) so the editor is reachable from anywhere: the skin picker's \"Create Custom Theme\" and \"Edit\" actions, the Themes settings panel's \"Open editor\" button, and any future…"
-    },
-    {
-      "path": "src/components/ThemeCustomizerModal.tsx",
-      "lines": 722,
-      "title": "Floating theme customizer modal (FABLE_UI + community store)",
-      "summary": "Draggable, minimizable, compact panel for editing a KandownTheme JSON.",
-      "functions": [
-        {
-          "name": "ThemeCustomizerModal",
-          "summary": "floating panel for editing KandownTheme objects"
-        }
-      ],
-      "exports": "ThemeCustomizerModal"
-    },
-    {
-      "path": "src/components/ThemePreviewCard.tsx",
-      "lines": 248,
-      "title": "Mini-board live theme preview card (FABLE_UI)",
-      "summary": "Renders a live preview of a KandownTheme with isolated HSL tokens in a mini 3-column kanban board layout.",
-      "functions": [
-        {
-          "name": "ThemePreviewCard",
-          "summary": "renders theme card with live mini-board & actions"
-        }
-      ],
-      "exports": "ThemePreviewCard"
-    },
-    {
-      "path": "src/components/ThemeToggle.tsx",
-      "lines": 83,
-      "title": "Theme switch toggle",
-      "summary": "Light/dark mode switcher for the app header.",
-      "functions": [
-        {
-          "name": "ThemeToggle",
-          "summary": "animated sun/moon toggle button"
-        }
-      ],
-      "exports": "ThemeToggle"
     },
     {
       "path": "src/components/Toaster.tsx",
@@ -3430,7 +3400,7 @@
     },
     {
       "path": "src/lib/__tests__/category-color.spec.ts",
-      "lines": 62,
+      "lines": 73,
       "title": "Unit tests for hash-based category colors and icons",
       "summary": "Verifies the deterministic contract of src/lib/category-color.ts: same category string always yields the same color and icon, the foreground is always a legible dark or white on the chosen background, and the palette covers the full…"
     },
@@ -3642,7 +3612,7 @@
     },
     {
       "path": "src/lib/category-color.ts",
-      "lines": 168,
+      "lines": 187,
       "title": "Deterministic category colors and icons",
       "summary": "Maps a category name (WEB, CLI, ARCHITECTURE, THEMES...) to a stable accent color and a stable icon by hashing the name: the same string always yields the same color and icon, nothing is stored, nothing to maintain.",
       "functions": [
@@ -3659,7 +3629,7 @@
           "summary": "a stable tabler icon for a category name"
         }
       ],
-      "exports": "hashString, CATEGORY_PALETTE, CATEGORY_ICONS, categoryColor, categoryIcon"
+      "exports": "hashString, CATEGORY_PALETTE, CATEGORY_ICONS, categoryColor, categoryBarColor, chipHueSat, categoryIcon"
     },
     {
       "path": "src/lib/chat-mentions.ts",
@@ -3695,7 +3665,7 @@
     },
     {
       "path": "src/lib/config.ts",
-      "lines": 448,
+      "lines": 449,
       "title": "Shared Kandown config normalization",
       "summary": "Converts unknown kandown.json input into the canonical config contract used by browser and Node adapters.",
       "functions": [
@@ -4034,7 +4004,7 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 1683,
+      "lines": 1700,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [
@@ -4380,7 +4350,7 @@
     },
     {
       "path": "src/lib/store.ts",
-      "lines": 2213,
+      "lines": 2222,
       "title": "Kandown Zustand store",
       "summary": "Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.",
       "functions": [
@@ -4743,9 +4713,9 @@
     },
     {
       "path": "src/lib/theme.ts",
-      "lines": 331,
+      "lines": 338,
       "title": "Project theme engine (FABLE_UI)",
-      "summary": "Manages customizable JSON themes, appearance tokens (--radius, --shadow-*, --font-display, --motion-scale), four bundled presets (shadcn, vercel, linear, kandown), installed community themes, and dynamic inheritance.",
+      "summary": "Manages appearance tokens (--radius, --shadow-*, --font-display, --motion-scale), the single bundled `base` preset (t333), installed community themes, and dynamic inheritance.",
       "functions": [
         {
           "name": "registerCustomThemes",
@@ -4768,31 +4738,19 @@
           "summary": "applies tokens, appearance variables, and mode to document"
         }
       ],
-      "exports": "FONT_OPTIONS, BACKGROUND_OPTIONS, THEME_PRESETS, SKIN_OPTIONS, registerCustomThemes, getAllThemes, resolveTheme, applyProjectTheme, normalizeThemeMode, normalizeSkinId, normalizeFontId, normalizeBackgroundId"
+      "exports": "FONT_OPTIONS, BACKGROUND_OPTIONS, THEME_PRESETS, SKIN_OPTIONS, registerCustomThemes, getAllThemes, resolveTheme, applyProjectTheme, normalizeThemeMode, normalizeSkinId, normalizeFontId, normalizeBackgroundId (the FONT/BACKGROUND/SKIN option tables remain exported for the config normalizer and CLI; the in-app pickers were removed in t333)"
+    },
+    {
+      "path": "src/lib/themes/base.ts",
+      "lines": 111,
+      "title": "\"base\" theme preset: the single house theme (t333)",
+      "summary": "The only bundled theme since the UI redesign."
     },
     {
       "path": "src/lib/themes/index.ts",
-      "lines": 35,
+      "lines": 31,
       "title": "Theme preset registry",
-      "summary": "Aggregates every bundled theme preset into the THEME_PRESETS array consumed by the theme engine (src/lib/theme.ts)."
-    },
-    {
-      "path": "src/lib/themes/kandown.ts",
-      "lines": 57,
-      "title": "\"kandown\" theme preset — the house theme",
-      "summary": "Kandown's own appearance/color-token preset, built from the brand palette published on the website: #88E138 brand lime (logo arrow, primary actions), #7AD12A the contrast-adjusted lime used on light backgrounds, #0CE931 the hero/WebGL…"
-    },
-    {
-      "path": "src/lib/themes/linear.ts",
-      "lines": 48,
-      "title": "\"linear\" theme preset",
-      "summary": "Linear's dark-first aesthetic ported from the community registry (`registry/themes/linear.json`): near-black blue-tinted surfaces, electric violet primary (#5E6AD2, hsl 235 59% 60%), Plus Jakarta Sans, elevated glass popovers."
-    },
-    {
-      "path": "src/lib/themes/shadcn.ts",
-      "lines": 53,
-      "title": "\"shadcn\" theme preset, the clean default",
-      "summary": "Ultra-clean neutral palette in the spirit of shadcn/ui and Linear: zinc surfaces, near-black primary, crisp 1px borders, white card on a pure-white background in light mode, zinc-950 surfaces in dark mode."
+      "summary": "Aggregates the bundled theme presets into the THEME_PRESETS array consumed by the theme engine (src/lib/theme.ts)."
     },
     {
       "path": "src/lib/themes/shared.ts",
@@ -4801,14 +4759,8 @@
       "summary": "Status colors (destructive/success/warning) and grid tokens shared by every theme preset, spread into each preset's light/dark token maps."
     },
     {
-      "path": "src/lib/themes/vercel.ts",
-      "lines": 46,
-      "title": "\"vercel\" theme preset",
-      "summary": "Vercel's black-and-white high-contrast look: pure white on near-black, mono display type, compact density, no colored surfaces."
-    },
-    {
       "path": "src/lib/types.ts",
-      "lines": 609,
+      "lines": 613,
       "title": "Shared domain types",
       "summary": "Defines the board, task, config, filter, search, and appearance contracts shared by the Kandown web UI, CLI, TUI, and persistence adapters.",
       "exports": "Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, ColumnRole, ColumnAgentMeta, WorkflowSelectionConfig, TaskTrackingCadence, WorkOutputDetailMode, TuiConfig, AgentsConfig, AutopilotConfig, KandownConfig, DEFAULT_COLUMNS, DEFAULT_WORK_OUTPUT, DEFAULT_COLUMN_META, DEFAULT_CONFIG, PermissionMode, PERMISSION_MODES, PermissionSupport, DetectedHarness, SessionIndexEntryPayload, AgentSessionPayload"

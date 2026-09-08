@@ -40,7 +40,9 @@
     "tasks": "tasks",
     "recentProjects": "Recent projects",
     "openFolder...": "Open folder...",
-    "allCategories": "सर्व श्रेणी"
+    "allCategories": "सर्व श्रेणी",
+    "more": "अधिक पर्याय",
+    "commandPalette": "कमांड पॅलेट"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -240,7 +242,7 @@
   "settings": {
     "noProjectOpen": "No project open",
     "appearance": "Appearance",
-    "appearanceDesc": "Theme, skin, background, font, and language.",
+    "appearanceDesc": "भाषा, लाइट किंवा डार्क मोड, आणि ऐच्छिक स्तंभ रंग अ‍ॅक्सेंट.",
     "agent": "Agent",
     "agentDesc": "Follow-up behavior for AI-assisted task work.",
     "board": "Board",
@@ -333,7 +335,9 @@
     "kickerIdentifiers": "Identifiers",
     "kickerMetadata": "Metadata",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "स्तंभ रंग अ‍ॅक्सेंट",
+    "columnAccentsDesc": "प्रत्येक स्तंभ शीर्षकासमोर छोटा रंगीत बिंदू दाखवतो"
   },
   "sectionLabels": {
     "title": "Title",
@@ -485,5 +489,14 @@
       "unknown": "अज्ञात",
       "gone": "नाहीसा"
     }
+  },
+  "nav": {
+    "expand": "साइडबार विस्तारा",
+    "collapse": "साइडबार मोडा",
+    "copyBranch": "शाखेचे नाव कॉपी करा",
+    "branchCopied": "शाखेचे नाव कॉपी झाले",
+    "worktree": "वर्कट्री",
+    "header.more": "अधिक पर्याय",
+    "header.commandPalette": "कमांड पॅलेट"
   }
 }

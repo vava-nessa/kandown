@@ -298,6 +298,7 @@ export function normalizeKandownConfig(raw: unknown): KandownConfig {
         DEFAULT_CONFIG.ui.onboardingCompleted,
       ),
       categoryChips: booleanOr(ui.categoryChips, DEFAULT_CONFIG.ui.categoryChips),
+      columnAccents: booleanOr(ui.columnAccents, false),
       ...(customThemes ? { customThemes } : {}),
     },
     agent: {

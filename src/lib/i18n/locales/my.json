@@ -40,7 +40,9 @@
     "tasks": "tasks",
     "recentProjects": "Recent projects",
     "openFolder...": "Open folder...",
-    "allCategories": "ကဏ္ဍအားလုံး"
+    "allCategories": "ကဏ္ဍအားလုံး",
+    "more": "နောက်ထပ်ရွေးချယ်စရာများ",
+    "commandPalette": "command palette"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -240,7 +242,7 @@
   "settings": {
     "noProjectOpen": "No project open",
     "appearance": "Appearance",
-    "appearanceDesc": "Theme, skin, background, font, and language.",
+    "appearanceDesc": "ဘာသာ၊ ပေါက်လင့် (light) သို့မဟုတ် မှောင် (dark) မုဒ်၊ နှင့် ရွေးချယ်နိုင်သော ကော်လံအရောင်များ။",
     "agent": "Agent",
     "agentDesc": "Follow-up behavior for AI-assisted task work.",
     "board": "Board",
@@ -333,7 +335,9 @@
     "kickerIdentifiers": "Identifiers",
     "kickerMetadata": "Metadata",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "ကော်လံအရောင်များ ထင်ရှားစေခြင်း",
+    "columnAccentsDesc": "ကော်လံခေါင်းစဉ်တစ်ခုစီ၏ ဘေးတွင် အရောင်အစွန်းငယ်တစ်ခု ပြသသည်"
   },
   "sectionLabels": {
     "title": "Title",
@@ -485,5 +489,14 @@
       "unknown": "မသိပါ",
       "gone": "ပျောက်ကွယ်သွားပြီ"
     }
+  },
+  "nav": {
+    "expand": "ဘေးတိုက်တန်းကို ချဲ့ပါ",
+    "collapse": "ဘေးတိုက်တန်းကို ခေတက်ပါ",
+    "copyBranch": "branch နာမည်ကို ကူးယူပါ",
+    "branchCopied": "branch နာမည် ကူးယူပြီးပါပြီ",
+    "worktree": "worktree",
+    "header.more": "နောက်ထပ်ရွေးချယ်စရာများ",
+    "header.commandPalette": "command palette"
   }
 }

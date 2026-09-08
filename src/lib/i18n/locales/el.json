@@ -40,7 +40,9 @@
     "tasks": "εργασίες",
     "recentProjects": "Πρόσφατα έργα",
     "openFolder...": "Άνοιγμα φακέλου...",
-    "allCategories": "Όλες οι κατηγορίες"
+    "allCategories": "Όλες οι κατηγορίες",
+    "more": "Περισσότερες επιλογές",
+    "commandPalette": "Παλέτα εντολών"
   },
   "filterBar": {
     "searchPlaceholder": "Αναζήτηση εργασιών...",
@@ -218,7 +220,7 @@
   "settings": {
     "noProjectOpen": "Δεν έχει ανοίξει έργο",
     "appearance": "Εμφάνιση",
-    "appearanceDesc": "Θέμα, εμφάνιση, φόντο, γραμματοσειρά και γλώσσα.",
+    "appearanceDesc": "Γλώσσα, φωτεινή ή σκοτεινή λειτουργία και προαιρετικές χρωματικές πινελιές στηλών.",
     "agent": "Πράκτορας",
     "agentDesc": "Συμπεριφορά παρακολούθησης για εργασίες που υποστηρίζονται από AI.",
     "board": "Πίνακας",
@@ -311,7 +313,9 @@
     "kickerIdentifiers": "Αναγνωριστικά",
     "kickerMetadata": "Μεταδεδομένα",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Χρωματικές πινελιές στηλών",
+    "columnAccentsDesc": "Εμφανίζει μια μικρή χρωματιστή κουκκίδα δίπλα στον τίτλο κάθε στήλης"
   },
   "sectionLabels": {
     "title": "Τίτλος",
@@ -463,5 +467,14 @@
       "unknown": "Άγνωστο",
       "gone": "Εξαφανίστηκε"
     }
+  },
+  "nav": {
+    "expand": "Ανάπτυξη πλαϊνής γραμμής",
+    "collapse": "Σύμπτυξη πλαϊνής γραμμής",
+    "copyBranch": "Αντιγραφή ονόματος κλάδου",
+    "branchCopied": "Το όνομα του κλάδου αντιγράφηκε",
+    "worktree": "Δέντρο εργασίας",
+    "header.more": "Περισσότερες επιλογές",
+    "header.commandPalette": "Παλέτα εντολών"
   }
 }

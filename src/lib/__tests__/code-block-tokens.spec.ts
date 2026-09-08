@@ -3,7 +3,7 @@
  * @description Locks the four invariants that keep markdown code blocks
  * readable on every theme:
  *
- *  1. The bundled `kandown` theme ships every code token in both modes.
+ *  1. The bundled `base` theme ships every code token in both modes.
  *  2. `BASE_CODE_TOKENS_LIGHT` and `BASE_CODE_TOKENS_DARK` cover the same
  *     five slots and use light/dark HSL values that contrast (no same-channel
  *     bg/fg pairs).
@@ -54,29 +54,29 @@ function hslLightness(value: string): number {
 }
 
 describe('code-block contrast safety net', () => {
-  it('ships every code token in the bundled kandown light map', () => {
-    const kandown = THEME_PRESETS.find(t => t.id === 'kandown');
-    expect(kandown, 'kandown theme must be bundled').toBeDefined();
+  it('ships every code token in the bundled base light map', () => {
+    const base = THEME_PRESETS.find(t => t.id === 'base');
+    expect(base, 'base theme must be bundled').toBeDefined();
     for (const key of CODE_TOKEN_KEYS) {
-      expect(kandown!.light[key], `kandown.light.${key}`).toBeTypeOf('string');
-      expect(kandown!.light[key].length, `kandown.light.${key} must not be empty`).toBeGreaterThan(0);
+      expect(base!.light[key], `base.light.${key}`).toBeTypeOf('string');
+      expect(base!.light[key].length, `base.light.${key} must not be empty`).toBeGreaterThan(0);
     }
   });
 
-  it('ships every code token in the bundled kandown dark map', () => {
-    const kandown = THEME_PRESETS.find(t => t.id === 'kandown');
+  it('ships every code token in the bundled base dark map', () => {
+    const base = THEME_PRESETS.find(t => t.id === 'base');
     for (const key of CODE_TOKEN_KEYS) {
-      expect(kandown!.dark[key], `kandown.dark.${key}`).toBeTypeOf('string');
-      expect(kandown!.dark[key].length, `kandown.dark.${key} must not be empty`).toBeGreaterThan(0);
+      expect(base!.dark[key], `base.dark.${key}`).toBeTypeOf('string');
+      expect(base!.dark[key].length, `base.dark.${key} must not be empty`).toBeGreaterThan(0);
     }
   });
 
-  it('kandown code-bg and code-fg are mode-flipped (light is light, dark is dark)', () => {
-    const kandown = THEME_PRESETS.find(t => t.id === 'kandown')!;
-    const lightBgL = hslLightness(kandown.light['code-bg']);
-    const darkBgL = hslLightness(kandown.dark['code-bg']);
-    const lightFgL = hslLightness(kandown.light['code-fg']);
-    const darkFgL = hslLightness(kandown.dark['code-fg']);
+  it('base code-bg and code-fg are mode-flipped (light is light, dark is dark)', () => {
+    const base = THEME_PRESETS.find(t => t.id === 'base')!;
+    const lightBgL = hslLightness(base.light['code-bg']);
+    const darkBgL = hslLightness(base.dark['code-bg']);
+    const lightFgL = hslLightness(base.light['code-fg']);
+    const darkFgL = hslLightness(base.dark['code-fg']);
     expect(Number.isFinite(lightBgL)).toBe(true);
     expect(Number.isFinite(darkBgL)).toBe(true);
     expect(lightBgL, 'light code-bg should be light').toBeGreaterThan(85);
@@ -107,46 +107,46 @@ describe('code-block contrast safety net', () => {
   });
 
   it('fillCodeTokens backfills every missing code slot in light mode', () => {
-    const kandown = THEME_PRESETS.find(t => t.id === 'kandown')!;
-    const stripped = stripCodeTokens(kandown.light);
+    const base = THEME_PRESETS.find(t => t.id === 'base')!;
+    const stripped = stripCodeTokens(base.light);
     expect(stripped['code-bg']).toBeUndefined();
 
-    const repaired = fillCodeTokens(kandown.light, 'light');
+    const repaired = fillCodeTokens(base.light, 'light');
     for (const key of CODE_TOKEN_KEYS) {
       expect(repaired[key], `repaired light.${key}`).toBe(BASE_CODE_TOKENS_LIGHT[key]);
     }
   });
 
   it('fillCodeTokens backfills every missing code slot in dark mode', () => {
-    const kandown = THEME_PRESETS.find(t => t.id === 'kandown')!;
-    const stripped = stripCodeTokens(kandown.dark);
+    const base = THEME_PRESETS.find(t => t.id === 'base')!;
+    const stripped = stripCodeTokens(base.dark);
     expect(stripped['code-fg']).toBeUndefined();
 
-    const repaired = fillCodeTokens(kandown.dark, 'dark');
+    const repaired = fillCodeTokens(base.dark, 'dark');
     for (const key of CODE_TOKEN_KEYS) {
       expect(repaired[key], `repaired dark.${key}`).toBe(BASE_CODE_TOKENS_DARK[key]);
     }
   });
 
   it('fillCodeTokens never overrides a token the theme already defined', () => {
-    const kandown = THEME_PRESETS.find(t => t.id === 'kandown')!;
-    const light = fillCodeTokens(kandown.light, 'light');
-    const dark = fillCodeTokens(kandown.dark, 'dark');
-    expect(light).toEqual(kandown.light);
-    expect(dark).toEqual(kandown.dark);
+    const base = THEME_PRESETS.find(t => t.id === 'base')!;
+    const light = fillCodeTokens(base.light, 'light');
+    const dark = fillCodeTokens(base.dark, 'dark');
+    expect(light).toEqual(base.light);
+    expect(dark).toEqual(base.dark);
   });
 
   it('fillCodeTokens does not mutate its input', () => {
-    const kandown = THEME_PRESETS.find(t => t.id === 'kandown')!;
-    const stripped = stripCodeTokens(kandown.light);
+    const base = THEME_PRESETS.find(t => t.id === 'base')!;
+    const stripped = stripCodeTokens(base.light);
     const before = { ...stripped };
     fillCodeTokens(stripped as ThemeTokens, 'light');
     expect(stripped).toEqual(before);
   });
 
   it('fillCodeTokens is mode-aware (light mode never falls back to dark defaults and vice versa)', () => {
-    const kandown = THEME_PRESETS.find(t => t.id === 'kandown')!;
-    const empty: Partial<ThemeTokens> = stripCodeTokens(kandown.light);
+    const base = THEME_PRESETS.find(t => t.id === 'base')!;
+    const empty: Partial<ThemeTokens> = stripCodeTokens(base.light);
     const lightResult = fillCodeTokens(empty as ThemeTokens, 'light');
     const darkResult = fillCodeTokens(empty as ThemeTokens, 'dark');
     expect(lightResult['code-bg']).toBe(BASE_CODE_TOKENS_LIGHT['code-bg']);

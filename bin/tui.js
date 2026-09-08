@@ -54051,7 +54051,7 @@ var DEFAULT_COLUMN_META = {
   }
 };
 var DEFAULT_CONFIG = {
-  ui: { language: "en", theme: "auto", skin: "shadcn", font: "inter", background: "solid", onboardingCompleted: false, categoryChips: true },
+  ui: { language: "en", theme: "auto", skin: "base", font: "inter", background: "solid", onboardingCompleted: false, categoryChips: true, columnAccents: false },
   agent: { suggestFollowUp: false, maxSuggestions: 3, permissionMode: "yolo", workOutput: DEFAULT_WORK_OUTPUT, autopilot: { maxParallel: 2 } },
   workflow: { active: "kandown-standard", skills: [], trackingCadence: "balanced" },
   board: {
@@ -54300,6 +54300,7 @@ function normalizeKandownConfig(raw) {
         DEFAULT_CONFIG.ui.onboardingCompleted
       ),
       categoryChips: booleanOr(ui.categoryChips, DEFAULT_CONFIG.ui.categoryChips),
+      columnAccents: booleanOr(ui.columnAccents, false),
       ...customThemes ? { customThemes } : {}
     },
     agent: {
@@ -54529,20 +54530,6 @@ var SETTINGS = [
     section: "Appearance",
     type: "select",
     options: ["auto", "light", "dark"]
-  },
-  {
-    key: "ui.skin",
-    label: "Skin",
-    section: "Appearance",
-    type: "select",
-    options: ["kandown", "graphite", "sage", "cobalt", "rose"]
-  },
-  {
-    key: "ui.font",
-    label: "Font",
-    section: "Appearance",
-    type: "select",
-    options: ["inter", "system", "serif", "mono", "rounded"]
   },
   // Agent
   {
@@ -55900,7 +55887,7 @@ import { spawn, execSync } from "child_process";
 import { homedir } from "os";
 
 // src/lib/version.ts
-var KANDOWN_VERSION = "0.57.0";
+var KANDOWN_VERSION = "0.58.0";
 
 // src/cli/lib/updater.ts
 import { fileURLToPath } from "url";

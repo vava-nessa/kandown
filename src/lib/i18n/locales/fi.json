@@ -40,7 +40,9 @@
     "tasks": "tehtävää",
     "recentProjects": "Viimeaikaiset projektit",
     "openFolder...": "Avaa kansio...",
-    "allCategories": "Kaikki kategoriat"
+    "allCategories": "Kaikki kategoriat",
+    "more": "Lisää vaihtoehtoja",
+    "commandPalette": "Komentopaletti"
   },
   "filterBar": {
     "searchPlaceholder": "Hae tehtäviä...",
@@ -218,7 +220,7 @@
   "settings": {
     "noProjectOpen": "Projektia ei ole avattu",
     "appearance": "Ulkoasu",
-    "appearanceDesc": "Teema, skin, tausta, fontti ja kieli.",
+    "appearanceDesc": "Kieli, vaalea tai tumma tila ja valinnaiset sarakkeiden väriaksentit.",
     "agent": "Agentti",
     "agentDesc": "Seurantakäyttäytyminen AI-avusteiselle tehtävätyölle.",
     "board": "Boardi",
@@ -311,7 +313,9 @@
     "kickerIdentifiers": "Tunnisteet",
     "kickerMetadata": "Metatiedot",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Sarakkeiden väriaksentit",
+    "columnAccentsDesc": "Näyttää pienen värillisen pisteen jokaisen sarakkeen otsikon vieressä"
   },
   "sectionLabels": {
     "title": "Otsikko",
@@ -463,5 +467,14 @@
       "unknown": "Tuntematon",
       "gone": "Poistunut"
     }
+  },
+  "nav": {
+    "expand": "Laajenna sivupalkki",
+    "collapse": "Tiivistä sivupalkki",
+    "copyBranch": "Kopioi haaran nimi",
+    "branchCopied": "Haaran nimi kopioitu",
+    "worktree": "Työpuu",
+    "header.more": "Lisää vaihtoehtoja",
+    "header.commandPalette": "Komentopaletti"
   }
 }

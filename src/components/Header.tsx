@@ -28,14 +28,12 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
-import { IconMessage } from '@tabler/icons-react';
+import { IconDots } from '@tabler/icons-react';
 import { Icon } from './Icons';
 import { KbdButton } from './KbdButton';
 import { CategoryChip } from './CategoryChip';
-import { ThemeSwitcher } from './ui/theme-switcher-1';
 import { Tooltip } from './ui/tooltip-card';
 import { useStore } from '../lib/store';
-import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
 import { KANDOWN_VERSION } from '../lib/version';
 import { MOTION } from '../lib/motion-presets';
 import type { OwnerType } from '../lib/types';
@@ -50,19 +48,17 @@ export function Header() {
   const closeDrawer = useStore(s => s.closeDrawer);
   const drawerTaskId = useStore(s => s.drawerTaskId);
   const saveDrawer = useStore(s => s.saveDrawer);
-  const archivedCount = useStore(s => s.archivedTasks.length);
-  const showArchives = useStore(s => s.showArchives);
-  const setShowArchives = useStore(s => s.setShowArchives);
   const columns = useStore(s => s.columns);
   const openFolder = useStore(s => s.openFolder);
   const reloadBoard = useStore(s => s.reloadBoard);
   const createTask = useStore(s => s.createTask);
   const setCommandOpen = useStore(s => s.setCommandOpen);
-  const viewMode = useStore(s => s.viewMode);
-  const setViewMode = useStore(s => s.setViewMode);
+  const cheatsheetOpen = useStore(s => s.cheatsheetOpen);
+  const setCheatsheetOpen = useStore(s => s.setCheatsheetOpen);
+  const showMetadata = useStore(s => s.showMetadata);
+  const setShowMetadata = useStore(s => s.setShowMetadata);
   const density = useStore(s => s.density);
   const setDensity = useStore(s => s.setDensity);
-  const setCurrentPage = useStore(s => s.setCurrentPage);
   const recentProjects = useStore(s => s.recentProjects);
   const openRecentProject = useStore(s => s.openRecentProject);
   const filters = useStore(s => s.filters);
@@ -72,21 +68,17 @@ export function Header() {
   const lastReloadError = useStore(s => s.lastReloadError);
   const watcherError = useStore(s => s.watcherError);
   const restartWatcher = useStore(s => s.restartWatcher);
-  const sidebarOpen = useStore(s => s.agentChat.sidebarOpen);
-  const openSidebar = useStore(s => s.openSidebar);
-  const closeSidebar = useStore(s => s.closeSidebar);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [catMenuOpen, setCatMenuOpen] = useState(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   // 📖 Boot splash: show the "kandown v<version>" title for 5s on load, then
   // hand the header title over to the open project name (the app's page title).
   const [bootShow, setBootShow] = useState(true);
   const menuRef = useRef<HTMLDivElement>(null);
   const catMenuRef = useRef<HTMLDivElement>(null);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
-
-  const totalTasks = columns.reduce((sum, c) => sum + c.tasks.length, 0);
-  const displayCount = useAnimatedNumber(totalTasks);
 
   // 📖 Every category present on the board, alphabetically sorted with live
   // counts, powering the category filter dropdown next to the task count.
@@ -154,6 +146,18 @@ export function Header() {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [menuOpen]);
+
+  // 📖 Same outside-click dismissal for the header overflow menu (t332).
+  useEffect(() => {
+    if (!moreMenuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target as Node)) {
+        setMoreMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [moreMenuOpen]);
 
   // 📖 Same outside-click dismissal for the category filter dropdown.
   useEffect(() => {
@@ -410,217 +414,83 @@ export function Header() {
             </span>
           </button>
         )}
-        {(isOpen || dirHandle) ? (
+{(isOpen || dirHandle) ? (
           <>
-            <div className="flex items-center gap-2 mr-2 text-[12.5px] text-fg-muted/70">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              {/* 📖 `displayCount` is a MotionValue, not a number: it has to be
-                  rendered by a motion component, which subscribes to it and
-                  writes the spring's output straight into the text node. A
-                  plain span stringifies the object itself — which is what this
-                  counter did, showing "[object Object] tasks" to everyone. */}
-              <motion.span className="tabular-nums font-medium transition-colors duration-200">{displayCount}</motion.span>
-              <span>{t('header.tasks')}</span>
-            </div>
-
-            {/* 📖 Multi-select category filter: the toggle lists every category
-             * on the project with live counts; picking entries toggles them in
-             * `filters.category` without closing the menu. Each selection shows
-             * as a chip with a small X right here, so one or two can be removed
-             * in a click; "All categories" (or Clear all) empties the selection.
-             * While the selection is non-empty, board and list views show only
-             * the matching tasks and their stacks render expanded and locked
-             * (CardStack `lockedExpanded`). */}
-            <div className="relative flex items-center gap-1.5 flex-shrink-0 mr-1" ref={catMenuRef}>
-              {filters.category.map(label => (
-                <span
-                  key={label.toLowerCase()}
-                  className="inline-flex items-center gap-0.5 h-7 pl-1 pr-0.5 rounded-lg border border-black/[0.08] dark:border-white/[0.12] bg-black/[0.04] dark:bg-white/[0.08]"
-                >
-                  <CategoryChip category={label} />
-                  <button
-                    type="button"
-                    onClick={() => toggleCategoryFilter(label)}
-                    title={`${t('common.remove')} ${label}`}
-                    aria-label={`${t('common.remove')} ${label}`}
-                    className="w-[18px] h-[18px] inline-flex items-center justify-center rounded-md text-fg-muted/60 hover:text-fg hover:bg-black/[0.08] dark:hover:bg-white/[0.15] transition-colors"
-                  >
-                    <Icon.X size={11} />
-                  </button>
-                </span>
-              ))}
+            {/* 📖 Header overflow menu (t332): every secondary action that used
+             * to be a dedicated icon in the header (palette, reload, metadata
+             * master switch, density, cheatsheet) collapses behind one dots
+             * button so the bar stays to project, search, New task. */}
+            <div className="relative flex-shrink-0" ref={moreMenuRef}>
               <button
                 type="button"
-                onClick={() => setCatMenuOpen(o => !o)}
-                className={`flex items-center gap-1.5 h-9 px-2.5 text-[12.5px] rounded-xl border transition-colors ${
-                  filters.category.length > 0
-                    ? 'border-black/[0.12] dark:border-white/[0.16] bg-black/[0.05] dark:bg-white/[0.08] text-fg'
-                    : 'border-black/[0.06] dark:border-white/[0.1] text-fg-muted hover:text-fg hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
-                }`}
-                aria-label={t('header.allCategories')}
-                aria-expanded={catMenuOpen}
-                aria-haspopup="listbox"
+                onClick={() => setMoreMenuOpen(o => !o)}
+                aria-label={t('header.more')}
+                aria-expanded={moreMenuOpen}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-fg-muted hover:text-fg hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
               >
-                <Icon.Tag size={13} className={filters.category.length > 0 ? 'text-accent' : 'text-fg-muted/70'} />
-                {filters.category.length === 0 ? (
-                  <span className="font-medium">{t('header.allCategories')}</span>
-                ) : (
-                  <span className="inline-flex items-center justify-center h-[18px] min-w-[18px] px-1 text-[10.5px] font-semibold rounded-md bg-black/[0.06] dark:bg-white/[0.12] text-fg tabular-nums">
-                    {filters.category.length}
-                  </span>
-                )}
-                <Icon.ChevronDown size={11} className="opacity-50" />
+                <IconDots size={17} stroke={1.6} />
               </button>
               <AnimatePresence>
-                {catMenuOpen && (
+                {moreMenuOpen && (
                   <motion.div
                     {...MOTION.fade}
                     initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -4 }}
                     transition={{ duration: 0.12, ease: MOTION.fade.transition.ease }}
-                    role="listbox"
-                    aria-multiselectable="true"
-                    className="absolute top-full right-0 mt-2 min-w-[230px] max-h-[340px] overflow-y-auto glass rounded-xl shadow-[0_16px_48px_rgba(0,0,0,0.5)] overflow-x-hidden z-50"
+                    className="absolute top-full right-0 mt-2 min-w-[230px] glass rounded-xl shadow-[0_16px_48px_rgba(0,0,0,0.5)] overflow-hidden z-50"
                   >
                     <div className="py-1.5">
                       <button
                         type="button"
-                        role="option"
-                        aria-selected={filters.category.length === 0}
-                        onClick={() => {
-                          setCatMenuOpen(false);
-                          setFilter('category', []);
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-[13.5px] text-left hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
+                        onClick={() => { setMoreMenuOpen(false); setCommandOpen(true); }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-left hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
                       >
-                        <span className="truncate font-medium">{t('header.allCategories')}</span>
-                        {filters.category.length === 0 && <Icon.Check size={12} className="ml-auto text-emerald-500" />}
+                        <Icon.Command size={14} className="text-fg-muted/70 flex-shrink-0" />
+                        <span className="truncate">{t('header.commandPalette')}</span>
+                        <kbd className="ml-auto inline-flex items-center h-5 px-1.5 text-[10px] font-medium text-fg-muted/60 bg-black/[0.04] dark:bg-white/[0.08] rounded border border-black/[0.06] dark:border-white/[0.1]">⌘K</kbd>
                       </button>
-                      {categories.length > 0 && <div className="h-px bg-black/[0.06] dark:bg-white/[0.08] my-1.5 mx-2" />}
-                      {categories.map(cat => {
-                        const active = selectedCategoryKeys.has(cat.key);
-                        return (
-                          <button
-                            key={cat.key}
-                            type="button"
-                            role="option"
-                            aria-selected={active}
-                            onClick={() => toggleCategoryFilter(cat.label)}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
-                          >
-                            <CategoryChip category={cat.label} />
-                            <span className="ml-auto inline-flex items-center h-[18px] px-1.5 text-[10.5px] font-medium rounded-md bg-black/[0.04] dark:bg-white/[0.06] text-fg-muted tabular-nums flex-none">
-                              {cat.count}
-                            </span>
-                            {active && <Icon.Check size={12} className="ml-1 text-emerald-500 flex-none" />}
-                          </button>
-                        );
-                      })}
+                      <button
+                        type="button"
+                        onClick={() => { setMoreMenuOpen(false); reloadBoard(); }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-left hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
+                      >
+                        <Icon.Refresh size={14} className="text-fg-muted/70 flex-shrink-0" />
+                        <span className="truncate">{t('common.reload')}</span>
+                        <kbd className="ml-auto inline-flex items-center h-5 px-1.5 text-[10px] font-medium text-fg-muted/60 bg-black/[0.04] dark:bg-white/[0.08] rounded border border-black/[0.06] dark:border-white/[0.1]">R</kbd>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setMoreMenuOpen(false); setShowMetadata(!showMetadata); }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-left hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
+                      >
+                        {showMetadata ? <Icon.Eye size={14} className="text-fg-muted/70 flex-shrink-0" /> : <Icon.EyeOff size={14} className="text-fg-muted/70 flex-shrink-0" />}
+                        <span className="truncate">{showMetadata ? t('header.showMetadata') : t('header.hideMetadata')}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDensity(density === 'compact' ? 'comfortable' : 'compact')}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-left hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
+                      >
+                        <Icon.Density size={14} className="text-fg-muted/70 flex-shrink-0" />
+                        <span className="truncate">{density === 'compact' ? t('commandPalette.comfortableDensity') : t('commandPalette.compactDensity')}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setMoreMenuOpen(false); setCheatsheetOpen(!cheatsheetOpen); }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-left hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
+                      >
+                        <Icon.Keyboard size={14} className="text-fg-muted/70 flex-shrink-0" />
+                        <span className="truncate">{t('cheatsheet.title')}</span>
+                        <kbd className="ml-auto inline-flex items-center h-5 px-1.5 text-[10px] font-medium text-fg-muted/60 bg-black/[0.04] dark:bg-white/[0.08] rounded border border-black/[0.06] dark:border-white/[0.1]">?</kbd>
+                      </button>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            {/* View mode toggle */}
-            <div className="flex items-center bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.1] rounded-xl p-0.5 h-10">
-              <Tooltip content={t('common.board')}>
-                <button
-                  onClick={() => setViewMode('board')}
-                  className={`w-9 h-9 inline-flex items-center justify-center rounded-lg transition-all ${
-                    viewMode === 'board'
-                      ? 'bg-card text-fg shadow-sm'
-                      : 'text-fg-muted/70 hover:text-fg'
-                  }`}
-                  aria-label={t('common.board')}
-                >
-                  <Icon.LayoutBoard size={18} />
-                </button>
-              </Tooltip>
-              <Tooltip content={t('common.list')}>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`w-9 h-9 inline-flex items-center justify-center rounded-lg transition-all ${
-                    viewMode === 'list'
-                      ? 'bg-card text-fg shadow-sm'
-                      : 'text-fg-muted/70 hover:text-fg'
-                  }`}
-                  aria-label={t('common.list')}
-                >
-                  <Icon.LayoutList size={18} />
-                </button>
-              </Tooltip>
-            </div>
-
-            <Tooltip content={showArchives ? t('header.backToBoard') : `${t('header.archives')} (${archivedCount})`}>
-              <KbdButton
-                variant="icon"
-                icon="Archive"
-                onClick={() => setShowArchives(!showArchives)}
-                className={showArchives ? 'text-accent' : ''}
-              />
-            </Tooltip>
-
-            {/* 📖 Agent chat sidebar toggle (t308, ⌘J). Active tint while the
-             * sidebar is open, mirroring the archives button. */}
-            <Tooltip content={`${t('agentChat.title', 'Agent')} (⌘J)`}>
-              <button
-                type="button"
-                onClick={() => (sidebarOpen ? closeSidebar() : openSidebar())}
-                aria-label={t('agentChat.title', 'Agent')}
-                aria-pressed={sidebarOpen}
-                className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${
-                  sidebarOpen ? 'bg-black/[0.06] text-accent dark:bg-white/[0.1]' : 'text-fg-muted/70 hover:text-fg'
-                }`}
-              >
-                <IconMessage size={17} stroke={1.6} />
-              </button>
-            </Tooltip>
-
-            <Tooltip content={`Densité: ${density === 'compact' ? 'Compacte' : 'Confortable'}`}>
-              <KbdButton
-                variant="icon"
-                icon="Density"
-                onClick={() => setDensity(density === 'compact' ? 'comfortable' : 'compact')}
-              />
-            </Tooltip>
-
-            <Tooltip content={t('common.settings')}>
-              <KbdButton
-                variant="icon"
-                icon="Settings"
-                onClick={() => setCurrentPage('settings')}
-              />
-            </Tooltip>
-
-            <Tooltip content="Changer de thème">
-              <div>
-                <ThemeSwitcher />
-              </div>
-            </Tooltip>
-
-            <div className="w-px h-5 bg-black/[0.08] dark:bg-white/[0.08] mx-1" />
-
-            <Tooltip content="Palette de commandes (⌘K)">
-              <KbdButton
-                variant="secondary"
-                icon="Search"
-                label={t('common.search')}
-                shortcut="⌘K"
-                onClick={() => setCommandOpen(true)}
-              />
-            </Tooltip>
-
-            <Tooltip content={`${t('common.reload')} (R)`}>
-              <KbdButton
-                variant="icon"
-                icon="Refresh"
-                onClick={reloadBoard}
-              />
-            </Tooltip>
-
-            <Tooltip content="Créer une nouvelle tâche (N)">
+            <Tooltip content={`${t('common.newTask')} (N)`}>
               <KbdButton
                 variant="primary"
                 icon="Plus"

@@ -40,7 +40,9 @@
     "tasks": "Aufgaben",
     "recentProjects": "Letzte Projekte",
     "openFolder...": "Ordner öffnen...",
-    "allCategories": "Alle Kategorien"
+    "allCategories": "Alle Kategorien",
+    "more": "Weitere Optionen",
+    "commandPalette": "Befehlspalette"
   },
   "filterBar": {
     "searchPlaceholder": "Aufgaben suchen...",
@@ -218,7 +220,7 @@
   "settings": {
     "noProjectOpen": "Kein Projekt geöffnet",
     "appearance": "Aussehen",
-    "appearanceDesc": "Thema, Skin, Hintergrund, Schriftart und Sprache.",
+    "appearanceDesc": "Sprache, heller oder dunkler Modus und optionale Spaltenfarbakzente.",
     "agent": "Agent",
     "agentDesc": "Nachfolgeverhalten für KI-unterstützte Aufgabenarbeit.",
     "board": "Board",
@@ -311,7 +313,9 @@
     "kickerIdentifiers": "Bezeichner",
     "kickerMetadata": "Metadaten",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Farbakzente für Spalten",
+    "columnAccentsDesc": "Zeigt einen kleinen farbigen Punkt neben jedem Spaltentitel"
   },
   "sectionLabels": {
     "title": "Titel",
@@ -463,5 +467,14 @@
       "unknown": "Unbekannt",
       "gone": "Verschwunden"
     }
+  },
+  "nav": {
+    "expand": "Seitenleiste ausklappen",
+    "collapse": "Seitenleiste einklappen",
+    "copyBranch": "Branchnamen kopieren",
+    "branchCopied": "Branchnamen kopiert",
+    "worktree": "Worktree",
+    "header.more": "Weitere Optionen",
+    "header.commandPalette": "Befehlspalette"
   }
 }

@@ -31,12 +31,11 @@ import {
   type TablerIcon,
 } from '@tabler/icons-react';
 import type { useTranslation } from 'react-i18next';
-import { BACKGROUND_OPTIONS, FONT_OPTIONS, SKIN_OPTIONS } from '../../lib/theme';
 import { SUPPORTED_LANGUAGES, LANGUAGE_LABELS } from '../../lib/i18n';
 import type { KandownConfig } from '../../lib/types';
 
-export type SettingType = 'toggle' | 'select' | 'number' | 'text' | 'skin' | 'theme' | 'language' | 'permission' | 'button';
-export type SettingsSectionId = 'appearance' | 'agent' | 'board' | 'fields' | 'notifications' | 'extensions' | 'themes' | 'about';
+export type SettingType = 'toggle' | 'select' | 'number' | 'text' | 'theme' | 'language' | 'permission' | 'button';
+export type SettingsSectionId = 'appearance' | 'agent' | 'board' | 'fields' | 'notifications' | 'extensions' | 'about';
 
 export interface SettingOption {
   value: string;
@@ -171,39 +170,20 @@ export const getSETTINGS = (t: ReturnType<typeof useTranslation>['t']): SettingD
     keywords: ['dark', 'light', 'auto'],
   },
   {
-    key: 'ui.skin',
-    label: t('settings.skin'),
-    section: 'appearance',
-    type: 'skin',
-    description: t('settings.skinDesc'),
-    options: SKIN_OPTIONS.map(skin => ({ value: skin.id, label: skin.label })),
-    keywords: ['color', 'theme', 'palette'],
-  },
-  {
-    key: 'ui.background',
-    label: t('settings.background'),
-    section: 'appearance',
-    type: 'select',
-    description: t('settings.backgroundDesc'),
-    options: BACKGROUND_OPTIONS.map(background => ({ value: background.id, label: background.label })),
-    keywords: ['liquid', 'solid', 'animation'],
-  },
-  {
-    key: 'ui.font',
-    label: t('settings.font'),
-    section: 'appearance',
-    type: 'select',
-    description: t('settings.fontDesc'),
-    options: FONT_OPTIONS.map(font => ({ value: font.id, label: font.label })),
-    keywords: ['typography', 'text'],
-  },
-  {
     key: 'ui.categoryChips',
     label: t('settings.categoryChips'),
     section: 'appearance',
     type: 'toggle',
     description: t('settings.categoryChipsDesc'),
     keywords: ['category', 'color', 'chip', 'hash', 'icon'],
+  },
+  {
+    key: 'ui.columnAccents',
+    label: t('settings.columnAccents'),
+    section: 'appearance',
+    type: 'toggle',
+    description: t('settings.columnAccentsDesc'),
+    keywords: ['column', 'color', 'accent', 'dot'],
   },
   {
     // 📖 Action row: re-opens the onboarding modal. The `key` is a synthetic

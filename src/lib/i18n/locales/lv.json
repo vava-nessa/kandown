@@ -40,7 +40,9 @@
     "tasks": "uzdevumi",
     "recentProjects": "Nesenie projekti",
     "openFolder...": "Atvērt mapi...",
-    "allCategories": "Visas kategorijas"
+    "allCategories": "Visas kategorijas",
+    "more": "Vairāk opciju",
+    "commandPalette": "Komandu palete"
   },
   "filterBar": {
     "searchPlaceholder": "Meklēt uzdevumus...",
@@ -218,7 +220,7 @@
   "settings": {
     "noProjectOpen": "Nav atvērta projekta",
     "appearance": "Izskats",
-    "appearanceDesc": "Tēma, izskats, fons, fonts un valoda.",
+    "appearanceDesc": "Valoda, gaišais vai tumšais režīms un izvēles kolonnu krāsu akcenti.",
     "agent": "Aģents",
     "agentDesc": "Turpmākā uzvedība AI atbalstītam uzdevumu darbam.",
     "board": "Tāfele",
@@ -311,7 +313,9 @@
     "kickerIdentifiers": "Identifikatori",
     "kickerMetadata": "Metadati",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Kolonnu krāsu akcenti",
+    "columnAccentsDesc": "Rāda nelielu krāsainu punktu pie katra stulpelka virsraksta"
   },
   "sectionLabels": {
     "title": "Virsraksts",
@@ -463,5 +467,14 @@
       "unknown": "Nezināms",
       "gone": "Pazudis"
     }
+  },
+  "nav": {
+    "expand": "Izvērst sānu joslu",
+    "collapse": "Sakļaut sānu joslu",
+    "copyBranch": "Kopēt zara nosaukumu",
+    "branchCopied": "Zara nosaukums nokopēts",
+    "worktree": "Darba koks",
+    "header.more": "Vairāk opciju",
+    "header.commandPalette": "Komandu palete"
   }
 }

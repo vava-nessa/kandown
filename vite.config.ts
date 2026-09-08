@@ -198,6 +198,39 @@ function kandownDevPlugin() {
         // pure browser, but here we ARE the backend. Loaded through Vite's
         // SSR module loader so the shared CLI detection logic (and the project
         // .kandown/agents.json overrides) is reused without duplication.
+        // 📖 Read-only git facts for the sidebar footer (t332), DEV mirror of
+        // the daemon's /api/git route. Runs git in the dev project root and
+        // degrades to null so the UI hides the footer when git is absent.
+        if (resource === 'git' && req.method === 'GET') {
+          try {
+            const { execFile } = await import('node:child_process');
+            const { promisify } = await import('node:util');
+            const { statSync } = await import('node:fs');
+            const boardModule = await server.ssrLoadModule('/src/cli/lib/board-reader.ts') as typeof import('./src/cli/lib/board-reader');
+            const projectRoot = boardModule.getProjectRoot(kandownPath);
+            let branch: string | null = null;
+            let worktree = false;
+            try {
+              const { stdout } = await promisify(execFile)('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: projectRoot, timeout: 2000 });
+              const trimmed = stdout.trim();
+              branch = trimmed.length > 0 ? trimmed : null;
+            } catch {
+              branch = null;
+            }
+            try {
+              worktree = statSync(join(projectRoot, '.git')).isFile();
+            } catch {
+              worktree = false;
+            }
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ branch, worktree }));
+          } catch (e) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: `Failed to read git info: ${e.message}` }));
+          }
+          return;
+        }
+
         if (resource === 'agents' && req.method === 'GET') {
           try {
             const mod = await server.ssrLoadModule('/src/cli/lib/agents.ts');

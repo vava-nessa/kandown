@@ -40,7 +40,9 @@
     "tasks": "užduotys",
     "recentProjects": "Paskutiniai projektai",
     "openFolder...": "Atverti aplanką...",
-    "allCategories": "Visos kategorijos"
+    "allCategories": "Visos kategorijos",
+    "more": "Daugiau parinkčių",
+    "commandPalette": "Komandų paletė"
   },
   "filterBar": {
     "searchPlaceholder": "Ieškoti užduočių...",
@@ -218,7 +220,7 @@
   "settings": {
     "noProjectOpen": "Projektas neatvertas",
     "appearance": "Išvaizda",
-    "appearanceDesc": "Tema, apvalkalas, fonas, šriftas ir kalba.",
+    "appearanceDesc": "Kalba, šviesusis arba tamsusis režimas ir pasirinktiniai stulpelių spalvų akcentai.",
     "agent": "Agentas",
     "agentDesc": "Tolesnio elgesio nustatymai AI padedamam užduočių darbui.",
     "board": "Lenta",
@@ -311,7 +313,9 @@
     "kickerIdentifiers": "Identifikatoriai",
     "kickerMetadata": "Metaduomenys",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Stulpelių spalvų akcentai",
+    "columnAccentsDesc": "Rodo mažą spalvotą tašką šalia kiekvieno stulpelio pavadinimo"
   },
   "sectionLabels": {
     "title": "Pavadinimas",
@@ -463,5 +467,14 @@
       "unknown": "Nežinoma",
       "gone": "Dingo"
     }
+  },
+  "nav": {
+    "expand": "Išplėsti šoninį lauką",
+    "collapse": "Suskleisti šoninį lauką",
+    "copyBranch": "Kopijuoti šakos pavadinimą",
+    "branchCopied": "Šakos pavadinimas nukopijuotas",
+    "worktree": "Darbo medis",
+    "header.more": "Daugiau parinkčių",
+    "header.commandPalette": "Komandų paletė"
   }
 }

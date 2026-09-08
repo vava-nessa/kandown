@@ -40,7 +40,9 @@
     "tasks": "feladat",
     "recentProjects": "Legutóbbi projektek",
     "openFolder...": "Mappa megnyitása...",
-    "allCategories": "Minden kategória"
+    "allCategories": "Minden kategória",
+    "more": "További beállítások",
+    "commandPalette": "Parancspaletta"
   },
   "filterBar": {
     "searchPlaceholder": "Feladatok keresése...",
@@ -218,7 +220,7 @@
   "settings": {
     "noProjectOpen": "Nincs projekt megnyitva",
     "appearance": "Megjelenés",
-    "appearanceDesc": "Téma, kinézet, háttér, betűtípus és nyelv.",
+    "appearanceDesc": "Nyelv, világos vagy sötét mód és opcionális oszlop színkiemelések.",
     "agent": "Ügynök",
     "agentDesc": "Követési viselkedés az AI-asszisztált feladatokhoz.",
     "board": "Tábla",
@@ -311,7 +313,9 @@
     "kickerIdentifiers": "Azonosítók",
     "kickerMetadata": "Metaadatok",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Oszlop színkiemelések",
+    "columnAccentsDesc": "Kis színes pontot jelenít meg minden oszlop címe mellett"
   },
   "sectionLabels": {
     "title": "Cím",
@@ -463,5 +467,14 @@
       "unknown": "Ismeretlen",
       "gone": "Eltűnt"
     }
+  },
+  "nav": {
+    "expand": "Oldalsáv kibontása",
+    "collapse": "Oldalsáv összecsukása",
+    "copyBranch": "Branch név másolása",
+    "branchCopied": "Branch név másolva",
+    "worktree": "Munkafa",
+    "header.more": "További beállítások",
+    "header.commandPalette": "Parancspaletta"
   }
 }

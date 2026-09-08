@@ -40,7 +40,9 @@
     "tasks": "tasks",
     "recentProjects": "Recent projects",
     "openFolder...": "Open folder...",
-    "allCategories": "Усі категорії"
+    "allCategories": "Усі категорії",
+    "more": "Інші параметри",
+    "commandPalette": "Палітра команд"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -203,7 +205,7 @@
   "settings": {
     "noProjectOpen": "No project open",
     "appearance": "Appearance",
-    "appearanceDesc": "Theme, skin, background, font, and language.",
+    "appearanceDesc": "Мова, світлий або темний режим і необов'язкові кольорові акценти колонок.",
     "agent": "Agent",
     "agentDesc": "Follow-up behavior for AI-assisted task work.",
     "board": "Board",
@@ -296,7 +298,9 @@
     "kickerIdentifiers": "Identifiers",
     "kickerMetadata": "Metadata",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Кольорові акценти колонок",
+    "columnAccentsDesc": "Показує маленьку кольорову крапку поруч із заголовком кожної колонки"
   },
   "sectionLabels": {
     "title": "Title",
@@ -448,5 +452,14 @@
       "unknown": "Невідомо",
       "gone": "Зник"
     }
+  },
+  "nav": {
+    "expand": "Розгорнути бічну панель",
+    "collapse": "Згорнути бічну панель",
+    "copyBranch": "Копіювати назву гілки",
+    "branchCopied": "Назву гілки скопійовано",
+    "worktree": "Робоче дерево",
+    "header.more": "Інші параметри",
+    "header.commandPalette": "Палітра команд"
   }
 }

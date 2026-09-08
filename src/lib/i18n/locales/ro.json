@@ -40,7 +40,9 @@
     "tasks": "tasks",
     "recentProjects": "Recent projects",
     "openFolder...": "Open folder...",
-    "allCategories": "Toate categoriile"
+    "allCategories": "Toate categoriile",
+    "more": "Mai multe opțiuni",
+    "commandPalette": "Paleta de comenzi"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -203,7 +205,7 @@
   "settings": {
     "noProjectOpen": "No project open",
     "appearance": "Appearance",
-    "appearanceDesc": "Theme, skin, background, font, and language.",
+    "appearanceDesc": "Limba, modul deschis sau închis și accente colorate opționale pentru coloane.",
     "agent": "Agent",
     "agentDesc": "Follow-up behavior for AI-assisted task work.",
     "board": "Board",
@@ -296,7 +298,9 @@
     "kickerIdentifiers": "Identifiers",
     "kickerMetadata": "Metadata",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Accente colorate pentru coloane",
+    "columnAccentsDesc": "Afișează un punct mic colorat lângă titlul fiecărei coloane"
   },
   "sectionLabels": {
     "title": "Title",
@@ -448,5 +452,14 @@
       "unknown": "Necunoscut",
       "gone": "Dispărut"
     }
+  },
+  "nav": {
+    "expand": "Extinde bara laterală",
+    "collapse": "Restrânge bara laterală",
+    "copyBranch": "Copiază numele ramurii",
+    "branchCopied": "Numele ramurii a fost copiat",
+    "worktree": "Arbore de lucru",
+    "header.more": "Mai multe opțiuni",
+    "header.commandPalette": "Paleta de comenzi"
   }
 }

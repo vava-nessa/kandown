@@ -47,7 +47,9 @@
     "backToBoard": "Back to board",
     "showMetadata": "Show metadata",
     "hideMetadata": "Hide metadata",
-    "allCategories": "All categories"
+    "allCategories": "All categories",
+    "more": "More options",
+    "commandPalette": "Command palette"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -237,7 +239,7 @@
   "settings": {
     "noProjectOpen": "No project open",
     "appearance": "Appearance",
-    "appearanceDesc": "Theme, skin, background, font, and language.",
+    "appearanceDesc": "Language, light or dark mode, and optional column color accents.",
     "agent": "Agent instructions",
     "agentDesc": "Rules and instructions generated for AI agents when running kandown work.",
     "board": "Board",
@@ -381,7 +383,9 @@
     "themes": "Themes",
     "themesDesc": "Browse the community theme store, install curated + community themes, and open the floating editor to tweak or propose your own.",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "Column color accents",
+    "columnAccentsDesc": "Show a small color dot next to each column title"
   },
   "conflict": {
     "detected": "Conflict Detected",
@@ -635,5 +639,14 @@
       "unknown": "Unknown",
       "gone": "Gone"
     }
+  },
+  "nav": {
+    "expand": "Expand sidebar",
+    "collapse": "Collapse sidebar",
+    "copyBranch": "Copy branch name",
+    "branchCopied": "Branch name copied",
+    "worktree": "Worktree",
+    "header.more": "More options",
+    "header.commandPalette": "Command palette"
   }
 }

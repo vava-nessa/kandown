@@ -40,7 +40,9 @@
     "tasks": "tasks",
     "recentProjects": "Recent projects",
     "openFolder...": "Open folder...",
-    "allCategories": "ಎಲ್ಲಾ ವರ್ಗಗಳು"
+    "allCategories": "ಎಲ್ಲಾ ವರ್ಗಗಳು",
+    "more": "ಇನ್ನಷ್ಟು ಆಯ್ಕೆಗಳು",
+    "commandPalette": "ಕಮಾಂಡ್ ಪ್ಯಾಲೆಟ್"
   },
   "filterBar": {
     "searchPlaceholder": "Search tasks...",
@@ -240,7 +242,7 @@
   "settings": {
     "noProjectOpen": "No project open",
     "appearance": "Appearance",
-    "appearanceDesc": "Theme, skin, background, font, and language.",
+    "appearanceDesc": "ಭಾಷೆ, ಲೈಟ್ ಅಥವಾ ಡಾರ್ಕ್ ಮೋಡ್, ಮತ್ತು ಐಚ್ಛಿಕ ಕಾಲಮ್ ಬಣ್ಣ ಉಚ್ಚಾರಣೆಗಳು.",
     "agent": "Agent",
     "agentDesc": "Follow-up behavior for AI-assisted task work.",
     "board": "Board",
@@ -333,7 +335,9 @@
     "kickerIdentifiers": "Identifiers",
     "kickerMetadata": "Metadata",
     "categoryChips": "Colored category chips",
-    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels."
+    "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
+    "columnAccents": "ಕಾಲಮ್ ಬಣ್ಣ ಉಚ್ಚಾರಣೆಗಳು",
+    "columnAccentsDesc": "ಪ್ರತಿ ಕಾಲಮ್ ಶೀರ್ಷಿಕೆಯ ಪಕ್ಕದಲ್ಲಿ ಸಣ್ಣ ಬಣ್ಣದ ಚುಕ್ಕೆಯನ್ನು ತೋರಿಸುತ್ತದೆ"
   },
   "sectionLabels": {
     "title": "Title",
@@ -485,5 +489,14 @@
       "unknown": "ಅಜ್ಞಾತ",
       "gone": "ಮಾಯವಾಗಿದೆ"
     }
+  },
+  "nav": {
+    "expand": "ಸೈಡ್‌ಬಾರ್ ವಿಸ್ತರಿಸಿ",
+    "collapse": "ಸೈಡ್‌ಬಾರ್ ಸಂಕುಚಿಸಿ",
+    "copyBranch": "ಶಾಖೆ ಹೆಸರನ್ನು ನಕಲಿಸಿ",
+    "branchCopied": "ಶಾಖೆ ಹೆಸರು ನಕಲಿಸಲಾಗಿದೆ",
+    "worktree": "ವರ್ಕ್‌ಟ್ರೀ",
+    "header.more": "ಇನ್ನಷ್ಟು ಆಯ್ಕೆಗಳು",
+    "header.commandPalette": "ಕಮಾಂಡ್ ಪ್ಯಾಲೆಟ್"
   }
 }
