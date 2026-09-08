@@ -404,7 +404,8 @@
     "panelLabel": "Konversationspanel",
     "changesEmpty": "Filer som den här konversationen rör visas här.",
     "touchedFiles": "Rörda filer",
-    "liveDiffs": "Live-diffar för uppgifter"
+    "liveDiffs": "Live-diffar för uppgifter",
+    "welcomeTitle": "Vad kan jag göra för dig idag?"
   },
   "agentSkills": {
     "skillsModalTitle": "Färdigheter",

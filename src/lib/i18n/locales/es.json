@@ -415,7 +415,8 @@
     "panelLabel": "Panel de conversación",
     "changesEmpty": "Los archivos que toque esta conversación aparecerán aquí.",
     "touchedFiles": "Archivos tocados",
-    "liveDiffs": "Diffs de tareas en vivo"
+    "liveDiffs": "Diffs de tareas en vivo",
+    "welcomeTitle": "¿Qué puedo hacer por ti hoy?"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

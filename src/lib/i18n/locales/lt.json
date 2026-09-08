@@ -404,7 +404,8 @@
     "panelLabel": "Pokalbių panelis",
     "changesEmpty": "Čia atsiras failai, kurių šis pokalbis liečia.",
     "touchedFiles": "Paliesti failai",
-    "liveDiffs": "Užduočių diffai realiuoju laiku"
+    "liveDiffs": "Užduočių diffai realiuoju laiku",
+    "welcomeTitle": "Ką galiu šiandien padaryti tau?"
   },
   "agentSkills": {
     "skillsModalTitle": "Įgūdžiai",

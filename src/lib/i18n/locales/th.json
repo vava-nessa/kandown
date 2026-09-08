@@ -426,7 +426,8 @@
     "panelLabel": "แผงการสนทนา",
     "changesEmpty": "ไฟล์ที่การสนทนานี้แตะจะปรากฏที่นี่",
     "touchedFiles": "ไฟล์ที่แตะ",
-    "liveDiffs": "ดิฟงานแบบเรียลไทม์"
+    "liveDiffs": "ดิฟงานแบบเรียลไทม์",
+    "welcomeTitle": "วันนี้ฉันทำอะไรให้คุณได้บ้าง?"
   },
   "agentSkills": {
     "skillsModalTitle": "ทักษะ",

@@ -352,6 +352,72 @@ export function AgentChatSurface({ active }: AgentChatSurfaceProps) {
     setPendingSkill(null);
   }, []);
 
+  // 📖 Welcome mode (vava, t337 round 2): a conversation with no messages yet
+  // renders like a fresh harness page: a big centered greeting with the
+  // composer right under it, larger and roomier (the PromptBar's `tall`
+  // shape). The first send creates a message and the layout falls back to
+  // the classic bottom-anchored chat below. Computed before the guard
+  // branches, but only rendered after them: a missing daemon must still win.
+  const conversationEmpty = (fold?.messages.length ?? 0) === 0;
+
+  const promptBar = (
+    <PromptBar
+      // 📖 The harness picker only gates NEW sessions: follow-ups on an
+      // active conversation are always sendable when the daemon is there
+      // (the guard branch above already excludes 'no-daemon').
+      disabled={activeSessionId === null && installedHarnesses.length === 0}
+      turnActive={turnActive}
+      sending={sending}
+      // 📖 Round 4: steer/queue only makes sense for interactive harnesses;
+      // one-shot sessions hide the control entirely.
+      deliveryEnabled={deliveryEnabled}
+      // 📖 Welcome mode asks for the tall composer: more padding, wider
+      // gaps, bigger text.
+      tall={conversationEmpty}
+      onSend={handleSend}
+      onStop={() => { if (activeSessionId) void stopSession(activeSessionId); }}
+      onLaunchSkill={handleLaunchSkill}
+      pickTaskMode={pendingSkill !== null}
+      pickTaskLabel={pendingSkill?.skill.label ?? null}
+      onPickTask={handlePickTask}
+      onDismissPickTask={handleDismissPickTask}
+      // 📖 Round 7: the conversation controls ride inside the composer
+      // (official BeautifulUI 08 toolbar slot). The harness picker applies
+      // to the NEXT new conversation; a live session is already bound to
+      // its harness. The model pick moved into the BUI model menu.
+      toolbar={
+        <>
+          <select
+            value={selectedHarness ?? ''}
+            onChange={e => setSelectedHarness(e.target.value)}
+            disabled={installedHarnesses.length === 0}
+            title={t('agentChat.harnessLabel', 'Harness for new chats')}
+            className="h-6 min-w-0 max-w-[130px] flex-none rounded-md border border-border bg-bg px-1.5 text-[11px] text-fg-muted outline-none transition-colors hover:text-fg focus:border-border-focus disabled:opacity-50"
+          >
+            {installedHarnesses.length === 0 && (
+              <option value="">{t('agentChat.noHarness', 'No harness installed')}</option>
+            )}
+            {installedHarnesses.map(harness => (
+              <option key={harness.id} value={harness.id}>{harness.name}</option>
+            ))}
+          </select>
+          <span
+            className="ml-auto inline-flex flex-none items-center rounded-full border border-border bg-bg px-2 py-0.5 text-[10px] text-fg-muted"
+            title={t('settings.permissionMode', 'Permission mode')}
+          >
+            {permissionMode === 'accept-edits'
+              ? t('settings.acceptEdits', 'Accept edits')
+             : t('settings.yolo', 'Yolo')}
+          </span>
+        </>
+      }
+      models={modelMenu}
+      model={selectedModel}
+      onModelChange={handleModelChange}
+      allowCustomModel
+    />
+  );
+
   if (guard === 'no-daemon') {
     return <DaemonGuardCard />;
   }
@@ -375,6 +441,31 @@ export function AgentChatSurface({ active }: AgentChatSurfaceProps) {
           {t('agentChat.reload', 'Reload')}
         </button>
       </div>
+    );
+  }
+
+  if (conversationEmpty) {
+    return (
+      <>
+        {gitWarning && !gitBannerDismissed && (
+          <GitInitBanner className="mx-3 mt-2 flex-none" onDismiss={() => setGitBannerDismissed(true)} />
+        )}
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-7 px-6 pb-12">
+          <h1 className="text-center text-[28px] leading-tight font-semibold tracking-tight text-fg">
+            {t('agentChat.welcomeTitle', 'What can I do for you today?')}
+          </h1>
+          <div className="w-full max-w-[680px]">
+            {promptBar}
+          </div>
+          <SkillButtons
+            skills={chatSkills}
+            disabled={starting || installedHarnesses.length === 0}
+            hasTaskContext={preContextTaskId !== null || boardTaskCount > 0}
+            activeSkillLabel={activeSkill?.label ?? null}
+            onLaunch={handleLaunchSkill}
+          />
+        </div>
+      </>
     );
   }
 
@@ -436,58 +527,7 @@ export function AgentChatSurface({ active }: AgentChatSurfaceProps) {
         activeSkillLabel={activeSkill?.label ?? null}
         onLaunch={handleLaunchSkill}
       />
-      <PromptBar
-        // 📖 The harness picker only gates NEW sessions: follow-ups on an
-        // active conversation are always sendable when the daemon is there
-        // (the guard branch above already excludes 'no-daemon').
-        disabled={activeSessionId === null && installedHarnesses.length === 0}
-        turnActive={turnActive}
-        sending={sending}
-        // 📖 Round 4: steer/queue only makes sense for interactive harnesses;
-        // one-shot sessions hide the control entirely.
-        deliveryEnabled={deliveryEnabled}
-        onSend={handleSend}
-        onStop={() => { if (activeSessionId) void stopSession(activeSessionId); }}
-        onLaunchSkill={handleLaunchSkill}
-        pickTaskMode={pendingSkill !== null}
-        pickTaskLabel={pendingSkill?.skill.label ?? null}
-        onPickTask={handlePickTask}
-        onDismissPickTask={handleDismissPickTask}
-        // 📖 Round 7: the conversation controls ride inside the composer
-        // (official BeautifulUI 08 toolbar slot). The harness picker applies
-        // to the NEXT new conversation; a live session is already bound to
-        // its harness. The model pick moved into the BUI model menu.
-        toolbar={
-          <>
-            <select
-              value={selectedHarness ?? ''}
-              onChange={e => setSelectedHarness(e.target.value)}
-              disabled={installedHarnesses.length === 0}
-              title={t('agentChat.harnessLabel', 'Harness for new chats')}
-              className="h-6 min-w-0 max-w-[130px] flex-none rounded-md border border-border bg-bg px-1.5 text-[11px] text-fg-muted outline-none transition-colors hover:text-fg focus:border-border-focus disabled:opacity-50"
-            >
-              {installedHarnesses.length === 0 && (
-                <option value="">{t('agentChat.noHarness', 'No harness installed')}</option>
-              )}
-              {installedHarnesses.map(harness => (
-                <option key={harness.id} value={harness.id}>{harness.name}</option>
-              ))}
-            </select>
-            <span
-              className="ml-auto inline-flex flex-none items-center rounded-full border border-border bg-bg px-2 py-0.5 text-[10px] text-fg-muted"
-              title={t('settings.permissionMode', 'Permission mode')}
-            >
-              {permissionMode === 'accept-edits'
-                ? t('settings.acceptEdits', 'Accept edits')
-               : t('settings.yolo', 'Yolo')}
-            </span>
-          </>
-        }
-        models={modelMenu}
-        model={selectedModel}
-        onModelChange={handleModelChange}
-        allowCustomModel
-      />
+      {promptBar}
     </>
   );
 }

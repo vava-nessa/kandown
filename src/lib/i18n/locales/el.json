@@ -404,7 +404,8 @@
     "panelLabel": "Πάνελ συνομιλίας",
     "changesEmpty": "Τα αρχεία που αγγίζει αυτή η συνομιλία θα εμφανιστούν εδώ.",
     "touchedFiles": "Αγγιγμένα αρχεία",
-    "liveDiffs": "Ζωντανά diff εργασιών"
+    "liveDiffs": "Ζωντανά diff εργασιών",
+    "welcomeTitle": "Τι μπορώ να κάνω για σένα σήμερα;"
   },
   "agentSkills": {
     "skillsModalTitle": "Δεξιότητες",

@@ -404,7 +404,8 @@
     "panelLabel": "Vestluspaneel",
     "changesEmpty": "Selles vestluses puudutatud failid kuvatakse siin.",
     "touchedFiles": "Puudutatud failid",
-    "liveDiffs": "Ülesannete reaalajas diffid"
+    "liveDiffs": "Ülesannete reaalajas diffid",
+    "welcomeTitle": "Mida ma saan täna sinu heaks teha?"
   },
   "agentSkills": {
     "skillsModalTitle": "Oskused",

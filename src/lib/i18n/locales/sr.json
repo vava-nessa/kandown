@@ -404,7 +404,8 @@
     "panelLabel": "Панел разговора",
     "changesEmpty": "Датотеке које је овај разговор дирао појавиће се овде.",
     "touchedFiles": "Диране датотеке",
-    "liveDiffs": "Диффи задатака уживо"
+    "liveDiffs": "Диффи задатака уживо",
+    "welcomeTitle": "Шта могу да урадим за тебе данас?"
   },
   "agentSkills": {
     "skillsModalTitle": "Вештине",

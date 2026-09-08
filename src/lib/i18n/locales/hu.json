@@ -404,7 +404,8 @@
     "panelLabel": "Beszélgetéspanel",
     "changesEmpty": "A beszélgetés által érintett fájlok itt jelennek meg.",
     "touchedFiles": "Érintett fájlok",
-    "liveDiffs": "Élő feladat-diffek"
+    "liveDiffs": "Élő feladat-diffek",
+    "welcomeTitle": "Miben segíthetek ma?"
   },
   "agentSkills": {
     "skillsModalTitle": "Készségek",

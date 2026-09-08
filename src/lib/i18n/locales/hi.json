@@ -404,7 +404,8 @@
     "panelLabel": "बातचीत पैनल",
     "changesEmpty": "जो फ़ाइलें यह बातचीत छूती है, वे यहाँ दिखेंगी।",
     "touchedFiles": "प्रभावित फ़ाइलें",
-    "liveDiffs": "लाइव कार्य डिफ़"
+    "liveDiffs": "लाइव कार्य डिफ़",
+    "welcomeTitle": "आज मैं तुम्हारे लिए क्या कर सकता हूँ?"
   },
   "agentSkills": {
     "skillsModalTitle": "कौशल",

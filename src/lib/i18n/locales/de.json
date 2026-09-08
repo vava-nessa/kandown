@@ -404,7 +404,8 @@
     "panelLabel": "Konversationsbereich",
     "changesEmpty": "Dateien, die diese Konversation berührt, erscheinen hier.",
     "touchedFiles": "Berührte Dateien",
-    "liveDiffs": "Live-Aufgaben-Diffs"
+    "liveDiffs": "Live-Aufgaben-Diffs",
+    "welcomeTitle": "Was kann ich heute für dich tun?"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

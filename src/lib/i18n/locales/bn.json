@@ -371,7 +371,8 @@
     "panelLabel": "কথোপকথন প্যানেল",
     "changesEmpty": "এই কথোপকথনে স্পর্শ করা ফাইলগুলি এখানে দেখা যাবে।",
     "touchedFiles": "স্পর্শকৃত ফাইল",
-    "liveDiffs": "লাইভ কাজের ডিফ"
+    "liveDiffs": "লাইভ কাজের ডিফ",
+    "welcomeTitle": "আজ আমি তোমার জন্য কী করতে পারি?"
   },
   "agentSkills": {
     "skillsModalTitle": "দক্ষতা",

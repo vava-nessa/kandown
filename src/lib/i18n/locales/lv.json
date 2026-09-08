@@ -404,7 +404,8 @@
     "panelLabel": "Sarunu panelis",
     "changesEmpty": "Šeit parādīsies faili, kurus šī saruna ir skārusi.",
     "touchedFiles": "Aiztiktie faili",
-    "liveDiffs": "Uzdevumu difi reāllaikā"
+    "liveDiffs": "Uzdevumu difi reāllaikā",
+    "welcomeTitle": "Ko es varu tev šodien izdarīt?"
   },
   "agentSkills": {
     "skillsModalTitle": "Prasmes",

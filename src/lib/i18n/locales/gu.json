@@ -426,7 +426,8 @@
     "panelLabel": "વાતચીત પેનલ",
     "changesEmpty": "આ વાતચીત સ્પર્શેલી ફાઇલો અહીં દેખાશે.",
     "touchedFiles": "સ્પર્શેલી ફાઇલો",
-    "liveDiffs": "લાઇવ કાર્ય ડિફ"
+    "liveDiffs": "લાઇવ કાર્ય ડિફ",
+    "welcomeTitle": "આજે હું તમારા માટે શું કરી શકું?"
   },
   "agentSkills": {
     "skillsModalTitle": "કૌશલ્યો",

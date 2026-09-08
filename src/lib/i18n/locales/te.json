@@ -426,7 +426,8 @@
     "panelLabel": "సంభాషణ ప్యానెల్",
     "changesEmpty": "ఈ సంభాషణ తాకిన ఫైళ్లు ఇక్కడ కనిపిస్తాయి.",
     "touchedFiles": "తాకిన ఫైళ్లు",
-    "liveDiffs": "ప్రత్యక్ష పని డిఫ్‌లు"
+    "liveDiffs": "ప్రత్యక్ష పని డిఫ్‌లు",
+    "welcomeTitle": "ఈరోజు నేను మీ కోసం ఏమి చేయగలను?"
   },
   "agentSkills": {
     "skillsModalTitle": "నైపుణ్యాలు",

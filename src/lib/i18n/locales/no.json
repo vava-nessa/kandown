@@ -404,7 +404,8 @@
     "panelLabel": "Samtalepanel",
     "changesEmpty": "Filer denne samtalen rører vises her.",
     "touchedFiles": "Rørte filer",
-    "liveDiffs": "Live-differ for oppgaver"
+    "liveDiffs": "Live-differ for oppgaver",
+    "welcomeTitle": "Hva kan jeg gjøre for deg i dag?"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

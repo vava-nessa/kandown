@@ -371,7 +371,8 @@
     "panelLabel": "گفتگو پینل",
     "changesEmpty": "اس گفتگو سے متعلق فائلیں یہاں ظاہر ہوں گی۔",
     "touchedFiles": "متاثرہ فائلیں",
-    "liveDiffs": "لائیو کام کے فرق"
+    "liveDiffs": "لائیو کام کے فرق",
+    "welcomeTitle": "آج میں آپ کے لیے کیا کر سکتا ہوں؟"
   },
   "agentSkills": {
     "skillsModalTitle": "مہارتیں",

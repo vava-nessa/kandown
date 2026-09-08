@@ -31,6 +31,7 @@ import { useStore } from '../../lib/store';
 import type { AgentPanelTab } from '../../lib/store/types';
 import { AGENT_PANEL_DRAFT_KEY } from '../../lib/store/agentPanelSlice';
 import { relativeTime } from '../../lib/relative-time';
+import { AssigneeAvatar } from '../agentIcons';
 import { AgentChatSurface } from './AgentChatSurface';
 import { AgentPanelSpace } from './AgentPanelSpace';
 import { UsageBadge } from './UsageBadge';
@@ -41,7 +42,6 @@ export function AgentPage() {
   const sessions = useStore(s => s.agentChat.sessions);
   const activeSessionId = useStore(s => s.agentChat.activeSessionId);
   const live = useStore(s => s.agentChat.live);
-  const harnesses = useStore(s => s.agentChat.harnesses);
   const drawerTaskId = useStore(s => s.drawerTaskId);
   const panel = useStore(s => s.agentPanel);
   const agentRailCollapsed = useStore(s => s.agentRailCollapsed);
@@ -73,9 +73,6 @@ export function AgentPage() {
 
   const activeEntry = activeSessionId ? sessions.find(entry => entry.id === activeSessionId) : undefined;
   const fold = activeSessionId ? live[activeSessionId]?.fold : undefined;
-  const harnessName = activeEntry
-    ? harnesses.find(harness => harness.id === activeEntry.harnessId)?.name ?? activeEntry.harnessId
-    : null;
   const turnActive = fold?.turnActive ?? false;
 
   /** 📖 Header tab behavior, harness-style: click an open tab activates it,
@@ -112,9 +109,12 @@ export function AgentPage() {
           <span className="min-w-0 truncate text-[13.5px] font-medium text-fg" title={title}>
             {title}
           </span>
-          {harnessName && (
-            <span className="flex-none rounded bg-bg-2 px-1.5 py-px font-mono text-[10px] uppercase text-fg-muted">
-              {harnessName}
+          {activeEntry && (
+            <span title={activeEntry.harnessId}>
+              {/* 📖 Brand logo instead of the harness name (vava, t337 round 2):
+               * the glyph reads at a glance where the uppercase text chip used
+               * to shout; the name stays on hover. */}
+              <AssigneeAvatar assignee={activeEntry.harnessId} size={15} />
             </span>
           )}
           {activeEntry && (

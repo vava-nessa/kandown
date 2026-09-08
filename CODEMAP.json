@@ -1971,7 +1971,7 @@
     },
     {
       "path": "src/components/agent/AgentChatSurface.tsx",
-      "lines": 494,
+      "lines": 534,
       "title": "Agent chat surface (t337)",
       "summary": "The conversation body itself, extracted from the old overlay ChatSidebar so two shells can render the exact same chat: the full-page agent view on desktop (AgentPage) and the fullscreen mobile overlay (ChatSidebar).",
       "functions": [
@@ -2303,7 +2303,7 @@
     },
     {
       "path": "src/components/agent/PromptBar.tsx",
-      "lines": 305,
+      "lines": 315,
       "title": "Prompt bar for the agent chat sidebar (round 7: official BUI shell)",
       "summary": "The agent chat composer, rebuilt ON the official BeautifulUI PromptBar (src/components/bui/PromptBar.tsx, beautifului.dev, MIT) in its external mode (demo={false}): the BUI component owns the exact visual structure (rounded composer,…",
       "functions": [
@@ -2642,7 +2642,7 @@
     },
     {
       "path": "src/components/bui/PromptBar.tsx",
-      "lines": 1069,
+      "lines": 1072,
       "title": "Prompt bar of the BeautifulUI chat kit",
       "summary": "Faithful port of the official BeautifulUI PromptBar (beautifului.dev, MIT): a composer with real controls, an attach menu, @ data-source and / command menus, a model picker, dictation and send.",
       "exports": "PromptBar (default) : the composer, variant \"Rounded\" | \"Pill\" PromptBarRow, PromptBarModel, PromptBarLabels"
@@ -3151,7 +3151,7 @@
     },
     {
       "path": "src/components/SideNav.tsx",
-      "lines": 429,
+      "lines": 435,
       "title": "Left navigation rail (t332, conversations list added by t337)",
       "summary": "Collapsed-by-default icon rail that expands to a full sidebar on click.",
       "functions": [

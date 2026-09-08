@@ -404,7 +404,8 @@
     "panelLabel": "Panel razgovora",
     "changesEmpty": "Datoteke koje je ovaj razgovor dirao pojavit će se ovdje.",
     "touchedFiles": "Dirane datoteke",
-    "liveDiffs": "Diffovi zadataka uživo"
+    "liveDiffs": "Diffovi zadataka uživo",
+    "welcomeTitle": "Što mogu učiniti za tebe danas?"
   },
   "agentSkills": {
     "skillsModalTitle": "Vještine",

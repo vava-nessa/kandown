@@ -404,7 +404,8 @@
     "panelLabel": "Painel da conversa",
     "changesEmpty": "Os ficheiros que esta conversa tocar aparecerão aqui.",
     "touchedFiles": "Ficheiros tocados",
-    "liveDiffs": "Diffs de tarefas em direto"
+    "liveDiffs": "Diffs de tarefas em direto",
+    "welcomeTitle": "O que posso fazer por você hoje?"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

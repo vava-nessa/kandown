@@ -426,7 +426,8 @@
     "panelLabel": "ಸಂಭಾಷಣೆ ಪ್ಯಾನೆಲ್",
     "changesEmpty": "ಈ ಸಂಭಾಷಣೆ ಸ್ಪರ್ಶಿಸಿದ ಫೈಲ್‌ಗಳು ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ.",
     "touchedFiles": "ಸ್ಪರ್ಶಿಸಿದ ಫೈಲ್‌ಗಳು",
-    "liveDiffs": "ಲೈವ್ ಕಾರ್ಯ ಡಿಫ್‌ಗಳು"
+    "liveDiffs": "ಲೈವ್ ಕಾರ್ಯ ಡಿಫ್‌ಗಳು",
+    "welcomeTitle": "ಇಂದು ನಾನು ನಿಮಗಾಗಿ ಏನು ಮಾಡಬಲ್ಲೆ?"
   },
   "agentSkills": {
     "skillsModalTitle": "ಕೌಶಲ್ಯಗಳು",

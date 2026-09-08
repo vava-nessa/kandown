@@ -54,6 +54,7 @@ import { LogoSvg } from './LogoSvg';
 import { useStore } from '../lib/store';
 import { fetchGitInfo } from '../lib/filesystem';
 import { relativeTime } from '../lib/relative-time';
+import { AssigneeAvatar } from './agentIcons';
 import type { SessionIndexEntryPayload } from '../lib/types';
 import type { ThemeMode } from '../lib/types';
 
@@ -224,8 +225,13 @@ function ConversationRow({ entry, active, onSelect, onForget, untitledLabel, for
         <span className="w-full truncate text-[12px] leading-tight text-fg">
           {entry.title || untitledLabel}
         </span>
+        {/* 📖 Brand logo instead of the harness name (vava, t337 round 2): the
+         * text chip used to clip in the narrow rail ("CLAUDE" became
+         * "CLAIDE"); the same glyph cards use for assignees reads at a
+         * glance and never truncates. Unknown harnesses keep a tiny text
+         * chip, they have no brand to resolve to. */}
         <span className="mt-0.5 flex items-center gap-1.5 text-[10px] leading-none text-fg-muted">
-          <span className="rounded bg-bg-2 px-1 py-px font-mono uppercase">{entry.harnessId}</span>
+          <AssigneeAvatar assignee={entry.harnessId} size={12} />
           <span className="tabular-nums">{relativeTime(entry.updatedAt)}</span>
         </span>
       </button>

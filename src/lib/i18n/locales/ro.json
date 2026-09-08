@@ -389,7 +389,8 @@
     "panelLabel": "Panoul conversației",
     "changesEmpty": "Fișierele atinse de această conversație vor apărea aici.",
     "touchedFiles": "Fișiere atinse",
-    "liveDiffs": "Diff-uri de sarcini în timp real"
+    "liveDiffs": "Diff-uri de sarcini în timp real",
+    "welcomeTitle": "Ce pot face pentru tine astăzi?"
   },
   "agentSkills": {
     "skillsModalTitle": "Abilități",

@@ -371,7 +371,8 @@
     "panelLabel": "会話パネル",
     "changesEmpty": "この会話が触れたファイルがここに表示されます。",
     "touchedFiles": "触れたファイル",
-    "liveDiffs": "タスクのライブ差分"
+    "liveDiffs": "タスクのライブ差分",
+    "welcomeTitle": "今日は何をお手伝いしましょうか？"
   },
   "agentSkills": {
     "skillsModalTitle": "スキル",

@@ -371,7 +371,8 @@
     "panelLabel": "대화 패널",
     "changesEmpty": "이 대화에서 건드린 파일이 여기에 표시됩니다.",
     "touchedFiles": "건드린 파일",
-    "liveDiffs": "작업 실시간 diff"
+    "liveDiffs": "작업 실시간 diff",
+    "welcomeTitle": "오늘은 무엇을 도와드릴까요?"
   },
   "agentSkills": {
     "skillsModalTitle": "스킬",

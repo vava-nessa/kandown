@@ -389,7 +389,8 @@
     "panelLabel": "Panel rozmowy",
     "changesEmpty": "Pliki dotknięte przez tę rozmowę pojawią się tutaj.",
     "touchedFiles": "Dotknięte pliki",
-    "liveDiffs": "Diffy zadań na żywo"
+    "liveDiffs": "Diffy zadań na żywo",
+    "welcomeTitle": "Co mogę dziś zrobić dla ciebie?"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

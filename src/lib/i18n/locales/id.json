@@ -371,7 +371,8 @@
     "panelLabel": "Panel percakapan",
     "changesEmpty": "Berkas yang disentuh percakapan ini akan muncul di sini.",
     "touchedFiles": "Berkas yang disentuh",
-    "liveDiffs": "Diff tugas langsung"
+    "liveDiffs": "Diff tugas langsung",
+    "welcomeTitle": "Apa yang bisa saya lakukan untukmu hari ini?"
   },
   "agentSkills": {
     "skillsModalTitle": "Skill",

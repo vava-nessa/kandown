@@ -389,7 +389,8 @@
     "panelLabel": "Gesprekspaneel",
     "changesEmpty": "Bestanden die dit gesprek aanraakt verschijnen hier.",
     "touchedFiles": "Aangeraakte bestanden",
-    "liveDiffs": "Live taak-diffs"
+    "liveDiffs": "Live taak-diffs",
+    "welcomeTitle": "Wat kan ik vandaag voor je doen?"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

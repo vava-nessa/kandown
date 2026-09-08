@@ -426,7 +426,8 @@
     "panelLabel": "संभाषण पॅनेल",
     "changesEmpty": "या संभाषणाने स्पर्श केलेल्या फाइल्स येथे दिसतील.",
     "touchedFiles": "स्पर्श केलेल्या फाइल्स",
-    "liveDiffs": "लाइव्ह कार्य डिफ"
+    "liveDiffs": "लाइव्ह कार्य डिफ",
+    "welcomeTitle": "आज मी तुमच्यासाठी काय करू शकतो?"
   },
   "agentSkills": {
     "skillsModalTitle": "कौशल्ये",

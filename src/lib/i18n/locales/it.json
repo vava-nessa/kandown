@@ -404,7 +404,8 @@
     "panelLabel": "Pannello conversazione",
     "changesEmpty": "I file toccati da questa conversazione compariranno qui.",
     "touchedFiles": "File toccati",
-    "liveDiffs": "Diff delle attività in tempo reale"
+    "liveDiffs": "Diff delle attività in tempo reale",
+    "welcomeTitle": "Cosa posso fare per te oggi?"
   },
   "agentSkills": {
     "skillsModalTitle": "Skill",

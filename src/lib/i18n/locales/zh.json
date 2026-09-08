@@ -415,7 +415,8 @@
     "panelLabel": "会话面板",
     "changesEmpty": "此会话涉及的文件将显示在这里。",
     "touchedFiles": "涉及的文件",
-    "liveDiffs": "任务实时差异"
+    "liveDiffs": "任务实时差异",
+    "welcomeTitle": "今天我能为你做些什么？"
   },
   "agentSkills": {
     "skillsModalTitle": "技能",

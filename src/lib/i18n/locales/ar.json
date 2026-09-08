@@ -371,7 +371,8 @@
     "panelLabel": "لوحة المحادثة",
     "changesEmpty": "الملفات التي تلمسها هذه المحادثة ستظهر هنا.",
     "touchedFiles": "الملفات المعدَّلة",
-    "liveDiffs": "فروق المهام المباشرة"
+    "liveDiffs": "فروق المهام المباشرة",
+    "welcomeTitle": "ماذا يمكنني أن أفعل من أجلك اليوم؟"
   },
   "agentSkills": {
     "skillsModalTitle": "المهارات",

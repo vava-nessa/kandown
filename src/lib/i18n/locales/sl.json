@@ -404,7 +404,8 @@
     "panelLabel": "Panel pogovora",
     "changesEmpty": "Datoteke, ki se jih je ta pogovor dotaknil, se bodo pojavile tukaj.",
     "touchedFiles": "Dotaknjene datoteke",
-    "liveDiffs": "Diffi nalog v živo"
+    "liveDiffs": "Diffi nalog v živo",
+    "welcomeTitle": "Kaj lahko danes naredim zate?"
   },
   "agentSkills": {
     "skillsModalTitle": "Veščine",

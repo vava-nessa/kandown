@@ -88,6 +88,10 @@ interface PromptBarProps {
   /** 📖 t324: shows the "Custom model" free-text row in the model menu, so an
    *  id the catalog does not list can still be typed. */
   allowCustomModel?: boolean;
+  /** 📖 t337 round 2: hero sizing for the welcome screen (empty conversation):
+   * the BUI composer grows (tall), and the bottom-bar chrome (top border,
+   * padding) disappears since the composer then floats centered in the page. */
+  tall?: boolean;
 }
 
 export function PromptBar({
@@ -107,6 +111,7 @@ export function PromptBar({
   model,
   onModelChange,
   allowCustomModel = false,
+  tall = false,
 }: PromptBarProps) {
   const { t } = useTranslation();
   // 📖 The caret participates in the trigger detection, so it is tracked on
@@ -227,10 +232,15 @@ export function PromptBar({
   return (
     // 📖 Official BeautifulUI 08 PromptBar in external mode: it owns the draft
     // surface, the menus, the model menu and the send/stop squares; kandown
-    // semantics ride in through the props below.
-    <div className="relative flex-none border-t border-border bg-bg px-2.5 pb-2.5 pt-2">
+    // semantics ride in through the props below. Tall (welcome) mode drops
+    // the bottom-bar chrome: the composer is a centered page element there.
+    <div className={tall
+      ? 'relative flex-none'
+      : 'relative flex-none border-t border-border bg-bg px-2.5 pb-2.5 pt-2'}
+    >
       <BuiPromptBar
         demo={false}
+        tall={tall}
         value={value}
         onValueChange={(nextValue, nextCaret) => {
           setValue(nextValue);

@@ -576,7 +576,8 @@
     "panelLabel": "Conversation panel",
     "changesEmpty": "Files this conversation touches will show up here.",
     "touchedFiles": "Touched files",
-    "liveDiffs": "Live task diffs"
+    "liveDiffs": "Live task diffs",
+    "welcomeTitle": "What can I do for you today?"
   },
   "agentSkills": {
     "skillsLabel": "Skills",

@@ -404,7 +404,8 @@
     "panelLabel": "Keskustelupaneeli",
     "changesEmpty": "Tiedostot, joita tämä keskustelu koskettaa, näkyvät täällä.",
     "touchedFiles": "Kosketetut tiedostot",
-    "liveDiffs": "Tehtävien diffit reaaliajassa"
+    "liveDiffs": "Tehtävien diffit reaaliajassa",
+    "welcomeTitle": "Mitä voin tehdä puolestasi tänään?"
   },
   "agentSkills": {
     "skillsModalTitle": "Taidot",

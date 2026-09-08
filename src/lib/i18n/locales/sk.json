@@ -404,7 +404,8 @@
     "panelLabel": "Panel konverzácie",
     "changesEmpty": "Súbory, ktorých sa táto konverzácia dotkla, sa zobrazia tu.",
     "touchedFiles": "Dotknuté súbory",
-    "liveDiffs": "Živé diffy úloh"
+    "liveDiffs": "Živé diffy úloh",
+    "welcomeTitle": "Čo pre vás dnes môžem urobiť?"
   },
   "agentSkills": {
     "skillsModalTitle": "Zručnosti",

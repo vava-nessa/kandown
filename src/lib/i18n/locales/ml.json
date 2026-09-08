@@ -426,7 +426,8 @@
     "panelLabel": "സംഭാഷണ പാനൽ",
     "changesEmpty": "ഈ സംഭാഷണം തൊട്ട ഫയലുകൾ ഇവിടെ ദൃശ്യമാകും.",
     "touchedFiles": "തൊട്ട ഫയലുകൾ",
-    "liveDiffs": "ലൈവ് ജോലി ഡിഫുകൾ"
+    "liveDiffs": "ലൈവ് ജോലി ഡിഫുകൾ",
+    "welcomeTitle": "ഇന്ന് ഞാൻ നിങ്ങൾക്കായി എന്ത് ചെയ്യും?"
   },
   "agentSkills": {
     "skillsModalTitle": "കഴിവുകൾ",
