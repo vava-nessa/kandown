@@ -26,7 +26,7 @@ source to edit instead.
 
 ## `bin/` — Published CLI entrypoints — GENERATED, never edit
 
-- **`kandown.js`** · 15344 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
+- **`kandown.js`** · 15347 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
 - **`tui.js`** · 62842 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
 
 ## `src/` — Web app root
@@ -88,7 +88,7 @@ source to edit instead.
 - **`plugin-cli.ts`** · 296 lines — The agent-first façade over the extension system.
 - **`plugin-dev.ts`** · 154 lines — Watches one plugin directory and, on every save, rebuilds the browser bundles, re-runs the validator and asks the running daemon to hot reload the board.
 - **`plugin-scaffold.ts`** · 342 lines — Generates a ready-to-run plugin directory for `kandown plugin create`.
-- **`server.ts`** · 1650 lines — Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application.
+- **`server.ts`** · 1653 lines — Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application.
 - **`skills.ts`** · 152 lines — Discovers immutable built-in, global, and project data-only Markdown skill packages with deterministic override precedence.
 - **`task-move.ts`** · 214 lines — Runs the shared dependency policy and enabled extension gates before persisting a web move.
 - **`themes-cli.ts`** · 255 lines — Implements the `kandown theme <subcommand>` verb: list installed themes, install from the registry or a pasted URL, scaffold a starter theme, and emit the prefilled GitHub URL the user clicks to propose their theme via a one-click PR.
@@ -146,7 +146,7 @@ source to edit instead.
 - **`orchestrator.ts`** · 662 lines — Owns the "who works next" half of autopilot (t311).
 - **`permission-queue.ts`** · 121 lines — When a harness session runs in accept-edits mode and the adapter routes an edit-like permission request to kandown (t309), the daemon parks it here until the web UI answers through the resolve endpoint.
 - **`session-edits.ts`** · 379 lines — The daemon-side half of the live editing experience (t309).
-- **`session-index.ts`** · 199 lines — Kandown never stores conversations: each harness (claude, codex, pi, ACP) persists its own transcript wherever it keeps its data.
+- **`session-index.ts`** · 203 lines — Kandown never stores conversations: each harness (claude, codex, pi, ACP) persists its own transcript wherever it keeps its data.
 - **`tool-excerpt.ts`** · 59 lines — Extracts a short single-line excerpt from a harness tool input so the chat activity rows show WHAT the agent is doing (the bash command, the touched file) instead of the bare tool name.
 - **`types.ts`** · 175 lines — Defines the single event vocabulary every harness adapter normalizes to, the session configuration the runtime accepts, and the adapter interface each protocol backend implements.
 
@@ -225,7 +225,7 @@ source to edit instead.
 ## `src/components/agent/`
 
 - **`ActivityBlock.tsx`** · 246 lines — Every assistant turn gets one activity area that updates in place while the turn streams: the reasoning channel renders through the official bui ThinkingState (Reasoning-style prose trace, shimmer header while live, single-line ticker…
-- **`AgentChatSurface.tsx`** · 553 lines — The conversation body itself, extracted from the old overlay ChatSidebar so two shells can render the exact same chat: the full-page agent view on desktop (AgentPage) and the fullscreen mobile overlay (ChatSidebar).
+- **`AgentChatSurface.tsx`** · 571 lines — The conversation body itself, extracted from the old overlay ChatSidebar so two shells can render the exact same chat: the full-page agent view on desktop (AgentPage) and the fullscreen mobile overlay (ChatSidebar).
 - **`AgentPage.tsx`** · 186 lines — The agent as a real page, the way code harnesses lay it out: the conversation runs as a centered column filling the main area, the left rail keeps the navigation plus the conversation list, and a retractable per-conversation panel space…
 - **`AgentPanelChanges.tsx`** · 142 lines — The right panel's changes tab on the agent page: what this conversation's agent is touching, live.
 - **`AgentPanelSpace.tsx`** · 312 lines — The retractable panel column next to the chat on the agent page, in the spirit of the code-harness side panels: a tab strip at the top, one conversation's content below.
@@ -246,7 +246,7 @@ source to edit instead.
 - **`MessageList.tsx`** · 294 lines — Renders the folded conversation: user bubbles with the BeautifulUI context cards for every @task mention above the bubble, assistant turns as a BeautifulUI-style full-width panel (ONE activity block that updates in place while the turn…
 - **`ModelPickerMenu.tsx`** · 483 lines — The harness model picker, rebuilt the way bb (getbb) builds its own: a trigger button carrying the provider glyph and the current model, opening an upward menu with a search field on top, a row of provider icon tabs (derived from the…
 - **`OptionsChoiceCard.tsx`** · 83 lines — BeautifulUI 04 Approval Card, shared bui/ edition: when an assistant reply carries an ```options fenced block (one choice per line, parsed by agent-chat-options.ts), the block is NOT rendered as code; it becomes the official bui…
-- **`PromptBar.tsx`** · 450 lines — The agent chat composer, rebuilt ON the official BeautifulUI PromptBar (src/components/bui/PromptBar.tsx, beautifului.dev, MIT) in its external mode (demo={false}): the BUI component owns the exact visual structure (rounded composer,…
+- **`PromptBar.tsx`** · 475 lines — The agent chat composer, rebuilt ON the official BeautifulUI PromptBar (src/components/bui/PromptBar.tsx, beautifului.dev, MIT) in its external mode (demo={false}): the BUI component owns the exact visual structure (rounded composer,…
 - **`RecommendationCard.tsx`** · 62 lines — BeautifulUI 09 Recommendation Card, shared bui/ edition: when an assistant message contains a `PROPOSE: <action>` line on its own (the Kandown agent charter documents the convention: the agent suggests a board action), the line is…
 - **`SkillButtons.tsx`** · 128 lines — Renders the installed skills that declare a `chat` block as compact pill buttons above the PromptBar.
 - **`SkillsModal.tsx`** · 135 lines — A compact centered modal listing EVERY skill the daemon reports on /api/skills, not just the chat-capable subset the pill row shows: mono id, chat button label when the manifest declares one, scope chip, an interactive badge, the active…
@@ -359,7 +359,7 @@ source to edit instead.
 - **`task-title-category.ts`** · 57 lines — Provides the canonical way to read a task's category (frontmatter `category:` field first, legacy leading bracket in the title as fallback) and title parsing utilities.
 - **`task-url.ts`** · 65 lines — Parses and writes deep-link URLs for task drawers.
 - **`theme.ts`** · 338 lines — Manages appearance tokens (--radius, --shadow-*, --font-display, --motion-scale), the single bundled `base` preset (t333), installed community themes, and dynamic inheritance.
-- **`types.ts`** · 620 lines — Defines the board, task, config, filter, search, and appearance contracts shared by the Kandown web UI, CLI, TUI, and persistence adapters.
+- **`types.ts`** · 624 lines — Defines the board, task, config, filter, search, and appearance contracts shared by the Kandown web UI, CLI, TUI, and persistence adapters.
 - **`utils.ts`** · 24 lines — Provides `cn`, the single utility used across every web component to compose conditional class names.
 - **`version.ts`** · 9 lines · ⚠️ **GENERATED** by scripts/inject-version.js — edit `package.json` instead
 - **`watcher.ts`** · 518 lines — Watches project state through content-hashed File System Access polling or daemon SSE.
@@ -413,7 +413,7 @@ source to edit instead.
 
 ## `src/lib/store/` — Zustand store slices
 
-- **`agentChatSlice.ts`** · 668 lines — Sidebar open state, the project's chat session index, the live per-session chat folds, and the SSE lifecycle that feeds them.
+- **`agentChatSlice.ts`** · 697 lines — Sidebar open state, the project's chat session index, the live per-session chat folds, and the SSE lifecycle that feeds them.
 - **`agentEditsSlice.ts`** · 471 lines — Makes agent edits visible on the board: tracks which task each agent session is currently editing (border beam + blobatar), keeps the latest before/after diff per task (live diff panel in the editor shells) and queues harness permission…
 - **`agentPanelSlice.ts`** · 93 lines — Per-conversation tab state for the agent page's right panel.
 - **`agentRunsSlice.ts`** · 365 lines — Web UI half of the runner system: which runner backends this machine can use (seeded once, so Herdr affordances only render when Herdr answered available), the live runs (board badges and the editor's PTY preview), the launch action and…

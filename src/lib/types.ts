@@ -70,6 +70,10 @@ export interface SessionIndexEntryPayload {
   title: string;
   /** Task the conversation was started from, when any. */
   taskId?: string;
+  /** 📖 t337 round 5: the user's opening prompt (capped), restored by the
+   *  web UI when a conversation has to be restarted without its harness
+   *  session. */
+  promptPreview?: string;
   /** ISO 8601 creation instant. */
   createdAt: string;
   /** ISO 8601 last-activity instant; the sidebar sorts on this, newest first. */

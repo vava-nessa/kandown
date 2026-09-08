@@ -8,7 +8,7 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 15344,
+      "lines": 15347,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
@@ -840,7 +840,7 @@
     },
     {
       "path": "src/cli/lib/agent/session-index.ts",
-      "lines": 199,
+      "lines": 203,
       "title": "Chat session index: the thin per-project record of harness conversations",
       "summary": "Kandown never stores conversations: each harness (claude, codex, pi, ACP) persists its own transcript wherever it keeps its data.",
       "functions": [
@@ -1540,7 +1540,7 @@
     },
     {
       "path": "src/cli/lib/server.ts",
-      "lines": 1650,
+      "lines": 1653,
       "title": "Kandown Daemon HTTP Server & API Router",
       "summary": "Provides the REST API, SSE live reload, auto-html bundling refresh, and remote auto-updater routes (/api/update/check & /api/update/apply) for the Web application."
     },
@@ -1971,7 +1971,7 @@
     },
     {
       "path": "src/components/agent/AgentChatSurface.tsx",
-      "lines": 553,
+      "lines": 571,
       "title": "Agent chat surface (t337)",
       "summary": "The conversation body itself, extracted from the old overlay ChatSidebar so two shells can render the exact same chat: the full-page agent view on desktop (AgentPage) and the fullscreen mobile overlay (ChatSidebar).",
       "functions": [
@@ -2332,7 +2332,7 @@
     },
     {
       "path": "src/components/agent/PromptBar.tsx",
-      "lines": 450,
+      "lines": 475,
       "title": "Prompt bar for the agent chat sidebar (round 7: official BUI shell)",
       "summary": "The agent chat composer, rebuilt ON the official BeautifulUI PromptBar (src/components/bui/PromptBar.tsx, beautifului.dev, MIT) in its external mode (demo={false}): the BUI component owns the exact visual structure (rounded composer,…",
       "functions": [
@@ -4506,7 +4506,7 @@
     },
     {
       "path": "src/lib/store/agentChatSlice.ts",
-      "lines": 668,
+      "lines": 697,
       "title": "Zustand store slice: agent chat sidebar (t308)",
       "summary": "Sidebar open state, the project's chat session index, the live per-session chat folds, and the SSE lifecycle that feeds them.",
       "functions": [
@@ -4900,7 +4900,7 @@
     },
     {
       "path": "src/lib/types.ts",
-      "lines": 620,
+      "lines": 624,
       "title": "Shared domain types",
       "summary": "Defines the board, task, config, filter, search, and appearance contracts shared by the Kandown web UI, CLI, TUI, and persistence adapters.",
       "exports": "Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, ColumnRole, ColumnAgentMeta, WorkflowSelectionConfig, TaskTrackingCadence, WorkOutputDetailMode, TuiConfig, AgentsConfig, AutopilotConfig, KandownConfig, DEFAULT_COLUMNS, DEFAULT_WORK_OUTPUT, DEFAULT_COLUMN_META, DEFAULT_CONFIG, PermissionMode, PERMISSION_MODES, PermissionSupport, DetectedHarness, SessionIndexEntryPayload, AgentSessionPayload"

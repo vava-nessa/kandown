@@ -370,6 +370,23 @@ export function AgentChatSurface({ active }: AgentChatSurfaceProps) {
   // 📖 Explicit empty-string guard: two broken entries must never share ''.
   const draftKey = harnessSessionId || `draft:${activeSessionId ?? 'new'}`;
 
+  // 📖 vava round 5: when the on-screen conversation's harness never
+  // registered, the index entry carries its original prompt: hand it to the
+  // composer as a one-shot seed so a crashed boot never eats typed text.
+  const activeConversation = activeSessionId
+    ? sessions.find(entry => entry.id === activeSessionId)
+    : undefined;
+  const promptSeed = useMemo(() => {
+    if (!activeConversation || activeConversation.harnessSessionId) return undefined;
+    const text = activeConversation.promptPreview ?? '';
+    if (!text) return undefined;
+    return {
+      key: draftKey,
+      text,
+      nonce: Date.parse(activeConversation.updatedAt) || 0,
+    };
+  }, [activeConversation, draftKey]);
+
   const promptBar = (
     <PromptBar
       // 📖 Computed above: the harness session id keys the PromptBar's draft
@@ -377,6 +394,7 @@ export function AgentChatSurface({ active }: AgentChatSurfaceProps) {
       // a key change (session switch, newConversation) swaps the composer
       // text instead of carrying it over.
       draftKey={draftKey}
+      seed={promptSeed}
       // 📖 The harness picker only gates NEW sessions: follow-ups on an
       // active conversation are always sendable when the daemon is there
       // (the guard branch above already excludes 'no-daemon').

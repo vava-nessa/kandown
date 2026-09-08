@@ -392,7 +392,22 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
     resumeSession: async (entry) => {
       const resumeId = entry.harnessSessionId;
       if (!resumeId) {
-        get().toast('This conversation has no harness session to resume yet', 'warning');
+        // 📖 vava round 5: a conversation whose harness never registered
+        // (still booting, or it crashed before session_started) must not
+        // dead-end. Activate it locally so the transcript stays visible and
+        // the composer keeps its prompt: the next send lazy-starts a fresh
+        // session on the same harness and task (sendMessage handles it).
+        set(state => ({
+          agentChat: {
+            ...state.agentChat,
+            activeSessionId: entry.id,
+            preContextTaskId: entry.taskId ?? state.agentChat.preContextTaskId,
+          },
+        }));
+        // 📖 The daemon replays its buffered history on connect, so the
+        // errors that killed the harness come back with the conversation.
+        connectAgentEventStream(entry.id);
+        get().toast('The harness never registered this conversation. Your prompt is kept: send to start a fresh session.', 'info');
         return;
       }
       if (get().agentChat.starting) return;
@@ -449,6 +464,20 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
       const trimmed = text.trim();
       const sessionId = get().agentChat.activeSessionId;
       if (!trimmed || !sessionId || get().agentChat.sending) return;
+      // 📖 vava round 5: an active conversation whose harness never
+      // registered cannot take follow-ups (there is nothing to post into).
+      // Lazy-start a fresh session on the same harness and task instead: the
+      // user's text becomes the new opening prompt, nothing is lost.
+      const activeEntry = get().agentChat.sessions.find(candidate => candidate.id === sessionId);
+      if (activeEntry && !activeEntry.harnessSessionId) {
+        await get().startSession({
+          harnessId: activeEntry.harnessId,
+          ...(activeEntry.taskId ? { taskId: activeEntry.taskId } : {}),
+          ...(mentionedTaskIds && mentionedTaskIds.length > 0 ? { mentionedTaskIds } : {}),
+          message: trimmed,
+        });
+        return;
+      }
       const current = get().agentChat.live[sessionId] ?? { status: 'running', fold: createChatFoldState() };
       // 📖 Optimistic append: the bubble shows instantly, the SSE stream brings
       // the answer. On failure the exact entry is rolled back by id.

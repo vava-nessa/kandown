@@ -48,6 +48,10 @@ export interface SessionIndexEntry {
   harnessSessionId?: string;
   title: string;
   taskId?: string;
+  /** 📖 t337 round 5: the user's first prompt, capped, so a conversation
+   *  whose harness never registered can still hand the text back to the
+   *  composer instead of eating it. */
+  promptPreview?: string;
   createdAt: string;
   updatedAt: string;
 }

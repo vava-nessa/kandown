@@ -947,6 +947,9 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, url: URL, ka
         harnessId: session.harnessId,
         title: titleOverride ?? indexEntryForPrompt(message ?? compiled.markdown),
         ...(taskId ? { taskId } : {}),
+        // 📖 t337 round 5: keep the user's opening prompt (capped) so a
+        // harness that dies before registering never eats the typed text.
+        ...(message ? { promptPreview: message.slice(0, 400) } : {}),
         createdAt: now,
         updatedAt: now,
       };

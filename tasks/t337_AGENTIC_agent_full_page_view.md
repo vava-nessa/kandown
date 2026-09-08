@@ -145,6 +145,31 @@ four parallel fix agents, and a review agent (PASS, no blockers).
 - Hygiene: the vestigial /api/migrate-tasks web call was removed (the
   daemon never had the route; it 404'd on every page load).
 
+## Round 5 (vava bug report: lost prompt on a dead conversation)
+
+Reproduced as a user: harness pi + model "Muse Spark 1.3" hangs forever
+(the pi process spews stale-extension warnings then crashes; sometimes it
+never registers at all). When the harness never reports its session id,
+the index entry has no `harnessSessionId`, and clicking the conversation
+dead-ended with "no harness session to resume yet": the typed prompt was
+unreachable.
+
+- resumeSession: a conversation without a harness session id no longer
+  dead-ends. It activates locally (transcript and errors stay visible,
+  the daemon replays its buffered history) with an info toast.
+- sendMessage: a follow-up on such a conversation lazy-starts a fresh
+  session on the same harness and task; the text becomes the new opening
+  prompt.
+- The daemon now stores a capped `promptPreview` (first user message) in
+  the session index, and the composer is seeded with it when a dead
+  conversation is activated, so the prompt always comes back.
+- Verified by user-path test: broken entry (harness id stripped) clicked
+  -> conversation opens, composer restored with the prompt, send starts
+  a fresh session (new index entry with harness id + prompt preview);
+  healthy conversations still resume through the normal path.
+- Note: the Muse Spark 1.3 hang itself is harness/model-side (pi on that
+  openrouter model never answers); kandown now survives it cleanly.
+
 ## Out of scope
 
 - Mobile-specific agent page redesign (the overlay stays).

@@ -184,6 +184,12 @@ interface PromptBarProps {
    * swaps the composer text (save the old conversation's draft, restore this
    * one's), so text never leaks between conversations. */
   draftKey: string;
+  /** 📖 t337 round 5: prompt seed for a conversation whose harness never
+   * registered. When the swap loads an EMPTY stored draft for that key, the
+   * seed text becomes the composer content instead (the index kept the
+   * original prompt). One-shot per key+nonce, and it never overwrites text
+   * the user already typed. */
+  seed?: { key: string; text: string; nonce: number };
 }
 
 export function PromptBar({
@@ -201,6 +207,7 @@ export function PromptBar({
   toolbar,
   tall = false,
   draftKey,
+  seed,
 }: PromptBarProps) {
   const { t } = useTranslation();
   // 📖 The caret participates in the trigger detection, so it is tracked on
@@ -245,6 +252,24 @@ export function PromptBar({
   useEffect(() => () => {
     storeDraft(draftKeyRef.current, draftValueRef.current);
   }, []);
+
+  // 📖 t337 round 5: prompt restore for a conversation whose harness never
+  // registered. Fires once per seed version, only while that conversation's
+  // key is the one on screen, and never overwrites a draft the user already
+  // has: an intentional clear is respected, a lost prompt comes back.
+  const lastSeedRef = useRef<{ key: string; nonce: number } | null>(null);
+  useEffect(() => {
+    if (!seed || !seed.text) return;
+    const last = lastSeedRef.current;
+    if (last && last.key === seed.key && last.nonce >= seed.nonce) return;
+    lastSeedRef.current = { key: seed.key, nonce: seed.nonce };
+    if (seed.key !== draftKeyRef.current) return;
+    if (readDraft(seed.key)) return;
+    storeDraft(seed.key, seed.text);
+    draftValueRef.current = seed.text;
+    setValue(seed.text);
+    setCaret(seed.text.length);
+  }, [seed]);
   // 📖 Round 4 delivery mode for interactive harnesses. Queue is the default:
   // never interrupting a running turn is the safe choice; steering is a
   // deliberate opt-in.
