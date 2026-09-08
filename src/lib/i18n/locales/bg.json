@@ -315,7 +315,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Цветови акценти на колоните",
-    "columnAccentsDesc": "Показва малка цветна точка до заглавието на всяка колона"
+    "columnAccentsDesc": "Показва малка цветна точка до заглавието на всяка колона",
+    "useAgents": "Използвай агенти",
+    "useAgentsDesc": "Показва страницата на агента, списъка с разговори и автопилота. Изключете за обикновена дъска, списък и архив без агент."
   },
   "sectionLabels": {
     "title": "Задание",
@@ -394,7 +396,15 @@
     "modelDefaultTag": "Авто",
     "modelSuggestedTag": "Предложен",
     "modelCurrentTag": "Текущ",
-    "modelCustom": "Персонализиран модел..."
+    "modelCustom": "Персонализиран модел...",
+    "conversations": "Разговори",
+    "panelTask": "Задача",
+    "panelChanges": "Промени",
+    "panelTaskEmpty": "Няма отворена задача. Щракнете върху задача или попитайте агента и тя ще се появи тук.",
+    "panelLabel": "Панел на разговора",
+    "changesEmpty": "Файловете, засегнати от този разговор, ще се появят тук.",
+    "touchedFiles": "Засегнати файлове",
+    "liveDiffs": "Дифове на задачи в реално време"
   },
   "agentSkills": {
     "skillsModalTitle": "Умения",

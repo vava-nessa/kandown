@@ -315,7 +315,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Farbakzente für Spalten",
-    "columnAccentsDesc": "Zeigt einen kleinen farbigen Punkt neben jedem Spaltentitel"
+    "columnAccentsDesc": "Zeigt einen kleinen farbigen Punkt neben jedem Spaltentitel",
+    "useAgents": "Agenten verwenden",
+    "useAgentsDesc": "Agent-Seite, Unterhaltungsliste und Autopilot anzeigen. Ausschalten für ein schlichtes Board, Liste und Archiv ohne Agent."
   },
   "sectionLabels": {
     "title": "Titel",
@@ -394,7 +396,15 @@
     "modelDefaultTag": "Auto",
     "modelSuggestedTag": "Empfohlen",
     "modelCurrentTag": "Aktuell",
-    "modelCustom": "Eigenes Modell..."
+    "modelCustom": "Eigenes Modell...",
+    "conversations": "Unterhaltungen",
+    "panelTask": "Aufgabe",
+    "panelChanges": "Änderungen",
+    "panelTaskEmpty": "Keine Aufgabe offen. Klicke auf eine Aufgabe oder frag den Agent, dann erscheint sie hier.",
+    "panelLabel": "Konversationsbereich",
+    "changesEmpty": "Dateien, die diese Konversation berührt, erscheinen hier.",
+    "touchedFiles": "Berührte Dateien",
+    "liveDiffs": "Live-Aufgaben-Diffs"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

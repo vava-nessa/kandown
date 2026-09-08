@@ -282,7 +282,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "열 색상 강조",
-    "columnAccentsDesc": "각 열 제목 옆에 작은 색상 점을 표시합니다"
+    "columnAccentsDesc": "각 열 제목 옆에 작은 색상 점을 표시합니다",
+    "useAgents": "에이전트 사용",
+    "useAgentsDesc": "에이전트 페이지, 대화 목록 및 오토파일럿을 표시합니다. 끄면 에이전트 없이 보드, 목록, 보관함만 남습니다."
   },
   "sectionLabels": {
     "title": "제목",
@@ -361,7 +363,15 @@
     "modelDefaultTag": "자동",
     "modelSuggestedTag": "추천",
     "modelCurrentTag": "현재",
-    "modelCustom": "사용자 지정 모델..."
+    "modelCustom": "사용자 지정 모델...",
+    "conversations": "대화",
+    "panelTask": "작업",
+    "panelChanges": "변경 사항",
+    "panelTaskEmpty": "열린 작업이 없습니다. 작업을 클릭하거나 에이전트에게 물으면 여기에 표시됩니다.",
+    "panelLabel": "대화 패널",
+    "changesEmpty": "이 대화에서 건드린 파일이 여기에 표시됩니다.",
+    "touchedFiles": "건드린 파일",
+    "liveDiffs": "작업 실시간 diff"
   },
   "agentSkills": {
     "skillsModalTitle": "스킬",

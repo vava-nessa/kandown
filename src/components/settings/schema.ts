@@ -201,6 +201,17 @@ export const getSETTINGS = (t: ReturnType<typeof useTranslation>['t']): SettingD
     keywords: ['tour', 'guide', 'intro', 'welcome', 'help', 'first time'],
   },
   {
+    // 📖 Master switch (t337): when off, every agent chat surface hides
+    // (agent page, conversation list, ask-the-agent buttons, autopilot
+    // controls) and kandown stays a plain board / list / archives app.
+    key: 'agent.useAgents',
+    label: t('settings.useAgents'),
+    section: 'agent',
+    type: 'toggle',
+    description: t('settings.useAgentsDesc'),
+    keywords: ['agent', 'chat', 'disable', 'conversations', 'autopilot', 'off', 'plain'],
+  },
+  {
     key: 'agent.suggestFollowUp',
     label: t('settings.suggestFollowUp'),
     section: 'agent',

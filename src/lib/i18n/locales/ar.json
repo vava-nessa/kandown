@@ -282,7 +282,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "لمسات ألوان الأعمدة",
-    "columnAccentsDesc": "يعرض نقطة لون صغيرة بجانب عنوان كل عمود"
+    "columnAccentsDesc": "يعرض نقطة لون صغيرة بجانب عنوان كل عمود",
+    "useAgents": "استخدام الوكلاء",
+    "useAgentsDesc": "يعرض صفحة الوكيل وقائمة المحادثات والطيار الآلي. أوقفه للحصول على لوحة وقائمة وأرشيف بسيطة بدون وكيل."
   },
   "sectionLabels": {
     "title": "العنوان",
@@ -361,7 +363,15 @@
     "modelDefaultTag": "تلقائي",
     "modelSuggestedTag": "مقترح",
     "modelCurrentTag": "الحالي",
-    "modelCustom": "نموذج مخصص..."
+    "modelCustom": "نموذج مخصص...",
+    "conversations": "المحادثات",
+    "panelTask": "مهمة",
+    "panelChanges": "التغييرات",
+    "panelTaskEmpty": "لا توجد مهمة مفتوحة. انقر على مهمة أو اسأل الوكيل وستظهر هنا.",
+    "panelLabel": "لوحة المحادثة",
+    "changesEmpty": "الملفات التي تلمسها هذه المحادثة ستظهر هنا.",
+    "touchedFiles": "الملفات المعدَّلة",
+    "liveDiffs": "فروق المهام المباشرة"
   },
   "agentSkills": {
     "skillsModalTitle": "المهارات",

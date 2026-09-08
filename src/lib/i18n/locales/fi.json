@@ -315,7 +315,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Sarakkeiden väriaksentit",
-    "columnAccentsDesc": "Näyttää pienen värillisen pisteen jokaisen sarakkeen otsikon vieressä"
+    "columnAccentsDesc": "Näyttää pienen värillisen pisteen jokaisen sarakkeen otsikon vieressä",
+    "useAgents": "Käytä agentteja",
+    "useAgentsDesc": "Näyttää agenttisivun, keskustelulistan ja autopilotin. Poista käytöstä, jos haluat pelkän taulun, listan ja arkiston ilman agenttia."
   },
   "sectionLabels": {
     "title": "Otsikko",
@@ -394,7 +396,15 @@
     "modelDefaultTag": "Automaattinen",
     "modelSuggestedTag": "Suositeltu",
     "modelCurrentTag": "Nykyinen",
-    "modelCustom": "Mukautettu malli..."
+    "modelCustom": "Mukautettu malli...",
+    "conversations": "Keskustelut",
+    "panelTask": "Tehtävä",
+    "panelChanges": "Muutokset",
+    "panelTaskEmpty": "Avointa tehtävää ei ole. Klikkaa tehtävää tai kysy agentilta, niin se näkyy täällä.",
+    "panelLabel": "Keskustelupaneeli",
+    "changesEmpty": "Tiedostot, joita tämä keskustelu koskettaa, näkyvät täällä.",
+    "touchedFiles": "Kosketetut tiedostot",
+    "liveDiffs": "Tehtävien diffit reaaliajassa"
   },
   "agentSkills": {
     "skillsModalTitle": "Taidot",

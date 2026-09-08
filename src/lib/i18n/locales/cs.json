@@ -315,7 +315,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Barevné akcenty sloupců",
-    "columnAccentsDesc": "Zobrazí malou barevnou tečku vedle názvu každého sloupce"
+    "columnAccentsDesc": "Zobrazí malou barevnou tečku vedle názvu každého sloupce",
+    "useAgents": "Používat agenty",
+    "useAgentsDesc": "Zobrazuje stránku agenta, seznam konverzací a autopilota. Vypněte pro pouhou nástěnku, seznam a archiv bez agenta."
   },
   "sectionLabels": {
     "title": "Název",
@@ -394,7 +396,15 @@
     "modelDefaultTag": "Auto",
     "modelSuggestedTag": "Doporučený",
     "modelCurrentTag": "Aktuální",
-    "modelCustom": "Vlastní model..."
+    "modelCustom": "Vlastní model...",
+    "conversations": "Konverzace",
+    "panelTask": "Úkol",
+    "panelChanges": "Změny",
+    "panelTaskEmpty": "Není otevřený žádný úkol. Klikněte na úkol nebo se zeptejte agenta, objeví se zde.",
+    "panelLabel": "Panel konverzace",
+    "changesEmpty": "Soubory, kterých se tato konverzace dotkla, se zobrazí zde.",
+    "touchedFiles": "Dotčené soubory",
+    "liveDiffs": "Živé diffy úkolů"
   },
   "agentSkills": {
     "skillsModalTitle": "Dovednosti",

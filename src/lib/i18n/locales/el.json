@@ -315,7 +315,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Χρωματικές πινελιές στηλών",
-    "columnAccentsDesc": "Εμφανίζει μια μικρή χρωματιστή κουκκίδα δίπλα στον τίτλο κάθε στήλης"
+    "columnAccentsDesc": "Εμφανίζει μια μικρή χρωματιστή κουκκίδα δίπλα στον τίτλο κάθε στήλης",
+    "useAgents": "Χρήση πρακτόρων",
+    "useAgentsDesc": "Εμφανίζει τη σελίδα του πράκτορα, τη λίστα συνομιλιών και το αυτόματο πιλότο. Απενεργοποιήστε για σκέτο ταμπλό, λίστα και αρχείο χωρίς πράκτορα."
   },
   "sectionLabels": {
     "title": "Τίτλος",
@@ -394,7 +396,15 @@
     "modelDefaultTag": "Αυτόματο",
     "modelSuggestedTag": "Προτεινόμενο",
     "modelCurrentTag": "Τρέχον",
-    "modelCustom": "Προσαρμοσμένο μοντέλο..."
+    "modelCustom": "Προσαρμοσμένο μοντέλο...",
+    "conversations": "Συνομιλίες",
+    "panelTask": "Εργασία",
+    "panelChanges": "Αλλαγές",
+    "panelTaskEmpty": "Δεν υπάρχει ανοιχτή εργασία. Κάντε κλικ σε μια εργασία ή ρωτήστε τον πράκτορα και θα εμφανιστεί εδώ.",
+    "panelLabel": "Πάνελ συνομιλίας",
+    "changesEmpty": "Τα αρχεία που αγγίζει αυτή η συνομιλία θα εμφανιστούν εδώ.",
+    "touchedFiles": "Αγγιγμένα αρχεία",
+    "liveDiffs": "Ζωντανά diff εργασιών"
   },
   "agentSkills": {
     "skillsModalTitle": "Δεξιότητες",

@@ -337,7 +337,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "จุดสีประจำคอลัมน์",
-    "columnAccentsDesc": "แสดงจุดสีเล็ก ๆ ถัดจากชื่อคอลัมน์แต่ละคอลัมน์"
+    "columnAccentsDesc": "แสดงจุดสีเล็ก ๆ ถัดจากชื่อคอลัมน์แต่ละคอลัมน์",
+    "useAgents": "ใช้เอเจนต์",
+    "useAgentsDesc": "แสดงหน้าเอเจนต์ รายการการสนทนา และไพลอตอัตโนมัติ ปิดเพื่อใช้เพียงบอร์ด รายการ และที่เก็บถาวรแบบเรียบง่ายไม่มีเอเจนต์"
   },
   "sectionLabels": {
     "title": "Title",
@@ -416,7 +418,15 @@
     "modelDefaultTag": "อัตโนมัติ",
     "modelSuggestedTag": "แนะนำ",
     "modelCurrentTag": "ปัจจุบัน",
-    "modelCustom": "โมเดลกำหนดเอง..."
+    "modelCustom": "โมเดลกำหนดเอง...",
+    "conversations": "การสนทนา",
+    "panelTask": "งาน",
+    "panelChanges": "การเปลี่ยนแปลง",
+    "panelTaskEmpty": "ยังไม่มีงานที่เปิดอยู่ คลิกที่งานหรือถามเอเจนต์ งานจะปรากฏที่นี่",
+    "panelLabel": "แผงการสนทนา",
+    "changesEmpty": "ไฟล์ที่การสนทนานี้แตะจะปรากฏที่นี่",
+    "touchedFiles": "ไฟล์ที่แตะ",
+    "liveDiffs": "ดิฟงานแบบเรียลไทม์"
   },
   "agentSkills": {
     "skillsModalTitle": "ทักษะ",

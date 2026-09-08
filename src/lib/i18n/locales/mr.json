@@ -337,7 +337,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "स्तंभ रंग अ‍ॅक्सेंट",
-    "columnAccentsDesc": "प्रत्येक स्तंभ शीर्षकासमोर छोटा रंगीत बिंदू दाखवतो"
+    "columnAccentsDesc": "प्रत्येक स्तंभ शीर्षकासमोर छोटा रंगीत बिंदू दाखवतो",
+    "useAgents": "एजंट वापरा",
+    "useAgentsDesc": "एजंट पृष्ठ, संभाषण यादी आणि ऑटोपायलट दाखवते. बंद केल्यास एजंटशिवाय फक्त बोर्ड, यादी आणि संग्रह राहतो."
   },
   "sectionLabels": {
     "title": "Title",
@@ -416,7 +418,15 @@
     "modelDefaultTag": "ऑटो",
     "modelSuggestedTag": "सुचवलेले",
     "modelCurrentTag": "चालू",
-    "modelCustom": "कस्टम मॉडेल..."
+    "modelCustom": "कस्टम मॉडेल...",
+    "conversations": "संभाषणे",
+    "panelTask": "कार्य",
+    "panelChanges": "बदल",
+    "panelTaskEmpty": "कोणतेही कार्य उघड नाही. कार्यावर क्लिक करा किंवा एजंटला विचारा, ते येथे दिसेल.",
+    "panelLabel": "संभाषण पॅनेल",
+    "changesEmpty": "या संभाषणाने स्पर्श केलेल्या फाइल्स येथे दिसतील.",
+    "touchedFiles": "स्पर्श केलेल्या फाइल्स",
+    "liveDiffs": "लाइव्ह कार्य डिफ"
   },
   "agentSkills": {
     "skillsModalTitle": "कौशल्ये",

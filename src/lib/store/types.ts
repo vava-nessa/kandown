@@ -155,6 +155,26 @@ export interface AgentChatState {
   sending: boolean;
 }
 
+/** 📖 Tabs the agent right panel can host (t337). The panel is a generic
+ * per-conversation space: a new usage joins by adding a member here and an
+ * entry in AgentPanelSpace's registry, nothing else. */
+export type AgentPanelTab = 'task' | 'changes';
+
+/** 📖 Which tabs one conversation keeps open, and which one is showing. */
+export interface AgentPanelSessionState {
+  openTabs: AgentPanelTab[];
+  activeTab: AgentPanelTab;
+}
+
+/** 📖 Everything the agent right panel space reads (t337). `open` is global
+ * (the panel column is visible or not), while the tab sets are per
+ * conversation: switching conversations restores that conversation's own
+ * panel layout, keyed by session id ('draft' while no session is active). */
+export interface AgentPanelState {
+  open: boolean;
+  bySession: Record<string, AgentPanelSessionState>;
+}
+
 /** 📖 Everything startSession accepts. `message` becomes the first user turn
  * appended under the compiled task/board context the daemon builds. `skillId`
  * (t310) is passed through to createAgentSession so the daemon folds the
@@ -339,7 +359,7 @@ export interface State {
   cheatsheetOpen: boolean;
   drawerTaskId: string | null;
   drawerData: { frontmatter: TaskFrontmatter; subtasks: Subtask[]; body: string } | null;
-  currentPage: 'board' | 'settings';
+  currentPage: 'board' | 'settings' | 'agent';
 
   // Project config
   config: KandownConfig;
@@ -453,7 +473,7 @@ export interface State {
 
   setCommandOpen: (open: boolean) => void;
   setCheatsheetOpen: (open: boolean) => void;
-  setCurrentPage: (page: 'board' | 'settings') => void;
+  setCurrentPage: (page: 'board' | 'settings' | 'agent') => void;
 
   loadTaskContents: (taskIds: string[]) => Promise<void>;
   computeSearchMatches: (query: string) => void;
@@ -469,6 +489,17 @@ export interface State {
   setupWatcher: () => void;
   /** 📖 Restarts the file watcher after it auto-disabled itself (t107). */
   restartWatcher: () => void;
+
+  // Agent right panel space (t337). State lives under `agentPanel`.
+  agentPanel: AgentPanelState;
+  /** Ensures a tab is open in the active conversation's panel and shows it. */
+  openAgentPanelTab: (tab: AgentPanelTab) => void;
+  /** Closes one panel tab; the panel itself closes when the last tab goes. */
+  closeAgentPanelTab: (tab: AgentPanelTab) => void;
+  /** Activates an already-open panel tab. */
+  setActiveAgentPanelTab: (tab: AgentPanelTab) => void;
+  /** Shows or hides the whole panel for the active conversation. */
+  toggleAgentPanel: () => void;
 
   // Agent chat sidebar (t308). State lives under `agentChat`.
   agentChat: AgentChatState;

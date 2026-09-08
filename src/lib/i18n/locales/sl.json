@@ -315,7 +315,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Barvni poudarki stolpcev",
-    "columnAccentsDesc": "Pokaže majhno barvno piko poleg naslova vsakega stolpca"
+    "columnAccentsDesc": "Pokaže majhno barvno piko poleg naslova vsakega stolpca",
+    "useAgents": "Uporabi agente",
+    "useAgentsDesc": "Prikazuje stran agenta, seznam pogovorov in avtopilota. Izključite za preprosto ploščo, seznam in arhiv brez agenta."
   },
   "sectionLabels": {
     "title": "Naslov",
@@ -394,7 +396,15 @@
     "modelDefaultTag": "Samodejno",
     "modelSuggestedTag": "Priporočeno",
     "modelCurrentTag": "Trenutni",
-    "modelCustom": "Model po meri..."
+    "modelCustom": "Model po meri...",
+    "conversations": "Pogovori",
+    "panelTask": "Naloga",
+    "panelChanges": "Spremembe",
+    "panelTaskEmpty": "Ni odprte naloge. Kliknite nalogo ali vprašajte agenta, prikazala se bo tukaj.",
+    "panelLabel": "Panel pogovora",
+    "changesEmpty": "Datoteke, ki se jih je ta pogovor dotaknil, se bodo pojavile tukaj.",
+    "touchedFiles": "Dotaknjene datoteke",
+    "liveDiffs": "Diffi nalog v živo"
   },
   "agentSkills": {
     "skillsModalTitle": "Veščine",

@@ -337,7 +337,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "കോളം നിറ അക്സന്റുകൾ",
-    "columnAccentsDesc": "ഓരോ കോളം തലക്കെട്ടിനരികിലും ചെറിയ നിറമുള്ള ഡോട്ട് കാണിക്കുന്നു"
+    "columnAccentsDesc": "ഓരോ കോളം തലക്കെട്ടിനരികിലും ചെറിയ നിറമുള്ള ഡോട്ട് കാണിക്കുന്നു",
+    "useAgents": "ഏജന്റുമാരെ ഉപയോഗിക്കുക",
+    "useAgentsDesc": "ഏജന്റ് പേജും സംഭാഷണ ലിസ്റ്റും ഓട്ടോപൈലറ്റും കാണിക്കുന്നു. ഓഫാക്കിയാൽ ഏജന്റില്ലാതെ ലളിതമായ ബോർഡ്, ലിസ്റ്റ്, ആർകൈവ് മാത്രം."
   },
   "sectionLabels": {
     "title": "Title",
@@ -416,7 +418,15 @@
     "modelDefaultTag": "ഓട്ടോ",
     "modelSuggestedTag": "നിർദ്ദേശിച്ചത്",
     "modelCurrentTag": "നിലവിലെ",
-    "modelCustom": "ഇഷ്ടാനുസൃത മോഡൽ..."
+    "modelCustom": "ഇഷ്ടാനുസൃത മോഡൽ...",
+    "conversations": "സംഭാഷണങ്ങൾ",
+    "panelTask": "ജോലി",
+    "panelChanges": "മാറ്റങ്ങൾ",
+    "panelTaskEmpty": "തുറന്ന ജോലിയില്ല. ഒരു ജോലിയിൽ ക്ലിക്കുചെയ്യുക അല്ലെങ്കിൽ ഏജന്റിനോട് ചോദിക്കുക, അത് ഇവിടെ ദൃശ്യമാകും.",
+    "panelLabel": "സംഭാഷണ പാനൽ",
+    "changesEmpty": "ഈ സംഭാഷണം തൊട്ട ഫയലുകൾ ഇവിടെ ദൃശ്യമാകും.",
+    "touchedFiles": "തൊട്ട ഫയലുകൾ",
+    "liveDiffs": "ലൈവ് ജോലി ഡിഫുകൾ"
   },
   "agentSkills": {
     "skillsModalTitle": "കഴിവുകൾ",

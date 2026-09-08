@@ -26,12 +26,12 @@ source to edit instead.
 
 ## `bin/` — Published CLI entrypoints — GENERATED, never edit
 
-- **`kandown.js`** · 15341 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
-- **`tui.js`** · 62839 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
+- **`kandown.js`** · 15344 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
+- **`tui.js`** · 62842 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
 
 ## `src/` — Web app root
 
-- **`App.tsx`** · 295 lines — Composes the Kandown web UI, hydrates recent projects from the URL, and owns global keyboard shortcuts for board navigation, creation, reload, search focus, and command palette access.
+- **`App.tsx`** · 320 lines — Composes the Kandown web UI, hydrates recent projects from the URL, and owns global keyboard shortcuts for board navigation, creation, reload, search focus, and command palette access.
 - **`main.tsx`** · 69 lines — Mounts the Kandown React app into the Vite-provided root node, initializes i18n, and imports the global Tailwind/CSS-variable theme layer.
 
 ## `src/cli/` — CLI + terminal UI (source of the bin/ bundles)
@@ -189,7 +189,7 @@ source to edit instead.
 - **`ArchiveView.tsx`** · 89 lines — Lists every archived task (frontmatter `archived: true`, files living under `tasks/archive/` at the project root) as a flat list.
 - **`Board.tsx`** · 404 lines — Renders the horizontal kanban board, filters tasks per column, wires drag-and-drop state, and forwards content-search matches to cards.
 - **`BulkActionBar.tsx`** · 537 lines — Appears when one or more tasks are selected in the web UI and behaves like Linear's selection bar: a floating pill at the bottom of the screen that exposes every action that makes sense for a group of tasks — change priority, assign,…
-- **`Card.tsx`** · 552 lines — Displays one board task as a clean, rounded card inside a column.
+- **`Card.tsx`** · 556 lines — Displays one board task as a clean, rounded card inside a column.
 - **`CardStack.tsx`** · 326 lines — Renders a group of 2+ cards that share the same `[bracket]` or `#hashtag` title tag as a visually stacked card.
 - **`CategoryChip.tsx`** · 77 lines — Renders a category name as a chip.
 - **`Cheatsheet.tsx`** · 182 lines — Centered modal that lists every keyboard shortcut in Kandown, grouped by context (Global, Board, Drawer, Command Palette).
@@ -199,7 +199,7 @@ source to edit instead.
 - **`CommandPalette.tsx`** · 363 lines — Provides global quick actions, view switching, task lookup, and content-aware task search with highlighted snippets.
 - **`ConflictModal.tsx`** · 177 lines — Shown when drawer has unsaved changes AND the underlying task file was modified externally with conflicting changes.
 - **`DependenciesHeaderMenu.tsx`** · 248 lines — Compact hoverable & clickable popover menu in the task header for managing dependencies with autocompletion.
-- **`Drawer.tsx`** · 555 lines — Full-height task detail editor for title, description, subtasks, report, save/close, autosave, and deletion.
+- **`Drawer.tsx`** · 558 lines — Full-height task detail editor for title, description, subtasks, report, save/close, autosave, and deletion.
 - **`EmptyState.tsx`** · 147 lines — Renders the first-run project picker, unsupported-browser copy, and recent project shortcuts before a `.kandown` folder is open.
 - **`ErrorBoundary.tsx`** · 164 lines — Catches render-time errors in the child tree and displays a recoverable fallback instead of letting React unmount the whole app to a blank page.
 - **`ExtensionRuntimeProvider.tsx`** · 176 lines — Hydrates one project-wide extension snapshot for fields, panels and card badges.
@@ -211,19 +211,24 @@ source to edit instead.
 - **`ListView.tsx`** · 539 lines — Renders board columns as vertically stacked horizontal sections, with dense task rows, filter/search previews, task drops between sections, and vertical section reordering.
 - **`LogoSvg.tsx`** · 54 lines — Renders the official Kandown vector logo from logo.svg.
 - **`OnboardingTour.tsx`** · 293 lines — Centered dialog that introduces Kandown the first time a user opens a project, then disappears for good on that project.
-- **`SettingsPage.tsx`** · 372 lines — Dense settings workspace with an iOS-style sidebar, global option search, section navigation, and compact controls for kandown.json.
-- **`SideNav.tsx`** · 295 lines — Collapsed-by-default icon rail that expands to a full sidebar on click.
+- **`SettingsPage.tsx`** · 390 lines — Dense settings workspace with an iOS-style sidebar, global option search, section navigation, and compact controls for kandown.json.
+- **`SideNav.tsx`** · 429 lines — Collapsed-by-default icon rail that expands to a full sidebar on click.
 - **`SubtaskEditor.tsx`** · 164 lines — Reusable checklist editor rendered below a task description in both the mobile drawer and desktop workspace.
 - **`SubtaskItem.tsx`** · 228 lines — Editable row for one markdown checklist item inside the task drawer, with toggle, text edit, enter-to-add, empty-backspace removal, and an expandable panel for per-subtask description and report notes.
 - **`TaskAgentRunControls.tsx`** · 363 lines — Shared launch-and-watch surface for agent runs, mounted by BOTH task editor shells (TaskWorkspace on desktop, Drawer on mobile), the same fan-out rule TaskExtensionSurface follows.
 - **`TaskExtensionSurface.tsx`** · 384 lines — Shared mobile and desktop task-editor section for contributed fields and web panels.
-- **`TaskWorkspace.tsx`** · 866 lines — Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…
+- **`TaskWorkspace.tsx`** · 877 lines — Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…
 - **`Toaster.tsx`** · 47 lines — Renders transient success, info, and error messages emitted by store actions such as saving, creating, deleting, and permission failures.
 - **`UpdateNotificationBanner.tsx`** · 234 lines — Non-intrusive, floating update notification banner and 1-click installer prompt for the Web UI.
 
 ## `src/components/agent/`
 
 - **`ActivityBlock.tsx`** · 246 lines — Every assistant turn gets one activity area that updates in place while the turn streams: the reasoning channel renders through the official bui ThinkingState (Reasoning-style prose trace, shimmer header while live, single-line ticker…
+- **`AgentChatSurface.tsx`** · 494 lines — The conversation body itself, extracted from the old overlay ChatSidebar so two shells can render the exact same chat: the full-page agent view on desktop (AgentPage) and the fullscreen mobile overlay (ChatSidebar).
+- **`AgentPage.tsx`** · 186 lines — The agent as a real page, the way code harnesses lay it out: the conversation runs as a centered column filling the main area, the left rail keeps the navigation plus the conversation list, and a retractable per-conversation panel space…
+- **`AgentPanelChanges.tsx`** · 142 lines — The right panel's changes tab on the agent page: what this conversation's agent is touching, live.
+- **`AgentPanelSpace.tsx`** · 121 lines — The retractable panel column next to the chat on the agent page, in the spirit of the code-harness side panels: a tab strip at the top, one conversation's content below.
+- **`AgentPanelTask.tsx`** · 40 lines — The right panel's task tab on the agent page: renders the task currently open in the drawer store as a real, editable workspace inside the panel column.
 - **`AgentPresenceBadge.tsx`** · 83 lines — Shows the chat session's blobatar near the task id in the TaskWorkspace (desktop) and Drawer (mobile) headers while a `[show: tXXX]` directive from the ACTIVE chat session points at the open task: a small header avatar, plus the…
 - **`AnswerForm.tsx`** · 159 lines — Panel rendered above the skill buttons when an interactive skill (grill-me) finishes its first turn.
 - **`ApprovalCard.tsx`** · 111 lines — ApprovalCard renders one pending harness permission request (title, kind chip, short session id, Approve / Reject); ApprovalCardStack is the fixed bottom-right container fed by the agentEdits permission queue.
@@ -231,7 +236,7 @@ source to edit instead.
 - **`Blobatar.tsx`** · 125 lines — Deterministic blob avatar identifying the agent session that is currently editing a task: the same sessionId always renders the same creature (shape, face, colors all derive from the id by the blobatar generator), so a session keeps its…
 - **`CardBeam.tsx`** · 128 lines — Animated border-beam overlay marking a task an agent session is currently editing.
 - **`CardStopButton.tsx`** · 110 lines — The board-surface half of the autopilot UI.
-- **`ChatSidebar.tsx`** · 600 lines — The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.
+- **`ChatSidebar.tsx`** · 106 lines — Mobile-only fullscreen chat overlay (<768px), mirroring the Drawer pattern.
 - **`ContextCards.tsx`** · 124 lines — BeautifulUI 10 Context Cards, shared bui/ edition: when a user message carries @task mentions, the official bui cards render above the bubble, right-aligned like it.
 - **`DaemonGuardCard.tsx`** · 57 lines — Shown instead of the conversation UI when the session index reported no daemon (standalone File System Access mode, the demo, or an old daemon without the agent routes).
 - **`DiffOverlay.tsx`** · 94 lines — Renders the latest `task_diff` snapshot for a task as a readable, dependency-free line diff: removed lines tinted red, added lines green, unchanged context collapsed to a couple of lines around the change.
@@ -241,7 +246,6 @@ source to edit instead.
 - **`OptionsChoiceCard.tsx`** · 83 lines — BeautifulUI 04 Approval Card, shared bui/ edition: when an assistant reply carries an ```options fenced block (one choice per line, parsed by agent-chat-options.ts), the block is NOT rendered as code; it becomes the official bui…
 - **`PromptBar.tsx`** · 305 lines — The agent chat composer, rebuilt ON the official BeautifulUI PromptBar (src/components/bui/PromptBar.tsx, beautifului.dev, MIT) in its external mode (demo={false}): the BUI component owns the exact visual structure (rounded composer,…
 - **`RecommendationCard.tsx`** · 62 lines — BeautifulUI 09 Recommendation Card, shared bui/ edition: when an assistant message contains a `PROPOSE: <action>` line on its own (the Kandown agent charter documents the convention: the agent suggests a board action), the line is…
-- **`SessionSwitcher.tsx`** · 152 lines — Dropdown over the project's chat session index: title, relative last-activity time, and a harness chip per row.
 - **`SkillButtons.tsx`** · 128 lines — Renders the installed skills that declare a `chat` block as compact pill buttons above the PromptBar.
 - **`SkillsModal.tsx`** · 135 lines — A compact centered modal listing EVERY skill the daemon reports on /api/skills, not just the chat-capable subset the pill row shows: mono id, chat button label when the manifest declares one, scope chip, an interactive badge, the active…
 - **`StreamingText.tsx`** · 61 lines — Renders an assistant message that is still arriving.
@@ -296,7 +300,7 @@ source to edit instead.
 - **`ExtensionsPanel.tsx`** · 265 lines — Web UI surface for the extension system: lists installed extensions with their health and contributions, lets the user enable/disable them, and toggles restricted mode (default on).
 - **`GitHubStarsRow.tsx`** · 51 lines — One row in the *About* section: a star + the live GitHub star count, the whole row linking to the repo.
 - **`LanguageDropdown.tsx`** · 141 lines — Searchable flag+name dropdown over ORDERED_LANGUAGES, with arrow-key navigation and Enter-to-select.
-- **`schema.ts`** · 528 lines — Declarative metadata describing every setting (section, type, description, keywords) plus pure functions for reading/writing dotted config paths and building the sidebar search index.
+- **`schema.ts`** · 539 lines — Declarative metadata describing every setting (section, type, description, keywords) plus pure functions for reading/writing dotted config paths and building the sidebar search index.
 - **`SearchResults.tsx`** · 50 lines — Shown in the sidebar below the section nav once the user types a query; lists matching settings across all sections regardless of which section is currently active.
 - **`SettingRow.tsx`** · 176 lines — Renders one SettingDef as either a dense toggle row or one of the secondary controls: select dropdown, number stepper, text input, language picker, theme mode switcher, or notification permission button.
 - **`WorkOutputConfigurator.tsx`** · 525 lines — Provides the Workflow, Skills, and Kandown Work tabs backed by the same validated workflow packages and exact compiler output as the CLI.
@@ -326,7 +330,7 @@ source to edit instead.
 - **`category-color.ts`** · 187 lines — Maps a category name (WEB, CLI, ARCHITECTURE, THEMES...) to a stable accent color and a stable icon by hashing the name: the same string always yields the same color and icon, nothing is stored, nothing to maintain.
 - **`chat-mentions.ts`** · 88 lines — All the caret-level text surgery the PromptBar needs to detect what the user is typing right before the caret: an unfinished `@task` mention (opens the task picker), an unfinished `/skill` token (opens the skill picker), and the list of…
 - **`columnUtils.ts`** · 223 lines — Provides column color maps, color swatches, and tabler icon resolvers shared across Board and List views.
-- **`config.ts`** · 449 lines — Converts unknown kandown.json input into the canonical config contract used by browser and Node adapters.
+- **`config.ts`** · 452 lines — Converts unknown kandown.json input into the canonical config contract used by browser and Node adapters.
 - **`demoBackend.ts`** · 403 lines — Implements the Kandown REST API against a `Map` instead of a disk, so the whole web UI can run in a browser tab with no CLI, no server and no storage.
 - **`demoSeed.ts`** · 448 lines — The starting contents of the in-memory project served by {@link ./demoBackend.ts} when the app runs in demo mode on the website.
 - **`dependencies.ts`** · 333 lines — Pure module that owns the single rule for moving tasks between board columns: a task may only enter the configured terminal status (and be archived) when every blocking dependency is resolved.
@@ -342,9 +346,10 @@ source to edit instead.
 - **`parser.ts`** · 469 lines — Parses Kandown task markdown into typed structures, builds board columns from task frontmatter, extracts editable subtasks, reinjects them on save, and performs lightweight cached task-content search for the web UI.
 - **`project-hash.ts`** · 172 lines — One canonical identity for "this project" across every piece of user-local state kandown keeps outside the repository: extension state under `~/.kandown/project-state/<hash>/` and the chat session index (t308) under…
 - **`quick-add-parser.ts`** · 94 lines — Parses inline metadata annotations in task title strings: - `p1` / `p2` / `p3` / `p4` → priority (`P1`, `P2`, `P3`, `P4`) - `#tag` → tags array (`['tag']`) - `@assignee` → assignee string (`'assignee'`) - `due:friday` / `due:today` /…
+- **`relative-time.ts`** · 28 lines — Turns an ISO timestamp into the short "<1m / 5m / 3h / 2d" age label the conversation lists show next to each entry.
 - **`retry.ts`** · 65 lines — Small, dependency-free helper that retries a fallible async operation a bounded number of times, only when the error is transient.
 - **`serializer.ts`** · 73 lines — Converts task frontmatter/body data back into Kandown's plain markdown task file format.
-- **`store.ts`** · 2222 lines — Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.
+- **`store.ts`** · 2248 lines — Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.
 - **`task-content-hash.ts`** · 38 lines — One pure `contentHash` used by every writer that guards a task save against stale in-memory content.
 - **`task-filename.ts`** · 491 lines — Owns the whole relationship between a task id and the name of the file that holds it, for every surface (CLI, daemon, TUI, web File System Access, desktop).
 - **`task-links.ts`** · 142 lines — Pure, framework-free parsing of the two task affordances the chat prompt teaches every agent session (see CHAT_AFFORDANCES_PROMPT in the daemon server): inline task references that render as clickable chips, and the `[show: t123]`…
@@ -352,7 +357,7 @@ source to edit instead.
 - **`task-title-category.ts`** · 57 lines — Provides the canonical way to read a task's category (frontmatter `category:` field first, legacy leading bracket in the title as fallback) and title parsing utilities.
 - **`task-url.ts`** · 65 lines — Parses and writes deep-link URLs for task drawers.
 - **`theme.ts`** · 338 lines — Manages appearance tokens (--radius, --shadow-*, --font-display, --motion-scale), the single bundled `base` preset (t333), installed community themes, and dynamic inheritance.
-- **`types.ts`** · 613 lines — Defines the board, task, config, filter, search, and appearance contracts shared by the Kandown web UI, CLI, TUI, and persistence adapters.
+- **`types.ts`** · 620 lines — Defines the board, task, config, filter, search, and appearance contracts shared by the Kandown web UI, CLI, TUI, and persistence adapters.
 - **`utils.ts`** · 24 lines — Provides `cn`, the single utility used across every web component to compose conditional class names.
 - **`version.ts`** · 9 lines · ⚠️ **GENERATED** by scripts/inject-version.js — edit `package.json` instead
 - **`watcher.ts`** · 518 lines — Watches project state through content-hashed File System Access polling or daemon SSE.
@@ -406,8 +411,9 @@ source to edit instead.
 
 ## `src/lib/store/` — Zustand store slices
 
-- **`agentChatSlice.ts`** · 644 lines — Sidebar open state, the project's chat session index, the live per-session chat folds, and the SSE lifecycle that feeds them.
+- **`agentChatSlice.ts`** · 661 lines — Sidebar open state, the project's chat session index, the live per-session chat folds, and the SSE lifecycle that feeds them.
 - **`agentEditsSlice.ts`** · 471 lines — Makes agent edits visible on the board: tracks which task each agent session is currently editing (border beam + blobatar), keeps the latest before/after diff per task (live diff panel in the editor shells) and queues harness permission…
+- **`agentPanelSlice.ts`** · 93 lines — Per-conversation tab state for the agent page's right panel.
 - **`agentRunsSlice.ts`** · 365 lines — Web UI half of the runner system: which runner backends this machine can use (seeded once, so Herdr affordances only render when Herdr answered available), the live runs (board badges and the editor's PTY preview), the launch action and…
 - **`agentSearchSlice.ts`** · 127 lines — Lazy content-loading for search (>10 tasks defers full reads until search is used), the CLI daemon's optional "send to agent" hook, and resolving a drawer edit-conflict flagged by the file watcher.
 - **`autopilotSlice.ts`** · 357 lines — Web UI half of the autopilot daemon: keeps the latest orchestration snapshot (run state, active sessions per task, queue, orphans, accumulated token/cost totals), drives the sidebar controls (start, kill switch) and powers the per-card…
@@ -415,7 +421,7 @@ source to edit instead.
 - **`drawerSlice.ts`** · 275 lines — Opening/closing the task detail drawer, editing its in-memory data, saving (full or metadata-only autosave), the unsaved-edits recovery buffer used when the drawer is force-closed before a save completes (t110), and the round-4…
 - **`helpers.ts`** · 221 lines — Pure/async helpers plus the module-level mutable state (toast counter, notification snapshots, watcher timers, in-flight bulk-mutation guard) that multiple store slices need to read or write.
 - **`projectSlice.ts`** · 401 lines — Opening a project (file-picker or recent), server-mode auto-open, config load/update, and the full board reload.
-- **`types.ts`** · 559 lines — State shape and supporting interfaces used across every store slice.
+- **`types.ts`** · 590 lines — State shape and supporting interfaces used across every store slice.
 - **`uiSlice.ts`** · 72 lines — View mode/density (persisted to localStorage), filters, the command palette / cheatsheet open flags, current page routing, and the toast queue used across every other slice for user-facing feedback.
 - **`watcherSlice.ts`** · 229 lines — Starts either the browser file-system watcher or the server-mode REST polling loop, translates watcher events into board reloads / conflict detection / notifications, and exposes a manual restart for when the watcher auto-disables…
 
@@ -459,6 +465,6 @@ source to edit instead.
 
 ## Coverage
 
-324 of 324 eligible files carry an `@description` header.
+330 of 330 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

@@ -302,6 +302,9 @@ export function normalizeKandownConfig(raw: unknown): KandownConfig {
       ...(customThemes ? { customThemes } : {}),
     },
     agent: {
+      // 📖 Master switch for the agent chat surfaces (t337): absent means on,
+      // so existing projects keep their agent without a config migration.
+      useAgents: booleanOr(agent.useAgents, DEFAULT_CONFIG.agent.useAgents),
       suggestFollowUp: booleanOr(
         agent.suggestFollowUp,
         DEFAULT_CONFIG.agent.suggestFollowUp,

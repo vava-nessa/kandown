@@ -282,7 +282,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "列のカラーアクセント",
-    "columnAccentsDesc": "各列のタイトルの横に小さな色の点を表示します"
+    "columnAccentsDesc": "各列のタイトルの横に小さな色の点を表示します",
+    "useAgents": "エージェントを使う",
+    "useAgentsDesc": "エージェントページ、会話リスト、オートパイロットを表示します。オフにするとエージェントなしのシンプルなボード・リスト・アーカイブになります。"
   },
   "sectionLabels": {
     "title": "タイトル",
@@ -361,7 +363,15 @@
     "modelDefaultTag": "自動",
     "modelSuggestedTag": "推奨",
     "modelCurrentTag": "現在",
-    "modelCustom": "カスタムモデル..."
+    "modelCustom": "カスタムモデル...",
+    "conversations": "会話",
+    "panelTask": "タスク",
+    "panelChanges": "変更",
+    "panelTaskEmpty": "開いているタスクはありません。タスクをクリックするか、エージェントに尋ねるとここに表示されます。",
+    "panelLabel": "会話パネル",
+    "changesEmpty": "この会話が触れたファイルがここに表示されます。",
+    "touchedFiles": "触れたファイル",
+    "liveDiffs": "タスクのライブ差分"
   },
   "agentSkills": {
     "skillsModalTitle": "スキル",

@@ -198,7 +198,7 @@ function TaskSection({
   );
 }
 
-export function TaskWorkspace() {
+export function TaskWorkspace({ variant = 'page' }: { variant?: 'page' | 'panel' }) {
   const { t } = useTranslation();
   const drawerTaskId = useStore(s => s.drawerTaskId);
   const drawerData = useStore(s => s.drawerData);
@@ -574,11 +574,19 @@ export function TaskWorkspace() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.18 }}
-      className={`hidden md:flex flex-1 min-h-0 gap-5 p-5 ${config.ui.background === 'solid' ? 'board-bg' : ''}`}
+      className={`flex flex-1 min-h-0 ${
+        variant === 'page' ? 'hidden gap-5 p-5 md:flex' : 'flex-col'
+      } ${variant === 'page' && config.ui.background === 'solid' ? 'board-bg' : ''}`}
     >
+      {/* 📖 Panel variant (t337): embedded in the agent page's right panel,
+       * so no page padding or board background, and the task navigator is
+       * dropped: the panel shows exactly the drawer store's open task. */}
       {/* 📖 Frameless editor (t335): the task list is a flat index on the page
        * background, the editing sheet is the only paper surface. No panel
-       * borders, no blur, no shadow: one visible boundary per region. */}
+       * borders, no blur, no shadow: one visible boundary per region. The
+       * navigator only exists in the page variant; the panel variant shows
+       * the open task alone. */}
+      {variant === 'page' && (
       <aside className="flex h-full w-1/4 min-w-[260px] max-w-[360px] flex-col overflow-hidden">
         <div className="space-y-2 px-2 py-3">
           <div className="flex items-center justify-between gap-2">
@@ -641,6 +649,7 @@ export function TaskWorkspace() {
           )}
         </div>
       </aside>
+      )}
 
       <main className="flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl bg-card shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
         {/* 📖 `relative`: the chat presence floating blob (AgentPresenceBadge)
@@ -826,18 +835,20 @@ export function TaskWorkspace() {
                 title={t('drawer.sendToAgentTitle')}
               />
             )}
-            {/* 📖 "Ask the agent" (t308): opens the chat sidebar with this task
-             * as the pre-compiled context. Always available; the sidebar itself
-             * explains the daemon requirement when there is none. */}
-            <button
-              type="button"
-              onClick={() => { if (drawerTaskId) openSidebar(drawerTaskId); }}
-              title={t('agentChat.askAgentTitle', 'Open the agent chat with this task as context')}
-              className="inline-flex items-center gap-2 rounded-xl border border-border bg-bg px-3 py-2 text-[13px] font-semibold text-fg shadow-sm transition-colors hover:border-border-strong hover:bg-bg-2"
-            >
-              <IconMessage size={14} stroke={1.8} />
-              <span>{t('agentChat.askAgent', 'Ask the agent')}</span>
-            </button>
+            {/* 📖 "Ask the agent" (t308): opens the chat with this task as the
+             * pre-compiled context (the agent page since t337). Hidden when
+             * the useAgents flag is off. */}
+            {config.agent.useAgents !== false && (
+              <button
+                type="button"
+                onClick={() => { if (drawerTaskId) openSidebar(drawerTaskId); }}
+                title={t('agentChat.askAgentTitle', 'Open the agent chat with this task as context')}
+                className="inline-flex items-center gap-2 rounded-xl border border-border bg-bg px-3 py-2 text-[13px] font-semibold text-fg shadow-sm transition-colors hover:border-border-strong hover:bg-bg-2"
+              >
+                <IconMessage size={14} stroke={1.8} />
+                <span>{t('agentChat.askAgent', 'Ask the agent')}</span>
+              </button>
+            )}
           </div>
           <div className="flex items-center gap-2">
             {hasUnsavedDrawerEdits && (

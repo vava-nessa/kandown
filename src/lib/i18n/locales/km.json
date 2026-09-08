@@ -337,7 +337,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "ក្បាច់ពណ៌នៃជួរឈរ",
-    "columnAccentsDesc": "បង្ហាញចំណុចពណ៌តូចនៅជាប់ចំណងជើងជួរឈរនីមួយៗ"
+    "columnAccentsDesc": "បង្ហាញចំណុចពណ៌តូចនៅជាប់ចំណងជើងជួរឈរនីមួយៗ",
+    "useAgents": "ប្រើភ្នាក់ងារ",
+    "useAgentsDesc": "បង្ហាញទំព័រភ្នាក់ងារ បញ្ជីការសន្ទនា និងការគ្រប់គ្រងស្វ័យប្រវត្តិ។ បិទដើម្បីមានតែបន្ទះ បញ្ជី និងប័ណ្ណសារសាមញ្ញដោយគ្មានភ្នាក់ងារ។"
   },
   "sectionLabels": {
     "title": "Title",
@@ -416,7 +418,15 @@
     "modelDefaultTag": "ស្វ័យប្រវត្តិ",
     "modelSuggestedTag": "បានណែនាំ",
     "modelCurrentTag": "បច្ចុប្បន្ន",
-    "modelCustom": "ម៉ូដែលផ្ទាល់ខ្លួន..."
+    "modelCustom": "ម៉ូដែលផ្ទាល់ខ្លួន...",
+    "conversations": "ការសន្ទនា",
+    "panelTask": "ភារកិច្ច",
+    "panelChanges": "ការផ្លាស់ប្តូរ",
+    "panelTaskEmpty": "មិនមានភារកិច្ចបើកទេ។ ចុចលើភារកិច្ចមួយ ឬសួរភ្នាក់ងារ ហើយវានឹងបង្ហាញនៅទីនេះ។",
+    "panelLabel": "ផ្ទាំងការសន្ទនា",
+    "changesEmpty": "ឯកសារដែលការសន្ទនានេះបានប៉ះនឹងបង្ហាញនៅទីនេះ។",
+    "touchedFiles": "ឯកសារដែលបានប៉ះ",
+    "liveDiffs": "ភាពខុសគ្នាភារកិច្ចផ្ទាល់"
   },
   "agentSkills": {
     "skillsModalTitle": "ជំនាញ",

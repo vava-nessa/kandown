@@ -315,7 +315,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Oszlop színkiemelések",
-    "columnAccentsDesc": "Kis színes pontot jelenít meg minden oszlop címe mellett"
+    "columnAccentsDesc": "Kis színes pontot jelenít meg minden oszlop címe mellett",
+    "useAgents": "Ügynökök használata",
+    "useAgentsDesc": "Megjeleníti az ügynökoldalt, a beszélgetéslistát és az automatát. Kikapcsolva egyszerű tábla, lista és archívum marad, ügynök nélkül."
   },
   "sectionLabels": {
     "title": "Cím",
@@ -394,7 +396,15 @@
     "modelDefaultTag": "Auto",
     "modelSuggestedTag": "Javasolt",
     "modelCurrentTag": "Jelenlegi",
-    "modelCustom": "Egyéni modell..."
+    "modelCustom": "Egyéni modell...",
+    "conversations": "Beszélgetések",
+    "panelTask": "Feladat",
+    "panelChanges": "Változtatások",
+    "panelTaskEmpty": "Nincs megnyitott feladat. Kattints egy feladatra, vagy kérdezd az ügynököt, és itt jelenik meg.",
+    "panelLabel": "Beszélgetéspanel",
+    "changesEmpty": "A beszélgetés által érintett fájlok itt jelennek meg.",
+    "touchedFiles": "Érintett fájlok",
+    "liveDiffs": "Élő feladat-diffek"
   },
   "agentSkills": {
     "skillsModalTitle": "Készségek",

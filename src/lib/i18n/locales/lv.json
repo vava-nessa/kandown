@@ -315,7 +315,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Kolonnu krāsu akcenti",
-    "columnAccentsDesc": "Rāda nelielu krāsainu punktu pie katra stulpelka virsraksta"
+    "columnAccentsDesc": "Rāda nelielu krāsainu punktu pie katra stulpelka virsraksta",
+    "useAgents": "Izmantot aģentus",
+    "useAgentsDesc": "Rāda aģenta lapu, sarunu sarakstu un autopilotu. Izslēdziet, ja pietiek ar vienkāršu dēli, sarakstu un arhīvu bez aģenta."
   },
   "sectionLabels": {
     "title": "Virsraksts",
@@ -394,7 +396,15 @@
     "modelDefaultTag": "Auto",
     "modelSuggestedTag": "Ieteikts",
     "modelCurrentTag": "Pašreizējais",
-    "modelCustom": "Pielāgots modelis..."
+    "modelCustom": "Pielāgots modelis...",
+    "conversations": "Sarunas",
+    "panelTask": "Uzdevums",
+    "panelChanges": "Izmaiņas",
+    "panelTaskEmpty": "Nav atvērta uzdevuma. Noklikšķiniet uz uzdevuma vai vaicājiet aģentam, un tas parādīsies šeit.",
+    "panelLabel": "Sarunu panelis",
+    "changesEmpty": "Šeit parādīsies faili, kurus šī saruna ir skārusi.",
+    "touchedFiles": "Aiztiktie faili",
+    "liveDiffs": "Uzdevumu difi reāllaikā"
   },
   "agentSkills": {
     "skillsModalTitle": "Prasmes",

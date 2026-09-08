@@ -282,7 +282,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Aksen warna kolom",
-    "columnAccentsDesc": "Menampilkan titik warna kecil di sebelah judul setiap kolom"
+    "columnAccentsDesc": "Menampilkan titik warna kecil di sebelah judul setiap kolom",
+    "useAgents": "Gunakan agen",
+    "useAgentsDesc": "Menampilkan halaman agen, daftar percakapan, dan autopilot. Matikan untuk papan, daftar, dan arsip sederhana tanpa agen."
   },
   "sectionLabels": {
     "title": "Judul",
@@ -361,7 +363,15 @@
     "modelDefaultTag": "Otomatis",
     "modelSuggestedTag": "Disarankan",
     "modelCurrentTag": "Saat ini",
-    "modelCustom": "Model khusus..."
+    "modelCustom": "Model khusus...",
+    "conversations": "Percakapan",
+    "panelTask": "Tugas",
+    "panelChanges": "Perubahan",
+    "panelTaskEmpty": "Tidak ada tugas yang terbuka. Klik sebuah tugas atau tanyakan pada agen, maka akan muncul di sini.",
+    "panelLabel": "Panel percakapan",
+    "changesEmpty": "Berkas yang disentuh percakapan ini akan muncul di sini.",
+    "touchedFiles": "Berkas yang disentuh",
+    "liveDiffs": "Diff tugas langsung"
   },
   "agentSkills": {
     "skillsModalTitle": "Skill",

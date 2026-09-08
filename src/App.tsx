@@ -37,6 +37,7 @@ import { OnboardingTour } from './components/OnboardingTour';
 import { UpdateNotificationBanner } from './components/UpdateNotificationBanner';
 import { ExtensionRuntimeProvider } from './components/ExtensionRuntimeProvider';
 import { ChatSidebar } from './components/agent/ChatSidebar';
+import { AgentPage } from './components/agent/AgentPage';
 
 
 import { useStore } from './lib/store';
@@ -65,10 +66,15 @@ export function App() {
   const openRecentProject = useStore(s => s.openRecentProject);
   const tryAutoOpenServerProject = useStore(s => s.tryAutoOpenServerProject);
   const currentPage = useStore(s => s.currentPage);
+  const agentRailCollapsed = useStore(s => s.agentRailCollapsed);
   const showArchives = useStore(s => s.showArchives);
   const clearTaskSelection = useStore(s => s.clearTaskSelection);
   const setTaskSelection = useStore(s => s.setTaskSelection);
   const config = useStore(s => s.config);
+  // 📖 t337: the agent page exists on desktop when the project is open and
+  // the useAgents flag has not switched the chat surfaces off.
+  const agentEnabled = config.agent.useAgents !== false;
+  const agentPage = currentPage === 'agent' && agentEnabled && (isOpen || !!dirHandle);
   const [urlTaskId, setUrlTaskId] = useState(() => getTaskIdFromLocation(window.location));
 
   useEffect(() => {
@@ -149,15 +155,25 @@ export function App() {
         return;
       }
 
-      // 📖 ⌘J / Ctrl+J toggles the agent chat sidebar (t308). Works while
-      // typing too, mirroring ⌘K: it is a panel toggle, not a text edit.
+      // 📖 ⌘J / Ctrl+J toggles the agent (t308, reworked by t337): the
+      // full-page agent view on desktop, the fullscreen overlay on mobile.
+      // Works while typing too, mirroring ⌘K: it is a panel toggle, not a
+      // text edit. Gated by the useAgents flag.
       if ((e.metaKey || e.ctrlKey) && e.key === 'j') {
         e.preventDefault();
-        const chat = useStore.getState().agentChat;
-        if (chat.sidebarOpen) {
-          useStore.getState().closeSidebar();
+        const state = useStore.getState();
+        if (state.config.agent.useAgents === false) return;
+        if (window.matchMedia('(min-width: 768px)').matches) {
+          if (state.currentPage === 'agent') {
+            state.setCurrentPage('board');
+          } else {
+            state.setCurrentPage('agent');
+            void state.refreshSessions();
+          }
+        } else if (state.agentChat.sidebarOpen) {
+          state.closeSidebar();
         } else {
-          void useStore.getState().openSidebar();
+          void state.openSidebar();
         }
         return;
       }
@@ -241,10 +257,16 @@ export function App() {
          * navigation and git context, the right column keeps the thin header
          * plus the active view. Overlays (drawer, chat, palette) mount inside
          * the right column but are position-fixed, so the split never clips
-         * them. */}
+         * them. t337: the agent page replaces the header AND the view (full
+         * height, harness layout), and can hide the rail entirely; every
+         * other view brings the rail back. */}
         <div className="flex h-screen">
-        <SideNav />
+        {!(agentPage && agentRailCollapsed) && <SideNav />}
         <div className="flex flex-col flex-1 min-w-0">
+        {agentPage ? (
+          <AgentPage />
+        ) : (
+          <>
         <Header />
         <UpdateNotificationBanner />
         {currentPage === 'settings' ? (
@@ -275,11 +297,14 @@ export function App() {
         ) : (
           <EmptyState />
         )}
+          </>
+        )}
         {/* 📖 Drawer is intentionally OUTSIDE the board boundary so a board
-         * render crash never throws away unsaved edits. Same for the agent
-         * chat sidebar (t308): it overlays every view and owns its own state. */}
+         * render crash never throws away unsaved edits. The agent chat
+         * overlay is mobile-only since t337 (the desktop agent is the page
+         * above) and hides when the useAgents flag is off. */}
         <Drawer />
-        <ChatSidebar />
+        {agentEnabled && <ChatSidebar />}
         <CommandPalette />
         <Cheatsheet />
         <Toaster />

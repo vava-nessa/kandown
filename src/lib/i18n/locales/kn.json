@@ -337,7 +337,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "ಕಾಲಮ್ ಬಣ್ಣ ಉಚ್ಚಾರಣೆಗಳು",
-    "columnAccentsDesc": "ಪ್ರತಿ ಕಾಲಮ್ ಶೀರ್ಷಿಕೆಯ ಪಕ್ಕದಲ್ಲಿ ಸಣ್ಣ ಬಣ್ಣದ ಚುಕ್ಕೆಯನ್ನು ತೋರಿಸುತ್ತದೆ"
+    "columnAccentsDesc": "ಪ್ರತಿ ಕಾಲಮ್ ಶೀರ್ಷಿಕೆಯ ಪಕ್ಕದಲ್ಲಿ ಸಣ್ಣ ಬಣ್ಣದ ಚುಕ್ಕೆಯನ್ನು ತೋರಿಸುತ್ತದೆ",
+    "useAgents": "ಏಜೆಂಟ್‌ಗಳನ್ನು ಬಳಸಿ",
+    "useAgentsDesc": "ಏಜೆಂಟ್ ಪುಟ, ಸಂಭಾಷಣೆ ಪಟ್ಟಿ ಮತ್ತು ಆಟೋಪೈಲಟ್ ತೋರಿಸುತ್ತದೆ. ಆಫ್ ಮಾಡಿದರೆ ಏಜೆಂಟ್ ಇಲ್ಲದ ಸರಳ ಬೋರ್ಡ್, ಪಟ್ಟಿ ಮತ್ತು ಆರ್ಕೈವ್ ಮಾತ್ರ."
   },
   "sectionLabels": {
     "title": "Title",
@@ -416,7 +418,15 @@
     "modelDefaultTag": "ಆಟೋ",
     "modelSuggestedTag": "ಶಿಫಾರಸು",
     "modelCurrentTag": "ಪ್ರಸ್ತುತ",
-    "modelCustom": "ಕಸ್ಟಮ್ ಮಾದರಿ..."
+    "modelCustom": "ಕಸ್ಟಮ್ ಮಾದರಿ...",
+    "conversations": "ಸಂಭಾಷಣೆಗಳು",
+    "panelTask": "ಕಾರ್ಯ",
+    "panelChanges": "ಬದಲಾವಣೆಗಳು",
+    "panelTaskEmpty": "ಯಾವುದೇ ಕಾರ್ಯ ತೆರೆದಿಲ್ಲ. ಕಾರ್ಯವೊಂದನ್ನು ಕ್ಲಿಕ್ ಮಾಡಿ ಅಥವಾ ಏಜೆಂಟ್‌ಗೆ ಕೇಳಿ, ಅದು ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತದೆ.",
+    "panelLabel": "ಸಂಭಾಷಣೆ ಪ್ಯಾನೆಲ್",
+    "changesEmpty": "ಈ ಸಂಭಾಷಣೆ ಸ್ಪರ್ಶಿಸಿದ ಫೈಲ್‌ಗಳು ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ.",
+    "touchedFiles": "ಸ್ಪರ್ಶಿಸಿದ ಫೈಲ್‌ಗಳು",
+    "liveDiffs": "ಲೈವ್ ಕಾರ್ಯ ಡಿಫ್‌ಗಳು"
   },
   "agentSkills": {
     "skillsModalTitle": "ಕೌಶಲ್ಯಗಳು",

@@ -4,7 +4,7 @@
  * per-session chat folds, and the SSE lifecycle that feeds them. Kandown never
  * stores conversations: harnesses persist their own transcripts, this slice
  * only folds the streamed events into renderable chat state and keeps the thin
- * index the SessionSwitcher lists.
+ * index the rail conversation list shows (t337).
  *
  * 📖 SSE transport: GET /api/agent/sessions/:id/events streams the same JSON
  * events the board watcher receives on /api/events, so the connection follows
@@ -223,15 +223,32 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
 
   return {
     openSidebar: (preTaskId) => {
-      set(state => ({
-        agentChat: {
-          ...state.agentChat,
-          sidebarOpen: true,
-          preContextTaskId: preTaskId ?? state.agentChat.preContextTaskId,
-        },
-      }));
-      // 📖 Index + harness list refresh, plus stream reconnect for the active
-      // session (closeSidebar closes the EventSource but keeps the fold).
+      // 📖 t337: on desktop the agent is the full-page view, not an overlay,
+      // so every "ask the agent" entry point navigates to it. Mobile keeps
+      // the fullscreen overlay (and the useAgents flag off means nowhere).
+      const desktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
+      const useAgents = get().config.agent.useAgents !== false;
+      if (desktop && useAgents) {
+        set(state => ({
+          currentPage: 'agent',
+          agentChat: {
+            ...state.agentChat,
+            sidebarOpen: false,
+            preContextTaskId: preTaskId ?? state.agentChat.preContextTaskId,
+          },
+        }));
+      } else {
+        set(state => ({
+          agentChat: {
+            ...state.agentChat,
+            sidebarOpen: true,
+            preContextTaskId: preTaskId ?? state.agentChat.preContextTaskId,
+          },
+        }));
+      }
+      // 📖 Index + harness list refresh, plus stream reconnect (closeSidebar
+      // closes the EventSource but keeps the fold; navigating back to the
+      // page reconnects through here too).
       void get().refreshSessions();
     },
 

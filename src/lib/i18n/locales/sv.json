@@ -315,7 +315,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Kolumnfärgaccenter",
-    "columnAccentsDesc": "Visar en liten färgprick bredvid varje kolumntitel"
+    "columnAccentsDesc": "Visar en liten färgprick bredvid varje kolumntitel",
+    "useAgents": "Använd agenter",
+    "useAgentsDesc": "Visar agentsidan, konversationslistan och autopiloten. Stäng av för en enkel tavla, lista och arkiv utan agent."
   },
   "sectionLabels": {
     "title": "Titel",
@@ -394,7 +396,15 @@
     "modelDefaultTag": "Auto",
     "modelSuggestedTag": "Rekommenderad",
     "modelCurrentTag": "Aktuell",
-    "modelCustom": "Egen modell..."
+    "modelCustom": "Egen modell...",
+    "conversations": "Konversationer",
+    "panelTask": "Uppgift",
+    "panelChanges": "Ändringar",
+    "panelTaskEmpty": "Ingen uppgift öppen. Klicka på en uppgift eller fråga agenten, så visas den här.",
+    "panelLabel": "Konversationspanel",
+    "changesEmpty": "Filer som den här konversationen rör visas här.",
+    "touchedFiles": "Rörda filer",
+    "liveDiffs": "Live-diffar för uppgifter"
   },
   "agentSkills": {
     "skillsModalTitle": "Färdigheter",

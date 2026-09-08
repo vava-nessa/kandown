@@ -282,7 +282,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "কলামের রঙের অ্যাকসেন্ট",
-    "columnAccentsDesc": "প্রতিটি কলামের শিরোনামের পাশে একটি ছোট রঙিন বিন্দু দেখায়"
+    "columnAccentsDesc": "প্রতিটি কলামের শিরোনামের পাশে একটি ছোট রঙিন বিন্দু দেখায়",
+    "useAgents": "এজেন্ট ব্যবহার করুন",
+    "useAgentsDesc": "এজেন্ট পৃষ্ঠা, কথোপকথন তালিকা এবং অটোপাইলট দেখায়। বন্ধ করলে এজেন্ট ছাড়া শুধু বোর্ড, তালিকা এবং আর্কাইভ থাকবে।"
   },
   "sectionLabels": {
     "title": "শিরোনাম",
@@ -361,7 +363,15 @@
     "modelDefaultTag": "অটো",
     "modelSuggestedTag": "প্রস্তাবিত",
     "modelCurrentTag": "বর্তমান",
-    "modelCustom": "কাস্টম মডেল..."
+    "modelCustom": "কাস্টম মডেল...",
+    "conversations": "কথোপকথন",
+    "panelTask": "কাজ",
+    "panelChanges": "পরিবর্তন",
+    "panelTaskEmpty": "কোনো কাজ খোলা নেই। একটি কাজে ক্লিক করুন বা এজেন্টকে জিজ্ঞাসা করুন, এটি এখানে দেখা যাবে।",
+    "panelLabel": "কথোপকথন প্যানেল",
+    "changesEmpty": "এই কথোপকথনে স্পর্শ করা ফাইলগুলি এখানে দেখা যাবে।",
+    "touchedFiles": "স্পর্শকৃত ফাইল",
+    "liveDiffs": "লাইভ কাজের ডিফ"
   },
   "agentSkills": {
     "skillsModalTitle": "দক্ষতা",

@@ -337,7 +337,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "நிரல் நிற உச்சரிப்புகள்",
-    "columnAccentsDesc": "ஒவ்வொரு நிரல் தலைப்பின் அருகிலும் ஒரு சிறிய வண்ண புள்ளியைக் காட்டுகிறது"
+    "columnAccentsDesc": "ஒவ்வொரு நிரல் தலைப்பின் அருகிலும் ஒரு சிறிய வண்ண புள்ளியைக் காட்டுகிறது",
+    "useAgents": "முகவர்களைப் பயன்படுத்து",
+    "useAgentsDesc": "முகவர் பக்கம், உரையாடல் பட்டியல் மற்றும் ஆட்டோபைலட்டைக் காட்டுகிறது. முடக்கினால் முகவர் இல்லாத எளிய பலகை, பட்டியல் மற்றும் காப்பகம் மட்டும்."
   },
   "sectionLabels": {
     "title": "Title",
@@ -416,7 +418,15 @@
     "modelDefaultTag": "தானியங்கு",
     "modelSuggestedTag": "பரிந்துரைக்கப்பட்டது",
     "modelCurrentTag": "நடப்பு",
-    "modelCustom": "தனிப்பயன் மாதிரி..."
+    "modelCustom": "தனிப்பயன் மாதிரி...",
+    "conversations": "உரையாடல்கள்",
+    "panelTask": "பணி",
+    "panelChanges": "மாற்றங்கள்",
+    "panelTaskEmpty": "திறந்த பணி இல்லை. ஒரு பணியைக் கிளிக் செய்யவும் அல்லது முகவரிடம் கேளுங்கள், அது இங்கே தோன்றும்.",
+    "panelLabel": "உரையாடல் பலகை",
+    "changesEmpty": "இந்த உரையாடல் தொடும் கோப்புகள் இங்கே தோன்றும்.",
+    "touchedFiles": "தொடப்பட்ட கோப்புகள்",
+    "liveDiffs": "நேரடி பணி வேறுபாடுகள்"
   },
   "agentSkills": {
     "skillsModalTitle": "திறன்கள்",

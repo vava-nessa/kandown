@@ -287,6 +287,7 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
   const selectedTaskIds = useStore(s => s.selectedTaskIds);
   const toggleTaskSelection = useStore(s => s.toggleTaskSelection);
   const categoryChips = useStore(s => s.config.ui.categoryChips !== false);
+  const useAgents = useStore(s => s.config.agent.useAgents !== false);
   const isSelected = selectedTaskIds?.includes(task.id) ?? false;
 
   // 📖 Single dependency chip needs the title of the blocking task; build a
@@ -407,22 +408,25 @@ export function Card({ task, searchMatches = [], density, onDragStart, onDragEnd
         </button>
         {/* 📖 "Ask the agent" (t308): hover-revealed action in the top-right
          * corner, mirroring the checkbox pattern. stopPropagation on click and
-         * pointerdown keeps the card's open-drawer and drag handlers quiet. */}
-        <button
-          type="button"
-          aria-label={t('agentChat.askAgent', 'Ask the agent')}
-          title={t('agentChat.askAgent', 'Ask the agent')}
-          onClick={(e) => {
-            e.stopPropagation();
-            openSidebar(task.id);
-          }}
-          onPointerDown={e => e.stopPropagation()}
-          className={`absolute right-[34px] z-20 flex h-[20px] w-[20px] items-center justify-center rounded-[5px] border border-border bg-card text-fg-muted shadow-sm transition-opacity duration-150 hover:border-border-strong hover:text-fg ${
-            isCompact ? 'top-[4px]' : 'top-[8px]'
-          } opacity-0 group-hover:opacity-100 focus-visible:opacity-100`}
-        >
-          <IconMessage size={12} stroke={1.8} />
-        </button>
+         * pointerdown keeps the card's open-drawer and drag handlers quiet.
+         * Hidden when the useAgents flag is off (t337). */}
+        {useAgents && (
+          <button
+            type="button"
+            aria-label={t('agentChat.askAgent', 'Ask the agent')}
+            title={t('agentChat.askAgent', 'Ask the agent')}
+            onClick={(e) => {
+              e.stopPropagation();
+              openSidebar(task.id);
+            }}
+            onPointerDown={e => e.stopPropagation()}
+            className={`absolute right-[34px] z-20 flex h-[20px] w-[20px] items-center justify-center rounded-[5px] border border-border bg-card text-fg-muted shadow-sm transition-opacity duration-150 hover:border-border-strong hover:text-fg ${
+              isCompact ? 'top-[4px]' : 'top-[8px]'
+            } opacity-0 group-hover:opacity-100 focus-visible:opacity-100`}
+          >
+            <IconMessage size={12} stroke={1.8} />
+          </button>
+        )}
         {/* 📖 Autopilot stop (t311): rendered while a session is active on
          * this task, always visible (not hover-only: stopping an agent is
          * urgent), left of the "Ask the agent" button. Self-hiding: renders

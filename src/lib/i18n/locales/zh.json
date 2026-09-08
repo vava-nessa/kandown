@@ -326,7 +326,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "列颜色点缀",
-    "columnAccentsDesc": "在每个列标题旁显示一个小色点"
+    "columnAccentsDesc": "在每个列标题旁显示一个小色点",
+    "useAgents": "使用智能体",
+    "useAgentsDesc": "显示智能体页面、会话列表和自动驾驶。关闭后仅保留纯净的看板、列表和归档，没有智能体。"
   },
   "sectionLabels": {
     "title": "标题",
@@ -405,7 +407,15 @@
     "modelDefaultTag": "自动",
     "modelSuggestedTag": "推荐",
     "modelCurrentTag": "当前",
-    "modelCustom": "自定义模型..."
+    "modelCustom": "自定义模型...",
+    "conversations": "会话",
+    "panelTask": "任务",
+    "panelChanges": "更改",
+    "panelTaskEmpty": "尚未打开任务。点击一个任务，或向智能体提问，它就会显示在这里。",
+    "panelLabel": "会话面板",
+    "changesEmpty": "此会话涉及的文件将显示在这里。",
+    "touchedFiles": "涉及的文件",
+    "liveDiffs": "任务实时差异"
   },
   "agentSkills": {
     "skillsModalTitle": "技能",

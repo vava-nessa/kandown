@@ -282,7 +282,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "کالم رنگ ایکسنٹس",
-    "columnAccentsDesc": "ہر کالم کے عنوان کے پاس ایک چھوٹا رنگین نقطہ دکھاتا ہے"
+    "columnAccentsDesc": "ہر کالم کے عنوان کے پاس ایک چھوٹا رنگین نقطہ دکھاتا ہے",
+    "useAgents": "ایجنٹس استعمال کریں",
+    "useAgentsDesc": "ایجنٹ صفحہ، گفتگو کی فہرست اور آٹو پائلٹ دکھاتا ہے۔ بند کریں تو بغیر ایجنٹ کے صرف بورڈ، فہرست اور آرکائو رہتا ہے۔"
   },
   "sectionLabels": {
     "title": "عنوان",
@@ -361,7 +363,15 @@
     "modelDefaultTag": "خودکار",
     "modelSuggestedTag": "تجویز کردہ",
     "modelCurrentTag": "موجودہ",
-    "modelCustom": "اپنی مرضی کا ماڈل..."
+    "modelCustom": "اپنی مرضی کا ماڈل...",
+    "conversations": "گفتگوئیں",
+    "panelTask": "کام",
+    "panelChanges": "تبدیلیاں",
+    "panelTaskEmpty": "کوئی کام کھلا نہیں ہے۔ کسی کام پر کلک کریں یا ایجنٹ سے پوچھیں، یہاں ظاہر ہوگا۔",
+    "panelLabel": "گفتگو پینل",
+    "changesEmpty": "اس گفتگو سے متعلق فائلیں یہاں ظاہر ہوں گی۔",
+    "touchedFiles": "متاثرہ فائلیں",
+    "liveDiffs": "لائیو کام کے فرق"
   },
   "agentSkills": {
     "skillsModalTitle": "مہارتیں",

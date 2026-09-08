@@ -315,7 +315,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Бојни акценти колона",
-    "columnAccentsDesc": "Приказује малу обојену тачку поред наслова сваке колоне"
+    "columnAccentsDesc": "Приказује малу обојену тачку поред наслова сваке колоне",
+    "useAgents": "Користи агенте",
+    "useAgentsDesc": "Приказује страницу агента, списак разговора и аутопилота. Искључите за обичну таблу, списак и архиву без агента."
   },
   "sectionLabels": {
     "title": "Назив",
@@ -394,7 +396,15 @@
     "modelDefaultTag": "Ауто",
     "modelSuggestedTag": "Препоручено",
     "modelCurrentTag": "Текући",
-    "modelCustom": "Прилагођени модел..."
+    "modelCustom": "Прилагођени модел...",
+    "conversations": "Разговори",
+    "panelTask": "Задатак",
+    "panelChanges": "Промене",
+    "panelTaskEmpty": "Нема отвореног задатка. Кликните на задатак или питајте агента, појавиће се овде.",
+    "panelLabel": "Панел разговора",
+    "changesEmpty": "Датотеке које је овај разговор дирао појавиће се овде.",
+    "touchedFiles": "Диране датотеке",
+    "liveDiffs": "Диффи задатака уживо"
   },
   "agentSkills": {
     "skillsModalTitle": "Вештине",

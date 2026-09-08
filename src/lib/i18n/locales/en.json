@@ -385,7 +385,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Column color accents",
-    "columnAccentsDesc": "Show a small color dot next to each column title"
+    "columnAccentsDesc": "Show a small color dot next to each column title",
+    "useAgents": "Use agents",
+    "useAgentsDesc": "Show the agent page, the conversation list and autopilot. Turn off for a plain board, list and archives with no agent."
   },
   "conflict": {
     "detected": "Conflict Detected",
@@ -566,7 +568,15 @@
     "modelDefaultTag": "Auto",
     "modelSuggestedTag": "Suggested",
     "modelCurrentTag": "Current",
-    "modelCustom": "Custom model..."
+    "modelCustom": "Custom model...",
+    "conversations": "Conversations",
+    "panelTask": "Task",
+    "panelChanges": "Changes",
+    "panelTaskEmpty": "No task open. Click a task, or ask the agent about one and it will show up here.",
+    "panelLabel": "Conversation panel",
+    "changesEmpty": "Files this conversation touches will show up here.",
+    "touchedFiles": "Touched files",
+    "liveDiffs": "Live task diffs"
   },
   "agentSkills": {
     "skillsLabel": "Skills",

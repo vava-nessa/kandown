@@ -282,7 +282,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Sütun renk vurguları",
-    "columnAccentsDesc": "Her sütun başlığının yanında küçük renkli bir nokta gösterir"
+    "columnAccentsDesc": "Her sütun başlığının yanında küçük renkli bir nokta gösterir",
+    "useAgents": "Ajanları kullan",
+    "useAgentsDesc": "Ajan sayfasını, konuşma listesini ve otomatiği gösterir. Kapatırsanız ajan olmadan yalnızca pano, liste ve arşiv kalır."
   },
   "sectionLabels": {
     "title": "Başlık",
@@ -361,7 +363,15 @@
     "modelDefaultTag": "Otomatik",
     "modelSuggestedTag": "Önerilen",
     "modelCurrentTag": "Mevcut",
-    "modelCustom": "Özel model..."
+    "modelCustom": "Özel model...",
+    "conversations": "Konuşmalar",
+    "panelTask": "Görev",
+    "panelChanges": "Değişiklikler",
+    "panelTaskEmpty": "Açık görev yok. Bir göreve tıklayın ya da ajana sorun, burada görünecek.",
+    "panelLabel": "Konuşma paneli",
+    "changesEmpty": "Bu konuşmanın dokunduğu dosyalar burada görünecek.",
+    "touchedFiles": "Dokunulan dosyalar",
+    "liveDiffs": "Canlı görev farkları"
   },
   "agentSkills": {
     "skillsModalTitle": "Beceriler",

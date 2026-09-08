@@ -458,6 +458,13 @@ export interface KandownConfig {
     columnAccents?: boolean;
   };
   agent: {
+    /** 📖 Master switch for the agent chat surfaces (t337). True by default;
+     * when false the web UI hides the agent page, the conversation rail list,
+     * the ask-the-agent entries and autopilot controls, leaving a plain
+     * board / list / archives app for users who do not want an agent. The
+     * assign-and-launch board features (TUI `a`, assignee pickers) are not
+     * affected: they are board features, not chat surfaces. */
+    useAgents: boolean;
     suggestFollowUp: boolean;
     maxSuggestions: number;
     /** 📖 Default permission mode for harness sessions launched from the web
@@ -558,7 +565,7 @@ export const DEFAULT_COLUMN_META: Record<string, ColumnAgentMeta> = {
 
 export const DEFAULT_CONFIG: KandownConfig = {
   ui: { language: 'en', theme: 'auto', skin: 'base', font: 'inter', background: 'solid', onboardingCompleted: false, categoryChips: true, columnAccents: false },
-  agent: { suggestFollowUp: false, maxSuggestions: 3, permissionMode: 'yolo', workOutput: DEFAULT_WORK_OUTPUT, autopilot: { maxParallel: 2 } },
+  agent: { useAgents: true, suggestFollowUp: false, maxSuggestions: 3, permissionMode: 'yolo', workOutput: DEFAULT_WORK_OUTPUT, autopilot: { maxParallel: 2 } },
   workflow: { active: 'kandown-standard', skills: [], trackingCadence: 'balanced' },
   board: {
     columns: DEFAULT_COLUMNS,

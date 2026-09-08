@@ -315,7 +315,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Veeru värv aktsendid",
-    "columnAccentsDesc": "Kuvab iga veeru pealkirja kõrval väikese värvilise täpi"
+    "columnAccentsDesc": "Kuvab iga veeru pealkirja kõrval väikese värvilise täpi",
+    "useAgents": "Kasuta agente",
+    "useAgentsDesc": "Kuvab agendi lehe, vestluste loendi ja autopildi. Lülita välja, kui soovid lihtsalt tahvlit, loendit ja arhiivi ilma agendita."
   },
   "sectionLabels": {
     "title": "Pealkiri",
@@ -394,7 +396,15 @@
     "modelDefaultTag": "Automaatne",
     "modelSuggestedTag": "Soovitatav",
     "modelCurrentTag": "Praegune",
-    "modelCustom": "Kohandatud mudel..."
+    "modelCustom": "Kohandatud mudel...",
+    "conversations": "Vestlused",
+    "panelTask": "Ülesanne",
+    "panelChanges": "Muudatused",
+    "panelTaskEmpty": "Ühtegi ülesannet pole avatud. Klõpsa ülesandel või küsi agendilt, siis kuvatakse see siin.",
+    "panelLabel": "Vestluspaneel",
+    "changesEmpty": "Selles vestluses puudutatud failid kuvatakse siin.",
+    "touchedFiles": "Puudutatud failid",
+    "liveDiffs": "Ülesannete reaalajas diffid"
   },
   "agentSkills": {
     "skillsModalTitle": "Oskused",

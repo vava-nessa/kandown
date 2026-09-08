@@ -315,7 +315,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Stulpelių spalvų akcentai",
-    "columnAccentsDesc": "Rodo mažą spalvotą tašką šalia kiekvieno stulpelio pavadinimo"
+    "columnAccentsDesc": "Rodo mažą spalvotą tašką šalia kiekvieno stulpelio pavadinimo",
+    "useAgents": "Naudoti agentus",
+    "useAgentsDesc": "Rod agento puslapį, pokalbių sąrašą ir autopilotą. Išjunkite, jei norite paprastos lentos, sąrašo ir archyvo be agento."
   },
   "sectionLabels": {
     "title": "Pavadinimas",
@@ -394,7 +396,15 @@
     "modelDefaultTag": "Automatinis",
     "modelSuggestedTag": "Rekomenduojama",
     "modelCurrentTag": "Dabartinis",
-    "modelCustom": "Tinkamas modelis..."
+    "modelCustom": "Tinkamas modelis...",
+    "conversations": "Pokalbiai",
+    "panelTask": "Užduotis",
+    "panelChanges": "Pakeitimai",
+    "panelTaskEmpty": "Nėra atvertos užduoties. Spustelėkite užduotį arba paklauskite agento, ji atsiras čia.",
+    "panelLabel": "Pokalbių panelis",
+    "changesEmpty": "Čia atsiras failai, kurių šis pokalbis liečia.",
+    "touchedFiles": "Paliesti failai",
+    "liveDiffs": "Užduočių diffai realiuoju laiku"
   },
   "agentSkills": {
     "skillsModalTitle": "Įgūdžiai",

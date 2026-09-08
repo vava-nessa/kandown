@@ -282,7 +282,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Điểm nhấn màu cột",
-    "columnAccentsDesc": "Hiển thị một dấu chấm màu nhỏ bên cạnh tiêu đề mỗi cột"
+    "columnAccentsDesc": "Hiển thị một dấu chấm màu nhỏ bên cạnh tiêu đề mỗi cột",
+    "useAgents": "Dùng agent",
+    "useAgentsDesc": "Hiển thị trang agent, danh sách trò chuyện và autopilot. Tắt để chỉ còn bảng, danh sách và lưu trữ thuần túy không có agent."
   },
   "sectionLabels": {
     "title": "Tiêu đề",
@@ -361,7 +363,15 @@
     "modelDefaultTag": "Tự động",
     "modelSuggestedTag": "Đề xuất",
     "modelCurrentTag": "Hiện tại",
-    "modelCustom": "Mô hình tùy chỉnh..."
+    "modelCustom": "Mô hình tùy chỉnh...",
+    "conversations": "Cuộc trò chuyện",
+    "panelTask": "Nhiệm vụ",
+    "panelChanges": "Thay đổi",
+    "panelTaskEmpty": "Không có nhiệm vụ nào đang mở. Nhấp vào một nhiệm vụ hoặc hỏi agent, nó sẽ hiện ở đây.",
+    "panelLabel": "Bảng trò chuyện",
+    "changesEmpty": "Các tệp mà cuộc trò chuyện này chạm đến sẽ hiện ở đây.",
+    "touchedFiles": "Tệp đã chạm",
+    "liveDiffs": "Diff nhiệm vụ trực tiếp"
   },
   "agentSkills": {
     "skillsModalTitle": "Kỹ năng",

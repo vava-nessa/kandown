@@ -8,14 +8,14 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 15341,
+      "lines": 15344,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 62839,
+      "lines": 62842,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -138,7 +138,7 @@
     },
     {
       "path": "src/App.tsx",
-      "lines": 295,
+      "lines": 320,
       "title": "Web application shell",
       "summary": "Composes the Kandown web UI, hydrates recent projects from the URL, and owns global keyboard shortcuts for board navigation, creation, reload, search focus, and command palette access.",
       "functions": [
@@ -1970,6 +1970,75 @@
       "exports": "ActivityBlock"
     },
     {
+      "path": "src/components/agent/AgentChatSurface.tsx",
+      "lines": 494,
+      "title": "Agent chat surface (t337)",
+      "summary": "The conversation body itself, extracted from the old overlay ChatSidebar so two shells can render the exact same chat: the full-page agent view on desktop (AgentPage) and the fullscreen mobile overlay (ChatSidebar).",
+      "functions": [
+        {
+          "name": "loadStoredModel / persistModel: per-harness model pick persistence",
+          "summary": null
+        },
+        {
+          "name": "AgentChatSurface: the chat body (guard, messages, composer)",
+          "summary": null
+        }
+      ],
+      "exports": "AgentChatSurface"
+    },
+    {
+      "path": "src/components/agent/AgentPage.tsx",
+      "lines": 186,
+      "title": "Agent full-page view (t337)",
+      "summary": "The agent as a real page, the way code harnesses lay it out: the conversation runs as a centered column filling the main area, the left rail keeps the navigation plus the conversation list, and a retractable per-conversation panel space…",
+      "functions": [
+        {
+          "name": "AgentPage: the desktop full-page agent view",
+          "summary": null
+        }
+      ],
+      "exports": "AgentPage"
+    },
+    {
+      "path": "src/components/agent/AgentPanelChanges.tsx",
+      "lines": 142,
+      "title": "Agent panel: changes tab (t337)",
+      "summary": "The right panel's changes tab on the agent page: what this conversation's agent is touching, live.",
+      "functions": [
+        {
+          "name": "AgentPanelChanges: touched files + live task diffs for one conversation",
+          "summary": null
+        }
+      ],
+      "exports": "AgentPanelChanges"
+    },
+    {
+      "path": "src/components/agent/AgentPanelSpace.tsx",
+      "lines": 121,
+      "title": "Agent right panel space (t337)",
+      "summary": "The retractable panel column next to the chat on the agent page, in the spirit of the code-harness side panels: a tab strip at the top, one conversation's content below.",
+      "functions": [
+        {
+          "name": "AgentPanelSpace: the tab strip + active tab content for the current",
+          "summary": null
+        }
+      ],
+      "exports": "AgentPanelSpace"
+    },
+    {
+      "path": "src/components/agent/AgentPanelTask.tsx",
+      "lines": 40,
+      "title": "Agent panel: task tab (t337)",
+      "summary": "The right panel's task tab on the agent page: renders the task currently open in the drawer store as a real, editable workspace inside the panel column.",
+      "functions": [
+        {
+          "name": "AgentPanelTask: editable task view for the panel space",
+          "summary": null
+        }
+      ],
+      "exports": "AgentPanelTask"
+    },
+    {
       "path": "src/components/agent/AgentPresenceBadge.tsx",
       "lines": 83,
       "title": "Agent chat presence badge for the task editor headers",
@@ -2094,12 +2163,12 @@
     },
     {
       "path": "src/components/agent/ChatSidebar.tsx",
-      "lines": 600,
-      "title": "Agent chat sidebar (t308)",
-      "summary": "The web UI half of the kandown agent chat: a fixed right sidebar on desktop (collapsible, ~400px) and a fullscreen overlay on mobile (<768px), mirroring the Drawer pattern.",
+      "lines": 106,
+      "title": "Agent chat overlay (t308, reworked by t337)",
+      "summary": "Mobile-only fullscreen chat overlay (<768px), mirroring the Drawer pattern.",
       "functions": [
         {
-          "name": "ChatSidebar: the agent chat sidebar",
+          "name": "ChatSidebar: the mobile fullscreen agent chat overlay",
           "summary": null
         }
       ],
@@ -2257,23 +2326,6 @@
         }
       ],
       "exports": "RecommendationCard"
-    },
-    {
-      "path": "src/components/agent/SessionSwitcher.tsx",
-      "lines": 152,
-      "title": "Conversation switcher for the agent chat sidebar",
-      "summary": "Dropdown over the project's chat session index: title, relative last-activity time, and a harness chip per row.",
-      "functions": [
-        {
-          "name": "relativeTime: compact \"now / 5m / 3h / 2d\" age label",
-          "summary": null
-        },
-        {
-          "name": "SessionSwitcher: session list dropdown",
-          "summary": null
-        }
-      ],
-      "exports": "SessionSwitcher"
     },
     {
       "path": "src/components/agent/SkillButtons.tsx",
@@ -2679,7 +2731,7 @@
     },
     {
       "path": "src/components/Card.tsx",
-      "lines": 552,
+      "lines": 556,
       "title": "Task card",
       "summary": "Displays one board task as a clean, rounded card inside a column.",
       "functions": [
@@ -2811,7 +2863,7 @@
     },
     {
       "path": "src/components/Drawer.tsx",
-      "lines": 555,
+      "lines": 558,
       "title": "Task drawer editor",
       "summary": "Full-height task detail editor for title, description, subtasks, report, save/close, autosave, and deletion.",
       "functions": [
@@ -3022,7 +3074,7 @@
     },
     {
       "path": "src/components/settings/schema.ts",
-      "lines": 528,
+      "lines": 539,
       "title": "Settings page — schema & config helpers",
       "summary": "Declarative metadata describing every setting (section, type, description, keywords) plus pure functions for reading/writing dotted config paths and building the sidebar search index.",
       "functions": [
@@ -3074,7 +3126,7 @@
     },
     {
       "path": "src/components/SettingsPage.tsx",
-      "lines": 372,
+      "lines": 390,
       "title": "Settings page for the web app",
       "summary": "Dense settings workspace with an iOS-style sidebar, global option search, section navigation, and compact controls for kandown.json.",
       "functions": [
@@ -3099,8 +3151,8 @@
     },
     {
       "path": "src/components/SideNav.tsx",
-      "lines": 295,
-      "title": "Left navigation rail (t332)",
+      "lines": 429,
+      "title": "Left navigation rail (t332, conversations list added by t337)",
       "summary": "Collapsed-by-default icon rail that expands to a full sidebar on click.",
       "functions": [
         {
@@ -3110,6 +3162,10 @@
         {
           "name": "GitFooter",
           "summary": "active branch + worktree marker, click to copy"
+        },
+        {
+          "name": "ConversationRow",
+          "summary": "one indexed conversation in the expanded rail"
         },
         {
           "name": "SideNav",
@@ -3180,7 +3236,7 @@
     },
     {
       "path": "src/components/TaskWorkspace.tsx",
-      "lines": 866,
+      "lines": 877,
       "title": "Desktop opened-task workspace",
       "summary": "Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…",
       "functions": [
@@ -3665,7 +3721,7 @@
     },
     {
       "path": "src/lib/config.ts",
-      "lines": 449,
+      "lines": 452,
       "title": "Shared Kandown config normalization",
       "summary": "Converts unknown kandown.json input into the canonical config contract used by browser and Node adapters.",
       "functions": [
@@ -4323,6 +4379,19 @@
       "exports": "parseQuickAddInput, QuickAddParsed"
     },
     {
+      "path": "src/lib/relative-time.ts",
+      "lines": 28,
+      "title": "Compact relative time label",
+      "summary": "Turns an ISO timestamp into the short \"<1m / 5m / 3h / 2d\" age label the conversation lists show next to each entry.",
+      "functions": [
+        {
+          "name": "relativeTime: compact age label for an ISO instant",
+          "summary": null
+        }
+      ],
+      "exports": "relativeTime"
+    },
+    {
       "path": "src/lib/retry.ts",
       "lines": 65,
       "title": "Retry utility with exponential backoff",
@@ -4350,7 +4419,7 @@
     },
     {
       "path": "src/lib/store.ts",
-      "lines": 2222,
+      "lines": 2248,
       "title": "Kandown Zustand store",
       "summary": "Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.",
       "functions": [
@@ -4383,7 +4452,7 @@
     },
     {
       "path": "src/lib/store/agentChatSlice.ts",
-      "lines": 644,
+      "lines": 661,
       "title": "Zustand store slice: agent chat sidebar (t308)",
       "summary": "Sidebar open state, the project's chat session index, the live per-session chat folds, and the SSE lifecycle that feeds them.",
       "functions": [
@@ -4434,6 +4503,23 @@
         }
       ],
       "exports": "AgentEditsSlice, createAgentEditsSlice, createInitialAgentEditsState, applyAgentEditsEvent, seedAgentEditsFromPairs, isActiveEditsPayload, ActiveEditPair, mergePermissions, withoutPermission, restorePermissions, pruneDiffs, computeLineDiff, DiffRow"
+    },
+    {
+      "path": "src/lib/store/agentPanelSlice.ts",
+      "lines": 93,
+      "title": "Zustand store slice: agent right panel space (t337)",
+      "summary": "Per-conversation tab state for the agent page's right panel.",
+      "functions": [
+        {
+          "name": "createInitialAgentPanelState: the closed panel seeded into the store",
+          "summary": null
+        },
+        {
+          "name": "createAgentPanelSlice: open/close/activate actions, keyed per session",
+          "summary": null
+        }
+      ],
+      "exports": "createAgentPanelSlice, createInitialAgentPanelState"
     },
     {
       "path": "src/lib/store/agentRunsSlice.ts",
@@ -4533,7 +4619,7 @@
     },
     {
       "path": "src/lib/store/types.ts",
-      "lines": 559,
+      "lines": 590,
       "title": "Zustand store — shared types",
       "summary": "State shape and supporting interfaces used across every store slice."
     },
@@ -4760,7 +4846,7 @@
     },
     {
       "path": "src/lib/types.ts",
-      "lines": 613,
+      "lines": 620,
       "title": "Shared domain types",
       "summary": "Defines the board, task, config, filter, search, and appearance contracts shared by the Kandown web UI, CLI, TUI, and persistence adapters.",
       "exports": "Priority, OwnerType, Subtask, TaskProgress, BoardTask, Column, ParsedBoard, TaskFrontmatter, ParsedTask, MoveTaskResult, SearchMatchSection, SearchMatch, TaskContent, Density, ViewMode, ThemeMode, SkinId, FontId, NotificationSoundId, Filters, ColumnRole, ColumnAgentMeta, WorkflowSelectionConfig, TaskTrackingCadence, WorkOutputDetailMode, TuiConfig, AgentsConfig, AutopilotConfig, KandownConfig, DEFAULT_COLUMNS, DEFAULT_WORK_OUTPUT, DEFAULT_COLUMN_META, DEFAULT_CONFIG, PermissionMode, PERMISSION_MODES, PermissionSupport, DetectedHarness, SessionIndexEntryPayload, AgentSessionPayload"

@@ -1,0 +1,101 @@
+---
+id: t337
+title: [AGENTIC] Agent full page view with conversation rail
+status: Review
+priority: P1
+tags: [ui, agent]
+assignee: zcode
+created: 2026-09-08
+updated: 2026-09-08T16:23:10Z
+---
+
+# [AGENTIC] Agent full page view with conversation rail
+
+## Context
+
+The agent chat currently opens as a 400px fixed overlay on top of the board
+(`ChatSidebar`). vava wants a code-harness style layout: Agent becomes a real
+full-page view, the conversation list lives in the left rail at all times, and
+a retractable right panel hosts per-conversation content (task editing, diffs,
+future usages).
+
+## Decisions
+
+- Agent is a real view (`currentPage: 'agent'`), the rail stays, the chat
+  fills the main area as a centered column (harness proportions).
+- The conversation list lives in the rail (expanded mode), always visible,
+  and becomes the only switcher: the SessionSwitcher dropdown is removed.
+- The rail can collapse, but only within the agent view (Zcode-style toggle).
+- A generic right panel space, keyed per conversation, extensible: v1 ships
+  Task (editable, via a TaskWorkspace panel variant) and Changes (touched
+  files + live task diffs).
+- New config flag `agent.useAgents` (default true): when off, every agent
+  chat surface hides, leaving board / list / archives only.
+- Mobile: untouched, keeps the fullscreen overlay chat below 768px.
+
+## Subtasks
+
+- [x] Store: currentPage 'agent', agentRailCollapsed persisted, agentPanel slice
+  report: store.ts + store/types.ts carry `currentPage: 'agent'`, the
+  persisted `agentRailCollapsed` flag and the new `agentPanelSlice`
+  (per-session tab state, 'draft' key when no session is active).
+- [x] Config: agent.useAgents in types, defaults and normalization
+  report: `agent.useAgents` boolean, default true, normalized with
+  `booleanOr` like the other agent flags; absent key keeps agents on so no
+  project needs a migration.
+- [x] Extract AgentChatSurface from ChatSidebar; ChatSidebar becomes mobile-only
+  report: the whole conversation body (guards, banners, messages, skills,
+  PromptBar, harness/model pick) now lives in AgentChatSurface; ChatSidebar
+  is a mobile-only fullscreen overlay (nothing renders at 768px+).
+- [x] AgentPage full view with header (title, usage, panel toggles, new conversation)
+  report: header owns the Zcode-style rail toggle, conversation title,
+  harness chip, relative time, live-turn dot, UsageBadge, AutopilotControls,
+  Task/Changes panel toggles and new conversation; the chat is a centered
+  780px column; refreshSessions on mount; a task opened while on the page
+  lands in the panel instead of the main area.
+- [x] Conversations section in SideNav (resume, forget, new) + agent item navigation
+  report: the expanded rail lists the session index (title, harness chip,
+  relative age, hover forget, + new chat), visible on every view; a row
+  resumes and opens the agent page; section hides when the daemon is
+  unreachable. The Agent nav item navigates (desktop) or opens the overlay
+  (mobile).
+- [x] AgentPanelSpace + task panel (TaskWorkspace variant=panel) + changes panel
+  report: AgentPanelSpace drives its tabs from a registry (add a tab = one
+  union member + one registry entry); Task tab renders TaskWorkspace
+  `variant="panel"` (no navigator) from the drawer store; Changes tab lists
+  the session's touched files plus live task diffs (computeLineDiff).
+- [x] Remove SessionSwitcher dropdown (superseded by the rail list)
+  report: file deleted; the mobile overlay header keeps a new-chat shortcut.
+- [x] Settings toggle 'Use agents' + gating of all chat entries (nav, cmd-J, drawer buttons)
+  report: SettingDef in the agent section rendered as its own card at the top
+  of the section; gates: SideNav item + conversations, cmd-J, AgentPage
+  branch, ChatSidebar mount, ask-the-agent buttons on Card, Drawer and
+  TaskWorkspace. Assign-and-launch stays available by design.
+- [x] i18n: English keys propagated to every locale
+  report: 10 new keys (agentChat: conversations, panelTask, panelChanges,
+  panelTaskEmpty, panelLabel, changesEmpty, touchedFiles, liveDiffs;
+  settings: useAgents, useAgentsDesc) translated in all 48 locale files via
+  a one-off injector script (deleted after the run).
+- [x] Build + typecheck + visual self-test on the dev server
+  report: pnpm typecheck + pnpm build pass. Playwright run against the
+  worktree daemon (port 2053): board intact, conversation list, real claude
+  session round-trip (title, usage, follow-ups), Task panel with an editable
+  task, rail collapse toggle agent-only, useAgents off hides every chat
+  surface and on restores them, mobile overlay unchanged.
+
+## Evidence
+
+- Daemon + fresh build: `http://127.0.0.1:2053/?p=kandown-agent-fullpage-view`
+- typecheck/build: clean. Console on a fresh load: only the pre-existing
+  manifest.json 404.
+- Known pre-existing observation (not this task): the TaskWorkspace navigator
+  eager-fetches every task file at once; on a 64-task board a mid-session
+  resize can hit the browser's concurrent-request cap (ERR_INSUFFICIENT_
+  RESOURCES, retried by withRetry). Follow-up candidate: throttle
+  loadTaskContents concurrency.
+
+## Out of scope
+
+- Mobile-specific agent page redesign (the overlay stays).
+- Panel resizing and multiple simultaneous panel tabs.
+- Conversation rename (no server endpoint for the index entry title).

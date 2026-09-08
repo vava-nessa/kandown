@@ -83,10 +83,11 @@ import { parseQuickAddInput } from './quick-add-parser';
 import { parseTaskTitle } from './task-title-category';
 import { buildBoardUrl, buildTaskUrl, getTaskIdFromLocation } from './task-url';
 import { createAgentChatSlice, createInitialAgentChatState } from './store/agentChatSlice';
+import { createAgentPanelSlice, createInitialAgentPanelState } from './store/agentPanelSlice';
 import { createAgentEditsSlice, createInitialAgentEditsState } from './store/agentEditsSlice';
 import { createAutopilotSlice, createInitialAutopilotState } from './store/autopilotSlice';
 import { createAgentRunsSlice, createInitialAgentRunsState } from './store/agentRunsSlice';
-import type { AgentChatState, AgentChatStartInput, AgentEditsState, AutopilotState, AgentRunsState, RunnerId } from './store/types';
+import type { AgentChatState, AgentChatStartInput, AgentEditsState, AutopilotState, AgentRunsState, RunnerId, AgentPanelState, AgentPanelTab } from './store/types';
 import type { AgentChatEvent } from './agent-chat-events';
 import type { AgentEditsBoardEvent, AgentAutopilotEvent } from './watcher';
 
@@ -189,12 +190,16 @@ interface State {
   /** Left navigation rail expanded state. Collapsed by default (vava, UI
    * redesign t332), remembered in localStorage across sessions. */
   sidebarExpanded: boolean;
+  /** 📖 Agent-view-only rail collapse (t337): hides the whole SideNav while
+   * the agent page is showing. Other views always render the rail. Persisted
+   * like the rail's own expanded state. */
+  agentRailCollapsed: boolean;
   filters: Filters;
   commandOpen: boolean;
   cheatsheetOpen: boolean;
   drawerTaskId: string | null;
   drawerData: { frontmatter: TaskFrontmatter; subtasks: Subtask[]; body: string } | null;
-  currentPage: 'board' | 'settings';
+  currentPage: 'board' | 'settings' | 'agent';
 
   // Project config
   config: KandownConfig;
@@ -315,12 +320,13 @@ interface State {
   setViewMode: (mode: ViewMode) => void;
   setDensity: (density: Density) => void;
   setSidebarExpanded: (expanded: boolean) => void;
+  setAgentRailCollapsed: (collapsed: boolean) => void;
   setFilter: <K extends keyof Filters>(key: K, value: Filters[K]) => void;
   clearFilters: () => void;
 
   setCommandOpen: (open: boolean) => void;
   setCheatsheetOpen: (open: boolean) => void;
-  setCurrentPage: (page: 'board' | 'settings') => void;
+  setCurrentPage: (page: 'board' | 'settings' | 'agent') => void;
 
   loadTaskContents: (taskIds: string[]) => Promise<void>;
   computeSearchMatches: (query: string) => void;
@@ -354,6 +360,14 @@ interface State {
   stopSession: (id: string) => Promise<void>;
   forgetSession: (id: string) => Promise<void>;
   ingestAgentEvent: (sessionId: string, event: AgentChatEvent) => void;
+
+  // Agent right panel space (t337). Full shape documented in store/types.ts;
+  // same inline-mirror pattern as the blocks above.
+  agentPanel: AgentPanelState;
+  openAgentPanelTab: (tab: AgentPanelTab) => void;
+  closeAgentPanelTab: (tab: AgentPanelTab) => void;
+  setActiveAgentPanelTab: (tab: AgentPanelTab) => void;
+  toggleAgentPanel: () => void;
 
   // Live agent edit presence (t309). Full shape documented in store/types.ts;
   // this inline mirror exists because store.ts still owns its own State
@@ -579,6 +593,9 @@ export const useStore = create<State>((set, get, api) => ({
   drawerTaskId: null,
   drawerData: null,
   currentPage: 'board',
+  /** 📖 Agent-view-only rail collapse (t337), persisted like the rail's own
+   * expanded state. Only consulted while currentPage is 'agent'. */
+  agentRailCollapsed: typeof localStorage !== 'undefined' && localStorage.getItem('kandown:agent-rail') === 'collapsed',
 
   config: DEFAULT_CONFIG,
   configLoaded: false,
@@ -1811,6 +1828,10 @@ export const useStore = create<State>((set, get, api) => ({
     localStorage.setItem('kandown:sidebar', expanded ? 'expanded' : 'collapsed');
     set({ sidebarExpanded: expanded });
   },
+  setAgentRailCollapsed: (collapsed) => {
+    localStorage.setItem('kandown:agent-rail', collapsed ? 'collapsed' : 'expanded');
+    set({ agentRailCollapsed: collapsed });
+  },
   setFilter: (key, value) => {
     set(state => ({ filters: { ...state.filters, [key]: value } }));
     if (key === 'search') {
@@ -2178,6 +2199,11 @@ export const useStore = create<State>((set, get, api) => ({
   // identical so the slice composes with no casts.
   agentChat: createInitialAgentChatState(),
   ...createAgentChatSlice(set, get, api),
+
+  // 📖 t337 agent right panel: per-conversation tab state + open flag, used
+  // by AgentPanelSpace on the agent page.
+  agentPanel: createInitialAgentPanelState(),
+  ...createAgentPanelSlice(set, get, api),
 
   // 📖 t309 live agent edits: presence per task, latest diff per task and the
   // pending permission queue. setupWatcher wires the slice to the board SSE

@@ -300,7 +300,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Accente colorate pentru coloane",
-    "columnAccentsDesc": "Afișează un punct mic colorat lângă titlul fiecărei coloane"
+    "columnAccentsDesc": "Afișează un punct mic colorat lângă titlul fiecărei coloane",
+    "useAgents": "Folosește agenții",
+    "useAgentsDesc": "Afișează pagina agentului, lista conversațiilor și pilotul automat. Dezactivează pentru o tablă, listă și arhivă simple, fără agent."
   },
   "sectionLabels": {
     "title": "Title",
@@ -379,7 +381,15 @@
     "modelDefaultTag": "Auto",
     "modelSuggestedTag": "Recomandat",
     "modelCurrentTag": "Curent",
-    "modelCustom": "Model personalizat..."
+    "modelCustom": "Model personalizat...",
+    "conversations": "Conversații",
+    "panelTask": "Sarcină",
+    "panelChanges": "Modificări",
+    "panelTaskEmpty": "Nicio sarcină deschisă. Dă clic pe o sarcină sau întreabă agentul și va apărea aici.",
+    "panelLabel": "Panoul conversației",
+    "changesEmpty": "Fișierele atinse de această conversație vor apărea aici.",
+    "touchedFiles": "Fișiere atinse",
+    "liveDiffs": "Diff-uri de sarcini în timp real"
   },
   "agentSkills": {
     "skillsModalTitle": "Abilități",

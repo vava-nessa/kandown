@@ -512,18 +512,21 @@ export function Drawer() {
                     title={t('drawer.sendToAgentTitle')}
                   />
                 )}
-                {/* 📖 "Ask the agent" (t308): opens the chat sidebar with this
-                 * task as the pre-compiled context. Mobile parity with the
-                 * TaskWorkspace footer action. */}
-                <button
-                  type="button"
-                  onClick={() => { if (drawerTaskId) openSidebar(drawerTaskId); }}
-                  title={t('agentChat.askAgentTitle', 'Open the agent chat with this task as context')}
-                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-bg px-3 py-2 text-[13px] font-semibold text-fg shadow-sm transition-colors hover:border-border-strong hover:bg-bg-2"
-                >
-                  <IconMessage size={14} stroke={1.8} />
-                  <span>{t('agentChat.askAgent', 'Ask the agent')}</span>
-                </button>
+                {/* 📖 "Ask the agent" (t308): opens the chat with this task as
+                 * the pre-compiled context. Mobile parity with the
+                 * TaskWorkspace footer action. Hidden when the useAgents flag
+                 * is off (t337). */}
+                {config.agent.useAgents !== false && (
+                  <button
+                    type="button"
+                    onClick={() => { if (drawerTaskId) openSidebar(drawerTaskId); }}
+                    title={t('agentChat.askAgentTitle', 'Open the agent chat with this task as context')}
+                    className="inline-flex items-center gap-2 rounded-xl border border-border bg-bg px-3 py-2 text-[13px] font-semibold text-fg shadow-sm transition-colors hover:border-border-strong hover:bg-bg-2"
+                  >
+                    <IconMessage size={14} stroke={1.8} />
+                    <span>{t('agentChat.askAgent', 'Ask the agent')}</span>
+                  </button>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 {hasUnsavedDrawerEdits && (

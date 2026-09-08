@@ -315,7 +315,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Bojni naglasci stupaca",
-    "columnAccentsDesc": "Prikazuje malu obojanu točku uz naslov svakog stupca"
+    "columnAccentsDesc": "Prikazuje malu obojanu točku uz naslov svakog stupca",
+    "useAgents": "Koristi agente",
+    "useAgentsDesc": "Prikazuje stranicu agenta, popis razgovora i autopilota. Isključite za običnu ploču, popis i arhivu bez agenta."
   },
   "sectionLabels": {
     "title": "Naslov",
@@ -394,7 +396,15 @@
     "modelDefaultTag": "Auto",
     "modelSuggestedTag": "Preporučeno",
     "modelCurrentTag": "Trenutni",
-    "modelCustom": "Prilagođeni model..."
+    "modelCustom": "Prilagođeni model...",
+    "conversations": "Razgovori",
+    "panelTask": "Zadatak",
+    "panelChanges": "Promjene",
+    "panelTaskEmpty": "Nema otvorenog zadatka. Kliknite na zadatak ili pitajte agenta, pojavit će se ovdje.",
+    "panelLabel": "Panel razgovora",
+    "changesEmpty": "Datoteke koje je ovaj razgovor dirao pojavit će se ovdje.",
+    "touchedFiles": "Dirane datoteke",
+    "liveDiffs": "Diffovi zadataka uživo"
   },
   "agentSkills": {
     "skillsModalTitle": "Vještine",

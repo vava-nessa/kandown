@@ -315,7 +315,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Kolonnefarve-accenter",
-    "columnAccentsDesc": "Viser et lille farvet punkt ved titlen på hver kolonne"
+    "columnAccentsDesc": "Viser et lille farvet punkt ved titlen på hver kolonne",
+    "useAgents": "Brug agenter",
+    "useAgentsDesc": "Viser agentsiden, samtalelisten og autopiloten. Slå fra for et enkelt board, liste og arkiv uden agent."
   },
   "sectionLabels": {
     "title": "Titel",
@@ -394,7 +396,15 @@
     "modelDefaultTag": "Auto",
     "modelSuggestedTag": "Anbefalet",
     "modelCurrentTag": "Nuværende",
-    "modelCustom": "Brugerdefineret model..."
+    "modelCustom": "Brugerdefineret model...",
+    "conversations": "Samtaler",
+    "panelTask": "Opgave",
+    "panelChanges": "Ændringer",
+    "panelTaskEmpty": "Ingen åben opgave. Klik på en opgave eller spørg agenten, så vises den her.",
+    "panelLabel": "Samtalepanel",
+    "changesEmpty": "Filer denne samtale rører, vises her.",
+    "touchedFiles": "Rørte filer",
+    "liveDiffs": "Live-diffs af opgaver"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

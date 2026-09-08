@@ -54052,7 +54052,7 @@ var DEFAULT_COLUMN_META = {
 };
 var DEFAULT_CONFIG = {
   ui: { language: "en", theme: "auto", skin: "base", font: "inter", background: "solid", onboardingCompleted: false, categoryChips: true, columnAccents: false },
-  agent: { suggestFollowUp: false, maxSuggestions: 3, permissionMode: "yolo", workOutput: DEFAULT_WORK_OUTPUT, autopilot: { maxParallel: 2 } },
+  agent: { useAgents: true, suggestFollowUp: false, maxSuggestions: 3, permissionMode: "yolo", workOutput: DEFAULT_WORK_OUTPUT, autopilot: { maxParallel: 2 } },
   workflow: { active: "kandown-standard", skills: [], trackingCadence: "balanced" },
   board: {
     columns: DEFAULT_COLUMNS,
@@ -54304,6 +54304,9 @@ function normalizeKandownConfig(raw) {
       ...customThemes ? { customThemes } : {}
     },
     agent: {
+      // 📖 Master switch for the agent chat surfaces (t337): absent means on,
+      // so existing projects keep their agent without a config migration.
+      useAgents: booleanOr(agent.useAgents, DEFAULT_CONFIG.agent.useAgents),
       suggestFollowUp: booleanOr(
         agent.suggestFollowUp,
         DEFAULT_CONFIG.agent.suggestFollowUp

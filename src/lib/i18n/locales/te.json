@@ -337,7 +337,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "కాలమ్ రంగు ఉచ్ఛారణలు",
-    "columnAccentsDesc": "ప్రతి కాలమ్ శీర్షిక పక్కన చిన్న రంగు బిందువును చూపుతుంది"
+    "columnAccentsDesc": "ప్రతి కాలమ్ శీర్షిక పక్కన చిన్న రంగు బిందువును చూపుతుంది",
+    "useAgents": "ఏజెంట్‌లను ఉపయోగించండి",
+    "useAgentsDesc": "ఏజెంట్ పేజీ, సంభాషణ జాబితా మరియు ఆటోపైలట్‌ను చూపుతుంది. ఆఫ్ చేస్తే ఏజెంట్ లేకుండా సాధారణ బోర్డ్, జాబితా మరియు ఆర్కైవ్ మాత్రమే."
   },
   "sectionLabels": {
     "title": "Title",
@@ -416,7 +418,15 @@
     "modelDefaultTag": "ఆటో",
     "modelSuggestedTag": "సిఫారసు చేసిన",
     "modelCurrentTag": "ప్రస్తుత",
-    "modelCustom": "కస్టమ్ మోడల్..."
+    "modelCustom": "కస్టమ్ మోడల్...",
+    "conversations": "సంభాషణలు",
+    "panelTask": "పని",
+    "panelChanges": "మార్పులు",
+    "panelTaskEmpty": "ఏ పని తెరవబడలేదు. ఒక పనిపై క్లిక్ చేయండి లేదా ఏజెంట్‌ను అడగండి, అది ఇక్కడ కనిపిస్తుంది.",
+    "panelLabel": "సంభాషణ ప్యానెల్",
+    "changesEmpty": "ఈ సంభాషణ తాకిన ఫైళ్లు ఇక్కడ కనిపిస్తాయి.",
+    "touchedFiles": "తాకిన ఫైళ్లు",
+    "liveDiffs": "ప్రత్యక్ష పని డిఫ్‌లు"
   },
   "agentSkills": {
     "skillsModalTitle": "నైపుణ్యాలు",

@@ -108,6 +108,9 @@ export function SettingsPage() {
 
   const normalizedQuery = debouncedQuery.trim().toLowerCase();
   const settings = getSETTINGS(t);
+  // 📖 t337 master switch: rendered as its own card at the top of the agent
+  // section (the section otherwise bypasses the generic row list).
+  const useAgentsSetting = settings.find(setting => setting.key === 'agent.useAgents');
   const activeSection = SECTIONS(t).find(section => section.id === activeSectionId) ?? SECTIONS(t)[0];
 
   const sectionCounts = useMemo(() => {
@@ -317,6 +320,21 @@ export function SettingsPage() {
                 <ExtensionsPanel />
               ) : !normalizedQuery && activeSectionId === 'agent' ? (
                 <div className="flex flex-col gap-4">
+                  {useAgentsSetting && (
+                    <div className="overflow-hidden rounded-[8px] border border-border bg-bg-1">
+                      <SettingRow
+                        key={useAgentsSetting.key}
+                        setting={useAgentsSetting}
+                        value={config.agent.useAgents !== false}
+                        showSection={false}
+                        isLast
+                        nested={Boolean(useAgentsSetting.parentKey)}
+                        onChange={(newValue) => handleChange(useAgentsSetting, newValue)}
+                        notificationPermission={notificationPermission}
+                        onRequestNotificationPermission={handleRequestNotificationPermission}
+                      />
+                    </div>
+                  )}
                   <AgentHarnessesPanel />
                   <WorkOutputConfigurator
                     config={config}

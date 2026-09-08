@@ -282,7 +282,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "تأکیدهای رنگی ستون‌ها",
-    "columnAccentsDesc": "یک نقطه رنگی کوچک کنار عنوان هر ستون نشان می‌دهد"
+    "columnAccentsDesc": "یک نقطه رنگی کوچک کنار عنوان هر ستون نشان می‌دهد",
+    "useAgents": "استفاده از عامل‌ها",
+    "useAgentsDesc": "نمایش صفحه عامل، فهرست مکالمه‌ها و خلبان خودکار. خاموش کنید تا فقط تخته، فهرست و بایگانی ساده بدون عامل بماند."
   },
   "sectionLabels": {
     "title": "عنوان",
@@ -361,7 +363,15 @@
     "modelDefaultTag": "خودکار",
     "modelSuggestedTag": "پیشنهادی",
     "modelCurrentTag": "فعلی",
-    "modelCustom": "مدل سفارشی..."
+    "modelCustom": "مدل سفارشی...",
+    "conversations": "مکالمه‌ها",
+    "panelTask": "وظیفه",
+    "panelChanges": "تغییرات",
+    "panelTaskEmpty": "هیچ وظیفه‌ای باز نیست. روی یک وظیفه کلیک کنید یا از عامل بپرسید تا اینجا نمایش داده شود.",
+    "panelLabel": "پنل مکالمه",
+    "changesEmpty": "فایل‌هایی که این مکالمه دست می‌زند اینجا نمایش داده می‌شوند.",
+    "touchedFiles": "فایل‌های دست‌خورده",
+    "liveDiffs": "دیف‌های زنده وظیفه‌ها"
   },
   "agentSkills": {
     "skillsModalTitle": "مهارت‌ها",

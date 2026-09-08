@@ -337,7 +337,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Aksen warna lajur",
-    "columnAccentsDesc": "Menunjukkan titik warna kecil di sebelah tajuk setiap lajur"
+    "columnAccentsDesc": "Menunjukkan titik warna kecil di sebelah tajuk setiap lajur",
+    "useAgents": "Guna ejen",
+    "useAgentsDesc": "Memaparkan halaman ejen, senarai perbualan dan autopilot. Matikan untuk papan, senarai dan arkib ringkas tanpa ejen."
   },
   "sectionLabels": {
     "title": "Title",
@@ -416,7 +418,15 @@
     "modelDefaultTag": "Auto",
     "modelSuggestedTag": "Disyorkan",
     "modelCurrentTag": "Semasa",
-    "modelCustom": "Model tersuai..."
+    "modelCustom": "Model tersuai...",
+    "conversations": "Perbualan",
+    "panelTask": "Tugasan",
+    "panelChanges": "Perubahan",
+    "panelTaskEmpty": "Tiada tugasan dibuka. Klik pada tugasan atau tanya ejen, ia akan muncul di sini.",
+    "panelLabel": "Panel perbualan",
+    "changesEmpty": "Fail yang disentuh perbualan ini akan muncul di sini.",
+    "touchedFiles": "Fail yang disentuh",
+    "liveDiffs": "Diff tugasan langsung"
   },
   "agentSkills": {
     "skillsModalTitle": "Kemahiran",

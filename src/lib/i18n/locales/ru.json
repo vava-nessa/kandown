@@ -282,7 +282,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Цветовые акценты колонок",
-    "columnAccentsDesc": "Показывает маленькую цветную точку рядом с заголовком каждой колонки"
+    "columnAccentsDesc": "Показывает маленькую цветную точку рядом с заголовком каждой колонки",
+    "useAgents": "Использовать агентов",
+    "useAgentsDesc": "Показывает страницу агента, список диалогов и автопилот. Выключите, чтобы оставить только доску, список и архив без агента."
   },
   "sectionLabels": {
     "title": "Название",
@@ -361,7 +363,15 @@
     "modelDefaultTag": "Авто",
     "modelSuggestedTag": "Рекомендуемый",
     "modelCurrentTag": "Текущий",
-    "modelCustom": "Своя модель..."
+    "modelCustom": "Своя модель...",
+    "conversations": "Диалоги",
+    "panelTask": "Задача",
+    "panelChanges": "Изменения",
+    "panelTaskEmpty": "Нет открытой задачи. Нажмите на задачу или спросите агента, и она появится здесь.",
+    "panelLabel": "Панель диалога",
+    "changesEmpty": "Файлы, затронутые этим диалогом, появятся здесь.",
+    "touchedFiles": "Затронутые файлы",
+    "liveDiffs": "Диффы задач в реальном времени"
   },
   "agentSkills": {
     "skillsModalTitle": "Навыки",

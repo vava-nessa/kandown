@@ -337,7 +337,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "ශ්‍රේණි වර්ණ උච්චාරණ",
-    "columnAccentsDesc": "සෑම ශ්‍රේණි මාතෘකාවක් අසලම කුඩා වර්ණ ලක්ෂ්‍යයක් පෙන්වයි"
+    "columnAccentsDesc": "සෑම ශ්‍රේණි මාතෘකාවක් අසලම කුඩා වර්ණ ලක්ෂ්‍යයක් පෙන්වයි",
+    "useAgents": "නියෝජිතයන් භාවිතා කරන්න",
+    "useAgentsDesc": "නියෝජිත පිටුව, සංවාද ලැයිස්තුව සහ ස්වයංක්‍රීය නියමුවා පෙන්වයි. නියෝජිතයෙකු නොමැතිව සරල පුවරුවක්, ලැයිස්තුවක් සහ ලේඛනාගාරයක් සඳහා අක්‍රිය කරන්න."
   },
   "sectionLabels": {
     "title": "Title",
@@ -416,7 +418,15 @@
     "modelDefaultTag": "ස්වයංක්‍රීය",
     "modelSuggestedTag": "යෝජිත",
     "modelCurrentTag": "වත්මන්",
-    "modelCustom": "අභිරුචි ආකෘතිය..."
+    "modelCustom": "අභිරුචි ආකෘතිය...",
+    "conversations": "සංවාද",
+    "panelTask": "කාර්යය",
+    "panelChanges": "වෙනස්කම්",
+    "panelTaskEmpty": "විවෘත කාර්යයක් නොමැත. කාර්යයක් ක්ලික් කරන්න හෝ නියෝජිතයාගෙන් අසන්න, එය මෙහි දිස්වේ.",
+    "panelLabel": "සංවාද පැනලය",
+    "changesEmpty": "මෙම සංවාදය ස්පර්ශ කරන ගොනු මෙහි දිස්වේ.",
+    "touchedFiles": "ස්පර්ශ කළ ගොනු",
+    "liveDiffs": "සජීවී කාර්ය ඩිෆ්"
   },
   "agentSkills": {
     "skillsModalTitle": "කුසලතා",

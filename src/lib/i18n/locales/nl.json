@@ -300,7 +300,9 @@
     "categoryChips": "Colored category chips",
     "categoryChipsDesc": "Give every category a stable hash-derived color and icon. Off keeps the plain monochrome labels.",
     "columnAccents": "Kolomkleuraccenten",
-    "columnAccentsDesc": "Toont een klein gekleurd stipje naast elke kolomtitel"
+    "columnAccentsDesc": "Toont een klein gekleurd stipje naast elke kolomtitel",
+    "useAgents": "Agents gebruiken",
+    "useAgentsDesc": "Toont de agentpagina, de gesprekslijst en de autopilot. Zet uit voor een simpel bord, lijst en archief zonder agent."
   },
   "sectionLabels": {
     "title": "Titel",
@@ -379,7 +381,15 @@
     "modelDefaultTag": "Auto",
     "modelSuggestedTag": "Aanbevolen",
     "modelCurrentTag": "Huidig",
-    "modelCustom": "Aangepast model..."
+    "modelCustom": "Aangepast model...",
+    "conversations": "Gesprekken",
+    "panelTask": "Taak",
+    "panelChanges": "Wijzigingen",
+    "panelTaskEmpty": "Geen taak open. Klik op een taak of vraag het aan de agent, dan verschijnt hij hier.",
+    "panelLabel": "Gesprekspaneel",
+    "changesEmpty": "Bestanden die dit gesprek aanraakt verschijnen hier.",
+    "touchedFiles": "Aangeraakte bestanden",
+    "liveDiffs": "Live taak-diffs"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",
