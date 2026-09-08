@@ -104,7 +104,6 @@ export const DEMO_SUPPORTED_ROUTES = [
   'POST /api/tasks/:id/move',
   'POST /api/tasks/:id/archive',
   'POST /api/tasks/:id/unarchive',
-  'POST /api/migrate-tasks',
 ] as const;
 
 /* ═════════════ Response helpers ═════════════ */
@@ -359,11 +358,6 @@ export async function demoApi(path: string, options?: RequestInit): Promise<Resp
       from.delete(id);
       return json({ ok: true });
     }
-  }
-
-  /* ── migration: nothing to migrate, and saying so keeps startup silent ── */
-  if (resource === 'migrate-tasks' && method === 'POST') {
-    return json({ moved: 0, cleanedUp: false, skipped: true });
   }
 
   /* ── CLI-only surfaces ── */

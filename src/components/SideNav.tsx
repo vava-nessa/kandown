@@ -2,7 +2,6 @@
  * @file Left navigation rail (t332, conversations list added by t337)
  * @description Collapsed-by-default icon rail that expands to a full sidebar on
  * click. Owns the primary view navigation (board, list, archives, agent page),
- * the project's conversation list (the only session switcher since t337),
  * the settings entry, the light/dark mode switch and the git footer showing
  * the active branch plus a worktree marker. Replaces the header's row of
  * icon-only view toggles so the header stays a thin search/action bar.
@@ -14,20 +13,25 @@
  * never render an error state.
  *
  * 📖 Conversations (t337): the expanded rail lists the project's agent chat
- * sessions straight from the session index, always visible whatever the
- * active view. A row resumes its conversation and opens the agent page;
- * the hover trash button forgets the index entry. The section, like the
- * Agent nav item, hides entirely when `agent.useAgents` is off. Below 768px
- * the agent still opens as the mobile overlay, mirroring openSidebar's own
- * routing.
+ * sessions through ConversationsSection (search, recency groups, live dots,
+ * portaled tooltips live there now). While the rail is collapsed the Agent
+ * nav item carries a numeric badge counting the conversations whose agent
+ * turn is currently running (vava #1), so activity stays visible without the
+ * list. The count mirrors the rows' pulsing dots exactly (same store folds);
+ * when the agent view collapses the rail (`agentRailCollapsed`), `expanded`
+ * is forced false and the badge is the only activity signal left. The
+ * section, like the Agent nav item, hides entirely when `agent.useAgents` is
+ * off. Below 768px the agent still opens as the mobile overlay, mirroring
+ * openSidebar's own routing.
  *
  * @functions
- *  → SideNavItem — one rail entry, icon-only when collapsed, icon + label expanded
- *  → GitFooter — active branch + worktree marker, click to copy
- *  → ConversationRow — one indexed conversation in the expanded rail
- *  → SideNav — the rail itself
+ *  → SideNavItem : one rail entry, icon-only when collapsed, icon + label expanded
+ *  → GitFooter : active branch + worktree marker, click to copy
+ *  → CollapsedModeToggle : icon-only theme cycle for the collapsed rail
+ *  → SideNav : the rail itself
  *
  * @exports SideNav
+ * @see src/components/ConversationSection.tsx
  * @see src/components/Header.tsx
  * @see src/components/agent/AgentPage.tsx
  * @see src/lib/store.ts
@@ -42,20 +46,16 @@ import {
   IconLayoutList,
   IconMessage,
   IconLayoutSidebar,
-  IconPlus,
   IconSettings,
-  IconTrash,
 } from '@tabler/icons-react';
 import { MoonStarIcon, SunIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Tooltip } from './ui/tooltip-card';
 import { ThemeSwitcher } from './ui/theme-switcher-1';
 import { LogoSvg } from './LogoSvg';
+import { ConversationsSection } from './ConversationSection';
 import { useStore } from '../lib/store';
 import { fetchGitInfo } from '../lib/filesystem';
-import { relativeTime } from '../lib/relative-time';
-import { AssigneeAvatar } from './agentIcons';
-import type { SessionIndexEntryPayload } from '../lib/types';
 import type { ThemeMode } from '../lib/types';
 
 interface SideNavItemProps {
@@ -75,7 +75,7 @@ function SideNavItem({ icon, label, active, expanded, badge, onClick }: SideNavI
       aria-label={label}
       aria-current={active ? 'page' : undefined}
       className={`group flex w-full items-center rounded-lg transition-colors ${
-        expanded ? 'gap-2.5 px-2.5 h-9' : 'justify-center h-9 w-9 mx-auto'
+        expanded ? 'gap-2.5 px-2.5 h-9' : 'relative justify-center h-9 w-9 mx-auto'
       } ${
         active
           ? 'bg-secondary text-fg'
@@ -90,7 +90,16 @@ function SideNavItem({ icon, label, active, expanded, badge, onClick }: SideNavI
         <span
           className={`text-[10.5px] font-semibold tabular-nums rounded-md px-1.5 py-px ${
             expanded ? 'ml-auto' : 'absolute translate-x-3 -translate-y-2'
-          } ${active ? 'bg-primary/15 text-fg' : 'bg-secondary text-fg-muted'}`}
+          } ${
+            // 📖 Collapsed active badge (vava #1 round 2): the Agent item is the
+            // one that carries a badge while collapsed, and it is then also the
+            // active item. A 15%-alpha primary tint over the active button's own
+            // secondary background washed the chip out until only a stray digit
+            // floated over the icon; a solid inverted chip reads on both themes.
+            active
+              ? (expanded ? 'bg-primary/15 text-fg' : 'bg-fg text-bg')
+              : 'bg-secondary text-fg-muted'
+          }`}
         >
           {badge}
         </span>
@@ -198,56 +207,6 @@ function CollapsedModeToggle() {
   );
 }
 
-/** 📖 One conversation row in the expanded rail (t337): title plus age on
- * two lines, click to resume and open the agent page, hover trash to forget
- * the index entry (a live harness session keeps running, this is a list
- * removal only, exactly like the old dropdown's forget). */
-function ConversationRow({ entry, active, onSelect, onForget, untitledLabel, forgetLabel }: {
-  entry: SessionIndexEntryPayload;
-  active: boolean;
-  onSelect: () => void;
-  onForget: () => void;
-  untitledLabel: string;
-  forgetLabel: string;
-}) {
-  return (
-    <div
-      className={`group flex items-center rounded-lg pr-1 transition-colors ${
-        active ? 'bg-secondary' : 'hover:bg-secondary/60'
-      }`}
-    >
-      <button
-        type="button"
-        onClick={onSelect}
-        className="flex min-w-0 flex-1 flex-col items-start px-2.5 py-1.5 text-left"
-        title={entry.title || untitledLabel}
-      >
-        <span className="w-full truncate text-[12px] leading-tight text-fg">
-          {entry.title || untitledLabel}
-        </span>
-        {/* 📖 Brand logo instead of the harness name (vava, t337 round 2): the
-         * text chip used to clip in the narrow rail ("CLAUDE" became
-         * "CLAIDE"); the same glyph cards use for assignees reads at a
-         * glance and never truncates. Unknown harnesses keep a tiny text
-         * chip, they have no brand to resolve to. */}
-        <span className="mt-0.5 flex items-center gap-1.5 text-[10px] leading-none text-fg-muted">
-          <AssigneeAvatar assignee={entry.harnessId} size={12} />
-          <span className="tabular-nums">{relativeTime(entry.updatedAt)}</span>
-        </span>
-      </button>
-      <button
-        type="button"
-        onClick={onForget}
-        className="flex-none rounded p-1 text-fg-faint opacity-0 transition-opacity hover:text-danger group-hover:opacity-100"
-        title={forgetLabel}
-        aria-label={forgetLabel}
-      >
-        <IconTrash size={11} stroke={1.8} />
-      </button>
-    </div>
-  );
-}
-
 export function SideNav() {
   const { t } = useTranslation();
   const isOpen = useStore(s => s.isOpen);
@@ -263,16 +222,35 @@ export function SideNav() {
   const currentPage = useStore(s => s.currentPage);
   const useAgents = useStore(s => s.config.agent.useAgents !== false);
   const agentSessions = useStore(s => s.agentChat.sessions);
+  const agentLive = useStore(s => s.agentChat.live);
   const agentGuard = useStore(s => s.agentChat.guard);
-  const activeSessionId = useStore(s => s.agentChat.activeSessionId);
-  const resumeSession = useStore(s => s.resumeSession);
-  const forgetSession = useStore(s => s.forgetSession);
-  const newConversation = useStore(s => s.newConversation);
   const refreshSessions = useStore(s => s.refreshSessions);
   const openAgentSidebar = useStore(s => s.openSidebar);
 
   const projectOpen = isOpen || !!dirHandle;
-  const expanded = sidebarExpanded;
+  // 📖 vava #10 (t337 round 4): collapsing the rail inside the agent view no
+  // longer removes it: the rail drops to its icon-only 56px form so Board,
+  // List, Archives and the live-turn badge stay reachable. The rail's own
+  // header button then restores the full rail (same action the agent page
+  // header's toggle performs).
+  const agentRailCollapsed = useStore(s => s.agentRailCollapsed);
+  const setAgentRailCollapsed = useStore(s => s.setAgentRailCollapsed);
+  const railCollapsedForAgent = currentPage === 'agent' && agentRailCollapsed;
+  const expanded = sidebarExpanded && !railCollapsedForAgent;
+
+  // 📖 vava #1: the collapsed rail hides the conversation rows, so the Agent
+  // nav item carries the count of conversations whose agent turn is running.
+  // The count reads the same live folds the row dots pulse on, so badge and
+  // dots can never disagree. Data basis limit: `agentChat.live` only holds a
+  // fold for a session whose event stream was connected this page life
+  // (started or resumed through the UI); a turn running in a conversation the
+  // page is not streaming (terminal-side pi, a stream switched away by
+  // activateSession, or after a reload) stays invisible to both the dots and
+  // this badge until the slice reconnects it.
+  const liveTurnCount = agentSessions.reduce(
+    (count, entry) => (agentLive[entry.id]?.fold.turnActive ? count + 1 : count),
+    0,
+  );
 
   const goTo = (mode: 'board' | 'list') => {
     setCurrentPage('board');
@@ -334,53 +312,17 @@ export function SideNav() {
           label={t('agentChat.title', 'Agent')}
           active={currentPage === 'agent'}
           expanded={expanded}
+          badge={expanded ? undefined : liveTurnCount}
           onClick={goToAgent}
         />
       )}
       {/* 📖 Conversations (t337): the only session switcher, always visible in
        * the expanded rail whatever the active view. Hidden without a daemon
        * answer ('no-daemon', demo, stale auth): an unreachable list would
-       * only be noise. */}
+       * only be noise. Search, recency groups, live dots and the portaled
+       * tooltips live in ConversationsSection. */}
       {expanded && useAgents && projectOpen && (agentGuard === 'available' || agentSessions.length > 0) && (
-        <div className="mt-4 flex flex-col gap-0.5">
-          <div className="flex items-center justify-between px-2.5 pb-1">
-            <span className="text-[10.5px] font-semibold uppercase tracking-wider text-fg-faint">
-              {t('agentChat.conversations', 'Conversations')}
-            </span>
-            <button
-              type="button"
-              onClick={() => {
-                newConversation();
-                goToAgent();
-              }}
-              className="flex h-5 w-5 items-center justify-center rounded text-fg-faint transition-colors hover:bg-secondary/60 hover:text-fg"
-              title={t('agentChat.newChat', 'New chat')}
-              aria-label={t('agentChat.newChat', 'New chat')}
-            >
-              <IconPlus size={12} stroke={1.8} />
-            </button>
-          </div>
-          {agentSessions.length === 0 ? (
-            <p className="px-2.5 text-[11px] leading-relaxed text-fg-faint">
-              {t('agentChat.sessionsEmpty', 'No conversations yet')}
-            </p>
-          ) : (
-            agentSessions.map(entry => (
-              <ConversationRow
-                key={entry.id}
-                entry={entry}
-                active={entry.id === activeSessionId && currentPage === 'agent'}
-                onSelect={() => {
-                  if (entry.id !== activeSessionId) void resumeSession(entry);
-                  goToAgent();
-                }}
-                onForget={() => void forgetSession(entry.id)}
-                untitledLabel={t('agentChat.sessionUntitled', 'Untitled conversation')}
-                forgetLabel={t('agentChat.forget', 'Forget')}
-              />
-            ))
-          )}
-        </div>
+        <ConversationsSection onOpenAgent={goToAgent} />
       )}
     </>
   ) : null;
@@ -393,7 +335,7 @@ export function SideNav() {
       <div className={`flex items-center h-[64px] flex-shrink-0 ${expanded ? 'px-2.5 gap-2' : 'justify-center'}`}>
         <button
           type="button"
-          onClick={() => setSidebarExpanded(!expanded)}
+          onClick={() => (railCollapsedForAgent ? setAgentRailCollapsed(false) : setSidebarExpanded(!expanded))}
           aria-label={expanded ? t('nav.collapse') : t('nav.expand')}
           title={expanded ? t('nav.collapse') : t('nav.expand')}
           className="flex items-center justify-center w-9 h-9 rounded-lg text-fg-muted hover:text-fg hover:bg-secondary/60 transition-colors"

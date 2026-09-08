@@ -106,7 +106,13 @@
     "compactDensity": "Kompakt yoğunluk",
     "comfortableDensity": "Konforlu yoğunluk",
     "navigate": "navigasyon",
-    "select": "seç"
+    "select": "seç",
+    "goToBoard": "Panoya git",
+    "goToList": "Listeye git",
+    "goToArchives": "Arşive git",
+    "openAgentPage": "Ajan sayfasını aç",
+    "conversations": "Konuşmalar",
+    "untitledConversation": "Başlıksız konuşma"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -377,7 +383,16 @@
     "modelAllProviders": "Tümü",
     "modelGroup": "Model",
     "modelEmpty": "Bu aramayla eşleşen model yok.",
-    "modelCustomUse": "\"{{query}}\" özel model olarak kullan"
+    "modelCustomUse": "\"{{query}}\" özel model olarak kullan",
+    "searchConversations": "Konuşmaları filtrele",
+    "searchNoMatch": "Eşleşen konuşma yok",
+    "groupToday": "Bugün",
+    "groupYesterday": "Dün",
+    "groupLast7Days": "Son 7 gün",
+    "groupOlder": "Daha eski",
+    "panelResize": "Paneli yeniden boyutlandır",
+    "modelTabCount": "{{provider}}: {{count}} model",
+    "modelNewTag": "Yeni"
   },
   "agentSkills": {
     "skillsModalTitle": "Beceriler",

@@ -106,7 +106,13 @@
     "compactDensity": "Kompakts blīvums",
     "comfortableDensity": "Ērts blīvums",
     "navigate": "navigācija",
-    "select": "izvēlēties"
+    "select": "izvēlēties",
+    "goToBoard": "Uz dēli",
+    "goToList": "Uz sarakstu",
+    "goToArchives": "Uz arhīvu",
+    "openAgentPage": "Atvērt aģenta lapu",
+    "conversations": "Sarunas",
+    "untitledConversation": "Saruna bez nosaukuma"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -410,7 +416,16 @@
     "modelAllProviders": "Visi",
     "modelGroup": "Modelis",
     "modelEmpty": "Neviens modelis neatbilst šai meklēšanai.",
-    "modelCustomUse": "Izmantot \"{{query}}\" kā pielāgotu modeli"
+    "modelCustomUse": "Izmantot \"{{query}}\" kā pielāgotu modeli",
+    "searchConversations": "Filtrēt sarunas",
+    "searchNoMatch": "Nav atbilstošu sarunu",
+    "groupToday": "Šodien",
+    "groupYesterday": "Vakar",
+    "groupLast7Days": "Pēdējās 7 dienas",
+    "groupOlder": "Vecākas",
+    "panelResize": "Mainīt paneļa izmēru",
+    "modelTabCount": "{{provider}}: {{count}} modeļi",
+    "modelNewTag": "Jauns"
   },
   "agentSkills": {
     "skillsModalTitle": "Prasmes",

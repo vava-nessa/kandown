@@ -106,7 +106,13 @@
     "compactDensity": "컴팩트 밀도",
     "comfortableDensity": "컴포터블 밀도",
     "navigate": "탐색",
-    "select": "선택"
+    "select": "선택",
+    "goToBoard": "보드로 이동",
+    "goToList": "목록으로 이동",
+    "goToArchives": "보관함으로 이동",
+    "openAgentPage": "에이전트 페이지 열기",
+    "conversations": "대화",
+    "untitledConversation": "제목 없는 대화"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -377,7 +383,16 @@
     "modelAllProviders": "전체",
     "modelGroup": "모델",
     "modelEmpty": "이 검색과 일치하는 모델이 없습니다.",
-    "modelCustomUse": "\"{{query}}\"을(를) 사용자 지정 모델로 사용"
+    "modelCustomUse": "\"{{query}}\"을(를) 사용자 지정 모델로 사용",
+    "searchConversations": "대화 필터",
+    "searchNoMatch": "일치하는 대화 없음",
+    "groupToday": "오늘",
+    "groupYesterday": "어제",
+    "groupLast7Days": "최근 7일",
+    "groupOlder": "이전",
+    "panelResize": "패널 크기 조정",
+    "modelTabCount": "{{provider}}: {{count}}개 모델",
+    "modelNewTag": "새로움"
   },
   "agentSkills": {
     "skillsModalTitle": "스킬",

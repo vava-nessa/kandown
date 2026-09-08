@@ -106,7 +106,13 @@
     "compactDensity": "Compact density",
     "comfortableDensity": "Comfortable density",
     "navigate": "navigate",
-    "select": "select"
+    "select": "select",
+    "goToBoard": "ទៅផ្ទាំង",
+    "goToList": "ទៅបញ្ជី",
+    "goToArchives": "ទៅប័ណ្ណសារ",
+    "openAgentPage": "បើកទំព័រភ្នាក់ងារ",
+    "conversations": "ការសន្ទនា",
+    "untitledConversation": "ការសន្ទនាគ្មានចំណងជើង"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -432,7 +438,16 @@
     "modelAllProviders": "ទាំងអស់",
     "modelGroup": "ម៉ូដែល",
     "modelEmpty": "មិនមានម៉ូដែលណាមួយត្រូវគ្នាជាមួយការស្វែងរកនេះទេ។",
-    "modelCustomUse": "ប្រើ \"{{query}}\" ជាម៉ូដែលផ្ទាល់ខ្លួន"
+    "modelCustomUse": "ប្រើ \"{{query}}\" ជាម៉ូដែលផ្ទាល់ខ្លួន",
+    "searchConversations": "ត្រងការសន្ទនា",
+    "searchNoMatch": "មិនមានការសន្ទនាត្រូវគ្នាទេ",
+    "groupToday": "ថ្ងៃនេះ",
+    "groupYesterday": "ម្សិលមិញ",
+    "groupLast7Days": "៧ ថ្ងៃចុងក្រោយ",
+    "groupOlder": "ចាស់ជាង",
+    "panelResize": "កែទំហំផ្ទាំង",
+    "modelTabCount": "{{provider}}: ម៉ូដែល {{count}}",
+    "modelNewTag": "ថ្មី"
   },
   "agentSkills": {
     "skillsModalTitle": "ជំនាញ",

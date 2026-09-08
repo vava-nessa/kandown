@@ -106,7 +106,13 @@
     "compactDensity": "Компактна густина",
     "comfortableDensity": "Удобна густина",
     "navigate": "навигирај",
-    "select": "изабери"
+    "select": "изабери",
+    "goToBoard": "Иди на таблу",
+    "goToList": "Иди на списак",
+    "goToArchives": "Иди у архиву",
+    "openAgentPage": "Отвори страницу агента",
+    "conversations": "Разговори",
+    "untitledConversation": "Разговор без наслова"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -410,7 +416,16 @@
     "modelAllProviders": "Сви",
     "modelGroup": "Модел",
     "modelEmpty": "Ниједан модел не одговара овом претраживању.",
-    "modelCustomUse": "Користи \"{{query}}\" као прилагођени модел"
+    "modelCustomUse": "Користи \"{{query}}\" као прилагођени модел",
+    "searchConversations": "Филтрирај разговоре",
+    "searchNoMatch": "Нема одговарајућих разговора",
+    "groupToday": "Данас",
+    "groupYesterday": "Јуче",
+    "groupLast7Days": "Последњих 7 дана",
+    "groupOlder": "Старије",
+    "panelResize": "Промени величину панела",
+    "modelTabCount": "{{provider}}: {{count}} модела",
+    "modelNewTag": "Ново"
   },
   "agentSkills": {
     "skillsModalTitle": "Вештине",

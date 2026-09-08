@@ -106,7 +106,13 @@
     "compactDensity": "تراکم فشرده",
     "comfortableDensity": "تراکم راحت",
     "navigate": "ناوبری",
-    "select": "انتخاب"
+    "select": "انتخاب",
+    "goToBoard": "به تخته برو",
+    "goToList": "به فهرست برو",
+    "goToArchives": "به بایگانی برو",
+    "openAgentPage": "باز کردن صفحه عامل",
+    "conversations": "مکالمه‌ها",
+    "untitledConversation": "مکالمه بی‌عنوان"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -377,7 +383,16 @@
     "modelAllProviders": "همه",
     "modelGroup": "مدل",
     "modelEmpty": "هیچ مدلی با این جستجو مطابقت ندارد.",
-    "modelCustomUse": "از \"{{query}}\" به عنوان مدل سفارشی استفاده کن"
+    "modelCustomUse": "از \"{{query}}\" به عنوان مدل سفارشی استفاده کن",
+    "searchConversations": "فیلتر مکالمه‌ها",
+    "searchNoMatch": "مکالمه‌ای مطابقت ندارد",
+    "groupToday": "امروز",
+    "groupYesterday": "دیروز",
+    "groupLast7Days": "۷ روز گذشته",
+    "groupOlder": "قدیمی‌تر",
+    "panelResize": "تغییر اندازه پنل",
+    "modelTabCount": "{{provider}}: {{count}} مدل",
+    "modelNewTag": "جدید"
   },
   "agentSkills": {
     "skillsModalTitle": "مهارت‌ها",

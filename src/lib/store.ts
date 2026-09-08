@@ -61,7 +61,6 @@ import {
   serverListTasks,
   serverReadTaskFile,
   serverMoveTask,
-  serverMigrateTasks,
   serverGetDaemonInfo,
   serverSendTaskToAgent,
   type ServerAgentHook,
@@ -326,6 +325,11 @@ interface State {
 
   setCommandOpen: (open: boolean) => void;
   setCheatsheetOpen: (open: boolean) => void;
+  /** 📖 Switches the top-level page. Navigating to 'board' or 'settings'
+   * also closes the open task editor (unsaved edits are stashed into the
+   * recovery buffer first, never destroyed, and the URL is synced back to
+   * the board). Navigating to 'agent' keeps the editor open: the agent
+   * page's right panel renders the open task. */
   setCurrentPage: (page: 'board' | 'settings' | 'agent') => void;
 
   loadTaskContents: (taskIds: string[]) => Promise<void>;
@@ -936,10 +940,6 @@ export const useStore = create<State>((set, get, api) => ({
     try {
       const serverRoot = getServerRoot();
       if (!serverRoot) throw new Error('No server root');
-      // 📖 One-time silent migration: the CLI may have legacy tasks in
-      // `.kandown/tasks/`. Trigger the migration endpoint before reading.
-      // Idempotent — safe on every startup.
-      await serverMigrateTasks();
       const projectName = getProjectNameFromServerRoot(serverRoot);
       const config = await serverReadConfig();
       applyConfigTheme(config);
@@ -1001,10 +1001,6 @@ export const useStore = create<State>((set, get, api) => ({
     if (!isServerMode()) return;
     const serverRoot = getServerRoot();
     if (!serverRoot) return;
-    // 📖 One-time silent migration: trigger the CLI migration endpoint so any
-    // legacy `.kandown/tasks/*.md` is moved to `./tasks/` before we read.
-    // Idempotent — safe to call on every web app startup.
-    await serverMigrateTasks();
     const recent = await listRecentProjects();
     const match = recent.find(p => p.kandownDir === serverRoot);
     if (!match) {
@@ -1887,7 +1883,32 @@ export const useStore = create<State>((set, get, api) => ({
       get().toast(result.error || 'Agent hook failed', 'error');
     }
   },
-  setCurrentPage: (page) => set({ currentPage: page }),
+  // 📖 Rail, palette and shortcut navigation to the board or settings also
+  // closes an open task editor: App.tsx gives drawerTaskId priority over the
+  // board views, so keeping the drawer state would leave the editor on
+  // screen after the click. Navigating to the agent page keeps the drawer
+  // open: the agent page's right panel renders the open task.
+  setCurrentPage: (page) => {
+    if (page !== 'agent' && get().drawerTaskId) {
+      // 📖 Never silently destroy edits: when unsaved changes (or a failed
+      // save) are pending, stash the draft into the recovery buffer first,
+      // exactly like forceCloseDrawer, so reopening the task restores it
+      // with a "restored your edits" toast. closeDrawer then clears the
+      // editor state and syncs the browser URL back to the project board.
+      const { drawerTaskId, drawerData, hasUnsavedDrawerEdits, lastSaveError } = get();
+      if (drawerTaskId && drawerData && (hasUnsavedDrawerEdits || lastSaveError)) {
+        const recovery = new Map(get().drawerRecoveryData);
+        recovery.set(drawerTaskId, {
+          frontmatter: drawerData.frontmatter,
+          subtasks: drawerData.subtasks,
+          body: drawerData.body,
+        });
+        set({ drawerRecoveryData: recovery });
+      }
+      get().closeDrawer({ syncUrl: true });
+    }
+    set({ currentPage: page });
+  },
 
   loadTaskContents: async (taskIds: string[]) => {
     const { tasksDirHandle } = get();

@@ -106,7 +106,13 @@
     "compactDensity": "Compact density",
     "comfortableDensity": "Comfortable density",
     "navigate": "navigate",
-    "select": "select"
+    "select": "select",
+    "goToBoard": "ബോർഡിലേക്ക് പോകുക",
+    "goToList": "ലിസ്റ്റിലേക്ക് പോകുക",
+    "goToArchives": "ആർക്കൈവിലേക്ക് പോകുക",
+    "openAgentPage": "ഏജന്റ് പേജ് തുറക്കുക",
+    "conversations": "സംഭാഷണങ്ങൾ",
+    "untitledConversation": "പേരില്ലാത്ത സംഭാഷണം"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -432,7 +438,16 @@
     "modelAllProviders": "എല്ലാം",
     "modelGroup": "മോഡൽ",
     "modelEmpty": "ഈ തിരച്ചിലിന് യോജിക്കുന്ന മോഡൽ ഇല്ല.",
-    "modelCustomUse": "\"{{query}}\" കസ്റ്റം മോഡലായി ഉപയോഗിക്കുക"
+    "modelCustomUse": "\"{{query}}\" കസ്റ്റം മോഡലായി ഉപയോഗിക്കുക",
+    "searchConversations": "സംഭാഷണങ്ങൾ ഫിൽട്ടർ ചെയ്യുക",
+    "searchNoMatch": "ചേരുന്ന സംഭാഷണങ്ങളില്ല",
+    "groupToday": "ഇന്ന്",
+    "groupYesterday": "ഇന്നലെ",
+    "groupLast7Days": "അവസാന 7 ദിവസം",
+    "groupOlder": "പഴയത്",
+    "panelResize": "പാനൽ വലുപ്പം മാറ്റുക",
+    "modelTabCount": "{{provider}}: {{count}} മോഡലുകൾ",
+    "modelNewTag": "പുതിയത്"
   },
   "agentSkills": {
     "skillsModalTitle": "കഴിവുകൾ",

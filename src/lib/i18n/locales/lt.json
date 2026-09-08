@@ -106,7 +106,13 @@
     "compactDensity": "Kompaktiškas tankis",
     "comfortableDensity": "Patogus tankis",
     "navigate": "naviguoti",
-    "select": "pasirinkti"
+    "select": "pasirinkti",
+    "goToBoard": "Į lentą",
+    "goToList": "Į sąrašą",
+    "goToArchives": "Į archyvą",
+    "openAgentPage": "Atidaryti agento puslapį",
+    "conversations": "Pokalbiai",
+    "untitledConversation": "Pokalbis be pavadinimo"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -410,7 +416,16 @@
     "modelAllProviders": "Visi",
     "modelGroup": "Modelis",
     "modelEmpty": "Nė vienas modelis neatitinka šios paieškos.",
-    "modelCustomUse": "Naudoti \"{{query}}\" kaip pasirinktinį modelį"
+    "modelCustomUse": "Naudoti \"{{query}}\" kaip pasirinktinį modelį",
+    "searchConversations": "Filtruoti pokalbius",
+    "searchNoMatch": "Nėra atitinkančių pokalbių",
+    "groupToday": "Šiandien",
+    "groupYesterday": "Vakar",
+    "groupLast7Days": "Paskutinės 7 dienos",
+    "groupOlder": "Senesni",
+    "panelResize": "Keisti panelės dydį",
+    "modelTabCount": "{{provider}}: {{count}} modelių",
+    "modelNewTag": "Naujas"
   },
   "agentSkills": {
     "skillsModalTitle": "Įgūdžiai",

@@ -106,7 +106,13 @@
     "compactDensity": "Kompatna gustoća",
     "comfortableDensity": "Ugodna gustoća",
     "navigate": "navigiraj",
-    "select": "odaberi"
+    "select": "odaberi",
+    "goToBoard": "Idi na ploču",
+    "goToList": "Idi na popis",
+    "goToArchives": "Idi u arhivu",
+    "openAgentPage": "Otvori stranicu agenta",
+    "conversations": "Razgovori",
+    "untitledConversation": "Razgovor bez naslova"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -410,7 +416,16 @@
     "modelAllProviders": "Svi",
     "modelGroup": "Model",
     "modelEmpty": "Nijedan model ne odgovara ovom pretraživanju.",
-    "modelCustomUse": "Koristi \"{{query}}\" kao prilagođeni model"
+    "modelCustomUse": "Koristi \"{{query}}\" kao prilagođeni model",
+    "searchConversations": "Filtriraj razgovore",
+    "searchNoMatch": "Nema odgovarajućih razgovora",
+    "groupToday": "Danas",
+    "groupYesterday": "Jučer",
+    "groupLast7Days": "Zadnjih 7 dana",
+    "groupOlder": "Starije",
+    "panelResize": "Promijeni veličinu panela",
+    "modelTabCount": "{{provider}}: {{count}} modela",
+    "modelNewTag": "Novo"
   },
   "agentSkills": {
     "skillsModalTitle": "Vještine",

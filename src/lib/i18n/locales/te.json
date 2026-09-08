@@ -106,7 +106,13 @@
     "compactDensity": "Compact density",
     "comfortableDensity": "Comfortable density",
     "navigate": "navigate",
-    "select": "select"
+    "select": "select",
+    "goToBoard": "బోర్డ్‌కు వెళ్లండి",
+    "goToList": "జాబితాకు వెళ్లండి",
+    "goToArchives": "ఆర్కైవ్‌కు వెళ్లండి",
+    "openAgentPage": "ఏజెంట్ పేజీని తెరవండి",
+    "conversations": "సంభాషణలు",
+    "untitledConversation": "శీర్షికలేని సంభాషణ"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -432,7 +438,16 @@
     "modelAllProviders": "అన్నీ",
     "modelGroup": "మోడల్",
     "modelEmpty": "ఈ శోధనకు సరిపోయే మోడల్ లేదు.",
-    "modelCustomUse": "\"{{query}}\" ను అనుకూల మోడల్‌గా ఉపయోగించండి"
+    "modelCustomUse": "\"{{query}}\" ను అనుకూల మోడల్‌గా ఉపయోగించండి",
+    "searchConversations": "సంభాషణలను ఫిల్టర్ చేయండి",
+    "searchNoMatch": "సరిపోలే సంభాషణలు లేవు",
+    "groupToday": "ఈరోజు",
+    "groupYesterday": "నిన్న",
+    "groupLast7Days": "గత 7 రోజులు",
+    "groupOlder": "పాతవి",
+    "panelResize": "ప్యానెల్ పరిమాణం మార్చు",
+    "modelTabCount": "{{provider}}: {{count}} మోడల్‌లు",
+    "modelNewTag": "కొత్తది"
   },
   "agentSkills": {
     "skillsModalTitle": "నైపుణ్యాలు",

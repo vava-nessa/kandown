@@ -24,7 +24,6 @@ import {
   serverReadConfig,
   serverListTasks,
   serverReadTaskFile,
-  serverMigrateTasks,
   supportsFileSystemAccess,
   type RecentProject,
 } from '../filesystem';
@@ -169,10 +168,6 @@ export const createProjectSlice: StateCreator<State, [], [], ProjectSlice> = (se
     try {
       const serverRoot = getServerRoot();
       if (!serverRoot) throw new Error('No server root');
-      // 📖 One-time silent migration: the CLI may have legacy tasks in
-      // `.kandown/tasks/`. Trigger the migration endpoint before reading.
-      // Idempotent — safe on every startup.
-      await serverMigrateTasks();
       const projectName = getProjectNameFromServerRoot(serverRoot);
       const config = await serverReadConfig();
       applyConfigTheme(config);
@@ -233,10 +228,6 @@ export const createProjectSlice: StateCreator<State, [], [], ProjectSlice> = (se
     if (!isServerMode()) return;
     const serverRoot = getServerRoot();
     if (!serverRoot) return;
-    // 📖 One-time silent migration: trigger the CLI migration endpoint so any
-    // legacy `.kandown/tasks/*.md` is moved to `./tasks/` before we read.
-    // Idempotent — safe to call on every web app startup.
-    await serverMigrateTasks();
     const recent = await listRecentProjects();
     const match = recent.find(p => p.kandownDir === serverRoot);
     if (!match) {

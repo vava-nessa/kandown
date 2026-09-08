@@ -106,7 +106,13 @@
     "compactDensity": "Compact density",
     "comfortableDensity": "Comfortable density",
     "navigate": "navigate",
-    "select": "select"
+    "select": "select",
+    "goToBoard": "පුවරුවට යන්න",
+    "goToList": "ලැයිස්තුවට යන්න",
+    "goToArchives": "ලේඛනාගාරයට යන්න",
+    "openAgentPage": "නියෝජිත පිටුව විවෘත කරන්න",
+    "conversations": "සංවාද",
+    "untitledConversation": "ශීර්ෂය නැති සංවාදය"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -432,7 +438,16 @@
     "modelAllProviders": "සියල්ල",
     "modelGroup": "ආකෘතිය",
     "modelEmpty": "මෙම සෙවීමට ගැළපෙන ආකෘතියක් නොමැත.",
-    "modelCustomUse": "\"{{query}}\" අභිරුචි ආකෘතියක් ලෙස භාවිතා කරන්න"
+    "modelCustomUse": "\"{{query}}\" අභිරුචි ආකෘතියක් ලෙස භාවිතා කරන්න",
+    "searchConversations": "සංවාද පෙරහන් කරන්න",
+    "searchNoMatch": "ගැළපෙන සංවාද නැත",
+    "groupToday": "අද",
+    "groupYesterday": "ඊයේ",
+    "groupLast7Days": "පසුගිය දින 7",
+    "groupOlder": "පැරණි",
+    "panelResize": "පැනලයේ ප්‍රමාණය වෙනස් කරන්න",
+    "modelTabCount": "{{provider}}: ආකෘති {{count}}",
+    "modelNewTag": "නව"
   },
   "agentSkills": {
     "skillsModalTitle": "කුසලතා",

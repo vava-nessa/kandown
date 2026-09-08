@@ -106,7 +106,13 @@
     "compactDensity": "Compacte dichtheid",
     "comfortableDensity": "Comfortabele dichtheid",
     "navigate": "navigeer",
-    "select": "selecteer"
+    "select": "selecteer",
+    "goToBoard": "Naar het bord",
+    "goToList": "Naar de lijst",
+    "goToArchives": "Naar het archief",
+    "openAgentPage": "Agentpagina openen",
+    "conversations": "Gesprekken",
+    "untitledConversation": "Naamloos gesprek"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -395,7 +401,16 @@
     "modelAllProviders": "Alle",
     "modelGroup": "Model",
     "modelEmpty": "Geen model komt overeen met deze zoekopdracht.",
-    "modelCustomUse": "\"{{query}}\" als aangepast model gebruiken"
+    "modelCustomUse": "\"{{query}}\" als aangepast model gebruiken",
+    "searchConversations": "Gesprekken filteren",
+    "searchNoMatch": "Geen overeenkomende gesprekken",
+    "groupToday": "Vandaag",
+    "groupYesterday": "Gisteren",
+    "groupLast7Days": "Laatste 7 dagen",
+    "groupOlder": "Ouder",
+    "panelResize": "Paneel formaat wijzigen",
+    "modelTabCount": "{{provider}}: {{count}} modellen",
+    "modelNewTag": "Nieuw"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

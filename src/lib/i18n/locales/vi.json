@@ -106,7 +106,13 @@
     "compactDensity": "Mật độ nhỏ gọn",
     "comfortableDensity": "Mật độ thoải mái",
     "navigate": "điều hướng",
-    "select": "chọn"
+    "select": "chọn",
+    "goToBoard": "Đến bảng",
+    "goToList": "Đến danh sách",
+    "goToArchives": "Đến lưu trữ",
+    "openAgentPage": "Mở trang agent",
+    "conversations": "Cuộc trò chuyện",
+    "untitledConversation": "Cuộc trò chuyện không tiêu đề"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -377,7 +383,16 @@
     "modelAllProviders": "Tất cả",
     "modelGroup": "Mô hình",
     "modelEmpty": "Không có mô hình nào khớp với tìm kiếm này.",
-    "modelCustomUse": "Dùng \"{{query}}\" làm mô hình tùy chỉnh"
+    "modelCustomUse": "Dùng \"{{query}}\" làm mô hình tùy chỉnh",
+    "searchConversations": "Lọc cuộc trò chuyện",
+    "searchNoMatch": "Không có cuộc trò chuyện phù hợp",
+    "groupToday": "Hôm nay",
+    "groupYesterday": "Hôm qua",
+    "groupLast7Days": "7 ngày qua",
+    "groupOlder": "Cũ hơn",
+    "panelResize": "Thay đổi kích thước bảng",
+    "modelTabCount": "{{provider}}: {{count}} mô hình",
+    "modelNewTag": "Mới"
   },
   "agentSkills": {
     "skillsModalTitle": "Kỹ năng",

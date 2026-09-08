@@ -106,7 +106,13 @@
     "compactDensity": "コンパクト密度",
     "comfortableDensity": "comfortable密度",
     "navigate": "ナビゲート",
-    "select": "選択"
+    "select": "選択",
+    "goToBoard": "ボードへ移動",
+    "goToList": "リストへ移動",
+    "goToArchives": "アーカイブへ移動",
+    "openAgentPage": "エージェントページを開く",
+    "conversations": "会話",
+    "untitledConversation": "無題の会話"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -377,7 +383,16 @@
     "modelAllProviders": "すべて",
     "modelGroup": "モデル",
     "modelEmpty": "この検索に一致するモデルはありません。",
-    "modelCustomUse": "「{{query}}」をカスタムモデルとして使う"
+    "modelCustomUse": "「{{query}}」をカスタムモデルとして使う",
+    "searchConversations": "会話を絞り込む",
+    "searchNoMatch": "一致する会話はありません",
+    "groupToday": "今日",
+    "groupYesterday": "昨日",
+    "groupLast7Days": "過去7日間",
+    "groupOlder": "それ以前",
+    "panelResize": "パネルのサイズ変更",
+    "modelTabCount": "{{provider}}: {{count}}モデル",
+    "modelNewTag": "新規"
   },
   "agentSkills": {
     "skillsModalTitle": "スキル",

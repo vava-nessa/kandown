@@ -106,7 +106,13 @@
     "compactDensity": "Компактна плътност",
     "comfortableDensity": "Комфортна плътност",
     "navigate": "навигирай",
-    "select": "избери"
+    "select": "избери",
+    "goToBoard": "Към дъската",
+    "goToList": "Към списъка",
+    "goToArchives": "Към архива",
+    "openAgentPage": "Отвори страницата на агента",
+    "conversations": "Разговори",
+    "untitledConversation": "Разговор без заглавие"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -410,7 +416,16 @@
     "modelAllProviders": "Всички",
     "modelGroup": "Модел",
     "modelEmpty": "Никой модел не отговаря на това търсене.",
-    "modelCustomUse": "Използвай \"{{query}}\" като персонализиран модел"
+    "modelCustomUse": "Използвай \"{{query}}\" като персонализиран модел",
+    "searchConversations": "Филтрирай разговорите",
+    "searchNoMatch": "Няма съответстващи разговори",
+    "groupToday": "Днес",
+    "groupYesterday": "Вчера",
+    "groupLast7Days": "Последните 7 дни",
+    "groupOlder": "По-стари",
+    "panelResize": "Преоразмеряване на панела",
+    "modelTabCount": "{{provider}}: {{count}} модела",
+    "modelNewTag": "Нов"
   },
   "agentSkills": {
     "skillsModalTitle": "Умения",

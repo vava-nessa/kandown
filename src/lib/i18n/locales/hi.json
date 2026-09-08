@@ -106,7 +106,13 @@
     "compactDensity": "संक्षिप्त घनत्व",
     "comfortableDensity": "आरामदायक घनत्व",
     "navigate": "नेविगेट करें",
-    "select": "चुनें"
+    "select": "चुनें",
+    "goToBoard": "बोर्ड पर जाएँ",
+    "goToList": "सूची पर जाएँ",
+    "goToArchives": "संग्रह पर जाएँ",
+    "openAgentPage": "एजेंट पेज खोलें",
+    "conversations": "बातचीत",
+    "untitledConversation": "शीर्षकहीन बातचीत"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -410,7 +416,16 @@
     "modelAllProviders": "सभी",
     "modelGroup": "मॉडल",
     "modelEmpty": "इस खोज से मेल खाता कोई मॉडल नहीं।",
-    "modelCustomUse": "\"{{query}}\" को कस्टम मॉडल के रूप में उपयोग करें"
+    "modelCustomUse": "\"{{query}}\" को कस्टम मॉडल के रूप में उपयोग करें",
+    "searchConversations": "बातचीत फ़िल्टर करें",
+    "searchNoMatch": "कोई मेल खाती बातचीत नहीं",
+    "groupToday": "आज",
+    "groupYesterday": "कल",
+    "groupLast7Days": "पिछले 7 दिन",
+    "groupOlder": "पुरानी",
+    "panelResize": "पैनल आकार बदलें",
+    "modelTabCount": "{{provider}}: {{count}} मॉडल",
+    "modelNewTag": "नया"
   },
   "agentSkills": {
     "skillsModalTitle": "कौशल",

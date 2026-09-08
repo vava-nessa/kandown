@@ -106,7 +106,13 @@
     "compactDensity": "Kompakt sűrűség",
     "comfortableDensity": "Kényelmes sűrűség",
     "navigate": "navigáció",
-    "select": "kiválasztás"
+    "select": "kiválasztás",
+    "goToBoard": "Ugrás a táblához",
+    "goToList": "Ugrás a listához",
+    "goToArchives": "Ugrás az archívumhoz",
+    "openAgentPage": "Ügynökoldal megnyitása",
+    "conversations": "Beszélgetések",
+    "untitledConversation": "Névtelen beszélgetés"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -410,7 +416,16 @@
     "modelAllProviders": "Mind",
     "modelGroup": "Modell",
     "modelEmpty": "Egyik modell sem egyezik ezzel a kereséssel.",
-    "modelCustomUse": "A(z) \"{{query}}\" használata egyéni modellként"
+    "modelCustomUse": "A(z) \"{{query}}\" használata egyéni modellként",
+    "searchConversations": "Beszélgetések szűrése",
+    "searchNoMatch": "Nincs egyező beszélgetés",
+    "groupToday": "Ma",
+    "groupYesterday": "Tegnap",
+    "groupLast7Days": "Utolsó 7 nap",
+    "groupOlder": "Régebbi",
+    "panelResize": "Panel átméretezése",
+    "modelTabCount": "{{provider}}: {{count}} modell",
+    "modelNewTag": "Új"
   },
   "agentSkills": {
     "skillsModalTitle": "Készségek",

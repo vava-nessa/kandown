@@ -106,7 +106,13 @@
     "compactDensity": "Kompaktna gostota",
     "comfortableDensity": "Udobna gostota",
     "navigate": "krmarjenje",
-    "select": "izberi"
+    "select": "izberi",
+    "goToBoard": "Pojdi na ploščo",
+    "goToList": "Pojdi na seznam",
+    "goToArchives": "Pojdi v arhiv",
+    "openAgentPage": "Odpri stran agenta",
+    "conversations": "Pogovori",
+    "untitledConversation": "Pogovor brez naslova"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -410,7 +416,16 @@
     "modelAllProviders": "Vsi",
     "modelGroup": "Model",
     "modelEmpty": "Noben model se ne ujema s tem iskanjem.",
-    "modelCustomUse": "Uporabi \"{{query}}\" kot model po meri"
+    "modelCustomUse": "Uporabi \"{{query}}\" kot model po meri",
+    "searchConversations": "Filtriraj pogovore",
+    "searchNoMatch": "Ni ujemajočih pogovorov",
+    "groupToday": "Danes",
+    "groupYesterday": "Včeraj",
+    "groupLast7Days": "Zadnjih 7 dni",
+    "groupOlder": "Starejše",
+    "panelResize": "Spremeni velikost panela",
+    "modelTabCount": "{{provider}}: {{count}} modelov",
+    "modelNewTag": "Novo"
   },
   "agentSkills": {
     "skillsModalTitle": "Veščine",

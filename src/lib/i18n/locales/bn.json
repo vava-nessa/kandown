@@ -106,7 +106,13 @@
     "compactDensity": "কমপ্যাক্ট ঘনত্ব",
     "comfortableDensity": "কমফোর্টেবল ঘনত্ব",
     "navigate": "নেভিগেট",
-    "select": "নির্বাচন করুন"
+    "select": "নির্বাচন করুন",
+    "goToBoard": "বোর্ডে যান",
+    "goToList": "তালিকায় যান",
+    "goToArchives": "আর্কাইভে যান",
+    "openAgentPage": "এজেন্ট পৃষ্ঠা খুলুন",
+    "conversations": "কথোপকথন",
+    "untitledConversation": "শিরোনামহীন কথোপকথন"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -377,7 +383,16 @@
     "modelAllProviders": "সব",
     "modelGroup": "মডেল",
     "modelEmpty": "এই সার্চের সাথে মেলে এমন কোনো মডেল নেই।",
-    "modelCustomUse": "\"{{query}}\" কাস্টম মডেল হিসেবে ব্যবহার করুন"
+    "modelCustomUse": "\"{{query}}\" কাস্টম মডেল হিসেবে ব্যবহার করুন",
+    "searchConversations": "কথোপকথন ফিল্টার",
+    "searchNoMatch": "কোনো মিলে যাওয়া কথোপকথন নেই",
+    "groupToday": "আজ",
+    "groupYesterday": "গতকাল",
+    "groupLast7Days": "শেষ ৭ দিন",
+    "groupOlder": "পুরোনো",
+    "panelResize": "প্যানেলের আকার পরিবর্তন",
+    "modelTabCount": "{{provider}}: {{count}} মডেল",
+    "modelNewTag": "নতুন"
   },
   "agentSkills": {
     "skillsModalTitle": "দক্ষতা",

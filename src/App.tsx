@@ -51,6 +51,7 @@ export function App() {
   const isOpen = useStore(s => s.isOpen);
   const viewMode = useStore(s => s.viewMode);
   const setViewMode = useStore(s => s.setViewMode);
+  const setCurrentPage = useStore(s => s.setCurrentPage);
   const drawerTaskId = useStore(s => s.drawerTaskId);
   const drawerData = useStore(s => s.drawerData);
   const commandOpen = useStore(s => s.commandOpen);
@@ -66,7 +67,8 @@ export function App() {
   const openRecentProject = useStore(s => s.openRecentProject);
   const tryAutoOpenServerProject = useStore(s => s.tryAutoOpenServerProject);
   const currentPage = useStore(s => s.currentPage);
-  const agentRailCollapsed = useStore(s => s.agentRailCollapsed);
+  // 📖 t337 round 4: the rail collapse state lives in the store; SideNav and
+  // AgentPage consume it directly, the shell no longer removes the rail.
   const showArchives = useStore(s => s.showArchives);
   const clearTaskSelection = useStore(s => s.clearTaskSelection);
   const setTaskSelection = useStore(s => s.setTaskSelection);
@@ -216,13 +218,19 @@ export function App() {
         return;
       }
 
+      // 📖 View shortcuts double as navigation: setCurrentPage('board') also
+      // closes an open task editor (the store stashes unsaved edits first),
+      // so Cmd/Ctrl+1 and Cmd/Ctrl+2 always land on the board or list view
+      // even when the full-page editor is up.
       if ((e.metaKey || e.ctrlKey) && e.key === '1') {
         e.preventDefault();
+        setCurrentPage('board');
         setViewMode('board');
         return;
       }
       if ((e.metaKey || e.ctrlKey) && e.key === '2') {
         e.preventDefault();
+        setCurrentPage('board');
         setViewMode('list');
         return;
       }
@@ -248,7 +256,7 @@ export function App() {
 
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [isOpen, dirHandle, commandOpen, cheatsheetOpen, drawerTaskId, setCommandOpen, setCheatsheetOpen, setViewMode, createTask, reloadBoard, clearTaskSelection, setTaskSelection]);
+  }, [isOpen, dirHandle, commandOpen, cheatsheetOpen, drawerTaskId, setCommandOpen, setCheatsheetOpen, setViewMode, setCurrentPage, createTask, reloadBoard, clearTaskSelection, setTaskSelection]);
 
   return (
     <ErrorBoundary>
@@ -258,10 +266,12 @@ export function App() {
          * plus the active view. Overlays (drawer, chat, palette) mount inside
          * the right column but are position-fixed, so the split never clips
          * them. t337: the agent page replaces the header AND the view (full
-         * height, harness layout), and can hide the rail entirely; every
-         * other view brings the rail back. */}
+         * height, harness layout). t337 round 4: collapsing the rail in the
+         * agent view drops it to its icon-only form instead of removing it
+         * (SideNav handles that itself), so navigation is never out of
+         * reach. */}
         <div className="flex h-screen">
-        {!(agentPage && agentRailCollapsed) && <SideNav />}
+        <SideNav />
         <div className="flex flex-col flex-1 min-w-0">
         {agentPage ? (
           <AgentPage />

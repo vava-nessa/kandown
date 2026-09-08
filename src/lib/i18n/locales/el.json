@@ -106,7 +106,13 @@
     "compactDensity": "Συμπαγής πυκνότητα",
     "comfortableDensity": "Άνετη πυκνότητα",
     "navigate": "πλοήγηση",
-    "select": "επιλογή"
+    "select": "επιλογή",
+    "goToBoard": "Μετάβαση στον πίνακα",
+    "goToList": "Μετάβαση στη λίστα",
+    "goToArchives": "Μετάβαση στο αρχείο",
+    "openAgentPage": "Άνοιγμα σελίδας πράκτορα",
+    "conversations": "Συνομιλίες",
+    "untitledConversation": "Συνομιλία χωρίς τίτλο"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -410,7 +416,16 @@
     "modelAllProviders": "Όλα",
     "modelGroup": "Μοντέλο",
     "modelEmpty": "Κανένα μοντέλο δεν ταιριάζει με αυτή την αναζήτηση.",
-    "modelCustomUse": "Χρήση του \"{{query}}\" ως προσαρμοσμένου μοντέλου"
+    "modelCustomUse": "Χρήση του \"{{query}}\" ως προσαρμοσμένου μοντέλου",
+    "searchConversations": "Φίλτρο συνομιλιών",
+    "searchNoMatch": "Δεν υπάρχουν συνομιλίες",
+    "groupToday": "Σήμερα",
+    "groupYesterday": "Χθες",
+    "groupLast7Days": "Τελευταίες 7 ημέρες",
+    "groupOlder": "Παλαιότερες",
+    "panelResize": "Αλλαγή μεγέθους πίνακα",
+    "modelTabCount": "{{provider}}: {{count}} μοντέλα",
+    "modelNewTag": "Νέο"
   },
   "agentSkills": {
     "skillsModalTitle": "Δεξιότητες",

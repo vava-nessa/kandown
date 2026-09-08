@@ -12,11 +12,17 @@
  * pick (localStorage, empty key = harness default) and the daemon model
  * catalog fetch all live here: they are composer concerns, not shell
  * concerns. `active` gates the catalog fetch, since this component is always
- * mounted while its shell may be hidden.
+ * mounted while its shell may be hidden. The composer draft is keyed per
+ * conversation: `draftKey` prefers the active index entry's `harnessSessionId`
+ * (kandown ids rotate on resume, the harness id does not), falling back to a
+ * `draft:` slot while no session or no harness id is known, so the PromptBar
+ * swaps the typed text on every conversation switch instead of leaking it,
+ * and an existing conversation keeps its draft across resumes.
  *
  * @functions
  *  → loadStoredModel / persistModel: per-harness model pick persistence
- *  → AgentChatSurface: the chat body (guard, messages, composer)
+ *  → AgentChatSurface: the chat body (guard, messages, composer); feeds
+ *    PromptBar its draftKey so composer drafts stay per conversation
  *
  * @exports AgentChatSurface
  * @see src/components/agent/AgentPage.tsx: desktop full-page shell
@@ -346,8 +352,31 @@ export function AgentChatSurface({ active }: AgentChatSurfaceProps) {
   // branches, but only rendered after them: a missing daemon must still win.
   const conversationEmpty = (fold?.messages.length ?? 0) === 0;
 
+  // 📖 Per-conversation composer drafts. Kandown session ids are NOT stable:
+  // resuming a conversation from the rail mints a brand-new `ses_*` id
+  // (resumeSession posts resumeSessionId and gets a fresh session back), so
+  // keying the draft on the active session id strands the typed text under
+  // the old id on every resume. The stable identity of a conversation is the
+  // harness's own session id (`harnessSessionId` on the index entry): the
+  // daemon carries the same value across resumes, so the slot a draft was
+  // typed into is the slot the resumed conversation restores. Until the
+  // index reports it (the optimistic entry resume seeds lacks it until the
+  // next index refresh), the key falls back to a session-scoped `draft:`
+  // slot; a conversation that has not started yet gets its own 'draft:new'
+  // slot, so unsent text never leaks into an existing conversation.
+  const harnessSessionId = activeSessionId
+    ? sessions.find(entry => entry.id === activeSessionId)?.harnessSessionId
+    : undefined;
+  // 📖 Explicit empty-string guard: two broken entries must never share ''.
+  const draftKey = harnessSessionId || `draft:${activeSessionId ?? 'new'}`;
+
   const promptBar = (
     <PromptBar
+      // 📖 Computed above: the harness session id keys the PromptBar's draft
+      // store so an existing conversation keeps its draft across resumes;
+      // a key change (session switch, newConversation) swaps the composer
+      // text instead of carrying it over.
+      draftKey={draftKey}
       // 📖 The harness picker only gates NEW sessions: follow-ups on an
       // active conversation are always sendable when the daemon is there
       // (the guard branch above already excludes 'no-daemon').

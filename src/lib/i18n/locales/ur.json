@@ -106,7 +106,13 @@
     "compactDensity": "کمپیکٹ کثافت",
     "comfortableDensity": "آرام دہ کثافت",
     "navigate": "نیویگیٹ",
-    "select": "منتخب"
+    "select": "منتخب",
+    "goToBoard": "بورڈ پر جائیں",
+    "goToList": "فہرست پر جائیں",
+    "goToArchives": "آرکائو پر جائیں",
+    "openAgentPage": "ایجنٹ صفحہ کھولیں",
+    "conversations": "گفتگوئیں",
+    "untitledConversation": "بلا عنوان گفتگو"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -377,7 +383,16 @@
     "modelAllProviders": "تمام",
     "modelGroup": "ماڈل",
     "modelEmpty": "اس تلاش سے مماثل کوئی ماڈل نہیں۔",
-    "modelCustomUse": "\"{{query}}\" کو اپنی مرضی کے ماڈل کے طور پر استعمال کریں"
+    "modelCustomUse": "\"{{query}}\" کو اپنی مرضی کے ماڈل کے طور پر استعمال کریں",
+    "searchConversations": "گفتگوئیں فلٹر کریں",
+    "searchNoMatch": "کوئی مماثل گفتگو نہیں",
+    "groupToday": "آج",
+    "groupYesterday": "کل",
+    "groupLast7Days": "پچھلے 7 دن",
+    "groupOlder": "پرانی",
+    "panelResize": "پینل کا سائز تبدیل کریں",
+    "modelTabCount": "{{provider}}: {{count}} ماڈل",
+    "modelNewTag": "نیا"
   },
   "agentSkills": {
     "skillsModalTitle": "مہارتیں",

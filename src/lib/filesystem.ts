@@ -56,10 +56,9 @@
  *  → serverSetExtensionField: persist one host-validated plugins field
  *  → serverReadExtensionFile: authenticated source read for Blob import
  *  → serverReportExtensionOutcome: persistent browser failure health
- *  → serverMigrateTasks: triggers the legacy to new layout migration via REST
  *  → readProjectInstructions / writeProjectInstructions — edits `.kandown/kandown_work.md`
  *
- * @exports supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, readTaskFileRaw, writeTaskFile, WriteTaskFileOptions, ServerWriteTaskResult, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, fetchDetectedAgents, fetchAgentHarnesses, createAgentSession, sendAgentSessionMessage, listSessionIndex, forgetSessionIndex, serverAuthState, ServerAuthState, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks
+ * @exports supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, readTaskFileRaw, writeTaskFile, WriteTaskFileOptions, ServerWriteTaskResult, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, fetchDetectedAgents, fetchAgentHarnesses, createAgentSession, sendAgentSessionMessage, listSessionIndex, forgetSessionIndex, serverAuthState, ServerAuthState, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask
  * @see src/lib/store.ts
  * @see src/lib/parser.ts
  */
@@ -937,20 +936,6 @@ async function serverDeleteTask(id: string): Promise<void> {
   await apiFetch(`/api/tasks/${encodeURIComponent(id)}`, { method: 'DELETE' });
 }
 
-/**
- * 📖 One-time migration helper. Triggers the CLI server to move any legacy
- * `.kandown/tasks/*.md` to the project-root `./tasks/`. Idempotent — safe
- * to call on every web app startup. Returns the migration result or null
- * if the server is unreachable.
- */
-export async function serverMigrateTasks(): Promise<{ moved: number; cleanedUp: boolean; skipped: boolean } | null> {
-  try {
-    const res = await apiFetch('/api/migrate-tasks', { method: 'POST' });
-    return await res.json() as { moved: number; cleanedUp: boolean; skipped: boolean };
-  } catch {
-    return null;
-  }
-}
 
 /**
  * 📖 Fetches the daemon's public info. Includes the agent hook label when

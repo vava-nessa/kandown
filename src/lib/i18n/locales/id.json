@@ -106,7 +106,13 @@
     "compactDensity": "Kepadatan ringkas",
     "comfortableDensity": "Kepadatan nyaman",
     "navigate": "navigasi",
-    "select": "pilih"
+    "select": "pilih",
+    "goToBoard": "Ke papan",
+    "goToList": "Ke daftar",
+    "goToArchives": "Ke arsip",
+    "openAgentPage": "Buka halaman agen",
+    "conversations": "Percakapan",
+    "untitledConversation": "Percakapan tanpa judul"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -377,7 +383,16 @@
     "modelAllProviders": "Semua",
     "modelGroup": "Model",
     "modelEmpty": "Tidak ada model yang cocok dengan pencarian ini.",
-    "modelCustomUse": "Gunakan \"{{query}}\" sebagai model kustom"
+    "modelCustomUse": "Gunakan \"{{query}}\" sebagai model kustom",
+    "searchConversations": "Filter percakapan",
+    "searchNoMatch": "Tidak ada percakapan yang cocok",
+    "groupToday": "Hari ini",
+    "groupYesterday": "Kemarin",
+    "groupLast7Days": "7 hari terakhir",
+    "groupOlder": "Lebih lama",
+    "panelResize": "Ubah ukuran panel",
+    "modelTabCount": "{{provider}}: {{count}} model",
+    "modelNewTag": "Baru"
   },
   "agentSkills": {
     "skillsModalTitle": "Skill",

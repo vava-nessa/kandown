@@ -106,7 +106,13 @@
     "compactDensity": "Kompaktne tihedus",
     "comfortableDensity": "Mugav tihedus",
     "navigate": "navigeerimine",
-    "select": "vali"
+    "select": "vali",
+    "goToBoard": "Mine tahvlile",
+    "goToList": "Mine loendisse",
+    "goToArchives": "Mine arhiivi",
+    "openAgentPage": "Ava agendi leht",
+    "conversations": "Vestlused",
+    "untitledConversation": "Pealkirjata vestlus"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -410,7 +416,16 @@
     "modelAllProviders": "Kõik",
     "modelGroup": "Mudel",
     "modelEmpty": "Ükski mudel ei vasta sellele otsingule.",
-    "modelCustomUse": "Kasuta \"{{query}}\" kohandatud mudelina"
+    "modelCustomUse": "Kasuta \"{{query}}\" kohandatud mudelina",
+    "searchConversations": "Filtreeri vestlusi",
+    "searchNoMatch": "Sobivaid vestlusi pole",
+    "groupToday": "Täna",
+    "groupYesterday": "Eile",
+    "groupLast7Days": "Viimased 7 päeva",
+    "groupOlder": "Vanemad",
+    "panelResize": "Muuda paneeli suurust",
+    "modelTabCount": "{{provider}}: {{count}} mudelit",
+    "modelNewTag": "Uus"
   },
   "agentSkills": {
     "skillsModalTitle": "Oskused",

@@ -106,7 +106,13 @@
     "compactDensity": "Compact density",
     "comfortableDensity": "Comfortable density",
     "navigate": "navigate",
-    "select": "select"
+    "select": "select",
+    "goToBoard": "ಬೋರ್ಡ್‌ಗೆ ಹೋಗಿ",
+    "goToList": "ಪಟ್ಟಿಗೆ ಹೋಗಿ",
+    "goToArchives": "ಆರ್ಕೈವ್‌ಗೆ ಹೋಗಿ",
+    "openAgentPage": "ಏಜೆಂಟ್ ಪುಟವನ್ನು ತೆರೆಯಿರಿ",
+    "conversations": "ಸಂಭಾಷಣೆಗಳು",
+    "untitledConversation": "ಶೀರ್ಷಿಕೆರಹಿತ ಸಂಭಾಷಣೆ"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -432,7 +438,16 @@
     "modelAllProviders": "ಎಲ್ಲಾ",
     "modelGroup": "ಮಾದರಿ",
     "modelEmpty": "ಈ ಹುಡುಕಾಟಕ್ಕೆ ಹೊಂದಿಕೆಯಾಗುವ ಯಾವುದೇ ಮಾದರಿ ಇಲ್ಲ.",
-    "modelCustomUse": "\"{{query}}\" ಅನ್ನು ಕಸ್ಟಮ್ ಮಾದರಿಯಾಗಿ ಬಳಸಿ"
+    "modelCustomUse": "\"{{query}}\" ಅನ್ನು ಕಸ್ಟಮ್ ಮಾದರಿಯಾಗಿ ಬಳಸಿ",
+    "searchConversations": "ಸಂಭಾಷಣೆಗಳನ್ನು ಫಿಲ್ಟರ್ ಮಾಡಿ",
+    "searchNoMatch": "ಹೊಂದಾಣಿಕೆಯ ಸಂಭಾಷಣೆ ಇಲ್ಲ",
+    "groupToday": "ಇಂದು",
+    "groupYesterday": "ನಿನ್ನೆ",
+    "groupLast7Days": "ಕಳೆದ 7 ದಿನಗಳು",
+    "groupOlder": "ಹಳೆಯದು",
+    "panelResize": "ಪ್ಯಾನೆಲ್ ಗಾತ್ರ ಬದಲಿಸಿ",
+    "modelTabCount": "{{provider}}: {{count}} ಮಾದರಿಗಳು",
+    "modelNewTag": "ಹೊಸದು"
   },
   "agentSkills": {
     "skillsModalTitle": "ಕೌಶಲ್ಯಗಳು",

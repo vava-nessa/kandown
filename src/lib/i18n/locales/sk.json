@@ -106,7 +106,13 @@
     "compactDensity": "Kompaktná hustota",
     "comfortableDensity": "Pohodlná hustota",
     "navigate": "prechádzať",
-    "select": "vybrať"
+    "select": "vybrať",
+    "goToBoard": "Prejsť na nástenku",
+    "goToList": "Prejsť na zoznam",
+    "goToArchives": "Prejsť do archívu",
+    "openAgentPage": "Otvoriť stránku agenta",
+    "conversations": "Konverzácie",
+    "untitledConversation": "Konverzácia bez názvu"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -410,7 +416,16 @@
     "modelAllProviders": "Všetko",
     "modelGroup": "Model",
     "modelEmpty": "Žiadny model nezodpovedá tomuto hľadaniu.",
-    "modelCustomUse": "Použiť \"{{query}}\" ako vlastný model"
+    "modelCustomUse": "Použiť \"{{query}}\" ako vlastný model",
+    "searchConversations": "Filtrovať konverzácie",
+    "searchNoMatch": "Žiadne zodpovedajúce konverzácie",
+    "groupToday": "Dnes",
+    "groupYesterday": "Včera",
+    "groupLast7Days": "Posledných 7 dní",
+    "groupOlder": "Staršie",
+    "panelResize": "Zmeniť veľkosť panelu",
+    "modelTabCount": "{{provider}}: {{count}} modelov",
+    "modelNewTag": "Nové"
   },
   "agentSkills": {
     "skillsModalTitle": "Zručnosti",

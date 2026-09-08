@@ -109,6 +109,42 @@ future usages).
   mirrors the tall font. Files: AgentChatSurface.tsx,
   agent/PromptBar.tsx, bui/PromptBar.tsx.
 
+## Round 4 (vava feedback, nine UI improvements)
+
+Implemented by five parallel sub-agents with disjoint file ownership,
+then integration, a dedicated tester agent (9 scenarios, 9 bugs found),
+four parallel fix agents, and a review agent (PASS, no blockers).
+
+- Live indicator (#1): pulsing dot on a conversation row while its agent
+  turn runs; the collapsed rail's Agent icon carries the count badge, and
+  the SSE stream now reconnects when the agent page is open so the
+  indicator is not blind to the conversation on screen.
+- Per-conversation drafts (#2): the composer keeps one draft per
+  conversation, keyed by the STABLE harnessSessionId (kandown session ids
+  rotate on resume), mirrored to sessionStorage, capped at 20.
+- Board navigation with an open task (#3): setCurrentPage to
+  board/settings closes the editor with unsaved-edit stash; cmd+1/2 and
+  the palette's view commands share the same path; "Back to cards" is
+  icon-only.
+- Conversations search (#5), date grouping (#6, Today / Yesterday /
+  Last 7 days / Older), real portaled tooltips (#8, hover or focus, the
+  filter input is hover-only so it never covers the header while typing).
+- Ordering freeze: the conversation list stops re-ordering while the
+  pointer hovers it (live updates re-sorting rows caused mis-clicks).
+- Model picker (#7): per-provider model counts on the tabs, "New" badge
+  for releases under 14 days, sticky group header, selected model pinned
+  when filtered out, "(latest)" style name tags kept visible.
+- Resizable panel (#9): drag handle on the left edge, 320 to 560px and
+  50vw capped, persisted, keyboard resize with aria value semantics,
+  double-click resets.
+- Mini rail (#10): collapsing in the agent view drops the rail to its
+  icon-only 56px form instead of removing it.
+- Quick switcher (#11): the command palette gains Go to board / list /
+  archives, Open agent page, and a Conversations group (resume the 8
+  most recent sessions).
+- Hygiene: the vestigial /api/migrate-tasks web call was removed (the
+  daemon never had the route; it 404'd on every page load).
+
 ## Out of scope
 
 - Mobile-specific agent page redesign (the overlay stays).

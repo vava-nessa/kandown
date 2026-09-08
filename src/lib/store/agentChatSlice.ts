@@ -208,6 +208,10 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
       createdAt: now,
       updatedAt: now,
       ...(options.taskId ? { taskId: options.taskId }: {}),
+      // 📖 Copy the stable harness id into the optimistic entry too: draft
+      // persistence keys on it (t337 round 4), and the daemon only confirms
+      // it on the next index refresh.
+      ...(session.harnessSessionId ? { harnessSessionId: session.harnessSessionId } : {}),
     };
     set(state => ({
       agentChat: {
@@ -321,8 +325,11 @@ export const createAgentChatSlice: StateCreator<State, [], [], AgentChatSlice> =
       }
 
       // 📖 Sidebar reopen: reconnect the live stream for the active session.
+      // t337 round 4: the desktop agent page counts too (sidebarOpen stays
+      // false there), otherwise the live-turn indicator and the collapsed
+      // rail badge go blind for the conversation on screen.
       const { sidebarOpen, activeSessionId } = get().agentChat;
-      if (sidebarOpen && activeSessionId) {
+      if ((sidebarOpen || get().currentPage === 'agent') && activeSessionId) {
         connectAgentEventStream(activeSessionId);
       }
     },

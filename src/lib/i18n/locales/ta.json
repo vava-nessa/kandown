@@ -106,7 +106,13 @@
     "compactDensity": "Compact density",
     "comfortableDensity": "Comfortable density",
     "navigate": "navigate",
-    "select": "select"
+    "select": "select",
+    "goToBoard": "பலகைக்குச் செல்",
+    "goToList": "பட்டியலுக்குச் செல்",
+    "goToArchives": "காப்பகத்திற்குச் செல்",
+    "openAgentPage": "முகவர் பக்கத்தைத் திற",
+    "conversations": "உரையாடல்கள்",
+    "untitledConversation": "தலைப்பிடா உரையாடல்"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -432,7 +438,16 @@
     "modelAllProviders": "அனைத்தும்",
     "modelGroup": "மாதிரி",
     "modelEmpty": "இந்தத் தேடலுக்குப் பொருந்தும் மாதிரி இல்லை.",
-    "modelCustomUse": "\"{{query}}\" ஐத் தனிப்பயன் மாதிரியாகப் பயன்படுத்து"
+    "modelCustomUse": "\"{{query}}\" ஐத் தனிப்பயன் மாதிரியாகப் பயன்படுத்து",
+    "searchConversations": "உரையாடல்களை வடிகட்டு",
+    "searchNoMatch": "பொருந்தும் உரையாடல்கள் இல்லை",
+    "groupToday": "இன்று",
+    "groupYesterday": "நேற்று",
+    "groupLast7Days": "கடந்த 7 நாட்கள்",
+    "groupOlder": "பழையவை",
+    "panelResize": "பலகை அளவை மாற்று",
+    "modelTabCount": "{{provider}}: {{count}} மாதிரிகள்",
+    "modelNewTag": "புதிது"
   },
   "agentSkills": {
     "skillsModalTitle": "திறன்கள்",

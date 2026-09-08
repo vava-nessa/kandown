@@ -106,7 +106,13 @@
     "compactDensity": "Compact density",
     "comfortableDensity": "Comfortable density",
     "navigate": "navigate",
-    "select": "select"
+    "select": "select",
+    "goToBoard": "Ke papan",
+    "goToList": "Ke senarai",
+    "goToArchives": "Ke arkib",
+    "openAgentPage": "Buka halaman ejen",
+    "conversations": "Perbualan",
+    "untitledConversation": "Perbualan tanpa tajuk"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -432,7 +438,16 @@
     "modelAllProviders": "Semua",
     "modelGroup": "Model",
     "modelEmpty": "Tiada model sepadan dengan carian ini.",
-    "modelCustomUse": "Guna \"{{query}}\" sebagai model tersuai"
+    "modelCustomUse": "Guna \"{{query}}\" sebagai model tersuai",
+    "searchConversations": "Tapis perbualan",
+    "searchNoMatch": "Tiada perbualan sepadan",
+    "groupToday": "Hari ini",
+    "groupYesterday": "Semalam",
+    "groupLast7Days": "7 hari terakhir",
+    "groupOlder": "Lebih lama",
+    "panelResize": "Ubah saiz panel",
+    "modelTabCount": "{{provider}}: {{count}} model",
+    "modelNewTag": "Baharu"
   },
   "agentSkills": {
     "skillsModalTitle": "Kemahiran",

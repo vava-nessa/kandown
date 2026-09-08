@@ -725,11 +725,18 @@ export function TaskWorkspace({ variant = 'page' }: { variant?: 'page' | 'panel'
               }}
             />
           </div>
+          {/* 📖 Icon-only back button (page and panel variants alike): the
+              left arrow alone carries the action, the label lives in the
+              translated tooltip. Bordered to stay consistent with the
+              Delete/Archive buttons in the footer below. Same guarded close
+              as before: unsaved edits are confirmed, then the editor returns
+              to the cards. */}
           <KbdButton
-            variant="secondary"
+            variant="icon"
             icon="ArrowLeft"
-            label={t('taskWorkspace.backToCards')}
+            title={t('taskWorkspace.backToCards', 'Back to cards')}
             onClick={handleProtectedClose}
+            className="h-11 w-11 border-border-strong text-fg hover:border-border-focus"
           />
         </div>
 

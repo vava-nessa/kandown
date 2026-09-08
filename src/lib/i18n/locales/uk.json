@@ -106,7 +106,13 @@
     "compactDensity": "Compact density",
     "comfortableDensity": "Comfortable density",
     "navigate": "navigate",
-    "select": "select"
+    "select": "select",
+    "goToBoard": "Перейти на дошку",
+    "goToList": "Перейти до списку",
+    "goToArchives": "Перейти до архіву",
+    "openAgentPage": "Відкрити сторінку агента",
+    "conversations": "Діалоги",
+    "untitledConversation": "Діалог без назви"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -395,7 +401,16 @@
     "modelAllProviders": "Усі",
     "modelGroup": "Модель",
     "modelEmpty": "Немає моделі, що відповідає цьому запиту.",
-    "modelCustomUse": "Використати «{{query}}» як власну модель"
+    "modelCustomUse": "Використати «{{query}}» як власну модель",
+    "searchConversations": "Фільтр діалогів",
+    "searchNoMatch": "Немає відповідних діалогів",
+    "groupToday": "Сьогодні",
+    "groupYesterday": "Вчора",
+    "groupLast7Days": "Останні 7 днів",
+    "groupOlder": "Старіші",
+    "panelResize": "Змінити розмір панелі",
+    "modelTabCount": "{{provider}}: моделей: {{count}}",
+    "modelNewTag": "Новий"
   },
   "agentSkills": {
     "skillsModalTitle": "Навички",

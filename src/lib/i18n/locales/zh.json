@@ -106,7 +106,13 @@
     "compactDensity": "紧凑密度",
     "comfortableDensity": "舒适密度",
     "navigate": "导航",
-    "select": "选择"
+    "select": "选择",
+    "goToBoard": "前往看板",
+    "goToList": "前往列表",
+    "goToArchives": "前往归档",
+    "openAgentPage": "打开智能体页面",
+    "conversations": "会话",
+    "untitledConversation": "未命名会话"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -421,7 +427,16 @@
     "modelAllProviders": "全部",
     "modelGroup": "模型",
     "modelEmpty": "没有模型匹配此搜索。",
-    "modelCustomUse": "将“{{query}}”用作自定义模型"
+    "modelCustomUse": "将“{{query}}”用作自定义模型",
+    "searchConversations": "筛选会话",
+    "searchNoMatch": "没有匹配的会话",
+    "groupToday": "今天",
+    "groupYesterday": "昨天",
+    "groupLast7Days": "最近 7 天",
+    "groupOlder": "更早",
+    "panelResize": "调整面板大小",
+    "modelTabCount": "{{provider}}：{{count}} 个模型",
+    "modelNewTag": "新"
   },
   "agentSkills": {
     "skillsModalTitle": "技能",

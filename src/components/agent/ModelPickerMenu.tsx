@@ -4,11 +4,19 @@
  * its own: a trigger button carrying the provider glyph and the current
  * model, opening an upward menu with a search field on top, a row of
  * provider icon tabs (derived from the `provider/model` id prefixes of the
- * daemon catalog), a "Model" section header and a scrollable option list
- * where each row shows the provider glyph, the model name, its provider as
- * a subtle qualifier and a check mark on the pick. Arrow keys + Enter walk
- * the rows, Esc closes, and a query that matches no model can still be
- * used verbatim as a custom model id (t324 behavior, kept).
+ * daemon catalog, each tab carrying its model count; a catalog that
+ * collapses to a single provider hides the strip entirely, it never
+ * renders as an empty bordered band), a "Model" section header sticky at
+ * the top of the scrollable list, and a scrollable option list where each
+ * row shows the provider glyph, the model name followed by its own
+ * trailing "(...)" tag and its provider as subtle qualifiers (so
+ * "Claude Opus 4.5 (latest)" and the bare "Claude Opus 4.5" snapshot stay
+ * telling apart), a "New" badge for entries released in the last 14 days,
+ * and a check mark on the pick. Arrow keys + Enter walk the rows, Esc
+ * closes, and a query that matches no model can still be used verbatim
+ * as a custom model id (t324 behavior, kept). The persisted pick is pinned
+ * as the first catalog row whenever the search or a provider tab would
+ * filter it out, so the active model never silently disappears from view.
  *
  * 📖 The old BUI dropdown capped the daemon catalog at 16 entries with no
  * search, which made the pi catalog (hundreds of openrouter models)
@@ -16,9 +24,11 @@
  * replaces that menu and lists the whole catalog.
  *
  * @functions
+ *  → isRecentRelease: true when a release date falls in the last 14 days
  *  → splitModelLabel: bb-style "Name (qualifier)" splitter
  *  → providerOf: provider segment of a catalog id
  *  → ModelPickerMenu: trigger + searchable provider-tabbed model menu
+ *  → PickerRow: one rendered option row (base name + split/provider tags)
  *
  * @exports ModelPickerMenu
  * @see src/components/agent/AgentChatSurface.tsx: owns the catalog fetch and
@@ -47,6 +57,22 @@ export interface ModelEntry {
 export function splitModelLabel(name: string): { base: string; tag: string | null } {
   const match = /^(.*\S)\s*\(([^()]+)\)$/.exec(name);
   return match ? { base: match[1], tag: match[2] } : { base: name, tag: null };
+}
+
+/** 📖 Window under which a release date still earns the "New" badge (bb
+ * marks freshly shipped models the same way): two weeks. */
+const NEW_MODEL_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
+
+/** 📖 True when a catalog entry's ISO release date falls within the last
+ * 14 days, checked against `now` captured at render (the menu is
+ * short-lived, so a per-open timestamp is plenty fresh). Entries without a
+ * parsable release date never qualify, and a future date still counts:
+ * a model that has not officially landed yet is as new as it gets. */
+function isRecentRelease(release: string | undefined, now: number): boolean {
+  if (!release) return false;
+  const date = new Date(release);
+  if (Number.isNaN(date.getTime())) return false;
+  return now - date.getTime() <= NEW_MODEL_WINDOW_MS;
 }
 
 /** 📖 Provider segment of a catalog id: the prefix before the first slash
@@ -81,6 +107,21 @@ interface ModelPickerMenuProps {
   fallbackProvider?: string;
 }
 
+/** 📖 One rendered row of the option list. `name` is the base label (the
+ * trailing "(...)" group stripped); `splitTag` is that stripped group
+ * ("latest" in "Claude Opus 4.5 (latest)"), `tag` the provider qualifier.
+ * Both render as subtle text after the name, so catalog entries that share
+ * a base name stay telling apart. */
+interface PickerRow {
+  id: string;
+  name: string;
+  splitTag: string | null;
+  tag: string | null;
+  current: boolean;
+  released: boolean;
+  provider: string;
+}
+
 export function ModelPickerMenu({ models, value, onChange, disabled = false, fallbackProvider = '' }: ModelPickerMenuProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -107,26 +148,51 @@ export function ModelPickerMenu({ models, value, onChange, disabled = false, fal
     return id === 'core' && fallbackProvider ? fallbackProvider : id;
   };
 
-  const providers = useMemo(() => {
+  // 📖 Tab counts are raw catalog facts: how many entries each provider
+  // group holds, unaffected by the search query or the active tab. The All
+  // tab shows models.length as its total.
+  const { providers, providerCounts } = useMemo(() => {
     const counts = new Map<string, number>();
     for (const entry of models) {
       const id = effectiveProviderOf(entry);
       counts.set(id, (counts.get(id) ?? 0) + 1);
     }
-    return [...counts.keys()].sort((a, b) =>
-      (counts.get(b) ?? 0) !== (counts.get(a) ?? 0)
-        ? (counts.get(b) ?? 0) - (counts.get(a) ?? 0)
-        : a.localeCompare(b));
+    return {
+      providers: [...counts.keys()].sort((a, b) =>
+        (counts.get(b) ?? 0) !== (counts.get(a) ?? 0)
+          ? (counts.get(b) ?? 0) - (counts.get(a) ?? 0)
+          : a.localeCompare(b)),
+      providerCounts: counts,
+    };
     // 📖 effectiveProviderOf is a pure function of its deps below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [models, fallbackProvider]);
 
   // 📖 Visible rows: "Harness default" first, then the filtered catalog with
-  // the harness's current model floated to the top of its group. The
-  // fallback provider's rows hide their qualifier: "opus (anthropic)" would
-  // be noise when the whole picker is already the claude harness.
-  const rows = useMemo(() => {
+  // the harness's current model floated to the top of its group. Two kinds
+  // of subtle qualifier can follow the name: the name's own trailing
+  // "(...)" tag (bb's splitter: "Claude Opus 4.5 (latest)" keeps "latest",
+  // so it stays distinguishable from the bare "Claude Opus 4.5" snapshot
+  // row) and the provider id. The fallback provider's rows hide their
+  // provider qualifier ("opus (anthropic)" is noise when the whole picker
+  // is already the claude harness), and a name tag identical to the
+  // provider id (pi's "Fable 5.1 (anthropic)") renders once, never twice.
+  const rows = useMemo<PickerRow[]>(() => {
     const query = search.trim().toLowerCase();
+    const nowMs = Date.now();
+    const toRow = (entry: ModelEntry): PickerRow => {
+      const id = effectiveProviderOf(entry);
+      const split = splitModelLabel(entry.name);
+      return {
+        id: entry.id,
+        name: split.base,
+        splitTag: split.tag,
+        tag: id !== fallbackProvider && id !== split.tag ? id : null,
+        current: entry.current ?? false,
+        released: isRecentRelease(entry.release, nowMs),
+        provider: id,
+      };
+    };
     const filtered = models.filter(entry => {
       const id = effectiveProviderOf(entry);
       if (provider && id !== provider) return false;
@@ -135,22 +201,22 @@ export function ModelPickerMenu({ models, value, onChange, disabled = false, fal
     });
     const sorted = [...filtered].sort((a, b) =>
       a.current === b.current ? a.name.localeCompare(b.name) : a.current ? -1 : 1);
+    // 📖 Never lose sight of the active pick: when the persisted selection
+    // is filtered out by the search or a provider tab, pin it as the first
+    // catalog row so it keeps its check mark in view. Custom ids that are
+    // not in the catalog have no row to pin; the custom-row offer below
+    // already covers them.
+    const pinned = value !== '' && sorted.every(entry => entry.id !== value)
+      ? models.filter(entry => entry.id === value).map(toRow)
+      : [];
     return [
-      { id: '', name: t('agentChat.modelDefault', 'Harness default'), tag: null as string | null, current: false, provider: '' },
-      ...sorted.map(entry => {
-        const id = effectiveProviderOf(entry);
-        return {
-          id: entry.id,
-          name: splitModelLabel(entry.name).base,
-          tag: id !== fallbackProvider ? id : null,
-          current: entry.current ?? false,
-          provider: id,
-        };
-      }),
+      { id: '', name: t('agentChat.modelDefault', 'Harness default'), splitTag: null, tag: null, current: false, released: false, provider: '' },
+      ...pinned,
+      ...sorted.map(toRow),
     ];
     // 📖 effectiveProviderOf is a pure function of its deps below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [models, search, provider, t, fallbackProvider]);
+  }, [models, search, provider, value, t, fallbackProvider]);
 
   // 📖 A query that matches nothing is still a valid model id (t324): offer
   // it verbatim as a custom pick instead of a dead end.
@@ -282,39 +348,64 @@ export function ModelPickerMenu({ models, value, onChange, disabled = false, fal
               />
             </div>
           </div>
-          {/* Provider icon tabs: only when the catalog spans several. */}
+          {/* 📖 Provider icon tabs, only when the catalog genuinely spans
+              several providers. The strip must never render empty: a
+              single-provider catalog (claude's bare ids all collapse to the
+              harness vendor) skips it entirely, and every rendered tab is
+              guaranteed visible, a brand glyph (AgentGlyph's generic robot
+              for unknown providers) plus its model count. The counts are
+              raw catalog facts and do not react to the search query. */}
           {providers.length > 1 && (
             <div className="flex shrink-0 items-center gap-0.5 border-b border-border px-1.5">
               <button
                 type="button"
                 onClick={() => setProvider('')}
+                title={t('agentChat.modelTabCount', {
+                  defaultValue: '{{provider}}: {{count}} models',
+                  provider: t('agentChat.modelAllProviders', 'All'),
+                  count: models.length,
+                })}
                 className={`relative h-8 px-1.5 text-[11px] text-fg-muted transition-colors hover:text-fg ${
                   provider === '' ? 'text-fg' : ''
                 }`}
               >
                 {t('agentChat.modelAllProviders', 'All')}
+                <span className="align-super text-[9px] leading-none text-fg-faint">{models.length}</span>
                 {provider === '' && <span className="absolute inset-x-1 bottom-0 h-0.5 rounded-full bg-fg" />}
               </button>
-              {providers.map(id => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setProvider(id)}
-                  title={id}
-                  aria-label={id}
-                  className={`relative flex h-8 w-8 items-center justify-center transition-colors ${
-                    provider === id ? 'text-fg' : 'text-fg-muted hover:text-fg'
-                  }`}
-                >
-                  <ProviderGlyph provider={id} size={14} />
-                  {provider === id && <span className="absolute inset-x-1 bottom-0 h-0.5 rounded-full bg-fg" />}
-                </button>
-              ))}
+              {providers.map(id => {
+                const count = providerCounts.get(id) ?? 0;
+                // 📖 Same string feeds title and aria-label: sighted users
+                // get the tooltip, screen readers get the count too.
+                const countLabel = t('agentChat.modelTabCount', {
+                  defaultValue: '{{provider}}: {{count}} models',
+                  provider: id,
+                  count,
+                });
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setProvider(id)}
+                    title={countLabel}
+                    aria-label={countLabel}
+                    className={`relative flex h-8 w-8 flex-col items-center justify-center gap-px transition-colors ${
+                      provider === id ? 'text-fg' : 'text-fg-muted hover:text-fg'
+                    }`}
+                  >
+                    <ProviderGlyph provider={id} size={13} />
+                    <span className="text-[9px] leading-none text-fg-faint">{count}</span>
+                    {provider === id && <span className="absolute inset-x-1 bottom-0 h-0.5 rounded-full bg-fg" />}
+                  </button>
+                );
+              })}
             </div>
           )}
           {/* Rows */}
           <div ref={listRef} id="kandown-model-list" role="listbox" className="min-h-0 flex-1 overflow-y-auto py-1">
-            <p className="px-2.5 pb-1 pt-0.5 text-[10.5px] font-semibold uppercase tracking-wider text-fg-faint">
+            {/* Sticky group header: stays pinned while the catalog scrolls
+                under it, like the search row above the list. */}
+            <p className="sticky top-0 z-10 bg-bg px-2.5 pb-1 pt-0.5 text-[10.5px] font-semibold uppercase tracking-wider text-fg-faint">
               {t('agentChat.modelGroup', 'Model')}
             </p>
             {rows.map((row, index) => {
@@ -334,13 +425,25 @@ export function ModelPickerMenu({ models, value, onChange, disabled = false, fal
                 >
                   {row.provider !== '' && <ProviderGlyph provider={row.provider} size={13} />}
                   <span className="min-w-0 truncate font-medium text-fg" title={row.id}>{row.name}</span>
+                  {/* 📖 Qualifiers hug the name, bb-style: the name's own
+                      "(...)" tag first, the provider id after it. Both
+                      truncate (min-w-0) so a long name never pushes the
+                      badges or the check mark out of the row. */}
+                  {row.splitTag && (
+                    <span className="min-w-0 truncate text-[11px] text-fg-faint">{row.splitTag}</span>
+                  )}
+                  {row.tag && (
+                    <span className="min-w-0 truncate text-[11px] text-fg-faint">{row.tag}</span>
+                  )}
                   {row.current && (
                     <span className="flex-none rounded bg-primary/15 px-1.5 py-px text-[9.5px] font-semibold uppercase tracking-wide text-fg">
                       {t('agentChat.modelCurrentTag', 'Current')}
                     </span>
                   )}
-                  {row.tag && (
-                    <span className="min-w-0 truncate text-[11px] text-fg-faint">{row.tag}</span>
+                  {row.released && (
+                    <span className="flex-none rounded bg-accent px-1.5 py-px text-[9.5px] font-semibold uppercase tracking-wide text-accent-foreground">
+                      {t('agentChat.modelNewTag', 'New')}
+                    </span>
                   )}
                   {selected && (
                     <IconCheck size={13} stroke={2} className="ml-auto flex-none text-fg" />

@@ -106,7 +106,13 @@
     "compactDensity": "كثافة مضغوطة",
     "comfortableDensity": "كثافة مريحة",
     "navigate": "تنقل",
-    "select": "اختيار"
+    "select": "اختيار",
+    "goToBoard": "اذهب إلى اللوحة",
+    "goToList": "اذهب إلى القائمة",
+    "goToArchives": "اذهب إلى الأرشيف",
+    "openAgentPage": "افتح صفحة الوكيل",
+    "conversations": "المحادثات",
+    "untitledConversation": "محادثة بدون عنوان"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -377,7 +383,16 @@
     "modelAllProviders": "الكل",
     "modelGroup": "النموذج",
     "modelEmpty": "لا يوجد نموذج يطابق هذا البحث.",
-    "modelCustomUse": "استخدم \"{{query}}\" كنموذج مخصص"
+    "modelCustomUse": "استخدم \"{{query}}\" كنموذج مخصص",
+    "searchConversations": "تصفية المحادثات",
+    "searchNoMatch": "لا توجد محادثات مطابقة",
+    "groupToday": "اليوم",
+    "groupYesterday": "أمس",
+    "groupLast7Days": "آخر 7 أيام",
+    "groupOlder": "أقدم",
+    "panelResize": "تغيير حجم اللوحة",
+    "modelTabCount": "{{provider}}: {{count}} نماذج",
+    "modelNewTag": "جديد"
   },
   "agentSkills": {
     "skillsModalTitle": "المهارات",

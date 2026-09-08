@@ -106,7 +106,13 @@
     "compactDensity": "Tiivis tiheys",
     "comfortableDensity": "Mukava tiheys",
     "navigate": "navigoi",
-    "select": "valitse"
+    "select": "valitse",
+    "goToBoard": "Siirry tauluun",
+    "goToList": "Siirry luetteloon",
+    "goToArchives": "Siirry arkistoon",
+    "openAgentPage": "Avaa agenttisivu",
+    "conversations": "Keskustelut",
+    "untitledConversation": "Nimetön keskustelu"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -410,7 +416,16 @@
     "modelAllProviders": "Kaikki",
     "modelGroup": "Malli",
     "modelEmpty": "Mikään malli ei vastaa hakua.",
-    "modelCustomUse": "Käytä \"{{query}}\" mukautettuna mallina"
+    "modelCustomUse": "Käytä \"{{query}}\" mukautettuna mallina",
+    "searchConversations": "Suodata keskusteluja",
+    "searchNoMatch": "Ei vastaavia keskusteluja",
+    "groupToday": "Tänään",
+    "groupYesterday": "Eilen",
+    "groupLast7Days": "Viimeiset 7 päivää",
+    "groupOlder": "Vanhemmat",
+    "panelResize": "Muuta paneelin kokoa",
+    "modelTabCount": "{{provider}}: {{count}} mallia",
+    "modelNewTag": "Uusi"
   },
   "agentSkills": {
     "skillsModalTitle": "Taidot",

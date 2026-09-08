@@ -106,7 +106,13 @@
     "compactDensity": "Densidade compacta",
     "comfortableDensity": "Densidade confortável",
     "navigate": "navegar",
-    "select": "selecionar"
+    "select": "selecionar",
+    "goToBoard": "Ir para o quadro",
+    "goToList": "Ir para a lista",
+    "goToArchives": "Ir para o arquivo",
+    "openAgentPage": "Abrir a página do agente",
+    "conversations": "Conversas",
+    "untitledConversation": "Conversa sem título"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -410,7 +416,16 @@
     "modelAllProviders": "Todos",
     "modelGroup": "Modelo",
     "modelEmpty": "Nenhum modelo corresponde a esta pesquisa.",
-    "modelCustomUse": "Usar \"{{query}}\" como modelo personalizado"
+    "modelCustomUse": "Usar \"{{query}}\" como modelo personalizado",
+    "searchConversations": "Filtrar conversas",
+    "searchNoMatch": "Nenhuma conversa correspondente",
+    "groupToday": "Hoje",
+    "groupYesterday": "Ontem",
+    "groupLast7Days": "Últimos 7 dias",
+    "groupOlder": "Mais antigas",
+    "panelResize": "Redimensionar painel",
+    "modelTabCount": "{{provider}}: {{count}} modelos",
+    "modelNewTag": "Novo"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

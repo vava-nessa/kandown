@@ -106,7 +106,13 @@
     "compactDensity": "Kompakt täthet",
     "comfortableDensity": "Bekväm täthet",
     "navigate": "navigera",
-    "select": "välj"
+    "select": "välj",
+    "goToBoard": "Gå till tavlan",
+    "goToList": "Gå till listan",
+    "goToArchives": "Gå till arkivet",
+    "openAgentPage": "Öppna agentsidan",
+    "conversations": "Konversationer",
+    "untitledConversation": "Namnlös konversation"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -410,7 +416,16 @@
     "modelAllProviders": "Alla",
     "modelGroup": "Modell",
     "modelEmpty": "Ingen modell matchar sökningen.",
-    "modelCustomUse": "Använd \"{{query}}\" som egen modell"
+    "modelCustomUse": "Använd \"{{query}}\" som egen modell",
+    "searchConversations": "Filtrera konversationer",
+    "searchNoMatch": "Inga matchande konversationer",
+    "groupToday": "Idag",
+    "groupYesterday": "Igår",
+    "groupLast7Days": "Senaste 7 dagarna",
+    "groupOlder": "Äldre",
+    "panelResize": "Ändra panelstorlek",
+    "modelTabCount": "{{provider}}: {{count}} modeller",
+    "modelNewTag": "Ny"
   },
   "agentSkills": {
     "skillsModalTitle": "Färdigheter",

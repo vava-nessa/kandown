@@ -473,6 +473,11 @@ export interface State {
 
   setCommandOpen: (open: boolean) => void;
   setCheatsheetOpen: (open: boolean) => void;
+  /** 📖 Mirror of the inline store.ts declaration. Navigating to 'board' or
+   * 'settings' also closes the open task editor (unsaved edits are stashed
+   * into the recovery buffer first, never destroyed, and the URL is synced
+   * back to the board). Navigating to 'agent' keeps the editor open: the
+   * agent page's right panel renders the open task. */
   setCurrentPage: (page: 'board' | 'settings' | 'agent') => void;
 
   loadTaskContents: (taskIds: string[]) => Promise<void>;

@@ -1,11 +1,17 @@
 /**
  * @file Command palette
- * @description Provides global quick actions, view switching, task lookup, and
- * content-aware task search with highlighted snippets.
+ * @description Provides global quick actions, page navigation, view switching,
+ * task lookup, and content-aware task search with highlighted snippets, plus a
+ * Conversations group that resumes the project's recent agent chat sessions.
  *
  * 📖 The palette lazily loads task file content only when needed, so small
  * boards feel instant and large boards avoid reading every markdown file until
  * the user searches.
+ *
+ * 📖 All navigation-flavored commands ("Go to board", "Go to list",
+ * "Go to archives", "Open agent page", plus the pre-existing Board/List view
+ * switches) go through the same store paths as the SideNav rail, so they also
+ * escape an open task editor the same way a rail click does.
  *
  * @functions
  *  → HighlightedText — highlights matched text in task search previews
@@ -29,7 +35,7 @@ interface CommandItem {
   label: string;
   hint?: string;
   preview?: SearchMatch[];
-  category: 'task' | 'action' | 'view';
+  category: 'task' | 'action' | 'view' | 'chat';
   onSelect: () => void;
   boldPrefix?: boolean;
 }
@@ -62,6 +68,18 @@ export function CommandPalette() {
   const setDensity = useStore(s => s.setDensity);
   const clearFilters = useStore(s => s.clearFilters);
   const setCheatsheetOpen = useStore(s => s.setCheatsheetOpen);
+  // 📖 Navigation + Conversations (page-level paths, same as the SideNav rail).
+  const setCurrentPage = useStore(s => s.setCurrentPage);
+  const setShowArchives = useStore(s => s.setShowArchives);
+  const agentSessions = useStore(s => s.agentChat.sessions);
+  const agentGuard = useStore(s => s.agentChat.guard);
+  const activeSessionId = useStore(s => s.agentChat.activeSessionId);
+  const resumeSession = useStore(s => s.resumeSession);
+  const refreshSessions = useStore(s => s.refreshSessions);
+  const openAgentSidebar = useStore(s => s.openSidebar);
+  // 📖 The agent page only exists when the useAgents flag has not switched
+  // the chat surfaces off (same gate as the rail and the App shell).
+  const useAgents = useStore(s => s.config.agent.useAgents !== false);
   const taskContents = useStore(s => s.taskContents);
   const loadTaskContents = useStore(s => s.loadTaskContents);
 
@@ -139,6 +157,67 @@ export function CommandPalette() {
       },
     ];
 
+    // 📖 Page navigation commands mirror the SideNav rail's own paths
+    // (goTo / goToAgent), so they also escape an open task editor the same
+    // way a rail click does: setCurrentPage('board') closes the editor in
+    // the store, stashing unsaved edits into the recovery buffer first.
+    const goToAgentPage = () => {
+      // 📖 Desktop shows the full-page agent view; below 768px the agent is
+      // still the fullscreen overlay (same split as the rail and Cmd/Ctrl+J).
+      if (window.matchMedia('(min-width: 768px)').matches) {
+        setCurrentPage('agent');
+        void refreshSessions();
+      } else {
+        openAgentSidebar();
+      }
+    };
+
+    const navigationCommands: CommandItem[] = [
+      {
+        id: 'nav:board',
+        label: t('commandPalette.goToBoard', 'Go to board'),
+        category: 'view',
+        onSelect: () => {
+          setCommandOpen(false);
+          setCurrentPage('board');
+          setShowArchives(false);
+          setViewMode('board');
+        },
+      },
+      {
+        id: 'nav:list',
+        label: t('commandPalette.goToList', 'Go to list'),
+        category: 'view',
+        onSelect: () => {
+          setCommandOpen(false);
+          setCurrentPage('board');
+          setShowArchives(false);
+          setViewMode('list');
+        },
+      },
+      {
+        id: 'nav:archives',
+        label: t('commandPalette.goToArchives', 'Go to archives'),
+        category: 'view',
+        onSelect: () => {
+          setCommandOpen(false);
+          setCurrentPage('board');
+          setShowArchives(true);
+        },
+      },
+    ];
+    if (useAgents) {
+      navigationCommands.push({
+        id: 'nav:agent',
+        label: t('commandPalette.openAgentPage', 'Open agent page'),
+        category: 'view',
+        onSelect: () => {
+          setCommandOpen(false);
+          goToAgentPage();
+        },
+      });
+    }
+
     const viewCommands: CommandItem[] = [
       {
         id: 'view:board',
@@ -146,6 +225,11 @@ export function CommandPalette() {
         category: 'view',
         onSelect: () => {
           setCommandOpen(false);
+          // 📖 Same path as the rail: setCurrentPage('board') closes an open
+          // task editor (and leaves the archives page), otherwise the editor
+          // keeps render priority and this command would do nothing.
+          setCurrentPage('board');
+          setShowArchives(false);
           setViewMode('board');
         },
       },
@@ -155,6 +239,8 @@ export function CommandPalette() {
         category: 'view',
         onSelect: () => {
           setCommandOpen(false);
+          setCurrentPage('board');
+          setShowArchives(false);
           setViewMode('list');
         },
       },
@@ -178,8 +264,37 @@ export function CommandPalette() {
       },
     ];
 
-    return [...actionCommands, ...viewCommands, ...taskCommands];
-  }, [columns, setCommandOpen, openDrawer, createTask, reloadBoard, clearFilters, setCheatsheetOpen, setViewMode, setDensity]);
+    // 📖 Conversations (t337 parity with the rail): the 8 most recent chat
+    // sessions, resumable straight from the palette. The store keeps the
+    // index newest-first; the sort is defensive in case a future writer
+    // forgets. Gated like the rail: no agent surfaces, no noisy group.
+    const chatCommands: CommandItem[] = useAgents && (agentGuard === 'available' || agentSessions.length > 0)
+      ? [...agentSessions]
+          .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+          .slice(0, 8)
+          .map(entry => ({
+            id: 'chat:' + entry.id,
+            label: entry.title || t('commandPalette.untitledConversation', 'Untitled conversation'),
+            // 📖 The task a conversation was started from, when any: same
+            // discriminator the rail rows show, uppercased like the editor.
+            hint: entry.taskId ? entry.taskId.toUpperCase() : undefined,
+            category: 'chat' as const,
+            onSelect: () => {
+              setCommandOpen(false);
+              // 📖 Resuming the already-active session would create a
+              // redundant daemon round trip; navigating is enough (same
+              // guard as the rail rows).
+              if (entry.id !== activeSessionId) void resumeSession(entry);
+              goToAgentPage();
+            },
+          }))
+      : [];
+
+    // 📖 navigationCommands must be spread here: building it above is not
+    // enough, an omitted array silently drops the entries from both the
+    // no-query list and the query filter ("go to" returned No results).
+    return [...actionCommands, ...navigationCommands, ...viewCommands, ...chatCommands, ...taskCommands];
+  }, [columns, setCommandOpen, openDrawer, createTask, reloadBoard, clearFilters, setCheatsheetOpen, setViewMode, setDensity, setCurrentPage, setShowArchives, useAgents, agentSessions, agentGuard, activeSessionId, resumeSession, refreshSessions, openAgentSidebar, t]);
 
   // Compute search matches for tasks
   const searchMatchesMap = useMemo(() => {
@@ -243,7 +358,7 @@ export function CommandPalette() {
 
   // Group for display
   const grouped = useMemo(() => {
-    const g: Record<string, CommandItem[]> = { action: [], view: [], task: [] };
+    const g: Record<string, CommandItem[]> = { action: [], view: [], chat: [], task: [] };
     for (const c of filtered) g[c.category].push(c);
     return g;
   }, [filtered]);
@@ -251,6 +366,7 @@ export function CommandPalette() {
   const labels: Record<string, string> = {
     action: t('commandPalette.actions'),
     view: t('commandPalette.view'),
+    chat: t('commandPalette.conversations', 'Conversations'),
     task: t('commandPalette.tasks'),
   };
 
@@ -295,7 +411,7 @@ export function CommandPalette() {
                   {t('common.noResults')}
                 </div>
               )}
-              {(['action', 'view', 'task'] as const).map(cat =>
+              {(['action', 'view', 'chat', 'task'] as const).map(cat =>
                 grouped[cat].length > 0 ? (
                   <div key={cat} className="py-1">
                     <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-fg-faint">

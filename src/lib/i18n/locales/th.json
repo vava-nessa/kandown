@@ -106,7 +106,13 @@
     "compactDensity": "Compact density",
     "comfortableDensity": "Comfortable density",
     "navigate": "navigate",
-    "select": "select"
+    "select": "select",
+    "goToBoard": "ไปที่บอร์ด",
+    "goToList": "ไปที่รายการ",
+    "goToArchives": "ไปที่ที่เก็บถาวร",
+    "openAgentPage": "เปิดหน้าเอเจนต์",
+    "conversations": "การสนทนา",
+    "untitledConversation": "การสนทนาไม่มีชื่อ"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -432,7 +438,16 @@
     "modelAllProviders": "ทั้งหมด",
     "modelGroup": "โมเดล",
     "modelEmpty": "ไม่มีโมเดลที่ตรงกับการค้นหานี้",
-    "modelCustomUse": "ใช้ \"{{query}}\" เป็นโมเดลแบบกำหนดเอง"
+    "modelCustomUse": "ใช้ \"{{query}}\" เป็นโมเดลแบบกำหนดเอง",
+    "searchConversations": "กรองการสนทนา",
+    "searchNoMatch": "ไม่มีการสนทนาที่ตรงกัน",
+    "groupToday": "วันนี้",
+    "groupYesterday": "เมื่อวาน",
+    "groupLast7Days": "7 วันที่ผ่านมา",
+    "groupOlder": "เก่ากว่า",
+    "panelResize": "ปรับขนาดแผง",
+    "modelTabCount": "{{provider}}: {{count}} โมเดล",
+    "modelNewTag": "ใหม่"
   },
   "agentSkills": {
     "skillsModalTitle": "ทักษะ",

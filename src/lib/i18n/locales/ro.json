@@ -106,7 +106,13 @@
     "compactDensity": "Compact density",
     "comfortableDensity": "Comfortable density",
     "navigate": "navigate",
-    "select": "select"
+    "select": "select",
+    "goToBoard": "Mergi la tabla",
+    "goToList": "Mergi la listă",
+    "goToArchives": "Mergi la arhivă",
+    "openAgentPage": "Deschide pagina agentului",
+    "conversations": "Conversații",
+    "untitledConversation": "Conversație fără titlu"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -395,7 +401,16 @@
     "modelAllProviders": "Toate",
     "modelGroup": "Model",
     "modelEmpty": "Niciun model nu corespunde acestei căutări.",
-    "modelCustomUse": "Folosește \"{{query}}\" ca model personalizat"
+    "modelCustomUse": "Folosește \"{{query}}\" ca model personalizat",
+    "searchConversations": "Filtrează conversațiile",
+    "searchNoMatch": "Nicio conversație potrivită",
+    "groupToday": "Astăzi",
+    "groupYesterday": "Ieri",
+    "groupLast7Days": "Ultimele 7 zile",
+    "groupOlder": "Mai vechi",
+    "panelResize": "Redimensionează panoul",
+    "modelTabCount": "{{provider}}: {{count}} modele",
+    "modelNewTag": "Nou"
   },
   "agentSkills": {
     "skillsModalTitle": "Abilități",

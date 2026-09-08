@@ -106,7 +106,13 @@
     "compactDensity": "Compact density",
     "comfortableDensity": "Comfortable density",
     "navigate": "navigate",
-    "select": "select"
+    "select": "select",
+    "goToBoard": "ဘုတ်သို့ သွားပါ",
+    "goToList": "စာရင်းသို့ သွားပါ",
+    "goToArchives": "မှတ်တမ်းသို့ သွားပါ",
+    "openAgentPage": "အေးဂျင့်စာမျက်နှာကို ဖွင့်ပါ",
+    "conversations": "စကားဝိုင်းများ",
+    "untitledConversation": "အမည်မဲ့ စကားဝိုင်း"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -432,7 +438,16 @@
     "modelAllProviders": "အားလုံး",
     "modelGroup": "မော်ဒယ်",
     "modelEmpty": "ဤရှာဖွေမှုနှင့် ကိုက်ညီသော မော်ဒယ် မရှိပါ။",
-    "modelCustomUse": "\"{{query}}\" ကို စိတ်ကြိုက်မော်ဒယ်အဖြစ် သုံးပါ"
+    "modelCustomUse": "\"{{query}}\" ကို စိတ်ကြိုက်မော်ဒယ်အဖြစ် သုံးပါ",
+    "searchConversations": "စကားဝိုင်းများ စစ်ထုတ်ပါ",
+    "searchNoMatch": "ကိုက်ညီသော စကားဝိုင်း မရှိပါ",
+    "groupToday": "ဒီနေ့",
+    "groupYesterday": "မနေ့",
+    "groupLast7Days": "ပြီးခဲ့သော ၇ ရက်",
+    "groupOlder": "ပိုငွေ",
+    "panelResize": "ပန်နယ် အရွယ်အစား ပြောင်းပါ",
+    "modelTabCount": "{{provider}}: {{count}} မော်ဒယ်",
+    "modelNewTag": "အသစ်"
   },
   "agentSkills": {
     "skillsModalTitle": "ကျွမ်းကျင်မှုများ",

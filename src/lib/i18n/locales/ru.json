@@ -106,7 +106,13 @@
     "compactDensity": "Компактная плотность",
     "comfortableDensity": "Комфортная плотность",
     "navigate": "навигация",
-    "select": "выбрать"
+    "select": "выбрать",
+    "goToBoard": "Перейти на доску",
+    "goToList": "Перейти в список",
+    "goToArchives": "Перейти в архив",
+    "openAgentPage": "Открыть страницу агента",
+    "conversations": "Диалоги",
+    "untitledConversation": "Диалог без названия"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -377,7 +383,16 @@
     "modelAllProviders": "Все",
     "modelGroup": "Модель",
     "modelEmpty": "Нет моделей по этому запросу.",
-    "modelCustomUse": "Использовать «{{query}}» как пользовательскую модель"
+    "modelCustomUse": "Использовать «{{query}}» как пользовательскую модель",
+    "searchConversations": "Фильтр диалогов",
+    "searchNoMatch": "Нет подходящих диалогов",
+    "groupToday": "Сегодня",
+    "groupYesterday": "Вчера",
+    "groupLast7Days": "Последние 7 дней",
+    "groupOlder": "Старые",
+    "panelResize": "Изменить размер панели",
+    "modelTabCount": "{{provider}}: моделей: {{count}}",
+    "modelNewTag": "Новый"
   },
   "agentSkills": {
     "skillsModalTitle": "Навыки",

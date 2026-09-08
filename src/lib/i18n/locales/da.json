@@ -106,7 +106,13 @@
     "compactDensity": "Kompakt tæthed",
     "comfortableDensity": "Behagelig tæthed",
     "navigate": "navigér",
-    "select": "vælg"
+    "select": "vælg",
+    "goToBoard": "Gå til boardet",
+    "goToList": "Gå til listen",
+    "goToArchives": "Gå til arkivet",
+    "openAgentPage": "Åbn agentsiden",
+    "conversations": "Samtaler",
+    "untitledConversation": "Unavngivet samtale"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -410,7 +416,16 @@
     "modelAllProviders": "Alle",
     "modelGroup": "Model",
     "modelEmpty": "Ingen model matcher søgningen.",
-    "modelCustomUse": "Brug \"{{query}}\" som brugerdefineret model"
+    "modelCustomUse": "Brug \"{{query}}\" som brugerdefineret model",
+    "searchConversations": "Filtrer samtaler",
+    "searchNoMatch": "Ingen matchende samtaler",
+    "groupToday": "I dag",
+    "groupYesterday": "I går",
+    "groupLast7Days": "Sidste 7 dage",
+    "groupOlder": "Ældre",
+    "panelResize": "Ændr panelstørrelse",
+    "modelTabCount": "{{provider}}: {{count}} modeller",
+    "modelNewTag": "Ny"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

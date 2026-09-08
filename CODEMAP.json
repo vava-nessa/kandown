@@ -138,7 +138,7 @@
     },
     {
       "path": "src/App.tsx",
-      "lines": 320,
+      "lines": 330,
       "title": "Web application shell",
       "summary": "Composes the Kandown web UI, hydrates recent projects from the URL, and owns global keyboard shortcuts for board navigation, creation, reload, search focus, and command palette access.",
       "functions": [
@@ -1971,7 +1971,7 @@
     },
     {
       "path": "src/components/agent/AgentChatSurface.tsx",
-      "lines": 524,
+      "lines": 553,
       "title": "Agent chat surface (t337)",
       "summary": "The conversation body itself, extracted from the old overlay ChatSidebar so two shells can render the exact same chat: the full-page agent view on desktop (AgentPage) and the fullscreen mobile overlay (ChatSidebar).",
       "functions": [
@@ -1980,7 +1980,7 @@
           "summary": null
         },
         {
-          "name": "AgentChatSurface: the chat body (guard, messages, composer)",
+          "name": "AgentChatSurface: the chat body (guard, messages, composer); feeds",
           "summary": null
         }
       ],
@@ -2014,7 +2014,7 @@
     },
     {
       "path": "src/components/agent/AgentPanelSpace.tsx",
-      "lines": 121,
+      "lines": 312,
       "title": "Agent right panel space (t337)",
       "summary": "The retractable panel column next to the chat on the agent page, in the spirit of the code-harness side panels: a tab strip at the top, one conversation's content below.",
       "functions": [
@@ -2290,10 +2290,14 @@
     },
     {
       "path": "src/components/agent/ModelPickerMenu.tsx",
-      "lines": 380,
+      "lines": 483,
       "title": "Model picker menu (t340, inspired by bb's picker)",
       "summary": "The harness model picker, rebuilt the way bb (getbb) builds its own: a trigger button carrying the provider glyph and the current model, opening an upward menu with a search field on top, a row of provider icon tabs (derived from the…",
       "functions": [
+        {
+          "name": "isRecentRelease: true when a release date falls in the last 14 days",
+          "summary": null
+        },
         {
           "name": "splitModelLabel: bb-style \"Name (qualifier)\" splitter",
           "summary": null
@@ -2304,6 +2308,10 @@
         },
         {
           "name": "ModelPickerMenu: trigger + searchable provider-tabbed model menu",
+          "summary": null
+        },
+        {
+          "name": "PickerRow: one rendered option row (base name + split/provider tags)",
           "summary": null
         }
       ],
@@ -2324,10 +2332,14 @@
     },
     {
       "path": "src/components/agent/PromptBar.tsx",
-      "lines": 303,
+      "lines": 450,
       "title": "Prompt bar for the agent chat sidebar (round 7: official BUI shell)",
       "summary": "The agent chat composer, rebuilt ON the official BeautifulUI PromptBar (src/components/bui/PromptBar.tsx, beautifului.dev, MIT) in its external mode (demo={false}): the BUI component owns the exact visual structure (rounded composer,…",
       "functions": [
+        {
+          "name": "hydrateDrafts / readDraft / storeDraft / persistDrafts: the",
+          "summary": null
+        },
         {
           "name": "PromptBar: the official BUI composer wired to kandown behavior",
           "summary": null
@@ -2837,9 +2849,9 @@
     },
     {
       "path": "src/components/CommandPalette.tsx",
-      "lines": 363,
+      "lines": 479,
       "title": "Command palette",
-      "summary": "Provides global quick actions, view switching, task lookup, and content-aware task search with highlighted snippets.",
+      "summary": "Provides global quick actions, page navigation, view switching, task lookup, and content-aware task search with highlighted snippets, plus a Conversations group that resumes the project's recent agent chat sessions.",
       "functions": [
         {
           "name": "HighlightedText",
@@ -2868,6 +2880,31 @@
         }
       ],
       "exports": "ConflictModal"
+    },
+    {
+      "path": "src/components/ConversationSection.tsx",
+      "lines": 374,
+      "title": "Conversations section of the expanded left rail (t337, vava requests #1, #5, #6, #8)",
+      "summary": "The project's agent chat sessions under the rail's nav items: a header row with a \"+ new chat\" button, a compact filter input, recency groups (Today / Yesterday / Last 7 days / Older) and one row per conversation.",
+      "functions": [
+        {
+          "name": "recencyGroup",
+          "summary": "bucket an updatedAt instant into Today / Yesterday / Last 7 days / Older"
+        },
+        {
+          "name": "RailTooltip",
+          "summary": "hover (and optionally focus) tooltip portaled to document.body, immune to overflow clipping"
+        },
+        {
+          "name": "ConversationRow",
+          "summary": "one indexed conversation: full-title tooltip, harness glyph, age, live dot, forget"
+        },
+        {
+          "name": "ConversationsSection",
+          "summary": "the whole section: header, search, recency groups"
+        }
+      ],
+      "exports": "ConversationsSection"
     },
     {
       "path": "src/components/DependenciesHeaderMenu.tsx",
@@ -3172,25 +3209,25 @@
     },
     {
       "path": "src/components/SideNav.tsx",
-      "lines": 435,
+      "lines": 377,
       "title": "Left navigation rail (t332, conversations list added by t337)",
       "summary": "Collapsed-by-default icon rail that expands to a full sidebar on click.",
       "functions": [
         {
-          "name": "SideNavItem",
-          "summary": "one rail entry, icon-only when collapsed, icon + label expanded"
+          "name": "SideNavItem : one rail entry, icon-only when collapsed, icon + label expanded",
+          "summary": null
         },
         {
-          "name": "GitFooter",
-          "summary": "active branch + worktree marker, click to copy"
+          "name": "GitFooter : active branch + worktree marker, click to copy",
+          "summary": null
         },
         {
-          "name": "ConversationRow",
-          "summary": "one indexed conversation in the expanded rail"
+          "name": "CollapsedModeToggle : icon-only theme cycle for the collapsed rail",
+          "summary": null
         },
         {
-          "name": "SideNav",
-          "summary": "the rail itself"
+          "name": "SideNav : the rail itself",
+          "summary": null
         }
       ],
       "exports": "SideNav"
@@ -3257,7 +3294,7 @@
     },
     {
       "path": "src/components/TaskWorkspace.tsx",
-      "lines": 877,
+      "lines": 884,
       "title": "Desktop opened-task workspace",
       "summary": "Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…",
       "functions": [
@@ -3771,7 +3808,7 @@
     },
     {
       "path": "src/lib/demoBackend.ts",
-      "lines": 403,
+      "lines": 397,
       "title": "In-memory backend for the website demo",
       "summary": "Implements the Kandown REST API against a `Map` instead of a disk, so the whole web UI can run in a browser tab with no CLI, no server and no storage.",
       "functions": [
@@ -4081,7 +4118,7 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 1730,
+      "lines": 1715,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [
@@ -4206,15 +4243,11 @@
           "summary": null
         },
         {
-          "name": "serverMigrateTasks: triggers the legacy to new layout migration via REST",
-          "summary": null
-        },
-        {
           "name": "readProjectInstructions / writeProjectInstructions",
           "summary": "edits `.kandown/kandown_work.md`"
         }
       ],
-      "exports": "supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, readTaskFileRaw, writeTaskFile, WriteTaskFileOptions, ServerWriteTaskResult, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, fetchDetectedAgents, fetchAgentHarnesses, createAgentSession, sendAgentSessionMessage, listSessionIndex, forgetSessionIndex, serverAuthState, ServerAuthState, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask, serverMigrateTasks"
+      "exports": "supportsFileSystemAccess, supportsLocalFileSystemAccess, switchDemoToLocalFileSystem, isServerMode, isDemoMode, registerDemoApi, getServerRoot, pickDirectory, pickProjectDirectory, getKandownHandle, getTasksDirHandle, ensureTasksDir, listTaskIds, readConfigFile, writeConfigFile, readProjectInstructions, writeProjectInstructions, readTaskFile, readTaskFileRaw, writeTaskFile, WriteTaskFileOptions, ServerWriteTaskResult, deleteTaskFile, saveRecentProject, listRecentProjects, removeRecentProject, verifyPermission, serverReadBoard, serverWriteBoard, serverReadConfig, serverWriteConfig, serverListTasks, serverReadTask, serverReadTaskFile, serverMoveTask, fetchDetectedAgents, fetchAgentHarnesses, createAgentSession, sendAgentSessionMessage, listSessionIndex, forgetSessionIndex, serverAuthState, ServerAuthState, serverLoadExtensionRuntime, serverSetExtensionField, serverReadExtensionFile, serverReportExtensionOutcome, serverWriteTask, serverDeleteTask"
     },
     {
       "path": "src/lib/githubStars.ts",
@@ -4440,7 +4473,7 @@
     },
     {
       "path": "src/lib/store.ts",
-      "lines": 2248,
+      "lines": 2269,
       "title": "Kandown Zustand store",
       "summary": "Central state container for project handles, task-derived board data, config, filters, task drawer editing, content-search cache, recent projects, toast notifications, and watcher-driven browser/audio notifications.",
       "functions": [
@@ -4473,7 +4506,7 @@
     },
     {
       "path": "src/lib/store/agentChatSlice.ts",
-      "lines": 661,
+      "lines": 668,
       "title": "Zustand store slice: agent chat sidebar (t308)",
       "summary": "Sidebar open state, the project's chat session index, the live per-session chat folds, and the SSE lifecycle that feeds them.",
       "functions": [
@@ -4634,13 +4667,13 @@
     },
     {
       "path": "src/lib/store/projectSlice.ts",
-      "lines": 401,
+      "lines": 392,
       "title": "Zustand store slice — project lifecycle",
       "summary": "Opening a project (file-picker or recent), server-mode auto-open, config load/update, and the full board reload."
     },
     {
       "path": "src/lib/store/types.ts",
-      "lines": 590,
+      "lines": 595,
       "title": "Zustand store — shared types",
       "summary": "State shape and supporting interfaces used across every store slice."
     },

@@ -106,7 +106,13 @@
     "compactDensity": "Kompaktní hustota",
     "comfortableDensity": "Pohodlná hustota",
     "navigate": "navigovat",
-    "select": "vybrat"
+    "select": "vybrat",
+    "goToBoard": "Přejít na nástěnku",
+    "goToList": "Přejít na seznam",
+    "goToArchives": "Přejít do archivu",
+    "openAgentPage": "Otevřít stránku agenta",
+    "conversations": "Konverzace",
+    "untitledConversation": "Bez názvu"
   },
   "cheatsheet": {
     "shortcuts": {
@@ -410,7 +416,16 @@
     "modelAllProviders": "Vše",
     "modelGroup": "Model",
     "modelEmpty": "Žádný model neodpovídá tomuto hledání.",
-    "modelCustomUse": "Použít \"{{query}}\" jako vlastní model"
+    "modelCustomUse": "Použít \"{{query}}\" jako vlastní model",
+    "searchConversations": "Filtrovat konverzace",
+    "searchNoMatch": "Žádné odpovídající konverzace",
+    "groupToday": "Dnes",
+    "groupYesterday": "Včera",
+    "groupLast7Days": "Posledních 7 dní",
+    "groupOlder": "Starší",
+    "panelResize": "Změnit velikost panelu",
+    "modelTabCount": "{{provider}}: {{count}} modelů",
+    "modelNewTag": "Nové"
   },
   "agentSkills": {
     "skillsModalTitle": "Dovednosti",

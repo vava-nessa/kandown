@@ -3,7 +3,7 @@ id: t315
 title: Glisser cette carte d'une colonne à l'autre
 status: Todo
 created: 2026-09-05
-updated: 2026-09-05T09:16:18Z
+updated: 2026-09-08T21:57:16Z
 category: TEST
 order: 4
 ---
@@ -19,13 +19,13 @@ disque suivent bien.
 - [ ] La carte passe par les cinq colonnes sans recharger la page
 - [ ] Le champ `status:` de ce fichier correspond à la colonne après chaque dépôt
 - [ ] La carte garde sa pastille de catégorie TEST pendant le déplacement
-
-## Sous-tâches
-
 - [ ] Glisser de Backlog vers Todo
 - [ ] Glisser de Todo vers In Progress
 - [ ] Glisser de In Progress vers Done
 - [ ] Refaire la même chose en vue liste
+
+## Sous-tâches
+
 
 ## Notes
 
