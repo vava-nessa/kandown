@@ -372,7 +372,12 @@
     "changesEmpty": "اس گفتگو سے متعلق فائلیں یہاں ظاہر ہوں گی۔",
     "touchedFiles": "متاثرہ فائلیں",
     "liveDiffs": "لائیو کام کے فرق",
-    "welcomeTitle": "آج میں آپ کے لیے کیا کر سکتا ہوں؟"
+    "welcomeTitle": "آج میں آپ کے لیے کیا کر سکتا ہوں؟",
+    "modelSearch": "ماڈل تلاش کریں",
+    "modelAllProviders": "تمام",
+    "modelGroup": "ماڈل",
+    "modelEmpty": "اس تلاش سے مماثل کوئی ماڈل نہیں۔",
+    "modelCustomUse": "\"{{query}}\" کو اپنی مرضی کے ماڈل کے طور پر استعمال کریں"
   },
   "agentSkills": {
     "skillsModalTitle": "مہارتیں",

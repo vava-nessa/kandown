@@ -372,7 +372,12 @@
     "changesEmpty": "الملفات التي تلمسها هذه المحادثة ستظهر هنا.",
     "touchedFiles": "الملفات المعدَّلة",
     "liveDiffs": "فروق المهام المباشرة",
-    "welcomeTitle": "ماذا يمكنني أن أفعل من أجلك اليوم؟"
+    "welcomeTitle": "ماذا يمكنني أن أفعل من أجلك اليوم؟",
+    "modelSearch": "البحث عن نماذج",
+    "modelAllProviders": "الكل",
+    "modelGroup": "النموذج",
+    "modelEmpty": "لا يوجد نموذج يطابق هذا البحث.",
+    "modelCustomUse": "استخدم \"{{query}}\" كنموذج مخصص"
   },
   "agentSkills": {
     "skillsModalTitle": "المهارات",

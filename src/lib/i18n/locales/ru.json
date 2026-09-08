@@ -372,7 +372,12 @@
     "changesEmpty": "Файлы, затронутые этим диалогом, появятся здесь.",
     "touchedFiles": "Затронутые файлы",
     "liveDiffs": "Диффы задач в реальном времени",
-    "welcomeTitle": "Чем я могу помочь тебе сегодня?"
+    "welcomeTitle": "Чем я могу помочь тебе сегодня?",
+    "modelSearch": "Поиск моделей",
+    "modelAllProviders": "Все",
+    "modelGroup": "Модель",
+    "modelEmpty": "Нет моделей по этому запросу.",
+    "modelCustomUse": "Использовать «{{query}}» как пользовательскую модель"
   },
   "agentSkills": {
     "skillsModalTitle": "Навыки",

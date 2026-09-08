@@ -224,7 +224,7 @@ source to edit instead.
 ## `src/components/agent/`
 
 - **`ActivityBlock.tsx`** · 246 lines — Every assistant turn gets one activity area that updates in place while the turn streams: the reasoning channel renders through the official bui ThinkingState (Reasoning-style prose trace, shimmer header while live, single-line ticker…
-- **`AgentChatSurface.tsx`** · 534 lines — The conversation body itself, extracted from the old overlay ChatSidebar so two shells can render the exact same chat: the full-page agent view on desktop (AgentPage) and the fullscreen mobile overlay (ChatSidebar).
+- **`AgentChatSurface.tsx`** · 524 lines — The conversation body itself, extracted from the old overlay ChatSidebar so two shells can render the exact same chat: the full-page agent view on desktop (AgentPage) and the fullscreen mobile overlay (ChatSidebar).
 - **`AgentPage.tsx`** · 186 lines — The agent as a real page, the way code harnesses lay it out: the conversation runs as a centered column filling the main area, the left rail keeps the navigation plus the conversation list, and a retractable per-conversation panel space…
 - **`AgentPanelChanges.tsx`** · 142 lines — The right panel's changes tab on the agent page: what this conversation's agent is touching, live.
 - **`AgentPanelSpace.tsx`** · 121 lines — The retractable panel column next to the chat on the agent page, in the spirit of the code-harness side panels: a tab strip at the top, one conversation's content below.
@@ -243,8 +243,9 @@ source to edit instead.
 - **`GitInitBanner.tsx`** · 56 lines — Dismissible info banner shown when the daemon reports that the project folder is not a git repository (`gitWarning: 'not-a-git-repo'` on the POST /api/agent/sessions response): agent edits then leave no git history to diff, revert or…
 - **`MarkdownContent.tsx`** · 302 lines — Renders an assistant message as Markdown: headings, lists, bold, links, blockquotes, GFM tables (remark-gfm) and fenced code blocks on the project's code-block token surface with a Copy button.
 - **`MessageList.tsx`** · 294 lines — Renders the folded conversation: user bubbles with the BeautifulUI context cards for every @task mention above the bubble, assistant turns as a BeautifulUI-style full-width panel (ONE activity block that updates in place while the turn…
+- **`ModelPickerMenu.tsx`** · 380 lines — The harness model picker, rebuilt the way bb (getbb) builds its own: a trigger button carrying the provider glyph and the current model, opening an upward menu with a search field on top, a row of provider icon tabs (derived from the…
 - **`OptionsChoiceCard.tsx`** · 83 lines — BeautifulUI 04 Approval Card, shared bui/ edition: when an assistant reply carries an ```options fenced block (one choice per line, parsed by agent-chat-options.ts), the block is NOT rendered as code; it becomes the official bui…
-- **`PromptBar.tsx`** · 315 lines — The agent chat composer, rebuilt ON the official BeautifulUI PromptBar (src/components/bui/PromptBar.tsx, beautifului.dev, MIT) in its external mode (demo={false}): the BUI component owns the exact visual structure (rounded composer,…
+- **`PromptBar.tsx`** · 303 lines — The agent chat composer, rebuilt ON the official BeautifulUI PromptBar (src/components/bui/PromptBar.tsx, beautifului.dev, MIT) in its external mode (demo={false}): the BUI component owns the exact visual structure (rounded composer,…
 - **`RecommendationCard.tsx`** · 62 lines — BeautifulUI 09 Recommendation Card, shared bui/ edition: when an assistant message contains a `PROPOSE: <action>` line on its own (the Kandown agent charter documents the convention: the agent suggests a board action), the line is…
 - **`SkillButtons.tsx`** · 128 lines — Renders the installed skills that declare a `chat` block as compact pill buttons above the PromptBar.
 - **`SkillsModal.tsx`** · 135 lines — A compact centered modal listing EVERY skill the daemon reports on /api/skills, not just the chat-capable subset the pill row shows: mono id, chat button label when the manifest declares one, scope chip, an interactive badge, the active…
@@ -336,7 +337,7 @@ source to edit instead.
 - **`dependencies.ts`** · 333 lines — Pure module that owns the single rule for moving tasks between board columns: a task may only enter the configured terminal status (and be archived) when every blocking dependency is resolved.
 - **`dependency-chip-format.ts`** · 54 lines — Shared text formatter for the "depends on" chip shown on task cards (web board view) and TUI list rows.
 - **`errors.ts`** · 138 lines — Typed errors used across the web UI to distinguish failure modes (browser support, permissions, disk full, corruption, parse errors) instead of relying on generic `Error` + string matching.
-- **`filesystem.ts`** · 1700 lines — Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.
+- **`filesystem.ts`** · 1730 lines — Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.
 - **`githubStars.ts`** · 122 lines — Client-side GitHub star count for the Kandown web app, with a localStorage cache.
 - **`globalErrors.ts`** · 108 lines — Last-resort safety net that catches uncaught JavaScript errors and unhandled promise rejections, logs them, and shows a throttled toast so the user is informed without being spammed.
 - **`grouping.ts`** · 136 lines — Pure functions that group board tasks by category (frontmatter `category:` field, legacy leading `[bracket]` title tag) or `#hashtag` markers in their titles.
@@ -465,6 +466,6 @@ source to edit instead.
 
 ## Coverage
 
-330 of 330 eligible files carry an `@description` header.
+331 of 331 eligible files carry an `@description` header.
 
 Every eligible file is documented. `scripts/build-codemap.js --check` keeps it that way.

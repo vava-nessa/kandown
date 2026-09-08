@@ -405,7 +405,12 @@
     "changesEmpty": "Selles vestluses puudutatud failid kuvatakse siin.",
     "touchedFiles": "Puudutatud failid",
     "liveDiffs": "Ülesannete reaalajas diffid",
-    "welcomeTitle": "Mida ma saan täna sinu heaks teha?"
+    "welcomeTitle": "Mida ma saan täna sinu heaks teha?",
+    "modelSearch": "Otsi mudeleid",
+    "modelAllProviders": "Kõik",
+    "modelGroup": "Mudel",
+    "modelEmpty": "Ükski mudel ei vasta sellele otsingule.",
+    "modelCustomUse": "Kasuta \"{{query}}\" kohandatud mudelina"
   },
   "agentSkills": {
     "skillsModalTitle": "Oskused",

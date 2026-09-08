@@ -405,7 +405,12 @@
     "changesEmpty": "Šeit parādīsies faili, kurus šī saruna ir skārusi.",
     "touchedFiles": "Aiztiktie faili",
     "liveDiffs": "Uzdevumu difi reāllaikā",
-    "welcomeTitle": "Ko es varu tev šodien izdarīt?"
+    "welcomeTitle": "Ko es varu tev šodien izdarīt?",
+    "modelSearch": "Meklēt modeļus",
+    "modelAllProviders": "Visi",
+    "modelGroup": "Modelis",
+    "modelEmpty": "Neviens modelis neatbilst šai meklēšanai.",
+    "modelCustomUse": "Izmantot \"{{query}}\" kā pielāgotu modeli"
   },
   "agentSkills": {
     "skillsModalTitle": "Prasmes",

@@ -577,7 +577,12 @@
     "changesEmpty": "Files this conversation touches will show up here.",
     "touchedFiles": "Touched files",
     "liveDiffs": "Live task diffs",
-    "welcomeTitle": "What can I do for you today?"
+    "welcomeTitle": "What can I do for you today?",
+    "modelSearch": "Search models",
+    "modelAllProviders": "All",
+    "modelGroup": "Model",
+    "modelEmpty": "No model matches this search.",
+    "modelCustomUse": "Use \"{{query}}\" as custom model"
   },
   "agentSkills": {
     "skillsLabel": "Skills",

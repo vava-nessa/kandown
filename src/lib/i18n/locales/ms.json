@@ -427,7 +427,12 @@
     "changesEmpty": "Fail yang disentuh perbualan ini akan muncul di sini.",
     "touchedFiles": "Fail yang disentuh",
     "liveDiffs": "Diff tugasan langsung",
-    "welcomeTitle": "Apa yang boleh saya buat untuk anda hari ini?"
+    "welcomeTitle": "Apa yang boleh saya buat untuk anda hari ini?",
+    "modelSearch": "Cari model",
+    "modelAllProviders": "Semua",
+    "modelGroup": "Model",
+    "modelEmpty": "Tiada model sepadan dengan carian ini.",
+    "modelCustomUse": "Guna \"{{query}}\" sebagai model tersuai"
   },
   "agentSkills": {
     "skillsModalTitle": "Kemahiran",

@@ -405,7 +405,12 @@
     "changesEmpty": "Датотеке које је овај разговор дирао појавиће се овде.",
     "touchedFiles": "Диране датотеке",
     "liveDiffs": "Диффи задатака уживо",
-    "welcomeTitle": "Шта могу да урадим за тебе данас?"
+    "welcomeTitle": "Шта могу да урадим за тебе данас?",
+    "modelSearch": "Претражи моделе",
+    "modelAllProviders": "Сви",
+    "modelGroup": "Модел",
+    "modelEmpty": "Ниједан модел не одговара овом претраживању.",
+    "modelCustomUse": "Користи \"{{query}}\" као прилагођени модел"
   },
   "agentSkills": {
     "skillsModalTitle": "Вештине",

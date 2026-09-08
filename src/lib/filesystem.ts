@@ -441,6 +441,36 @@ export async function fetchAgentHarnesses(): Promise<DetectedHarness[] | null> {
   }
 }
 
+/** 📖 One entry of the daemon model catalog (t324): `id` is the model id the
+ * harness accepts, forwarded verbatim at session start; often
+ * `provider/model` for ACP/pi catalogs. */
+export interface AgentModelEntry {
+  id: string;
+  name: string;
+  release?: string;
+  current?: boolean;
+}
+
+/** 📖 Daemon model catalog for one harness (t324): curated baseline merged
+ * with live ACP discovery, so the picker lists the model ids the harness
+ * account can actually run. Null when unreachable or rejected; the caller
+ * falls back to its static suggestions.
+ * 📖 t340 fix: this goes through the shared authenticated fetch. The call
+ * originally lived in the chat sidebar as a bare window.fetch without the
+ * daemon token, so every browser request answered 401 and the model picker
+ * never showed a single real model. */
+export async function fetchAgentModels(harnessId: string): Promise<AgentModelEntry[] | null> {
+  if (!isServerMode()) return null;
+  try {
+    const res = await apiFetch(`/api/agent/models?harness=${encodeURIComponent(harnessId)}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { models?: AgentModelEntry[] };
+    return Array.isArray(data.models) ? data.models : null;
+  } catch {
+    return null;
+  }
+}
+
 /* ═════════════ Agent chat (t307 runtime + t308 session index) ═════════════ */
 
 /** 📖 Structural guard for index entries read back over the wire: a backend

@@ -390,7 +390,12 @@
     "changesEmpty": "Fișierele atinse de această conversație vor apărea aici.",
     "touchedFiles": "Fișiere atinse",
     "liveDiffs": "Diff-uri de sarcini în timp real",
-    "welcomeTitle": "Ce pot face pentru tine astăzi?"
+    "welcomeTitle": "Ce pot face pentru tine astăzi?",
+    "modelSearch": "Caută modele",
+    "modelAllProviders": "Toate",
+    "modelGroup": "Model",
+    "modelEmpty": "Niciun model nu corespunde acestei căutări.",
+    "modelCustomUse": "Folosește \"{{query}}\" ca model personalizat"
   },
   "agentSkills": {
     "skillsModalTitle": "Abilități",

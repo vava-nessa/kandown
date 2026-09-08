@@ -390,7 +390,12 @@
     "changesEmpty": "Bestanden die dit gesprek aanraakt verschijnen hier.",
     "touchedFiles": "Aangeraakte bestanden",
     "liveDiffs": "Live taak-diffs",
-    "welcomeTitle": "Wat kan ik vandaag voor je doen?"
+    "welcomeTitle": "Wat kan ik vandaag voor je doen?",
+    "modelSearch": "Modellen zoeken",
+    "modelAllProviders": "Alle",
+    "modelGroup": "Model",
+    "modelEmpty": "Geen model komt overeen met deze zoekopdracht.",
+    "modelCustomUse": "\"{{query}}\" als aangepast model gebruiken"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

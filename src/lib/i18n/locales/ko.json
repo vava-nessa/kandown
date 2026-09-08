@@ -372,7 +372,12 @@
     "changesEmpty": "이 대화에서 건드린 파일이 여기에 표시됩니다.",
     "touchedFiles": "건드린 파일",
     "liveDiffs": "작업 실시간 diff",
-    "welcomeTitle": "오늘은 무엇을 도와드릴까요?"
+    "welcomeTitle": "오늘은 무엇을 도와드릴까요?",
+    "modelSearch": "모델 검색",
+    "modelAllProviders": "전체",
+    "modelGroup": "모델",
+    "modelEmpty": "이 검색과 일치하는 모델이 없습니다.",
+    "modelCustomUse": "\"{{query}}\"을(를) 사용자 지정 모델로 사용"
   },
   "agentSkills": {
     "skillsModalTitle": "스킬",

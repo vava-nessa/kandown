@@ -427,7 +427,12 @@
     "changesEmpty": "या संभाषणाने स्पर्श केलेल्या फाइल्स येथे दिसतील.",
     "touchedFiles": "स्पर्श केलेल्या फाइल्स",
     "liveDiffs": "लाइव्ह कार्य डिफ",
-    "welcomeTitle": "आज मी तुमच्यासाठी काय करू शकतो?"
+    "welcomeTitle": "आज मी तुमच्यासाठी काय करू शकतो?",
+    "modelSearch": "मॉडेल शोधा",
+    "modelAllProviders": "सर्व",
+    "modelGroup": "मॉडेल",
+    "modelEmpty": "या शोधाशी जुळणारे कोणतेही मॉडेल नाही.",
+    "modelCustomUse": "\"{{query}}\" कस्टम मॉडेल म्हणून वापरा"
   },
   "agentSkills": {
     "skillsModalTitle": "कौशल्ये",

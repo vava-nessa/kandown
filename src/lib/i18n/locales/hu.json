@@ -405,7 +405,12 @@
     "changesEmpty": "A beszélgetés által érintett fájlok itt jelennek meg.",
     "touchedFiles": "Érintett fájlok",
     "liveDiffs": "Élő feladat-diffek",
-    "welcomeTitle": "Miben segíthetek ma?"
+    "welcomeTitle": "Miben segíthetek ma?",
+    "modelSearch": "Modellek keresése",
+    "modelAllProviders": "Mind",
+    "modelGroup": "Modell",
+    "modelEmpty": "Egyik modell sem egyezik ezzel a kereséssel.",
+    "modelCustomUse": "A(z) \"{{query}}\" használata egyéni modellként"
   },
   "agentSkills": {
     "skillsModalTitle": "Készségek",

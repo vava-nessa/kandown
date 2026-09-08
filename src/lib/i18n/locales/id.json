@@ -372,7 +372,12 @@
     "changesEmpty": "Berkas yang disentuh percakapan ini akan muncul di sini.",
     "touchedFiles": "Berkas yang disentuh",
     "liveDiffs": "Diff tugas langsung",
-    "welcomeTitle": "Apa yang bisa saya lakukan untukmu hari ini?"
+    "welcomeTitle": "Apa yang bisa saya lakukan untukmu hari ini?",
+    "modelSearch": "Cari model",
+    "modelAllProviders": "Semua",
+    "modelGroup": "Model",
+    "modelEmpty": "Tidak ada model yang cocok dengan pencarian ini.",
+    "modelCustomUse": "Gunakan \"{{query}}\" sebagai model kustom"
   },
   "agentSkills": {
     "skillsModalTitle": "Skill",

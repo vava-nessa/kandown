@@ -372,7 +372,12 @@
     "changesEmpty": "فایل‌هایی که این مکالمه دست می‌زند اینجا نمایش داده می‌شوند.",
     "touchedFiles": "فایل‌های دست‌خورده",
     "liveDiffs": "دیف‌های زنده وظیفه‌ها",
-    "welcomeTitle": "امروز چه کاری برای تو می‌توانم انجام دهم؟"
+    "welcomeTitle": "امروز چه کاری برای تو می‌توانم انجام دهم؟",
+    "modelSearch": "جستجوی مدل‌ها",
+    "modelAllProviders": "همه",
+    "modelGroup": "مدل",
+    "modelEmpty": "هیچ مدلی با این جستجو مطابقت ندارد.",
+    "modelCustomUse": "از \"{{query}}\" به عنوان مدل سفارشی استفاده کن"
   },
   "agentSkills": {
     "skillsModalTitle": "مهارت‌ها",

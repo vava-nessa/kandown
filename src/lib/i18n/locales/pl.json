@@ -390,7 +390,12 @@
     "changesEmpty": "Pliki dotknięte przez tę rozmowę pojawią się tutaj.",
     "touchedFiles": "Dotknięte pliki",
     "liveDiffs": "Diffy zadań na żywo",
-    "welcomeTitle": "Co mogę dziś zrobić dla ciebie?"
+    "welcomeTitle": "Co mogę dziś zrobić dla ciebie?",
+    "modelSearch": "Szukaj modeli",
+    "modelAllProviders": "Wszystkie",
+    "modelGroup": "Model",
+    "modelEmpty": "Żaden model nie pasuje do tego wyszukiwania.",
+    "modelCustomUse": "Użyj \"{{query}}\" jako modelu niestandardowego"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

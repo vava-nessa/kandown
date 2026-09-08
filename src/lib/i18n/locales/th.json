@@ -427,7 +427,12 @@
     "changesEmpty": "ไฟล์ที่การสนทนานี้แตะจะปรากฏที่นี่",
     "touchedFiles": "ไฟล์ที่แตะ",
     "liveDiffs": "ดิฟงานแบบเรียลไทม์",
-    "welcomeTitle": "วันนี้ฉันทำอะไรให้คุณได้บ้าง?"
+    "welcomeTitle": "วันนี้ฉันทำอะไรให้คุณได้บ้าง?",
+    "modelSearch": "ค้นหาโมเดล",
+    "modelAllProviders": "ทั้งหมด",
+    "modelGroup": "โมเดล",
+    "modelEmpty": "ไม่มีโมเดลที่ตรงกับการค้นหานี้",
+    "modelCustomUse": "ใช้ \"{{query}}\" เป็นโมเดลแบบกำหนดเอง"
   },
   "agentSkills": {
     "skillsModalTitle": "ทักษะ",

@@ -427,7 +427,12 @@
     "changesEmpty": "ಈ ಸಂಭಾಷಣೆ ಸ್ಪರ್ಶಿಸಿದ ಫೈಲ್‌ಗಳು ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ.",
     "touchedFiles": "ಸ್ಪರ್ಶಿಸಿದ ಫೈಲ್‌ಗಳು",
     "liveDiffs": "ಲೈವ್ ಕಾರ್ಯ ಡಿಫ್‌ಗಳು",
-    "welcomeTitle": "ಇಂದು ನಾನು ನಿಮಗಾಗಿ ಏನು ಮಾಡಬಲ್ಲೆ?"
+    "welcomeTitle": "ಇಂದು ನಾನು ನಿಮಗಾಗಿ ಏನು ಮಾಡಬಲ್ಲೆ?",
+    "modelSearch": "ಮಾದರಿಗಳನ್ನು ಹುಡುಕಿ",
+    "modelAllProviders": "ಎಲ್ಲಾ",
+    "modelGroup": "ಮಾದರಿ",
+    "modelEmpty": "ಈ ಹುಡುಕಾಟಕ್ಕೆ ಹೊಂದಿಕೆಯಾಗುವ ಯಾವುದೇ ಮಾದರಿ ಇಲ್ಲ.",
+    "modelCustomUse": "\"{{query}}\" ಅನ್ನು ಕಸ್ಟಮ್ ಮಾದರಿಯಾಗಿ ಬಳಸಿ"
   },
   "agentSkills": {
     "skillsModalTitle": "ಕೌಶಲ್ಯಗಳು",

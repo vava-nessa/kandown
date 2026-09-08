@@ -405,7 +405,12 @@
     "changesEmpty": "Τα αρχεία που αγγίζει αυτή η συνομιλία θα εμφανιστούν εδώ.",
     "touchedFiles": "Αγγιγμένα αρχεία",
     "liveDiffs": "Ζωντανά diff εργασιών",
-    "welcomeTitle": "Τι μπορώ να κάνω για σένα σήμερα;"
+    "welcomeTitle": "Τι μπορώ να κάνω για σένα σήμερα;",
+    "modelSearch": "Αναζήτηση μοντέλων",
+    "modelAllProviders": "Όλα",
+    "modelGroup": "Μοντέλο",
+    "modelEmpty": "Κανένα μοντέλο δεν ταιριάζει με αυτή την αναζήτηση.",
+    "modelCustomUse": "Χρήση του \"{{query}}\" ως προσαρμοσμένου μοντέλου"
   },
   "agentSkills": {
     "skillsModalTitle": "Δεξιότητες",

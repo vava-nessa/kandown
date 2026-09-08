@@ -405,7 +405,12 @@
     "changesEmpty": "Datoteke koje je ovaj razgovor dirao pojavit će se ovdje.",
     "touchedFiles": "Dirane datoteke",
     "liveDiffs": "Diffovi zadataka uživo",
-    "welcomeTitle": "Što mogu učiniti za tebe danas?"
+    "welcomeTitle": "Što mogu učiniti za tebe danas?",
+    "modelSearch": "Pretraži modele",
+    "modelAllProviders": "Svi",
+    "modelGroup": "Model",
+    "modelEmpty": "Nijedan model ne odgovara ovom pretraživanju.",
+    "modelCustomUse": "Koristi \"{{query}}\" kao prilagođeni model"
   },
   "agentSkills": {
     "skillsModalTitle": "Vještine",

@@ -405,7 +405,12 @@
     "changesEmpty": "Soubory, kterých se tato konverzace dotkla, se zobrazí zde.",
     "touchedFiles": "Dotčené soubory",
     "liveDiffs": "Živé diffy úkolů",
-    "welcomeTitle": "Co pro vás dnes mohu udělat?"
+    "welcomeTitle": "Co pro vás dnes mohu udělat?",
+    "modelSearch": "Hledat modely",
+    "modelAllProviders": "Vše",
+    "modelGroup": "Model",
+    "modelEmpty": "Žádný model neodpovídá tomuto hledání.",
+    "modelCustomUse": "Použít \"{{query}}\" jako vlastní model"
   },
   "agentSkills": {
     "skillsModalTitle": "Dovednosti",

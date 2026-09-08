@@ -52,7 +52,7 @@ import {
   stripMentionMarkers,
 } from '../../lib/chat-mentions';
 import { SkillsModal } from './SkillsModal';
-import BuiPromptBar, { type PromptBarModel, type PromptBarRow } from '../bui/PromptBar';
+import BuiPromptBar, { type PromptBarRow } from '../bui/PromptBar';
 import type { ChatSkillButton } from '../../lib/store/types';
 
 interface PromptBarProps {
@@ -77,17 +77,9 @@ interface PromptBarProps {
   /** Esc (or dismiss) out of pick-task mode. */
   onDismissPickTask: () => void;
   /** 📖 Slim control row rendered inside the composer, above the textarea.
-   * ChatSidebar mounts the harness/permission cluster here. */
+   * ChatSidebar mounts the harness select, the t340 model picker and the
+   * permission chip here. */
   toolbar?: React.ReactNode;
-  /** 📖 Round 7: entries of the BUI model menu (per-harness, Default first). */
-  models: PromptBarModel[];
-  /** 📖 Round 7: the persisted model pick ("" = harness default). */
-  model: string;
-  /** 📖 Round 7: forwards a menu pick to ChatSidebar (persists + forwards). */
-  onModelChange: (model: string) => void;
-  /** 📖 t324: shows the "Custom model" free-text row in the model menu, so an
-   *  id the catalog does not list can still be typed. */
-  allowCustomModel?: boolean;
   /** 📖 t337 round 2: hero sizing for the welcome screen (empty conversation):
    * the BUI composer grows (tall), and the bottom-bar chrome (top border,
    * padding) disappears since the composer then floats centered in the page. */
@@ -107,10 +99,6 @@ export function PromptBar({
   onPickTask,
   onDismissPickTask,
   toolbar,
-  models,
-  model,
-  onModelChange,
-  allowCustomModel = false,
   tall = false,
 }: PromptBarProps) {
   const { t } = useTranslation();
@@ -292,10 +280,10 @@ export function PromptBar({
         menuOverride={pickTaskMode}
         onDismissMenu={pickTaskMode ? onDismissPickTask : undefined}
         placeholder={placeholder}
-        models={models}
-        model={model}
-        onModelChange={onModelChange}
-        allowCustomModel={allowCustomModel}
+        // 📖 t340: the BUI model menu is retired (its 16-entry cap made the
+        // big pi catalog unusable); the model picker moved into the toolbar
+        // as ModelPickerMenu, so the BUI control row renders no model button.
+        models={[]}
         labels={{
           send: t('agentChat.send', 'Send'),
           stop: t('agentChat.stop', 'Stop'),

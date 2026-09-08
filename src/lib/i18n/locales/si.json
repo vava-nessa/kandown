@@ -427,7 +427,12 @@
     "changesEmpty": "මෙම සංවාදය ස්පර්ශ කරන ගොනු මෙහි දිස්වේ.",
     "touchedFiles": "ස්පර්ශ කළ ගොනු",
     "liveDiffs": "සජීවී කාර්ය ඩිෆ්",
-    "welcomeTitle": "අද මම ඔබ වෙනුවෙන් කුමක් කරන්නද?"
+    "welcomeTitle": "අද මම ඔබ වෙනුවෙන් කුමක් කරන්නද?",
+    "modelSearch": "ආකෘති සොයන්න",
+    "modelAllProviders": "සියල්ල",
+    "modelGroup": "ආකෘතිය",
+    "modelEmpty": "මෙම සෙවීමට ගැළපෙන ආකෘතියක් නොමැත.",
+    "modelCustomUse": "\"{{query}}\" අභිරුචි ආකෘතියක් ලෙස භාවිතා කරන්න"
   },
   "agentSkills": {
     "skillsModalTitle": "කුසලතා",

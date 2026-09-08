@@ -405,7 +405,12 @@
     "changesEmpty": "Dateien, die diese Konversation berührt, erscheinen hier.",
     "touchedFiles": "Berührte Dateien",
     "liveDiffs": "Live-Aufgaben-Diffs",
-    "welcomeTitle": "Was kann ich heute für dich tun?"
+    "welcomeTitle": "Was kann ich heute für dich tun?",
+    "modelSearch": "Modelle suchen",
+    "modelAllProviders": "Alle",
+    "modelGroup": "Modell",
+    "modelEmpty": "Kein Modell passt zu dieser Suche.",
+    "modelCustomUse": "\"{{query}}\" als benutzerdefiniertes Modell verwenden"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

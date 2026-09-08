@@ -372,7 +372,12 @@
     "changesEmpty": "Bu konuşmanın dokunduğu dosyalar burada görünecek.",
     "touchedFiles": "Dokunulan dosyalar",
     "liveDiffs": "Canlı görev farkları",
-    "welcomeTitle": "Bugün senin için ne yapabilirim?"
+    "welcomeTitle": "Bugün senin için ne yapabilirim?",
+    "modelSearch": "Modelleri ara",
+    "modelAllProviders": "Tümü",
+    "modelGroup": "Model",
+    "modelEmpty": "Bu aramayla eşleşen model yok.",
+    "modelCustomUse": "\"{{query}}\" özel model olarak kullan"
   },
   "agentSkills": {
     "skillsModalTitle": "Beceriler",

@@ -405,7 +405,12 @@
     "changesEmpty": "जो फ़ाइलें यह बातचीत छूती है, वे यहाँ दिखेंगी।",
     "touchedFiles": "प्रभावित फ़ाइलें",
     "liveDiffs": "लाइव कार्य डिफ़",
-    "welcomeTitle": "आज मैं तुम्हारे लिए क्या कर सकता हूँ?"
+    "welcomeTitle": "आज मैं तुम्हारे लिए क्या कर सकता हूँ?",
+    "modelSearch": "मॉडल खोजें",
+    "modelAllProviders": "सभी",
+    "modelGroup": "मॉडल",
+    "modelEmpty": "इस खोज से मेल खाता कोई मॉडल नहीं।",
+    "modelCustomUse": "\"{{query}}\" को कस्टम मॉडल के रूप में उपयोग करें"
   },
   "agentSkills": {
     "skillsModalTitle": "कौशल",

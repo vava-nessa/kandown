@@ -405,7 +405,12 @@
     "changesEmpty": "Filer denne samtale rører, vises her.",
     "touchedFiles": "Rørte filer",
     "liveDiffs": "Live-diffs af opgaver",
-    "welcomeTitle": "Hvad kan jeg gøre for dig i dag?"
+    "welcomeTitle": "Hvad kan jeg gøre for dig i dag?",
+    "modelSearch": "Søg modeller",
+    "modelAllProviders": "Alle",
+    "modelGroup": "Model",
+    "modelEmpty": "Ingen model matcher søgningen.",
+    "modelCustomUse": "Brug \"{{query}}\" som brugerdefineret model"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

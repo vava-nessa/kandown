@@ -31,21 +31,22 @@ import { IconArrowDown } from '@tabler/icons-react';
 import { useStore } from '../../lib/store';
 import { MOTION } from '../../lib/motion-presets';
 import { matchAgent } from '../../lib/agent-aliases';
+import { fetchAgentModels } from '../../lib/filesystem';
 import { MessageList } from './MessageList';
 import { PromptBar } from './PromptBar';
-import type { PromptBarModel } from '../bui/PromptBar';
+import { ModelPickerMenu } from './ModelPickerMenu';
+import type { ModelEntry } from './ModelPickerMenu';
 import { SkillButtons } from './SkillButtons';
 import { AnswerForm } from './AnswerForm';
 import { DaemonGuardCard } from './DaemonGuardCard';
 import { GitInitBanner } from './GitInitBanner';
 import type { ChatSkillButton } from '../../lib/store/types';
 
-/** 📖 Fallback suggestion lists per harness, used while the daemon catalog
- * has not answered (and in demo mode, where there is no daemon). The real
- * menu comes from GET /api/agent/models: baseline plus live ACP discovery
- * (t324), so an installed harness shows the model ids it can actually run.
- * These strings only ever fill the gap, they never restrict: the menu always
- * ends with a free-text "Custom model" row. */
+/** 📖 Fallback catalog while the daemon has not answered (and in demo mode,
+ * where there is no daemon). The real menu comes from GET /api/agent/models:
+ * baseline plus live ACP discovery (t324), so an installed harness shows the
+ * model ids it can actually run. These strings only ever fill the gap, they
+ * never restrict: the picker always ends with a free-text custom row. */
 const MODEL_SUGGESTIONS: Record<string, string[]> = {
   claude: ['opus', 'sonnet', 'haiku'],
   codex: ['gpt-5.6', 'gpt-5.5'],
@@ -76,13 +77,14 @@ function persistModel(harnessId: string, model: string): void {
   }
 }
 
-/** 📖 One entry of the daemon's model catalog response (t324). Mirrored here
- * because the web bundle must not import CLI modules. */
-interface ModelCatalogEntry {
-  id: string;
-  name: string;
-  current?: boolean;
-}
+/** 📖 Harness id → the vendor credited for its no-slash catalog ids (claude's
+ * "opus" is an Anthropic model, codex's bare ids are OpenAI's). Drives the
+ * model picker's provider grouping and glyph. */
+const HARNESS_VENDOR: Record<string, string> = {
+  claude: 'anthropic',
+  codex: 'openai',
+  gemini: 'google',
+};
 
 interface AgentChatSurfaceProps {
   /** 📖 Whether the hosting shell is currently visible. Gates the model
@@ -171,7 +173,10 @@ export function AgentChatSurface({ active }: AgentChatSurfaceProps) {
   // and daemon hiccups fall back to the static suggestions; a failure is
   // never surfaced, a thin menu beats a broken one. Gated on `active`: an
   // idle shell must not spend a daemon round-trip per keystroke of state.
-  const [modelCatalog, setModelCatalog] = useState<ModelCatalogEntry[]>([]);
+  // t340 fix: the fetch goes through fetchAgentModels (authenticated); the
+  // bare window.fetch this used to be never carried the daemon token and
+  // 401'd on every request, so the picker never showed a real model.
+  const [modelCatalog, setModelCatalog] = useState<ModelEntry[]>([]);
   useEffect(() => {
     // 📖 Clear the previous harness's list first: discovery can take seconds
     // (an ACP handshake), and showing the old harness's models under the new
@@ -179,43 +184,24 @@ export function AgentChatSurface({ active }: AgentChatSurfaceProps) {
     setModelCatalog([]);
     if (!active || !selectedHarness) return;
     let cancelled = false;
-    void fetch(`/api/agent/models?harness=${encodeURIComponent(selectedHarness)}`)
-      .then(response => (response.ok ? response.json() : null))
-      .then((data: { models?: ModelCatalogEntry[] } | null) => {
-        if (cancelled) return;
-        setModelCatalog(Array.isArray(data?.models) ? data!.models : []);
-      })
-      .catch(() => {
-        if (!cancelled) setModelCatalog([]);
-      });
+    void fetchAgentModels(selectedHarness).then(models => {
+      if (!cancelled && models) setModelCatalog(models);
+    });
     return () => {
       cancelled = true;
     };
   }, [selectedHarness, active]);
 
-  // 📖 The BUI model menu: Default, then the catalog (or the static
-  // suggestions while it has not answered), capped so the popover stays a
-  // menu. The server already ordered the catalog newest-release-first (the
-  // models.dev source) or current-first (ACP discovery); only the Current
-  // entry is floated up here, keeping that order otherwise: re-sorting
-  // alphabetically used to bury the newest models behind provider blocks.
-  // A pick outside the list (typed in the custom row) stays valid: the key
-  // is forwarded verbatim at session start.
-  const modelMenu = useMemo<PromptBarModel[]>(() => {
-    const sorted = [...modelCatalog].sort((a, b) => (a.current === b.current ? 0 : a.current ? -1 : 1));
-    const discovered = sorted.slice(0, 16).map(entry => ({
-      key: entry.id,
-      name: entry.name,
-      tag: entry.current
-        ? t('agentChat.modelCurrentTag', 'Current')
-        : t('agentChat.modelSuggestedTag', 'Suggested'),
-    }));
-    const suggestions = (discovered.length > 0 ? discovered : (selectedHarness ? MODEL_SUGGESTIONS[selectedHarness] ?? [] : []).map(suggestion => ({ key: suggestion, name: suggestion, tag: t('agentChat.modelSuggestedTag', 'Suggested') })));
-    return [
-      { key: '', name: t('agentChat.modelDefault', 'Harness default'), tag: t('agentChat.modelDefaultTag', 'Auto') },
-      ...suggestions,
-    ];
-  }, [modelCatalog, selectedHarness, t]);
+  // 📖 t340: the FULL catalog goes to the bb-style ModelPickerMenu (search +
+  // provider tabs), no client cap: the pi catalog alone spans hundreds of
+  // openrouter models and the old 16-entry dropdown made them unreachable.
+  // While the daemon has not answered, the static suggestions stand in.
+  const modelEntries = useMemo<ModelEntry[]>(() => {
+    if (modelCatalog.length > 0) return modelCatalog;
+    return (selectedHarness ? MODEL_SUGGESTIONS[selectedHarness] ?? [] : [])
+      .map(id => ({ id, name: id }));
+  }, [modelCatalog, selectedHarness]);
+  const fallbackProvider = selectedHarness ? HARNESS_VENDOR[selectedHarness] ?? selectedHarness : '';
 
   // 📖 Round 4: delivery control visibility. Only interactive harnesses (pi,
   // ACP agents) can accept a steer/queue choice for follow-ups; one-shot
@@ -401,6 +387,14 @@ export function AgentChatSurface({ active }: AgentChatSurfaceProps) {
               <option key={harness.id} value={harness.id}>{harness.name}</option>
             ))}
           </select>
+          {/* 📖 t340: bb-style model picker (search + provider glyph tabs +
+           * full catalog) replacing the 16-entry BUI dropdown. */}
+          <ModelPickerMenu
+            models={modelEntries}
+            value={selectedModel}
+            onChange={handleModelChange}
+            fallbackProvider={fallbackProvider}
+          />
           <span
             className="ml-auto inline-flex flex-none items-center rounded-full border border-border bg-bg px-2 py-0.5 text-[10px] text-fg-muted"
             title={t('settings.permissionMode', 'Permission mode')}
@@ -411,10 +405,6 @@ export function AgentChatSurface({ active }: AgentChatSurfaceProps) {
           </span>
         </>
       }
-      models={modelMenu}
-      model={selectedModel}
-      onModelChange={handleModelChange}
-      allowCustomModel
     />
   );
 

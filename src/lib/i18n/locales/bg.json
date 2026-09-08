@@ -405,7 +405,12 @@
     "changesEmpty": "Файловете, засегнати от този разговор, ще се появят тук.",
     "touchedFiles": "Засегнати файлове",
     "liveDiffs": "Дифове на задачи в реално време",
-    "welcomeTitle": "С какво мога да помогна днес?"
+    "welcomeTitle": "С какво мога да помогна днес?",
+    "modelSearch": "Търсене на модели",
+    "modelAllProviders": "Всички",
+    "modelGroup": "Модел",
+    "modelEmpty": "Никой модел не отговаря на това търсене.",
+    "modelCustomUse": "Използвай \"{{query}}\" като персонализиран модел"
   },
   "agentSkills": {
     "skillsModalTitle": "Умения",

@@ -405,7 +405,12 @@
     "changesEmpty": "Tiedostot, joita tämä keskustelu koskettaa, näkyvät täällä.",
     "touchedFiles": "Kosketetut tiedostot",
     "liveDiffs": "Tehtävien diffit reaaliajassa",
-    "welcomeTitle": "Mitä voin tehdä puolestasi tänään?"
+    "welcomeTitle": "Mitä voin tehdä puolestasi tänään?",
+    "modelSearch": "Hae malleja",
+    "modelAllProviders": "Kaikki",
+    "modelGroup": "Malli",
+    "modelEmpty": "Mikään malli ei vastaa hakua.",
+    "modelCustomUse": "Käytä \"{{query}}\" mukautettuna mallina"
   },
   "agentSkills": {
     "skillsModalTitle": "Taidot",

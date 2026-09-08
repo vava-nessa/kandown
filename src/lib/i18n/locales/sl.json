@@ -405,7 +405,12 @@
     "changesEmpty": "Datoteke, ki se jih je ta pogovor dotaknil, se bodo pojavile tukaj.",
     "touchedFiles": "Dotaknjene datoteke",
     "liveDiffs": "Diffi nalog v živo",
-    "welcomeTitle": "Kaj lahko danes naredim zate?"
+    "welcomeTitle": "Kaj lahko danes naredim zate?",
+    "modelSearch": "Iskanje modelov",
+    "modelAllProviders": "Vsi",
+    "modelGroup": "Model",
+    "modelEmpty": "Noben model se ne ujema s tem iskanjem.",
+    "modelCustomUse": "Uporabi \"{{query}}\" kot model po meri"
   },
   "agentSkills": {
     "skillsModalTitle": "Veščine",

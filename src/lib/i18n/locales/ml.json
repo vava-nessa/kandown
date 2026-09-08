@@ -427,7 +427,12 @@
     "changesEmpty": "ഈ സംഭാഷണം തൊട്ട ഫയലുകൾ ഇവിടെ ദൃശ്യമാകും.",
     "touchedFiles": "തൊട്ട ഫയലുകൾ",
     "liveDiffs": "ലൈവ് ജോലി ഡിഫുകൾ",
-    "welcomeTitle": "ഇന്ന് ഞാൻ നിങ്ങൾക്കായി എന്ത് ചെയ്യും?"
+    "welcomeTitle": "ഇന്ന് ഞാൻ നിങ്ങൾക്കായി എന്ത് ചെയ്യും?",
+    "modelSearch": "മോഡലുകൾ തിരയുക",
+    "modelAllProviders": "എല്ലാം",
+    "modelGroup": "മോഡൽ",
+    "modelEmpty": "ഈ തിരച്ചിലിന് യോജിക്കുന്ന മോഡൽ ഇല്ല.",
+    "modelCustomUse": "\"{{query}}\" കസ്റ്റം മോഡലായി ഉപയോഗിക്കുക"
   },
   "agentSkills": {
     "skillsModalTitle": "കഴിവുകൾ",

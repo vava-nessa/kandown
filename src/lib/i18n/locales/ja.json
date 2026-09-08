@@ -372,7 +372,12 @@
     "changesEmpty": "この会話が触れたファイルがここに表示されます。",
     "touchedFiles": "触れたファイル",
     "liveDiffs": "タスクのライブ差分",
-    "welcomeTitle": "今日は何をお手伝いしましょうか？"
+    "welcomeTitle": "今日は何をお手伝いしましょうか？",
+    "modelSearch": "モデルを検索",
+    "modelAllProviders": "すべて",
+    "modelGroup": "モデル",
+    "modelEmpty": "この検索に一致するモデルはありません。",
+    "modelCustomUse": "「{{query}}」をカスタムモデルとして使う"
   },
   "agentSkills": {
     "skillsModalTitle": "スキル",

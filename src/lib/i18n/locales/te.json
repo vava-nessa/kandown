@@ -427,7 +427,12 @@
     "changesEmpty": "ఈ సంభాషణ తాకిన ఫైళ్లు ఇక్కడ కనిపిస్తాయి.",
     "touchedFiles": "తాకిన ఫైళ్లు",
     "liveDiffs": "ప్రత్యక్ష పని డిఫ్‌లు",
-    "welcomeTitle": "ఈరోజు నేను మీ కోసం ఏమి చేయగలను?"
+    "welcomeTitle": "ఈరోజు నేను మీ కోసం ఏమి చేయగలను?",
+    "modelSearch": "మోడల్‌లను వెతకండి",
+    "modelAllProviders": "అన్నీ",
+    "modelGroup": "మోడల్",
+    "modelEmpty": "ఈ శోధనకు సరిపోయే మోడల్ లేదు.",
+    "modelCustomUse": "\"{{query}}\" ను అనుకూల మోడల్‌గా ఉపయోగించండి"
   },
   "agentSkills": {
     "skillsModalTitle": "నైపుణ్యాలు",

@@ -372,7 +372,12 @@
     "changesEmpty": "Các tệp mà cuộc trò chuyện này chạm đến sẽ hiện ở đây.",
     "touchedFiles": "Tệp đã chạm",
     "liveDiffs": "Diff nhiệm vụ trực tiếp",
-    "welcomeTitle": "Hôm nay tôi có thể làm gì cho bạn?"
+    "welcomeTitle": "Hôm nay tôi có thể làm gì cho bạn?",
+    "modelSearch": "Tìm kiếm mô hình",
+    "modelAllProviders": "Tất cả",
+    "modelGroup": "Mô hình",
+    "modelEmpty": "Không có mô hình nào khớp với tìm kiếm này.",
+    "modelCustomUse": "Dùng \"{{query}}\" làm mô hình tùy chỉnh"
   },
   "agentSkills": {
     "skillsModalTitle": "Kỹ năng",

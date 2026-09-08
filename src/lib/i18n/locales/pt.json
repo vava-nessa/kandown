@@ -405,7 +405,12 @@
     "changesEmpty": "Os ficheiros que esta conversa tocar aparecerão aqui.",
     "touchedFiles": "Ficheiros tocados",
     "liveDiffs": "Diffs de tarefas em direto",
-    "welcomeTitle": "O que posso fazer por você hoje?"
+    "welcomeTitle": "O que posso fazer por você hoje?",
+    "modelSearch": "Pesquisar modelos",
+    "modelAllProviders": "Todos",
+    "modelGroup": "Modelo",
+    "modelEmpty": "Nenhum modelo corresponde a esta pesquisa.",
+    "modelCustomUse": "Usar \"{{query}}\" como modelo personalizado"
   },
   "agentSkills": {
     "skillsModalTitle": "Skills",

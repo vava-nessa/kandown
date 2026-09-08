@@ -1971,7 +1971,7 @@
     },
     {
       "path": "src/components/agent/AgentChatSurface.tsx",
-      "lines": 534,
+      "lines": 524,
       "title": "Agent chat surface (t337)",
       "summary": "The conversation body itself, extracted from the old overlay ChatSidebar so two shells can render the exact same chat: the full-page agent view on desktop (AgentPage) and the fullscreen mobile overlay (ChatSidebar).",
       "functions": [
@@ -2289,6 +2289,27 @@
       "exports": "MessageList"
     },
     {
+      "path": "src/components/agent/ModelPickerMenu.tsx",
+      "lines": 380,
+      "title": "Model picker menu (t340, inspired by bb's picker)",
+      "summary": "The harness model picker, rebuilt the way bb (getbb) builds its own: a trigger button carrying the provider glyph and the current model, opening an upward menu with a search field on top, a row of provider icon tabs (derived from the…",
+      "functions": [
+        {
+          "name": "splitModelLabel: bb-style \"Name (qualifier)\" splitter",
+          "summary": null
+        },
+        {
+          "name": "providerOf: provider segment of a catalog id",
+          "summary": null
+        },
+        {
+          "name": "ModelPickerMenu: trigger + searchable provider-tabbed model menu",
+          "summary": null
+        }
+      ],
+      "exports": "ModelPickerMenu"
+    },
+    {
       "path": "src/components/agent/OptionsChoiceCard.tsx",
       "lines": 83,
       "title": "Choice card for assistant ```options blocks (round 5, round 7 renderer)",
@@ -2303,7 +2324,7 @@
     },
     {
       "path": "src/components/agent/PromptBar.tsx",
-      "lines": 315,
+      "lines": 303,
       "title": "Prompt bar for the agent chat sidebar (round 7: official BUI shell)",
       "summary": "The agent chat composer, rebuilt ON the official BeautifulUI PromptBar (src/components/bui/PromptBar.tsx, beautifului.dev, MIT) in its external mode (demo={false}): the BUI component owns the exact visual structure (rounded composer,…",
       "functions": [
@@ -4060,7 +4081,7 @@
     },
     {
       "path": "src/lib/filesystem.ts",
-      "lines": 1700,
+      "lines": 1730,
       "title": "Browser file-system adapter",
       "summary": "Wraps the File System Access API, project discovery, task reads and writes, project config persistence, and recent-project IndexedDB storage.",
       "functions": [

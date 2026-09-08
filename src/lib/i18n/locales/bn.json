@@ -372,7 +372,12 @@
     "changesEmpty": "এই কথোপকথনে স্পর্শ করা ফাইলগুলি এখানে দেখা যাবে।",
     "touchedFiles": "স্পর্শকৃত ফাইল",
     "liveDiffs": "লাইভ কাজের ডিফ",
-    "welcomeTitle": "আজ আমি তোমার জন্য কী করতে পারি?"
+    "welcomeTitle": "আজ আমি তোমার জন্য কী করতে পারি?",
+    "modelSearch": "মডেল খুঁজুন",
+    "modelAllProviders": "সব",
+    "modelGroup": "মডেল",
+    "modelEmpty": "এই সার্চের সাথে মেলে এমন কোনো মডেল নেই।",
+    "modelCustomUse": "\"{{query}}\" কাস্টম মডেল হিসেবে ব্যবহার করুন"
   },
   "agentSkills": {
     "skillsModalTitle": "দক্ষতা",

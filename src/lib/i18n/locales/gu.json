@@ -427,7 +427,12 @@
     "changesEmpty": "આ વાતચીત સ્પર્શેલી ફાઇલો અહીં દેખાશે.",
     "touchedFiles": "સ્પર્શેલી ફાઇલો",
     "liveDiffs": "લાઇવ કાર્ય ડિફ",
-    "welcomeTitle": "આજે હું તમારા માટે શું કરી શકું?"
+    "welcomeTitle": "આજે હું તમારા માટે શું કરી શકું?",
+    "modelSearch": "મોડેલ શોધો",
+    "modelAllProviders": "બધા",
+    "modelGroup": "મોડેલ",
+    "modelEmpty": "આ શોધ સાથે કોઈ મોડેલ મેળ ખાતું નથી.",
+    "modelCustomUse": "\"{{query}}\" ને કસ્ટમ મોડેલ તરીકે વાપરો"
   },
   "agentSkills": {
     "skillsModalTitle": "કૌશલ્યો",

@@ -405,7 +405,12 @@
     "changesEmpty": "Filer som den här konversationen rör visas här.",
     "touchedFiles": "Rörda filer",
     "liveDiffs": "Live-diffar för uppgifter",
-    "welcomeTitle": "Vad kan jag göra för dig idag?"
+    "welcomeTitle": "Vad kan jag göra för dig idag?",
+    "modelSearch": "Sök modeller",
+    "modelAllProviders": "Alla",
+    "modelGroup": "Modell",
+    "modelEmpty": "Ingen modell matchar sökningen.",
+    "modelCustomUse": "Använd \"{{query}}\" som egen modell"
   },
   "agentSkills": {
     "skillsModalTitle": "Färdigheter",
