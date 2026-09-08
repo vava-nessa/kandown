@@ -94,6 +94,21 @@ future usages).
   RESOURCES, retried by withRetry). Follow-up candidate: throttle
   loadTaskContents concurrency.
 
+## Round 2 (vava feedback, commit 34d86d0)
+
+- Harness names in the conversation rows and the page header clipped in
+  the narrow rail (CLAUDE rendered as CLAIDE). Both now show the branded
+  agent glyph the cards use for assignees, name on hover; unknown
+  harnesses keep a tiny text chip. Files: SideNav.tsx, AgentPage.tsx.
+- An empty conversation renders a centered welcome screen: big greeting
+  (`agentChat.welcomeTitle`, translated in all 48 locales) with the
+  composer under it in the BUI `tall` shape (more padding, wider gaps,
+  15px text). The first send falls back to the classic bottom-anchored
+  chat. The agent PromptBar wrapper grew a `tall` prop that also drops
+  the bottom-bar chrome while centered; the BUI port's measure span now
+  mirrors the tall font. Files: AgentChatSurface.tsx,
+  agent/PromptBar.tsx, bui/PromptBar.tsx.
+
 ## Out of scope
 
 - Mobile-specific agent page redesign (the overlay stays).
