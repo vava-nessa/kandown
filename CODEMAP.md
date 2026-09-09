@@ -185,7 +185,6 @@ source to edit instead.
 
 ## `src/components/` — Web UI components
 
-- **`agentIcons.tsx`** · 305 lines — Local, self-contained brand glyphs for the coding agents kandown can assign tasks to, plus the resolver that turns a task's `assignee` string into either a branded agent logo or a human fallback avatar.
 - **`ArchiveView.tsx`** · 89 lines — Lists every archived task (frontmatter `archived: true`, files living under `tasks/archive/` at the project root) as a flat list.
 - **`Board.tsx`** · 404 lines — Renders the horizontal kanban board, filters tasks per column, wires drag-and-drop state, and forwards content-search matches to cards.
 - **`BulkActionBar.tsx`** · 537 lines — Appears when one or more tasks are selected in the web UI and behaves like Linear's selection bar: a floating pill at the bottom of the screen that exposes every action that makes sense for a group of tasks — change priority, assign,…
@@ -221,6 +220,7 @@ source to edit instead.
 - **`TaskWorkspace.tsx`** · 884 lines — Replaces the desktop task modal with a split workspace: a grouped task navigator on the left and the existing task editor surface on the right, including the shared markdown-backed subtask editor, while mobile keeps using the original…
 - **`Toaster.tsx`** · 47 lines — Renders transient success, info, and error messages emitted by store actions such as saving, creating, deleting, and permission failures.
 - **`UpdateNotificationBanner.tsx`** · 234 lines — Non-intrusive, floating update notification banner and 1-click installer prompt for the Web UI.
+- **`agentIcons.tsx`** · 305 lines — Local, self-contained brand glyphs for the coding agents kandown can assign tasks to, plus the resolver that turns a task's `assignee` string into either a branded agent logo or a human fallback avatar.
 
 ## `src/components/agent/`
 
@@ -302,16 +302,16 @@ source to edit instead.
 - **`ExtensionsPanel.tsx`** · 265 lines — Web UI surface for the extension system: lists installed extensions with their health and contributions, lets the user enable/disable them, and toggles restricted mode (default on).
 - **`GitHubStarsRow.tsx`** · 51 lines — One row in the *About* section: a star + the live GitHub star count, the whole row linking to the repo.
 - **`LanguageDropdown.tsx`** · 141 lines — Searchable flag+name dropdown over ORDERED_LANGUAGES, with arrow-key navigation and Enter-to-select.
-- **`schema.ts`** · 539 lines — Declarative metadata describing every setting (section, type, description, keywords) plus pure functions for reading/writing dotted config paths and building the sidebar search index.
 - **`SearchResults.tsx`** · 50 lines — Shown in the sidebar below the section nav once the user types a query; lists matching settings across all sections regardless of which section is currently active.
 - **`SettingRow.tsx`** · 176 lines — Renders one SettingDef as either a dense toggle row or one of the secondary controls: select dropdown, number stepper, text input, language picker, theme mode switcher, or notification permission button.
 - **`WorkOutputConfigurator.tsx`** · 525 lines — Provides the Workflow, Skills, and Kandown Work tabs backed by the same validated workflow packages and exact compiler output as the CLI.
+- **`schema.ts`** · 539 lines — Declarative metadata describing every setting (section, type, description, keywords) plus pure functions for reading/writing dotted config paths and building the sidebar search index.
 
 ## `src/components/ui/` — Primitive UI components
 
 - **`BlockNoteMarkdownEditor.tsx`** · 239 lines — Replaces Wysimark for the task description body.
-- **`button.tsx`** · 74 lines — The shared button component for the web UI, built on the shadcn pattern: a `cva` recipe defines the variant/size matrix, and `cn` merges the result with any caller-supplied classes so overrides win.
 - **`GradualBlur.tsx`** · 310 lines — Renders a multi-layered gradual backdrop blur overlay with custom curve distributions and responsive dimensions.
+- **`button.tsx`** · 74 lines — The shared button component for the web UI, built on the shadcn pattern: a `cva` recipe defines the variant/size matrix, and `cn` merges the result with any caller-supplied classes so overrides win.
 - **`input.tsx`** · 42 lines — A thin, themed wrapper around `<input>` following the shadcn pattern — it forwards its ref and every native prop, and only contributes styling plus a consistent focus ring.
 - **`textarea.tsx`** · 39 lines — The multi-line counterpart to `Input` — same shadcn pattern, same token-driven styling and focus ring, with a minimum height so an empty field still reads as multi-line.
 - **`theme-switcher-1.tsx`** · 156 lines — Three-option light/system/dark theme selector adapted from the provided shadcn-style component for Kandown's Vite/Zustand theme system.
@@ -451,7 +451,7 @@ source to edit instead.
 ## `scripts/` — Build & maintenance scripts
 
 - **`build-changelog.js`** · 174 lines — Rebuilds the root `CHANGELOG.md` from the per-version files in `changelogs/`.
-- **`build-codemap.js`** · 403 lines — Walks the source tree, reads the leading JSDoc block of every file, and emits two artefacts committed alongside the code: `CODEMAP.md` (an annotated tree an agent or a human reads to orient themselves) and `CODEMAP.json` (the same data…
+- **`build-codemap.js`** · 407 lines — Walks the source tree, reads the leading JSDoc block of every file, and emits two artefacts committed alongside the code: `CODEMAP.md` (an annotated tree an agent or a human reads to orient themselves) and `CODEMAP.json` (the same data…
 - **`build-extension-brief.js`** · 335 lines — Builds the machine-facing plugin authoring brief from the extension type contract, so the text an AI agent reads can never drift from the code it must compile against.
 - **`check-md-idempotence.js`** · 140 lines — Verifies that every .md task body survives a BlockNote parse → serialize cycle without changing.
 - **`inject-version.js`** · 31 lines — Writes `src/lib/version.ts` with the current package version.

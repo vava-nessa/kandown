@@ -258,15 +258,19 @@ function buildModel() {
     }
   }
 
-  files.sort((a, b) => a.path.localeCompare(b.path));
-  collapsed.sort((a, b) => a.dir.localeCompare(b.dir));
+  // 📖 Plain relational order, never localeCompare: collation differs between
+  // machines (macOS vs CI runners), which made the "byte-identical output"
+  // promise fail on one environment and pass on another.
+  const ordered = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+  files.sort((a, b) => ordered(a.path, b.path));
+  collapsed.sort((a, b) => ordered(a.dir, b.dir));
   missing.sort();
 
   // Group by directory, ordered by SCAN_ROOTS then alphabetically within each root.
   const dirs = [...new Set(files.map(f => f.dir))].sort((a, b) => {
     const rootA = SCAN_ROOTS.findIndex(r => a === r || a.startsWith(r + '/'));
     const rootB = SCAN_ROOTS.findIndex(r => b === r || b.startsWith(r + '/'));
-    return rootA - rootB || a.localeCompare(b);
+    return rootA - rootB || ordered(a, b);
   });
 
   return { files, collapsed, missing, dirs };
