@@ -26,8 +26,8 @@ source to edit instead.
 
 ## `bin/` — Published CLI entrypoints — GENERATED, never edit
 
-- **`kandown.js`** · 15347 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
-- **`tui.js`** · 62842 lines · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
+- **`kandown.js`** · ⚠️ **GENERATED** by tsup — edit `src/cli/cli.ts` instead
+- **`tui.js`** · ⚠️ **GENERATED** by tsup — edit `src/cli/tui.tsx` instead
 
 ## `src/` — Web app root
 
@@ -361,7 +361,7 @@ source to edit instead.
 - **`theme.ts`** · 338 lines — Manages appearance tokens (--radius, --shadow-*, --font-display, --motion-scale), the single bundled `base` preset (t333), installed community themes, and dynamic inheritance.
 - **`types.ts`** · 624 lines — Defines the board, task, config, filter, search, and appearance contracts shared by the Kandown web UI, CLI, TUI, and persistence adapters.
 - **`utils.ts`** · 24 lines — Provides `cn`, the single utility used across every web component to compose conditional class names.
-- **`version.ts`** · 9 lines · ⚠️ **GENERATED** by scripts/inject-version.js — edit `package.json` instead
+- **`version.ts`** · ⚠️ **GENERATED** by scripts/inject-version.js — edit `package.json` instead
 - **`watcher.ts`** · 518 lines — Watches project state through content-hashed File System Access polling or daemon SSE.
 
 ## `src/lib/__tests__/`
@@ -451,7 +451,7 @@ source to edit instead.
 ## `scripts/` — Build & maintenance scripts
 
 - **`build-changelog.js`** · 174 lines — Rebuilds the root `CHANGELOG.md` from the per-version files in `changelogs/`.
-- **`build-codemap.js`** · 425 lines — Walks the source tree, reads the leading JSDoc block of every file, and emits two artefacts committed alongside the code: `CODEMAP.md` (an annotated tree an agent or a human reads to orient themselves) and `CODEMAP.json` (the same data…
+- **`build-codemap.js`** · 429 lines — Walks the source tree, reads the leading JSDoc block of every file, and emits two artefacts committed alongside the code: `CODEMAP.md` (an annotated tree an agent or a human reads to orient themselves) and `CODEMAP.json` (the same data…
 - **`build-extension-brief.js`** · 335 lines — Builds the machine-facing plugin authoring brief from the extension type contract, so the text an AI agent reads can never drift from the code it must compile against.
 - **`check-md-idempotence.js`** · 140 lines — Verifies that every .md task body survives a BlockNote parse → serialize cycle without changing.
 - **`inject-version.js`** · 31 lines — Writes `src/lib/version.ts` with the current package version.

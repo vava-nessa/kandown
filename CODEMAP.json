@@ -8,14 +8,12 @@
     },
     {
       "path": "bin/kandown.js",
-      "lines": 15347,
       "generated": true,
       "source": "src/cli/cli.ts",
       "generatedBy": "tsup"
     },
     {
       "path": "bin/tui.js",
-      "lines": 62842,
       "generated": true,
       "source": "src/cli/tui.tsx",
       "generatedBy": "tsup"
@@ -42,7 +40,7 @@
     },
     {
       "path": "scripts/build-codemap.js",
-      "lines": 425,
+      "lines": 429,
       "title": "CODEMAP generator — turns JSDoc file headers into a navigable index",
       "summary": "Walks the source tree, reads the leading JSDoc block of every file, and emits two artefacts committed alongside the code: `CODEMAP.md` (an annotated tree an agent or a human reads to orient themselves) and `CODEMAP.json` (the same data…",
       "functions": [
@@ -4920,7 +4918,6 @@
     },
     {
       "path": "src/lib/version.ts",
-      "lines": 9,
       "generated": true,
       "source": "package.json",
       "generatedBy": "scripts/inject-version.js",
