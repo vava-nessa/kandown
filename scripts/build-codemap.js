@@ -389,8 +389,26 @@ function main() {
   const problems = [];
   for (const { path, content } of targets) {
     const name = relative(ROOT, path);
-    if (!existsSync(path)) problems.push(`${name} is missing`);
-    else if (readFileSync(path, 'utf8') !== content) problems.push(`${name} is out of date`);
+    if (!existsSync(path)) {
+      problems.push(`${name} is missing`);
+      continue;
+    }
+    const current = readFileSync(path, 'utf8');
+    if (current === content) continue;
+    problems.push(`${name} is out of date`);
+    // 📖 Print the first divergences so a cross-environment drift (the reason
+    // this check exists) shows its cause instead of a bare "out of date".
+    const currentLines = current.split('\n');
+    const freshLines = content.split('\n');
+    let shown = 0;
+    for (let i = 0; i < Math.max(currentLines.length, freshLines.length) && shown < 12; i += 1) {
+      if (currentLines[i] !== freshLines[i]) {
+        console.error(`  ${name}:${i + 1}`);
+        console.error(`    on disk: ${JSON.stringify(currentLines[i] ?? '')}`);
+        console.error(`    generated: ${JSON.stringify(freshLines[i] ?? '')}`);
+        shown += 1;
+      }
+    }
   }
   for (const path of model.missing) problems.push(`${path} has no @description header`);
 

@@ -42,7 +42,7 @@
     },
     {
       "path": "scripts/build-codemap.js",
-      "lines": 407,
+      "lines": 425,
       "title": "CODEMAP generator — turns JSDoc file headers into a navigable index",
       "summary": "Walks the source tree, reads the leading JSDoc block of every file, and emits two artefacts committed alongside the code: `CODEMAP.md` (an annotated tree an agent or a human reads to orient themselves) and `CODEMAP.json` (the same data…",
       "functions": [
