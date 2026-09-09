@@ -9,6 +9,7 @@ the index; click a version for the full notes.
 
 | Version | Date | Release | Changes |
 |---|---|---|---|
+| [0.59.0](changelogs/v0.59.0.md) | 2026-09-09 | Agent Page | 8 added · 5 fixed · 2 changed |
 | [0.58.0](changelogs/v0.58.0.md) | 2026-09-08 | Clean Slate | 4 added · 5 changed · 1 removed |
 | [0.57.0](changelogs/v0.57.0.md) | 2026-09-05 | Beautiful Agents | 4 added · 3 fixed · 2 changed |
 | [0.56.0](changelogs/v0.56.0.md) | 2026-09-05 | Beautiful UI | 6 added · 2 changed |
